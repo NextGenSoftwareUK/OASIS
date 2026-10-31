@@ -316,24 +316,15 @@ public partial class RadixOASIS
                 return result;
             }
 
-            // Generate Radix key pair
-            var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-            if (keyPair != null)
+            // Real Ed25519 key (Radix Engine Toolkit) and its preallocated account address on the configured network.
+            // The private key is hex, the form RadixBridgeHelper.GetPrivateKeyFromHex signs with.
+            using var privateKey = RadixEngineToolkit.PrivateKey.NewEd25519(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+            result.Result = new KeyHelper.KeyPairAndWallet
             {
-                // Radix uses Ed25519 keys - generate using cryptographic RNG
-                using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
-                var privateKeyBytes = new byte[32];
-                rng.GetBytes(privateKeyBytes);
-                
-                keyPair.PrivateKey = Convert.ToBase64String(privateKeyBytes);
-                // Derive public key (simplified - in production use proper Ed25519 library)
-                using var sha256 = System.Security.Cryptography.SHA256.Create();
-                var publicKeyBytes = sha256.ComputeHash(privateKeyBytes);
-                keyPair.PublicKey = Convert.ToBase64String(publicKeyBytes);
-                keyPair.WalletAddressLegacy = keyPair.PublicKey;
-            }
-
-            result.Result = keyPair;
+                PrivateKey = privateKey.RawHex(),
+                PublicKey = Convert.ToHexString(privateKey.PublicKeyBytes()).ToLowerInvariant(),
+                WalletAddressLegacy = Infrastructure.Helpers.RadixBridgeHelper.AccountAddress(privateKey, _config.NetworkId)
+            };
             result.IsError = false;
         }
         catch (Exception ex)

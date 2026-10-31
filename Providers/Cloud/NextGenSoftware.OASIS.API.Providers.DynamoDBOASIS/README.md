@@ -2,6 +2,8 @@
 
 DynamoDB OASIS Provider — AWS managed NoSQL key-value and document database for OASIS holons and avatars via AWSSDK.DynamoDBv2. https://oasisomniverse.one
 
+Username/email exports resolve the current avatar identity; their `version` selects exported holon roots, not the avatar's independent history. Use the current username/email when exporting older holons. Linked children keep independent versions. Explicit versioned avatar lookups still support historical identity fields. Export `version=-1` enumerates validated stored histories and filters ownership/deletion per version; archived roots retain stored child payloads, not a cross-version graph snapshot. Export versions below `-1` fail before identity I/O; ordinary reads still reject negative versions. `AWSOASIS` inherits this same implementation.
+
 ## Installation
 
 ```sh
@@ -46,7 +48,7 @@ Target-framework compatibility is not proof that every native dependency or exte
 
 ## Releases and further documentation
 
-[Verified release matrix](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/Devs/OASIS_RELEASE_STATUS.md) · [Documentation audit](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/Devs/RELEASE_DOCUMENTATION_AUDIT.md)
+[Verified release matrix](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/WIP/Release and Status/OASIS_RELEASE_STATUS.md) · [Documentation audit](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/WIP/Release and Status/RELEASE_DOCUMENTATION_AUDIT.md)
 
 Published NuGet versions are immutable. Updated documentation ships with a new unpublished package version after checked promotion and publication. This metadata-backed guide does not replace product-specific API examples or claim unverified platform tests.
 

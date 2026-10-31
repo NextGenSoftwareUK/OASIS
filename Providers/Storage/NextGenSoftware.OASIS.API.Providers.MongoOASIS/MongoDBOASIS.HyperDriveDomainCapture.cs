@@ -329,7 +329,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             catch (OperationCanceledException) { throw; }
             catch (Exception ex)
             {
-                SetSyncError(result, "MONGO_DOMAIN_CAPTURE_FAILED",
+                SetSyncError(result, ex is MongoCommandException command && command.Code == 286
+                        ? "MONGO_DOMAIN_CAPTURE_HISTORY_LOST" : "MONGO_DOMAIN_CAPTURE_FAILED",
                     "The hosted domain change stream was not durably projected.", ex);
             }
             return result;

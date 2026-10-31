@@ -8,6 +8,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL.Types
         protected override void Configure(IObjectTypeDescriptor<IHolon> descriptor)
         {
             descriptor.Name("Holon");
+            // The transport contract consists of the fields below. Inferring
+            // every IHolon member also exposes mutation methods and recursively
+            // discovers unsupported celestial input graphs during schema creation.
+            descriptor.BindFieldsExplicitly();
 
             descriptor.Field(h => h.Id).Name("id");
             descriptor.Field(h => h.Name).Name("name");

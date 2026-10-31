@@ -7,6 +7,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="AzureStorageConformanceTests.cs" />
+    <Compile Include="AzureStorageConformanceTests.cs" Condition="'$(IncludeNativeStorageConformance)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" Condition="'$(IncludeNativeStorageConformance)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/AtomicConformanceCheckpoint.cs" Link="TestSupport/AtomicConformanceCheckpoint.cs" Condition="'$(IncludeNativeStorageConformance)' == 'true'" />
+    <Compile Remove="ConformanceCheckpointTests.cs" />
+    <Compile Include="ConformanceCheckpointTests.cs" Condition="'$(IncludeNativeStorageConformance)' == 'true'" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
@@ -15,5 +21,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS\NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.csproj" />
     <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\CloudProviderFactory.Azure.cs" Link="Production\CloudProviderFactory.cs" />
   </ItemGroup>
 </Project>

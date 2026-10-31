@@ -21,8 +21,8 @@ using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 {
     [BsonDiscriminator("OAPPDNA")]
-    [BsonIgnoreExtraElements()]
-    public class HolonBase : IHolonBase// Equvilant to the HolonBase object in OASIS.API.Core.
+    [BsonIgnoreExtraElements(Inherited = true)]
+    public partial class HolonBase : IHolonBase, ISupportInitialize// Equvilant to the HolonBase object in OASIS.API.Core.
     {
         [BsonId]  
         [BsonRepresentation(BsonType.ObjectId)]  
@@ -54,13 +54,40 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public EnumValue<OASISType> CreatedOASISType { get; set; }
 
         [BsonRepresentation(BsonType.DateTime)]
-        public DateTime CreatedDate { get; set; }
+        public DateTime CreatedDate
+        {
+            get => _createdDate;
+            set
+            {
+                _createdDate = value;
+                if (_readingBson) _readCreatedDate = true;
+                else _readCreatedTicks = null;
+            }
+        }
 
         [BsonRepresentation(BsonType.DateTime)]
-        public DateTime ModifiedDate { get; set; }
+        public DateTime ModifiedDate
+        {
+            get => _modifiedDate;
+            set
+            {
+                _modifiedDate = value;
+                if (_readingBson) _readModifiedDate = true;
+                else _readModifiedTicks = null;
+            }
+        }
 
         [BsonRepresentation(BsonType.DateTime)]
-        public DateTime DeletedDate { get; set; }
+        public DateTime DeletedDate
+        {
+            get => _deletedDate;
+            set
+            {
+                _deletedDate = value;
+                if (_readingBson) _readDeletionDate = true;
+                else _readDeletionTicks = null;
+            }
+        }
 
         public int Version { get; set; }
         public Guid PreviousVersionId { get; set; }
@@ -106,10 +133,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public Guid ParentHolonId { get; set; }
         public Guid VersionId { get; set; }
         public GlobalHolonData GlobalHolonData { get; set; }
-        Guid IAuditBase.CreatedByAvatarId { get; set; }
-        Guid IAuditBase.DeletedByAvatarId { get; set; }
+        Guid IAuditBase.CreatedByAvatarId { get => ParseNativeAuditIdentity(CreatedByAvatarId,nameof(CreatedByAvatarId)); set => CreatedByAvatarId=value.ToString("D"); }
+        Guid IAuditBase.DeletedByAvatarId { get => ParseNativeAuditIdentity(DeletedByAvatarId,nameof(DeletedByAvatarId)); set => DeletedByAvatarId=value.ToString("D"); }
         //Guid IAuditBase.Id { get; set; }
-        Guid IAuditBase.ModifiedByAvatarId { get; set; }
+        Guid IAuditBase.ModifiedByAvatarId { get => ParseNativeAuditIdentity(ModifiedByAvatarId,nameof(ModifiedByAvatarId)); set => ModifiedByAvatarId=value.ToString("D"); }
+
+        private static Guid ParseNativeAuditIdentity(string value,string field)
+        {
+            if(string.IsNullOrEmpty(value))return Guid.Empty;
+            if(!Guid.TryParse(value,out var identity))throw new FormatException($"Native audit field {field} must contain a GUID or be empty.");
+            return identity;
+        }
 
         //For some unknown reason MongoDB insists on having these properties from the IOAPPDNA interface here so it can deserilaize the OAPPDNAJSON key on the MetaData property! 
         //TODO: Want to find a way to remove this and force MongoDB not to try and map the JSON into properties, want it to just treat it as a normal string! ;-)
@@ -139,7 +173,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public string STARODKVersion { get; set; }
         public string OASISVersion { get; set; }
         public string COSMICVersion { get; set; }
-        Guid IHolonBase.Id { get => CreatedByAvatar.Id; set => CreatedByAvatar.Id = value; }
+        Guid IHolonBase.Id { get => HolonId; set => HolonId = value; }
 
         public event EventDelegates.HolonsLoaded OnChildrenLoaded;
         public event EventDelegates.HolonsError OnChildrenLoadError;

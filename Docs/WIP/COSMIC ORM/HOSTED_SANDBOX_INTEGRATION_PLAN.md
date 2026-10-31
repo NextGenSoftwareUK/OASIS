@@ -1,0 +1,522 @@
+# Hosted sandbox integration — active priority
+
+31 October2026. User clarified that all demonstrated providers must run through
+the hosted sandbox, like MongoDB/SQLite/Neo4j. Local launchers are development
+evidence, not completion of hosted demo coverage. Pause additional local catalogue
+expansion (including Milvus) until hosted integration makes progress.
+
+## Current truth
+
+- Five providers are verified in the public sandbox: MongoDB, SQLite, Neo4j,
+  ActivityPub and IPFS. See CURRENT_STATUS.md for current release and evidence.
+- Additional native/local demonstrations and public catalogue links do not count
+  as hosted coverage. SOLID host integration is next; Azure remains pending,
+  free-only. Other providers require real hosted sources and acceptance evidence.
+- Provider count, catalogue heading count and local demonstration count are
+  separate measures. Never label local-only entries as ready hosted providers.
+
+## Visitor experience required for every provider
+
+- Use the existing live CQL tab: select a ready provider, choose a populated
+  example, run it immediately and inspect actual rows and provider provenance.
+- Supply a small multi-record source, a filtered subset and one Mongo-paired
+  federation preset. Keep sample preparation within the normal visitor flow;
+  do not require an SDK, local service or manually supplied credentials.
+- Link the corresponding local C# and HTTP demos alongside the live examples.
+  Verify links and runnable instructions against the released source revision.
+- Show whether a source is hosted, local-only or pending. State bounded membership
+  and other query limitations beside examples; do not imply full ORM parity.
+- Completion requires the deployed browser-to-native-provider round trip,
+  isolation checks and retained evidence, not just a launcher or passing unit test.
+
+## Required work
+
+1. Inspect deployed provider registrations/configuration and available persistent
+ hosted runtimes. Do not point public services at developer loopback addresses or
+ forward browser JWTs to third-party providers. No unapproved paid resources.
+2. Enrol actual configured sources through host-owned provider/read-policy registry.
+ Discovery exposes only configured/eligible profiles and supported query presets.
+ Fix hard-coded admission at its owning boundary; do not enable every enum blindly.
+3. Retain per-avatar visibility, authoritative catalogue ownership, response budgets,
+ native error propagation and capability-aware rejection. An arbitrary submitted
+ ID is not an authorization grant. No local proxy/fixture rows disguised as hosted.
+4. Use the existing CQL tab's query/request/result flow for newly enrolled providers;
+ show service location and native/emulator status. Keep optional local teaching
+ launchers separate. Unsupported metadata/text/etc queries must reject honestly.
+5. For each provider verify deployed health/config identity, authenticated full and
+ filtered multi-record query, Mongo federation, provenance, tenant isolation,
+ capability rejection, native-source observation and cleanup/retention contract.
+ Keep evidence counts/hashes/paths and never mark the provider hosted-green from
+ compiler tests, a catalogue card or local-only acceptance.
+6. Prioritise the requested demo providers (Oracle, IPFS, SOLID, ActivityPub,
+ Solana, AWS/Azure as available) before remaining breadth; preserve existing
+ Mongo/SQLite/Neo behaviour. Batch verified deployment once/twice daily.
+
+HyperDrive failure matrix/full ORM parity remain open. Hosted read/query evidence
+does not prove replication/CAS/transactions or100% uptime. Deep LINQ remains paused.
+
+Exact next step: inspect deployed eligible sources and existing server-side CQL
+read-access policy/registration, then implement and verify the first additional
+provider in the hosted request/result flow. No further local-only card milestone
+is a substitute for this requirement.
+
+## First registration fix verified —31 October2026
+
+ActivityPub was absent from the BootLoader registration switch. It now uses the same provider configuration factory as tests, with a valid instance-origin DNA default, explicit EnableCqlStatusKeySets and optional AccessTokenEnvironmentVariable. Overrides cannot rebind credentials to another origin; missing configured tokens reject, never downgrade to anonymous. Construction does no I/O and does not change the node default. DNA/provider/BootLoader builds and10 host configuration tests pass. TRX TestResults/HostedCqlIntegrationCurrent/activitypub-host-configuration.trx SHA256914658BF4790127FDE4F5E2705DA3053236CC05039D18CA79F64C7D496CCD431. Not deployed; no fourth hosted provider claimed.
+
+Next root cause: current ordinary-provider admission requires write tariffs for every ordinary provider whenever write routes exist. Query-only social sources need explicit read-only enrollment and an enforced write prohibition, not fabricated write grants. Then enrol actual hosted source/discovery/presets and verify authenticated live queries/Mongo pairing. Existing local launch links remain.
+
+## Query-only admission verified —31 October2026
+
+Server configuration now supports explicit QueryOnlyProviders separate from ordinary writable storage. Both preflight and direct physical dispatch prohibit non-CQL calls before provider/outbox I/O, including SDK policies with optional storage pricing disabled. Explicit query tariff required; duplicate/overlapping/native/ambiguous grants rejected and caller array mutation cannot change captured permission. Existing ordinary storage unchanged.12 new controls pass and52 existing configured-admission regressions pass (64total/no skips). TestResults/HostedCqlIntegrationCurrent/query-only-configured-regression.trx SHA25637BB48BF44B86578BED456EDD9F50817E458130964867FBEE9F981B9687D9C76. Initial12-case run had1 invalid test fixture (leaf reserved4 attempts instead of1); corrected fixture, original failed TRX preserved. No production contract weakened. Next is actual hosted source activation/discovery, then presets/federation and deployed/browser verification. Still only3 hosted providers verified. Guide Docs/Devs/CQL_QUERY_ONLY_ADMISSION.md.
+
+## Hosted registration/discovery and read-only activation verified
+
+Background enrollment now uses only the admission factory's captured query-only providers, leaves default/routing lists unchanged, and requires explicit ICosmicReadOnlyQueryActivation (no generic provisioning activation fallback). ActivityPub verifies one cancellable/1MiB-bounded native instance GET. Hosted deadline30s awaits the owning request. Authenticated GET /api/data/query-cql/providers describes configured tariff-backed sources; query-only readiness requires completed verification, not just an active flag. Native failures are explicit/redacted and never switch sources. Missing factory exposes no fabricated sources. Native feature descriptions are not full API/query parity guarantees; protocol federation remains unavailable until integrated.
+
+100 affected controls pass/no skips:64 Core admission/snapshot,21 API discovery/policy/sandbox and15 ActivityPub activation/configuration. Paths TestResults/HostedCqlIntegrationCurrent: hosted-source-core-regression.trx SHA25615C858164C7158B10FD6A529F69C138D3B5D7CA5DE67A6360EA1746422B42BF6; hosted-source-discovery-verified.trx SHA256621F150A12876B1447A1C30C732C4EEAE89F4D285B81D9DFE9381CE11F127E28; activitypub-read-only-host-activation.trx SHA256694715C916E354B886C3A9237BCA12FEF5E29E1422D8DD4D0E6BC38ADCDC445B. Injected/in-process controls, not deployed native acceptance. API producer build passes. Earlier missing ILogger import build failure preserved/corrected. Hosted verified count3 unchanged.
+
+Next concrete gap: HTTP filter operators lack In membership, while native protocol multi-record profiles require one membership AST; OR of point predicates is not equivalent admission. Implement bounded typed In without alternate native reads, then public source presets/browser discovery and live deployment. Keep original local launcher links. Hosted Azure remains pending/free-only.
+
+## HTTP In membership verified —31 October2026
+
+Hosted JSON CQL now compiles In arrays1–100 into one membership AST, sharing the scalar comparison literal boundary. Native key-set caps remain independent (ActivityPub40); point-only/oversized/lossy/mixed/null/nested inputs reject without fan-out.25 new compiler/plan/precision controls +21 existing source/admission controls pass (46/no skips). TestResults/HostedCqlIntegrationCurrent/hosted-membership-canonical-controls.trx SHA256B3BB787CE4BCED9C270661971A4B02F9B3BE38D4798FF4B79A9F0FF04D88DAB4. Initial2 failures were test assumptions about Core's existing canonical UInt64->Decimal/Single->Double AST representation; corrected tests assert both retained path type and exact value, no Core semantics changed. Original failed report preserved.
+
+Bounded read-only SSH from actual dev WEB4 reached mastodon.social v5.0.0-nightly.2026-10-31-security at2026-10-31T06:22:35.994Z, official account13179 and3 public/unlisted status IDs117466985005297414/117466983307949301/117411420916699261. This proves source reachability/discovery, not hosted CQL execution; count remains3. Ready JSON example in Docs/Devs/CQL_HTTP_MEMBERSHIP.md. Next: browser source discovery and native-key presets, configured query-only source/tariff rollout, deployed full/filter query, Mongo pairing/isolation. Azure still pending/free-only; local links retained.
+
+## Generic server examples and browser discovery verified
+
+CQL_HOSTED_QUERY_EXAMPLES_JSON owns bounded public row templates; duplicate/misowned/unknown input rejects and actual native capability plans must admit each example. Scripts/Sandbox/cql-activitypub-public-examples.json contains public3/2 selections. API discovery publishes canonical JSON bodies, no data read or authorization grant. Browser loads only server-discovered sources, uses the fixed WEB4 endpoint and captured session, disables on unavailable/invalid discovery, discards late sign-out/refresh data and retains separate local launch links. No frontend provider case is required for an enrolled source with examples. API60controls pass including25membership/13example-related/source/policy and shipping schema; Node25client controls pass. Evidence TestResults/HostedCqlIntegrationCurrent/hosted-examples-wire-shipping.trx SHA2562EB03927FE9B152C67E5326677E362D7F28AB48F2CEA758CAEC15D0E014E8621; hosted-client-discovery.log SHA2568AC51CA822FE1BF286BE7DB1D6A6CCE550BA9801D957CBB5D922FD28FDBF3373. Controls/in-process proof only; source main d8afd91 remains public until matching API rollout.
+
+Actual dev-node public native batch returned3selected statuses/19371B/274ms, payload SHA256566743c3644452212ebd261afe862e0053e42943c685fb848a0832df877edfa6. Still not a fourth hosted CQL provider. Next: protected configuration preparation and verified consolidated release, then actual CQL/browser full/subset and Mongo pairing/isolation. Inspect shared branch changes first; no unverified changes swept in. Hosted Azure pending/free-only; no new paid source provisioned.
+
+## Protected rollout preparation
+
+Original dev WEB4 variables captured create-only with Windows DPAPI at LocalState/COSMIC/HostedSourceRolloutCurrent/original-variables.dpapi (36902B); candidate-variables.dpapi (34406B) preserves all existing configuration except the explicit ActivityPub origin/key-set enrollment, zero read tariff and public examples. Existing ordinary3, write routes/tariffs/default/routing settings unchanged. No live variable mutation or deployment. Private values never enter docs/TestResults. Task commits parent51010455d and frontend16553be are remote-verified. Next: verify consolidated release scope, apply matching backend/configuration, publish frontend, then prove actual authenticated full/subset queries/browser/Mongo pairing and isolation. Hosted count remains3.
+
+## Scoped release ownership
+
+Broad task237403a75 preserved remotely. Parent work/cosmic-cql-hosted-release uses the same existing worktree and starts at fetched Development51f3c4c3;32 named files select ActivityPub native key sets/configuration, HTTP membership, host registry/example discovery, protected verifier, related tests/docs and matching Core pin6963c50. Other local-only provider adaptations are excluded. Core14-file delta includes existing native key-set/mixed-federation ownership and query-only fences; its targeted controls were verified earlier. Full API assembly before branch selection:415pass/0fail/12environment-dependent skips (not native acceptance), TRX TestResults/HostedCqlIntegrationCurrent/hosted-release-api-suite.trx SHA256D0DCE7B5541223696207320861DFC066A6051D234F04015E4BDAE3743A5DDC14. Eight protected-verifier controls pass. Full transitive producer build is running under its live exec handle; fresh selected consumer tests follow. No deployment/configuration mutation yet.
+
+Scoped release verification complete: full transitive API producer build succeeded (0errors/2537existing warnings); fresh API415pass/0fail/12environment-dependent skips, ActivityPub344pass/no skips, protected verifier8pass. Local demo compile exposed missing explicit demo dependencies and production BootLoader coupling in wildcard-linked CQL code. Included NativeKeySetWalkthrough/ProtocolPointApiHost/native test support and moved the concrete registry into the existing production-only CqlV1Providers composition file, preserving one registration owner and no alternate activation path. Native integration compile now passes; final API415pass after correction.36named parent files total. Final evidence TestResults/HostedCqlIntegrationCurrent/scoped-composition-api.trx SHA2564bb23921ef52556451b7e1e9253188711b5a8ccf51bdd4616814a3f439bae781; scoped-release-activitypub.trx SHA2563f9a9094ea6003da52bf2cecf4713da7731db9e400c367e44eb055240d45daad. Original failed compile evidence preserved. No additional native reads/writes/deployment inferred from these tests.
+
+## Live acceptance exposed and fixed request capture gap
+
+Deployment e71d76cc-daaf-465e-8923-f9b4b19b1589 succeeded at parentfd4c1e033/Core6963c50. Fresh normal free session discovery200 lists3existing plus ActivityPub ready/2examples. First actual AP query400 CQL_REQUEST_INVALID (operation a3e18ac8-9c55-ef15-e30c-9e7c09aa1dcc) proved compiler-only membership checks missed the owning HTTP snapshot, which rejected every array. CqlRequestCapture now freezes bounded1–100 scalar members only for In, rejects nested/null/oversized values, and retains scalar-operator restrictions. Example enrollment traverses the same snapshot boundary before publication.12new controls cover ownership/document disposal/bounds/scalar restrictions/exact shipped presets; full API427pass/0fail/12environment-dependent skips. Evidence TestResults/HostedCqlIntegrationCurrent/membership-capture-api.trx SHA256e3285fa69888817e1bab41b644edb732bc1ffea75f9b99db15000746d855b601. Failure intent/report preserved; no blind retry. Hosted verified count remains3 until actual fixed request/browser/Mongo acceptance. Frontend main remains held.
+
+Correction6735c4d461614be5ce9010d528b26cb870ae8fff is remote-verified on parent Development and task release branch. Matching Railway94623078-50c9-4129-9df9-9ee2e61dd834 is confirmed BUILDING; latest log07:21:29UTC reached dotnet publish. Observe this exact job, no replacement build. Core remains6963c50. Frontend16553be/main d8afd91 still held until actual corrected native read acceptance. Original retained session expired according to JWT exp; fresh rollout session identity/DPAPI are under LocalState/COSMIC/HostedSourceRolloutCurrent, check expiry before using and never impersonate expired owners. First failed public-posts query remains definitive400/pre-dispatch; explicitly corrected verification must retain separate intent/ACK/evidence. Source4ready is not four-provider acceptance; Mongo pairing/isolation remain required.
+
+## ActivityPub live HTTP and browser milestone
+
+Correction94623078 SUCCESS at6735c4d46. Actual authenticated HTTP full/subset200 return3/2rows, exact provider ActivityPubOASIS, reported count matches and subset projected identities belong to full selection. Evidence TestResults/HostedCqlIntegrationCurrent/activitypub-hosted-wire-acceptance.json SHA256BE5F7275720087C7E605C661B9705C21E6EB3C99496FA99BC37A56E0518F0D57. Earlier post-fix200 false0 was a verifier envelope error, not native empty data: identical full-response hash8871c9f9e7b11aa86807c6ce707d7cf288e99fbcf846f50958c226c9dd445ae8 reconciles it. Original report/intent kept, separate reconciliation record under protected rollout state; no original query resubmission.
+
+Frontend16553be is main/Production7455754340SUCCESS, public JS SHA2569d90ea5fb1aaefd4afd9d063a06785fe6ca8e1c3f504739deabdd7404b50ae90. Fresh normal browser visitor sandbox-5644a572 sees4available sources, auto-selected public AP example and actual3then2rows, with native status metadata/identities. Local catalogue links remain separate. Screenshots TestResults/HostedCqlIntegrationCurrent/activitypub-sandbox-three-posts.png SHA2564077C7C385FF01D3BD65A7751D9A918DF718D507D1A2EDCC22EC13765C0BB658 and -two-posts.png SHA2566735A67D5B43FB66D13E73B5614D10C9EA24ECE6DEAD0E72BD75614FCE118B92. Owned tab closed; token only page memory, existing free-avatar retirement lifecycle applies.
+
+Reproduced browser gap: X-OASIS-Operation-Id exists in direct HTTP but CORS did not expose it. Actual Startup CORS policy now exposes that one response header while preserving existing origins/methods/request headers and no cookies.3framework evaluation/application/preflight controls pass, browser-operation-header.trx SHA2569c3414b91deb01e9347be38a4d158cb40a3a35368c6997cb2dfa9c67efd46ac7. Code is task-branch only for next backend batch; do not claim live header correction yet. Four providers have hosted query/browser evidence; AP Mongo federation/pairing and broader HyperDrive/full ORM acceptance remain red. Next: named protocol federation admission/unsorted source,2acknowledged owned Mongo copies and ready5/4preset; preserve metadata encryption policy.
+
+## Protocol federation admission implemented, deployment pending
+
+Named/CurrentDefault federation accepts the explicit supported read profiles; AllEligible enumerates the same stable profile list filtered by captured query tariffs, preserving original3order and no silent fourth-source omission. Explicit unordered source permits native membership with per-target authorization/capability planning. Ordinary federation remains bounded8targets/800input rows/8attempts; original defaults remain3attempts. Additional read profiles and unordered sources explicitly lack continuation support, preserving the separate original cursor contract. Query-only storage-write fences remain intact.
+
+New captured-route reproduction exposed caller4attempts overriding a server3ceiling in controlled execution. Test failed with4native reads, retained protocol-federation-budget-reproduction.trx SHA2564B0C69E8F8EB6A3BDA9CC46ED7164C3F37B628752DB6B7239692A529A4472071. UsageExecutionHandle now exposes the captured ceiling; endpoint rejects the complete insufficient set before resolution/reads, without treating it as new permission/reservation. Private Core249a223 pushed/remote-verified and parent manifest/gitlink aligned. Per-attempt durable admission remains its existing owner.
+
+Final32Core controls pass/no skips (12new +20existing):3protocol scope/actor/receipt controls, complete fourth-source eligibility, tariff/capability/request-budget/authorization/descending rejection, server-ceiling denial and foreign-private result refusal from either adapter.61affected API discovery/example/membership/CORS controls pass/no skips. Evidence TestResults/HostedCqlIntegrationCurrent/protocol-federation-visibility.trx SHA2565DD2BE766C8127ED95C68360811F5E926AD9EE50648440DC4047BA4102903B1E; protocol-federation-final-api.trx SHA256B3DCF5025126EC746AB6C37DAB510522BB1678EB90B2F5BE71DB526BFBDF8FAD. Test fixtures use controlled adapters/capabilities, not real native records. Core.UnitTests explicitly links the new host descriptions/examples required by its linked production controller; no alternate runtime path.
+
+No new deployment/configuration/native writes. Live API remains6735c4d46/Core6963c50 and row-only AP3/2 browser acceptance. Next: extend server/client example operation contract, prepare2durably acknowledged owner-scoped Mongo records, and prove ready5/4federation/isolation; bundle with pending CORS fix in next verified deployment batch. Existing protected DNA inspection showed legacy HolonDataEncryption flagsfalse and AdditionalQueryableKeysempty, but effective authenticated V2 metadata policy still needs checking. No security setting changed or encrypted-storage claim made.
+
+## Versioned federation examples implemented, data preparation pending
+
+Server templates now declare Rows(default) or Federation and retain strict request ownership/bounds. Bounded request capture/validation is shared with the actual federation endpoint. Named federation template must contain its owning profile, unique enrolled read targets, PreserveCopies and no continuation/leaf override; no arbitrary URLs/write operations. Native capability planning covers each actual target. Dependency failure disables only that example, not independent public source reads; no replacement query/fan-out. Discovery version1 keeps leaf-only templates for existing clients, explicit examplesVersion=2 adds federation; unsupported versions400. Client selects only two fixed WEB4 endpoints, validates scope, freezes bodies, disables dependency-blocked choices and retains bearer only on WEB4.
+
+77affected APIcontrols pass/no skips (16new relative to61),32federation controls pass/no skips,29client controls pass/no skips (4new). Exact shipped federation-only operational fragment Scripts/Sandbox/cql-activitypub-federation-examples.json is compiler/planner-tested; existing leaf config unchanged. Fragment has NOT been merged into live variables and creates no records. Controlled adapter tests are not native5/4acceptance. Final evidence TestResults/HostedCqlIntegrationCurrent/hosted-example-version-api.trx SHA2563DD8BB8D8133FD6B3B8B091FC9D2C6633E76A67323FFA942F3FF94FF68EF9EC3; hosted-example-version-core.trx SHA256A587E0FFFB96A5C62BE3162B596CD43045D9537849CE3393437A319E174AD87A; hosted-federation-client.log SHA256625C85D63A5AC5152B09F7C1F329D3DC3DF7A645E084A66831048945BA824A32.
+
+Next: use authenticated preparation metadata with existing Core native-record stable identity (avatar/provider/dedicated demo source/key), then normal admitted load/save per record with preserved intent/ACK, privacy and no overwriting foreign/changed records. Browser currently receives only getToken/getBase, so server-derived identities avoid a duplicate client hash algorithm. Effective metadata protection/query policy must be respected. Public live remains4hosted row-query providers/AP3then2, no new deployment. Bundle tested federation, CORS and actual ready5/4pairing in next verified batch.
+
+
+### Visitor preparation controls — 31 October 2026
+
+Implemented owner-scoped native identities and browser preparation through normal
+create-only saves. Eight helper tests and two UI tests cover reuse, edited/foreign
+records, lost acknowledgements, storage failure, session changes and concurrent
+intents. API86/Core383/client39 pass, zero skipped. Initial test compilation found
+a test-namespace Avatar stub collision; fully qualified Core Avatar fixes the test.
+Evidence: TestResults/HostedCqlIntegrationCurrent/demo-preparation-api.trx,
+demo-preparation-auth-core.trx and demo-preparation-client-final.log.
+No hosted preparation/configuration writes occurred. Next: publish the coherent
+batch and verify actual5/4ActivityPub+Mongo rows and tenant isolation in-browser.
+
+- demo-preparation-api.trx SHA256 4f34dc55673a3b83b93f4b2050bf74165a6bfa61a6ec0312809a58ee60f7c29e.
+- demo-preparation-auth-core.trx SHA256 24c971f16fc12ebba0d359e809550cec184c236383b766f914f46676e18ef732.
+- demo-preparation-client-final.log SHA256 d927ab07712a8180a11024792417c675efd75092a9da6c42c7475f083fde2e88.
+
+### Hosted browser federation and preparation acceptance — 31 October 2026
+
+Core249a223 and parent51fc64f5e are fast-forwarded/pushed/remote-verified on
+Development; no concurrent changes were overwritten. Railway deployment
+14b4e5e7-6646-4e20-b05f-a3025b3819d1 SUCCESS, image
+sha256:45f5ff0ab28241eadb622888f96aef01fa11987d4ddbdc71e4f1ddf56f3d8cb6.
+Frontend main2b46ded, production7456696386 success. Published client bytes match
+both tested scripts exactly. Four configured AP examples are observed, only that
+configuration variable changed, protected prior/candidate values and ACK retained.
+
+Normal browser visitor sandbox-60b2bb72 acknowledged2private Mongo saves. Full
+federation returns5actual rows (AP3/Mongo2), subset4(AP2/Mongo2). Repeated setup
+returns0saved/2existing without new writes. Independent sandbox-46616f4f sees only
+3public AP rows; exact foreign Mongo IDs return0. SQLite and Neo4j each return
+2matching private replicas (ID/name/description/version/owner/metadata). No native
+AP writes, no manual replica repair or business replay. Operation IDs are visible
+in the browser, proving the deployed CORS correction. Owned tabs closed; sample
+avatars/data remain subject to the normal sandbox expiry/cleanup policy, not
+claimed already removed. This is not universal failover/load-balance acceptance.
+
+Raw evidence lives only in TestResults/HostedCqlIntegrationCurrent. Durable
+configuration and acceptance ACK live in LocalState/COSMIC/HostedSourceRolloutCurrent.
+
+- browser-federation-acceptance.json (915B), SHA256 feaa8658d7275aa5158230ca1c144b2648550972455731e56e2359a0f89d431a.
+- browser-preparation-ack.json (256B), SHA256 b65f8c64c6e1f8f1e4cd51edc31fc9581d818d1512422129a1399e0166fd67c7.
+- browser-preparation-repeat.json (148B), SHA256 ca272845d713bdc1d032e4171a9d710a1fb1f003c5952cfd4448b1f88b981832.
+- browser-activitypub-mongo-five.json (15026B), SHA256 e86456888d13346f1249ba0a7fd7128907cd3a48fae814128c113729b228ff09.
+- browser-activitypub-mongo-four.json (11524B), SHA256 8527341c12fc6d77ae4f71327b6cbd47a7d568dc387b0b83a7123c9e0ce38c6f.
+- browser-activitypub-mongo-other-visitor.json (10718B), SHA256 4f5c1f81039c5c58ba9ceffe4d7f3fe9aa9bb1b9e1fd14c3d0cd49b297372f47.
+- browser-private-mongo-isolation.json (468B), SHA256 f25ce206d8d8e73e346dec10da030881b2cc2b1d90c3f56e7c12a18cad3bd171.
+- browser-preparation-sqlite-replicas.json (2144B), SHA256 7a85da2ebc3f0f10838b29e0fbf0f9f659b51b61e544700797d794e9c596a743.
+- browser-preparation-neo4j-replicas.json (2140B), SHA256 f48e587d8891c6154f5850e4639448b435fd318fb7bc394213c3187a0c68d7e5.
+- browser-activitypub-mongo-four.png (86492B), SHA256 876e08bafc765ec5a7c76609d62083392d0efcc3939ede2f66b27111aef7fba6.
+
+Next-provider feasibility inspection: protected prior variables contain no Oracle/AWS/SOLID provider entries. IPFS connection is localhost:5001 and a catalogue is configured, but daemon/source availability is unverified. Scoped branch has CID equality; preserved broad branch has the native bounded key-set implementation (50line delta). Production host registry requires ICosmicReadOnlyQueryActivation; do not enroll IPFS by bypassing it or claiming local acceptance as hosted. Next inspect reusable hosted/Linux native resources, then explicitly provision source/configuration and test the live flow. No runtime/service/account was created in this inspection.
+
+
+### Hosted IPFS source preparation — 31 October 2026
+
+Restored only the preserved bounded CID membership implementation and four
+controls; explicit DNA EnableCqlCidKeySets reaches the actual BootLoader provider.
+Read-only activation now shares the native health owner with normal activation,
+propagates cancellation and performs no catalogue/data mutation. Six new controls
+cover native readiness/errors/cancellation. Initial23-case run reproduced one
+blank-version readiness defect; fixed at the shared activation owner. Final23pass,
+zero skips. Full transitive API build passes after the fix.
+
+One new native source case creates/retains a separate public3-record demo cohort
+on the existing Kubo0.43.1 repository/key. Actual CID membership returns3/2matching
+IDs/names/CIDs; a second run verifies the same acknowledged source without saves.
+Four CAR exports retain the catalogue and selected records for hosted transfer;
+raw source data stays LocalState, not docs or TestResults. No historical fixture
+was restored/replayed. This does not establish hosted IPFS coverage (still4live
+providers).
+
+Runner testing found cross-script process-handle scope loss in its first readiness
+failure. Exact owned PID48452 was verified by executable/arguments, then shut down
+via native RPC; listener absence confirmed. One explicit shared owner object now
+survives the build lease scope, and normal native runs stop the owned daemon in
+finally. Use the same explicit non-browser native User-Agent as existing runners.
+Original failed readiness/activation evidence preserved. No source save occurred
+before that readiness failure.
+
+Hosted SSH inspection: Linux x64/Node24.19.0 and existing volume,4,818,817,024Bfree,
+no IPFS runtime or repository at the intended owned paths. Official distribution
+checksum metadata timed out; no archive downloaded/installed. Official OCI
+ipfs/kubo:v0.43.1 index digest
+sha256:b293923d66e490e70ced64df42ea7a6cf7eac2740e3fb29101df18070fa7be48,
+linux-amd64 digest
+sha256:97ece99cfccea95613ab3634f761d0200e9e8b1f49294b5428e19b5b9056759d,
+compressed image layers59,145,329B. Metadata only; no image pulled. Next package
+that pinned Linux runtime and own its lifecycle on the existing sandbox volume,
+import/verify the retained source with protected key/configuration, then enroll
+and prove actual hosted leaf3/2and Mongo5/4/isolation in the existing generic UI.
+
+- ipfs-host-initial.trx SHA256 d299d36723a2a7cdbc98413d557fad57e023141466210731206005bc462b2eb2.
+- ipfs-host-final.trx SHA256 215cc87ceef14e700c1b6cf2f7e1bf219faf9b283b0903dd3f9f42fbd0089021.
+- ipfs-host-source.trx SHA256 baaa16301d8e6e5e00f88f12e02fab04816069b8da9dfe2a9bda62fc7646d27a.
+- ipfs-host-source-summary.json SHA256 9aad480517eae883ae77d6140e61bb789196e35eb1b676d66260dc4e5d1d5a75.
+- ipfs-runtime-manifest.json SHA256 5fec6634543b1618b5d4198e3db2141c3a6da59995c7ffe10af70e9049883c10.
+- ipfs-host-resources.json SHA256 7971b34f94f39a7d21bd0bfbf8061d6caf6da8f2c85f77841575ea3e0ca21c45.
+
+### Owned hosted IPFS runtime — prepared release
+
+Pinned official multi-platform Kubo0.43.1stage in WEB4 Dockerfile, no Windows image
+or archive download. Explicit sandbox entrypoint uses authoritative DNA Sandbox.Enabled,
+not the obsolete environment flag (actual service has DNA true/env absent). Bootstrap
+captures a bounded canonical hash-checked encrypted CAR bundle, persists intent,
+initializes/imports once and refuses interrupted/changed state. Native health binds
+version and peer identity; process owner awaits readiness and owns termination of
+Kubo/API. RPC loopback5001 only, no gateway/swarm, offline mode disclosed.
+
+Ten Node controls pass/no skips, including real cached-runtime initialization/import,
+repeat identity/config/ACK preservation, interrupted-state rejection and explicit
+source migration rejection. The sole disposable native probe under
+TestResults/HostedIpfsBootstrapCurrent was removed only after assertions and awaited
+CLI completion; zero ports/daemon processes. Two new API configuration cases plus
+existing public/federation example controls pass (counts in TRX). Native source/key
+are unchanged. No remote bootstrap/configuration mutation yet; protected before and
+candidate variables stored under LocalState/COSMIC/HostedSourceRolloutCurrent.
+
+- ipfs-runtime-tests-final.log SHA256 f6e457073e69898b983f6f8aa9d0d0611a81352b453feb472349b0589f211ec0.
+- ipfs-runtime-native-proof.json SHA256 404f460092f729e04caae8ddbe3b7191a47fb9a6d0ea05fd66d70ac8e6302efc.
+- ipfs-hosted-examples.trx SHA256 f45e5eef5567e61939bf7a4749075b66fd11fb37c2c2f1d0b91ef0eb67e5411f.
+
+Hosted4543d364-5b9f-4a04-8b98-8f94a9dc4912 SUCCESS at1b1105ba4, image sha256:317536597c04b52b9dc26a3ee07390202dad115b0c03153fed70655b328663fc; protected six-variable update independently observed/ACK, existing source directory absent before bootstrap. Fresh browser sandbox-1b7b4523 discovers IPFS but valid3-CID query fails503 CQL_INVALID_SOURCE_KEY, operation32200696-507f-91a0-67d4-1bf391fb4618, requestf0e1b7ca-181f-4f6b-afcf-0b332467c3a1. No user save/preparation issued. Shipping APIUnit reproduces actual cause: Ipfs.Core0.55 expects SimpleBase.Base58.Bitcoin field from1.3.1, full API SolSharp4.0.0 selects5.6.4 property. Actual native-only tests had1.3.1 and missed shipping unification; original failing TRX ipfs-shipping-cid-reproduction.trx and browser ipfs-live-initial-failure.json retained. Next rebuild exact upstream core source against unified current dependency, no fallback parser/global downgrade/assembly swapping. Cached package has PDBs but no source; original NuGet nuspec and v0.55.0 tag agree commit07fbb4392cd57a8ba771d2e5c3279a15d5ffbeae. Existing library source not found in current vendored trees.
+
+
+### Shipping ABI correction — verified before deployment
+
+Vendored only exact67upstream src files +MIT license (306,860B), Git blob hashes
+verified at07fbb4392cd57a8ba771d2e5c3279a15d5ffbeae; archive89,333B memory-only,
+SHA25627adad4c262cd585b8b61bd51f03f770ebd74fc6ba126b97bcb179065d60b9a3.
+No new runtime/environment/clone. Cache-only restores use existing dependencies.
+Modern core target binds SimpleBase5.6.4; standard2.0 retains1.3.1target compatibility.
+Small Base16 API adaptations preserve canonical encodings via existing HexString
+codec/array contract; hex/base32/CIDv0/v1 vectors pass, including independent Kubo
+CIDv1 and Python RFC4648 outputs. No codec fallback/assembly rewrite/global downgrade.
+
+First source rebuild still failed shipping test because the caller restored the
+old NuGet core through transitive dependencies despite a library-private source
+reference. Explicit executable/test SDK composition in Directory.Build.targets
+now makes Ipfs.Core0.55a project in the real API graph. Patched file version records
+the new private binary; file-version change alone did not fix graph ownership and
+its failed evidence is preserved. Same DLL bytes in source/API/test/package.
+
+Full API build passes;28shipping API/schema +27provider/codec controls +1retained
+native source verification pass. Provider package169,159B embeds matching core/HTTP
+DLLs and upstream license, without old/unpublished SDK NuGet dependencies. Unused
+Ipfs.Engine removed (only a commented field referred to it); shared runtime
+references own dependencies for source and package. Complete/missing-core Docker
+context guards pass. LocalState excluded from local Docker context; it was already
+Git-ignored and absent from the remote build clone.
+
+Original deployed source/peer/config/ACK preserved before correction; native owned
+volume folder26,189B, image Kubo binary124,384,728B, volume free4,818,628,608B.
+Only deployment SDK correction is next; no source re-publication or Mongo saves.
+
+- ipfs-explicit-api.trx SHA256 f617c1e34ffdd5f32f1f24c2eeeebfcb74af485dce36c4e0ef76fb449b91d984.
+- ipfs-abi-provider-final.trx SHA256 425fc8e4da2951655fb1e2adb9d0a3d4a6c08530ca969fb3aa22f885f97b17d4.
+- ipfs-host-source.trx SHA256 29e457968a08e8fb664ad5d8ad8125f98b3e0bace1477211dfac3679c1bd0420.
+- ipfs-abi-artifact-proof.json SHA256 d67abea727760f7d6fdea19e88cbd968c5b98af8dce6ade64a7127b3f134b4c7.
+- ipfs-build-input-proof.json SHA256 a6eb706ce34179f30644d414ff037f29f2893a58f3908b2b5797461e70c1ca8a.
+- ipfs-server-state-before-sdk-fix.json SHA256 fd819dba1e442a94e97e2beb24a09e020d80df58c68bf8509344db0e448470a9.
+
+### Hosted IPFS acceptance — 31 October 2026
+
+Correction913b9d0bf (SDK patchf60758a1e plus preserved concurrent f0b72a55e
+provider-I/O manifest) deployed64bbc646-5d06-412a-a5bd-eb62ca9ae737 SUCCESS,
+image sha256:9410328bb615830561ebd001eb4ebb0e6c851ce68dea0f091b75239fb040ef2f.
+No configuration resubmission/source re-publication. Public frontend unchanged
+2b46ded: generic discovery/operation/preparation contracts needed no provider case.
+
+Fresh normal visitor sandbox-6998fcb9 reads native IPFS3records and2subset, exact
+original IDs/CIDs/names. Acknowledged2private Mongo snapshots, full federation5
+(IPFS3/Mongo2), subset4(IPFS2/Mongo2). Repeated preparation0saved/2existing.
+Independent sandbox-869466e8 sees3public IPFS rows only; exact foreign Mongo IDs0.
+SQLite and Neo4j each return2replicas with matching ID/name/description/version/
+owner/private flag/metadata. No user IPFS writes or manual replica repair.
+Five providers now have actual hosted query evidence; this is bounded CID lookup
+on an isolated offline Kubo node, not general IPFS search/public-network resilience
+or full ORM/provider parity. Original failed request/SDK reproduction retained.
+
+Owned tabs7/8closed. Tokens stayed in page memory. Demo avatars/private snapshots
+remain under normal sandbox expiry/cleanup; retained IPFS source remains product
+fixture. Post-correction SSH read-only probe timed out twice on port22, so physical
+peer/config/ACK persistence was not independently re-observed; do not claim that
+post-redeploy measurement. Before-state hashes and native repeat-bootstrap tests
+are retained. Public CQL source IDs/CIDs remain identical and native results prove
+actual hosted data access despite the unavailable SSH observation.
+
+- ipfs-live-acceptance.json (961B), SHA256 05179c2e6aa22f02a38f3e6f4708f9e2d6465be66197e8b7f0ae8a6b2700661c.
+- ipfs-live-three.json (2091B), SHA256 c6d00c2e9886a2a7e90b55b16284ec6e7460b252ed2729071da8b2b962d91945.
+- ipfs-live-two.json (1558B), SHA256 2264eb874a1c4134dc44a65fce1e5cd9db0d27455b807dfcb978f6247909cba8.
+- ipfs-live-preparation.json (257B), SHA256 718a85cad8543b4a5512807fdd31296fa4ae2e88e3fa12bbfa41edb5e7be12d9.
+- ipfs-live-repeat.json (148B), SHA256 ca272845d713bdc1d032e4171a9d710a1fb1f003c5952cfd4448b1f88b981832.
+- ipfs-live-mongo-five.json (9663B), SHA256 07c5a741ef1b6087cfab2b4b9e43b3d2c513d439fa38f499f822cbc4f5ca60fa.
+- ipfs-live-mongo-four.json (8179B), SHA256 12ae0ab71f8072fd9691e81798608eb117f5fff372902da7568ddfbf5809ed1d.
+- ipfs-live-other-visitor.json (5117B), SHA256 5d7000d9136e470a86f06f53df5a205e5d83e05c5076deb071cc684c09747be7.
+- ipfs-live-private-isolation.json (468B), SHA256 f25ce206d8d8e73e346dec10da030881b2cc2b1d90c3f56e7c12a18cad3bd171.
+- ipfs-live-sqlite-replicas.json (2263B), SHA256 f2e84970d9cc8a09938e2e8f39fc262e6d71b0d4631fb6a1910f1f47371eaff0.
+- ipfs-live-neo4j-replicas.json (2259B), SHA256 ad039b57030fb44d6059c6c98b2e9087d925f46c6055ae0fe06c33f2b2e7d38c.
+- ipfs-live-mongo-four.png (87513B), SHA256 2f7dfd93dde494cd66f6e1aee09bcf607d6cd993e82a51a04ca6b0a6ba997658.
+- ipfs-live-initial-failure.json (456B), SHA256 8eae5123e0e3bd2afec7fb7def0bccd922a289cc7b21069ae38f82a5a5282f39.
+
+### SOLID host adapter preparation
+
+Reused only preserved native resource-key membership implementation and9controls.
+Added explicit DNA EnableCqlRecordKeySets at the actual SolidProviderFactory,
+with the existing default point-only behavior unchanged. ICosmicReadOnlyQueryActivation
+shares one root health owner with ordinary activation, propagates cancellation,
+requests headers only (never buffers an entire Pod listing), rejects errors/redirects
+and resets activation state on failure. It creates no container/access rule/record.
+Six new controls cover ready/401/503/redirect/pre-cancel/in-flight cancel and assert
+only the exact scoped root GET occurs, with response content never consumed.
+
+37combined activation/membership/point controls pass/no skips; full transitive API
+producer builds. Not yet hosted/enrolled. Existing Ubuntu/rootful Podman image
+58bee7c3f6a20498d72eb6f8334ba84299b6df2c8fca119ce805fe8614512d7a inspected
+read-only: CSS7.1.8, upstream642983926c79dd9b91d5b2035a8accc6bc2c8bbc,
+336,257,823B. No image/container/volume created or started. Existing identity/key
+remain protected under LocalState/COSMIC/SolidCurrent. Actual record encryption
+context includes resource URI, so hosting needs deliberate source scope preservation
+or a separately journalled new owned source, not blind ciphertext relocation.
+
+Cloud metadata inspection only: no local AWS CLI/standard config or credentials
+files/access-key/web-identity configuration; protected WEB4 variable snapshot has
+no AWS_/OASIS_AWS_ or Oracle variable names. This does not prove no account exists;
+it means a hosted connection is not available in the checked configuration. No
+cloud account, permission, secret or paid infrastructure was created.
+
+- solid-host-controls.trx SHA256 dfdb1739785aaee009fe4803f687c530a69b48bc67ff879d2f43b8d8fa708962.
+- cloud-hosted-readiness-metadata.json SHA256 ad3b249da07bd4fe42c7373b3faaf9ffa565bed678c844fa09cf75e3c5d372a1.
+## 31 October — SOLID shipping example gate
+
+Added shipping-API checks using the actual SOLID adapter capabilities and the
+production HTTP example compiler. Four presets (3-resource selection, 2-resource
+subset, each paired with Mongo) compile only when native membership is enabled.
+With Mongo unavailable, native examples remain available and federation examples
+carry CQL_DEMO_TARGET_UNAVAILABLE. Discovery planning performs no native I/O.
+Two tests passed, zero failures/skips; consumer build passed without restores.
+Evidence: TestResults/HostedCqlIntegrationCurrent/solid-shipping-examples.trx,
+SHA256 34EF67E9899295BF8BDC9AE059C88C863129F0637BD75C7642B6269A18E27C5D.
+These tests do not establish a hosted Pod or live six-provider coverage.
+
+The retained-container read-only inspection command was rejected by automatic
+approval review before execution, with no detailed reason. No container started,
+no readiness report was produced and no Pod/identity mutation ran. Existing
+retained CSS resources remain reusable; this is not a provider failure result.
+
+Upstream pinned-package configuration documentation distinguishes ordinary
+file.json (no root writes) from file-root.json (root LDP storage, initially broad
+permissions). Hosted provisioning must explicitly choose and restrict the owned
+loopback-only source, rather than assuming a default file.json root accepts seed
+writes. Reference: https://app.unpkg.com/%40solid/community-server%407.1.8/files/config/README.md.
+Next: package pinned CSS with deliberate lifecycle ownership, persist the native
+source on the existing volume, provision three public encrypted sample records
+for its exact URI, then enroll and verify public browser queries/federation.
+## 31 October — SOLID runtime packaging and retained encrypted source
+
+Implemented an opt-in CSS7.1.8 native runtime in the existing WEB4 image, pinned to
+the retained image digest125727897fde6e2225239a0748bf47d8fa559cac065d5694dc10f6428799e9f2.
+No image was pulled/built locally and this batch is not deployed. CSS source was
+inspected read-only from the stopped cached image, with tar streams held only in
+memory. Its supported StaticFolderGenerator/root initializer creates the native
+source from a custom template. The template grants public Read only from initial
+creation; it never starts with the upstream unrestricted root ACL. CSS itself
+binds its configured port on container interfaces; the base URI is not a binding
+restriction. Only WEB4's configured public HTTP port should be exposed by hosting.
+
+Native setup persists intent before initialization, refuses unacknowledged state
+and changed bundles, and acknowledges only after native records and read-only
+permissions verify. Native RDF comparison uses CSS's shipped N3 parser rather
+than text formatting equality. IPFS and CSS share one process owner: API starts
+after both sources verify; either source exit stops the API and other native
+child; later startup work is cancelled and observed if an earlier source exits.
+Native children receive a minimal environment without WEB4 credentials or keys.
+The existing IPFS enabled configuration continues to select its original runtime;
+SOLID remains off until explicitly configured.
+
+Runtime checks14passed/0failed/0skipped, including existing real offline Kubo import
+and lifecycle checks because the shared process owner changed. SOLID boundary
+checks use controlled HTTP/parser/package inputs and are not a native CSS result.
+Evidence TestResults/HostedCqlIntegrationCurrent/solid-runtime-controls.log,
+SHA256 E6E9406AF1CFCA7905C74F0EE2686847851F21DF5B8597907C10F5DB520DCC7A.
+Node syntax and entrypoint shell syntax checks passed.
+
+Prepare-HostedSolidSource.ps1 now exports exactly3new public synthetic leaf records
+using the retained original protected encryption key, for http://localhost:13000/.
+The old private Pod/data are never read or mutated. Export intent precedes encoding;
+ACK follows decode/hash/owner/URI checks. A different Pod URI rejects each envelope.
+Export and repeat each passed1case with no skips. Source files total13,817B at
+LocalState/COSMIC/HostedSolidSourceCurrent; raw bundle never committed to docs.
+Bundle SHA256 CD2BB473EE916256582BE7A4947D675D594AA2EB302DB000312558BEB7DD9EDA;
+canonical runtime digest345a047e2c35e600ae629f56c661ac8a5fd1418af3cf823b307c7c118769237a.
+Repeat preserved bundle, export intent and ACK bytes. Evidence
+TestResults/HostedCqlIntegrationCurrent/solid-host-export-proof.json and
+solid-host-export.trx (repeat SHA25666A6CD43D7307B88569618305B230CB35322A5020C47E30B8CA884DBFAE84697).
+
+The first integration build reproduced an existing composition defect: wildcard
+linked API services included production-only DnaCqlSharedReads, requiring the full
+BootLoader and CqlV1Providers deliberately absent from the loopback host. Excluded
+that production composition alongside CqlV1Providers in this integration project;
+then consumer build/export passed. No substitute BootLoader or fallback added.
+
+Still required before live enrollment: native CSS startup/initialization against
+the retained export, actual N3 response and WAC permission checks, same-volume
+restart, memory/headroom observation, host config/admission/example publication,
+and public visitor query/federation/isolation/replication acceptance. Five hosted
+providers remain the current verified coverage.
+## 31 October — native SOLID initialization and restart verified
+
+A safer probe reused the exact cached CSS image with network=none, no published
+ports and no key/credential mounts. Only the new public encrypted bundle, runtime
+scripts and a separate owned probe-data directory were mounted; the original
+private Pod/container/volume were never started or altered.
+
+The first native run caught a real configuration error: directly adding
+RootFolderGenerator.templateFolder imports two scalar values. Components.js
+rejected it before app initialization. The probe container was terminal/removed
+and its native data directory absent. Explicit reconciliation preserved its
+13KB setup files under initial-config-failure before a corrected new probe.
+Fixed the owning config with supported Override/overrideParameters semantics:
+https://componentsjs.readthedocs.io/en/latest/configuration/configurations/overrides/.
+No upstream patch, duplicate configuration path or blind failed seed replay.
+
+Corrected native startup passed: CSS7.1.8 served3actual encrypted RDF envelopes,
+compared through its real shipped N3 parser, and root WAC-Allow reported Read only.
+A second isolated process against the same data passed with fresh=false and
+unchanged bootstrap ACK. Native CSS image uses Node18.20.8; the final WEB4 image
+uses Node24.19.0 and still needs its own build/runtime compatibility verification.
+No public sandbox acceptance or full final-image proof is claimed here.
+
+Native evidence TestResults/HostedCqlIntegrationCurrent/solid-native-runtime-proof.json,
+solid-native-runtime-{first,corrected,repeat}.log. First failed log SHA256
+3E131FA2013E005864F707F6BDB12F558FE74B8278F1F788AB1E855388F768E2;
+corrected B7C45FF4BFDC918F35CE0CBD2E3A6037653C49AED176076E503915AD3B4A2E3B;
+repeat 7D2A02BB46D5D4C1AE3B4B2801DED50A146B046EB8300B33F433ABA1C2415464.
+ACK SHA256 B4025B3F96A62AC634316B5FCBE8EABBDE0B8978B3EA2160A0107127B7A6ECB5.
+Compact proof also retained at LocalState/COSMIC/HostedSolidSourceCurrent/native-runtime-proof.json.
+
+After the config fix14runtime controls pass/no skips again; latest log SHA256
+BEDF95E7E20A27B91283EEE240A3E71F7F1EED307645B58D1A6A4E5433EAF88C.
+Probe container removal is verified, original oasis-solid remains exited. The
+31,405B disposable NativeProofCurrent directory is retained: automatic approval
+review rejected the validated cleanup command before execution, with no specific
+reason. No alternate deletion attempted. This supersedes the planned cleanup in
+the prior resource entry; it is not an active service or large disk allocation.
+
+Task branch has merged the latest Development CI changes085f6b705/4a5450012;
+manifest/gitlink validation passes. These preparation changes remain off deployed
+Development until final-image/configuration acceptance is ready.
+## 31 October — hosted SOLID configuration acknowledged and release prepared
+
+Existing service capacity observed without a plan/service change:580.294541312MB
+current memory,686.657896448MB maximum1h,8,192MB configured limit; /data volume
+136.809807872MB of5,000MB. Report solid-host-capacity-before.json under the fixed
+TestResults/HostedCqlIntegrationCurrent directory. This is observed headroom, not
+an ongoing capacity guarantee.
+
+Prepared/protected and then applied exactly six SOLID configuration values with
+skip-deploys. Every value had a durable intent before the CLI request and a separate
+full-map observation before ACK. OASIS_DNA_JSON adds only the deliberate new
+anonymous/public Pod scope and membership capability; admission adds query-only
+SOLID/explicit tariff; four examples cover3/2native rows and Mongo federation.
+The original encryption key is reused via protected configuration, never printed.
+Default writer/failover/replication settings and existing provider entries remain
+unchanged. Script: Scripts/Sandbox/Publish-HostedSolidConfiguration.py; snapshots,
+intents and ACKs retained under LocalState/COSMIC/HostedSourceRolloutCurrent.
+No configuration action itself triggered a deployment.
+
+Retained exact native bootstrap ACK alongside the public source export at
+HostedSolidSourceCurrent/native-bootstrap.acknowledged.json. Its hash and digest
+bind the native proof to the candidate bundle, not merely to readiness booleans.
+Confirmed candidate digest345a047e2c35e600ae629f56c661ac8a5fd1418af3cf823b307c7c118769237a.
+A stale/different source fails preparation; existing intents prevent apply replay.
+
+Full transitive WEB4 API build passed with0errors (existing2,566warnings), no
+restore, bounded workers/lease; log solid-release-api-build.log. Added spaced,
+commented SolidPointWalkthrough.RunRecordSetAsync for C#3/2selection through
+HolonManager/planner/actual adapter. Export control compiles and executes the
+published example over real retained encrypted envelopes using controlled GET
+transport, exactly5selected resource reads. Native CSS/N3 proof remains separate;
+this C# control is not a hosted network claim. Export control1passed/no skips;
+source ciphertext/identity unchanged. Added maintained SOLID_CQL_HOST_CONFIGURATION
+and linked C# and HTTP guidance from demo README/manual.
+
+Waited for the already-running shared deployment0196bd82-cf5a-4bf6-8c06-68c264a20db9
+at20a981f8d to reach SUCCESS before preparing the next deployment batch. That
+concurrent commit adds solution IpfsCore entries and updates route manifest;
+preserve it when integrating. Public SOLID/browser verification still pending.

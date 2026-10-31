@@ -68,10 +68,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
                 var holon = (Holon)result.Result;
 
-                if (holon != null && Avatar?.AvatarType?.Value != AvatarType.Wizard
-                    && !HolonAccess.CanRead(holon, AvatarId))
-                    return TestDataHelper.CreateErrorResponse<Holon>(
-                        "Forbidden. You do not have permission to access this holon.", null, System.Net.HttpStatusCode.Forbidden);
+                if (holon != null && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                {
+                    // Whole holon, or only the fields this avatar may read (per-holon and per-field permissions).
+                    holon = await HolonManager.ProjectForAvatarAsync(holon, AvatarId) as Holon;
+                    if (holon == null)
+                        return TestDataHelper.CreateErrorResponse<Holon>(
+                            "Forbidden. You do not have permission to access this holon.", null, System.Net.HttpStatusCode.Forbidden);
+                }
 
                 response.Result.Result = holon;
 
@@ -258,7 +262,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
                 // When IncludePublic=true, SearchManager returned all holons — apply visibility filter unless Wizard
                 if (request.IncludePublic && Avatar?.AvatarType?.Value != AvatarType.Wizard)
-                    searchHolons = searchHolons.Where(h => HolonAccess.CanRead(h, AvatarId)).ToList();
+                    searchHolons = (await HolonManager.ProjectForAvatarAsync(searchHolons, AvatarId)).OfType<Holon>().ToList();
 
                 response.Result.Result = searchHolons;
 
@@ -305,11 +309,72 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> SaveHolons(SaveHolonsRequest request)
         {
+            var callerId = Avatar?.Id ?? Guid.Empty;
+            var callerIsWizard = Avatar?.AvatarType?.Value == AvatarType.Wizard;
+            var engineMode = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HyperDriveMode;
+            var modeCheck = HolonWriteEndpoint.ValidateEngineMode<IEnumerable<Holon>>(engineMode);
+            if (modeCheck.IsError)
+            {
+                Response.StatusCode = (int)HolonWriteEndpoint.Status(modeCheck);
+                return HttpResponseHelper.FormatResponse(modeCheck, HolonWriteEndpoint.Status(modeCheck), request.ShowDetailedSettings);
+            }
+            var isV2Write = engineMode == NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2;
+            if (isV2Write)
+            {
+                var intent = HolonWriteEndpoint.ValidateIntent<IEnumerable<Holon>>(request, callerId,
+                    Request.Headers[HolonWriteEndpoint.OperationHeader].ToString(),
+                    HttpContext.RequestServices.GetService(typeof(NextGenSoftware.OASIS.API.Core.Services.Subscriptions.StorageAdmissionRoutes)) != null);
+                if (intent.IsError)
+                {
+                    var status = HolonWriteEndpoint.Status(intent);
+                    Response.StatusCode = (int)status;
+                    return HttpResponseHelper.FormatResponse(intent, status, request.ShowDetailedSettings);
+                }
+            }
             var response = new OASISHttpResponseMessage<IEnumerable<Holon>>();
 
             OASISConfigResult<IEnumerable<Holon>> configResult = ConfigureOASISEngine<IEnumerable<Holon>>(request);
+            if (isV2Write && (configResult.IsError || configResult.Response?.Result?.IsError == true))
+            {
+                if (!string.IsNullOrEmpty(configResult.Response?.Result?.ErrorCode))
+                {
+                    Response.StatusCode = (int)configResult.Response.StatusCode;
+                    return configResult.Response;
+                }
+                var invalidConfig = HolonWriteEndpoint.ConfigurationError<IEnumerable<Holon>>(configResult.Response?.Result?.Message);
+                Response.StatusCode = (int)HolonWriteEndpoint.Status(invalidConfig);
+                return HttpResponseHelper.FormatResponse(invalidConfig, HolonWriteEndpoint.Status(invalidConfig), request.ShowDetailedSettings);
+            }
+
             if (configResult.IsError && configResult.Response != null)
                 return configResult.Response;
+
+            if (isV2Write)
+            {
+                try
+                {
+                    var context = HolonManager.CreateRequestContext(configResult.RequestRoutingPolicy.ToOverrides(), configResult.RequestProviderType);
+                    if (context.IsError)
+                    {
+                        var error = RequestContextError<IEnumerable<Holon>>(context);
+                        Response.StatusCode = (int)HolonWriteEndpoint.Status(error);
+                        return HttpResponseHelper.FormatResponse(error, HolonWriteEndpoint.Status(error), request.ShowDetailedSettings);
+                    }
+                    var written = await HolonWriteEndpoint.SaveBatchAsync(context.Result.Manager, request, callerId, callerIsWizard,
+                        Request.Headers[HolonWriteEndpoint.OperationHeader].ToString(),
+                        HttpContext.RequestServices.GetService(typeof(Services.Cosmic.ICosmicOperationRecoveryPolicy)) as Services.Cosmic.ICosmicOperationRecoveryPolicy);
+                    response.Result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(written, response.Result);
+                    if (written.Result != null)
+                        response.Result.Result = Mapper.Convert<IHolon, Holon>(written.Result)?.ToList();
+                    var status = HolonWriteEndpoint.Status(written);
+                    Response.StatusCode = (int)status;
+                    return HttpResponseHelper.FormatResponse(response, status, request.ShowDetailedSettings).BindRoutingPolicy(context.Result.Policy);
+                }
+                finally
+                {
+                    ResetOASISSettings(request, configResult);
+                }
+            }
 
             // For non-Wizards, verify ownership of any holon being updated (non-empty Id)
             if (Avatar?.AvatarType?.Value != AvatarType.Wizard)

@@ -1,0 +1,48 @@
+#Requires -Version 7.0
+[CmdletBinding()]
+param()
+$ErrorActionPreference='Stop'
+# The original installation was removed. Restore exactly one reviewed official archive,
+# never a floating latest version, alternate cache, container, or historical database.
+$awsRuntimeRoot=Join-Path ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))) 'TestResults/AWSProviderEvidence'
+$awsRuntimePath=Join-Path $awsRuntimeRoot 'runtime'
+$awsRuntimeZip=Join-Path $awsRuntimeRoot 'runtime-download.zip'
+$awsRuntimeDigest='667CDE09F96F4785CEDE4D107D8066011E5EECEB5DD4566EA8C74C0D378FE919'
+$awsRuntimeUrl='https://d1ni2b6xgvw0s0.cloudfront.net/v2.x/dynamodb_local_latest.zip'
+if(Test-Path -LiteralPath $awsRuntimePath){throw 'Existing runtime must be reused/reviewed; no overwrite or second installation.'}
+if(Test-Path -LiteralPath $awsRuntimeZip){throw 'Existing download must be reviewed/reused; no automatic redownload.'}
+$awsState=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.State.Status}}' oasis-dynamo-retained).Trim()
+if($LASTEXITCODE -or $awsState -ne 'exited'){throw 'The retained runtime owner must be stopped before restoring its missing bind.'}
+if((Get-PSDrive C).Free -lt 1GB){throw 'Insufficient bounded restoration headroom.'}
+New-Item -ItemType Directory -Path $awsRuntimeRoot -Force | Out-Null
+$awsRestoreLease=[IO.File]::Open((Join-Path $awsRuntimeRoot 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+try{
+    Invoke-WebRequest -Uri $awsRuntimeUrl -OutFile $awsRuntimeZip -TimeoutSec 120
+    if((Get-Item -LiteralPath $awsRuntimeZip).Length -ne 42714930 -or (Get-FileHash -LiteralPath $awsRuntimeZip).Hash -ne $awsRuntimeDigest){throw 'Official archive changed; preserve download for review, do not extract or repin.'}
+    $awsZip=[IO.Compression.ZipFile]::OpenRead($awsRuntimeZip)
+    try{
+        $awsMembers=@($awsZip.Entries | Where-Object { $_.FullName -eq 'DynamoDBLocal.jar' -or $_.FullName.StartsWith('DynamoDBLocal_lib/') -or $_.FullName -match '^LICENSE[^/]*$' })
+        if(@($awsMembers | Where-Object {$_.FullName -eq 'DynamoDBLocal.jar'}).Count -ne 1 -or ($awsMembers | Measure-Object Length -Sum).Sum -gt 300MB){throw 'Unexpected bounded runtime contents.'}
+        foreach($awsMember in $awsMembers){
+            $awsTarget=[IO.Path]::GetFullPath((Join-Path $awsRuntimePath $awsMember.FullName))
+            if(!$awsTarget.StartsWith(([IO.Path]::GetFullPath($awsRuntimePath)+[IO.Path]::DirectorySeparatorChar),[StringComparison]::OrdinalIgnoreCase) -or (($awsMember.ExternalAttributes -shr 16) -band 0xF000) -eq 0xA000){throw 'Unsafe archive member.'}
+        }
+        New-Item -ItemType Directory -Path $awsRuntimePath | Out-Null
+        foreach($awsMember in $awsMembers){
+            if($awsMember.FullName.EndsWith('/')){continue}
+            $awsTarget=Join-Path $awsRuntimePath $awsMember.FullName
+            New-Item -ItemType Directory -Path (Split-Path $awsTarget) -Force | Out-Null
+            [IO.Compression.ZipFileExtensions]::ExtractToFile($awsMember,$awsTarget,$false)
+        }
+    }finally{$awsZip.Dispose()}
+    $awsJar=Join-Path $awsRuntimePath 'DynamoDBLocal.jar'
+    $awsVersion=(& java '-Djava.library.path=' -jar $awsJar -version 2>&1)-join "`n"
+    if($LASTEXITCODE){throw 'Restored runtime version inspection failed; preserve for review.'}
+    $awsProvenance=@{date=[DateTime]::UtcNow.ToString('o');source=$awsRuntimeUrl;archiveSha256=$awsRuntimeDigest;jarSha256=(Get-FileHash $awsJar).Hash;version=$awsVersion;historicalDataRestored=$false;runtimeBytes=(Get-ChildItem -LiteralPath $awsRuntimePath -Recurse -File | Measure-Object Length -Sum).Sum;purpose='One retained official runtime; original runtime/data absent, historical outcomes unverified'}
+    $awsProvenance | ConvertTo-Json | Set-Content (Join-Path $awsRuntimePath 'runtime-provenance.json')
+    $awsRuntimeDigest | Set-Content (Join-Path $awsRuntimePath 'runtime-source-sha256.txt')
+    # Exact owned archive only, after successful hash-bound extraction/version inspection.
+    if((Get-FileHash -LiteralPath $awsRuntimeZip).Hash -ne $awsRuntimeDigest){throw 'Archive changed before cleanup.'}
+    Remove-Item -LiteralPath $awsRuntimeZip
+    $awsProvenance | ConvertTo-Json
+}finally{$awsRestoreLease.Dispose()}

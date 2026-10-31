@@ -9,6 +9,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="AwsStorageConformanceTests.cs" />
+    <Compile Remove="S3CompatibleStorageConformanceTests.cs" />
+    <Compile Include="S3CompatibleStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/AtomicConformanceCheckpoint.cs" Link="TestSupport/AtomicConformanceCheckpoint.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <Compile Include="AwsStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/ConditionalObjectTransportAcceptance.cs" Link="Shared/ConditionalObjectTransportAcceptance.cs" />
+    <Compile Include="../../../Shared/TestSupport/EncryptedObjectRecordAcceptance.cs" Link="Shared/EncryptedObjectRecordAcceptance.cs" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
@@ -17,6 +27,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.AWSOASIS\NextGenSoftware.OASIS.API.Providers.AWSOASIS.csproj" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.AWSS3OASIS/NextGenSoftware.OASIS.API.Providers.AWSS3OASIS.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\CloudProviderFactory.AWS.cs" Link="Production\CloudProviderFactory.cs" />
+    <Compile Include="../../../../OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/AwsS3ProviderFactory.cs" Link="Production/AwsS3ProviderFactory.cs" />
+  </ItemGroup>
 </Project>

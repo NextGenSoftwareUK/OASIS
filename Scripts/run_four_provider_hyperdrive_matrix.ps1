@@ -1,3 +1,4 @@
+#Requires -Version 7.0
 <#
 .SYNOPSIS
 Runs real isolated MongoDB, SQLite, IPFS and Ethereum provider evidence.
@@ -20,7 +21,11 @@ $kuboVersion = '0.43.1'
 $kuboSha256 = 'C25871516DEC4D97CE1D160A26C1E3FDAD294CB0EEA065C0C0343BCFCA86C524'
 $kuboApiPort = 5001
 $ganachePort = 8545
-$started = [Collections.Generic.List[int]]::new()
+$started = [Collections.Generic.List[Diagnostics.Process]]::new()
+$previousEnvironment = @{}
+foreach ($name in @('IPFS_PATH', 'IPFSOASIS_TEST_API', 'ETHEREUMOASIS_TEST_RPC', 'ETHEREUMOASIS_TEST_CHAIN_ID', 'ETHEREUMOASIS_TEST_PRIVATE_KEY')) {
+    $previousEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, 'Process')
+}
 
 function Wait-LoopbackPort([int]$Port, [int]$Seconds = 60) {
     $deadline = [DateTime]::UtcNow.AddSeconds($Seconds)
@@ -34,7 +39,7 @@ function Wait-LoopbackPort([int]$Port, [int]$Seconds = 60) {
 function Invoke-ProviderTest([string]$Name, [string]$Project) {
     $resultPath = Join-Path $artifacts $Name
     New-Item -ItemType Directory -Force $resultPath | Out-Null
-    & dotnet test $Project -c Release --logger "trx;LogFileName=$Name.trx" --results-directory $resultPath -v:minimal
+    & dotnet test $Project -c Release /m:2 /nr:false /p:UseSharedCompilation=false --logger "trx;LogFileName=$Name.trx" --results-directory $resultPath -v:minimal
     if ($LASTEXITCODE -ne 0) { throw "$Name provider evidence failed with exit code $LASTEXITCODE." }
 }
 
@@ -51,22 +56,29 @@ try {
     $kuboRepo = Join-Path $kuboRoot 'repo'
     $kuboZip = Join-Path $downloads "kubo_v$($kuboVersion)_windows-amd64.zip"
     New-Item -ItemType Directory -Force $downloads, $kuboRoot | Out-Null
-    if (!(Test-Path -LiteralPath $kuboZip -PathType Leaf)) {
-        Invoke-WebRequest "https://github.com/ipfs/kubo/releases/download/v$kuboVersion/kubo_v$($kuboVersion)_windows-amd64.zip" -OutFile $kuboZip -MaximumRedirection 8
-    }
-    if ((Get-FileHash $kuboZip -Algorithm SHA256).Hash -ne $kuboSha256) { throw 'The pinned Kubo archive checksum did not match.' }
     $ipfs = Join-Path $kuboRoot 'kubo/ipfs.exe'
-    if (!(Test-Path -LiteralPath $ipfs -PathType Leaf)) { Expand-Archive $kuboZip -DestinationPath $kuboRoot -Force }
+    if (!(Test-Path -LiteralPath $ipfs -PathType Leaf)) {
+        if (!(Test-Path -LiteralPath $kuboZip -PathType Leaf)) {
+            if ((Get-PSDrive C).Free -lt 5GB) { throw 'Insufficient space for missing pinned Kubo runtime.' }
+            Invoke-WebRequest "https://github.com/ipfs/kubo/releases/download/v$kuboVersion/kubo_v$($kuboVersion)_windows-amd64.zip" -OutFile $kuboZip -MaximumRedirection 8
+        }
+        if ((Get-FileHash $kuboZip -Algorithm SHA256).Hash -ne $kuboSha256) { throw 'The pinned Kubo archive checksum did not match.' }
+        Expand-Archive $kuboZip -DestinationPath $kuboRoot -Force
+    }
+    $installedVersion = & $ipfs version --number
+    if ($LASTEXITCODE -ne 0 -or $installedVersion.Trim() -ne $kuboVersion) {
+        throw 'Existing Kubo executable does not match the pinned version; do not automatically replace it.'
+    }
     $env:IPFS_PATH = $kuboRepo
     if (!(Test-Path -LiteralPath (Join-Path $kuboRepo 'config'))) { & $ipfs init --profile=test }
     & $ipfs config Addresses.API "/ip4/127.0.0.1/tcp/$kuboApiPort"
     & $ipfs config Addresses.Gateway '/ip4/127.0.0.1/tcp/8080'
     $kubo = Start-Process $ipfs -ArgumentList @('daemon', '--offline') -PassThru -WindowStyle Hidden -RedirectStandardOutput (Join-Path $artifacts 'kubo.out.log') -RedirectStandardError (Join-Path $artifacts 'kubo.err.log')
-    $started.Add($kubo.Id)
+    $started.Add($kubo)
     Wait-LoopbackPort $kuboApiPort
 
     $ganache = Start-Process npx.cmd -ArgumentList @('--yes', 'ganache', '--server.host', '127.0.0.1', '--server.port', "$ganachePort", '--chain.chainId', '31337', '--wallet.deterministic') -PassThru -WindowStyle Hidden -RedirectStandardOutput (Join-Path $artifacts 'ganache.out.log') -RedirectStandardError (Join-Path $artifacts 'ganache.err.log')
-    $started.Add($ganache.Id)
+    $started.Add($ganache)
     Wait-LoopbackPort $ganachePort
 
     $env:IPFSOASIS_TEST_API = "http://127.0.0.1:$kuboApiPort"
@@ -89,11 +101,20 @@ try {
     } | ConvertTo-Json -Depth 4 | Set-Content -Encoding utf8 (Join-Path $artifacts 'summary.json')
 }
 finally {
-    foreach ($processId in $started) { Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue }
-    foreach ($port in @($kuboApiPort, $ganachePort)) {
-        Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue |
-            Select-Object -ExpandProperty OwningProcess -Unique |
-            ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }
+    foreach ($ownedProcess in $started) {
+        try {
+            if (!$ownedProcess.HasExited) {
+                $ownedProcess.Kill($true)
+                if (!$ownedProcess.WaitForExit(10000)) { Write-Warning "Owned provider process $($ownedProcess.Id) did not exit within the cleanup deadline." }
+            }
+        } catch { Write-Warning "Owned provider process cleanup failed: $($_.Exception.Message)" }
+        finally { $ownedProcess.Dispose() }
     }
-    Remove-Item Env:IPFSOASIS_TEST_API, Env:ETHEREUMOASIS_TEST_RPC, Env:ETHEREUMOASIS_TEST_CHAIN_ID, Env:ETHEREUMOASIS_TEST_PRIVATE_KEY -ErrorAction SilentlyContinue
+    foreach ($name in $previousEnvironment.Keys) {
+        if ($null -eq $previousEnvironment[$name]) {
+            if (Test-Path -LiteralPath "Env:$name") { Remove-Item -LiteralPath "Env:$name" }
+        } else {
+            [Environment]::SetEnvironmentVariable($name, $previousEnvironment[$name], 'Process')
+        }
+    }
 }

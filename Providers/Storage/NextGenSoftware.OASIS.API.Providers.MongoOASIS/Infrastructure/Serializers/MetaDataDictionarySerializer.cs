@@ -6,6 +6,8 @@ using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Options;
 using MongoDB.Bson.Serialization.Serializers;
+using Newtonsoft.Json.Linq;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serializers
 {
@@ -97,7 +99,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                     return reader.ReadString();
 
                 case BsonType.DateTime:
-                    return reader.ReadDateTime();
+                    return DateTimeOffset.FromUnixTimeMilliseconds(reader.ReadDateTime()).UtcDateTime;
 
                 case BsonType.ObjectId:
                     return reader.ReadObjectId().ToString();
@@ -112,9 +114,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                     return DeserializeDocument(reader);
             }
 
-            // Skip unknown BSON type
-            reader.SkipValue();
-            return null;
+            // Portable metadata has no lossless mapping for these native-only types.
+            // Never return success with a silently substituted null that a later save could overwrite.
+            throw new BsonSerializationException($"Mongo metadata BSON type {bsonType} has no supported lossless portable representation.");
         }
 
         /// <summary>Read BSON binary; handles both Binary (generic bytes) and UuidLegacy/UuidStandard so deserialization does not throw.</summary>
@@ -123,10 +125,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
             var binaryData = reader.ReadBinaryData();
             var subType = binaryData.SubType;
             var bytes = binaryData.Bytes;
-            if (subType == BsonBinarySubType.UuidLegacy || subType == BsonBinarySubType.UuidStandard)
+            if (subType == BsonBinarySubType.UuidStandard)
+                return binaryData.ToGuid(GuidRepresentation.Standard).ToString();
+            if (subType == BsonBinarySubType.UuidLegacy)
             {
+                // Retain this provider's existing C# legacy byte-order contract; subtype 3 does not identify other legacy encodings.
                 if (bytes != null && bytes.Length == 16)
-                    return new Guid(bytes).ToString();
+                    return binaryData.ToGuid(GuidRepresentation.CSharpLegacy).ToString();
                 return bytes ?? Array.Empty<byte>();
             }
             return bytes ?? Array.Empty<byte>();
@@ -216,6 +221,34 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                 return;
             }
 
+            if (value is JRaw raw)
+            {
+                using var document=JsonDocument.Parse(raw.ToString(Newtonsoft.Json.Formatting.None));
+                SerializeJsonElement(writer,document.RootElement);
+                return;
+            }
+            if (value is Newtonsoft.Json.Linq.JObject jsonObject)
+            {
+                writer.WriteStartDocument();
+                foreach (var property in jsonObject.Properties())
+                { writer.WriteName(property.Name); SerializeValue(writer, property.Value); }
+                writer.WriteEndDocument();
+                return;
+            }
+            if (value is Newtonsoft.Json.Linq.JArray jsonArray)
+            {
+                writer.WriteStartArray();
+                foreach (var item in jsonArray) SerializeValue(writer, item);
+                writer.WriteEndArray();
+                return;
+            }
+            if (value is Newtonsoft.Json.Linq.JValue jsonValue)
+            {
+                if (jsonValue.Type == Newtonsoft.Json.Linq.JTokenType.Undefined)
+                    throw new BsonSerializationException("Undefined metadata JSON is not a persistent value.");
+                SerializeValue(writer, jsonValue.Value);
+                return;
+            }
             var valueType = value.GetType();
 
             if (valueType == typeof(bool))
@@ -226,18 +259,34 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                 writer.WriteInt64((long)value);
             else if (valueType == typeof(double))
                 writer.WriteDouble((double)value);
+            else if (valueType == typeof(float))
+            {
+                var single = (float)value;
+                if (float.IsNaN(single) || float.IsInfinity(single))
+                    throw new BsonSerializationException("Nonfinite Single metadata cannot be serialized.");
+                // BSON has no Single primitive. Preserve the same canonical
+                // numeric spelling as stored JSON snapshots, and its exact
+                // binary32 round-trip. Direct widening changes that spelling
+                // and can invalidate the save acknowledgement's value proof.
+                writer.WriteDouble(double.Parse(single.ToString("R", System.Globalization.CultureInfo.InvariantCulture),
+                    System.Globalization.CultureInfo.InvariantCulture));
+            }
+            else if (valueType == typeof(ulong))
+                writer.WriteDecimal128((decimal)(ulong)value);
             else if (valueType == typeof(decimal))
                 writer.WriteDecimal128((decimal)value);
             else if (valueType == typeof(string))
                 writer.WriteString((string)value);
             else if (valueType == typeof(DateTime))
             {
-                var dt = ((DateTime)value).ToUniversalTime();
-                var ms = (long)(dt - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
-                writer.WriteDateTime(ms);
+                var date = (DateTime)value;
+                var utc = date.Kind == DateTimeKind.Local ? date.ToUniversalTime() : DateTime.SpecifyKind(date, DateTimeKind.Utc);
+                writer.WriteDateTime(new BsonDateTime(utc).MillisecondsSinceEpoch);
             }
             else if (valueType == typeof(Guid))
                 writer.WriteString(((Guid)value).ToString());
+            else if (value is byte[] bytes)
+                writer.WriteBinaryData(new BsonBinaryData(bytes));
             else if (valueType.IsArray)
             {
                 writer.WriteStartArray();
@@ -263,23 +312,24 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
             }
             else
             {
-                // Complex types (e.g. Quest, holons, List<Quest>) cannot be mapped to BsonValue; store as JSON string so save does not throw.
+                // Supported complex metadata uses JSON text; encoding failures must
+                // remain errors rather than silently substituting a null value.
                 WriteComplexTypeAsJson(writer, value);
             }
         }
 
-        /// <summary>Serialize complex .NET types (e.g. Quest, holons) as JSON string so MongoDB save does not throw. Deserialization returns a string for that key.</summary>
+        /// <summary>Encode supported complex metadata as JSON text. Unsupported values fail the enclosing save; deserialization returns the stored string.</summary>
         private static void WriteComplexTypeAsJson(IBsonWriter writer, object value)
         {
             try
             {
-                var options = new JsonSerializerOptions { ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles, MaxDepth = 32 };
+                var options = new JsonSerializerOptions { MaxDepth = 32 };
                 var json = JsonSerializer.Serialize(value, options);
                 writer.WriteString(json);
             }
-            catch
+            catch (Exception cause)
             {
-                writer.WriteNull();
+                throw new BsonSerializationException("Mongo metadata value cannot be serialized without data loss.", cause);
             }
         }
 
@@ -298,12 +348,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                         writer.WriteInt32(i32);
                     else if (je.TryGetInt64(out long i64))
                         writer.WriteInt64(i64);
-                    else if (je.TryGetDouble(out double d))
-                        writer.WriteDouble(d);
-                    else if (je.TryGetDecimal(out decimal dec))
+                    else if (je.TryGetDecimal(out decimal dec)
+                        && StoredRecordValueEquality.Equivalent(new JRaw(je.GetRawText()),new JValue(dec)))
                         writer.WriteDecimal128(dec);
+                    else if (je.TryGetDouble(out double d) && !double.IsNaN(d) && !double.IsInfinity(d)
+                        && StoredRecordValueEquality.Equivalent(new JRaw(je.GetRawText()),new JValue(d)))
+                        writer.WriteDouble(d);
                     else
-                        writer.WriteDouble(je.GetDouble());
+                        throw new BsonSerializationException("Metadata JSON number has no exact supported BSON/CLR round-trip representation.");
                     break;
                 case JsonValueKind.True:
                     writer.WriteBoolean(true);

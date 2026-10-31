@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
@@ -27,6 +28,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class Startup
     {
+        // Browser clients must be able to retain the same operation identity that
+        // direct HTTP callers receive, including when the query outcome is uncertain.
+        internal static void ConfigureCorsPolicy(CorsPolicyBuilder policy)
+            => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
+                .WithExposedHeaders("X-OASIS-Operation-Id");
+
         private string VERSION
         {
             get
@@ -56,12 +63,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Validate required authorization before storage initialization hosts start.
+            Services.Cql.CqlReadPolicyEnrollment.AddConfiguredCqlReadAccessPolicy(services, Configuration);
             services.Configure<HostOptions>(options =>
                 options.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore);
 
             // Configuration-backed services are registered before the request pipeline is built, so the
             // middleware cannot be responsible for loading DNA needed by dependency injection.
             var dnaLoadResult = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.LoadDNA();
+            if(Configuration["PREPARED_STORAGE_ADMISSION_JSON"]!=null){
+                if(dnaLoadResult.IsError||dnaLoadResult.Result==null)throw new InvalidOperationException(dnaLoadResult.Message);
+                if(dnaLoadResult.Result.OASIS?.ONET?.EnableHyperDriveSyncHost==true)
+                    throw new InvalidOperationException("Admitted storage cannot start unreserved ONET sync provider activation; disable the sync host until it has its own authorized fee owner.");
+                var passiveBoot=OASISBootLoader.OASISBootLoader.BootOASISForAdmittedStorageAsync(dnaLoadResult.Result).GetAwaiter().GetResult();
+                if(passiveBoot.IsError||!passiveBoot.Result)throw new InvalidOperationException(passiveBoot.Message);
+            }
             if (dnaLoadResult == null || dnaLoadResult.IsError || dnaLoadResult.Result == null)
                 throw new InvalidOperationException(
                     $"OASIS DNA must load before service registration. {dnaLoadResult?.Message ?? "No load result was returned."}");
@@ -88,6 +104,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                     x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
                     x.JsonSerializerOptions.Converters.Add(new ISTARNETDNAJsonConverter());
                     x.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter(allowIntegerValues: true));
+                    Helpers.HolonJsonContracts.Configure(x.JsonSerializerOptions);
                 });
             services.AddAutoMapper(_ => { }, AppDomain.CurrentDomain.GetAssemblies());
             services.AddSwaggerGen(c =>
@@ -394,13 +411,44 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             }
             services.AddSingleton<Services.HyperDrive.HyperDriveHostedProviderAccessor>();
             services.AddHostedService<Services.HyperDrive.OASISInitializationHostedService>();
+            // Registered on every WEB4, but it does nothing unless that node's DNA has OASIS.Sandbox.Enabled (see SandboxCleanupHostedService).
+            services.AddHostedService<Services.Sandbox.SandboxCleanupHostedService>();
+            NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConfiguredHolonReplicationRegistration.AddConfiguredCosmicHolonReplicationFromServices(
+                services, Configuration["COSMIC_HOLON_REPLICATION_JSON"], provider =>
+                    new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationProviderResolver(
+                        authority => NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance.GetStorageProvider(authority),
+                        async cancellation => {
+                            var initialized = await provider.GetRequiredService<Services.HyperDrive.HyperDriveHostedProviderAccessor>().GetAsync().ConfigureAwait(false);
+                            cancellation.ThrowIfCancellationRequested();
+                            if (initialized == null || initialized.IsError || initialized.IsWarning || initialized.Result == null)
+                                throw new InvalidOperationException("Enabled COSMIC replication requires successful shared OASIS initialization.", initialized?.Exception);
+                        }));
             services.AddHostedService<Services.HyperDrive.HyperDriveCommandHostedService>();
             services.AddHostedService<Services.HyperDrive.HyperDriveFanOutHostedService>();
             services.AddHostedService<Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService>();
             services.AddHostedService<Services.HyperDrive.HyperDriveSyncCompactionHostedService>();
+            services.AddHostedService<Services.HyperDrive.HolonReplicationDeliveryHostedService>();
             services.AddSingleton<Services.Subscription.MongoSubscriptionUsageRepository>();
             services.AddSingleton<Services.Subscription.ISubscriptionUsageRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISubscriptionBillingRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
+            services.AddSingleton<Services.Subscription.ISandboxSubscriptionStore>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
+            services.AddSingleton(provider => new Services.Sandbox.SandboxSubscriptionLifecycle(
+                () => provider.GetRequiredService<Services.Subscription.ISandboxSubscriptionStore>(),
+                () => {
+                    var routes = provider.GetService<NextGenSoftware.OASIS.API.Core.Services.Subscriptions.StorageAdmissionRoutes>();
+                    foreach (var path in new[] { "/api/data/query-cql", "/api/data/query-cql/scalar", "/api/data/query-cql/federation" }) {
+                        var request = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+                        request.Request.Method = "POST"; request.Request.Path = path;
+                        if (routes?.Resolve(request) != null) return true;
+                    }
+                    return false;
+                },
+                () => new Services.Sandbox.SandboxSubscriptionPolicy(
+                    NextGenSoftware.OASIS.API.Core.Managers.SandboxOptions.Enabled,
+                    NextGenSoftware.OASIS.API.Core.Managers.SandboxOptions.Current.DemoAvatarUsernamePrefix,
+                    NextGenSoftware.OASIS.API.Core.Managers.SandboxOptions.Current.DemoAvatarEmailDomain,
+                    NextGenSoftware.OASIS.API.Core.Managers.SandboxOptions.Retention)));
+            services.AddSingleton<Services.Subscription.IDelegatedUsageGrantRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISubscriptionService, Services.Subscription.SubscriptionService>();
             services.AddSingleton<Services.Subscription.ISubscriptionPlanPriceReader, Services.Subscription.StripeSubscriptionPlanPriceReader>();
             services.AddSingleton<Services.Subscription.SubscriptionPlanCatalogue>();
@@ -408,7 +456,28 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddSingleton<Services.Subscription.IPaidOverageStatementStore>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.IPaidOverageGateway, Services.Subscription.StripePaidOverageGateway>();
             services.AddSingleton<Services.Subscription.PaidOverageBillingService>();
+            Services.Subscription.LocalUsageAuthorityRegistration.AddLocalUsageAuthority(services,
+                (avatarId, token) => Controllers.SubscriptionController.GetCurrentKarmaAsync(avatarId.ToString("D"), token));
             bool subscriptionUsageEnabled = string.Equals(Configuration["SUBSCRIPTION_USAGE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase);
+            services.AddSingleton<Services.Cql.ICqlV1Providers, Services.Cql.CqlV1Providers>();
+            // What owners shared with a caller (and their groups) is part of every CQL query, per OASIS.Cql in the DNA.
+            Services.Cql.CqlV1Compiler.SharedReads = new Services.Cql.DnaCqlSharedReads();
+            services.AddSingleton<Services.Cql.CqlV1ResourceFilter>();
+            services.AddHostedService<Services.Cosmic.CosmicRecoveryReadiness>();
+            var storageUsagePolicy=NextGenSoftware.OASIS.API.Core.Services.Subscriptions.ConfiguredStorageAdmission.AddConfiguredStorageAdmission(
+                services,Configuration,subscriptionUsageEnabled,_=>null,
+                ()=>NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance.GetAllRegisteredProviders());
+            services.AddSingleton<Services.Cql.ICqlHostedSourceRegistry, Services.Cql.CqlHostedSourceRegistry>();
+            services.AddSingleton(Services.Cql.CqlHostedQueryExamples.FromConfiguration(Configuration));
+            services.AddSingleton(provider => new Services.Cql.CqlHostedSources(
+                provider.GetService<NextGenSoftware.OASIS.API.Core.Services.Subscriptions.IPreparedStorageAdmissionFactory>()
+                    as NextGenSoftware.OASIS.API.Core.Services.Subscriptions.PricedStorageAdmissionFactory,
+                provider.GetRequiredService<Services.Cql.ICqlHostedSourceRegistry>(),
+                provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Services.Cql.CqlHostedSources>>(),
+                provider.GetRequiredService<Services.Cql.CqlHostedQueryExamples>()));
+            services.AddSingleton<IHostedService>(provider => provider.GetRequiredService<Services.Cql.CqlHostedSources>());
+            if(Configuration["PREPARED_STORAGE_ADMISSION_JSON"]!=null)
+                NextGenSoftware.OASIS.API.Core.Services.Subscriptions.LocalWeb4UsageLedgerRegistration.AddLocalWeb4UsageLedger(services,Configuration,storageUsagePolicy);
             if (subscriptionUsageEnabled)
             {
                 services.AddHostedService<Services.Subscription.SubscriptionUsageExpiryWorker>();
@@ -465,7 +534,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddGrpc(options => options.Interceptors.Add<Security.OASISGrpcAuthorizationInterceptor>());
 
             services.AddGraphQLServer()
-                .BindRuntimeType<object, HotChocolate.Types.AnyType>()
+                .DisableIntrospection(false)
                 .AddType(new HotChocolate.Types.AnyType("JSON"))
                 .BindRuntimeType<System.Collections.Generic.Dictionary<string, object>>("JSON")
                 .AddQueryType<Query>()
@@ -512,6 +581,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 KnownNetworks = { },
                 KnownProxies = { }
             });
+
 
             // Fail loudly at startup when outbound email is not configured - a stale/blank Resend key
             // previously only showed up as a per-registration warning in the client response.
@@ -625,10 +695,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //app.UseSession();
 
             // global cors policy — open to any origin so OASIS APIs are pluggable everywhere
-            app.UseCors(x => x
-                .AllowAnyOrigin()
-                .AllowAnyMethod()
-                .AllowAnyHeader());
+            app.UseCors(ConfigureCorsPolicy);
 
             //TODO: Was this, check later...
             //app.UseCors(MyAllowSpecificOrigins);
@@ -646,10 +713,17 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseAuthentication();
             app.UseAuthorization();
 
+            if(Configuration["PREPARED_STORAGE_ADMISSION_JSON"]!=null)
+            {
+                app.UseMiddleware<NextGenSoftware.OASIS.API.Core.Services.Subscriptions.Web4UsageLedgerMiddleware>();
+                NextGenSoftware.OASIS.API.Core.Services.Subscriptions.ConfiguredStorageAdmission.UseConfiguredStorageAdmission(app);
+            }
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGraphQL();
                 endpoints.MapControllers();
+                Services.HyperDrive.CosmicHolonReplicationEndpoints.MapCosmicHolonReplicationReadiness(endpoints);
                 endpoints.MapGrpcService<AvatarGrpcService>();
                 endpoints.MapGrpcService<KarmaGrpcService>();
                 endpoints.MapGrpcService<DataGrpcService>();

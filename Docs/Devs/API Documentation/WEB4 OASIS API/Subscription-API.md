@@ -1,6 +1,6 @@
 # Subscription API
 
-WEB4 is the only subscription, quota, budget and usage-ledger authority for WEB5–WEB10. See the [protocol and sequence diagram](../../WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [deployment/recovery runbook](../../WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md).
+WEB4 is the only subscription, quota, budget and usage-ledger authority for WEB5–WEB10. See the [protocol and sequence diagram](../../../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [deployment/recovery runbook](../../../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md).
 
 ## Usage protocol
 
@@ -100,4 +100,4 @@ The controller also exposes:
 - GET usage — existing usage presentation, backed by the authoritative ledger.
 - POST update-hyperdrive-config, GET hyperdrive-usage and POST check-hyperdrive-quota — HyperDrive configuration/read surfaces; they do not form a second WEB5–WEB10 accounting path.
 
-Use the [executable Postman collection](WEB4-Subscription-Usage.postman_collection.json) against isolated staging subscribers. It covers each consuming service's reserve/start/settle sequence and retries. For credentials, live provider tests, outage injection, signed historical migration, Stripe cost-basis tags and retention, use the [operations runbook](../../WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md).
+Use the [executable Postman collection](WEB4-Subscription-Usage.postman_collection.json) against isolated staging subscribers. It covers each consuming service's reserve/start/settle sequence and retries. For credentials, live provider tests, outage injection, signed historical migration, Stripe cost-basis tags and retention, use the [operations runbook](../../../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md).

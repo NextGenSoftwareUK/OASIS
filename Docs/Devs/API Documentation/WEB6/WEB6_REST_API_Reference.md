@@ -2,7 +2,7 @@
 
 ## Subscription protocol update (2026-09-22)
 
-WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](../../WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](../../WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
+WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](../../../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](../../../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
 
 
 **Base URL:** `https://api.web6.oasisomniverse.one`  
@@ -382,6 +382,155 @@ Get the current SkillOpt skill document for an agent ��� the evolved natur
 Run a SkillOpt epoch — the optimiser model proposes bounded edits to the skill document, a validation gate evaluates them on held-out problems, and the edit is accepted only if the score improves.
 
 ---
+
+### Publishing unit prices (audio, image, video, speech)
+
+Token prices come from each model entry. Every **unit-metered** call needs a contracted price in the catalogue's `unitPrices`, or WEB6 refuses it before anything is reserved: transcription (`audio_ms`), image generation (`image`), video (`video_generation`) and speech synthesis (`utf16_character`). Publish a new catalogue version with `POST /v1/admin/config/catalogue/publish` (admin):
+
+```json
+{
+  "reason": "Enable metered voice notes",
+  "catalogue": {
+    "version": "2026-10-19-audio",
+    "models": [ "...the current models array, unchanged..." ],
+    "unitPrices": [
+      { "provider": "AssemblyAI", "model": "nano",   "unit": "audio_ms", "usdPerUnit": 0.0000000333, "maxUnitsPerCall": 600000 },
+      { "provider": "Deepgram",   "model": "nova-3", "unit": "audio_ms", "usdPerUnit": 0.0000000717, "maxUnitsPerCall": 600000 },
+      { "provider": "E2B",        "model": "sandbox", "unit": "sandbox_ms", "usdPerUnit": 0.00000005, "maxUnitsPerCall": 300000 },
+      { "provider": "Judge0",     "model": "sandbox", "unit": "sandbox_ms", "usdPerUnit": 0.00000001, "maxUnitsPerCall": 300000 }
+    ]
+  }
+}
+```
+
+The figures above are placeholders: use the rates in your provider contracts. `maxUnitsPerCall` bounds the reservation (600000 ms = 10 minutes of audio; 300000 ms = the 5-minute sandbox ceiling). `provider` is the name receipts report: an AI provider, or a code sandbox (`E2B`, `Judge0`, `Daytona`). Code execution (`/v1/code/execute` and the agent's code tool) bills measured sandbox wall-clock time against the provider's execution id; Modal returns no execution id and is refused whenever usage is metered. Completions never reserve unit exposure. An agent run, including a voice note's agent run, reserves the worst unit call for each provider call in its budget.
+
+## Agent Runtime
+
+### POST `/v1/agent/run`
+
+Runs a server-side agent loop inside one request, under one WEB4 reservation **sized for this request**: its call budget (`maxSteps`, plus one reflection call when it may curate memory or draft a skill; 10 at most), its output bound (`maxTokens`, default 1024 per call) and an input ceiling (the request plus bounded server context, room to grow and MCP tool schemas). Each model step and sandbox run settles from measured usage, so you pay only for what runs. Before every model call the loop measures the input exactly as the reservation does; if the next call would not fit, the run stops with `context_budget_exhausted` instead of exceeding what was reserved. A short chat (3 steps × 600 tokens) reserves well under a bronze plan's daily tokens.
+
+```json
+{
+  "task": "Help me plan a calmer evening routine",
+  "maxSteps": 8,
+  "agentHolonId": "<FAHRN agent holon id — optional, injects its SkillOpt skill>",
+  "taskCategory": "wellbeing",
+  "memoryHolonId": "<your Holonic Memory holon — optional, enables memory tools and curation>",
+  "curateMemory": true,
+  "maxTokens": 600,
+  "allowCodeExecution": true,
+  "codeExecutionProvider": "auto",
+  "mcpServers": [ { "name": "github", "url": "https://mcp.example.com/mcp", "bearerToken": "<sent only to that server, never stored>" } ],
+  "draftSkill": true,
+  "clientTools": [ { "type": "function", "function": { "name": "calendar_lookup", "description": "...", "parameters": { "type": "object" } } } ]
+}
+```
+
+- `maxSteps` is 1–9 (one call is kept back for reflection). Model steps, sandbox runs and the reflection call all draw on the same budget; at most 4 tool calls run per step (extras get an explicit error result) and tool output is capped at 4,000 characters.
+- `allowCodeExecution` adds `oasis_agent_code_execute` (python, javascript or bash in an isolated sandbox: E2B, Judge0 or Daytona via `codeExecutionProvider`). Each run is a metered provider call priced per `sandbox_ms`.
+- `mcpServers` (up to 4) exposes each server's tools as `mcp__<name>__<tool>`. Servers must be public HTTPS; every connection is checked after DNS resolution, so private, loopback and link-local addresses are refused.
+- `draftSkill` (default true): when the `agentHolonId` has no skill document for `taskCategory`, the run's reflection call drafts one (`skillDrafted: true`). Scoring the run ≥ 0.7 with `/v1/agent/feedback` promotes the draft to the agent's skill; SkillOpt epochs then refine it.
+- `history` (optional, new runs only): earlier `user` / `assistant` messages of an ongoing conversation. These are placed between the system prompt and the task, up to 20 messages and 16,000 characters.
+- With `memoryHolonId` (must be owned by the caller), the agent gets `oasis_agent_memory_search` and `oasis_agent_memory_record`, recalled memories are injected up front, and after a completed run one curation call stores durable facts tagged `agent-curated`.
+- If the model calls one of your `clientTools`, the run returns `status: "awaiting_tool_results"` with `pendingToolCalls` and `messages`. Execute the tools, append `{ "role": "tool", "toolCallId": ..., "content": ... }` messages, and POST again with `messages` (instead of `task`).
+- `status` is `completed`, `awaiting_tool_results`, `step_budget_exhausted` or `context_budget_exhausted`. The response also includes `runId`, `finalAnswer`, `steps` (per-step provider, model, tokens and tool calls, each marked `server`, `mcp`, `client` or `refused`), `availableTools`, `codeExecutions`, `curatedMemories`, `skillApplied`, `skillDrafted`, `providerCalls`, and token and cost totals.
+
+### POST `/v1/agent/feedback`
+
+```json
+{ "agentHolonId": "...", "runId": "...", "score": 0.9 }
+```
+
+Scores a completed run started by the same avatar. The run becomes a SkillOpt rollout for its task category; scores ≥ 0.7 count as successes when `/evolve` runs the next epoch. If that run drafted a skill and the agent still has none for the category, a score ≥ 0.7 makes the draft its skill (the response message says so).
+
+## Scheduled Agent Runs
+
+Schedules run an agent task on a cron timetable, unattended. Each run uses the agent loop (`/v1/agent/run` semantics, server tools only) and is paid for by a WEB4 delegated usage grant, never by a stored bearer.
+
+**Before creating a schedule**, issue a grant on WEB4:
+
+```json
+POST {WEB4}/api/subscription/usage/grants
+{ "consumingService": "WEB6", "scope": "schedules", "endpoints": ["SCHEDULE /v1/schedules run"],
+  "monthlyBudgetUsd": 5, "maxOperationCostUsd": 0.5, "expiresAtUtc": "2027-01-01T00:00:00Z" }
+```
+
+### POST `/v1/schedules`
+
+```json
+{
+  "name": "Morning brief",
+  "cronExpression": "0 8 * * 1-5",
+  "timeZone": "Europe/London",
+  "prompt": "Summarise what I should focus on today.",
+  "instructions": "Be brief and practical.",
+  "provider": "auto",
+  "model": "auto",
+  "maxSteps": 4,
+  "taskCategory": "planning",
+  "agentHolonId": "<optional FAHRN agent holon: applies its SkillOpt skill>",
+  "memoryHolonId": "<optional Holonic Memory holon you own: recall and curation>",
+  "grantId": "<WEB4 delegated grant id>",
+  "delivery": { "kind": "webhook", "webhookUrl": "https://example.com/hooks/oasis" }
+}
+```
+
+- `cronExpression` is standard five-field cron (minute hour day-of-month month day-of-week). `timeZone` is an IANA id (default `UTC`); daylight-saving changes follow it, and a local time skipped by spring-forward runs at the end of the gap.
+- `delivery.kind` is `webhook` (public HTTPS only; loopback, private and link-local targets are refused, redirects are not followed) `channel` (posts the result into one of the owner's linked chats; `delivery.channelBindingId` comes from `GET /v1/channels/bindings`, and another avatar's binding is refused when the schedule is saved and again at delivery), or `none` (run history only).
+- At most 50 schedules per avatar. Returns `201` with the schedule, including `status` and `nextRunAtUtc`.
+
+### GET `/v1/schedules` · GET `/v1/schedules/{id}`
+
+List your schedules or read one. `status` is `active`, `paused`, `disabled-grant-revoked`, `disabled-grant-expired` or `disabled-grant-invalid`; `statusReason` explains a disabled schedule.
+
+### PUT `/v1/schedules/{id}`
+
+Same body as create; omitted fields keep their value. A schedule disabled by its grant is re-activated only by supplying a **new** `grantId`. Returns `409 SCHEDULE_RUN_IN_PROGRESS` while a run holds the schedule's lease.
+
+### POST `/v1/schedules/{id}/pause` · POST `/v1/schedules/{id}/resume` · DELETE `/v1/schedules/{id}`
+
+Pause, resume from the next occurrence, or delete (run history is kept).
+
+### GET `/v1/schedules/{id}/runs?limit=50`
+
+Run history, newest first. Each run has `status` (`succeeded`, `incomplete` when the step budget ran out, `failed`, `denied` when WEB4 refused the grant, `recovery-required`), `code`, `operationId` (the WEB4 usage operation), `settlement`, `agentRunId`, `providerCalls`, token counts, `output` and `deliveryStatus`.
+
+**How runs are billed and kept exactly-once:** a worker claims each due run under a durable lease, so only one WEB6 instance runs it. The run's idempotency key is the schedule id plus the due time: if a lease is lost and the run is claimed again, WEB4 and the outbox refuse to execute it a second time. Each run reserves the same budget as `POST /v1/agent/run` and settles from measured usage. When WEB4 refuses the grant as revoked, expired or invalid, the schedule is disabled with that status; a spent monthly grant budget fails only that run. Occurrences missed while WEB6 was down run once, not once each. Without `SUBSCRIPTION_USAGE_ENABLED=true`, these routes answer `503 SCHEDULER_UNAVAILABLE`.
+
+## Messaging Channels
+
+Chat users on Telegram, WhatsApp, Slack, Discord, Signal and Email link their chat identity to an OASIS avatar, then talk to their agent from that app.
+
+- **Signal** has no bot webhooks: run signal-cli-rest-api, and have a relay POST each received envelope to `/v1/channels/webhooks/signal` with `X-Signal-Signature: sha256=<HMAC-SHA256(SIGNAL_WEBHOOK_SECRET, body)>`. Replies and voice attachments go through `SIGNAL_API_URL` as `SIGNAL_NUMBER`.
+- **Email** uses a Mailgun inbound route forwarding to `/v1/channels/webhooks/email`. Each POST is verified with Mailgun's signature (`MAILGUN_SIGNING_KEY`, 5-minute replay window), and mail is accepted only when Mailgun reports a passing DKIM or SPF check, because the From header alone is trivially forged. Replies are sent through `MAILGUN_DOMAIN` as `MAILGUN_FROM`, threaded with `In-Reply-To`.
+
+### GET/POST `/v1/channels/webhooks/{channel}`
+
+Set this URL as the webhook in each platform's console. These routes accept no OASIS credentials. Every request is verified with the platform's own scheme before anything is parsed: the Telegram secret token, WhatsApp `X-Hub-Signature-256` (plus the GET `hub.verify_token` handshake), the Slack v0 signature with a 5-minute replay window (plus `url_verification`), and Discord Ed25519 (`PING` is answered, and commands get a deferred response followed by a follow-up). They make no AI-provider calls and are not metered. An unconfigured channel answers `503` and names the environment variables it is missing.
+
+### POST `/v1/channels/link-codes`
+
+```json
+{ "channel": "telegram", "grantId": "<WEB4 delegated usage grant id>" }
+```
+
+Returns an 8-character code valid for 15 minutes. Send `link CODE` (or `/link CODE`) from the chat app to bind that identity to your avatar. Codes are single-use and stored only as hashes. The grant (create it with `POST /api/subscription/usage/grants` on WEB4) is what will pay for agent replies on that chat.
+
+### PUT `/v1/channels/bindings/{bindingId}/memory`
+
+```json
+{ "memoryHolonId": "<a Holonic Memory holon you own, or null to detach>" }
+```
+
+Gives a linked chat long-term memory. The chat's agent recalls from the holon and curates durable facts into it after each answered message. A holon you don't own is refused with `403`.
+
+### GET `/v1/channels/bindings` · DELETE `/v1/channels/bindings/{bindingId}`
+
+List or remove your linked chat identities.
+
+**Agent replies.** When the WEB4 usage protocol is enabled (`SUBSCRIPTION_USAGE_ENABLED=true`), each text message from a linked chat runs the avatar's agent unattended under the binding's delegated grant, reserved and settled exactly like `POST /v1/agent/run`. The grant must allow-list the endpoint `CHANNEL /v1/channels message`. A platform redelivering the same message maps to the same WEB4 operation, so it never runs or bills twice. A revoked, expired or exhausted grant is explained in the chat. Each binding keeps its last 6 exchanges and sends them to the agent as `history`, so follow-up messages keep the thread. **Voice notes** (Telegram and WhatsApp) are downloaded, measured and transcribed, then answered, all under the same single WEB4 operation as the agent loop. The reply starts with what was heard (`You said: "..."`). WEB6 bills transcription by measured audio length: PCM WAV, or Ogg Opus (what chat apps send), verified page by page with CRC checks. A voice note therefore needs an `audio_ms` unit price in the active catalogue (see *Publishing unit prices*). Until one is published, voice notes get an explicit "not priced on this server yet" reply and nothing is reserved. Slack and Discord don't deliver voice audio to bots. Without the usage protocol, linked chats get an explicit "agent replies are not enabled" reply, never a fabricated answer.
 
 ## Holonic BRAID Reasoning Graphs
 

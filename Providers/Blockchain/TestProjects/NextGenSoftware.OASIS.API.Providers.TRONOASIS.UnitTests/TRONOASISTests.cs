@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using Xunit;
 
@@ -12,17 +13,17 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests
 	public class TRONOASISTests
 	{
 		[Fact]
-		public async Task ActivateProvider_ShouldSucceed()
+		public async Task ActivateProvider_WithoutNodeConfiguration_ShouldFail()
 		{
 			var provider = new TRONOASIS();
 			var result = await provider.ActivateProviderAsync();
 			
-			result.IsError.Should().BeFalse();
-			result.Result.Should().BeTrue();
+			result.IsError.Should().BeTrue();
+			result.Result.Should().BeFalse();
 		}
 
 		[Fact]
-		public async Task SaveHolon_ShouldReturnNotSupported()
+		public async Task SaveHolon_WithoutEncryptedStorage_ShouldFail()
 		{
 			var provider = new TRONOASIS();
 			provider.ActivateProvider();
@@ -36,37 +37,35 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests
 
 			var result = await provider.SaveHolonAsync(holon);
 			result.IsError.Should().BeTrue();
-			result.Message.Should().Contain("not supported");
+			result.Message.Should().Contain("not configured");
 		}
 
 		[Fact]
-		public async Task LoadAllHolons_ShouldReturnNotSupported()
+		public async Task LoadAllHolons_WithoutEncryptedStorage_ShouldFail()
 		{
 			var provider = new TRONOASIS();
 			provider.ActivateProvider();
 
 			var result = await provider.LoadAllHolonsAsync();
 			result.IsError.Should().BeTrue();
-			result.Message.Should().Contain("not supported");
-			result.Result.Should().NotBeNull();
-			result.Result.Should().BeEmpty();
+			result.Message.Should().Contain("not configured");
+			result.Result.Should().BeNull();
 		}
 
 		[Fact]
-		public async Task LoadHolonsByMetaData_ShouldReturnNotSupported()
+		public async Task LoadHolonsByMetaData_WithoutEncryptedStorage_ShouldFail()
 		{
 			var provider = new TRONOASIS();
 			provider.ActivateProvider();
 
 			var result = await provider.LoadHolonsByMetaDataAsync("env", "test");
 			result.IsError.Should().BeTrue();
-			result.Message.Should().Contain("not supported");
-			result.Result.Should().NotBeNull();
-			result.Result.Should().BeEmpty();
+			result.Message.Should().Contain("not configured");
+			result.Result.Should().BeNull();
 		}
 
 		[Fact]
-		public async Task Import_ShouldReturnNotSupported()
+		public async Task Import_WithoutEncryptedStorage_ShouldFail()
 		{
 			var provider = new TRONOASIS();
 			provider.ActivateProvider();
@@ -79,56 +78,52 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests
 
 			var result = await provider.ImportAsync(holons);
 			result.IsError.Should().BeTrue();
-			result.Message.Should().Contain("not supported");
+			result.Message.Should().Contain("not configured");
 			result.Result.Should().BeFalse();
 		}
 
 		[Fact]
-		public void GetPlayersNearMe_ShouldReturnNotSupported()
+		public void GetAvatarsNearMe_WithoutConfiguration_ShouldFail()
 		{
 			var provider = new TRONOASIS();
 			provider.ActivateProvider();
 
-			var result = provider.GetPlayersNearMe();
+			var result = provider.GetAvatarsNearMe(0, 0, 100);
 			result.IsError.Should().BeTrue();
-			result.Message.Should().Contain("not supported");
-			result.Result.Should().NotBeNull();
-			result.Result.Should().BeEmpty();
+			result.Result.Should().BeNull();
 		}
 
 		[Fact]
-		public void GetHolonsNearMe_ShouldReturnNotSupported()
+		public void GetHolonsNearMe_WithoutConfiguration_ShouldFail()
 		{
 			var provider = new TRONOASIS();
 			provider.ActivateProvider();
 
-			var result = provider.GetHolonsNearMe(HolonType.Holon);
+			var result = provider.GetHolonsNearMe(0, 0, 100, HolonType.Holon);
 			result.IsError.Should().BeTrue();
-			result.Message.Should().Contain("not supported");
-			result.Result.Should().NotBeNull();
-			result.Result.Should().BeEmpty();
+			result.Result.Should().BeNull();
 		}
 
 		[Fact]
-		public void SendTransaction_ShouldReturnNotImplemented()
+		public void SendTransaction_WithoutConfiguration_ShouldFail()
 		{
 			var provider = new TRONOASIS();
 			provider.ActivateProvider();
 
-			var result = provider.SendTransaction(null);
+			var result = provider.SendTransaction("sender", "recipient", 1m, "test");
 			result.IsError.Should().BeTrue();
-			result.Message.Should().Contain("not implemented");
+			result.Result.Should().BeNull();
 		}
 
 		[Fact]
-		public void MintNFT_ShouldReturnNotImplemented()
+		public void MintNFT_ShouldRejectMissingRequestBeforeActivation()
 		{
 			var provider = new TRONOASIS();
-			provider.ActivateProvider();
-
 			var result = provider.MintNFT(null);
 			result.IsError.Should().BeTrue();
-			result.Message.Should().Contain("not implemented");
+			result.Message.Should().Contain("transaction");
+			result.Result.Should().BeNull();
+			provider.IsProviderActivated.Should().BeFalse();
 		}
 	}
 }

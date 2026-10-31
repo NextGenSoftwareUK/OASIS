@@ -1,0 +1,22 @@
+[
+  {
+    "Utc": "2026-10-20T08:48:38.317755758Z",
+    "Message": "      HyperDrive ordered command worker 6cec48efded0:dc40ed8e5ff544b6b3bb9f031d5846eb started."
+  },
+  {
+    "Utc": "2026-10-20T08:48:38.317762628Z",
+    "Message": "      HyperDrive sync-history compaction started; interval 01:00:00, inactive-device retention 30 days."
+  },
+  {
+    "Utc": "2026-10-20T08:48:38.317856847Z",
+    "Message": "      HyperDrive fan-out worker 6cec48efded0:619b361f1a9a41478d1b55da601fc710 started with 0 explicit targets."
+  },
+  {
+    "Utc": "2026-10-20T08:48:38.992171647Z",
+    "Message": "      HyperDrive domain capture initialized; 0 existing records were projected."
+  },
+  {
+    "Utc": "2026-10-20T08:48:39.130611653Z",
+    "Message": "      HyperDrive capture stopped (MONGO_DOMAIN_CAPTURE_HISTORY_LOST): The hosted domain change stream was not durably projected. Reconcile missed state before replacing its checkpoint and restarting capture."
+  }
+]

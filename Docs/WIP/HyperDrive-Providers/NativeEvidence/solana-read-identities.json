@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-26",
+  "scope": "Read-only inspection of two original avatar-ID failures; not a conformance pass",
+  "dependencies": [
+    {
+      "Dependency": "Core",
+      "SHA256": "5D0E1C190FB98C46983F771F018C69472CEAA60E6F59FA29407F0AD3CCFD6876",
+      "SourceDocuments": 790
+    },
+    {
+      "Dependency": "Shared",
+      "SHA256": "B45A1CB4B95186794017DCC8EEDB1E044D4BA44A20170DA2DC6577104490AF9C",
+      "SourceDocuments": 56
+    }
+  ],
+  "assemblies": [
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS",
+      "sha256": "DAA04E470DF2EEEB44BA93074060D93FBA9A89F793EBDC9A0C56D67C82A4BE5C",
+      "pdbSha256": "39873C7F249B8D425917114AE457AA8CBC129F75B3CBC093A956C0F839089C43",
+      "sources": 69
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests",
+      "sha256": "4D1EF42717000AE7E90B9D27269281B8615FF2F2387019A70173F0A2B6222684",
+      "pdbSha256": "E89BCBB608D823C8BE8071E0C8BA89BB8CCFEF331639C8F09796E9D2D8ADAD7A",
+      "sources": 11
+    }
+  ],
+  "diagnosis": "Both failures originate at DecodeStoredMemoAsync line68: finalized referenced memo chunk unavailable. No cause/timing of unavailability proved, no historical record bypass or ledger reset.",
+  "fixtureDisposition": "Original two synthetic avatars and baseline report preserved; no application mutation/replay/cleanup",
+  "freeBytes": 127700176896,
+  "trx": {
+    "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/solana-core-read-current.trx.gz",
+    "rawBytes": 2824,
+    "rawSha256": "b3b2264bfa1f2336f3e43cc3978aa323f961070bef1bb10d5ca5427c7a49fdc6",
+    "gzipBytes": 1173,
+    "gzipSha256": "f2860ec4f1f26dad1e04d924779e3cea0e0af56f1799156eeb759eb2a3f174c5",
+    "outcome": "1 read-only diagnostic case passed; not storage conformance",
+    "rawRemovedAfterVerifiedCompression": true
+  },
+  "diagnostic": {
+    "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/solana-core-read-diagnostic.json",
+    "sha256": "b8dc9de74353dd29f291a82854898afbd1d55c01026298032d1a2d7d9fb1388c",
+    "workingPath": "TestResults/SolanaCurrent/solana-core-read-diagnostic.json",
+    "workingSha256": "3f9e5ef87192a9198593106d460dad792329159ba32492de55aa5940399c3d64"
+  },
+  "sourceFailureBranch": {
+    "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SolanaOASIS/Infrastructure/Repositories/SolanaRepository.MemoRecords.cs",
+    "line": 68,
+    "staticMessage": "Finalized Solana memo chunk is unavailable; no partial record returned."
+  }
+}

@@ -1,0 +1,231 @@
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Enums;
+
+namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests;
+
+[TestClass]
+public class SuiStorageTests
+{
+    private SuiOASIS _provider = null!;
+    // Public local-fixture key, retained across runs; never use this key for user data.
+    private static byte[] LocalStorageKey() => System.Security.Cryptography.SHA256.HashData(
+        System.Text.Encoding.UTF8.GetBytes("oasis-sui-local-storage-fixture-v1"));
+
+    private static string Required(string name) => Environment.GetEnvironmentVariable(name)
+        ?? throw new InvalidOperationException($"Required real-chain test setting {name} is missing. No mock or skipped evidence is allowed.");
+
+    [TestInitialize]
+    public async Task Setup()
+    {
+        var rpc = Required("OASIS_SUI_TEST_RPC");
+        Assert.IsTrue(new Uri(rpc).IsLoopback, "Evidence cannot spend public-chain assets.");
+        using var deployment = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(Required("OASIS_SUI_TEST_DEPLOYMENT")));
+        var root = deployment.RootElement;
+        _provider = new SuiOASIS(rpc, "localnet", root.GetProperty("chainId").GetString()!,
+            root.GetProperty("packageAddress").GetString()!, root.GetProperty("privateKey").GetString()!,
+            root.GetProperty("storageObjectId").GetString()!,storageEncryptionKeyResolver:LocalStorageKey) { IsVersionControlEnabled = true };
+        var activation = await _provider.ActivateProviderAsync();
+        Assert.IsFalse(activation.IsError, activation.Message);
+        Assert.IsTrue(activation.Result);
+    }
+
+    [TestCleanup]
+    public async Task Cleanup()
+    {
+        if (_provider != null)
+        {
+            await _provider.DeActivateProviderAsync();
+            _provider.Dispose();
+        }
+    }
+
+    [TestMethod]
+    public async Task AvatarAndDetailPersistWithIndexesAndVersions()
+    {
+        var id = Guid.NewGuid();
+        var avatar = new Avatar { Id = id, Username = "sui-" + id.ToString("N"),
+            Email = id.ToString("N") + "@example.test", FirstName = "Before" };
+        try
+        {
+            var saved = await _provider.SaveAvatarAsync(avatar);
+            Assert.IsFalse(saved.IsError, saved.Message);
+            var firstVersion = saved.Result.Version;
+            var loaded = await _provider.LoadAvatarAsync(id);
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.AreEqual("Before", loaded.Result.FirstName);
+            Assert.AreEqual(id, (await _provider.LoadAvatarByUsernameAsync(avatar.Username)).Result.Id);
+            Assert.AreEqual(id, (await _provider.LoadAvatarByEmailAsync(avatar.Email)).Result.Id);
+            Assert.AreEqual(id, _provider.LoadAvatar(id).Result.Id);
+            Assert.AreEqual(id, _provider.LoadAvatarByUsername(avatar.Username).Result.Id);
+            Assert.AreEqual(id, _provider.LoadAvatarByEmail(avatar.Email).Result.Id);
+            avatar.FirstName = "After";
+            Assert.IsFalse((await _provider.SaveAvatarAsync(avatar)).IsError);
+            Assert.AreEqual("After", (await _provider.LoadAvatarAsync(id)).Result.FirstName);
+            Assert.AreEqual("Before", (await _provider.LoadAvatarAsync(id, firstVersion)).Result.FirstName);
+            foreach (var history in new[] { _provider.LoadAllAvatars(firstVersion), await _provider.LoadAllAvatarsAsync(firstVersion) })
+            { Assert.IsFalse(history.IsError, history.Message); Assert.AreEqual("Before", history.Result.Single(value => value.Id == id).FirstName); }
+            var detail = new AvatarDetail { Id = id, Username = avatar.Username, Email = avatar.Email };
+            Assert.IsFalse((await _provider.SaveAvatarDetailAsync(detail)).IsError);
+            Assert.AreEqual(id, (await _provider.LoadAvatarDetailAsync(id)).Result.Id);
+            Assert.AreEqual(id, (await _provider.LoadAvatarDetailByEmailAsync(avatar.Email)).Result.Id);
+            Assert.AreEqual(id, (await _provider.LoadAvatarDetailByUsernameAsync(avatar.Username)).Result.Id);
+            Assert.AreEqual(id, _provider.LoadAvatarDetail(id).Result.Id);
+            Assert.AreEqual(id, _provider.LoadAvatarDetailByUsername(avatar.Username).Result.Id);
+            Assert.AreEqual(id, _provider.LoadAvatarDetailByEmail(avatar.Email).Result.Id);
+            var detailVersion = detail.Version;
+            detail.Karma = 42;
+            detail.KarmaAkashicRecords.Add(new Core.Objects.KarmaAkashicRecord { AvatarId = id, Karma = 42, TotalKarma = 42, Date = DateTime.UtcNow });
+            Assert.IsFalse((await _provider.SaveAvatarDetailAsync(detail)).IsError);
+            foreach (var history in new[] { _provider.LoadAllAvatarDetails(detailVersion), await _provider.LoadAllAvatarDetailsAsync(detailVersion) })
+            { Assert.IsFalse(history.IsError, history.Message); Assert.AreEqual(0L, history.Result.Single(value => value.Id == id).Karma); }
+            var updatedDetail = await _provider.LoadAvatarDetailAsync(id);
+            Assert.IsFalse(updatedDetail.IsError, updatedDetail.Message);
+            Assert.AreEqual(42L, updatedDetail.Result.Karma); Assert.AreEqual(42, updatedDetail.Result.KarmaAkashicRecords.Single().Karma);
+        }
+        finally
+        {
+            var deleted = await _provider.DeleteAvatarAsync(id, softDelete: false);
+            Assert.IsFalse(deleted.IsError, deleted.Message);
+        }
+        Assert.IsTrue((await _provider.LoadAvatarAsync(id)).IsError);
+    }
+
+    [TestMethod]
+    public async Task HolonsPersistMetadataParentIndexesAndDeletion()
+    {
+        var parentId = Guid.NewGuid();
+        var id = Guid.NewGuid();
+        var directory = new System.IO.DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null && !System.IO.File.Exists(System.IO.Path.Combine(directory.FullName,"Scripts/TestHosts/start-sui-test-network.sh"))) directory = directory.Parent;
+        Assert.IsNotNull(directory);
+        var journal = System.IO.Path.Combine(directory!.FullName,"TestResults/SuiRuntime/holon-query-pending.json");
+        using var ownership = new System.IO.FileStream(journal,System.IO.FileMode.CreateNew,System.IO.FileAccess.Write,System.IO.FileShare.Read);
+        using (var definition = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(Required("OASIS_SUI_TEST_DEPLOYMENT"))))
+            await System.Text.Json.JsonSerializer.SerializeAsync(ownership,new { id,parentId,
+                chainId=definition.RootElement.GetProperty("chainId").GetString(),
+                packageAddress=definition.RootElement.GetProperty("packageAddress").GetString(),
+                recovery="Owned local holon query fixture. Reconcile these IDs before rerun; do not reset the ledger." });
+        ownership.Flush(true);
+        var verified = false;
+        var queryKeys = new[] { "CreatedByAvatarId", "Active", "HolonType", "STARNETHolonId", "_versionStamp", "data",
+            "Username", "Email", "Name", "Description", "ParentId", "ParentProviderKey", "SearchQuery", "parkType", "env",
+            "web3TokenId", "NFT.MintedByAvatarId", "NFT.MintWalletAddress", "NFT.ParentWeb4NFTId",
+            "GEONFT.PlacedByAvatarId", "GEONFT.MintedByAvatarId", "GEONFT.OriginalOASISNFT.MintWalletAddress", "GEONFT.LatLong",
+            "Status", "ActiveQuestId", "ActiveObjectiveId", "ParentMissionId", "Avatar", "AppRegion" };
+        var holon = new Holon { Id = id, ParentHolonId = parentId, Name = "Sui roundtrip", Description = "real contract storage" };
+        holon.MetaData["evidence"] = id.ToString("N");
+        foreach (var name in queryKeys) holon.MetaData[name] = id.ToString("N") + ":" + name;
+        holon.MetaData["history"] = new List<Dictionary<string, object>> { new() { ["amount"] = 42L, ["avatarId"] = id } };
+        try
+        {
+            var saved = await _provider.SaveHolonAsync(holon, saveChildren: false);
+            Assert.IsFalse(saved.IsError, saved.Message);
+            var loaded = await _provider.LoadHolonAsync(id, loadChildren: false);
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.AreEqual(holon.Description, loaded.Result.Description);
+            var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+            var encrypted=typeof(SuiOASIS).GetProperty("Backend",flags)!.GetValue(_provider)!;
+            var raw=(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IKeyValueBackend)
+                encrypted.GetType().GetField("_inner",flags)!.GetValue(encrypted)!;
+            var physicalKeys=await raw.ListKeysAsync("oasis/private/v1/");
+            Assert.IsTrue(physicalKeys.Count>0,"Real ledger must contain private physical records.");
+            foreach(var physicalKey in physicalKeys)
+            {
+                Assert.IsFalse(physicalKey.Contains(id.ToString(),StringComparison.OrdinalIgnoreCase));
+                var ciphertext=await raw.GetAsync(physicalKey);
+                StringAssert.StartsWith(ciphertext,"oasis-aes256gcm-");
+                Assert.IsFalse(ciphertext.Contains(holon.Description,StringComparison.Ordinal));
+            }
+            using var deployment=System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(Required("OASIS_SUI_TEST_DEPLOYMENT")));
+            var settings=deployment.RootElement;
+            using(var reopened=new SuiOASIS(Required("OASIS_SUI_TEST_RPC"),"localnet",
+                settings.GetProperty("chainId").GetString()!,settings.GetProperty("packageAddress").GetString()!,
+                settings.GetProperty("privateKey").GetString()!,settings.GetProperty("storageObjectId").GetString()!,
+                storageEncryptionKeyResolver:LocalStorageKey))
+            {
+                var activation=await reopened.ActivateProviderAsync();
+                Assert.IsFalse(activation.IsError,activation.Message);
+                var persisted=await reopened.LoadHolonAsync(id,loadChildren:false);
+                Assert.IsFalse(persisted.IsError,persisted.Message);
+                Assert.AreEqual(holon.Description,persisted.Result.Description);
+            }
+            Assert.AreEqual(id.ToString("N"), loaded.Result.MetaData["evidence"].ToString());
+            var history = (List<Dictionary<string, object>>)loaded.Result.MetaData["history"];
+            Assert.AreEqual(42L, history.Single()["amount"]); Assert.AreEqual(id.ToString(), history.Single()["avatarId"]);
+            var children = await _provider.LoadHolonsForParentAsync(parentId, loadChildren: false);
+            Assert.IsFalse(children.IsError, children.Message);
+            Assert.IsTrue(children.Result.Any(x => x.Id == id));
+            var filtered = await _provider.LoadHolonsByMetaDataAsync("evidence", id.ToString("N"), loadChildren: false);
+            Assert.IsFalse(filtered.IsError, filtered.Message);
+            Assert.IsTrue(filtered.Result.Any(x => x.Id == id));
+            foreach (var name in queryKeys)
+            {
+                var match = await _provider.LoadHolonsByMetaDataAsync(name,id.ToString("N") + ":" + name,loadChildren:false);
+                Assert.IsFalse(match.IsError,match.Message);
+                Assert.AreEqual(id,match.Result.Single().Id,name);
+            }
+            verified = true;
+        }
+        finally
+        {
+            if (verified)
+            {
+                var deleted = await _provider.DeleteHolonAsync(id);
+                Assert.IsFalse(deleted.IsError, deleted.Message);
+                Assert.IsTrue((await _provider.LoadHolonAsync(id)).IsError);
+                Assert.IsFalse((await _provider.LoadHolonsForParentAsync(parentId)).Result.Any(x => x.Id == id));
+                ownership.Dispose();
+                System.IO.File.Delete(journal);
+            }
+        }
+    }
+
+    [TestMethod]
+    public async Task ImportSearchExportAndProximityUsePersistedRecords()
+    {
+        var name = "sui-query-" + Guid.NewGuid().ToString("N");
+        var root = new Holon { Id = Guid.NewGuid(), Name = name };
+        var child = new Holon { Id = Guid.NewGuid(), Name = name + "-child", ParentHolonId = root.Id };
+        root.MetaData["Latitude"] = 51d;
+        root.MetaData["Longitude"] = 0d;
+        child.MetaData["Latitude"] = 52d;
+        child.MetaData["Longitude"] = 0d;
+        try
+        {
+            var imported = await _provider.ImportAsync(new[] { root, child });
+            Assert.IsFalse(imported.IsError, imported.Message);
+            var providerKey = root.ProviderUniqueStorageKey[ProviderType.SuiOASIS];
+            Assert.AreEqual(root.Id, (await _provider.LoadHolonAsync(providerKey, loadChildren: false)).Result.Id);
+            var tree = await _provider.LoadHolonAsync(root.Id);
+            Assert.IsFalse(tree.IsError, tree.Message);
+            Assert.IsTrue(tree.Result.Children.Any(item => item.Id == child.Id));
+            var search = await _provider.SearchAsync(new SearchParams
+            {
+                SearchGroups = new List<ISearchGroupBase> { new SearchTextGroup { SearchQuery = name } }
+            });
+            Assert.IsFalse(search.IsError, search.Message);
+            Assert.AreEqual(2, search.Result.SearchResultHolons.Count);
+            var exported = await _provider.ExportAllAsync();
+            Assert.IsFalse(exported.IsError, exported.Message);
+            Assert.IsTrue(exported.Result.Any(item => item.Id == root.Id));
+            Assert.IsTrue(exported.Result.Any(item => item.Id == child.Id));
+            var nearby = ((IOASISNETProvider)_provider).GetHolonsNearMe(51000000, 0, 100, HolonType.All);
+            Assert.IsFalse(nearby.IsError, nearby.Message);
+            Assert.IsTrue(nearby.Result.Any(item => item.Id == root.Id));
+            Assert.IsFalse(nearby.Result.Any(item => item.Id == child.Id));
+        }
+        finally
+        {
+            Assert.IsFalse((await _provider.DeleteHolonAsync(child.Id)).IsError);
+            Assert.IsFalse((await _provider.DeleteHolonAsync(root.Id)).IsError);
+        }
+    }
+}

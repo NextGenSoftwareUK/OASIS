@@ -23,12 +23,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
     /// ActivityPub Provider for OASIS
     /// Implements the ActivityPub protocol for federated social networks (Mastodon, Pleroma, etc.)
     /// </summary>
-    public partial class ActivityPubOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
+    public partial class ActivityPubOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly string _instanceUrl;
         private readonly string _accessToken;
         private bool _isActivated;
+        private bool _disposed;
 
         /// <summary>
         /// Initializes a new instance of the ActivityPubOASIS provider
@@ -36,15 +37,33 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
         /// <param name="instanceUrl">URL of the ActivityPub instance (e.g., https://mastodon.social)</param>
         /// <param name="accessToken">OAuth access token for API authentication</param>
         public ActivityPubOASIS(string instanceUrl = "https://mastodon.social", string accessToken = "")
+            : this(instanceUrl, accessToken, new HttpClientHandler()) { }
+
+        /// <summary>The provider owns the supplied transport and disposes it only at final disposal.</summary>
+        public ActivityPubOASIS(string instanceUrl, string accessToken, HttpMessageHandler handler)
         {
             this.ProviderName = "ActivityPubOASIS";
             this.ProviderDescription = "ActivityPub Provider - Federated social network protocol";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ActivityPubOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Social);
+            // Native social projections are not an arbitrary private OASIS record store.
+            this.ProviderCapabilities = new List<EnumValue<ProviderCategory>> {
+                new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Social),
+                new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network)
+            };
 
-            _instanceUrl = instanceUrl ?? throw new ArgumentNullException(nameof(instanceUrl));
+            ArgumentNullException.ThrowIfNull(instanceUrl);
+            if(!Uri.TryCreate(instanceUrl,UriKind.Absolute,out var root)
+                ||(root.Scheme!=Uri.UriSchemeHttps&&!(root.Scheme==Uri.UriSchemeHttp&&root.IsLoopback))
+                ||!string.IsNullOrEmpty(root.UserInfo)||!string.IsNullOrEmpty(root.Query)||!string.IsNullOrEmpty(root.Fragment)
+                ||root.AbsolutePath!="/")
+                throw new ArgumentException("An HTTPS instance origin (or loopback HTTP) without path, credentials, query or fragment is required.",nameof(instanceUrl));
+            _instanceUrl = root.GetLeftPart(UriPartial.Authority);
             _accessToken = accessToken;
-            _httpClient = new HttpClient
+            // Instance identity and authentication are bound to this configured origin.
+            if(handler is HttpClientHandler httpHandler)httpHandler.AllowAutoRedirect=false;
+            if(handler is SocketsHttpHandler socketsHandler)socketsHandler.AllowAutoRedirect=false;
+            _httpClient = new HttpClient(handler ?? throw new ArgumentNullException(nameof(handler)))
             {
                 BaseAddress = new Uri(_instanceUrl)
             };
@@ -55,6 +74,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _accessToken);
             }
         }
+
 
     }
 }

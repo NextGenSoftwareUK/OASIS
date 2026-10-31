@@ -1,0 +1,102 @@
+{
+  "dateUtc": "2026-10-26T13:25:42.028Z",
+  "artifact": "../../../../TestResults/PolkadotCurrent/record-contract-target/oasis-psp34.wasm",
+  "bytes": 44850,
+  "sha256": "32b1e526fb7c4c7502f88c2fa1f213d77e088aa7bdafa90f9cd13b73f691eaea",
+  "codeHash": "0xcf447d4a13ca5fbb7477a22d01d5b3ccb21df182e48bc01713e8a8cd56ec6686",
+  "sources": {
+    "contracts/psp34/lib.rs": "a1d64a2fa09e3a7748ffbe24f3d0207ea479c98df690f9eeb6a125a019788206",
+    "contracts/psp34/Cargo.toml": "0b0d3125f80d20f99369f0943dbd1e33e25a093779a6a74f234a78435dcac239",
+    "contracts/psp34/Cargo.lock": "33cc9f2684ef73429943a6bb68c40e231c1383a67cc7225679715aa0bf6117bb",
+    "SdkBridge/verify-record-contract-artifact.mjs": "37923c4cc0beed5937412882a36decce4d61b60c869361327e36c0c7f6e86820"
+  },
+  "exports": [
+    {
+      "name": "call",
+      "kind": "function"
+    },
+    {
+      "name": "deploy",
+      "kind": "function"
+    }
+  ],
+  "imports": [
+    {
+      "module": "seal1",
+      "name": "get_storage",
+      "kind": "function"
+    },
+    {
+      "module": "seal0",
+      "name": "input",
+      "kind": "function"
+    },
+    {
+      "module": "seal0",
+      "name": "address",
+      "kind": "function"
+    },
+    {
+      "module": "seal0",
+      "name": "caller",
+      "kind": "function"
+    },
+    {
+      "module": "seal2",
+      "name": "set_storage",
+      "kind": "function"
+    },
+    {
+      "module": "seal1",
+      "name": "contains_storage",
+      "kind": "function"
+    },
+    {
+      "module": "seal1",
+      "name": "clear_storage",
+      "kind": "function"
+    },
+    {
+      "module": "seal0",
+      "name": "value_transferred",
+      "kind": "function"
+    },
+    {
+      "module": "seal0",
+      "name": "hash_blake2_256",
+      "kind": "function"
+    },
+    {
+      "module": "seal0",
+      "name": "deposit_event",
+      "kind": "function"
+    },
+    {
+      "module": "seal0",
+      "name": "seal_return",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "memory",
+      "kind": "memory"
+    }
+  ],
+  "build": {
+    "offline": true,
+    "locked": true,
+    "rust": "1.88.0",
+    "jobs": 2,
+    "terminalExitCode": 0,
+    "compileSeconds": 167
+  },
+  "log": {
+    "path": "psp34-wasm-current.log.gz",
+    "rawBytes": 4157,
+    "gzipBytes": 1362,
+    "rawSha256": "d31bb7d1cc3553c945be525aa98255346972643500517925c42510192b9bf13f"
+  },
+  "formatVerified": true,
+  "nativeDeploymentVerified": false,
+  "publicNftMutationsWired": false
+}

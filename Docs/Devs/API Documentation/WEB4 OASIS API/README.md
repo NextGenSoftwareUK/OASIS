@@ -2,7 +2,7 @@
 
 ## Subscription protocol update (2026-09-22)
 
-WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](../../WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](../../WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
+WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](../../../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](../../../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
 
 
 ## Overview
@@ -17,6 +17,9 @@ Welcome to the WEB4 OASIS API documentation. This API provides the foundational 
 - [Keys API](Keys-API.md) - Cryptographic key management (`/api/keys`)
 - [Karma API](Karma-API.md) - Reputation and karma tracking (`/api/karma`)
 - [Data API](Data-API.md) - Data storage and management (`/api/data`)
+- [Native Data API](Native-Data-API.md) - Import data from your own databases, with saved connections (`/api/native-data`)
+- [Sandbox API](Sandbox-API.md) - The public sandbox: demo avatars, provider outages, demo data (`/api/sandbox`)
+- [CQL API](CQL-API.md) - Bounded JSON queries across providers (`/api/data/query-cql`)
 - [Wallet API](Wallet-API.md) - Multi-chain wallet operations (`/api/wallet`)
 - [NFT API](NFT-API.md) - NFT minting and management (`/api/nft`)
 

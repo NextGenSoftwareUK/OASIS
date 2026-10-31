@@ -19,4 +19,11 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS\NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\CloudProviderFactory.Google.cs" Link="Production\CloudProviderFactory.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/CloudStorageDiscoveryAssertions.cs" Link="TestSupport/CloudStorageDiscoveryAssertions.cs" />
+    <Compile Include="../../../Shared/TestSupport/AllVersionExportVisibilityAssertions.cs" Link="TestSupport/AllVersionExportVisibilityAssertions.cs" />
+  </ItemGroup>
 </Project>

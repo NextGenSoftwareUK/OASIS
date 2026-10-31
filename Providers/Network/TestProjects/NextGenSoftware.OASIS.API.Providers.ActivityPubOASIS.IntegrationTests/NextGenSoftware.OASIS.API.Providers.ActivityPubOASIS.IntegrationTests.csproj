@@ -10,10 +10,24 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Compile Include="../../../Shared/TestSupport/ProtocolPointWeb4Acceptance.cs" Link="TestSupport/ProtocolPointWeb4Acceptance.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/ProtocolPointApiHost.cs" Link="Demo/ProtocolPointApiHost.cs" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/*.cs"
+             Exclude="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Providers.cs;../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/DnaCqlSharedReads.cs"
+             Link="Production/Cql/%(Filename)%(Extension)" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/Cql*.cs" Link="Production/Models/%(Filename)%(Extension)" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs" Link="Production/CqlV1Controller.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/AuthorizeAttribute.cs" Link="Production/AuthorizeAttribute.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/MastodonPointWalkthrough.cs" Link="Demo/MastodonPointWalkthrough.cs" />
+    <Compile Remove="ActivityPubCapabilityConformanceTests.cs" />
+    <Compile Include="ActivityPubCapabilityConformanceTests.cs" Condition="'$(IncludeCapabilityConformance)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/NonStorageConformance.cs" Link="TestSupport/NonStorageConformance.cs" Condition="'$(IncludeCapabilityConformance)' == 'true'" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageReference Include="xunit" Version="2.5.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,6 +44,13 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs" Link="Demo/NativeKeySetWalkthrough.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/NativeProtocolMongoAcceptance.cs" Link="TestSupport/NativeProtocolMongoAcceptance.cs" />
+  </ItemGroup>
 </Project>
 
 

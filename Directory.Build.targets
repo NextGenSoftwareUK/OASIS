@@ -1,4 +1,6 @@
 <Project>
+  <Import Project="$(MSBuildThisFileDirectory)External Libs/IpfsSdk.AppReferences.props"
+    Condition="'$(TargetFramework)' == 'net10.0' and ($([System.String]::Copy('$(MSBuildProjectName)').EndsWith('.WebAPI')) or $([System.String]::Copy('$(MSBuildProjectName)').EndsWith('.WebAPI.UnitTests')))" />
   <!-- Solnet brings Chaos.NaCl.Standard transitively; HoloNET supplies the
        pinned source implementation with the same assembly identity. Resolve
        that identity once, before compilation and runtime file collection. -->

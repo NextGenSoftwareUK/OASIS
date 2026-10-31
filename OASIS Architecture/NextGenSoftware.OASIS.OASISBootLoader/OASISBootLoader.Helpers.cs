@@ -1,4 +1,4 @@
-﻿//using NextGenSoftware.OASIS.API.Providers.TONOASIS; // Not referenced in Core Only solution
+//using NextGenSoftware.OASIS.API.Providers.TONOASIS; // Not referenced in Core Only solution
 //using NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS;
 //using NextGenSoftware.OASIS.API.Providers.LineaOASIS;
 //using NextGenSoftware.OASIS.API.Providers.ScrollOASIS;
@@ -31,7 +31,7 @@ using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
-using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
+using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 using NextGenSoftware.OASIS.API.Providers.OptimismOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
 using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
@@ -284,11 +284,6 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             HandleProviderError("LocalFileOASIS", e);
         }
 
-        private static void ActivityPubOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
-        {
-            HandleProviderError("ActivityPubOASIS", e);
-        }
-
         private static void ThreeFoldOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             HandleProviderError("ThreeFoldOASI", e);
@@ -349,19 +344,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             HandleProviderError("CosmosBlockChainOASIS", e);
         }
 
-        private static void BitcoinOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
-        {
-            HandleProviderError("BitcoinOASIS", e);
-        }
-
         private static void NEAROASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             HandleProviderError("NEAROASIS", e);
-        }
-
-        private static void MoralisOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
-        {
-            HandleProviderError("MoralisOASIS", e);
         }
 
         private static void TelosOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)

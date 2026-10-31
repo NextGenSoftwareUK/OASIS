@@ -1,0 +1,78 @@
+using System;
+using System.Collections.ObjectModel;
+using System.Linq.Expressions;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Common;
+
+namespace NextGenSoftware.OASIS.API.Core.Queries
+{
+    /// <summary>Explicit coordinated join intent over independently scoped sources.
+    /// This does not grant native join capability, resolve providers or execute I/O.</summary>
+    public sealed class CosmicDistributedJoinQuery<TLeft, TRight, TKey>
+        where TLeft : IHolon where TRight : IHolon
+    {
+        public CosmicQuery<TLeft> Left { get; }
+        public CosmicQuery<TRight> Right { get; }
+        public CosmicJoinKind Kind { get; }
+        public CosmicJoinOptions Options { get; }
+        public ReadOnlyCollection<CosmicJoinKeyComponent> Keys { get; }
+        internal CosmicDistributedJoinQuery(CosmicQuery<TLeft> left, CosmicQuery<TRight> right,
+            CosmicJoinKind kind, CosmicJoinOptions options, ReadOnlyCollection<CosmicJoinKeyComponent> keys)
+        { Left = left; Right = right; Kind = kind; Options = options; Keys = keys; }
+    }
+
+    public static class CosmicDistributedJoinQueryExtensions
+    {
+        /// <summary>Capture an explicit bounded coordinated inner join. Source windows and policies
+        /// retain their independent meaning. Execution requires the distributed planner/owner.</summary>
+        public static OASISResult<CosmicDistributedJoinQuery<TLeft, TRight, TKey>> DistributedJoin<TLeft, TRight, TKey>(
+            this CosmicQuery<TLeft> left, CosmicQuery<TRight> right, Expression<Func<TLeft, TKey>> leftKey,
+            Expression<Func<TRight, TKey>> rightKey, CosmicJoinOptions options = null)
+            where TLeft : IHolon where TRight : IHolon
+            => Capture(left, right, leftKey, rightKey, CosmicJoinKind.Inner, options);
+
+        /// <summary>Capture an explicit coordinated left join. A missing match can be published
+        /// only after both admitted source sets complete; errors cannot stand in for absence.</summary>
+        public static OASISResult<CosmicDistributedJoinQuery<TLeft, TRight, TKey>> DistributedLeftJoin<TLeft, TRight, TKey>(
+            this CosmicQuery<TLeft> left, CosmicQuery<TRight> right, Expression<Func<TLeft, TKey>> leftKey,
+            Expression<Func<TRight, TKey>> rightKey, CosmicJoinOptions options = null)
+            where TLeft : IHolon where TRight : IHolon
+            => Capture(left, right, leftKey, rightKey, CosmicJoinKind.Left, options);
+
+        private static OASISResult<CosmicDistributedJoinQuery<TLeft, TRight, TKey>> Capture<TLeft, TRight, TKey>(
+            CosmicQuery<TLeft> left, CosmicQuery<TRight> right, Expression<Func<TLeft, TKey>> leftKey,
+            Expression<Func<TRight, TKey>> rightKey, CosmicJoinKind kind, CosmicJoinOptions options)
+            where TLeft : IHolon where TRight : IHolon
+        {
+            if (left == null || right == null || leftKey == null || rightKey == null)
+                return Error<TLeft, TRight, TKey>("CQL_JOIN_INVALID", "Two immutable sources and exact key selectors are required.");
+            if (left.GraphOptions != null || right.GraphOptions != null)
+                return Error<TLeft, TRight, TKey>("CQL_DISTRIBUTED_JOIN_UNSUPPORTED",
+                    "Distributed graph sources and snapshot guarantees require explicit enrollment.");
+            if ((left.ReadAccess == null) != (right.ReadAccess == null)
+                || left.ReadAccess != null && left.ReadAccess.ActorId != right.ReadAccess.ActorId)
+                return Error<TLeft, TRight, TKey>("CQL_JOIN_ACCESS_MISMATCH",
+                    "Both source policies must retain the same actor; their provider authorities remain independent.");
+            var first = CosmicProjectionQueryExtensions.Select(left, leftKey);
+            if (first.IsError)
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<CosmicProjectionQuery<TLeft, TKey>,
+                    CosmicDistributedJoinQuery<TLeft, TRight, TKey>>(first);
+            var second = CosmicProjectionQueryExtensions.Select(right, rightKey);
+            if (second.IsError)
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<CosmicProjectionQuery<TRight, TKey>,
+                    CosmicDistributedJoinQuery<TLeft, TRight, TKey>>(second);
+            var keys = CosmicJoinKeyCapture.Capture(first.Result.Columns, second.Result.Columns);
+            if (keys.IsError)
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ReadOnlyCollection<CosmicJoinKeyComponent>,
+                    CosmicDistributedJoinQuery<TLeft, TRight, TKey>>(keys);
+            return new OASISResult<CosmicDistributedJoinQuery<TLeft, TRight, TKey>>(
+                new CosmicDistributedJoinQuery<TLeft, TRight, TKey>(left, right, kind,
+                    options ?? CosmicJoinOptions.Create().Result, keys.Result));
+        }
+
+        private static OASISResult<CosmicDistributedJoinQuery<TLeft, TRight, TKey>> Error<TLeft, TRight, TKey>(string code, string message)
+            where TLeft : IHolon where TRight : IHolon
+            => CosmicScalarErrors.Invalid<CosmicDistributedJoinQuery<TLeft, TRight, TKey>>(code, message);
+    }
+}

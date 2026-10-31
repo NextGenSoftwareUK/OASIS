@@ -20,4 +20,4 @@ Use the host's authenticated avatar, stable device identity, persistent storage 
 
 Use the platform integration and Unity version supported by the included package documentation. Native plugins must match the target architecture. Physical Android/iOS execution, two-device convergence and Unity IL2CPP behavior require separate acceptance; package publication is not proof of those tests. Component licenses continue to apply to their respective binaries/source; the wrapper does not relicense dependencies.
 
-[Release matrix](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/Devs/OASIS_RELEASE_STATUS.md) · [Detailed Edge guide](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/OASIS%20Architecture/NextGenSoftware.OASIS.Edge.Runtime/README.md)
+[Release matrix](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/WIP/Release and Status/OASIS_RELEASE_STATUS.md) · [Detailed Edge guide](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/OASIS%20Architecture/NextGenSoftware.OASIS.Edge.Runtime/README.md)

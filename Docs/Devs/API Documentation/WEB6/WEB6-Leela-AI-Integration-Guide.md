@@ -2,6 +2,8 @@
 
 This guide is written specifically for the Leela AI development team. It addresses two concrete cost problems you are currently facing and shows exactly how WEB6 can solve them, with minimal changes to your existing UI and agentic flows.
 
+> **Comparing WEB6 with a model router (OpenRouter) or Hermes Agent?** See [Why WEB6 beats a model router or Hermes Agent for Leela](#why-web6-beats-a-model-router-or-hermes-agent-for-leela). In short, WEB6 is the only one of the three that cuts both your model bill and your document-storage bill, and it gives you a multi-user agent runtime, client chat channels and per-client billing in the same platform.
+
 ---
 
 ## Your Two Problems
@@ -421,8 +423,67 @@ The existing Leela API key (`sk_leela_...`) stored in the OASISDNA is already co
 | Cheap routing for non-Sonnet tasks | FAHRN cost mode | ~5 min |
 | Replace Bedrock document storage | Holonic Memory ingestion | Hours (corpus-size dependent) |
 | Full data sovereignty | Self-hosted ONODE | ~1–2 hours (Docker or binary) |
+| Server-side agent with self-improving skills | `POST /v1/agent/run` + `/v1/agent/feedback` | ~1 hour |
+| Clients chat with Leela on WhatsApp / Telegram / Slack / Discord | `/v1/channels/*` + a per-client WEB4 grant | ~1 hour per channel (bot setup) |
+| Daily check-ins and reminders | `/v1/schedules` with channel delivery | ~15 min |
 
 Start with Phase 1 (endpoint swap) this week to capture immediate savings, then evaluate BRAID and Holonic Memory based on your actual usage patterns.
+
+---
+
+## Why WEB6 beats a model router or Hermes Agent for Leela
+
+For the full comparison, including prices and a worked cost example, see [WEB6 vs OpenRouter vs Hermes Agent](WEB6_vs_OpenRouter_vs_Hermes.md).
+
+You may be weighing two alternatives: a **model router** such as [OpenRouter](https://openrouter.ai), or an **agent framework** such as [Hermes Agent](https://github.com/NousResearch/hermes-agent) (Nous Research). Each solves one slice of Leela's problem. **WEB6 solves all of it in one platform**, and it's built for a multi-user product handling sensitive conversations, not a single developer's chatbot.
+
+| | Model router (e.g. OpenRouter) | Hermes Agent | **WEB6** |
+|---|---|---|---|
+| What it is | Pay-per-token gateway to many models | Self-hosted, single-user agent app | **Full AI platform: gateway, agent runtime, memory, reasoning reuse, billing, identity** |
+| Cuts Leela's Bedrock model bill | Partly: one API, but you still pay full token price for every call, plus the router's platform fee | No: it calls whichever model you configure, at full price, and adds its own memory-saving and skill-writing calls | **Yes: cost-first routing across 98 providers, semantic caching (repeat questions cost nothing), Holonic BRAID reasoning reuse, FAHRN cheap-model routing** |
+| Replaces Bedrock Knowledge Bases / S3 | No | No: per-agent local SQLite recall, not a document corpus | **Yes: Holonic Memory ingests, chunks, deduplicates and semantically searches your whole corpus** |
+| Multi-user (each client separate) | No: one account and key | No: designed for one person | **Yes: every client is a WEB4 avatar with their own memory, budgets, metering and audit trail** |
+| Privacy controls for therapy data | None beyond the provider's | Memory sits in local files on whatever box runs it | **Per-avatar holons, membrane rules (nothing is shared upward unless allowed), TTL retention, self-hostable ONODE for full data sovereignty** |
+| Agent loop | No | Yes | **Yes: `POST /v1/agent/run`, metered per step, with pause-for-client-tools** |
+| Self-improving skills | No | Yes: writes skills from tasks | **Yes: the agent drafts a skill after a task, your score keeps it, and SkillOpt then evolves it from scored runs, keeping only edits that measurably improve results** |
+| Long-term memory | No | One agent's own notes | **Holonic Memory hierarchy plus Mem0, Zep, Letta, LangMem, Graphiti, Qdrant and Weaviate adapters; the agent curates durable facts automatically** |
+| Shared reasoning | No | No | **Holonic BRAID: proven reasoning plans are reused across sessions and users** |
+| Multi-agent orchestration | No | Parallel subagents | **FAHRN: serial, parallel, debate, voting and decomposed dispatch with budget guards and loop detection** |
+| WhatsApp, Telegram, Slack, Discord, Signal, Email | No | Yes | **Yes: signed webhooks, one-time avatar linking, per-chat conversation memory, voice notes transcribed and answered, every reply billed to that client's own capped grant** |
+| Scheduled / unattended runs | No | Built-in cron, unbilled and single-user | **Cron schedules per avatar, run exactly once across servers, each under a revocable, budget-capped grant, with results to a webhook or the client's chat** |
+| Spending control | Account-level credit balance | None | **Per-user plans, daily and monthly limits, per-grant monthly and per-operation caps, reserve-then-settle accounting on every call** |
+| Tools and interop | No | MCP client | **Any remote MCP server as agent tools, plus 508 MCP tools served at `/mcp`, A2A, ACP, ANP, LangGraph, OpenAI Agents, gRPC, GraphQL and webhooks** |
+| Code execution | No | Local shell on one machine | **Isolated, metered sandboxes (E2B, Judge0, Daytona) as an agent tool, billed per millisecond to the client** |
+| Chat from the terminal | No | `hermes` | **`star chat`, with memory, skills, sandbox and MCP tools** |
+| Drop-in for existing code | OpenAI-compatible API | You adopt its runtime | **OpenAI-compatible `/v1/chat/completions`: LangChain, AutoGen and CrewAI work by changing the base URL** |
+
+### What this means for Leela
+
+1. **One platform instead of three.** A router would fix only model access, and Hermes only the agent loop. You'd still need a vector store, a multi-tenant identity layer, per-client billing and a privacy model. WEB6 ships all of them, already integrated.
+2. **The cost savings compound.** The router saves on model access. WEB6 also gives you near-zero cost for repeated questions (semantic cache), cheaper reasoning on recurring patterns (BRAID), cheap models for easy steps (FAHRN), and it removes the Bedrock Knowledge Base bill entirely (Holonic Memory).
+3. **Built for a therapy product.** Every client's conversations, memories and spend are isolated by avatar. Nothing propagates without a membrane rule, retention is enforced, and you can self-host the whole stack.
+4. **Clients reach Leela where they already are.** WhatsApp, Telegram, Slack and Discord work today. Each chat remembers its thread, can draw on that client's own memory, and is billed to that client's capped grant, so one heavy user can never run up a surprise bill.
+5. **It gets better on its own.** SkillOpt turns your clinicians' ratings of answers into better agent skills, and BRAID makes good reasoning reusable.
+6. **No lock-in.** It's OpenAI-compatible, MCP-native, has 98 providers and is self-hostable. You can change models at any time without touching your code.
+
+### Already using a router or Hermes? Keep it, and put WEB6 underneath
+
+- **Router users:** point your OpenAI client at `https://api.web6.oasisomniverse.one/v1` instead. You keep one API for every model and gain caching, BRAID, FAHRN, memory and per-client billing.
+- **Hermes users:** set WEB6 as Hermes's custom OpenAI-compatible endpoint (base URL above, API key = your OASIS bearer token) and add `https://api.web6.oasisomniverse.one/mcp` as an MCP server. Every Hermes call then gets WEB6's savings and Leela's Holonic Memory corpus. Keep sensitive client memory in WEB6 holons, not in Hermes's local files.
+
+> Configuring Hermes against WEB6 authentication has not yet been tested end to end. Try it in a non-production environment first.
+
+### Getting Leela's agent onto WEB6 today
+
+| Step | Call |
+|---|---|
+| Run the agent for a client | `POST /v1/agent/run` with `task`, optional `memoryHolonId` (the client's memory) and `agentHolonId` (your Leela agent's skill) |
+| Rate answers to improve the agent | `POST /v1/agent/feedback` with `runId` and a 0–1 score |
+| Let a client chat on WhatsApp or Telegram | Client issues a WEB4 grant (`POST /api/subscription/usage/grants`, endpoint `CHANNEL /v1/channels message`), then `POST /v1/channels/link-codes` and sends `link CODE` in the chat |
+| Give that chat long-term memory | `PUT /v1/channels/bindings/{id}/memory` |
+| Daily check-ins | `POST /v1/schedules` with a cron expression, the task, a grant for `SCHEDULE /v1/schedules run`, and `delivery.kind = "channel"` to post into the client's chat |
+
+**Voice notes.** Clients can send WhatsApp or Telegram voice notes. WEB6 downloads each one, measures its exact length (verifying every Ogg page checksum), transcribes it and answers, all in one billed operation on that client's grant. The reply begins with what WEB6 heard, so a mis-hearing is obvious. Your operator turns this on once by publishing your transcription rate (an `audio_ms` unit price) in the WEB6 pricing catalogue. Until then, voice notes get a polite "please send text" reply and nothing is charged.
 
 ---
 

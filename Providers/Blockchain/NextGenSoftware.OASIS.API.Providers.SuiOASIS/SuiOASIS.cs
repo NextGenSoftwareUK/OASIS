@@ -36,14 +36,16 @@ using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
 {
-    public partial class SuiOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider
+    public partial class SuiOASIS : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISIdBoundTokenEscrowProvider, IOASISSmartContractProvider, IOASISNFTProvider, IDisposable
     {
-        private readonly HttpClient _httpClient;
-        private readonly string _rpcEndpoint;
-        private readonly string _network;
         private readonly string _privateKey;
         private readonly string _contractAddress;
-        private bool _isActivated;
+        private WalletManager _walletManager;
+        public WalletManager WalletManager
+        {
+            get => _walletManager ??= new WalletManager(this, OASISDNA);
+            set => _walletManager = value;
+        }
 
         /// <summary>
         /// Initializes a new instance of the SuiOASIS provider
@@ -51,21 +53,37 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
         /// <param name="rpcEndpoint">Sui RPC endpoint URL</param>
         /// <param name="network">Sui network (mainnet, testnet, devnet)</param>
         /// <param name="privateKey">Private key for signing transactions</param>
-        public SuiOASIS(string rpcEndpoint = "https://fullnode.mainnet.sui.io:443", string network = "mainnet", string chainId = "", string contractAddress = "")
+        public SuiOASIS(string rpcEndpoint = "https://fullnode.mainnet.sui.io:443", string network = "mainnet", string chainId = "", string contractAddress = "", string privateKey = "", string storageObjectId = "", string currencyObjectId = "", Func<byte[]> storageEncryptionKeyResolver = null, SuiTokenEscrowConfiguration tokenEscrow = null)
+            : this(new SuiSdkClient(rpcEndpoint, network, chainId, privateKey, contractAddress, storageObjectId, currencyObjectId),privateKey,contractAddress,storageEncryptionKeyResolver)
+        { tokenEscrow?.Validate(); _tokenEscrow = tokenEscrow; }
+
+        /// <summary>Explicit immutable per-transaction gas ceiling; avoids overloading existing null-RPC constructor calls.</summary>
+        public static SuiOASIS CreateWithNativeFeeLimits(SuiNativeFeeLimits nativeFeeLimits,string rpcEndpoint = "https://fullnode.mainnet.sui.io:443", string network = "mainnet", string chainId = "", string contractAddress = "", string privateKey = "", string storageObjectId = "", string currencyObjectId = "", Func<byte[]> storageEncryptionKeyResolver = null, SuiTokenEscrowConfiguration tokenEscrow = null)
+            =>new(nativeFeeLimits,rpcEndpoint,network,chainId,contractAddress,privateKey,storageObjectId,currencyObjectId,storageEncryptionKeyResolver,tokenEscrow);
+
+        private SuiOASIS(SuiNativeFeeLimits nativeFeeLimits,string rpcEndpoint,string network,string chainId,string contractAddress,string privateKey,string storageObjectId,string currencyObjectId,Func<byte[]> storageEncryptionKeyResolver,SuiTokenEscrowConfiguration tokenEscrow)
+            :this(new SuiSdkClient(rpcEndpoint,network,chainId,privateKey,contractAddress,storageObjectId,currencyObjectId,
+                (nativeFeeLimits??throw new ArgumentNullException(nameof(nativeFeeLimits))).MaximumGasBudgetMist),privateKey,contractAddress,storageEncryptionKeyResolver)
+        { tokenEscrow?.Validate();_tokenEscrow=tokenEscrow; }
+
+        private readonly SuiSdkClient _sdkClient;
+        private readonly NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend _privateStorage;
+        private SuiOASIS(SuiSdkClient client,string privateKey,string contractAddress,Func<byte[]> keyResolver)
+            : this(client,privateKey,contractAddress,new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend(
+                new SuiStorageBackend(client),keyResolver ?? (() => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend.ResolveEnvironmentKey("OASIS_SUI_STORAGE_ENCRYPTION_KEY"))))
+        { }
+        private SuiOASIS(SuiSdkClient client,string privateKey,string contractAddress,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend storage)
+            : base(storage)
         {
+            _privateStorage=storage;
+            _sdkClient=client;
             this.ProviderName = "SuiOASIS";
             this.ProviderDescription = "Sui Provider - High-performance blockchain platform";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SuiOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
-            _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
-            _network = network ?? throw new ArgumentNullException(nameof(network));
-            _privateKey = chainId; // Using chainId parameter as privateKey for backward compatibility
+            _privateKey = privateKey;
             _contractAddress = contractAddress;
-            _httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(_rpcEndpoint)
-            };
 
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
@@ -73,5 +91,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
         }
 
+        public void Dispose()
+        {
+            _privateStorage.Dispose();
+            _sdkClient.Dispose();
+            IsProviderActivated = false;
+        }
     }
 }

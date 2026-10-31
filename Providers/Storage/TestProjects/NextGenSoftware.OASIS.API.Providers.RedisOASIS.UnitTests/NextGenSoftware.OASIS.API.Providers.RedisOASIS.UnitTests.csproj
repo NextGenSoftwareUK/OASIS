@@ -7,6 +7,15 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="RedisFamilyContractTests.cs" />
+    <Compile Include="RedisFamilyContractTests.cs" Condition="'$(IncludeRedisFamilyContracts)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" Condition="'$(IncludeRedisFamilyContracts)' == 'true'" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.KeyDBOASIS/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.csproj" Condition="'$(IncludeRedisFamilyContracts)' == 'true'" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.ValKeyOASIS/NextGenSoftware.OASIS.API.Providers.ValKeyOASIS.csproj" Condition="'$(IncludeRedisFamilyContracts)' == 'true'" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.DragonflyOASIS/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS.csproj" Condition="'$(IncludeRedisFamilyContracts)' == 'true'" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.GarnetOASIS/NextGenSoftware.OASIS.API.Providers.GarnetOASIS.csproj" Condition="'$(IncludeRedisFamilyContracts)' == 'true'" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />

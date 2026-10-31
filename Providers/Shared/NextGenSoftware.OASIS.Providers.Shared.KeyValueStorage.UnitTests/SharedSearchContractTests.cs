@@ -1,0 +1,142 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+
+namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
+[TestClass]
+public class SharedSearchContractTests
+{
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task WalletRecoveryPhraseIsNeverAnAllFieldsOrIdSearchCandidate(bool synchronous,bool ids)
+    {
+        var provider=new TestProvider(new InMemoryBackend());var secret=Guid.NewGuid().ToString();
+        var wallet=new NextGenSoftware.OASIS.API.Core.Objects.ProviderWallet {WalletId=Guid.NewGuid(),
+            WalletAddress="visible-public-wallet",SecretRecoveryPhrase=secret};
+        var avatar=new Avatar {Id=Guid.NewGuid(),Username="owned-wallet-search",Email="owned-wallet-search@example.test",
+            ProviderWallets=new() {{ProviderType.SolanaOASIS,new() {wallet}}}};
+        Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+        var group=new SearchTextGroup {SearchAvatars=true,HolonType=HolonType.All,SearchQuery=secret,SearchIds=ids,
+            AvatarSearchParams=new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams {SearchAllFields=!ids}};
+        var query=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {group}};
+        var hidden=synchronous?provider.Search(query,loadChildren:false):await provider.SearchAsync(query,loadChildren:false);
+        Assert.IsFalse(hidden.IsError,hidden.Message);Assert.AreEqual(0,hidden.Result.NumberOfResults);
+        group.SearchIds=false;group.AvatarSearchParams.SearchAllFields=true;group.SearchQuery=wallet.WalletAddress;
+        var visible=await provider.SearchAsync(query,loadChildren:false);
+        Assert.IsFalse(visible.IsError,visible.Message);Assert.AreEqual(avatar.Id,visible.Result.SearchResultAvatars.Single().Id);
+        var persisted=(await provider.LoadAvatarAsync(avatar.Id)).Result;
+        Assert.AreEqual(secret,persisted.ProviderWallets[ProviderType.SolanaOASIS].Single().SecretRecoveryPhrase,
+            "Search projection must not modify the stored wallet.");
+    }
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task AllFieldsSearchCannotMatchNestedCredentialValues(bool synchronous)
+    {
+        var provider=new TestProvider(new InMemoryBackend());var secret="owned-secret-do-not-search";
+        var row=new Holon {Id=Guid.NewGuid(),Name="visible-park",MetaData=new() {{"nested",new Dictionary<string,object> {{"Password",secret},{"ResetToken",secret},{"visible","oak"}}}}};
+        Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);
+        var text=new SearchTextGroup {SearchHolons=true,HolonType=HolonType.All,SearchQuery=secret,
+            HolonSearchParams=new NextGenSoftware.OASIS.API.Core.Interfaces.SearchHolonParams {SearchAllFields=true}};
+        var query=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {text}};
+        var hidden=synchronous ? provider.Search(query,loadChildren:false):await provider.SearchAsync(query,loadChildren:false);
+        Assert.IsFalse(hidden.IsError,hidden.Message);Assert.AreEqual(0,hidden.Result.NumberOfResults);
+        text.SearchQuery="oak";var visible=await provider.SearchAsync(query,loadChildren:false);
+        Assert.IsFalse(visible.IsError,visible.Message);Assert.AreEqual(row.Id,visible.Result.SearchResultHolons[0].Id);
+        var stored=(await provider.LoadHolonAsync(row.Id,loadChildren:false)).Result;
+        StringAssert.Contains(OasisJson.Serialize(stored.MetaData),secret);
+    }
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task SearchExcludesTombstonesWithoutExcludingInactiveRecords(bool synchronous)
+    {
+        var provider=new TestProvider(new InMemoryBackend());var avatar=new Avatar {Id=Guid.NewGuid(),Username="ownedvisibility-live",IsActive=false};
+        var deleted=new Avatar {Id=Guid.NewGuid(),Username="ownedvisibility-deleted",IsActive=true};
+        Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);Assert.IsFalse((await provider.SaveAvatarAsync(deleted)).IsError);
+        Assert.IsFalse((await provider.DeleteAvatarAsync(deleted.Id,true)).IsError);
+        var holon=new Holon {Id=Guid.NewGuid(),Name="ownedvisibility-live",IsActive=false};
+        Assert.IsFalse((await provider.SaveHolonAsync(holon,saveChildren:false)).IsError);
+        Assert.IsFalse((await provider.SaveHolonAsync(new Holon {Id=Guid.NewGuid(),Name="ownedvisibility-deleted",DeletedDate=DateTime.UtcNow,IsActive=false},saveChildren:false)).IsError);
+        var query=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {new SearchTextGroup {HolonType=HolonType.All,SearchQuery="ownedvisibility"}}};
+        var found=synchronous ? provider.Search(query,loadChildren:false):await provider.SearchAsync(query,loadChildren:false);
+        Assert.IsFalse(found.IsError,found.Message);Assert.AreEqual(2,found.Result.NumberOfResults);
+        Assert.AreEqual(avatar.Id,found.Result.SearchResultAvatars[0].Id);Assert.AreEqual(holon.Id,found.Result.SearchResultHolons[0].Id);
+    }
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task ExplicitRootVersionUsesCurrentIndependentParentVersions(bool synchronous)
+    {
+        var provider=new TestProvider(new InMemoryBackend());var grandparent=Guid.NewGuid();var parent=Guid.NewGuid();var child=Guid.NewGuid();
+        Assert.IsFalse((await provider.SaveHolonAsync(new Holon {Id=parent,Version=2,ParentHolonId=grandparent,Name="ancestor"},saveChildren:false)).IsError);
+        Assert.IsFalse((await provider.SaveHolonAsync(new Holon {Id=child,Version=1,ParentHolonId=parent,Name="selected child"},saveChildren:false)).IsError);
+        var query=new SearchParams {SearchOnlyForCurrentAvatar=false,ParentId=grandparent,Recursive=true,SearchGroups=new List<ISearchGroupBase> {
+            new SearchTextGroup {SearchHolons=true,HolonType=HolonType.All,SearchQuery="selected"}}};
+        var result=synchronous ? provider.Search(query,loadChildren:false,version:1):await provider.SearchAsync(query,loadChildren:false,version:1);
+        Assert.IsFalse(result.IsError,result.Message);Assert.AreEqual(1,result.Result.NumberOfResults);Assert.AreEqual(child,result.Result.SearchResultHolons[0].Id);
+        Assert.AreEqual(1,result.Result.SearchResultHolons[0].Version);
+        query.Recursive=false;result=await provider.SearchAsync(query,loadChildren:false,version:1);Assert.IsFalse(result.IsError,result.Message);Assert.AreEqual(0,result.Result.NumberOfResults);
+    }
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task InvalidSearchIsTerminalBeforeBackendAccess(bool synchronous)
+    {
+        var backend=new InMemoryBackend();var provider=new TestProvider(backend);
+        foreach(var mode in new[] {"null","owner","version","depth","group"})
+        {
+            var query=mode=="null" ? null:new SearchParams {SearchOnlyForCurrentAvatar=mode=="owner",SearchGroups=new List<ISearchGroupBase>()};
+            if(mode=="group")query.SearchGroups.Add(null);
+            var result=synchronous ? provider.Search(query,maxChildDepth:mode=="depth" ? -1:0,version:mode=="version" ? -1:0)
+                :await provider.SearchAsync(query,maxChildDepth:mode=="depth" ? -1:0,version:mode=="version" ? -1:0);
+            Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",result.ErrorCode);
+            Assert.IsTrue(result.Exception is ArgumentException || result.Exception is NotSupportedException);Assert.AreEqual(0,backend.ListCalls);
+        }
+    }
+    [DataTestMethod]
+    [DataRow("cycle")] [DataRow("duplicate")] [DataRow("empty")]
+    public void InvalidParentGraphIsTerminalDataCorruption(string mode)
+    {
+        var first=new Holon {Id=Guid.NewGuid()};var second=new Holon {Id=Guid.NewGuid()};
+        first.ParentHolonId=second.Id;second.ParentHolonId=first.Id;
+        if(mode=="duplicate")second.Id=first.Id;
+        if(mode=="empty")second.Id=Guid.Empty;
+        var candidate=new Holon {Id=Guid.NewGuid(),ParentHolonId=first.Id};
+        var query=new SearchParams {SearchOnlyForCurrentAvatar=false,ParentId=Guid.NewGuid(),Recursive=true};
+        Assert.ThrowsException<System.IO.InvalidDataException>(()=>StoredRecordSearch.Matches(candidate,false,query,new[] {first,second}));
+    }
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task DateAndSelectedDescriptionMaskUseStoredValues(bool synchronous)
+    {
+        var provider=new TestProvider(new InMemoryBackend());var date=new DateTime(2025,2,3,4,5,6,DateTimeKind.Utc);
+        var row=new Holon {Id=Guid.NewGuid(),Name="unselected",Description="oak clue",CreatedDate=date};
+        Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);
+        var text=new SearchTextGroup {SearchHolons=true,HolonType=HolonType.All,SearchQuery="oak",HolonSearchParams=new NextGenSoftware.OASIS.API.Core.Interfaces.SearchHolonParams {Description=true},PreviousSearchGroupOperator=SearchParamGroupOperator.And};
+        var query=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {
+            new SearchDateGroup {SearchHolons=true,HolonType=HolonType.All,Date=date,DateOperator=SearchOperatorType.EqualTo,
+                HolonSearchParams=new NextGenSoftware.OASIS.API.Core.Interfaces.SearchHolonParams {CreatedDate=true}},text}};
+        var found=synchronous ? provider.Search(query,loadChildren:false):await provider.SearchAsync(query,loadChildren:false);
+        Assert.IsFalse(found.IsError,found.Message);Assert.AreEqual(row.Id,found.Result.SearchResultHolons[0].Id);
+        text.SearchQuery="unselected";var excluded=await provider.SearchAsync(query,loadChildren:false);
+        Assert.IsFalse(excluded.IsError,excluded.Message);Assert.AreEqual(0,excluded.Result.NumberOfResults);
+    }
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task NumericGroupsRespectOwnershipMetadataAndAndCombination(bool synchronous)
+    {
+        var provider=new TestProvider(new InMemoryBackend());var owner=Guid.NewGuid();
+        var match=new Holon {Id=Guid.NewGuid(),Name="owned match",CreatedByAvatarId=owner,MetaData=new() {{"park","oak"}}};
+        var other=new Holon {Id=Guid.NewGuid(),Name="owned mismatch",CreatedByAvatarId=owner,MetaData=new() {{"park","pine"}}};
+        Assert.IsFalse((await provider.SaveHolonAsync(match,saveChildren:false)).IsError);Assert.IsFalse((await provider.SaveHolonAsync(other,saveChildren:false)).IsError);
+        var query=new SearchParams {SearchOnlyForCurrentAvatar=true,AvatarId=owner,FilterByMetaData=new() {{"park","oak"}},MetaKeyValuePairMatchMode=MetaKeyValuePairMatchMode.All,
+            SearchGroups=new List<ISearchGroupBase> {new SearchNumberGroup {SearchHolons=true,HolonType=HolonType.All,Number=1,NumberOperator=SearchOperatorType.EqualTo},
+                new SearchTextGroup {SearchHolons=true,HolonType=HolonType.All,SearchQuery="owned",PreviousSearchGroupOperator=SearchParamGroupOperator.And}}};
+        var result=synchronous ? provider.Search(query,loadChildren:false):await provider.SearchAsync(query,loadChildren:false);
+        Assert.IsFalse(result.IsError,result.Message);Assert.AreEqual(1,result.Result.NumberOfResults);Assert.AreEqual(match.Id,result.Result.SearchResultHolons[0].Id);
+        query.AvatarId=Guid.NewGuid();result=await provider.SearchAsync(query,loadChildren:false);Assert.IsFalse(result.IsError,result.Message);Assert.AreEqual(0,result.Result.NumberOfResults);
+    }
+}

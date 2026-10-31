@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-26",
+  "scope": "Canonical core-storage-v2 native52/52PASS, both26-check modes993ms/no skips; shipping default deletion unchanged",
+  "dependencies": [
+    {
+      "Dependency": "Core",
+      "SHA256": "3AE7D8A02212AF85DE6F1E493974CBE08DB232DC01255DE10DF08F97CF1315EF",
+      "SourceDocuments": 790
+    },
+    {
+      "Dependency": "Shared",
+      "SHA256": "3916D2C60C3C4643F8CC5A3EF35E53E7789DD22F31B478A54CA6D39EFC207BCC",
+      "SourceDocuments": 56
+    }
+  ],
+  "assemblies": [
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.MongoDBOASIS",
+      "sha256": "B897B7FE43B255CDA526676D2533218249118EEC5753F70183C05489C28C6B78",
+      "pdbSha256": "70150D320B8674772E1718C24CC7011A22BF6387A77A07645A46083A8C392FDC",
+      "sources": 124
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.IntegrationTests",
+      "sha256": "40F7C16624917F53EEA0767CC156DF3452C35DCFEF62C4545584B5898E91747A",
+      "pdbSha256": "DB7A3FE079F4AB6469E7B91213D388C9CF494438EDCFCF23532E63690619BDC2",
+      "sources": 6
+    }
+  ],
+  "fixtureDisposition": "Core suite reports complete with exact point/raw-interface absence, no database drop; original failed-run report and cleanup evidence preserved separately",
+  "shutdown": "Owned retained Mongo graceful SDK shutdown completed; no27029listener",
+  "freeBytes": 127588368384,
+  "reusedOutputs": [
+    {
+      "path": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage",
+      "binBytes": 7348284,
+      "objBytes": 1411601
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS",
+      "binBytes": 8506056,
+      "objBytes": 2263445
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.IntegrationTests",
+      "binBytes": 47548857,
+      "objBytes": 1103191
+    }
+  ],
+  "trx": {
+    "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/mongo-core-full-current.trx.gz",
+    "rawBytes": 4483,
+    "rawSha256": "7b7b0bd906363fd63070a19b5b71cf0afbbcd5c7832f9d685e70bff33d60cccc",
+    "gzipBytes": 1306,
+    "gzipSha256": "56fcef87f46178084446185540540f2fbcebccae1c07c084b1b5faef86892b16",
+    "rawRemovedAfterVerifiedCompression": true
+  }
+}

@@ -4,7 +4,7 @@
 
 Every WEB6 plan, limit and billing rule described here is enforced by **WEB4**, which is the single subscription and usage authority for WEB5–WEB10. WEB6 does not keep its own counters. It reserves each billable operation with WEB4, runs the provider call, measures what was used, and settles that usage back to WEB4's transactional ledger.
 
-For the full protocol see [WEB4 Subscription Usage Ledger](../../WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and the [operations runbook](../../WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md).
+For the full protocol see [WEB4 Subscription Usage Ledger](../../../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and the [operations runbook](../../../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md).
 
 ---
 

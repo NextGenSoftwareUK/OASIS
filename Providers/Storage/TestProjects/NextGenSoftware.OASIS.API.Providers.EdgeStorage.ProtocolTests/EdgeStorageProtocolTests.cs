@@ -101,12 +101,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests
         }
     }
 
-    internal sealed class HandlerHttpClientFactory : Amazon.Runtime.HttpClientFactory
-    {
-        private readonly HttpMessageHandler _handler;
-        public HandlerHttpClientFactory(HttpMessageHandler handler) => _handler = handler;
-        public override HttpClient CreateHttpClient(Amazon.Runtime.IClientConfig clientConfig) => new(_handler, disposeHandler: false);
-    }
 
     [TestClass]
     public class TigrisS3ProtocolTests
@@ -162,7 +156,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests
         }
 
         // The SDK streams uploads as aws-chunked ("<hex-size>[;ext]\r\n<data>\r\n ... 0\r\n[trailers]"); S3 servers decode it.
-        private static string DecodeAwsChunked(HttpRequestMessage req, string body)
+        internal static string DecodeAwsChunked(HttpRequestMessage req, string body)
         {
             var encoding = req.Content?.Headers.ContentEncoding;
             var sha = req.Headers.TryGetValues("x-amz-content-sha256", out var v) ? v.FirstOrDefault() : null;

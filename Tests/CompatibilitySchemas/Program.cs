@@ -31,7 +31,7 @@ foreach (var (service, assembly, sourcePath) in services)
     collection.AddLogging();
     collection.AddHttpContextAccessor();
     var builder = collection.AddGraphQLServer();
-    if (service is "WEB4" or "WEB5" or "WEB6") builder.BindRuntimeType<object, HotChocolate.Types.AnyType>();
+    builder.DisableIntrospection(false);
     if (service == "WEB4") builder.AddType(new HotChocolate.Types.AnyType("JSON")).BindRuntimeType<Dictionary<string, object>>("JSON");
     if (service == "WEB4") builder.AddOasisDataTypes();
     var source = await File.ReadAllTextAsync(Path.Combine(root, sourcePath));
@@ -46,19 +46,19 @@ foreach (var (service, assembly, sourcePath) in services)
     try
     {
         await using var provider = collection.BuildServiceProvider();
-        var executor = await provider.GetRequiredService<IRequestExecutorResolver>().GetRequestExecutorAsync();
+        var executor = await provider.GetRequestExecutorAsync();
         var schema = executor.Schema;
         var probe = await executor.ExecuteAsync("{ __typename }");
         try
         {
-            if (probe is IOperationResult operation && operation.Errors?.Count > 0)
+            if (probe is OperationResult operation && operation.Errors?.Count > 0)
                 throw new InvalidOperationException($"{service}: root typename execution failed.");
         }
         finally { await probe.DisposeAsync(); }
         var introspection = await executor.ExecuteAsync("query AuditSchema { __schema { queryType { fields { name } } mutationType { fields { name } } } }");
         try
         {
-            if (introspection is IOperationResult metadata && metadata.Errors?.Count > 0)
+            if (introspection is OperationResult metadata && metadata.Errors?.Count > 0)
                 throw new InvalidOperationException($"{service}: schema introspection failed: {string.Join("; ", metadata.Errors.Select(e => e.Message))}");
         }
         finally { await introspection.DisposeAsync(); }
@@ -66,7 +66,7 @@ foreach (var (service, assembly, sourcePath) in services)
         {
             var settings = schema.MutationType!.Fields["updateHyperDriveSettings"].Arguments["settings"];
             if (settings.Type.NamedType() is not AnyType) throw new InvalidOperationException("Settings input must use a JSON scalar, not KeyValuePair input objects.");
-            var dataType = schema.GetType<HotChocolate.Types.ObjectType>("IAvatarDetail");
+            var dataType = schema.Types.GetType<HotChocolate.Types.ObjectType>("IAvatarDetail");
             if (dataType.Fields.Any(f => f.Name is "load" or "save" or "addHolon" or "globalHolonData"))
                 throw new InvalidOperationException("Model data must not expose persistence methods or infrastructure services.");
         }

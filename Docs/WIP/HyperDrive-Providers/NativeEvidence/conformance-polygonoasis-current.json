@@ -1,0 +1,41 @@
+{
+  "suite": "core-storage-v1",
+  "runs": [
+    {
+      "SuiteVersion": "core-storage-v1",
+      "Provider": "PolygonOASIS",
+      "Mode": "native",
+      "Synchronous": false,
+      "OwnerId": "113a6e61-80f5-4034-9436-679cdde54010",
+      "RootId": "97c272f6-98ef-405b-b2fa-1a6c75141036",
+      "ChildId": "464650e3-6844-48e0-b92f-6a4c39574247",
+      "BatchIds": [
+        "30ee5b15-d1fa-4f0c-8723-fa5dcf7a46c4",
+        "ef54e56a-91db-4a5f-8aa2-75dbc81a9fec"
+      ],
+      "ImportId": "2b180a4e-e3ab-4878-9955-11925ef66a58",
+      "Passed": [],
+      "CurrentCase": "configuration",
+      "FailureType": "System.InvalidOperationException",
+      "Succeeded": false
+    },
+    {
+      "SuiteVersion": "core-storage-v1",
+      "Provider": "PolygonOASIS",
+      "Mode": "native",
+      "Synchronous": true,
+      "OwnerId": "7bc47de3-4cbd-4762-ae71-ac3e4c221167",
+      "RootId": "aa9f9a03-90c5-479e-8531-b8f8de1aafe7",
+      "ChildId": "db269403-aef3-483e-91c2-17bfb3f0146c",
+      "BatchIds": [
+        "3592bb18-1b6a-4444-a283-ac07b8198e6f",
+        "2ceafc55-89b5-40bf-9a8e-c8f202adb24c"
+      ],
+      "ImportId": "224e0547-b444-4c60-a06d-82faa8f58407",
+      "Passed": [],
+      "CurrentCase": "configuration",
+      "FailureType": "System.InvalidOperationException",
+      "Succeeded": false
+    }
+  ]
+}

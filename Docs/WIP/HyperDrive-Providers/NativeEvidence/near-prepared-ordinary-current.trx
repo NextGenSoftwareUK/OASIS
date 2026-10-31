@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="0cf9264b-4b43-4a1c-9076-a8f5f3338792" name="david@OASISOMEGA 2026-10-26 15:01:00" runUser="OASISOMEGA\david" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-26T15:01:00.6983491-05:00" queuing="2026-10-26T15:01:00.6983492-05:00" start="2026-10-26T15:00:54.1680187-05:00" finish="2026-10-26T15:01:00.7013610-05:00" />
+  <TestSettings name="default" id="d775f059-9e4a-425f-8fc2-05e1b044093a">
+    <Deployment runDeploymentRoot="david_OASISOMEGA_2026-10-26_15_01_00" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="7f75831f-dc5d-4132-aa49-90da363c807c" testId="d75b7d5a-241e-d08c-f906-5ee8048ddf1b" testName="OrdinaryInterfacesPersistOriginalsAndRecoverWithoutSigningKey" computerName="OASISOMEGA" duration="00:00:06.0844736" startTime="2026-10-26T15:00:54.5529453-05:00" endTime="2026-10-26T15:01:00.6468555-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7f75831f-dc5d-4132-aa49-90da363c807c">
+      <Output>
+        <StdOut>NEAR_PREPARED_NATIVE_VERIFIED {"originals":["2UGomsmRMsEBdH1WQmGu9GPvYZ8hUGAt5oYkUVJMB4Q1","9D6Fo7uAHn2zYK3ots3yd1aph1hEfjk2XQtq4yxdtaRq","uJVtZXJyUkifpTSvfZTCgqf8t5NkB6YrSvRdR24QRzH"]}</StdOut>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="OrdinaryInterfacesPersistOriginalsAndRecoverWithoutSigningKey" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.integrationtests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.integrationtests.dll" id="d75b7d5a-241e-d08c-f906-5ee8048ddf1b">
+      <TestCategory>
+        <TestCategoryItem TestCategory="RetainedSignedInspection" />
+      </TestCategory>
+      <Execution id="7f75831f-dc5d-4132-aa49-90da363c807c" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.NearPreparedNativeTests" name="OrdinaryInterfacesPersistOriginalsAndRecoverWithoutSigningKey" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="d75b7d5a-241e-d08c-f906-5ee8048ddf1b" executionId="7f75831f-dc5d-4132-aa49-90da363c807c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="1" executed="1" passed="1" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+  </ResultSummary>
+</TestRun>
