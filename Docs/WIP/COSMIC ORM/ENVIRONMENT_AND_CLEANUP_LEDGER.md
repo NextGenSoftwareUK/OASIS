@@ -1662,3 +1662,10 @@ Preset tooling outcome:10pure controls and54website controls pass. No protected 
 Derive ten-source-public-{before,candidate}-variables.dpapi from preserved seven-source protected snapshot under LocalState/COSMIC/HostedSourceRolloutCurrent; no fresh host read or apply. Stable3source catalogues reused. New public-only40preset export TestResults/HostedCqlIntegrationCurrent/ten-source-public-review.json, excludes DNA/admission. Protected sizes pending; preserve original snapshot/candidate for reconciliation, raw export regenerable. Reuse .NET/Python/caches/buildoutputs; no installs/services/downloads.
 
 Ten-source outcome: protected before67,094B/candidate92,614B retained for reconciliation; public-only export39,295B regenerable. Shipping planner1pass/0skip across40actual presets, composition1pass. C:78,650,789,888B free observed during build. No services/downloads/host mutation. Parent/Core Development fetched unchanged and ancestor verified.
+
+### Hosted ten-source read-only reconciliation — 31 October 2026
+Reuse existing RailwayCLI5.62.1/protected snapshots/Python. One variables observation held in memory, never print values or persist plaintext; sanitized report TestResults/HostedCqlIntegrationCurrent/ten-source-host-reconciliation.json only contains key names/counts. No host mutation/deployment/download. Report regenerable; size pending.
+
+Read-only reconciliation complete:exact snapshot,0drift,12planned settings;1pure control passes. Only sanitized report/log generated; no protected observation copy/new environment/service. Raw artifacts regenerable, current byte sizes recorded below.
+- `TestResults/HostedCqlIntegrationCurrent/ten-source-host-reconciliation.json`: 680B.
+- `TestResults/HostedCqlIntegrationCurrent/ten-source-reconciliation-controls.log`: 103B.
