@@ -53,8 +53,9 @@ async function prepare({ bundle, directory, runtime = '/opt/solid' }) {
   const config = JSON.stringify({
     '@context': 'https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld',
     import: ['css:config/file-root.json'],
-    '@graph': [{ '@id': 'urn:solid-server:default:RootFolderGenerator',
-      '@type': 'StaticFolderGenerator', templateFolder: template }]
+    '@graph': [{ '@id': 'urn:oasis:sandbox:root-template-override', '@type': 'Override',
+      overrideInstance: { '@id': 'urn:solid-server:default:RootFolderGenerator' },
+      overrideParameters: { '@type': 'StaticFolderGenerator', templateFolder: template } }]
   });
   let fresh = false;
   if (await exists(ackPath)) {
