@@ -7,6 +7,7 @@ using Couchbase;
 using Couchbase.Core.Exceptions.KeyValue;
 using Couchbase.KeyValue;
 using Couchbase.Query;
+using Couchbase.Management.Collections;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -21,7 +22,7 @@ using NextGenSoftware.Utilities;
 namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
 {
     /// <summary>
-    /// OASIS provider for Couchbase — enterprise document database with built-in mobile sync.
+    /// OASIS provider for Couchbase document storage through the native .NET SDK.
     ///
     /// Uses three collections inside a single bucket (default scope):
     ///   avatars         — stores Avatar documents
@@ -37,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
     ///   password         — Couchbase administrator password
     ///   bucketName       — name of the target bucket (default: "oasis")
     /// </summary>
-    public class CouchbaseOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class CouchbaseOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly string _connectionString;
         private readonly string _username;
@@ -54,9 +55,13 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
 
         public CouchbaseOASIS(string connectionString, string username, string password, string bucketName = "oasis")
         {
+            if (string.IsNullOrEmpty(bucketName) || bucketName.Length > 100 || bucketName[0] == '.' ||
+                bucketName.Any(c => !((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+                    (c >= '0' && c <= '9') || c == '_' || c == '-' || c == '.' || c == '%')))
+                throw new ArgumentException("Use a valid Couchbase bucket identifier, at most 100 characters.", nameof(bucketName));
             _connectionString = connectionString; _username = username; _password = password; _bucketName = bucketName;
             ProviderName = "CouchbaseOASIS";
-            ProviderDescription = "Couchbase enterprise document database provider (CouchbaseNetClient SDK — with N1QL query and mobile sync)";
+            ProviderDescription = "Couchbase document database provider (CouchbaseNetClient SDK and SQL++ queries)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CouchbaseOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocal);
         }
@@ -95,16 +100,28 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
+            IsProviderActivated = false;
             try
             {
                 var bucket = await GetBucketAsync();
-                // Create primary indexes for N1QL queries (idempotent)
+                var scopes = await bucket.Collections.GetAllScopesAsync();
+                var scope = scopes.Single(item => item.Name == "_default");
+                foreach (var name in new[] { "avatars", "avatar_details", "holons" })
+                    if (!scope.Collections.Any(item => item.Name == name))
+                        await bucket.Collections.CreateCollectionAsync("_default", name, new CreateCollectionSettings());
+                // Create the indexes needed by the existing general lookup APIs.
                 if (_cluster != null)
                 {
                     foreach (var coll in new[] { "avatars", "avatar_details", "holons" })
-                        await _cluster.QueryAsync<object>($"CREATE PRIMARY INDEX IF NOT EXISTS ON `{_bucketName}`.`_default`.`{coll}`");
+                    {
+                        using var index = await _cluster.QueryAsync<object>($"CREATE PRIMARY INDEX IF NOT EXISTS ON `{_bucketName}`.`_default`.`{coll}`",
+                            new QueryOptions().Timeout(TimeSpan.FromSeconds(15)));
+                        await foreach (var ignored in index.Rows) { }
+                        if (index.MetaData.Status != QueryStatus.Success)
+                            throw new InvalidOperationException("Native index creation did not complete successfully.");
+                    }
                 }
-                result.Result = true; result.IsError = false; result.Message = $"CouchbaseOASIS activated — bucket '{_bucketName}' ready.";
+                IsProviderActivated = true; result.Result = true; result.IsError = false; result.Message = $"CouchbaseOASIS activated — bucket '{_bucketName}' ready.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); }
             return result;
@@ -114,6 +131,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
+            IsProviderActivated = false;
             if (_cluster != null) { await _cluster.DisposeAsync(); _cluster = null; _bucket = null; }
             return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "CouchbaseOASIS deactivated." });
         }
@@ -303,15 +321,38 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.CouchbaseOASIS] = holon.Id.ToString();
-                var coll = await GetCollectionAsync("holons");
-                await coll.UpsertAsync(holon.Id.ToString(), new { id = holon.Id.ToString(), parentHolonId = holon.ParentHolonId.ToString(), holonType = (int)holon.HolonType, isDeleted = holon.IsDeleted, dataJson = Ser(holon) });
-                result.Result = holon; result.IsError = false; result.Message = $"CouchbaseOASIS: Holon '{holon.Name}' saved.";
+                if (holon == null) throw new ArgumentNullException(nameof(holon));
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var keys = holon.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.CouchbaseOASIS] = id.ToString("D");
+                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = id;
+                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                var cas = await PersistHolonAsync(id, holon.ParentHolonId, (int)holon.HolonType, holon.IsDeleted, payload.ToJsonString(_jsonOpts));
+                if (cas == 0) throw new InvalidOperationException("Native write did not acknowledge a CAS revision.");
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.CouchbaseOASIS] = id.ToString("D");
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                // Preserve exact native unsigned CAS precision; this is an acknowledgement, not a conditional write.
+                result.MetaData["Couchbase.Cas"] = cas.ToString(System.Globalization.CultureInfo.InvariantCulture);
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CouchbaseOASIS: {ex.Message}"); }
             return result;
+        }
+
+        /// <summary>Single native storage boundary; caller publication follows its acknowledgement.</summary>
+        protected virtual async Task<ulong> PersistHolonAsync(Guid id, Guid parentId, int type, bool deleted, string json)
+        {
+            var collection = await GetCollectionAsync("holons");
+            var result = await collection.UpsertAsync(id.ToString("D"), new {
+                id = id.ToString("D"), parentHolonId = parentId.ToString("D"), holonType = type,
+                isDeleted = deleted, dataJson = json });
+            return result.Cas;
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
@@ -320,8 +361,22 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>(); var errors = new List<string>();
-            foreach (var h in holons) { var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (r.IsError) errors.Add(r.Message ?? ""); else if (r.Result != null) saved.Add(r.Result); }
-            result.Result = saved; result.IsError = errors.Count > 0; result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"CouchbaseOASIS: {saved.Count} holon(s) saved.";
+            foreach (var h in holons)
+            {
+                var write = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (write.IsError)
+                {
+                    errors.Add(write.Message);
+                    if (!continueOnError) break;
+                }
+                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+            }
+            result.Result = saved;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0;
+            result.SavedCount = saved.Count;
+            result.Message = string.Join("; ", errors);
             return result;
         }
 
