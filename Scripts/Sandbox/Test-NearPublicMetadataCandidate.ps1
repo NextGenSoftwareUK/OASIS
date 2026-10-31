@@ -1,11 +1,11 @@
 # Read-only source feasibility, not CQL/provider/settlement acceptance.
 [CmdletBinding()]
-param()
+param([ValidateSet("https://rpc.mainnet.near.org/", "https://rpc.mainnet.fastnear.com/")][string]$NearEndpoint = "https://rpc.mainnet.near.org/")
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $results = Join-Path $root 'TestResults/NearPublicSourceCandidateCurrent'
 New-Item -ItemType Directory -Force -Path $results | Out-Null
-$endpoint = 'https://rpc.mainnet.near.org/'
+$endpoint = $NearEndpoint
 $accounts = @('near','wrap.near','aurora')
 $client = [Net.Http.HttpClient]::new()
 $client.Timeout = [TimeSpan]::FromSeconds(15)
@@ -56,6 +56,7 @@ try {
     $report.records=$rows; $report.blockHash=$anchor.block_hash; $report.blockHeight=$anchor.block_height; $report.passed=$true
 } catch { $report.passed=$false; $report.error=$_.Exception.Message }
 finally { $client.Dispose() }
-$report | ConvertTo-Json -Depth 16 | Set-Content (Join-Path $results 'readiness.json') -Encoding utf8
+$reportName = if($NearEndpoint -eq 'https://rpc.mainnet.fastnear.com/'){'readiness-fastnear.json'}else{'readiness.json'}
+$report | ConvertTo-Json -Depth 16 | Set-Content (Join-Path $results $reportName) -Encoding utf8
 if (!$report.passed) { throw 'NEAR source readiness failed; preserve evidence.' }
 Write-Output 'Four bounded NEAR RPC reads passed: three accounts at one reported final block; no writes.'
