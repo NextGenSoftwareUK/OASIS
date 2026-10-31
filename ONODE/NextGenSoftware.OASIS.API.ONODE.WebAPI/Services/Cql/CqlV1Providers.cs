@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -12,10 +14,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 /// <summary>Read the existing host registry. Missing/inactive providers do not trigger activation or failover.</summary>
 public sealed class CqlV1Providers : ICqlV1Providers
 {
+    private readonly ICqlHostedSourceRegistry sources;
+    public CqlV1Providers(ICqlHostedSourceRegistry sources = null) => this.sources = sources;
+
     public IOASISStorageProvider Resolve(ProviderType? requested)
     {
         var registry = ProviderManager.Instance;
-        var provider = requested.HasValue ? registry.GetStorageProvider(requested.Value) : registry.CurrentStorageProvider;
+        var provider = requested.HasValue
+            ? sources == null ? registry.GetStorageProvider(requested.Value) : sources.Find(requested.Value)
+            : registry.CurrentStorageProvider;
         if (provider == null || !provider.IsProviderActivated) throw new InvalidOperationException("Provider unavailable.");
         return provider;
     }
@@ -35,17 +42,29 @@ public sealed class CqlV1Providers : ICqlV1Providers
 /// provider or editing replication/failover lists. Registry owns provider lifetime.</summary>
 public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
 {
+    private readonly IReadOnlyDictionary<ProviderType, CqlReadSourceProfile> profiles;
+
+    public CqlHostedSourceRegistry(IEnumerable<CqlReadSourceProfile> profiles = null)
+        => this.profiles = (profiles ?? Array.Empty<CqlReadSourceProfile>())
+            .ToDictionary(profile => profile.Storage.ProviderType.Value);
+
     public IOASISStorageProvider Find(ProviderType provider)
-        => ProviderManager.Instance.GetStorageProvider(provider);
+        => profiles.TryGetValue(provider, out var profile) ? profile.Storage
+            : ProviderManager.Instance.GetStorageProvider(provider);
 
     public async Task ActivateReadSourceAsync(ProviderType provider, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var registration = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(provider,
-            activateProviderIfOASISProviderBootTypeIsHot: false);
-        if (registration == null || registration.IsError || registration.Result == null)
-            throw new InvalidOperationException("CQL_SOURCE_REGISTRATION_FAILED");
-        var storage = registration.Result;
+        IOASISStorageProvider storage;
+        if (profiles.TryGetValue(provider, out var profile)) storage = profile.Storage;
+        else
+        {
+            var registration = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(provider,
+                activateProviderIfOASISProviderBootTypeIsHot: false);
+            if (registration == null || registration.IsError || registration.Result == null)
+                throw new InvalidOperationException("CQL_SOURCE_REGISTRATION_FAILED");
+            storage = registration.Result;
+        }
         if (storage.ProviderType?.Value != provider || storage is not ICosmicQueryStorageProvider adapter
             || adapter.QueryProviderType != provider || adapter.QueryCapabilities == null
             || storage is not ICosmicReadOnlyQueryActivation activationProvider)
