@@ -71,3 +71,19 @@ API admission/preset/discovery2controls and affected Core tariff11controls pass.
 - `TestResults/NearPublicSourceCandidateCurrent/api-controls.trx`: 4980 B; SHA256 `56bcacd94e596490597db5b9c1046bb6848c02aec1710a1eba6bef490f47ddc4`.
 
 - `TestResults/NearPublicSourceCandidateCurrent/core-controls.trx`: 19177 B; SHA256 `5527eaba6c91db48a199d1ded8e0572d0ec003ebff8e623447b98fb323f51166`.
+
+## Hosted configuration and browser-link staging
+
+Strict FastNear source publisher3tests pass (including paid/overlap/malformed and encryption cases); seven-source joint composition8tests pass. Four NEAR presets: native3/2 and Mongo pairs5/4. The joint candidate preserves all28new presets and existing DNA/admission/settings; missing NearAccountId encryption query-key permission rejects enrollment without changing system-reserved metadata.
+
+Protected `LocalState/COSMIC/HostedSourceRolloutCurrent/google-ethereum-public-polygon-arbitrum-cosmos-polkadot-near-{before,candidate}-variables.dpapi` prepared,67,094/85,206B,9values/28presets. Not applied. Requires matching application/Core0eb3449, never frozen6bb. Earlier standalone/six-source candidates remain historical, not sequential updates to apply.
+
+Frontend C:/Source/Web4Site work/cosmic-cql commite8bf2d3 pushed: local NEAR guide/CLI/commented-source links and generic private-snapshot preparation coverage.54client tests pass, including two Mongo-only private writes, server-provided IDs, preserved native selection and repeat0writes/2existing. No provider-specific production JS branch. Public main unchanged. No hosted deployment/variable change.
+
+Next: revalidate browser access for the still-open original Solana/SOLID/S3 browser gates; integrate the matching scheduled application/configuration/frontend batch, then actual hosted preparation/reuse/isolation/replica/browser checks for the seven new profiles. Agent tooling failures remain agent work, not new owner chores.
+
+- `TestResults/NearPublicSourceCandidateCurrent/config-controls.log`: 106 B; SHA256 `383a12fba9b5b327054a24ce7e5739569c4f0b6621facd981f2d6a4271063b3c`.
+
+- `TestResults/NearPublicSourceCandidateCurrent/combined-config-controls.log`: 111 B; SHA256 `712d9323cfcaf36a238fc155aafa042f2c9d73847dc609ebb0c64676ab50446d`.
+
+- `TestResults/NearPublicSourceCandidateCurrent/frontend-controls.log`: 5252 B; SHA256 `33849fba293c920c9bf987343a486174f65c0ae13af3a565777ae6b1430d950c`.
