@@ -5,6 +5,15 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// Polygon uses its fixed mainnet descriptor, not the local signed-storage demo.
+// This console command reads the existing catalogue and creates no fixture.
+if (args.Length == 2 && args[0] == "--polygon-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await PolygonPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // The Ethereum read profile is separate from wallet/transaction storage.
 // Reuse an existing public catalogue, query once, and exit without local fixtures.
 if (args.Length == 2 && args[0] == "--ethereum-public")
@@ -27,7 +36,7 @@ if (args.Length == 2 && args[0] == "--google-public")
 var serve = args.Length == 1 && args[0] == "--serve";
 if (args.Length != 0 && !serve)
 {
-    Console.Error.WriteLine("Use no arguments, --serve, --google-public <existing-source.json>, or --ethereum-public <existing-source.json>.");
+    Console.Error.WriteLine("Use no arguments, --serve, --google-public <existing-source.json>, --ethereum-public <existing-source.json>, or --polygon-public <existing-source.json>.");
     return 2;
 }
 
