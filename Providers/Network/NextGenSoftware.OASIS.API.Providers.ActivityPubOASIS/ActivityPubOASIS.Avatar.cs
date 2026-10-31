@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using System.Threading;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -22,13 +23,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
     public partial class ActivityPubOASIS
     {
 
-        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        public override Task<OASISResult<bool>> ActivateProviderAsync()
+            => ActivateQuerySourceAsync(CancellationToken.None);
+
+        public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken = default)
         {
             var response = new OASISResult<bool>();
 
             try
             {
                 ObjectDisposedException.ThrowIf(_disposed, this);
+                cancellationToken.ThrowIfCancellationRequested();
                 if (_isActivated)
                 {
                     response.Result = true;
@@ -37,9 +42,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 }
 
                 // This adapter uses Mastodon REST, not universal ActivityPub C2S.
-                using var testResponse = await _httpClient.GetAsync("/api/v2/instance");
+                using var testResponse = await _httpClient.GetAsync("/api/v2/instance", HttpCompletionOption.ResponseHeadersRead, cancellationToken);
                 testResponse.EnsureSuccessStatusCode();
-                using var document=JsonDocument.Parse(await testResponse.Content.ReadAsStringAsync());
+                using var document=await ReadCqlStatusDocumentAsync(testResponse,cancellationToken);
                 var server=document.RootElement;
                 if(server.ValueKind!=JsonValueKind.Object)
                     throw new System.IO.InvalidDataException("Expected a Mastodon v2 instance object.");
@@ -50,6 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     throw new NotSupportedException("The Mastodon REST adapter requires version 4 or newer and the v2 instance contract.");
                 if(!server.TryGetProperty("configuration",out var configuration)||configuration.ValueKind!=JsonValueKind.Object)
                     throw new System.IO.InvalidDataException("Missing Mastodon instance configuration object.");
+                    cancellationToken.ThrowIfCancellationRequested();
                     _isActivated = true;
                     IsProviderActivated = true;
                     response.Result = true;
