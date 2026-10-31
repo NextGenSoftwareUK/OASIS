@@ -5,6 +5,9 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using NextGenSoftware.OASIS.API.Core.Configuration;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive;
 using Provider=NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Neo4jOASIS;
 using Outbox=NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.NeoHolonReplicationOutbox;
 
@@ -14,7 +17,14 @@ public partial class Neo4jNativeAvatarTests
 {
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
-    public async Task NativeNeoSourceBaselineCompletionPreservesFencesAndOrdinaryDelivery(bool durableApplication)
+    public Task NativeNeoSourceBaselineCompletionPreservesFencesAndOrdinaryDelivery(bool durableApplication)
+        =>RunSourceCompletionScenario(durableApplication,false);
+
+    [TestMethod]
+    public Task NativeNeoReviewedRepairCommandUsesConfiguredSourceAndPreservesOriginalBinding()
+        =>RunSourceCompletionScenario(true,true);
+
+    private async Task RunSourceCompletionScenario(bool durableApplication,bool reviewedHost)
     {
         const string uri="bolt://127.0.0.1:17687";
         Assert.AreEqual(uri,Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
@@ -40,6 +50,8 @@ public partial class Neo4jNativeAvatarTests
             Assert.AreEqual(0L,remains["count"].As<long>(),"Prior cleanup must remain true before journal reuse.");
         }
         var id=Guid.NewGuid();var actor=Guid.NewGuid();var initialization=Guid.NewGuid();var operations=new List<string>();
+        var sourceId=reviewedHost ? HolonReplicationRoutes.SourceId(ProviderType.Neo4jOASIS):"neo-completion-source";
+        var targetId=reviewedHost ? HolonReplicationRoutes.TargetId(ProviderType.SQLLiteDBOASIS):"sqlite-completion-target";
         var complete=false;
         void Journal(bool cleaned=false)
         {
@@ -56,6 +68,8 @@ public partial class Neo4jNativeAvatarTests
             Assert.IsFalse((await target.ActivateProviderAsync()).IsError);
             var existing=await(await inspect.RunAsync("MATCH (h:Holon {Id:$id}) RETURN count(h) AS count",new{id=id.ToString("D")})).SingleAsync();
             Assert.AreEqual(0L,existing["count"].As<long>());
+            var outbox=(Outbox)source.GetHolonReplicationOutbox().Result;
+            Assert.IsNull((await outbox.PeekNextAsync(targetId)).Result,"Never claim or alter an unrelated target obligation.");
             IHolon current=new Holon{Id=id,Name="owned Neo source completion"};
             async Task Save(int version)
             {
@@ -64,7 +78,7 @@ public partial class Neo4jNativeAvatarTests
                     new[]{new HolonWriteCondition(id,CosmicConcurrency.GetProviderRevisionId(current,ProviderType.Neo4jOASIS))}),
                     ConditionalHolonOperation.Save,new[]{current},saveChildren:false);
                 var saved=version<4 ? await source.ExecuteConditionalHolonWriteAsync(request)
-                    :await source.ExecuteReplicatingHolonWriteAsync(request,new HolonReplicationEnrollment("neo-completion-source",new[]{"sqlite-completion-target"}));
+                    :await source.ExecuteReplicatingHolonWriteAsync(request,new HolonReplicationEnrollment(sourceId,new[]{targetId}));
                 Assert.IsFalse(saved.IsError,saved.Message+saved.Exception);current=saved.Result.Single();Assert.AreEqual(version,current.Version);
             }
             async Task<string> Snapshot()
@@ -74,19 +88,39 @@ public partial class Neo4jNativeAvatarTests
                 return JsonSerializer.Serialize(rows["row"].As<Neo4j.Driver.INode>().Properties.OrderBy(pair=>pair.Key).ToDictionary(pair=>pair.Key,pair=>pair.Value));
             }
             for(var version=1;version<=4;version++)await Save(version);
-            var outbox=(Outbox)source.GetHolonReplicationOutbox().Result;
-            var dispatcher=new HolonOutboxDispatcher(outbox,new[]{new CommittedHolonReplicaTarget("sqlite-completion-target",target,
-                ProviderType.SQLLiteDBOASIS,"neo-completion-source",ProviderType.Neo4jOASIS)},"owned-neo-completion-worker");
-            Assert.AreEqual(1,(await dispatcher.DispatchOnceAsync("sqlite-completion-target")).Result.ReconciliationCount);
-            var held=(await outbox.PeekNextAsync("sqlite-completion-target")).Result;
-            var preparation=new HolonReplicaInitializationPreparation("neo-source-completion",Guid.NewGuid(),"neo-completion-source","owned-neo-service",
-                ProviderType.Neo4jOASIS,outbox,"sqlite-completion-target",targetPath,ProviderType.SQLLiteDBOASIS,new SourceCompletionPolicy(actor,id,targetPath));
+            var dispatcher=new HolonOutboxDispatcher(outbox,new[]{new CommittedHolonReplicaTarget(targetId,target,
+                ProviderType.SQLLiteDBOASIS,sourceId,ProviderType.Neo4jOASIS)},"owned-neo-completion-worker");
+            Assert.AreEqual(1,(await dispatcher.DispatchOnceAsync(targetId)).Result.ReconciliationCount);
+            var held=(await outbox.PeekNextAsync(targetId)).Result;
+            var reviewed=new ReplicaBaselineRepairCommand.Request(actor,initialization,Guid.NewGuid(),held.Sequence,held.OperationId,
+                actor,id,(await outbox.ReadObligationAsync(held.Sequence)).Result.PayloadDigest,
+                ReplicaBaselineRepairCommand.NeoStoreIdentity(uri,"neo4j"),targetPath,"Neo4jOASIS");
+            var preparation=reviewedHost ? ReplicaBaselineRepairCommand.Preparation(reviewed,ProviderType.Neo4jOASIS,outbox,targetPath)
+                :new HolonReplicaInitializationPreparation("neo-source-completion",Guid.NewGuid(),sourceId,"owned-neo-service",
+                    ProviderType.Neo4jOASIS,outbox,targetId,targetPath,ProviderType.SQLLiteDBOASIS,new SourceCompletionPolicy(actor,id,targetPath));
             var prepared=await preparation.PrepareAsync(actor,held.Sequence,initialization);Assert.IsFalse(prepared.IsError,prepared.Message+prepared.Exception);
             var intent=prepared.Result;var original=CommittedHolonReplicaPayload.Read((await outbox.ReadObligationAsync(held.Sequence)).Result.PayloadJson);
             var baseline=new CommittedHolonReplicaRequest(initialization,original.SourceId,original.SourceAuthority,original.ActorId,
                 original.Operation,original.Roots,original.SaveChildren,original.Recursive,original.MaxChildDepth);
             Assert.IsTrue((await outbox.CompleteInitializedBaselineAsync(intent,(await target.ReadReplicaInitializationOutcomeAsync(baseline)).Result)).IsError);
-            if(durableApplication)
+            if(reviewedHost)
+            {
+                var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {
+                    HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings {
+                        Neo4jOASIS=new Neo4jOASISSettings {ConnectionString=uri,Username="neo4j",Password="oasis-local-test-only"},
+                        SQLLiteDBOASIS=new SQLLiteDBOASISSettings {ConnectionString=$"Data Source={targetPath};Pooling=False"}}}};
+                await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>ReplicaBaselineRepairCommand.ExecuteAsync(dna,
+                    reviewed with{SourceStoreIdentity="neo4j-store:wrong"},applicationJournal));
+                await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>ReplicaBaselineRepairCommand.ExecuteAsync(dna,
+                    reviewed with{SourcePayloadDigest=new string('0',64)},applicationJournal));
+                Assert.AreEqual(HolonDeliveryState.ReconciliationRequired,(await outbox.InspectAsync(held.Sequence)).Result.State);
+                var applied=await ReplicaBaselineRepairCommand.ExecuteAsync(dna,reviewed,applicationJournal);
+                Assert.IsFalse(applied.IsError,applied.Message+applied.Exception);
+                var bytes=await File.ReadAllBytesAsync(applicationJournal);
+                Assert.IsTrue((await ReplicaBaselineRepairCommand.ExecuteAsync(dna,reviewed,applicationJournal)).Result);
+                CollectionAssert.AreEqual(bytes,await File.ReadAllBytesAsync(applicationJournal));
+            }
+            else if(durableApplication)
             {
                 var application=new HolonReplicaInitializationApplication(preparation,target,outbox.CompleteInitializedBaselineAsync);
                 var applied=await application.ExecuteAsync(actor,held.Sequence,initialization,applicationJournal);Assert.IsFalse(applied.IsError,applied.Message+applied.Exception);
@@ -120,9 +154,9 @@ public partial class Neo4jNativeAvatarTests
             var changed=new HolonReplicaInitializationOutcome(initialization,ProviderType.SQLLiteDBOASIS,ConditionalHolonReceiptState.Committed,receipt.BaselineFingerprint,new string('0',64));
             Assert.IsTrue((await outbox.CompleteInitializedBaselineAsync(intent,changed)).IsError);Assert.AreEqual(acknowledged,await Snapshot());
             current.Name="ordinary post-baseline update";await Save(5);
-            Assert.AreEqual(1,(await dispatcher.DispatchOnceAsync("sqlite-completion-target")).Result.CompletedCount);
+            Assert.AreEqual(1,(await dispatcher.DispatchOnceAsync(targetId)).Result.CompletedCount);
             Assert.AreEqual(5,(await target.LoadHolonAsync(id,loadChildren:false)).Result.Version);
-            Assert.IsNull((await outbox.PeekNextAsync("sqlite-completion-target")).Result);
+            Assert.IsNull((await outbox.PeekNextAsync(targetId)).Result);
             Assert.AreEqual(actor,(await source.LoadHolonAsync(id,loadChildren:false)).Result.CreatedByAvatarId);
             complete=true;
         }

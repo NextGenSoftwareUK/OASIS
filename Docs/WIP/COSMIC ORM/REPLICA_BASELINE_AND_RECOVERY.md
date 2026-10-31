@@ -147,3 +147,16 @@ Source/test: `NeoHolonReplicationOutbox.Initialization.cs` and `Neo4jSourceBasel
 The first consumer build exposed missing shipping CQL source dependencies in the integration project; exact PublicReadCatalogue/HostedSources/HostedQueryExamples files are now linked, without stubs. It failed before native startup/writes; original failure log remains under TestResults/HostedCqlIntegrationCurrent.
 
 Owned source root/history/receipts/outbox nodes were deleted by exact journalled identities and absence rechecked; owned SQLite target/WAL/SHM/application files removed. Global counters/schema/independent records remain reusable. Durable `LocalState/COSMIC/Neo4jSourceCompletionCurrent/fixture.json`520B remains cleaned=true. Owned attached process37680 exited; exact retained container/image is stopped, with no listeners17687/17688. Broader hosted routes, operator/API isolation and automatic cutover remain red.
+
+
+## Reviewed Neo4j-to-SQLite host composition — pending release
+
+The existing shell-only command now supports exactly two reviewed source profiles: omitted `SourceProvider` retains MongoDB; explicit `Neo4jOASIS` selects the configured Neo source. All other names/aliases/default/provider types are rejected before native composition. Target remains the existing configured SQLite file. Native endpoints/credentials come exclusively from node DNA; no URI, password or connection string is accepted in the request.
+
+The optional source field is omitted when null during serialization, preserving the original ten-field request and policy binding for previously reviewed Mongo operations/journals. Neo source identity hashes the configured absolute endpoint and principal (not password); it is not a databaseUUID claim. The exact frozen source operation/digest must match before target activation. Both routes use the same preparation policy, durable application and native fenced completion owners; there is no new public repair endpoint or failover/retry path.
+
+20API/schema cases pass/no skips, including legacy serialization, unsupported-profile rejection before native I/O, endpoint/principal binding and the earlier strict request controls. One new native reviewed Neo-to-SQLite case passes/no skips: actual held4, wrong configured identity/digest refusal, reviewed application/completion, byte-unchanged completed-journal replay, unchanged failure evidence, exact receipt binding and ordinary5delivery. The source queue must be empty for that test target before writes, so it cannot claim an unrelated obligation. Existing direct/durable source-completion proofs remain separate.
+
+Evidence: `TestResults/HostedCqlIntegrationCurrent/replica-reviewed-source.trx` SHA256 `E2FBEEE5478DACEA2A7D19FF4491D9493A4AD65B38562406D0E44893F9721996`; `TestResults/Neo4jCurrent/neo4j-reviewed-source-repair-current.trx` SHA256 `9FEBA42290C72D41A6687D30FA4096813C854028F57301A08C2A2543D7C99324`. Runner `Run-ReusableNeo4jTests.ps1 -CosmicReviewedSourceRepair` under one outer provider build lease.
+
+Owned native IDs and SQLite/application files were removed and absence rechecked; retained container stopped/attached process45344exited. No hosted repair/deployment or new installation. Hosted Neo route acceptance, SQLite-source operator routes, public/operator API isolation, larger-store admission and automatic enrollment/cutover remain incomplete.
