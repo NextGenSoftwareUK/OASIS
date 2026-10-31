@@ -21,12 +21,13 @@ public class CqlHostedSourcesTests
         public ProviderType Type;
         public ProviderType? QueryType;
         public bool Active;
+        public CosmicQueryCapabilities Capabilities;
         protected override object Invoke(MethodInfo method, object[] arguments) => method.Name switch
         {
             "get_ProviderType" => new NextGenSoftware.Utilities.EnumValue<ProviderType>(Type),
             "get_QueryProviderType" => QueryType ?? Type,
             "get_IsProviderActivated" => Active,
-            "get_QueryCapabilities" => CosmicQueryCapabilities.ForStringMetadataKeyLookup("NativeKey"),
+            "get_QueryCapabilities" => Capabilities ?? CosmicQueryCapabilities.ForStringMetadataKeyLookup("NativeKey"),
             _ => throw new InvalidOperationException("Discovery must not execute a native operation.")
         };
     }
@@ -69,6 +70,58 @@ public class CqlHostedSourcesTests
 
     private static CqlHostedSources Sources(Registry registry, bool configured = true)
         => new(configured ? Admission() : null, registry, NullLogger<CqlHostedSources>.Instance);
+
+    [Fact]
+    public async Task OracleDiscoveryPlansAllFourPresetsWithTheSameConfiguredPublicCatalogue()
+    {
+        var ids = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
+        var registry = new Registry();
+        var oracle = registry.Add(ProviderType.OracleDBOASIS, false);
+        ((Adapter)(object)oracle).Capabilities =
+            NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.OracleCqlCompiler.Capabilities;
+        var mongo = registry.Add(ProviderType.MongoDBOASIS, true);
+        var equal = new[] { CosmicQueryComparisonOperator.Equal };
+        ((Adapter)(object)mongo).Capabilities = new CosmicQueryCapabilities(
+            CosmicQueryFeatures.Membership | CosmicQueryFeatures.BooleanConstant | CosmicQueryFeatures.And |
+            CosmicQueryFeatures.Or | CosmicQueryFeatures.Paging,
+            new CosmicQueryFieldCapability("Id", typeof(Guid), equal),
+            new CosmicQueryFieldCapability("IsPublic", typeof(bool), equal),
+            new CosmicQueryFieldCapability("CreatedByAvatarId", typeof(Guid), equal));
+        var rows = new List<object>();
+        foreach (var count in new[] { 3, 2 })
+        {
+            var selection = new { orderBy = "None", take = 8, filters = new[] {
+                new { field = "Id", scalar = "Guid", @operator = "In", value = ids.Take(count).ToArray() } } };
+            rows.Add(new { id = "native-" + count, label = "Oracle records", request = new {
+                provider = "OracleDBOASIS", selection.orderBy, selection.take, selection.filters } });
+            rows.Add(new { id = "paired-" + count, label = "Oracle + Mongo", operation = "Federation", request = new {
+                scope = "Named", providers = new[] { "MongoDBOASIS", "OracleDBOASIS" }, source = selection,
+                identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8 } });
+        }
+        var examples = CqlHostedQueryExamples.FromJson(System.Text.Json.JsonSerializer.Serialize(
+            new Dictionary<string, object> { ["OracleDBOASIS"] = rows }));
+        var admission = new PricedStorageAdmissionFactory(null, Array.Empty<NativeStorageAdmissionBinding>(),
+            new[] { ProviderType.MongoDBOASIS }, new[] {
+                new StorageQueryTariff(ProviderType.MongoDBOASIS, 0, "test-v1"),
+                new StorageQueryTariff(ProviderType.OracleDBOASIS, 0, "test-v1") },
+            null, new[] { ProviderType.OracleDBOASIS });
+        using var sources = new CqlHostedSources(admission, registry, NullLogger<CqlHostedSources>.Instance,
+            examples, new[] { new CqlPublicReadCatalogue(ProviderType.OracleDBOASIS, ids) });
+        await sources.StartAsync(default);
+        await sources.ExecuteTask!;
+        var description = Assert.Single(sources.Describe(true).Where(row => row.Provider == "OracleDBOASIS"));
+        Assert.True(description.Available);
+        Assert.Equal(4, description.Examples.Count);
+        Assert.All(description.Examples, example => Assert.True(example.Available, example.ErrorCode));
+
+        // An active adapter alone is insufficient: omitting the required host
+        // grant must not advertise examples planned with weaker visibility.
+        using var missing = new CqlHostedSources(admission, registry, NullLogger<CqlHostedSources>.Instance, examples);
+        await missing.StartAsync(default);
+        await missing.ExecuteTask!;
+        Assert.False(Assert.Single(missing.Describe(true).Where(row => row.Provider == "OracleDBOASIS")).Available);
+        Assert.All(registry.Activations, provider => Assert.Equal(ProviderType.OracleDBOASIS, provider));
+    }
 
     [Fact]
     public async Task FederationDependencyOutageDoesNotDisableThePublicSourceOrActivateAnotherProvider()

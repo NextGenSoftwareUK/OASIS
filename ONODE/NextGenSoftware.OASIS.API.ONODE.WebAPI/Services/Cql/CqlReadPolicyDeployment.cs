@@ -26,6 +26,7 @@ public static class CqlReadPolicyEnrollment
         if (value != null && !bool.TryParse(value, out required))
             throw new InvalidOperationException(ConfigurationKey + " must be true or false.");
         services.AddSingleton(new CqlReadPolicyRequirement(required));
+        CqlPublicReadCatalogue.Enroll(services, configuration);
         services.AddHostedService<CqlReadPolicyReadiness>();
         return services;
     }

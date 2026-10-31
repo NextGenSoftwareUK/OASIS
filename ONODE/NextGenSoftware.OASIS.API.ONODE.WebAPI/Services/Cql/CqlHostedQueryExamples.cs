@@ -105,9 +105,18 @@ public sealed class CqlHostedQueryExamples
     }
 
     public IReadOnlyList<CqlHostedQueryExample> For(ProviderType type, CosmicQueryCapabilities capabilities,
-        Func<ProviderType, CosmicQueryCapabilities> resolveCapabilities = null)
+        Func<ProviderType, CosmicQueryCapabilities> resolveCapabilities = null,
+        Func<ProviderType, Guid, CosmicQueryReadAccess> resolveReadAccess = null)
     {
         if (!examples.TryGetValue(type, out var rows)) return Array.Empty<CqlHostedQueryExample>();
+        CosmicQueryReadAccess Access(ProviderType target)
+        {
+            var access = resolveReadAccess == null ? CosmicQueryReadAccess.OwnerOrPublic(ExampleActor).Result
+                : resolveReadAccess(target, ExampleActor);
+            if (access == null || access.ActorId != ExampleActor || access.Authority.HasValue && access.Authority != target)
+                throw new ArgumentException("Example access must bind the same actor and target authority.");
+            return access;
+        }
         var selected = new List<CqlHostedQueryExample>();
         foreach (var example in rows)
         {
@@ -127,12 +136,12 @@ public sealed class CqlHostedQueryExamples
                 var planned = CosmicFederationPlanner.Plan(source, FederationOptions(request), targets[0],
                     actual.Select(target => new CosmicQueryTarget(target.Provider, target.Capabilities)).ToArray(),
                     targets.Select(target => new CosmicFederationReadPolicy(target,
-                        CosmicQueryReadAccess.OwnerOrPublic(ExampleActor).Result)).ToArray());
+                        Access(target))).ToArray());
                 selected.Add(planned.IsError ? example with { Available = false, ErrorCode = "CQL_DEMO_EXAMPLE_UNSUPPORTED" } : example);
                 continue;
             }
             var query = CqlV1Compiler.Compile(example.Request.Deserialize<CqlV1Request>(Json),
-                ExampleActor, type);
+                ExampleActor, type, Access(type));
             var plan = CosmicQueryPlanner.Plan(query, type, new[] { new CosmicQueryTarget(type, capabilities) });
             if (plan.IsError) throw new ArgumentException("CQL_DEMO_EXAMPLE_UNSUPPORTED");
             selected.Add(example);
