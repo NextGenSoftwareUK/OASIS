@@ -24,4 +24,7 @@
     <Compile Include="../../../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs" Link="PublishedDemo/NativeKeySetWalkthrough.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/EthereumPublicWalkthrough.cs" Link="PublishedDemo/EthereumPublicWalkthrough.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../../../Examples/CosmicCqlDemo/PolygonPublicWalkthrough.cs" Link="PublishedDemo/PolygonPublicWalkthrough.cs" />
+  </ItemGroup>
 </Project>

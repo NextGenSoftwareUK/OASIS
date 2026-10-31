@@ -13,6 +13,23 @@ The exact [C# sample](NativeKeySetWalkthrough.cs) is native-tested against three
 mainnet accounts and a two-account subset, without wallets or writes. Hosted
 deployment/browser acceptance is tracked separately in CURRENT_STATUS.
 
+## Public Polygon balances — runnable C# demo
+
+[The Polygon guide](../../Docs/Devs/POLYGON_PUBLIC_METADATA_CQL_GUIDE.md) covers
+native3/2address filters and local HTTP/Mongo5/4pairing. After building the project
+with the normal provider lease and bounded workers, run:
+
+```powershell
+dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
+    --no-build --no-restore -- `
+    --polygon-public LocalState/COSMIC/HostedPolygonPublicSourceCurrent/source.json
+```
+
+[PolygonPublicWalkthrough.cs](PolygonPublicWalkthrough.cs) uses the common
+HolonManager/LINQ sample, prints exact native balances and finalized block hashes,
+and performs no wallet/transaction/Mongo writes. Hosted enrollment/browser proof
+remain pending; the retained signed-record local chain demo is separate.
+
 ## Public Ethereum balances — runnable C# demo
 
 [The Ethereum guide](../../Docs/Devs/ETHEREUM_PUBLIC_METADATA_CQL_GUIDE.md) covers

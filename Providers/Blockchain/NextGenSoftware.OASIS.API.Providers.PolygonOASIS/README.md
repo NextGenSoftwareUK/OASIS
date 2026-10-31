@@ -134,3 +134,7 @@ occurs during preparation. Use only the matching tested application/Core revisio
 for the scheduled rollout; apply-with-polygon is the explicit journalled mutation.
 Encrypted snapshots require an explicit PolygonAccountAddress queryable-key grant;
 the publisher refuses missing policy rather than changing global reserved keys.
+
+Runnable console and HTTP walkthrough: [public Polygon CQL guide](../../../Docs/Devs/POLYGON_PUBLIC_METADATA_CQL_GUIDE.md).
+The --polygon-public console mode passes native3/2through HolonManager/LINQ,
+with a native test compiling the actual published sample files.
