@@ -47,6 +47,8 @@ These are bounded unsigned public projections, not owned native persistence or i
 
 All six native directed repair routes, manager continuations and paused-baseline interleavings pass. Three application ACK-loss cases and three real loopback HTTP post-commit disconnect cases prove one mutation, original receipt recovery without resubmission and two ordinary replicas. Owned fixtures were cleaned after verification.
 
+The unfinished hosted failover gate now requires per-response proof of a different enrolled serving provider, in addition to exact record preservation; five acceptance controls pass (including all six directed routes). This is verifier coverage, not a new live pass.
+
 Still red: hosted Default balancing; wider operator/late-enrollment/transport acceptance; primary-authority cutover; scale certification; full ORM acceptance reconciliation. Replica delivery is not migration of write authority. Mixed unsigned-read/signed-write representations retain the admission fence.
 
 Deep LINQ terminals, unrestricted non-IHolon POCO mapping and migration tooling remain deferred. Work only on red acceptance scopes; revisit green scopes only for a reproducible bug. Legacy implementation remains document-only.

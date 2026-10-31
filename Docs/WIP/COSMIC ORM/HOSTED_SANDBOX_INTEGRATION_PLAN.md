@@ -851,3 +851,7 @@ Actualparameterlesscontroller regression provesDefault selects soleenrolledSQLit
 
 The optional seventeen-source candidate contains 68 presets and 19 application settings. The four actual Sei presets pass the shipping planner using shipping source/Mongo capabilities: 1 passed, 0 failed, 0 skipped. Application-scope controls: 7 passed. Earlier candidates are preserved. No hosted variables were applied, and no deployment or hosted acceptance is inferred. Evidence: `TestResults/HostedCqlIntegrationCurrent/sei-prepared-review.trx`; regenerate with the focused `ActualSeiCandidatePlansFourPresetsWithShippingCapabilities` test and retained public review.
 TRX SHA-256: `6dd472c7a76f2c8ec3f01d00bc09519a3662816ba584e7e4fe1693d858f7e9db`.
+
+
+### Live failover acceptance gap — 31 October 2026
+The unfinished failover verifier previously accepted correct record content without proving that another provider served it. It now requires response-owned route metadata: requested/initial provider equals the faulted source, serving provider is a different enrolled replica, Auto strategy and success. Five controls pass, including all six directed routes and rejection of missing, same-provider, foreign-route, error and changed-record evidence. Command: `python -m unittest Scripts/Sandbox/test_hyperdrive_failover.py`. No new hosted failover pass, fault, account, save or session is claimed; original cohort is preserved.
