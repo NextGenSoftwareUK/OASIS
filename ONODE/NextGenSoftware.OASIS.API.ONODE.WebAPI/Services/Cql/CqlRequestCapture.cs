@@ -33,10 +33,23 @@ internal static class CqlRequestCapture
         {
             if (filter == null || ++filterCount > 64) throw new ArgumentException("Filter capture is incomplete or oversized.");
             var scalar = filter.Value;
-            if (scalar.ValueKind is JsonValueKind.Object or JsonValueKind.Array
-                || scalar.ValueKind == JsonValueKind.String && scalar.GetString()!.Length > 512
-                || scalar.ValueKind == JsonValueKind.Number && scalar.GetRawText().Length > 64)
-                throw new ArgumentException("Filter capture requires a bounded scalar.");
+            void BoundScalar(JsonElement item, bool member)
+            {
+                if (item.ValueKind is JsonValueKind.Object or JsonValueKind.Array
+                    || member && item.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined
+                    || item.ValueKind == JsonValueKind.String && item.GetString()!.Length > 512
+                    || item.ValueKind == JsonValueKind.Number && item.GetRawText().Length > 64)
+                    throw new ArgumentException("Filter capture requires bounded scalar literals.");
+            }
+            // Capture freezes the same bounded membership accepted by the compiler.
+            // It does not expand it into point reads or interpret literal types.
+            if (filter.Operator == CqlV1Operator.In)
+            {
+                if (scalar.ValueKind != JsonValueKind.Array || scalar.GetArrayLength() is < 1 or > 100)
+                    throw new ArgumentException("Membership capture requires one to100 literals.");
+                foreach (var item in scalar.EnumerateArray()) BoundScalar(item, true);
+            }
+            else BoundScalar(scalar, false);
             return new CqlV1Filter
             {
                 Field = filter.Field, MetadataPath = filter.MetadataPath == null ? null : Array(filter.MetadataPath, 8, item => item),

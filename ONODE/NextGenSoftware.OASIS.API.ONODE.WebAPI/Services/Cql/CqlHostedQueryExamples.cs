@@ -49,7 +49,8 @@ public sealed class CqlHostedQueryExamples
                     || string.IsNullOrWhiteSpace(title) || title.Length > 100 || title.Any(char.IsControl)
                     || rows.Any(row => row.Id == key) || request.GetRawText().Length > 32768)
                     throw new ArgumentException("Unique bounded public example identities required.");
-                var typed = request.Deserialize<CqlV1Request>(Json);
+                // Exercise the owning HTTP snapshot boundary before advertising a preset.
+                var typed = CqlRequestCapture.Capture(request.Deserialize<CqlV1Request>(Json));
                 if (typed?.Provider != entry.Name || typed.Graph != null)
                     throw new ArgumentException("Public leaf examples cannot change source ownership or request graphs.");
                 _ = CqlV1Compiler.Compile(typed, Guid.Parse("00000000-0000-0000-0000-000000000001"), type);
