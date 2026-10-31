@@ -1,8 +1,8 @@
 # Actions for David
 
-The single list of everything that needs you: your accounts, phones, admin rights, approvals or a decision. Everything else is done or in progress. Tick items off and tell Claude when one is done; it picks up the next step. Never paste passwords, API keys, tokens or connection strings into chat.
+The single list of everything that needs you: your accounts, phones, admin rights, approvals or a decision. Everything else is done or in progress. Tick items off and tell the working agent when one is done; it picks up the next step. Never paste passwords, API keys, tokens or connection strings into chat. All agents must add owner-dependent requests here before asking, update your answers, and preserve deferred decisions without repeatedly asking.
 
-Last updated 28 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (merged into Part B below) and the PIPER work log's action list (Part A).
+Last updated 31 October 2026 (COSMIC/CQL decisions in Part E; unrelated actions retained). This file replaces `OWNER_SETUP_CHECKLIST.md` (merged into Part B below) and the PIPER work log's action list (Part A).
 
 ## Open actions at a glance
 
@@ -17,6 +17,7 @@ Last updated 28 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 9 | Holon permissions: publish web4-api 2.0.17, then click Reapply access once Railway has deployed | A5 |
 | 8 | Railway pin sync (one-time): enable the pre-push hook in each OASIS clone | A4 |
 | 7 | Older items: HoloNET NuGet secrets, phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
+| 10 | CQL demo decisions: hosted Azure/Oracle **deferred by David**, not setup due now; approved public S3 and temporary-demo 200-call budget recorded | E |
 
 ---
 
@@ -220,6 +221,11 @@ Current original `C:/Source/OASIS/Providers/Blockchain/TestProjects/NextGenSoftw
 
 ### Pending AWS S3 live acceptance access — added 23 October 2026
 
+31 October CQL update: the public S3 object-metadata demo uses anonymous reads and
+is live through HTTP, including Mongo pairing. It needs no AWS account from David.
+The owned/encrypted storage acceptance below is a separate broader provider gate;
+do not treat its credentials as a prerequisite for the public metadata demo.
+
 25 October update: the SAME runner now also supports `-RecordLifecycle -StorageEncryptionKeyEnvironmentVariable OASIS_AWS_S3_STORAGE_ENCRYPTION_KEY` with the existing region/bucket/profile and explicit cost-approval arguments. Reserve an initially EMPTY exclusive `oasis-provider-acceptance/` prefix; do not use customer data or concurrent writers. This invokes the actual encrypted public provider through the shared OCI/S3 acceptance body, not only object transport. Nine public mutations plus queries/index/history observations can issue many more SDK requests; this is not a fee cap. Current-object cleanup does not purge retained bucket versions/delete markers or certify zero storage cost. Keep secrets outside chat/Git. Controlled signed-SDK tests pass; hosted execution remains pending an approved test account/bucket/profile/cost scope.
 
 The guarded native transport entry point is prepared (not run against AWS): `Scripts/TestHosts/Run-AwsS3LiveAcceptance.ps1 -Region <region> -BucketName <isolated-test-bucket> -ProfileName <protected-profile> -ApproveCloudRequests`. Omit ProfileName only to use the explicitly configured SDK default credential chain. It reuses the existing .NET10 PowerShell/build outputs, checks source identity and requires deliberate cost approval; it does not install/build/provision. The fixed object is `oasis-acceptance/transport-probe`. Existing pending/success/interrupted-snapshot evidence blocks another run. Do not delete that evidence to force a retry. A successful transport probe is not full provider/IAM/billing/HyperDrive certification. S3 bucket versioning can retain billable versions even after the probe's current-object deletion; choose an appropriate isolated test bucket and review retention costs.
@@ -244,7 +250,11 @@ The earlier approved RPC faucet request returned an internal error and no signat
 
 The retained local Oracle test schema is already upgraded and verified; David need not repeat that operation. The unchecked review above applies only to existing hosted/client schemas before deployment.
 
-Oracle is the first provider priority (both database and object storage), followed by AWS. Local Oracle Free and signed SDK loopback tests do not replace live cloud acceptance. David plans to check access tomorrow; no new paid resources are authorized by this checklist.
+31 October decision: David confirmed **no existing Oracle account; leave hosting pending**.
+The Oracle cloud access/setup items below are deferred, not immediate tasks or
+permission to create an account or paid resources. Do not keep asking for the same
+access. Local Oracle Free and signed SDK loopback tests do not replace live cloud
+acceptance. Revisit these items only if David resumes hosted Oracle.
 
 - [ ] **Autonomous Database:** provide an isolated test database's connection/service name and test username; configure its password securely outside chat. If wallet-based access is required, place the wallet locally and share only its path and connection alias. Keep customer data out of the test database.
 - [ ] **Database read-only preflight target:** provide the approved `DB_UNIQUE_NAME`, effective test schema/session username and actual service name (non-secret target identity). Configure the full test connection through a protected environment variable; share its NAME only, never the value. The separate `Run-OracleDatabaseLivePreflight.ps1` requires these exact identities and explicit `-ApproveCloudReadRequests`, observes TCPS on its inspection connection and validates existing canonical schema with provisioning denied. It does not execute the local fixture's triggers/DDL/CRUD or provision any cloud resource. Connection/read requests and database compute can still incur charges. Wallet/certificate/server-name validation policy requires separate review; a TCPS observation is not full TLS/security certification.
@@ -264,6 +274,30 @@ The optional `-RecordLifecycle -StorageEncryptionKeyEnvironmentVariable <variabl
 ### Pending provider credential action — CoinGecko
 
 - [ ] Revoke/rotate the previously embedded CoinGecko credential if active. Configure its replacement as `COINGECKO_DEMO_API_KEY` in the retained test environment, not in chat or source control. Live quote verification remains pending.
+
+---
+
+## Part E — COSMIC ORM / CQL demo owner decisions (31 October 2026)
+
+Current owner action: **none required for the next engineering step**. Native
+Oracle/Mongo integration and browser verification remain agent-owned work.
+See [COSMIC current status](../COSMIC%20ORM/CURRENT_STATUS.md).
+
+| Item | Status / David's decision | When action is needed |
+|---|---|---|
+| Hosted Azure Cosmos | **Deferred** — free only; no existing free subscription; David said leave hosted Azure pending | Only if David chooses to resume. No paid upgrade, card/signup request or new account creation now. |
+| Hosted Oracle Database / OCI | **Deferred** — no existing Oracle account; David said leave hosting pending | Only if David resumes. Then record the actual account/connection/wallet setup needed here; request paths or variable names only, never secret values. |
+| First AWS demo | **Approved** — use a public S3 dataset | Decision implemented: anonymous native metadata reads and Mongo pairing verified through hosted HTTP. No AWS account or bucket setup needed for this demo. |
+| Temporary demo avatar daily calls | **Approved: 200** | Implemented/live-verified. Normal Free accounts stay at 20; token/spending limits unchanged. No further approval requested. |
+| Browser access for demo verification | **Already supplied** — David opened the demo in Edge; the demo is also open in the in-app browser | The agent must resolve its control/verification tooling. Do not repeatedly ask David to open it. Record any genuinely new manual step here before asking. |
+
+These decisions do not close unrelated full-provider, production release, device
+or credential actions elsewhere in this file. No blanket cloud spending, on-chain
+funding, paid account setup or production promotion is authorized here.
+
+All future David-dependent actions from this COSMIC/CQL work belong in this list,
+with date, reason, exact next step and supporting links. Do not create another
+David checklist or turn code/test/automation fixes into owner setup tasks.
 
 ---
 
