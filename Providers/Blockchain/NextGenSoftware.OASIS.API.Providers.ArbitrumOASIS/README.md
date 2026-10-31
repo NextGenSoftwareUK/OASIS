@@ -81,3 +81,27 @@ demo presets and hosted/browser acceptance remain next. General content querying
 owned chain writes, full ORM parity and replication are not certified by these
 public reads. [Arbitrum chain information](https://docs.arbitrum.io/chain-info),
 [protocol readiness probe](../../../Scripts/Sandbox/Test-ArbitrumPublicMetadataCandidate.ps1).
+
+WEB4 task integration now registers CQL_ARBITRUM_PUBLIC_SOURCE_JSON as an isolated
+query-only profile. Independent permission/read pricing and explicit native
+capabilities own discovery and execution; no signed-write price is granted.
+Local native HTTP acceptance passes3/2and Mongo5/4with foreign-private0/public-pair3
+and exact IDs/provenance/privacy. Controlled bearer/usage mocks do not certify
+production auth/billing, replicas or browser behaviour.
+
+Use the existing -ArbitrumMongoHttp runner after a leased bounded build. Its
+original intent/ACK guard refuses blind replay; success removes only the
+nonce/owner-checked Mongo fixture and verifies absence.
+
+For a joint Google/Ethereum/Polygon/Arbitrum rollout, prepare
+Publish-HostedGoogleEthereumConfiguration.py with-arbitrum. It preserves all4
+strict source profiles and16presets in6changed values, without changing wallet
+DNA. Explicit apply-with-arbitrum is journalled and must match the tested
+application/Core revision; preparation itself changes no live settings.
+Encrypted snapshots require an explicit ArbitrumAccountAddress queryable grant.
+
+Current limitation: one admission factory rejects overlapping native signer and
+unsigned/query-only roles for the same provider. Publishers refuse that existing
+enrollment rather than replacing it. Mixed signed-write/public-read admission
+for one provider needs a separate operation/representation-aware contract; this
+demo does not certify that combination.
