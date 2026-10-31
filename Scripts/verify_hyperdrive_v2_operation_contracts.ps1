@@ -28,7 +28,7 @@ if ($singleHandler.Count) {
 # A case is either a StorageOperationRequest naming the operation, or a call through the manager under test
 # (fixture.Manager.<Operation>[Async](...)), which the manager routes to the same switch label.
 $testedOperations = @(@([regex]::Matches($tests, 'Operation\s*=\s*"(?<operation>[A-Za-z0-9]+)"')) +
-        @([regex]::Matches($tests, '\.Manager\.(?<operation>[A-Za-z0-9]+?)(?:Async)?\s*\('))) |
+        @([regex]::Matches($tests, '\.Manager\.(?<operation>[A-Za-z0-9]+?)(?:Async)?\s*\(')) |
     ForEach-Object { $_.Groups['operation'].Value } |
     Sort-Object -Unique)
 $untested = @($handlerOperations | Where-Object { $_ -notin $testedOperations })
