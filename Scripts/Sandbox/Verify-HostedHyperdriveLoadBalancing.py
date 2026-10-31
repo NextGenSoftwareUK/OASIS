@@ -1,11 +1,14 @@
 """Read-only live gate for response-owned routing; never infer from shared status.
 
-Requires the existing acknowledged Solana demo cohort and deployed route metadata.
+Requires an explicitly selected acknowledged cohort and deployed route metadata.
+Durable expected-record evidence lives beside the protected session, not TestResults.
 No accounts, saves, faults or settings changes. A completed gate is not replayed.
 """
 from pathlib import Path
 import importlib.util
 import json
+import argparse
+import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location("flow", ROOT / "Scripts/Sandbox/Verify-HostedQuerySource.py")
@@ -31,15 +34,46 @@ def verify_response(response, expected, requested):
     return route
 
 
+
+def reviewed_record(document, owner):
+    """Validate retained evidence before any request; never derive a new save."""
+    if document.get("schema") != 1:
+        raise ValueError("Unsupported routing fixture schema.")
+    expected = document.get("expected")
+    digest = document.get("sourceEvidenceSha256")
+    if (not isinstance(expected, dict) or set(expected) != {"id", "name", "version", "createdByAvatarId"}
+            or not isinstance(digest, str) or len(digest) != 64
+            or any(c not in "0123456789abcdefABCDEF" for c in digest)
+            or type(expected.get("version")) is not int or expected["version"] < 1
+            or not isinstance(expected.get("name"), str) or not expected["name"]
+            or expected.get("createdByAvatarId") != owner):
+        raise ValueError("Routing fixture must bind the acknowledged record, source hash and session owner.")
+    for value in (expected["id"], owner):
+        if not isinstance(value, str) or str(uuid.UUID(value)) != value or uuid.UUID(value).int == 0:
+            raise ValueError("Routing fixture requires canonical nonempty identities.")
+    return dict(expected)
+
+
 def main():
-    state = ROOT / "LocalState/COSMIC/HostedQueryAcceptance-SolanaOASIS"
-    report = ROOT / "TestResults/HostedCqlIntegrationCurrent/hyperdrive-load-balancing-http.json"
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--cohort", choices=["original-solana", "routing-v1"], default="original-solana")
+    options = parser.parse_args()
+    state = ROOT / "LocalState/COSMIC" / ("HostedQueryAcceptance-SolanaOASIS"
+        if options.cohort == "original-solana" else "HostedHyperdriveRoutingCurrent")
+    report = ROOT / "TestResults/HostedCqlIntegrationCurrent" / ("hyperdrive-load-balancing-http.json"
+        if options.cohort == "original-solana" else "hyperdrive-load-balancing-routing-v1-http.json")
     acknowledgement = state / "hyperdrive-load-balancing.acknowledged.json"
     if acknowledgement.exists():
         raise RuntimeError("Completed gate retained; do not repeat a green scope.")
-    token = flow.verification.protected_token((state / "owner.dpapi").read_bytes(), decrypt=True).decode()
-    proof = json.loads((ROOT / "TestResults/HostedCqlIntegrationCurrent/SolanaOASIS-client-http-flow.json").read_text())
-    expected = next(row for row in proof["mongoRows"] if row["id"] == proof["ids"][0])
+    # This verifier owns reads only. Missing or expired sessions must never cause
+    # flow.session to create a replacement or recycle an old operation identity.
+    if not (state / "owner.acknowledged.json").is_file() or not (state / "owner.dpapi").is_file():
+        raise RuntimeError("Prepare and acknowledge the selected cohort separately; no session created by a read gate.")
+    owner = json.loads((state / "owner.acknowledged.json").read_text())["id"]
+    expected = reviewed_record(json.loads((state / "routing-record.acknowledged.json").read_text()), owner)
+    identity, token = flow.session(state, "owner", allow_create=False)
+    if identity["id"] != owner:
+        raise RuntimeError("Acknowledged owner changed while loading the fixture.")
     if flow.call("sandbox/faults", token, method="GET")["result"]:
         raise RuntimeError("Read gate requires no active avatar fault; it does not restore another fault.")
     observed = []
