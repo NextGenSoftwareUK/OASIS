@@ -2,6 +2,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
 internal static class CosmicSqliteSchema
 {
+    internal const string CreateOutboxInitializationCompletionTable = "CREATE TABLE IF NOT EXISTS CosmicHolonOutboxInitializationCompletion (Sequence INTEGER PRIMARY KEY NOT NULL REFERENCES CosmicHolonOutbox(Sequence), EvidenceJson TEXT NOT NULL, EvidenceDigest TEXT NOT NULL CHECK(length(EvidenceDigest)=64))";
     internal const string CreatePreparationTable = "CREATE TABLE IF NOT EXISTS CosmicWritePreparation (OperationId TEXT PRIMARY KEY NOT NULL, ActorId TEXT NOT NULL, PayloadJson TEXT NOT NULL, CreatedAtUtc TEXT NOT NULL)";
     internal const string CreateRevisionCollectionIndex = "CREATE INDEX IF NOT EXISTS IX_CosmicHolonRevision_CollectionVersion ON CosmicHolonRevision(Version, HolonId)";
     internal const string CreateRevisionParentIndex = "CREATE INDEX IF NOT EXISTS IX_CosmicHolonRevision_ParentVersion ON CosmicHolonRevision(json_extract(RecordJson,'$.ParentHolonId'), Version)";

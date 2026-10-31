@@ -23,6 +23,12 @@ public partial class SQLLiteDBOASIS
         }
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"CosmicHolonOutbox",CosmicSqliteSchema.OutboxDeliveryColumns()).ConfigureAwait(false);
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"CosmicHolonOutbox",CosmicSqliteSchema.OutboxRecoveryColumns()).ConfigureAwait(false);
+        using(var completionSchema=connection.CreateCommand())
+        {
+            completionSchema.Transaction=transaction.GetDbTransaction();
+            completionSchema.CommandText=CosmicSqliteSchema.CreateOutboxInitializationCompletionTable;
+            await completionSchema.ExecuteNonQueryAsync().ConfigureAwait(false);
+        }
         foreach(var table in new[] {"Holon","Avatar","AvatarDetail"})
             await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),table,new Dictionary<string,string> {
                 {"IsPublic","INTEGER NOT NULL DEFAULT 0"},
