@@ -86,6 +86,12 @@ jobs:
       - name: Full production build must have zero errors
         run: dotnet build "The OASIS - NoTests.sln" --configuration Release -warnaserror:none
 
+      # Compiling is not enough for GraphQL: HotChocolate builds each schema at runtime, so a package or
+      # binding regression only shows up when the schema is built. Build, execute and introspect all of
+      # WEB4-WEB10 from the production registrations.
+      - name: Every Web API GraphQL schema must build, execute and introspect
+        run: dotnet run --project Tests/CompatibilitySchemas/CompatibilitySchemas.csproj --configuration Release -- . artifacts/compatibility-schemas
+
   # Runs the storage-provider integration tests against REAL backends, in throwaway
   # containers. Without this the tier-B integration tests compile and "pass" while
   # touching nothing, because each provider falls back to a localhost default that
@@ -107,9 +113,11 @@ jobs:
             image: redis:7-alpine
             ports: 6379:6379
             wait: 6379
+            # OwnedNative* tests assert the reusable private test host (127.0.0.1:18679); they run via Scripts/TestHosts/Run-ReusableRedisKeyTests.ps1, not against this service container.
+            filter: TestCategory!~OwnedNative
           - name: KeyDB
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.IntegrationTests
-            image: eqalpha/keydb:latest
+            image: eqalpha/keydb@sha256:6537505c42355ca1f571276bddf83f5b750f760f07b2a185a676481791e388ac
             ports: 6379:6379
             wait: 6379
           - name: Dragonfly
@@ -325,9 +333,75 @@ jobs:
         if: matrix.backend.test_env != ''
         run: echo "${{ matrix.backend.test_env }}" >> "$GITHUB_ENV"
 
+      - name: Configure synthetic Redis-family storage key
+        if: ${{ contains(fromJSON('["Redis","KeyDB","Dragonfly","ValKey","Garnet"]'), matrix.backend.name) }}
+        env:
+          STORAGE_TEST_BACKEND: ${{ matrix.backend.name }}
+        run: |
+          python3 - <<'PY'
+          import base64, os, secrets
+          variables = {
+              "Redis": "OASIS_REDIS_STORAGE_ENCRYPTION_KEY",
+              "KeyDB": "OASIS_KEYDB_STORAGE_ENCRYPTION_KEY",
+              "Dragonfly": "OASIS_DRAGONFLY_STORAGE_ENCRYPTION_KEY",
+              "ValKey": "OASIS_VALKEY_STORAGE_ENCRYPTION_KEY",
+              "Garnet": "OASIS_GARNET_STORAGE_ENCRYPTION_KEY",
+          }
+          variable = variables[os.environ["STORAGE_TEST_BACKEND"]]
+          key = base64.b64encode(secrets.token_bytes(32)).decode("ascii")
+          print(f"::add-mask::{key}")
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as output:
+              output.write(f"{variable}={key}\n")
+          PY
+
       - name: Run the integration tests
         working-directory: OASIS
-        run: dotnet test "${{ matrix.backend.project }}" --configuration Release --logger "console;verbosity=normal"
+        run: dotnet test "${{ matrix.backend.project }}" --configuration Release ${{ matrix.backend.filter && format('--filter "{0}"', matrix.backend.filter) || '' }} --logger "console;verbosity=normal"
+
+      - name: Configure isolated S3-compatible conformance bucket
+        if: matrix.backend.name == 'MinIO'
+        env:
+          AWS_ACCESS_KEY_ID: minioadmin
+          AWS_SECRET_ACCESS_KEY: minioadmin
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          # Reuse this job's MinIO service, not another container or hosted AWS.
+          command -v aws
+          aws --endpoint-url http://127.0.0.1:9000 s3api create-bucket --bucket oasis-s3-conformance
+          python3 - <<'PY'
+          import base64, os, secrets
+          key = base64.b64encode(secrets.token_bytes(32)).decode('ascii')
+          print(f'::add-mask::{key}')
+          with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as output:
+              output.write(f'OASIS_MINIO_CONFORMANCE_STORAGE_KEY={key}\n')
+          PY
+
+      - name: Run shared S3-compatible storage conformance
+        if: matrix.backend.name == 'MinIO'
+        working-directory: OASIS
+        env:
+          OASIS_MINIO_STORAGE_CONFORMANCE: '1'
+          OASIS_MINIO_CONFORMANCE_ENDPOINT: http://127.0.0.1:9000
+          OASIS_MINIO_CONFORMANCE_BUCKET: oasis-s3-conformance
+        run: >-
+          dotnet test
+          Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests.csproj
+          --configuration Release /p:IncludeCoreStorageConformance=true
+          /m:2 /nr:false /p:UseSharedCompilation=false
+          --filter FullyQualifiedName~S3CompatibleStorageConformanceTests
+          --logger 'trx;LogFileName=s3-compatible-current.trx'
+          --results-directory TestResults/HyperDrive-Providers/S3CompatibleCurrent
+
+      - name: Preserve S3-compatible conformance evidence
+        if: always() && matrix.backend.name == 'MinIO'
+        uses: actions/upload-artifact@v7
+        with:
+          name: s3-compatible-conformance
+          path: |
+            OASIS/TestResults/ProviderConformanceCurrent/AWSS3OASIS-MinIO/**/report.json*
+            OASIS/TestResults/HyperDrive-Providers/S3CompatibleCurrent/*.trx
+          retention-days: 7
+          if-no-files-found: warn
 
       - name: Backend logs on failure
         if: failure()
@@ -587,7 +661,7 @@ jobs:
     
     - name: Run Integration Tests
       run: |
-        dotnet test "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj" --no-build --verbosity normal
+        dotnet test "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj" --no-build --verbosity normal --filter "Category!=RetainedNativeRuntime"
         dotnet test "OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests.csproj" --no-build --verbosity normal
         dotnet test "OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests.csproj" --no-build --verbosity normal
 
@@ -881,6 +955,10 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
+    - name: Prepare WEB4 controller artifact for coverage
+      working-directory: OASIS
+      run: dotnet build "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false -v:minimal
+
     - name: Install ReportGenerator
       run: dotnet tool install -g dotnet-reportgenerator-globaltool
     

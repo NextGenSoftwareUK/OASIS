@@ -39,7 +39,7 @@ public sealed class ReconciliationTests
         {
             case "negative": r.AmountUsd = -1; break;
             case "avatar": r.UserId = "forged"; break;
-            case "service": r.ConsumingService = "WEB4"; break;
+            case "service": r.ConsumingService = "WEB11"; break; // WEB4 is valid local evidence since e1af896e7; an unknown service is not.
             case "operation": r.OperationId = "1"; break;
             case "provider": r.Provider = ""; break;
             case "request": r.ProviderRequestId = ""; break;

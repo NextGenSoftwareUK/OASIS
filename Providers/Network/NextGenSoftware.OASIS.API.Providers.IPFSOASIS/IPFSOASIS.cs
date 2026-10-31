@@ -32,8 +32,6 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         public ICoreApi IPFSClient => _ipfsClient;
         //public IpfsEngine IPFSEngine; //= new IpfsEngine();
 
-        private List<IAvatarDetail> AvatarsDetailsList;
-        private string avatarDetailsFileAddress;
         private Dictionary<string, HolonResume> _idLookup = new Dictionary<string, HolonResume>();
         private OASISDNA _OASISDNA;
         private string _OASISDNAPath;

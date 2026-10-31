@@ -1,0 +1,21 @@
+{
+  "buildLeaseHeld": true,
+  "capturedUtc": "2026-10-26T19:52:09.2726642Z",
+  "identities": [
+    {
+      "consumer": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "producer": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "sha256": "5AFD3922571637ADA9C9A09988B43558D116D93FD9B6F079281DCD3CEF897E98"
+    },
+    {
+      "consumer": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "producer": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "sha256": "5AFD3922571637ADA9C9A09988B43558D116D93FD9B6F079281DCD3CEF897E98"
+    },
+    {
+      "consumer": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.ONODE.WebAPI.dll",
+      "producer": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.ONODE.WebAPI.dll",
+      "sha256": "8D81BF708C559B25A2CC7338D2391ABEA12484986E1083BFE79CAC67A412D4FD"
+    }
+  ]
+}

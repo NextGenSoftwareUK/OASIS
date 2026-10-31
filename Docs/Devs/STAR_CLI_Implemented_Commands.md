@@ -33,6 +33,8 @@ Every token below is a **real** `case` in `Program.cs`. Sub-behavior is summariz
 | `version` | Print or JSON-emit version fields. |
 | `status` | STAR/COSMIC/runtime status strings + DNA paths (non-JSON). |
 | `dna` | Show DNA paths. |
+| `nativeimport` | Holonize data other applications keep in a provider: `providers`, `sources`, `preview`, `import`, `import-all`, `mappings`, `save-mapping`, `delete-mapping`. Runs as the beamed-in avatar. See `NATIVE_DATA_IMPORT.md` § STAR CLI. |
+| `cql` | Write and run CQL v1 queries against WEB4 `api/data/query-cql`: `variants`, `example`, `run <variant> --file query.json`. Runs as the beamed-in avatar. See `CQL_WEB4_AND_STAR_CLI.md`. |
 | `exit` | Exit (confirmation unless non-interactive). |
 | `light` | Light generation: wizard, JSON file, or positional args (see §3). |
 | `bang` | Interactive-only metaverse prompt; **blocked** with `--non-interactive`; body is largely incomplete (no full pipeline after enum pick). |

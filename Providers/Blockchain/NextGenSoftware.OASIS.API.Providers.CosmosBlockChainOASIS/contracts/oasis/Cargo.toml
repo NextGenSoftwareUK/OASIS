@@ -1,0 +1,20 @@
+[package]
+name = "oasis-cosmos-storage"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+cosmwasm-std = { version = "=2.2.2", features = ["iterator"] }
+cw-storage-plus = "=2.0.0"
+schemars = "=0.8.22"
+serde = { version = "1", default-features = false, features = ["derive"] }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+overflow-checks = true

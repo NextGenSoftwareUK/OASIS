@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable><IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/ConditionalObjectTransportAcceptance.cs" Link="Shared/ConditionalObjectTransportAcceptance.cs" />
+    <Compile Include="../../../Shared/TestSupport/EncryptedObjectRecordAcceptance.cs" Link="Shared/EncryptedObjectRecordAcceptance.cs" />
+    <Compile Include="../../../Shared/TestSupport/NamedChildOwner.cs" Link="Shared/NamedChildOwner.cs" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS/NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS.csproj" />
+    <ProjectReference Include="../../../../OASIS Architecture/NextGenSoftware.OASIS.API.DNA/NextGenSoftware.OASIS.API.DNA.csproj" />
+    <Compile Include="../../../../OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OracleObjectStorageProviderFactory.cs" Link="Production/OracleObjectStorageProviderFactory.cs" />
+  </ItemGroup>
+</Project>

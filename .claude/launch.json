@@ -18,6 +18,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "oasisweb4.com", "run", "dev", "--", "--port", "5174", "--strictPort"],
       "port": 5174
+    },
+    {
+      "name": "web6-sandbox",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-p", "5180", "Oportal-DevPortal/sandbox"],
+      "port": 5180
     }
   ]
 }

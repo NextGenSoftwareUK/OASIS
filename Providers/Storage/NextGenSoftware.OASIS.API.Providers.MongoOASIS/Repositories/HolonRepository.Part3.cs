@@ -18,94 +18,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
     {
 
         public OASISResult<IHolon> Delete(Guid id)
-        {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-
-            try
-            {
-                Holon holon = GetHolon(id);
-
-                if (holon != null)
-                {
-                    FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.HolonId == id);
-                    _dbContext.Holon.DeleteOne(data);
-                    result.IsDeleted = true;
-                    result.DeletedCount = 1;
-                    result.Result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(holon);
-                }
-                else
-                {
-                    result.IsError = true;
-                    result.Message = $"Holon with id {id} not found.";
-                }
-            }
-            catch (Exception e)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error Occured In MongoDBOASIS Provider.HolonRepository.Delete. Reason: {e}");
-            }
-
-            return result;
-        }
+            => DeleteObservedHolonAsync(Builders<Holon>.Filter.Where(x => x.HolonId == id && x.DeletedDate == DateTime.MinValue)).GetAwaiter().GetResult();
 
         public async Task<OASISResult<IHolon>> DeleteAsync(string providerKey)
-        {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-
-            try
-            {
-                Holon holon = await GetHolonAsync(providerKey);
-
-                if (holon != null)
-                {
-                    FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] == providerKey);
-                    await _dbContext.Holon.DeleteOneAsync(data);
-                    result.IsDeleted = true;
-                    result.DeletedCount = 1;
-                    result.Result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(holon);
-                }
-                else
-                {
-                    result.IsError = true;
-                    result.Message = $"Holon with providerKey {providerKey} not found.";
-                }
-            }
-            catch (Exception e)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error Occured In MongoDBOASIS Provider.HolonRepository.DeleteAsync. Reason: {e}");
-            }
-
-            return result;
-        }
+            => await DeleteObservedHolonAsync(Builders<Holon>.Filter.Where(x => x.Id == providerKey && x.DeletedDate == DateTime.MinValue));
 
         public OASISResult<IHolon> Delete(string providerKey)
-        {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-
-            try
-            {
-                Holon holon = GetHolon(providerKey);
-
-                if (holon != null)
-                {
-                    FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] == providerKey);
-                    _dbContext.Holon.DeleteOne(data);
-                    result.IsDeleted = true;
-                    result.DeletedCount = 1;
-                    result.Result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(holon);
-                }
-                else
-                {
-                    result.IsError = true;
-                    result.Message = $"Holon with providerKey {providerKey} not found.";
-                }
-            }
-            catch (Exception e)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error Occured In MongoDBOASIS Provider.HolonRepository.Delete. Reason: {e}");
-            }
-
-            return result;
-        }
+            => DeleteObservedHolonAsync(Builders<Holon>.Filter.Where(x => x.Id == providerKey && x.DeletedDate == DateTime.MinValue)).GetAwaiter().GetResult();
 
         //private async Task<OASISResult<Holon>> SoftDeleteAsync(Holon holon, Guid avatarId)
         //{

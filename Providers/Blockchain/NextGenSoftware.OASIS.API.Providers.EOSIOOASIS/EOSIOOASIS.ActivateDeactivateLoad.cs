@@ -74,7 +74,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
 
             if (!result.IsError)
+            {
                 IsProviderActivated = true;
+                result.Result = true;
+            }
 
             //if (result.IsError)
             //    return result;
@@ -109,7 +112,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
 
             if (!result.IsError)
+            {
                 IsProviderActivated = true;
+                result.Result = true;
+            }
 
             return result;
 
@@ -121,7 +127,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            _eosClient.Dispose();
+            _eosClient?.Dispose();
             _eosClient = null;
             _holonRepository = null;
             _avatarDetailRepository = null;
@@ -140,7 +146,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public override OASISResult<bool> DeActivateProvider()
         {
-            _eosClient.Dispose();
+            _eosClient?.Dispose();
             _eosClient = null;
             _holonRepository = null;
             _avatarDetailRepository = null;

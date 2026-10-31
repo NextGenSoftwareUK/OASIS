@@ -1,0 +1,1 @@
+{"State":"exact-delete-and-namespace-absence-verified","AttemptedMode":"sync","Fixtures":[{"Id":"45e670f5-a47a-4e4d-8a42-a28eaafed98c","Mode":"async"},{"Id":"487a1cf7-54f7-4b38-863f-bd1036515001","Mode":"sync"}],"CompletedModes":["async","sync"]}

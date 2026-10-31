@@ -76,7 +76,7 @@ public static class BaseOASISHelpers
     }
 }
 
-public sealed partial class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider, IOASISNFTProvider
+public sealed partial class BaseOASIS_Legacy : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider, IOASISNFTProvider
 {
     private readonly string _hostURI;
     private readonly string _chainPrivateKey;
@@ -154,7 +154,7 @@ public sealed partial class BaseOASIS : OASISStorageProviderBase, IOASISDBStorag
         return await _httpClient.GetAsync($"/api/v1/nfts/{nftId}");
     }
 
-    public BaseOASIS(string hostUri, string chainPrivateKey, BigInteger chainId, string contractAddress)
+    public BaseOASIS_Legacy(string hostUri, string chainPrivateKey, BigInteger chainId, string contractAddress)
     {
         this.ProviderName = "BaseOASIS";
         this.ProviderDescription = "Base Provider";

@@ -1,0 +1,44 @@
+{
+  "ActivityPubOASIS": [
+    {
+      "id": "public-posts",
+      "label": "Read three public Mastodon posts",
+      "request": {
+        "provider": "ActivityPubOASIS",
+        "orderBy": "None",
+        "take": 25,
+        "includeMetadata": true,
+        "filters": [
+          {
+            "metadataPath": ["MastodonStatusId"],
+            "scalar": "String",
+            "operator": "In",
+            "value": [
+              "117466985005297414",
+              "117466983307949301",
+              "117411420916699261"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "public-subset",
+      "label": "Filter to two public Mastodon posts",
+      "request": {
+        "provider": "ActivityPubOASIS",
+        "orderBy": "None",
+        "take": 25,
+        "includeMetadata": true,
+        "filters": [
+          {
+            "metadataPath": ["MastodonStatusId"],
+            "scalar": "String",
+            "operator": "In",
+            "value": ["117466985005297414", "117466983307949301"]
+          }
+        ]
+      }
+    }
+  ]
+}

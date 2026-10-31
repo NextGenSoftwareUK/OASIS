@@ -1,0 +1,74 @@
+{
+  "date": "2026-10-27",
+  "scope": "Neo4j shipping constructor core-storage-v2 native52/52PASS5s/no skips; all304existingnodes/edges preserved byte-fingerprint and finalcount",
+  "dependencies": [
+    {
+      "Dependency": "Core",
+      "SHA256": "E1B55A4D1D120AD641CDFA7B52E933323370BAEE702D211D19FF1B63D0236421",
+      "SourceDocuments": 793
+    },
+    {
+      "Dependency": "Shared",
+      "SHA256": "F27C80454EC32AEE778F43EDCFF0C5748F3918232293614AD8FF15253428EB11",
+      "SourceDocuments": 56
+    }
+  ],
+  "assemblies": [
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS",
+      "sha256": "FD9C7CA165CD6620CFD08216CAEAF0E9BA207FD2528EDD3058CDC69616D41A1C",
+      "pdbSha256": "1D8070357E027854EAD340478C51744F43A4A09CAAC209BB0638AAD7D27E4CBF",
+      "sources": 71
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests",
+      "sha256": "905DAEADDBA270CCC7FCC870AFCEBAA2CAF6B447A086DDBCEABF665B35548A11",
+      "pdbSha256": "C402B80B89ED3B76FB27A695F7D80242E5E97182B608135CFACC33C7A8B89251",
+      "sources": 192
+    }
+  ],
+  "runtime": "Same retained Neo4j container490d5e2.../image6e4750..., stopped after owned native run",
+  "driver": "Existing Neo4j.Driver.OASIS pinned4.3.2 source owner, no new SDK/download",
+  "fixtureDisposition": "Two canonical GUID/owner-scoped datasets; preexistinggraph snapshots unchanged, suite point/raw-interface absence, no DB clear/reset or CQL mutation",
+  "freeBytes": 127801024512,
+  "reusedOutputs": [
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS",
+      "binBytes": 8560939,
+      "objBytes": 1573716
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests",
+      "binBytes": 291352946,
+      "objBytes": 7786389
+    }
+  ],
+  "trx": {
+    "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/neo4j-core-native-current.trx.gz",
+    "rawBytes": 4493,
+    "rawSha256": "d1c4239c66903c64f351eb5cbf4dfde1b92316b6fb582bc3ac1b93d8f8f1ad4f",
+    "gzipBytes": 1309,
+    "gzipSha256": "e411e0819132df162bb97d5ba511354593b08612b358de9874642c0b100ba122",
+    "rawRemovedAfterVerifiedCompression": true
+  },
+  "preservation": [
+    {
+      "mode": "async",
+      "ExistingCount": 304,
+      "ExistingSha256": "4BE1DE3215837B811E04CDE9174DCDE0B2BC107123FE6FC84D9936A7C24DF543",
+      "Preserved": true,
+      "AfterCount": 304,
+      "path": "TestResults/ProviderConformanceCurrent/Neo4jOASIS/async/existing-graph-preservation.json",
+      "sha256": "80734ed40f8871a93d8d68747b3aed171c38717c52c53f16f56d69efcab4b8f8"
+    },
+    {
+      "mode": "sync",
+      "ExistingCount": 304,
+      "ExistingSha256": "4BE1DE3215837B811E04CDE9174DCDE0B2BC107123FE6FC84D9936A7C24DF543",
+      "Preserved": true,
+      "AfterCount": 304,
+      "path": "TestResults/ProviderConformanceCurrent/Neo4jOASIS/sync/existing-graph-preservation.json",
+      "sha256": "80734ed40f8871a93d8d68747b3aed171c38717c52c53f16f56d69efcab4b8f8"
+    }
+  ]
+}

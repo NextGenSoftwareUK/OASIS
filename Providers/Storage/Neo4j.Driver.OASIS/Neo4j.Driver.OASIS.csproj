@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="PinnedSource.props" />
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AssemblyName>Neo4j.Driver</AssemblyName>
+    <RootNamespace>Neo4j.Driver</RootNamespace>
+    <PackageId>NextGenSoftware.Neo4j.Driver.OASIS</PackageId>
+    <Version>4.3.2-oasis.1</Version>
+    <AssemblyVersion>4.3.2.2</AssemblyVersion>
+    <FileVersion>4.3.2.3</FileVersion>
+    <InformationalVersion>4.3.2-oasis.1+5a40b591107331131875fbcd3d7f28fe60504d95</InformationalVersion>
+    <SignAssembly>true</SignAssembly>
+    <PublicSign>true</PublicSign>
+    <AssemblyOriginatorKeyFile>CompatibilityPublicKey.snk</AssemblyOriginatorKeyFile>
+    <DefineConstants>$(DefineConstants);STRONGNAMED</DefineConstants>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
+    <GenerateNeutralResourcesLanguageAttribute>false</GenerateNeutralResourcesLanguageAttribute>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Upstream/**/*.cs"><PinnedUpstream>true</PinnedUpstream></Compile>
+    <EmbeddedResource Include="Upstream/Internal/Temporal/windowsZones.xml" LogicalName="Neo4j.Driver.Internal.Temporal.windowsZones.xml" />
+  </ItemGroup>
+  <Target Name="VerifyPinnedDriverSources" BeforeTargets="CoreCompile">
+    <Error Condition="'@(Compile->WithMetadataValue('PinnedUpstream', 'true')->Count())' != '281'" Text="Pinned Neo4j driver source count changed; review provenance and patch manifest." />
+    <GetFileHash Files="@(PinnedDriverSource)" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="HashedDriverSource" />
+    </GetFileHash>
+    <Error Condition="'%(HashedDriverSource.FileHash)' != '%(HashedDriverSource.ExpectedHash)'" Text="Pinned Neo4j source hash mismatch: %(HashedDriverSource.Identity)" />
+  </Target>
+</Project>

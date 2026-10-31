@@ -6,6 +6,17 @@ namespace NextGenSoftware.OASIS.API.DNA.UnitTests
 {
     public class DNATests
     {
+        [Theory]
+        [InlineData("{}", false)]
+        [InlineData("{\"IsVersionControlEnabled\":false}", false)]
+        [InlineData("{\"IsVersionControlEnabled\":true}", true)]
+        public void CosmosHistorySettingDeserializesWithoutChangingDefault(string json, bool expected)
+        {
+            var settings = Newtonsoft.Json.JsonConvert.DeserializeObject<AzureOASISProviderSettings>(json);
+            settings.Should().NotBeNull();
+            settings!.IsVersionControlEnabled.Should().Be(expected);
+        }
+
         [Fact]
         public void OASISDNA_DefaultConstructor_ShouldInitializeCorrectly()
         {

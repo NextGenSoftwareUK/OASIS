@@ -2,7 +2,7 @@
 .SYNOPSIS
 Produces the real MongoDB replica-set TRX evidence required by the Edge release gate.
 .DESCRIPTION
-Downloads pinned portable MongoDB 7 and mongosh archives, starts three loopback-only
+Reuses explicitly selected installed MongoDB and mongosh runtimes, starts three loopback-only
 replica-set members, runs the hosted transaction/election suite, then coordinates an
 abrupt primary process termination with the dedicated external-termination test.
 Every process started by this script is stopped in the finally block.
@@ -11,10 +11,23 @@ Every process started by this script is stopped in the finally block.
 param(
     [string]$WorkingPath,
     [string]$ArtifactsDirectory = 'artifacts/hosted-mongo-local',
-    [int]$FirstPort = 27117
+    [int]$FirstPort = 27117,
+    [string]$MongoExecutable = 'C:\Program Files\MongoDB\Server\8.3\bin\mongod.exe',
+    [string]$MongoShellExecutable
 )
 
 $ErrorActionPreference = 'Stop'
+if ($PSVersionTable.PSVersion.Major -lt 7) { throw 'PowerShell 7 is required for owned process exit-code handling.' }
+if (!(Test-Path -LiteralPath $MongoExecutable -PathType Leaf)) { throw 'Select an existing MongoDB runtime; this runner does not install or download runtimes.' }
+if ([string]::IsNullOrWhiteSpace($MongoShellExecutable)) {
+    $shellCommand = Get-Command mongosh -ErrorAction SilentlyContinue
+    if ($shellCommand) { $MongoShellExecutable = $shellCommand.Source }
+}
+if ([string]::IsNullOrWhiteSpace($MongoShellExecutable) -or !(Test-Path -LiteralPath $MongoShellExecutable -PathType Leaf)) {
+    throw 'Pass -MongoShellExecutable for an existing mongosh runtime; no automatic download is permitted.'
+}
+$priorConnection = [Environment]::GetEnvironmentVariable('OASIS_MONGO_REPLICA_SET_CONNECTION', 'Process')
+$priorCoordination = [Environment]::GetEnvironmentVariable('OASIS_MONGO_PROCESS_KILL_COORDINATION_DIRECTORY', 'Process')
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 if ([string]::IsNullOrWhiteSpace($WorkingPath)) {
     $WorkingPath = Join-Path $repoRoot 'TestResults\HostedMongoRelease'
@@ -31,34 +44,18 @@ if (!$artifacts.StartsWith($repoPrefix, [StringComparison]::OrdinalIgnoreCase)) 
     throw "Mongo evidence artifacts must remain inside '$repoRoot'."
 }
 
-$downloads = Join-Path $work 'downloads'
-$runtime = Join-Path $work 'runtime'
-$run = Join-Path $work ("runs/{0}" -f [Guid]::NewGuid().ToString('N'))
+$run = Join-Path $work 'runs/current'
 $logs = Join-Path $run 'logs'
 $coordination = Join-Path $run 'kill-coordination'
-New-Item -ItemType Directory -Force $downloads, $runtime, $logs, $coordination, $artifacts | Out-Null
-
-$archives = [ordered]@{
-    mongodb = @('mongodb-7.0.26.zip', 'https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-7.0.26.zip')
-    mongosh = @('mongosh-2.6.0.zip', 'https://downloads.mongodb.com/compass/mongosh-2.6.0-win32-x64.zip')
-}
-
-function Get-Archive([string]$Name) {
-    $target = Join-Path $downloads $archives[$Name][0]
-    if (!(Test-Path -LiteralPath $target -PathType Leaf)) {
-        Write-Host "Downloading pinned $Name runtime..."
-        Invoke-WebRequest -Uri $archives[$Name][1] -OutFile $target -MaximumRedirection 8
-    }
-    return $target
-}
-
-function Expand-Cached([string]$Name) {
-    $destination = Join-Path $runtime $Name
-    if (!(Test-Path -LiteralPath $destination -PathType Container)) {
-        New-Item -ItemType Directory -Force $destination | Out-Null
-        Expand-Archive -LiteralPath (Get-Archive $Name) -DestinationPath $destination -Force
-    }
-    return $destination
+New-Item -ItemType Directory -Force $logs, $coordination, $artifacts | Out-Null
+# One owned environment; refuse concurrent execution instead of allocating another.
+$environmentLock = [IO.File]::Open((Join-Path $work 'environment.lock'), [IO.FileMode]::OpenOrCreate,
+    [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+try {
+# A reused coordination directory must not contain signals from the last run.
+foreach ($signal in 'ready', 'continue') {
+    $ownedSignal = Join-Path $coordination $signal
+    if (Test-Path -LiteralPath $ownedSignal -PathType Leaf) { Remove-Item -LiteralPath $ownedSignal -Force }
 }
 
 function Wait-Port([int]$Port, [int]$Seconds = 120) {
@@ -83,22 +80,25 @@ foreach ($port in $ports) {
     }
 }
 
-$mongoRoot = Expand-Cached 'mongodb'
-$shellRoot = Expand-Cached 'mongosh'
-$mongod = (Get-ChildItem -LiteralPath $mongoRoot -Recurse -Filter 'mongod.exe' -File | Select-Object -First 1).FullName
-$script:mongosh = (Get-ChildItem -LiteralPath $shellRoot -Recurse -Filter 'mongosh.exe' -File | Select-Object -First 1).FullName
-if (!$mongod -or !$script:mongosh) { throw 'The portable MongoDB archives did not contain mongod.exe and mongosh.exe.' }
+$mongod = (Resolve-Path -LiteralPath $MongoExecutable).Path
+$script:mongosh = (Resolve-Path -LiteralPath $MongoShellExecutable).Path
 
 $processes = @{}
+$ownedDataPaths = @()
 $testProcess = $null
 $failure = $null
 try {
     foreach ($port in $ports) {
+        $existingData = Join-Path $run "data-$port"
+        if (Test-Path -LiteralPath $existingData) { throw "Existing ledger requires inspection; refusing to overwrite or delete '$existingData'." }
+    }
+    foreach ($port in $ports) {
         $dataPath = Join-Path $run "data-$port"
         New-Item -ItemType Directory -Force $dataPath | Out-Null
+        $ownedDataPaths += $dataPath
         $processes[$port] = Start-Process $mongod -ArgumentList @(
             '--dbpath', $dataPath, '--bind_ip', '127.0.0.1', '--port', "$port",
-            '--replSet', 'oasisReleaseRs', '--logpath', (Join-Path $logs "mongodb-$port.log"), '--logappend'
+            '--replSet', 'oasisReleaseRs', '--wiredTigerCacheSizeGB', '0.25', '--oplogSize', '32', '--logpath', (Join-Path $logs "mongodb-$port.log")
         ) -PassThru -WindowStyle Hidden
         Wait-Port $port
     }
@@ -146,7 +146,10 @@ try {
     $primaryAddress = Invoke-Mongo $ports[0] 'print(db.hello().primary)'
     $primaryPort = [int]($primaryAddress.Split(':')[-1])
     if (!$processes.ContainsKey($primaryPort)) { throw "Replica set reported unexpected primary '$primaryAddress'." }
-    Stop-Process -Id $processes[$primaryPort].Id -Force
+    $terminatedPrimary = $processes[$primaryPort]
+    Stop-Process -Id $terminatedPrimary.Id -Force
+    $terminatedPrimary.WaitForExit()
+    $terminatedPrimary.Dispose()
     $processes.Remove($primaryPort)
 
     $elected = $false
@@ -200,12 +203,28 @@ catch {
     $failure = $_
 }
 finally {
-    if ($testProcess -and !$testProcess.HasExited) { Stop-Process -Id $testProcess.Id -Force -ErrorAction SilentlyContinue }
-    foreach ($process in @($processes.Values)) {
-        if (!$process.HasExited) { Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue }
+    if ($testProcess) {
+        if (!$testProcess.HasExited) { Stop-Process -Id $testProcess.Id -Force; $testProcess.WaitForExit() }
+        $testProcess.Dispose()
     }
-    Remove-Item Env:OASIS_MONGO_REPLICA_SET_CONNECTION -ErrorAction SilentlyContinue
-    Remove-Item Env:OASIS_MONGO_PROCESS_KILL_COORDINATION_DIRECTORY -ErrorAction SilentlyContinue
+    foreach ($process in @($processes.Values)) {
+        if (!$process.HasExited) { Stop-Process -Id $process.Id -Force; $process.WaitForExit() }
+        $process.Dispose()
+    }
+    foreach ($dataPath in $ownedDataPaths) {
+        $ownedData = [IO.Path]::GetFullPath($dataPath)
+        $runPrefix = [IO.Path]::GetFullPath($run).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+        if (!$ownedData.StartsWith($runPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "Refusing cleanup outside the owned Mongo evidence run: '$ownedData'."
+        }
+        if (Test-Path -LiteralPath $ownedData) { Remove-Item -LiteralPath $ownedData -Recurse -Force }
+    }
 }
 
 if ($failure) { throw $failure }
+}
+finally {
+    [Environment]::SetEnvironmentVariable('OASIS_MONGO_REPLICA_SET_CONNECTION', $priorConnection, 'Process')
+    [Environment]::SetEnvironmentVariable('OASIS_MONGO_PROCESS_KILL_COORDINATION_DIRECTORY', $priorCoordination, 'Process')
+    $environmentLock.Dispose()
+}

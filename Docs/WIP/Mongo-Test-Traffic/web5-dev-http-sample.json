@@ -1,0 +1,1514 @@
+[
+  {
+    "Time": "2026-10-20T06:38:08.890296699Z",
+    "Path": "/api/quests/all-for-avatar/game",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 5622,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:38:15.471659784Z",
+    "Path": "/api/quests/all-for-avatar/game",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 4929,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:39:42.476136675Z",
+    "Path": "/api/star/ignite",
+    "Method": "POST",
+    "Status": 401,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 11,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:39:42.748813759Z",
+    "Path": "/api/quests/all-for-avatar/game",
+    "Method": "GET",
+    "Status": 401,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 5,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:39:44.104803421Z",
+    "Path": "/api/geonfts",
+    "Method": "GET",
+    "Status": 401,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 3,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:40:13.457995688Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 11,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:40:43.602391551Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 6,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:41:13.757848327Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 5,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:41:43.910552533Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 5,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:42:07.352801083Z",
+    "Path": "/api/quests/all-for-avatar/game",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 4953,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:42:13.475236916Z",
+    "Path": "/api/quests/all-for-avatar/game",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 5604,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:42:14.061142717Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 7,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:42:44.207660352Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 4,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:43:14.354007681Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:43:44.503094815Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 5,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:44:14.716898040Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 9,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:44:44.864156496Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 6,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:45:15.015976594Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 3,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:45:45.166492658Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 6,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:46:15.317015927Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:46:45.463466785Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:47:15.608294124Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:47:45.757856013Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:48:15.907560951Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:48:46.049866682Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:49:16.210639900Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 10,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:49:46.355959104Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 7,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:50:16.491452546Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:50:46.634225009Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 3,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:51:16.788741964Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:51:46.931943552Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 5,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:52:17.095946121Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 3,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:52:47.375943674Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 6,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:53:17.518154362Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:53:47.669618170Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:54:17.807037212Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:54:47.959317378Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 4,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:55:18.107168805Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:55:48.256269440Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:56:18.396264618Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:56:48.527740433Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:57:18.674903489Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:57:48.842794097Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 6,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:58:19.004576779Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 5,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:58:49.153979143Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:59:19.302551282Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T06:59:49.444529688Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:00:19.596672767Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 3,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:00:49.748345744Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:01:19.910768625Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:01:50.060671617Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:02:20.217601221Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:02:50.382677426Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:03:20.517280169Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:03:50.664477761Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:04:20.808322872Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:04:50.951176531Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:05:21.099974546Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 3,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:05:51.244175390Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:06:21.380909726Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:06:51.522666915Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:07:21.662059977Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 5,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:07:51.808257630Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:08:21.949390258Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:08:52.095989014Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:09:22.248124943Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 6,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:09:52.404195380Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:10:22.549922516Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:10:52.683981326Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:11:22.835531069Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 4,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:11:52.989516482Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:12:23.123766022Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:12:53.268013254Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:13:23.411440572Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:13:53.553462978Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:14:23.704383147Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:14:53.853032649Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:15:24.000562681Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:15:54.142896646Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:16:24.290094151Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:16:54.434782418Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:17:24.575716371Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:17:54.727836754Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:18:24.871018822Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:18:55.026221950Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:19:25.172250183Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 7,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:19:55.312152311Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 3,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:20:25.460750849Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:20:55.610101739Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:21:25.752827260Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:21:55.899662379Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:22:26.039556247Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:22:56.184645347Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:23:26.325580042Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:23:56.467741676Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:24:26.623668469Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:24:56.763133221Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:25:26.909434145Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:25:57.046415870Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:26:27.195590962Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:26:57.350282296Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:27:27.488576593Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:27:57.638937419Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:28:27.787262447Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:28:57.932671588Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:29:28.072075684Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:29:58.218799134Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:30:28.371269389Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:30:58.506635778Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:31:28.647405370Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:31:58.790144741Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:32:28.942592755Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:32:59.098542443Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:33:29.246218962Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:33:59.392043627Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:34:29.560356950Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:34:59.764607630Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:35:29.908776324Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 3,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:36:00.054547992Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:36:30.196926021Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:37:00.344791455Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:37:30.492177863Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:38:00.651301228Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:38:30.795354770Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:39:00.946024070Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:39:31.086902056Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:40:01.227898112Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:40:31.372650062Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:41:01.516501675Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:41:31.659708710Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:42:01.808423543Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:42:31.952204072Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 4,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:43:02.097376271Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:43:32.239380583Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 4,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:44:02.381773173Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:44:32.533372252Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 3,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:45:02.678803576Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 4,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:45:32.845665423Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 6,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:46:02.981006301Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:46:33.126529497Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 5,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:47:03.264726833Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:47:33.415621021Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:48:03.576950416Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:48:33.727239099Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 4,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:49:03.872196062Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:49:34.013649403Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:50:04.157037216Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:50:34.303090393Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:51:04.461734412Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:51:34.612945037Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 4,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:52:04.760494097Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 4,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:52:34.912129195Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:53:05.051685719Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 4,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:53:35.188592783Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:54:05.327557406Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:54:35.470151740Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:55:05.619258167Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 4,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:55:35.769188449Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 4,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:56:05.909626013Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:56:36.049162046Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:57:06.199898682Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 7,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:57:36.343120316Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:58:06.488982628Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 2,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:58:36.636834679Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:59:06.784756680Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 4,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T07:59:36.921191247Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T08:00:07.067655874Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 3,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  },
+  {
+    "Time": "2026-10-20T08:00:37.208059533Z",
+    "Path": "/api/star/status",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 1,
+    "Deployment": "99e18827-11bf-4516-b029-d1e5349e91a5"
+  }
+]

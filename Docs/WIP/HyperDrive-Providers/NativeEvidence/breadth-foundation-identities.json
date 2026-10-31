@@ -1,0 +1,215 @@
+{
+  "scope": "breadth foundation; native LocalFile blocker retained; SQL unit evidence is not product conformance",
+  "reports": [
+    {
+      "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/core-storage-current.trx.gz",
+      "rawBytes": 8254,
+      "rawSha256": "4f41aab687ab7cb3ea5edca828df552f9861d627063a6c0074101bad2ead53f3",
+      "gzipBytes": 1689,
+      "counters": {
+        "total": "4",
+        "executed": "4",
+        "passed": "2",
+        "failed": "2",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/sql-family-current.trx.gz",
+      "rawBytes": 138113,
+      "rawSha256": "51bf982eed34675a7b1207080a241c43af75e36ce580012c3f6692572b6f014d",
+      "gzipBytes": 16971,
+      "counters": {
+        "total": "90",
+        "executed": "90",
+        "passed": "90",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    }
+  ],
+  "resources": [
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\LocalFileOASIS",
+      "bytes": 6433,
+      "files": 6,
+      "retention": "preserve failed fixture"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\LocalFileOASIS\\async\\data\\Avatars\\80d23c37-d508-4e55-b2c0-d5c870b3f509.json",
+      "bytes": 2715,
+      "sha256": "df7eb8a21f5b60acdba5d7c590666ca4dd68a0b35d360d00e48551c5b53cc091",
+      "retention": "preserved failure fixture; inspect exact owned identity before removal"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\LocalFileOASIS\\async\\environment.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "preserved failure fixture; inspect exact owned identity before removal"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\LocalFileOASIS\\async\\report.json",
+      "bytes": 502,
+      "sha256": "ca36a82acdc65b7a46f3f755a8836547bc446ed18d3436d41f6a420c662ffeea",
+      "retention": "preserved failure fixture; inspect exact owned identity before removal"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\LocalFileOASIS\\sync\\data\\Avatars\\1f4f8374-539f-4b1f-a296-10a42cbd9bcd.json",
+      "bytes": 2715,
+      "sha256": "3c05c2267a688585b52610a00bf8a440b99a55f2ef718fe419d9d3de54a49e9b",
+      "retention": "preserved failure fixture; inspect exact owned identity before removal"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\LocalFileOASIS\\sync\\environment.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "preserved failure fixture; inspect exact owned identity before removal"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\LocalFileOASIS\\sync\\report.json",
+      "bytes": 501,
+      "sha256": "e33e4cd6e9ef141f02975d3e0e24b1329b9905d3d433a4d70197f372869c47a6",
+      "retention": "preserved failure fixture; inspect exact owned identity before removal"
+    },
+    {
+      "path": "C:\\Users\\david\\.nuget\\packages\\npgsql\\9.0.3",
+      "bytes": 5456602,
+      "files": 11,
+      "retention": "one shared reusable SDK package"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Shared\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests\\bin",
+      "bytes": 47303905,
+      "retention": "reusable existing project output; no process active; rebuild via canonical host"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Shared\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests\\obj",
+      "bytes": 2360414,
+      "retention": "reusable existing project output; no process active; rebuild via canonical host"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Storage\\NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS\\bin",
+      "bytes": 7514639,
+      "retention": "reusable existing project output; no process active; rebuild via canonical host"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Storage\\NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS\\obj",
+      "bytes": 1036488,
+      "retention": "reusable existing project output; no process active; rebuild via canonical host"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Storage\\NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS\\bin",
+      "bytes": 7546627,
+      "retention": "reusable existing project output; no process active; rebuild via canonical host"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Storage\\NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS\\obj",
+      "bytes": 851298,
+      "retention": "reusable existing project output; no process active; rebuild via canonical host"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Storage\\NextGenSoftware.OASIS.API.Providers.TimescaleDBOASIS\\bin",
+      "bytes": 7546623,
+      "retention": "reusable existing project output; no process active; rebuild via canonical host"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Storage\\NextGenSoftware.OASIS.API.Providers.TimescaleDBOASIS\\obj",
+      "bytes": 851292,
+      "retention": "reusable existing project output; no process active; rebuild via canonical host"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.UnitTests\\bin",
+      "bytes": 47920271,
+      "retention": "reusable existing project output; no process active; rebuild via canonical host"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.UnitTests\\obj",
+      "bytes": 1160113,
+      "retention": "reusable existing project output; no process active; rebuild via canonical host"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Scripts\\Providers\\__pycache__\\update_provider_matrix.cpython-312.pyc",
+      "bytes": 13075,
+      "retention": "removed owned syntax-check cache; recreate with py_compile"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Scripts\\Providers\\__pycache__\\record_conformance_results.cpython-312.pyc",
+      "bytes": 3216,
+      "retention": "removed owned syntax-check cache; recreate with py_compile"
+    }
+  ],
+  "binaries": [
+    {
+      "path": "Providers\\Shared\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "sha256": "dd6f6852ed82e4dc02c45a6a42c26ba38cb13619227a0ddb8037c72c66facfa1",
+      "bytes": 3503104
+    },
+    {
+      "path": "Providers\\Shared\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+      "sha256": "c129962081b7bf669ea08608d57a4b2477081e08f3ad31e0e155c848ec99261d",
+      "bytes": 379904
+    },
+    {
+      "path": "Providers\\Shared\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.dll",
+      "sha256": "7abf09a563b40a4f998dde660db37c32b2645beaa5d595f8142b351bed9a4a44",
+      "bytes": 112128
+    },
+    {
+      "path": "Providers\\Shared\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests.dll",
+      "sha256": "44950438c9970f67f4ff737314331add37f8f1936ebb5f10e44284f3ae443a99",
+      "bytes": 825344
+    },
+    {
+      "path": "Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.dll",
+      "sha256": "483f6639c96187ced332553e830485f7e09ff399198ad67910a85a10dac681fb",
+      "bytes": 138752
+    },
+    {
+      "path": "Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS.dll",
+      "sha256": "85ff037f3fa507bedfd2ec6a03994e35e10826d987cf032d8a1ea88e6be63687",
+      "bytes": 6144
+    },
+    {
+      "path": "Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.TimescaleDBOASIS.dll",
+      "sha256": "7e1cd2da95f35299018e78d1284476de5569233815f6321e87099fd907eed02c",
+      "bytes": 6144
+    },
+    {
+      "path": "Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.UnitTests.dll",
+      "sha256": "514ea2943826fa41f5308275b944335313512cbacf05983ce0bf752aca7a8831",
+      "bytes": 79872
+    }
+  ],
+  "sourceDocuments": {
+    "Core": 787,
+    "Shared": 56,
+    "LocalFile": 16,
+    "sharedUnit": 83,
+    "Postgres": 9,
+    "Cockroach": 3,
+    "Timescale": 3,
+    "sqlUnit": 15
+  }
+}

@@ -7,6 +7,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.Models;
 public class SolanaAvatarDetailDto : SolanaBaseDto
 {
     public string Username { get; set; }
+    public Guid? ActiveQuestId { get; set; }
+    public Guid? ActiveObjectiveId { get; set; }
     public string Email { get; set; }
     public string FirstName { get; set; }
     public string LastName { get; set; }

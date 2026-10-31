@@ -43,40 +43,31 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<ITransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
+                if (request == null || string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
+                    throw new ArgumentException("A real Hedera sender signing key is required.");
+                if (!string.IsNullOrWhiteSpace(request.OwnerSeedPhrase))
+                    throw new ArgumentException("Use an explicitly recovered Hedera key, not an ambiguous seed-and-key request.");
+                if (request.Amount <= 0) throw new ArgumentOutOfRangeException(nameof(request.Amount));
+                var native = string.IsNullOrWhiteSpace(request.FromTokenAddress) || request.FromTokenAddress == "HBAR";
+                // HTS precision is obtained from the token ledger, not HBAR's eight decimals.
+                var tinybars = native ? checked(request.Amount * 100000000m) : 0m;
+                if (native && (tinybars != decimal.Truncate(tinybars) || tinybars > long.MaxValue))
+                    throw new ArgumentOutOfRangeException(nameof(request.Amount), "HBAR amount must fit exact int64 tinybars.");
+                var committed = await HederaSdkClient.InvokeAsync(native ? "transfer" : "tokenTransfer", new
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                // Hedera Token Service (HTS) transfer using Mirror Node API
-                var tokenTransferUrl = $"{_httpClient.BaseAddress}/api/v1/tokens/{request.FromTokenAddress}/transfers";
-                var transferData = new
+                    network = _hederaNetwork, nodes = _consensusNodes, sender = request.FromWalletAddress, recipient = request.ToWalletAddress,
+                    privateKey = request.OwnerPrivateKey, keyType = "der", memo = request.MemoText,
+                    publicKey = request.OwnerPublicKey, transactionId = HederaSdkClient.CreateTransactionId(request.FromWalletAddress),
+                    tinybars = native ? ((long)tinybars).ToString(System.Globalization.CultureInfo.InvariantCulture) : null,
+                    tokenId = request.FromTokenAddress, amount = request.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                });
+                if (committed.GetProperty("status").GetString() != "SUCCESS")
+                    throw new InvalidOperationException("Hedera SDK did not return a successful consensus receipt.");
+                result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
                 {
-                    account_id = request.ToWalletAddress,
-                    amount = (long)(request.Amount * 100000000), // Convert to tinybars (8 decimals)
-                    token_id = request.FromTokenAddress
+                    TransactionResult = committed.GetProperty("transactionId").GetString()
                 };
-
-                var content = new StringContent(JsonSerializer.Serialize(transferData), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync(tokenTransferUrl, content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
-                    {
-                        TransactionResult = txData.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : ""
-                    };
-                    result.IsError = false;
-                    result.Message = "Token sent successfully on Hashgraph";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Hashgraph token transfer failed: {response.StatusCode}");
-                }
+                result.Message = "Hedera transfer confirmed by consensus receipt.";
             }
             catch (Exception ex)
             {
@@ -95,53 +86,42 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<ITransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                // Get token address from contract address or use default
-                var tokenAddress = _contractAddress ?? "0.0.0";
+                ArgumentNullException.ThrowIfNull(request);
+                if (request.Amount <= 0) throw new ArgumentOutOfRangeException(nameof(request.Amount));
+                if (request.MetaData == null || !request.MetaData.TryGetValue("TokenAddress", out var tokenAddress)
+                    || !System.Text.RegularExpressions.Regex.IsMatch(tokenAddress ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
+                    throw new ArgumentException("TokenAddress metadata must identify an existing HTS token.");
+                if (request.MintedByAvatarId == Guid.Empty)
+                    throw new ArgumentException("The minting avatar's real Hedera wallet is required.");
+                var actor = request.MintedByAvatarId;
+                var amount = request.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var memo = request.MemoText;
+                var hasRecipient = request.MetaData.TryGetValue("MintToWalletAddress", out var requestedRecipient);
+                var walletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(actor,
+                    Core.Enums.ProviderType.HashgraphOASIS, showPrivateKeys: true);
+                if (walletResult.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IProviderWallet,ITransactionResponse>(walletResult);
+                if (walletResult.Result == null || walletResult.Result.AvatarId != actor)
+                    throw new InvalidOperationException("Exact minting avatar wallet is required.");
                 
-                // Get wallet address for the avatar
-                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(request.MintedByAvatarId, Core.Enums.ProviderType.HashgraphOASIS);
-                if (walletResult.IsError || walletResult.Result == null)
+                var wallet = walletResult.Result;
+                if (string.IsNullOrWhiteSpace(wallet.PrivateKey))
+                    throw new ArgumentException("The minting wallet has no signing key.");
+                var recipient = hasRecipient ? requestedRecipient : wallet.WalletAddress;
+                var committed = await HederaSdkClient.InvokeAsync("tokenMint", new
                 {
-                    OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet address for avatar");
-                    return result;
-                }
-                
-                var mintToAddress = walletResult.Result.WalletAddress;
-                var mintAmount = 1m; // Default amount
-                
-                // Hedera Token Service (HTS) mint using Mirror Node API
-                var tokenMintUrl = $"{_httpClient.BaseAddress}/api/v1/tokens/{tokenAddress}/mint";
-                var mintData = new
+                    network = _hederaNetwork, nodes = _consensusNodes, sender = wallet.WalletAddress, recipient,
+                    tokenId = tokenAddress, amount,
+                    privateKey = wallet.PrivateKey, publicKey = wallet.PublicKey, keyType = "der", memo,
+                    transactionId = HederaSdkClient.CreateTransactionId(wallet.WalletAddress)
+                });
+                if (committed.GetProperty("status").GetString() != "SUCCESS")
+                    throw new InvalidOperationException("HTS mint did not return a successful consensus receipt.");
+                result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
                 {
-                    account_id = mintToAddress,
-                    amount = (long)(mintAmount * 100000000) // Convert to tinybars
+                    TransactionResult = committed.GetProperty("transactionId").GetString()
                 };
-
-                var content = new StringContent(JsonSerializer.Serialize(mintData), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync(tokenMintUrl, content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
-                    {
-                        TransactionResult = txData.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : ""
-                    };
-                    result.IsError = false;
-                    result.Message = "Token minted successfully on Hashgraph";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Hashgraph token mint failed: {response.StatusCode}");
-                }
+                result.Message = "HTS mint confirmed by consensus receipt.";
             }
             catch (Exception ex)
             {
@@ -160,50 +140,43 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<ITransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
+                ArgumentNullException.ThrowIfNull(request);
+                if (request.Amount <= 0) throw new ArgumentOutOfRangeException(nameof(request.Amount), "An explicit positive burn amount is required.");
+                if (!System.Text.RegularExpressions.Regex.IsMatch(request.TokenAddress ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
+                    throw new ArgumentException("A numeric HTS token ID is required.");
+                if (!string.IsNullOrWhiteSpace(request.OwnerSeedPhrase))
+                    throw new ArgumentException("Recover an explicit Hedera signing key before burning a token.");
+                if (request.BurntByAvatarId == Guid.Empty)
+                    throw new ArgumentException("The burning avatar's real treasury wallet is required.");
+                var actor = request.BurntByAvatarId;
+                var tokenId = request.TokenAddress;
+                var amount = request.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var suppliedKey = request.OwnerPrivateKey;
+                var publicKey = request.OwnerPublicKey;
+                var walletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(actor,
+                    Core.Enums.ProviderType.HashgraphOASIS, showPrivateKeys: true);
+                if (walletResult.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IProviderWallet,ITransactionResponse>(walletResult);
+                if (walletResult.Result == null || walletResult.Result.AvatarId != actor)
+                    throw new InvalidOperationException("Exact burning avatar wallet is required.");
+                var wallet = walletResult.Result;
+                if (!string.IsNullOrWhiteSpace(suppliedKey)
+                    && !string.Equals(suppliedKey, wallet.PrivateKey, StringComparison.OrdinalIgnoreCase))
+                    throw new ArgumentException("Supplied signing key does not match the burning avatar's Hedera wallet.");
+                var committed = await HederaSdkClient.InvokeAsync("tokenBurn", new
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                // Get wallet address for the avatar
-                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(request.BurntByAvatarId, Core.Enums.ProviderType.HashgraphOASIS);
-                if (walletResult.IsError || walletResult.Result == null)
+                    network = _hederaNetwork, nodes = _consensusNodes, sender = wallet.WalletAddress,
+                    recipient = wallet.WalletAddress, tokenId, amount,
+                    privateKey = wallet.PrivateKey, publicKey = string.IsNullOrWhiteSpace(publicKey) ? wallet.PublicKey : publicKey, keyType = "der",
+                    transactionId = HederaSdkClient.CreateTransactionId(wallet.WalletAddress)
+                });
+                if (committed.GetProperty("status").GetString() != "SUCCESS")
+                    throw new InvalidOperationException("HTS burn did not return a successful consensus receipt.");
+                result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
                 {
-                    OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet address for avatar");
-                    return result;
-                }
-                
-                var burnFromAddress = walletResult.Result.WalletAddress;
-                var burnAmount = 1m; // Default amount
-                
-                // Hedera Token Service (HTS) burn using Mirror Node API
-                var tokenBurnUrl = $"{_httpClient.BaseAddress}/api/v1/tokens/{request.TokenAddress}/burn";
-                var burnData = new
-                {
-                    account_id = burnFromAddress,
-                    amount = (long)(burnAmount * 100000000) // Convert to tinybars
+                    TransactionResult = committed.GetProperty("transactionId").GetString()
                 };
-
-                var content = new StringContent(JsonSerializer.Serialize(burnData), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync(tokenBurnUrl, content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
-                    {
-                        TransactionResult = txData.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : ""
-                    };
-                    result.IsError = false;
-                    result.Message = "Token burned successfully on Hashgraph";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Hashgraph token burn failed: {response.StatusCode}");
-                }
+                result.Message = "HTS burn confirmed by consensus receipt.";
             }
             catch (Exception ex)
             {
@@ -219,41 +192,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                // Lock token by transferring to a lock account
-                var lockAccount = _contractAddress ?? "0.0.123456";
-                var sendRequest = new SendWeb3TokenRequest
-                {
-                    FromWalletAddress = request.FromWalletAddress,
-                    ToWalletAddress = lockAccount,
-                    FromTokenAddress = request.TokenAddress,
-                    Amount = 1m // Default amount
-                };
-
-                var sendResult = await SendTokenAsync(sendRequest);
-                if (sendResult.IsError || sendResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to lock token: {sendResult.Message}", sendResult.Exception);
-                    return result;
-                }
-
-                result.Result = sendResult.Result;
-                result.IsError = false;
-                result.Message = "Token locked successfully on Hashgraph";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error locking token on Hashgraph: {ex.Message}", ex);
-            }
-            return result;
+            return await ExecuteAvatarTokenEscrowAsync("tokenEscrowLock", request?.LockedByAvatarId ?? Guid.Empty,
+                request?.TokenAddress, request?.FromWalletAddress, request?.FromWalletPrivateKey,
+                request?.Amount ?? 0, request?.LockId ?? Guid.Empty, request?.EscrowContractAddress);
         }
 
         public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
@@ -263,47 +204,78 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
         {
+            return await ExecuteAvatarTokenEscrowAsync("tokenEscrowUnlock", request?.UnlockedByAvatarId ?? Guid.Empty,
+                request?.TokenAddress, null, null, 0, request?.LockId ?? Guid.Empty, request?.EscrowContractAddress);
+        }
+
+        /// <summary>Separate funded association mutation; never implicitly runs during deposit.</summary>
+        public Task<OASISResult<ITransactionResponse>> AssociateTokenWithEscrowAsync(Guid avatarId,string tokenAddress,string escrowContractId)
+            =>ExecuteAvatarTokenEscrowAsync("tokenEscrowAssociate",avatarId,tokenAddress,null,null,0,Guid.Empty,escrowContractId);
+
+        public OASISResult<ITransactionResponse> AssociateTokenWithEscrow(Guid avatarId,string tokenAddress,string escrowContractId)
+            =>AssociateTokenWithEscrowAsync(avatarId,tokenAddress,escrowContractId).GetAwaiter().GetResult();
+
+        private async Task<OASISResult<ITransactionResponse>> ExecuteAvatarTokenEscrowAsync(string action,
+            Guid avatarId, string tokenAddress, string requestedWallet, string requestedKey,
+            decimal requestedAmount, Guid requestedLockId, string requestedEscrow)
+        {
             var result = new OASISResult<ITransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
+                if (_tokenEscrow == null) throw new InvalidOperationException("An explicit Hedera fungible escrow contract configuration is required.");
+                var intent=action=="tokenEscrowAssociate"
+                    ?HederaTokenEscrowIntent.CaptureAssociation(_tokenEscrow,tokenAddress,requestedEscrow)
+                    :HederaTokenEscrowIntent.Capture(_tokenEscrow,action=="tokenEscrowLock",requestedLockId,requestedAmount,requestedEscrow);
+                if (avatarId == Guid.Empty) throw new ArgumentException("An explicit requesting avatar identity is required for token escrow.");
+                if (!System.Text.RegularExpressions.Regex.IsMatch(tokenAddress ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
+                    throw new ArgumentException("Token escrow requires a nonzero numeric HTS token address.");
+                var walletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(avatarId, Core.Enums.ProviderType.HashgraphOASIS, showPrivateKeys: true);
+                if(walletResult.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IProviderWallet,ITransactionResponse>(walletResult);
+                if (walletResult.Result == null || walletResult.Result.AvatarId!=avatarId || string.IsNullOrWhiteSpace(walletResult.Result.PrivateKey))
+                    throw new InvalidOperationException("Could not resolve the requesting avatar's real Hedera signing wallet.");
+                var wallet = walletResult.Result;
+                if ((!string.IsNullOrEmpty(requestedWallet) && requestedWallet != wallet.WalletAddress)
+                    || (!string.IsNullOrEmpty(requestedKey) && requestedKey != wallet.PrivateKey))
+                    throw new ArgumentException("Requested signing wallet does not match the requesting avatar's wallet.");
+                var mutationId = HederaSdkClient.CreateTransactionId(wallet.WalletAddress);
+                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+                using var response = await _httpClient.GetAsync("accounts/" + wallet.WalletAddress, timeout.Token);
+                response.EnsureSuccessStatusCode();
+                using var accountDocument = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                var account = accountDocument.RootElement;
+                if (account.GetProperty("account").GetString() != wallet.WalletAddress
+                    || account.GetProperty("deleted").GetBoolean())
+                    throw new InvalidOperationException("Mirror account identity does not match the requesting wallet.");
+                var evmAddress = account.GetProperty("evm_address").GetString();
+                if (!System.Text.RegularExpressions.Regex.IsMatch(evmAddress ?? "", @"\A0x[0-9a-fA-F]{40}\z"))
+                    throw new InvalidOperationException("Mirror account does not expose a valid EVM address.");
+                var payload = new Dictionary<string,object>
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                // Get wallet address for the avatar
-                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(request.UnlockedByAvatarId, Core.Enums.ProviderType.HashgraphOASIS);
-                if (walletResult.IsError || walletResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet address for avatar");
-                    return result;
-                }
-                
-                // Unlock token by transferring from lock account
-                var lockAccount = _contractAddress ?? "0.0.123456";
-                var sendRequest = new SendWeb3TokenRequest
-                {
-                    FromWalletAddress = lockAccount,
-                    ToWalletAddress = walletResult.Result.WalletAddress,
-                    FromTokenAddress = request.TokenAddress,
-                    Amount = 1m // Default amount
+                    ["network"] = _hederaNetwork, ["nodes"] = _consensusNodes, ["sender"] = wallet.WalletAddress,
+                    ["senderEvmAddress"] = evmAddress, ["privateKey"] = wallet.PrivateKey, ["publicKey"] = wallet.PublicKey, ["keyType"] = "der",
+                    ["tokenId"] = tokenAddress, ["contractId"] = _tokenEscrow.ContractId, ["runtimeCodeHash"] = _tokenEscrow.RuntimeCodeHash,
+                    ["gas"] = _tokenEscrow.GasLimit, ["maxFeeTinybars"] = _tokenEscrow.MaxFeeTinybars.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    ["transactionId"] = mutationId, ["approvalTransactionId"] = action == "tokenEscrowLock" ? HederaSdkClient.CreateTransactionId(wallet.WalletAddress) : null
                 };
-
-                var sendResult = await SendTokenAsync(sendRequest);
-                if (sendResult.IsError || sendResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to unlock token: {sendResult.Message}", sendResult.Exception);
-                    return result;
-                }
-
-                result.Result = sendResult.Result;
-                result.IsError = false;
-                result.Message = "Token unlocked successfully on Hashgraph";
+                intent.AppendTo(payload);
+                var committed=await HederaSdkClient.InvokeAsync(action,payload);
+                var approval=committed.TryGetProperty("approvalTransactionId",out var approvalValue)&&approvalValue.ValueKind==JsonValueKind.String?approvalValue.GetString():null;
+                try {intent.ValidateReply(committed);}
+                catch(Exception error){throw new HederaNativeMutationReconciliationException(
+                    "Escrow reply does not establish original deposit effects; reconcile before retrying.",
+                    new(mutationId,approval,mutationId,"provider-readback",null),error);}
+                result.Result = intent.DepositId==null
+                    ?new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = mutationId }
+                    :new HederaIdBoundEscrowResponse(intent.LockId,mutationId,approval);
+                result.IsSaved=true;result.SavedCount=1;
+                result.Message = intent.AssociationTokenId!=null?"Hedera escrow token association confirmed by receipt and readback."
+                    :"Hedera token escrow confirmed by consensus receipt and exact balance/deposit readback.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error unlocking token on Hashgraph: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error processing Hashgraph token escrow: {ex.Message}", ex);
+                if(ex is ArgumentException)result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
             }
             return result;
         }
@@ -318,39 +290,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<double>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                // Get account balance from Hedera Mirror Node API
-                var accountId = request.WalletAddress;
-                var balanceUrl = $"{_httpClient.BaseAddress}/api/v1/accounts/{accountId}";
-                var response = await _httpClient.GetAsync(balanceUrl);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var accountData = JsonSerializer.Deserialize<JsonElement>(content);
-
-                    if (accountData.TryGetProperty("account", out var account) &&
-                        account.TryGetProperty("balance", out var balance))
-                    {
-                        // Hedera balances are in tinybars (1 HBAR = 100,000,000 tinybars)
-                        result.Result = balance.GetInt64() / 100000000.0;
-                        result.IsError = false;
-                        result.Message = "Balance retrieved successfully from Hashgraph";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to parse balance from Hashgraph response");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Hashgraph balance query failed: {response.StatusCode}");
-                }
+                ArgumentNullException.ThrowIfNull(request);
+                result.Result = (double)((await ReadMirrorBalanceTinybarsAsync(request.WalletAddress, default)) / 100000000m);
+                result.Message = "Native HBAR balance read from the supported Hedera mirror API.";
             }
             catch (Exception ex)
             {
@@ -364,61 +306,136 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             return GetBalanceAsync(request).Result;
         }
 
+        public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountId, CancellationToken token = default)
+        {
+            var result = new OASISResult<decimal>();
+            try
+            {
+                result.Result = (await ReadMirrorBalanceTinybarsAsync(accountId, token)) / 100000000m;
+                result.Message = "Exact native HBAR balance read from the supported Hedera mirror API.";
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, "Hedera mirror balance failed: " + ex.Message, ex); }
+            return result;
+        }
+
+        private async Task<long> ReadMirrorBalanceTinybarsAsync(string accountId, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            if (!System.Text.RegularExpressions.Regex.IsMatch(accountId ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
+                throw new ArgumentException("A nonzero numeric Hedera account ID is required for mirror balance.");
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
+            timeout.CancelAfter(TimeSpan.FromSeconds(20));
+            using var response = await _httpClient.GetAsync("accounts/" + accountId, timeout.Token);
+            response.EnsureSuccessStatusCode();
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(timeout.Token));
+            var account = document.RootElement;
+            if (account.GetProperty("account").GetString() != accountId || account.GetProperty("deleted").GetBoolean()
+                || !account.GetProperty("balance").GetProperty("balance").TryGetInt64(out var balance) || balance < 0)
+                throw new InvalidOperationException("Mirror response does not establish the requested active account's exact HBAR balance.");
+            return balance;
+        }
+
         public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
         {
             var result = new OASISResult<IList<IWalletTransaction>>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
+                ArgumentNullException.ThrowIfNull(request);
                 var accountId = request.WalletAddress;
-                var transactionsUrl = $"{_httpClient.BaseAddress}/api/v1/accounts/{accountId}/transactions?limit=100";
-                var response = await _httpClient.GetAsync(transactionsUrl);
-
-                if (response.IsSuccessStatusCode)
+                var fromBlock=request.FromBlock;var toBlock=request.ToBlock;
+                if(fromBlock.HasValue&&toBlock.HasValue&&fromBlock>toBlock)
+                    throw new ArgumentOutOfRangeException(nameof(request),"Hedera mirror block range is reversed.");
+                if (!System.Text.RegularExpressions.Regex.IsMatch(accountId ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
+                    throw new ArgumentException("A numeric Hedera wallet account ID is required.");
+                var endpoint = _httpClient.BaseAddress;
+                var cutoffTicks = DateTime.UtcNow.Ticks - DateTime.UnixEpoch.Ticks;
+                var cutoff = (cutoffTicks / TimeSpan.TicksPerSecond).ToString(System.Globalization.CultureInfo.InvariantCulture)
+                    + "." + ((cutoffTicks % TimeSpan.TicksPerSecond) * 100).ToString("D9", System.Globalization.CultureInfo.InvariantCulture);
+                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+                var range=await ResolveMirrorHistoryRangeAsync(endpoint,fromBlock,toBlock,decimal.Parse(cutoff,System.Globalization.CultureInfo.InvariantCulture),timeout.Token);
+                if(range.Empty){result.Result=new List<IWalletTransaction>();result.Message="Requested range is beyond the latest indexed mirror block.";return result;}
+                var upperBound = "timestamp=lte:" + range.Maximum.ToString("0.000000000",System.Globalization.CultureInfo.InvariantCulture);
+                var lowerBound=range.Minimum==0?"0":range.Minimum.ToString("0.000000000",System.Globalization.CultureInfo.InvariantCulture);
+                var next = new Uri(endpoint, $"transactions?account.id={accountId}&limit=100&order=asc&timestamp=gte:{lowerBound}&{upperBound}");
+                var visited = new HashSet<string>(StringComparer.Ordinal);
+                var identities = new HashSet<string>(StringComparer.Ordinal);
+                var transactions = new List<IWalletTransaction>();
+                  decimal? previousConsensusTimestamp = null;
+                while (next != null)
                 {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(content);
-
-                    var transactions = new List<IWalletTransaction>();
-                    if (txData.TryGetProperty("transactions", out var txArray))
+                    if (next.Scheme != endpoint.Scheme || next.Authority != endpoint.Authority
+                        || next.AbsolutePath != new Uri(endpoint, "transactions").AbsolutePath
+                        || !visited.Add(next.AbsoluteUri) || visited.Count > 5000)
+                        throw new InvalidOperationException("Hedera history pagination is unsafe or exceeds the bounded page budget.");
+                    var query = next.Query.TrimStart('?').Split('&').Select(Uri.UnescapeDataString).ToArray();
+                    if (query.Count(value => value.StartsWith("account.id=", StringComparison.Ordinal)) != 1
+                        || !query.Contains("account.id=" + accountId))
+                        throw new InvalidOperationException("Hedera history pagination changed the requested account.");
+                    using var response = await _httpClient.GetAsync(next, timeout.Token);
+                    response.EnsureSuccessStatusCode();
+                    using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(timeout.Token));
+                    var txData = document.RootElement;
+                    var txArray = txData.GetProperty("transactions");
+                    foreach (var tx in txArray.EnumerateArray())
                     {
-                        foreach (var tx in txArray.EnumerateArray())
-                        {
-                            var txId = tx.TryGetProperty("transaction_id", out var txIdEl) && txIdEl.ValueKind == JsonValueKind.String
-                                ? txIdEl.GetString()
-                                : string.Empty;
-
-                            var walletTx = new WalletTransaction
-                            {
-                                TransactionId = CreateDeterministicGuid($"{ProviderType.Value}:tx:{txId}"),
-                                FromWalletAddress = accountId,
-                                ToWalletAddress = string.Empty,
-                                Amount = 0,
-                                Description = string.IsNullOrWhiteSpace(txId) ? "Hedera transaction" : $"Hedera transaction: {txId}"
-                            };
-                            transactions.Add(walletTx);
-                        }
+                        var walletTx = MapMirrorWalletTransaction(tx, accountId);
+                          var consensusTimestamp = decimal.Parse(tx.GetProperty("consensus_timestamp").GetString(),
+                              System.Globalization.CultureInfo.InvariantCulture);
+                          if (consensusTimestamp > range.Maximum||consensusTimestamp<range.Minimum)
+                            throw new InvalidOperationException("Hedera history record exceeds the fixed scan timestamp or is outside the requested block range.");
+                          if (previousConsensusTimestamp.HasValue && consensusTimestamp <= previousConsensusTimestamp.Value)
+                              throw new InvalidOperationException("Hedera history did not preserve strictly ascending consensus timestamps.");
+                          previousConsensusTimestamp = consensusTimestamp;
+                        var identity = walletTx.NativeTransactionId + ":" + tx.GetProperty("consensus_timestamp").GetString();
+                        if (!identities.Add(identity)) throw new InvalidOperationException("Hedera history returned a duplicate consensus record.");
+                        transactions.Add(walletTx);
                     }
-
-                    result.Result = transactions;
-                    result.IsError = false;
-                    result.Message = $"Retrieved {transactions.Count} transactions from Hashgraph";
+                    var link = txData.GetProperty("links").GetProperty("next");
+                    next = link.ValueKind == JsonValueKind.Null ? null : new Uri(endpoint, link.GetString());
+                    if (next != null)
+                    {
+                        next=ConstrainMirrorHistoryPage(next,range.Minimum,upperBound);
+                    }
                 }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Hashgraph transactions query failed: {response.StatusCode}");
-                }
+                result.Result = transactions;
+                result.IsError = false;
+                result.Message = $"Retrieved {transactions.Count} indexed Hedera records; HBAR amounts are signed wallet deltas including fees. Mirror coverage is not a consensus completeness proof.";
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error getting transactions from Hashgraph: {ex.Message}", ex);
             }
             return result;
+        }
+
+        private static WalletTransaction MapMirrorWalletTransaction(JsonElement tx, string accountId)
+        {
+            var id = tx.GetProperty("transaction_id").GetString();
+            if (!System.Text.RegularExpressions.Regex.IsMatch(id ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+-[0-9]+-[0-9]+\z"))
+                throw new InvalidOperationException("Hedera mirror record has no valid native transaction identity.");
+            var timestamp = tx.GetProperty("consensus_timestamp").GetString();
+            var seconds=ParseMirrorHistoryTimestamp(timestamp);
+            var nativeResult = tx.GetProperty("result").GetString();
+            var operation = tx.GetProperty("name").GetString();
+            if (string.IsNullOrWhiteSpace(nativeResult) || string.IsNullOrWhiteSpace(operation))
+                throw new InvalidOperationException("Hedera mirror record omits its operation or execution result.");
+            long delta = 0;
+            foreach (var transfer in tx.GetProperty("transfers").EnumerateArray())
+                if (transfer.GetProperty("account").GetString() == accountId)
+                    delta = checked(delta + transfer.GetProperty("amount").GetInt64());
+            var memo=Core.Helpers.NativeWalletMemo.FromBase64(tx.TryGetProperty("memo_base64",out var encodedMemo)?encodedMemo.GetString():null);
+            return new WalletTransaction
+            {
+                TransactionId = Guid.Empty, NativeTransactionId = id, NativeOperation = operation,
+                Token="HBAR",ProviderType=Core.Enums.ProviderType.HashgraphOASIS,MemoText=memo.Text,MemoBase64=memo.Base64,
+                NativeExecutionResult = nativeResult, NativeError = nativeResult == "SUCCESS" ? null : nativeResult,
+                RawAmount = delta.ToString(System.Globalization.CultureInfo.InvariantCulture), AmountUnit = "tinybar",
+                Amount = (double)((decimal)delta / 100000000m),
+                CreatedDate = DateTime.UnixEpoch.AddTicks(checked((long)(seconds * TimeSpan.TicksPerSecond))),
+                // A multi-party transaction plus fees cannot be represented as one invented sender/recipient pair.
+                FromWalletAddress = null, ToWalletAddress = null,
+                Description = $"Hedera {operation}: signed HBAR delta for {accountId}, including fees; {nativeResult}."
+            };
         }
 
         public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
@@ -431,32 +448,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<IKeyPairAndWallet>();
             try
             {
-                if (!IsProviderActivated)
+                var generated = await HederaSdkClient.InvokeAsync("generateKey", new { keyType = "ed25519" });
+                result.Result = new NextGenSoftware.Utilities.KeyHelper.KeyPairAndWallet
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                // Generate Hedera key pair using Ed25519
-                using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
-                {
-                    var privateKeyBytes = new byte[32];
-                    rng.GetBytes(privateKeyBytes);
-
-                    // Create Hedera account from private key
-                    var publicKey = System.Convert.ToBase64String(privateKeyBytes);
-                    var accountId = $"0.0.{Guid.NewGuid().GetHashCode()}";
-
-                    var keyPair = new KeyPair
-                    {
-                        PublicKey = publicKey,
-                        PrivateKey = System.Convert.ToBase64String(privateKeyBytes)
-                    };
-                    // KeyPair doesn't have WalletAddress, but we can store it in a custom property or use a wrapper
-                    result.Result = keyPair as IKeyPairAndWallet;
-                    result.IsError = false;
-                    result.Message = "Key pair generated successfully for Hashgraph";
-                }
+                    PrivateKey = generated.GetProperty("privateKey").GetString(),
+                    PublicKey = generated.GetProperty("publicKey").GetString(),
+                    WalletAddressLegacy = null
+                };
+                result.Message = "Hedera SDK key pair generated. A ledger account must be created or linked separately.";
             }
             catch (Exception ex)
             {
@@ -475,36 +474,36 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<IWeb3NFTTransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
+                ArgumentNullException.ThrowIfNull(request);
+                var asset = ParseHederaNftAddress(request.NFTTokenAddress);
+                if (!string.IsNullOrWhiteSpace(request.OwnerSeedPhrase))
+                    throw new ArgumentException("Recover an explicit Hedera signing key before burning an NFT.");
+                if (request.BurntByAvatarId == Guid.Empty)
+                    throw new ArgumentException("The burning avatar's real Hedera treasury wallet is required.");
+                var walletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.BurntByAvatarId,
+                    Core.Enums.ProviderType.HashgraphOASIS, showPrivateKeys: true);
+                if (walletResult.IsError || walletResult.Result == null)
+                    throw new InvalidOperationException("Could not retrieve the burning avatar's Hedera wallet.");
+                var wallet = walletResult.Result;
+                if (!string.IsNullOrWhiteSpace(request.OwnerPrivateKey)
+                    && !string.Equals(request.OwnerPrivateKey, wallet.PrivateKey, StringComparison.OrdinalIgnoreCase))
+                    throw new ArgumentException("Supplied signing key does not match the avatar's treasury wallet.");
+                var committed = await HederaSdkClient.InvokeAsync("nftBurn", new
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                // Burn NFT on Hedera using HTS
-                var burnUrl = $"{_httpClient.BaseAddress}/api/v1/tokens/{request.NFTTokenAddress}/nfts/{request.Web3NFTId}/burn";
-                var response = await _httpClient.PostAsync(burnUrl, new StringContent("{}", Encoding.UTF8, "application/json"));
-
-                if (response.IsSuccessStatusCode)
+                    network = _hederaNetwork, nodes = _consensusNodes, sender = wallet.WalletAddress,
+                    recipient = wallet.WalletAddress, tokenId = asset.TokenId, serials = new[] { asset.Serial },
+                    privateKey = wallet.PrivateKey,
+                    publicKey = string.IsNullOrWhiteSpace(request.OwnerPublicKey) ? wallet.PublicKey : request.OwnerPublicKey,
+                    keyType = "der", transactionId = HederaSdkClient.CreateTransactionId(wallet.WalletAddress)
+                });
+                if (committed.GetProperty("status").GetString() != "SUCCESS")
+                    throw new InvalidOperationException("HTS NFT burn did not return a successful consensus receipt.");
+                result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
                 {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(content);
-
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
-                    {
-                        TransactionResult = txData.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : "",
-                        Web3NFT = new Web3NFT
-                        {
-                            NFTTokenAddress = request.NFTTokenAddress
-                        }
-                    };
-                    result.IsError = false;
-                    result.Message = "NFT burned successfully on Hashgraph";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Hashgraph NFT burn failed: {response.StatusCode}");
-                }
+                    TransactionResult = committed.GetProperty("transactionId").GetString(),
+                    Web3NFT = new Web3NFT { Id = request.Web3NFTId, NFTTokenAddress = request.NFTTokenAddress }
+                };
+                result.Message = "HTS NFT burn confirmed by consensus receipt.";
             }
             catch (Exception ex)
             {
@@ -516,6 +515,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
         {
             return BurnNFTAsync(request).Result;
+        }
+
+        private static (string TokenId, string Serial) ParseHederaNftAddress(string address)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(address ?? "",
+                @"\A([0-9]+\.[0-9]+\.[0-9]+)/([1-9][0-9]*)\z");
+            if (!match.Success || !long.TryParse(match.Groups[2].Value,
+                System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out _))
+                throw new ArgumentException("A Hedera NFT address must identify token/serial, for example 0.0.1234/1; an OASIS GUID is not an HTS serial.");
+            return (match.Groups[1].Value, match.Groups[2].Value);
         }
 
 

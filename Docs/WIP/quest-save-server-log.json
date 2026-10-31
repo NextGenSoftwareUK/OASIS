@@ -1,0 +1,322 @@
+[
+  {
+    "Utc": "2026-10-20T06:41:49.590743241Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:41:49.590748193Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:41:54.653584529Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:41:54.653598311Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:41:59.716704107Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:41:59.716707777Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:42:04.770948003Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:42:04.770953396Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:42:10.651948622Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:42:10.651953090Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:42:15.275453208Z",
+    "Message": "      [STAR] SetActiveQuest called: ActiveQuestId=75c3a5f2-a714-4daa-9210-cbbe574ee988, ActiveObjectiveId=acf47561-952f-4e9a-ae3a-1ae0e7df0841"
+  },
+  {
+    "Utc": "2026-10-20T06:42:15.845068827Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:42:15.845072668Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:42:18.913275800Z",
+    "Message": "      [STAR] SetActiveQuest saved OK for avatar c0b43739-cc8e-48c3-9a6f-6a071a95170f: ActiveQuestId=75c3a5f2-a714-4daa-9210-cbbe574ee988, ActiveObjectiveId=acf47561-952f-4e9a-ae3a-1ae0e7df0841"
+  },
+  {
+    "Utc": "2026-10-20T06:42:20.861800350Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:42:20.861805119Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:42:25.869800313Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:42:25.869806664Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:42:30.926142079Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:42:30.926146208Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:42:35.976418685Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:42:35.976422814Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:42:41.024689993Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:42:41.024695253Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:42:46.137522742Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:42:46.137527396Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:42:51.106626255Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:42:51.106630384Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:42:56.174632696Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:42:56.174637750Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:43:01.239129659Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:43:01.239133527Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:43:06.410660529Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:43:06.410666012Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:43:11.458657084Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:43:11.458661550Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:43:16.337084191Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:43:16.337090574Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:43:21.387558496Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:43:21.387564681Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:43:26.442934553Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:43:26.442939884Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:43:31.521372272Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:43:31.521380913Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:43:36.591019474Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:43:36.591025537Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:43:41.614273872Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:43:41.614277385Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:43:46.670529917Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:43:46.670537167Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:43:51.721042701Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:43:51.721048684Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:43:56.847842257Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:43:56.847845439Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:44:01.869605380Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:44:01.869610083Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:44:06.939284024Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:44:06.939291015Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:44:11.950693033Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:44:11.950699391Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:44:17.001035065Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:44:17.001041491Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:44:22.059170942Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:44:22.059174648Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:44:27.147595113Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:44:27.147600782Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:44:32.254242765Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:44:32.254248676Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:44:37.251901141Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:44:37.251907364Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:44:42.322404039Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:44:42.322410600Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:44:47.397024482Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:44:47.397031750Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:44:52.431772595Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:44:52.431778050Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:44:57.483110707Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:44:57.483117191Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  },
+  {
+    "Utc": "2026-10-20T06:45:02.549213164Z",
+    "Message": "fail: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Utc": "2026-10-20T06:45:02.549220394Z",
+    "Message": "      HyperDrive domain capture failed (MONGO_DOMAIN_CAPTURE_FAILED): The hosted domain change stream was not durably projected."
+  }
+]

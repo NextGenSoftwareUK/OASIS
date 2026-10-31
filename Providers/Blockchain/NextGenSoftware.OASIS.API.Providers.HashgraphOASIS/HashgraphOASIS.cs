@@ -33,15 +33,25 @@ using NextGenSoftware.Utilities;
 using NextGenSoftware.Utilities.ExtentionMethods;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using System.IO;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 {
-    public partial class HashgraphOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
+    public partial class HashgraphOASIS : KeyValueStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISIdBoundTokenEscrowProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
     {
         private WalletManager _walletManager;
-        private bool _isActivated;
         private HttpClient _httpClient;
-        private string _contractAddress;
+        private readonly string _nftEscrowContractId;
+        private readonly string _nftEscrowRuntimeCodeHash;
+        private readonly long _nftEscrowGasLimit;
+        private readonly long _nftEscrowMaxFeeTinybars;
+        private readonly HederaTokenEscrowConfiguration _tokenEscrow;
+        private readonly string _hederaNetwork;
+        private readonly string _bridgePoolAccountId;
+        private readonly Func<string> _bridgePoolSigningKey;
+        private readonly Dictionary<string, string> _consensusNodes;
+        private readonly string _rawTransferAccountId;
+        private readonly Func<string> _rawTransferSigningKey;
 
         public WalletManager WalletManager
         {
@@ -54,9 +64,42 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             set => _walletManager = value;
         }
 
-        public HashgraphOASIS(string rpcEndpoint = "https://mainnet-public.mirrornode.hedera.com/api/v1", string network = "mainnet", string chainId = "295", WalletManager walletManager = null)
+        public HashgraphOASIS(string rpcEndpoint = null, string network = "mainnet", string chainId = "295", WalletManager walletManager = null, IDictionary<string, string> consensusNodes = null, HederaStorageConfiguration storageConfiguration = null, string bridgePoolAccountId = null, Func<string> bridgePoolSigningKey = null, string nftEscrowContractId = null, long nftEscrowGasLimit = 0, long nftEscrowMaxFeeTinybars = 0, string nftEscrowRuntimeCodeHash = null, HederaTokenEscrowConfiguration tokenEscrowConfiguration = null, string rawTransferAccountId = null, Func<string> rawTransferSigningKey = null)
+            : base(new ConfiguredHederaStorageBackend(network, consensusNodes, storageConfiguration))
         {
+            if (network != "mainnet" && network != "testnet" && network != "previewnet" && network != "local")
+                throw new ArgumentException("An explicit supported Hedera network is required.", nameof(network));
+            if (network == "local" && (consensusNodes == null || consensusNodes.Count == 0))
+                throw new ArgumentException("Local Hedera requires configured consensus nodes.", nameof(consensusNodes));
+            if (network != "local" && consensusNodes != null && consensusNodes.Count != 0)
+                throw new ArgumentException("Custom consensus nodes are restricted to the local network.", nameof(consensusNodes));
+            _consensusNodes = consensusNodes == null ? null : new Dictionary<string, string>(consensusNodes);
+            if (_consensusNodes != null)
+                foreach (var node in _consensusNodes)
+                {
+                    if (!System.Text.RegularExpressions.Regex.IsMatch(node.Key, @"\A127\.0\.0\.1:[0-9]+\z")
+                        || !Uri.TryCreate("http://" + node.Key, UriKind.Absolute, out var endpoint) || endpoint.Port <= 0
+                        || !System.Text.RegularExpressions.Regex.IsMatch(node.Value ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
+                        throw new ArgumentException("Local consensus nodes require loopback endpoints and numeric account IDs.", nameof(consensusNodes));
+                }
             _walletManager = walletManager;
+            _rawTransferAccountId = rawTransferAccountId;
+            _rawTransferSigningKey = rawTransferSigningKey;
+            _bridgePoolAccountId = bridgePoolAccountId;
+            _bridgePoolSigningKey = bridgePoolSigningKey;
+            _nftEscrowContractId = nftEscrowContractId;
+            _nftEscrowRuntimeCodeHash = nftEscrowRuntimeCodeHash;
+            _nftEscrowGasLimit = nftEscrowGasLimit;
+            _nftEscrowMaxFeeTinybars = nftEscrowMaxFeeTinybars;
+            _tokenEscrow = tokenEscrowConfiguration == null ? null : new HederaTokenEscrowConfiguration
+            {
+                ContractId = tokenEscrowConfiguration.ContractId,
+                RuntimeCodeHash = tokenEscrowConfiguration.RuntimeCodeHash,
+                GasLimit = tokenEscrowConfiguration.GasLimit,
+                MaxFeeTinybars = tokenEscrowConfiguration.MaxFeeTinybars,
+                Protocol = tokenEscrowConfiguration.Protocol
+            };
+            _hederaNetwork = network;
             this.ProviderName = "HashgraphOASIS";
             this.ProviderDescription = "Hashgraph Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.HashgraphOASIS);
@@ -66,10 +109,40 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
-            _httpClient = new HttpClient
+            _httpClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })
             {
-                BaseAddress = new Uri(rpcEndpoint)
+                BaseAddress = ResolveMirrorEndpoint(rpcEndpoint,network)
             };
+        }
+
+        private static Uri ResolveMirrorEndpoint(string endpoint,string network)
+        {
+            if(endpoint==null){
+                if(network=="local")throw new ArgumentException("Local Hedera requires an explicit mirror endpoint.",nameof(endpoint));
+                endpoint="https://"+network+".mirrornode.hedera.com/api/v1";
+            }
+            var uri=NormalizeMirrorEndpoint(endpoint);
+            var publicNetwork=uri.Host.ToLowerInvariant() switch{
+                "mainnet.mirrornode.hedera.com" or "mainnet-public.mirrornode.hedera.com"=>"mainnet",
+                "testnet.mirrornode.hedera.com"=>"testnet",
+                "previewnet.mirrornode.hedera.com"=>"previewnet",
+                _=>null
+            };
+            if(publicNetwork!=null&&publicNetwork!=network)
+                throw new ArgumentException("Hedera public mirror endpoint does not match configured consensus network.",nameof(endpoint));
+            return uri;
+        }
+
+        internal static Uri NormalizeMirrorEndpoint(string endpoint)
+        {
+            var uri = new Uri(endpoint, UriKind.Absolute);
+            if (uri.UserInfo.Length != 0 || uri.Query.Length != 0 || uri.Fragment.Length != 0
+                || (uri.Scheme != "https" && !(uri.Scheme == "http" && uri.IsLoopback)))
+                throw new ArgumentException("Hedera mirror endpoint requires HTTPS or loopback HTTP, without credentials or query.");
+            var path = uri.AbsolutePath.TrimEnd('/');
+            if (path != "" && path != "/api/v1")
+                throw new ArgumentException("Hedera mirror endpoint must be a host root or /api/v1.");
+            return new UriBuilder(uri) { Path = "/api/v1/" }.Uri;
         }
 
 
@@ -83,12 +156,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         private readonly string _networkUrl;
         private readonly string _accountId;
         private readonly string _privateKey;
+        private readonly string _transferNetwork;
+        private readonly IDictionary<string, string> _transferConsensusNodes;
 
-        public HashgraphClient(string networkUrl = "https://mainnet-public.mirrornode.hedera.com", string accountId = "", string privateKey = "")
+        public HashgraphClient(string networkUrl = "https://mainnet-public.mirrornode.hedera.com", string accountId = "", string privateKey = "", string transferNetwork = "mainnet", IDictionary<string, string> transferConsensusNodes = null)
         {
             _networkUrl = networkUrl;
             _accountId = accountId;
             _privateKey = privateKey;
+            _transferNetwork = transferNetwork;
+            _transferConsensusNodes = transferConsensusNodes == null ? null : new Dictionary<string, string>(transferConsensusNodes);
         }
 
         public async Task<string> ResolveAccountIdFromKeysAsync(string publicKey)
@@ -210,91 +287,21 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         /// <summary>
         /// Send transaction to Hashgraph network
         /// </summary>
-        public async Task<HashgraphTransactionData> SendTransactionAsync(HashgraphTransactionData transactionData)
+public async Task<HashgraphTransactionData> SendTransactionAsync(HashgraphTransactionData transactionData)
         {
-            try
-            {
-                using (var httpClient = new System.Net.Http.HttpClient())
-                {
-                    var json = System.Text.Json.JsonSerializer.Serialize(transactionData);
-                    var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
-
-                    var response = await httpClient.PostAsync($"{_networkUrl}/api/v1/transactions", content);
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var responseContent = await response.Content.ReadAsStringAsync();
-                        var transactionResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                        var txId = transactionResponse.TryGetProperty("transaction_id", out var txIdProp)
-                            ? txIdProp.GetString()
-                            : string.Empty;
-
-                        // If the mirror node did not return a transaction_id, treat as an error rather than inventing one.
-                        if (string.IsNullOrWhiteSpace(txId))
-                            return null;
-
-                        return new HashgraphTransactionData
-                        {
-                            FromAddress = transactionData.FromAddress,
-                            ToAddress = transactionData.ToAddress,
-                            Amount = transactionData.Amount,
-                            Memo = transactionData.Memo,
-                            TransactionId = txId,
-                            Status = "Success"
-                        };
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // Return null if transaction fails
-            }
-            return null;
+            ArgumentNullException.ThrowIfNull(transactionData);
+            var provider = new HashgraphOASIS(rpcEndpoint: _networkUrl, network: _transferNetwork, consensusNodes: _transferConsensusNodes, rawTransferAccountId: _accountId, rawTransferSigningKey: () => _privateKey);
+            var result = await provider.SendTransactionAsync(transactionData.FromAddress, transactionData.ToAddress, transactionData.Amount, transactionData.Memo);
+            if (result.IsError) throw new InvalidOperationException(result.Message, result.Exception);
+            return new HashgraphTransactionData { FromAddress = transactionData.FromAddress, ToAddress = transactionData.ToAddress,
+                Amount = transactionData.Amount, Memo = transactionData.Memo, TransactionId = result.Result.TransactionResult, Status = "Success" };
         }
 
         /// <summary>
         /// Send transaction to Hashgraph network synchronously
         /// </summary>
-        public HashgraphTransactionData SendTransaction(HashgraphTransactionData transactionData)
-        {
-            try
-            {
-                using (var httpClient = new System.Net.Http.HttpClient())
-                {
-                    var json = System.Text.Json.JsonSerializer.Serialize(transactionData);
-                    var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
-
-                    var response = httpClient.PostAsync($"{_networkUrl}/api/v1/transactions", content).Result;
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var responseContent = response.Content.ReadAsStringAsync().Result;
-                        var transactionResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                        var txId = transactionResponse.TryGetProperty("transaction_id", out var txIdProp)
-                            ? txIdProp.GetString()
-                            : string.Empty;
-
-                        if (string.IsNullOrWhiteSpace(txId))
-                            return null;
-
-                        return new HashgraphTransactionData
-                        {
-                            FromAddress = transactionData.FromAddress,
-                            ToAddress = transactionData.ToAddress,
-                            Amount = transactionData.Amount,
-                            Memo = transactionData.Memo,
-                            TransactionId = txId,
-                            Status = "Success"
-                        };
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // Return null if transaction fails
-            }
-            return null;
-        }
+public HashgraphTransactionData SendTransaction(HashgraphTransactionData transactionData)
+            => SendTransactionAsync(transactionData).GetAwaiter().GetResult();
 
         /// <summary>
         /// Get NFT data from Hashgraph network
@@ -391,32 +398,23 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         /// </summary>
         public async Task<NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus> GetTransactionStatusAsync(string transactionId)
         {
-            try
-            {
-                using (var httpClient = new System.Net.Http.HttpClient())
-                {
-                    var response = await httpClient.GetAsync($"{_networkUrl}/api/v1/transactions/{transactionId}");
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var content = await response.Content.ReadAsStringAsync();
-                        var txData = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(content);
-                        var statusStr = txData.TryGetProperty("status", out var status) ? status.GetString() : "Unknown";
-                        
-                        // Convert string status to BridgeTransactionStatus enum
-                        if (statusStr == "SUCCESS" || statusStr == "Completed")
-                            return NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed;
-                        else if (statusStr == "PENDING" || statusStr == "Pending")
-                            return NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Pending;
-                        else
-                            return NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.NotFound;
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // Return NotFound if query fails
-            }
-            return NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.NotFound;
+            using var httpClient = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(20) };
+            using var response = await httpClient.GetAsync($"{_networkUrl.TrimEnd('/')}/api/v1/transactions/{Uri.EscapeDataString(HashgraphOASIS.NativeMirrorTransactionId(transactionId))}?nonce=0&scheduled=false");
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                return NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.NotFound;
+            response.EnsureSuccessStatusCode();
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            return MapMirrorTransactionStatus(document.RootElement, transactionId);
+        }
+
+        internal static NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus MapMirrorTransactionStatus(JsonElement body, string transactionId)
+        {
+            var transactions = HashgraphOASIS.UnscheduledParentMirrorRecords(body, transactionId);
+            var originals = transactions.EnumerateArray()
+                .Where(record => record.GetProperty("result").GetString() != "DUPLICATE_TRANSACTION").ToArray();
+            if (originals.Length != 1)
+                throw new InvalidOperationException("Mirror lookup must establish exactly one original parent outcome.");
+            return HashgraphOASIS.MapReceiptStatus(originals[0].GetProperty("result").GetString());
         }
     }
 

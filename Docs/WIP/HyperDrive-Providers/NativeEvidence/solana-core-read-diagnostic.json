@@ -1,0 +1,34 @@
+[
+  {
+    "Id": "f8338a2f-373d-4fb3-88cf-fc0ecb1f052b",
+    "Mode": "async",
+    "IsError": true,
+    "IsLoaded": false,
+    "LoadedCount": 0,
+    "ReturnedId": null,
+    "ErrorCode": null,
+    "ExceptionType": "System.InvalidOperationException",
+    "StaticCategory": "unclassified",
+    "FailureMethods": [
+      "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories.SolanaRepository+<DecodeStoredMemoAsync>d__33.MoveNext:68",
+      "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories.SolanaRepository+<GetAllAsync>d__2`1.MoveNext:54",
+      "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaOASIS+<LoadAllAvatarsAsync>d__7.MoveNext:152"
+    ]
+  },
+  {
+    "Id": "22a5adc7-5cf0-4798-8ddb-4c3f1a91f4c3",
+    "Mode": "sync",
+    "IsError": true,
+    "IsLoaded": false,
+    "LoadedCount": 0,
+    "ReturnedId": null,
+    "ErrorCode": null,
+    "ExceptionType": "System.InvalidOperationException",
+    "StaticCategory": "unclassified",
+    "FailureMethods": [
+      "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories.SolanaRepository+<DecodeStoredMemoAsync>d__33.MoveNext:68",
+      "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories.SolanaRepository+<GetAllAsync>d__2`1.MoveNext:54",
+      "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaOASIS+<LoadAllAvatarsAsync>d__7.MoveNext:152"
+    ]
+  }
+]

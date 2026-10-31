@@ -2,7 +2,7 @@
 
 ## Subscription protocol update (2026-09-22)
 
-WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](../../WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](../../WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
+WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](../../../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](../../../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
 
 
 WEB6 is the AI Abstraction & Orchestration Layer of the OASIS Omniverse stack — a unified API surface for AI completions, multi-agent orchestration, semantic memory, identity, and IDE tooling across 26+ AI providers.
@@ -16,6 +16,7 @@ WEB6 is the AI Abstraction & Orchestration Layer of the OASIS Omniverse stack �
 | [WEB6 MCP Tool Reference](WEB6_MCP_Tool_Reference.md) | Full reference for all 508 MCP tools — parameters, return values, examples |
 | [WEB6 User Guide](WEB6_User_Guide.md) | Common workflows, environment setup, recipes |
 | [WEB6 Leela AI Integration Guide](WEB6-Leela-AI-Integration-Guide.md) | Cost reduction playbook — Bedrock swap, BRAID/caching, holonic document storage, Prometheus PromQL examples |
+| [WEB6 vs OpenRouter vs Hermes Agent](WEB6_vs_OpenRouter_vs_Hermes.md) | Feature and price comparison, with a worked 1,000-user cost example |
 
 ## Quick links
 

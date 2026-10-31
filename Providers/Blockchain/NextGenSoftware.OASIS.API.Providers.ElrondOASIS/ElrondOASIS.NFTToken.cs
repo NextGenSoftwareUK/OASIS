@@ -506,18 +506,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
         try
         {
             var accountResult = await CreateAccountAsync(CancellationToken.None);
-            if (!accountResult.IsError && accountResult.Result.PublicKey != null)
+            if (accountResult.IsError) { OASISErrorHandling.HandleError(ref result, accountResult.Message, accountResult.Exception); return result; }
+            result.Result = new KeyHelper.KeyPairAndWallet
             {
-                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-                if (keyPair != null)
-                {
-                    keyPair.PublicKey = accountResult.Result.PublicKey;
-                    keyPair.PrivateKey = accountResult.Result.PrivateKey;
-                    keyPair.WalletAddressLegacy = "";
-                }
-                result.Result = keyPair; result.IsError = false; result.Message = accountResult.Message;
-            }
-            else OASISErrorHandling.HandleError(ref result, accountResult.Message ?? "Failed to create account");
+                PublicKey = accountResult.Result.PublicKey,
+                PrivateKey = accountResult.Result.PrivateKey,
+                WalletAddressLegacy = ElrondKeys.Address(Convert.FromHexString(accountResult.Result.PublicKey))
+            };
+            result.Message = accountResult.Message;
         }
         catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
         return result;

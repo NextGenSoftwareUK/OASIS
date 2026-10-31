@@ -50,101 +50,26 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
+                TronNativeTransferClient.NativeUnits(amount);
                 if (string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
+                    throw new ArgumentException("Sender address and explicit private signing key are required.");
+                if (string.IsNullOrWhiteSpace(_bridgePoolWalletAddress))
+                    throw new InvalidOperationException("BridgePoolWalletAddress must be configured separately from token contracts.");
+                if (string.Equals(senderAccountAddress,_bridgePoolWalletAddress,StringComparison.Ordinal))
+                    throw new ArgumentException("Bridge withdrawal sender must differ from the pool wallet.");
+                if (!System.Text.RegularExpressions.Regex.IsMatch(senderPrivateKey,"\\A[0-9a-fA-F]{64}\\z")
+                    || !string.Equals(new TronNet.TronECKey(senderPrivateKey,TronNet.TronNetwork.MainNet).GetPublicAddress(),senderAccountAddress,StringComparison.Ordinal))
+                    throw new ArgumentException("Signing key does not own the canonical TRON sender address.");
+                var hash = await ExecuteNativeRuntimeAsync(client => client.SendAsync(senderAccountAddress, _bridgePoolWalletAddress, amount, senderPrivateKey, null));
+                result.Result = new BridgeTransactionResponse
                 {
-                    OASISErrorHandling.HandleError(ref result, "Sender account address and private key are required");
-                    return result;
-                }
-
-                if (amount <= 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
-                    return result;
-                }
-
-                // Bridge pool address
-                var bridgePoolAddress = _contractAddress ?? "" ?? "TXYZabcdefghijklmnopqrstuvwxyz123456";
-                
-                // Convert amount to sun (smallest unit, 1 TRX = 1,000,000 sun)
-                var amountInSun = (long)(amount * 1_000_000m);
-
-                // Create TRON transfer transaction using TRON Grid API
-                var transferData = new
-                {
-                    owner_address = senderAccountAddress,
-                    to_address = bridgePoolAddress,
-                    amount = amountInSun
+                    TransactionId = hash, IsSuccessful = true, Status = BridgeTransactionStatus.Completed
                 };
-
-                var json = JsonSerializer.Serialize(transferData);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var httpResponse = await _httpClient.PostAsync("/wallet/createtransaction", content);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    // Sign and broadcast transaction
-                    var signedTx = await SignTRONTransaction(txResponse, senderPrivateKey);
-                    var broadcastJson = JsonSerializer.Serialize(signedTx);
-                    var broadcastContent = new StringContent(broadcastJson, Encoding.UTF8, "application/json");
-                    var broadcastResponse = await _httpClient.PostAsync("/wallet/broadcasttransaction", broadcastContent);
-
-                    if (broadcastResponse.IsSuccessStatusCode)
-                    {
-                        var broadcastResponseContent = await broadcastResponse.Content.ReadAsStringAsync();
-                        var broadcastData = JsonSerializer.Deserialize<JsonElement>(broadcastResponseContent);
-                        var txHash = broadcastData.TryGetProperty("txid", out var txid) ? txid.GetString() : "";
-
-                        result.Result = new BridgeTransactionResponse
-                        {
-                            TransactionId = txHash ?? "Transaction submitted",
-                            IsSuccessful = true,
-                            Status = BridgeTransactionStatus.Pending
-                        };
-                        result.IsError = false;
-                        result.Message = "TRON withdrawal transaction submitted successfully";
-                    }
-                    else
-                    {
-                        var errorContent = await broadcastResponse.Content.ReadAsStringAsync();
-                        OASISErrorHandling.HandleError(ref result, $"Failed to broadcast transaction: {errorContent}");
-                        result.Result = new BridgeTransactionResponse
-                        {
-                            TransactionId = string.Empty,
-                            IsSuccessful = false,
-                            ErrorMessage = errorContent,
-                            Status = BridgeTransactionStatus.Canceled
-                        };
-                    }
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"Failed to create transaction: {httpResponse.StatusCode} - {errorContent}");
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = string.Empty,
-                        IsSuccessful = false,
-                        ErrorMessage = errorContent,
-                        Status = BridgeTransactionStatus.Canceled
-                    };
-                }
+                result.Message = "Native TRX transfer to bridge pool confirmed; cross-chain settlement is separate.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error withdrawing: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error withdrawing TRX to bridge pool: {ex.Message}", ex);
             }
             return result;
         }
@@ -154,101 +79,29 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
+                TronNativeTransferClient.NativeUnits(amount);
                 if (string.IsNullOrWhiteSpace(receiverAccountAddress))
+                    throw new ArgumentException("Receiver address is required.");
+                if (string.IsNullOrWhiteSpace(_bridgePoolWalletAddress))
+                    throw new InvalidOperationException("BridgePoolWalletAddress must be configured separately from token contracts.");
+                if (string.Equals(receiverAccountAddress,_bridgePoolWalletAddress,StringComparison.Ordinal))
+                    throw new ArgumentException("Bridge deposit recipient must differ from the pool wallet.");
+                if (_nativeSigningKeyResolver == null)
+                    throw new InvalidOperationException("Bridge pool signing credentials are not configured.");
+                var key = await _nativeSigningKeyResolver(_bridgePoolWalletAddress);
+                if (!System.Text.RegularExpressions.Regex.IsMatch(key ?? "","\\A[0-9a-fA-F]{64}\\z")
+                    || !string.Equals(new TronNet.TronECKey(key,TronNet.TronNetwork.MainNet).GetPublicAddress(),_bridgePoolWalletAddress,StringComparison.Ordinal))
+                    throw new ArgumentException("Signing key does not own the canonical TRON pool address.");
+                var hash = await ExecuteNativeRuntimeAsync(client => client.SendAsync(_bridgePoolWalletAddress, receiverAccountAddress, amount, key, null));
+                result.Result = new BridgeTransactionResponse
                 {
-                    OASISErrorHandling.HandleError(ref result, "Receiver account address is required");
-                    return result;
-                }
-
-                if (amount <= 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
-                    return result;
-                }
-
-                // Bridge pool address (sender)
-                var bridgePoolAddress = _contractAddress ?? "" ?? "TXYZabcdefghijklmnopqrstuvwxyz123456";
-                
-                // Convert amount to sun (smallest unit)
-                var amountInSun = (long)(amount * 1_000_000m);
-
-                // Create TRON transfer transaction from bridge pool to receiver
-                var transferData = new
-                {
-                    owner_address = bridgePoolAddress,
-                    to_address = receiverAccountAddress,
-                    amount = amountInSun
+                    TransactionId = hash, IsSuccessful = true, Status = BridgeTransactionStatus.Completed
                 };
-
-                var json = JsonSerializer.Serialize(transferData);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var httpResponse = await _httpClient.PostAsync("/wallet/createtransaction", content);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    // Sign and broadcast transaction (would use bridge pool's private key in production)
-                    var signedTx = await SignTRONTransaction(txResponse, ""); // Would get from config
-                    var broadcastJson = JsonSerializer.Serialize(signedTx);
-                    var broadcastContent = new StringContent(broadcastJson, Encoding.UTF8, "application/json");
-                    var broadcastResponse = await _httpClient.PostAsync("/wallet/broadcasttransaction", broadcastContent);
-
-                    if (broadcastResponse.IsSuccessStatusCode)
-                    {
-                        var broadcastResponseContent = await broadcastResponse.Content.ReadAsStringAsync();
-                        var broadcastData = JsonSerializer.Deserialize<JsonElement>(broadcastResponseContent);
-                        var txHash = broadcastData.TryGetProperty("txid", out var txid) ? txid.GetString() : "";
-
-                        result.Result = new BridgeTransactionResponse
-                        {
-                            TransactionId = txHash ?? "Transaction submitted",
-                            IsSuccessful = true,
-                            Status = BridgeTransactionStatus.Completed
-                        };
-                        result.IsError = false;
-                        result.Message = "TRON deposit transaction submitted successfully";
-                    }
-                    else
-                    {
-                        var errorContent = await broadcastResponse.Content.ReadAsStringAsync();
-                        OASISErrorHandling.HandleError(ref result, $"Failed to broadcast transaction: {errorContent}");
-                        result.Result = new BridgeTransactionResponse
-                        {
-                            TransactionId = string.Empty,
-                            IsSuccessful = false,
-                            ErrorMessage = errorContent,
-                            Status = BridgeTransactionStatus.Canceled
-                        };
-                    }
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"Failed to create transaction: {httpResponse.StatusCode} - {errorContent}");
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = string.Empty,
-                        IsSuccessful = false,
-                        ErrorMessage = errorContent,
-                        Status = BridgeTransactionStatus.Canceled
-                    };
-                }
+                result.Message = "Native TRX transfer from bridge pool confirmed; cross-chain settlement is separate.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error depositing: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error depositing TRX from bridge pool: {ex.Message}", ex);
             }
             return result;
         }
@@ -258,90 +111,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var result = new OASISResult<BridgeTransactionStatus>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (string.IsNullOrWhiteSpace(transactionHash))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Transaction hash is required");
-                    return result;
-                }
-
-                // Query TRON transaction status using TRON Grid API
-                var httpResponse = await _httpClient.GetAsync($"/wallet/gettransactionbyid?value={transactionHash}");
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    // Check transaction ret field for status
-                    if (txData.TryGetProperty("ret", out var ret) && ret.ValueKind == JsonValueKind.Array)
-                    {
-                        var retArray = ret.EnumerateArray();
-                        if (retArray.MoveNext())
-                        {
-                            var retObj = retArray.Current;
-                            if (retObj.TryGetProperty("contractRet", out var contractRet))
-                            {
-                                var status = contractRet.GetString();
-                                if (status == "SUCCESS")
-                                {
-                                    result.Result = BridgeTransactionStatus.Completed;
-                                    result.IsError = false;
-                                    result.Message = "Transaction completed successfully";
-                                }
-                                else
-                                {
-                                    result.Result = BridgeTransactionStatus.Canceled;
-                                    result.IsError = true;
-                                    result.Message = $"Transaction failed: {status}";
-                                }
-                            }
-                            else
-                            {
-                                result.Result = BridgeTransactionStatus.Pending;
-                                result.IsError = false;
-                            }
-                        }
-                        else
-                        {
-                            result.Result = BridgeTransactionStatus.Pending;
-                            result.IsError = false;
-                        }
-                    }
-                    else if (txData.TryGetProperty("txID", out var txID))
-                    {
-                        // Transaction exists
-                        result.Result = BridgeTransactionStatus.Pending;
-                        result.IsError = false;
-                        result.Message = "Transaction found, status pending";
-                    }
-                    else
-                    {
-                        result.Result = BridgeTransactionStatus.NotFound;
-                        result.IsError = true;
-                        result.Message = "Transaction not found";
-                    }
-                }
-                else if (httpResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    result.Result = BridgeTransactionStatus.NotFound;
-                    result.IsError = true;
-                    result.Message = "Transaction not found";
-                }
-                else
-                {
-                    result.Result = BridgeTransactionStatus.NotFound;
-                    OASISErrorHandling.HandleError(ref result, $"Failed to query transaction status: {httpResponse.StatusCode}");
-                }
+                token.ThrowIfCancellationRequested();
+                if (string.IsNullOrWhiteSpace(transactionHash) || !System.Text.RegularExpressions.Regex.IsMatch(transactionHash, "\\A[0-9a-fA-F]{64}\\z"))
+                    throw new ArgumentException("A 32-byte hexadecimal TRON transaction ID is required.");
+                result.Result = await ExecuteNativeRuntimeAsync(client => client.GetTransactionStatusAsync(transactionHash, token), token);
+                result.Message = "Native-chain transaction status queried through genesis-verified SDK nodes; cross-chain settlement is separate.";
             }
             catch (Exception ex)
             {
@@ -360,57 +134,47 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest transaction)
         {
             var response = new OASISResult<IWeb3NFTTransactionResponse>();
-
             try
             {
-                if (!IsProviderActivated)
+                ArgumentNullException.ThrowIfNull(transaction);
+                var amount=transaction.Amount;var tokenAddress=transaction.TokenAddress;var requestedId=transaction.TokenId;
+                var sourceNft=transaction.FromNFTTokenAddress;var sender=transaction.FromWalletAddress;var recipient=transaction.ToWalletAddress;
+                var privateKey=transaction.OwnerPrivateKey;var publicKey=transaction.OwnerPublicKey;var seed=transaction.OwnerSeedPhrase;var memo=transaction.MemoText;
+                if (amount != 1) throw new ArgumentException("TRC721 transfer amount must be exactly one.");
+                if (string.IsNullOrWhiteSpace(tokenAddress) || string.IsNullOrWhiteSpace(requestedId)
+                    || !System.Text.RegularExpressions.Regex.IsMatch(requestedId, "\\A[0-9]+\\z")
+                    || !System.Numerics.BigInteger.TryParse(requestedId, out var tokenId))
+                    throw new ArgumentException("An explicit TRC721 contract and unsigned decimal token ID are required.");
+                var selectedAsset = TronNativeTransferClient.ParseNftAddress(tokenAddress + "/" + requestedId);
+                if (!string.IsNullOrWhiteSpace(sourceNft))
                 {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return response;
-                    }
+                    var sourceAsset = TronNativeTransferClient.ParseNftAddress(sourceNft);
+                    if (!string.Equals(sourceAsset.Contract, selectedAsset.Contract, StringComparison.Ordinal)
+                        || sourceAsset.TokenId != selectedAsset.TokenId)
+                        throw new ArgumentException("TRC721 NFT asset identifiers must agree.");
                 }
-
-                // Create TRON NFT transfer transaction
-                var nftTransferData = new
+                if (string.IsNullOrWhiteSpace(sender) || string.IsNullOrWhiteSpace(recipient)
+                    || string.IsNullOrWhiteSpace(privateKey))
+                    throw new ArgumentException("Sender, recipient and private signing key are required.");
+                if (!string.IsNullOrWhiteSpace(seed))
+                    throw new ArgumentException("Recover an explicit signing key before sending a TRC721 NFT.");
+                if (!string.IsNullOrWhiteSpace(publicKey))
                 {
-                    from = transaction.FromWalletAddress,
-                    to = transaction.ToWalletAddress,
-                    tokenId = Guid.NewGuid().ToString(), // Use generated token ID
-                    contractAddress = "TRC721_CONTRACT_ADDRESS" // Would be actual contract address
-                };
-
-                var json = JsonSerializer.Serialize(nftTransferData);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var httpResponse = await _httpClient.PostAsync("/wallet/triggersmartcontract", content);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var tronResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    var txId = tronResponse.TryGetProperty("txID", out var txID) ? txID.GetString() : 
-                               tronResponse.TryGetProperty("txid", out var txid) ? txid.GetString() : 
-                               "NFT transfer created successfully";
-
-                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
-                    {
-                        TransactionResult = txId
-                    };
-                    response.IsError = false;
-                    response.Message = "TRON NFT transfer sent successfully";
+                    var actual = Convert.ToHexString(new EthECKey(privateKey).GetPubKey());
+                    var supplied = publicKey.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
+                        ? publicKey[2..] : publicKey;
+                    if (!string.Equals(actual, supplied, StringComparison.OrdinalIgnoreCase))
+                        throw new ArgumentException("NFT signing key does not match the supplied public key.");
                 }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to send TRON NFT transfer: {httpResponse.StatusCode}");
-                }
+                var hash = await ExecuteNativeRuntimeAsync(client => client.SendNftAsync(sender,
+                    recipient, tokenAddress, tokenId, privateKey, memo));
+                response.Result = new Web3NFTTransactionResponse { TransactionResult = hash, SendNFTTransactionResult = hash };
+                response.Message = "TRC721 safe transfer confirmed by solidified contract receipt.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref response, $"Error sending TRON NFT transfer: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error sending TRON NFT: {ex.Message}", ex);
             }
-
             return response;
         }
 
@@ -421,64 +185,30 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
+                ArgumentNullException.ThrowIfNull(request);
+                // Own the validated interface input before the runtime lease can await.
+                var asset = TronNativeTransferClient.ParseNftAddress(request.NFTTokenAddress);
+                var privateKey=request.OwnerPrivateKey;var publicKey=request.OwnerPublicKey;var seed=request.OwnerSeedPhrase;
+                if (string.IsNullOrWhiteSpace(privateKey) || !string.IsNullOrWhiteSpace(seed))
+                    throw new ArgumentException("An explicit owner private signing key is required; seed phrases are not accepted.");
+                if (!string.IsNullOrWhiteSpace(publicKey))
                 {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
+                    var actual = Convert.ToHexString(new EthECKey(privateKey).GetPubKey());
+                    var supplied = publicKey.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
+                        ? publicKey[2..] : publicKey;
+                    if (!string.Equals(actual, supplied, StringComparison.OrdinalIgnoreCase))
+                        throw new ArgumentException("NFT signing key does not match the supplied public key.");
                 }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.NFTTokenAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "NFT token address is required");
-                    return result;
-                }
-
-                // TRC-721 burn function - transfer NFT to zero address (burn)
-                var burnData = new
-                {
-                    owner_address = request.OwnerPublicKey ?? "",
-                    contract_address = request.NFTTokenAddress,
-                    function_selector = "burn(uint256)",
-                    parameter = request.Web3NFTId.ToString("X").PadLeft(64, '0'), // Token ID as hex
-                    fee_limit = 100000000,
-                    call_value = 0
-                };
-
-                var json = JsonSerializer.Serialize(burnData);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var httpResponse = await _httpClient.PostAsync("/wallet/triggersmartcontract", content);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var tronResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    var txId = tronResponse.TryGetProperty("txID", out var txID) ? txID.GetString() : 
-                               tronResponse.TryGetProperty("txid", out var txid) ? txid.GetString() : 
-                               "NFT burn transaction created";
-
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
-                    {
-                        TransactionResult = txId
-                    };
-                    result.IsError = false;
-                    result.Message = "TRON NFT burned successfully";
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"Failed to burn TRON NFT: {httpResponse.StatusCode} - {errorContent}");
-                }
+                var hash = await ExecuteNativeRuntimeAsync(client => client.BurnNftAsync(asset.Contract, asset.TokenId, privateKey));
+                result.Result = new Web3NFTTransactionResponse { TransactionResult = hash };
+                result.Message = "TRC721 burn extension confirmed by solidified contract receipt.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error burning NFT: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error burning TRON NFT: {ex.Message}", ex);
             }
             return result;
         }
@@ -491,55 +221,59 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest transaction)
         {
             var response = new OASISResult<IWeb3NFTTransactionResponse>();
-
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Create TRON NFT mint transaction
-                var mintData = new
-                {
-                    to = "0x0", // Default to zero address for minting
-                    tokenId = Guid.NewGuid().ToString(),
-                    tokenURI = "https://api.trongrid.io/nft/metadata/" + Guid.NewGuid().ToString(),
-                    contractAddress = "TRC721_CONTRACT_ADDRESS"
-                };
-
-                var json = JsonSerializer.Serialize(mintData);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var httpResponse = await _httpClient.PostAsync("/wallet/triggersmartcontract", content);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var tronResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    var txId = tronResponse.TryGetProperty("txID", out var txID) ? txID.GetString() : 
-                               tronResponse.TryGetProperty("txid", out var txid) ? txid.GetString() : 
-                               "NFT minted successfully";
-
-                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
-                    {
-                        TransactionResult = txId
-                    };
-                    response.IsError = false;
-                    response.Message = "TRON NFT minted successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to mint TRON NFT: {httpResponse.StatusCode}");
-                }
+                ArgumentNullException.ThrowIfNull(transaction);
+                transaction=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.NftMintIntent.Capture(transaction);
+                if(transaction.NFTStandardType.HasValue && transaction.NFTStandardType.Value!=Core.Enums.NFTStandardType.TRC721)
+                    throw new ArgumentException("This TRON adapter mints TRC721 NFTs only.",nameof(transaction.NFTStandardType));
+                if(transaction.OnChainProvider.HasValue && transaction.OnChainProvider.Value!=Core.Enums.ProviderType.TRONOASIS
+                    && transaction.OnChainProvider.Value!=Core.Enums.ProviderType.Default)
+                    throw new ArgumentException("This native mint requires TRONOASIS or Default.",nameof(transaction.OnChainProvider));
+                if (transaction.Amount != 1 || (transaction.NumberToMint.HasValue && transaction.NumberToMint != 1))
+                    throw new ArgumentException("This TRC721 collection extension mints exactly one explicit token ID per transaction.");
+                if (transaction.MintedByAvatarId == Guid.Empty)
+                    throw new ArgumentException("MintedByAvatarId is required for minter signing-wallet resolution.");
+                if (transaction.MetaData == null
+                    || !transaction.MetaData.TryGetValue("MintFunctionSignature", out var signature)
+                    || signature != "mint(address,uint256,string)"
+                    || !transaction.MetaData.TryGetValue("TokenAddress", out var contract)
+                    || string.IsNullOrWhiteSpace(contract)
+                    || !transaction.MetaData.TryGetValue("TokenId", out var id)
+                    || !System.Text.RegularExpressions.Regex.IsMatch(id ?? "", "\\A[0-9]+\\z")
+                    || !System.Numerics.BigInteger.TryParse(id, out var tokenId)
+                    || tokenId >= (System.Numerics.BigInteger.One << 256))
+                    throw new ArgumentException("Explicit mint(address,uint256,string) extension, TokenAddress and uint256 TokenId are required in MetaData.");
+                if (string.IsNullOrWhiteSpace(transaction.JSONMetaDataURL))
+                    throw new ArgumentException("JSONMetaDataURL must identify the NFT metadata; no URI is generated implicitly.");
+                if (transaction.StoreNFTMetaDataOnChain == true || transaction.FreezeMetadata == true
+                    || (transaction.RoyaltyPercentage.HasValue && transaction.RoyaltyPercentage != 0))
+                    throw new ArgumentException("On-chain metadata, freeze and royalties require explicit collection support.");
+                var mintedByAvatarId = transaction.MintedByAvatarId;
+                var metadataUri = transaction.JSONMetaDataURL;
+                var memo = transaction.MemoText;
+                var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(mintedByAvatarId,
+                    Core.Enums.ProviderType.TRONOASIS, showPrivateKeys: true);
+                if (wallet.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IProviderWallet,IWeb3NFTTransactionResponse>(wallet);
+                if (wallet.Result == null || wallet.Result.AvatarId != mintedByAvatarId || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
+                    throw new InvalidOperationException("Exact requesting avatar TRON signing wallet required.");
+                var resolvedRecipient=await NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.NftMintRecipient.ResolveAsync(transaction,wallet.Result.WalletAddress,
+                    id=>WalletManager.GetAvatarDefaultWalletByIdAsync(id,Core.Enums.ProviderType.TRONOASIS),
+                    username=>WalletManager.GetAvatarDefaultWalletByUsernameAsync(username,providerType:Core.Enums.ProviderType.TRONOASIS),
+                    email=>WalletManager.GetAvatarDefaultWalletByEmailAsync(email,Core.Enums.ProviderType.TRONOASIS));
+                if(resolvedRecipient.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<string,IWeb3NFTTransactionResponse>(resolvedRecipient);
+                var recipient=resolvedRecipient.Result;
+                var hash = await ExecuteNativeRuntimeAsync(client => client.MintNftAsync(wallet.Result.WalletAddress,
+                    recipient, contract, tokenId, metadataUri, wallet.Result.PrivateKey, memo));
+                var nft = NativeNftDescriptor(contract + "/" + tokenId.ToString(System.Globalization.CultureInfo.InvariantCulture),metadataUri);
+                nft.MintedByAvatarId=mintedByAvatarId;nft.SendToAddressAfterMinting=recipient;
+                response.Result = new Web3NFTTransactionResponse { TransactionResult = hash, Web3NFT = nft,
+                    Web3NFTs = new List<IWeb3NFT> { nft } };
+                response.Message = "TRC721 mint extension confirmed by solidified contract receipt.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref response, $"Error minting TRON NFT: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error minting TRON NFT: {ex.Message}", ex);
             }
 
             return response;

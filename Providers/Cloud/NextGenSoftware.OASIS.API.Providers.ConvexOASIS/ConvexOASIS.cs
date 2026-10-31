@@ -22,19 +22,20 @@ namespace NextGenSoftware.OASIS.API.Providers.ConvexOASIS
 {
     /// <summary>
     /// OASIS provider for Convex — real-time reactive serverless backend accessed via
-    /// Convex HTTP Actions API (no SDK required; uses System.Net.Http).
+    /// Convex Functions HTTP API (no SDK required; uses System.Net.Http).
     ///
     /// Convex is a document database with built-in real-time sync.  This provider targets
     /// three Convex tables: oasis_avatars, oasis_avatar_details, oasis_holons.
     ///
-    /// The provider calls HTTP actions exposed by a companion Convex deployment that wraps
-    /// the Convex query/mutation functions.  The expected HTTP action endpoints (deployed
+    /// The provider calls actions exposed by a companion Convex deployment that wraps
+    /// the Convex query/mutation functions. The expected function endpoints (deployed
     /// in the user's Convex project) are:
     ///
     ///   POST /api/action  — body: { "path": "oasis/avatars:upsertAvatar", "args": {...} }
     ///
-    /// Because Convex HTTP actions are user-defined, this provider ships with a documented
-    /// companion functions file (convex/oasis.ts) that must be deployed to the user's project.
+    /// The referenced oasis/avatars and oasis/holons modules must be provisioned in the
+    /// deployment. Their companion implementation is not currently included here;
+    /// native acceptance remains open until those functions are implemented and verified.
     ///
     /// Constructor parameters:
     ///   deploymentUrl — Convex deployment URL (e.g. "https://your-deployment.convex.cloud")
@@ -53,10 +54,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ConvexOASIS
         };
 
         public ConvexOASIS(string deploymentUrl, string deployKey)
+            : this(deploymentUrl, deployKey, new HttpClient()) { }
+
+        public ConvexOASIS(string deploymentUrl, string deployKey, HttpClient httpClient)
         {
             _deploymentUrl = deploymentUrl.TrimEnd('/');
-            _http = new HttpClient();
-            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", deployKey);
+            _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Convex", deployKey);
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             ProviderName = "ConvexOASIS";
             ProviderDescription = "Convex provider (reactive serverless backend via HTTP Actions API)";
@@ -73,13 +77,21 @@ namespace NextGenSoftware.OASIS.API.Providers.ConvexOASIS
 
         private async Task<JsonElement> CallActionAsync(string path, object args)
         {
-            var body = new { path, args };
-            var content = new StringContent(Ser(body), Encoding.UTF8, "application/json");
-            var response = await _http.PostAsync($"{_deploymentUrl}/api/action", content);
+            var body = new { path, args, format = "json" };
+            using var content = new StringContent(Ser(body), Encoding.UTF8, "application/json");
+            using var response = await _http.PostAsync($"{_deploymentUrl}/api/action", content);
+            response.EnsureSuccessStatusCode();
             var raw = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode) throw new Exception($"Convex HTTP {(int)response.StatusCode}: {raw}");
             using var doc = JsonDocument.Parse(raw);
-            return doc.RootElement.Clone();
+            var root = doc.RootElement;
+            if (root.ValueKind != JsonValueKind.Object || !root.TryGetProperty("status", out var status)
+                || status.ValueKind != JsonValueKind.String)
+                throw new JsonException("Convex function response omitted its status envelope.");
+            if (status.GetString() == "error")
+                throw new InvalidOperationException("Convex function execution failed.");
+            if (status.GetString() != "success" || !root.TryGetProperty("value", out var value))
+                throw new JsonException("Convex function response requires success status and an explicit value.");
+            return value.Clone();
         }
 
         // Helper: call an action and return the "value" field as a list of dictionaries
@@ -87,13 +99,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ConvexOASIS
         {
             var root = await CallActionAsync(path, args);
             var results = new List<Dictionary<string, JsonElement>>();
-            if (root.ValueKind == JsonValueKind.Array)
-                foreach (var item in root.EnumerateArray())
-                {
-                    var dict = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
-                    foreach (var p in item.EnumerateObject()) dict[p.Name] = p.Value.Clone();
-                    results.Add(dict);
-                }
+            if (root.ValueKind != JsonValueKind.Array) throw new JsonException("Convex list function must return an array.");
+            foreach (var item in root.EnumerateArray())
+            {
+                if (item.ValueKind != JsonValueKind.Object) throw new JsonException("Convex list entries must be objects.");
+                var dict = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
+                foreach (var p in item.EnumerateObject()) dict[p.Name] = p.Value.Clone();
+                results.Add(dict);
+            }
             return results;
         }
 
@@ -232,7 +245,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ConvexOASIS
         public override OASISResult<bool> DeleteAvatarByUsername(string u, bool softDelete = true) => DeleteAvatarByUsernameAsync(u, softDelete).Result;
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool softDelete = true) { var a = await LoadAvatarByEmailAsync(e); if (a.IsError || a.Result == null) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not found."); return r; } return await DeleteAvatarAsync(a.Result.Id, softDelete); }
         public override OASISResult<bool> DeleteAvatarByEmail(string e, bool softDelete = true) => DeleteAvatarByEmailAsync(e, softDelete).Result;
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string pk, bool softDelete = true) { if (Guid.TryParse(pk, out Guid id)) return await DeleteAvatarAsync(id, softDelete); return await DeleteAvatarByUsernameAsync(pk, softDelete); }
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string pk, bool softDelete = true)
+            => GuidProviderKeyDeletion.DeleteAvatarAsync(pk, softDelete, DeleteAvatarAsync);
         public override OASISResult<bool> DeleteAvatar(string pk, bool softDelete = true) => DeleteAvatarAsync(pk, softDelete).Result;
 
         // ─── AvatarDetail ─────────────────────────────────────────────────────────

@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="02759f0c-3835-44d9-b521-5395be867eba" name="david@OASISOMEGA 2026-10-26 14:01:23" runUser="OASISOMEGA\david" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-26T14:01:23.3277892-05:00" queuing="2026-10-26T14:01:23.3277894-05:00" start="2026-10-26T14:01:19.3423452-05:00" finish="2026-10-26T14:01:23.3311396-05:00" />
+  <TestSettings name="default" id="2ac0491e-adc4-4566-b2c9-88627ce55142">
+    <Deployment runDeploymentRoot="david_OASISOMEGA_2026-10-26_14_01_23" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="49894e22-2461-4f4c-93f5-80b4855e5574" testId="ade85297-d35b-1a31-5613-ae10d2aa0670" testName="RealEncryptedPutAndDeleteRequireBoundFinalOriginals" computerName="OASISOMEGA" duration="00:00:03.4758423" startTime="2026-10-26T14:01:19.7893339-05:00" endTime="2026-10-26T14:01:23.2745919-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="49894e22-2461-4f4c-93f5-80b4855e5574">
+      <Output>
+        <StdOut>NEAR_ORDINARY_STORAGE_ACK_VERIFIED {"key":"holon:cb7486a8-9f90-45ae-9418-8827d43550e1","put":"A3dc3VPVUvjSXmdW5SCGKWn1jW8DNEztzqYiZV8cfiyd","deleted":"CYaYVMM8U1dUFBPRh4heGNkf5phR6BZgyqb9A7dna5a1"}</StdOut>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="RealEncryptedPutAndDeleteRequireBoundFinalOriginals" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.integrationtests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.integrationtests.dll" id="ade85297-d35b-1a31-5613-ae10d2aa0670">
+      <TestCategory>
+        <TestCategoryItem TestCategory="RetainedSignedInspection" />
+      </TestCategory>
+      <Execution id="49894e22-2461-4f4c-93f5-80b4855e5574" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.NearOrdinaryStorageAcknowledgementTests" name="RealEncryptedPutAndDeleteRequireBoundFinalOriginals" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="ade85297-d35b-1a31-5613-ae10d2aa0670" executionId="49894e22-2461-4f4c-93f5-80b4855e5574" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="1" executed="1" passed="1" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+  </ResultSummary>
+</TestRun>

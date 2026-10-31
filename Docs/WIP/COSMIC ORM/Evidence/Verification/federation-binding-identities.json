@@ -1,0 +1,22 @@
+[
+  {
+    "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\Queries\\CosmicFederationIntentFingerprint.cs",
+    "Hash": "1069163E37A6E5E249C33449176C651AB2870FB9148D9740D0DECEB87B6436AB"
+  },
+  {
+    "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\CosmicFederationIntentFingerprintTests.cs",
+    "Hash": "0B1F5A544B8B6FE3F464A735421A3416FD1DB2700468EE58D585DE85DEB476AF"
+  },
+  {
+    "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+    "Hash": "A41D737BDA952FC336ED874FBB12998C300B424174B80F7085080118A480C39E"
+  },
+  {
+    "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\netstandard2.1\\NextGenSoftware.OASIS.API.Core.dll",
+    "Hash": "3124E161DD2CACE79B0543CF1CAFFD69C0F276873B02E85315F42D4CD7DFB628"
+  },
+  {
+    "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+    "Hash": "A41D737BDA952FC336ED874FBB12998C300B424174B80F7085080118A480C39E"
+  }
+]
