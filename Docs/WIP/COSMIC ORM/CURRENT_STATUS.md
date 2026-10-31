@@ -37,7 +37,7 @@ Seventeen new profiles have native/C#/CLI and local HTTP/Mongo/isolation proofs:
 These are bounded unsigned public projections, not owned native persistence or independent chain settlement proofs. Each has one ready Mongo federation preset family. HTTP gates verify native3/2, paired5/4, exact IDs/provenance/visibility and query receipts; controlled bearer/usage authority is not production auth/billing proof.
 
 - Optional seventeen-source candidate:68 presets,19 settings, preserved under `LocalState/COSMIC/HostedSourceRolloutCurrent/seventeen-source-public-{before,candidate}-variables.dpapi`. Earlier candidates remain preserved; do not apply them sequentially.
-- All four added Sei presets pass the shipping planner (1 test, zero skips); seven application-scope controls pass. Prior profiles retain their recorded planner proofs.
+- The complete seventeen-source candidate now passes the shipping planner: all68actual presets using shipping provider/Mongo capabilities (1 test, zero skips). Seven application-scope controls also pass. This is offline planning, not hosted execution.
 - Read-only hosted reconciliation now confirms the original snapshot still matches exactly: zero changed keys,19 planned settings, no mutation or deployment.
 - Public review, planner TRX and reconciliation: `TestResults/HostedCqlIntegrationCurrent/`. No protected values in reports.
 - Core supports27 unsigned-read tariff types; that is not the hosted-provider count. Query pricing never grants signing/storage authority.

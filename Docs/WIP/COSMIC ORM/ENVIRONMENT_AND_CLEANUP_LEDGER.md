@@ -1837,3 +1837,13 @@ Added explicit routing-v1 selection, durable fixture reuse and independent-visit
 - `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingCurrent/foreign.dpapi`: 630 bytes, created by explicit foreign-visitor setup; no local process/port, preserve protected identity/intent/ACK until cohort review and normal session expiry. No record/database created. Never log contents or regenerate identity.
 
 - `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingCurrent/foreign.intent.json`: 103 bytes, created by explicit foreign-visitor setup; no local process/port, preserve protected identity/intent/ACK until cohort review and normal session expiry. No record/database created. Never log contents or regenerate identity.
+
+31 October 2026: planned full17source/68preset shipping-planner gate reuses retained public review, .NET10.0.401, NuGet cache and existing bounded API build outputs. No provider activation/network/session/database/service/download. Regenerable log/TRX TestResults/HostedCqlIntegrationCurrent/seventeen-prepared-review.{log,trx}; sizes pending; disposable after compact summary/hash recorded, reusable bin/obj retained while active.
+
+
+### Complete seventeen-source planner acceptance — 31 October 2026
+The actual retained public-only candidate (17 profiles,68 presets,66,092 bytes) passes the shipping planner as one batch using real source descriptors and Mongo capabilities. All source instances remain inactive. Result:1passed,0failed,0skipped. Test: `ActualSeventeenSourceCandidatePlansAllSixtyEightPresetsWithShippingCapabilities`; explicit `COSMIC_CQL_PUBLIC_REVIEW` selects the retained public review. No native I/O, account, save, host mutation or deployment. TRX: `TestResults/HostedCqlIntegrationCurrent/seventeen-prepared-review.trx`, SHA256 `adff4b0c51d06e490ccb299f02c700eb99c157cc2c2296ab7af605d2ebe9a8cf`. Review SHA256 `6378320a11b99a255a136e274a255045440f04fd27cc04100243e4602510d3e3`. Hosted acceptance remains red.
+
+- `C:/Source/OASIS-cosmic/TestResults/HostedCqlIntegrationCurrent/seventeen-prepared-review.trx`: 3386 bytes; completed owned gate, no active process/port; regenerable evidence, disposable after summary/hash retention. Existing build outputs remain reusable.
+
+- `C:/Source/OASIS-cosmic/TestResults/HostedCqlIntegrationCurrent/seventeen-prepared-review.log`: 810709 bytes; completed owned gate, no active process/port; regenerable evidence, disposable after summary/hash retention. Existing build outputs remain reusable.
