@@ -13,7 +13,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using MongoProvider=NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 using SqliteProvider=NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 
-public sealed class ReplicaBaselineRepairCommandTests
+public sealed partial class ReplicaBaselineRepairCommandTests
 {
     private sealed class NativeFact : FactAttribute
     {

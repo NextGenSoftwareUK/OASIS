@@ -91,6 +91,18 @@ public class ReplicaBaselineRepairRequestTests
     }
 
     [Fact]
+    public void ExplicitRouteMatrixRejectsSameStoreAndUnverifiedPairs()
+    {
+        ReplicaBaselineRepairCommand.ValidateRoute(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS,
+            ReplicaBaselineRepairCommand.TargetProfile("MongoDBOASIS"));
+        Assert.Throws<ArgumentException>(()=>ReplicaBaselineRepairCommand.ValidateRoute(
+            NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS,ReplicaBaselineRepairCommand.TargetProfile("MongoDBOASIS")));
+        Assert.Throws<ArgumentException>(()=>ReplicaBaselineRepairCommand.TargetProfile("Neo4jOASIS"));
+        var reviewed=Reviewed() with{SourceProvider="SQLLiteDBOASIS",TargetProvider="MongoDBOASIS",TargetFile=null,TargetStoreIdentity="mongo-store:reviewed"};
+        Assert.Equal(reviewed,ReplicaBaselineRepairCommand.ParseReviewedRequest(JsonSerializer.SerializeToUtf8Bytes(reviewed)));
+    }
+
+    [Fact]
     public void OversizeInputIsRejectedBeforeJsonOrNativeWork()
         =>Assert.Throws<InvalidDataException>(()=>ReplicaBaselineRepairCommand.ParseReviewedRequest(new byte[8193]));
 }
