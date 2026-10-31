@@ -820,3 +820,7 @@ Use `--base-public`, `--avalanche-public` or `--bnb-public` with the correspondi
 `dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj --no-build --no-restore -- --optimism-public LocalState/COSMIC/HostedOptimismPublicSourceCurrent/source.json`
 
 Uses the spaced/commented OptimismPublicWalkthrough, shared HolonManager/LINQ path and retained source catalogue. Native3/2 and actualCLI pass; HTTP/Mongo and hosting remain pending. Exact wei strings and RPC-reported finalized block hashes; no wallet/transaction/database creation.
+
+### Linea and Scroll public balances
+
+Use `--linea-public LocalState/COSMIC/HostedLineaPublicSourceCurrent/source.json` or `--scroll-public LocalState/COSMIC/HostedScrollPublicSourceCurrent/source.json` with the same console command above. Spaced/commented walkthroughs use HolonManager/LINQ, exact wei strings and RPC-reported finalized block hashes. Native3/2 and actualCLI pass; HTTP/Mongo/hosting remain pending. No wallet, transaction or database creation.
