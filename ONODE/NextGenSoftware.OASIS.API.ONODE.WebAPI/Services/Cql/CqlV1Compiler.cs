@@ -81,7 +81,8 @@ public static partial class CqlV1Compiler
     internal static IReadOnlyList<ProviderType> ReadProfiles { get; } = Array.AsReadOnly(new[]
     {
         ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS, ProviderType.Neo4jOASIS,
-        ProviderType.AzureCosmosDBOASIS, ProviderType.ActivityPubOASIS, ProviderType.IPFSOASIS, ProviderType.SOLIDOASIS
+        ProviderType.AzureCosmosDBOASIS, ProviderType.ActivityPubOASIS, ProviderType.IPFSOASIS, ProviderType.SOLIDOASIS,
+        ProviderType.AWSS3OASIS
     });
     public static bool SupportedReadProfile(ProviderType type) => ReadProfiles.Contains(type);
 
@@ -91,7 +92,7 @@ public static partial class CqlV1Compiler
         if (name.Length > 40 || !Enum.TryParse<ProviderType>(name, false, out var type) ||
             type.ToString() != name || !(includeCloudReadProfile ? SupportedReadProfile(type) : Supported(type)))
             throw new ArgumentException(includeCloudReadProfile
-                ? "Select an enrolled MongoDB, SQLite, Neo4j, Cosmos DB, ActivityPub, IPFS or SOLID read profile, or omit Provider for the current default."
+                ? "Select an enrolled MongoDB, SQLite, Neo4j, Cosmos DB, ActivityPub, IPFS, SOLID or AWS S3 read profile, or omit Provider for the current default."
                 : "Select MongoDBOASIS, SQLLiteDBOASIS or Neo4jOASIS, or omit Provider for the current default.");
         return type;
     }
@@ -247,7 +248,7 @@ public static partial class CqlV1Compiler
         if (orderBy == "None")
         {
             if (descending || !unorderedFederation && (!includeCloudReadProfile
-                || provider is not (ProviderType.ActivityPubOASIS or ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS)))
+                || provider is not (ProviderType.ActivityPubOASIS or ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS or ProviderType.AWSS3OASIS)))
                 throw new ArgumentException("OrderBy None requires an unsorted protocol read profile or an explicitly unordered federation, without Descending.");
             var pointPage = query.Skip(skip);
             if (take.HasValue) pointPage = pointPage.Take(take.Value);
