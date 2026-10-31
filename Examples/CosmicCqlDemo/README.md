@@ -726,3 +726,24 @@ TRON stays read-only. The stop button verifies and removes the exact temporary
 Mongo fixture, then stops owned services while retaining the original TRON source,
 key and ledger. This uses local TRE, not a public chain. Metadata/text/order/full
 parity remain separate work. [Native proof and limits](../../Docs/WIP/COSMIC%20ORM/TRON_CQL_MVP.md).
+
+
+### TON native TVM + Mongo demo
+
+```powershell
+./Scripts/TestHosts/Run-CosmicTonCqlNative.ps1 -Federated -Serve
+```
+
+Open http://127.0.0.1:5109/ when ready. **Query all records** returns three
+canonical encrypted TON holons and two Mongo copies; **Query two-record subset**
+returns two from each source. The same C# membership query runs through
+HolonManager with explicit provider scope and trusted source catalogues.
+
+This executes native TON contract bytecode in local TVM emulation. It makes no
+public-chain or finality claim and spends no real tokens. Queries leave the
+retained source unchanged. Use the stop button so the runner verifies/removes
+only the temporary Mongo fixture and stops its services; the original native
+snapshot, protected key, seed and receipts remain outside TestResults.
+
+The shared spaced/commented C# walkthrough is `IdentityFederationWalkthrough.cs`;
+its HTTP page is `IdentityFederationApiHost.cs`. [Proof and limits](../../Docs/WIP/COSMIC%20ORM/TON_CQL_MVP.md).

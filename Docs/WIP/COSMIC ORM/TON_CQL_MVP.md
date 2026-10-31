@@ -79,11 +79,35 @@ Evidence `TestResults/TonCqlCurrent/ton-adapter-cql.trx`, SHA256 `71C876F8D7AD73
 
 The first adapter test incorrectly duplicated IDs in its trusted catalogue and failed before CQL execution (native saves/loads already passed). Failed TRX `Archive/68E6E1FB2C188A110EF4AA6193EDAE620AAFBC2A29558EA01F2A53C53AD95362-adapter-catalogue-failed.trx` is retained. A separate explicitly opted-in maintenance test verified the original three known synthetic records/version/creator, every four ACK source/code/operation identities, no pending outcome and unchanged source bytes before exact teardown: `ton-fixture-inspection.trx`, SHA256 `4E6B391E0565D71A71F91EA25999BEBEA9429309F9E6ABD2166D40EBE1AF9ED7`,1passed. The corrected catalogue is distinct and checked for capture errors. No production source was reset/replayed.
 
-## Next red demo gates
+## Retained source, federation and browser milestone
 
-1. Create one retained owned source, protected key and setup/ACK manifest outside TestResults; verify it through actual adapter CQL after process reopen. Current acceptance uses verified disposable synthetic fixtures, now removed.
-2. Add Mongo SDK/HTTP/browser all5/subset4, exact temporary fixture cleanup, then publish a clearly labelled local-TVM catalogue card. TON stays absent from the public demo catalogue until these gates pass.
-3. Preserve the broader red work: signed public-network transport, production packaging/toolchain review, injected mid-flight/commit/ACK faults, optimistic CAS, full history/ORM/HyperDrive semantics and deferred general query parity. No node/finality/network-wide snapshot claim.
+One reusable owned source is now retained in `LocalState/COSMIC/TonCql`: CurrentUser-DPAPI key, immutable source/actor/three-ID seed, native snapshot and four physical operation ACKs. Setup writes a durable intent before deployment/saves; interrupted setup or missing original key refuses retry/reseed. Size at checkpoint:10files/221,347bytes; protected key262bytes. These files stay outside TestResults and must be retained together.
+
+```powershell
+# Native verification / independent reopen of the existing source:
+./Scripts/TestHosts/Run-CosmicTonCqlNative.ps1
+
+# Mongo federation and browser demo; open http://127.0.0.1:5109/ when ready:
+./Scripts/TestHosts/Run-CosmicTonCqlNative.ps1 -Federated -Serve
+```
+
+Initial native setup/query passed1test14s; a separate full runner invocation reopened the same source and passed1test8s. Hashes of source, seed, protected key and every ACK remain identical across that reopen. Current seed SHA256 `8682D1EA05A4C5C4B5FB6CE57B0960BC1678C4F8E4C9D0AEEE3A115C75A51E7D`; native source JSON SHA256 `BFA3DF9BD77229FBB0804BEE553CEF851B8B577BF937F186781ABD6E75312DAA`.
+
+The paired C# walkthrough, HTTP host and both browser buttons returned all5/subset4 physical rows, with3/2 distinct selected identities and both provider labels. The extra Mongo identity is excluded; forged actor/unknown preset reject, and inactive TON returns503 without partial rows. TON is read-only throughout pairing; native snapshot/seed/ACK hashes remain unchanged. Exact temporary `cosmic_cql_mongo_ton_demo` was verified/dropped and confirmed absent. Mongo27029 and localHTTP5109 stopped; pending/ready/setup intents absent; retained source/key untouched.
+
+| Evidence under `TestResults/TonCqlCurrent` | Result | SHA256 |
+| --- | --- | --- |
+| `Archive/480394AF108BAC8315344D7F0F7D7320BA879663C237A8FBAD31C4F87584BEAE-ton-retained-native.trx` | initial retained native1passed | filename hash |
+| `ton-retained-native.trx` | independent retained reopen1passed | `0D730391BC16251DB36EA24A53ABED6639A453F7FE23AF63C7374CD435FA19A3` |
+| `ton-mongo-federation.trx` | SDK/HTTP/browser/cleanup1passed; serve duration2m46s | `0D059A6CC606DEAF6D62EB18B44C2846033EC737C780B0126B36FB59C0845DBB` |
+
+Browser images `ton-mongo-all.png`/`ton-mongo-subset.png`. Source/reopen hashes `pre-reopen-hashes.json`; logs `retained-demo-current.log`, `ton-mongo-federation.log`, `retained-reopen-runner.log`. Initial copied-host wiring failed compilation before any data mutation; corrected current consumer build passed. Original key was preserved/reused, not regenerated.
+
+Sandbox **CQL Playground section14** is published and browser-verified: Web4Site main `107ce90d996c6ab3b4326b66f819db8f9b6876ad`, Production `7452230200` success. Expanded command and fixed5109 link are correct. `ton-catalogue-public.png` SHA256 `8510E561749FAA8A93A3B455F383CABEFEA01002D3E981E15FA328BD69D40F65`. The introduction now distinguishes hosted API demos from explicitly labelled local emulators; no hosted sign-in is forwarded.
+
+## Remaining red scope
+
+This closes the local-TVM ID-query/federation demo gate, not signed public TON access, network/finality, production packaging/toolchain review, mid-flight/commit/ACK fault schedules, optimistic CAS, full history/ORM/HyperDrive semantics or general content/query parity. Keep those rows red. The next breadth integration should reuse existing preserved proofs rather than deepen this green demo.
 
 Full goal remains open. See [current status](CURRENT_STATUS.md), [after-demo backlog](AFTER_DEMO_BACKLOG.md) and [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 
