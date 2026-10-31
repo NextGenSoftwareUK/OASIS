@@ -36,10 +36,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 if (_holonManager == null)
                 {
+                    // Ordinary V2 reads also need an unbound manager: binding the
+                    // node default here turns Default into an explicit provider
+                    // before request-owned HyperDrive balancing can run.
                     if(AdmittedStorageManagerAcquisition.TryCreate(
                         ()=>OASISBootLoader.OASISBootLoader.OASISDNA,
                         ()=>ProviderManager.Instance.CurrentStorageProvider,
-                        (provider,dna)=>new HolonManager(null,dna,ProviderManager.Instance),out HolonManager admitted))
+                        (provider,dna)=>new HolonManager(null,dna,ProviderManager.Instance),out HolonManager admitted, admissionOnly: false))
                     {
                         _holonManager=admitted;
                         return _holonManager;

@@ -1779,3 +1779,10 @@ Sixteen-source outcome:protectedbefore67,094B/candidate107,366B retained;1new4pr
 
 ### Sei nativewire qualification
 31October2026:strictSei qualification report preservedas EvmBreadthReadinessCurrent/Sei-strict-canonical-failure.json; originalgenesisreplyretained. Probeexplicitlynormalizes onlySei32byte mixedcasehashes,recordsoriginalhashes,keepschain/finalized/EIP1898readrequirements. No shippingreaderchange/sourceidentity/DB/environment/download. ExistingboundedPowerShellHTTP reused, rawupdatedSei.json.
+
+Publicationdone:oneapprovedparentdevpush57174def3/Core6bbd015 remoteverified. ExistingRailwaydevjob e107f7e5-fb8b-4cce-854b-46ebad7c8600QUEUED; no newlocalruntime/environment. Sanitizedreports approved-release-{deployments,current}.json in existingTestResults/HostedCqlIntegrationCurrent,regenerable. Routing-v1stateabsent/noownerorrecordcreated. Retainjobidentitythroughterminalverification; no redeploytoforceprogress.
+
+### Live routing regression fix
+31October2026:releasebranch reused/Core6bbd015 retained; V2unboundcontrolleracquisition fixed outsidebillingadmission, strictadmittedguard retained. New2actualparameterlesscontrolleracquisition regressions usingexistingAPItesthost/mocks; no newSDK/environment/download. Boundedleasedbuild/raw TestResults/HostedCqlIntegrationCurrent/routing-acquisition*. Routing-v1originalowner/record/3copies preserved,noresave/newsession. No furtherDevelopmentpush.
+
+Routing-v1actualoutcome:retainedcohort 2777B inclprotectedowner/1saveintent/ACK/3replicabaseline; privatehostedrecordnormaltemporarysandboxexpiry,noresave.3explicitreads pass,Defaultreadfailsroutecontract; rawdiagnostic/report retained. Fix13guard/61HTTPtests0skips; initialfixtureloggingfailures retained separately, correctedfixturepasses. ExistingSDK/buildcache only,noinstalls/newenvironment/nativeDB. Followupfixnotdeployed.
