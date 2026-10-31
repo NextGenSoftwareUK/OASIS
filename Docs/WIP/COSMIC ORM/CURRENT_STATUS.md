@@ -4,7 +4,7 @@ Updated 31 October 2026. Programme incomplete; priority is actual hosted sandbox
 
 ## Exact next step
 
-1. Establish the next real hosted provider (Oracle/IPFS/SOLID/Solana/AWS; Azure pending/free-only). First inspect existing hosted configuration/resources and the preserved broad branch; reuse native implementations/environments. A local launcher or externally unreachable agent service does not satisfy hosted acceptance.
+1. Establish the next real hosted native service, starting with existing-resource feasibility for Oracle/IPFS. Read-only protected configuration inspection found no Oracle/AWS/SOLID entries; IPFS points to localhost:5001 with an inherited catalogue, not a verified hosted daemon. Next inspect reusable hosted/Linux resources and preserved IPFS key-set implementation, then provision an owned native demo source. No new paid infrastructure is authorized by this inspection. Local launchers do not satisfy hosted acceptance.
 2. For each provider: explicitly enroll actual native read capabilities, expose ready filtered multi-record examples plus one Mongo-paired preset, verify the normal public sandbox visitor flow and isolation. Keep local demo links alongside hosted choices. Do not advertise an unavailable source as working.
 3. Keep deep LINQ/POCO/migrations tooling paused; work only red checklist scopes, freeze greens/cursors unless a reproducible bug is found. HyperDrive implementation is V2 only; legacy is document-only.
 
