@@ -94,7 +94,7 @@ public class CqlHostedSourcesTests
         Assert.All(sources.Describe(), row => Assert.True(row.Available));
         var social = sources.Describe().Single(row => row.Provider == "ActivityPubOASIS");
         Assert.True(social.QueryOnly);
-        Assert.False(social.FederationAvailable); // No unsupported federation claim.
+        Assert.True(social.FederationAvailable); // Actual bounded route admission; each query still needs a complete native plan.
         Assert.True(sources.Describe().Single(row => row.Provider == "MongoDBOASIS").FederationAvailable);
         await sources.StopAsync(default);
     }

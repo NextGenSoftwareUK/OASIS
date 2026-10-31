@@ -292,7 +292,7 @@ public partial class CqlV1Web4Tests
     }
 
     private static (DefaultHttpContext Http, PreparedStorageExecution Policy, Mock<IUsageOutboxStore> Store, List<UsageProviderReceipt> Receipts)
-        Admission(ProviderType type, Guid? reservedActor = null, bool tariff = true)
+        Admission(ProviderType type, Guid? reservedActor = null, bool tariff = true, int maximumProviderAttempts = 512)
     {
         var store = new Mock<IUsageOutboxStore>();
         var receipts = new List<UsageProviderReceipt>();
@@ -302,7 +302,7 @@ public partial class CqlV1Web4Tests
         var handle = new UsageExecutionHandle(new UsageOutboxOperation
         {
             Id = Guid.NewGuid().ToString("D"), UserId = (reservedActor ?? Actor).ToString("D"), ExecutionOwner = "test",
-            Policy = new UsageEndpointPolicy { RequiresProviderMeasurement = true }
+            Policy = new UsageEndpointPolicy { RequiresProviderMeasurement = true, MaximumProviderAttempts = maximumProviderAttempts }
         }, store.Object, new Web4UsageLedgerOptions(), new SubscriptionAuthorizationResult(), Mock.Of<IUsageReservationAuthority>());
         var http = new DefaultHttpContext();
         http.User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, Actor.ToString("D")) }, "test-validated"));
