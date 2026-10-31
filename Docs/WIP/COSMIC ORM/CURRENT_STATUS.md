@@ -16,11 +16,11 @@ Linea/Scroll native+publishedC#/actualCLI3/2 and HTTP/Mongo3/2+5/4/isolation pas
 
 zkSync/Abstract native+publishedC#/CLI and HTTP3/2+Mongo5/4/isolation pass;2Core/4API/6config/2nativeHTTP/2client checks pass. Website links/client proofs pushed5aad1d1. Optional15source/60preset candidate staged separately;8newpresets pass planner,5scope controls pass. Currenthost snapshot exact (17planned settings,no drift). Matching permittedrollout next. Existing13source releasecandidate unchanged.
 
-Monad native/C#/CLI and HTTP3/2+Mongo5/4/isolation pass;1Core/2API/3config/1nativeHTTP/1client checks pass. Website link/clientproof pushed354958e; optional16source/64preset candidate prepared;4newMonadpresets passplanner (1test/0skips),6scopechecks pass. Hostedrollout remainsseparate; approvedroutingdeployment stillBUILDING. Sei explicitnativehashcodec now passes native/publishedC#/actualCLI3/2; HTTP/Mongo next. Existingcanonical profiles retainstrictwireformat. Existing15sourcecandidate unchanged.
+Monad native/C#/CLI and HTTP3/2+Mongo5/4/isolation pass;1Core/2API/3config/1nativeHTTP/1client checks pass. Website link/clientproof pushed354958e; optional16source/64preset candidate prepared;4newMonadpresets passplanner (1test/0skips),6scopechecks pass. Hostedrollout remainsseparate; approvedroutingdeployment stillBUILDING. Sei native/C#/CLI and HTTP3/2+Mongo5/4/isolation pass;1Core/2API/3config/1nativeHTTP/1client checks pass. Website links next. Existingcanonical profiles retainstrictwireformat. Existing15sourcecandidate unchanged.
 
 ## Working copies and release state
 
-- Work/build/test only `C:/Source/OASIS-cosmic`, parent **work/cosmic-cql-google-public**; Core same branch, **6d262913e32fb0ae8e5da6277784df41a67223db** pushed/remote-verified. Parent gitlink/manifest match. Unknown root `logs` preserved.
+- Work/build/test only `C:/Source/OASIS-cosmic`, parent **work/cosmic-cql-google-public**; Core same branch, **56c869ff8de0a520da8c09ba8ebc6f85bbd40ea4** pushed/remote-verified. Parent gitlink/manifest match. Unknown root `logs` preserved.
 - Merged parent origin/Development57174def3; Core6bbd015 already ancestor of current taskCore6d26291. Documentation conflicts resolved preserving both histories/newer provider status. No provider expansion deployed.
 - Approved Railway job e107f7e5-fb8b-4cce-854b-46ebad7c8600,parent57174def3,SUCCESS. Priorlive68fb8cc4-c603-4d16-a97a-0e5a30e364c2,parent0e688ac9c,SUCCESS. Last full eight-source HTTP acceptance remains parent498e3fd7f/deployment4dbe69d0; no fresh source gate inferred from the later deployment.
 - Frozen parent **work/cosmic-cql-hosted-release79fe887e3** / Core **work/cosmic-cql-sandbox-integration6bbd015** unchanged. Broader earlier local-provider source remains preserved on parent237403a75.
@@ -56,7 +56,7 @@ All seven have real native HTTP tests, SDK-owned private Mongo snapshots, exact 
 
 The shared EVM reader has fixed provider/chain/genesis/metadata/path descriptors. Ethereum/Polygon remain root-path-only; Arbitrum uses `/rpc`. No endpoint fallback/latest downgrade. Public balances are address-state projections, not persisted COSMIC holons or independent settlement proofs.
 
-NEAR affected admission checks: **2 API / 11 Core** pass (prior scope results remain in source reports); **26** is the supported unsigned-read tariff catalogue, not the hosted-provider count. Each source still needs explicit permission, tariff, activation and capability admission. Query-only pricing grants no signed writes.
+NEAR affected admission checks: **2 API / 11 Core** pass (prior scope results remain in source reports); **27** is the supported unsigned-read tariff catalogue, not the hosted-provider count. Each source still needs explicit permission, tariff, activation and capability admission. Query-only pricing grants no signed writes.
 
 Prepared seven-source batch: all28actual presets pass the shipping planner with real source/Mongo capabilities (1test/0skips); public-only exporter3controls pass. This is offline planning, not hosted/browser acceptance. [Release preflight](HOSTED_SANDBOX_INTEGRATION_PLAN.md#seven-source-prepared-configuration-review--31-october-2026).
 
