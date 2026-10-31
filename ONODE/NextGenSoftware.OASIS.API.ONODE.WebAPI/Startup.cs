@@ -467,6 +467,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             var storageUsagePolicy=NextGenSoftware.OASIS.API.Core.Services.Subscriptions.ConfiguredStorageAdmission.AddConfiguredStorageAdmission(
                 services,Configuration,subscriptionUsageEnabled,_=>null,
                 ()=>NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance.GetAllRegisteredProviders());
+            if (Configuration["CQL_SOLANA_PUBLIC_SOURCE_JSON"] is string solanaPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaPublicAccountMetadataSource.FromJson(solanaPublicSource)));
             services.AddSingleton<Services.Cql.ICqlHostedSourceRegistry, Services.Cql.CqlHostedSourceRegistry>();
             services.AddSingleton(Services.Cql.CqlHostedQueryExamples.FromConfiguration(Configuration));
             services.AddSingleton(provider => new Services.Cql.CqlHostedSources(
