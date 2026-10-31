@@ -14,7 +14,7 @@ Evidence under `TestResults/Web4SandboxCqlCurrent`:
 | `hosted-repair-8-reviewed-command.log` (sequence8 success) | `9211fe9a24c19dd43454b11e91c2fa5369d28bf51f0439820baa576ffb0b0c5b` |
 | `hosted-repair-after-8.log` (completed obligations/no held SQLite head) | `4679f2115b557eddc3a64ed96a4f67bb2b9eeb13bb95ffeca78082534d698662` |
 
-Reinspection here read preserved evidence only; it did not reconnect to native stores, mutate the host, replay repair operations or retest green scopes. These observations do not certify today's entire queue, general tenant-safe operator APIs, all source/target routes, automatic future-write cutover or larger-store audit admission. Those remain red. Preserve original request/journal/receipt evidence; no replacement requests.
+Reinspection here read preserved evidence only; it did not reconnect to native stores, mutate the host, replay repair operations or retest green scopes. These observations do not certify today's entire queue, general tenant-safe operator APIs, all source/target routes, automatic future-write cutover or larger-store audit admission. Those remain red. All six directed shell routes now have local/native proof as summarized below; remaining limitations concern hosted/operator/cutover scope. Preserve original request/journal/receipt evidence; no replacement requests.
 
 ## Implemented: explicit SQLite initial baseline
 
@@ -183,3 +183,24 @@ The same shell-only owner now supports a fourth explicit route: Neo4j-to-Mongo. 
 Runner: bounded no-restore API/test build under one provider lease, then `Scripts/Sandbox/Test-CqlReplicaBaselineRepair.ps1 -NeoSource` (runner owns its lease; do not nest). Reuses existing stopped pinned Neo container and Mongo runtime/store; no new environment/download. TestResults/ReplicaRepairNativeCurrent/neo-mongo-controls.trx SHA2561D4E1CE655FCE2640D30B451E1C7C79B299A7FBA04A259892405E1B7CB23F4EA; neo-mongo-repair.trx SHA2567164AB4CB27F2828E3B34228F0FF874DBD052AED743488D83959DDFE6B86FFD2. Full API/test build succeeds; existing unrelated warnings remain.
 
 Owned Mongo target cosmic_neo_source_baseline_target dropped only after marker verification and database absence rechecked; nonexistent ..._must_not_create remains absent. Exact Neo root/history/receipt/outbox IDs removed with native absence assertion, shared counters/schema untouched. Application files removed after closure. Durable LocalState/COSMIC/NeoSourceMongoRepairNative retains cleaned fixture568B and lock0B. Owned process handle completed, container inspected exited, no27029/17687/17688listeners. This is local native composition; no hosted execution or full automatic cutover/tenant-safe operator-API claim. X10a/X10b remain red.
+
+## Reviewed targets in Neo4j — pending release
+
+The same reviewed command now supports the remaining Mongo-to-Neo and SQLite-to-Neo routes. TargetProvider Neo4jOASIS, null TargetFile and reviewed TargetStoreIdentity pin the node-configured endpoint/principal via NeoStoreIdentity. This is endpoint/principal binding, not a databaseUUID claim; the provider uses that principal's configured default database. No database selection, URI or credentials come from caller JSON. Native activation operates in the existing configured database; the command does not create databases. Existing history/receipt/current-row absence fences and the same durable application/source completion remain responsible for initialization safety.
+
+All6directed cross-provider routes now have local/native shell composition proof:
+
+| Source | Target | Native proving case |
+| --- | --- | --- |
+| MongoDB | SQLite | ReplicaBaselineRepairCommandTests.ReviewedCommandRepairsActualMongoToSqlite |
+| SQLite | MongoDB | SqliteSourceRepairCommandTests.cs |
+| Neo4j | SQLite | Neo4jSourceBaselineCompletionTests.NativeNeoReviewedRepairCommandUsesConfiguredSourceAndPreservesOriginalBinding |
+| Neo4j | MongoDB | NeoSourceMongoRepairCommandTests.cs |
+| MongoDB | Neo4j | NeoTargetRepairCommandTests.ReviewedCommandRepairsActualMongoToNeoAndPreservesNormalNextDelivery |
+| SQLite | Neo4j | NeoTargetRepairCommandTests.ReviewedCommandRepairsActualSqliteToNeoAndPreservesNormalNextDelivery |
+
+New [Neo target scenarios](../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NeoTargetRepairCommandTests.cs) each commit source1..4 with first enrollment at4, observe the real target lineage barrier, refuse wrong target identity/source digest before a journal exists, initialize the reviewed baseline and preserve source failure details. Completed replay leaves journal bytes unchanged. Independent target loads verify version4/actor, then ordinary replicated5/name/actor. Same-store and non-enrolled providers remain rejected; original ten-field binding remains covered.
+
+Full API/test build passes,21API/schema controls and2native cases pass with zero skips. Runner `Scripts/Sandbox/Test-CqlReplicaBaselineRepair.ps1 -NeoTarget` reuses the existing Mongo and stopped pinned Neo container under its one lease. Evidence TestResults/ReplicaRepairNativeCurrent/neo-target-controls.trx SHA25606D7388773198C9BEE779F9810005B337A3413881A741D4E1D2B83A95B677F31; reviewed-neo-target-repair.trx SHA256B45A5BF7476F8FB776976D6ACF0C9A4BBCBB16F6F7E82D17EB43E15197896971.
+
+Marker-verified owned Mongo source DB removed/absence rechecked; closed owned SQLite source/application files removed; exact Neo target root/history/head/receipt IDs removed and native absence asserted. Only cleaned manifests/locks remain,580B and582B respectively. Both services stopped, container inspected exited, no27029/17687/17688listeners. No hosted mutation/deployment or new environments. All route cells in X10a/X10b stay red: automatic enrollment/cutover, broader hosted and tenant-safe operator acceptance remain unverified.

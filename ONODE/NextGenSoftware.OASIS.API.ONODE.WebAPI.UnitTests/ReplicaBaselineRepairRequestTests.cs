@@ -91,7 +91,7 @@ public class ReplicaBaselineRepairRequestTests
     }
 
     [Fact]
-    public void ExplicitRouteMatrixRejectsSameStoreAndUnverifiedPairs()
+    public void ExplicitRouteMatrixAllowsOnlyTheSixReviewedCrossProviderPairs()
     {
         ReplicaBaselineRepairCommand.ValidateRoute(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS,
             ReplicaBaselineRepairCommand.TargetProfile("MongoDBOASIS"));
@@ -99,7 +99,13 @@ public class ReplicaBaselineRepairRequestTests
             ReplicaBaselineRepairCommand.TargetProfile("MongoDBOASIS"));
         Assert.Throws<ArgumentException>(()=>ReplicaBaselineRepairCommand.ValidateRoute(
             NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS,ReplicaBaselineRepairCommand.TargetProfile("MongoDBOASIS")));
-        Assert.Throws<ArgumentException>(()=>ReplicaBaselineRepairCommand.TargetProfile("Neo4jOASIS"));
+        foreach(var source in new[]{NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS,
+            NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS,NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Neo4jOASIS})
+            foreach(var target in new[]{NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS,
+                NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS,NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Neo4jOASIS})
+                if(source==target)Assert.Throws<ArgumentException>(()=>ReplicaBaselineRepairCommand.ValidateRoute(source,target));
+                else ReplicaBaselineRepairCommand.ValidateRoute(source,target);
+        Assert.Throws<ArgumentException>(()=>ReplicaBaselineRepairCommand.TargetProfile("Default"));
         var reviewed=Reviewed() with{SourceProvider="SQLLiteDBOASIS",TargetProvider="MongoDBOASIS",TargetFile=null,TargetStoreIdentity="mongo-store:reviewed"};
         Assert.Equal(reviewed,ReplicaBaselineRepairCommand.ParseReviewedRequest(JsonSerializer.SerializeToUtf8Bytes(reviewed)));
     }
