@@ -52,7 +52,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
 }
 
 public sealed record CqlHostedSourceDescription(string Provider, bool QueryOnly, bool Available,
-    bool FederationAvailable, string Features, string ErrorCode);
+    bool FederationAvailable, string Features, string ErrorCode, IReadOnlyList<CqlHostedQueryExample> Examples = null);
 
 /// <summary>Host-owned enrollment. Availability is observed from actual active adapters;
 /// a configuration entry is never represented as a working native source.</summary>
@@ -64,12 +64,14 @@ public sealed class CqlHostedSources : BackgroundService
     private readonly ConcurrentDictionary<ProviderType, string> failures = new();
     private readonly ConcurrentDictionary<ProviderType, bool> verified = new();
     private readonly ILogger<CqlHostedSources> logger;
+    private readonly CqlHostedQueryExamples examples;
 
     public CqlHostedSources(PricedStorageAdmissionFactory admission, ICqlHostedSourceRegistry registry,
-        ILogger<CqlHostedSources> logger)
+        ILogger<CqlHostedSources> logger, CqlHostedQueryExamples examples = null)
     {
         this.registry = registry ?? throw new ArgumentNullException(nameof(registry));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.examples = examples ?? CqlHostedQueryExamples.FromJson(null);
         providers = admission?.QueryProviders.ToArray() ?? Array.Empty<ProviderType>();
         queryOnly = new HashSet<ProviderType>(admission?.QueryOnlyProviders ?? Array.Empty<ProviderType>());
     }
@@ -108,8 +110,18 @@ public sealed class CqlHostedSources : BackgroundService
                 && storage?.IsProviderActivated == true && storage.ProviderType?.Value == type
                 && adapter?.QueryProviderType == type && adapter.QueryCapabilities != null
                 && CqlV1Compiler.SupportedReadProfile(type);
+            IReadOnlyList<CqlHostedQueryExample> selected = Array.Empty<CqlHostedQueryExample>();
+            if (available)
+            {
+                try { selected = examples.For(type, adapter.QueryCapabilities); }
+                catch (ArgumentException)
+                {
+                    return new CqlHostedSourceDescription(type.ToString(), queryOnly.Contains(type), false,
+                        false, null, "CQL_DEMO_EXAMPLE_UNSUPPORTED");
+                }
+            }
             return new CqlHostedSourceDescription(type.ToString(), queryOnly.Contains(type), available,
                 available && CqlV1Compiler.Supported(type), available ? adapter.QueryCapabilities.Features.ToString() : null,
-                available ? null : "CQL_SOURCE_NOT_READY");
+                available ? null : "CQL_SOURCE_NOT_READY", selected);
         }).ToArray();
 }

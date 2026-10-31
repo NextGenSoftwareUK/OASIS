@@ -77,3 +77,24 @@ an empty catalogue, not implicit provider enrollment.
 Discovery is a readiness observation, not native-query/deployment acceptance or a
 grant to run every native feature through every HTTP operation. The ordinary
 three-provider federation contract remains explicit until separately expanded.
+
+## Public ready-to-run examples
+
+Set `CQL_HOSTED_QUERY_EXAMPLES_JSON` to a provider-keyed object of example arrays.
+Each entry has `id`, `label` and a bounded row-query `request` whose `provider`
+matches that key. [The ActivityPub configuration](../../Scripts/Sandbox/cql-activitypub-public-examples.json)
+contains full/subset public-source requests. Its contents are public: never put
+credentials, private source keys or private record data into this configuration.
+
+The host captures the JSON, rejects ambiguous/unknown fields and compiles it
+without performing native reads. Before publishing examples in discovery, it
+plans them against the actual adapter's capabilities. Unsupported examples produce
+an explicit unavailable result; no replacement query is generated. Request bodies
+remain editable in the browser, and the real authenticated request still receives
+the normal visibility, capability, usage and output checks.
+
+The CQL tab discovers sources from the authenticated API and loads their example
+bodies through its fixed WEB4 query endpoint. It never forwards the session bearer
+to a native provider. Discovery failure disables execution; local developer links
+remain separate. Public posts can change or disappear, so actual responses own
+the displayed row count. Configuration/planning is not deployed native acceptance.
