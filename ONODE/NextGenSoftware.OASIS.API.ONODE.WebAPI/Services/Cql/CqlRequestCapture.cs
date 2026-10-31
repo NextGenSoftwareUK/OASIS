@@ -9,6 +9,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 /// owns semantic admission; these larger capture ceilings only bound snapshot allocation.</summary>
 internal static class CqlRequestCapture
 {
+    internal static CqlFederationV1Request CaptureAndValidateFederation(CqlFederationV1Request value)
+    {
+        var request = Capture(value);
+        if (request.Providers == null || request.ProviderPriority == null
+            || request.Providers.Length > 8 || request.ProviderPriority.Length > 8
+            || request.Take is < 1 or > 100 || request.Skip is < 0 or > 1000
+            || request.MaximumOutputBytes is < 1 or > CqlV1Endpoint.MaximumResponseBytes
+            || request.MaximumDurationMilliseconds is < 1 or > 5000
+            || request.MaximumRowsPerProvider < 1 || request.MaximumRowsPerProvider > (request.EnableContinuation ? 10000 : 100)
+            || request.MaximumInputRows < 1 || request.MaximumInputRows > (request.EnableContinuation ? 10000 : 800)
+            || request.MaximumProviderAttempts < 1 || request.MaximumProviderAttempts > (request.EnableContinuation ? 64 : 8)
+            || request.Cursor != null && (!request.EnableContinuation || request.Cursor.Length is < 1 or > 4096))
+            throw new ArgumentException("Invalid bounded federation request.");
+        return request;
+    }
+
     internal static CqlFederationV1Request Capture(CqlFederationV1Request value)
     {
         if (value == null) throw new ArgumentException("A federation request is required.");

@@ -1,0 +1,71 @@
+{
+  "ActivityPubOASIS": [
+    {
+      "id": "mongo-public-posts",
+      "label": "Public posts + my Mongo records",
+      "operation": "Federation",
+      "request": {
+        "scope": "Named",
+        "providers": [
+          "MongoDBOASIS",
+          "ActivityPubOASIS"
+        ],
+        "source": {
+          "orderBy": "None",
+          "take": 25,
+          "includeMetadata": true,
+          "filters": [
+            {
+              "metadataPath": [
+                "MastodonStatusId"
+              ],
+              "scalar": "String",
+              "operator": "In",
+              "value": [
+                "117466985005297414",
+                "117466983307949301",
+                "117411420916699261"
+              ]
+            }
+          ]
+        },
+        "identityMode": "PreserveCopies",
+        "maximumProviderAttempts": 2,
+        "take": 25
+      }
+    },
+    {
+      "id": "mongo-public-subset",
+      "label": "Two-post subset + my Mongo records",
+      "operation": "Federation",
+      "request": {
+        "scope": "Named",
+        "providers": [
+          "MongoDBOASIS",
+          "ActivityPubOASIS"
+        ],
+        "source": {
+          "orderBy": "None",
+          "take": 25,
+          "includeMetadata": true,
+          "filters": [
+            {
+              "metadataPath": [
+                "MastodonStatusId"
+              ],
+              "scalar": "String",
+              "operator": "In",
+              "value": [
+                "117466985005297414",
+                "117466983307949301"
+              ]
+            }
+          ]
+        },
+        "identityMode": "PreserveCopies",
+        "maximumProviderAttempts": 2,
+        "take": 25
+      }
+    }
+  ]
+}
