@@ -22,6 +22,11 @@ local examples remain separate until their hosted flow is verified.
 See [preparation and admission](../../Devs/CQL_QUERY_ONLY_ADMISSION.md#visitor-owned-federation-samples)
 and [current evidence](HOSTED_SANDBOX_INTEGRATION_PLAN.md).
 
+SOLID's [C# membership walkthrough](../../../Examples/CosmicCqlDemo/SolidPointWalkthrough.cs)
+and [HTTP/host guide](../../Devs/SOLID_CQL_HOST_CONFIGURATION.md) cover three native
+encrypted records and a two-record subset. Its hosted enrollment is still pending
+final-image/browser acceptance; it is not included in the verified live count above.
+
 ## Reference map
 
 | Topic | Detailed preserved guide |
