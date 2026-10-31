@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBase,
     ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
 {
-    protected sealed record Network(PType Provider, string Name, string ChainId, string GenesisHash, string AddressMetadata);
+    protected sealed record Network(PType Provider, string Name, string ChainId, string GenesisHash, string AddressMetadata, string RpcPath = "/");
     private readonly AccountsBackend accounts;
     private bool disposed;
 
@@ -196,7 +196,7 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
             Identity = network;
             ArgumentNullException.ThrowIfNull(client);
             if (rpc == null || rpc.Scheme != Uri.UriSchemeHttps || !string.IsNullOrEmpty(rpc.UserInfo) ||
-                !string.IsNullOrEmpty(rpc.Query) || !string.IsNullOrEmpty(rpc.Fragment) || rpc.AbsolutePath != "/" ||
+                !string.IsNullOrEmpty(rpc.Query) || !string.IsNullOrEmpty(rpc.Fragment) || rpc.AbsolutePath != network.RpcPath ||
                 client.DefaultRequestHeaders.Authorization != null || owner == Guid.Empty)
                 throw new ArgumentException("Explicit credential-free HTTPS RPC and source identity required.");
             if (chainId != network.ChainId) throw new ArgumentException("The explicit source chain ID differs from the provider profile.");
