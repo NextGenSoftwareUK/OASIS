@@ -28,8 +28,16 @@ catalogue (at most100 IDs). Live controls verify full/subset/missing queries,
 budgets/cancellation, read-only rejection and exact fixture cleanup. General
 metadata/text/order queries reject before runtime access.
 
-Mongo federation, retained demo source, HTTP/browser examples, signed public-network
-transport, conditional writes and full ORM/HyperDrive parity remain open.
+Retained source, Mongo federation and HTTP/browser examples now pass. To launch:
+
+```powershell
+./Scripts/TestHosts/Run-CosmicTonCqlNative.ps1 -Federated -Serve
+```
+
+Open http://127.0.0.1:5109/ when ready. The stop button removes only the owned
+Mongo fixture; original TVM source/key/seed/receipts remain in LocalState.
+Signed public-network transport, conditional writes and full ORM/HyperDrive parity
+remain open.
 Tact compiler deprecation and production contract review are also tracked.
 The current DNA example is disabled; no native endpoint is implied.
 
