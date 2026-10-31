@@ -40,6 +40,8 @@ Neither reference proves the current OASIS adapter already supports CQL.
 | Linea public balances | ✅3/2 | ✅3/2 | ✅3/2 +5/4,isolation | ❌ pending |
 | Scroll public balances | ✅3/2 | ✅3/2 | ✅3/2 +5/4,isolation | ❌ pending |
 | Rootstock public balances | ❌ finalizedheaderHTTP400 | ❌ | ❌ | ❌ |
+| zkSync public balances | ✅3/2 | ✅3/2 | ❌ next | ❌ pending |
+| Abstract public balances | ✅3/2 | ✅3/2 | ❌ next | ❌ pending |
 
 [Proof, exact limits and next steps](EVM_NEXT_THREE_SOURCE_STATUS.md). These reuse the unchanged EVM read engine and existing providers; source projection proof is not full ORM or signed storage parity. Work only on the red cells.
 

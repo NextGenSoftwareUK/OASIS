@@ -1722,3 +1722,12 @@ Website8c54051pushed with2spacedCLI/guide/walkthroughlinks and2passingnewclientt
 Thirteen-source outcome:protectedbefore67,094B/candidate99,990B retained; nohostread/application/service.4scopecontrols,6correctedbuildercontrols and1shipping8preset test pass0skips. Initialpreparationfailedbeforeprotectedoutput due copiedendpoint mismatch; fixedstrictbuilders to retainednativeendpoints. Publicexports regenerable:
 - `TestResults/HostedCqlIntegrationCurrent/thirteen-source-public-review.json`: 50796B.
 - `TestResults/HostedCqlIntegrationCurrent/linea-scroll-prepared-review.json`: 7692B.
+
+### ZkSync/Abstract readonlyqualification
+31October2026:reuse boundedPowerShell/.NET runner and existingproviderprojects. Endpoints mainnet.era.zksync.io/api.mainnet.abs.xyz,readonlychain/genesis/finalized/hashboundbalances,nosecrets/account/writes/runtime/download. Raw EvmBreadthReadinessCurrent/{ZkSync,Abstract}.json regenerable;noidentityuntilqualification. Precheck C:78,392,098,816B free.
+
+ZkSync/Abstract retainedcatalogues createdonce LocalState/COSMIC/Hosted{ZkSync,Abstract}PublicSourceCurrent/source.json,retainmappingowners (sizespending). Existingconsole/testhost2projectreferencesadded,noSDK/packageinstallation. Cacheonlyrestores,boundedlease,focusednewtests; bin/obj reused,raw EvmBreadthReadinessCurrent. No services/DBs/download.
+
+zkSync/Abstract outcome:38tests/0skips (36controlled+2nativepublishedsample),consolebuild/2actualCLI3/2pass. Cacheonlyrestores succeeded,noinstall/download/service/database. Newstablecataloguesretained:
+- `LocalState/COSMIC/HostedZkSyncPublicSourceCurrent/source.json`: 285B,retainmappingowner.
+- `LocalState/COSMIC/HostedAbstractPublicSourceCurrent/source.json`: 283B,retainmappingowner.

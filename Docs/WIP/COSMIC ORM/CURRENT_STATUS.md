@@ -14,6 +14,8 @@ Independent next breadth: Optimism native/published C#/CLI3/2 and HTTP/Mongo3/2+
 
 Linea/Scroll native+publishedC#/actualCLI3/2 and HTTP/Mongo3/2+5/4/isolation pass;2Core/4API/6config/2nativeHTTP/2client checks pass. Website links/client proofs pushed8c54051;optional13source batch prepared with corrected retained-source endpoint validation,8newpresets pass shippingplanner (1test/0skips),4scopecontrols pass. Matching hostedrollout pending. Rootstock finalized-header qualificationHTTP400 remains red. Existing release candidates unchanged.
 
+zkSync/Abstract native+publishedC#/actualCLI3/2 pass (38newtests/0skips); HTTP/Mongo next. Existing13source releasecandidate unchanged.
+
 ## Working copies and release state
 
 - Work/build/test only `C:/Source/OASIS-cosmic`, parent **work/cosmic-cql-google-public**; Core same branch, **a5af5eeac2c6c16ab3f431c7fdcf4904ce8106ce** pushed/remote-verified. Parent gitlink/manifest match. Unknown root `logs` preserved.
