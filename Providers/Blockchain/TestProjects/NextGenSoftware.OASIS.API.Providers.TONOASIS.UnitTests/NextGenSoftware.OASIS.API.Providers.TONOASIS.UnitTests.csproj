@@ -13,6 +13,7 @@
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.TONOASIS\NextGenSoftware.OASIS.API.Providers.TONOASIS.csproj" />
     <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
   </ItemGroup>

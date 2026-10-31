@@ -4,9 +4,9 @@ Updated 30 October 2026. This is development evidence, not a claim of native TON
 
 ## Root issue and correction
 
-The existing `TONOASIS` C# class inherits the EVM `Web3CoreOASIS` provider. TON executes TVM contracts, so that inheritance and the previous DNA/README/package claims did not prove TON CRUD, wallet, NFT, replication or CQL support. Those claims are corrected and the fictitious endpoint example is disabled. Native integration must replace the protocol owner, not relabel an EVM run or add a silent fallback.
+The original `TONOASIS` C# class inherited the EVM `Web3CoreOASIS` provider. TON executes TVM contracts, so that inheritance and the previous DNA/README/package claims did not prove TON CRUD, wallet, NFT, replication or CQL support. The native backend now replaces that inheritance, mandatory shared private storage is retained, and the obsolete EVM constructor explicitly rejects its configuration. The fictitious endpoint example stays disabled. Native integration does not relabel an EVM run or add a fallback.
 
-A second bug was reproduced: the shared EVM adapter advertised ID-query capabilities for TON even though its compiler rejected that authority. `Web3CoreCqlCompiler` now owns one authority whitelist used by both capability reporting and compilation. TON ID queries reject during planning; positive Polygon/Arbitrum planning and compilation controls pass. This does not certify every unsupported plan shape or add native TON execution.
+A second bug was reproduced: the shared EVM adapter advertised ID-query capabilities for TON even though its compiler rejected that authority. `Web3CoreCqlCompiler` now owns one authority whitelist used by both capability reporting and compilation. The EVM base rejects TON ID queries during planning; the new native TON adapter advertises its own proved bounded profile. Positive Polygon/Arbitrum planning and compilation controls pass. This does not certify every unsupported plan shape or add native TON execution.
 
 ## Native TVM foundation verified
 
@@ -55,25 +55,36 @@ The contract now exposes its native record dictionary for complete prefix enumer
 - Explicit `LocalTonTvmSandbox` source UUID and expected native code-cell hash; code/address/owner validation on every data operation. No public-network endpoint or protocol substitution.
 - Immutable operation IDs, CreateNew pending intent before mutation, atomic snapshot replacement, flushed acknowledgement before pending removal, no automatic replay/reseed. Read-only operation inspection preserves pending outcomes.
 - C# OS-owned `source.lock` lease serializes clients; SDK write intent fences interrupted mutations. Readers reject source changes before publishing; complete record/value/request/source/response budgets apply.
-- Shared `PersistedPrivateKeyValueBackend` provides canonical key hiding/authenticated encryption. The C# test saves three real canonical holons through a **test-only** shared-storage probe, then reopens through separate workers, verifies identities/names/creator and unchanged source bytes. Wrong encryption key, read-only mutation, pre-dispatch cancellation and competing OS lease are rejected.
+- Shared `PersistedPrivateKeyValueBackend` provides canonical key hiding/authenticated encryption. The C# test saves three real canonical holons through the original shared-storage probe (subsequently replaced by the actual adapter), then reopens through separate workers, verifies identities/names/creator and unchanged source bytes. Wrong encryption key, read-only mutation, pre-dispatch cancellation and competing OS lease are rejected.
 - Exact SDK and C# synthetic fixtures/ACKs are verified and removed after child/runner exit; no persistent demo source or private credential has been created.
 
 | Current evidence under `TestResults/TonCqlCurrent` | Result | SHA256 |
 | --- | --- | --- |
-| `native-storage-tests.tap` | Contract6 + SDK7 results; 13 passed/no skips | `7D8B4E1D25D3317713609C35A0080193AC15A75A179541210624FB3C8F18480D` |
+| `Archive/7D8B4E1D25D3317713609C35A0080193AC15A75A179541210624FB3C8F18480D-native-storage-tests.tap` | Prior contract6 + SDK7 results; 13 passed/no skips | filename hash |
 | `store-tests.tap` | Initial SDK7 passed/no skips | `17B0D02DABE5E75A1542885F7D8C3737B1F6C68B26F1127251B8E761B9D798F0` |
-| `ton-native-storage.trx` | C# encrypted canonical roundtrip/ownership scenario passed,18s | `141F582A4951270CB652C1096B7FAEB062D4583098C8AA15720C5DD2F2E8628A` |
+| `Archive/141F582A4951270CB652C1096B7FAEB062D4583098C8AA15720C5DD2F2E8628A-ton-native-storage.trx` | Prior C# probe scenario passed,18s | filename hash |
 | `compiled/TonHolonStore_TonHolonStore.code.boc` | Current native dictionary/getter code | `A590947E35638A919AFDB2B6BD322DD9F08C69B9C32BB680971A5685B4D76A03` |
 
 Receipt inspection regression: the first implementation accepted an ACK under a mismatched configured code hash. `store-inspection-before.tap` records the genuine failing subcase plus parent (2 failed results), SHA256 `C096C304C00EA9E0ACAD1D9F8CC21F7A7A5BBB4913E7A50A37E561A5CD77D872`. Pending intents and ACKs now carry code identity; SDK inspection and C# acknowledgements validate it. The complete13+1 acceptance above passed after the fix. Prior passing receipts are hash-archived.
 
 The artifact SHA256 above differs from the TVM code-cell hash used for runtime identity. The runner computes the latter from the compiled BOC. SDK pending tests inject a clearly marked, never-submitted test intent; they do not prove recovery from every actual process/commit/ACK crash. Mid-flight cancellation/fault schedules, power-loss durability, journal retention/production packaging and signed real-network transport remain open. Physical snapshot serialization does not implement optimistic holon CAS; no conditional-write/HyperDrive parity is claimed.
 
+## Actual adapter / CQL verification
+
+`TONOASIS` now inherits shared `KeyValueStorageProviderBase` and uses one native backend/private-record owner. A lifecycle semaphore orders activation/deactivation/disposal with individual storage operations; inactive storage rejects before file/process access. Runtime verification authenticates the code/owner and existing encrypted records. Native production references no Web3Core adapter; only regression tests retain its reference. Non-native NFT/wallet/network interfaces are not advertised.
+
+The actual adapter now passes encrypted three-holon save/load and independent worker reopen, native CQL full3/subset2/missing0, result-budget rejection, cancellation without partial data, inactive queries, read-only mutation denial, wrong-key/OS-lease rejection and unchanged source bytes/ACK count. Thirteen metadata/capability/lifecycle controls plus this native scenario pass: **14 tests, no skips**,23s. Unsupported name/metadata/order expressions are captured and rejected by planning before runtime access. CQL reuses the shared bounded compiler, canonical record key and private backend; queries do not enumerate the store.
+
+Evidence `TestResults/TonCqlCurrent/ton-adapter-cql.trx`, SHA256 `71C876F8D7AD73DC3D075B7DA5E86E25B607F4A618C0772800DFD29BBE20418A`. Unchanged contract/SDK integration also passed13results: current `native-storage-tests.tap`, SHA256 `53AD9723E75D175C52C4858C63DE25BFC995F58A136F4BF93D08CECE4B418EC6`.
+
+The first adapter test incorrectly duplicated IDs in its trusted catalogue and failed before CQL execution (native saves/loads already passed). Failed TRX `Archive/68E6E1FB2C188A110EF4AA6193EDAE620AAFBC2A29558EA01F2A53C53AD95362-adapter-catalogue-failed.trx` is retained. A separate explicitly opted-in maintenance test verified the original three known synthetic records/version/creator, every four ACK source/code/operation identities, no pending outcome and unchanged source bytes before exact teardown: `ton-fixture-inspection.trx`, SHA256 `4E6B391E0565D71A71F91EA25999BEBEA9429309F9E6ABD2166D40EBE1AF9ED7`,1passed. The corrected catalogue is distinct and checked for capture errors. No production source was reset/replayed.
+
 ## Next red demo gates
 
-1. Replace `TONOASIS` EVM inheritance with the now-proved native backend and mandatory shared private storage; move activation/deactivation to that one owner. The shipping adapter is still EVM-based and is not a native demo.
-2. Create one explicitly owned protected demo source outside TestResults and prove the actual TON adapter saves/loads three holons across process reopen. Canonical encryption is now proved through the test probe, not yet through the shipping adapter.
-3. Add capability-aware CQL controls/native ID selection, smaller subset, missing/rejected/failed requests and unchanged source evidence. Keep general content/LINQ depth deferred.
-4. Add Mongo SDK/HTTP/browser all5/subset4, exact fixture cleanup, then publish an honestly labelled local-TVM catalogue card. TON remains red and absent from the demo catalogue until those gates pass.
+1. Create one retained owned source, protected key and setup/ACK manifest outside TestResults; verify it through actual adapter CQL after process reopen. Current acceptance uses verified disposable synthetic fixtures, now removed.
+2. Add Mongo SDK/HTTP/browser all5/subset4, exact temporary fixture cleanup, then publish a clearly labelled local-TVM catalogue card. TON stays absent from the public demo catalogue until these gates pass.
+3. Preserve the broader red work: signed public-network transport, production packaging/toolchain review, injected mid-flight/commit/ACK faults, optimistic CAS, full history/ORM/HyperDrive semantics and deferred general query parity. No node/finality/network-wide snapshot claim.
 
-Full ORM/concurrency/history/HyperDrive and real-network parity remain open. See [current status](CURRENT_STATUS.md), [after-demo backlog](AFTER_DEMO_BACKLOG.md) and [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+Full goal remains open. See [current status](CURRENT_STATUS.md), [after-demo backlog](AFTER_DEMO_BACKLOG.md) and [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+Environment-free unit run:13passed and2explicit opt-in tests skipped (native acceptance and manual fixture maintenance), evidence ton-environment-free.trx SHA25640108F405DD44A855008D5869AA6E5932089AAA2377DD2579C5C2F20509D439E. This is CI/metadata coverage only. The configured actual-native14-test profile above executed with zero skips; skipped tests are not counted as native proof.

@@ -4,7 +4,7 @@
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj" />
+    <ProjectReference Include="../../Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
   
     <None Include="..\..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
   </ItemGroup>
@@ -15,14 +15,14 @@
     <Company>NextGen Software Ltd</Company>
     <Product>WEB4 OASIS API TON OASIS Provider</Product>
     <Title>WEB4 OASIS API TON OASIS Provider</Title>
-    <Summary>TON provider integration in progress: native TVM storage contract controls; C# storage/CQL integration pending.</Summary>
-    <Description>Native TON TVM contract development and local emulation controls. The existing C# EVM adapter does not prove native TON storage, CQL, NFT, wallet or HyperDrive support. See the provider README for verified scope and remaining gates.</Description>
+    <Summary>Native local TON TVM storage with encrypted canonical holons and bounded identity CQL; public-network and full parity work remain open.</Summary>
+    <Description>Explicit local TVM storage, mandatory shared private records and capability-aware bounded identity CQL. Native save/load/process reopen/query controls pass. Mongo/browser demo, signed public-network transport, NFT/wallet, CAS and full HyperDrive parity are not certified. See the provider README for current evidence.</Description>
     <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
     <PackageIcon>OASIS.jpg</PackageIcon>
     <Authors>NextGen Software Ltd</Authors>
     <PackageTags>OASIS API; TON; Provider; WEB3</PackageTags>
     <PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one.
-- Native TVM storage contract controls added; native C# storage, CQL and network acceptance remain incomplete.
+- Native TVM backend replaces the EVM adapter; encrypted canonical storage and bounded identity CQL controls pass locally. Public-network and full parity work remain open.
 - Security hardening: NuGet vulnerability remediation, CORS and JWT alignment.
 - Improved error handling: explicit errors when provider returns null content; null guards throughout.
 - Updated to align with OASIS API Core v2.0.0.
