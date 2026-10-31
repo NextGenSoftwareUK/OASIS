@@ -82,7 +82,7 @@ public static partial class CqlV1Compiler
     {
         ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS, ProviderType.Neo4jOASIS,
         ProviderType.AzureCosmosDBOASIS, ProviderType.ActivityPubOASIS, ProviderType.IPFSOASIS, ProviderType.SOLIDOASIS,
-        ProviderType.AWSS3OASIS, ProviderType.OracleDBOASIS, ProviderType.SolanaOASIS, ProviderType.GoogleCloudOASIS, ProviderType.EthereumOASIS, ProviderType.PolygonOASIS, ProviderType.ArbitrumOASIS
+        ProviderType.AWSS3OASIS, ProviderType.OracleDBOASIS, ProviderType.SolanaOASIS, ProviderType.GoogleCloudOASIS, ProviderType.EthereumOASIS, ProviderType.PolygonOASIS, ProviderType.ArbitrumOASIS, ProviderType.CosmosBlockChainOASIS
     });
     public static bool SupportedReadProfile(ProviderType type) => ReadProfiles.Contains(type);
 
@@ -248,7 +248,7 @@ public static partial class CqlV1Compiler
         if (orderBy == "None")
         {
             if (descending || !unorderedFederation && (!includeCloudReadProfile
-                || provider is not (ProviderType.ActivityPubOASIS or ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS or ProviderType.AWSS3OASIS or ProviderType.OracleDBOASIS or ProviderType.SolanaOASIS or ProviderType.GoogleCloudOASIS or ProviderType.EthereumOASIS or ProviderType.PolygonOASIS or ProviderType.ArbitrumOASIS)))
+                || provider is not (ProviderType.ActivityPubOASIS or ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS or ProviderType.AWSS3OASIS or ProviderType.OracleDBOASIS or ProviderType.SolanaOASIS or ProviderType.GoogleCloudOASIS or ProviderType.EthereumOASIS or ProviderType.PolygonOASIS or ProviderType.ArbitrumOASIS or ProviderType.CosmosBlockChainOASIS)))
                 throw new ArgumentException("OrderBy None requires an unsorted protocol read profile or an explicitly unordered federation, without Descending.");
             var pointPage = query.Skip(skip);
             if (take.HasValue) pointPage = pointPage.Take(take.Value);
