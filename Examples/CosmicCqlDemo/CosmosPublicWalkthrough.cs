@@ -66,7 +66,9 @@ public static class CosmosPublicWalkthrough
         }
 
         await output.WriteLineAsync("Read-only Cosmos Hub demo complete: 3 full / 2 filtered records.");
-        await output.WriteLineAsync("No transactions or Mongo records were written. HTTP federation remains pending.");
+        await output.WriteLineAsync("No transactions or Mongo records were written. This run verifies native reads only. " +
+            "Local HTTP/Mongo federation is verified separately; " +
+            "hosted acceptance remains pending.");
 
         return (full.Count, subset.Count);
     }

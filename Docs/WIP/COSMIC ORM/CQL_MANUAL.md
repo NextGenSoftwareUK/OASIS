@@ -21,6 +21,7 @@ static catalogue links do not make a provider available on that host.
 | Polkadot block headers | Native/local HTTP3/2, Mongo5/4/isolation and C# CLI verified; hosted/browser pending |
 | Cosmos Hub validators | Native/local HTTP3/2, Mongo5/4/isolation and C# CLI verified; hosted/browser pending |
 | NEAR public account metadata | Native/C#3/2 and original-cohort HTTP+Mongo5/4/isolation verified via FastNear; hosted/browser pending |
+| Base, Avalanche, BNB, Optimism, Linea, Scroll, zkSync, Abstract, Monad, Sei public balances | Native/C#/CLI and local HTTP/Mongo pairing/isolation verified; hosted/browser pending |
 | Azure Cosmos DB, Oracle | Emulator/local native proofs only; hosted setup deferred by David |
 
 These are scoped evidence statements; [CURRENT_STATUS](CURRENT_STATUS.md) owns
@@ -63,6 +64,16 @@ sorts or terminals are rejected rather than evaluated over an implicit scan.
 | Cosmos Hub validators | CosmosValidatorAddress | [Cosmos](../../Devs/COSMOS_PUBLIC_METADATA_CQL_GUIDE.md) |
 | Polkadot block headers | PolkadotBlockHash | [Polkadot](../../Devs/POLKADOT_PUBLIC_METADATA_CQL_GUIDE.md) |
 | NEAR account metadata | NearAccountId | [NEAR](../../Devs/NEAR_PUBLIC_METADATA_CQL_GUIDE.md) |
+| Base balance state | BaseAccountAddress | [EVM walkthroughs](../../Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md) |
+| Avalanche balance state | AvalancheAccountAddress | [EVM walkthroughs](../../Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md) |
+| BNB Chain balance state | BNBChainAccountAddress | [EVM walkthroughs](../../Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md) |
+| Optimism balance state | OptimismAccountAddress | [EVM walkthroughs](../../Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md) |
+| Linea balance state | LineaAccountAddress | [EVM walkthroughs](../../Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md) |
+| Scroll balance state | ScrollAccountAddress | [EVM walkthroughs](../../Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md) |
+| zkSync balance state | ZkSyncAccountAddress | [EVM walkthroughs](../../Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md) |
+| Abstract balance state | AbstractAccountAddress | [EVM walkthroughs](../../Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md) |
+| Monad balance state | MonadAccountAddress | [EVM walkthroughs](../../Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md) |
+| Sei balance state | SeiAccountAddress | [EVM walkthroughs](../../Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md) |
 
 The new Google/EVM console modes reuse an existing nonsecret catalogue. Build the
 sample with the normal bounded provider lease, then run from your checkout:
@@ -78,6 +89,43 @@ Use --google-public, --ethereum-public, --polygon-public, --cosmos-public, --pol
 source file for the other new profiles. Each guide supplies complete configuration,
 spaced code and exact scope limits. No new runtime/account/wallet is created by
 these commands. Local success is not hosted or browser acceptance.
+
+For Base, Avalanche, BNB, Optimism, Linea, Scroll, zkSync, Abstract, Monad and Sei,
+use the corresponding `--base-public`, `--avalanche-public`, `--bnb-public`,
+`--optimism-public`, `--linea-public`, `--scroll-public`, `--zksync-public`,
+`--abstract-public`, `--monad-public` or `--sei-public` mode. Each consumes its
+retained `LocalState/COSMIC/Hosted<Provider>PublicSourceCurrent/source.json`;
+BNB uses `HostedBnbPublicSourceCurrent`. Reuse stable source catalogues.
+
+A typical explicit HTTP selection is shown below. Use it only on a host that
+advertises this source; it does not enroll the provider or enable writes.
+
+```json
+{
+  "provider": "SeiOASIS",
+  "orderBy": "None",
+  "take": 25,
+  "includeMetadata": true,
+  "filters": [
+    {
+      "metadataPath": ["SeiAccountAddress"],
+      "scalar": "String",
+      "operator": "In",
+      "value": [
+        "0x0000000000000000000000000000000000000001",
+        "0x0000000000000000000000000000000000000002"
+      ]
+    }
+  ]
+}
+```
+
+POST the selection to `api/data/query-cql` using the normal authenticated client.
+For federation, use the server-provided paired preset after **Prepare my Mongo
+records**. It supplies the private mapped Mongo IDs and source reference keys;
+do not guess that a native address is an OASIS holon ID. The full source selection
+returns three records, its two-key subset returns two, and the prepared Mongo pair
+adds two private physical rows (five/four respectively).
 
 The EVM reader binds provider/chain/genesis and one RPC-reported finalized canonical
 block hash per query. Arbitrum explicitly uses the official /rpc endpoint because
