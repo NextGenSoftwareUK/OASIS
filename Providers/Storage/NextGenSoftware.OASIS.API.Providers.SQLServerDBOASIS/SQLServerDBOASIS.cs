@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS
     /// Compatible with SQL Server 2016+ and Azure SQL Database / Azure SQL Managed Instance.
     /// Pass a standard SQL Server connection string (e.g. from appsettings.json or environment).
     /// </summary>
-    public class SQLServerDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class SQLServerDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly string _connectionString;
 
@@ -108,9 +108,11 @@ IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_OASISHolons_HolonType')
                 result.Result = true;
                 result.IsError = false;
                 result.Message = "SQLServerDBOASIS activated — tables created/verified.";
+                IsProviderActivated = true;
             }
             catch (Exception ex)
             {
+                IsProviderActivated = false;
                 result.Exception = ex;
                 OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error activating provider — {ex.Message}");
             }
@@ -120,7 +122,10 @@ IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_OASISHolons_HolonType')
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
-            => await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "SQLServerDBOASIS deactivated." });
+        {
+            IsProviderActivated = false;
+            return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "SQLServerDBOASIS deactivated." });
+        }
 
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
@@ -464,9 +469,10 @@ WHEN NOT MATCHED THEN
                 cmd.Parameters.AddWithValue("@HolonType", (int)holon.HolonType);
                 cmd.Parameters.AddWithValue("@IsDeleted", holon.IsDeleted);
                 cmd.Parameters.AddWithValue("@DataJson", Serialize(holon));
-                await cmd.ExecuteNonQueryAsync();
+                var affected = await cmd.ExecuteNonQueryAsync();
+                if (affected != 1) throw new InvalidOperationException("SQL Server holon upsert must acknowledge exactly one row.");
 
-                result.Result = holon; result.IsError = false; result.Message = $"SQLServerDBOASIS: Holon '{holon.Name}' saved.";
+                result.Result = holon; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"SQLServerDBOASIS: Holon '{holon.Name}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error saving holon '{holon.Name}': {ex.Message}"); }
             return result;
