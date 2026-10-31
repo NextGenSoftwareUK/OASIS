@@ -1,6 +1,6 @@
 # Cosmos blockchain public-read readiness
 
-31 October 2026. Native CQL and C# console3/2 verified on explicitly selected KJNodes. HTTP/federation/hosted/browser acceptance remains incomplete.
+31 October 2026. Native CQL and C# console3/2 verified on explicitly selected KJNodes. Local HTTP/federation/isolation now verified; hosted/browser acceptance remains incomplete.
 
 - Anonymous PublicNode REST returned HTTP403 before a body. No retry/fallback was performed.
 - Explicitly selected CryptoCrew REST endpoint from the Cosmos chain registry: `https://rest.cosmoshub-main.ccvalidators.com`.
@@ -57,3 +57,21 @@ The published Cosmos walkthrough passed the **one native test, zero skips**, exe
 - `TestResults/CosmosPublicSourceCandidateCurrent/console-native.trx`: 2872 B; SHA256 `6cbabbd6381cb3d12c9f5745bbb21e03bc9e39113e04d8c923c555b48920d48e`.
 
 - `TestResults/CosmosPublicSourceCandidateCurrent/console-native-cli.log`: 1229 B; SHA256 `9c61a83d551a096bcae26658deb08ca43bb1e5078e50b59aac13015a4ea4aa39`.
+
+## HTTP federation acceptance milestone
+
+`CqlCosmosMongoNativeTests` passed1test/0skips using shipping leaf/federation endpoints on loopback Kestrel, real KJNodes and retained Mongo8.3.11. Native3/2, owner pairs5/4, foreign-private0 and foreign-public-pair3;9validated query receipts. Two SDK create-only saves use server-mapped private identities with original operations persisted before mutation. Every returned ID, provenance, owner and visibility is checked; source configuration remains unchanged.
+
+Exact marker/nonce/2record checks passed before the owned `cosmic_cql_cosmos_http_demo` database was dropped; absence asserted. Mongo process stopped, no listener27029. Retained original intent585B,2ACKs108B each, cleaned70B (871B total) live under `LocalState/COSMIC/CosmosMongoHttpCurrent`. Do not reseed/replay the cleaned fixture. Controlled bearer/usage authority is not production login/billing, hosted replication or browser proof.
+
+API15-provider admission/preset/discovery controls2pass; affected Core read-tariff controls9pass. Explicit source permission, price and query-only registration required; signed-write fence retained. Lazy `CQL_COSMOS_PUBLIC_SOURCE_JSON` registration added but no hosted configuration applied.
+
+Next: strict publisher+joint config and four presets, browser source links, matching hosted deployment, then actual hosted preparation/isolation/replica/browser acceptance. [Maintained source guide](../../Devs/COSMOS_PUBLIC_METADATA_CQL_GUIDE.md).
+
+- `TestResults/CosmosPublicSourceCandidateCurrent/cosmos-mongo-http.trx`: 3359 B; SHA256 `d7d3479657a4d2cd92c192419c60ad81bab07134c19d29365d4d19197eae1901`.
+
+- `TestResults/CosmosPublicSourceCandidateCurrent/cosmos-mongo-native-summary.json`: 225 B; SHA256 `c1734958aa317f661e9dbc7187a20c446aef7d2a303ed738785295f58684bed0`.
+
+- `TestResults/CosmosPublicSourceCandidateCurrent/api-controls.trx`: 4998 B; SHA256 `1b8007b5261e0cbe29d5711a0ecc6c023eabb256fe957b44c963b3f141974695`.
+
+- `TestResults/CosmosPublicSourceCandidateCurrent/core-controls.trx`: 15968 B; SHA256 `a7203f66f4a5a26a1c1bb9c732637f3197f93007d90df7896d854ee5a0443759`.

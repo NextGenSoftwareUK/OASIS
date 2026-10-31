@@ -8,11 +8,11 @@ Updated 31 October 2026. Programme incomplete. Priority: working hosted demo bre
 2. The frozen correctness batch is parent **79fe887e3 / Core6bbd015**. It excludes Google/Ethereum/Polygon/Arbitrum. Do not apply their staged configuration to that older application/Core revision.
 3. After the matching routing-facts release, prepare the distinct routing fixture with `Scripts/Sandbox/Prepare-HostedHyperdriveRouting.py`, then run `Verify-HostedHyperdriveLoadBalancing.py --cohort routing-v1`. Setup has not run live; no routing-v1 avatar/record exists. Original Solana owner session expired; preserve it without replacement/replay.
 4. Separately integrate the tested public-read profiles with their matching application/Core and joint configuration, then run hosted source/preparation/isolation/replica gates. Browser acceptance follows when IAB is available. Do not claim the local HTTP tests are hosted proof.
-5. Independent next breadth work: add Cosmos HTTP+Mongo federation ([17 controls, native CQL3/2 and console3/2 pass on KJNodes](COSMOS_PUBLIC_SOURCE_READINESS.md)), then Polkadot/NEAR. No new node installation or download without inspecting existing resources. Keep red checklist scopes ahead of parity depth.
+5. Independent next breadth work: prepare Cosmos hosted presets/configuration ([native/console3/2, HTTP+Mongo5/4/isolation pass](COSMOS_PUBLIC_SOURCE_READINESS.md)), then Polkadot/NEAR. No new node installation or download without inspecting existing resources. Keep red checklist scopes ahead of parity depth.
 
 ## Working copies and release state
 
-- Work/build/test only `C:/Source/OASIS-cosmic`, parent **work/cosmic-cql-google-public**; Core same branch, **b84ab80078350d67fdf3103a994aaf7bf03f3e05** pushed/remote-verified. Parent gitlink/manifest match. Unknown root `logs` preserved.
+- Work/build/test only `C:/Source/OASIS-cosmic`, parent **work/cosmic-cql-google-public**; Core same branch, **169e40292730f483044d10242992a8bf31237517** pushed/remote-verified. Parent gitlink/manifest match. Unknown root `logs` preserved.
 - Parent/ Core origin/Development fetched: **0e688ac9c / 759b49a**, unchanged and already included in task history. No new Development push in the public-read work.
 - Latest observed WEB4 Railway deployment **68fb8cc4-c603-4d16-a97a-0e5a30e364c2**, parent0e688ac9c, SUCCESS. Last full eight-source HTTP acceptance remains parent498e3fd7f/deployment4dbe69d0; no fresh source gate inferred from the later deployment.
 - Frozen parent **work/cosmic-cql-hosted-release79fe887e3** / Core **work/cosmic-cql-sandbox-integration6bbd015** unchanged. Broader earlier local-provider source remains preserved on parent237403a75.
@@ -40,12 +40,13 @@ Hosted Azure is **deferred**: free-only, no subscription. Hosted Oracle is **def
 | Ethereum public balances | Same scopes, chain/genesis and finalized canonical hash binding | [Ethereum](../../Devs/ETHEREUM_PUBLIC_METADATA_CQL_GUIDE.md) |
 | Polygon public balances | Same scopes, fixed Polygon chain/genesis | [Polygon](../../Devs/POLYGON_PUBLIC_METADATA_CQL_GUIDE.md) |
 | Arbitrum public balances | Same scopes via official `arb1.arbitrum.io/rpc`; PublicNode lacked finalized state | [Arbitrum](../../Devs/ARBITRUM_PUBLIC_METADATA_CQL_GUIDE.md) |
+| Cosmos Hub public validators | Native/console3/2, HTTP3/2+Mongo5/4/isolation via explicit KJNodes | [Cosmos](../../Devs/COSMOS_PUBLIC_METADATA_CQL_GUIDE.md) |
 
-All four have real native HTTP tests, SDK-owned private Mongo snapshots, exact IDs/provenance/visibility,9query receipts each and successful owned-fixture cleanup. Bearer/usage authority is controlled; production auth/billing, hosted replication and browser execution are not inferred.
+All five have real native HTTP tests, SDK-owned private Mongo snapshots, exact IDs/provenance/visibility,9query receipts each and successful owned-fixture cleanup. Bearer/usage authority is controlled; production auth/billing, hosted replication and browser execution are not inferred.
 
 The shared EVM reader has fixed provider/chain/genesis/metadata/path descriptors. Ethereum/Polygon remain root-path-only; Arbitrum uses `/rpc`. No endpoint fallback/latest downgrade. Public balances are address-state projections, not persisted COSMIC holons or independent settlement proofs.
 
-Latest affected admission checks: **28 API / 80 Core** pass; **14** is the supported unsigned-read tariff catalogue, not the hosted-provider count. Each source still needs explicit permission, tariff, activation and capability admission. Query-only pricing grants no signed writes.
+Cosmos affected admission checks: **2 API / 9 Core** pass (earlier four-profile gates28/80 remain recorded); **15** is the supported unsigned-read tariff catalogue, not the hosted-provider count. Each source still needs explicit permission, tariff, activation and capability admission. Query-only pricing grants no signed writes.
 
 ## HyperDrive correctness and remaining gates
 
