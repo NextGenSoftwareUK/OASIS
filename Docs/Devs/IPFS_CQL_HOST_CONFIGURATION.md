@@ -103,3 +103,21 @@ This is a hosted isolated native Kubo demo, not a public-network availability cl
 The process owner waits for the pinned native version and exact peer identity
 before starting WEB4, forwards termination and observes both children. There is
 no automatic business save/import retry or replacement storage path.
+
+
+## Try it in the live sandbox
+
+Open the [sandbox](https://web4.oasisomniverse.one/web4-sandbox.html), start a demo
+session and choose **CQL Playground → IPFSOASIS**. The public three-record and
+two-record examples work immediately. To inspect federation, choose **IPFS records
++ my Mongo records**, prepare your private Mongo snapshots, then run the query.
+The configured selections return5physical rows, or4with the subset. Repeating
+setup reuses unchanged records; each visitor has private snapshots. Inspect the
+editable JSON, provider provenance and operation ID in the real response.
+
+The.NET10 executable composition explicitly references the source-built private
+IPFS SDK. Upstream0.55's binary expects SimpleBase1.x fields, incompatible with
+SimpleBase5.6 selected by SolSharp. A library-private project reference alone does
+not own the executable's graph; Directory.Build.targets imports the shared source
+SDK references for hosts and shipping tests. Canonical codec/CID tests and native
+queries prove compatibility. No parser fallback or assembly swapping is used.
