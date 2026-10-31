@@ -96,3 +96,12 @@ HTTP discovery/presets, private Mongo snapshots/federation/isolation, replicas a
 browser acceptance remain separate gates. General query parity and chain writes
 are not certified by public balance reads. Protocol: [Ethereum JSON-RPC](https://ethereum.org/developers/docs/apis/json-rpc/)
 and [EIP-1898](https://eips.ethereum.org/EIPS/eip-1898).
+
+WEB4 integration (task branch): CQL_ETHEREUM_PUBLIC_SOURCE_JSON registers this
+adapter in the isolated CqlReadSourceProfile registry. Explicit query-only
+permission and a query tariff are required independently; ordinary Ethereum
+wallet/write admission remains separate. The leaf/federation compiler admits
+bounded unordered address lookups, not the richer composition/query-parity set.
+Four server examples can describe native3/2and Mongo-paired5/4selections; missing
+Mongo disables only paired examples. Profile/admission/discovery/schema controls
+pass, but native HTTP pairing and hosted/browser enrollment are still pending.

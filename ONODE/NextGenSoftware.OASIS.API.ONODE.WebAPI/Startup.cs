@@ -470,6 +470,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_SOLANA_PUBLIC_SOURCE_JSON"] is string solanaPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaPublicAccountMetadataSource.FromJson(solanaPublicSource)));
+            if (Configuration["CQL_ETHEREUM_PUBLIC_SOURCE_JSON"] is string ethereumPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.EthereumOASIS.EthereumPublicAccountMetadataSource.FromJson(ethereumPublicSource)));
             if (Configuration["CQL_GCS_PUBLIC_SOURCE_JSON"] is string googlePublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.GoogleCloudPublicMetadataSource.FromJson(googlePublicSource)));
