@@ -56,3 +56,5 @@ Persistent, irreproducible fixture state belongs in ignored LocalState/COSMIC an
 - [Weaviate native gRPC/Mongo demo: launch, verified scope and limits](WEAVIATE_CQL_MVP.md).
 
 - [Chroma native/Mongo demo and current verification](CHROMA_CQL_MVP.md).
+
+- [Active hosted sandbox integration priority and acceptance](HOSTED_SANDBOX_INTEGRATION_PLAN.md).

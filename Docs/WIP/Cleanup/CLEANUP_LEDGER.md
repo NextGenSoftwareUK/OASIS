@@ -250,3 +250,203 @@
 2026-10-31T05:25:52.7634052Z cleanup script PID62172: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests\bin; bytes=28546; reason=Completed COSMIC provider tests; rebuild with corresponding bounded leased runner and retained assets/cache; regenerate via original tool.
 
 2026-10-31T05:25:52.7694410Z cleanup script PID62172: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests\bin; bytes=28546; locked/in-use items left=0.
+
+2026-10-31T05:32:29.8136125Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\0gyl5lwl.atc; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:32:30.8722779Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\0gyl5lwl.atc; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:32:32.7234978Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\1coniri5.j0n; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:32:33.6858194Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\1coniri5.j0n; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:32:35.2932702Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\3isdijyq.ggr; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:32:36.3816007Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\3isdijyq.ggr; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:32:38.0405715Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\3m1i5xwh.v1s; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:32:39.0753503Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\3m1i5xwh.v1s; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:32:40.6640730Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\4yhxix4h.p4a; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:32:41.6211434Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\4yhxix4h.p4a; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:32:43.1826530Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\a5jewkji.c1n; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:32:44.3264888Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\a5jewkji.c1n; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:32:46.2987638Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\bt0yzswo.42w; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:32:47.3689749Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\bt0yzswo.42w; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:32:49.0119968Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\ctuspl25.njf; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:32:49.9539579Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\ctuspl25.njf; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:32:51.5290297Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\dpr2wmna.3rf; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:32:53.8796817Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\dpr2wmna.3rf; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:32:55.3265204Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\drjkdxz3.l23; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:32:55.7413825Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\drjkdxz3.l23; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:32:56.4935202Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\dxxlr4lq.mxo; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:32:56.8958621Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\dxxlr4lq.mxo; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:32:57.5911506Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\ealpqkte.534; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:32:58.0013710Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\ealpqkte.534; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:32:58.7030213Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\ep3awptl.hr1; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:32:59.1164740Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\ep3awptl.hr1; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:32:59.8492385Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\fe5zyoef.ruk; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:00.2576668Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\fe5zyoef.ruk; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:00.9669061Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\gw5ltb3v.4w2; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:01.3989713Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\gw5ltb3v.4w2; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:02.1426390Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\hd3w2lwt.npo; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:02.5528581Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\hd3w2lwt.npo; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:03.2724260Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\ig1rjlrn.ytv; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:03.7634637Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\ig1rjlrn.ytv; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:04.5714093Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\odxptkg3.vig; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:04.9835398Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\odxptkg3.vig; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:05.7203505Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\ougjvrmq.gmy; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:06.1560555Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\ougjvrmq.gmy; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:06.9239345Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\p3t21hqn.l53; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:07.3445786Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\p3t21hqn.l53; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:08.0940825Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\pjwnml3t.mgt; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:08.5152824Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\pjwnml3t.mgt; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:09.2679216Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\ptfzcgr5.dfp; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:09.7216867Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\ptfzcgr5.dfp; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:10.4720556Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\pv0flndl.eid; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:10.9308784Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\pv0flndl.eid; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:11.7677639Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\rnl0tq3b.ftn; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:12.3442413Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\rnl0tq3b.ftn; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:13.4529075Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\s4dkvzrr.5wf; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:13.9904905Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\s4dkvzrr.5wf; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:14.8007456Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\ttz2phdk.1ql; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:15.3267431Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\ttz2phdk.1ql; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:16.1731303Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\txnph1gs.jxv; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:16.6440866Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\txnph1gs.jxv; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:17.4492625Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\u1tduldx.yuj; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:17.9571798Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\u1tduldx.yuj; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:18.7124128Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\uwpx4uqu.35c; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:19.1819397Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\uwpx4uqu.35c; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:19.9536165Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\w0epxwj0.10y; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:20.4134480Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\w0epxwj0.10y; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:21.2344479Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\wm3oe5ik.fn0; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:21.7265061Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\wm3oe5ik.fn0; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:22.5206015Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\wsbqrgmb.f4u; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:23.0091060Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\wsbqrgmb.f4u; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:23.7844197Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\wvxhizrr.oit; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:24.2554125Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\wvxhizrr.oit; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:25.0487111Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\yhb3kkop.b03; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:25.5421928Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\yhb3kkop.b03; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:26.3641101Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\z05n52dk.xo3; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:26.8385105Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\z05n52dk.xo3; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:27.6063957Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\zzwnqoq1.kup; bytes=148569784; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:28.0907766Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\zzwnqoq1.kup; bytes=148569784; locked/in-use items left=0.
+
+2026-10-31T05:33:32.7734315Z cleanup script PID58996: PLANNED target=C:\Users\david\AppData\Local\Temp\m54u4uwi; bytes=4946426551; reason=Reviewed completed VS installer staging only; installed applications/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:33:36.5838608Z cleanup script PID58996: REMOVED C:\Users\david\AppData\Local\Temp\m54u4uwi; bytes=4946426551; locked/in-use items left=0.
+
+2026-10-31T05:35:05.5991728Z cleanup script PID62984: PLANNED target=C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030193857_00_setup_errors.log; bytes=0; reason=User-requested completed installer temp output; installed editor/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:35:05.6228305Z cleanup script PID62984: REMOVED C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030193857_00_setup_errors.log; bytes=0; locked/in-use items left=0.
+
+2026-10-31T05:35:05.6498964Z cleanup script PID62984: PLANNED target=C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030193857_00_setup.log; bytes=3133235; reason=User-requested completed installer temp output; installed editor/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:35:05.6537449Z cleanup script PID62984: REMOVED C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030193857_00_setup.log; bytes=3133235; locked/in-use items left=0.
+
+2026-10-31T05:35:05.6899607Z cleanup script PID62984: PLANNED target=C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030193857_result_Success.log; bytes=0; reason=User-requested completed installer temp output; installed editor/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:35:05.6929086Z cleanup script PID62984: REMOVED C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030193857_result_Success.log; bytes=0; locked/in-use items left=0.
+
+2026-10-31T05:35:05.7276373Z cleanup script PID62984: PLANNED target=C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030193857.log; bytes=3146484; reason=User-requested completed installer temp output; installed editor/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:35:05.7304544Z cleanup script PID62984: REMOVED C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030193857.log; bytes=3146484; locked/in-use items left=0.
+
+2026-10-31T05:35:05.7619925Z cleanup script PID62984: PLANNED target=C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030223847_result_Success.log; bytes=0; reason=User-requested completed installer temp output; installed editor/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:35:05.7649917Z cleanup script PID62984: REMOVED C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030223847_result_Success.log; bytes=0; locked/in-use items left=0.
+
+2026-10-31T05:35:05.7986141Z cleanup script PID62984: PLANNED target=C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030223847.log; bytes=5702; reason=User-requested completed installer temp output; installed editor/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:35:05.8011210Z cleanup script PID62984: REMOVED C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030223847.log; bytes=5702; locked/in-use items left=0.
+
+2026-10-31T05:35:05.8352074Z cleanup script PID62984: PLANNED target=C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030223856_00_setup_errors.log; bytes=0; reason=User-requested completed installer temp output; installed editor/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:35:05.8386862Z cleanup script PID62984: REMOVED C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030223856_00_setup_errors.log; bytes=0; locked/in-use items left=0.
+
+2026-10-31T05:35:05.9068114Z cleanup script PID62984: PLANNED target=C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030223856_00_setup.log; bytes=3133238; reason=User-requested completed installer temp output; installed editor/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:35:05.9102891Z cleanup script PID62984: REMOVED C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030223856_00_setup.log; bytes=3133238; locked/in-use items left=0.
+
+2026-10-31T05:35:05.9452741Z cleanup script PID62984: PLANNED target=C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030223856_result_Success.log; bytes=0; reason=User-requested completed installer temp output; installed editor/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:35:05.9475795Z cleanup script PID62984: REMOVED C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030223856_result_Success.log; bytes=0; locked/in-use items left=0.
+
+2026-10-31T05:35:05.9828540Z cleanup script PID62984: PLANNED target=C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030223856.log; bytes=3146375; reason=User-requested completed installer temp output; installed editor/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:35:05.9858047Z cleanup script PID62984: REMOVED C:\Users\david\AppData\Local\Temp\dd_BackgroundDownload_20261030223856.log; bytes=3146375; locked/in-use items left=0.
+
+2026-10-31T05:35:06.0244224Z cleanup script PID62984: PLANNED target=C:\Users\david\AppData\Local\Temp\dd_updateconfiguration_20261025192515.log; bytes=283; reason=User-requested completed installer temp output; installed editor/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:35:06.0277151Z cleanup script PID62984: REMOVED C:\Users\david\AppData\Local\Temp\dd_updateconfiguration_20261025192515.log; bytes=283; locked/in-use items left=0.
+
+2026-10-31T05:35:06.0670994Z cleanup script PID62984: PLANNED target=C:\Users\david\AppData\Local\Temp\dd_updateconfiguration_20261028031616.log; bytes=283; reason=User-requested completed installer temp output; installed editor/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:35:06.0701622Z cleanup script PID62984: REMOVED C:\Users\david\AppData\Local\Temp\dd_updateconfiguration_20261028031616.log; bytes=283; locked/in-use items left=0.
+
+2026-10-31T05:35:06.1301195Z cleanup script PID62984: PLANNED target=C:\Users\david\AppData\Local\Temp\vscode-stable-user-x64; bytes=251590955; reason=User-requested completed installer temp output; installed editor/SDKs preserved; regenerate via original tool.
+
+2026-10-31T05:35:06.1940315Z cleanup script PID62984: REMOVED C:\Users\david\AppData\Local\Temp\vscode-stable-user-x64; bytes=251590955; locked/in-use items left=0.
