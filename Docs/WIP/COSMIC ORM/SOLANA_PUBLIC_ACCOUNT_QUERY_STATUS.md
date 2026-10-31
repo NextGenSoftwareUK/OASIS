@@ -1,6 +1,23 @@
 # Solana public account query profile
 
-Updated 31 October 2026. Adapter, host profile resolution, admission/preset planning and native endpoint dispatch verified; hosted integration and browser acceptance pending.
+Updated 31 October 2026. Hosted HTTP integration verified; browser acceptance pending.
+
+## Hosted acceptance
+
+Development `498e3fd7f7829dc47de66fc91a41eba85c060da9`, Core `759b49a529a86abbfc50e36b26343fdb894295b4`, Railway `4dbe69d0-7172-4b43-9c52-1dc138e1b870` SUCCESS. Normal temporary visitor flow passed native three/two, two acknowledged private Mongo saves, federation five/four, repeated preparation zero saves/two existing, exact two SQLite/two Neo4j replicas and independent visitor zero foreign-private records. Native reads use real official mainnet; no chain writes or wallet settings changed. Actual frontend preparation modules ran over HTTP, not browser automation.
+
+Owner usage: 14 daily calls of 200, 186 remaining; zero tokens of 50,000 and zero spend against the unchanged $1 cap. The cohort remains under normal sandbox expiration; it has not been manually deleted. Durable session/preparation journals are in `LocalState/COSMIC/HostedQueryAcceptance-SolanaOASIS`. Never replay its saves.
+
+Evidence under worktree `TestResults/HostedCqlIntegrationCurrent/`:
+
+| File | SHA256 |
+| --- | --- |
+| `SolanaOASIS-native-http.json` | `FF02C0C586F034AC24F910D1981D146755BE2BF444B4B7AABC68A868641B7819` |
+| `SolanaOASIS-client-http-flow.json` | `429991C47B4BC0EE56F7A84828CC31D5FD52B445F368C2374267EFE53F62F779` |
+| `SolanaOASIS-isolation-http.json` | `03791C1201ED4476C4A61B4879F07A4E7A633FF90BED5436F2660C38D946CF1B` |
+| `SolanaOASIS-usage-http.json` | `A6D3085DF19631C85BFECA3B9E50BC9AB453D752BDEDC7800AD6549521F23C88` |
+
+This is public account metadata, not canonical holon/memo storage, arbitrary account search, continuous state synchronization or full chain ORM parity. Browser controls were stopped by David; the browser gate remains open. Full HyperDrive failover/load-balancing/fault/late-enrollment acceptance is not inferred from these successful replicas.
 
 ## Verified scope
 
