@@ -461,11 +461,13 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 services,Configuration,subscriptionUsageEnabled,_=>null,
                 ()=>NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance.GetAllRegisteredProviders());
             services.AddSingleton<Services.Cql.ICqlHostedSourceRegistry, Services.Cql.CqlHostedSourceRegistry>();
+            services.AddSingleton(Services.Cql.CqlHostedQueryExamples.FromConfiguration(Configuration));
             services.AddSingleton(provider => new Services.Cql.CqlHostedSources(
                 provider.GetService<NextGenSoftware.OASIS.API.Core.Services.Subscriptions.IPreparedStorageAdmissionFactory>()
                     as NextGenSoftware.OASIS.API.Core.Services.Subscriptions.PricedStorageAdmissionFactory,
                 provider.GetRequiredService<Services.Cql.ICqlHostedSourceRegistry>(),
-                provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Services.Cql.CqlHostedSources>>()));
+                provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Services.Cql.CqlHostedSources>>(),
+                provider.GetRequiredService<Services.Cql.CqlHostedQueryExamples>()));
             services.AddSingleton<IHostedService>(provider => provider.GetRequiredService<Services.Cql.CqlHostedSources>());
             if(Configuration["PREPARED_STORAGE_ADMISSION_JSON"]!=null)
                 NextGenSoftware.OASIS.API.Core.Services.Subscriptions.LocalWeb4UsageLedgerRegistration.AddLocalWeb4UsageLedger(services,Configuration,storageUsagePolicy);
