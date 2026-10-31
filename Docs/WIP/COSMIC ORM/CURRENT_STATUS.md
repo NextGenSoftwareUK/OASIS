@@ -10,7 +10,7 @@ Updated 31 October 2026. Programme incomplete. Priority: working hosted demo bre
 4. Separately integrate the tested public-read profiles with their matching application/Core and joint configuration, then run hosted source/preparation/isolation/replica gates. Browser acceptance follows when IAB is available. Do not claim the local HTTP tests are hosted proof.
 5. Base/Avalanche/BNB native HTTP+Mongo gates pass:3/2native,5/4paired,isolation and9receipts each; original SDK cohorts cleaned exactly. Strict preset builders10controls and website links54client tests pass (frontend taskb6c6854;3new preparation contracts pass). Ten-source protected candidate now prepared offline; all40actual presets pass shipping-planner preflight. Read-only hosted reconciliation confirms snapshot still exact (12planned settings,no drift). Single12setting apply-reviewed entry point prepared (2scope tests),not executed. Next permitted matching rollout and live acceptance. [Three-source report](EVM_NEXT_THREE_SOURCE_STATUS.md).
 
-Independent next breadth: Optimism native/published C#/CLI3/2 and HTTP/Mongo3/2+5/4/isolation pass;1Core/2API/3configuration controls pass. Next client links/presets for future batch. Prepared ten-source batch unchanged.
+Independent next breadth: Optimism native/published C#/CLI3/2 and HTTP/Mongo3/2+5/4/isolation pass;1Core/2API/3configuration controls pass. Client preparation1test and website link passe8df3c4; strict4preset builder ready but not staged. Next future joint release scope and hosted acceptance. Prepared ten-source batch unchanged.
 
 ## Working copies and release state
 
