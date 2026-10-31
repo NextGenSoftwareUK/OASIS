@@ -1,13 +1,13 @@
 """Prove conditional create-only writes do not change authority after an offline error.
 
-Uses existing demo sessions. Unique IDs/operation keys are durably recorded before
+Uses an explicitly selected, durable demo cohort. Unique IDs/operation keys are recorded before
 one save per authority. Unknown writes are never retried. Restore owned faults even
 on failure; preserve any unexpected records for investigation and normal expiry.
 """
 from pathlib import Path
 import importlib.util
 import json
-import sys
+import argparse
 import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -24,17 +24,26 @@ def rejected(outcome):
 
 
 def main():
-    state = ROOT / "LocalState/COSMIC/HostedQueryAcceptance-SolanaOASIS"
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--cohort", choices=["original-solana", "negative-v1"], default="original-solana",
+        help="negative-v1 is a distinct explicitly planned test, never replacement/replay of original IDs.")
+    parser.add_argument("--resume-reviewed-rejections", action="store_true")
+    options = parser.parse_args()
+    state = ROOT / "LocalState/COSMIC" / ("HostedQueryAcceptance-SolanaOASIS" if options.cohort == "original-solana"
+        else "HostedHyperdriveWriteFaultCurrent")
+    state.mkdir(exist_ok=True)
     if (state / "hyperdrive-write-fault.acknowledged.json").exists():
         raise RuntimeError("Completed write-fault gate retained; do not repeat a green scope.")
     intent = state / "hyperdrive-write-fault.intent.json"
-    resume = sys.argv[1:] == ["--resume-reviewed-rejections"]
-    if sys.argv[1:] and not resume:
-        raise RuntimeError("Only explicit --resume-reviewed-rejections is supported.")
+    resume = options.resume_reviewed_rejections
     if intent.exists() and not resume:
         raise RuntimeError("Existing write-fault intent; reconcile instead of replaying.")
-    owner = json.loads((state / "owner.acknowledged.json").read_text())["id"]
-    token = flow.verification.protected_token((state / "owner.dpapi").read_bytes(), decrypt=True).decode()
+    if options.cohort == "negative-v1":
+        identity, token = flow.session(state, "owner")
+        owner = identity["id"]
+    else:
+        owner = json.loads((state / "owner.acknowledged.json").read_text())["id"]
+        token = flow.verification.protected_token((state / "owner.dpapi").read_bytes(), decrypt=True).decode()
     if flow.call("sandbox/faults", token, method="GET")["result"]:
         raise RuntimeError("Existing avatar faults must not be changed.")
     if resume:
@@ -58,7 +67,8 @@ def main():
     if not resume:
         flow.write_new(intent, json.dumps({"owner": owner, "records": records, "purpose": "offline conditional authority fence"}).encode())
     results = []
-    report = ROOT / "TestResults/HostedCqlIntegrationCurrent/hyperdrive-write-fault-http.json"
+    report = ROOT / "TestResults/HostedCqlIntegrationCurrent" / ("hyperdrive-write-fault-http.json"
+        if options.cohort == "original-solana" else "hyperdrive-write-fault-negative-v1-http.json")
     for record in records:
         provider = record["provider"]
         prefix = "write-fault-" + provider
@@ -101,6 +111,8 @@ def main():
             flow.write_new(state / (prefix + ".restored.json"), b'{"restored":true}')
             flow.verification.write(report, {"results": results, "browserAcceptance": False})
     absent()
+    flow.verification.write(report, {"results": results, "allProviderRows": 0, "absenceProviders": failover.PROVIDERS,
+        "restored": True, "browserAcceptance": False, "uncertainCommitRecovery": False})
     flow.write_new(state / "hyperdrive-write-fault.acknowledged.json", json.dumps({"cases": 3, "allProviderRows": 0,
         "restored": True, "scope": "offline authority/preflight rejection; not uncertain-commit recovery"}).encode())
     print(json.dumps({"cases": 3, "allProviderRows": 0, "restored": True, "browserAcceptance": False,
