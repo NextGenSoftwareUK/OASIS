@@ -1,6 +1,6 @@
 # Reuse the admitted Windows Mongo environment; never create a new store/runtime.
-param([switch]$SqliteSource,[switch]$NeoSource,[switch]$NeoTarget,[switch]$ManagerCutover)
-if(@($SqliteSource,$NeoSource,$NeoTarget,$ManagerCutover | Where-Object {$_}).Count -gt 1){throw "Choose one exclusive route proof."}
+param([switch]$SqliteSource,[switch]$NeoSource,[switch]$NeoTarget,[switch]$ManagerCutover,[switch]$RemainingManagerRoutes)
+if(@($SqliteSource,$NeoSource,$NeoTarget,$ManagerCutover,$RemainingManagerRoutes | Where-Object {$_}).Count -gt 1){throw "Choose one exclusive route proof."}
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $runtime='C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe'
@@ -25,7 +25,7 @@ New-Item -ItemType Directory -Path $results -Force | Out-Null
             Start-Sleep -Milliseconds 500
         }
         if(!$ready){throw 'Owned service readiness deadline exceeded; do not restart.'}
-        if($NeoSource -or $NeoTarget -or $ManagerCutover){
+        if($NeoSource -or $NeoTarget -or $ManagerCutover -or $RemainingManagerRoutes){
             $neoState=(& wsl -d Ubuntu -u root -- podman inspect oasis-neo4j --format '{{.State.Status}} {{.Image}}') -join ''
             if($LASTEXITCODE -ne 0 -or $neoState -ne 'exited 6e47503356fe6b0e8f3ba48afc714ed95475d0c32ac97c62b30737af2e8846bd'){throw 'Retained stopped pinned Neo container required; no adoption/provisioning.'}
             $neoOwned=Start-Process -FilePath 'wsl.exe' -ArgumentList @('-d','Ubuntu','-u','root','--','podman','start','--attach','oasis-neo4j') -PassThru -WindowStyle Hidden -RedirectStandardOutput (Join-Path $results 'neo-attached.log') -RedirectStandardError (Join-Path $results 'neo-attached.err.log')
@@ -39,15 +39,15 @@ New-Item -ItemType Directory -Path $results -Force | Out-Null
             if(!$neoReady){throw 'Owned Neo readiness deadline exceeded; preserve fixture.'}
         }
         $env:COSMIC_REPLICA_REPAIR_NATIVE='owned-local-27029'
-        $filter=if($ManagerCutover){'FullyQualifiedName~ManagerSaveMaintainsRecoveredMongoToNeoRoute|FullyQualifiedName~ManagerSaveMaintainsRecoveredSqliteToNeoRoute'}elseif($NeoTarget){'FullyQualifiedName~ReviewedCommandRepairsActualSqliteToNeo|FullyQualifiedName~ReviewedCommandRepairsActualMongoToNeo'}elseif($NeoSource){'FullyQualifiedName~ReviewedCommandRepairsActualNeoToMongo'}elseif($SqliteSource){'FullyQualifiedName~ReviewedCommandRepairsActualSqliteToMongo'}else{'FullyQualifiedName~ReviewedCommandRepairsActualMongoToSqlite'}
-        $reportName=if($ManagerCutover){'managed-neo-cutover.trx'}elseif($NeoTarget){'reviewed-neo-target-repair.trx'}elseif($NeoSource){'neo-mongo-repair.trx'}elseif($SqliteSource){'sqlite-mongo-repair.trx'}else{'mongo-sqlite-repair.trx'}
+        $filter=if($RemainingManagerRoutes){'FullyQualifiedName~ManagerContinuationMongoToSqlite|FullyQualifiedName~ManagerContinuationSqliteToMongo|FullyQualifiedName~ManagerContinuationNeoToSqlite|FullyQualifiedName~ManagerContinuationNeoToMongo'}elseif($ManagerCutover){'FullyQualifiedName~ManagerSaveMaintainsRecoveredMongoToNeoRoute|FullyQualifiedName~ManagerSaveMaintainsRecoveredSqliteToNeoRoute'}elseif($NeoTarget){'FullyQualifiedName~ReviewedCommandRepairsActualSqliteToNeo|FullyQualifiedName~ReviewedCommandRepairsActualMongoToNeo'}elseif($NeoSource){'FullyQualifiedName~ReviewedCommandRepairsActualNeoToMongo'}elseif($SqliteSource){'FullyQualifiedName~ReviewedCommandRepairsActualSqliteToMongo'}else{'FullyQualifiedName~ReviewedCommandRepairsActualMongoToSqlite'}
+        $reportName=if($RemainingManagerRoutes){'remaining-managed-continuation.trx'}elseif($ManagerCutover){'managed-neo-cutover.trx'}elseif($NeoTarget){'reviewed-neo-target-repair.trx'}elseif($NeoSource){'neo-mongo-repair.trx'}elseif($SqliteSource){'sqlite-mongo-repair.trx'}else{'mongo-sqlite-repair.trx'}
         dotnet test (Join-Path $root 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj') `
             --no-build --no-restore --filter $filter --results-directory $results `
             --logger "trx;LogFileName=$reportName" /m:2 /nr:false /p:UseSharedCompilation=false -v:q *> (Join-Path $results 'native-test.log')
         if($LASTEXITCODE){throw 'Native repair proof failed; preserve owned fixtures/journals.'}
         [xml]$report=Get-Content (Join-Path $results $reportName) -Raw
         $counts=$report.TestRun.ResultSummary.Counters
-        $expectedCount=if($NeoTarget -or $ManagerCutover){2}else{1}
+        $expectedCount=if($RemainingManagerRoutes){4}elseif($NeoTarget -or $ManagerCutover){2}else{1}
         if([int]$counts.total -ne $expectedCount -or [int]$counts.passed -ne $expectedCount -or [int]$counts.notExecuted -ne 0){throw 'Exact selected native pass count, no skips required.'}
         Get-Content (Join-Path $results 'native-test.log') -Tail 4
     }
