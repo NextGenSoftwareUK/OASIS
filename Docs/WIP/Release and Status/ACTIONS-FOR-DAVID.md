@@ -279,12 +279,12 @@ The optional `-RecordLifecycle -StorageEncryptionKeyEnvironmentVariable <variabl
 
 ## Part E — COSMIC ORM / CQL demo owner decisions (31 October 2026)
 
-Current owner decision: **choose timing for the verified consolidated Development batch** below. Engineering, native cleanup and browser tooling remain agent-owned work. No account/credential setup is requested.
+Current owner decision: **approved publication of one consolidated Development batch now** (31 October 2026). Engineering, native cleanup and browser tooling remain agent-owned work. No account/credential setup is requested.
 See [COSMIC current status](../COSMIC%20ORM/CURRENT_STATUS.md).
 
 | Item | Status / David's decision | When action is needed |
 |---|---|---|
-| Consolidated Development batch timing (31 October) | **Pending decision** — allow one additional consolidated Core/parent Development publication today, or hold for the next daily batch. Tested source: root d74373305 + Core6bbd015;1009integration contracts and scoped native recovery/ACK-loss proofs pass; pins validate | Needed only to exceed AGENTS.md once/twice-daily cadence for the live routing check. No master/production promotion or new hosting spend. [Prepared scope/evidence](../COSMIC%20ORM/HOSTED_SANDBOX_INTEGRATION_PLAN.md#consolidated-release-preflight--31-october-2026). |
+| Consolidated Development batch timing (31 October) | **Approved** — David replied “Publish one consolidated batch now”. Publishing the verified correctness/routing batch from parent79fe887e3/Core6bbd015; newer public-provider expansion remains on its separate task branch | One additional consolidated Development publication authorized. No master/production promotion or hosting spend. [Scope/evidence](../COSMIC%20ORM/HOSTED_SANDBOX_INTEGRATION_PLAN.md#consolidated-release-preflight--31-october-2026). |
 | Hosted Azure Cosmos | **Deferred** — free only; no existing free subscription; David said leave hosted Azure pending | Only if David chooses to resume. No paid upgrade, card/signup request or new account creation now. |
 | Hosted Oracle Database / OCI | **Deferred** — no existing Oracle account; David said leave hosting pending | Only if David resumes. Then record the actual account/connection/wallet setup needed here; request paths or variable names only, never secret values. |
 | First AWS demo | **Approved** — use a public S3 dataset | Decision implemented: anonymous native metadata reads and Mongo pairing verified through hosted HTTP. No AWS account or bucket setup needed for this demo. |
