@@ -103,6 +103,9 @@ public static partial class CqlV1Endpoint
         catch (Exception) { return Failure(503, "CQL_EXECUTION_FAILED", "The query did not complete. Retain the usage operation ID for reconciliation."); }
     }
 
+    internal static Guid AuthenticatedActor(HttpContext http)
+        => http.User.Identity?.IsAuthenticated == true ? (http.Items["Avatar"] as IAvatar)?.Id ?? Guid.Empty : Guid.Empty;
+
     private static IActionResult CaptureAdmission(HttpContext http, out Guid actor, out PreparedStorageExecution admission)
         => CaptureAdmission(http, out actor, out admission, out _);
 
@@ -110,9 +113,9 @@ public static partial class CqlV1Endpoint
         out UsageExecutionHandle admittedExecution)
     {
         admittedExecution = null;
-        actor = (http.Items["Avatar"] as IAvatar)?.Id ?? Guid.Empty;
+        actor = AuthenticatedActor(http);
         admission = null;
-        if (actor == Guid.Empty || http.User.Identity?.IsAuthenticated != true)
+        if (actor == Guid.Empty)
             return Failure(401, "CQL_AUTHENTICATION_REQUIRED", "Authenticate with a WEB4 bearer token.");
         admission = PreparedStorageExecution.Current;
         if (admission == null || !admission.IsForAvatar(actor) ||

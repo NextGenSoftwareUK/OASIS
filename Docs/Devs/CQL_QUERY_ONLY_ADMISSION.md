@@ -135,3 +135,24 @@ by `Rows` or `Federation`. Configuration cannot supply a URL. It never forwards 
 to a native provider. Discovery failure disables execution; local developer links
 remain separate. Public posts can change or disappear, so actual responses own
 the displayed row count. Configuration/planning is not deployed native acceptance.
+
+
+## Visitor-owned federation samples
+
+The sandbox preparation button is offered only for configured, available Mongo
+pairings on the sandbox environment. It reads up to two source records using the
+server example, independently of edits in the query editor. The authenticated
+`POST /api/data/query-cql/demo-identities` derives avatar-scoped identifiers using
+Core's native-import identity algorithm. This endpoint grants no storage access
+and performs no provider I/O.
+
+The browser queries Mongo for those identifiers and uses the ordinary admitted
+save endpoint with create-only expected revisions. Snapshots are private to the
+visitor. Existing edited, foreign or public records are rejected rather than
+overwritten. Each save records its operation identity in origin-local storage
+before submission and removes only its own acknowledged intent. An uncertain
+outcome remains pending for reconciliation; preparation never automatically
+retries it. The journal contains identifiers, not tokens or source payloads.
+
+Preparation controls are not proof of live provider availability. Release
+acceptance must separately verify native rows, repeat preparation and isolation.

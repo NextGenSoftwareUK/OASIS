@@ -118,3 +118,20 @@ Server templates now declare Rows(default) or Federation and retain strict reque
 77affected APIcontrols pass/no skips (16new relative to61),32federation controls pass/no skips,29client controls pass/no skips (4new). Exact shipped federation-only operational fragment Scripts/Sandbox/cql-activitypub-federation-examples.json is compiler/planner-tested; existing leaf config unchanged. Fragment has NOT been merged into live variables and creates no records. Controlled adapter tests are not native5/4acceptance. Final evidence TestResults/HostedCqlIntegrationCurrent/hosted-example-version-api.trx SHA2563DD8BB8D8133FD6B3B8B091FC9D2C6633E76A67323FFA942F3FF94FF68EF9EC3; hosted-example-version-core.trx SHA256A587E0FFFB96A5C62BE3162B596CD43045D9537849CE3393437A319E174AD87A; hosted-federation-client.log SHA256625C85D63A5AC5152B09F7C1F329D3DC3DF7A645E084A66831048945BA824A32.
 
 Next: use authenticated preparation metadata with existing Core native-record stable identity (avatar/provider/dedicated demo source/key), then normal admitted load/save per record with preserved intent/ACK, privacy and no overwriting foreign/changed records. Browser currently receives only getToken/getBase, so server-derived identities avoid a duplicate client hash algorithm. Effective metadata protection/query policy must be respected. Public live remains4hosted row-query providers/AP3then2, no new deployment. Bundle tested federation, CORS and actual ready5/4pairing in next verified batch.
+
+
+### Visitor preparation controls — 31 October 2026
+
+Implemented owner-scoped native identities and browser preparation through normal
+create-only saves. Eight helper tests and two UI tests cover reuse, edited/foreign
+records, lost acknowledgements, storage failure, session changes and concurrent
+intents. API86/Core383/client39 pass, zero skipped. Initial test compilation found
+a test-namespace Avatar stub collision; fully qualified Core Avatar fixes the test.
+Evidence: TestResults/HostedCqlIntegrationCurrent/demo-preparation-api.trx,
+demo-preparation-auth-core.trx and demo-preparation-client-final.log.
+No hosted preparation/configuration writes occurred. Next: publish the coherent
+batch and verify actual5/4ActivityPub+Mongo rows and tenant isolation in-browser.
+
+- demo-preparation-api.trx SHA256 4f34dc55673a3b83b93f4b2050bf74165a6bfa61a6ec0312809a58ee60f7c29e.
+- demo-preparation-auth-core.trx SHA256 24c971f16fc12ebba0d359e809550cec184c236383b766f914f46676e18ef732.
+- demo-preparation-client-final.log SHA256 d927ab07712a8180a11024792417c675efd75092a9da6c42c7475f083fde2e88.
