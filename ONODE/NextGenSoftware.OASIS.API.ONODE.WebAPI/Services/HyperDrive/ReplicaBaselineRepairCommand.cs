@@ -22,8 +22,8 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive;
 
-/// <summary>Trusted shell command for reviewed Mongo/Neo4j-to-SQLite and
-/// SQLite/Neo4j-to-Mongo routes. The request may name only enrolled profiles; endpoints and
+/// <summary>Trusted shell command for reviewed cross-provider routes among
+/// MongoDB, SQLite and Neo4j. The request may name only enrolled profiles; endpoints and
 /// credentials come exclusively from host DNA. No HTTP/background host is started.</summary>
 internal static class ReplicaBaselineRepairCommand
 {
@@ -105,13 +105,14 @@ internal static class ReplicaBaselineRepairCommand
     internal static ProviderType TargetProfile(string name)=>name switch {
         null or "SQLLiteDBOASIS"=>ProviderType.SQLLiteDBOASIS,
         "MongoDBOASIS"=>ProviderType.MongoDBOASIS,
-        _=>throw new ArgumentException("Only explicit SQLite or MongoDB target profiles are supported.")
+        "Neo4jOASIS"=>ProviderType.Neo4jOASIS,
+        _=>throw new ArgumentException("Only explicit SQLite, MongoDB or Neo4j target profiles are supported.")
     };
 
     internal static void ValidateRoute(ProviderType source,ProviderType target)
     {
-        if(!(target==ProviderType.SQLLiteDBOASIS && source is ProviderType.MongoDBOASIS or ProviderType.Neo4jOASIS
-            || source is ProviderType.SQLLiteDBOASIS or ProviderType.Neo4jOASIS && target==ProviderType.MongoDBOASIS))
+        if(source==target || source is not (ProviderType.MongoDBOASIS or ProviderType.SQLLiteDBOASIS or ProviderType.Neo4jOASIS)
+            || target is not (ProviderType.MongoDBOASIS or ProviderType.SQLLiteDBOASIS or ProviderType.Neo4jOASIS))
             throw new ArgumentException("This reviewed source/target route is not enrolled.");
     }
 
@@ -158,9 +159,12 @@ internal static class ReplicaBaselineRepairCommand
             ProviderType.SQLLiteDBOASIS=>SqliteStoreIdentity(settings.SQLLiteDBOASIS.ConnectionString),
             _=>throw new InvalidOperationException("Unresolved source profile.")
         };
-        var targetIdentity=targetType==ProviderType.SQLLiteDBOASIS
-            ? Path.GetFullPath(ExistingSqlite(settings.SQLLiteDBOASIS.ConnectionString).DataSource)
-            : StoreIdentity(settings.MongoDBOASIS.ConnectionString,settings.MongoDBOASIS.DBName);
+        var targetIdentity=targetType switch {
+            ProviderType.SQLLiteDBOASIS=>Path.GetFullPath(ExistingSqlite(settings.SQLLiteDBOASIS.ConnectionString).DataSource),
+            ProviderType.MongoDBOASIS=>StoreIdentity(settings.MongoDBOASIS.ConnectionString,settings.MongoDBOASIS.DBName),
+            ProviderType.Neo4jOASIS=>NeoStoreIdentity(settings.Neo4jOASIS.ConnectionString,settings.Neo4jOASIS.Username),
+            _=>throw new InvalidOperationException("Unresolved target profile.")
+        };
         if(configuredSource!=request.SourceStoreIdentity || (targetType==ProviderType.SQLLiteDBOASIS
             ? request.TargetStoreIdentity!=null || targetIdentity!=Path.GetFullPath(request.TargetFile)
             : request.TargetFile!=null || targetIdentity!=request.TargetStoreIdentity))
@@ -180,9 +184,12 @@ internal static class ReplicaBaselineRepairCommand
             ProviderType.SQLLiteDBOASIS=>new SQLLiteDBOASIS(ExistingSqlite(settings.SQLLiteDBOASIS.ConnectionString).ToString()),
             _=>throw new InvalidOperationException("Unresolved source profile.")
         };
-        IOASISStorageProvider target=targetType==ProviderType.SQLLiteDBOASIS
-            ? new SQLLiteDBOASIS(ExistingSqlite(settings.SQLLiteDBOASIS.ConnectionString).ToString())
-            : new MongoDBOASIS(settings.MongoDBOASIS.ConnectionString,settings.MongoDBOASIS.DBName);
+        IOASISStorageProvider target=targetType switch {
+            ProviderType.SQLLiteDBOASIS=>new SQLLiteDBOASIS(ExistingSqlite(settings.SQLLiteDBOASIS.ConnectionString).ToString()),
+            ProviderType.MongoDBOASIS=>new MongoDBOASIS(settings.MongoDBOASIS.ConnectionString,settings.MongoDBOASIS.DBName),
+            ProviderType.Neo4jOASIS=>new NeoProvider(settings.Neo4jOASIS.ConnectionString,settings.Neo4jOASIS.Username,settings.Neo4jOASIS.Password),
+            _=>throw new InvalidOperationException("Unresolved target profile.")
+        };
         try
         {
             var activated=await source.ActivateProviderAsync();
