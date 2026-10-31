@@ -23,7 +23,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive;
 
 /// <summary>Trusted shell command for reviewed Mongo/Neo4j-to-SQLite and
-/// SQLite-to-Mongo routes. The request may name only enrolled profiles; endpoints and
+/// SQLite/Neo4j-to-Mongo routes. The request may name only enrolled profiles; endpoints and
 /// credentials come exclusively from host DNA. No HTTP/background host is started.</summary>
 internal static class ReplicaBaselineRepairCommand
 {
@@ -111,7 +111,7 @@ internal static class ReplicaBaselineRepairCommand
     internal static void ValidateRoute(ProviderType source,ProviderType target)
     {
         if(!(target==ProviderType.SQLLiteDBOASIS && source is ProviderType.MongoDBOASIS or ProviderType.Neo4jOASIS
-            || source==ProviderType.SQLLiteDBOASIS && target==ProviderType.MongoDBOASIS))
+            || source is ProviderType.SQLLiteDBOASIS or ProviderType.Neo4jOASIS && target==ProviderType.MongoDBOASIS))
             throw new ArgumentException("This reviewed source/target route is not enrolled.");
     }
 

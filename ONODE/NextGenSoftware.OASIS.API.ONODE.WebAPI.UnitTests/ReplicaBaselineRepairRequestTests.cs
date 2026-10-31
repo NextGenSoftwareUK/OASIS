@@ -95,6 +95,8 @@ public class ReplicaBaselineRepairRequestTests
     {
         ReplicaBaselineRepairCommand.ValidateRoute(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS,
             ReplicaBaselineRepairCommand.TargetProfile("MongoDBOASIS"));
+        ReplicaBaselineRepairCommand.ValidateRoute(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Neo4jOASIS,
+            ReplicaBaselineRepairCommand.TargetProfile("MongoDBOASIS"));
         Assert.Throws<ArgumentException>(()=>ReplicaBaselineRepairCommand.ValidateRoute(
             NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS,ReplicaBaselineRepairCommand.TargetProfile("MongoDBOASIS")));
         Assert.Throws<ArgumentException>(()=>ReplicaBaselineRepairCommand.TargetProfile("Neo4jOASIS"));
