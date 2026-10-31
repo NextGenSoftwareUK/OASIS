@@ -1,20 +1,21 @@
 # Return after the MVP demo
 
-Updated 30 October 2026. These remain part of the full goal; they are deferred, not complete.
+Updated 31 October 2026. These remain part of the full goal; they are deferred, not complete.
 
-Current priority: fix reproducible demo blockers and deliver provider breadth/presets. Do not expand generic recovery infrastructure or parity depth ahead of the demo.
+Priority now: reproducible demo blockers, actual hosted breadth/presets and scoped HyperDrive gates. Do not redo green scopes or expand parity depth ahead of the demo.
 
-| Later work | Current evidence / remaining acceptance |
+| Later work | Verified foundation and remaining scope |
 |---|---|
-| Durable initialization application coordinator | Native baseline, read-only source preparation and target-receipt inspection exist; durable intent, single submission, interrupted-call recovery and operator/API composition remain. |
-| Fenced source reconciliation and queue completion | Require exact authoritative source/target evidence and atomic source-state comparison; never skip/reset a held entry or replay acknowledged writes. Hosted SQLite conflict remains a demo blocker to inspect, not permission to bypass this requirement. |
-| Atomic late enrollment / future-write cutover | Baseline primitives do not certify gap-free enrollment while new source writes race capture. |
-| Large-store baseline/migration operations | Neo receipt audit currently bounded at 10000; Mongo migration batches1–128. Scaling, operator tooling and full operational acceptance remain. |
-| Deep LINQ / EF / NHibernate parity | Resume red checklist rows, especially All/element/numeric terminals after entity-selected stages, reselection and graph composition. Keep green scopes/cursors frozen absent a reproduced bug. |
-| General POCO mapping and migrations tooling | Unrestricted entities without IHolon, model mapping/conventions, schema diff/up/down/scaffolding remain deferred. |
-| Full ORM acceptance audit | Reconcile tracking/save ownership, conditional concurrency, child loading/saving/depth parameters, rollback/history/deltas, placement and migration against original requirements/provider tests. Existing focused proofs do not establish 100% completion. |
-| Broad provider production depth | MVP queries/presets do not certify complete provider semantics, auth, billing/settlement, scaling or cross-provider snapshot consistency. |
+| Operator recovery / late enrollment | Durable reviewed application, target receipts and fenced source completion exist; all6native routes/manager continuations/interleavings pass. Wider hosted/operator authorization and complete operational acceptance remain red. |
+| Primary-authority placement cutover | Replica baseline-to-live delivery is not migration of write authority. Define authority epochs, admission and in-flight operation ownership before implementation. |
+| Large-store baseline/migration | Existing bounded receipt audits and migration batches are not scale certification. Preserve independent target state and all original obligations. |
+| Production uncertain commits | Three-store application ACK loss and real loopback HTTP disconnect pass. Production controller/auth/settlement, native-DB connection faults, process crashes and larger/protected graphs remain separate. |
+| Mixed read/write representations | One admission factory rejects overlapping native signers and unsigned/query-only providers. Design operation/representation-scoped authorization/pricing and native/HTTP tests; do not remove the fence or silently substitute sources. |
+| Deep LINQ / EF / NHibernate parity | Resume red rows, especially post-entity-selected terminals, reselection and graph composition. Keep green scopes/cursors frozen absent a bug. |
+| POCO mapping and migrations tooling | Unrestricted non-IHolon entities, conventions/model mapping, schema diff/up/down/scaffolding remain deferred. |
+| Full ORM acceptance audit | Reconcile tracking/save ownership, conditional concurrency, child load/save/depth parameters, rollback/history/deltas and migration/placement against original requirements. Focused proofs are not100%acceptance. |
+| Broad provider production depth | Read-only MVPs do not certify owned native writes, auth/settlement/scaling, replication or distributed snapshots. Public-chain RPC finality is not independent settlement proof. |
 
-Hosted Azure remains pending at the user's direction (free-only; no existing free subscription). Broader provider order and demo gates remain in CURRENT_STATUS and the strict checklist. Legacy HyperDrive issues are documentation-only; implementation changes remain V2 only.
+The hosted SQLite6/8barrier was explicitly repaired; it is not an outstanding blocker. Preserve the original evidence and do not resave/reset it. Hosted Azure/Oracle remain deferred; no signup/payment re-asks. V2 implementation only, legacy issues document-only.
 
-Recovery entry: [CURRENT_STATUS](CURRENT_STATUS.md). Feature acceptance: [CQL_PARITY_CHECKLIST](CQL_PARITY_CHECKLIST.md). Native recovery limits: [REPLICA_BASELINE_AND_RECOVERY](REPLICA_BASELINE_AND_RECOVERY.md).
+Recovery: [CURRENT_STATUS](CURRENT_STATUS.md). Acceptance: [checklist](CQL_PARITY_CHECKLIST.md). Details: [recovery](REPLICA_BASELINE_AND_RECOVERY.md), [expansion](CQL_DEMO_EXPANSION_ROADMAP.md). [Superseded backlog](Archive/STATUS_BEFORE_PUBLIC_READ_PROFILE_RECONCILIATION_2026-10-31.md).
