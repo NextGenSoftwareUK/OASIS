@@ -13,7 +13,7 @@ missing reads and saved-state reload in a separate process.
 Run from the repository worktree:
 
 ```powershell
-./Scripts/TestHosts/Run-CosmicTonContract.ps1
+./Scripts/TestHosts/Run-CosmicTonContract.ps1 -Storage
 ```
 
 This uses the pinned SDK dependencies in `SdkBridge` and local TVM emulation.
@@ -21,7 +21,10 @@ It creates no real account, buys no tokens and contacts no public chain. Restore
 the exact package lock once if needed, then reuse it. Generated artifacts and
 test evidence go under the worktree's `TestResults/TonCqlCurrent`.
 
-C# native transport, encrypted holon persistence, CQL capability controls,
+The C# native backend and shared encryption now pass a three-holon save/load
+roundtrip through a test probe, including independent worker reopen, read-only
+rejection and exact synthetic fixture cleanup. The shipping class still needs
+to move from its EVM inheritance to this owner. CQL capability controls,
 Mongo federation, HTTP/browser examples and real-network acceptance remain open.
 Tact compiler deprecation and production contract review are also tracked.
 The current DNA example is disabled; no native endpoint is implied.
