@@ -1713,3 +1713,5 @@ Linea/Scroll outcome:38tests/0skips (36controlled+2nativepublishedsample),consol
 Linea/Scroll HTTP outcome:2Core/4API/6config/2nativeHTTP/2clientpass0skips.2SDKprivatecopies/9receipts each; originalcohorts retained, exactDBmarker/drop/absence verified; Mongo/Kestrel stopped,noNeo. Existing23typetariffcatalogue not23hosted. No downloads/newenvironment. Persistentcohort sizes:
 - `LocalState/COSMIC/LineaMongoHttpCurrent`: 839B,retainintent/ACK/cleanup.
 - `LocalState/COSMIC/ScrollMongoHttpCurrent`: 841B,retainintent/ACK/cleanup.
+
+Website8c54051pushed with2spacedCLI/guide/walkthroughlinks and2passingnewclienttests. Publicmain unchanged. No duplicatebuild/testenvironment;27029listenerabsence verified after bothnativegates. Rawclientlog HostedCqlIntegrationCurrent/linea-scroll-client-preparation.log regenerable.
