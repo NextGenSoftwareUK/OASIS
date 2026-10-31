@@ -2,7 +2,7 @@
 
 Updated 30 October 2026 UTC. Full programme remains incomplete.
 
-## Current phase: hosted three-database MVP + local Oracle content demo verified
+## Current phase: demo breadth and missing provider integrations
 
 - Worktree C:/Source/OASIS-cosmic; parent/Core branch work/cosmic-cql-sandbox-integration. Never build/write in the original C:/Source/OASIS checkout.
 - Development parent51f3c4c3a1f70ccd4c30a09533c1cdc4861115b3 / Coreff670ec65eb2d6e98ec0858af146eba704752b20; ONODE6b5d9d00c6ec6e2ed4e9d04015032a0394973f06 preserved. Pins/gitlinks/remote pushes verified.
@@ -44,7 +44,7 @@ Updated 30 October 2026 UTC. Full programme remains incomplete.
 ## Branch recovery and key commands
 
 - Broad parent work/cosmic-cql f89cf0085 / published Core69bb8a4 preserve PostgreSQL/SQLServer/Oracle content work excluded from deployment. Broad Core also has a local unpublished conflict-free merge with scoped Core; parent merge attempt was aborted. Do not sweep broad changes into Development.
-- Next exact step: inspect retained Redis source/runtime and selectively integrate its missing current-branch native/Mongo/browser path from preserved f89cf0085; freeze verified scopes. Sui7controls + native1 + paired1 pass/no skips; browser5/4, original/dedicated Storage and source metadata/preparations unchanged. Exact Mongo cleanup, native process inventory empty,9000/9123/27029/5112 stopped. See SUI_CQL_MVP.md. Public section18 mainf463906/Production7452544690success. Aptos17/LocalFile16/AzureBlob15 verified. Hosted Azure pending/free-only; full parity/HyperDrive/public-network acceptance incomplete.
+- Next exact step: inspect preserved PostgreSQL content-query source, retained store and scoped integration dependencies from f89cf0085, then close its missing current-branch/Mongo/browser catalogue path; freeze verified scopes. Redis8controls + native1 + paired1 pass/no skips, browser5/4, original ciphertext snapshot/seed/ACKs unchanged. Exact Mongo cleanup, original Redis container exited and18679/27029/5113 stopped. See REDIS_CQL_MVP.md. Public section19 maine016ee6/Production7452576646success. Sui18/Aptos17/LocalFile16/AzureBlob15 verified. Hosted Azure pending/free-only; full parity/HyperDrive/public-network acceptance incomplete.
 - PostgreSQL16controls/17native/restart/4paired presets; SQLServer17controls/23native/restart/4paired presets verified. Oracle13controls/15read-only probes/21saved-holon queries/restart plus4paired SDK/HTTP/browser content presets verified locally; hosted OCI still unproved.
 - Build through Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1, /m:2 /nr:false /p:UseSharedCompilation=false, reuse caches. No restore unless necessary. Test-CqlReplicaBaselineRepair.ps1 runs explicit reusable Windows native profile after producer builds.
 - Validate pins: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks. Fetch first; batch verified Development releases once/twice daily. Latest client-only verifier/probe/docs commits need no new Railway build.
