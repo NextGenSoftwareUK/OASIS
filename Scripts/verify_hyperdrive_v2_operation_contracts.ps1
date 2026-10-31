@@ -9,9 +9,12 @@ param()
 $ErrorActionPreference = 'Stop'
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $routerPath = Join-Path $repoRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/OASIS HyperDrive/OASISHyperDrive.cs'
-$testPath = Join-Path $repoRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/HyperDrive/HyperDriveProviderExecutionTests.cs'
+$testRoots = @('OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests', 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests')
 $router = Get-Content -Raw -LiteralPath $routerPath
-$tests = Get-Content -Raw -LiteralPath $testPath
+# Provider-boundary cases live across both HyperDrive test projects, not in one file.
+$tests = (@($testRoots | ForEach-Object { Get-ChildItem -LiteralPath (Join-Path $repoRoot $_) -Recurse -Filter '*.cs' } |
+    Where-Object { $_.FullName -notmatch '[\\/](?:bin|obj)[\\/]' } |
+    ForEach-Object { Get-Content -Raw -LiteralPath $_.FullName })) -join "`n"
 
 $caseCounts = [regex]::Matches($router, 'case\s+"(?<operation>[A-Za-z0-9]+)"\s*:') |
     ForEach-Object { $_.Groups['operation'].Value } |
@@ -22,7 +25,10 @@ if ($singleHandler.Count) {
     throw "V2 operations exist in only one sync/async handler: $($singleHandler -join ', ')"
 }
 
-$testedOperations = @([regex]::Matches($tests, 'Operation\s*=\s*"(?<operation>[A-Za-z0-9]+)"') |
+# A case is either a StorageOperationRequest naming the operation, or a call through the manager under test
+# (fixture.Manager.<Operation>[Async](...)), which the manager routes to the same switch label.
+$testedOperations = @(@([regex]::Matches($tests, 'Operation\s*=\s*"(?<operation>[A-Za-z0-9]+)"')) +
+        @([regex]::Matches($tests, '\.Manager\.(?<operation>[A-Za-z0-9]+?)(?:Async)?\s*\('))) |
     ForEach-Object { $_.Groups['operation'].Value } |
     Sort-Object -Unique)
 $untested = @($handlerOperations | Where-Object { $_ -notin $testedOperations })
