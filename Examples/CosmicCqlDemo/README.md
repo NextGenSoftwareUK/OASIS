@@ -13,6 +13,23 @@ The exact [C# sample](NativeKeySetWalkthrough.cs) is native-tested against three
 mainnet accounts and a two-account subset, without wallets or writes. Hosted
 deployment/browser acceptance is tracked separately in CURRENT_STATUS.
 
+## Public Ethereum balances — runnable C# demo
+
+[The Ethereum guide](../../Docs/Devs/ETHEREUM_PUBLIC_METADATA_CQL_GUIDE.md) covers
+native3/2address filters, HTTP/Mongo5/4pairing and exact finalized-block provenance.
+After a leased bounded build of this project, run:
+
+```powershell
+dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
+    --no-build --no-restore -- `
+    --ethereum-public LocalState/COSMIC/HostedEthereumPublicSourceCurrent/source.json
+```
+
+[EthereumPublicWalkthrough.cs](EthereumPublicWalkthrough.cs) is a commented
+HolonManager/LINQ example. It reads public balances without wallets, funding,
+transactions or Mongo writes. Hosted enrollment/browser proof remain pending;
+local HTTP pairing and the console example are verified separately.
+
 ## Public Google Cloud metadata — runnable C# demo
 
 Reuse the existing three-key public catalogue; no Google account or database is

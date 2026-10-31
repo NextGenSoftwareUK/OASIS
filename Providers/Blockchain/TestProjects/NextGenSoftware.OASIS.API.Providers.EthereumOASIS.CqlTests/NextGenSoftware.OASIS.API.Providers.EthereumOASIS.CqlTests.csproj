@@ -19,4 +19,8 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.EthereumOASIS\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="../../../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs" Link="PublishedDemo/NativeKeySetWalkthrough.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/EthereumPublicWalkthrough.cs" Link="PublishedDemo/EthereumPublicWalkthrough.cs" />
+  </ItemGroup>
 </Project>

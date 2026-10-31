@@ -5,6 +5,15 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// The Ethereum read profile is separate from wallet/transaction storage.
+// Reuse an existing public catalogue, query once, and exit without local fixtures.
+if (args.Length == 2 && args[0] == "--ethereum-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await EthereumPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // The public Google console path performs no database setup or writes.
 // Keep its bounded network lifetime independent of the SQLite fixture below.
 if (args.Length == 2 && args[0] == "--google-public")
@@ -18,7 +27,7 @@ if (args.Length == 2 && args[0] == "--google-public")
 var serve = args.Length == 1 && args[0] == "--serve";
 if (args.Length != 0 && !serve)
 {
-    Console.Error.WriteLine("Use no arguments, --serve, or --google-public <existing-source.json>.");
+    Console.Error.WriteLine("Use no arguments, --serve, --google-public <existing-source.json>, or --ethereum-public <existing-source.json>.");
     return 2;
 }
 
