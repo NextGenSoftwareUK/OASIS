@@ -106,22 +106,9 @@ public sealed class PolkadotPublicHeaderMetadataTests
     {
         var path = Environment.GetEnvironmentVariable("COSMIC_POLKADOT_PUBLIC_SOURCE");
         if (string.IsNullOrEmpty(path)) Assert.Inconclusive("Explicit retained native catalogue required.");
-        var json = await File.ReadAllTextAsync(path!);
-        using var config = JsonDocument.Parse(json);
-        using var source = PolkadotPublicHeaderMetadataSource.FromJson(json);
-        var active = await source.ActivateQuerySourceAsync(default);
-        Assert.IsFalse(active.IsError,active.Exception?.ToString());
-        var keys = config.RootElement.GetProperty("blockHashes").EnumerateArray().Select(value => value.GetString()!).ToArray();
-        foreach (int count in new[] { 3,2 })
-        {
-            var selected = keys.Take(count).ToArray();
-            var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.PolkadotOASIS).Result)
-                .Where(row => selected.Contains(CosmicQueryMetadata.Value<string>(row,PolkadotPublicHeaderMetadataSource.AddressMetadata))).Result;
-            var plan = CosmicQueryPlanner.Plan(query,ProviderType.PolkadotOASIS,
-                new[] { new CosmicQueryTarget(ProviderType.PolkadotOASIS,source.QueryCapabilities) });
-            Assert.IsFalse(plan.IsError,plan.Message);
-            var result = await source.ExecuteCosmicQueryAsync(plan.Result);
-            Assert.IsFalse(result.IsError,result.Exception?.ToString()); Assert.AreEqual(count,result.Result.Count);
-        }
+        using var output = new StringWriter();
+        var result = await CosmicCqlDemo.PolkadotPublicWalkthrough.RunAsync(path!, output);
+        Assert.AreEqual((3,2),result);
+        StringAssert.Contains(output.ToString(),"Verified content hash:");
     }
 }
