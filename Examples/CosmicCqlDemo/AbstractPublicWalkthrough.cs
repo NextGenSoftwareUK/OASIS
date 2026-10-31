@@ -65,7 +65,9 @@ public static class AbstractPublicWalkthrough
         }
 
         await output.WriteLineAsync("Read-only Abstract demo complete: 3 full / 2 filtered records.");
-        await output.WriteLineAsync("No Abstract transactions or Mongo records were written. HTTP federation and hosted enrollment remain pending.");
+        await output.WriteLineAsync("No Abstract transactions or Mongo records were written. This run verifies native reads only. " +
+            "Local HTTP/Mongo federation is verified separately; " +
+            "hosted acceptance remains pending.");
 
         return (full.Count, subset.Count);
     }
