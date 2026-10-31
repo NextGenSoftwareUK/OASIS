@@ -1,6 +1,6 @@
 # Polkadot public header source readiness
 
-31 October 2026. Native source and CQL3/2 verified; C# manager walkthrough, HTTP federation and hosted/browser acceptance remain open.
+31 October 2026. Native source and CQL3/2 verified; C# walkthrough/CLI and local HTTP/Mongo federation/isolation also pass; hosted/browser acceptance remain open.
 
 Python HTTP probes to PublicNode and the existing provider default rpc.polkadot.io returned403 before data. An explicit .NET probe against that same existing default returned200 with the expected Polkadot genesis. The reason for the transport difference is not established; no production fallback/retry/user-agent spoofing was introduced.
 
@@ -48,3 +48,33 @@ Persistent `LocalState/COSMIC/HostedPolkadotPublicSourceCurrent/source.json` hol
 - `TestResults/PolkadotPublicSourceCandidateCurrent/provider-controls.trx`: 27614 B; SHA256 `699a394e1122658468f2b3c79db90e19bb466d7f2fa76542d819cceb2a2f981f`.
 
 - `TestResults/PolkadotPublicSourceCandidateCurrent/provider-native.trx`: 2839 B; SHA256 `fd0af2c0ab46e300ce1de3e90c0a9fbe5155211f2d2a94050c2b5b38e07f5108`.
+
+## Published C# walkthrough
+
+Existing console now accepts `--polkadot-public LocalState/COSMIC/HostedPolkadotPublicSourceCurrent/source.json`. The spaced/commented `PolkadotPublicWalkthrough` calls the same NativeKeySetWalkthrough→CosmicLinq→HolonManager planner/executor as other source demos. The native test compiles that published source verbatim and passed1/0skips; the actual CLI also returned3/2. Source catalogue/owner unchanged, no DB/transactions or source mutation. Controlled17tests pass after linking published sources. [Maintained guide](../../Devs/POLKADOT_PUBLIC_METADATA_CQL_GUIDE.md).
+
+HTTP/Mongo admission/federation verification is in progress; no hosted success inferred from the C# console.
+
+## HTTP federation milestone
+
+`CqlPolkadotMongoNativeTests` passed1/0skips through shipping leaf/federation endpoints on loopback Kestrel: native3/2, private owner pairs5/4, foreign-private0 and foreign-public-pair3. Nine validated query receipts; every returned ID, provenance, visibility and snapshot owner is checked. Two normal SDK create-only saves use server-mapped IDs and original persisted operations; source catalogue unchanged. Controlled bearer/admission is not production signup/billing or hosted replication proof.
+
+Exact owner/nonce/2record checks passed before dropping owned `cosmic_cql_polkadot_http_demo`; absence asserted. Kestrel stopped and Mongo process exited; no listener27029. Original fixture intent631B,2ACKs216B, cleaned70B (917B total) preserved at `LocalState/COSMIC/PolkadotMongoHttpCurrent`; no replay/reseed.
+
+API admission/discovery/preset controls2pass; affected Core tariff controls10pass. Sixteen supported unsigned read profiles still require independent permission/price; signed write admission fence unchanged. WEB4 now explicitly references the Polkadot assembly at composition root and lazily registers `CQL_POLKADOT_PUBLIC_SOURCE_JSON`. Initial compile caught that missing reference and a new test's mistyped Azure enum; both fixed at their source. No hosted configuration applied.
+
+Next: strict Polkadot publisher/joint candidate and four presets, generic browser snapshot tests/local links, then matching hosted deployment and real preparation/isolation/replica/browser gates. [Source guide](../../Devs/POLKADOT_PUBLIC_METADATA_CQL_GUIDE.md).
+
+- `TestResults/PolkadotPublicSourceCandidateCurrent/console-controls.trx`: 27614 B; SHA256 `11bf1f98e99c7724d115d826a46bda8d64187a6f44089dec917826b9383d71b2`.
+
+- `TestResults/PolkadotPublicSourceCandidateCurrent/console-native.trx`: 2839 B; SHA256 `ca4ca3d565f18899a771889817bbad28d5eb46f8a2aad3379945531995a89efd`.
+
+- `TestResults/PolkadotPublicSourceCandidateCurrent/console-cli.log`: 1416 B; SHA256 `49714f9dcf105ed8225a6f76d83a966a27613733e12094509e7515142004fe9c`.
+
+- `TestResults/PolkadotPublicSourceCandidateCurrent/api-controls.trx`: 5007 B; SHA256 `8d584dd31d0f079e483cdfb9f11836bc61688d0ccabefef5b6b4704d6f0c8bce`.
+
+- `TestResults/PolkadotPublicSourceCandidateCurrent/core-controls.trx`: 17586 B; SHA256 `8623c25025d00d160b44fa1b6d5c505f25076dba09d73e3209f26f6278d06bc2`.
+
+- `TestResults/PolkadotPublicSourceCandidateCurrent/polkadot-mongo-http.trx`: 3371 B; SHA256 `95806817eca7ba726287c10a1b94c0668f762e899207fda38e4b30de523f978f`.
+
+- `TestResults/PolkadotPublicSourceCandidateCurrent/polkadot-mongo-native-summary.json`: 229 B; SHA256 `7a3550ec06d49f6bef110ad8b587c19c8b2a01850daf59559366f527b3450dfd`.
