@@ -16,6 +16,8 @@ Linea/Scroll native+publishedC#/actualCLI3/2 and HTTP/Mongo3/2+5/4/isolation pas
 
 zkSync/Abstract native+publishedC#/CLI and HTTP3/2+Mongo5/4/isolation pass;2Core/4API/6config/2nativeHTTP/2client checks pass. Website links/client proofs pushed5aad1d1. Optional15source/60preset candidate staged separately;8newpresets pass planner,5scope controls pass. Currenthost snapshot exact (17planned settings,no drift). Matching permittedrollout next. Existing13source releasecandidate unchanged.
 
+Monad native/publishedC#/actualCLI3/2 pass (19newtests/0skips),HTTP/Mongo next. Sei uppercasegenesis parsergap reproduced; investigateencoding beforeenrollment. Existing15sourcecandidate unchanged.
+
 ## Working copies and release state
 
 - Work/build/test only `C:/Source/OASIS-cosmic`, parent **work/cosmic-cql-google-public**; Core same branch, **fb43eaaf2584dc52111248e4adf31a984720e44a** pushed/remote-verified. Parent gitlink/manifest match. Unknown root `logs` preserved.

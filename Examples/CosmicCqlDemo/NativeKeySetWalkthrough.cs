@@ -37,6 +37,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.NEAROASIS => "NearAccountId",
             ProviderType.BaseOASIS => "BaseAccountAddress",
             ProviderType.OptimismOASIS => "OptimismAccountAddress",
+            ProviderType.MonadOASIS => "MonadAccountAddress",
             ProviderType.ZkSyncOASIS => "ZkSyncAccountAddress",
             ProviderType.AbstractOASIS => "AbstractAccountAddress",
             ProviderType.LineaOASIS => "LineaAccountAddress",

@@ -1,11 +1,13 @@
 # Explicit read-only protocol qualification; never CQL/hosted acceptance.
 [CmdletBinding()]
-param([Parameter(Mandatory)][ValidateSet('Base','Avalanche','BNBChain','Optimism','Rootstock','Linea','Scroll','ZkSync','Abstract')][string]$Network)
+param([Parameter(Mandatory)][ValidateSet('Base','Avalanche','BNBChain','Optimism','Rootstock','Linea','Scroll','ZkSync','Abstract','Monad','Sei')][string]$Network)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $results=Join-Path $root 'TestResults/EvmBreadthReadinessCurrent'
 New-Item -ItemType Directory -Force -Path $results | Out-Null
 $descriptor=switch($Network){
+    'Monad' { @{endpoint='https://rpc.monad.xyz/';chainId='0x8f'} }
+    'Sei' { @{endpoint='https://evm-rpc.sei-apis.com/';chainId='0x531'} }
     'ZkSync' { @{endpoint='https://mainnet.era.zksync.io/';chainId='0x144'} }
     'Abstract' { @{endpoint='https://api.mainnet.abs.xyz/';chainId='0xab5'} }
     'Linea' { @{endpoint='https://rpc.linea.build/';chainId='0xe708'} }

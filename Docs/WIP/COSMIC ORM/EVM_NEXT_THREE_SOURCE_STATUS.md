@@ -104,3 +104,8 @@ Existing providerprojects now have explicit sharedEVMreader publicbalance repres
 
 ### Fifteen-source preparedbatch
 Optional15profiles/60presets stagedseparately. Actual8newzkSync/Abstractpresets pass shippingplanner1test/0skips;5scopecontrolspass. Freshhostreadonlyreconciliation exactsnapshot,0drift/17plannedsettings. Previouscandidatespreserved,nohostapplication/deployment. Nextmatchingpermittedrollout and hosted/browseracceptance.
+
+## Next source: Monad; Sei parsing gap
+Selected rpc.monad.xyz chain0x8f/genesis0x0c47353304f22b1c15706367d739b850cda80b5c87bbc335014fef3d88deaac9 passes readonlyqualification. [Monad network information](https://docs.monad.xyz/developer-essentials/network-information). MonadPublicAccountMetadataSource reusesunchangedEVMreader,keyMonadAccountAddress,fixedrootpath.18controlled+1actualpublishedC#sampletestpass0skips,native3/2. Consolebuild andactual --monad-public CLI3/2pass;noHTTP/admission/hostedprofile yet.
+
+Sei evm-rpc.sei-apis.com chain0x531 passedidentity but qualificationrejects genesisformat. Separateboundedblockzero observation returns hash0xF9D3845DF25B43B1C6926F3CEDA6845C17F5624E12212FD8847D0BA01DA1AB9E,number0x0:uppercasedatahash is rejected by currentstrictlowercaseparser. This does not prove missingchain/finality; investigate EthereumDATAencoding normalization and finalizedhashboundreads beforeprofileenrollment. NoSeicatalogue/identitycreated. [Sei native config](https://docs.sei.io/evm/sei-global-wallet). Evidence: TestResults/EvmBreadthReadinessCurrent/{Monad,Sei}.json,Sei-genesis-response.json,monad-source.trx.

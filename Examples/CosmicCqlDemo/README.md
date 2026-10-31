@@ -828,3 +828,7 @@ Use `--linea-public LocalState/COSMIC/HostedLineaPublicSourceCurrent/source.json
 ### zkSync and Abstract public balances
 
 Use `--zksync-public LocalState/COSMIC/HostedZkSyncPublicSourceCurrent/source.json` or `--abstract-public LocalState/COSMIC/HostedAbstractPublicSourceCurrent/source.json` with the existing console. Spaced/commented C# walkthroughs use HolonManager/LINQ and return3/2records; actualCLI/native proofs pass. HTTP/Mongo/hosted remain pending. Stablecatalogue owners, exactwei strings, RPC-reported finalizedhash; no wallet, transaction or DBcreation.
+
+### Monad public balances
+
+Use `--monad-public LocalState/COSMIC/HostedMonadPublicSourceCurrent/source.json` with the existing console. Spaced/commented MonadPublicWalkthrough uses HolonManager/LINQ and returns3/2records; native/actualCLIpass. HTTP/Mongo/hostedremainpending. Exactnativebaseunits and RPC-reportedfinalizedhashes;no wallet/transaction/databasecreation.
