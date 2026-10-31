@@ -1669,3 +1669,6 @@ Reuse existing RailwayCLI5.62.1/protected snapshots/Python. One variables observ
 Read-only reconciliation complete:exact snapshot,0drift,12planned settings;1pure control passes. Only sanitized report/log generated; no protected observation copy/new environment/service. Raw artifacts regenerable, current byte sizes recorded below.
 - `TestResults/HostedCqlIntegrationCurrent/ten-source-host-reconciliation.json`: 680B.
 - `TestResults/HostedCqlIntegrationCurrent/ten-source-reconciliation-controls.log`: 103B.
+
+### Three-source client readiness
+Existing Web4Site/Node reused,3new module contracts pass. Compact three-source-client-preparation.log in TestResults/HostedCqlIntegrationCurrent (regenerable,size unmeasured). No native services/downloads/hosted sessions. Hosted runner whitelist extended; help only, no accounts or mutations. IAB transport retry failed; no Windows automation.
