@@ -32,6 +32,10 @@ def candidate(before, source):
     dna = json.loads(before["OASIS_DNA_JSON"])
     if dna["OASIS"]["Sandbox"]["Enabled"] is not True:
         raise ValueError("Explicit sandbox required.")
+    encryption = (dna["OASIS"].get("Security") or {}).get("HolonDataEncryption") or {}
+    if ((encryption.get("Rijndael256EncryptionEnabled") is True or encryption.get("QuantumEncryptionEnabled") is True)
+            and "GCSObjectKey" not in (encryption.get("AdditionalQueryableKeys") or [])):
+        raise ValueError("Encrypted snapshots require an explicit GCSObjectKey queryable policy before enrollment.")
     after = copy.deepcopy(before)
     admission = json.loads(before["PREPARED_STORAGE_ADMISSION_JSON"])
     if ("GoogleCloudOASIS" in admission["queryOnlyProviders"] or

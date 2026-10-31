@@ -136,3 +136,21 @@ eight configured keys of 128 printable ASCII characters. Unknown keys fail befor
 source I/O. General name/description/content scans, arbitrary bucket listings,
 sorting and cursors are unsupported. NoAcl metadata requests use RetryOptions.Never
 and no UserProject. The full selection validates before publishing any page.
+
+## Encryption and the snapshot query key
+
+GCSObjectKey is application metadata, not a new globally reserved system key.
+If snapshot metadata encryption is enabled, the trusted host policy must explicitly
+include GCSObjectKey in AdditionalQueryableKeys so Mongo can execute the same native
+predicate. Other metadata stays subject to the normal encryption policy. The
+publisher refuses enrollment when DNA enables encryption without that query key;
+it does not weaken encryption or rewrite canonical DNA. An authenticated runtime
+metadata-encryption policy must likewise grant the key explicitly. The current
+staged sandbox DNA has both encryption switches off; this observation does not
+certify encrypted production snapshots.
+
+After the matching revision/config is deployed, run the existing hosted acceptance
+runner with `GoogleCloudOASIS --prepare`. Its explicit source discovery must be
+ready before private snapshots are saved. Preserve original operation intents on
+errors; do not replace an expired/uncertain cohort automatically. This verifies
+HTTP/client-module behaviour, not browser rendering.

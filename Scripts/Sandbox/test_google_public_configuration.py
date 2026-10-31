@@ -42,6 +42,21 @@ class GoogleConfigurationTests(unittest.TestCase):
         self.assertEqual(len(rows), 4)
         self.assertEqual([len(row["request"].get("source", row["request"])["filters"][0]["value"]) for row in rows], [3, 3, 2, 2])
 
+    def test_encrypted_snapshot_query_key_requires_explicit_host_policy(self):
+        for algorithm in ("Rijndael256EncryptionEnabled", "QuantumEncryptionEnabled"):
+            with self.subTest(algorithm=algorithm):
+                before, source = self.fixture()
+                dna = json.loads(before["OASIS_DNA_JSON"])
+                encryption = {algorithm: True, "AdditionalQueryableKeys": ["anotherAppKey"]}
+                dna["OASIS"]["Security"] = {"HolonDataEncryption": encryption}
+                before["OASIS_DNA_JSON"] = json.dumps(dna)
+                with self.assertRaisesRegex(ValueError, "queryable policy"):
+                    publisher.candidate(before, source)
+                encryption["AdditionalQueryableKeys"].append("GCSObjectKey")
+                before["OASIS_DNA_JSON"] = json.dumps(dna)
+                after = publisher.candidate(before, source)
+                self.assertEqual(after["OASIS_DNA_JSON"], before["OASIS_DNA_JSON"])
+
     def test_rejects_credentials_wrong_catalogue_paid_tariff_and_existing_enrollment(self):
         for fault in ("credential", "bucket", "keys", "owner", "schema", "paid", "existing", "ordinary", "native", "examples", "tariff"):
             with self.subTest(fault=fault):
