@@ -41,7 +41,7 @@ public class CosmicScalarAdmissionTests
             .Returns((string id, string owner, UsageProviderAttempt attempt, CancellationToken token) =>
             {
                 Assert.Equal(provider.ToString(), attempt.Provider);
-                Assert.Equal("scalar-admission.route.1.non-native", attempt.ClientRequestId);
+                Assert.Equal(PreparedStorageReceiptIds.NonNative("scalar-admission", "scalar-admission"), attempt.ClientRequestId);
                 events.Add("attempt");
                 return admitted.Task;
             });
@@ -50,7 +50,7 @@ public class CosmicScalarAdmissionTests
             .Returns((string id, string owner, UsageProviderReceipt receipt, CancellationToken token) =>
             {
                 Assert.Equal(provider.ToString(), receipt.Provider);
-                Assert.Equal("scalar-admission.route.1.non-native", receipt.ProviderRequestId);
+                Assert.Equal(PreparedStorageReceiptIds.NonNative("scalar-admission", "scalar-admission"), receipt.ProviderRequestId);
                 Assert.Equal(1, receipt.Units); Assert.Equal(0.001m, receipt.ActualCostUsd);
                 Assert.Equal("CQL-service-query-attempt-tariff", receipt.CostSource);
                 events.Add("receipt");
