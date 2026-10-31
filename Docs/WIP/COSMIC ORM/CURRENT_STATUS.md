@@ -43,6 +43,8 @@ These are bounded unsigned public projections, not owned native persistence or i
 - Core supports27 unsigned-read tariff types; that is not the hosted-provider count. Query pricing never grants signing/storage authority.
 - Rootstock remains red: selected endpoint rejects finalized-header requests. No silent downgrade or source profile created. Sei's explicit mixed-case hash codec is scoped to Sei; canonical profiles remain strict.
 
+Developer manual now lists all17prepared profiles, their native metadata keys/CLI modes and an explicit two-key HTTP example. Nine stale console messages now distinguish native-run proof, separately verified local federation and pending hosting.
+
 ## Remaining HyperDrive and ORM work
 
 All six native directed repair routes, manager continuations and paused-baseline interleavings pass. Three application ACK-loss cases and three real loopback HTTP post-commit disconnect cases prove one mutation, original receipt recovery without resubmission and two ordinary replicas. Owned fixtures were cleaned after verification.
