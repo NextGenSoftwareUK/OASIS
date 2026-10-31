@@ -470,6 +470,12 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_SOLANA_PUBLIC_SOURCE_JSON"] is string solanaPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaPublicAccountMetadataSource.FromJson(solanaPublicSource)));
+            if (Configuration["CQL_LINEA_PUBLIC_SOURCE_JSON"] is string lineaPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.LineaOASIS.LineaPublicAccountMetadataSource.FromJson(lineaPublicSource)));
+            if (Configuration["CQL_SCROLL_PUBLIC_SOURCE_JSON"] is string scrollPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.ScrollOASIS.ScrollPublicAccountMetadataSource.FromJson(scrollPublicSource)));
             if (Configuration["CQL_OPTIMISM_PUBLIC_SOURCE_JSON"] is string optimismPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.OptimismOASIS.OptimismPublicAccountMetadataSource.FromJson(optimismPublicSource)));

@@ -41,3 +41,7 @@ Separate read permission/tariff, activation and capability admission are require
 ## Optimism public balances
 
 The same explicit reader also supports OptimismOASIS through OptimismPublicAccountMetadataSource, metadata key OptimismAccountAddress, chain0xa and root RPC path. Run `--optimism-public LocalState/COSMIC/HostedOptimismPublicSourceCurrent/source.json` with the existing console. Published C#/CLI/native3/2 and local HTTP3/2+Mongo5/4/isolation pass. HTTP source configuration key: CQL_OPTIMISM_PUBLIC_SOURCE_JSON. Hosted/browser acceptance remains pending; this profile is separate from the prepared ten-source batch. Preserve sourceOwner; exact wei strings and RPC-reported finalized hashes do not prove settlement independently.
+
+## Linea and Scroll public balances
+
+Use `--linea-public LocalState/COSMIC/HostedLineaPublicSourceCurrent/source.json` or `--scroll-public LocalState/COSMIC/HostedScrollPublicSourceCurrent/source.json` with the same console. Spaced/commented LineaPublicWalkthrough and ScrollPublicWalkthrough use the shared HolonManager/LINQ pipeline. Linea chain0xe708/keyLineaAccountAddress; Scroll chain0x82750/keyScrollAccountAddress. Lazy HTTP config keys CQL_LINEA_PUBLIC_SOURCE_JSON/CQL_SCROLL_PUBLIC_SOURCE_JSON. Native/publishedC#/CLI3/2 and localHTTP3/2+Mongo5/4/isolation pass. Hosted/browser remain pending; existing10/11batch candidates exclude these2profiles. Exactwei strings and RPC-reported finalized hashes, no independentsettlement claim.

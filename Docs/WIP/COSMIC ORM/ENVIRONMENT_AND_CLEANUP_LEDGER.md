@@ -1706,3 +1706,10 @@ Linea/Scroll new stablecatalogues LocalState/COSMIC/Hosted{Linea,Scroll}PublicSo
 Linea/Scroll outcome:38tests/0skips (36controlled+2nativepublishedsample),consolebuild/2actualCLI3/2pass. Rootstock qualificationfailed and retained; no identity/environmentcreated for it. Cacheonlyrestore succeeded,nodownload/install/database/service. Stablecatalogue sizes:
 - `LocalState/COSMIC/HostedLineaPublicSourceCurrent/source.json`: 280B,retainstableowner.
 - `LocalState/COSMIC/HostedScrollPublicSourceCurrent/source.json`: 279B,retainstableowner.
+
+### Linea/Scroll HTTP/Mongo integration
+31October2026:reuse existing .NET/API/Core/23typereadcatalogue, Mongo8.3.11 retainedstore27029. NewexactDBs cosmic_cql_{linea,scroll}_http_demo; originalintents/ACKs LocalState/COSMIC/{Linea,Scroll}MongoHttpCurrent, raw TestResults/{Linea,Scroll}PublicSourceCandidateCurrent. Runner ownsservice,successonlymarkercheckedcleanup,failurepreserved.2existingproviderreferencesaddedtoAPI, cacheonlyrestore,noinstall/newenvironment/Neo. Sizespending.
+
+Linea/Scroll HTTP outcome:2Core/4API/6config/2nativeHTTP/2clientpass0skips.2SDKprivatecopies/9receipts each; originalcohorts retained, exactDBmarker/drop/absence verified; Mongo/Kestrel stopped,noNeo. Existing23typetariffcatalogue not23hosted. No downloads/newenvironment. Persistentcohort sizes:
+- `LocalState/COSMIC/LineaMongoHttpCurrent`: 839B,retainintent/ACK/cleanup.
+- `LocalState/COSMIC/ScrollMongoHttpCurrent`: 841B,retainintent/ACK/cleanup.
