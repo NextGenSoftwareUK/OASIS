@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +16,20 @@ public sealed class CqlV1Controller : ControllerBase
 {
     private readonly ICqlV1Providers providers;
     public CqlV1Controller(ICqlV1Providers providers) => this.providers = providers;
+
+    [HttpPost("demo-identities")]
+    [RequestSizeLimit(4096)]
+    public IActionResult DemoIdentities(CqlDemoIdentityRequest request)
+    {
+        var actor = CqlV1Endpoint.AuthenticatedActor(HttpContext);
+        if (actor == Guid.Empty)
+            return Unauthorized(new NextGenSoftware.OASIS.Common.OASISResult<object>
+                { IsError = true, ErrorCode = "CQL_AUTHENTICATION_REQUIRED" });
+        try { return Ok(new NextGenSoftware.OASIS.Common.OASISResult<object>(CqlHostedDemoIdentities.Create(request, actor))); }
+        catch (ArgumentException)
+        { return BadRequest(new NextGenSoftware.OASIS.Common.OASISResult<object>
+            { IsError = true, ErrorCode = "CQL_DEMO_IDENTITY_INVALID" }); }
+    }
 
     [HttpGet("providers")]
     public IActionResult Providers([FromQuery] int examplesVersion = 1)

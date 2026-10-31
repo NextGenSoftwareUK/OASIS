@@ -4,8 +4,8 @@ Updated31 October2026. Programme incomplete; priority is actual hosted sandbox b
 
 ## Exact next step
 
-1. Add the ready ActivityPub + Mongo browser preset and2acknowledged owner-scoped Mongo demo records; prove actual5/4physical rows and isolation. Protocol federation admission is implemented/tested on the task branch (32Core/61API controls), not deployed. Generic server/client operation contract is now implemented/tested: Rows/Federation, explicit version2 discovery, dependency-aware disabled examples, fixed WEB4 routes. No federation config or preparatory writes have been applied live.
-2. Add authenticated preparation descriptors using existing NativeRecordHolonMapper.StableHolonId for2source keys in a dedicated per-avatar demo source namespace, then reuse normal admitted load/save endpoints with durable intent/ACK. Preserve existing/foreign/edited records; avoid duplicate setup after refresh. Do not duplicate the Core identity algorithm in JavaScript. Inspect effective authenticated metadata policy, not just legacy DNA flags; do not disable encryption as a workaround.
+1. Publish the coherent tested backend/frontend/configuration batch, then use a fresh normal visitor to prepare2private Mongo snapshots and prove actual ActivityPub+Mongo5/4physical rows, repeat setup without duplicates, and second-avatar isolation. No federation configuration or preparation writes have been applied live yet.
+2. Preparation is implemented: authenticated Core-native stable IDs, normal create-only admitted saves, per-operation browser intent/ACK journal, preserve edited/foreign records, no retries after uncertain acknowledgement.86API/383Core/39client controls pass, no skips. These are controlled tests, not hosted acceptance.
 3. Bundle the tested CORS operation-header correction with the next verified backend batch, then verify the real browser sees its operation ID. It is committed on the task branch only, not deployed.
 4. Continue hosted Oracle/IPFS/SOLID/Solana/AWS/Azure and remaining breadth. Azure remains pending/free-only, no existing subscription. Deep LINQ terminals/POCO/migrations tooling remain paused.
 

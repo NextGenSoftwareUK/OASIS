@@ -5,6 +5,13 @@ using System.Text.Json.Serialization;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class CqlDemoIdentityRequest
+{
+    public string? Provider { get; set; }
+    public string[] Keys { get; set; } = Array.Empty<string>();
+}
+
 // This is a bounded query description, never executable C#/SQL/Cypher or a caller-supplied plan.
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlV1Request
