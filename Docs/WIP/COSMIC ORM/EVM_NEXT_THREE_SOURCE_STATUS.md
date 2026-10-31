@@ -82,3 +82,5 @@ Official [Superchain registry](https://github.com/ethereum-optimism/superchain-r
 
 ### Optimism client readiness
 Website taske8df3c4 links the actual spaced C# walkthrough and guide with hosted-pending status. New focused preparationtest1passes0skips:3key preset unchanged,2key source read,2private Mongo-only saves with mappedIDs/provenance, repeated0new/2existing. Hosted acceptance runner now accepts Optimism through its existing journalled path; --help verified only, no session/source request. Raw TestResults/HostedCqlIntegrationCurrent/optimism-client-preparation.log. No publicmain/hosted change; ten-source candidate remains unchanged.
+
+Optimism optional jointbatch prepared separately:11profiles/44presets, exact4newOptimism presets pass shipping planner1/0skips.3scope controls pass. Ten-source candidate retained unchanged; nohostapplication/deployment. See integrationplan optionalextension for commands/releasegates.
