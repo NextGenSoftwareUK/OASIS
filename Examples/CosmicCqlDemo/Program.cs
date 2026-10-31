@@ -5,6 +5,15 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// NEAR's measured native activation/full/subset took 34 seconds. Allow a
+// bounded demo lifetime of 60 seconds, without retries or a substitute source.
+if (args.Length == 2 && args[0] == "--near-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+    await NearPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Polkadot reads only the retained hash catalogue and verifies header contents.
 // Keep this read-only path ahead of the SQLite database fixture setup.
 if (args.Length == 2 && args[0] == "--polkadot-public")
@@ -63,7 +72,7 @@ if (args.Length == 2 && args[0] == "--google-public")
 var serve = args.Length == 1 && args[0] == "--serve";
 if (args.Length != 0 && !serve)
 {
-    Console.Error.WriteLine("Use no arguments, --serve, --google-public <existing-source.json>, --ethereum-public <existing-source.json>, --polygon-public <existing-source.json>, --arbitrum-public <existing-source.json>, --cosmos-public <existing-source.json>, or --polkadot-public <existing-source.json>.");
+    Console.Error.WriteLine("Use no arguments, --serve, --google-public <existing-source.json>, --ethereum-public <existing-source.json>, --polygon-public <existing-source.json>, --arbitrum-public <existing-source.json>, --cosmos-public <existing-source.json>, --polkadot-public <existing-source.json>, or --near-public <existing-source.json>.");
     return 2;
 }
 

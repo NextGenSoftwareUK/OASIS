@@ -1,6 +1,6 @@
 # NEAR public account CQL readiness
 
-31 October 2026.20focused controlled tests and1native CQL test pass, zero skips. Native queries return3accounts then a2account subset. C# walkthrough, HTTP/Mongo federation, hosted and browser acceptance remain open.
+31 October 2026.20focused controlled tests and1native CQL test pass, zero skips. Native queries return3accounts then a2account subset. Published C# walkthrough/CLI3/2 also pass; HTTP/Mongo federation, hosted and browser acceptance remain open.
 
 Four bounded read-only .NET RPC readiness calls passed at the existing `https://rpc.mainnet.near.org/`: synced mainnet status and view_account for near/wrap.near/aurora. The first account selected `finality:final`; subsequent accounts were pinned to its exact block_id, with matching returned block_hash/height. No wallet/signing, transaction, contract execution, runtime/body download or node install.
 
@@ -23,3 +23,17 @@ Primary contracts: [NEAR query request/response](https://github.com/near/nearcor
 - `TestResults/NearPublicSourceCandidateCurrent/provider-controls.trx`: 31401 B; SHA256 `bec5c59cce13130fb831b947ca2f7c7378167041b5da226ff3a96c3b7410c929`.
 
 - `TestResults/NearPublicSourceCandidateCurrent/provider-native.trx`: 2830 B; SHA256 `47eb309ce839ef20f926b14801a9db7c2a79cbf01adeb23c05fe44ba0a85a5fc`.
+
+## Published C# walkthrough milestone
+
+`NearPublicWalkthrough` is spaced/commented and uses the existing NativeKeySetWalkthrough→CosmicLinq→HolonManager pipeline. Console builds;20focused controls pass after the published source is linked into the existing provider test project. The native test runs that exact published source and passed1/0skips in34seconds; actual `--near-public` CLI also returned3/2. Both use a cancellation deadline of60seconds based on measured34seconds, with no retries or source substitution. No source/dependency/runtime/identity change, transaction, Mongo record or fixture created.
+
+Command: `dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj --no-build --no-restore -- --near-public LocalState/COSMIC/HostedNearPublicSourceCurrent/source.json`.
+
+[Maintained source guide](../../Devs/NEAR_PUBLIC_METADATA_CQL_GUIDE.md). Next: shipping HTTP+Mongo5/4/isolation and exact-owned fixture cleanup, then hosted presets/config/client links and actual hosted verification. The source endpoint's measured latency must inform the HTTP test budget; no silent fallback.
+
+- `TestResults/NearPublicSourceCandidateCurrent/console-controls.trx`: 31401 B; SHA256 `ce85c5df384bc52f9f6610a7e99a1e13d4b54367b6c527638752009b1eea6b53`.
+
+- `TestResults/NearPublicSourceCandidateCurrent/console-native.trx`: 2830 B; SHA256 `cc334e98ef5addb40def1be1944f1d2edd5f7fbcb76398f3c38f0af0fc4ba92e`.
+
+- `TestResults/NearPublicSourceCandidateCurrent/console-cli.log`: 1058 B; SHA256 `32857632bb3ba16db5cb96234849426870a490c3956174a5b3db6b1c03bc8d44`.
