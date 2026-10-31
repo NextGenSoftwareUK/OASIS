@@ -4,7 +4,7 @@ Updated 31 October 2026. Programme incomplete. Priority: working hosted demo bre
 
 ## Exact next steps
 
-1. David approved one consolidated publication; Development parent57174def3/Core6bbd015 is published/remote-verified. Railway job e107f7e5-fb8b-4cce-854b-46ebad7c8600 remains QUEUED (Waiting for build slot). Observe samejob to success before routing-v1 setup; no redeploy/extra Development push. [David's decision](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
+1. David approved one consolidated publication; Development parent57174def3/Core6bbd015 is published/remote-verified. Railway job e107f7e5-fb8b-4cce-854b-46ebad7c8600 is BUILDING. Observe samejob to success before routing-v1 setup; no redeploy/extra Development push. [David's decision](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
 2. The frozen correctness batch is parent **79fe887e3 / Core6bbd015**. It excludes all newly staged public-read profiles. Do not apply their staged configuration to that older application/Core revision.
 3. After the matching routing-facts release, prepare the distinct routing fixture with `Scripts/Sandbox/Prepare-HostedHyperdriveRouting.py`, then run `Verify-HostedHyperdriveLoadBalancing.py --cohort routing-v1`. Setup has not run live; no routing-v1 avatar/record exists. Original Solana owner session expired; preserve it without replacement/replay.
 4. Separately integrate the tested public-read profiles with their matching application/Core and joint configuration, then run hosted source/preparation/isolation/replica gates. Browser acceptance follows when IAB is available. Do not claim the local HTTP tests are hosted proof.
@@ -16,13 +16,13 @@ Linea/Scroll native+publishedC#/actualCLI3/2 and HTTP/Mongo3/2+5/4/isolation pas
 
 zkSync/Abstract native+publishedC#/CLI and HTTP3/2+Mongo5/4/isolation pass;2Core/4API/6config/2nativeHTTP/2client checks pass. Website links/client proofs pushed5aad1d1. Optional15source/60preset candidate staged separately;8newpresets pass planner,5scope controls pass. Currenthost snapshot exact (17planned settings,no drift). Matching permittedrollout next. Existing13source releasecandidate unchanged.
 
-Monad native/publishedC#/actualCLI3/2 pass (19newtests/0skips),HTTP/Mongo next. Sei uppercasegenesis parsergap reproduced; investigateencoding beforeenrollment. Existing15sourcecandidate unchanged.
+Monad native/C#/CLI and HTTP3/2+Mongo5/4/isolation pass;1Core/2API/3config/1nativeHTTP/1client checks pass. Website links next. Sei uppercasegenesis parsergap reproduced; investigateencoding beforeenrollment. Existing15sourcecandidate unchanged.
 
 ## Working copies and release state
 
-- Work/build/test only `C:/Source/OASIS-cosmic`, parent **work/cosmic-cql-google-public**; Core same branch, **fb43eaaf2584dc52111248e4adf31a984720e44a** pushed/remote-verified. Parent gitlink/manifest match. Unknown root `logs` preserved.
+- Work/build/test only `C:/Source/OASIS-cosmic`, parent **work/cosmic-cql-google-public**; Core same branch, **6d262913e32fb0ae8e5da6277784df41a67223db** pushed/remote-verified. Parent gitlink/manifest match. Unknown root `logs` preserved.
 - Merged parent origin/Development57174def3; Core6bbd015 already ancestor of current taskCorefb43eaa. Documentation conflicts resolved preserving both histories/newer provider status. No provider expansion deployed.
-- Approved Railway job e107f7e5-fb8b-4cce-854b-46ebad7c8600,parent57174def3,QUEUED waiting buildslot. Priorlive68fb8cc4-c603-4d16-a97a-0e5a30e364c2,parent0e688ac9c,SUCCESS. Last full eight-source HTTP acceptance remains parent498e3fd7f/deployment4dbe69d0; no fresh source gate inferred from the later deployment.
+- Approved Railway job e107f7e5-fb8b-4cce-854b-46ebad7c8600,parent57174def3,BUILDING. Priorlive68fb8cc4-c603-4d16-a97a-0e5a30e364c2,parent0e688ac9c,SUCCESS. Last full eight-source HTTP acceptance remains parent498e3fd7f/deployment4dbe69d0; no fresh source gate inferred from the later deployment.
 - Frozen parent **work/cosmic-cql-hosted-release79fe887e3** / Core **work/cosmic-cql-sandbox-integration6bbd015** unchanged. Broader earlier local-provider source remains preserved on parent237403a75.
 - Frontend `C:/Source/Web4Site`, task **work/cosmic-cql**. Public main **9b65a88** serves exact committed HTML/JS. Google/Ethereum local demo links are public; Polygon/Arbitrum links are task-staged for the next website batch. **54 client controls pass**; Cosmos/Polkadot/NEAR links task-staged throughe8bf2d3, not public.
 - IAB `getTab` rechecked after ten-source reconciliation31October: Transport closed; existing live deployment also rechecked unchanged. Windows control was stopped with Escape; do not restart it or interfere with games. Browser tooling is agent-owned work, not a new David chore.
@@ -56,7 +56,7 @@ All seven have real native HTTP tests, SDK-owned private Mongo snapshots, exact 
 
 The shared EVM reader has fixed provider/chain/genesis/metadata/path descriptors. Ethereum/Polygon remain root-path-only; Arbitrum uses `/rpc`. No endpoint fallback/latest downgrade. Public balances are address-state projections, not persisted COSMIC holons or independent settlement proofs.
 
-NEAR affected admission checks: **2 API / 11 Core** pass (prior scope results remain in source reports); **25** is the supported unsigned-read tariff catalogue, not the hosted-provider count. Each source still needs explicit permission, tariff, activation and capability admission. Query-only pricing grants no signed writes.
+NEAR affected admission checks: **2 API / 11 Core** pass (prior scope results remain in source reports); **26** is the supported unsigned-read tariff catalogue, not the hosted-provider count. Each source still needs explicit permission, tariff, activation and capability admission. Query-only pricing grants no signed writes.
 
 Prepared seven-source batch: all28actual presets pass the shipping planner with real source/Mongo capabilities (1test/0skips); public-only exporter3controls pass. This is offline planning, not hosted/browser acceptance. [Release preflight](HOSTED_SANDBOX_INTEGRATION_PLAN.md#seven-source-prepared-configuration-review--31-october-2026).
 
