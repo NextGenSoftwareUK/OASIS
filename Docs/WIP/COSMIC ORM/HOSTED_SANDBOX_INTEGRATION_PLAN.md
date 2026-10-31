@@ -710,3 +710,12 @@ Owned fixture cosmic_cql_oracle_host_id_demo removed only after successful queri
 Frontend7c0f71e shares composeIdPair between preparation and verifier; publishes actor-specific ID union only after acknowledged/verified copies.45client controls pass;2memory-only verifier controls exercise actual client modules, full/subset IDs, zero-repeat writes, replica comparisons and unchanged protocol request order. They are controls, not native provider certification. oracle-id-verifier-controls.log SHA256755AA9E6B72687C50361E4815110FFCBCA603F708B93F4280DAC8195A2493611. All raw evidence stays in worktree TestResults. Browser tab retry still Transport closed, no new user action requested.
 
 Hosted Oracle/Azure remain explicitly deferred by David; see central ACTIONS-FOR-DAVID Part E. Continue available public demo breadth, with Solana source feasibility next and original chain history preserved. Full ORM/HyperDrive fault matrix/EF parity remains incomplete.
+
+
+## Hosted avatar-scoped read failover — 31 October 2026
+
+Shipping Development498e3fd7f/Core759b49a, Railway4dbe69d0 SUCCESS. Reused acknowledged Solana-demo snapshots and existing owner/foreign sessions; no new accounts/saves/settings changes. Runner: `Scripts/Sandbox/Verify-HostedHyperdriveFailover.py`.
+
+All3cases (MongoDB/SQLite/Neo4j) passed: exact native replica baseline, avatar-only30second fault, failover-OFF `HYPERDRIVE_PROVIDER_OFFLINE`, failover-ON correct ID/name/version/owner, two independently observed refusal increments, unaffected foreign fault scope and zero foreign private rows. Every fault was restored in finally and absence independently read back. Durable fault/session journals remain under `LocalState/COSMIC/HostedQueryAcceptance-SolanaOASIS`; rerunning a completed or uncertain gate is forbidden. Public/browser rendering and full routing behavior are not inferred from these HTTP checks.
+
+Regenerable report `TestResults/HostedCqlIntegrationCurrent/hyperdrive-failover-http.json`, SHA256 `8EA18987E76DFFF2B36DD6A05AB4D1E6033090B9FB80288F69441AD07204EB53`. X10 remains red: automatic load balancing, write faults and late-enrollment/reconciliation need their own acceptance. Existing successful query/replication scopes stay frozen absent a reproduced bug.
