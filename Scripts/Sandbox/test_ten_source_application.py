@@ -50,6 +50,15 @@ class ApplicationScopeTests(unittest.TestCase):
         del after["CQL_MONAD_PUBLIC_SOURCE_JSON"]
         with self.assertRaises(ValueError):batch.application_keys(before,after,True,True,True,True)
 
+    def test_sei_requires_complete_explicit_seventeen_source_scope(self):
+        before,after=self.fixture()
+        for name in ("OPTIMISM","LINEA","SCROLL","ZKSYNC","ABSTRACT","MONAD","SEI"):after["CQL_"+name+"_PUBLIC_SOURCE_JSON"]="new"
+        self.assertEqual(len(batch.application_keys(before,after,True,True,True,True,True)),19)
+        with self.assertRaises(ValueError):batch.application_keys(before,after,True,True,True,True)
+        with self.assertRaises(ValueError):batch.application_keys(before,after,True,True,True,False,True)
+        del after["CQL_SEI_PUBLIC_SOURCE_JSON"]
+        with self.assertRaises(ValueError):batch.application_keys(before,after,True,True,True,True,True)
+
     def test_refuses_extra_missing_removed_and_existing_source_settings(self):
         for fault in ("extra","missing","removed","existing"):
             with self.subTest(fault=fault):

@@ -1814,3 +1814,10 @@ Cosmicowner; existing.NET10.0.401/cachedpackages,created/reusedbycurrenttask,log
 - `C:/Source/OASIS-cosmic/Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.CqlTests/obj`: 1723268logicalB; active/reusable,nostandaloneport.
 
 Website36933fbpushed withSeiCLI/guide/walkthroughlink and1passingclientcontract. Publicmainunchanged. NoextraDevelopmentpush/runtime/download/environment. NativeMongo27029listenerabsenceverified. Clientlog HostedCqlIntegrationCurrent/sei-client-preparation.log regenerable,sizeunmeasured.
+
+### Optional seventeen-source candidate
+31October2026:derive seventeen-source-public-{before,candidate}-variables.dpapi fromoriginalprotectedsnapshot/stable17catalogues. Preservepriorcandidates. Public68preset/focused4Seiexports TestResults/HostedCqlIntegrationCurrent; protectedsizespending,retainforreconciliation. ReusePython/.NET/cache/boundedlease,nohostread/apply/service/download/newenvironment. FollowupDefault-routingpublicationstillpendingdecision.
+
+Seventeen-source preparation completed; planner 1 passed/0 skipped and 7 application controls passed. No host apply, installation or download. Raw TRX/log remain regenerable under TestResults/HostedCqlIntegrationCurrent.
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedSourceRolloutCurrent/seventeen-source-public-before-variables.dpapi`: 67094 bytes; retained protected reconciliation evidence; no process/port; do not delete before rollout reconciliation. Recreate only from preserved original snapshot and stable source catalogues, never by regenerating owners.
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedSourceRolloutCurrent/seventeen-source-public-candidate-variables.dpapi`: 109766 bytes; retained protected reconciliation evidence; no process/port; do not delete before rollout reconciliation. Recreate only from preserved original snapshot and stable source catalogues, never by regenerating owners.
