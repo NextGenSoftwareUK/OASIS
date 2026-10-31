@@ -49,3 +49,8 @@ KeyDB independent demo integrated30 October:8controls/native1/restart1/Mongoiden
 ### Dragonfly current demo integration (30 October 2026)
 
 Native identity/checkpoint/restart/MongoSDK/HTTP/browser ID-filter flow is verified (14 checks), not full parity. Return to general name/description/metadata predicates, graph/conditional/history semantics, central registration/hosted admission, cluster/active replication/failover and distributed snapshots. Native completed RDB/clean restart does not prove uncheckpointed-write recovery, AOF/per-save crash durability or PITR. Preserve original source and stop receipts. See DRAGONFLY_CQL_MVP.md; no new Redis/shared-executor hardening required.
+
+
+### Garnet generation2 current demo integration (30 October 2026)
+
+Verified admittedgeneration2 nativecheckpoint/restart/SDK/HTTP/browser ID-filter scope only; originaluncheckpointedsource remains lost/unresolved with originalpendingreceiptsunchanged. No recoveryclaim. Return to generalname/description/metadataqueries, graph/conditional/history, centralregistration/externalatomicityadmission, AOF/crashdurability and HyperDrive/cluster/failover/distributedsnapshotacceptance. NativeLua+LuaTransactionMode profile does not certify arbitraryexternalconfigurations. See GARNET_CQL_MVP.md.

@@ -34,3 +34,5 @@ Persistent, irreproducible fixture state belongs in ignored LocalState/COSMIC an
 - [After-demo backlog: preserved deferred work](AFTER_DEMO_BACKLOG.md).
 
 - [Dragonfly retained encrypted snapshot/restart and Mongo demo](DRAGONFLY_CQL_MVP.md): current scoped acceptance, launch command and limits.
+
+- [Garnet admitted generation2 checkpoint/restart and Mongo demo](GARNET_CQL_MVP.md): scoped acceptance, preserved first-source failure and launch command.
