@@ -1657,3 +1657,8 @@ HTTP gates3passed/0skips; all3owned fixture DBs dropped with marker/absence veri
 Reuse existing Python/Node and Web4Site worktree; new3strict candidate builders and pure fixture tests only. No protected candidate regenerated, no Railway calls, no provider activation/install/download. Generated Python cache reused (size unmeasured, disposable after processes stop). Test log TestResults/EvmBreadthReadinessCurrent/publisher-controls.log; website test outputs same folder.
 
 Preset tooling outcome:10pure controls and54website controls pass. No protected output/host change/service. Website taskc09103b pushed, publicmain unchanged. Existing Python cache and two compact logs retained; size unmeasured, regenerable using unittest/node commands.
+
+### Ten-source offline preparation — 31 October 2026
+Derive ten-source-public-{before,candidate}-variables.dpapi from preserved seven-source protected snapshot under LocalState/COSMIC/HostedSourceRolloutCurrent; no fresh host read or apply. Stable3source catalogues reused. New public-only40preset export TestResults/HostedCqlIntegrationCurrent/ten-source-public-review.json, excludes DNA/admission. Protected sizes pending; preserve original snapshot/candidate for reconciliation, raw export regenerable. Reuse .NET/Python/caches/buildoutputs; no installs/services/downloads.
+
+Ten-source outcome: protected before67,094B/candidate92,614B retained for reconciliation; public-only export39,295B regenerable. Shipping planner1pass/0skip across40actual presets, composition1pass. C:78,650,789,888B free observed during build. No services/downloads/host mutation. Parent/Core Development fetched unchanged and ancestor verified.

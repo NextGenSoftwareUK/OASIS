@@ -19,6 +19,13 @@ public sealed class CqlPreparedPublicBatchTests
 {
     [PublicBatchReviewFact]
     public async Task ActualSevenSourceCandidatePlansAllTwentyEightPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(7);
+
+    [PublicBatchReviewFact]
+    public async Task ActualTenSourceCandidatePlansAllFortyPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(10);
+
+    private static async Task CheckPreparedBatch(int expected)
     {
         var path = Environment.GetEnvironmentVariable("COSMIC_CQL_PUBLIC_REVIEW")!;
         var bytes = await System.IO.File.ReadAllBytesAsync(path);
@@ -26,7 +33,7 @@ public sealed class CqlPreparedPublicBatchTests
         using var json = JsonDocument.Parse(bytes);
         Assert.Equal(new[] { "examples", "profiles" }, json.RootElement.EnumerateObject().Select(value => value.Name).Order().ToArray());
         var profiles = json.RootElement.GetProperty("profiles");
-        Assert.Equal(7, profiles.EnumerateObject().Count());
+        Assert.Equal(expected, profiles.EnumerateObject().Count());
         var examples = CqlHostedQueryExamples.FromJson(json.RootElement.GetProperty("examples").GetRawText());
         var disposables = new List<IDisposable>();
         var sources = new Dictionary<ProviderType, ICosmicQueryStorageProvider>();
@@ -44,6 +51,9 @@ public sealed class CqlPreparedPublicBatchTests
                     ProviderType.CosmosBlockChainOASIS => Providers.CosmosBlockChainOASIS.CosmosPublicValidatorMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.PolkadotOASIS => Providers.PolkadotOASIS.PolkadotPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.NEAROASIS => Providers.NEAROASIS.NearPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.BaseOASIS => Providers.BaseOASIS.BasePublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.AvalancheOASIS => Providers.AvalancheOASIS.AvalanchePublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.BNBChainOASIS => Providers.BNBChainOASIS.BnbPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
                     _ => throw new InvalidOperationException("Unexpected source in the explicit reviewed batch.")
                 };
                 disposables.Add((IDisposable)source);
@@ -65,7 +75,7 @@ public sealed class CqlPreparedPublicBatchTests
                 Assert.False(((IOASISStorageProvider)source).IsProviderActivated);
                 total += planned.Count;
             }
-            Assert.Equal(28, total);
+            Assert.Equal(expected * 4, total);
         }
         finally { foreach (var disposable in disposables) disposable.Dispose(); }
     }
