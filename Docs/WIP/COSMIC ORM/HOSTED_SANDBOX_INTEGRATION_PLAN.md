@@ -683,3 +683,10 @@ Development b3644ed3173e63769e130a6325d57b7ed5def31a / Core bf098a4, deployment5
 - `TestResults/HostedCqlIntegrationCurrent/AWSS3OASIS-fixed-client-usage-http.json` SHA256 `093d0448b31a0a93655340d5efefc6027716414badcd700d500d7f318e2afb2f`.
 
 Next browser SOLID/S3 acceptance when control surface is available, then Oracle native hosted activation/access catalogue and Solana view; Azure explicitly pending/free-only. Deep parity remains paused. Old unknown502 SOLID fixed-client intent preserved, no replay.
+
+
+## 31 October: Oracle read-only activation contract
+
+Oracle now implements ICosmicReadOnlyQueryActivation separately from explicit storage schema setup. It reuses existing canonical schema validation (read-only USER_* queries), propagates cancellation to SDK open/read operations, never calls provisioning and clears stale activation on error/cancellation. No host enrollment or record authorization change. Provider/unit/integration builds use existing assets/no restore and pass.15controls (13Oracle CQL +2activation) pass; retained native source activation passes1test, provisioning override observed0calls, before/after schema identities/DDL times and4original record hashes identical. Oracle original container e8861e296e101147681c4e2f0a3115e870cafffbce5f92848eb75d8cf25d0982 observed exited after runner-owned start/stop.
+
+Evidence: TestResults/HostedCqlIntegrationCurrent/oracle-query-activation-controls.trx SHA2567BFAE76807A4066658C15B887822BB86FF4DAEFD571AD8B4F92121E9AA37AF43; oracle-query-activation-native.trx SHA2565F4FE9E3DB8D12048CC0D416A7C02BADB9D42F59E3E2B87BC8A74430E42A6654. Reusable source runner Scripts/TestHosts/Test-OracleQueryActivation.ps1; no new database/user/records/schema objects. Next actual server-authorized Oracle read policy/query integration and hosted connection; no public readiness claim.
