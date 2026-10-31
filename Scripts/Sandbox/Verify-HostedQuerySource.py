@@ -56,7 +56,7 @@ def call(route, token=None, body=None, method="POST", operation=None):
         return data
 
 
-def session(state, label):
+def session(state, label, *, allow_create=True):
     ack = state / (label + ".acknowledged.json")
     token_file = state / (label + ".dpapi")
     intent = state / (label + ".intent.json")
@@ -66,6 +66,8 @@ def session(state, label):
         if claims["exp"] <= datetime.datetime.now(datetime.timezone.utc).timestamp():
             raise RuntimeError("Acknowledged session expired; no automatic replacement. Preserve its cohort and explicitly plan a fresh acceptance cohort.")
         return json.loads(ack.read_text()), token
+    if not allow_create:
+        raise RuntimeError("Selected read-only cohort has no acknowledged session; no replacement created.")
     if intent.exists() or token_file.exists():
         raise RuntimeError("Unacknowledged session creation; reconcile, never create another avatar.")
     operation = str(uuid.uuid4())
