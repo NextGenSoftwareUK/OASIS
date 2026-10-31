@@ -16,5 +16,6 @@
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EthereumOASIS/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolygonOASIS/NextGenSoftware.OASIS.API.Providers.PolygonOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS/NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj" />
   </ItemGroup>
 </Project>
