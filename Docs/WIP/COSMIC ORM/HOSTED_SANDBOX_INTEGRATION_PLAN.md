@@ -752,3 +752,10 @@ All three live authorities (Mongo/SQLite/Neo4j) returned `COSMIC_WRITE_OWNERSHIP
 Runner: `Scripts/Sandbox/Verify-HostedHyperdriveWriteFault.py --cohort negative-v1`. Successful cohort acknowledgement prevents replay. Four pure verifier tests pass. Completed durable cohort17files/2,444B; account expires normally, no successful holon save observed. Original expired-cohort absence reconciliation remains separate/unverified.
 
 Regenerable final report `TestResults/HostedCqlIntegrationCurrent/hyperdrive-write-fault-negative-v1-http.json`, SHA256 `7B89363EC44A91ACBE1B57F909230EEA4D8661BBBEFCE6D34520F17D22121E4C`. Final absence/restoration summary is backed by the retained native-run acknowledgement (the initial report writer recorded per-case outcomes; its final summary was enriched from that acknowledgement without repeating requests).
+
+
+## Recovery evidence reconciliation — 31 October 2026
+
+Read preserved repair commands and source inspection, not native services. Sequence6command acknowledged success; reviewed sequence8command acknowledged success. Follow-up2026-10-30T21:32:05.5938103Z shows6selected obligations Completed, all error codes null, SQLite held headnull and mutationCommands0. Its explicit scope is source/outbox only, not destination contents/query acceptance. Those distinctions are now reflected in REPLICA_BASELINE_AND_RECOVERY and X10a/X10b. The prior text incorrectly described these exact repairs as still pending; repeating them would be wrong. Current automatic cutover, general operator/API authorization/isolation, larger-store admission and broader source/target routes remain unverified.
+
+Hashes: `hosted-repair-command.log` c0a5cc31358e009154ef51281cfe11788897fe36ce34048b9855e46131912ec7; `hosted-repair-8-reviewed-command.log`9211fe9a24c19dd43454b11e91c2fa5369d28bf51f0439820baa576ffb0b0c5b; `hosted-repair-after-8.log`4679f2115b557eddc3a64ed96a4f67bb2b9eeb13bb95ffeca78082534d698662, all under worktree TestResults/Web4SandboxCqlCurrent. No repair call, replay, source write or retest of a green scope occurred during this evidence audit.

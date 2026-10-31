@@ -1,6 +1,20 @@
 # Replica baseline and recovery status
 
-Updated 30 October 2026. X10a/X10b remain incomplete; this is native implementation evidence, not hosted repair approval.
+Updated 31 October 2026. X10a/X10b remain incomplete across all providers. The reviewed Mongo-to-SQLite demo repairs have completed; do not repeat them. Historical checkpoints below are implementation history, not new repair instructions.
+
+## Current verified checkpoint
+
+The shell-only reviewed initialization completed held source sequence6 and reviewed sequence8. Preserved follow-up inspection at2026-10-30T21:32:05.5938103Z shows all6selected obligations Completed with null errors, no held SQLite queue head, and zero mutation commands in that inspection. The host command acknowledged successful target application/fenced source completion. The independent follow-up proves source/outbox completion only; it explicitly does not inspect destination contents or query acceptance. Do not use that inspection as destination-row proof. Current demo writes also have independent matching SQLite/Neo4j replica/query proofs in CURRENT_STATUS.
+
+Evidence under `TestResults/Web4SandboxCqlCurrent`:
+
+| File | SHA256 |
+| --- | --- |
+| `hosted-repair-command.log` (sequence6 success) | `c0a5cc31358e009154ef51281cfe11788897fe36ce34048b9855e46131912ec7` |
+| `hosted-repair-8-reviewed-command.log` (sequence8 success) | `9211fe9a24c19dd43454b11e91c2fa5369d28bf51f0439820baa576ffb0b0c5b` |
+| `hosted-repair-after-8.log` (completed obligations/no held SQLite head) | `4679f2115b557eddc3a64ed96a4f67bb2b9eeb13bb95ffeca78082534d698662` |
+
+Reinspection here read preserved evidence only; it did not reconnect to native stores, mutate the host, replay repair operations or retest green scopes. These observations do not certify today's entire queue, general tenant-safe operator APIs, all source/target routes, automatic future-write cutover or larger-store audit admission. Those remain red. Preserve original request/journal/receipt evidence; no replacement requests.
 
 ## Implemented: explicit SQLite initial baseline
 
@@ -71,11 +85,11 @@ The first hard-delete test exposed a new implementation defect: the initial rece
 ## Still required
 
 1. Operator/API composition of the implemented Mongo migration where historical receipts require it, plus larger-store Neo receipt-audit admission. Native primitives and local migration proofs still do not establish end-to-end enrollment acceptance.
-2. Complete the preparation stage with durable intent/target-application/reconciliation handling and source completion, reauthorizing before writes. Preparation now verifies the original atomically enrolled snapshot rather than loading mutable current records. Atomic future-write enrollment/cutover still requires its own protocol and acceptance.
-3. An authorized, fenced reconciliation/resume protocol for an existing blocked obligation. Baseline initialization alone does not change queue state or retroactively complete an earlier update. Preserve original delivery evidence and independently verify the target before resuming.
+2. Complete atomic future-write enrollment/cutover and generalize authorized composition beyond the verified Mongo-to-SQLite route. Durable one-obligation application, reauthorization, target receipt recovery and source completion already exist; reuse them instead of adding another owner.
+3. Broader source/target and hosted tenant-isolation acceptance for the existing fenced reconciliation/resume protocol. The reviewed Mongo-to-SQLite held obligations have been completed with exact target acknowledgements; this is not a general public repair authorization. Preserve original delivery evidence and independently verify targets.
 4. Operator/UI/API composition and hosted three-database acceptance, including tenant isolation. Never expose the trusted primitive directly as unauthenticated repair.
 
-Hosted queue sequence 6 remains blocked at a version-4 holon. It has not been bootstrapped, skipped, reset or replayed. Read-only target inspection now confirms no matching current/head/history/receipt in the SQLite database opened by the API; explicit baseline application and fenced completion are still required. Hosted Azure remains separately pending/free-only.
+At the earlier read-only checkpoint, sequence6 held a version4holon with no matching target history. The reviewed baseline application and fenced completion subsequently succeeded (current checkpoint above). Do not repeat that repair or reset/skip/replay obligations. Hosted Azure remains separately deferred/free-only.
 
 ## Demo-specific Mongo source completion
 
@@ -87,7 +101,7 @@ Seven native cases pass/no skips (new MongoBaselineCompletionTests plus six base
 
 HolonReplicaInitializationApplication composes explicit host policy/preparation, configured target receipt recovery and native fenced source completion. A host-owned protected journal path records only the reviewed metadata, checksum, receipt digest and Prepared/Submitted/TargetCommitted/SourceCompleted phase. Exclusive file ownership and flushed atomic publication precede submission. The current source, route and policy are reauthorized on every run and again before source completion. A submitted operation with no target receipt refuses resubmission; a committed immutable receipt recovers the same operation after a lost response. Completed replay verifies exact source/target acknowledgements without rewriting the journal. Unknown temporary publication, journal mismatch, revoked policy or uncertain native result remains an explicit error. No automatic future-write cutover or public repair grant is added.
 
-Verification:23 shared controls pass (six new interrupted/application scenarios);8 real Mongo native cases pass, including durable application against real source/target, original held version4, read-only completed replay and ordinary version5 delivery. This does not yet prove the actual hosted Mongo-to-SQLite route. Next is a scoped operator host/route proof and execution; hosted writes have not been changed.
+Verification:23 shared controls pass (six new interrupted/application scenarios);8 real Mongo native cases pass, including durable application against real source/target, original held version4, read-only completed replay and ordinary version5 delivery. This local proof preceded the hosted Mongo-to-SQLite repair, which subsequently passed as recorded in the current checkpoint above. Other routes and automatic cutover remain unverified.
 
 ## Shell-only demo repair host
 
@@ -95,4 +109,4 @@ WEB4 now recognizes --cosmic-repair-baseline followed by the protected reviewed 
 
 Example inside the deployed dev service: dotnet NextGenSoftware.OASIS.API.ONODE.WebAPI.dll --cosmic-repair-baseline /data/COSMIC/ReplicaRepair/request.json . Never generate a replacement request after a submitted/unknown outcome. The command is intentionally scoped to Mongo-to-SQLite for this reproduced demo blocker; broader operator tooling remains deferred.
 
-Run Scripts/Sandbox/Test-CqlReplicaBaselineRepair.ps1 after the bounded producer/consumer builds. One real native command case passes/no skips; source versions1-3 were never enrolled, held4 initialized and source-completed, replay unchanged, then ordinary5 delivered. Exact source DB/SQLite/journal fixtures removed after ownership/absence checks.71 HTTP/schema/admission controls also pass. Hosted execution remains pending.
+Run Scripts/Sandbox/Test-CqlReplicaBaselineRepair.ps1 after the bounded producer/consumer builds. One real native command case passes/no skips; source versions1-3 were never enrolled, held4 initialized and source-completed, replay unchanged, then ordinary5 delivered. Exact source DB/SQLite/journal fixtures removed after ownership/absence checks.71 HTTP/schema/admission controls also pass. Hosted Mongo-to-SQLite sequence6/8execution subsequently passed; see the current checkpoint above. Broader operator/API composition remains pending.
