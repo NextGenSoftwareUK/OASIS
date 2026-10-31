@@ -1,4 +1,5 @@
 # Reuse the admitted Windows Mongo environment; never create a new store/runtime.
+param([switch]$SqliteSource)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $runtime='C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe'
@@ -23,11 +24,13 @@ New-Item -ItemType Directory -Path $results -Force | Out-Null
         }
         if(!$ready){throw 'Owned service readiness deadline exceeded; do not restart.'}
         $env:COSMIC_REPLICA_REPAIR_NATIVE='owned-local-27029'
+        $filter=if($SqliteSource){'FullyQualifiedName~ReviewedCommandRepairsActualSqliteToMongo'}else{'FullyQualifiedName~ReviewedCommandRepairsActualMongoToSqlite'}
+        $reportName=if($SqliteSource){'sqlite-mongo-repair.trx'}else{'mongo-sqlite-repair.trx'}
         dotnet test (Join-Path $root 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj') `
-            --no-build --no-restore --filter 'FullyQualifiedName~ReplicaBaselineRepairCommandTests' --results-directory $results `
-            --logger 'trx;LogFileName=mongo-sqlite-repair.trx' /m:2 /nr:false /p:UseSharedCompilation=false -v:q *> (Join-Path $results 'native-test.log')
+            --no-build --no-restore --filter $filter --results-directory $results `
+            --logger "trx;LogFileName=$reportName" /m:2 /nr:false /p:UseSharedCompilation=false -v:q *> (Join-Path $results 'native-test.log')
         if($LASTEXITCODE){throw 'Native repair proof failed; preserve owned fixtures/journals.'}
-        [xml]$report=Get-Content (Join-Path $results 'mongo-sqlite-repair.trx') -Raw
+        [xml]$report=Get-Content (Join-Path $results $reportName) -Raw
         $counts=$report.TestRun.ResultSummary.Counters
         if([int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0){throw 'Exactly one native pass, no skips required.'}
         Get-Content (Join-Path $results 'native-test.log') -Tail 4

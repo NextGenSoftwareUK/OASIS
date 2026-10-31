@@ -22,15 +22,17 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive;
 
-/// <summary>Trusted shell command for explicitly reviewed Mongo/Neo4j-to-SQLite
-/// routes. The request may name only these source profiles; native endpoints and
+/// <summary>Trusted shell command for reviewed Mongo/Neo4j-to-SQLite and
+/// SQLite-to-Mongo routes. The request may name only enrolled profiles; endpoints and
 /// credentials come exclusively from host DNA. No HTTP/background host is started.</summary>
 internal static class ReplicaBaselineRepairCommand
 {
     internal sealed record Request(Guid OperatorId, Guid InitializationOperationId, Guid CatalogVersion,
         long Sequence, Guid SourceOperationId, Guid SourceActorId, Guid RootId,
         string SourcePayloadDigest, string SourceStoreIdentity, string TargetFile,
-        [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string SourceProvider=null);
+        [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string SourceProvider=null,
+        [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string TargetProvider=null,
+        [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string TargetStoreIdentity=null);
 
     internal static async Task<int> RunAsync(string[] args)
     {
@@ -96,8 +98,37 @@ internal static class ReplicaBaselineRepairCommand
     internal static ProviderType SourceProfile(string name)=>name switch {
         null or "MongoDBOASIS"=>ProviderType.MongoDBOASIS,
         "Neo4jOASIS"=>ProviderType.Neo4jOASIS,
-        _=>throw new ArgumentException("Only explicit MongoDB or Neo4j source profiles are supported.")
+        "SQLLiteDBOASIS"=>ProviderType.SQLLiteDBOASIS,
+        _=>throw new ArgumentException("Only explicit MongoDB, Neo4j or SQLite source profiles are supported.")
     };
+
+    internal static ProviderType TargetProfile(string name)=>name switch {
+        null or "SQLLiteDBOASIS"=>ProviderType.SQLLiteDBOASIS,
+        "MongoDBOASIS"=>ProviderType.MongoDBOASIS,
+        _=>throw new ArgumentException("Only explicit SQLite or MongoDB target profiles are supported.")
+    };
+
+    internal static void ValidateRoute(ProviderType source,ProviderType target)
+    {
+        if(!(target==ProviderType.SQLLiteDBOASIS && source is ProviderType.MongoDBOASIS or ProviderType.Neo4jOASIS
+            || source==ProviderType.SQLLiteDBOASIS && target==ProviderType.MongoDBOASIS))
+            throw new ArgumentException("This reviewed source/target route is not enrolled.");
+    }
+
+    private static SqliteConnectionStringBuilder ExistingSqlite(string text)
+    {
+        var connection=new SqliteConnectionStringBuilder(text);
+        if(string.IsNullOrWhiteSpace(connection.DataSource) || connection.DataSource==":memory:" || connection.Mode==SqliteOpenMode.Memory
+            || !System.IO.File.Exists(Path.GetFullPath(connection.DataSource)))
+            throw new InvalidOperationException("An existing configured SQLite file is required; no provisioning.");
+        connection.Mode=SqliteOpenMode.ReadWrite;return connection;
+    }
+
+    internal static string SqliteStoreIdentity(string text)
+    {
+        var connection=ExistingSqlite(text);
+        return "sqlite-store:"+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Path.GetFullPath(connection.DataSource))));
+    }
 
     internal static string NeoStoreIdentity(string host,string username)
     {
@@ -119,20 +150,39 @@ internal static class ReplicaBaselineRepairCommand
             || request.SourcePayloadDigest?.Length!=64 || !request.SourcePayloadDigest.All(Uri.IsHexDigit))
             throw new ArgumentException("A complete reviewed V2 repair request is required.");
         var sourceType=SourceProfile(request.SourceProvider);
+        var targetType=TargetProfile(request.TargetProvider);ValidateRoute(sourceType,targetType);
         var settings=dna.OASIS.StorageProviders;
-        var configuredSource=sourceType==ProviderType.MongoDBOASIS
-            ? StoreIdentity(settings.MongoDBOASIS.ConnectionString,settings.MongoDBOASIS.DBName)
-            : NeoStoreIdentity(settings.Neo4jOASIS.ConnectionString,settings.Neo4jOASIS.Username);
-        var connection=new SqliteConnectionStringBuilder(settings.SQLLiteDBOASIS.ConnectionString);
-        var targetFile=Path.GetFullPath(connection.DataSource);
-        if(configuredSource!=request.SourceStoreIdentity || targetFile!=Path.GetFullPath(request.TargetFile)
-            || !System.IO.File.Exists(targetFile))throw new InvalidOperationException("Configured endpoints differ from the reviewed request.");
-        connection.Mode=SqliteOpenMode.ReadWrite; // This command must never create a replacement target database.
-        IOASISStorageProvider source=sourceType==ProviderType.MongoDBOASIS
-            ? new MongoDBOASIS(settings.MongoDBOASIS.ConnectionString,settings.MongoDBOASIS.DBName)
-            : new NeoProvider(settings.Neo4jOASIS.ConnectionString,settings.Neo4jOASIS.Username,settings.Neo4jOASIS.Password);
-        using var target=new SQLLiteDBOASIS(connection.ToString());
+        var configuredSource=sourceType switch {
+            ProviderType.MongoDBOASIS=>StoreIdentity(settings.MongoDBOASIS.ConnectionString,settings.MongoDBOASIS.DBName),
+            ProviderType.Neo4jOASIS=>NeoStoreIdentity(settings.Neo4jOASIS.ConnectionString,settings.Neo4jOASIS.Username),
+            ProviderType.SQLLiteDBOASIS=>SqliteStoreIdentity(settings.SQLLiteDBOASIS.ConnectionString),
+            _=>throw new InvalidOperationException("Unresolved source profile.")
+        };
+        var targetIdentity=targetType==ProviderType.SQLLiteDBOASIS
+            ? Path.GetFullPath(ExistingSqlite(settings.SQLLiteDBOASIS.ConnectionString).DataSource)
+            : StoreIdentity(settings.MongoDBOASIS.ConnectionString,settings.MongoDBOASIS.DBName);
+        if(configuredSource!=request.SourceStoreIdentity || (targetType==ProviderType.SQLLiteDBOASIS
+            ? request.TargetStoreIdentity!=null || targetIdentity!=Path.GetFullPath(request.TargetFile)
+            : request.TargetFile!=null || targetIdentity!=request.TargetStoreIdentity))
+            throw new InvalidOperationException("Configured endpoints differ from the reviewed request.");
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(60));
+        if(targetType==ProviderType.MongoDBOASIS)
+        {
+            // Activation may create collections. Require the reviewed database to
+            // already exist, rather than replacing a missing environment by accident.
+            using var names=await new MongoClient(settings.MongoDBOASIS.ConnectionString).ListDatabaseNamesAsync(cancellationToken:deadline.Token);
+            if(!(await names.ToListAsync(deadline.Token)).Contains(settings.MongoDBOASIS.DBName,StringComparer.Ordinal))
+                throw new InvalidOperationException("Reviewed target Mongo database does not exist; no provisioning.");
+        }
+        IOASISStorageProvider source=sourceType switch {
+            ProviderType.MongoDBOASIS=>new MongoDBOASIS(settings.MongoDBOASIS.ConnectionString,settings.MongoDBOASIS.DBName),
+            ProviderType.Neo4jOASIS=>new NeoProvider(settings.Neo4jOASIS.ConnectionString,settings.Neo4jOASIS.Username,settings.Neo4jOASIS.Password),
+            ProviderType.SQLLiteDBOASIS=>new SQLLiteDBOASIS(ExistingSqlite(settings.SQLLiteDBOASIS.ConnectionString).ToString()),
+            _=>throw new InvalidOperationException("Unresolved source profile.")
+        };
+        IOASISStorageProvider target=targetType==ProviderType.SQLLiteDBOASIS
+            ? new SQLLiteDBOASIS(ExistingSqlite(settings.SQLLiteDBOASIS.ConnectionString).ToString())
+            : new MongoDBOASIS(settings.MongoDBOASIS.ConnectionString,settings.MongoDBOASIS.DBName);
         try
         {
             var activated=await source.ActivateProviderAsync();
@@ -143,6 +193,7 @@ internal static class ReplicaBaselineRepairCommand
             Func<HolonReplicaInitializationIntent,HolonReplicaInitializationOutcome,CancellationToken,Task<OASISResult<bool>>> complete=queue.Result switch {
                 MongoHolonReplicationOutbox mongo=>mongo.CompleteInitializedBaselineAsync,
                 NeoOutbox neo=>neo.CompleteInitializedBaselineAsync,
+                SqliteHolonReplicationOutbox sqlite=>sqlite.CompleteInitializedBaselineAsync,
                 _=>throw new InvalidOperationException("Configured source has no fenced completion owner.")
             };
             // Shell access authorizes reading this one reviewed source operation.
@@ -154,17 +205,31 @@ internal static class ReplicaBaselineRepairCommand
                 throw new InvalidOperationException("Reviewed source operation or payload changed.");
             var receiver=await target.ActivateProviderAsync();
             if(receiver.IsError || receiver.IsWarning)throw new InvalidOperationException("Target activation failed.");
-            var preparation=Preparation(request,sourceType,outbox,targetFile);
-            var application=new HolonReplicaInitializationApplication(preparation,target,complete);
+            if(target is not ICommittedHolonReplicaInitializationRecoveryStorageProvider receiverOwner)
+                throw new InvalidOperationException("Configured target has no initialization receipt owner.");
+            var preparation=Preparation(request,sourceType,outbox,targetIdentity);
+            var application=new HolonReplicaInitializationApplication(preparation,receiverOwner,complete);
             return await application.ExecuteAsync(request.OperatorId,request.Sequence,request.InitializationOperationId,protectedJournal,deadline.Token);
         }
-        finally { await source.DeActivateProviderAsync(); }
+        finally
+        {
+            try
+            {
+                try { await target.DeActivateProviderAsync(); }
+                finally { (target as IDisposable)?.Dispose(); }
+            }
+            finally
+            {
+                try { await source.DeActivateProviderAsync(); }
+                finally { (source as IDisposable)?.Dispose(); }
+            }
+        }
     }
 
     internal static HolonReplicaInitializationPreparation Preparation(Request request,ProviderType sourceType,
         IHolonReplicationObligationReader source,string targetFile)
         =>new("web4-demo-repair",request.CatalogVersion,HolonReplicationRoutes.SourceId(sourceType),request.SourceStoreIdentity,
-            sourceType,source,HolonReplicationRoutes.TargetId(ProviderType.SQLLiteDBOASIS),targetFile,ProviderType.SQLLiteDBOASIS,
+            sourceType,source,HolonReplicationRoutes.TargetId(TargetProfile(request.TargetProvider)),targetFile,TargetProfile(request.TargetProvider),
             new Policy(request,targetFile,sourceType));
 
     private sealed class Policy(Request request,string file,ProviderType sourceType) : IHolonReplicaInitializationPolicy
@@ -175,8 +240,8 @@ internal static class ReplicaBaselineRepairCommand
                 && context.InitializationOperationId==request.InitializationOperationId
                 && context.SourceId==HolonReplicationRoutes.SourceId(sourceType)
                 && context.SourceStoreIdentity==request.SourceStoreIdentity && context.TargetEndpointIdentity==file
-                && context.SourceAuthority==sourceType && context.TargetAuthority==ProviderType.SQLLiteDBOASIS
-                && context.TargetId==HolonReplicationRoutes.TargetId(ProviderType.SQLLiteDBOASIS)
+                && context.SourceAuthority==sourceType && context.TargetAuthority==TargetProfile(request.TargetProvider)
+                && context.TargetId==HolonReplicationRoutes.TargetId(TargetProfile(request.TargetProvider))
                 && (context.Mutation==null || context.Mutation.ActorId==request.SourceActorId
                     && context.Mutation.Roots.Count==1 && context.Mutation.Roots[0].Id==request.RootId)));
     }
