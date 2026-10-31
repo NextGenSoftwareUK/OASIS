@@ -8,7 +8,7 @@ Updated 31 October 2026. Programme incomplete. Priority: working hosted demo bre
 2. The frozen correctness batch is parent **79fe887e3 / Core6bbd015**. It excludes all ten new public-read profiles. Do not apply their staged configuration to that older application/Core revision.
 3. After the matching routing-facts release, prepare the distinct routing fixture with `Scripts/Sandbox/Prepare-HostedHyperdriveRouting.py`, then run `Verify-HostedHyperdriveLoadBalancing.py --cohort routing-v1`. Setup has not run live; no routing-v1 avatar/record exists. Original Solana owner session expired; preserve it without replacement/replay.
 4. Separately integrate the tested public-read profiles with their matching application/Core and joint configuration, then run hosted source/preparation/isolation/replica gates. Browser acceptance follows when IAB is available. Do not claim the local HTTP tests are hosted proof.
-5. Base/Avalanche/BNB native HTTP+Mongo gates pass:3/2native,5/4paired,isolation and9receipts each; original SDK cohorts cleaned exactly. Strict preset builders10controls and website links54client tests pass (frontend taskc09103b). Ten-source protected candidate now prepared offline; all40actual presets pass shipping-planner preflight. Read-only hosted reconciliation confirms snapshot still exact (12planned settings,no drift). Next permitted matching rollout and live acceptance. [Three-source report](EVM_NEXT_THREE_SOURCE_STATUS.md).
+5. Base/Avalanche/BNB native HTTP+Mongo gates pass:3/2native,5/4paired,isolation and9receipts each; original SDK cohorts cleaned exactly. Strict preset builders10controls and website links54client tests pass (frontend taskb6c6854;3new preparation contracts pass). Ten-source protected candidate now prepared offline; all40actual presets pass shipping-planner preflight. Read-only hosted reconciliation confirms snapshot still exact (12planned settings,no drift). Next permitted matching rollout and live acceptance. [Three-source report](EVM_NEXT_THREE_SOURCE_STATUS.md).
 
 ## Working copies and release state
 
@@ -17,7 +17,7 @@ Updated 31 October 2026. Programme incomplete. Priority: working hosted demo bre
 - Latest observed WEB4 Railway deployment **68fb8cc4-c603-4d16-a97a-0e5a30e364c2**, parent0e688ac9c, SUCCESS. Last full eight-source HTTP acceptance remains parent498e3fd7f/deployment4dbe69d0; no fresh source gate inferred from the later deployment.
 - Frozen parent **work/cosmic-cql-hosted-release79fe887e3** / Core **work/cosmic-cql-sandbox-integration6bbd015** unchanged. Broader earlier local-provider source remains preserved on parent237403a75.
 - Frontend `C:/Source/Web4Site`, task **work/cosmic-cql**. Public main **9b65a88** serves exact committed HTML/JS. Google/Ethereum local demo links are public; Polygon/Arbitrum links are task-staged for the next website batch. **54 client controls pass**; Cosmos/Polkadot/NEAR links task-staged throughe8bf2d3, not public.
-- IAB `getTab` rechecked31October: Transport closed; existing live deployment also rechecked unchanged. Windows control was stopped with Escape; do not restart it or interfere with games. Browser tooling is agent-owned work, not a new David chore.
+- IAB `getTab` rechecked after ten-source reconciliation31October: Transport closed; existing live deployment also rechecked unchanged. Windows control was stopped with Escape; do not restart it or interfere with games. Browser tooling is agent-owned work, not a new David chore.
 
 ## What is actually verified live
 
