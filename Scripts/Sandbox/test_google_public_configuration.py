@@ -1,0 +1,66 @@
+"""Pure candidate controls: no Railway, credentials, accounts or native RPC."""
+import copy
+import importlib.util
+import json
+from pathlib import Path
+import unittest
+
+spec = importlib.util.spec_from_file_location("google_configuration", Path(__file__).with_name("Publish-HostedGooglePublicConfiguration.py"))
+publisher = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(publisher)
+
+
+class GoogleConfigurationTests(unittest.TestCase):
+    def fixture(self):
+        prefix = "LC08/01/001/003/LC08_L1GT_001003_20140812_20170420_01_T2/"
+        name = "LC08_L1GT_001003_20140812_20170420_01_T2_"
+        source = {"schema": 1, "bucket": "gcp-public-data-landsat",
+            "keys": [prefix + name + suffix for suffix in ("ANG.txt", "B1.TIF", "B10.TIF")],
+            "owner": "00000000-0000-0000-0000-000000000123"}
+        before = {"OASIS_DNA_JSON": json.dumps({"OASIS": {"Sandbox": {"Enabled": True},
+            "StorageProviders": {"GoogleCloudOASIS": {"PrivateKey": "inert-test-marker", "ConnectionString": "unchanged"}}}}),
+            "PREPARED_STORAGE_ADMISSION_JSON": json.dumps({"queryOnlyProviders": ["IPFSOASIS"],
+                "ordinaryProviders": ["MongoDBOASIS"], "nativeProviders": [],
+                "queryTariffs": [{"provider": "IPFSOASIS", "costUsd": 0, "catalogueVersion": "test-v1"}],
+                "storageTariffs": [], "routes": [{"path": "unchanged"}]}),
+            "CQL_HOSTED_QUERY_EXAMPLES_JSON": "{}", "UNRELATED": "unchanged"}
+        return before, source
+
+    def test_preserves_firestore_dna_and_unrelated_admission_while_staging_four_presets(self):
+        before, source = self.fixture()
+        original = copy.deepcopy(before)
+        after = publisher.candidate(before, source)
+        self.assertEqual(before, original)
+        self.assertEqual(after["OASIS_DNA_JSON"], before["OASIS_DNA_JSON"])
+        self.assertEqual(after["UNRELATED"], "unchanged")
+        admission = json.loads(after[publisher.KEYS[1]])
+        old = json.loads(before[publisher.KEYS[1]])
+        for key in ("nativeProviders", "ordinaryProviders", "storageTariffs", "routes"):
+            self.assertEqual(admission[key], old[key])
+        self.assertEqual(admission["queryOnlyProviders"], ["IPFSOASIS", "GoogleCloudOASIS"])
+        rows = json.loads(after[publisher.KEYS[2]])["GoogleCloudOASIS"]
+        self.assertEqual(len(rows), 4)
+        self.assertEqual([len(row["request"].get("source", row["request"])["filters"][0]["value"]) for row in rows], [3, 3, 2, 2])
+
+    def test_rejects_credentials_wrong_catalogue_paid_tariff_and_existing_enrollment(self):
+        for fault in ("credential", "bucket", "keys", "owner", "schema", "paid", "existing", "ordinary", "native", "examples", "tariff"):
+            with self.subTest(fault=fault):
+                before, source = self.fixture()
+                admission = json.loads(before[publisher.KEYS[1]])
+                if fault == "credential": source["credentials"] = "forbidden-test-marker"
+                if fault == "bucket": source["bucket"] = "different"
+                if fault == "keys": source["keys"].reverse()
+                if fault == "owner": source["owner"] = "00000000-0000-0000-0000-000000000000"
+                if fault == "schema": source["schema"] = True
+                if fault == "examples": before[publisher.KEYS[2]] = json.dumps({"GoogleCloudOASIS": []})
+                if fault == "tariff": admission["queryTariffs"].append({"provider": "GoogleCloudOASIS", "costUsd": 0})
+                if fault == "paid": admission["queryTariffs"][0]["costUsd"] = 1
+                if fault == "existing": before[publisher.KEYS[0]] = "{}"
+                if fault == "ordinary": admission["ordinaryProviders"].append("GoogleCloudOASIS")
+                if fault == "native": admission["nativeProviders"].append({"provider": "GoogleCloudOASIS"})
+                before[publisher.KEYS[1]] = json.dumps(admission)
+                with self.assertRaises(ValueError): publisher.candidate(before, source)
+
+
+if __name__ == "__main__":
+    unittest.main()
