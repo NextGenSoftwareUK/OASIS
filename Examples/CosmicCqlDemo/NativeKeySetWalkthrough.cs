@@ -9,7 +9,7 @@ namespace CosmicCqlDemo;
 
 /// <summary>
 /// The same bounded IN query through HolonManager and LINQ on IPFS, SOLID,
-/// Mastodon or the explicit public Solana account-metadata profile.
+/// Mastodon or explicit public Solana/Google metadata profiles.
 /// The caller supplies an activated, explicitly enrolled native adapter and existing keys.
 /// </summary>
 public static class NativeKeySetWalkthrough
@@ -28,6 +28,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.SOLIDOASIS => "SolidRecordId",
             ProviderType.ActivityPubOASIS => "MastodonStatusId",
             ProviderType.SolanaOASIS => "SolanaAccountAddress",
+            ProviderType.GoogleCloudOASIS => "GCSObjectKey",
             _ => throw new ArgumentException("Select an enrolled protocol key-set adapter.", nameof(adapter))
         };
 
@@ -74,8 +75,8 @@ public static class NativeKeySetWalkthrough
     {
         if (mongo.QueryProviderType != ProviderType.MongoDBOASIS)
             throw new ArgumentException("The first target must be the explicitly configured Mongo provider.", nameof(mongo));
-        if (protocol.QueryProviderType is not (ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS or ProviderType.ActivityPubOASIS or ProviderType.SolanaOASIS))
-            throw new ArgumentException("Select IPFS, SOLID, Mastodon or public Solana metadata as the second target.", nameof(protocol));
+        if (protocol.QueryProviderType is not (ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS or ProviderType.ActivityPubOASIS or ProviderType.SolanaOASIS or ProviderType.GoogleCloudOASIS))
+            throw new ArgumentException("Select IPFS, SOLID, Mastodon or public Solana/Google metadata as the second target.", nameof(protocol));
         var descriptor = protocol.QueryCapabilities.StringKeySetLookup
             ?? throw new ArgumentException("Enroll native membership on the protocol target before planning.", nameof(protocol));
         var keys = nativeKeys.ToArray();
