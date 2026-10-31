@@ -2,6 +2,7 @@
 
 Updated 31 October 2026. User priority: broader hosted demo before full EF/NHibernate parity.
 The original full roadmap remains active; defer depth the demo does not need.
+Current release state/counts: [CURRENT_STATUS](CURRENT_STATUS.md). Detailed dated checkpoints below are historical.
 
 ## Priority and recommendations
 
@@ -27,6 +28,16 @@ Official references: [Cosmos query overview](https://learn.microsoft.com/en-us/c
 [Solana account-query RPC](https://solana.com/docs/rpc/http/getprogramaccounts).
 Cosmos supports SQL-style selection/filtering/ordering; Solana RPC account filters are narrower.
 Neither reference proves the current OASIS adapter already supports CQL.
+
+## Next three EVM demo scopes
+
+| Scope | Native CQL | C# / CLI | HTTP + Mongo / isolation | Hosted / browser |
+|---|---|---|---|---|
+| Base public balances | ✅3/2 | ❌ next | ❌ next | ❌ pending |
+| Avalanche public balances | ✅3/2 | ❌ next | ❌ next | ❌ pending |
+| BNB Chain public balances | ✅3/2 | ❌ next | ❌ next | ❌ pending |
+
+[Proof, exact limits and next steps](EVM_NEXT_THREE_SOURCE_STATUS.md). These reuse the unchanged EVM read engine and existing providers; source projection proof is not full ORM or signed storage parity. Work only on the red cells.
 
 ## Bounded common demo acceptance
 
