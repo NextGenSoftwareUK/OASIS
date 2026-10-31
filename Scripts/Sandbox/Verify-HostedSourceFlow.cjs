@@ -67,18 +67,26 @@ async function main() {
     isCurrent: () => true, randomUUID: () => crypto.randomUUID() };
   const prepared = await preparation.prepare(options);
   observe('preparation', prepared);
-  const five = await request('data/query-cql/federation', input.pairedThree.request);
+  const mappedIds = async () => {
+    const mapped = await request('data/query-cql/demo-identities', { provider: input.source.provider, keys: plan.keys });
+    return mapped.result.records.map(record => record.id);
+  };
+  let ids = plan.selectionKind === 'Id' ? await mappedIds() : null;
+  const five = await request('data/query-cql/federation',
+    plan.selectionKind === 'Id' ? prepared.pairedRequest : input.pairedThree.request);
   rows(five, 5);
   observe('five', five);
-  const four = await request('data/query-cql/federation', input.pairedTwo.request);
+  const four = await request('data/query-cql/federation', plan.selectionKind === 'Id'
+    ? preparation.composeIdPair(preparation.recipe(input.source, input.pairedTwo), ids) : input.pairedTwo.request);
   rows(four, 4);
   observe('four', four);
   const repeated = await preparation.prepare(options);
   if (repeated.saved !== 0 || repeated.existing !== 2) throw Error('Repeated setup must preserve both private snapshots.');
   observe('repeated', repeated);
 
-  const mapped = await request('data/query-cql/demo-identities', { provider: input.source.provider, keys: plan.keys });
-  const ids = mapped.result.records.map(record => record.id);
+  // Preserve the existing protocol gate's request order; ID recipes need the
+  // mapped identities earlier to compose their actor-specific query predicate.
+  if (ids === null) ids = await mappedIds();
   const replicas = {};
   const stable = value => JSON.stringify(value, (_, entry) => entry && typeof entry === 'object' && !Array.isArray(entry)
     ? Object.fromEntries(Object.entries(entry).sort(([left], [right]) => left.localeCompare(right))) : entry);

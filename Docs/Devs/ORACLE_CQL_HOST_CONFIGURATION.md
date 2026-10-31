@@ -78,11 +78,14 @@ the same captured public catalogue when checking the adapter's real capabilities
 A source without the necessary policy must not advertise unsupported examples as
 ready. Actual requests are authorized again for their real actor.
 
-Oracle/Mongo federation authorization and planning are implemented. The current
-browser snapshot helper supports metadata-key membership; Oracle's ID-membership
-selection still needs its preparation wiring and end-to-end acceptance. Do not
-advertise fixed five-row/four-row pairing until that path and actual hosted SQL
-execution, isolation and replica checks pass.
+Oracle/Mongo federation authorization and planning are implemented. The task-only
+browser helper supports ID membership and includes both native IDs and Core-mapped
+private-copy IDs in the paired query. Existing protocol-key behavior is preserved.
+The local native HTTP read gate verifies three/two Oracle rows and five/four paired
+rows after two V2 SDK saves; it also verifies catalogue/private isolation. Its
+bearer/admission controls are test infrastructure, not production signup/billing.
+Native JS REST preparation, hosted connectivity, replica and browser acceptance
+remain separate gates. Do not advertise Oracle as ready in the public sandbox.
 
 ## Verification
 
@@ -96,3 +99,10 @@ failure and federation. `CqlOracleHostedAdmissionTests` covers the nine-provider
 admission catalogue and real Oracle SQL compilation from HTTP descriptions.
 `CqlHostedSourcesTests` checks discovery with the configured catalogue. These
 controls do not replace the outstanding native hosted/browser acceptance gates.
+
+The native query gate is `Scripts/TestHosts/Test-OracleQueryActivation.ps1 -MongoIdHttp`
+after building the API test consumer. It uses a one-time journalled owned Mongo
+fixture, stops its HTTP consumers before verified success-only cleanup, and
+preserves failed/unknown outcomes. Never delete the fixture intent to rerun it.
+Reuse recorded completed evidence unless a new red scope or reproducible bug
+requires another explicitly reconciled run. Native provider services are reused.
