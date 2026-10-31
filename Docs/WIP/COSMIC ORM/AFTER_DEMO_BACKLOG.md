@@ -98,3 +98,5 @@ NativeREST IDfilter/restart/MongoSDK/HTTP/browser verified,45cases; no new busin
 ### Weaviate current integration (30 October 2026)
 
 43 controls/native phases and C#/HTTP/browser5/4 passed. Original source retained; scoped local gRPC demo works. Return to content predicates, central gRPC client registration, generic load/search migration, SDK aggregate wire bounds, conditional writes/history/children, durable unknown-write recovery, hosted/semantic search and full HyperDrive failure/placement acceptance. These are outside this admitted identity-query demo. Any reproducible failure in the advertised demo remains an immediate fix, not a deferred item. See WEAVIATE_CQL_MVP.md.
+
+Chroma31 October2026:55checks/browser5and4 pass. General predicates/central registration/generic read error and ID bounds/other write bounds/avatar ownership/children/history/CAS/unknown-write recovery/replication/migrations/full HyperDrive/semantic search/hosted security remain outside this identity-query demo. Demo failures remain immediate fixes. See CHROMA_CQL_MVP.md.
