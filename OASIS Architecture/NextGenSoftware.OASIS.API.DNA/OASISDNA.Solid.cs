@@ -2,6 +2,8 @@ namespace NextGenSoftware.OASIS.API.DNA
 {
     public class SolidOASISProviderSettings : ProviderSettingsBase
     {
+        /// <summary>Explicitly enroll bounded canonical resource-key membership.</summary>
+        public bool EnableCqlRecordKeySets { get; set; }
         public bool IsVersionControlEnabled { get; set; }
         public string PodRoot { get; set; }
         /// <summary>Comma-separated Pod containers, relative to the Pod root, that native data import may read (never under oasis/).</summary>
