@@ -806,3 +806,6 @@ This closes the actual staged-preset planning gate only. Matching code/config/fr
 - `TestResults/HostedCqlIntegrationCurrent/seven-source-public-review.trx`: 3377 B; SHA256 `d21868d61f96bf5b57b8dd2225c9bef24238075a864e35c501170fa3c4fe739f`.
 
 - `TestResults/HostedCqlIntegrationCurrent/public-review-export-controls.log`: 106 B; SHA256 `383a12fba9b5b327054a24ce7e5739569c4f0b6621facd981f2d6a4271063b3c`.
+
+### Ten-source read-only hosted reconciliation — 31 October 2026
+Reconcile-TenSourceHostedConfiguration.py observed current variables once and compared them in memory against the preserved ten-source before snapshot. Exact match;0changed keys,12planned settings (10source configs plus shared admission/examples). No values printed/persisted in plaintext, no mutation/deployment. Pure drift-control1test passes. Evidence: TestResults/HostedCqlIntegrationCurrent/ten-source-host-reconciliation.json and ten-source-reconciliation-controls.log. Offline40preset proof remains separate from hosted acceptance. Extra daily Development-publication decision remains pending in David list; no repeat ask or inferred permission. Matching rollout must include current Core3d5be79/application public profiles, not frozen6bb.
