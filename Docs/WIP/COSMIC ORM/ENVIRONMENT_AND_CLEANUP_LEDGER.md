@@ -1757,3 +1757,8 @@ Fifteen-source outcome:protectedbefore67,094B/candidate104,934B retained;1new8pr
 Monad qualificationpasses; Sei failedcanonicalblockzero, separateboundedreadonlyreply retained Sei-genesis-response.json,noidentity/DB forSei. Monadstablepubliccatalogue LocalState/COSMIC/HostedMonadPublicSourceCurrent/source.json createdonce,retainowner,sizepending. Existingconsole/testhostrefs/runtime/cache reused,cacheonlyrestore,raw EvmBreadthReadinessCurrent. No downloads/services/nativewrites.
 
 Monad outcome:19tests0skips(18controlled+1native),consolebuild/actualCLI3/2pass. Cacheonlyrestores,noSDKinstall/download/database/services. Stablecatalogue 276B retained. Sei genesisraw 1386B retained aspublicformatfailureevidence,notmissingchainproof. Rawlogs/TRXregenerable,incrementalbuildsizesunmeasured.
+
+### Approved correctnessbatch publication
+31October2026:reuse existing OASIS-cosmic worktree, switched parent to work/cosmic-cql-hosted-release/Core to work/cosmic-cql-sandbox-integration; newer taskbranches preserved. Reused original1009testreport(hash/countverified),3staticchecks rerun. No new build/download/runtime/environment. ExistingRailwayCLI/service used for one approveddevdeployment; no production/master/newhosting spend. Planned routing-v1 persistent cohort LocalState/COSMIC/HostedHyperdriveRoutingCurrent(originalintents/ACK/protectedsession),rawresults TestResults/HostedCqlIntegrationCurrent; sizespending,normaltemporarysandboxexpiry,neverblindwrite-replay.
+
+Taskbranch resumed/Development57174def3merged in existingworktree; Corefb43eaa retainspublished6bbancestor.3docconflicts resolved preservingbothhistories and original mixedencodingbytes. No code/build/download/service; sameRailwayjobQUEUEDbuildslot,no redeploy.
