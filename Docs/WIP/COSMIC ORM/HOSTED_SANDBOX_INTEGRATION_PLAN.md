@@ -7,14 +7,27 @@ expansion (including Milvus) until hosted integration makes progress.
 
 ## Current truth
 
--3 providers verified through deployed authenticated API: MongoDB, SQLite, Neo4j.
--41 additional providers have scoped native/local or temporary hosted SDK/HTTP
- demo evidence and public catalogue links. They are not41 hosted sandbox providers.
-- Public headings39 are neither provider count nor hosted coverage count.
-- Compiler read-profile admission additionally names Cosmos DB/IPFS/SOLID/
- ActivityPub, but source/config/policy/deployment/live acceptance is not proven by
- that list. Federation and public selector still admit only the original three.
-- Azure account remains pending/free-only; no paid signup or assumed credentials.
+- Five providers are verified in the public sandbox: MongoDB, SQLite, Neo4j,
+  ActivityPub and IPFS. See CURRENT_STATUS.md for current release and evidence.
+- Additional native/local demonstrations and public catalogue links do not count
+  as hosted coverage. SOLID host integration is next; Azure remains pending,
+  free-only. Other providers require real hosted sources and acceptance evidence.
+- Provider count, catalogue heading count and local demonstration count are
+  separate measures. Never label local-only entries as ready hosted providers.
+
+## Visitor experience required for every provider
+
+- Use the existing live CQL tab: select a ready provider, choose a populated
+  example, run it immediately and inspect actual rows and provider provenance.
+- Supply a small multi-record source, a filtered subset and one Mongo-paired
+  federation preset. Keep sample preparation within the normal visitor flow;
+  do not require an SDK, local service or manually supplied credentials.
+- Link the corresponding local C# and HTTP demos alongside the live examples.
+  Verify links and runnable instructions against the released source revision.
+- Show whether a source is hosted, local-only or pending. State bounded membership
+  and other query limitations beside examples; do not imply full ORM parity.
+- Completion requires the deployed browser-to-native-provider round trip,
+  isolation checks and retained evidence, not just a launcher or passing unit test.
 
 ## Required work
 
