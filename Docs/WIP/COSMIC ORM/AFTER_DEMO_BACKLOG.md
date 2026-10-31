@@ -18,3 +18,5 @@ Current priority: fix reproducible demo blockers and deliver provider breadth/pr
 Hosted Azure remains pending at the user's direction (free-only; no existing free subscription). Broader provider order and demo gates remain in CURRENT_STATUS and the strict checklist. Legacy HyperDrive issues are documentation-only; implementation changes remain V2 only.
 
 Recovery entry: [CURRENT_STATUS](CURRENT_STATUS.md). Feature acceptance: [CQL_PARITY_CHECKLIST](CQL_PARITY_CHECKLIST.md). Native recovery limits: [REPLICA_BASELINE_AND_RECOVERY](REPLICA_BASELINE_AND_RECOVERY.md).
+
+Azure Blob MVP (30 October): local Azurite + Mongo identity query is now current-branch SDK/HTTP/browser verified (all5/subset4). Return later to hosted free-only Azure acceptance, application encryption, content/metadata queries, business conditional writes and wider HyperDrive acceptance; see AZURE_BLOB_CQL_MVP.md. Do not deepen its verified bounded identity controls without a reproducible bug.
