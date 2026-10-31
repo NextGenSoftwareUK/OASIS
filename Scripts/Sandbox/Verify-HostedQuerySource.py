@@ -81,7 +81,7 @@ def session(state, label):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("provider", choices=["SOLIDOASIS", "AWSS3OASIS"])
+    parser.add_argument("provider", choices=["SOLIDOASIS", "AWSS3OASIS", "SolanaOASIS"])
     parser.add_argument("--prepare", action="store_true")
     parser.add_argument("--cohort", choices=["current", "fixed-client", "post-startup-fix"], default="current",
                         help="An explicitly planned fresh test identity after retaining a failed/expired cohort; never automatic.")
