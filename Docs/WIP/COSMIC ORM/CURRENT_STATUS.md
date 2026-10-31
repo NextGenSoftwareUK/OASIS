@@ -16,7 +16,7 @@ Linea/Scroll native+publishedC#/actualCLI3/2 and HTTP/Mongo3/2+5/4/isolation pas
 
 zkSync/Abstract native+publishedC#/CLI and HTTP3/2+Mongo5/4/isolation pass;2Core/4API/6config/2nativeHTTP/2client checks pass. Website links/client proofs pushed5aad1d1. Optional15source/60preset candidate staged separately;8newpresets pass planner,5scope controls pass. Currenthost snapshot exact (17planned settings,no drift). Matching permittedrollout next. Existing13source releasecandidate unchanged.
 
-Monad native/C#/CLI and HTTP3/2+Mongo5/4/isolation pass;1Core/2API/3config/1nativeHTTP/1client checks pass. Website link/clientproof pushed354958e; futurejointbatch/hostedacceptance next. Sei uppercasegenesis parsergap reproduced; investigateencoding beforeenrollment. Existing15sourcecandidate unchanged.
+Monad native/C#/CLI and HTTP3/2+Mongo5/4/isolation pass;1Core/2API/3config/1nativeHTTP/1client checks pass. Website link/clientproof pushed354958e; optional16source/64preset candidate prepared;4newMonadpresets passplanner (1test/0skips),6scopechecks pass. Hostedrollout remainsseparate; approvedroutingdeployment stillBUILDING. Sei uppercasegenesis parsergap reproduced; investigateencoding beforeenrollment. Existing15sourcecandidate unchanged.
 
 ## Working copies and release state
 

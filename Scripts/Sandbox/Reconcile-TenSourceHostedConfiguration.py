@@ -14,7 +14,7 @@ def compare(before,current,after):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--scope",choices=("ten","eleven","thirteen","fifteen"),default="ten")
+    parser.add_argument("--scope",choices=("ten","eleven","thirteen","fifteen","sixteen"),default="ten")
     options=parser.parse_args()
     prefix=options.scope+"-source-public"
     spec=importlib.util.spec_from_file_location("configuration",Path(__file__).with_name("Publish-HostedSolidConfiguration.py"))
