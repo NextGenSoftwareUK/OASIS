@@ -1,54 +1,51 @@
 # COSMIC ORM / CQL — current status
 
-Updated31 October2026. Programme incomplete; priority is actual hosted sandbox breadth.
+Updated 31 October 2026. Programme incomplete; priority is actual hosted sandbox breadth.
 
 ## Exact next step
 
-1. Publish the coherent tested backend/frontend/configuration batch, then use a fresh normal visitor to prepare2private Mongo snapshots and prove actual ActivityPub+Mongo5/4physical rows, repeat setup without duplicates, and second-avatar isolation. No federation configuration or preparation writes have been applied live yet.
-2. Preparation is implemented: authenticated Core-native stable IDs, normal create-only admitted saves, per-operation browser intent/ACK journal, preserve edited/foreign records, no retries after uncertain acknowledgement.86API/383Core/39client controls pass, no skips. These are controlled tests, not hosted acceptance.
-3. Bundle the tested CORS operation-header correction with the next verified backend batch, then verify the real browser sees its operation ID. It is committed on the task branch only, not deployed.
-4. Continue hosted Oracle/IPFS/SOLID/Solana/AWS/Azure and remaining breadth. Azure remains pending/free-only, no existing subscription. Deep LINQ terminals/POCO/migrations tooling remain paused.
+1. Establish the next real hosted provider (Oracle/IPFS/SOLID/Solana/AWS; Azure pending/free-only). First inspect existing hosted configuration/resources and the preserved broad branch; reuse native implementations/environments. A local launcher or externally unreachable agent service does not satisfy hosted acceptance.
+2. For each provider: explicitly enroll actual native read capabilities, expose ready filtered multi-record examples plus one Mongo-paired preset, verify the normal public sandbox visitor flow and isolation. Keep local demo links alongside hosted choices. Do not advertise an unavailable source as working.
+3. Keep deep LINQ/POCO/migrations tooling paused; work only red checklist scopes, freeze greens/cursors unless a reproducible bug is found. HyperDrive implementation is V2 only; legacy is document-only.
 
 ## Working copies and release ownership
 
 - Work/build/test only **C:/Source/OASIS-cosmic**, parent **work/cosmic-cql-hosted-release**; Core **work/cosmic-cql-sandbox-integration**. Never mutate/build C:/Source/OASIS.
-- Parent Development6735c4d461614be5ce9010d528b26cb870ae8fff and Core Development6963c50eaec8c4ef042b453a2431443e17ceaed0 are pushed/remote-verified; pins/gitlinks match. ONODE Core6b5d9d00c6ec6e2ed4e9d04015032a0394973f06 preserved.
-- Broad local-provider programme remains on remote parent work/cosmic-cql-sandbox-integration237403a75; the scoped hosted release excludes that accumulated540-file catalogue delta.
-- Web4Site **C:/Source/Web4Site**, branch work/cosmic-cql; public main16553be/Production7455754340 SUCCESS. Existing local demo links remain.
-- Unknown untracked root logs preserved. Never git add -A or force-push. Batch verified Development pushes once/twice daily; second batch fixed a reproduced live query bug.
+- Parent **Development 51fc64f5e39017c99d4e6bfd9acb8343b41c9b19**, Core **Development249a223a2f169dd72dfc850fbf6a3dac345642f7** pushed/remote-verified; pins/gitlinks match. ONODE Core6b5d9d00c6ec6e2ed4e9d04015032a0394973f06 preserved.
+- Railway WEB4 deployment **14b4e5e7-6646-4e20-b05f-a3025b3819d1 SUCCESS**, exact parent51fc64f5e. Existing dev service/volume, no new paid infrastructure.
+- Frontend **C:/Source/Web4Site**, task work/cosmic-cql; public main 2b46dedfcfc41695ba36d232a1ff098e4ae711bc / Production 7456696386 success. Both published scripts byte-match tested source.
+- Broader local-provider source is preserved/pushed on parent **work/cosmic-cql-sandbox-integration237403a75**; scoped release does not include that accumulated540-file delta. Unknown root logs preserved.
+- Named staging only; no add-A, force-push or extra worktree. Batch verified Development pushes once/twice daily. Current milestone is deployed; subsequent doc-only task commits need no immediate redeployment.
 
 ## What is actually verified live
 
-- **MongoDB / SQLite / Neo4j**:35/35 authenticated HTTP acceptance steps on baseline deployment1c73a0b5:3 acknowledged saves,9 exact copies,5 query forms per provider,6 physical federated coffee copies and3 cross-user isolation checks.
-- Initial missing SQLite replica baselines repaired through fenced atomic application and exact acknowledgement; ordinary worker drained subsequent obligations. No queue reset/skip/business replay. Broader failure-injection/failover/load-balancing/future-enrollment matrix remains incomplete.
-- **ActivityPub** correction deployment94623078 SUCCESS at6735c4d46: authenticated HTTP and public sandbox browser both return3actual public posts and the2-post subset. Four providers now have verified hosted queries; ActivityPub Mongo pairing/full demo acceptance remains incomplete.
-- First actual ActivityPub In query returned400 CQL_REQUEST_INVALID, operation a3e18ac8-9c55-ef15-e30c-9e7c09aa1dcc. Root cause: HTTP request capture rejected every array despite compiler membership support. Fixed and deployed in6735c4d46. Earlier ad-hoc verifier then incorrectly read result as an array; corrected verification follows the declared result.rows envelope, and identical full-response hashes reconcile that false0 report. Original evidence retained.
-- **41 additional native/local/temporary-hosted demos are not hosted sandbox coverage.** Public catalogue headings39 are not a hosted-provider count. Local Solana browser/native-index and Oracle/IPFS/SOLID/ActivityPub multi-record/Mongo demos were previously verified on the preserved broad branch.
+- **Four hosted query providers: MongoDB, SQLite, Neo4j, ActivityPub.** Local-only catalogue entries are not hosted coverage. Azure remains pending: free-only, no existing subscription; do not re-ask signup/payment.
+- Original three-provider baseline35/35:3 acknowledged saves,9 exact copies,5 query forms per provider,6 physical federated copies and3 isolation checks. Retained SQLite lineage barrier was explicitly repaired with fenced/acknowledged application; no queue reset or blind replay.
+- ActivityPub native public leaf queries return3 posts and2-post subset in HTTP/browser. Membership request-capture defect was reproduced/fixed/deployed; original failed evidence preserved. Response envelope is result.rows, not result array.
+- **New live visitor preparation:** sandbox-60b2bb72 saved2 private Mongo snapshots using Core-native owner IDs and normal create-only writes. Repeat setup0 saved / 2 existing. No edited/foreign records overwritten; uncertain outcomes remain journalled without automatic retry.
+- **Federation:** AP3+Mongo2=5 actual rows; AP2+Mongo2=4 subset. Independent sandbox-46616f4f sees3 public AP rows only; exact foreign Mongo IDs return0.
+- **Replication:** those2 new writes also appear on SQLite and Neo4j with matching ID/name/description/version/owner/private flag/metadata. No manual repair or source replay in this gate. This does not certify the full failover/load-balance/fault-injection/late-enrollment matrix.
+- Server operation ID is now visible in the browser. Local developer links remain. No source AP posting or native write occurred.
 
-## Latest verified code and tests
+## Current contracts and verification
 
-- Explicit query-only admission fences storage writes before provider/outbox I/O; captured enrollment, read-only activation, configured-source discovery and capability-checked public examples. Defaults/write routes/failover/replication lists preserved.
-- HTTP In produces one bounded native membership AST; no point fan-out or unbounded client scan. Captured literals remain owned after source mutation/disposal.
-- Full transitive API build passes. Final API **427pass/0fail/12environment-dependent skips**, ActivityPub344pass/no skips, protected-session verifier8pass; Node client25pass. These are scoped controls, not universal provider/parity completion.
-- CORS fix:3framework controls pass; current deployed browser shows operation ID not exposed. Correct host policy is prepared for next batch, no cookie/origin/method/request-header expansion.
-- Native/browser evidence: TestResults/HostedCqlIntegrationCurrent/activitypub-hosted-wire-acceptance.json and activitypub-sandbox-{three,two}-posts.png. Native full/subset3/2, two independent normal free sessions; local links preserved.
-- Final API evidence: TestResults/HostedCqlIntegrationCurrent/membership-capture-api.trx. Earlier original failed compile/read evidence retained. Counts/hashes in [integration plan](HOSTED_SANDBOX_INTEGRATION_PLAN.md).
-- Protocol federation task Core249a223 is remote-verified/pinned: read-only captured attempt ceiling prevents caller4/server3 fan-out before I/O. New protocol scopes/AllEligible include tariff-enrolled read profiles, with bounded8targets/800rows/8attempts. New profiles/unordered sources have no continuation contract.32Core controls (12new+20existing) and61affected API controls pass; all are controlled-adapter tests, not hosted Mongo pairing proof.
-- Generic federation examples:77affected API/32federation/29client controls pass/no skips. Version1 discovery keeps leaf-only requests; version2 includes fixed-operation federation. Dependency loss disables the pairing example while keeping public leaf reads. Public operational federation fragment is committed but NOT applied; stored Mongo preparation and5/4live proof still pending.
-- Concrete host registry stays in production-only CqlV1Providers composition; local demo native integration compiles without importing BootLoader.
+- Query-only enrollment fences writes before provider/outbox I/O. Read-only activation, tariff capture, visibility and real native capability planning own discovery/execution. Missing dependencies disable only affected examples.
+- Version1 discovery remains leaf-only; version2 includes fixed Rows/Federation operations. Explicit provider scope, bounded8 targets / 800 input rows / 8 attempts; captured server ceiling rejects over-budget fan-out before I/O. New protocol/unordered profiles have no continuation contract.
+- Preparation uses server-derived NativeRecordHolonMapper identities, private snapshots, normal create-only CAS and per-operation origin-local intent/ACK. No duplicated client hash or automatic replay. Controls enabled only on sandbox configuration.
+- Latest changed-scope controls **86 API + 383 Core + 39 Node = 508 passed**, zero skipped. Earlier federation32 controls and full transitive API build also pass. These counts are not full ORM parity or universal-provider proof.
+- Live raw evidence: **TestResults/HostedCqlIntegrationCurrent/browser-federation-acceptance.json**, browser-activitypub-mongo-{five,four}.json, browser-activitypub-mongo-four.png, isolation/replica reports. Counts/hashes and prior failures: [integration plan](HOSTED_SANDBOX_INTEGRATION_PLAN.md).
 
-## Durable state / resources
+## Durable state and resources
 
-- **LocalState/COSMIC/HostedSourceRolloutCurrent**: original/candidate configuration protected with Windows DPAPI; durable deployment/configuration/session/query intents and acknowledgements. All3 variables observed; example-only newline conversion independently reconciled, no resubmission. No secrets in Docs/TestResults.
-- Fresh normal free session identity is in sandbox-session.acknowledged.json; its token is session-<id>.dpapi. Original retained baseline session expired; preserve original records and credentials, never impersonate/reseed.
-- Baseline fixture LocalState/COSMIC/HostedSandboxCqlCurrent/fixture.json completed=true/pending=null,3 acknowledged records. Original protected repair requests/journals remain locally and /data/COSMIC/ReplicaRepair remotely.
-- Existing Railway dev project712f50f6-3b7b-46d4-b229-44b49922f16b, WEB4 service5123199a-43c4-4439-9921-e10e2aec7841. No new paid source/service provisioned.
-- Cleanup removed15,310,104,295B of verified disposable test/VS staging output. Latest C free80,186,966,016B. Shared runtimes/cache/native originals preserved; full ownership/lifecycle in [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+- **LocalState/COSMIC/HostedSourceRolloutCurrent** holds DPAPI-protected original/candidate variables, configuration intents/ACK, deployment observation and browser acceptance ACK. Four AP examples applied; only example configuration changed in this batch. Never print secrets or replay an uncertain mutation.
+- Sample avatars/2 private records / 4 replicas remain subject to normal sandbox expiry/cleanup, not claimed removed. Owned browser tabs closed; tokens lived only in page memory. Original baseline fixtures/repair journals preserved separately.
+- Existing Railway project712f50f6-3b7b-46d4-b229-44b49922f16b, WEB4 service5123199a-43c4-4439-9921-e10e2aec7841. No new runtime/download/local restore/native environment.
+- Cleanup already removed15,310,104,295B disposable output. Latest C free recorded in [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md); preserve shared runtimes/caches/credentials/native originals.
 
-## Commands and recovery
+## Key commands and recovery
 
-- Build through Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1; /m:2 /nr:false /p:UseSharedCompilation=false. Reuse existing SDK/assets/cache; no restore unless necessary.
+- Build via Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1; /m:2 /nr:false /p:UseSharedCompilation=false. Reuse SDK/assets/cache, no unnecessary restores.
 - Validate committed pins: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks.
-- Logs/TRX only worktree TestResults; durable credentials/intent/ACK only protected LocalState or retained remote volume.
-- [Strict parity checklist](CQL_PARITY_CHECKLIST.md): work on red demo rows first; do not harden green rows/cursors without a reproducible bug. Legacy HyperDrive gaps are documentation-only.
-- [Hosted integration plan](HOSTED_SANDBOX_INTEGRATION_PLAN.md), [after-demo backlog](AFTER_DEMO_BACKLOG.md), [baseline recovery](REPLICA_BASELINE_AND_RECOVERY.md), [previous detailed status](Archive/CURRENT_STATUS_2026-10-31_PRE_HOSTED_ACTIVITYPUB.md).
+- Frontend: node --test cql-playground.test.cjs cql-demo-preparation.test.cjs sandbox-api.test.cjs.
+- Logs/TRX only worktree TestResults; durable state only LocalState. Current public demo: https://web4.oasisomniverse.one/web4-sandbox.html.
+- Full scope: [strict parity checklist](CQL_PARITY_CHECKLIST.md), [roadmap](CQL_COMPLETION_ROADMAP.md), [implementation](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md). No overall completion percentage is inferred from focused demos.
