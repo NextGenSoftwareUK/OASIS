@@ -520,3 +520,34 @@ Waited for the already-running shared deployment0196bd82-cf5a-4bf6-8c06-68c264a2
 at20a981f8d to reach SUCCESS before preparing the next deployment batch. That
 concurrent commit adds solution IpfsCore entries and updates route manifest;
 preserve it when integrating. Public SOLID/browser verification still pending.
+## 31 October — release published, existing Railway queue under observation
+
+SOLID batchd41d4ec8383ca27b9d079cb1d17178b1b80ee1f9 is merged/pushed to
+Development and task branch, independently remote-observed. Release intent/ACK
+retained under HostedSourceRolloutCurrent. Subsequent shared CI-only9962c4e46
+preserves that commit (merge-base verified); it changes only the operation-contract
+check script. Do not undo or redeploy around concurrent CI changes.
+
+Specific queued jobs, re-observed after a bounded45second wait:
+73a8848d-04e7-464d-b371-3d3702c2d91a atd41d4ec83 and
+2fcd7075-ae8c-44ac-81cf-c0558429746d at9962c4e46. Both QUEUED, neither terminal;
+no cancellation/restart/resubmission sent. Previous live0196bd82-cf5a-4bf6-8c06-68c264a20db9
+succeeded at20a981f8d. These are live deployment handles, not an inferred blocker.
+Next action is poll these same jobs and inspect final-image results before browser
+acceptance. Evidence solid-release-deployments.json in fixed TestResults folder.
+
+Frontend main/task1f7335121fbb1340439165d699e31962aff1119c pushed and Production
+7458236043 observed success. CQL tab now links directly to released SOLID C# and
+HTTP/host examples and general CQL README. Corrected a reproducible local-doc gap:
+Run-ReusableProtocolMongoTests.ps1 is absent from scoped Development but exists at
+preserved237403a75b6983e013141cf7ba44bf66858abafd. Local launcher text links that
+exact source revision and distinguishes required local services from the ready
+hosted playground; it no longer instructs users to run the missing scoped script.
+
+Public https://web4.oasisomniverse.one/web4-sandbox.html contains all three links
+and exactly matches its committed Git blob SHA256
+920bd14e23406cbac5e1a7af8c5d17ffab28caa1e80a4a1ae5ca23872982deb6.
+Initial comparison with Windows worktree bytes differed due checkout line endings;
+comparison with the actual committed blob passed. Frontend39controls pass/no skips;
+TestResults/CqlCurrent/solid-links-public-proof.json and solid-links-client-tests.log
+in C:/Source/Web4Site. SOLID is not counted as verified hosted coverage yet.
