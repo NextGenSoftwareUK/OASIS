@@ -1,11 +1,12 @@
 # Explicit read-only protocol qualification; never CQL/hosted acceptance.
 [CmdletBinding()]
-param([Parameter(Mandatory)][ValidateSet('Base','Avalanche','BNBChain')][string]$Network)
+param([Parameter(Mandatory)][ValidateSet('Base','Avalanche','BNBChain','Optimism')][string]$Network)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $results=Join-Path $root 'TestResults/EvmBreadthReadinessCurrent'
 New-Item -ItemType Directory -Force -Path $results | Out-Null
 $descriptor=switch($Network){
+    'Optimism' { @{endpoint='https://mainnet.optimism.io/';chainId='0xa'} }
     'Base' { @{endpoint='https://mainnet.base.org/';chainId='0x2105'} }
     'Avalanche' { @{endpoint='https://api.avax.network/ext/bc/C/rpc';chainId='0xa86a'} }
     'BNBChain' { @{endpoint='https://bsc-dataseed.bnbchain.org/';chainId='0x38'} }

@@ -1675,3 +1675,10 @@ Existing Web4Site/Node reused,3new module contracts pass. Compact three-source-c
 
 ### Ten-source application scope tooling
 Reused Python/cache;2pure scope controls pass, no application command run. TestResults/HostedCqlIntegrationCurrent/ten-source-application-controls.log regenerable,size 105B. No host observation/mutation/service/download/install in this step. Original protected candidates retained.
+
+### Next independent breadth candidate: Optimism
+31October2026:reuse existing Optimism/Web3Core providers, PowerShell/.NET HTTP qualification runner. Read-only chain/genesis/finalized/balance calls to official registry endpoint mainnet.optimism.io; no account/key/writes/download/environment. Raw TestResults/EvmBreadthReadinessCurrent/Optimism.json, regenerable, size pending. No new source configuration/identity yet.
+
+Optimism new stable public source catalogue LocalState/COSMIC/HostedOptimismPublicSourceCurrent/source.json created once,281B,retain mappingowner; public immutable config, no secrets. Existing console/testhost projectreferences reused, no package addition. Native and controlled scope tests planned under existing lease/cache-only restore; outputs TestResults/EvmBreadthReadinessCurrent.
+
+Optimism outcome:19tests pass/0skips (18controlled+1nativepublishedsample), consolebuild/CLI3/2 pass. Cache-only restores succeeded, no download or new environment/service. Source catalogue retained; testlogs/TRX/rawprotocol in EvmBreadthReadinessCurrent regenerable; incremental buildoutput size unmeasured. Ten-source protected release unchanged.

@@ -6,6 +6,14 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
 // Explicit read-only Base source; reuse its retained stable catalogue.
+// Explicit anonymous Optimism read profile; no wallet or fixture creation.
+if (args.Length == 2 && args[0] == "--optimism-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await OptimismPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 if (args.Length == 2 && args[0] == "--base-public")
 {
     using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));

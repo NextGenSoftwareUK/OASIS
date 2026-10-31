@@ -36,6 +36,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.PolkadotOASIS => "PolkadotBlockHash",
             ProviderType.NEAROASIS => "NearAccountId",
             ProviderType.BaseOASIS => "BaseAccountAddress",
+            ProviderType.OptimismOASIS => "OptimismAccountAddress",
             ProviderType.AvalancheOASIS => "AvalancheAccountAddress",
             ProviderType.BNBChainOASIS => "BNBChainAccountAddress",
             _ => throw new ArgumentException("Select an enrolled protocol key-set adapter.", nameof(adapter))
