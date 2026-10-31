@@ -50,3 +50,5 @@ Persistent, irreproducible fixture state belongs in ignored LocalState/COSMIC an
 - [ClickHouse HTTPS/FINAL and Mongo demo](CLICKHOUSE_CQL_MVP.md): retained JSON/UInt64 version restart/post-pair checks and launch command.
 
 - [InfluxDB 2.x Flux and Mongo demo](INFLUXDB_CQL_MVP.md): retained future/tied-head controls, graceful restart/post-pair checks and launch command.
+
+- [Qdrant HTTPS payload retrieval and Mongo demo](QDRANT_CQL_MVP.md): retained point/vector/config restart/post-pair checks and launch command.
