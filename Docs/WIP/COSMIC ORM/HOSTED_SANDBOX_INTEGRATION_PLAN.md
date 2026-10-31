@@ -719,3 +719,14 @@ Shipping Development498e3fd7f/Core759b49a, Railway4dbe69d0 SUCCESS. Reused ackno
 All3cases (MongoDB/SQLite/Neo4j) passed: exact native replica baseline, avatar-only30second fault, failover-OFF `HYPERDRIVE_PROVIDER_OFFLINE`, failover-ON correct ID/name/version/owner, two independently observed refusal increments, unaffected foreign fault scope and zero foreign private rows. Every fault was restored in finally and absence independently read back. Durable fault/session journals remain under `LocalState/COSMIC/HostedQueryAcceptance-SolanaOASIS`; rerunning a completed or uncertain gate is forbidden. Public/browser rendering and full routing behavior are not inferred from these HTTP checks.
 
 Regenerable report `TestResults/HostedCqlIntegrationCurrent/hyperdrive-failover-http.json`, SHA256 `8EA18987E76DFFF2B36DD6A05AB4D1E6033090B9FB80288F69441AD07204EB53`. X10 remains red: automatic load balancing, write faults and late-enrollment/reconciliation need their own acceptance. Existing successful query/replication scopes stay frozen absent a reproduced bug.
+
+
+## Per-request routing evidence — next release batch
+
+A live default-provider read with auto-load-balancing ON succeeded, but its result had empty route metadata. Shared `hyperdrive/status.lastProviderSelection` cannot prove that read's provider under concurrent visitors. The owner usage projection did not contain a corresponding load receipt either. This is an observability gap; it does not establish a selection-policy failure.
+
+Core task `6bbd015c5b35f6b401d289676576ccd781984ab9` now attaches `metaData.hyperDriveRoute` JSON using operation-local values: `RequestedProvider`, `InitialProvider`, `ServingProvider`, `RequestedStrategy`, `Succeeded`. Failed/missing results do not claim a serving provider. Sync and async paths use the same metadata owner. No algorithm, candidate list, signing permission or canonical provider ownership changes.
+
+552 HyperDrive routing/selection regression cases pass, including four new cases: sync/async explicit vs automatic reads, failed result ownership, and a held overlapping read that retains Mongo's identity after another operation changes shared selection to SQLite. Regenerable `TestResults/HostedCqlIntegrationCurrent/hyperdrive-route-regressions.trx`, SHA256 `38A8A4573CA0391019AD6E48221DCB02E3EFBCB63179B7C86FD7BA726056B9E9`.
+
+Frontend task `ded5ab0` renders only the load response's `hyperDriveRoute` and existing `hyperDriveFailoverDiagnostic`; it no longer fetches shared status to label that request.47client tests pass, including response/missing-evidence controls. This batch is pushed on task branches, not yet deployed. Live automatic-balancing/provider-choice acceptance remains red until the response-owned facts are available on the host. No additional Railway deployment was triggered in this step.
