@@ -799,6 +799,6 @@ MongoDB/SQLite/Neo4j walkthrough on5088/demo. Native launch currently stops at
 retained-fixture preflight; it does not reset data. See
 [required ownership audit](../../Docs/WIP/COSMIC%20ORM/CQL_DATABASE_DEMO_HUB.md).
 
-### Cosmos Hub preview — native acceptance pending
+### Cosmos Hub — native local demo verified, federation pending
 
-`--cosmos-public <existing-source.json>` reads three configured validators, then filters to two through the shared HolonManager/LINQ path. [CosmosPublicWalkthrough.cs](CosmosPublicWalkthrough.cs) has spaced examples and comments. The source and controlled manager tests pass, but the selected public REST endpoint returned502 in native acceptance. This preview is not yet a verified hosted demo. See [readiness and exact command](../../Docs/WIP/COSMIC%20ORM/COSMOS_PUBLIC_SOURCE_READINESS.md). No wallet, funding or source writes.
+`--cosmos-public <existing-source.json>` reads three configured validators, then filters to two through the shared HolonManager/LINQ path. [CosmosPublicWalkthrough.cs](CosmosPublicWalkthrough.cs) has spaced examples and comments. The17controlled tests, native published walkthrough and CLI pass against explicitly selected KJNodes. Earlier CryptoCrew502 remains documented. Hosted and HTTP federation acceptance remain pending. See [readiness and exact command](../../Docs/WIP/COSMIC%20ORM/COSMOS_PUBLIC_SOURCE_READINESS.md). No wallet, funding or source writes.
