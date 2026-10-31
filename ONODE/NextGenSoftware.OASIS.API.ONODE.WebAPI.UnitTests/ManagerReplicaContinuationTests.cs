@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using NextGenSoftware.OASIS.Common;
 using MongoProvider=NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 using SqliteProvider=NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 using NeoProvider=NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Neo4jOASIS;
@@ -27,12 +28,25 @@ public sealed partial class ReplicaBaselineRepairCommandTests
     [NativeFact]
     public Task ManagerContinuationNeoToMongo()=>RemainingManagerContinuation(ProviderType.Neo4jOASIS,ProviderType.MongoDBOASIS);
 
-    private async Task RemainingManagerContinuation(ProviderType sourceType,ProviderType targetType)
+    [NativeFact]
+    public Task ManagerInFlightMongoToSqlite()=>RemainingManagerContinuation(ProviderType.MongoDBOASIS,ProviderType.SQLLiteDBOASIS,true);
+    [NativeFact]
+    public Task ManagerInFlightSqliteToMongo()=>RemainingManagerContinuation(ProviderType.SQLLiteDBOASIS,ProviderType.MongoDBOASIS,true);
+    [NativeFact]
+    public Task ManagerInFlightNeoToSqlite()=>RemainingManagerContinuation(ProviderType.Neo4jOASIS,ProviderType.SQLLiteDBOASIS,true);
+    [NativeFact]
+    public Task ManagerInFlightNeoToMongo()=>RemainingManagerContinuation(ProviderType.Neo4jOASIS,ProviderType.MongoDBOASIS,true);
+    [NativeFact]
+    public Task ManagerInFlightMongoToNeo()=>RemainingManagerContinuation(ProviderType.MongoDBOASIS,ProviderType.Neo4jOASIS,true);
+    [NativeFact]
+    public Task ManagerInFlightSqliteToNeo()=>RemainingManagerContinuation(ProviderType.SQLLiteDBOASIS,ProviderType.Neo4jOASIS,true);
+
+    private async Task RemainingManagerContinuation(ProviderType sourceType,ProviderType targetType,bool duringInitialization=false)
     {
         const string mongoUri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         const string neoUri="bolt://127.0.0.1:17687";
         var root=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../.."));
-        var state=Path.Combine(root,"LocalState/COSMIC/ManagerContinuation",sourceType+"-"+targetType);Directory.CreateDirectory(state);
+        var state=Path.Combine(root,"LocalState/COSMIC/ManagerContinuation",sourceType+"-"+targetType+(duringInitialization?"-InFlight":""));Directory.CreateDirectory(state);
         using var lease=new FileStream(Path.Combine(state,"fixture.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
         var manifest=Path.Combine(state,"fixture.json");var journal=Path.Combine(state,"application.json");var sqliteFile=Path.Combine(state,"owned.db");
         foreach(var file in new[]{sqliteFile,sqliteFile+"-wal",sqliteFile+"-shm",journal,journal+".tmp",journal+".lock"})
@@ -53,7 +67,7 @@ public sealed partial class ReplicaBaselineRepairCommandTests
         }
         var usesMongo=sourceType==ProviderType.MongoDBOASIS || targetType==ProviderType.MongoDBOASIS;
         var usesNeo=sourceType==ProviderType.Neo4jOASIS || targetType==ProviderType.Neo4jOASIS;
-        var database="cosmic_manager_"+sourceType+"_"+targetType;
+        var database=(duringInitialization?"cosmic_flight_":"cosmic_manager_")+sourceType+"_"+targetType;
         var client=new MongoClient(mongoUri);
         if(usesMongo){using var names=await client.ListDatabaseNamesAsync();Assert.DoesNotContain(database,await names.ToListAsync());}
         var owner=Guid.NewGuid();var actor=Guid.NewGuid();var id=Guid.NewGuid();var initialization=Guid.NewGuid();var operations=new List<string>{initialization.ToString("D")};var complete=false;
@@ -116,15 +130,60 @@ public sealed partial class ReplicaBaselineRepairCommandTests
             var reviewed=new ReplicaBaselineRepairCommand.Request(actor,initialization,Guid.NewGuid(),held.Sequence,held.OperationId,actor,id,
                 (await reader.ReadObligationAsync(held.Sequence)).Result.PayloadDigest,Identity(sourceType),targetType==ProviderType.SQLLiteDBOASIS?sqliteFile:null,
                 sourceType.ToString(),targetType.ToString(),targetType==ProviderType.SQLLiteDBOASIS?null:Identity(targetType));
-            var applied=await ReplicaBaselineRepairCommand.ExecuteAsync(dna,reviewed,journal);Assert.False(applied.IsError,applied.Message+applied.Exception);Assert.True(applied.Result);
+            if(duringInitialization)
+            {
+                // Retain the reviewed catalogue/operation binding before application.
+                using(var requestFile=new FileStream(Path.Combine(state,"reviewed-request.json"),FileMode.CreateNew,FileAccess.Write,FileShare.None))
+                {JsonSerializer.Serialize(requestFile,reviewed);requestFile.Flush(true);}
+                var preparation=ReplicaBaselineRepairCommand.Preparation(reviewed,sourceType,reader,
+                    targetType==ProviderType.SQLLiteDBOASIS?Path.GetFullPath(sqliteFile):Identity(targetType));
+                Func<HolonReplicaInitializationIntent,HolonReplicaInitializationOutcome,CancellationToken,Task<OASISResult<bool>>> completeSource=outbox switch {
+                    NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoHolonReplicationOutbox mongo=>mongo.CompleteInitializedBaselineAsync,
+                    NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SqliteHolonReplicationOutbox sqlite=>sqlite.CompleteInitializedBaselineAsync,
+                    NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.NeoHolonReplicationOutbox neo=>neo.CompleteInitializedBaselineAsync,
+                    _=>throw new InvalidOperationException("Native source completion required.")};
+                var paused=new PausedNativeInitialization((ICommittedHolonReplicaInitializationRecoveryStorageProvider)target);
+                var application=new HolonReplicaInitializationApplication(preparation,paused,completeSource);
+                using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(60));
+                var pending=application.ExecuteAsync(actor,held.Sequence,initialization,journal,deadline.Token);
+                try
+                {
+                    await paused.Entered.Task.WaitAsync(deadline.Token);
+                    // Baseline intent and Submitted journal already exist. Commit a
+                    // real newer source version before native target installation.
+                    await Save(5);
+                    Assert.Equal(held.Sequence,(await outbox.PeekNextAsync(targetId)).Result.Sequence);
+                    Assert.Null((await target.LoadHolonAsync(id,loadChildren:false)).Result);
+                }
+                finally
+                {
+                    paused.Release.TrySetResult();
+                    await pending; // Join owned work before any provider teardown.
+                }
+                var applied=pending.Result;Assert.False(applied.IsError,applied.Message+applied.Exception);Assert.True(applied.Result);
+                Assert.Equal(1,paused.Initializations);
+            }
+            else
+            {
+                var applied=await ReplicaBaselineRepairCommand.ExecuteAsync(dna,reviewed,journal);Assert.False(applied.IsError,applied.Message+applied.Exception);Assert.True(applied.Result);
+            }
             var journalBytes=await IoFile.ReadAllBytesAsync(journal);
-            Assert.True((await ReplicaBaselineRepairCommand.ExecuteAsync(dna,reviewed,journal)).Result);Assert.Equal(journalBytes,await IoFile.ReadAllBytesAsync(journal));
+            var replay=await ReplicaBaselineRepairCommand.ExecuteAsync(dna,reviewed,journal);
+            Assert.True(replay.Result,replay.ErrorCode+": "+replay.Message);Assert.Equal(journalBytes,await IoFile.ReadAllBytesAsync(journal));
             Assert.Equal(HolonDeliveryState.Completed,(await outbox.InspectAsync(held.Sequence)).Result.State);
             var baseline=(await target.LoadHolonAsync(id,loadChildren:false)).Result;Assert.Equal(4,baseline.Version);Assert.Equal(actor,baseline.CreatedByAvatarId);
-            await Save(5);
+            if(!duringInitialization)await Save(5);
             Assert.Equal(1,(await dispatcher.DispatchOnceAsync(targetId)).Result.CompletedCount);
             var final=(await target.LoadHolonAsync(id,loadChildren:false)).Result;Assert.Equal(5,final.Version);Assert.Equal(current.Name,final.Name);Assert.Equal(actor,final.CreatedByAvatarId);
             Assert.Null((await outbox.PeekNextAsync(targetId)).Result);
+            if(duringInitialization)
+            {
+                await Save(6);
+                Assert.Equal(1,(await dispatcher.DispatchOnceAsync(targetId)).Result.CompletedCount);
+                var latest=(await target.LoadHolonAsync(id,loadChildren:false)).Result;
+                Assert.Equal(6,latest.Version);Assert.Equal(current.Name,latest.Name);Assert.Equal(actor,latest.CreatedByAvatarId);
+                Assert.Null((await outbox.PeekNextAsync(targetId)).Result);
+            }
             complete=true;
         }
         finally
@@ -149,4 +208,25 @@ public sealed partial class ReplicaBaselineRepairCommandTests
             }
         }
     }
+
+    /// <summary>Only schedules the interleaving; the real native provider owns
+    /// initialization and receipts. No synthetic success or alternate data path.</summary>
+    private sealed class PausedNativeInitialization(ICommittedHolonReplicaInitializationRecoveryStorageProvider target)
+        : ICommittedHolonReplicaInitializationRecoveryStorageProvider
+    {
+        public TaskCompletionSource Entered {get;}=new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource Release {get;}=new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public int Initializations {get;private set;}
+        public OASISResult<IEnumerable<IHolon>> InitializeCommittedHolonReplica(CommittedHolonReplicaRequest request)
+            =>throw new NotSupportedException("This controlled application gate requires its async native owner.");
+        public async Task<OASISResult<IEnumerable<IHolon>>> InitializeCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,CancellationToken token=default)
+        {
+            Initializations++;Entered.TrySetResult();
+            await Release.Task.WaitAsync(token);
+            return await target.InitializeCommittedHolonReplicaAsync(request,token);
+        }
+        public Task<OASISResult<HolonReplicaInitializationOutcome>> ReadReplicaInitializationOutcomeAsync(CommittedHolonReplicaRequest request,CancellationToken token=default)
+            =>target.ReadReplicaInitializationOutcomeAsync(request,token);
+    }
+
 }
