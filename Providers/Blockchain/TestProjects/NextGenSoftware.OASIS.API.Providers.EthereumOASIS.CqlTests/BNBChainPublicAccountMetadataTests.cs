@@ -129,22 +129,11 @@ public sealed class BNBChainPublicAccountMetadataTests
     public async Task ActualFinalizedMainnetBalancesReturnThreeAndTwoViaCql()
     {
         var path=Environment.GetEnvironmentVariable("OASIS_BNBCHAIN_PUBLIC_SOURCE")??throw new InvalidOperationException("Retained explicit source required.");
-        var json=await System.IO.File.ReadAllTextAsync(path); using var config=JsonDocument.Parse(json);
-        var keys=config.RootElement.GetProperty("addresses").EnumerateArray().Select(row=>row.GetString()!).ToArray();
-        using var source=Source.FromJson(json); using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(45));
-        Assert.IsFalse((await source.ActivateQuerySourceAsync(deadline.Token)).IsError);
-        foreach(var count in new[]{3,2})
-        {
-            var selected=keys.Take(count).ToArray();
-            var query=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.BNBChainOASIS).Result)
-                .WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result)
-                .Where(row=>selected.Contains(CosmicQueryMetadata.Value<string>(row,Source.AddressMetadata))).Result;
-            var plan=CosmicQueryPlanner.Plan(query,ProviderType.BNBChainOASIS,new[]{new CosmicQueryTarget(ProviderType.BNBChainOASIS,source.QueryCapabilities)});
-            Assert.IsFalse(plan.IsError,plan.Message);
-            var result=await source.ExecuteCosmicQueryAsync(plan.Result,cancellationToken:deadline.Token);
-            Assert.IsFalse(result.IsError,result.Exception?.ToString()); Assert.AreEqual(count,result.Result.Count);
-            CollectionAssert.AreEqual(selected,result.Result.Select(row=>(string)row.MetaData[Source.AddressMetadata]).ToArray());
-            Assert.AreEqual(1,result.Result.Select(row=>(string)row.MetaData["BNBChainBlockHash"]).Distinct().Count());
-        }
+        using var output = new StringWriter();
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+        var result = await CosmicCqlDemo.BnbPublicWalkthrough.RunAsync(path,output,deadline.Token);
+        Assert.AreEqual((3,2),result);
+        StringAssert.Contains(output.ToString(),"Native balance (base units):");
+        StringAssert.Contains(output.ToString(),"Read-only BNBChain demo complete:");
     }
 }

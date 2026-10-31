@@ -1,6 +1,6 @@
 # Base / Avalanche / BNB Chain public CQL milestone
 
-31 October 2026. Three native read adapters verified; C# console, HTTP/Mongo, hosted configuration and browser acceptance remain open. Work is limited to new demo scopes; existing green EVM code is unchanged and legacy classes were not edited.
+31 October 2026. Three native adapters and published C# walkthroughs/CLI3/2 verified; HTTP/Mongo, hosted configuration and browser acceptance remain open. Work is limited to new demo scopes; existing green EVM code is unchanged and legacy classes were not edited.
 
 | Provider | Native endpoint | Chain ID | Exact RPC path | Proof |
 |---|---|---|---|---|
@@ -31,3 +31,17 @@ Primary endpoints/protocol: [Base JSON-RPC endpoint (probed)](https://mainnet.ba
 - `TestResults/EvmBreadthReadinessCurrent/provider-controls.trx`: 84036 B; SHA256 `ee48ecf157e134a86916c4e74cd226d66108bf8ad81975216ee7ef9f90555eac`.
 
 - `TestResults/EvmBreadthReadinessCurrent/provider-native.trx`: 6129 B; SHA256 `3d735cab83e9df279b1893b3e7996289d59ade88d6722327ece8d804d0131bb2`.
+
+## Published C# walkthrough milestone
+
+BasePublicWalkthrough, AvalanchePublicWalkthrough and BnbPublicWalkthrough now use the shared NativeKeySetWalkthrough→CosmicLinq→HolonManager pipeline. Spaced code/comments, exact native balances and reported finalized hashes; no independent consensus claim. Console and linked-source test builds pass. The3native tests execute the exact published walkthroughs and pass/0skips; actual --base-public/--avalanche-public/--bnb-public CLI commands each return3/2. No wallet, transaction, Mongo fixture, source identity reset or endpoint change.
+
+Existing caches/projects reused; only the three new native walkthrough scopes selected, not a rerun of green source controls. [Maintained combined guide](../../Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md) has commands and capability/units/consistency limits. Next: batch the three HTTP/admission integrations and native Mongo5/4/isolation gates with original intents/ACKs and exact-owned cleanup; then hosted presets/client links.
+
+- `TestResults/EvmBreadthReadinessCurrent/console-native.trx`: 6129 B; SHA256 `5553d099c4bdd13099fa2a5c8bdafafc0a565e409e790b791dfa59e9da78d809`.
+
+- `TestResults/EvmBreadthReadinessCurrent/console-base.log`: 1336 B; SHA256 `5d05fd0317ab7ac35a098ceff8e11673d9542b5da333beeede586414b5421632`.
+
+- `TestResults/EvmBreadthReadinessCurrent/console-avalanche.log`: 1351 B; SHA256 `df3e54882db5d35283b5c6c780ebac78feadc6ca68d9fc9d1c319002d8af081e`.
+
+- `TestResults/EvmBreadthReadinessCurrent/console-bnb.log`: 1359 B; SHA256 `edd67634086bad530f7c4617b9fb7dc789a67de81a4c1f535395f192018a223d`.

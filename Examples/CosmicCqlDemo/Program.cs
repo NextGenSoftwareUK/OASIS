@@ -5,6 +5,30 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// Explicit read-only Base source; reuse its retained stable catalogue.
+if (args.Length == 2 && args[0] == "--base-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await BasePublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Explicit read-only Avalanche source; reuse its retained stable catalogue.
+if (args.Length == 2 && args[0] == "--avalanche-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await AvalanchePublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Explicit read-only BNBChain source; reuse its retained stable catalogue.
+if (args.Length == 2 && args[0] == "--bnb-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await BnbPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // NEAR uses an explicitly configured source and a bounded demo lifetime.
 // No retry or source substitution occurs if that endpoint is unavailable.
 if (args.Length == 2 && args[0] == "--near-public")
@@ -72,7 +96,7 @@ if (args.Length == 2 && args[0] == "--google-public")
 var serve = args.Length == 1 && args[0] == "--serve";
 if (args.Length != 0 && !serve)
 {
-    Console.Error.WriteLine("Use no arguments, --serve, --google-public <existing-source.json>, --ethereum-public <existing-source.json>, --polygon-public <existing-source.json>, --arbitrum-public <existing-source.json>, --cosmos-public <existing-source.json>, --polkadot-public <existing-source.json>, or --near-public <existing-source.json>.");
+    Console.Error.WriteLine("Use no arguments, --serve, --google-public <existing-source.json>, --ethereum-public <existing-source.json>, --polygon-public <existing-source.json>, --arbitrum-public <existing-source.json>, --cosmos-public <existing-source.json>, --polkadot-public <existing-source.json>, --near-public <existing-source.json>, or --base-public / --avalanche-public / --bnb-public <existing-source.json>.");
     return 2;
 }
 

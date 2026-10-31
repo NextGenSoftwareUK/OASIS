@@ -34,4 +34,13 @@
   <ItemGroup>
     <Compile Include="../../../../Examples/CosmicCqlDemo/ArbitrumPublicWalkthrough.cs" Link="PublishedDemo/ArbitrumPublicWalkthrough.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../../../Examples/CosmicCqlDemo/BasePublicWalkthrough.cs" Link="PublishedDemo/BasePublicWalkthrough.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../../../Examples/CosmicCqlDemo/AvalanchePublicWalkthrough.cs" Link="PublishedDemo/AvalanchePublicWalkthrough.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../../../Examples/CosmicCqlDemo/BnbPublicWalkthrough.cs" Link="PublishedDemo/BnbPublicWalkthrough.cs" />
+  </ItemGroup>
 </Project>
