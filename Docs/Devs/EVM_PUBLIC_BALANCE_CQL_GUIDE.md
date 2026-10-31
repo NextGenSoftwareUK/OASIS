@@ -1,6 +1,6 @@
 # Base, Avalanche and BNB Chain public balance CQL
 
-These explicit read representations reuse the common EVM reader and HolonManager/LINQ pipeline. Native CQL 3/2 is verified for each. Published C# walkthroughs and actual CLI3/2 also pass for all three. Remaining HTTP/Mongo, hosted and browser acceptance is tracked in [current status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md); no full ORM or signed-storage parity is implied.
+These explicit read representations reuse the common EVM reader and HolonManager/LINQ pipeline. Native CQL 3/2 is verified for each. Published C# walkthroughs and actual CLI3/2 also pass for all three. Local HTTP/Mongo3/2+5/4 and isolation also pass for all three. Remaining hosted and browser acceptance is tracked in [current status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md); no full ORM or signed-storage parity is implied.
 
 ## Readable C# walkthroughs
 

@@ -1647,3 +1647,8 @@ Google WEB4 profile outcome: shipping API/test and provider/config builds succee
 Reuse existing Core/API projects, .NET SDK and NuGet cache; no new environment, installation or service. Build/test outputs remain in existing bin/obj and TestResults/EvmBreadthReadinessCurrent (incremental size unmeasured). No database started in the registration step; retain outputs until verification, regenerate through bounded leased builds.
 
 Admission run completed: Core3/API6 passed0skips; reused outputs and caches; logs/TRX in TestResults/EvmBreadthReadinessCurrent. No services/databases/downloads started. C: pre-build78,685,028,352B free; post-build see current measurement, incremental output size unmeasured.
+
+### Three-source HTTP native gates — 31 October 2026
+Reuse Mongo8.3.11 at C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe and LocalState/COSMIC/mongo-data,27029/oasisRecoveryRs. New owned fixtures cosmic_cql_{base,avalanche,bnb}_http_demo only; stable source configs inherited. Original intents/ACKs retained in LocalState/COSMIC/{Base,Avalanche,Bnb}MongoHttpCurrent (size pending). Outputs TestResults/{Base,Avalanche,Bnb}PublicSourceCandidateCurrent. Runner owns service lifetime; success-only exact-marker database cleanup, failures preserved. No download/install/Neo service.
+
+HTTP gates3passed/0skips; all3owned fixture DBs dropped with marker/absence verification, Mongo/Kestrel stopped,27029notlistening. State cohorts retained; sizes/hashes in three-source report. Failed build and0test logs retained; no initial writes. During-run C:78,676,819,968B free. No downloads/newruntime.
