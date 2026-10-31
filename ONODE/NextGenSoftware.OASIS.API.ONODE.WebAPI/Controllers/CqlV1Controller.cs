@@ -17,13 +17,16 @@ public sealed class CqlV1Controller : ControllerBase
     public CqlV1Controller(ICqlV1Providers providers) => this.providers = providers;
 
     [HttpGet("providers")]
-    public IActionResult Providers()
+    public IActionResult Providers([FromQuery] int examplesVersion = 1)
     {
+        if (examplesVersion is not (1 or 2))
+            return BadRequest(new NextGenSoftware.OASIS.Common.OASISResult<object>
+                { IsError = true, ErrorCode = "CQL_EXAMPLE_SCHEMA_UNSUPPORTED" });
         var catalogue = HttpContext.RequestServices.GetService<CqlHostedSources>();
         if (catalogue == null)
             return StatusCode(503, new NextGenSoftware.OASIS.Common.OASISResult<object>
                 { IsError = true, ErrorCode = "CQL_SOURCE_CATALOGUE_UNAVAILABLE" });
-        return Ok(new NextGenSoftware.OASIS.Common.OASISResult<object>(catalogue.Describe()));
+        return Ok(new NextGenSoftware.OASIS.Common.OASISResult<object>(catalogue.Describe(includeFederationExamples: examplesVersion == 2)));
     }
 
     [HttpPost]

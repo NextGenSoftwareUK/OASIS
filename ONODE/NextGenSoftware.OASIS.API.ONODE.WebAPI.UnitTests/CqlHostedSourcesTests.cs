@@ -71,6 +71,45 @@ public class CqlHostedSourcesTests
         => new(configured ? Admission() : null, registry, NullLogger<CqlHostedSources>.Instance);
 
     [Fact]
+    public async Task FederationDependencyOutageDoesNotDisableThePublicSourceOrActivateAnotherProvider()
+    {
+        var registry = new Registry();
+        var mongo = (Adapter)(object)registry.Add(ProviderType.MongoDBOASIS, true);
+        registry.Add(ProviderType.ActivityPubOASIS, false);
+        using var sources = new CqlHostedSources(Admission(), registry, NullLogger<CqlHostedSources>.Instance,
+            CqlHostedQueryExamples.FromJson(CqlHostedFederationExamplesTests.Valid));
+        await sources.StartAsync(default);
+        await sources.ExecuteTask!;
+        using var services = new ServiceCollection().AddSingleton(sources).BuildServiceProvider();
+        var controller = new CqlV1Controller(null) { ControllerContext = new ControllerContext {
+            HttpContext = new DefaultHttpContext { RequestServices = services }
+        } };
+        var v1 = Assert.IsType<OASISResult<object>>(Assert.IsType<OkObjectResult>(controller.Providers()).Value);
+        var v2 = Assert.IsType<OASISResult<object>>(Assert.IsType<OkObjectResult>(controller.Providers(2)).Value);
+        Assert.Empty(Assert.IsAssignableFrom<IReadOnlyList<CqlHostedSourceDescription>>(v1.Result)
+            .Single(row => row.Provider == "ActivityPubOASIS").Examples);
+        Assert.Single(Assert.IsAssignableFrom<IReadOnlyList<CqlHostedSourceDescription>>(v2.Result)
+            .Single(row => row.Provider == "ActivityPubOASIS").Examples);
+        Assert.Empty(sources.Describe().Single(row => row.Provider == "ActivityPubOASIS").Examples);
+        Assert.True(sources.Describe(includeFederationExamples: true).Single(row => row.Provider == "ActivityPubOASIS").Examples.Single().Available);
+        mongo.Active = false;
+        var social = sources.Describe(includeFederationExamples: true).Single(row => row.Provider == "ActivityPubOASIS");
+        Assert.True(social.Available);
+        Assert.False(social.Examples.Single().Available);
+        Assert.Equal("CQL_DEMO_TARGET_UNAVAILABLE", social.Examples.Single().ErrorCode);
+        Assert.Equal(new[] { ProviderType.ActivityPubOASIS }, registry.Activations);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(3)]
+    public void UnsupportedExampleVersionsAreRejectedWithoutImplicitDowngrade(int version)
+    {
+        var response = Assert.IsType<BadRequestObjectResult>(new CqlV1Controller(null).Providers(version));
+        Assert.Equal("CQL_EXAMPLE_SCHEMA_UNSUPPORTED", Assert.IsType<OASISResult<object>>(response.Value).ErrorCode);
+    }
+
+    [Fact]
     public void ConfiguredButInactiveSourcesAreNotClaimedAvailableAndDiscoveryDoesNotActivate()
     {
         var registry = new Registry();

@@ -68,21 +68,19 @@ public sealed class CqlHostedSources : BackgroundService
         }
     }
 
-    public IReadOnlyList<CqlHostedSourceDescription> Describe()
+    public IReadOnlyList<CqlHostedSourceDescription> Describe(bool includeFederationExamples = false)
         => providers.Select(type =>
         {
             if (failures.TryGetValue(type, out var failure))
                 return new CqlHostedSourceDescription(type.ToString(), queryOnly.Contains(type), false, false, null, failure);
-            var storage = registry.Find(type);
-            var adapter = storage as ICosmicQueryStorageProvider;
-            var available = (!queryOnly.Contains(type) || verified.ContainsKey(type))
-                && storage?.IsProviderActivated == true && storage.ProviderType?.Value == type
-                && adapter?.QueryProviderType == type && adapter.QueryCapabilities != null
-                && CqlV1Compiler.SupportedReadProfile(type);
+            var adapter = ReadyAdapter(type);
+            var available = adapter != null;
             IReadOnlyList<CqlHostedQueryExample> selected = Array.Empty<CqlHostedQueryExample>();
             if (available)
             {
-                try { selected = examples.For(type, adapter.QueryCapabilities); }
+                try { selected = examples.For(type, adapter.QueryCapabilities,
+                    target => ReadyAdapter(target)?.QueryCapabilities)
+                    .Where(example => includeFederationExamples || example.Operation == "Rows").ToArray(); }
                 catch (ArgumentException)
                 {
                     return new CqlHostedSourceDescription(type.ToString(), queryOnly.Contains(type), false,
@@ -93,4 +91,15 @@ public sealed class CqlHostedSources : BackgroundService
                 available && CqlV1Compiler.SupportedReadProfile(type), available ? adapter.QueryCapabilities.Features.ToString() : null,
                 available ? null : "CQL_SOURCE_NOT_READY", selected);
         }).ToArray();
+
+    private ICosmicQueryStorageProvider ReadyAdapter(ProviderType type)
+    {
+        if (!providers.Contains(type) || failures.ContainsKey(type)
+            || queryOnly.Contains(type) && !verified.ContainsKey(type)) return null;
+        var storage = registry.Find(type);
+        var adapter = storage as ICosmicQueryStorageProvider;
+        return storage?.IsProviderActivated == true && storage.ProviderType?.Value == type
+            && adapter?.QueryProviderType == type && adapter.QueryCapabilities != null
+            && CqlV1Compiler.SupportedReadProfile(type) ? adapter : null;
+    }
 }

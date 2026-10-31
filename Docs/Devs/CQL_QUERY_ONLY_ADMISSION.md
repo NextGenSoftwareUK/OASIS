@@ -99,10 +99,19 @@ Joins, grouping and other composition operations retain their separate scope.
 ## Public ready-to-run examples
 
 Set `CQL_HOSTED_QUERY_EXAMPLES_JSON` to a provider-keyed object of example arrays.
-Each entry has `id`, `label` and a bounded row-query `request` whose `provider`
-matches that key. [The ActivityPub configuration](../../Scripts/Sandbox/cql-activitypub-public-examples.json)
+Each entry has `id`, `label`, a bounded `request` and an optional `operation`.
+`Rows` is the default; its request's `provider` must match the enclosing key.
+`Federation` requires a named, unique read set containing that provider, with
+`PreserveCopies`, no leaf provider override and no continuation. The request uses
+the same snapshot and bounds as the actual HTTP endpoint.
+[The ActivityPub leaf configuration](../../Scripts/Sandbox/cql-activitypub-public-examples.json)
 contains full/subset public-source requests. Its contents are public: never put
 credentials, private source keys or private record data into this configuration.
+
+[The federation fragment](../../Scripts/Sandbox/cql-activitypub-federation-examples.json)
+adds the two Mongo pairing examples. Merge its entries with the leaf entries in
+the single configuration value; it does not create Mongo records or grant write
+access. Prepare and acknowledge the intended owner-scoped records separately.
 
 The host captures the JSON, rejects ambiguous/unknown fields and compiles it
 without performing native reads. Before publishing examples in discovery, it
@@ -111,8 +120,18 @@ an explicit unavailable result; no replacement query is generated. Request bodie
 remain editable in the browser, and the real authenticated request still receives
 the normal visibility, capability, usage and output checks.
 
-The CQL tab discovers sources from the authenticated API and loads their example
-bodies through its fixed WEB4 query endpoint. It never forwards the session bearer
+Discovery defaults to example version1 (leaf examples). Clients request
+`GET /api/data/query-cql/providers?examplesVersion=2` to receive federation examples
+too; unsupported versions reject explicitly. Existing open version1 clients do
+not receive a request shape they cannot execute.
+
+Each federation example is planned against all actual enrolled, ready adapters.
+An unavailable or unsupported dependency disables that example with a reason;
+it does not disable independent public leaf examples or substitute another source.
+Discovery readiness still does not prove the visitor has prepared matching data.
+
+The CQL tab loads example bodies through two fixed WEB4 endpoints, selected only
+by `Rows` or `Federation`. Configuration cannot supply a URL. It never forwards the session bearer
 to a native provider. Discovery failure disables execution; local developer links
 remain separate. Public posts can change or disappear, so actual responses own
 the displayed row count. Configuration/planning is not deployed native acceptance.
