@@ -9,7 +9,7 @@ namespace CosmicCqlDemo;
 
 /// <summary>
 /// The same bounded IN query through HolonManager and LINQ on IPFS, SOLID,
-/// Mastodon or explicit public Solana/Google metadata profiles.
+/// Mastodon or explicit public Solana/Google/Ethereum metadata profiles.
 /// The caller supplies an activated, explicitly enrolled native adapter and existing keys.
 /// </summary>
 public static class NativeKeySetWalkthrough
@@ -29,6 +29,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.ActivityPubOASIS => "MastodonStatusId",
             ProviderType.SolanaOASIS => "SolanaAccountAddress",
             ProviderType.GoogleCloudOASIS => "GCSObjectKey",
+            ProviderType.EthereumOASIS => "EthereumAccountAddress",
             _ => throw new ArgumentException("Select an enrolled protocol key-set adapter.", nameof(adapter))
         };
 

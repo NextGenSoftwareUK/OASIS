@@ -126,3 +126,7 @@ application/Core revision under the normal scheduled deployment workflow.
 For encrypted Mongo demo snapshots, explicitly grant EthereumAccountAddress in
 the trusted AdditionalQueryableKeys policy. Publisher preflight refuses missing
 grants; it does not globally reserve the key or weaken canonical wallet DNA.
+
+Runnable console and HTTP walkthrough: [public Ethereum CQL guide](../../../Docs/Devs/ETHEREUM_PUBLIC_METADATA_CQL_GUIDE.md).
+The --ethereum-public console mode passes native3/2through HolonManager/LINQ;
+its test compiles the published example files, without a wallet or writes.
