@@ -136,4 +136,3 @@ public sealed class CosmosPublicValidatorMetadataTests
         StringAssert.Contains(output.ToString(), "Pinned state height:");
     }
 }
-
