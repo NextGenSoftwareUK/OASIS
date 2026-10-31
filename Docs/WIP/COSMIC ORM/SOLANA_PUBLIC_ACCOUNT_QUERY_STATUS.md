@@ -1,6 +1,6 @@
 # Solana public account query profile
 
-Updated 31 October 2026. Adapter and host profile resolution verified; admission, hosted integration and browser acceptance pending.
+Updated 31 October 2026. Adapter, host profile resolution and controlled admission/preset planning verified; native endpoint dispatch, hosted integration and browser acceptance pending.
 
 ## Verified scope
 
@@ -24,13 +24,14 @@ Proving test: `Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Provi
 | Real official mainnet adapter query | 1 passed, zero failed/skipped; three accounts and two-account subset | `solana-public-native.trx` | `D586D05EF4F80D41A5DE1C82DADA23D417362AA5272084A96890D45C8A5FA490` |
 | Explicit host profile activation/resolution, failed activation, cancellation, duplicate rejection | 2 passed | `solana-profile.trx` | `D627D679D54CAC0225F8D59249B570FDE73F4F41C2A764D6BE29113DA87D9E95` |
 | Existing discovery, Oracle admission and shipping GraphQL composition | 19 passed | `solana-profile-composition.trx` | `76F068515A4C7EB66DC7DE586FB050970C4659F26A4F4331EDBCC793AB4A805A` |
+| Solana admission/presets plus Oracle/profile/discovery regressions | 22 passed, zero skipped | `solana-admission.trx` | `DD07BEBC423DB15134B3060D344DA975CCE97395FB7A46CDC1FA93B6EC6B65F3` |
 
 Native test category: `SolanaPublicAccountsNative`; set `OASIS_SOLANA_PUBLIC_SOURCE` to the retained configuration path. Ordinary controls exclude that category. Use existing build outputs and bounded build workers; do not create a validator or wallet.
 
 ## Next acceptance gates
 
 1. Host profile configuration/resolution is implemented and controlled-tested via `CQL_SOLANA_PUBLIC_SOURCE_JSON` (the retained source schema). DI owns its disposable client. Explicit provider requests resolve the configured profile, including when inactive; activation failure cannot select the canonical provider. Unspecified/default requests keep their existing resolution. Nothing is deployed or enrolled merely by adding this configuration. Native dispatch through the normal billed endpoint remains to be proved.
-2. Query-only tariff admission, discovery and three/two native presets with one Mongo-paired five/four preset.
+2. Query-only tariff admission, discovery and three/two native presets with Mongo-paired presets now pass controlled planning tests (`CqlSolanaHostedAdmissionTests`). The ten-provider host tariff catalogue still requires independent permission and pricing; it does not enlarge the eight-target request limit or grant signing/storage writes. Task Core `759b49a529a86abbfc50e36b26343fdb894295b4` is pushed, not deployed. Five/four actual paired counts remain unverified for Solana.
 3. Hosted native queries, normal visitor preparation, repeat-zero-write behavior, foreign-private isolation and replica observation.
 4. Rendered sandbox browser acceptance and local-demo links. Until then, this adapter is not hosted demo coverage.
 
