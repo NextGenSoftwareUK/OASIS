@@ -48,3 +48,21 @@ Existing caches/projects reused; only the three new native walkthrough scopes se
 
 ## HTTP registration/admission milestone
 All three lazy public-source registrations and bounded no-order HTTP compiler profiles are implemented. Explicit read tariff catalogue now20; Core3 permission/signed-write-fence and API6 planning/discovery/admission tests pass,0skips. Evidence: TestResults/EvmBreadthReadinessCurrent/admission-{core,api}.trx. Full API build passed. These tests plan each native3/2 and paired Mongo preset and exercise source discovery; actual HTTP/Mongo data execution remains next, not yet verified. No hosted configuration applied.
+
+HTTP native fixtures and exclusive BaseMongoHttp/AvalancheMongoHttp/BnbMongoHttp runner selections added. First Base selection rejected0 discovered tests in stale binary before any intent/DB creation; no data execution occurred. Rebuilding the existing test host before first real execution. Raw zero-test evidence retained in TestResults/BasePublicSourceCandidateCurrent until documented replacement; source catalogues unchanged.
+
+## Native HTTP/Mongo acceptance — 31 October 2026
+All three pass native3/2, private SDK-owned Mongo2, federation5/4, foreign-private0/public3 and9query receipts each. Every returned ID/provider/visibility is checked. Original intents and2ACKs per provider remain preserved; each exact-marker database was dropped and absence verified after consumers stopped. Controlled bearer/billing only; no hosted, production auth/billing or replication proof. Initial Base stale-binary0tests and fixture compile error preserved in raw logs; corrected build and actual3gates pass.
+- `TestResults/BasePublicSourceCandidateCurrent/base-mongo-http.trx`: SHA256 `39bf3987aad38f958ff25151ae16df32e9fb32c1f35951cd25ab5ea1823f070f`;1pass/0skips. Persistent original intent/ACK/cleanup cohort `LocalState/COSMIC/BaseMongoHttpCurrent`: 837B.
+- `TestResults/AvalanchePublicSourceCandidateCurrent/avalanche-mongo-http.trx`: SHA256 `53dce802edd194b165e4ab1a8a1507db3c5166b5fff6274b9f1f3eb3563f9759`;1pass/0skips. Persistent original intent/ACK/cleanup cohort `LocalState/COSMIC/AvalancheMongoHttpCurrent`: 847B.
+- `TestResults/BnbPublicSourceCandidateCurrent/bnb-mongo-http.trx`: SHA256 `7144361cef690ae0cdb8159781955a77cfb1a0ae0dc6cbbce0aef047cf9db835`;1pass/0skips. Persistent original intent/ACK/cleanup cohort `LocalState/COSMIC/BnbMongoHttpCurrent`: 835B.
+
+Next: source publishers/presets and sandbox local-demo links; matching hosted application rollout and live acceptance remain pending.
+
+## Native HTTP/Mongo acceptance — 31 October 2026
+All three pass native3/2,private SDK-owned Mongo2,federation5/4,foreign-private0/public3 and9receipts each. Returned IDs/provider/visibility checked. Original intents/ACKs retained; exact-marker DBs dropped and absence verified after consumers stopped. Controlled bearer/billing only; no hosted/replication proof. Initial stale-binary0tests and Base fixture compile error retained; corrected build and3actual gates pass.
+- `TestResults/BasePublicSourceCandidateCurrent/base-mongo-http.trx`:1pass/0skips,SHA256 `39bf3987aad38f958ff25151ae16df32e9fb32c1f35951cd25ab5ea1823f070f`. Original intent/ACK cohort `LocalState/COSMIC/BaseMongoHttpCurrent` retained,837B.
+- `TestResults/AvalanchePublicSourceCandidateCurrent/avalanche-mongo-http.trx`:1pass/0skips,SHA256 `53dce802edd194b165e4ab1a8a1507db3c5166b5fff6274b9f1f3eb3563f9759`. Original intent/ACK cohort `LocalState/COSMIC/AvalancheMongoHttpCurrent` retained,847B.
+- `TestResults/BnbPublicSourceCandidateCurrent/bnb-mongo-http.trx`:1pass/0skips,SHA256 `7144361cef690ae0cdb8159781955a77cfb1a0ae0dc6cbbce0aef047cf9db835`. Original intent/ACK cohort `LocalState/COSMIC/BnbMongoHttpCurrent` retained,835B.
+
+Next: hosted publishers/presets and sandbox demo links, then matching permitted rollout.
