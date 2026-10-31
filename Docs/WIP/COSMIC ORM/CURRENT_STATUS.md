@@ -14,7 +14,7 @@ Independent next breadth: Optimism native/published C#/CLI3/2 and HTTP/Mongo3/2+
 
 Linea/Scroll native+publishedC#/actualCLI3/2 and HTTP/Mongo3/2+5/4/isolation pass;2Core/4API/6config/2nativeHTTP/2client checks pass. Website links/client proofs pushed8c54051;optional13source batch prepared with corrected retained-source endpoint validation,8newpresets pass shippingplanner (1test/0skips),4scopecontrols pass. Matching hostedrollout pending. Rootstock finalized-header qualificationHTTP400 remains red. Existing release candidates unchanged.
 
-zkSync/Abstract native+publishedC#/CLI and HTTP3/2+Mongo5/4/isolation pass;2Core/4API/6config/2nativeHTTP/2client checks pass. Website links next. Existing13source releasecandidate unchanged.
+zkSync/Abstract native+publishedC#/CLI and HTTP3/2+Mongo5/4/isolation pass;2Core/4API/6config/2nativeHTTP/2client checks pass. Website links/client proofs pushed5aad1d1; jointbatch/hosted acceptance next. Existing13source releasecandidate unchanged.
 
 ## Working copies and release state
 

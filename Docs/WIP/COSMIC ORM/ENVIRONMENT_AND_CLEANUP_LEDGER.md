@@ -1738,3 +1738,5 @@ zkSync/Abstract outcome:38tests/0skips (36controlled+2nativepublishedsample),con
 zkSync/Abstract HTTPoutcome:2Core/4API/6config/2nativeHTTP/2clientpass0skips; retainedcataloguebuildercheck2pass.2SDKprivatecopies/9receipts each; exactDBdrop/absenceverified,servicesstopped,noNeo/download. Duringbuild C:78,399,025,152B free. Retainoriginalcohorts:
 - `LocalState/COSMIC/ZkSyncMongoHttpCurrent`: 841B,retainintent/ACK/cleanup.
 - `LocalState/COSMIC/AbstractMongoHttpCurrent`: 845B,retainintent/ACK/cleanup.
+
+Website5aad1d1pushed with2newCLI/guide/walkthroughlinks and2passingclientcontracts. Publicmain unchanged.27029listenerabsence verified after bothnativegates. Existingworktree/Node reused, no downloads/newenvironment; rawclientlog HostedCqlIntegrationCurrent/zksync-abstract-client-preparation.log regenerable,sizeunmeasured.
