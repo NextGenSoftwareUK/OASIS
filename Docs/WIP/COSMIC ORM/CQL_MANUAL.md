@@ -6,37 +6,86 @@ Start with the maintained, spaced/commented [C# and HTTP demo](../../../Examples
 CQL captures immutable query intent, plans against explicit eligible provider capabilities, then executes through native adapters and the V2 HolonManager owner.
 Check every OASISResult error/acknowledgement before reading Result. Unsupported semantics and exhausted work limits are errors.
 
-## Live sandbox walkthrough
+## Hosted walkthrough and provider scope
 
-Oracle's [host configuration guide](../../Devs/ORACLE_CQL_HOST_CONFIGURATION.md)
-describes its server-authorized ID catalogue and supported SQL profile. Oracle
-hosting and full browser/setup verification remain open. Task-only ID preparation
-and local native HTTP query counts are verified separately; this is not live coverage.
+Open the [sandbox](https://web4.oasisomniverse.one/web4-sandbox.html), start a demo
+session and open CQL Playground. Use the server's provider discovery and examples;
+static catalogue links do not make a provider available on that host.
 
-SOLID and public AWS S3 metadata also have native three-record/two-record presets
-and Mongo-paired five-row/four-row presets. Use discovery's readiness and returned
-requests. See the [public S3 HTTP/C# guide](../../Devs/AWS_S3_PUBLIC_CQL_GUIDE.md)
-and [SOLID guide](../../Devs/SOLID_CQL_HOST_CONFIGURATION.md). Their live HTTP,
-preparation, replication and isolation gates pass; browser rendering remains open.
+| Provider group | Verified scope |
+|---|---|
+| MongoDB, SQLite, Neo4j | Hosted general query/demo baseline and browser acceptance |
+| ActivityPub, IPFS | Hosted native three/two-record filters, private Mongo preparation, five/four-row federation, isolation, replicas and browser acceptance |
+| SOLID, public S3 metadata, public Solana account metadata | Same hosted HTTP/preparation/federation/isolation/replica gates; browser execution remains open |
+| Public Google metadata, Ethereum/Polygon/Arbitrum balances | Native SDK, local HTTP/Mongo pairing/isolation and runnable C# demos verified; hosted enrollment/browser gates pending |
+| Azure Cosmos DB, Oracle | Emulator/local native proofs only; hosted setup deferred by David |
 
-No installation is needed for the [hosted sandbox](https://web4.oasisomniverse.one/web4-sandbox.html).
-Start a demo session, open CQL Playground, select ActivityPubOASIS and the
-**Public posts + my Mongo records** example, or choose IPFSOASIS and
-**IPFS records + my Mongo records**. Prepare your private Mongo records,
-then run the query. The verified selection returns 5 physical rows (AP3/Mongo2);
-the subset returns 4(AP2/Mongo2). Public source availability can change.
+These are scoped evidence statements; [CURRENT_STATUS](CURRENT_STATUS.md) owns
+exact release/cohort state. Public source availability can change. Full ORM or
+EF/NHibernate parity is not implied by a provider's presence in this table.
 
-Inspect the editable JSON, provider provenance and operation ID. Repeat setup
-reuses unchanged records; another visitor cannot read your private copies.
-MongoDB, SQLite and Neo4j expose the existing general query presets. Other
-local examples remain separate until their hosted flow is verified.
-See [preparation and admission](../../Devs/CQL_QUERY_ONLY_ADMISSION.md#visitor-owned-federation-samples)
-and [current evidence](HOSTED_SANDBOX_INTEGRATION_PLAN.md).
+Choose an available public source's native three-record example, then its
+three-record + Mongo federation preset. **Prepare my Mongo records** reads the
+first two source records, obtains Core-mapped avatar IDs and creates two private
+Mongo snapshots with normal create-only saves. Run the preset for five physical
+rows; its two-record subset returns four. Repeat preparation preserves acknowledged
+records. Another visitor sees the public source but not your private snapshots.
 
-SOLID's [C# membership walkthrough](../../../Examples/CosmicCqlDemo/SolidPointWalkthrough.cs)
-and [HTTP/host guide](../../Devs/SOLID_CQL_HOST_CONFIGURATION.md) cover three native
-encrypted records and a two-record subset. Its hosted enrollment is still pending
-final-image/browser acceptance; it is not included in the verified live count above.
+Inspect editable JSON, provider provenance and operation ID. Native source rows
+and actor-owned snapshots have different OASIS IDs; source-reference metadata ties
+them together. Federation preserves physical copies and does not establish one
+transactional snapshot across providers. Uncertain saves retain their original
+intent keys and are never automatically resent.
+
+See [query-only admission](../../Devs/CQL_QUERY_ONLY_ADMISSION.md#visitor-owned-federation-samples)
+and [hosted evidence](HOSTED_SANDBOX_INTEGRATION_PLAN.md). Oracle hosting remains
+deferred; its [guide](../../Devs/ORACLE_CQL_HOST_CONFIGURATION.md) documents the
+separate server-authorized catalogue. Do not treat it as a ready cloud source.
+
+## Public metadata profiles and runnable C# demos
+
+These explicit read representations query native public data; they do not grant
+owned storage writes on the source. The shared CQL planner still admits the exact
+native capabilities before dispatch. Unsupported content/name/description scans,
+sorts or terminals are rejected rather than evaluated over an implicit scan.
+
+| Profile | Native metadata key | C#/HTTP guide |
+|---|---|---|
+| AWS S3 object metadata | S3ObjectKey | [S3](../../Devs/AWS_S3_PUBLIC_CQL_GUIDE.md) |
+| Solana account metadata | SolanaAccountAddress | [Solana](../../Devs/SOLANA_PUBLIC_ACCOUNT_CQL_GUIDE.md) |
+| Google Cloud object metadata | GCSObjectKey | [Google](../../Devs/GOOGLE_PUBLIC_METADATA_CQL_GUIDE.md) |
+| Ethereum balance state | EthereumAccountAddress | [Ethereum](../../Devs/ETHEREUM_PUBLIC_METADATA_CQL_GUIDE.md) |
+| Polygon balance state | PolygonAccountAddress | [Polygon](../../Devs/POLYGON_PUBLIC_METADATA_CQL_GUIDE.md) |
+| Arbitrum balance state | ArbitrumAccountAddress | [Arbitrum](../../Devs/ARBITRUM_PUBLIC_METADATA_CQL_GUIDE.md) |
+
+The new Google/EVM console modes reuse an existing nonsecret catalogue. Build the
+sample with the normal bounded provider lease, then run from your checkout:
+
+```powershell
+# Native public Arbitrum state, three addresses and a two-address subset.
+dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
+    --no-build --no-restore -- `
+    --arbitrum-public LocalState/COSMIC/HostedArbitrumPublicSourceCurrent/source.json
+```
+
+Use --google-public, --ethereum-public or --polygon-public with their own retained
+source file for the other new profiles. Each guide supplies complete configuration,
+spaced code and exact scope limits. No new runtime/account/wallet is created by
+these commands. Local success is not hosted or browser acceptance.
+
+The EVM reader binds provider/chain/genesis and one RPC-reported finalized canonical
+block hash per query. Arbitrum explicitly uses the official /rpc endpoint because
+the initial PublicNode endpoint lacked that finalized state; no runtime fallback
+or latest-state downgrade occurs. This does not independently prove settlement.
+Google/S3 read metadata without downloading object bodies. Public address-state
+projections are not evidence of COSMIC holons persisted on-chain.
+
+Queryable snapshot keys remain application metadata. If metadata encryption is
+active, the trusted AdditionalQueryableKeys policy must explicitly grant the
+relevant source key; publishers refuse missing grants and do not add global
+reserved system keys. Signed source storage and its fees require separate
+admission. Mixed unsigned-read/signed-write roles for one provider are currently
+rejected by a single factory; see [deferred work](AFTER_DEMO_BACKLOG.md).
 
 ## Reference map
 

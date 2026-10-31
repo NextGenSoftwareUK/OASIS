@@ -134,3 +134,5 @@ Archived commands may show historical Docs output paths: do not run them verbati
 - [Selected numeric/shared extrema checkpoints,27 October](CQL_SELECTED_NUMERIC_CHECKPOINTS_2026-10-27.md).
 
 - [Selected extrema/shared repeated-selection checkpoints,27 October](CQL_SELECTED_EXTREMA_CHECKPOINTS_2026-10-27.md).
+
+- [Status/backlog before public-read reconciliation,31October](STATUS_BEFORE_PUBLIC_READ_PROFILE_RECONCILIATION_2026-10-31.md) — superseded by active CURRENT_STATUS/IMPLEMENTATION_STATUS/AFTER_DEMO_BACKLOG.

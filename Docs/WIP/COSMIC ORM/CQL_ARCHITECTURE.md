@@ -8,6 +8,54 @@ Current implementation state: [CURRENT_STATUS](CURRENT_STATUS.md); feature accep
 4. **Native adapters:** Mongo aggregation/snapshot owner, SQLite serializable read owner, Neo4j captured scalar pipeline/read owner. Do not invent stronger provider consistency.
 5. **Validate/return:** acknowledged complete detached evidence, exact values and shared remaining work; materialize only where the requested result contract permits it.
 
+## Explicit read representations
+
+CqlReadSourceProfile owns an explicitly configured query-only adapter and its
+read activation/lifetime. CqlHostedSourceRegistry resolves that representation
+for CQL without registering it as the canonical wallet/default write provider.
+The query manager remains unbound; named adapters and actual capabilities are
+captured and re-admitted by the shared planner/executor. No failed native query
+silently substitutes a Mongo copy or another endpoint.
+
+Discovery combines explicit host permission, query tariff, activation and native
+capability planning. A supported provider enum alone grants nothing. Missing Mongo
+can disable a paired example while retaining the source's native leaf examples.
+Examples own fixed Rows/Federation operations and named scope, not executable URLs.
+
+StorageQueryTariff derives capture bounds from its single supported unsigned-read
+set. PreparedStorageExecution still needs independent server permission and a
+captured price; its query-only set cannot authorize storage writes. The current
+factory rejects overlap with native signing bindings. Simultaneous public-read
+and canonical signed-write representations for one provider need a future
+operation/representation-aware admission contract; removing the fence is not a fix.
+
+Public EVM adapters share EvmPublicAccountMetadataSource in Web3Core. Fixed trusted
+descriptors bind provider, chain ID, genesis hash, metadata names and allowed RPC
+path. Ethereum/Polygon remain root-path-only; Arbitrum uses the official /rpc path.
+Every selected balance is read against one RPC-reported finalized canonical hash.
+The descriptor does not come from query JSON; wallet/signer fields are forbidden.
+This is native provenance, not a light-client settlement proof. Google/S3 use
+anonymous metadata-only SDK operations rather than owned encrypted record storage.
+
+All public views retain NativeRecordHolonMapper identities: stable mapping owner,
+provider, source namespace and native key. Visitor preparation instead requests
+Core-derived IDs in the actor's cosmic-cql-demo namespace, journals a create-only
+Mongo save before submission and retains uncertain outcomes. These snapshots can
+replicate through normal V2 owned writes; native public views are not replication
+targets. PreserveCopies returns physical provenance, not a cross-provider snapshot.
+
+Only explicitly declared metadata keys remain queryable when snapshot encryption
+is active. AdditionalQueryableKeys is trusted runtime/deployment policy, separate
+from globally reserved system keys. Native errors, late malformed values and empty
+pages still require complete protected-source validation before publication.
+
+Deployment configuration must match the source/application/Core revision. Joint
+public-profile candidates compose their permissions/examples once; independent
+candidates from the same old snapshot are not sequential updates to apply. Exact
+pins, release scope, host acceptance and remaining gates belong in CURRENT_STATUS.
+
+## Native query and selected-stage owners
+
 For projected All, native counterexample reduction follows every selected stage. Complete source/stage evidence validates before the Boolean is published; final row evidence and the terminal scan consume their budgets.
 Source relationship composition has separate admission from entity All predicates. All three native source compilers now support the separate source-composition capability. Complete protected scopes are validated before business truth and paging; source predicates stay native.
 Keep source translation, protected errors, membership/visibility and remaining-work accounting in their owning layers. No parallel fallback or silent retry.
