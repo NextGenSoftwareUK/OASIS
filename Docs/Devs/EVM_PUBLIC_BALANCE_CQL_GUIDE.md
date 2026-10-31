@@ -53,3 +53,7 @@ Run `--zksync-public LocalState/COSMIC/HostedZkSyncPublicSourceCurrent/source.js
 ## Monad public balances
 
 Run `--monad-public LocalState/COSMIC/HostedMonadPublicSourceCurrent/source.json` with the existing console. The spaced/commented MonadPublicWalkthrough uses HolonManager/LINQ. Monad chain0x8f/keyMonadAccountAddress; lazy HTTPconfiguration CQL_MONAD_PUBLIC_SOURCE_JSON. Native/C#/CLI3/2 and localHTTP3/2+Mongo5/4/isolation pass. Hosted/browserremainpending; existing15sourcecandidate excludesMonad. Exactnativebaseunits and RPC-reportedfinalizedhashes, not independentsettlementproof.
+
+## Sei public balances
+
+Run `--sei-public LocalState/COSMIC/HostedSeiPublicSourceCurrent/source.json` with the existingconsole. SeiPublicWalkthrough usesHolonManager/LINQ,chain0x531/keySeiAccountAddress; lazyHTTPconfig CQL_SEI_PUBLIC_SOURCE_JSON. Itsfixednativecodec accepts32bytemixedcaseblockhashes andnormalizesidentity/requestmetadata lowercase; otherEVMprofiles retaincanonicalvalidation. Native/C#/CLI3/2 andlocalHTTP3/2+Mongo5/4/isolationpass. Hosted/browser remainpending,current16sourcecandidateexcludesSei. Exactnativebaseunits/RPCreportedfinalizedhashes,notindependentsettlementproof.

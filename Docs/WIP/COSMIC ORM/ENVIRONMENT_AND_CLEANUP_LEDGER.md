@@ -1794,3 +1794,21 @@ Sei outcome:nativepublishedC#/actualCLI3/2pass. Initialcodec run227pass/1newtest
 - `TestResults/EvmBreadthReadinessCurrent/sei-codec.trx`: 351038B,SHA256 `d4d4adbfdac63a897822c7b53e7a7b4e9694d46e38a8e108c63aa925873dd230`.
 - `TestResults/EvmBreadthReadinessCurrent/sei-canonical-regression.trx`: 2735B,SHA256 `c75558337d613992f45bf2f8127cfa0d5088f8408b3272fe7335ab2005e46236`.
 - `TestResults/EvmBreadthReadinessCurrent/sei-console.log`: 1352B,SHA256 `62576f02de7e21ae589d2c13a3d357606c833c810ebab93786449d86539affff`.
+
+### Sei HTTP/Mongo integration
+31October2026:reuse existingAPI/Core/.NET/cache/Mongo8.3.11store27029. NewexclusiveDB cosmic_cql_sei_http_demo; originalintent/ACK LocalState/COSMIC/SeiMongoHttpCurrent; rawTestResults/SeiPublicSourceCandidateCurrent. Exactmarker-successcleanup/failurepreserved,runnerownsservice;noNeo/newenvironment/download. Oneexistingproviderref/cacheonlyrestore. Prebuild C:75,673,747,456B free; incrementalbin/obj sizesunmeasured, active/reusableuntilverification. Routingfollowupdecisionstillpending,nofurtherDevelopmentpush.
+
+Sei HTTPoutcome:1Core/2API/3config/1nativeHTTP/1clientpass0skips;retainedcatalogueaccepted.2SDKprivatecopies/9receipts; exactDBdrop/absenceverified,servicesstopped,noNeo/download/newenvironment. Originalcohort 835B retained.
+
+### Reusable output measurement — 31 October 2026
+Cosmicowner; existing.NET10.0.401/cachedpackages,created/reusedbycurrenttask,logicalbytes(notphysicaldiskattribution). Noactivebuild/test/service aftergates. Retainforongoingproviderwork; disposeafterconsumersstopbyremovingonlytheseexactbin/objdirectories withinOASIS-cosmic,thenregeneratecacheonlyrestore+boundedleasedbuild. NeverdeleteLocalState/sharedNuGet/source. Earlierframeworkprovenancepartlyinherited.
+- `C:/Source/OASIS-cosmic/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/bin`: 303105936logicalB; active/reusable,nostandaloneport.
+- `C:/Source/OASIS-cosmic/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/obj`: 13164156logicalB; active/reusable,nostandaloneport.
+- `C:/Source/OASIS-cosmic/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/bin`: 289034783logicalB; active/reusable,nostandaloneport.
+- `C:/Source/OASIS-cosmic/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/obj`: 5545670logicalB; active/reusable,nostandaloneport.
+- `C:/Source/OASIS-cosmic/OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/bin`: 52402299logicalB; active/reusable,nostandaloneport.
+- `C:/Source/OASIS-cosmic/OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/obj`: 6960184logicalB; active/reusable,nostandaloneport.
+- `C:/Source/OASIS-cosmic/Examples/CosmicCqlDemo/bin`: 242929415logicalB; active/reusable,nostandaloneport.
+- `C:/Source/OASIS-cosmic/Examples/CosmicCqlDemo/obj`: 4185239logicalB; active/reusable,nostandaloneport.
+- `C:/Source/OASIS-cosmic/Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.CqlTests/bin`: 52972140logicalB; active/reusable,nostandaloneport.
+- `C:/Source/OASIS-cosmic/Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.CqlTests/obj`: 1723268logicalB; active/reusable,nostandaloneport.

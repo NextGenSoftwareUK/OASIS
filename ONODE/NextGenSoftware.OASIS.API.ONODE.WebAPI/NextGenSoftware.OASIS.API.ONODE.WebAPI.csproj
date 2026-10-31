@@ -64,6 +64,7 @@
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.LineaOASIS/NextGenSoftware.OASIS.API.Providers.LineaOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.MonadOASIS/NextGenSoftware.OASIS.API.Providers.MonadOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SeiOASIS/NextGenSoftware.OASIS.API.Providers.SeiOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS/NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AbstractOASIS/NextGenSoftware.OASIS.API.Providers.AbstractOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ScrollOASIS/NextGenSoftware.OASIS.API.Providers.ScrollOASIS.csproj" />
