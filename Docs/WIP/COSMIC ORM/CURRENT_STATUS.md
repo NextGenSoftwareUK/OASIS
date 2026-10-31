@@ -1,6 +1,6 @@
 # Current COSMIC ORM / CQL status
 
-Updated 30 October 2026 (America/Cancun). Full programme remains incomplete.
+Updated 31 October 2026 (America/Cancun). Full programme remains incomplete.
 
 ## Current phase: demo breadth and missing provider integrations
 
@@ -44,7 +44,7 @@ Updated 30 October 2026 (America/Cancun). Full programme remains incomplete.
 ## Branch recovery and key commands
 
 - Broad parent work/cosmic-cql f89cf0085 / published Core69bb8a4 preserve PostgreSQL/SQLServer/Oracle content work excluded from deployment. Broad Core also has a local unpublished conflict-free merge with scoped Core; parent merge attempt was aborted. Do not sweep broad changes into Development.
-- Next exact step: selectively integrate the missing Chroma current-branch native/Mongo/browser demo from f89cf0085, preserving original collection/schema/document lineage. Weaviate is verified:38 controls +5 native/restart/Mongo phases =43 passed, zero failures/skips; actual C#/HTTP/browser5/4 copies. Original3objects/source/schema/TLS unchanged, exact Mongo cleanup and native exit0; ports18080/15051/27039/5132 stopped. See WEAVIATE_CQL_MVP.md. Public section38 main e94049f/Production7453703310 success supplies local launch instructions, not hosted connectivity. Removed105781571B completed private test-bin outputs; retained assets/cache/source/evidence. General content predicates, central client registration, hosted configuration, semantic search, CAS/history/full HyperDrive remain open. Demo blockers must be fixed before acceptance; only requirements outside the demo scope may be deferred.
+- Next exact step: inspect missing Milvus current-branch native/Mongo/browser integration from f89cf0085. Chroma50controls +5 native phases =55passed/no skips; browser5/4, original3documents/collections/schema preserved across restart/postpair; exact Mongo cleanup/nativeexit0,18002/27039/5133 stopped. Public section39 main d8afd91/Production7454604193 success. See CHROMA_CQL_MVP.md. Completed private bins95605789B remain after automatic cleanup rejection; no deletion performed. Broader parity/HyperDrive remains incomplete; demo blockers require immediate fixes. Hosted Azure pending/free-only.
 - PostgreSQL16controls/17native/restart/4paired presets; SQLServer17controls/23native/restart/4paired presets verified. Oracle13controls/15read-only probes/21saved-holon queries/restart plus4paired SDK/HTTP/browser content presets verified locally; hosted OCI still unproved.
 - Build through Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1, /m:2 /nr:false /p:UseSharedCompilation=false, reuse caches. No restore unless necessary. Test-CqlReplicaBaselineRepair.ps1 runs explicit reusable Windows native profile after producer builds.
 - Validate pins: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks. Fetch first; batch verified Development releases once/twice daily. Latest client-only verifier/probe/docs commits need no new Railway build.

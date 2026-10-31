@@ -54,3 +54,5 @@ Persistent, irreproducible fixture state belongs in ignored LocalState/COSMIC an
 - [Qdrant HTTPS payload retrieval and Mongo demo](QDRANT_CQL_MVP.md): retained point/vector/config restart/post-pair checks and launch command.
 
 - [Weaviate native gRPC/Mongo demo: launch, verified scope and limits](WEAVIATE_CQL_MVP.md).
+
+- [Chroma native/Mongo demo and current verification](CHROMA_CQL_MVP.md).
