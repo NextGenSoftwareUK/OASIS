@@ -1776,3 +1776,6 @@ Website354958epushed withMonadCLI/guide/walkthroughlink and1passingnewclienttest
 Sixteen-source outcome:protectedbefore67,094B/candidate107,366B retained;1new4presetplannertestpass0skips,6scopecontrolspass. ExistingapprovedRailwayjob stillBUILDING; nohostsettingschange/newdevpush/service/download/environment. Rawpublicexports regenerable:
 - `TestResults/HostedCqlIntegrationCurrent/sixteen-source-public-review.json`: 62301B.
 - `TestResults/HostedCqlIntegrationCurrent/monad-prepared-review.json`: 3860B.
+
+### Sei nativewire qualification
+31October2026:strictSei qualification report preservedas EvmBreadthReadinessCurrent/Sei-strict-canonical-failure.json; originalgenesisreplyretained. Probeexplicitlynormalizes onlySei32byte mixedcasehashes,recordsoriginalhashes,keepschain/finalized/EIP1898readrequirements. No shippingreaderchange/sourceidentity/DB/environment/download. ExistingboundedPowerShellHTTP reused, rawupdatedSei.json.

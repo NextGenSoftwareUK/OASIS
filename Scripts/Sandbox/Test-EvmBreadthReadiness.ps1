@@ -7,7 +7,7 @@ $results=Join-Path $root 'TestResults/EvmBreadthReadinessCurrent'
 New-Item -ItemType Directory -Force -Path $results | Out-Null
 $descriptor=switch($Network){
     'Monad' { @{endpoint='https://rpc.monad.xyz/';chainId='0x8f'} }
-    'Sei' { @{endpoint='https://evm-rpc.sei-apis.com/';chainId='0x531'} }
+    'Sei' { @{endpoint='https://evm-rpc.sei-apis.com/';chainId='0x531';nativeMixedCaseHashes=$true} }
     'ZkSync' { @{endpoint='https://mainnet.era.zksync.io/';chainId='0x144'} }
     'Abstract' { @{endpoint='https://api.mainnet.abs.xyz/';chainId='0xab5'} }
     'Linea' { @{endpoint='https://rpc.linea.build/';chainId='0xe708'} }
@@ -48,10 +48,20 @@ $report=@{network=$Network;endpoint=$descriptor.endpoint;chainId=$descriptor.cha
 try{
     if((Invoke-ReadRpc 'eth_chainId' @()) -cne $descriptor.chainId){throw 'Chain identity differs.'}
     $genesis=Invoke-ReadRpc 'eth_getBlockByNumber' @('0x0',$false)
+    if($descriptor.nativeMixedCaseHashes){
+        $report.nativeGenesisHash=$genesis.hash
+        if($genesis.hash -cnotmatch '^0x[0-9a-fA-F]{64}$'){throw 'Sei native genesis must contain exactly32hexbytes.'}
+        $genesis.hash=$genesis.hash.ToLowerInvariant()
+    }
     if($genesis.hash -cnotmatch '^0x[0-9a-f]{64}$' -or $genesis.number -cne '0x0'){throw 'Canonical genesis identity required.'}
     $report.genesisHash=$genesis.hash
     if($Network -eq 'BNBChain' -and $genesis.hash -cne '0x0d21840abff46b96c84b2ac9e10e4f5cdaeb5693cb665db62a2f3b02d2d57b5b'){throw 'BSC canonical genesis differs.'}
     $header=Invoke-ReadRpc 'eth_getBlockByNumber' @('finalized',$false)
+    if($descriptor.nativeMixedCaseHashes){
+        $report.nativeBlockHash=$header.hash
+        if($header.hash -cnotmatch '^0x[0-9a-fA-F]{64}$'){throw 'Sei native finalized hash must contain exactly32hexbytes.'}
+        $header.hash=$header.hash.ToLowerInvariant()
+    }
     if($header.hash -cnotmatch '^0x[0-9a-f]{64}$' -or $header.number -cnotmatch '^0x(?:0|[1-9a-f][0-9a-f]*)$'){throw 'Canonical finalized header required.'}
     $report.blockHash=$header.hash;$report.blockNumber=$header.number
     $selections=@()
