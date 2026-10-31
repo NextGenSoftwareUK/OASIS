@@ -5,11 +5,20 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// The public Google console path performs no database setup or writes.
+// Keep its bounded network lifetime independent of the SQLite fixture below.
+if (args.Length == 2 && args[0] == "--google-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await GooglePublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // HOST SETUP - console mode runs once; --serve also opens the local Swagger API.
 var serve = args.Length == 1 && args[0] == "--serve";
 if (args.Length != 0 && !serve)
 {
-    Console.Error.WriteLine("Use no arguments for console mode, or --serve for the loopback Swagger demo.");
+    Console.Error.WriteLine("Use no arguments, --serve, or --google-public <existing-source.json>.");
     return 2;
 }
 
