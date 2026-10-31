@@ -35,6 +35,13 @@ if (args.Length == 2 && args[0] == "--abstract-public")
     return 0;
 }
 
+if (args.Length == 2 && args[0] == "--sei-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await SeiPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 if (args.Length == 2 && args[0] == "--monad-public")
 {
     using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));

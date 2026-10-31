@@ -832,3 +832,7 @@ Use `--zksync-public LocalState/COSMIC/HostedZkSyncPublicSourceCurrent/source.js
 ### Monad public balances
 
 Use `--monad-public LocalState/COSMIC/HostedMonadPublicSourceCurrent/source.json` with the existing console. Spaced/commented MonadPublicWalkthrough uses HolonManager/LINQ and returns3/2records; native/actualCLIpass. HTTP/Mongo/hostedremainpending. Exactnativebaseunits and RPC-reportedfinalizedhashes;no wallet/transaction/databasecreation.
+
+### Sei public balances
+
+Use `--sei-public LocalState/COSMIC/HostedSeiPublicSourceCurrent/source.json` with the existing console. Spaced/commented SeiPublicWalkthrough uses HolonManager/LINQ; native/C#/actualCLI3/2pass. The fixedSeinativecodec normalizes32byte mixedcaseblockhashes; otherEVMprofileskeepcanonicalwirevalidation. Exactnativebaseunits,RPC-reportedfinalizedhashes; no wallet/transaction/databasecreation. HTTP/Mongo/hostingremainpending.
