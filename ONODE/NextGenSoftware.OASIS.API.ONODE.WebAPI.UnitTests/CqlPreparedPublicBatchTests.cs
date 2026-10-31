@@ -33,6 +33,10 @@ public sealed class CqlPreparedPublicBatchTests
     public async Task ActualLineaScrollCandidatePlansEightPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(2);
 
+    [PublicBatchReviewFact]
+    public async Task ActualZkSyncAbstractCandidatePlansEightPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(2);
+
     private static async Task CheckPreparedBatch(int expected)
     {
         var path = Environment.GetEnvironmentVariable("COSMIC_CQL_PUBLIC_REVIEW")!;
@@ -65,6 +69,8 @@ public sealed class CqlPreparedPublicBatchTests
                     ProviderType.OptimismOASIS => Providers.OptimismOASIS.OptimismPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.LineaOASIS => Providers.LineaOASIS.LineaPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.ScrollOASIS => Providers.ScrollOASIS.ScrollPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.ZkSyncOASIS => Providers.ZkSyncOASIS.ZkSyncPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.AbstractOASIS => Providers.AbstractOASIS.AbstractPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
                     _ => throw new InvalidOperationException("Unexpected source in the explicit reviewed batch.")
                 };
                 disposables.Add((IDisposable)source);
