@@ -1,4 +1,4 @@
-# COSMIC ORM / CQL — current status
+# COSMIC ORM / CQL â€” current status
 
 Updated 31 October 2026. Programme incomplete. Priority: working hosted demo breadth; deep LINQ parity remains paused.
 
@@ -8,11 +8,11 @@ Updated 31 October 2026. Programme incomplete. Priority: working hosted demo bre
 2. The frozen correctness batch is parent **79fe887e3 / Core6bbd015**. It excludes Google/Ethereum/Polygon/Arbitrum. Do not apply their staged configuration to that older application/Core revision.
 3. After the matching routing-facts release, prepare the distinct routing fixture with `Scripts/Sandbox/Prepare-HostedHyperdriveRouting.py`, then run `Verify-HostedHyperdriveLoadBalancing.py --cohort routing-v1`. Setup has not run live; no routing-v1 avatar/record exists. Original Solana owner session expired; preserve it without replacement/replay.
 4. Separately integrate the tested public-read profiles with their matching application/Core and joint configuration, then run hosted source/preparation/isolation/replica gates. Browser acceptance follows when IAB is available. Do not claim the local HTTP tests are hosted proof.
-5. Independent next breadth work: add HTTP+Mongo pairing for [Base/Avalanche/BNB Chain](EVM_NEXT_THREE_SOURCE_STATUS.md) (54new controls,3published native samples and3actualCLI3/2 pass). Seven earlier profiles/presets remain staged for the matching permitted publication; no additional live rollout implied. No new node/install/environment; keep red demo scopes ahead of parity depth.
+5. Three-source HTTP registration/admission implementation is in progress: Core3 permission/write-fence and API6 source/preset/discovery tests pass/0skips. Actual HTTP/Mongo gates remain unrun. Independent next breadth work: add HTTP+Mongo pairing for [Base/Avalanche/BNB Chain](EVM_NEXT_THREE_SOURCE_STATUS.md) (54new controls,3published native samples and3actualCLI3/2 pass). Seven earlier profiles/presets remain staged for the matching permitted publication; no additional live rollout implied. No new node/install/environment; keep red demo scopes ahead of parity depth.
 
 ## Working copies and release state
 
-- Work/build/test only `C:/Source/OASIS-cosmic`, parent **work/cosmic-cql-google-public**; Core same branch, **0eb34499b91dd5172c5cf5ab328c6a3da3548076** pushed/remote-verified. Parent gitlink/manifest match. Unknown root `logs` preserved.
+- Work/build/test only `C:/Source/OASIS-cosmic`, parent **work/cosmic-cql-google-public**; Core same branch, **3d5be799fb4bec0460a4f4c50729aef1d4cd7252** pushed/remote-verified. Parent gitlink/manifest match. Unknown root `logs` preserved.
 - Parent/ Core origin/Development fetched: **0e688ac9c / 759b49a**, unchanged and already included in task history. No new Development push in the public-read work.
 - Latest observed WEB4 Railway deployment **68fb8cc4-c603-4d16-a97a-0e5a30e364c2**, parent0e688ac9c, SUCCESS. Last full eight-source HTTP acceptance remains parent498e3fd7f/deployment4dbe69d0; no fresh source gate inferred from the later deployment.
 - Frozen parent **work/cosmic-cql-hosted-release79fe887e3** / Core **work/cosmic-cql-sandbox-integration6bbd015** unchanged. Broader earlier local-provider source remains preserved on parent237403a75.
@@ -23,8 +23,8 @@ Updated 31 October 2026. Programme incomplete. Priority: working hosted demo bre
 
 | Scope | Verified providers |
 |---|---|
-| Hosted HTTP queries | MongoDB, SQLite, Neo4j, ActivityPub, IPFS, SOLID, anonymous S3 object metadata, public Solana account metadata — **8** |
-| Browser queries | First five above — **5**; SOLID/S3/Solana remain open |
+| Hosted HTTP queries | MongoDB, SQLite, Neo4j, ActivityPub, IPFS, SOLID, anonymous S3 object metadata, public Solana account metadata â€” **8** |
+| Browser queries | First five above â€” **5**; SOLID/S3/Solana remain open |
 | Private snapshot/federation gates | Each hosted public source: native3/2, private Mongo2, paired5/4, repeat0writes/2existing, foreign-private0 |
 | Replicas | New hosted private Mongo snapshots match SQLite/Neo4j ID, version, owner, visibility and metadata |
 
@@ -48,7 +48,7 @@ All seven have real native HTTP tests, SDK-owned private Mongo snapshots, exact 
 
 The shared EVM reader has fixed provider/chain/genesis/metadata/path descriptors. Ethereum/Polygon remain root-path-only; Arbitrum uses `/rpc`. No endpoint fallback/latest downgrade. Public balances are address-state projections, not persisted COSMIC holons or independent settlement proofs.
 
-NEAR affected admission checks: **2 API / 11 Core** pass (prior scope results remain in source reports); **17** is the supported unsigned-read tariff catalogue, not the hosted-provider count. Each source still needs explicit permission, tariff, activation and capability admission. Query-only pricing grants no signed writes.
+NEAR affected admission checks: **2 API / 11 Core** pass (prior scope results remain in source reports); **20** is the supported unsigned-read tariff catalogue, not the hosted-provider count. Each source still needs explicit permission, tariff, activation and capability admission. Query-only pricing grants no signed writes.
 
 Prepared seven-source batch: all28actual presets pass the shipping planner with real source/Mongo capabilities (1test/0skips); public-only exporter3controls pass. This is offline planning, not hosted/browser acceptance. [Release preflight](HOSTED_SANDBOX_INTEGRATION_PLAN.md#seven-source-prepared-configuration-review--31-october-2026).
 
