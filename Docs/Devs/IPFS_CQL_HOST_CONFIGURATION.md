@@ -77,3 +77,29 @@ Deletion/unpinning cannot promise erasure from every IPFS peer. Use exact owned
 fixture maintenance and the resource ledger when retiring this source.
 
 Native runtime reference: [official Kubo distribution and Docker images](https://github.com/ipfs/kubo#docker).
+
+
+## Optional owned sandbox runtime
+
+The WEB4 image carries the pinned official Kubo0.43.1binary. Set
+`OASIS_SANDBOX_IPFS=true` only on a node whose authoritative DNA has
+`OASIS.Sandbox.Enabled=true`. Other deployments keep the normal API entrypoint.
+No separate sandbox flag or default-provider change grants source access.
+
+`OASIS_SANDBOX_IPFS_BOOTSTRAP_JSON` supplies an operator-prepared, schema1bundle
+with `catalogueCid` and `blocks` entries (`cid`, lowercase `sha256`, `carBase64`).
+It contains the verified encrypted CAR exports, not the source encryption key.
+Keep the bundle out of committed seeds and raw documentation. Deliver the original
+key separately through `OASIS_IPFS_STORAGE_ENCRYPTION_KEY` secret configuration.
+
+The runtime owns `/data/COSMIC/SandboxIPFS` on the existing persistent volume.
+It writes a durable intent before native initialization/import and acknowledges
+only verified native blocks. Repeated starts verify the same acknowledged source;
+an existing directory without acknowledgement or a changed source refuses startup.
+Do not delete uncertain state or generate a replacement key to bypass this gate.
+
+The node runs offline with RPC bound to127.0.0.1:5001, no gateway/swarm listener.
+This is a hosted isolated native Kubo demo, not a public-network availability claim.
+The process owner waits for the pinned native version and exact peer identity
+before starting WEB4, forwards termination and observes both children. There is
+no automatic business save/import retry or replacement storage path.
