@@ -4,22 +4,22 @@ Updated 31 October 2026. Programme incomplete; priority is actual hosted sandbox
 
 ## Exact next step
 
-1. Corrected S3 startup admission regression: Core bf098a4fbaf8ec577459af1a53fa16bdc59c45ad admits eighth explicit query tariff; API build/30targeted tests pass. Publish matching parent pin/test batch, observe actual API readiness (Railway SUCCESS alone did not prove startup), then run SOLID --cohort post-startup-fix and AWS --cohort fixed-client with --prepare. First release833256b2 reported SUCCESS but runtime crashed at unsupported S3 tariff. SOLID fixed-client session creation returned502; only101B intent exists, outcome unknown, preserve/no replay. Original expired20-call SOLID cohort also preserved. New demo200 allowance still needs live proof. Browser transport closed; no browser acceptance claim. Azure pending/free-only; Oracle hosted connectivity/access/activation pending.
+1. Live SOLID and AWS S3 HTTP/client-module acceptance is green at Development b3644ed3173e63769e130a6325d57b7ed5def31a / Core bf098a4fbaf8ec577459af1a53fa16bdc59c45ad, Railway5df7cbfd-c47f-4031-9c1e-9273d86e2a5c SUCCESS. Actual authenticated native3/2, private Mongo preparation2, paired5/4, repeat0writes, exact SQLite/Neo4j replicas2each and foreign-private0 passed for both. Both owner accounts report200daily calls,50k token limit/$1 cap unchanged. Next: browser-rendered SOLID/S3 flow when automation is available, then Oracle read-only host activation/access catalogue/native hosted connectivity and Solana view. Azure pending/free-only. Keep deep parity paused. Preserve old expired SOLID cohort and unknown502 fixed-client creation intent; never replay. Full HyperDrive fault/failover/load-balancing/late-enrollment matrix is not certified by these query gates.
 2. For each provider: explicitly enroll actual native read capabilities, expose ready filtered multi-record examples plus one Mongo-paired preset, verify the normal public sandbox visitor flow and isolation. Keep local demo links alongside hosted choices. Do not advertise an unavailable source as working.
 3. Keep deep LINQ/POCO/migrations tooling paused; work only red checklist scopes, freeze greens/cursors unless a reproducible bug is found. HyperDrive implementation is V2 only; legacy is document-only.
 
 ## Working copies and release ownership
 
 - Work/build/test only **C:/Source/OASIS-cosmic**, parent **work/cosmic-cql-hosted-release**; Core **work/cosmic-cql-sandbox-integration**. Never mutate/build C:/Source/OASIS.
-- Parent Development9962c4e46 contains released SOLID batchd41d4ec83; task branch preserves concurrent CI updates. Core Development249a223a2f169dd72dfc850fbf6a3dac345642f7 and ONODE Core6b5d9d00c6ec6e2ed4e9d04015032a0394973f06 unchanged; manifest/gitlinks validated.
-- SOLID release Railway2fcd7075-ae8c-44ac-81cf-c0558429746d SUCCESS at9962c4e46. Native HTTP3/2 verified; full client-module/federation/replica/browser gate not yet complete. Later concurrent CI/doc releases may supersede it; inspect deployment metadata before next rollout.
+- Parent Development b3644ed31 and Core Development bf098a4fbaf8ec577459af1a53fa16bdc59c45ad are pushed/verified; ONODE Core6b5d9d00c6ec6e2ed4e9d04015032a0394973f06 unchanged. Manifest/gitlinks validated. Task branch preserves concurrent CI updates.
+- Current Railway5df7cbfd-c47f-4031-9c1e-9273d86e2a5c is healthy under actual HTTP acceptance. Earlier833256b2 crashed at omitted S3 tariff; fixed with full-eight-provider admission regression test. Browser gate remains open (CUA transport closed).
 - Frontend C:/Source/Web4Site task work/cosmic-cql; public main1f7335121fbb1340439165d699e31962aff1119c / Production7458236043 success. Public HTML matches committed blob SHA256920bd14e23406cbac5e1a7af8c5d17ffab28caa1e80a4a1ae5ca23872982deb6; C#/HTTP/local revision links live.
 - Broader local-provider source is preserved/pushed on parent **work/cosmic-cql-sandbox-integration237403a75**; scoped release does not include that accumulated540-file delta. Unknown root logs preserved.
-- Named staging only; no add-A, force-push or extra worktree. Batch verified Development pushes once/twice daily. SOLID code/configuration published; queued release awaits image/browser acceptance. Subsequent doc-only task commits need no immediate redeployment.
+- Named staging only; no add-A, force-push or extra worktree. Batch verified Development pushes once/twice daily. SOLID/S3 code/configuration published and HTTP gates passed; browser acceptance remains open. Subsequent doc-only task commits need no immediate redeployment.
 
 ## What is actually verified live
 
-- **Five hosted query providers: MongoDB, SQLite, Neo4j, ActivityPub, IPFS.** Local-only catalogue entries are not hosted coverage. Azure remains pending: free-only, no existing subscription; do not re-ask signup/payment.
+- **Seven hosted HTTP query providers: MongoDB, SQLite, Neo4j, ActivityPub, IPFS, SOLID and public AWS S3 metadata. Five browser-verified providers (first five); SOLID/S3 browser gates remain open.** Local-only catalogue entries are not hosted coverage. Azure remains pending: free-only, no existing subscription; do not re-ask signup/payment.
 - Original three-provider baseline35/35:3 acknowledged saves,9 exact copies,5 query forms per provider,6 physical federated copies and3 isolation checks. Retained SQLite lineage barrier was explicitly repaired with fenced/acknowledged application; no queue reset or blind replay.
 - ActivityPub native public leaf queries return3 posts and2-post subset in HTTP/browser. Membership request-capture defect was reproduced/fixed/deployed; original failed evidence preserved. Response envelope is result.rows, not result array.
 - **New live visitor preparation:** sandbox-60b2bb72 saved2 private Mongo snapshots using Core-native owner IDs and normal create-only writes. Repeat setup0 saved / 2 existing. No edited/foreign records overwritten; uncertain outcomes remain journalled without automatic retry.
@@ -29,6 +29,8 @@ Updated 31 October 2026. Programme incomplete; priority is actual hosted sandbox
 
 - **IPFS live:** normal visitor sandbox-6998fcb9 reads native3/2; prepares2private Mongo snapshots; paired5/4; repeat0saved/2existing. Independent sandbox-869466e8 sees only3public IPFS rows and0foreign Mongo IDs. Both new snapshots also match SQLite/Neo4j replicas. Source IDs/CIDs match original ACK. Hosted isolated offline Kubo, bounded CID membership; no general-search/public-network/full-provider-parity claim.
 - Source peer/config/ACK before-state is recorded; post-correction SSH port22timed out, so physical peer persistence was not independently re-observed. Browser/native access is verified.
+
+- **SOLID/S3 HTTP acceptance:** each has native3/2, private Mongo2, federation5/4, repeat0writes/2existing, foreign-private0, exact SQLite/Neo4j2replicas each. Live owner allowance200calls/day,50ktokens/$1cap; normal Free20 remains covered by tests. AWS is anonymous object HEAD metadata, not encrypted owned AWS storage. See the [S3 guide](../../Devs/AWS_S3_PUBLIC_CQL_GUIDE.md) and integration report for hashes.
 
 ## Current contracts and verification
 

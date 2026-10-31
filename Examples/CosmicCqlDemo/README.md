@@ -5,6 +5,14 @@ for configured hosted providers; it needs no local SDK or database. See
 [CURRENT_STATUS](../../Docs/WIP/COSMIC%20ORM/CURRENT_STATUS.md) for verified live
 coverage. Local launchers below are separate from hosted availability.
 
+## Public AWS S3 metadata and Mongo snapshots
+
+The [public S3 guide](../../Docs/Devs/AWS_S3_PUBLIC_CQL_GUIDE.md) covers the live
+three-object and two-object presets, Mongo pairing, HTTP requests and executable
+C# native SDK example. This reads public object metadata; encrypted owned S3
+storage is a separate profile. Hosted HTTP acceptance is recorded in CURRENT_STATUS;
+browser rendering remains a separate gate.
+
 ## SOLID multi-record selection in C# and HTTP
 
 [SolidPointWalkthrough.RunRecordSetAsync](SolidPointWalkthrough.cs) shows a

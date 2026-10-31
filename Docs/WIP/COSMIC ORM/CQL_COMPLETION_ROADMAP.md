@@ -2,9 +2,9 @@
 
 [Current status](CURRENT_STATUS.md) owns the exact next step; [checklist](CQL_PARITY_CHECKLIST.md) owns provider acceptance. Full scope remains active.
 
-1. Preserve verified hosted MongoDB/SQLite/Neo4j acceptance (35/35baseline) and live ActivityPub/IPFS leaf3/2 plus Mongo-paired5/4browser queries, private preparation/reuse/isolation and new SQLite/Neo4j replicas. Release913b9d0bf is healthy. These declared scopes are frozen absent a reproduced bug.
+1. Preserve verified hosted MongoDB/SQLite/Neo4j acceptance (35/35baseline) and live ActivityPub/IPFS leaf3/2 plus Mongo-paired5/4browser queries, private preparation/reuse/isolation and new SQLite/Neo4j replicas. Release b3644ed31/Core bf098a4 is healthy under actual HTTP acceptance. These declared scopes are frozen absent a reproduced bug.
 2. Establish explicit late-replica baseline and authorized reconciliation acceptance (X10a/X10b). Never weaken receiver lineage or skip/delete retained obligations to obtain a green demo.
-3. Continue actual hosted demo breadth: Oracle/IPFS/SOLID/Solana/AWS and the approved remaining providers in CURRENT_STATUS. Reuse preserved local implementations, but each sandbox preset needs native rows, provenance, readiness and tenant isolation. Keep one Mongo pairing plus local links; local launchers/point reads alone are insufficient.
+3. Continue actual hosted demo breadth: Oracle/Solana and remaining providers; SOLID/public S3 metadata now pass native3/2 and Mongo5/4 HTTP/client gates, while browser gates remain open. Continue the approved remaining providers in CURRENT_STATUS. Reuse preserved local implementations, but each sandbox preset needs native rows, provenance, readiness and tenant isolation. Keep one Mongo pairing plus local links; local launchers/point reads alone are insufficient.
 4. Hosted Azure remains pending at the user's direction (free-only, no existing free subscription). Native emulator proof does not satisfy hosted acceptance.
 5. Preserve earlier SQLite/MongoDB/Neo4j query proofs within their declared scopes. Freeze green features/cursors absent a reproducible bug.
 6. LINQ parity depth after entity-selected stages (All/element/numeric terminals), unrestricted POCO mapping and migrations tooling remain deferred. Q01f stays red until its complete matrix passes; do not resume it ahead of demo breadth.
