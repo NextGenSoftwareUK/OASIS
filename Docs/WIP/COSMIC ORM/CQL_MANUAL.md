@@ -8,6 +8,12 @@ Check every OASISResult error/acknowledgement before reading Result. Unsupported
 
 ## Live sandbox walkthrough
 
+SOLID and public AWS S3 metadata also have native three-record/two-record presets
+and Mongo-paired five-row/four-row presets. Use discovery's readiness and returned
+requests. See the [public S3 HTTP/C# guide](../../Devs/AWS_S3_PUBLIC_CQL_GUIDE.md)
+and [SOLID guide](../../Devs/SOLID_CQL_HOST_CONFIGURATION.md). Their live HTTP,
+preparation, replication and isolation gates pass; browser rendering remains open.
+
 No installation is needed for the [hosted sandbox](https://web4.oasisomniverse.one/web4-sandbox.html).
 Start a demo session, open CQL Playground, select ActivityPubOASIS and the
 **Public posts + my Mongo records** example, or choose IPFSOASIS and

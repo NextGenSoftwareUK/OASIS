@@ -27,6 +27,9 @@ object. This requires no AWS account, bucket provisioning or signing credentials
 Hosted enrollment/browser acceptance is tracked separately in
 [CURRENT_STATUS](../../../Docs/WIP/COSMIC%20ORM/CURRENT_STATUS.md).
 
+Developer walkthrough, HTTP requests and executable native C# example:
+[public S3 CQL guide](../../../Docs/Devs/AWS_S3_PUBLIC_CQL_GUIDE.md).
+
 ## Owned encrypted records
 
 Stores encrypted OASIS records in an existing AWS S3 general-purpose bucket through
