@@ -25,3 +25,56 @@ Full documentation and source code can be found here: \
 https://github.com/NextGenSoftwareUK/OASIS
 
 Make sure you check out the Overview and Benefits Of Building On The WEB 4 OASIS API sections above! :) Thank you!
+
+
+## Anonymous public Cloud Storage metadata CQL
+
+`GoogleCloudPublicMetadataSource` is a separate read-only adapter over the existing CQL interfaces. Its public constructor always creates the pinned SDK's anonymous client. It reads object metadata, with SDK retries disabled and no billing-project setting; it never downloads imagery or creates/uploads/deletes cloud objects. Canonical Firestore persistence remains a separate capability.
+
+Configure one to eight distinct printable-ASCII keys (maximum128characters each), a bounded general-purpose bucket name and a stable nonempty source-owner GUID. Retain that GUID with the catalogue: it participates in the deterministic native-to-holon ID. The current native sample uses three official public Landsat objects and needs no Google account, emulator or new runtime.
+
+```csharp
+// Read these values from the retained source configuration.
+// Changing sourceOwner would change the mapped holon identities.
+using var source = new GoogleCloudPublicMetadataSource(
+    bucketName,
+    sourceKeys,
+    sourceOwner);
+
+var activated = await source.ActivateQuerySourceAsync(cancellationToken);
+
+if (activated.IsError)
+    throw new InvalidOperationException(activated.Message, activated.Exception);
+
+// Select several native objects by their metadata key.
+// Use sourceKeys.Take(2).ToArray() to show the smaller subset.
+var selectedKeys = sourceKeys;
+
+var query = CosmicQuery<Holon>
+    .Create(CosmicQueryScope.Named(ProviderType.GoogleCloudOASIS).Result)
+    .Where(holon => selectedKeys.Contains(
+        CosmicQueryMetadata.Value<string>(
+            holon,
+            GoogleCloudPublicMetadataSource.ObjectKeyMetadata)))
+    .Result;
+
+// The common planner checks the adapter's actual capabilities before I/O.
+var planned = CosmicQueryPlanner.Plan(
+    query,
+    ProviderType.GoogleCloudOASIS,
+    new[] { new CosmicQueryTarget(ProviderType.GoogleCloudOASIS, source.QueryCapabilities) });
+
+if (planned.IsError)
+    throw new InvalidOperationException(planned.Message);
+
+var rows = await source.ExecuteCosmicQueryAsync(
+    planned.Result,
+    cancellationToken: cancellationToken);
+
+if (rows.IsError)
+    throw new InvalidOperationException(rows.Message, rows.Exception);
+```
+
+Supported source filters are `GCSObjectKey` equality and bounded membership; paging follows complete selection validation. General Name/Description filters, ordering, aggregate or arbitrary bucket-scan queries are rejected at planning. Output includes name/description and native bucket/key/ETag/generation/size/checksum metadata. Size, generation and metageneration are decimal strings to preserve native integer precision in WEB4/JavaScript. A failed/invalid selected response publishes no partial page.
+
+Verification on31October2026:17controlled cases and1real anonymous SDK/CQL case (three records/two-record subset), no skips. This adapter is not yet registered in the hosted WEB4 sandbox, tariff or Mongo pairing. Do not describe it as hosted CQL/Firestore parity. Official [public-data access](https://docs.cloud.google.com/storage/docs/access-public-data) and [public datasets](https://docs.cloud.google.com/storage/docs/public-datasets).
