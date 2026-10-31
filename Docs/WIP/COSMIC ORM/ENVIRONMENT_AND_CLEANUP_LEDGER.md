@@ -1740,3 +1740,13 @@ zkSync/Abstract HTTPoutcome:2Core/4API/6config/2nativeHTTP/2clientpass0skips; re
 - `LocalState/COSMIC/AbstractMongoHttpCurrent`: 845B,retainintent/ACK/cleanup.
 
 Website5aad1d1pushed with2newCLI/guide/walkthroughlinks and2passingclientcontracts. Publicmain unchanged.27029listenerabsence verified after bothnativegates. Existingworktree/Node reused, no downloads/newenvironment; rawclientlog HostedCqlIntegrationCurrent/zksync-abstract-client-preparation.log regenerable,sizeunmeasured.
+
+### Optional fifteen-source releasecandidate
+31October2026:derive fifteen-source-public-{before,candidate}-variables.dpapi fromsameoriginalsnapshot/stable15catalogues. Preserve10/11/13candidates. Publiconly60preset/focused8presetexports TestResults/HostedCqlIntegrationCurrent; protectedsizespending,retainforreconciliation. ExistingPython/.NET/cacheboundedbuildreuse;nohostread/apply/services/download/newenvironment.
+
+Fifteen-source readonlyhostreconciliation planned through existingRailwayCLI/protectedhelper. Currentvariables onlymemory; sanitizedkeynames/countreport TestResults/HostedCqlIntegrationCurrent/fifteen-source-host-reconciliation.json, no plaintextsettings/credentials. No writes/deployment/newresource.
+
+Fifteen-source outcome:protectedbefore67,094B/candidate104,934B retained;1new8presetplannertestpass0skips,5scopecontrolspass. Hostreadonlysnapshotmatch0drift/17plannedsettings,noapply/services/download/newenvironment. Publicexport/rawresultsregenerable:
+- `TestResults/HostedCqlIntegrationCurrent/fifteen-source-public-review.json`: 58490B,SHA256 `0fb5bfd4f800382fc7c6e7687ec7c4df99a36f4aa7b01308386cae9e844bd3a3`.
+- `TestResults/HostedCqlIntegrationCurrent/zksync-abstract-prepared-review.json`: 7743B,SHA256 `b4218f8fc275ded35341c19241c17d75f5286ea3696a631cfe7e14b6e3eed06e`.
+- `TestResults/HostedCqlIntegrationCurrent/zksync-abstract-prepared-review.trx`: 3359B,SHA256 `dab0a4911ac314d183cc3c128ed2ec7dff1190802759345a299c623f8e97bc4f`.
