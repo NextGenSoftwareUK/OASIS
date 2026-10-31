@@ -1,0 +1,65 @@
+[
+  {
+    "Service": "WEB4",
+    "Mode": "OASISHyperDrive2",
+    "EnableHostedSync": true,
+    "FanOutEnabled": true,
+    "StorageAutoReplication": false,
+    "MongoAtlas": true,
+    "HistoryCompactionMinutes": null
+  },
+  {
+    "Service": "WEB5",
+    "Mode": "Legacy",
+    "EnableHostedSync": true,
+    "FanOutEnabled": true,
+    "StorageAutoReplication": false,
+    "MongoAtlas": true,
+    "HistoryCompactionMinutes": null
+  },
+  {
+    "Service": "WEB6",
+    "Mode": "Legacy",
+    "EnableHostedSync": true,
+    "FanOutEnabled": true,
+    "StorageAutoReplication": false,
+    "MongoAtlas": true,
+    "HistoryCompactionMinutes": null
+  },
+  {
+    "Service": "WEB7",
+    "Mode": "Legacy",
+    "EnableHostedSync": true,
+    "FanOutEnabled": true,
+    "StorageAutoReplication": false,
+    "MongoAtlas": true,
+    "HistoryCompactionMinutes": null
+  },
+  {
+    "Service": "WEB8",
+    "Mode": "Legacy",
+    "EnableHostedSync": true,
+    "FanOutEnabled": true,
+    "StorageAutoReplication": false,
+    "MongoAtlas": true,
+    "HistoryCompactionMinutes": null
+  },
+  {
+    "Service": "WEB9",
+    "Mode": "Legacy",
+    "EnableHostedSync": true,
+    "FanOutEnabled": true,
+    "StorageAutoReplication": false,
+    "MongoAtlas": true,
+    "HistoryCompactionMinutes": null
+  },
+  {
+    "Service": "WEB10",
+    "Mode": "Legacy",
+    "EnableHostedSync": true,
+    "FanOutEnabled": true,
+    "StorageAutoReplication": false,
+    "MongoAtlas": true,
+    "HistoryCompactionMinutes": null
+  }
+]

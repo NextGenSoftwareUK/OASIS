@@ -1,0 +1,178 @@
+{
+  "date": "2026-10-26",
+  "scope": "Redis-compatible facades over shared real SDK/policy; controlled acceptance only, not native product certification",
+  "familyGate": {
+    "passed": 25,
+    "failed": 0,
+    "skipped": 0,
+    "canonicalModes": 8,
+    "canonicalChecks": 208,
+    "otherControls": 17
+  },
+  "existingRedisRegression": {
+    "passed": 37,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 419
+  },
+  "productionChanges": "Four facade rewrites; Redis backend-injection constructor widened protected internal; default soft behavior unchanged",
+  "reports": [
+    {
+      "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/redis-family-controlled-v2.trx.gz",
+      "rawBytes": 39065,
+      "gzipBytes": 4046,
+      "rawSha256": "139d5077cf3af51d4844d9d66ec5bdda3e0e2150682e63bdcd6340324bbd877d",
+      "gzipSha256": "a587acb6386124efcf41b27e2d6fa1ba9a090e4a843c8e78a675ce4dea641dab"
+    },
+    {
+      "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/redis-family-base-regression.trx.gz",
+      "rawBytes": 56507,
+      "gzipBytes": 6117,
+      "rawSha256": "01d94b2545954ccf9c7362908f2243a8cbd661f027b18b143b7aafff6a7700f6",
+      "gzipSha256": "add674626749a4db39148291a6f81aed4145bc9aeaf3f1c502d80bfe2ba59c08"
+    }
+  ],
+  "assemblies": [
+    {
+      "consumerPath": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.UnitTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Core.dll",
+      "sha256": "953140d34718f8777808a5d09e5c22401de1608602380ec02e32996077553222",
+      "pdbSha256": "23549a6029edfd25e630ea953892d9103257d0cb5169adfd09ca4fd792ecddb2",
+      "sourceDocuments": 789,
+      "bytes": 3517440
+    },
+    {
+      "consumerPath": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.UnitTests/bin/Debug/net10.0/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+      "sha256": "827b5f036708422948a757d14bb2f307fb4cab0a695d606d0bd34998d2cb990a",
+      "pdbSha256": "f1fe59d64551206b17f850ecb07a4a7a7a6244af23d5aa369eb27abe10d723ad",
+      "sourceDocuments": 56,
+      "bytes": 379904
+    },
+    {
+      "consumerPath": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.UnitTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.RedisOASIS.dll",
+      "sha256": "1da2b518c5c46f95c3f4aa7d06f5d403dc59558468b10af08fa337483742a7b6",
+      "pdbSha256": "f4533e3ec58a02292294090532d4da80022e09244656f4c360c28a9a703e48b3",
+      "sourceDocuments": 5,
+      "bytes": 40960
+    },
+    {
+      "consumerPath": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.UnitTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.dll",
+      "sha256": "35be4dcd09dc55f7a752431504208e51f7ed15f854fc7692ba30587cb3ff3c7e",
+      "pdbSha256": "ae1e017d76e12c3e4f177f8af2ee6e10ee587ea28325330061098fbc1c8ce399",
+      "sourceDocuments": 3,
+      "bytes": 8192
+    },
+    {
+      "consumerPath": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.UnitTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.ValKeyOASIS.dll",
+      "sha256": "d2c3bd131f964da7c4ac0e51c28366783ca36e6f494de0a1f3f4679e3839e087",
+      "pdbSha256": "8a3af4a47e88cfc8209fce2c996f806aaeed0f5622b867d4fb0615aa886fe367",
+      "sourceDocuments": 3,
+      "bytes": 7680
+    },
+    {
+      "consumerPath": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.UnitTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS.dll",
+      "sha256": "c5712023bffddefa5b5631beb1b0b085479c5cbc878b2e845cf53b1e5367f0ed",
+      "pdbSha256": "faab0c56b718ededd07d161313667156758f2c310e05257e65638cb3474b66c3",
+      "sourceDocuments": 3,
+      "bytes": 7680
+    },
+    {
+      "consumerPath": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.UnitTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.GarnetOASIS.dll",
+      "sha256": "d2ae1c7090b886366755a134032ab0a3cdd7b8eb0316f5f887e9e071c77f0f19",
+      "pdbSha256": "5b2ec910358c5e29cb63f01a91983b0882731f681ef35a6238acff95e3900342",
+      "sourceDocuments": 3,
+      "bytes": 7680
+    },
+    {
+      "consumerPath": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.UnitTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.RedisOASIS.UnitTests.dll",
+      "sha256": "76e90e5f79b5aedd472f28a65d336298c0723cba64ce5bedad27288ee5b3acee",
+      "pdbSha256": "7d6a9350edbb9d9074a0c4b4f002657f4714513d113e20a92e810eae8723f768",
+      "sourceDocuments": 10,
+      "bytes": 86528
+    }
+  ],
+  "outputs": {
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS/bin": {
+      "bytes": 7452418,
+      "files": 34
+    },
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS/obj": {
+      "bytes": 859983,
+      "files": 19
+    },
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ValKeyOASIS/bin": {
+      "bytes": 7451733,
+      "files": 34
+    },
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ValKeyOASIS/obj": {
+      "bytes": 857312,
+      "files": 19
+    },
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS/bin": {
+      "bytes": 7451750,
+      "files": 34
+    },
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS/obj": {
+      "bytes": 857563,
+      "files": 19
+    },
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.GarnetOASIS/bin": {
+      "bytes": 7451733,
+      "files": 34
+    },
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.GarnetOASIS/obj": {
+      "bytes": 857312,
+      "files": 19
+    },
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.RedisOASIS/bin": {
+      "bytes": 7417861,
+      "files": 32
+    },
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.RedisOASIS/obj": {
+      "bytes": 887555,
+      "files": 19
+    },
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.UnitTests/bin": {
+      "bytes": 47563999,
+      "files": 209
+    },
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.UnitTests/obj": {
+      "bytes": 1225032,
+      "files": 21
+    }
+  },
+  "providers": {
+    "KeyDBOASIS": {
+      "linesBefore": 736,
+      "linesAfter": 40,
+      "sourceSha256": "fa06ac76c8075acf4b46fd19dde0284f3ee773e48f0c62cad80959ef21dd91e7",
+      "conformance": "52/52 controlled; native pending",
+      "reportSha256": "9124c51e0d60cb846abe62385f3287c71b1b5b8f3650c3c95dc255869b76c748"
+    },
+    "ValKeyOASIS": {
+      "linesBefore": 1079,
+      "linesAfter": 26,
+      "sourceSha256": "d35bdf53e1fabbaa7fd5c707e03016966892aa77eba6fb2fd4b8f21bebfc56af",
+      "conformance": "52/52 controlled; native pending",
+      "reportSha256": "797522ac338635f66e84d1671aa5acdaf224e725af05b1e3c1d218e752e7aa5e"
+    },
+    "DragonflyOASIS": {
+      "linesBefore": 1079,
+      "linesAfter": 26,
+      "sourceSha256": "7b1b7a79940cbebdd2e33434d28839b75a32128a41ea5024b772ec74285e84e8",
+      "conformance": "52/52 controlled; native pending",
+      "reportSha256": "072ee08b11cb18e35e7362bb01a538f3b2cda2cbd03b579e29237a54e900ef10"
+    },
+    "GarnetOASIS": {
+      "linesBefore": 1079,
+      "linesAfter": 26,
+      "sourceSha256": "4761ba270168197a0597878997a1c08fe61fea80f787ab9c780ff3ec1acd27dd",
+      "conformance": "52/52 controlled; native pending",
+      "reportSha256": "d7120f6681f094953f0eee15f7c2800db62a5808f54838d82ebb0120ad271f04"
+    }
+  },
+  "downloads": 0,
+  "servicesStarted": 0,
+  "newEnvironments": 0,
+  "coreHead": "40108e346841d776515de0a8f50f127c5f8da6e5",
+  "sourceLineReduction": 3855
+}

@@ -87,79 +87,40 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
         return result;
     }
 
-    public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
+    /// <summary>New MultiversX account: 24-word BIP-39 mnemonic and its first SLIP-10 Ed25519 key (hex public key, hex secret key).</summary>
+    public Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
     {
         var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
         try
         {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
-                return result;
-            }
-
-            // Generate Elrond key pair
-            var privateKeyBytes = new byte[32];
-            using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(privateKeyBytes);
-            }
-
-            // Generate Ed25519 key pair for Elrond/MultiversX
-            var privateKey = Convert.ToBase64String(privateKeyBytes);
-            
-            // Derive public key from private key using Ed25519 (simplified - in production use proper Ed25519 library)
-            using var sha512 = System.Security.Cryptography.SHA512.Create();
-            var hash = sha512.ComputeHash(privateKeyBytes);
-            var publicKeyBytes = new byte[32];
-            Array.Copy(hash, 0, publicKeyBytes, 0, 32);
-            var publicKey = Convert.ToBase64String(publicKeyBytes);
-
-            result.Result = (publicKey, privateKey, string.Empty);
-            result.IsError = false;
-            result.Message = "Elrond account key pair created successfully. Seed phrase not applicable for Elrond.";
+            token.ThrowIfCancellationRequested();
+            var mnemonic = ElrondKeys.NewMnemonic();
+            var keys = ElrondKeys.FromMnemonic(mnemonic);
+            result.Result = (keys.PublicKeyHex, keys.SecretKeyHex, mnemonic);
+            result.Message = $"MultiversX account {keys.Address} created.";
         }
         catch (Exception ex)
         {
-            OASISErrorHandling.HandleError(ref result, $"Error creating Elrond account: {ex.Message}", ex);
+            OASISErrorHandling.HandleError(ref result, $"Error creating MultiversX account: {ex.Message}", ex);
         }
-        return result;
+        return Task.FromResult(result);
     }
 
-    public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
+    /// <summary>Restores the first account (index 0) of a BIP-39 mnemonic, as MultiversX wallets do.</summary>
+    public Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
     {
         var result = new OASISResult<(string PublicKey, string PrivateKey)>();
         try
         {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
-                return result;
-            }
-
-            // Elrond uses seed phrases - derive key pair from seed phrase
-            // Derive private key from seed phrase using SHA512
-            using var sha512 = System.Security.Cryptography.SHA512.Create();
-            var seedBytes = sha512.ComputeHash(System.Text.Encoding.UTF8.GetBytes(seedPhrase));
-            var privateKeyBytes = new byte[32];
-            Array.Copy(seedBytes, 0, privateKeyBytes, 0, 32);
-            
-            // Derive public key from private key using Ed25519
-            var publicKeyHash = sha512.ComputeHash(privateKeyBytes);
-            var publicKeyBytes = new byte[32];
-            Array.Copy(publicKeyHash, 0, publicKeyBytes, 0, 32);
-            var publicKey = Convert.ToBase64String(publicKeyBytes);
-            var privateKey = Convert.ToBase64String(privateKeyBytes);
-
-            result.Result = (publicKey, privateKey);
-            result.IsError = false;
-            result.Message = "Elrond account restored successfully.";
+            token.ThrowIfCancellationRequested();
+            var keys = ElrondKeys.FromMnemonic(seedPhrase);
+            result.Result = (keys.PublicKeyHex, keys.SecretKeyHex);
         }
         catch (Exception ex)
         {
-            OASISErrorHandling.HandleError(ref result, $"Error restoring Elrond account: {ex.Message}", ex);
+            OASISErrorHandling.HandleError(ref result, $"Not a valid MultiversX mnemonic: {ex.Message}", ex);
         }
-        return result;
+        return Task.FromResult(result);
     }
 
     public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)

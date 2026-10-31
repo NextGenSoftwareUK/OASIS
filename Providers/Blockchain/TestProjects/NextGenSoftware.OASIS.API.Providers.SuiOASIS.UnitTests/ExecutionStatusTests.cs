@@ -1,0 +1,50 @@
+using System.Reflection;
+using System.Text.Json;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
+namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
+[TestClass]
+public sealed class ExecutionStatusTests
+{
+    [DataTestMethod]
+    [DataRow("{\"transactionHash\":\"requested\",\"status\":{\"success\":true}}", true)]
+    [DataRow("{\"transactionHash\":\"different\",\"status\":{\"success\":true}}", false)]
+    [DataRow("{\"status\":{\"success\":true}}", false)]
+    public void ReceiptMustMatchRequestedDigest(string json, bool matching)
+    {
+        using var document = JsonDocument.Parse(json);
+        var method = typeof(SuiOASIS).GetMethod("MapTransactionReceiptStatus", BindingFlags.NonPublic | BindingFlags.Static)!;
+        if (matching) Assert.AreEqual(BridgeTransactionStatus.Completed, method.Invoke(null, new object[] { document.RootElement, "requested" }));
+        else Assert.ThrowsException<TargetInvocationException>(() => method.Invoke(null, new object[] { document.RootElement, "requested" }));
+    }
+
+    [DataTestMethod]
+    [DataRow("{\"transactionHash\":\"requested\",\"status\":{\"success\":false}}", true)]
+    [DataRow("{\"transactionHash\":\"requested\",\"status\":{}}", false)]
+    public void MatchingDigestStillRequiresExplicitExecutionStatus(string json, bool failed)
+    {
+        using var document = JsonDocument.Parse(json);
+        var method = typeof(SuiOASIS).GetMethod("MapTransactionReceiptStatus", BindingFlags.NonPublic | BindingFlags.Static)!;
+        if (failed) Assert.AreEqual(BridgeTransactionStatus.Failed, method.Invoke(null, new object[] { document.RootElement, "requested" }));
+        else Assert.ThrowsException<TargetInvocationException>(() => method.Invoke(null, new object[] { document.RootElement, "requested" }));
+    }
+
+    [TestMethod]
+    [DataRow("{}")]
+    [DataRow("{\"success\":null}")]
+    [DataRow("{\"success\":\"false\"}")]
+    public void MissingOrMalformedSuccessCannotEstablishFailure(string json)
+    {
+        using var document = JsonDocument.Parse(json);
+        var method = typeof(SuiOASIS).GetMethod("MapExecutionStatus", BindingFlags.NonPublic | BindingFlags.Static)!;
+        Assert.ThrowsException<TargetInvocationException>(() => method.Invoke(null, new object[] { document.RootElement }));
+    }
+    [TestMethod]
+    [DataRow("{\"success\":true}", BridgeTransactionStatus.Completed)]
+    [DataRow("{\"success\":false,\"error\":\"abort\"}", BridgeTransactionStatus.Failed)]
+    public void ConfirmedFailureIsAStatus(string json, BridgeTransactionStatus expected)
+    {
+        using var document = JsonDocument.Parse(json);
+        Assert.AreEqual(expected, typeof(SuiOASIS).GetMethod("MapExecutionStatus", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, new object[] { document.RootElement }));
+    }
+}

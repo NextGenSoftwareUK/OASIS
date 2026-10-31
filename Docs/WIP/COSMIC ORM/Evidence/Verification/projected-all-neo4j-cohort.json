@@ -1,0 +1,34 @@
+{
+  "scope": "Q23e partial; full three-store protected-scope and cross-provider acceptance pending",
+  "status": "passed",
+  "originalFixtureSha256": "892A8AF780ED445887ECBD6C191A7577B053872A13E5CF35FE592A56899894C5",
+  "testSourceSha256": "4447E6A58C2F2D6E578264B7AB2E4E70943DA89BED6F9D303E6B01BEA08ECD3E",
+  "ownedFixtureAbsent": true,
+  "newTerminalCases": 17,
+  "scopedCompositionRegression": 1,
+  "nativeStore": "retained Neo4j bolt17687",
+  "binaryPairs": [
+    {
+      "producer": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "consumer": "C:\\Source\\OASIS\\Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "sha256": "EA77172CAE913B8435488CABF1630B6050D66349D5C07FF6FCD08783D90232B6"
+    },
+    {
+      "producer": "C:\\Source\\OASIS\\Providers\\Shared\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+      "consumer": "C:\\Source\\OASIS\\Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+      "sha256": "3D3F28364C585513BD16F3C180C1770D46EF73D090E56A3BB5A332734652F6C0"
+    },
+    {
+      "producer": "C:\\Source\\OASIS\\Providers\\Storage\\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.dll",
+      "consumer": "C:\\Source\\OASIS\\Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.dll",
+      "sha256": "A3942E193C6AFC7BA28681043A1A4479646A659EFDDF0CC11FFFE9E6DFDDF436"
+    },
+    {
+      "producer": "C:\\Source\\OASIS\\Providers\\Storage\\Neo4j.Driver.OASIS\\bin\\Debug\\net10.0\\Neo4j.Driver.dll",
+      "consumer": "C:\\Source\\OASIS\\Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests\\bin\\Debug\\net10.0\\Neo4j.Driver.dll",
+      "sha256": "67B1DB9F55291AAFE5AAF5132FC32FB139ECCB8BEB705C72AFF29568C1715AC0"
+    }
+  ],
+  "preexistingGraphFingerprintEnforcedEachTest": true,
+  "nativeTests": 18
+}

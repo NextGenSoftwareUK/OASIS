@@ -5,4 +5,13 @@ if [ -n "$OASIS_DNA_JSON" ]; then
 else
     echo "WARNING: OASIS_DNA_JSON not set - OASIS_DNA.json will not be written"
 fi
+for value in "${OASIS_SANDBOX_IPFS:-false}" "${OASIS_SANDBOX_SOLID:-false}"; do
+    case "$value" in
+        true|false) ;;
+        *) echo "Invalid native sandbox runtime flag" >&2; exit 1 ;;
+    esac
+done
+if [ "${OASIS_SANDBOX_IPFS:-false}" = true ] || [ "${OASIS_SANDBOX_SOLID:-false}" = true ]; then
+    exec node /app/host-sandbox-ipfs.cjs
+fi
 exec dotnet NextGenSoftware.OASIS.API.ONODE.WebAPI.dll

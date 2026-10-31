@@ -1,514 +1,212 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text;
+using System.Globalization;
+using System.Numerics;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.Utilities;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-// using Microsoft.Azure.Cosmos;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
-using Nethereum.Signer;
-using Nethereum.Hex.HexConvertors.Extensions;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
-using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
-using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.Common;
 
-namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
+namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
+
+public partial class CosmosBlockChainOASIS
 {
-    public partial class CosmosBlockChainOASIS
+    private const int AssetDecimals = 8;
+    private static readonly BigInteger MaxAssetUnits = (BigInteger.One << 128) - 1;
+
+    private static string AssetUnits(decimal amount)
     {
-        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
+        if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount), "Asset amount must be positive.");
+        var bits = decimal.GetBits(amount);
+        var units = new BigInteger((uint)bits[0]) + (new BigInteger((uint)bits[1]) << 32) + (new BigInteger((uint)bits[2]) << 64);
+        var scale = (bits[3] >> 16) & 255;
+        if (scale <= AssetDecimals) units *= BigInteger.Pow(10, AssetDecimals - scale);
+        else
         {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (string.IsNullOrEmpty(request.FromWalletAddress) || string.IsNullOrEmpty(request.ToWalletAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "FromWalletAddress and ToWalletAddress are required");
-                    return result;
-                }
-
-                // Cosmos uses REST API for transactions
-                // Build transaction payload for Cosmos bank send
-                var transactionPayload = new
-                {
-                    body = new
-                    {
-                        messages = new[]
-                        {
-                            new
-                            {
-                                type = "/cosmos.bank.v1beta1.MsgSend",
-                                value = new
-                                {
-                                    from_address = request.FromWalletAddress,
-                                    to_address = request.ToWalletAddress,
-                                    amount = new[]
-                                    {
-                                        new
-                                        {
-                                            denom = "uatom", // Cosmos native token (would come from request in production)
-                                            amount = ((long)(request.Amount * 1000000)).ToString() // Convert to uatom (6 decimals)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    auth_info = new
-                    {
-                        signer_infos = new object[0],
-                        fee = new
-                        {
-                            amount = new[] { new { denom = "uatom", amount = "1000" } },
-                            gas_limit = "200000"
-                        }
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(transactionPayload);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("/cosmos/tx/v1beta1/txs", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var transactionResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var hash = transactionResult.TryGetProperty("tx_response", out var txResponse) &&
-                               txResponse.TryGetProperty("txhash", out var txhash)
-                        ? txhash.GetString()
-                        : "unknown";
-
-                    result.Result = new TransactionResponse { TransactionResult = hash };
-                    result.IsError = false;
-                    result.Message = "Token sent successfully on Cosmos blockchain";
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"Cosmos API error: {httpResponse.StatusCode} - {errorContent}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error sending token: {ex.Message}", ex);
-            }
-            return result;
+            units = BigInteger.DivRem(units, BigInteger.Pow(10, scale - AssetDecimals), out var remainder);
+            if (remainder != 0) throw new ArgumentException("Custom Cosmos assets support exactly eight decimal places.", nameof(amount));
         }
-
-        public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
-        {
-            return MintTokenAsync(request).Result;
-        }
-
-        public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
-        {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Cosmos token minting requires admin permissions
-                // Minting is typically done through a custom module or bank module
-                var mintAddress = _contractAddress ?? request.MintedByAvatarId.ToString();
-                
-                var transactionPayload = new
-                {
-                    body = new
-                    {
-                        messages = new[]
-                        {
-                            new
-                            {
-                                type = "/cosmos.bank.v1beta1.MsgMint",
-                                value = new
-                                {
-                                    amount = new[]
-                                    {
-                                        new
-                                        {
-                                            denom = "uatom",
-                                            amount = "1000000" // Mint 1 ATOM (would come from request in production)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    auth_info = new
-                    {
-                        signer_infos = new object[0],
-                        fee = new
-                        {
-                            amount = new[] { new { denom = "uatom", amount = "1000" } },
-                            gas_limit = "200000"
-                        }
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(transactionPayload);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("/cosmos/tx/v1beta1/txs", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var transactionResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var hash = transactionResult.TryGetProperty("tx_response", out var txResponse) &&
-                               txResponse.TryGetProperty("txhash", out var txhash)
-                        ? txhash.GetString()
-                        : "unknown";
-
-                    result.Result = new TransactionResponse { TransactionResult = hash };
-                    result.IsError = false;
-                    result.Message = "Token minted successfully on Cosmos blockchain";
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"Cosmos API error: {httpResponse.StatusCode} - {errorContent}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error minting token: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
-        {
-            return BurnTokenAsync(request).Result;
-        }
-
-        public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
-        {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (string.IsNullOrEmpty(request.TokenAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Token address is required");
-                    return result;
-                }
-
-                // Cosmos token burning
-                var transactionPayload = new
-                {
-                    body = new
-                    {
-                        messages = new[]
-                        {
-                            new
-                            {
-                                type = "/cosmos.bank.v1beta1.MsgBurn",
-                                value = new
-                                {
-                                    amount = new[]
-                                    {
-                                        new
-                                        {
-                                            denom = request.TokenAddress,
-                                            amount = "1000000" // Burn amount (would come from request in production)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    auth_info = new
-                    {
-                        signer_infos = new object[0],
-                        fee = new
-                        {
-                            amount = new[] { new { denom = "uatom", amount = "1000" } },
-                            gas_limit = "200000"
-                        }
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(transactionPayload);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("/cosmos/tx/v1beta1/txs", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var transactionResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var hash = transactionResult.TryGetProperty("tx_response", out var txResponse) &&
-                               txResponse.TryGetProperty("txhash", out var txhash)
-                        ? txhash.GetString()
-                        : "unknown";
-
-                    result.Result = new TransactionResponse { TransactionResult = hash };
-                    result.IsError = false;
-                    result.Message = "Token burned successfully on Cosmos blockchain";
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"Cosmos API error: {httpResponse.StatusCode} - {errorContent}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error burning token: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
-        {
-            return LockTokenAsync(request).Result;
-        }
-
-        public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
-        {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (string.IsNullOrEmpty(request.TokenAddress) || string.IsNullOrEmpty(request.FromWalletPrivateKey))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Token address and from wallet private key are required");
-                    return result;
-                }
-
-                // Lock token by transferring to bridge pool
-                var bridgePoolAddress = _contractAddress ?? "cosmos1..."; // Bridge pool address
-                
-                var transactionPayload = new
-                {
-                    body = new
-                    {
-                        messages = new[]
-                        {
-                            new
-                            {
-                                type = "/cosmos.bank.v1beta1.MsgSend",
-                                value = new
-                                {
-                                    from_address = request.FromWalletPrivateKey, // Would derive address from private key in production
-                                    to_address = bridgePoolAddress,
-                                    amount = new[]
-                                    {
-                                        new
-                                        {
-                                            denom = request.TokenAddress,
-                                            amount = "1000000" // Lock amount (would come from request in production)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    auth_info = new
-                    {
-                        signer_infos = new object[0],
-                        fee = new
-                        {
-                            amount = new[] { new { denom = "uatom", amount = "1000" } },
-                            gas_limit = "200000"
-                        }
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(transactionPayload);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("/cosmos/tx/v1beta1/txs", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var transactionResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var hash = transactionResult.TryGetProperty("tx_response", out var txResponse) &&
-                               txResponse.TryGetProperty("txhash", out var txhash)
-                        ? txhash.GetString()
-                        : "unknown";
-
-                    result.Result = new TransactionResponse { TransactionResult = hash };
-                    result.IsError = false;
-                    result.Message = "Token locked successfully on Cosmos blockchain";
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"Cosmos API error: {httpResponse.StatusCode} - {errorContent}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error locking token: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request)
-        {
-            return UnlockTokenAsync(request).Result;
-        }
-
-        public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
-        {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (string.IsNullOrEmpty(request.TokenAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Token address is required");
-                    return result;
-                }
-
-                // Unlock token by transferring from bridge pool to recipient
-                var bridgePoolAddress = _contractAddress ?? "cosmos1..."; // Bridge pool address
-                var recipientAddress = bridgePoolAddress; // Would get from UnlockedByAvatarId in production
-                
-                var transactionPayload = new
-                {
-                    body = new
-                    {
-                        messages = new[]
-                        {
-                            new
-                            {
-                                type = "/cosmos.bank.v1beta1.MsgSend",
-                                value = new
-                                {
-                                    from_address = bridgePoolAddress,
-                                    to_address = recipientAddress,
-                                    amount = new[]
-                                    {
-                                        new
-                                        {
-                                            denom = request.TokenAddress,
-                                            amount = "1000000" // Unlock amount (would come from request in production)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    auth_info = new
-                    {
-                        signer_infos = new object[0],
-                        fee = new
-                        {
-                            amount = new[] { new { denom = "uatom", amount = "1000" } },
-                            gas_limit = "200000"
-                        }
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(transactionPayload);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("/cosmos/tx/v1beta1/txs", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var transactionResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var hash = transactionResult.TryGetProperty("tx_response", out var txResponse) &&
-                               txResponse.TryGetProperty("txhash", out var txhash)
-                        ? txhash.GetString()
-                        : "unknown";
-
-                    result.Result = new TransactionResponse { TransactionResult = hash };
-                    result.IsError = false;
-                    result.Message = "Token unlocked successfully on Cosmos blockchain";
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"Cosmos API error: {httpResponse.StatusCode} - {errorContent}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error unlocking token: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
-        {
-            return GetBalanceAsync(request).Result;
-        }
-
+        if (units > MaxAssetUnits) throw new ArgumentOutOfRangeException(nameof(amount), "Asset amount exceeds Uint128.");
+        return units.ToString(CultureInfo.InvariantCulture);
     }
+
+    public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
+        => SendTokenAsync(request).GetAwaiter().GetResult();
+
+    public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        try
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.FromTokenAddress)
+                || string.IsNullOrWhiteSpace(request.FromWalletAddress) || string.IsNullOrWhiteSpace(request.ToWalletAddress))
+                throw new ArgumentException("Token identity and sender/recipient wallet addresses are required.");
+            // Capture caller-owned scalar intent before signer recovery can yield.
+            var symbol=request.FromTokenAddress;var sender=request.FromWalletAddress;var recipient=request.ToWalletAddress;
+            var amount=request.Amount;var memo=NativeWalletMemo.FromText(request.MemoText).Text;
+            if(amount<=0)throw new ArgumentOutOfRangeException(nameof(request.Amount),"Transfer amount must be positive.");
+            var assetUnits=symbol==_nativeDenom?null:AssetUnits(amount);
+            var key = await SigningKeyAsync(Guid.Empty, request.OwnerPrivateKey, request.OwnerSeedPhrase, request.OwnerPublicKey);
+            if (symbol == _nativeDenom)
+                return await SendBankTransferAsync(sender, recipient, amount, memo, _nativeDenom, key);
+            var hash = await ExecuteAssetAsync(new { token_transfer = new
+            {
+                symbol, recipient, amount = assetUnits
+            } }, key, sender,memoText:memo);
+            result.Result = new TransactionResponse { TransactionResult = hash };
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+        return result;
+    }
+
+    public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
+        => MintTokenAsync(request).GetAwaiter().GetResult();
+
+    public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        try
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Symbol))
+                throw new ArgumentException("Token symbol is required.");
+            var symbol = request.Symbol;
+            var actor = request.MintedByAvatarId;
+            var amount = AssetUnits(request.Amount);
+            var memo = NativeWalletMemo.FromText(request.MemoText).Text;
+            // Serialize caller-owned collections before signer recovery can yield.
+            var metadata = JsonSerializer.Serialize(new { request.Title, request.Description, request.MetaData, request.Tags, request.MintedByAvatarId });
+            string suppliedKey = null;
+            if (actor != Guid.Empty)
+            {
+                var wallet = await LoadSigningWalletAsync(actor);
+                if (wallet.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet,ITransactionResponse>(wallet);
+                suppliedKey = wallet.Result.PrivateKey;
+            }
+            var key = await SigningKeyAsync(actor, suppliedKey);
+            var issuer = await SignerAddressAsync(key);
+            var hash = await ExecuteAssetAsync(new { token_mint = new
+            {
+                symbol, recipient = issuer, amount, metadata_json = metadata
+            } }, key, issuer, memoText: memo);
+            result.Result = new TransactionResponse { TransactionResult = hash };
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+        return result;
+    }
+
+    public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
+        => BurnTokenAsync(request).GetAwaiter().GetResult();
+
+    public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        try
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
+                throw new ArgumentException("Token identity is required.");
+            var symbol = request.TokenAddress;
+            var amount = AssetUnits(request.Amount);
+            var actor = request.BurntByAvatarId;
+            var suppliedKey = request.OwnerPrivateKey;
+            var seed = request.OwnerSeedPhrase;
+            var publicKey = request.OwnerPublicKey;
+            if (actor != Guid.Empty && string.IsNullOrWhiteSpace(suppliedKey) && string.IsNullOrWhiteSpace(seed))
+            {
+                var wallet = await LoadSigningWalletAsync(actor);
+                if (wallet.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet,ITransactionResponse>(wallet);
+                suppliedKey = wallet.Result.PrivateKey;
+            }
+            var key = await SigningKeyAsync(actor, suppliedKey, seed, publicKey);
+            var hash = await ExecuteAssetAsync(new { token_burn = new { symbol, amount } }, key);
+            result.Result = new TransactionResponse { TransactionResult = hash };
+            result.Message = "Requested amount burned and on-chain supply reduced.";
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+        return result;
+    }
+
+    public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
+        => LockTokenAsync(request).GetAwaiter().GetResult();
+    public Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
+        => ChangeTokenEscrowAsync(request?.TokenAddress, true, request?.LockedByAvatarId ?? Guid.Empty,
+            request?.LockId ?? Guid.Empty, request?.Amount ?? 0, request?.EscrowContractAddress,
+            request?.FromWalletPrivateKey, request?.FromWalletAddress);
+    public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request)
+        => UnlockTokenAsync(request).GetAwaiter().GetResult();
+    public Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
+        => ChangeTokenEscrowAsync(request?.TokenAddress, false, request?.UnlockedByAvatarId ?? Guid.Empty,
+            request?.LockId ?? Guid.Empty, 0, request?.EscrowContractAddress);
+
+    private async Task<OASISResult<ITransactionResponse>> ChangeTokenLockAsync(string symbol, bool locked, Guid actor, string suppliedKey = null, string from = null)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        try
+        {
+            if (string.IsNullOrWhiteSpace(symbol)) throw new ArgumentException("Token identity is required.");
+            var key = await SigningKeyAsync(actor, suppliedKey);
+            var hash = await ExecuteAssetAsync(new { token_set_locked = new { symbol, locked } }, key, from);
+            result.Result = new TransactionResponse { TransactionResult = hash };
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+        return result;
+    }
+
+    public async Task<OASISResult<decimal>> GetCustomTokenBalanceAsync(string symbol, string address)
+    {
+        var result = new OASISResult<decimal>();
+        try
+        {
+            var balance = await GetCustomTokenBalanceUnitsAsync(symbol, address);
+            if (balance.IsError) throw balance.Exception ?? new InvalidOperationException(balance.Message);
+            result.Result = CustomTokenBalanceFromUnits(balance.Result);
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+        return result;
+    }
+
+    /// <summary>Exact canonical Uint128 base units; no floating-point or decimal range conversion.</summary>
+    public async Task<OASISResult<string>> GetCustomTokenBalanceUnitsAsync(string symbol, string address)
+    {
+        var result = new OASISResult<string>();
+        try
+        {
+            if (string.IsNullOrWhiteSpace(symbol) || string.IsNullOrWhiteSpace(address))
+                throw new ArgumentException("Token identity and wallet address are required.");
+            var balance = await QueryAssetAsync(new { token_balance = new { symbol, address } });
+            var encoded = balance.GetString();
+            _ = ParseCustomTokenBalanceUnits(encoded);
+            result.Result = encoded;
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+        return result;
+    }
+
+    internal static BigInteger ParseCustomTokenBalanceUnits(string encoded)
+    {
+        if (!BigInteger.TryParse(encoded, NumberStyles.None, CultureInfo.InvariantCulture, out var units)
+            || units.Sign < 0 || units >= (BigInteger.One << 128)
+            || encoded != units.ToString(CultureInfo.InvariantCulture))
+            throw new InvalidOperationException("Cosmos token balance requires canonical unsigned Uint128 units.");
+        return units;
+    }
+
+    internal static decimal CustomTokenBalanceFromUnits(string encoded)
+    {
+        var units = ParseCustomTokenBalanceUnits(encoded);
+        var whole = BigInteger.DivRem(units, BigInteger.Pow(10, AssetDecimals), out var fraction);
+        var value = (decimal)whole + (decimal)fraction / 100000000m;
+        if (!units.IsZero && BigInteger.Parse(AssetUnits(value), CultureInfo.InvariantCulture) != units)
+            throw new InvalidOperationException("Cosmos token balance cannot be represented exactly by the decimal interface.");
+        return value;
+    }
+
+    public Task<OASISResult<JsonElement>> GetCustomTokenAsync(string symbol)
+        => QueryContractAsync(_contractAddress, new { asset = new { message = new { token = new { symbol } } } });
+
+    public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
+        => GetBalanceAsync(request).GetAwaiter().GetResult();
 }

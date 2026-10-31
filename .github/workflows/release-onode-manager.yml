@@ -1,15 +1,12 @@
 name: Publish — ONODE Manager Binaries
 
 on:
-  push:
-    tags:
-      - 'onode-manager-v*'   # e.g. onode-manager-v1.0.0
-  workflow_dispatch:
+  workflow_call:
     inputs:
       version:
-        description: 'Version to release (e.g. 1.0.0)'
+        description: 'Version to release (e.g. 1.0.0); planned by Global OASIS Release'
         required: true
-        default: '1.0.0'
+        type: string
 
 permissions:
   contents: write   # needed to create GitHub Releases and upload assets
@@ -30,11 +27,10 @@ jobs:
         name: Resolve canonical package version and release tag
         shell: bash
         env:
-          REQUESTED_VERSION: ${{ inputs.version }}
-          REF_NAME: ${{ github.ref_name }}
+          VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          version="${REQUESTED_VERSION:-${REF_NAME#onode-manager-v}}"
+          version="$VERSION"
           if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo '::error::ONODE Manager version must be stable SemVer (for example 1.0.0).'
             exit 1

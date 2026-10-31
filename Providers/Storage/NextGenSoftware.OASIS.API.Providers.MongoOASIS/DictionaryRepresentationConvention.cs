@@ -5,19 +5,22 @@ using MongoDB.Bson.Serialization.Options;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
-    class DictionaryRepresentationConvention : ConventionBase, IMemberMapConvention
+    class DictionaryRepresentationConvention : ConventionBase, IPostProcessingConvention
     {
         private readonly DictionaryRepresentation _dictionaryRepresentation;
         public DictionaryRepresentationConvention(DictionaryRepresentation dictionaryRepresentation)
         {
             _dictionaryRepresentation = dictionaryRepresentation;
         }
-        public void Apply(BsonMemberMap memberMap)
+        public void PostProcess(BsonClassMap classMap)
         {
-            var serializer = memberMap.GetSerializer();
-            if (serializer is IDictionaryRepresentationConfigurable dictionaryRepresentationConfigurable)
+            // Core's runtime/navigation exclusion must finish before serializer lookup.
+            // Looking up every member during auto-mapping eagerly freezes ignored types.
+            foreach (var memberMap in classMap.DeclaredMemberMaps)
             {
-                memberMap.SetSerializer(dictionaryRepresentationConfigurable.WithDictionaryRepresentation(_dictionaryRepresentation));
+                var serializer = memberMap.GetSerializer();
+                if (serializer is IDictionaryRepresentationConfigurable dictionaryRepresentationConfigurable)
+                    memberMap.SetSerializer(dictionaryRepresentationConfigurable.WithDictionaryRepresentation(_dictionaryRepresentation));
             }
         }
     }

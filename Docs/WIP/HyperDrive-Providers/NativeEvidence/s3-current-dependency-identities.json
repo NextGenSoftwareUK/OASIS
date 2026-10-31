@@ -1,0 +1,59 @@
+{
+  "counts": {
+    "total": "228",
+    "executed": "228",
+    "passed": "228",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "rawBytes": 356711,
+  "rawSha256": "20c477a8f1e1f15f6adbfebe24a38c349b16d4e692b38f4e10c3b7d08572acde",
+  "archiveBytes": 47678,
+  "archiveSha256": "19fc52c33d1553acd0c09e2ede4a6346234ef43673fa3e25680f32988675e99f",
+  "binaries": [
+    {
+      "path": "Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "bytes": 3495936,
+      "sha256": "a41d737bda952fc336ed874fbb12998c300b424174b80f7085080118a480c39e"
+    },
+    {
+      "path": "Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+      "bytes": 379904,
+      "sha256": "dc15b3a598b097620be940721de3f27bba158c45f65ac06a770f97ae8ec386b5"
+    },
+    {
+      "path": "Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.Providers.Shared.S3.dll",
+      "bytes": 24576,
+      "sha256": "559a31ba872cec2d777f589e046a1a33e172ce49a648edf139309120577b5250"
+    },
+    {
+      "path": "Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.AWSS3OASIS.dll",
+      "bytes": 7168,
+      "sha256": "391fb7c9ea220fa139dc9d7e185bfa95532e59ca5105f49cf2de52c853cc44b5"
+    },
+    {
+      "path": "Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests.dll",
+      "bytes": 252416,
+      "sha256": "a14d64e376f0205f99c0eacfdd80d23a44fb7f1c796c6bccc54730b0656ac7de"
+    }
+  ],
+  "sourceDocuments": {
+    "Core": 787,
+    "Shared": 56,
+    "S3": 4,
+    "AWSS3": 4,
+    "Tests": 19
+  },
+  "scope": "controlled official SDK regression; no hosted AWS requests"
+}

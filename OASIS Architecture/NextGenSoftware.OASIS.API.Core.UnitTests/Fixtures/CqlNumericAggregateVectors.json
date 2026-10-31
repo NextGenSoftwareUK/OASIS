@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "vectors": [
+    {
+      "name": "sum-empty",
+      "operation": "Sum",
+      "domain": "Int64",
+      "nullable": false,
+      "inputs": [],
+      "expected": {
+        "value": "0"
+      }
+    },
+    {
+      "name": "nullable-sum-empty",
+      "operation": "Sum",
+      "domain": "Int64",
+      "nullable": true,
+      "inputs": [],
+      "expected": {
+        "value": "0"
+      }
+    },
+    {
+      "name": "sum-final-overflow",
+      "operation": "Sum",
+      "domain": "Int64",
+      "nullable": false,
+      "inputs": [
+        "9223372036854775807",
+        "1"
+      ],
+      "expected": {
+        "error": "CQL_SCALAR_OVERFLOW"
+      }
+    },
+    {
+      "name": "sum-intermediate-cancellation",
+      "operation": "Sum",
+      "domain": "Int64",
+      "nullable": false,
+      "inputs": [
+        "9223372036854775807",
+        "1",
+        "-1"
+      ],
+      "expected": {
+        "value": "9223372036854775807"
+      }
+    },
+    {
+      "name": "sum-opposing-extremes",
+      "operation": "Sum",
+      "domain": "Int64",
+      "nullable": false,
+      "inputs": [
+        "-9223372036854775808",
+        "9223372036854775807"
+      ],
+      "expected": {
+        "value": "-1"
+      }
+    },
+    {
+      "name": "sum-int32-overflow",
+      "operation": "Sum",
+      "domain": "Int32",
+      "nullable": false,
+      "inputs": [
+        "2147483647",
+        "1"
+      ],
+      "expected": {
+        "error": "CQL_SCALAR_OVERFLOW"
+      }
+    },
+    {
+      "name": "average-empty",
+      "operation": "Average",
+      "domain": "Int64",
+      "nullable": false,
+      "inputs": [],
+      "expected": {
+        "error": "CQL_EMPTY_SEQUENCE"
+      }
+    },
+    {
+      "name": "nullable-average-empty",
+      "operation": "Average",
+      "domain": "Int64",
+      "nullable": true,
+      "inputs": [],
+      "expected": {
+        "value": null
+      }
+    },
+    {
+      "name": "average-third",
+      "operation": "Average",
+      "domain": "Int64",
+      "nullable": false,
+      "inputs": [
+        "1",
+        "0",
+        "0"
+      ],
+      "expected": {
+        "value": "0.3333333333333333333333333333"
+      }
+    },
+    {
+      "name": "average-negative-third",
+      "operation": "Average",
+      "domain": "Int64",
+      "nullable": false,
+      "inputs": [
+        "-1",
+        "0",
+        "0"
+      ],
+      "expected": {
+        "value": "-0.3333333333333333333333333333"
+      }
+    },
+    {
+      "name": "average-overflowing-sum",
+      "operation": "Average",
+      "domain": "Int64",
+      "nullable": false,
+      "inputs": [
+        "9223372036854775807",
+        "9223372036854775807"
+      ],
+      "expected": {
+        "value": "9223372036854775807"
+      }
+    },
+    {
+      "name": "average-beyond-binary64",
+      "operation": "Average",
+      "domain": "Int64",
+      "nullable": false,
+      "inputs": [
+        "9007199254740993",
+        "9007199254740995"
+      ],
+      "expected": {
+        "value": "9007199254740994"
+      }
+    },
+    {
+      "name": "average-opposing-extremes",
+      "operation": "Average",
+      "domain": "Int64",
+      "nullable": false,
+      "inputs": [
+        "-9223372036854775808",
+        "9223372036854775807"
+      ],
+      "expected": {
+        "value": "-0.5"
+      }
+    }
+  ]
+}

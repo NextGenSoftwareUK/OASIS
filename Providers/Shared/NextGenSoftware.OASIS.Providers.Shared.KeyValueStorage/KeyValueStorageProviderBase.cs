@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
@@ -45,44 +46,66 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         #region Keys
 
-        private string AvatarKey(Guid id) => $"{KeyPrefix}avatar/{id:N}";
-        private string AvatarDetailKey(Guid id) => $"{KeyPrefix}avatardetail/{id:N}";
+        private string RecordKey(string kind,Guid id)
+        {
+            if(id==Guid.Empty)throw new ArgumentException("A nonempty OASIS record identity is required.",nameof(id));
+            return $"{KeyPrefix}{kind}/{id:N}";
+        }
+        private string AvatarKey(Guid id) => RecordKey("avatar",id);
+        private string AvatarDetailKey(Guid id) => RecordKey("avatardetail",id);
         private string UsernameKey(string username) => $"{KeyPrefix}avatar-username/{Encode(username)}";
         private string EmailKey(string email) => $"{KeyPrefix}avatar-email/{Encode(email)}";
-        private string HolonKey(Guid id) => $"{KeyPrefix}holon/{id:N}";
+        private string HolonKey(Guid id) => RecordKey("holon",id);
         private string ParentPrefix(Guid parentId) => $"{KeyPrefix}holon-parent/{parentId:N}/";
         private string ParentKey(Guid parentId, Guid id) => $"{ParentPrefix(parentId)}{id:N}";
         // Versions live outside the record prefixes so listing avatars or holons never returns old versions.
         private string VersionPrefix(string recordKey) => $"{KeyPrefix}version/{recordKey[KeyPrefix.Length..]}/";
         private string VersionKey(string recordKey, int version) => $"{VersionPrefix(recordKey)}{version:D10}";
 
-        private async Task StampVersionAsync(string recordKey, IHolonBase entity, IHolonBase previous)
+        private async Task StampVersionAsync(string recordKey, IHolonBase entity, IHolonBase previous,List<string> acknowledged=null,IConditionalKeyValueBackend conditionalArchive=null)
         {
-            if (entity.VersionId == Guid.Empty) entity.VersionId = Guid.NewGuid();
-            if (previous == null)
-            {
-                if (entity.Version < 1) entity.Version = 1;
-                return;
-            }
-
-            if (IsVersionControlEnabled)
-                await Backend.PutAsync(VersionKey(recordKey, previous.Version), OasisJson.Serialize(previous));
-
-            entity.Version = previous.Version + 1;
-            entity.PreviousVersionId = previous.VersionId;
-            entity.VersionId = Guid.NewGuid();
+            await StoredRecordVersions.StampAsync(IdFromKey(recordKey), entity, previous,
+                IsVersionControlEnabled ? async stored =>
+                {
+                    var historyKey = VersionKey(recordKey, stored.Version);
+                    var json=OasisJson.Serialize(stored);
+                    if(conditionalArchive!=null){
+                        var observed=await conditionalArchive.ReadObservedAsync(historyKey);
+                        if(observed!=null){
+                            if(!string.Equals(observed.Value,json,StringComparison.Ordinal))
+                                throw new System.IO.InvalidDataException("Immutable record history differs from the observed canonical record.");
+                            return; // An independently observed identical archive needs no new write/acknowledgement.
+                        }
+                        await conditionalArchive.CreateOnlyAsync(historyKey,json);
+                    }else await Backend.PutAsync(historyKey,json);
+                    acknowledged?.Add(historyKey);
+                } : null);
         }
 
         private async Task<T> ReadVersionAsync<T>(string recordKey, T current, int version) where T : class, IHolonBase
         {
-            if (current == null || version <= 0 || current.Version == version) return current;
-            return await ReadAsync<T>(VersionKey(recordKey, version));
+            return await StoredRecordVersions.ReadAsync(IdFromKey(recordKey), current, version,
+                selected => ReadAsync<T>(VersionKey(recordKey, selected)));
         }
 
-        private async Task DeleteVersionsAsync(string recordKey)
+        private async Task DeleteVersionsAsync(string recordKey,List<string> acknowledged=null)
         {
             foreach (var key in await Backend.ListKeysAsync(VersionPrefix(recordKey)))
-                await Backend.DeleteAsync(key);
+            {await Backend.DeleteAsync(key);acknowledged?.Add(key);}
+        }
+
+        private async Task<List<(string Key,KeyValueObservation Observation)>> ObserveHistoricalDeletesAsync<T>(string recordKey,Guid identity,IConditionalKeyValueBackend conditional) where T:class,IHolonBase
+        {
+            var prefix=VersionPrefix(recordKey);var selected=new List<(string,KeyValueObservation)>();
+            foreach(var key in await Backend.ListKeysAsync(prefix)){
+                if(!key.StartsWith(prefix,StringComparison.Ordinal)||!int.TryParse(key[prefix.Length..],System.Globalization.NumberStyles.None,System.Globalization.CultureInfo.InvariantCulture,out var version)||version<=0)
+                    throw new System.IO.InvalidDataException("Stored history key is invalid.");
+                var observed=await conditional.ReadObservedAsync(key)??throw new StorageLifecycleConflictException("Stored history changed during deletion admission.");
+                var row=OasisJson.DeserializeStored<T>(observed.Value);
+                if(row==null||row.Id!=identity||row.Version!=version)throw new System.IO.InvalidDataException("Stored history identity/version differs from its key.");
+                selected.Add((key,observed));
+            }
+            return selected;
         }
 
         // Usernames and emails may contain characters some services reject in keys; base64url keeps keys portable.
@@ -130,86 +153,205 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         private async Task<T> ReadAsync<T>(string key) where T : class
         {
             var json = await Backend.GetAsync(key);
-            return json == null ? null : OasisJson.Deserialize<T>(json);
+            if (json == null) return null;
+            var record = OasisJson.DeserializeStored<T>(json);
+            if (record == null) throw new System.IO.InvalidDataException("Stored record contains a null payload.");
+            return record;
+        }
+
+        private async Task<(T Record,KeyValueObservation Observation)> ReadForMutationAsync<T>(string key,IConditionalKeyValueBackend conditional) where T:class
+        {
+            if(conditional==null)return(await ReadAsync<T>(key),null);
+            var observed=await conditional.ReadObservedAsync(key);
+            if(observed==null)return(null,null);
+            var record=OasisJson.DeserializeStored<T>(observed.Value)
+                ??throw new System.IO.InvalidDataException("Stored record contains a null payload.");
+            return(record,observed);
         }
 
         private async Task<Guid?> ReadIdAsync(string key)
         {
             var value = await Backend.GetAsync(key);
-            return Guid.TryParse(value, out var id) ? id : null;
+            if (value == null) return null;
+            if (!Guid.TryParse(value, out var id) || id == Guid.Empty)
+                throw new System.IO.InvalidDataException("Stored avatar index contains an invalid record ID.");
+            return id;
         }
 
-        private async Task<List<T>> ReadAllAsync<T>(IEnumerable<string> keys) where T : class
+        private async Task<List<T>> ReadAllAsync<T>(IEnumerable<string> keys, int version = 0, bool continueOnError = false, List<string> failures = null, List<Exception> readErrors = null) where T : class, IHolonBase
         {
+            if (version < 0) throw new ArgumentOutOfRangeException(nameof(version), "Version must be zero (latest) or a positive historical version.");
             using var gate = new SemaphoreSlim(MaxParallelReads);
             var tasks = keys.Select(async key =>
             {
                 await gate.WaitAsync();
-                try { return await ReadAsync<T>(key); }
+                try { return await ReadVersionAsync(key, await ReadAsync<T>(key), version); }
+                catch (Exception ex) when (continueOnError && failures != null
+                    && ex is not System.IO.InvalidDataException && ex is not System.Text.Json.JsonException
+                    && ex is not Newtonsoft.Json.JsonException
+                    && ex is not OperationCanceledException && ex is not NotSupportedException
+                    && ex is not OutOfMemoryException && ex is not AccessViolationException
+                    && ex is not ArgumentException && ex is not FormatException)
+                {
+                    lock (failures)
+                    {
+                        failures.Add($"{IdFromKey(key)} ({ex.GetType().Name})");
+                        readErrors?.Add(ex);
+                    }
+                    return null;
+                }
                 finally { gate.Release(); }
             });
             return (await Task.WhenAll(tasks)).Where(x => x != null).ToList();
         }
 
-        private OASISResult<T> Fail<T>(string message, Exception ex = null)
+        private OASISResult<T> MarkPartialRead<T>(OASISResult<T> result, List<string> failures)
         {
-            var result = new OASISResult<T>();
-            OASISErrorHandling.HandleError(ref result, $"{Name}: {message}", ex);
+            if (failures.Count == 0) return result;
+            result.IsWarning = true;
+            result.Message = $"Returned partial holon data; {failures.Count} record reads failed: {string.Join(", ", failures)}";
+            result.MetaData ??= new Dictionary<string, string>();
+            result.MetaData["partialHolonReads"] = "true";
+            result.MetaData["failedHolonReadCount"] = failures.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            result.MetaData["failedHolonReads"] = OasisJson.Serialize(failures.ToArray());
             return result;
         }
 
-        private static OASISResult<T> Ok<T>(T value, string message = null) => new(value) { IsLoaded = true, Message = message };
+        private OASISResult<T> Fail<T>(string message, Exception ex = null, string errorCode = null)
+        {
+            var result = new OASISResult<T>();
+            OASISErrorHandling.HandleError(ref result, $"{Name}: {message}", ex);
+            result.ErrorCode = errorCode;
+            return result;
+        }
 
-        private static bool ParseKey(string providerKey, out Guid id) => Guid.TryParse(providerKey, out id);
+        private static OASISResult<T> Ok<T>(T value, string message = null, int loadedCount = 1) => new(value) { IsLoaded = true, LoadedCount = loadedCount, Message = message };
+
+        private static bool ParseKey(string providerKey, out Guid id) => Guid.TryParse(providerKey, out id) && id!=Guid.Empty;
+
+        private OASISResult<T> InvalidVersion<T>(int version)=>Fail<T>(
+            "Version must be zero (latest) or a positive historical version.",
+            new ArgumentOutOfRangeException(nameof(version),version,"Negative versions are invalid."),"HYPERDRIVE_PAYLOAD_INVALID");
+
+        private OASISResult<T> InvalidProviderKey<T>()=>Fail<T>("A nonempty GUID provider key is required.",
+            new ArgumentException("A nonempty GUID provider key is required.","providerKey"),"HYPERDRIVE_PAYLOAD_INVALID");
 
         #endregion
 
         #region Avatars
 
+        private async Task PutAcknowledgedAsync(string key,string value,List<string> acknowledged)
+        {
+            await Backend.PutAsync(key,value);acknowledged.Add(key);
+        }
+
+        private static async Task<KeyValueObservation> ReadOwnedIndexAsync(IConditionalKeyValueBackend backend,string key,Guid owner)
+        {
+            var observed=await backend.ReadObservedAsync(key);
+            if(observed!=null&&(!Guid.TryParse(observed.Value,out var actual)||actual!=owner))
+                throw new System.IO.InvalidDataException("Stored index owner differs from its canonical key.");
+            return observed;
+        }
+
+        private static async Task PutObservedAcknowledgedAsync(IConditionalKeyValueBackend backend,string key,string value,KeyValueObservation observed,List<string> acknowledged)
+        {
+            if(observed==null)await backend.CreateOnlyAsync(key,value);
+            else await backend.ReplaceUnchangedAsync(key,value,observed.Revision);
+            acknowledged.Add(key);
+        }
+
+        private static async Task DeleteObservedAcknowledgedAsync(IConditionalKeyValueBackend backend,string key,KeyValueObservation observed,List<string> acknowledged)
+        {
+            await backend.DeleteUnchangedAsync(key,observed.Revision);acknowledged.Add(key);
+        }
+
+        private async Task WriteObservedLifecycleAsync<T>(string key,T proposal,T previous,KeyValueObservation observed,IConditionalKeyValueBackend conditional,List<string> acknowledged) where T:class,IHolonBase
+        {
+            await StampVersionAsync(key,proposal,previous,acknowledged,conditional);
+            await PutObservedAcknowledgedAsync(conditional,key,OasisJson.Serialize(proposal),observed,acknowledged);
+        }
+
+        private async Task DeleteAcknowledgedAsync(string key,List<string> acknowledged)
+        {await Backend.DeleteAsync(key);acknowledged.Add(key);}
+
+        private void PublishSavedMetadata(IHolonBase source,IHolonBase saved,Action validateCaller)
+        {
+            validateCaller();
+            source.Id=saved.Id;source.Version=saved.Version;source.VersionId=saved.VersionId;source.PreviousVersionId=saved.PreviousVersionId;
+            source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
+            source.ProviderUniqueStorageKey[StorageType]=saved.ProviderUniqueStorageKey[StorageType];
+        }
+
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
+            var source=avatar;var acknowledged=new List<string>();
             try
             {
                 if (avatar == null) return Fail<IAvatar>("Avatar is required.");
+                var publication=StoredRecordPublicationSnapshot<IAvatar>.Capture(source);
+                avatar=OasisJson.Deserialize<IAvatar>(OasisJson.Serialize(source));
                 if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
                 avatar.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 avatar.ProviderUniqueStorageKey[StorageType] = avatar.Id.ToString();
 
-                var previous = await ReadAsync<IAvatar>(AvatarKey(avatar.Id));
-                if (previous != null && !string.IsNullOrWhiteSpace(previous.Username) && !string.Equals(previous.Username, avatar.Username, StringComparison.OrdinalIgnoreCase))
-                    await Backend.DeleteAsync(UsernameKey(previous.Username));
-                if (previous != null && !string.IsNullOrWhiteSpace(previous.Email) && !string.Equals(previous.Email, avatar.Email, StringComparison.OrdinalIgnoreCase))
-                    await Backend.DeleteAsync(EmailKey(previous.Email));
-
-                if (!string.IsNullOrWhiteSpace(avatar.Username))
-                {
-                    var owner = await ReadIdAsync(UsernameKey(avatar.Username));
-                    if (owner.HasValue && owner.Value != avatar.Id) return Fail<IAvatar>($"Username '{avatar.Username}' is already taken.");
+                var recordKey=AvatarKey(avatar.Id);var conditional=Backend as IConditionalKeyValueBackend;
+                var (previous,observed)=await ReadForMutationAsync<IAvatar>(recordKey,conditional);
+                var usernameKey=string.IsNullOrWhiteSpace(avatar.Username)?null:UsernameKey(avatar.Username);
+                var emailKey=string.IsNullOrWhiteSpace(avatar.Email)?null:EmailKey(avatar.Email);
+                var nextKeys=new[]{usernameKey,emailKey}.Where(key=>key!=null).ToArray();
+                var retiredKeys=new[]{string.IsNullOrWhiteSpace(previous?.Username)?null:UsernameKey(previous.Username),
+                    string.IsNullOrWhiteSpace(previous?.Email)?null:EmailKey(previous.Email)}
+                    .Where(key=>key!=null&&!nextKeys.Contains(key,StringComparer.Ordinal)).ToArray();
+                var indexes=new Dictionary<string,KeyValueObservation>(StringComparer.Ordinal);
+                foreach(var key in nextKeys){
+                    Guid? owner;
+                    if(conditional==null)owner=await ReadIdAsync(key);
+                    else {
+                        var index=await conditional.ReadObservedAsync(key);indexes.Add(key,index);owner=null;
+                        if(index!=null){
+                            if(!Guid.TryParse(index.Value,out var identity)||identity==Guid.Empty)throw new System.IO.InvalidDataException("Stored avatar identity index is invalid.");
+                            owner=identity;
+                        }
+                    }
+                    if(owner.HasValue&&owner.Value!=avatar.Id){
+                        var message=key==usernameKey?$"Username '{avatar.Username}' is already taken.":$"Email '{avatar.Email}' is already registered.";
+                        return Fail<IAvatar>(message,conditional==null?null:new StorageLifecycleConflictException("Avatar identity is already assigned."));
+                    }
                 }
-                if (!string.IsNullOrWhiteSpace(avatar.Email))
-                {
-                    var owner = await ReadIdAsync(EmailKey(avatar.Email));
-                    if (owner.HasValue && owner.Value != avatar.Id) return Fail<IAvatar>($"Email '{avatar.Email}' is already registered.");
+                if(conditional!=null)foreach(var key in retiredKeys)indexes.Add(key,await ReadOwnedIndexAsync(conditional,key,avatar.Id));
+                publication.ValidateUnchanged();
+                await StampVersionAsync(recordKey,avatar,previous,acknowledged,conditional);
+                publication.ValidateUnchanged();
+                if(conditional==null)await PutAcknowledgedAsync(recordKey,OasisJson.Serialize(avatar),acknowledged);
+                else await PutObservedAcknowledgedAsync(conditional,recordKey,OasisJson.Serialize(avatar),observed,acknowledged);
+                publication.ValidateUnchanged();
+                foreach(var key in nextKeys){
+                    if(conditional==null)await PutAcknowledgedAsync(key,avatar.Id.ToString(),acknowledged);
+                    else await PutObservedAcknowledgedAsync(conditional,key,avatar.Id.ToString(),indexes[key],acknowledged);
+                    publication.ValidateUnchanged();
+                }
+                // Normalized keys define ownership, so case/whitespace-only changes cannot retire a still-current index.
+                foreach(var key in retiredKeys){
+                    if(conditional==null)await DeleteAcknowledgedAsync(key,acknowledged);
+                    else if(indexes[key]!=null){await conditional.DeleteUnchangedAsync(key,indexes[key].Revision);acknowledged.Add(key);}
+                    publication.ValidateUnchanged();
                 }
 
-                await StampVersionAsync(AvatarKey(avatar.Id), avatar, previous);
-                await Backend.PutAsync(AvatarKey(avatar.Id), OasisJson.Serialize(avatar));
-                if (!string.IsNullOrWhiteSpace(avatar.Username)) await Backend.PutAsync(UsernameKey(avatar.Username), avatar.Id.ToString());
-                if (!string.IsNullOrWhiteSpace(avatar.Email)) await Backend.PutAsync(EmailKey(avatar.Email), avatar.Id.ToString());
-
-                return new OASISResult<IAvatar>(avatar) { IsSaved = true, Message = $"Avatar {avatar.Id} saved to {Name}." };
+                PublishSavedMetadata(source,avatar,publication.ValidateUnchanged);
+                return new OASISResult<IAvatar>(source) { IsSaved = true, SavedCount = 1, Message = $"Avatar {avatar.Id} saved to {Name}." };
             }
-            catch (Exception ex) { return Fail<IAvatar>($"Error saving avatar: {ex.Message}", ex); }
+            catch (Exception ex) { return Fail<IAvatar>($"Error saving avatar: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) => SaveAvatarAsync(avatar).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
         {
+            if(version<0)return InvalidVersion<IAvatar>(version);
             try
             {
                 var avatar = await ReadVersionAsync(AvatarKey(id), await ReadAsync<IAvatar>(AvatarKey(id)), version);
-                return avatar == null ? Fail<IAvatar>($"Avatar {id}{(version > 0 ? $" version {version}" : "")} not found.") : Ok(avatar);
+                return avatar == null ? Fail<IAvatar>($"Avatar {id}{(version > 0 ? $" version {version}" : "")} not found.", errorCode: OASISResultErrorCodes.RecordNotFound) : Ok(avatar);
             }
             catch (Exception ex) { return Fail<IAvatar>($"Error loading avatar {id}: {ex.Message}", ex); }
         }
@@ -217,80 +359,156 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
-            => ParseKey(providerKey, out var id) ? await LoadAvatarAsync(id, version) : Fail<IAvatar>($"'{providerKey}' is not a {Name} provider key (expected an avatar id).");
+            => ParseKey(providerKey, out var id) ? await LoadAvatarAsync(id, version) : InvalidProviderKey<IAvatar>();
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => LoadAvatarByProviderKeyAsync(providerKey, version).GetAwaiter().GetResult();
 
-        private async Task<OASISResult<IAvatar>> LoadAvatarByIndexAsync(string indexKey, string description, int version)
+        private async Task<OASISResult<IAvatar>> LoadAvatarByIndexAsync(string indexKey, string description, int version,bool byEmail)
         {
+            if(version<0)return InvalidVersion<IAvatar>(version);
             try
             {
                 var id = await ReadIdAsync(indexKey);
-                return id.HasValue ? await LoadAvatarAsync(id.Value, version) : Fail<IAvatar>($"No avatar with {description}.");
+                if(!id.HasValue)return Fail<IAvatar>($"No avatar with {description}.",errorCode:OASISResultErrorCodes.RecordNotFound);
+                // Validate the current index owner before selecting an independently retained record version.
+                var current=await LoadAvatarAsync(id.Value);
+                if(current.IsError)return current;
+                var value=byEmail ? current.Result.Email:current.Result.Username;
+                if(string.IsNullOrWhiteSpace(value) || !string.Equals(indexKey,byEmail ? EmailKey(value):UsernameKey(value),StringComparison.Ordinal))
+                    throw new System.IO.InvalidDataException("Stored avatar index does not match its current record identity.");
+                return version==0 ? current:await LoadAvatarAsync(id.Value,version);
             }
             catch (Exception ex) { return Fail<IAvatar>($"Error loading avatar with {description}: {ex.Message}", ex); }
         }
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
-            => string.IsNullOrWhiteSpace(avatarUsername) ? Task.FromResult(Fail<IAvatar>("Username is required.")) : LoadAvatarByIndexAsync(UsernameKey(avatarUsername), $"username '{avatarUsername}'", version);
+            => string.IsNullOrWhiteSpace(avatarUsername) ? Task.FromResult(Fail<IAvatar>("Username is required.")) : LoadAvatarByIndexAsync(UsernameKey(avatarUsername), $"username '{avatarUsername}'", version,false);
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) => LoadAvatarByUsernameAsync(avatarUsername, version).GetAwaiter().GetResult();
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-            => string.IsNullOrWhiteSpace(avatarEmail) ? Task.FromResult(Fail<IAvatar>("Email is required.")) : LoadAvatarByIndexAsync(EmailKey(avatarEmail), $"email '{avatarEmail}'", version);
+            => string.IsNullOrWhiteSpace(avatarEmail) ? Task.FromResult(Fail<IAvatar>("Email is required.")) : LoadAvatarByIndexAsync(EmailKey(avatarEmail), $"email '{avatarEmail}'", version,true);
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
+            if(version<0)return InvalidVersion<IEnumerable<IAvatar>>(version);
             try
             {
                 var keys = await Backend.ListKeysAsync($"{KeyPrefix}avatar/");
-                return Ok<IEnumerable<IAvatar>>(await ReadAllAsync<IAvatar>(keys));
+                var avatars=await ReadAllAsync<IAvatar>(keys, version);
+                return Ok<IEnumerable<IAvatar>>(avatars,loadedCount:avatars.Count);
             }
             catch (Exception ex) { return Fail<IEnumerable<IAvatar>>($"Error loading avatars: {ex.Message}", ex); }
         }
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => LoadAllAvatarsAsync(version).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        /// <summary>Provider credential admission boundary; record-history reads remain independent.</summary>
+        protected virtual Task<OASISResult<IEnumerable<IAvatar>>> LoadAvatarsForCredentialSelectionAsync(int version)
+            => LoadAllAvatarsAsync(version);
+
+        private Task<OASISResult<IAvatar>> LoadAvatarByTokenAsync(string token, Func<IAvatar, bool> matches, int version)
+            => StoredAvatarWalletSelector.SelectMatchingAsync(token,version,LoadAvatarsForCredentialSelectionAsync,matches);
+
+        public virtual Task<OASISResult<IAvatar>> LoadAvatarByPublicKeyAsync(string publicKey,int version=0)
+            => StoredAvatarWalletSelector.SelectAsync(publicKey,false,version,LoadAvatarsForCredentialSelectionAsync);
+        public virtual OASISResult<IAvatar> LoadAvatarByPublicKey(string publicKey,int version=0)
+            => LoadAvatarByPublicKeyAsync(publicKey,version).GetAwaiter().GetResult();
+        public virtual Task<OASISResult<IAvatar>> LoadAvatarByPrivateKeyAsync(string privateKey,int version=0)
+            => StoredAvatarWalletSelector.SelectAsync(privateKey,true,version,LoadAvatarsForCredentialSelectionAsync);
+        public virtual OASISResult<IAvatar> LoadAvatarByPrivateKey(string privateKey,int version=0)
+            => LoadAvatarByPrivateKeyAsync(privateKey,version).GetAwaiter().GetResult();
+
+        public override Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string token, int version = 0)
+            => LoadAvatarByTokenAsync(token, avatar => string.Equals(avatar.VerificationToken, token, StringComparison.Ordinal), version);
+        public override OASISResult<IAvatar> LoadAvatarByVerificationToken(string token, int version = 0)
+            => LoadAvatarByVerificationTokenAsync(token, version).GetAwaiter().GetResult();
+        public override Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string token, int version = 0)
+            => LoadAvatarByTokenAsync(token, avatar => string.Equals(avatar.ResetToken, token, StringComparison.Ordinal), version);
+        public override OASISResult<IAvatar> LoadAvatarByResetToken(string token, int version = 0)
+            => LoadAvatarByResetTokenAsync(token, version).GetAwaiter().GetResult();
+        public override Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string token, int version = 0)
+            => LoadAvatarByTokenAsync(token, avatar => avatar.RefreshTokens?.Any(value =>
+                value != null && string.Equals(value.Token, token, StringComparison.Ordinal)) == true, version);
+        public override OASISResult<IAvatar> LoadAvatarByRefreshToken(string token, int version = 0)
+            => LoadAvatarByRefreshTokenAsync(token, version).GetAwaiter().GetResult();
+
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+            => DeleteAvatarCoreAsync(id,softDelete);
+
+        private async Task<OASISResult<bool>> DeleteAvatarCoreAsync(Guid id,bool softDelete,IAvatar selected=null)
         {
+            var acknowledged=new List<string>();
             try
             {
-                var avatar = await ReadAsync<IAvatar>(AvatarKey(id));
-                if (avatar == null) return Fail<bool>($"Avatar {id} not found.");
+                var avatarKey=AvatarKey(id);var detailKey=AvatarDetailKey(id);var conditional=Backend as IConditionalKeyValueBackend;
+                var (avatarRecord,avatarObserved)=await ReadForMutationAsync<IAvatar>(avatarKey,conditional);
+                var avatar=await ReadVersionAsync(avatarKey,avatarRecord,0);
+                if (avatar == null) return Fail<bool>($"Avatar {id} not found.",errorCode:OASISResultErrorCodes.RecordNotFound);
+                // An alias selected this exact intent, not any newer record with the same GUID.
+                // Validate against the existing mutation pre-read before touching detail/history/indexes.
+                if(selected!=null&&!StoredRecordPayloadEquality.Equivalent(StoredRecordJson.CaptureInputToken<IAvatar>(selected),
+                    StoredRecordJson.CaptureInputToken<IAvatar>(avatar)))
+                    throw new StorageLifecycleConflictException("Avatar changed after its deletion selector observation.");
+                var (detailRecord,detailObserved)=await ReadForMutationAsync<IAvatarDetail>(detailKey,conditional);
+                var detail=await ReadVersionAsync(detailKey,detailRecord,0);
 
                 if (softDelete)
                 {
-                    avatar.DeletedDate = DateTime.UtcNow;
-                    avatar.IsActive = false;
-                    await Backend.PutAsync(AvatarKey(id), OasisJson.Serialize(avatar));
+                    var deletedAt=DateTime.UtcNow;
+                    if(conditional==null){
+                        avatar.DeletedDate=deletedAt;avatar.IsActive=false;
+                        await PutAcknowledgedAsync(avatarKey,OasisJson.Serialize(avatar),acknowledged);
+                        if(detail!=null){detail.IsActive=false;detail.DeletedDate=deletedAt;await PutAcknowledgedAsync(detailKey,OasisJson.Serialize(detail),acknowledged);}
+                    }else{
+                        var proposal=OasisJson.Deserialize<IAvatar>(OasisJson.Serialize(avatar));proposal.DeletedDate=deletedAt;proposal.IsActive=false;
+                        await WriteObservedLifecycleAsync(avatarKey,proposal,avatar,avatarObserved,conditional,acknowledged);
+                        if(detail!=null){
+                            var detailProposal=OasisJson.Deserialize<IAvatarDetail>(OasisJson.Serialize(detail));detailProposal.DeletedDate=deletedAt;detailProposal.IsActive=false;
+                            await WriteObservedLifecycleAsync(detailKey,detailProposal,detail,detailObserved,conditional,acknowledged);
+                        }
+                    }
                 }
                 else
                 {
-                    if (!string.IsNullOrWhiteSpace(avatar.Username)) await Backend.DeleteAsync(UsernameKey(avatar.Username));
-                    if (!string.IsNullOrWhiteSpace(avatar.Email)) await Backend.DeleteAsync(EmailKey(avatar.Email));
-                    await DeleteVersionsAsync(AvatarDetailKey(id));
-                    await Backend.DeleteAsync(AvatarDetailKey(id));
-                    await DeleteVersionsAsync(AvatarKey(id));
-                    await Backend.DeleteAsync(AvatarKey(id));
+                    if(conditional==null){
+                        if(!string.IsNullOrWhiteSpace(avatar.Username))await DeleteAcknowledgedAsync(UsernameKey(avatar.Username),acknowledged);
+                        if(!string.IsNullOrWhiteSpace(avatar.Email))await DeleteAcknowledgedAsync(EmailKey(avatar.Email),acknowledged);
+                        await DeleteVersionsAsync(detailKey,acknowledged);await DeleteAcknowledgedAsync(detailKey,acknowledged);
+                        await DeleteVersionsAsync(avatarKey,acknowledged);await DeleteAcknowledgedAsync(avatarKey,acknowledged);
+                    }else{
+                        var indexes=new Dictionary<string,KeyValueObservation>(StringComparer.Ordinal);
+                        foreach(var index in new[]{string.IsNullOrWhiteSpace(avatar.Username)?null:UsernameKey(avatar.Username),string.IsNullOrWhiteSpace(avatar.Email)?null:EmailKey(avatar.Email)}.Where(key=>key!=null)){
+                            var observed=await ReadOwnedIndexAsync(conditional,index,id);if(observed!=null)indexes.Add(index,observed);
+                        }
+                        var avatarVersions=await ObserveHistoricalDeletesAsync<IAvatar>(avatarKey,id,conditional);
+                        var detailVersions=await ObserveHistoricalDeletesAsync<IAvatarDetail>(detailKey,id,conditional);
+                        await DeleteObservedAcknowledgedAsync(conditional,avatarKey,avatarObserved,acknowledged);
+                        if(detailObserved!=null)await DeleteObservedAcknowledgedAsync(conditional,detailKey,detailObserved,acknowledged);
+                        foreach(var index in indexes)await DeleteObservedAcknowledgedAsync(conditional,index.Key,index.Value,acknowledged);
+                        foreach(var version in detailVersions)await DeleteObservedAcknowledgedAsync(conditional,version.Key,version.Observation,acknowledged);
+                        foreach(var version in avatarVersions)await DeleteObservedAcknowledgedAsync(conditional,version.Key,version.Observation,acknowledged);
+                    }
                 }
                 return new OASISResult<bool>(true) { IsDeleted = true, Message = $"Avatar {id} {(softDelete ? "soft" : "permanently")} deleted from {Name}." };
             }
-            catch (Exception ex) { return Fail<bool>($"Error deleting avatar {id}: {ex.Message}", ex); }
+            catch (Exception ex) { return Fail<bool>($"Error deleting avatar {id}: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex,
+                ex is StorageLifecycleConflictException ? StorageLifecycleConflictException.ErrorCode:null); }
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-            => ParseKey(providerKey, out var id) ? await DeleteAvatarAsync(id, softDelete) : Fail<bool>($"'{providerKey}' is not a {Name} provider key (expected an avatar id).");
+            => ParseKey(providerKey, out var id) ? await DeleteAvatarAsync(id, softDelete) : InvalidProviderKey<bool>();
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
             var avatar = await LoadAvatarByEmailAsync(avatarEmail);
-            return avatar.IsError ? Fail<bool>(avatar.Message) : await DeleteAvatarAsync(avatar.Result.Id, softDelete);
+            return avatar.IsError ? Fail<bool>(avatar.Message,avatar.Exception,avatar.ErrorCode) : await DeleteAvatarCoreAsync(avatar.Result.Id,softDelete,avatar.Result);
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) => DeleteAvatarByEmailAsync(avatarEmail, softDelete).GetAwaiter().GetResult();
@@ -298,7 +516,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
             var avatar = await LoadAvatarByUsernameAsync(avatarUsername);
-            return avatar.IsError ? Fail<bool>(avatar.Message) : await DeleteAvatarAsync(avatar.Result.Id, softDelete);
+            return avatar.IsError ? Fail<bool>(avatar.Message,avatar.Exception,avatar.ErrorCode) : await DeleteAvatarCoreAsync(avatar.Result.Id,softDelete,avatar.Result);
         }
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) => DeleteAvatarByUsernameAsync(avatarUsername, softDelete).GetAwaiter().GetResult();
@@ -309,27 +527,37 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
+            var source=avatarDetail;var acknowledged=new List<string>();
             try
             {
                 if (avatarDetail == null) return Fail<IAvatarDetail>("Avatar detail is required.");
                 if (avatarDetail.Id == Guid.Empty) return Fail<IAvatarDetail>("Avatar detail must carry its avatar's id.");
+                var publication=StoredRecordPublicationSnapshot<IAvatarDetail>.Capture(source);
+                avatarDetail=OasisJson.Deserialize<IAvatarDetail>(OasisJson.Serialize(source));
                 avatarDetail.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 avatarDetail.ProviderUniqueStorageKey[StorageType] = avatarDetail.Id.ToString();
-                await StampVersionAsync(AvatarDetailKey(avatarDetail.Id), avatarDetail, await ReadAsync<IAvatarDetail>(AvatarDetailKey(avatarDetail.Id)));
-                await Backend.PutAsync(AvatarDetailKey(avatarDetail.Id), OasisJson.Serialize(avatarDetail));
-                return new OASISResult<IAvatarDetail>(avatarDetail) { IsSaved = true, Message = $"Avatar detail {avatarDetail.Id} saved to {Name}." };
+                var key=AvatarDetailKey(avatarDetail.Id);var conditional=Backend as IConditionalKeyValueBackend;
+                var (previous,observed)=await ReadForMutationAsync<IAvatarDetail>(key,conditional);
+                publication.ValidateUnchanged();
+                await StampVersionAsync(key,avatarDetail,previous,acknowledged,conditional);
+                publication.ValidateUnchanged();
+                if(conditional==null)await PutAcknowledgedAsync(key,OasisJson.Serialize(avatarDetail),acknowledged);
+                else await PutObservedAcknowledgedAsync(conditional,key,OasisJson.Serialize(avatarDetail),observed,acknowledged);
+                PublishSavedMetadata(source,avatarDetail,publication.ValidateUnchanged);
+                return new OASISResult<IAvatarDetail>(source) { IsSaved = true, SavedCount = 1, Message = $"Avatar detail {avatarDetail.Id} saved to {Name}." };
             }
-            catch (Exception ex) { return Fail<IAvatarDetail>($"Error saving avatar detail: {ex.Message}", ex); }
+            catch (Exception ex) { return Fail<IAvatarDetail>($"Error saving avatar detail: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) => SaveAvatarDetailAsync(avatarDetail).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
+            if(version<0)return InvalidVersion<IAvatarDetail>(version);
             try
             {
                 var detail = await ReadVersionAsync(AvatarDetailKey(id), await ReadAsync<IAvatarDetail>(AvatarDetailKey(id)), version);
-                return detail == null ? Fail<IAvatarDetail>($"Avatar detail {id} not found.") : Ok(detail);
+                return detail == null ? Fail<IAvatarDetail>($"Avatar detail {id} not found.", errorCode: OASISResultErrorCodes.RecordNotFound) : Ok(detail);
             }
             catch (Exception ex) { return Fail<IAvatarDetail>($"Error loading avatar detail {id}: {ex.Message}", ex); }
         }
@@ -338,31 +566,103 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
-            var avatar = await LoadAvatarByUsernameAsync(avatarUsername, version);
-            return avatar.IsError ? Fail<IAvatarDetail>(avatar.Message) : await LoadAvatarDetailAsync(avatar.Result.Id, version);
+            if(version<0)return InvalidVersion<IAvatarDetail>(version);
+            // Resolve the current identity, then select ONLY the detail root's version.
+            // Profile and detail histories have independent version counters.
+            var avatar = await LoadAvatarByUsernameAsync(avatarUsername);
+            return avatar.IsError ? OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IAvatarDetail>(avatar) : await LoadAvatarDetailAsync(avatar.Result.Id, version);
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) => LoadAvatarDetailByUsernameAsync(avatarUsername, version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
-            var avatar = await LoadAvatarByEmailAsync(avatarEmail, version);
-            return avatar.IsError ? Fail<IAvatarDetail>(avatar.Message) : await LoadAvatarDetailAsync(avatar.Result.Id, version);
+            if(version<0)return InvalidVersion<IAvatarDetail>(version);
+            var avatar = await LoadAvatarByEmailAsync(avatarEmail);
+            return avatar.IsError ? OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IAvatarDetail>(avatar) : await LoadAvatarDetailAsync(avatar.Result.Id, version);
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => LoadAvatarDetailByEmailAsync(avatarEmail, version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
+            if(version<0)return InvalidVersion<IEnumerable<IAvatarDetail>>(version);
             try
             {
                 var keys = await Backend.ListKeysAsync($"{KeyPrefix}avatardetail/");
-                return Ok<IEnumerable<IAvatarDetail>>(await ReadAllAsync<IAvatarDetail>(keys));
+                var details=await ReadAllAsync<IAvatarDetail>(keys, version);
+                return Ok<IEnumerable<IAvatarDetail>>(details,loadedCount:details.Count);
             }
             catch (Exception ex) { return Fail<IEnumerable<IAvatarDetail>>($"Error loading avatar details: {ex.Message}", ex); }
         }
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).GetAwaiter().GetResult();
+
+        public Task<OASISResult<bool>> DeleteAvatarDetailAsync(Guid id, bool softDelete = true)
+            => DeleteAvatarDetailCoreAsync(id,softDelete);
+
+        private async Task<OASISResult<bool>> DeleteAvatarDetailCoreAsync(Guid id,bool softDelete,IAvatar selected=null)
+        {
+            var acknowledged=new List<string>();
+            try
+            {
+                var key=AvatarDetailKey(id);var conditional=Backend as IConditionalKeyValueBackend;
+                if(selected!=null){
+                    // Alias deletion retains its original profile intent. GUID-only detail
+                    // deletion remains independent of whether a profile record exists.
+                    var avatarKey=AvatarKey(id);
+                    var (profileRecord,_)=await ReadForMutationAsync<IAvatar>(avatarKey,conditional);
+                    var profile=await ReadVersionAsync(avatarKey,profileRecord,0);
+                    if(profile==null||!StoredRecordPayloadEquality.Equivalent(StoredRecordJson.CaptureInputToken<IAvatar>(selected),
+                        StoredRecordJson.CaptureInputToken<IAvatar>(profile)))
+                        throw new StorageLifecycleConflictException("Avatar changed after its detail deletion selector observation.");
+                }
+                var (record,observed)=await ReadForMutationAsync<IAvatarDetail>(key,conditional);
+                var detail=await ReadVersionAsync(key,record,0);
+                if(detail==null)return Fail<bool>($"Avatar detail {id} not found.",errorCode:OASISResultErrorCodes.RecordNotFound);
+                if (softDelete)
+                {
+                    var proposal=OasisJson.Deserialize<IAvatarDetail>(OasisJson.Serialize(detail));
+                    proposal.IsActive=false;proposal.DeletedDate=DateTime.UtcNow;
+                    if(conditional==null){
+                        var saved=await SaveAvatarDetailAsync(proposal);
+                        if(saved.IsError)return Fail<bool>(saved.Message,saved.Exception,saved.ErrorCode);
+                    }else{
+                        await WriteObservedLifecycleAsync(key,proposal,detail,observed,conditional,acknowledged);
+                    }
+                }
+                else
+                {
+                    if(conditional==null){await DeleteVersionsAsync(key,acknowledged);await DeleteAcknowledgedAsync(key,acknowledged);}
+                    else {
+                        var versions=await ObserveHistoricalDeletesAsync<IAvatarDetail>(key,id,conditional);
+                        // Refuse a changed current record BEFORE removing any of its observed history.
+                        await DeleteObservedAcknowledgedAsync(conditional,key,observed,acknowledged);
+                        foreach(var version in versions)await DeleteObservedAcknowledgedAsync(conditional,version.Key,version.Observation,acknowledged);
+                    }
+                }
+                return new OASISResult<bool>(true) { IsDeleted = true, Message = "Avatar detail deleted." };
+            }
+            catch (Exception ex) { return Fail<bool>("Error deleting avatar detail.",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex,
+                ex is StorageLifecycleConflictException ? StorageLifecycleConflictException.ErrorCode:null); }
+        }
+
+        public OASISResult<bool> DeleteAvatarDetail(Guid id, bool softDelete = true)
+            => DeleteAvatarDetailAsync(id, softDelete).GetAwaiter().GetResult();
+        public async Task<OASISResult<bool>> DeleteAvatarDetailByUsernameAsync(string username, bool softDelete = true)
+        {
+            var avatar = await LoadAvatarByUsernameAsync(username);
+            return avatar.IsError ? Fail<bool>(avatar.Message, avatar.Exception,avatar.ErrorCode) : await DeleteAvatarDetailCoreAsync(avatar.Result.Id, softDelete,avatar.Result);
+        }
+        public OASISResult<bool> DeleteAvatarDetailByUsername(string username, bool softDelete = true)
+            => DeleteAvatarDetailByUsernameAsync(username, softDelete).GetAwaiter().GetResult();
+        public async Task<OASISResult<bool>> DeleteAvatarDetailByEmailAsync(string email, bool softDelete = true)
+        {
+            var avatar = await LoadAvatarByEmailAsync(email);
+            return avatar.IsError ? Fail<bool>(avatar.Message, avatar.Exception,avatar.ErrorCode) : await DeleteAvatarDetailCoreAsync(avatar.Result.Id, softDelete,avatar.Result);
+        }
+        public OASISResult<bool> DeleteAvatarDetailByEmail(string email, bool softDelete = true)
+            => DeleteAvatarDetailByEmailAsync(email, softDelete).GetAwaiter().GetResult();
 
         #endregion
 
@@ -371,65 +671,157 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => await SaveHolonInternalAsync(holon, saveChildren, recursive, maxChildDepth, 0, continueOnError);
 
-        private async Task<OASISResult<IHolon>> SaveHolonInternalAsync(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int depth, bool continueOnError)
+        private async Task<OASISResult<IHolon>> SaveHolonInternalAsync(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int depth, bool continueOnError,SaveForest forest=null)
         {
+            var source=holon;var acknowledged=new List<string>();
             try
             {
                 if (holon == null) return Fail<IHolon>("Holon is required.");
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
+                forest??=CaptureSaveForest(new[] {holon},saveChildren,recursive,maxChildDepth,depth);
+                var node=forest.BySource[source];var publication=forest.Publications[source];
+                void ValidateCaller(){publication.ValidateUnchanged();forest.ValidateMembership(source);}
+                ValidateCaller();
+                holon=node.Snapshot;
                 holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 holon.ProviderUniqueStorageKey[StorageType] = holon.Id.ToString();
 
-                var previous = await ReadAsync<IHolon>(HolonKey(holon.Id));
-                if (previous != null && previous.ParentHolonId != Guid.Empty && previous.ParentHolonId != holon.ParentHolonId)
-                    await Backend.DeleteAsync(ParentKey(previous.ParentHolonId, holon.Id));
+                var recordKey=HolonKey(holon.Id);var conditional=Backend as IConditionalKeyValueBackend;
+                var (previous,observed)=await ReadForMutationAsync<IHolon>(recordKey,conditional);
+                ((Holon)holon).ChildRoleManifestJson=HolonChildRolePersistence.Resolve(node,HolonChildRoleWriteKind.SourceSave,
+                    previous!=null,(previous as Holon)?.ChildRoleManifestJson);
+                var nextParentKey=holon.ParentHolonId==Guid.Empty?null:ParentKey(holon.ParentHolonId,holon.Id);
+                var oldParentKey=previous!=null&&previous.ParentHolonId!=Guid.Empty&&previous.ParentHolonId!=holon.ParentHolonId?ParentKey(previous.ParentHolonId,holon.Id):null;
+                KeyValueObservation nextParent=null,oldParent=null;
+                if(conditional!=null){
+                    if(nextParentKey!=null)nextParent=await ReadOwnedIndexAsync(conditional,nextParentKey,holon.Id);
+                    if(oldParentKey!=null)oldParent=await ReadOwnedIndexAsync(conditional,oldParentKey,holon.Id);
+                }
+                ValidateCaller();
+                await StampVersionAsync(recordKey, holon, previous,acknowledged,conditional);
+                ValidateCaller();
+                if(conditional==null)await PutAcknowledgedAsync(recordKey,OasisJson.Serialize(holon),acknowledged);
+                else await PutObservedAcknowledgedAsync(conditional,recordKey,OasisJson.Serialize(holon),observed,acknowledged);
+                ValidateCaller();
+                if(nextParentKey!=null){
+                    if(conditional==null)await PutAcknowledgedAsync(nextParentKey,holon.Id.ToString(),acknowledged);
+                    else await PutObservedAcknowledgedAsync(conditional,nextParentKey,holon.Id.ToString(),nextParent,acknowledged);
+                    ValidateCaller();
+                }
+                if(oldParentKey!=null){
+                    if(conditional==null)await DeleteAcknowledgedAsync(oldParentKey,acknowledged);
+                    else if(oldParent!=null){
+                        await conditional.DeleteUnchangedAsync(oldParentKey,oldParent.Revision);acknowledged.Add(oldParentKey);
+                    }
+                    ValidateCaller();
+                }
 
-                await StampVersionAsync(HolonKey(holon.Id), holon, previous);
-                await Backend.PutAsync(HolonKey(holon.Id), OasisJson.Serialize(holon));
-                if (holon.ParentHolonId != Guid.Empty)
-                    await Backend.PutAsync(ParentKey(holon.ParentHolonId, holon.Id), holon.Id.ToString());
-
-                var result = new OASISResult<IHolon>(holon) { IsSaved = true, Message = $"Holon {holon.Id} saved to {Name}." };
-                var reachedDepth = maxChildDepth > 0 && depth + 1 >= maxChildDepth;
-                if (saveChildren && holon.Children != null && (depth == 0 || recursive) && !reachedDepth)
+                PublishSavedMetadata(source,holon,ValidateCaller);source.ParentHolonId=holon.ParentHolonId;
+                if(source is Holon caller)caller.ChildRoleManifestJson=((Holon)holon).ChildRoleManifestJson;
+                var result = new OASISResult<IHolon>(source) { IsSaved = true, SavedCount = 1, Message = $"Holon {holon.Id} saved to {Name}." };
+                if (node.SelectsChildren)
                 {
-                    foreach (var child in holon.Children)
+                    foreach (var childId in node.SelectedChildIds)
                     {
-                        child.ParentHolonId = holon.Id;
-                        var saved = await SaveHolonInternalAsync(child, saveChildren, recursive, maxChildDepth, depth + 1, continueOnError);
+                        var child=forest.ById[childId].Source;
+                        var saved = await SaveHolonInternalAsync(child, saveChildren, recursive, maxChildDepth, depth + 1, continueOnError,forest);
+                        result.SavedCount += saved.SavedCount;
                         if (saved.IsError)
                         {
-                            OASISErrorHandling.HandleError(ref result, $"{Name}: error saving child holon {child.Id}: {saved.Message}");
-                            if (!continueOnError) return result;
+                            var cause=NativeMutationReconciliation.IsRequired(saved.Exception) ? saved.Exception
+                                :new KeyValuePartialMutationException(StorageType,acknowledged,saved.Exception ?? new InvalidOperationException(saved.Message));
+                            OASISErrorHandling.HandleError(ref result, $"{Name}: error saving child holon {child.Id}: {saved.Message}", cause);
+                            if (!continueOnError || NativeMutationReconciliation.IsRequired(saved.Exception)) return result;
                         }
                     }
                 }
+                if(!result.IsError)HolonChildRolePersistence.PublishAcknowledgedSelection(node);
                 return result;
             }
-            catch (Exception ex) { return Fail<IHolon>($"Error saving holon: {ex.Message}", ex); }
+            catch (Exception ex) { return Fail<IHolon>($"Error saving holon: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).GetAwaiter().GetResult();
 
+        private sealed class SaveForest
+        {
+            public readonly Dictionary<IHolon,PlannedHolonWrite> BySource=new(ReferenceEqualityComparer.Instance);
+            public readonly Dictionary<Guid,PlannedHolonWrite> ById=new();
+            public readonly Dictionary<IHolon,StoredRecordPublicationSnapshot<IHolon>> Publications=new(ReferenceEqualityComparer.Instance);
+            private readonly Dictionary<IHolon,HolonChildCollectionState> _memberships=new(ReferenceEqualityComparer.Instance);
+            public SaveForest(IEnumerable<PlannedHolonWrite> nodes)
+            {
+                foreach(var node in nodes){
+                    BySource.Add(node.Source,node);ById.Add(node.Snapshot.Id,node);
+                    Publications.Add(node.Source,StoredRecordPublicationSnapshot<IHolon>.Capture(node.Source));
+                    if(node.SelectsChildren)_memberships.Add(node.Source,HolonChildCollectionState.Capture(node.Source));
+                }
+            }
+            public void ValidateMembership(IHolon source)
+            {
+                if(!_memberships.TryGetValue(source,out var expected))return;
+                var current=HolonChildCollectionState.Capture(source);
+                if(expected.Collections.Count!=current.Collections.Count || expected.Collections.Where((role,index)=>
+                    role.Name!=current.Collections[index].Name || role.Members.Count!=current.Collections[index].Members.Count ||
+                    role.Members.Where((member,memberIndex)=>!ReferenceEquals(member,current.Collections[index].Members[memberIndex])).Any()).Any())
+                    throw new InvalidOperationException("Caller selected child membership changed after its pre-write snapshot.");
+            }
+        }
+
+        private static SaveForest CaptureSaveForest(IEnumerable<IHolon> roots,bool saveChildren,bool recursive,int maxChildDepth,int depth)
+        {
+            if(maxChildDepth<0 || depth<0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
+            var selected=roots.ToList();if(selected.Count==0) return new SaveForest(Array.Empty<PlannedHolonWrite>());
+            // This provider's existing depth limit counts the root as level one.
+            var children=saveChildren && (depth==0 || recursive) && (maxChildDepth==0 || depth+1<maxChildDepth);
+            try {return new SaveForest(HolonGraphWritePlan.CreateForSave(selected,children,recursive,maxChildDepth==0 ? 0:maxChildDepth-1,depth).Nodes);}
+            catch(ArgumentException cause)
+            {
+                // Preserve the existing terminal invalid-graph boundary while sharing one graph validator.
+                throw new System.IO.InvalidDataException("Cyclic holon child graph or conflicting/repeated graph selection cannot be saved.",cause);
+            }
+        }
+
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             if (holons == null) return Fail<IEnumerable<IHolon>>("Holons are required.");
+            List<IHolon> roots;SaveForest forest;
+            try {roots=holons.ToList();forest=CaptureSaveForest(roots,saveChildren,recursive,maxChildDepth,curentChildDepth);}
+            catch(Exception cause) {return Fail<IEnumerable<IHolon>>($"Invalid holon batch: {cause.Message}",cause);}
             var saved = new List<IHolon>();
-            foreach (var holon in holons)
+            var acknowledged=new HashSet<string>(StringComparer.Ordinal);var failures=new List<Exception>();
+            Exception BatchFailure()
             {
-                var r = await SaveHolonInternalAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError);
+                var cause=failures.Count==1 ? failures[0]:new AggregateException(failures);
+                return acknowledged.Count==0 ? cause:new KeyValuePartialMutationException(StorageType,acknowledged,cause);
+            }
+            foreach (var holon in roots)
+            {
+                var r = await SaveHolonInternalAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError,forest);
+                result.SavedCount += r.SavedCount;
+                if(r.IsSaved && r.Result!=null) acknowledged.Add(HolonKey(r.Result.Id));
+                CollectAcknowledgedKeyEvidence(r.Exception,acknowledged);
                 if (r.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"{Name}: error saving holon {holon?.Id}: {r.Message}");
-                    if (!continueOnError) return result;
+                    failures.Add(r.Exception ?? new InvalidOperationException(r.Message));
+                    OASISErrorHandling.HandleError(ref result, $"{Name}: error saving holon {holon?.Id}: {r.Message}", BatchFailure());
+                    if (!continueOnError || NativeMutationReconciliation.IsRequired(r.Exception)) return result;
                 }
                 else saved.Add(r.Result);
             }
+            if(failures.Count>0) result.Exception=BatchFailure();
             result.Result = saved;
             result.IsSaved = !result.IsError;
             return result;
+        }
+
+        private static void CollectAcknowledgedKeyEvidence(Exception cause,HashSet<string> acknowledged)
+        {
+            if(cause==null) return;
+            if(cause is KeyValuePartialMutationException partial) acknowledged.UnionWith(partial.AcknowledgedKeys);
+            if(cause is AggregateException aggregate) foreach(var inner in aggregate.InnerExceptions) CollectAcknowledgedKeyEvidence(inner,acknowledged);
+            else CollectAcknowledgedKeyEvidence(cause.InnerException,acknowledged);
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -437,15 +829,19 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
+            if(version<0)return InvalidVersion<IHolon>(version);
             try
             {
+                ValidateReadDepth(maxChildDepth, 0);
                 var holon = await ReadVersionAsync(HolonKey(id), await ReadAsync<IHolon>(HolonKey(id)), version);
-                if (holon == null) return Fail<IHolon>($"Holon {id} not found.");
+                if (holon == null) return Fail<IHolon>($"Holon {id} not found.", errorCode: OASISResultErrorCodes.RecordNotFound);
                 if (loadChildren)
                 {
-                    var children = await LoadChildrenAsync(holon.Id, HolonType.All, recursive, maxChildDepth, 0);
-                    if (children.IsError && !continueOnError) return Fail<IHolon>(children.Message);
+                    var failures = new List<string>();
+                    var children = await LoadChildrenAsync(holon.Id, HolonType.All, recursive, maxChildDepth, 0, 0,
+                        continueOnError: continueOnError, failures: failures,owner:holon);
                     holon.Children = children.Result?.ToList() ?? new List<IHolon>();
+                    return MarkPartialRead(Ok(holon), failures);
                 }
                 return Ok(holon);
             }
@@ -458,30 +854,57 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => ParseKey(providerKey, out var id)
                 ? await LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version)
-                : Fail<IHolon>($"'{providerKey}' is not a {Name} provider key (expected a holon id).");
+                : InvalidProviderKey<IHolon>();
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
-        private async Task<OASISResult<IEnumerable<IHolon>>> LoadChildrenAsync(Guid parentId, HolonType type, bool recursive, int maxChildDepth, int depth)
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadChildrenAsync(Guid parentId, HolonType type, bool recursive, int maxChildDepth, int depth, int version, HashSet<Guid> ancestors = null, bool continueOnError = false, List<string> failures = null,IHolon owner=null)
         {
-            var keys = await Backend.ListKeysAsync(ParentPrefix(parentId));
-            var children = await ReadAllAsync<IHolon>(keys.Select(k => HolonKey(IdFromKey(k))));
-            var reachedDepth = maxChildDepth > 0 && depth + 1 >= maxChildDepth;
+            ValidateReadDepth(maxChildDepth, depth);
+            failures ??= new List<string>();
+            var path = ancestors == null ? new HashSet<Guid>() : new HashSet<Guid>(ancestors);
+            if (!path.Add(parentId)) throw new System.IO.InvalidDataException("Cyclic holon parent relationship encountered during recursive child loading.");
+            List<IHolon> children;
+            if(owner is Holon {ChildRoleManifestJson:not null} declared)
+            {
+                var manifest=HolonChildRoleManifestJson.Deserialize(declared.ChildRoleManifestJson);
+                if(manifest.ParentId!=parentId)throw new System.IO.InvalidDataException("Stored child-role manifest belongs to another owner.");
+                var selected=manifest.Roles.SelectMany(role=>role.ChildIds).Distinct().ToArray();
+                var readErrors=new List<Exception>();
+                children=await ReadAllAsync<IHolon>(selected.Select(HolonKey),continueOnError:continueOnError,failures:failures,readErrors:readErrors);
+                if(children.Count+readErrors.Count!=selected.Length || children.Any(child=>!selected.Contains(child.Id) || child.ParentHolonId!=parentId))
+                    throw new System.IO.InvalidDataException("A selected child-role member is absent or belongs to another parent.");
+            }
+            else if (version > 0)
+            {
+                // Current parent indexes cannot represent a retained historical record's former parent.
+                var historicalKeys = await Backend.ListKeysAsync($"{KeyPrefix}holon/");
+                children = (await ReadAllAsync<IHolon>(historicalKeys, version, continueOnError, failures)).Where(child => child.ParentHolonId == parentId).ToList();
+            }
+            else
+            {
+                var keys = await Backend.ListKeysAsync(ParentPrefix(parentId));
+                children = (await ReadAllAsync<IHolon>(keys.Select(k => HolonKey(IdFromKey(k))), version, continueOnError, failures)).Where(child => child.ParentHolonId == parentId).ToList();
+            }
+            children = children.Where(child => child.DeletedDate == DateTime.MinValue).ToList();
+            var reachedDepth = depth == int.MaxValue || (maxChildDepth > 0 && (long)depth + 1 >= maxChildDepth);
             if (recursive && !reachedDepth)
             {
                 foreach (var child in children)
                 {
-                    var grandChildren = await LoadChildrenAsync(child.Id, HolonType.All, true, maxChildDepth, depth + 1);
+                    var grandChildren = await LoadChildrenAsync(child.Id, HolonType.All, true, maxChildDepth, depth + 1, 0, path, continueOnError, failures,child);
                     child.Children = grandChildren.Result?.ToList() ?? new List<IHolon>();
                 }
             }
-            return Ok<IEnumerable<IHolon>>(children.Where(h => type == HolonType.All || h.HolonType == type).ToList());
+            var typedChildren=children.Where(h => type == HolonType.All || h.HolonType == type).ToList();
+            return MarkPartialRead(Ok<IEnumerable<IHolon>>(typedChildren,loadedCount:typedChildren.Count), failures);
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            try { return await LoadChildrenAsync(id, type, loadChildren && recursive, maxChildDepth, curentChildDepth); }
+            if(version<0)return InvalidVersion<IEnumerable<IHolon>>(version);
+            try { return await LoadChildrenAsync(id, type, loadChildren && recursive, maxChildDepth, curentChildDepth, version, continueOnError: continueOnError); }
             catch (Exception ex) { return Fail<IEnumerable<IHolon>>($"Error loading holons for parent {id}: {ex.Message}", ex); }
         }
 
@@ -491,32 +914,55 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => ParseKey(providerKey, out var id)
                 ? await LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version)
-                : Fail<IEnumerable<IHolon>>($"'{providerKey}' is not a {Name} provider key (expected a holon id).");
+                : InvalidProviderKey<IEnumerable<IHolon>>();
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => await LoadHolonCollectionAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, version, continueOnError: continueOnError);
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonCollectionAsync(HolonType type, bool loadChildren, bool recursive, int maxChildDepth, int curentChildDepth, int version, Func<IHolon, bool> predicate = null, bool continueOnError = false)
         {
+            if(version<0)return InvalidVersion<IEnumerable<IHolon>>(version);
             try
             {
+                ValidateReadDepth(maxChildDepth, curentChildDepth);
                 var keys = await Backend.ListKeysAsync($"{KeyPrefix}holon/");
-                var holons = await ReadAllAsync<IHolon>(keys);
-                return Ok<IEnumerable<IHolon>>(holons.Where(h => type == HolonType.All || h.HolonType == type).ToList());
+                var failures = new List<string>();
+                var readErrors = new List<Exception>();
+                var holons = await ReadAllAsync<IHolon>(keys, version, continueOnError, failures, readErrors);
+                if (holons.Count == 0 && readErrors.Count > 0)
+                    throw new AggregateException("No partial holon collection is available: record reads failed.", readErrors);
+                var selected = holons.Where(h => (type == HolonType.All || h.HolonType == type) && (predicate == null || predicate(h))).ToList();
+                if (loadChildren)
+                    foreach (var holon in selected)
+                    {
+                        var children = await LoadChildrenAsync(holon.Id, HolonType.All, recursive, maxChildDepth, curentChildDepth, 0,
+                            continueOnError: continueOnError, failures: failures,owner:holon);
+                        holon.Children = children.Result.ToList();
+                    }
+                return MarkPartialRead(Ok<IEnumerable<IHolon>>(selected,loadedCount:selected.Count), failures);
             }
             catch (Exception ex) { return Fail<IEnumerable<IHolon>>($"Error loading holons: {ex.Message}", ex); }
+        }
+
+        private static void ValidateReadDepth(int maximum, int current)
+        {
+            if (maximum < 0) throw new ArgumentOutOfRangeException(nameof(maximum));
+            if (current < 0) throw new ArgumentOutOfRangeException(nameof(current));
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
         private static bool MetaMatches(IHolon holon, string key, string value)
-            => holon.MetaData != null && holon.MetaData.TryGetValue(key, out var v) && string.Equals(v?.ToString(), value, StringComparison.Ordinal);
+            => holon.MetaData != null && holon.MetaData.TryGetValue(key, out var v) && string.Equals(StoredRecordSearch.MetadataValueText(v), value, StringComparison.Ordinal);
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var all = await LoadAllHolonsAsync(type);
-            return all.IsError ? all : Ok<IEnumerable<IHolon>>(all.Result.Where(h => MetaMatches(h, metaKey, metaValue)).ToList());
+            if (string.IsNullOrWhiteSpace(metaKey)) return Fail<IEnumerable<IHolon>>("A nonblank metadata key is required.");
+            return await LoadHolonCollectionAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, version, h => MetaMatches(h, metaKey, metaValue), continueOnError);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -525,37 +971,76 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0) return Fail<IEnumerable<IHolon>>("At least one metadata key/value pair is required.");
-            var all = await LoadAllHolonsAsync(type);
-            if (all.IsError) return all;
+            if (metaKeyValuePairs.Keys.Any(string.IsNullOrWhiteSpace)) return Fail<IEnumerable<IHolon>>("Metadata keys must be nonblank.");
+            if (!Enum.IsDefined(typeof(MetaKeyValuePairMatchMode), metaKeyValuePairMatchMode))
+                return Fail<IEnumerable<IHolon>>("A defined metadata match mode is required.");
+            var requested=metaKeyValuePairs.ToArray();
             bool Match(IHolon h) => metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any
-                ? metaKeyValuePairs.Any(kv => MetaMatches(h, kv.Key, kv.Value))
-                : metaKeyValuePairs.All(kv => MetaMatches(h, kv.Key, kv.Value));
-            return Ok<IEnumerable<IHolon>>(all.Result.Where(Match).ToList());
+                ? requested.Any(kv => MetaMatches(h, kv.Key, kv.Value))
+                : requested.All(kv => MetaMatches(h, kv.Key, kv.Value));
+            return await LoadHolonCollectionAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, version, Match, continueOnError);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)=>DeleteHolonRecordAsync(id,false);
+
+        protected Task<OASISResult<IHolon>> DeleteHolonRecordAsync(string key,bool softDelete)
+            =>ParseKey(key,out var id)?DeleteHolonRecordAsync(id,softDelete):Task.FromResult(InvalidProviderKey<IHolon>());
+
+        /// <summary>Single shared lifecycle owner. Existing generic DeleteHolon remains hard-delete;
+        /// adapters with an explicit soft-delete contract can reuse the same protected observation/history path.</summary>
+        protected async Task<OASISResult<IHolon>> DeleteHolonRecordAsync(Guid id,bool softDelete)
         {
+            var acknowledged=new List<string>();
             try
             {
-                var holon = await ReadAsync<IHolon>(HolonKey(id));
-                if (holon == null) return Fail<IHolon>($"Holon {id} not found.");
-                if (holon.ParentHolonId != Guid.Empty) await Backend.DeleteAsync(ParentKey(holon.ParentHolonId, id));
-                foreach (var childLink in await Backend.ListKeysAsync(ParentPrefix(id)))
-                    await Backend.DeleteAsync(childLink);
-                await DeleteVersionsAsync(HolonKey(id));
-                await Backend.DeleteAsync(HolonKey(id));
-                return new OASISResult<IHolon>(holon) { IsDeleted = true, Message = $"Holon {id} deleted from {Name}." };
+                var key=HolonKey(id);var conditional=Backend as IConditionalKeyValueBackend;
+                var (record,observed)=await ReadForMutationAsync<IHolon>(key,conditional);
+                var holon=await ReadVersionAsync(key,record,0);
+                if (holon == null) return Fail<IHolon>($"Holon {id} not found.",errorCode:OASISResultErrorCodes.RecordNotFound);
+                if(softDelete){
+                    if(holon.IsDeleted)return new OASISResult<IHolon>(holon){IsDeleted=true,DeletedCount=0};
+                    var proposal=OasisJson.Deserialize<IHolon>(OasisJson.Serialize(holon));
+                    proposal.DeletedDate=DateTime.UtcNow;proposal.IsActive=false;
+                    if(conditional==null){
+                        await StampVersionAsync(key,proposal,holon,acknowledged);
+                        await PutAcknowledgedAsync(key,OasisJson.Serialize(proposal),acknowledged);
+                    }else await WriteObservedLifecycleAsync(key,proposal,holon,observed,conditional,acknowledged);
+                    return new OASISResult<IHolon>(proposal){IsDeleted=true,DeletedCount=1};
+                }
+                if(conditional==null){
+                    if(holon.ParentHolonId!=Guid.Empty)await DeleteAcknowledgedAsync(ParentKey(holon.ParentHolonId,id),acknowledged);
+                    foreach(var childLink in await Backend.ListKeysAsync(ParentPrefix(id)))await DeleteAcknowledgedAsync(childLink,acknowledged);
+                    await DeleteVersionsAsync(key,acknowledged);await DeleteAcknowledgedAsync(key,acknowledged);
+                }else{
+                    var links=new Dictionary<string,KeyValueObservation>(StringComparer.Ordinal);
+                    if(holon.ParentHolonId!=Guid.Empty){
+                        var parentKey=ParentKey(holon.ParentHolonId,id);var parent=await ReadOwnedIndexAsync(conditional,parentKey,id);
+                        if(parent!=null)links.Add(parentKey,parent);
+                    }
+                    var prefix=ParentPrefix(id);
+                    foreach(var childLink in await Backend.ListKeysAsync(prefix)){
+                        if(!childLink.StartsWith(prefix,StringComparison.Ordinal)||childLink.Length!=prefix.Length+32||!Guid.TryParseExact(childLink[prefix.Length..],"N",out var childId)||childId==Guid.Empty)
+                            throw new System.IO.InvalidDataException("Stored child-link key is invalid.");
+                        if(links.ContainsKey(childLink))continue;
+                        var child=await ReadOwnedIndexAsync(conditional,childLink,childId);if(child!=null)links.Add(childLink,child);
+                    }
+                    var versions=await ObserveHistoricalDeletesAsync<IHolon>(key,id,conditional);
+                    await DeleteObservedAcknowledgedAsync(conditional,key,observed,acknowledged);
+                    foreach(var link in links)await DeleteObservedAcknowledgedAsync(conditional,link.Key,link.Value,acknowledged);
+                    foreach(var version in versions)await DeleteObservedAcknowledgedAsync(conditional,version.Key,version.Observation,acknowledged);
+                }
+                return new OASISResult<IHolon>(holon) { IsDeleted = true, DeletedCount=1, Message = $"Holon {id} deleted from {Name}." };
             }
-            catch (Exception ex) { return Fail<IHolon>($"Error deleting holon {id}: {ex.Message}", ex); }
+            catch (Exception ex) { return Fail<IHolon>($"Error deleting holon {id}: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
         }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
-            => ParseKey(providerKey, out var id) ? await DeleteHolonAsync(id) : Fail<IHolon>($"'{providerKey}' is not a {Name} provider key (expected a holon id).");
+            => ParseKey(providerKey, out var id) ? await DeleteHolonAsync(id) : InvalidProviderKey<IHolon>();
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey) => DeleteHolonAsync(providerKey).GetAwaiter().GetResult();
 
@@ -565,49 +1050,55 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
+            try {
+                StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
+                searchParams=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<SearchParams>(searchParams);
+                StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
+            }
+            catch(Exception ex)
+            {return Fail<ISearchResults>($"Invalid search request: {ex.Message}",ex,"HYPERDRIVE_PAYLOAD_INVALID");}
             try
             {
-                var groups = searchParams?.SearchGroups?.OfType<ISearchTextGroup>().Where(g => !string.IsNullOrWhiteSpace(g.SearchQuery)).ToList();
-                if (groups == null || groups.Count == 0) return Fail<ISearchResults>("Search requires at least one text search group with a query.");
-
                 var results = new SearchResults();
-                List<IAvatar> avatars = null;
-                List<IHolon> holons = null;
-
-                foreach (var group in groups)
+                OASISResult<IEnumerable<IHolon>> partialCollection=null;
+                var groups=searchParams.SearchGroups??new List<ISearchGroupBase>();
+                var searchAvatars=groups.Count==0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
+                var searchHolons=groups.Count==0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
+                var avatars=new List<IAvatar>();var holons=new List<IHolon>();
+                if(searchAvatars)
                 {
-                    var q = group.SearchQuery.Trim();
-                    bool Has(string s) => s != null && s.Contains(q, StringComparison.OrdinalIgnoreCase);
-                    var searchAvatars = group.SearchAvatars || !group.SearchHolons;
-                    var searchHolons = group.SearchHolons || !group.SearchAvatars;
-
-                    if (searchAvatars)
-                    {
-                        if (avatars == null)
-                        {
-                            var all = await LoadAllAvatarsAsync(version);
-                            if (all.IsError) return Fail<ISearchResults>(all.Message);
-                            avatars = all.Result.ToList();
-                        }
-                        results.SearchResultAvatars.AddRange(avatars.Where(a => Has(a.Username) || Has(a.Email) || Has(a.FirstName) || Has(a.LastName)
-                            || (group.SearchIds && Has(a.Id.ToString()))).Where(a => !results.SearchResultAvatars.Any(x => x.Id == a.Id)));
-                    }
-
-                    if (searchHolons)
-                    {
-                        if (holons == null)
-                        {
-                            var all = await LoadAllHolonsAsync(HolonType.All, false, false, 0, 0, continueOnError, false, version);
-                            if (all.IsError) return Fail<ISearchResults>(all.Message);
-                            holons = all.Result.ToList();
-                        }
-                        results.SearchResultHolons.AddRange(holons.Where(h => Has(h.Name) || Has(h.Description)
-                            || (group.SearchIds && Has(h.Id.ToString()))).Where(h => !results.SearchResultHolons.Any(x => x.Id == h.Id)));
-                    }
+                    var all=await LoadAllAvatarsAsync(version);
+                    if(all.IsError)return Fail<ISearchResults>(all.Message,all.Exception,all.ErrorCode);
+                    avatars=all.Result.ToList();
                 }
-
+                if(searchHolons || searchParams.ParentId!=Guid.Empty)
+                {
+                    var all=await LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,0,continueOnError,false,version);
+                    if(all.IsError)return Fail<ISearchResults>(all.Message,all.Exception,all.ErrorCode);
+                    if(all.IsWarning)partialCollection=all;
+                    holons=all.Result.ToList();
+                }
+                var ancestry=holons;
+                if(version>0 && searchParams.ParentId!=Guid.Empty)
+                {
+                    var current=await LoadAllHolonsAsync(HolonType.All,false,false,0,0,false,false,0);
+                    if(current.IsError)return Fail<ISearchResults>(current.Message,current.Exception,current.ErrorCode);
+                    ancestry=current.Result.ToList();
+                }
+                results.SearchResultAvatars.AddRange(avatars.Where(row=>row.DeletedDate==DateTime.MinValue && StoredRecordSearch.Matches(row,true,searchParams,ancestry)));
+                if(searchHolons)results.SearchResultHolons.AddRange(holons.Where(row=>row.DeletedDate==DateTime.MinValue && StoredRecordSearch.Matches(row,false,searchParams,ancestry)));
+                if(searchParams.SearchOnlyForCurrentAvatar){
+                    var scoped=partialCollection==null?new OASISResult<IEnumerable<IHolon>>():OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IEnumerable<IHolon>>(partialCollection);
+                    scoped.Result=results.SearchResultHolons;scoped.IsLoaded=true;
+                    var visible=IOASISStorageProvider.ProjectVisibleHolons(scoped,searchParams.AvatarId,false);
+                    if(visible.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,ISearchResults>(visible);
+                    results.SearchResultHolons=visible.Result.ToList();
+                    if(partialCollection!=null)partialCollection=visible;
+                }
                 results.NumberOfResults = results.SearchResultAvatars.Count + results.SearchResultHolons.Count;
-                return Ok<ISearchResults>(results);
+                var result=Ok<ISearchResults>(results,loadedCount:results.NumberOfResults);
+                if(partialCollection!=null){result.IsWarning=true;result.Message=partialCollection.Message;result.MetaData=partialCollection.MetaData;}
+                return result;
             }
             catch (Exception ex) { return Fail<ISearchResults>($"Error searching: {ex.Message}", ex); }
         }
@@ -618,35 +1109,72 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var saved = await SaveHolonsAsync(holons, true, true, 0, 0, false);
-            return saved.IsError ? Fail<bool>(saved.Message) : new OASISResult<bool>(true) { Message = $"Imported {saved.Result.Count()} holons into {Name}." };
+            var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,bool>(saved);
+            result.Result=!saved.IsError&&saved.IsSaved;
+            if(result.Result)result.Message=$"Imported {saved.SavedCount} holons into {Name}.";
+            return result;
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).GetAwaiter().GetResult();
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => LoadAllHolonsAsync(HolonType.All, false, false, 0, 0, true, false, version);
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            if(version!=-1)return await LoadAllHolonsAsync(HolonType.All,false,false,0,0,true,false,version);
+            try {
+                var rows=new List<IHolon>();var roots=new HashSet<string>(StringComparer.Ordinal);
+                foreach(var key in await Backend.ListKeysAsync($"{KeyPrefix}holon/")){
+                    var id=IdFromKey(key);
+                    if(key!=HolonKey(id)||!roots.Add(key))throw new System.IO.InvalidDataException("Export root key is invalid or repeated.");
+                    var current=await ReadVersionAsync(key,await ReadAsync<IHolon>(key),0);
+                    if(current==null||current.Version<0)throw new System.IO.InvalidDataException("Export root is missing or has an invalid version.");
+                    var archived=new SortedDictionary<int,IHolon>();
+                    foreach(var historyKey in await Backend.ListKeysAsync(VersionPrefix(key))){
+                        var suffix=historyKey[(historyKey.LastIndexOf('/')+1)..];
+                        if(!int.TryParse(suffix,System.Globalization.NumberStyles.None,System.Globalization.CultureInfo.InvariantCulture,out var selected)
+                            ||selected<0||selected>=current.Version||historyKey!=VersionKey(key,selected)||archived.ContainsKey(selected))
+                            throw new System.IO.InvalidDataException("Export history key is invalid or repeated.");
+                        var stored=await ReadAsync<IHolon>(historyKey);
+                        if(stored==null||stored.Id!=id||stored.Version!=selected)throw new System.IO.InvalidDataException("Export history identity/version differs from its key.");
+                        archived.Add(selected,stored);
+                    }
+                    rows.AddRange(archived.Values.Where(row=>!row.IsDeleted));
+                    if(!current.IsDeleted)rows.Add(current);
+                }
+                return Ok<IEnumerable<IHolon>>(rows,loadedCount:rows.Count);
+            }catch(Exception cause){return Fail<IEnumerable<IHolon>>("All-version export failed.",cause);}
+        }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
-            var all = await LoadAllHolonsAsync(HolonType.All, false, false, 0, 0, true, false, version);
-            return all.IsError ? all : Ok<IEnumerable<IHolon>>(all.Result.Where(h => h.CreatedByAvatarId == avatarId).ToList());
+            if(avatarId==Guid.Empty)return Fail<IEnumerable<IHolon>>("A nonempty avatar export identity is required.",
+                new ArgumentException("A nonempty avatar identity is required.",nameof(avatarId)),"HYPERDRIVE_PAYLOAD_INVALID");
+            var all = await ExportAllAsync(version);
+            if(all.IsError)return all;
+            var filtered=all.Result.Where(h=>h.CreatedByAvatarId==avatarId).ToList();
+            all.Result=filtered;all.LoadedCount=filtered.Count;
+            // Project each stored root independently; do not hydrate or merge versions.
+            return version==-1 ? IOASISStorageProvider.ProjectVisibleHolons(all,avatarId,false) : all;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            var avatar = await LoadAvatarByUsernameAsync(avatarUsername, version);
-            return avatar.IsError ? Fail<IEnumerable<IHolon>>(avatar.Message) : await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
+            if(version < -1)return InvalidVersion<IEnumerable<IHolon>>(version);
+            // Identity and exported holon histories have independent version counters.
+            var avatar = await LoadAvatarByUsernameAsync(avatarUsername);
+            return avatar.IsError ? Fail<IEnumerable<IHolon>>(avatar.Message,avatar.Exception,avatar.ErrorCode) : await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
-            var avatar = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
-            return avatar.IsError ? Fail<IEnumerable<IHolon>>(avatar.Message) : await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
+            if(version < -1)return InvalidVersion<IEnumerable<IHolon>>(version);
+            var avatar = await LoadAvatarByEmailAsync(avatarEmailAddress);
+            return avatar.IsError ? Fail<IEnumerable<IHolon>>(avatar.Message,avatar.Exception,avatar.ErrorCode) : await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).GetAwaiter().GetResult();

@@ -175,59 +175,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return result;
         }
 
-        public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
-        {
-            var result = new OASISResult<BridgeTransactionStatus>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-                if (Web3Client == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(transactionHash))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Transaction hash is required");
-                    return result;
-                }
-
-                var transactionReceipt = await Web3Client.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
-
-                if (transactionReceipt == null)
-                {
-                    result.Result = BridgeTransactionStatus.NotFound;
-                    result.IsError = true;
-                    result.Message = "Transaction not found.";
-                }
-                else if (transactionReceipt.Status.Value == 1)
-                {
-                    result.Result = BridgeTransactionStatus.Completed;
-                    result.IsError = false;
-                }
-                else
-                {
-                    result.Result = BridgeTransactionStatus.Canceled;
-                    result.IsError = true;
-                    result.Message = "Transaction failed on chain.";
-                }
+public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
+        => NextGenSoftware.OASIS.Providers.Shared.Evm.EvmTransactionStatus.ReadAsync(transactionHash,async ()=>{
+            if(!IsProviderActivated){
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError)return new OASISResult<Nethereum.Web3.Web3>{IsError=true,Message=activation.Message,Exception=activation.Exception,ErrorCode=activation.ErrorCode};
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting Ethereum transaction status: {ex.Message}", ex);
-                result.Result = BridgeTransactionStatus.NotFound;
-            }
-            return result;
-        }
+            return new OASISResult<Nethereum.Web3.Web3>{Result=Web3Client};
+        },token);
 
 
 
@@ -236,89 +191,97 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return SendNFTAsync(transaction).Result;
         }
 
+        private readonly SemaphoreSlim _nftSendGate = new(1, 1);
+
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest transaction)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-            string errorMessage = "Error in SendNFTAsync method in EthereumOASIS. Reason: ";
-
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
+            var dispatched = false;
+            Nethereum.RPC.Eth.DTOs.TransactionReceipt receipt = null;
             try
             {
+                // Freeze consumed intent before activation, the signing gate and owner reads yield.
+                // Signing material stays in memory; never serialize this request.
+                if (transaction != null)
+                    transaction = new SendWeb3NFTRequest
+                    {
+                        Amount = transaction.Amount, TokenId = transaction.TokenId,
+                        TokenAddress = transaction.TokenAddress, FromNFTTokenAddress = transaction.FromNFTTokenAddress,
+                        FromWalletAddress = transaction.FromWalletAddress, ToWalletAddress = transaction.ToWalletAddress,
+                        OwnerPrivateKey = transaction.OwnerPrivateKey, MemoText = transaction.MemoText
+                    };
+                if (transaction == null || transaction.Amount != 1)
+                    throw new ArgumentException("ERC-721 transfer requires a request with amount exactly one.");
+                if (!BigInteger.TryParse(transaction.TokenId, System.Globalization.NumberStyles.None,
+                    System.Globalization.CultureInfo.InvariantCulture, out var tokenId)
+                    || tokenId < 0 || tokenId >= (BigInteger.One << 256))
+                    throw new ArgumentException("NFT token ID must be a decimal uint256 value.");
+                var addresses = new[] { transaction.TokenAddress, transaction.FromWalletAddress, transaction.ToWalletAddress };
+                if (addresses.Any(address => !Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(address)
+                    || string.Equals(address, "0x0000000000000000000000000000000000000000", StringComparison.OrdinalIgnoreCase)))
+                    throw new ArgumentException("Nonzero NFT contract, sender and recipient addresses are required.");
+                if (!string.IsNullOrWhiteSpace(transaction.FromNFTTokenAddress)
+                    && !string.Equals(transaction.FromNFTTokenAddress, transaction.TokenAddress, StringComparison.OrdinalIgnoreCase))
+                    throw new ArgumentException("NFT token-contract addresses conflict.");
+                // This interface supplies owner credentials, not an avatar identity.
+                // Never query Guid.Empty or silently use the platform's funded account.
+                if (string.IsNullOrWhiteSpace(transaction.OwnerPrivateKey))
+                    throw new ArgumentException("NFT owner private key is required.");
+                var account = new Account(transaction.OwnerPrivateKey, ChainId);
+                if (!string.Equals(account.Address, transaction.FromWalletAddress, StringComparison.OrdinalIgnoreCase))
+                    throw new ArgumentException("NFT sender does not match the signing account.");
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
+                    var activated = await ActivateProviderAsync();
+                    if (activated.IsError) throw new InvalidOperationException(activated.Message, activated.Exception);
+                }
+                if (Web3Client == null) throw new InvalidOperationException("Ethereum provider is not initialized.");
+
+                await _nftSendGate.WaitAsync();
+                try
+                {
+                    const string abi = "[{\"type\":\"function\",\"name\":\"ownerOf\",\"inputs\":[{\"name\":\"id\",\"type\":\"uint256\"}],\"outputs\":[{\"name\":\"owner\",\"type\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"transferFrom\",\"inputs\":[{\"name\":\"from\",\"type\":\"address\"},{\"name\":\"to\",\"type\":\"address\"},{\"name\":\"id\",\"type\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"}]";
+                    var web3 = CreateWeb3WithAccount(account, HostURI);
+                    var contract = web3.Eth.GetContract(abi, transaction.TokenAddress);
+                    var ownerOf = contract.GetFunction("ownerOf");
+                    var owner = await ownerOf.CallAsync<string>(tokenId);
+                    if (!string.Equals(owner, account.Address, StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException("NFT is not owned by the signing account.");
+                    dispatched = true;
+                    receipt = await SubmitNftAsync(web3, contract.GetFunction("transferFrom"),
+                        account.Address, new HexBigInteger(600000),
+                        account.Address, transaction.ToWalletAddress, tokenId);
+                    if (!StorageReceiptSucceeded(receipt))
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        result.IsError = true;
+                        result.ErrorCode = "ETHEREUM_NFT_REVERTED";
+                        result.Result = new Web3NFTTransactionResponse { TransactionResult = receipt.TransactionHash };
+                        result.Message = "ERC-721 transaction reverted.";
                         return result;
                     }
-                }
-                if (Web3Client == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
-                    return result;
-                }
-
-                if (transaction == null || string.IsNullOrWhiteSpace(transaction.TokenAddress) ||
-                    string.IsNullOrWhiteSpace(transaction.ToWalletAddress) ||
-                    string.IsNullOrWhiteSpace(transaction.FromWalletAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Token address, from wallet address, and to wallet address are required");
-                    return result;
-                }
-
-                // Get private key for sender
-                var keysResult = KeyManager.GetProviderPrivateKeysForAvatarById(Guid.Empty, Core.Enums.ProviderType.EthereumOASIS);
-                string privateKey = null;
-                if (keysResult.IsError || keysResult.Result == null || keysResult.Result.Count == 0)
-                {
-                    // Try to get from request if available
-                    if (transaction is SendWeb3NFTRequest sendRequest && !string.IsNullOrWhiteSpace(sendRequest.FromWalletAddress))
+                    NextGenSoftware.OASIS.Providers.Shared.Evm.EvmErc721TransferReceipt.Verify(receipt,
+                        transaction.TokenAddress, transaction.FromWalletAddress, transaction.ToWalletAddress, tokenId);
+                    owner = await ownerOf.CallAsync<string>(new Nethereum.RPC.Eth.DTOs.BlockParameter(receipt.BlockNumber), tokenId);
+                    if (!string.Equals(owner, transaction.ToWalletAddress, StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidDataException("NFT receipt did not establish recipient ownership.");
+                    result.Result = new Web3NFTTransactionResponse
                     {
-                        // For now, we need the private key - this should come from KeyManager based on FromWalletAddress
-                        OASISErrorHandling.HandleError(ref result, "Could not retrieve private key for sender wallet");
-                        return result;
-                    }
+                        TransactionResult = receipt.TransactionHash,
+                        Web3NFT = new Web3NFT { NFTTokenAddress = transaction.TokenAddress,
+                            TokenId = tokenId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                            SendNFTTransactionHash = receipt.TransactionHash, MemoText = transaction.MemoText }
+                    };
+                    result.IsSaved = true;
                 }
-                else
-                {
-                    privateKey = keysResult.Result[0];
-                }
-
-                var senderAccount = new Account(privateKey, ChainId);
-                var web3 = CreateWeb3WithAccount(senderAccount, HostURI);
-
-                // ERC-721 transferFrom function ABI
-                var erc721Abi = @"[{""constant"":false,""inputs"":[{""name"":""_from"",""type"":""address""},{""name"":""_to"",""type"":""address""},{""name"":""_tokenId"",""type"":""uint256""}],""name"":""transferFrom"",""outputs"":[],""payable"":false,""stateMutability"":""nonpayable"",""type"":""function""}]";
-                var erc721Contract = web3.Eth.GetContract(erc721Abi, transaction.TokenAddress);
-                var transferFunction = erc721Contract.GetFunction("transferFrom");
-
-                var tokenId = BigInteger.Parse(transaction.TokenId ?? "0");
-                var receipt = await transferFunction.SendTransactionAndWaitForReceiptAsync(
-                    senderAccount.Address,
-                    new HexBigInteger(600000),
-                    null,
-                    null,
-                    transaction.FromWalletAddress,
-                    transaction.ToWalletAddress,
-                    tokenId);
-
-                if (receipt.HasErrors() == true)
-                {
-                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "ERC-721 transfer failed."));
-                    return result;
-                }
-
-                result.Result.TransactionResult = receipt.TransactionHash;
-                result.Result.Web3NFT = new Web3NFT
-                {
-                    NFTTokenAddress = transaction.TokenAddress,
-                    SendNFTTransactionHash = receipt.TransactionHash
-                };
-                TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
+                finally { _nftSendGate.Release(); }
             }
-            catch (Exception ex)
+            catch (Exception cause)
             {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                result.IsError = true;
+                result.Exception = cause is INativeMutationReconciliationRequired ? cause
+                    : dispatched ? new EthereumNftMutationReconciliationException(receipt?.TransactionHash, cause) : cause;
+                if (!dispatched && cause is ArgumentException) result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";
+                result.Message = result.Exception.Message;
             }
             return result;
         }
@@ -332,15 +295,49 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         {
             var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
             string errorMessage = "Error in MintNFTAsync method in EthereumOASIS. Reason: ";
+            var dispatched = false;
+            string submittedHash = null;
 
             try
             {
+                if (transaction == null || transaction.MintedByAvatarId == Guid.Empty)
+                    throw new ArgumentException("Mint requires a request and an authorized minter avatar.");
+                var minter = transaction.MintedByAvatarId;
+                var requestedRecipient = transaction.SendToAddressAfterMinting;
+                var requestedCollection = transaction.CollectionPublicKey;
+                var memo = transaction.MemoText;
+                // NFTManager prepares public NFT metadata. Never serialize the
+                // administrative mint request (avatar/email/routing/signing controls).
+                // An omitted on-chain flag does not authorize publishing its JSON.
+                var metadataJson = NextGenSoftware.OASIS.Providers.Shared.Evm.EvmNftMintMetadata.Serialize(transaction);
+                if (requestedCollection != null
+                    && (!Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(requestedCollection)
+                        || string.Equals(requestedCollection, "0x" + new string('0', 40), StringComparison.OrdinalIgnoreCase)))
+                    throw new ArgumentException("An explicitly supplied NFT collection must be a nonzero contract address.");
+                // Reuse the existing KeyManager/default-wallet policy, not the first key in storage.
+                var keysResult = ResolveTokenSigningKeys(minter);
+                if (keysResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, keysResult.Message, keysResult.Exception);
+                    result.ErrorCode = keysResult.ErrorCode;
+                    return result;
+                }
+                var selected = await NextGenSoftware.OASIS.Providers.Shared.Evm.EvmMintAccountSelection.SelectAsync(
+                    keysResult.Result, ChainId, () => ResolveDefaultTokenMintWalletAsync(minter));
+                if (selected.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, selected.Message, selected.Exception);
+                    result.ErrorCode = selected.ErrorCode;
+                    return result;
+                }
+                var senderAccount = selected.Result;
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProvider();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
@@ -350,52 +347,47 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                if (transaction == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Mint request is required");
-                    return result;
-                }
-
-                // Get private key from KeyManager using MintedByAvatarId
-                var keysResult = KeyManager.GetProviderPrivateKeysForAvatarById(transaction.MintedByAvatarId, Core.Enums.ProviderType.EthereumOASIS);
-                if (keysResult.IsError || keysResult.Result == null || keysResult.Result.Count == 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Could not retrieve private key for avatar");
-                    return result;
-                }
-
-                var senderAccount = new Account(keysResult.Result[0], ChainId);
                 var web3 = CreateWeb3WithAccount(senderAccount, HostURI);
 
-                // Use contract address or default NFT contract
-                var nftContractAddress = _contractAddress ?? ContractAddress ?? "0x0000000000000000000000000000000000000000";
+                // Explicit collection override or the existing configured contract; never guess another ABI.
+                var nftContractAddress = requestedCollection ?? _contractAddress ?? ContractAddress;
+                if (!Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(nftContractAddress)
+                    || string.Equals(nftContractAddress, "0x" + new string('0', 40), StringComparison.OrdinalIgnoreCase))
+                    throw new ArgumentException("NFT mint requires a configured nonzero contract address.");
                 
-                // ERC-721 mint function ABI (assuming contract has mint function)
-                var erc721Abi = @"[{""constant"":false,""inputs"":[{""name"":""_to"",""type"":""address""},{""name"":""_tokenId"",""type"":""uint256""}],""name"":""mint"",""outputs"":[],""payable"":false,""stateMutability"":""nonpayable"",""type"":""function""}]";
+                // Explicit maintained Web3CoreOASIS.sol extension, not a generic
+                // ERC-721 mint ABI. The contract owns allocation and metadata storage.
+                var erc721Abi = @"[{""inputs"":[{""name"":""to"",""type"":""address""},{""name"":""metadataJson"",""type"":""string""}],""name"":""mint"",""outputs"":[],""stateMutability"":""nonpayable"",""type"":""function""}]";
                 var erc721Contract = web3.Eth.GetContract(erc721Abi, nftContractAddress);
                 var mintFunction = erc721Contract.GetFunction("mint");
 
-                // Generate token ID (in production, this should be managed properly)
-                var tokenId = new BigInteger(DateTime.UtcNow.Ticks);
-                var mintToAddress = transaction.SendToAddressAfterMinting ?? senderAccount.Address;
+                var mintToAddress = requestedRecipient ?? senderAccount.Address;
+                // Validate the actual configured mint extension/authorization before nonce or signing.
+                // ERC-721 itself does not standardize a mint function.
+                var mintGas = await mintFunction.EstimateGasAsync(senderAccount.Address, null, null, mintToAddress, metadataJson);
 
-                var receipt = await mintFunction.SendTransactionAndWaitForReceiptAsync(
+                dispatched = true;
+                var receipt = await SubmitNftAsync(web3, mintFunction,
                     senderAccount.Address,
-                    new HexBigInteger(600000),
-                    null,
-                    null,
+                    mintGas,
                     mintToAddress,
-                    tokenId);
+                    metadataJson);
+                submittedHash = receipt.TransactionHash;
 
                 if (receipt.HasErrors() == true)
                 {
+                    result.Result.TransactionResult = submittedHash;
+                    result.ErrorCode = "ETHEREUM_NFT_REVERTED";
                     OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "ERC-721 mint failed."));
                     return result;
                 }
 
+                var tokenId = NextGenSoftware.OASIS.Providers.Shared.Evm.EvmErc721MintReceipt.Verify(receipt, nftContractAddress, mintToAddress);
                 result.Result.TransactionResult = receipt.TransactionHash;
                 result.Result.Web3NFT = new Web3NFT
                 {
+                    MemoText = memo,
+                    TokenId = tokenId.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     NFTTokenAddress = nftContractAddress,
                     MintTransactionHash = receipt.TransactionHash,
                     NFTMintedUsingWalletAddress = senderAccount.Address,
@@ -405,7 +397,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                var cause = ex is INativeMutationReconciliationRequired ? ex
+                    : dispatched ? new EthereumNftMutationReconciliationException(submittedHash, ex) : ex;
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, cause.Message), cause);
+                if (!dispatched && ex is ArgumentException) result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";
             }
             return result;
         }
@@ -417,72 +412,70 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-            string errorMessage = "Error in BurnNFTAsync method in EthereumOASIS. Reason: ";
-
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
+            var dispatched = false;
+            Nethereum.RPC.Eth.DTOs.TransactionReceipt receipt = null;
             try
             {
+                // Owner lookup, native submission and receipt proof must use the same admitted contract.
+                if (request != null)
+                    request = new BurnWeb3NFTRequest
+                    {
+                        TokenId = request.TokenId, NFTTokenAddress = request.NFTTokenAddress,
+                        OwnerPrivateKey = request.OwnerPrivateKey, OwnerPublicKey = request.OwnerPublicKey,
+                        OwnerSeedPhrase = request.OwnerSeedPhrase
+                    };
+                if (request == null || !BigInteger.TryParse(request.TokenId, System.Globalization.NumberStyles.None,
+                    System.Globalization.CultureInfo.InvariantCulture, out var tokenId)
+                    || tokenId < 0 || tokenId >= (BigInteger.One << 256))
+                    throw new ArgumentException("Burn requires an explicit decimal uint256 token ID; the OASIS GUID is not a native token ID.");
+                if (!Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(request.NFTTokenAddress)
+                    || string.Equals(request.NFTTokenAddress, "0x0000000000000000000000000000000000000000", StringComparison.OrdinalIgnoreCase))
+                    throw new ArgumentException("A nonzero NFT contract address is required.");
+                if (string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
+                    throw new ArgumentException("NFT owner private key is required.");
+                var account = new Account(request.OwnerPrivateKey, ChainId);
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError) throw new InvalidOperationException(activation.Message, activation.Exception);
+                }
+                await _nftSendGate.WaitAsync();
+                try
+                {
+                    const string abi = "[{\"type\":\"function\",\"name\":\"ownerOf\",\"inputs\":[{\"name\":\"id\",\"type\":\"uint256\"}],\"outputs\":[{\"name\":\"owner\",\"type\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"burn\",\"inputs\":[{\"name\":\"id\",\"type\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"}]";
+                    var web3 = CreateWeb3WithAccount(account, HostURI);
+                    var contract = web3.Eth.GetContract(abi, request.NFTTokenAddress);
+                    var owner = await contract.GetFunction("ownerOf").CallAsync<string>(tokenId);
+                    if (!string.Equals(owner, account.Address, StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException("NFT burn signer is not the token owner.");
+                    // Explicit ERC-721 burn(uint256) extension, not an assumed GUID mapping.
+                    dispatched = true;
+                    receipt = await SubmitNftAsync(web3, contract.GetFunction("burn"),
+                        account.Address, new HexBigInteger(600000), tokenId);
+                    if (!StorageReceiptSucceeded(receipt))
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
+                        result.IsError = true; result.ErrorCode = "ETHEREUM_NFT_REVERTED";
+                        result.Result = new Web3NFTTransactionResponse { TransactionResult = receipt.TransactionHash };
+                        result.Message = "ERC-721 burn transaction reverted."; return result;
                     }
+                    NextGenSoftware.OASIS.Providers.Shared.Evm.EvmErc721TransferReceipt.Verify(receipt,
+                        request.NFTTokenAddress, account.Address, "0x" + new string('0',40), tokenId);
+                    result.Result = new Web3NFTTransactionResponse {
+                        TransactionResult = receipt.TransactionHash,
+                        Web3NFT = new Web3NFT { NFTTokenAddress = request.NFTTokenAddress,
+                            TokenId = tokenId.ToString(System.Globalization.CultureInfo.InvariantCulture) } };
+                    result.IsSaved = true; result.IsDeleted = true;
                 }
-                if (Web3Client == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
-                    return result;
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.NFTTokenAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "NFT token address is required");
-                    return result;
-                }
-
-                // Get private key from KeyManager
-                var keysResult = KeyManager.GetProviderPrivateKeysForAvatarById(request.BurntByAvatarId, Core.Enums.ProviderType.EthereumOASIS);
-                if (keysResult.IsError || keysResult.Result == null || keysResult.Result.Count == 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Could not retrieve private key for avatar");
-                    return result;
-                }
-
-                var senderAccount = new Account(keysResult.Result[0], ChainId);
-                var web3 = CreateWeb3WithAccount(senderAccount, HostURI);
-
-                // ERC-721 burn function ABI (assuming contract has burn function)
-                var erc721Abi = @"[{""constant"":false,""inputs"":[{""name"":""_tokenId"",""type"":""uint256""}],""name"":""burn"",""outputs"":[],""payable"":false,""stateMutability"":""nonpayable"",""type"":""function""}]";
-                var erc721Contract = web3.Eth.GetContract(erc721Abi, request.NFTTokenAddress);
-                var burnFunction = erc721Contract.GetFunction("burn");
-
-                // Get token ID from request
-                var tokenId = request?.Web3NFTId != null && request.Web3NFTId != Guid.Empty
-                    ? new BigInteger(request.Web3NFTId.GetHashCode())
-                    : BigInteger.Zero;
-
-                var receipt = await burnFunction.SendTransactionAndWaitForReceiptAsync(
-                    senderAccount.Address,
-                    new HexBigInteger(600000),
-                    null,
-                    null,
-                    tokenId);
-
-                if (receipt.HasErrors() == true)
-                {
-                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "ERC-721 burn failed."));
-                    return result;
-                }
-
-                result.Result.TransactionResult = receipt.TransactionHash;
-                TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
+                finally { _nftSendGate.Release(); }
             }
-            catch (Exception ex)
+            catch (Exception cause)
             {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                result.IsError = true;
+                result.Exception = cause is INativeMutationReconciliationRequired ? cause
+                    : dispatched ? new EthereumNftMutationReconciliationException(receipt?.TransactionHash, cause) : cause;
+                result.Message = result.Exception.Message;
+                if (!dispatched && cause is ArgumentException) result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";
             }
             return result;
         }
@@ -853,18 +846,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return result;
         }
 
-        /// <summary>
-        /// Creates a deterministic GUID from input string using SHA-256 hash
-        /// </summary>
-        private static Guid CreateDeterministicGuid(string input)
-        {
-            if (string.IsNullOrWhiteSpace(input))
-                return Guid.Empty;
-
-            using var sha256 = System.Security.Cryptography.SHA256.Create();
-            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
-            return new Guid(bytes.Take(16).ToArray());
-        }
 
     }
 }

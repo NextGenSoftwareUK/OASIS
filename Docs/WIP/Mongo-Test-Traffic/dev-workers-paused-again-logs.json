@@ -1,0 +1,18 @@
+[
+  {
+    "Utc": "2026-10-20T08:52:17.608199091Z",
+    "Message": "      Durable hosted HyperDrive synchronization is disabled in OASIS DNA."
+  },
+  {
+    "Utc": "2026-10-20T08:52:17.608264381Z",
+    "Message": "      Hosted HyperDrive domain change capture is disabled in OASIS DNA."
+  },
+  {
+    "Utc": "2026-10-20T08:52:17.608274231Z",
+    "Message": "      HyperDrive sync-history compaction is disabled in OASIS DNA."
+  },
+  {
+    "Utc": "2026-10-20T08:52:17.608695116Z",
+    "Message": "      Durable hosted HyperDrive command execution is disabled in OASIS DNA."
+  }
+]

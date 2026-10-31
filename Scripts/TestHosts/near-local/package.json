@@ -1,0 +1,16 @@
+{
+  "name": "oasis-near-provider-evidence",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:contract": "near-sdk-js build contract/src/contract.ts build/oasis_storage.wasm"
+  },
+  "dependencies": {
+    "near-api-js": "7.3.1",
+    "near-workspaces": "5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "16.18.126",
+    "near-sdk-js": "2.0.0"
+  }
+}

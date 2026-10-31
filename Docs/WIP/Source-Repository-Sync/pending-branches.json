@@ -1,0 +1,119 @@
+[
+  {
+    "path": "C:/Source/NextGenSoftware-Libraries",
+    "branch": "wip-netstandard",
+    "head": "f93b880da15bb8e0c85f7f358df90213704422c4",
+    "upstream": "origin/wip-netstandard",
+    "target": "origin/wip-netstandard",
+    "counts": "19\t1",
+    "remoteExists": true
+  },
+  {
+    "path": "C:/Source/OASIS/OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "branch": "Development",
+    "head": "3a54521b105aa9d901692aaeddb72112eb832bb3",
+    "upstream": "origin/Development",
+    "target": "origin/Development",
+    "counts": "3\t0",
+    "remoteExists": true
+  },
+  {
+    "path": "C:/Source/OASIS/OASIS Omniverse/OGEngineClient",
+    "branch": "main",
+    "head": "47f46580d96777cded8ad4b12003ff91c365259e",
+    "upstream": "origin/main",
+    "target": "origin/main",
+    "counts": "9\t50",
+    "remoteExists": true
+  },
+  {
+    "path": "C:/Source/OASIS/WEB6",
+    "branch": "codex/fix-mcp-karma-contract",
+    "head": "19a38388f5872e82c76b2b0a237ac17bfd09b9e2",
+    "upstream": "origin/codex/fix-mcp-karma-contract",
+    "target": "origin/codex/fix-mcp-karma-contract",
+    "counts": "",
+    "remoteExists": false
+  },
+  {
+    "path": "C:/Source/OASIS/WEB6",
+    "branch": "worktree-agent-a0e0bfdbdfa93e2a4",
+    "head": "4ef0f832e6ae311b931dff3e782bfd77408d4fc0",
+    "upstream": "",
+    "target": "origin/worktree-agent-a0e0bfdbdfa93e2a4",
+    "counts": "",
+    "remoteExists": false
+  },
+  {
+    "path": "C:/Source/OASIS/WEB6",
+    "branch": "worktree-agent-a5708ca8a984c4340",
+    "head": "4ef0f832e6ae311b931dff3e782bfd77408d4fc0",
+    "upstream": "",
+    "target": "origin/worktree-agent-a5708ca8a984c4340",
+    "counts": "",
+    "remoteExists": false
+  },
+  {
+    "path": "C:/Source/OASIS/WEB6",
+    "branch": "worktree-agent-ae6cb813f900c021a",
+    "head": "1286ca9ae199de8aa254ed6a00316fd0d339a7c0",
+    "upstream": "",
+    "target": "origin/worktree-agent-ae6cb813f900c021a",
+    "counts": "",
+    "remoteExists": false
+  },
+  {
+    "path": "C:/Source/OASIS-hyperdrive-v2-gaps/HoloNET-ORM",
+    "branch": "codex/holochain-0.7-wire-mapping",
+    "head": "757fdade547dca4fad7f48d5cfc5f5de4da1aa59",
+    "upstream": "origin/codex/holochain-0.7-wire-mapping",
+    "target": "origin/codex/holochain-0.7-wire-mapping",
+    "counts": "",
+    "remoteExists": false
+  },
+  {
+    "path": "C:/Source/OASIS-hyperdrive-v2-gaps/HoloNET-ORM",
+    "branch": "main",
+    "head": "eca29a693f5526fc6bb837e10b7b9e743c7636f7",
+    "upstream": "origin/main",
+    "target": "origin/main",
+    "counts": "5\t17",
+    "remoteExists": true
+  },
+  {
+    "path": "C:/Source/OASIS-hyperdrive-v2-gaps/OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "branch": "codex/hyperdrive-v2-gaps",
+    "head": "afe8abfd7cfde329292736f8538367671456be24",
+    "upstream": "origin/codex/hyperdrive-v2-gaps",
+    "target": "origin/codex/hyperdrive-v2-gaps",
+    "counts": "",
+    "remoteExists": false
+  },
+  {
+    "path": "C:/Source/OASIS-hyperdrive-v2-gaps/ONODE/NextGenSoftware.OASIS.API.ONODE.Core",
+    "branch": "fix/hyperdrive-v2-nft-api",
+    "head": "fa911ee5036565cd4b7a7ca77c5f24c00bd2cfad",
+    "upstream": "origin/fix/hyperdrive-v2-nft-api",
+    "target": "origin/fix/hyperdrive-v2-nft-api",
+    "counts": "",
+    "remoteExists": false
+  },
+  {
+    "path": "C:/Source/OPORTAL-JS",
+    "branch": "codex/subscription-admin-ui",
+    "head": "97d1f9ac753f80bad6b2f0c6753b7f85ed689fde",
+    "upstream": "origin/codex/subscription-admin-ui",
+    "target": "origin/codex/subscription-admin-ui",
+    "counts": "12\t0",
+    "remoteExists": true
+  },
+  {
+    "path": "C:/Source/Our-World",
+    "branch": "Dev",
+    "head": "e022443971fd03775b00aef1871b4e3ef436f95b",
+    "upstream": "origin/Dev",
+    "target": "origin/Dev",
+    "counts": "1\t0",
+    "remoteExists": true
+  }
+]

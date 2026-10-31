@@ -24,9 +24,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         private readonly string databaseName;
         private readonly List<string> collectionNames;
         private CosmosDbClientFactory dbClientFactory;
+        private readonly System.Threading.SemaphoreSlim lifecycleGate=new(1,1);
         private IAvatarRepository avatarRepository;
         private IAvatarDetailRepository avatarDetailRepository;
         private IHolonRepository holonRepository;
+        /// <summary>Begin retaining numbered versions. Existing item histories remain retained even when disabled later.</summary>
+        public bool IsVersionControlEnabled { get; set; }
 
         public AzureCosmosDBOASIS(Uri serviceEndpoint, string authKey, string databaseName, List<string> collectionNames)
         {
@@ -34,10 +37,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             this.ProviderDescription = "Microsoft Azure Cosmos DB Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AzureCosmosDBOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Cloud));
             this.serviceEndpoint = serviceEndpoint;
             this.authKey = authKey;
             this.databaseName = databaseName;
-            this.collectionNames = collectionNames;
+            this.collectionNames = collectionNames?.ToList();
         }
 
     }

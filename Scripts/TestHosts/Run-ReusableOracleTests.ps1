@@ -1,0 +1,391 @@
+#Requires -Version 7.0
+param(
+    [switch]$ConformanceOnly,
+    [switch]$BootstrapSchema,
+    [switch]$Coverage,
+    [switch]$RestartDatabaseBetweenPhases,
+    [switch]$AbruptStopDatabaseBetweenPhases,
+    [switch]$ReconcileKarmaNullOutcome,[switch]$ReconcileKarmaReadGuard,
+    [switch]$ReconcileConditionalIntent,
+    [switch]$ReconcileScopedVisibility,[switch]$ReconcileExportVisibility,
+    [switch]$ReconcileAcknowledgementViews,
+    [switch]$AllVersionExports,
+    [switch]$PointReadSelectors,
+    [switch]$IndependentExportVersions,
+    [switch]$ReconcileExportIdentity,
+    [switch]$InspectReadConnections,
+    [switch]$ReconcileReadOutage,
+    [ValidateSet('Provider','Native')][string]$ReadConnectionPath='Provider',
+    [ValidateRange(1,400)][int]$ReadConnectionIterations=50,
+    [switch]$ReadAcknowledgementOrder,
+    [switch]$ReadAcknowledgementStress,
+    [switch]$ExtraColumns,
+    [switch]$ReconcileKarmaProjections,[switch]$MissingDeletion,[switch]$ReconcileKarmaAssertion,[switch]$KarmaManager,[switch]$LeastPrivilege,[switch]$V2Deletion,[switch]$DeleteAliases,[switch]$ReadAcknowledgements,[switch]$TableDurability,[switch]$ExistingSchema,[switch]$WriteRejections,[switch]$IdentityCapacity,[switch]$UpgradeIdentityCharacters,
+    [switch]$RootParent,[switch]$HolonProjection,[switch]$IdentityRaces,
+    [switch]$DetailDeletionResults,[switch]$AvatarDeletionResults,[switch]$SaveAcknowledgements,
+    [switch]$AvatarProjection,[switch]$LifecycleGuards,[switch]$EncryptedProcess,
+    [switch]$EncryptedReplay,[switch]$PreparationClaims,[switch]$ReconcileOriginal,
+    [switch]$ReconcileAmbiguity,[switch]$ReconcileHistoricalExport,
+    [switch]$ReconcileCorruptAvatar,[switch]$ReconcileProjectionAssertions
+)
+$selectedModes=@($ConformanceOnly,$BootstrapSchema,$Coverage,$ReconcileKarmaReadGuard,$ReconcileKarmaNullOutcome,$PointReadSelectors,$ReconcileExportIdentity,$IndependentExportVersions,$InspectReadConnections,$ReconcileReadOutage,$ReadAcknowledgementOrder,$ReadAcknowledgementStress,$ExtraColumns,$ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
+    $DetailDeletionResults,$AvatarDeletionResults,$SaveAcknowledgements,$AvatarProjection,$LifecycleGuards,
+    $EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileOriginal,$ReconcileExportVisibility,$ReconcileAmbiguity,
+    $ReconcileHistoricalExport,$ReconcileCorruptAvatar,$ReconcileProjectionAssertions,$AllVersionExports,$ReconcileScopedVisibility,$ReconcileAcknowledgementViews,$ReconcileConditionalIntent).Where({$_.IsPresent}).Count
+if($selectedModes -gt 1){throw 'Choose one original reconciliation mode.'}
+if($RestartDatabaseBetweenPhases -and !$EncryptedProcess){throw 'Database restart requires the explicit encrypted two-process mode.'}
+if($AbruptStopDatabaseBetweenPhases -and !$RestartDatabaseBetweenPhases){throw 'Abrupt stop requires the explicit owned encrypted database restart mode.'}
+if(!$InspectReadConnections -and $ReadConnectionIterations -ne 50){throw 'A custom read workload requires the explicitly read-only inspection mode.'}
+if(!$InspectReadConnections -and $ReadConnectionPath -ne 'Provider'){throw 'A native connection control requires the explicitly read-only inspection mode.'}
+$ErrorActionPreference='Stop'
+function Wait-RetainedOracleReady {
+    $oracleReadyDeadline=[DateTime]::UtcNow.AddSeconds(50)
+    do{
+        $oracleHealth=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.State.Health.Status}}' oasis-oracle-free).Trim()
+        if($LASTEXITCODE -ne 0){throw 'Oracle health inspection failed.'}
+        if($oracleHealth -eq 'healthy'){return}
+        if($oracleHealth -ne 'starting'){throw 'Retained Oracle is not healthy; preserve it for inspection.'}
+        Start-Sleep -Milliseconds 500
+    }while([DateTime]::UtcNow -lt $oracleReadyDeadline)
+    throw 'Retained Oracle readiness timeout; no restart/reset.'
+}
+function Get-OracleProcessRuntimeState {
+    # wsl.exe can marshal shell metacharacters in unquoted native arguments;
+    # use native JSON, not a pipe-delimited template interpreted by bash.
+    $oracleIdentity=& wsl -d Ubuntu -u root -- podman inspect --format '{{.Id}}' oasis-oracle-free
+    if($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($oracleIdentity) -or $oracleIdentity.Trim() -notmatch '^[a-f0-9]{64}$'){throw 'Retained Oracle runtime identity unavailable.'}
+    $oracleStateJson=& wsl -d Ubuntu -u root -- podman inspect --format '{{json .State}}' oasis-oracle-free
+    if($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($oracleStateJson)){throw 'Retained Oracle runtime state unavailable.'}
+    $oracleState=$oracleStateJson|ConvertFrom-Json
+    [pscustomobject]@{ContainerId=$oracleIdentity.Trim();Status=$oracleState.Status;ExitCode=[int]$oracleState.ExitCode;OomKilled=[bool]$oracleState.OOMKilled;StartedAt=$oracleState.StartedAt}
+}
+function Write-OracleProcessBoundary {
+    param([string]$Path,[object]$Value,[switch]$Replace)
+    $oracleNext=$Path+'.next'
+    $oracleBytes=[Text.UTF8Encoding]::new($false).GetBytes(($Value|ConvertTo-Json -Depth 8 -Compress))
+    $oracleStream=[IO.File]::Open($oracleNext,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+    try{$oracleStream.Write($oracleBytes);$oracleStream.Flush($true)}finally{$oracleStream.Dispose()}
+    [IO.File]::Move($oracleNext,$Path,$Replace.IsPresent)
+    (Get-FileHash -LiteralPath $Path).Hash
+}
+function Assert-OracleProcessWriterOwnership {
+    param([bool]$StartedHere,[string]$ExpectedContainerId,[object]$Actual)
+    if(!$StartedHere -or $Actual.ContainerId -ne $ExpectedContainerId -or $Actual.Status -ne 'running'){
+        throw 'Restart runtime ownership changed before writer admission; no new write or restart is permitted.'
+    }
+}
+function Assert-OracleProcessStopped {
+    param([string]$ExpectedContainerId,[bool]$Abrupt,[object]$Actual)
+    $expectedCodes=if($Abrupt){@(137)}else{@(0,143)}
+    if($Actual.ContainerId -ne $ExpectedContainerId -or $Actual.Status -ne 'exited' -or $Actual.OomKilled -or $Actual.ExitCode -notin $expectedCodes){
+        throw 'Requested stop mode not observed; preserve original outcomes, no automatic restart.'
+    }
+}
+$root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+$work=Join-Path $root 'TestResults/OracleCurrent'
+if($ConformanceOnly){
+    foreach($mode in @('async','sync')){
+        $prior=Join-Path $root ('TestResults/ProviderConformanceCurrent/OracleDBOASIS/'+$mode+'/report.json')
+        if((Test-Path -LiteralPath $prior) -or (Test-Path -LiteralPath ($prior+'.next'))){throw 'Review preserved Oracle conformance evidence before another run.'}
+    }
+    if(Test-Path -LiteralPath (Join-Path $work 'oracle-core-conformance.trx')){throw 'Preserve prior Oracle conformance TRX.'}
+    New-Item -ItemType Directory -Path $work -Force | Out-Null
+}
+if(!(Test-Path -LiteralPath $work)){throw 'Retained Oracle work directory required; do not recreate an environment.'}
+$lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+$previousConnection=$env:ORACLEDBOASIS_CONNECTIONSTRING;$previousWork=$env:OASIS_ORACLE_TEST_WORK;$previousResume=$env:OASIS_ORACLE_RESUME_CANONICAL
+$previousAmbiguity=$env:OASIS_ORACLE_RECONCILE_AMBIGUITY
+$previousSchemaUpgrade=$env:OASIS_ORACLE_ALLOW_TEST_IDENTITY_SCHEMA_UPGRADE
+$previousBootstrap=$env:OASIS_ORACLE_ALLOW_BOOTSTRAP_TEST
+$previousReadIterations=$env:OASIS_ORACLE_READ_CONNECTION_ITERATIONS
+$previousReadPath=$env:OASIS_ORACLE_READ_CONNECTION_PATH
+$previousReadReconciliation=$env:OASIS_ORACLE_RECONCILE_READ_OUTAGE
+$startedHere=$false;$passed=$false
+try{
+    $coverageArgs=@();$testResults=$work;$coverageOriginalHash=$null
+    if($Coverage){
+        $testResults=Join-Path $work 'NativeCoverage'
+        if(Test-Path -LiteralPath $testResults){
+            if(Get-ChildItem -LiteralPath $testResults -Force){throw 'Preserve original coverage evidence before another profiling run.'}
+        }else{New-Item -ItemType Directory -Path $testResults|Out-Null}
+        $coverageArgs=@('--collect','XPlat Code Coverage','--settings',(Join-Path $PSScriptRoot 'OracleNativeCoverage.runsettings'))
+    }
+    $pending=@(Get-ChildItem -LiteralPath $work -Filter '*.pending.json')
+    if($ReconcileExportVisibility){
+        if($pending.Count -ne 1 -or $pending[0].Name -ne 'canonical-records.pending.json' -or
+           (Get-FileHash $pending[0].FullName).Hash -ne '18F3900D400A7640D9B0BD4173940DEBDD46FCD531EC0CDBCA1A311CF245AEAE' -or
+           (Get-FileHash (Join-Path $work 'oracle-native-current.trx')).Hash -ne '93B3C03959D69651074FD6E1F428CF1F97A90CFA57FC5C8EC0FF0C4D4E1B407B'){throw 'Exact original export visibility fixture/report required; no replay.'}
+    }
+    elseif($ReconcileKarmaReadGuard){
+        if($pending.Count -ne 1 -or $pending[0].Name -ne 'v2-karma-manager.pending.json' -or
+           (Get-FileHash $pending[0].FullName).Hash -ne '3559342641A0F2B4E9A4A3C35CA7DFBBB5D6AA22A24B3F4F7CF8BED8AEFA0B60' -or
+           (Get-FileHash (Join-Path $work 'oracle-native-current.trx')).Hash -ne 'A3386A636906BA05DC3F1A914714534BBF65C8682B5368AFC613CA14C74890D5'){throw 'Exact original read-guard fixture evidence required; no replay.'}
+    }
+    elseif($ReconcileKarmaNullOutcome){
+        if($pending.Count -ne 1 -or $pending[0].Name -ne 'v2-karma-manager.pending.json' -or
+           (Get-FileHash $pending[0].FullName).Hash -ne '66B120080F1F2DDF7E468CCB38545131F168CA92FD019F048706EFF2B6E8B546' -or
+           (Get-FileHash (Join-Path $work 'oracle-native-current.trx')).Hash -ne 'CF0E90401A5B5356B839B5350CA82CE63C7BB8E010B7E72513D79144FFA12F1D'){throw 'Exact original karma null-outcome evidence required; no replay.'}
+    }
+    elseif($InspectReadConnections -or $ReconcileReadOutage){
+        if($pending.Count -ne 1 -or $pending[0].Name -ne 'read-acknowledgements.pending.json'){throw 'Exactly the preserved read-ack original intent required.'}
+        if((Get-FileHash (Join-Path $work 'read-acknowledgements.pending.json')).Hash -ne 'C83043A1A52487CB881ADE96B9038C328F78052CCC6DE126DCDB82D1043DA198' -or
+           (Get-FileHash (Join-Path $work 'read-acknowledgements-failure.json')).Hash -ne '470441EA9F0D9062305760949A92C303574FD668AF8CAD3369586B92E87F3F68'){throw 'Original read evidence changed; inspection refused.'}
+    }
+    elseif($ReconcileConditionalIntent){
+        if($pending.Count -ne 1 -or $pending[0].Name -ne 'conditional-graph.pending.json' -or
+            (Get-FileHash $pending[0].FullName).Hash -ne '1D24A34810495B5BA4E9114E15258BFA477D66763009567E82152B3BDF3FFF3D' -or
+            (Get-FileHash (Join-Path $work 'oracle-native-current.trx')).Hash -ne '9B7A77A78CD95CDC1F90DEC955ECAA02BF63DF4EC1B37B7A42672E76A2092C69'){throw 'Exactly original conditional intent failure/fixture required.'}
+    }
+    elseif($ReconcileAcknowledgementViews){
+        $expectedViews=@('named-child-roles-False-True.pending.json','named-child-roles-True-True.pending.json','conditional-root-delete-False.pending.json','conditional-root-delete-True.pending.json')
+        if($pending.Count -ne 4 -or @(Compare-Object ($pending.Name|Sort-Object) ($expectedViews|Sort-Object)).Count -ne 0 -or
+            (Get-FileHash (Join-Path $work 'oracle-native-current.trx')).Hash -ne '1B7B5182CB589BB700C5F2F1B3D625E133F54E72BF45B3CCB65354C2C3293911'){throw 'Exactly original acknowledgement-view failure/fixtures required.'}
+    }
+    elseif($ReconcileScopedVisibility){
+        $expectedScoped=@('scoped-visibility-False-False.pending.json','scoped-visibility-False-True.pending.json','scoped-visibility-True-False.pending.json','scoped-visibility-True-True.pending.json')
+        if($pending.Count -ne 4 -or @(Compare-Object ($pending.Name|Sort-Object) ($expectedScoped|Sort-Object)).Count -ne 0 -or
+            (Get-FileHash (Join-Path $work 'oracle-native-current.trx')).Hash -ne '0FE26BD560D687AB9FA760BD5250FF814F29A12ABFA0F35CE49A2D08CFA5D942'){throw 'Exactly original scoped visibility failure/fixtures required.'}
+    }
+    elseif($ReconcileKarmaAssertion){if($pending.Count -ne 1 -or $pending[0].Name -ne 'v2-karma-manager.pending.json'){throw 'Exactly the original karma assertion journal required.'}}
+    elseif($ReconcileOriginal -or $ReconcileExportIdentity){if($pending.Count -ne 1 -or $pending[0].Name -ne 'canonical-records.pending.json'){throw 'Exactly the original canonical journal required.'}}
+    elseif($ReconcileAmbiguity){if($pending.Count -ne 1 -or $pending[0].Name -ne 'identity-ambiguity.pending.json'){throw 'Exactly the original duplicate identity journal required.'}}
+    elseif($ReconcileHistoricalExport){if($pending.Count -ne 1 -or $pending[0].Name -ne 'canonical-records.pending.json'){throw 'Exactly the original historical export journal required.'}}
+    elseif($ReconcileCorruptAvatar){if($pending.Count -ne 1 -or $pending[0].Name -ne 'create-race-0.pending.json'){throw 'Exactly the original corrupt avatar journal required.'}}
+    elseif($ReconcileProjectionAssertions){if($pending.Count -ne 6){throw 'Exactly the six original projection-assertion journals required; test validates exact names and evidence.'}}
+    elseif($pending.Count){throw 'Reconcile original Oracle fixture before another write.'}
+    if($EncryptedProcess){
+        # Admit the ENTIRE two-phase cohort before the first write, not a later
+        # recover report after committing new data. Preserve all previous proof.
+        $oracleProcessNames=@('oracle-encrypted-process-write.trx','oracle-encrypted-process-recover.trx',
+            'encrypted-process-False.written.json','encrypted-process-True.written.json',
+            'encrypted-process-False.verified.json','encrypted-process-True.verified.json',
+            'oracle-encrypted-process-restart.pending.json','oracle-encrypted-process-restart.current.json',
+            'oracle-encrypted-process-restart.pending.json.next','oracle-encrypted-process-restart.current.json.next')
+        foreach($oracleName in $oracleProcessNames){if(Test-Path -LiteralPath (Join-Path $work $oracleName)){throw 'Preserve ALL original process evidence before any new phase; no write/replay.'}}
+    }
+    $image=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.Image}}' oasis-oracle-free).Trim()
+    if($LASTEXITCODE -ne 0 -or $image -ne '358b32468eddc329751c28007a535cbc661f1090ab5d8a9f02267cf44ef1e3b9'){throw 'Approved retained Oracle image/container required; no pull/create.'}
+    $bindings=& wsl -d Ubuntu -u root -- podman inspect --format '{{json .HostConfig.PortBindings}}' oasis-oracle-free | ConvertFrom-Json
+    if($LASTEXITCODE -ne 0 -or @($bindings.'1521/tcp').Count -ne 1 -or $bindings.'1521/tcp'[0].HostIp -ne '127.0.0.1' -or $bindings.'1521/tcp'[0].HostPort -ne '11521'){throw 'Expected configured loopback Oracle port mapping required.'}
+    $mounts=@(& wsl -d Ubuntu -u root -- podman inspect --format '{{json .Mounts}}' oasis-oracle-free | ConvertFrom-Json)
+    if($LASTEXITCODE -ne 0 -or $mounts.Count -ne 1 -or $mounts[0].Type -ne 'volume' -or $mounts[0].Name -ne 'oasis-oracle-data' -or $mounts[0].Destination -ne '/opt/oracle/oradata'){throw 'Exact retained Oracle data volume required; no replacement.'}
+    if($RestartDatabaseBetweenPhases){
+        $oracleInitialRuntime=Get-OracleProcessRuntimeState
+        if($oracleInitialRuntime.Status -ne 'exited'){throw 'Restart proof requires an initially stopped runtime owned/started by this invocation; never interrupt an already running service.'}
+    }
+    foreach($project in @('Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj','Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.csproj','Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj')){
+        if($ConformanceOnly){
+            & dotnet restore (Join-Path $root $project) --source (Join-Path $env:USERPROFILE '.nuget/packages') --source 'C:/Program Files/dotnet/library-packs' /p:RestoreRecursive=false /p:NuGetAudit=false /p:IncludeCoreStorageConformance=true /m:2 /nr:false -v:q
+            if($LASTEXITCODE){throw 'Cached Oracle metadata unavailable; no automatic download or duplicate environment.'}
+        }
+        & dotnet build (Join-Path $root $project) --no-restore --no-incremental /p:IncludeCoreStorageConformance=$($ConformanceOnly.IsPresent.ToString().ToLowerInvariant()) /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+        if($LASTEXITCODE -ne 0){throw 'Cached Oracle build failed.'}
+    }
+    & (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/bin/Debug/net10.0' -VerifySourceDocuments
+    if($ConformanceOnly){
+        . (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/bin/Debug/net10.0' -VerifySourceDocuments
+        foreach($assembly in @('NextGenSoftware.OASIS.API.Providers.OracleDBOASIS','NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests')){
+            $dll=Join-Path $root ('Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/bin/Debug/net10.0/'+$assembly+'.dll')
+            Write-Output ($assembly+': sources='+(Assert-SourceDocuments $dll $root))
+        }
+    }
+    if($Coverage){
+        $coverageAssembly=Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.dll'
+        $coverageOriginalHash=(Get-FileHash -LiteralPath $coverageAssembly).Hash
+        $coveragePdb=[IO.Path]::ChangeExtension($coverageAssembly,'.pdb')
+        $coverageOriginalPdbHash=(Get-FileHash -LiteralPath $coveragePdb).Hash
+        $coverageIdentityBytes=[Text.Encoding]::UTF8.GetBytes((@{ProviderSHA256=$coverageOriginalHash;ProviderPdbSHA256=$coverageOriginalPdbHash;CapturePhase='before-test'}|ConvertTo-Json))
+        $coverageIdentityStream=[IO.File]::Open((Join-Path $testResults 'oracle-coverage-identity.json'),[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+        try{$coverageIdentityStream.Write($coverageIdentityBytes);$coverageIdentityStream.Flush($true)}finally{$coverageIdentityStream.Dispose()}
+    }
+    $state=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.State.Status}}' oasis-oracle-free).Trim()
+    if($state -eq 'exited'){
+        & wsl -d Ubuntu -u root -- podman start oasis-oracle-free
+        if($LASTEXITCODE -ne 0){throw 'Retained Oracle start failed.'};$startedHere=$true
+    }elseif($state -ne 'running'){throw 'Unexpected retained Oracle lifecycle state; inspect without resetting.'}
+    Wait-RetainedOracleReady
+    if($RestartDatabaseBetweenPhases){
+        Assert-OracleProcessWriterOwnership -StartedHere $startedHere -ExpectedContainerId $oracleInitialRuntime.ContainerId -Actual (Get-OracleProcessRuntimeState)
+    }
+    $secret=(& wsl -d Ubuntu -u root -- podman secret inspect --showsecret oasis-oracle-pwd | ConvertFrom-Json)[0].SecretData
+    if([string]::IsNullOrWhiteSpace($secret)){throw 'Retained secret unavailable.'}
+    # Use normal SDK connection reuse, bounded for the retained local server.
+    # Forced per-call physical logons reproduced listener admission saturation;
+    # the explicit native diagnostic still exercises that negative control.
+    $env:ORACLEDBOASIS_CONNECTIONSTRING="User Id=SYSTEM;Password=$secret;Data Source=127.0.0.1:11521/FREEPDB1;Connection Timeout=10;Pooling=true;Min Pool Size=0;Max Pool Size=16"
+    $env:OASIS_ORACLE_TEST_WORK=$work;$env:OASIS_ORACLE_RESUME_CANONICAL=if($ReconcileOriginal){'1'}else{$null}
+    $env:OASIS_ORACLE_READ_CONNECTION_ITERATIONS=if($InspectReadConnections){$ReadConnectionIterations.ToString([Globalization.CultureInfo]::InvariantCulture)}else{$null}
+    $env:OASIS_ORACLE_READ_CONNECTION_PATH=if($InspectReadConnections){$ReadConnectionPath}else{$null}
+    $env:OASIS_ORACLE_RECONCILE_READ_OUTAGE=if($ReconcileReadOutage){'1'}else{$null}
+    $env:OASIS_ORACLE_RECONCILE_AMBIGUITY=if($ReconcileAmbiguity){'1'}else{$null}
+    $env:OASIS_ORACLE_ALLOW_TEST_IDENTITY_SCHEMA_UPGRADE=if($UpgradeIdentityCharacters){'1'}else{$null}
+    $env:OASIS_ORACLE_ALLOW_BOOTSTRAP_TEST=if($BootstrapSchema){'1'}else{$null}
+    if($EncryptedProcess){
+        $processStarted=[DateTime]::UtcNow
+        $processProject=Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj'
+        foreach($phase in @('write','recover')){
+            $phaseReport=Join-Path $work "oracle-encrypted-process-$phase.trx"
+            if(Test-Path -LiteralPath $phaseReport){throw 'Preserve original process evidence before another run.'}
+            $method=if($phase -eq 'write'){'PhaseOneCommitEncryptedOperation'}else{'PhaseTwoRecoverInDifferentProcess'}
+            & dotnet test $processProject --no-build --no-restore --filter "FullyQualifiedName~OracleEncryptedProcessNativeTests.$method" --logger "trx;LogFileName=oracle-encrypted-process-$phase.trx" --results-directory $work /m:2 /nr:false
+            if($LASTEXITCODE -ne 0){throw 'Oracle encrypted process verification failed; preserve original fixture, no replay/reset.'}
+            $phaseFile=Get-Item -LiteralPath $phaseReport
+            [xml]$phaseTrx=Get-Content -LiteralPath $phaseReport -Raw;$phaseCounts=$phaseTrx.TestRun.ResultSummary.Counters
+            if($phaseFile.LastWriteTimeUtc -lt $processStarted -or [int]$phaseCounts.total -ne 2 -or [int]$phaseCounts.passed -ne 2 -or [int]$phaseCounts.notExecuted -ne 0){throw 'Fresh complete2/2 Oracle process phase required.'}
+            if($phase -eq 'write' -and @(Get-ChildItem -LiteralPath $work -Filter 'encrypted-process-*.pending.json').Count -ne 2){throw 'Exactly two committed process intents required before recovery.'}
+            if($phase -eq 'write' -and $RestartDatabaseBetweenPhases){
+                if(!$startedHere){throw 'Only this invocation may restart its owned runtime.'}
+                $oracleBeforeStop=Get-OracleProcessRuntimeState
+                if($oracleBeforeStop.ContainerId -ne $oracleInitialRuntime.ContainerId -or $oracleBeforeStop.Status -ne 'running'){throw 'Original Oracle runtime changed before stop; preserve intents.'}
+                $oracleOriginalEvidence=[ordered]@{}
+                foreach($oracleName in @('oracle-encrypted-process-write.trx','encrypted-process-False.pending.json','encrypted-process-True.pending.json','encrypted-process-False.written.json','encrypted-process-True.written.json')){
+                    $oracleOriginalEvidence[$oracleName]=(Get-FileHash -LiteralPath (Join-Path $work $oracleName)).Hash
+                }
+                $oracleProcessIntents=[ordered]@{}
+                foreach($oracleSync in @('False','True')){$oracleProcessIntents[$oracleSync]=Get-Content -LiteralPath (Join-Path $work "encrypted-process-$oracleSync.pending.json") -Raw|ConvertFrom-Json}
+                $oracleWriterIds=@($oracleProcessIntents.Values|ForEach-Object{$_.WriterProcess}|Sort-Object -Unique)
+                if($oracleWriterIds.Count -ne 1){throw 'One original writer testhost is required.'}
+                $oracleWriterProcess=Get-Process -Id $oracleWriterIds[0] -ErrorAction SilentlyContinue
+                if($null -ne $oracleWriterProcess){
+                    # Wait on the actual completed-test host, never sleep/retry writes
+                    # or kill another process to obtain the restart boundary.
+                    if($oracleWriterProcess.ProcessName -ne 'testhost' -or !$oracleWriterProcess.WaitForExit(10000)){throw 'Writer testhost must be terminal before owned database restart.'}
+                }
+                $oracleRestartPending=Join-Path $work 'oracle-encrypted-process-restart.pending.json'
+                $oracleRestartReport=Join-Path $work 'oracle-encrypted-process-restart.current.json'
+                $oracleStopMode=if($AbruptStopDatabaseBetweenPhases){'SIGKILL-process'}else{'requested-graceful-stop'}
+                $oracleRestartProof=[ordered]@{state='before-requested-stop';stopMode=$oracleStopMode;before=$oracleBeforeStop;image=$image;volume='oasis-oracle-data';port='127.0.0.1:11521';writerProcess=$oracleWriterIds[0];originalIntents=$oracleProcessIntents;originalEvidence=$oracleOriginalEvidence;recoveryVerified=$false;processCrashRecoveryVerified=$false;crashPowerLossVerified=$false;hostedVerified=$false;fullProviderVerified=$false;hyperDriveRoutingVerified=$false}
+                $oracleIntentHash=Write-OracleProcessBoundary -Path $oracleRestartPending -Value $oracleRestartProof
+                if($AbruptStopDatabaseBetweenPhases){
+                    & wsl -d Ubuntu -u root -- podman kill --signal KILL oasis-oracle-free
+                }else{
+                    & wsl -d Ubuntu -u root -- podman stop --time 30 oasis-oracle-free
+                }
+                if($LASTEXITCODE -ne 0){throw 'Oracle stop outcome requires inspection; do not start/replay automatically.'}
+                $oracleStopped=Get-OracleProcessRuntimeState
+                Assert-OracleProcessStopped -ExpectedContainerId $oracleBeforeStop.ContainerId -Abrupt $AbruptStopDatabaseBetweenPhases.IsPresent -Actual $oracleStopped
+                if((Get-FileHash -LiteralPath $oracleRestartPending).Hash -ne $oracleIntentHash){throw 'Original restart intent changed.'}
+                $oracleRestartProof['state']='requested-stop-observed';$oracleRestartProof['stopped']=$oracleStopped
+                $oracleIntentHash=Write-OracleProcessBoundary -Path $oracleRestartPending -Value $oracleRestartProof -Replace
+                & wsl -d Ubuntu -u root -- podman start oasis-oracle-free
+                if($LASTEXITCODE -ne 0){throw 'Original Oracle restart outcome requires inspection; no reset/replay.'}
+                Wait-RetainedOracleReady
+                $oracleAfterStart=Get-OracleProcessRuntimeState
+                if($oracleAfterStart.ContainerId -ne $oracleBeforeStop.ContainerId -or $oracleAfterStart.Status -ne 'running' -or $oracleAfterStart.StartedAt -eq $oracleBeforeStop.StartedAt){throw 'A real start of the SAME retained Oracle runtime is required.'}
+                $oracleRestartImage=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.Image}}' oasis-oracle-free).Trim()
+                $oracleRestartMounts=@(& wsl -d Ubuntu -u root -- podman inspect --format '{{json .Mounts}}' oasis-oracle-free|ConvertFrom-Json)
+                $oracleRestartBindings=& wsl -d Ubuntu -u root -- podman inspect --format '{{json .HostConfig.PortBindings}}' oasis-oracle-free|ConvertFrom-Json
+                if($LASTEXITCODE -ne 0 -or $oracleRestartImage -ne $image -or $oracleRestartMounts.Count -ne 1 -or $oracleRestartMounts[0].Type -ne 'volume' -or $oracleRestartMounts[0].Name -ne 'oasis-oracle-data' -or $oracleRestartMounts[0].Destination -ne '/opt/oracle/oradata' -or @($oracleRestartBindings.'1521/tcp').Count -ne 1 -or $oracleRestartBindings.'1521/tcp'[0].HostIp -ne '127.0.0.1' -or $oracleRestartBindings.'1521/tcp'[0].HostPort -ne '11521'){throw 'Oracle image/volume/loopback binding changed during restart.'}
+                foreach($oracleEntry in $oracleOriginalEvidence.GetEnumerator()){if((Get-FileHash -LiteralPath (Join-Path $work $oracleEntry.Key)).Hash -ne $oracleEntry.Value){throw 'Original write/process proof changed across restart.'}}
+                $oracleRestartProof['state']='restart-ready-original-recovery-pending';$oracleRestartProof['after']=$oracleAfterStart
+                $oracleReadyHash=Write-OracleProcessBoundary -Path $oracleRestartReport -Value $oracleRestartProof
+                if((Get-FileHash -LiteralPath $oracleRestartPending).Hash -ne $oracleIntentHash){throw 'Original restart intent changed.'}
+                Remove-Item -LiteralPath $oracleRestartPending
+            }
+        }
+        if(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Original Oracle process fixtures remain unresolved.'}
+        if($RestartDatabaseBetweenPhases){
+            $oracleRecoveryProofs=[ordered]@{}
+            foreach($oracleSync in @('False','True')){
+                $oracleVerifiedPath=Join-Path $work "encrypted-process-$oracleSync.verified.json"
+                $oracleVerified=Get-Content -LiteralPath $oracleVerifiedPath -Raw|ConvertFrom-Json
+                if($oracleVerified.recoveryCommits -ne 0 -or $oracleVerified.schemaProvisionCalls -ne 0 -or !$oracleVerified.usedOldPreparation -or !$oracleVerified.nativeHashesVerifiedBeforeRecovery -or $oracleVerified.readerProcess -eq $oracleVerified.writerProcess -or $oracleVerified.writerProcess -ne $oracleWriterIds[0] -or $oracleVerified.proofHash -ne (Get-FileHash -LiteralPath (Join-Path $work "encrypted-process-$oracleSync.written.json")).Hash){throw 'Exact zero-commit/no-provision original recovery proof required.'}
+                $oracleOriginalIntent=$oracleProcessIntents[$oracleSync]
+                if($oracleVerified.Operation -ne $oracleOriginalIntent.Operation -or $oracleVerified.rootId -ne $oracleOriginalIntent.Root -or $oracleVerified.childId -ne $oracleOriginalIntent.Child -or $oracleVerified.actorId -ne $oracleOriginalIntent.Actor){throw 'Recovered operation/record identities differ from original restart intent.'}
+                $oracleRecoveryProofs[$oracleSync]=(Get-FileHash -LiteralPath $oracleVerifiedPath).Hash
+            }
+            if((Get-FileHash -LiteralPath $oracleRestartReport).Hash -ne $oracleReadyHash){throw 'Original restart-ready proof changed.'}
+            $oracleRestartProof['state']='restart-and-original-recovery-verified';$oracleRestartProof['recoveryVerified']=$true
+            $oracleRestartProof['processCrashRecoveryVerified']=$AbruptStopDatabaseBetweenPhases.IsPresent
+            $oracleRestartProof['recoveryReportHash']=(Get-FileHash -LiteralPath (Join-Path $work 'oracle-encrypted-process-recover.trx')).Hash
+            $oracleRestartProof['recoveryProofHashes']=$oracleRecoveryProofs;$oracleRestartProof['completedUtc']=[DateTime]::UtcNow.ToString('O')
+            [void](Write-OracleProcessBoundary -Path $oracleRestartReport -Value $oracleRestartProof -Replace)
+        }
+        $passed=$true;return
+    }
+    $report=if($EncryptedReplay){'oracle-encrypted-replay-native-current.trx'}elseif($PreparationClaims){'oracle-preparation-native-current.trx'}elseif($ReconcileOriginal){'oracle-native-reconciliation-current.trx'}elseif($ReconcileAmbiguity){'oracle-ambiguity-reconciliation.trx'}elseif($ReconcileHistoricalExport){'oracle-history-export-reconciliation.trx'}elseif($ReconcileCorruptAvatar){'oracle-corrupt-avatar-reconciliation.trx'}elseif($ReconcileProjectionAssertions){'oracle-projection-assertion-reconciliation.trx'}else{'oracle-native-current.trx'}
+    $filter=if($EncryptedReplay){'FullyQualifiedName~OracleEncryptedReplayNativeTests'}elseif($PreparationClaims){'FullyQualifiedName~OraclePreparationNativeTests'}elseif($ReconcileOriginal){'FullyQualifiedName~RealSdkCanonicalRecordsSelectorsAndMetadataPaths'}elseif($ReconcileAmbiguity){'FullyQualifiedName~DuplicateIdentityIsRejectedInsteadOfSelectingArbitraryAvatar'}elseif($ReconcileHistoricalExport){'FullyQualifiedName~ReconcileKnownHistoricalExportFixture'}elseif($ReconcileCorruptAvatar){'FullyQualifiedName~ReconcileKnownCorruptAvatarFixture'}elseif($ReconcileProjectionAssertions){'FullyQualifiedName~ReconcileKnownProjectionAssertionFixtures'}else{'FullyQualifiedName~OracleNativeAcceptanceTests&FullyQualifiedName!~Reconcile'}
+    # Full regression plus four independent identity/holon version cases; retain earlier reports.
+    if($IndependentExportVersions){$report='oracle-independent-export-native-current.trx'}
+    if($PointReadSelectors){$report='oracle-point-selector-native-current.trx'}
+    if($AllVersionExports){$report='oracle-all-version-export-native-current.trx'}
+    if($ReconcileExportIdentity){$report='oracle-export-identity-reconciliation-current.trx';$filter='FullyQualifiedName~ReconcileKnownIndependentExportIdentityFixture'}
+    if($LifecycleGuards){$report='oracle-lifecycle-guard-native-current.trx';$filter='FullyQualifiedName~NativeLifecycleGuardsRejectStaleAndRelatedActiveSaves'}
+    if($AvatarProjection){$report='oracle-avatar-projection-native-current.trx';$filter='FullyQualifiedName~NativeAvatarProjectionMismatchCannotBeHiddenOrRepaired'}
+    if($SaveAcknowledgements){$report='oracle-save-ack-native-current.trx';$filter='FullyQualifiedName~NativeOrdinaryIdentitySaveCountsOnlyAcknowledgedCommit|FullyQualifiedName~AcknowledgedSaveCannotOverwriteChangedCallerContract'}
+    if($AvatarDeletionResults){$report='oracle-avatar-delete-result-native-current.trx';$filter='FullyQualifiedName~NativeAvatarDeletionResultMetadataDefinesKnownOutcome'}
+    if($DetailDeletionResults){$report='oracle-detail-delete-result-native-current.trx';$filter='FullyQualifiedName~NativeStandaloneDetailLifecyclePreservesAvatarAndReportsLostCommit'}
+    if($IdentityRaces){$report='oracle-identity-races-native-current.trx';$filter='FullyQualifiedName~NativeIdentitySaveAndPairDeleteSerialize'}
+    if($HolonProjection){$report='oracle-holon-projection-native-current.trx';$filter='FullyQualifiedName~NativeHolonProjectionCorruptionIsExplicitBeforeHistoryAndFiltering'}
+    if($RootParent){$report='oracle-root-parent-native-current.trx';$filter='FullyQualifiedName~NativeRootParentSelectionAgreesAtLatestAndHistoricalVersions'}
+    if($IdentityCapacity){$report='oracle-identity-character-native-current.trx';$filter='FullyQualifiedName~NativeIdentityDeclaredCharacterCapacityPreservesUnicode'}
+    if($UpgradeIdentityCharacters){$report='oracle-identity-character-upgrade.trx';$filter='FullyQualifiedName~OracleIdentitySchemaUpgradeNativeTests'}
+    if($WriteRejections){$report='oracle-write-rejections-native-current.trx';$filter='FullyQualifiedName~NativeIdentityColumnRejectionDoesNotBecomeUnknown|FullyQualifiedName~NativeCommitPhaseCapacityErrorRemainsUncertain'}
+    if($ExistingSchema){$report='oracle-existing-schema-native-current.trx';$filter='FullyQualifiedName~NativeExistingSchemaActivationValidatesWithoutProvisioning'}
+    if($TableDurability){$report='oracle-table-durability-native-current.trx';$filter='FullyQualifiedName~NativeTableDurabilityAdmissionUsesActualCatalogWithoutAlteringCanonicalTables'}
+    if($ExtraColumns){$report='oracle-extra-column-native-current.trx';$filter='FullyQualifiedName~NativeExtraColumnsMustPermitCanonicalInsertWithoutSchemaRepair'}
+    if($ReadAcknowledgements){$report='oracle-read-ack-native-current.trx';$filter='FullyQualifiedName~NativeReadAcknowledgementsReportActualSuccessAndRootCounts'}
+    if($ReadAcknowledgementStress){$report='oracle-read-ack-stress-current.trx';$filter='FullyQualifiedName~TwentyFreshReadAcknowledgementFixturesExposeIntermittentFailures'}
+    if($ReadAcknowledgementOrder){$report='oracle-read-ack-order-current.trx';$filter='FullyQualifiedName~LostCommitPredecessorsDoNotPoisonFollowingReadAcknowledgements'}
+    if($DeleteAliases){$report='oracle-delete-alias-native-current.trx';$filter='FullyQualifiedName~NativeHolonDeleteAliasesCountAcknowledgedMutationOnly|FullyQualifiedName~NativeDetailDeleteInterfaceAliasesPreserveProfileAndOtherSelectors'}
+    if($V2Deletion){$report='oracle-v2-delete-native-current.trx';$filter='FullyQualifiedName~NativeV2ManagerDeleteRoutesPreserveIndependentChildren'}
+    if($LeastPrivilege){$report='oracle-restricted-schema-native-current.trx';$filter='FullyQualifiedName~NativeRestrictedSchemaActivatesAndStoresWithoutProvisioningPrivileges'}
+    if($KarmaManager){$report='oracle-karma-manager-native-current.trx';$filter='FullyQualifiedName~NativeV2KarmaManagerPersistsLedgerAndDetailHistory'}
+    if($ReconcileKarmaAssertion){$report='oracle-karma-history-shape-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownKarmaHistoryAssertionFixture'}
+    if($MissingDeletion){$report='oracle-missing-delete-native-current.trx';$filter='FullyQualifiedName~NativeMissingDeleteIsKnownAbsenceWithoutAcknowledgedMutation'}
+    if($ReconcileKarmaProjections){$report='oracle-karma-projection-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownKarmaLeaderboardProjectionFixtures'}
+    if($InspectReadConnections){$report=if($ReadConnectionPath -eq 'Native'){'oracle-read-only-native-connection-current.trx'}else{'oracle-read-only-connection-current.trx'};$filter='FullyQualifiedName~OracleReadOnlyConnectionNativeTests.CompareConnectionAdmissionWithoutReplayingOriginalWrites'}
+    if($ReconcileReadOutage){$report='oracle-read-ack-outage-reconciliation-current.trx';$filter='FullyQualifiedName~OracleNativeAcceptanceTests.ReconcileKnownReadAcknowledgementConnectionOutage'}
+    if($ReconcileScopedVisibility){$report='oracle-scoped-reconciliation-current.trx';$filter='FullyQualifiedName~ReconcileKnownScopedVisibilityFixtures'}
+    if($ReconcileAcknowledgementViews){$report='oracle-acknowledgement-view-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownAcknowledgementViewFixtures'}
+    if($ReconcileConditionalIntent){$report='oracle-conditional-intent-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownConditionalIntentFixture'}
+    if($ReconcileKarmaNullOutcome){$report='oracle-karma-null-reconciliation-current.trx';$filter='FullyQualifiedName~ReconcileKnownKarmaNullOutcomeWithoutReplayingMutation'}
+    if($ReconcileKarmaReadGuard){$report='oracle-karma-read-guard-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownKarmaReadGuardFixture'}
+    if($BootstrapSchema){$report='oracle-bootstrap-native-current.trx';$filter='FullyQualifiedName~OracleBootstrapNativeTests'}
+    if($Coverage){$report='oracle-native-coverage-current.trx'}
+    if($ReconcileExportVisibility){$report='oracle-export-visibility-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownAvatarExportVisibilityFixture'}
+    if(Test-Path -LiteralPath (Join-Path $testResults $report)){throw 'Preserve the original native report before another run.'}
+    if($ConformanceOnly){$report='oracle-core-conformance.trx';$filter='FullyQualifiedName~CoreStorageSuiteAgainstRetainedOracle'}
+    $testStarted=[DateTime]::UtcNow
+    & dotnet test (Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj') --no-build --no-restore --filter $filter --logger "trx;LogFileName=$report" --results-directory $testResults /m:2 /nr:false @coverageArgs
+    $testExit=$LASTEXITCODE
+    if($ConformanceOnly){
+        & python (Join-Path $root 'Scripts/Providers/record_conformance_results.py') --providers OracleDBOASIS
+        if($LASTEXITCODE){throw 'Oracle shared report registration failed.'}
+        & python (Join-Path $root 'Scripts/Providers/update_provider_matrix.py')
+        if($LASTEXITCODE){throw 'Oracle matrix update failed.'}
+    }
+    if($testExit -ne 0){throw 'Native Oracle verification incomplete; preserve originals, no cleanup/reset/replay.'}
+    if($InspectReadConnections){
+        $remaining=@(Get-ChildItem -LiteralPath $work -Filter '*.pending.json')
+        if($remaining.Count -ne 1 -or $remaining[0].Name -ne 'read-acknowledgements.pending.json' -or
+           (Get-FileHash $remaining[0].FullName).Hash -ne 'C83043A1A52487CB881ADE96B9038C328F78052CCC6DE126DCDB82D1043DA198' -or
+           (Get-FileHash (Join-Path $work 'read-acknowledgements-failure.json')).Hash -ne '470441EA9F0D9062305760949A92C303574FD668AF8CAD3369586B92E87F3F68'){throw 'Read-only inspection changed original evidence.'}
+    }elseif(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Native Oracle verification incomplete; preserve originals, no cleanup/reset/replay.'}
+    $reportFile=Get-Item -LiteralPath (Join-Path $testResults $report)
+    [xml]$trx=Get-Content -LiteralPath $reportFile.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters
+    $expected=if($InspectReadConnections -or $ReadAcknowledgementStress -or $ReadAcknowledgementOrder){1}elseif($ExtraColumns){20}elseif($MissingDeletion){40}elseif($ReconcileKarmaAssertion -or $ReconcileKarmaProjections){1}elseif($KarmaManager -or $LeastPrivilege){2}elseif($V2Deletion){16}elseif($DeleteAliases){28}elseif($ReadAcknowledgements){2}elseif($TableDurability){6}elseif($ExistingSchema){2}elseif($WriteRejections){24}elseif($UpgradeIdentityCharacters){1}elseif($IdentityCapacity){4}elseif($RootParent){16}elseif($HolonProjection){112}elseif($IdentityRaces -or $DetailDeletionResults){8}elseif($AvatarDeletionResults -or $SaveAcknowledgements){12}elseif($AvatarProjection){128}elseif($LifecycleGuards){24}elseif($EncryptedReplay){4}elseif($PreparationClaims){6}elseif($ReconcileOriginal -or $ReconcileAmbiguity -or $ReconcileHistoricalExport -or $ReconcileCorruptAvatar -or $ReconcileProjectionAssertions){1}else{571}
+    if($ReconcileReadOutage -or $ReconcileExportIdentity -or $ReconcileScopedVisibility -or $ReconcileAcknowledgementViews -or $ReconcileConditionalIntent -or $ReconcileKarmaNullOutcome -or $ReconcileKarmaReadGuard){$expected=1}
+    if($ConformanceOnly){$expected=2}
+    if($BootstrapSchema){$expected=1}
+    if($ReconcileExportVisibility){$expected=1}
+    if($reportFile.LastWriteTimeUtc -lt $testStarted -or [int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw 'Fresh complete unskipped Oracle native report required.'}
+    if($Coverage){
+        if((Get-FileHash -LiteralPath $coverageAssembly).Hash -ne $coverageOriginalHash){throw 'Coverage instrumentation was not restored; preserve outputs and rebuild before reuse.'}
+        if((Get-FileHash -LiteralPath $coveragePdb).Hash -ne $coverageOriginalPdbHash){throw 'Coverage PDB instrumentation was not restored; preserve outputs and rebuild before reuse.'}
+        $coverageEvidence=& (Join-Path $PSScriptRoot 'Get-OracleCoverageEvidence.ps1') -ResultsDirectory $testResults -ReportName $report
+        if((Get-Item -LiteralPath $coverageEvidence.Coverage).LastWriteTimeUtc -lt $testStarted){throw 'Fresh coverage evidence required.'}
+        $coverageEvidence|ConvertTo-Json -Compress
+    }
+    $passed=$true
+}finally{
+    $env:ORACLEDBOASIS_CONNECTIONSTRING=$previousConnection;$env:OASIS_ORACLE_TEST_WORK=$previousWork;$env:OASIS_ORACLE_RESUME_CANONICAL=$previousResume;$secret=$null
+    $env:OASIS_ORACLE_RECONCILE_AMBIGUITY=$previousAmbiguity
+    $env:OASIS_ORACLE_ALLOW_TEST_IDENTITY_SCHEMA_UPGRADE=$previousSchemaUpgrade
+    $env:OASIS_ORACLE_ALLOW_BOOTSTRAP_TEST=$previousBootstrap
+    $env:OASIS_ORACLE_READ_CONNECTION_ITERATIONS=$previousReadIterations
+    $env:OASIS_ORACLE_READ_CONNECTION_PATH=$previousReadPath
+    $env:OASIS_ORACLE_RECONCILE_READ_OUTAGE=$previousReadReconciliation
+    if($startedHere -and $passed){& wsl -d Ubuntu -u root -- podman stop --time 30 oasis-oracle-free}
+    $lease.Dispose()
+}

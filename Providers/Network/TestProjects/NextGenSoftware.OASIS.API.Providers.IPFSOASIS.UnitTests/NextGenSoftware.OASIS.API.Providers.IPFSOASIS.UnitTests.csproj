@@ -9,9 +9,27 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/ProtocolPointApiHost.cs" Link="Demo/ProtocolPointApiHost.cs" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <Compile Include="../../../Shared/TestSupport/ProtocolPointWeb4Acceptance.cs" Link="TestSupport/ProtocolPointWeb4Acceptance.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/*.cs"
+             Exclude="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Providers.cs;../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/DnaCqlSharedReads.cs" Link="Production/Cql/%(Filename)%(Extension)" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/Cql*.cs" Link="Production/Models/%(Filename)%(Extension)" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs" Link="Production/CqlV1Controller.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/AuthorizeAttribute.cs" Link="Production/AuthorizeAttribute.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="../../../../Examples/CosmicCqlDemo/IpfsPointWalkthrough.cs" Link="Demo/IpfsPointWalkthrough.cs" />
+    <Compile Include="..\..\..\Shared\TestSupport\CoreStorageConformance.cs" Link="Shared\CoreStorageConformance.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <Compile Remove="IpfsCoreStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' != 'true'" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageReference Include="xunit" Version="2.6.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3">
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -23,6 +41,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Tests explicitly exercise the bundled SDK, which is intentionally private to the provider package. -->
+    <ProjectReference Include="..\..\..\..\External Libs\net-ipfs-http-client-master\src\IpfsHttpClient.csproj" />
+    <ProjectReference Include="..\..\..\Storage\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
+    <ProjectReference Include="..\..\..\Storage\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.IPFSOASIS\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj" />
     <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />

@@ -50,10 +50,13 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
         };
 
         public FirebaseOASIS(string databaseUrl, string? authToken = null)
+            : this(databaseUrl, authToken, new HttpClient()) { }
+
+        public FirebaseOASIS(string databaseUrl, string? authToken, HttpClient httpClient)
         {
             _baseUrl = databaseUrl.TrimEnd('/');
             _authToken = authToken;
-            _http = new HttpClient();
+            _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             ProviderName = "FirebaseOASIS";
             ProviderDescription = "Google Firebase Realtime Database provider (REST API, JSON documents)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.FirebaseOASIS);
@@ -101,7 +104,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
 
         private string QueryUrl(string collection, string field, string value)
         {
-            string url = $"{_baseUrl}/{collection}.json?orderBy=\"{field}\"&equalTo=\"{Uri.EscapeDataString(value)}\"";
+            string url = $"{_baseUrl}/{collection}.json?orderBy={Uri.EscapeDataString(JsonSerializer.Serialize(field))}&equalTo={Uri.EscapeDataString(JsonSerializer.Serialize(value))}";
             if (!string.IsNullOrEmpty(_authToken))
                 url += $"&auth={Uri.EscapeDataString(_authToken)}";
             return url;
@@ -122,34 +125,39 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
 
         private async Task<T?> GetAsync<T>(string path)
         {
-            var response = await _http.GetAsync(NodeUrl(path));
-            if (!response.IsSuccessStatusCode) return default;
+            using var response = await _http.GetAsync(NodeUrl(path));
+            response.EnsureSuccessStatusCode();
             var json = await response.Content.ReadAsStringAsync();
-            if (json == "null" || string.IsNullOrWhiteSpace(json)) return default;
             return Deserialize<T>(json);
         }
 
         private async Task<List<T>> QueryByFieldAsync<T>(string collection, string field, string value)
         {
             var url = QueryUrl(collection, field, value);
-            var response = await _http.GetAsync(url);
-            if (!response.IsSuccessStatusCode) return new List<T>();
+            using var response = await _http.GetAsync(url);
+            response.EnsureSuccessStatusCode();
             var json = await response.Content.ReadAsStringAsync();
-            if (json == "null" || string.IsNullOrWhiteSpace(json)) return new List<T>();
-            var node = JsonNode.Parse(json);
-            if (node is not JsonObject obj) return new List<T>();
-            return obj.Select(kvp => Deserialize<T>(kvp.Value!.ToJsonString())).Where(v => v != null).Select(v => v!).ToList();
+            return ReadCollection<T>(json);
         }
 
         private async Task<List<T>> GetAllAsync<T>(string collection)
         {
-            var response = await _http.GetAsync(NodeUrl($"/{collection}"));
-            if (!response.IsSuccessStatusCode) return new List<T>();
+            using var response = await _http.GetAsync(NodeUrl($"/{collection}"));
+            response.EnsureSuccessStatusCode();
             var json = await response.Content.ReadAsStringAsync();
-            if (json == "null" || string.IsNullOrWhiteSpace(json)) return new List<T>();
+            return ReadCollection<T>(json);
+        }
+
+        private static List<T> ReadCollection<T>(string json)
+        {
             var node = JsonNode.Parse(json);
-            if (node is not JsonObject obj) return new List<T>();
-            return obj.Select(kvp => Deserialize<T>(kvp.Value!.ToJsonString())).Where(v => v != null).Select(v => v!).ToList();
+            // The service represents an absent node as JSON null. Other payload
+            // shapes and missing bodies are protocol errors, not empty results.
+            if (node == null) return new List<T>();
+            if (node is not JsonObject obj) throw new JsonException("Firebase collection must be a JSON object or null.");
+            return obj.Select(kvp => kvp.Value is JsonObject value
+                ? Deserialize<T>(value.ToJsonString()) ?? throw new JsonException("Firebase collection record cannot be null.")
+                : throw new JsonException("Firebase collection record must be an object.")).ToList();
         }
 
         private async Task<bool> PatchAsync(string path, object patch)
@@ -309,11 +317,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
 
         public override OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true) => DeleteAvatarByEmailAsync(email, softDelete).Result;
 
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-        {
-            if (Guid.TryParse(providerKey, out Guid id)) return await DeleteAvatarAsync(id, softDelete);
-            return await DeleteAvatarByUsernameAsync(providerKey, softDelete);
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+            => GuidProviderKeyDeletion.DeleteAvatarAsync(providerKey, softDelete, DeleteAvatarAsync);
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).Result;
 

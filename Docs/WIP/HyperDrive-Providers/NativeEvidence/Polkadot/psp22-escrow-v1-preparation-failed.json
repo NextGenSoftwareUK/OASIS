@@ -1,0 +1,39 @@
+{
+  "before": {
+    "blockHash": "0x93edec746fb6eb0b7d41ab132206f0464baf446b46609de48c2b7749f7ec5bf9",
+    "contractAddress": "0xb5cf62c8d1079fe1c309a725c1022ea8ea86f729a6ab7ae2b7d9cff6a8477bba",
+    "codeHash": "0xcf8ae46b358235015dc3b1d5beb9e684f592a5817e71cc666c028faa59bf3a2e",
+    "owner": "0x1a4fee48c1ba1a48e8cd43782a8485d635aa91cfb82cbb477f0c1c576bc4031c",
+    "spender": "0x797745f1ff2829973580508a432a0f8e993aa5930484245cf9948a527cf8da5d",
+    "totalSupply": "1208925819614629174706176",
+    "ownerBalance": "1208925819614629174706176",
+    "spenderBalance": "0",
+    "allowance": "0",
+    "decimals": 12
+  },
+  "after": {
+    "blockHash": "0x93edec746fb6eb0b7d41ab132206f0464baf446b46609de48c2b7749f7ec5bf9",
+    "contractAddress": "0xb5cf62c8d1079fe1c309a725c1022ea8ea86f729a6ab7ae2b7d9cff6a8477bba",
+    "codeHash": "0xcf8ae46b358235015dc3b1d5beb9e684f592a5817e71cc666c028faa59bf3a2e",
+    "owner": "0x1a4fee48c1ba1a48e8cd43782a8485d635aa91cfb82cbb477f0c1c576bc4031c",
+    "spender": "0x797745f1ff2829973580508a432a0f8e993aa5930484245cf9948a527cf8da5d",
+    "totalSupply": "1208925819614629174706176",
+    "ownerBalance": "1208925819614629174706176",
+    "spenderBalance": "0",
+    "allowance": "0",
+    "decimals": 12
+  },
+  "deposit": {
+    "blockHash": "0x93edec746fb6eb0b7d41ab132206f0464baf446b46609de48c2b7749f7ec5bf9",
+    "contractAddress": "0x797745f1ff2829973580508a432a0f8e993aa5930484245cf9948a527cf8da5d",
+    "codeHash": "0x2b27e953991b09609e8273861ec0dd841cb69a1cff4495432208414146736dae",
+    "depositId": "0x1111111111111111111111111111111111111111111111111111111111111111",
+    "deposit": null
+  },
+  "error": "createType(Result<Result<(),OasisTokenEscrowError>,OasisTokenEscrowLangError>):: Unable to create Enum via index 5, in CouldNotReadInput",
+  "structuredErrorVerified": false,
+  "submitted": false,
+  "signedOriginalCreated": false,
+  "publicFunds": false,
+  "scope": "native insufficient-allowance simulation and return ABI; not persisted native rollback acceptance"
+}

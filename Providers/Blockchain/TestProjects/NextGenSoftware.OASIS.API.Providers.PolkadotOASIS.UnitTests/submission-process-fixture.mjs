@@ -1,0 +1,121 @@
+// Controlled process/pipe fixture ONLY. No SDK, RPC, signing or ledger writes.
+import { readFileSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
+import net from 'node:net';
+const request = JSON.parse(readFileSync(0, 'utf8'));
+const originalHash = '0x' + 'b'.repeat(64);
+const chain = '0x' + 'a'.repeat(64);
+const emit = result => process.stdout.write(JSON.stringify({ ok: true, result }));
+async function waitForOwnedCancellation(signal) {
+  const socket = net.createConnection(process.env.OASIS_POLKADOT_TEST_FINALITY_PIPE);
+  await new Promise((resolve, reject) => { socket.once('connect', resolve); socket.once('error', reject); });
+  socket.write(signal);
+  await new Promise(() => {});
+}
+if (request.operation === 'nftOutcome' && request.custodyReceipt === true) {
+  emit({ transactionHash: request.transactionHash, finalized: true, dispatchSucceeded: true,
+    nftEffectMatchesRequest: true, custodyReceiptVerified: true, contractAddress: request.contractAddress,
+    contractCodeHash: request.contractCodeHash, custody: request.custody, to: request.custody,
+    tokenId: process.env.OASIS_POLKADOT_TEST_OUTCOME === 'source-mismatch' ? { U8: '1' } : request.tokenId });
+} else if (request.operation === 'prepareNftMutation') {
+  const mode = process.env.OASIS_POLKADOT_TEST_OUTCOME;
+  emit({ transactionHash: originalHash, chainId: chain, sender: request.sender,
+    action: request.action, contractAddress: request.contractAddress, contractCodeHash: request.contractCodeHash,
+    tokenId: mode === 'prepared-token-mismatch' ? { U8: '1' } : request.tokenId,
+    ...(request.to !== undefined ? { to: request.to } : {}),
+    ...(request.expectedFrom !== undefined ? { expectedFrom: request.expectedFrom } : {}),
+    ...(request.attributes !== undefined ? { attributes: mode === 'prepared-metadata-mismatch' ? [] : request.attributes } : {}),
+    signedTransactionBase64: 'AQID', signature: 'fixture-signature',
+    signDocBase64: Buffer.from(JSON.stringify({ signingPayload: { blockNumber: '0x01' } })).toString('base64') });
+} else if (request.operation === 'verifyNftPreparation') {
+  emit({ verified: true, transactionHash: originalHash, chainId: chain,
+    sender: request.preparation.sender, contractCodeHash: request.preparation.contractCodeHash });
+} else if (request.operation === 'prepareRecordMutation') {
+  process.stdout.write(JSON.stringify({ ok: false, error: 'controlled pre-sign conflict', contractError: 'Conflict' }));
+  process.exitCode = 1;
+} else if (request.operation === 'transactionStatus') {
+  const mode = process.env.OASIS_POLKADOT_TEST_OUTCOME;
+  if (mode === 'status-error') { process.stdout.write(JSON.stringify({ok:false,error:'controlled unresolved status'})); process.exitCode=1; }
+  else emit({transactionHash:mode === 'status-wrong-hash' ? chain : request.transactionHash,
+    blockHash:mode === 'status-wrong-block' ? originalHash : chain, finalized:mode !== 'status-unfinalized',
+    status:mode === 'status-failed' ? 'Failed' : 'Completed', dispatchSucceeded:mode !== 'status-failed', blockNumber:'1',extrinsicIndex:0});
+} else if (['generateKeyPair', 'createAccount', 'restoreAccount'].includes(request.operation)) {
+  const mode = process.env.OASIS_POLKADOT_TEST_OUTCOME;
+  if (mode === 'generation-error') { process.stdout.write(JSON.stringify({ ok: false, error: 'controlled key generation failure' })); process.exitCode = 1; }
+  else emit({ chainId: mode === 'generation-network' ? originalHash : chain, cryptoType: mode === 'generation-crypto' ? 'ed25519' : 'sr25519',
+    ss58Format: mode === 'generation-prefix' ? 46 : 42, privateKey: mode === 'generation-seed' ? 'invalid' : '0x' + '2'.repeat(64),
+    publicKey: '0x' + '3'.repeat(64), address: mode === 'generation-address' ? '0x' + '3'.repeat(64) : '5' + 'c'.repeat(47),
+    seedPhrase: mode === 'generation-phrase' ? '' : Array(24).fill('fixture').join(' ') });
+} else if (request.operation === 'prepareTransfer' || request.operation === 'prepareAssetOperation') {
+  const asset = request.operation === 'prepareAssetOperation';
+  if (asset && (request.assetId !== '424242' || request.recipient !== 'sender' || request.amount !== '1.250001'))
+    throw new Error('Controlled fixture expected the frozen typed asset intent.');
+  emit({ transactionHash: originalHash, chainId: chain, sender: 'sender',
+    ...(asset ? { action: request.action, assetId: request.assetId, recipient: request.recipient, units: '1250001' } : {}),
+    signedTransactionBase64: 'AQID', signature: 'fixture-signature',
+    signDocBase64: Buffer.from(JSON.stringify({ signingPayload: { blockNumber: '0x01' } })).toString('base64') });
+} else if (request.operation === 'verifyNativePreparation' || request.operation === 'verifyAssetPreparation') {
+  if (process.env.OASIS_POLKADOT_TEST_OUTCOME === 'cancel-verification')
+    await waitForOwnedCancellation(String(process.pid) + '\n');
+  else emit({ verified: true, transactionHash: originalHash, chainId: chain, sender: 'sender' });
+} else if (request.operation === 'originalNativeFee') {
+  const mode = process.env.OASIS_POLKADOT_TEST_OUTCOME;
+  if (mode === 'fee-unresolved') {
+    process.stdout.write(JSON.stringify({ ok: false, error: 'controlled unavailable original fee' })); process.exitCode = 1;
+  } else emit({ transactionHash: mode === 'fee-wrong-hash' ? 'wrong' : originalHash,
+    finalized: mode !== 'fee-unfinalized', dispatchSucceeded: mode !== 'fee-failed-dispatch', payer: 'sender',
+    feeCoverage: 'finalized-native-transaction-payment-event-tip-included', actualFeeUnits: mode === 'fee-invalid-units' ? '-1' : '12' });
+} else if (request.operation === 'walletHistory') {
+  const mode = process.env.OASIS_POLKADOT_TEST_OUTCOME;
+  if (mode === 'rpc-error') { process.stdout.write(JSON.stringify({ ok: false, error: 'controlled archive failure' })); process.exitCode = 1; }
+  else {
+    const wallet = '0x' + 'c'.repeat(64), other = '0x' + 'd'.repeat(64);
+    const row = { transactionHash: originalHash, blockHash: chain, blockNumber: mode === 'wrong-block' ? '3' : '1',
+      extrinsicIndex: 1, eventIndex: 2, from: other, to: wallet, signer: other, rawAmount: mode === 'bad-amount' ? '-1' : '18446744073709551616',
+      decimals: 12, token: null, amountUnit: 'native-base-unit', effect: 'balances.Transfer', amountKind: mode === 'bad-classification' ? 'unknown' : 'applied-event',
+      operation: 'balances.transferKeepAlive', timestampMilliseconds: '1700000000000', dispatchSucceeded: mode !== 'failed', dispatchError: mode === 'failed' ? 'ModuleError' : null };
+    if (mode === 'generic') Object.assign(row, { from: wallet, to: '', signer: wallet, rawAmount: null, decimals: null,
+      amountUnit: null, effect: null, amountKind: 'not-interpreted', eventIndex: null });
+    emit({ address: mode === 'wrong-wallet' ? '0x' + 'e'.repeat(64) : wallet, genesisHash: mode === 'wrong-network' ? originalHash : chain,
+      finalized: true, fromBlock: '1', toBlock: mode === 'wrong-range' ? '2' : '1', finalizedSnapshotBlock: '2',
+      rows: mode === 'two-events' ? [row, { ...row, eventIndex: 3 }] : [row] });
+  }
+} else if (request.operation === 'originalOutcome' || request.operation === 'assetOutcome' || request.operation === 'nftOutcome') {
+  if (process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wait-for-cancellation') {
+    await waitForOwnedCancellation('1'); // Actual finality read entry, not a timing guess.
+  } else if (process.env.OASIS_POLKADOT_TEST_OUTCOME === 'read-error') {
+    process.stdout.write(JSON.stringify({ ok: false, error: 'controlled finalized read failure' }));
+    process.exitCode = 1;
+  } else emit({ found: true, reconciliationRequired: true, receipt: {
+    transactionHash: originalHash, finalized: true,
+    dispatchSucceeded: process.env.OASIS_POLKADOT_TEST_OUTCOME !== 'dispatch-failed',
+    ...(request.operation === 'assetOutcome' ? {
+      assetEffectMatchesRequest: process.env.OASIS_POLKADOT_TEST_OUTCOME !== 'effect-mismatch',
+      observedUnits: process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wrong-units' ? '1250000' : '1250001',
+      requestedUnits: '1250001', assetId: request.preparation.assetId, recipient: request.preparation.recipient,
+      action: process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wrong-action' ? 'other' : request.preparation.action
+    } : {}),
+    ...(request.operation === 'nftOutcome' ? {
+      nftEffectMatchesRequest: process.env.OASIS_POLKADOT_TEST_OUTCOME !== 'effect-mismatch',
+      action: process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wrong-action' ? 'other' : request.preparation.action,
+      tokenId: process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wrong-token' ? { U8: '1' } : request.preparation.tokenId,
+      contractAddress: process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wrong-contract' ? chain : request.preparation.contractAddress,
+      from: process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wrong-from' ? chain : request.preparation.expectedFrom ?? null,
+      to: process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wrong-to' ? chain : request.preparation.to ?? null
+    } : {}),
+    dispatchError: 'controlled dispatch failure', actualFeeUnits: '12'
+  } });
+} else {
+const { preparationClient } = await import(pathToFileURL(process.env.OASIS_NATIVE_PREPARATION_MODULE).href);
+await preparationClient(process.env.OASIS_NATIVE_PREPARATION_PIPE)(request.preparation);
+if (request.fixtureOutcome === 'error') {
+  process.stdout.write(JSON.stringify({ ok: false, error: 'controlled response loss after acknowledgement' }));
+  process.exitCode = 1;
+} else {
+  process.stdout.write(JSON.stringify({ ok: true, result: {
+    transactionHash: request.fixtureOutcome === 'wrong-hash' ? 'wrong' : request.preparation.transactionHash,
+    persisted: true, submitted: true, poolAccepted: true,
+    finalized: request.fixtureOutcome === 'false-finality', reconciliationRequired: true
+  } }));
+}
+}

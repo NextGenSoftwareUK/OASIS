@@ -22,7 +22,7 @@ or Unity presentation. Do not mark an unexecuted check as passed.
 
 For reusable hosted fixtures covering `AnyOrder`, `InOrder`, permanent/cooldown,
 per-player, exclusive and global-limit behavior, see
-[Our World quest test fixtures](OUR_WORLD_QUEST_TEST_FIXTURES.md).
+[Our World quest test fixtures](<../WIP/Our World/OUR_WORLD_QUEST_TEST_FIXTURES.md>).
 
 Run from the OASIS repository root:
 
@@ -109,7 +109,7 @@ two signed-in clients. Automated results cannot replace these visual checks.
 | Layer | Current recorded result |
 | --- | --- |
 | Local policy matrix | 1,536 combinations, 14 named boundary checks and invalid-limit rejection passed; rerun after any policy change |
-| Hosted Anorak once-per-player path | The original four-tree path passed 2026-09-17. The canonical dataset was migrated to five named trees on 2026-09-18 and reset to 0/5; rerun the full five-pickup acceptance before release. See [run report](OUR_WORLD_ANORAK_RESET.md). |
+| Hosted Anorak once-per-player path | The original four-tree path passed 2026-09-17. The canonical dataset was migrated to five named trees on 2026-09-18 and reset to 0/5; rerun the full five-pickup acceptance before release. See [run report](<../WIP/Our World/OUR_WORLD_ANORAK_RESET.md>). |
 | Other hosted policy combinations | Pending |
 | Multiplayer across replicas | Pending; process-local locking alone is insufficient |
 | Manual Unity matrix | Pending |

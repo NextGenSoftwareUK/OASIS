@@ -1,0 +1,81 @@
+{
+  "scope": "controlled real child-process environment, no native network",
+  "reports": [
+    {
+      "path": "Docs\\WIP\\HyperDrive-Providers\\NativeEvidence\\polkadot-worker-environment-red.trx.gz",
+      "rawBytes": 7539,
+      "rawSha256": "19ddde42f5fa7811c0e66824f0fc599c77a07b44bb9cf9805c1adc784c0bde9f",
+      "gzipBytes": 1597,
+      "counters": {
+        "total": "3",
+        "executed": "3",
+        "passed": "0",
+        "failed": "3",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "path": "Docs\\WIP\\HyperDrive-Providers\\NativeEvidence\\polkadot-worker-environment-current.trx.gz",
+      "rawBytes": 579194,
+      "rawSha256": "37ee33d73dc2e754628c0f48459c458fffb01bf94fca58df8fa73df7affef295",
+      "gzipBytes": 83058,
+      "counters": {
+        "total": "376",
+        "executed": "376",
+        "passed": "376",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    }
+  ],
+  "binaries": [
+    {
+      "path": "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "bytes": 3496448,
+      "sha256": "b7bff4a0b709f3fb422ce61514fb4b7b50694dd39a904b98d68fdd65c92c8552"
+    },
+    {
+      "path": "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+      "bytes": 379904,
+      "sha256": "dc15b3a598b097620be940721de3f27bba158c45f65ac06a770f97ae8ec386b5"
+    },
+    {
+      "path": "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.dll",
+      "bytes": 207360,
+      "sha256": "91a6bbaaca5fa4a655aef3b16033f03c049c16ca6e54cad477a3c37597134198"
+    },
+    {
+      "path": "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests.dll",
+      "bytes": 208384,
+      "sha256": "12635a3a9668ea05d02a03077a1d398921a51dac9a0dd2a04f595bc0b9ece1ca"
+    }
+  ],
+  "sourceDocuments": {
+    "Core": 787,
+    "Shared": 56,
+    "provider": 30,
+    "unit": 28
+  }
+}

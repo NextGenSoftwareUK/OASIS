@@ -6,6 +6,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models
 {
     public class OASISConfigResult<T>
     {
+        public NextGenSoftware.OASIS.API.Core.Configuration.ProviderRoutingPolicy RequestRoutingPolicy { get; set; }
+        public ProviderType RequestProviderType { get; set; } = ProviderType.Default;
         public bool IsError { get; set; }
         public OASISHttpResponseMessage<T> Response { get; set; }
         public AutoReplicationMode AutoReplicationMode { get; set; } = AutoReplicationMode.UseGlobalDefaultInOASISDNA;

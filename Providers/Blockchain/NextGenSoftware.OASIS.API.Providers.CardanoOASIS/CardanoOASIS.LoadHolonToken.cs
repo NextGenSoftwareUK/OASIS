@@ -602,11 +602,6 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
         var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
         try
         {
-            if (!_isActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Cardano provider is not activated");
-                return result;
-            }
 
             // Generate Cardano Ed25519 key pair using Chaos.NaCl
             var seedBytes = new byte[32];
@@ -623,9 +618,10 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
             var privateKey = Convert.ToBase64String(privateKeyBytes);
             var publicKey = Convert.ToBase64String(publicKeyBytes);
 
-            result.Result = (publicKey, privateKey, string.Empty);
+            // The 32-byte Ed25519 seed is the recovery secret; RestoreAccountAsync accepts exactly this value.
+            result.Result = (publicKey, privateKey, Convert.ToBase64String(seedBytes));
             result.IsError = false;
-            result.Message = "Cardano Ed25519 key pair created successfully. Seed phrase not applicable for Cardano.";
+            result.Message = "Cardano Ed25519 key pair created; the base64 seed is the recovery secret.";
         }
         catch (Exception ex)
         {
@@ -639,32 +635,17 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
         var result = new OASISResult<(string PublicKey, string PrivateKey)>();
         try
         {
-            if (!_isActivated)
+
+            // Only the 32-byte Ed25519 seed returned by CreateAccountAsync (base64) is accepted. Any other text used to be
+            // SHA-256-hashed into a key (a brain wallet); it is now rejected.
+            byte[] seedBytes;
+            try { seedBytes = Convert.FromBase64String(seedPhrase?.Trim() ?? string.Empty); }
+            catch (FormatException) { seedBytes = Array.Empty<byte>(); }
+            if (seedBytes.Length != 32)
             {
-                OASISErrorHandling.HandleError(ref result, "Cardano provider is not activated");
+                OASISErrorHandling.HandleError(ref result, "A base64 32-byte Cardano Ed25519 seed is required.");
                 return result;
             }
-
-            // Cardano uses seed phrases - derive Ed25519 key pair from seed phrase using Chaos.NaCl
-            byte[] seedBytes;
-            try
-            {
-                // Try to decode seed phrase as base64, otherwise use UTF-8 bytes
-                seedBytes = Convert.FromBase64String(seedPhrase);
-                if (seedBytes.Length != 32)
-                {
-                    // If not 32 bytes, hash the seed phrase to get 32 bytes
-                    using var sha256 = System.Security.Cryptography.SHA256.Create();
-                    seedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(seedPhrase));
-                }
-            }
-            catch
-            {
-                // If base64 decode fails, hash the seed phrase string
-                using var sha256 = System.Security.Cryptography.SHA256.Create();
-                seedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(seedPhrase));
-            }
-
             // Derive Ed25519 keypair from seed
             byte[] publicKeyBytes = new byte[32];
             byte[] privateKeyBytes = new byte[64];

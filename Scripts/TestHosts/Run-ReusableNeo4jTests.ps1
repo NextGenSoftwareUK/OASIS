@@ -1,0 +1,145 @@
+#Requires -Version 7.0
+param([switch]$CosmicReplicaInitialization,[switch]$CosmicCqlLinqRowsReconcile,[switch]$CosmicCqlLinqRows,[switch]$CosmicCqlSourceDemo,[switch]$CosmicCqlSourceMatrix,[switch]$CosmicCqlProjectedAllAcceptanceReconcile,[switch]$CosmicCqlProjectedAllAcceptance,[switch]$CosmicCqlProjectedAll,[switch]$CosmicCqlAllChildDescendantReconcile,[switch]$CosmicCqlAllFixture,[switch]$CosmicCqlFloatingGrouped,[switch]$CosmicCqlFloatingKernel,[switch]$CosmicCqlFloatingScalar,[switch]$CosmicCqlFloatingParts,[switch]$CosmicCqlDecimalNumeric,[switch]$CosmicCqlDecimalKernel,[switch]$CosmicCqlUnsignedNumeric,[switch]$CosmicCqlEmptyWindow,[switch]$CosmicCqlScalarZero,[switch]$CosmicCqlComposition,[switch]$CosmicCqlJoins,[switch]$CosmicCqlJoinCompiler,[switch]$CosmicOrdinaryRoles,[switch]$CosmicCqlInterruption,[switch]$CqlV1Demo,[switch]$CqlV1Web4Reconcile,[switch]$CqlV1Web4,[switch]$ReconcileInterruptedEnumFixture,[switch]$CosmicCqlHostingRegression,[switch]$ReconcileIntegerFieldFixture,[switch]$ReconcileCqlFixture,[switch]$CosmicCqlRegression,[switch]$CosmicCql,[switch]$CosmicDeleteOwnership,[switch]$ReconcileIdentityRollback,[switch]$CosmicIdentitySave,[switch]$ReconcileDeltaCreationFixtures,[switch]$ReconcileTypedSearchFixtures,[switch]$CosmicTypedQueries,[switch]$ReconcileReadFrontierFixture,[switch]$CosmicReadDepth,[switch]$ReconcileCredentialHistoryFixture,[switch]$CosmicConfiguredHosting,[switch]$CosmicOutboxHosting,[switch]$CosmicMongoOutboxReconcile,[switch]$CosmicMongoOutboxDelivery,[switch]$ReconcileTimeoutFixtures,[switch]$CosmicOutboxDelivery,[switch]$CosmicPrimaryOutbox,[switch]$CosmicSchema,[switch]$CosmicConditional,[switch]$CosmicParentAssignment,[switch]$CosmicOrdinaryOutcomes,[switch]$CosmicReplica)
+if(($CosmicReplicaInitialization -or $CosmicCqlLinqRows -or $CosmicCqlLinqRowsReconcile -or $CosmicCqlSourceDemo -or $CosmicCqlSourceMatrix -or $CosmicCqlProjectedAllAcceptanceReconcile -or $CosmicCqlProjectedAllAcceptance -or $CosmicCqlProjectedAll -or $CosmicCqlAllChildDescendantReconcile -or $CosmicCqlAllFixture -or $CosmicCqlFloatingGrouped -or $CosmicCqlFloatingKernel -or $CosmicCqlFloatingScalar -or $CosmicCqlFloatingParts -or $CosmicCqlDecimalNumeric -or $CosmicCqlDecimalKernel -or $CosmicCqlUnsignedNumeric -or $CosmicCqlEmptyWindow -or $CosmicCqlScalarZero -or $CosmicCqlComposition -or $CosmicCqlJoins -or $CosmicCqlJoinCompiler -or $CosmicOrdinaryRoles -or $CosmicCqlInterruption -or $CqlV1Demo -or $CqlV1Web4Reconcile -or $CqlV1Web4 -or $ReconcileInterruptedEnumFixture -or $CosmicCqlHostingRegression -or $ReconcileIntegerFieldFixture -or $ReconcileCqlFixture -or $CosmicCqlRegression -or $CosmicCql -or $CosmicDeleteOwnership -or $ReconcileIdentityRollback -or $CosmicIdentitySave -or $ReconcileDeltaCreationFixtures -or $ReconcileTypedSearchFixtures -or $CosmicTypedQueries -or $ReconcileReadFrontierFixture -or $CosmicReadDepth -or $ReconcileCredentialHistoryFixture -or $CosmicConfiguredHosting -or $CosmicOutboxHosting -or $CosmicMongoOutboxReconcile -or $CosmicMongoOutboxDelivery -or $ReconcileTimeoutFixtures -or $CosmicOutboxDelivery -or $CosmicPrimaryOutbox -or $CosmicSchema -or $CosmicConditional -or $CosmicParentAssignment -or $CosmicOrdinaryOutcomes -or $CosmicReplica) -and $PSBoundParameters.Count -ne 1){throw 'Choose one exclusive Neo4j verification mode.'}
+$ErrorActionPreference='Stop'
+$taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+$work=Join-Path $taskRoot 'TestResults/Neo4jCurrent'
+New-Item -ItemType Directory -Force -Path $work | Out-Null
+$lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+$started=$false
+$attachedRuntime=$null
+$prior=$env:OASIS_OWNED_NEO4J_URI
+$priorWork=$env:OASIS_OWNED_NEO4J_WORK
+$priorResults=$env:OASIS_OWNED_NEO4J_RESULTS
+$freeBefore=(Get-PSDrive C).Free
+try {
+    $state=(& wsl -d Ubuntu -u root -- podman inspect oasis-neo4j --format '{{.State.Status}} {{.Image}}') -join ''
+    if($LASTEXITCODE -or $state -ne 'created 6e47503356fe6b0e8f3ba48afc714ed95475d0c32ac97c62b30737af2e8846bd' -and $state -ne 'exited 6e47503356fe6b0e8f3ba48afc714ed95475d0c32ac97c62b30737af2e8846bd'){
+        throw 'Exact retained stopped Neo4j container required; no download/replacement attempted.'
+    }
+    if(Get-NetTCPConnection -State Listen -LocalPort 17687 -ErrorAction SilentlyContinue){throw 'Owned Bolt port is already occupied.'}
+    if(Get-NetTCPConnection -State Listen -LocalPort 17688 -ErrorAction SilentlyContinue){throw 'Owned simulated outage port is occupied.'}
+    $provider=Join-Path $taskRoot 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.csproj'
+    $project=Join-Path $taskRoot 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.csproj'
+    $nativeAcceptance=$CosmicCqlLinqRows -or $CosmicCqlLinqRowsReconcile -or $CosmicCqlSourceDemo -or $CosmicCqlSourceMatrix -or $CosmicCqlProjectedAllAcceptance -or $CosmicCqlProjectedAllAcceptanceReconcile
+    if($nativeAcceptance){$project=Join-Path $taskRoot 'Providers/Storage/TestProjects/CosmicCql.NativeAcceptanceTests/CosmicCql.NativeAcceptanceTests.csproj'}
+    $sqlite=Join-Path $taskRoot 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj'
+    if($CosmicCqlProjectedAllAcceptanceReconcile -or $CosmicCqlProjectedAllAcceptance -or $CqlV1Demo -or $CqlV1Web4Reconcile -or $CqlV1Web4 -or $CosmicMongoOutboxDelivery -or $CosmicMongoOutboxReconcile){
+        if($env:SUBSCRIPTION_TEST_MONGODB_URI -ne 'mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000'){throw 'Use the exclusive retained Mongo runner mode.'}
+    }
+    $shared=Join-Path $taskRoot 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj'
+    $mongo=Join-Path $taskRoot 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj'
+    # Private implementation changes can leave reference assemblies unchanged. Rebuild direct consumers so copy-local cannot retain stale provider copies.
+    $sourceDriver=Join-Path $taskRoot 'Providers/Storage/Neo4j.Driver.OASIS/Neo4j.Driver.OASIS.csproj'
+    $web4=Join-Path $taskRoot 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj'
+    $producers=@($shared,$sqlite,$mongo,$sourceDriver,$provider)
+    if(!$nativeAcceptance){$producers+= $web4}
+    foreach($path in ($producers+@($project))){
+        & dotnet build $path --no-restore --no-incremental /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+        if($LASTEXITCODE){throw 'Neo4j producer/consumer build failed.'}
+    }
+    $sourceDriverDll=Join-Path $taskRoot 'Providers/Storage/Neo4j.Driver.OASIS/bin/Debug/net10.0/Neo4j.Driver.dll'
+    $shippingIdentity='Neo4j.Driver, Version=4.3.2.2, Culture=neutral, PublicKeyToken=b646bc66d277ac07'
+    if([Reflection.AssemblyName]::GetAssemblyName($sourceDriverDll).FullName -ne $shippingIdentity){throw 'Pinned source driver changed the shipping assembly identity.'}
+    $sourceDriverHash=(Get-FileHash -LiteralPath $sourceDriverDll).Hash
+    foreach($consumer in $provider,$project){
+        $copy=Join-Path (Split-Path $consumer) 'bin/Debug/net10.0/Neo4j.Driver.dll'
+        if((Get-FileHash -LiteralPath $copy).Hash -ne $sourceDriverHash){throw 'Neo4j consumer does not use the pinned source driver.'}
+    }
+    Write-Output "Verified pinned source driver SHA256=$sourceDriverHash"
+    $sharedName='NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll'
+    $expectedShared=(Get-FileHash -LiteralPath (Join-Path (Split-Path $shared) "bin/Debug/net10.0/$sharedName") -Algorithm SHA256).Hash
+    foreach($consumer in $sqlite,$mongo,$provider,$project){
+        $copy=Join-Path (Split-Path $consumer) "bin/Debug/net10.0/$sharedName"
+        if((Get-FileHash -LiteralPath $copy -Algorithm SHA256).Hash -ne $expectedShared){throw "Stale Shared producer in native consumer: $consumer"}
+    }
+    Write-Output "Verified native Shared producer SHA256=$expectedShared"
+    $coreName='NextGenSoftware.OASIS.API.Core.dll'
+    $expectedCore=(Get-FileHash -LiteralPath (Join-Path $taskRoot "OASIS Architecture/NextGenSoftware.OASIS.API.Core/bin/Debug/net10.0/$coreName") -Algorithm SHA256).Hash
+    foreach($consumer in $shared,$sqlite,$mongo,$provider,$project){
+        if((Get-FileHash -LiteralPath (Join-Path (Split-Path $consumer) "bin/Debug/net10.0/$coreName") -Algorithm SHA256).Hash -ne $expectedCore){throw "Stale Core producer in native consumer: $consumer"}
+    }
+    Write-Output "Verified native Core producer SHA256=$expectedCore"
+    # The attached WSL process owns the service lifetime throughout the batch.
+    # Detached systemd/container services alone do not keep WSL running.
+    $attachedRuntime=Start-Process -FilePath 'wsl.exe' -ArgumentList @('-d','Ubuntu','-u','root','--','podman','start','--attach','oasis-neo4j') -PassThru -WindowStyle Hidden -RedirectStandardOutput (Join-Path $work 'neo4j-attached-current.log') -RedirectStandardError (Join-Path $work 'neo4j-attached-current.err.log')
+    $started=$true
+    Write-Output "Owned Neo4j attached WSL process=$($attachedRuntime.Id)"
+    $deadline=[DateTime]::UtcNow.AddSeconds(60)
+    do {
+        if($attachedRuntime.HasExited){throw 'Owned Neo4j attachment exited before readiness; inspect retained logs.'}
+        & wsl -d Ubuntu -u root -- podman exec oasis-neo4j cypher-shell -u neo4j -p oasis-local-test-only 'RETURN 1;' 2>$null | Out-Null
+        $ready=$LASTEXITCODE -eq 0
+        if(!$ready){Start-Sleep -Milliseconds 500}
+    } while(!$ready -and [DateTime]::UtcNow -lt $deadline)
+    if(!$ready){throw 'Owned Neo4j did not become ready; no test submitted.'}
+    $env:OASIS_OWNED_NEO4J_URI='bolt://127.0.0.1:17687'
+    $env:OASIS_OWNED_NEO4J_RESULTS=$work
+    $env:OASIS_OWNED_NEO4J_WORK=if($CosmicCqlLinqRows -or $CosmicCqlLinqRowsReconcile -or $CosmicCqlSourceDemo -or $CosmicCqlSourceMatrix -or $CosmicCqlProjectedAllAcceptance -or $CosmicCqlProjectedAllAcceptanceReconcile){Join-Path $taskRoot 'LocalState/COSMIC/Neo4jCurrent'}else{$work}
+    $testStarted=[DateTime]::UtcNow
+    $reviewedAdmissionFilter = $null
+    if ($CqlV1Web4Reconcile) {
+        $reviewedHash = (Get-FileHash -LiteralPath (Join-Path $work 'cql-v1-web4-fixture.json')).Hash
+        $reviewedAdmissionFilter = switch ($reviewedHash) {
+            '098E12FFEE8298BCC7EFC18443B34B9D78B2DE16964FF508F6AD44EC0892405D' { 'FullyQualifiedName~ReviewedHostedAccessPrefixPreservesAllOriginalReceiptsBeforeExactCleanup' }
+            '452E85CA73F3EEAB8C489D4A7CE4AE7143A7F7439114C6498D9C339A1EF89AFE' { 'FullyQualifiedName~ReviewedHostedAccessSeedPreservesSettledReadsBeforeExactCleanup' }
+            '195CA1DDE290A24150E3554C50033C013F8375B43FB034EEB32DBE2FCCF9A1FB' { 'FullyQualifiedName~ReviewedAccessSeedPreservesReadFailureBeforeExactCleanup' }
+            '7A7912DA384210819E6AAC6BA871ADEF4BC10A752EE241F191FDB259C502991B' { 'FullyQualifiedName~ReviewedShippingRestGraphProjectionFixturePreservesChildrenBeforeExactCleanup' }
+            '4859E1760E50FF1D9F7425A866BCF0145F0D8520F5BB58F04DFDD5D77E120858' { 'FullyQualifiedName~ReviewedSignedTransportEnumFixturePreservesOriginalsBeforeExactCleanup' }
+            'E722AC607FAB11F2CC6BFD2DC140C081FFC0683FCCB41093DBEF1D62F05273DE' { 'FullyQualifiedName~ReviewedSignedTransportBodyWriterFixturePreservesCommittedOriginalsBeforeExactCleanup' }
+            '9857D397D00B79429E57B8FDA1F866AF9EEDFB9088C098BB2C1654F52A3503B3' { 'FullyQualifiedName~ReviewedShippingRestPreparationFixturePreservesTerminalEvidenceBeforeExactCleanup' }
+            'CC64F69E5607C5011DCE0D857F1FF6C3AD9611FA5372594C14A3868E30C87D73' { 'FullyQualifiedName~ReviewedOwnedWriteBooleanAssertionPreservesProofBeforeExactCleanup' }
+            'A2C3C7ACD6AB15EC2CD69A11ED3EF5AC31F83D0549CFC5586AC27F2E5293C518' { 'FullyQualifiedName~ReviewedSuccessfulJoinWireFixtureVerifiesTerminalOwnershipBeforeCleanup' }
+            '1F3BF279BA101AFAEFD38A7C2037DC6F9943ED247A4A5D780C787E8B6861A4B9' { 'FullyQualifiedName~ReviewedJoinFixtureReproducesNativeProofBeforeExactReconciliation' }
+            'E062B6BA6D240DE26CCD74D2F7DF0B4A9C2B923C569EEBA0BC7175BEA7ADA73F' { 'FullyQualifiedName~ReviewedUnobservedRoleSeedVerifiesPartialCreationBeforeExactCleanup' }
+            '40825B94368E61714BA913B81D3CB7050A8ECCC2C3EADFA7F9CD7E6EAD3454B4' { 'FullyQualifiedName~ReviewedUtcAdmissionFixtureVerifiesAllOutcomesAndOwnedRowsBeforeCleanup' }
+            'E10085F949323BD01594034C97936352E4799F2E362107ECEC5EFDE54117023A' { 'FullyQualifiedName~ReviewedDecimalAdmissionFixtureVerifiesAllOutcomesAndOwnedRowsBeforeCleanup' }
+            '38D2CD5321CF87D81051A08AB4EB9A9BC5D9F65D090C9B9E99C08CBCD5E0AD75' { 'FullyQualifiedName~ReviewedSingleProjectionFixtureVerifiesAllOutcomesAndOwnedRowsBeforeCleanup' }
+            'E78825690C7CDB2E5EC87DF345CDFC703B393515051D36A223E073D45C0513C2' { 'FullyQualifiedName~ReviewedDoubleOrderingFixtureVerifiesAllOutcomesAndOwnedRowsBeforeCleanup' }
+            default { throw 'Unreviewed admission fixture digest; preserve the database and journal.' }
+        }
+    }
+    $filter=if($CosmicReplicaInitialization){'FullyQualifiedName~NativeExplicitReplicaInitialization|FullyQualifiedName~NativeCosmicCommittedReplica'}elseif($CosmicCqlLinqRowsReconcile){'FullyQualifiedName~ReviewedStandardQueryableFixtureContinuesWithoutReplayingCreates'}elseif($CosmicCqlLinqRows){'FullyQualifiedName~NativeStandardQueryableEntityRows'}elseif($CosmicCqlSourceDemo){'FullyQualifiedName~NativeSourceAndProjectedAllDeveloperDemo'}elseif($CosmicCqlSourceMatrix){'FullyQualifiedName~NativeSourceRelationshipCompositionShapesAndConsumers'}elseif($CosmicCqlProjectedAllAcceptanceReconcile){'FullyQualifiedName~ReviewedProjectedAllInitialFixtureContinuesWithoutReplayingCreates'}elseif($CosmicCqlProjectedAllAcceptance){'FullyQualifiedName~NativeProjectedAllProtectedScopesCyclesAndPhysicalBudgets'}elseif($CosmicCqlProjectedAll){'FullyQualifiedName~NativeProjectedAll'}elseif($CosmicCqlAllChildDescendantReconcile){'FullyQualifiedName~ReviewedChildDescendantFailureIsProvedBeforeExactCleanup'}elseif($CosmicCqlAllFixture){'FullyQualifiedName~CqlAllRetainedFixtureTests'}elseif($CosmicCqlFloatingGrouped){'FullyQualifiedName~NativeSingleGrouped|FullyQualifiedName~NativeDoubleGrouped|FullyQualifiedName~NativeFloatingGrouped'}elseif($CosmicCqlFloatingKernel){'FullyQualifiedName~NativeFloatingAggregateKernelMatchesExactCoreRounding'}elseif($CosmicCqlFloatingScalar){'FullyQualifiedName~NativeSingleScalar|FullyQualifiedName~NativeDoubleScalar'}elseif($CosmicCqlFloatingParts){'FullyQualifiedName~NativeFloatingPartsMatchIndependentIeeeFields'}elseif($CosmicCqlDecimalNumeric){'FullyQualifiedName~NativeDecimalNumeric'}elseif($CosmicCqlDecimalKernel){'FullyQualifiedName~NativeDecimalAggregateKernel'}elseif($CosmicCqlUnsignedNumeric){'FullyQualifiedName~NativeUnsigned'}elseif($CosmicCqlEmptyWindow){'FullyQualifiedName~NativeEmptyWindowCannotBypassProtectedDescendantLimits'}elseif($CosmicCqlScalarZero){'FullyQualifiedName~NativeScalarTakeZeroCannotBypassProtectedDescendantLimits'}elseif($CosmicCqlComposition){'FullyQualifiedName~NativeComposition'}elseif($CosmicCqlJoins){'FullyQualifiedName~NativeJoin'}elseif($CosmicCqlJoinCompiler){'FullyQualifiedName~NativeJoinCompiler'}elseif($CosmicOrdinaryRoles){'FullyQualifiedName~NativeOrdinaryRoleOwnershipSurvivesCommit|FullyQualifiedName~NativeOrdinaryCustomRoleOwnership'}elseif($CosmicCqlInterruption){'FullyQualifiedName~NativeCqlCancellationInterruptsPausedBoltResponseBeforeRelease|FullyQualifiedName~NativeCqlDeadlineInterruptsPausedBoltResponseBeforeRelease'}elseif($CqlV1Demo){'FullyQualifiedName~SignedHttpQueriesUseNativeVisibilityPagingAndDurableReceiptsOnAllThreeProviders'}elseif($CqlV1Web4Reconcile){$reviewedAdmissionFilter}elseif($CqlV1Web4){'FullyQualifiedName~CqlV1Web4NativeTests|FullyQualifiedName~Neo4jNativeCqlTests|FullyQualifiedName~NativeCosmicConditionalGraphReceiptsAndRaces|FullyQualifiedName~NativeCosmicOrdinaryWriteOwnsCommitRollbackAndCleanup|FullyQualifiedName~NativeCosmicDeleteOwnership'}elseif($ReconcileInterruptedEnumFixture){'FullyQualifiedName~ReviewedInterruptedEnumFixtureIsUnchangedBeforeExactCleanup'}elseif($CosmicCqlHostingRegression){'FullyQualifiedName~Neo4jNativeCqlTests|FullyQualifiedName~NativeCosmicConditionalGraphReceiptsAndRaces|FullyQualifiedName~NativeCosmicOrdinaryWriteOwnsCommitRollbackAndCleanup|FullyQualifiedName~NativeCosmicDeleteOwnership|FullyQualifiedName~NativeCosmicConfiguredHost'}elseif($ReconcileIntegerFieldFixture){'FullyQualifiedName~ReviewedIntegerFieldCompilerFailureFixtureIsUnchangedBeforeExactCleanup'}elseif($ReconcileCqlFixture){if(Test-Path -LiteralPath (Join-Path $work 'cql-graph-fixture.json')){if((Get-FileHash -LiteralPath (Join-Path $work 'cql-graph-fixture.json')).Hash -ne 'F2AC06ABA5ECAD50567DDD0D546A66620AEF71E05F434B63F90250BD63D495B0'){throw 'Unreviewed graph fixture; no reconciliation submitted.'};'FullyQualifiedName~ReviewedOrdinaryRoleSeedWasRejectedBeforeAnyNativeWrite'}else{'FullyQualifiedName~ReviewedGuidEmptyCompilerFailureFixtureIsUnchangedBeforeExactCleanup'}}elseif($CosmicCqlRegression){'FullyQualifiedName~Neo4jNativeCqlTests|FullyQualifiedName~NativeCosmicConditionalGraphReceiptsAndRaces|FullyQualifiedName~NativeCosmicOrdinaryWriteOwnsCommitRollbackAndCleanup|FullyQualifiedName~NativeCosmicDeleteOwnership'}elseif($CosmicCql){'FullyQualifiedName~Neo4jNativeCqlTests'}elseif($CosmicDeleteOwnership){'FullyQualifiedName~NativeCosmicDeleteOwnership'}elseif($ReconcileIdentityRollback){'FullyQualifiedName~Neo4jIdentityRollbackFixtureReconciliation'}elseif($CosmicIdentitySave){'FullyQualifiedName~NativeCosmicIdentitySave'}elseif($ReconcileDeltaCreationFixtures){'FullyQualifiedName~Neo4jDeltaFixtureReconciliation'}elseif($ReconcileTypedSearchFixtures){'FullyQualifiedName~Neo4jSearchFixtureReconciliation'}elseif($CosmicTypedQueries){'FullyQualifiedName~NativeCosmicTypedQueryRolesAndRootOnlyReceipts'}elseif($ReconcileReadFrontierFixture){'FullyQualifiedName~Neo4jReadFrontierFixtureReconciliation'}elseif($CosmicReadDepth){'FullyQualifiedName~NativeCosmicReadDepthHonorsFullRangeAndHistoricalFrontiers'}elseif($ReconcileCredentialHistoryFixture){'FullyQualifiedName~Neo4jCredentialFixtureReconciliation'}elseif($CosmicConfiguredHosting){'FullyQualifiedName~NativeCosmicConfiguredHost'}elseif($CosmicOutboxHosting){'FullyQualifiedName~NativeCosmicOutboxHosting'}elseif($CosmicMongoOutboxReconcile){'FullyQualifiedName~NativeCosmicMongoNeoReviewedSoftFixture'}elseif($CosmicMongoOutboxDelivery){'FullyQualifiedName~NativeCosmicMongoNeoOutboxWorkerPreservesGraphLineage'}elseif($CosmicOutboxDelivery){'FullyQualifiedName~NativeCosmicOutboxDelivery'}elseif($CosmicPrimaryOutbox){'FullyQualifiedName~NativeCosmicPrimaryOutbox'}elseif($CosmicReplica){'FullyQualifiedName~NativeCosmicCommittedReplica'}elseif($CosmicOrdinaryOutcomes){'FullyQualifiedName~NativeCosmicOrdinaryWriteOwnsCommitRollbackAndCleanup'}elseif($CosmicParentAssignment){'FullyQualifiedName~NativeCosmicSelectedChildOwnsParentAssignment'}elseif($CosmicConditional){'FullyQualifiedName~NativeCosmicConditionalGraphReceiptsAndRaces'}elseif($CosmicSchema){'FullyQualifiedName~NativeCosmicSchemaUniqueness'}elseif($ReconcileTimeoutFixtures){'FullyQualifiedName~Neo4jTimeoutFixtureReconciliation'}else{'FullyQualifiedName~Neo4jNativeAvatarTests'}
+    $reportName=if($CosmicReplicaInitialization){'neo4j-replica-initialization-current.trx'}elseif($CosmicCqlLinqRows -or $CosmicCqlLinqRowsReconcile){'neo4j-linq-rows-current.trx'}elseif($CosmicCqlSourceDemo){'neo4j-source-demo-current.trx'}elseif($CosmicCqlSourceMatrix){'neo4j-source-matrix-current.trx'}elseif($CosmicCqlFloatingGrouped){'neo4j-cql-floating-grouped-current.trx'}elseif($CosmicCqlFloatingKernel){'neo4j-cql-floating-kernel-current.trx'}elseif($CosmicCqlFloatingScalar){'neo4j-cql-floating-scalar-current.trx'}elseif($CosmicCqlFloatingParts){'neo4j-cql-floating-parts-current.trx'}elseif($CosmicCqlDecimalNumeric){'neo4j-cql-decimal-numeric-current.trx'}elseif($CosmicCqlDecimalKernel){'neo4j-cql-decimal-kernel-current.trx'}elseif($CosmicCqlUnsignedNumeric){'neo4j-cql-unsigned-numeric-current.trx'}elseif($CosmicCqlEmptyWindow){'neo4j-cql-empty-window-current.trx'}elseif($CosmicCqlScalarZero){'neo4j-cql-scalar-zero-current.trx'}elseif($CosmicCqlComposition){'neo4j-composition-certification-current.trx'}elseif($CosmicCqlJoins){'neo4j-joins-current.trx'}elseif($CosmicCqlJoinCompiler){'neo4j-join-compiler-current.trx'}elseif($CosmicOrdinaryRoles){'neo4j-ordinary-role-current.trx'}elseif($CosmicCqlInterruption){'neo4j-cql-interruption-current.trx'}elseif($CqlV1Demo){'neo4j-cql-v1-demo-current.trx'}elseif($CqlV1Web4Reconcile){'neo4j-cql-v1-web4-reconcile-current.trx'}elseif($CqlV1Web4){'neo4j-cql-v1-web4-current.trx'}elseif($ReconcileInterruptedEnumFixture){'neo4j-enum-interrupted-reviewed-fixture.trx'}elseif($CosmicCqlHostingRegression){'neo4j-cql-hosting-regression-current.trx'}elseif($ReconcileIntegerFieldFixture){'neo4j-integer-field-reviewed-fixture.trx'}elseif($ReconcileCqlFixture){'neo4j-cql-reviewed-fixture.trx'}elseif($CosmicCqlRegression){'neo4j-cql-regression-current.trx'}elseif($CosmicCql){'neo4j-cql-native-current.trx'}elseif($CosmicDeleteOwnership){'neo-delete-ownership-current.trx'}elseif($ReconcileIdentityRollback){'neo-identity-reviewed-rollback-current.trx'}elseif($CosmicIdentitySave){'neo-identity-save-current.trx'}elseif($ReconcileDeltaCreationFixtures){'neo-delta-reviewed-creation-current.trx'}elseif($ReconcileTypedSearchFixtures){'neo4j-reviewed-typed-search-current.trx'}elseif($CosmicTypedQueries){'neo4j-typed-queries-current.trx'}elseif($ReconcileReadFrontierFixture){'neo4j-reviewed-read-frontier-current.trx'}elseif($CosmicReadDepth){'neo4j-read-depth-current.trx'}elseif($ReconcileCredentialHistoryFixture){'neo4j-reviewed-credential-fixture-current.trx'}elseif($CosmicConfiguredHosting){'neo4j-cosmic-configured-host-current.trx'}elseif($CosmicOutboxHosting){'neo4j-cosmic-outbox-hosting-current.trx'}elseif($CosmicMongoOutboxReconcile){'neo4j-mongo-reviewed-soft-reconciliation.trx'}elseif($CosmicMongoOutboxDelivery){'neo4j-mongo-outbox-delivery-current.trx'}elseif($CosmicOutboxDelivery){'neo4j-cosmic-outbox-delivery-current.trx'}elseif($CosmicPrimaryOutbox){'neo4j-cosmic-primary-outbox-current.trx'}elseif($CosmicReplica){'neo4j-cosmic-replica-current.trx'}elseif($CosmicOrdinaryOutcomes){'neo4j-cosmic-ordinary-outcomes-current.trx'}elseif($CosmicParentAssignment){'neo4j-cosmic-parent-assignment-current.trx'}elseif($CosmicConditional){'neo4j-cosmic-conditional-current.trx'}elseif($CosmicSchema){'neo4j-cosmic-schema-current.trx'}elseif($ReconcileTimeoutFixtures){'neo4j-timeout-reconciliation-current.trx'}else{'neo4j-native-current.trx'}
+    & dotnet test $project --no-build --no-restore /m:2 /nr:false --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
+    if($LASTEXITCODE){throw 'Native Neo4j test failed; preserve database for inspection.'}
+    $report=Get-Item -LiteralPath (Join-Path $work $reportName)
+    if($report.LastWriteTimeUtc -lt $testStarted){throw 'Native Neo4j report is stale.'}
+    [xml]$evidence=Get-Content -LiteralPath $report.FullName
+    $counts=$evidence.SelectSingleNode("//*[local-name()='Counters']")
+$expectedCqlNative=508
+$expectedCount=if($CosmicReplicaInitialization){10}elseif($CosmicCqlLinqRows -or $CosmicCqlLinqRowsReconcile){1}elseif($CosmicCqlSourceDemo){1}elseif($CosmicCqlSourceMatrix){1}elseif($CosmicCqlProjectedAllAcceptanceReconcile){1}elseif($CosmicCqlProjectedAllAcceptance){1}elseif($CosmicCqlProjectedAll){18}elseif($CosmicCqlAllChildDescendantReconcile){1}elseif($CosmicCqlAllFixture){4}elseif($CosmicCqlFloatingGrouped){34}elseif($CosmicCqlFloatingKernel){2}elseif($CosmicCqlFloatingScalar){36}elseif($CosmicCqlFloatingParts){2}elseif($CosmicCqlDecimalNumeric){23}elseif($CosmicCqlDecimalKernel){2}elseif($CosmicCqlUnsignedNumeric){32}elseif($CosmicCqlEmptyWindow){3}elseif($CosmicCqlScalarZero){7}elseif($CosmicCqlComposition){42}elseif($CosmicCqlJoins){37}elseif($CosmicCqlJoinCompiler){4}elseif($CosmicOrdinaryRoles){16}elseif($CosmicCqlInterruption){18}elseif($CqlV1Demo){1}elseif($CqlV1Web4Reconcile){1}elseif($CqlV1Web4){$expectedCqlNative+64}elseif($ReconcileInterruptedEnumFixture){1}elseif($CosmicCqlHostingRegression){$expectedCqlNative+65}elseif($ReconcileIntegerFieldFixture){1}elseif($ReconcileCqlFixture){1}elseif($CosmicCqlRegression){$expectedCqlNative+63}elseif($CosmicCql){$expectedCqlNative}elseif($CosmicDeleteOwnership){34}elseif($ReconcileIdentityRollback){1}elseif($CosmicIdentitySave){20}elseif($ReconcileDeltaCreationFixtures){1}elseif($ReconcileTypedSearchFixtures){1}elseif($CosmicTypedQueries){12}elseif($ReconcileReadFrontierFixture){1}elseif($CosmicReadDepth){8}elseif($ReconcileCredentialHistoryFixture){1}elseif($CosmicConfiguredHosting){2}elseif($CosmicOutboxHosting){2}elseif($CosmicMongoOutboxReconcile){1}elseif($CosmicMongoOutboxDelivery){4}elseif($CosmicOutboxDelivery){6}elseif($CosmicPrimaryOutbox){2}elseif($CosmicReplica){6}elseif($CosmicOrdinaryOutcomes){16}elseif($CosmicParentAssignment){8}elseif($CosmicConditional){13}elseif($CosmicSchema){7}elseif($ReconcileTimeoutFixtures){1}else{271}
+    if(!$counts -or [int]$counts.total -ne $expectedCount -or [int]$counts.passed -ne $expectedCount -or [int]$counts.notExecuted -ne 0){throw 'Exact fresh native case count, including timeout classification, with no skips required.'}
+    if($CqlV1Demo -or $CqlV1Web4Reconcile -or $CqlV1Web4){
+        $fixture=Join-Path $work 'cql-v1-web4-fixture.json'
+        $owned=Get-Content -LiteralPath $fixture -Raw | ConvertFrom-Json
+        $expected=[IO.Path]::GetFullPath((Join-Path $work 'cql-v1-web4.sqlite'))
+        if($owned.stage -ne 'successful-awaiting-runner-cleanup' -or [IO.Path]::GetFullPath($owned.sqlite) -ne $expected){throw 'Fixture cleanup ownership/stage mismatch.'}
+        $removed=@()
+        foreach($target in @($expected,($expected+'-wal'),($expected+'-shm'))){
+            if(Test-Path -LiteralPath $target){
+                $item=Get-Item -LiteralPath $target
+                if($item.PSIsContainer -or $item.LinkType){throw 'Refuse unexpected fixture filesystem resource.'}
+                $removed+=@{path=$item.FullName;bytes=$item.Length}
+                Remove-Item -LiteralPath $item.FullName
+            }
+        }
+        @{removed=$removed;manifestSha256=(Get-FileHash -LiteralPath $fixture).Hash;testProcessExited=$true} | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $work 'cql-v1-web4-cleanup.json')
+        Remove-Item -LiteralPath $fixture
+    }
+    Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
+} finally {
+    try {
+        if($started){
+            & wsl -d Ubuntu -u root -- podman stop --time 20 oasis-neo4j
+            if($LASTEXITCODE){throw 'Owned Neo4j shutdown failed; do not recreate or delete its data.'}
+            if($attachedRuntime -and !$attachedRuntime.WaitForExit(10000)){throw 'Owned Neo4j attachment remains live after container shutdown; preserve logs and inspect.'}
+            if($attachedRuntime){Write-Output "Owned Neo4j attached WSL process exited: $($attachedRuntime.Id)"; $attachedRuntime.Dispose()}
+        }
+    } finally {
+        [Environment]::SetEnvironmentVariable('OASIS_OWNED_NEO4J_URI',$prior)
+        [Environment]::SetEnvironmentVariable('OASIS_OWNED_NEO4J_WORK',$priorWork)
+        [Environment]::SetEnvironmentVariable('OASIS_OWNED_NEO4J_RESULTS',$priorResults)
+        $lease.Dispose()
+    }
+}

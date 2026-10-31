@@ -395,6 +395,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             if (Avatar?.AvatarType.Value != AvatarType.Wizard)
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = "NFT minting requires an active subscription. Please upgrade to a paid plan to use this feature." };
+            if (request == null)
+                return new OASISResult<IWeb4NFT> { IsError = true, Message = "NFT mint request body is required." };
 
             ProviderType onChainProvider = ProviderType.None;
             ProviderType offChainProvider = ProviderType.None;
@@ -406,25 +408,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             object NFTStandardTypeObject = null;
             Guid sendToAvatarAfterMintingId = Guid.Empty;
 
-            if (Enum.TryParse(typeof(ProviderType), request.OnChainProvider, out onChainProviderObject))
+            if (Enum.TryParse(typeof(ProviderType), request.OnChainProvider, out onChainProviderObject) && Enum.IsDefined(typeof(ProviderType),onChainProviderObject))
                 onChainProvider = (ProviderType)onChainProviderObject;
             else
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The OnChainProvider is not a valid OASIS NFT Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
 
-            if (Enum.TryParse(typeof(ProviderType), request.OffChainProvider, out offChainProviderObject))
+            if (Enum.TryParse(typeof(ProviderType), request.OffChainProvider, out offChainProviderObject) && Enum.IsDefined(typeof(ProviderType),offChainProviderObject))
                 offChainProvider = (ProviderType)offChainProviderObject;
             else
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The OffChainProvider is not a valid OASIS Storage Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
 
-            if (Enum.TryParse(typeof(NFTOffChainMetaType), request.NFTOffChainMetaType, out NFTOffChainMetaTypeObject))
+            if (Enum.TryParse(typeof(NFTOffChainMetaType), request.NFTOffChainMetaType, out NFTOffChainMetaTypeObject) && Enum.IsDefined(typeof(NFTOffChainMetaType),NFTOffChainMetaTypeObject))
                 NFTOffChainMetaType = (NFTOffChainMetaType)NFTOffChainMetaTypeObject;
             else
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The NFTOffChainMetaType is not valid. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(NFTOffChainMetaType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
 
-            if (Enum.TryParse(typeof(NFTStandardType), request.NFTStandardType, out NFTStandardTypeObject))
+            if (Enum.TryParse(typeof(NFTStandardType), request.NFTStandardType, out NFTStandardTypeObject) && Enum.IsDefined(typeof(NFTStandardType),NFTStandardTypeObject))
                 NFTStandardType = (NFTStandardType)NFTStandardTypeObject;
             else
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The NFTStandardType is not valid. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(NFTStandardType), EnumHelperListType.ItemsSeperatedByComma)}" };
@@ -432,13 +434,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!string.IsNullOrEmpty(request.SendToAvatarAfterMintingId) && !Guid.TryParse(request.SendToAvatarAfterMintingId, out sendToAvatarAfterMintingId))
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The SendToAvatarAfterMintingId is not valid. Please make sure it is a valid GUID!" };
 
-            var mintedByAvatarId = AvatarId;
-            bool callerIsWizard = Avatar?.AvatarType.Value == AvatarType.Wizard;
-            // Wizards (e.g. oasismint service account) can mint on behalf of another avatar
-            if (callerIsWizard && !string.IsNullOrEmpty(request.MintedByAvatarId) && Guid.TryParse(request.MintedByAvatarId, out Guid requestedMintedByAvatarId) && requestedMintedByAvatarId != Guid.Empty)
-                mintedByAvatarId = requestedMintedByAvatarId;
-            else if (mintedByAvatarId == Guid.Empty && sendToAvatarAfterMintingId != Guid.Empty)
-                mintedByAvatarId = sendToAvatarAfterMintingId;
+            Guid mintedByAvatarId;
+            try { mintedByAvatarId = ResolveMintActorAvatarId(AvatarId, Avatar?.AvatarType.Value == AvatarType.Wizard, request.MintedByAvatarId); }
+            catch (Exception ex) when (ex is ArgumentException || ex is UnauthorizedAccessException)
+            { return new OASISResult<IWeb4NFT> { IsError = true, Message = ex.Message }; }
 
             API.Core.Objects.NFT.Requests.MintWeb4NFTRequest mintRequest = new API.Core.Objects.NFT.Requests.MintWeb4NFTRequest()
             {
@@ -481,6 +480,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             };
 
             return await NFTManager.MintNftAsync(mintRequest, false, Core.Enums.ResponseFormatType.SimpleText);
+        }
+
+        private static Guid ResolveMintActorAvatarId(Guid authenticatedAvatarId, bool callerIsWizard, string suppliedAvatarId)
+        {
+            if (authenticatedAvatarId == Guid.Empty)
+                throw new UnauthorizedAccessException("A nonempty authenticated avatar ID is required for NFT minting.");
+            if (string.IsNullOrEmpty(suppliedAvatarId)) return authenticatedAvatarId;
+            if (!callerIsWizard)
+                throw new UnauthorizedAccessException("Only Wizards can supply MintedByAvatarId to mint on behalf of an avatar.");
+            if (!Guid.TryParse(suppliedAvatarId, out var actor) || actor == Guid.Empty)
+                throw new ArgumentException("MintedByAvatarId must be a nonempty valid GUID when supplied.");
+            return actor;
         }
 
         [Authorize(AvatarType.Wizard)]
@@ -716,12 +727,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpPost]
         [Route("import-web3-nft")]
+        [ProducesResponseType(typeof(OASISResult<IWeb4NFT>), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(OASISResult<IWeb4NFT>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
-        public async Task<OASISResult<IWeb4NFT>> ImportWeb3NFTAsync([FromBody] API.Core.Interfaces.NFT.Requests.IImportWeb3NFTRequest request)
+        public async Task<OASISResult<IWeb4NFT>> ImportWeb3NFTAsync([FromBody] API.Core.Objects.NFT.Requests.ImportWeb3NFTRequest request)
         {
             if (request == null)
                 return new OASISResult<IWeb4NFT> { IsError = true, Message = "The request body is required. Please provide a valid Import Web3 NFT request." };
+            if (request.ImportedByAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+            {
+                Response.StatusCode = StatusCodes.Status403Forbidden;
+                return new OASISResult<IWeb4NFT> { IsError = true, ErrorCode = "AVATAR_OPERATION_FORBIDDEN",
+                    Message = "Forbidden. You can only import NFTs for your own avatar." };
+            }
             return await NFTManager.ImportWeb3NFTAsync(request, Core.Enums.ResponseFormatType.SimpleText);
         }
 
@@ -740,7 +758,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<IWeb4NFT>> ImportWeb4NFTFromFileAsync(Guid importedByAvatarId, string fullPathToOASISNFTJsonFile, ProviderType providerType = ProviderType.Default)
         {
             if (importedByAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
-                return new OASISResult<IWeb4NFT>() { IsError = true, Message = "Unauthorized. You can only import NFTs for your own avatar." };
+            {
+                Response.StatusCode = StatusCodes.Status403Forbidden;
+                return new OASISResult<IWeb4NFT> { IsError = true, ErrorCode = "AVATAR_OPERATION_FORBIDDEN",
+                    Message = "Forbidden. You can only import NFTs for your own avatar." };
+            }
             return await NFTManager.ImportWeb4NFTAsync(importedByAvatarId, fullPathToOASISNFTJsonFile, providerType, Core.Enums.ResponseFormatType.SimpleText);
         }
 
@@ -756,10 +778,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("import-web4-nft/{importedByAvatarId}")]
         [ProducesResponseType(typeof(OASISResult<IWeb4NFT>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
-        public async Task<OASISResult<IWeb4NFT>> ImportWeb4NFTAsync(Guid importedByAvatarId, [FromBody] IWeb4NFT oasisNFT, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4NFT>> ImportWeb4NFTAsync(Guid importedByAvatarId, [FromBody] Web4NFT oasisNFT, ProviderType providerType = ProviderType.Default)
         {
             if (importedByAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
-                return new OASISResult<IWeb4NFT>() { IsError = true, Message = "Unauthorized. You can only import NFTs for your own avatar." };
+            {
+                Response.StatusCode = StatusCodes.Status403Forbidden;
+                return new OASISResult<IWeb4NFT> { IsError = true, ErrorCode = "AVATAR_OPERATION_FORBIDDEN",
+                    Message = "Forbidden. You can only import NFTs for your own avatar." };
+            }
             return await NFTManager.ImportWeb4NFTAsync(importedByAvatarId, oasisNFT, providerType, Core.Enums.ResponseFormatType.SimpleText);
         }
 
@@ -792,7 +818,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("export-web4-nft")]
         [ProducesResponseType(typeof(OASISResult<IWeb4NFT>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
-        public async Task<OASISResult<IWeb4NFT>> ExportWeb4NFTAsync([FromBody] IWeb4NFT oasisNFT, string fullPathToExportTo, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4NFT>> ExportWeb4NFTAsync([FromBody] Web4NFT oasisNFT, string fullPathToExportTo, ProviderType providerType = ProviderType.Default)
         {
             if (oasisNFT == null)
                 return new OASISResult<IWeb4NFT> { IsError = true, Message = "The request body is required. Please provide a valid Web4 NFT object to export." };
