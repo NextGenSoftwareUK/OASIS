@@ -1731,3 +1731,10 @@ ZkSync/Abstract retainedcatalogues createdonce LocalState/COSMIC/Hosted{ZkSync,A
 zkSync/Abstract outcome:38tests/0skips (36controlled+2nativepublishedsample),consolebuild/2actualCLI3/2pass. Cacheonlyrestores succeeded,noinstall/download/service/database. Newstablecataloguesretained:
 - `LocalState/COSMIC/HostedZkSyncPublicSourceCurrent/source.json`: 285B,retainmappingowner.
 - `LocalState/COSMIC/HostedAbstractPublicSourceCurrent/source.json`: 283B,retainmappingowner.
+
+### zkSync/Abstract HTTPnativeintegration
+31October2026:reuse existingAPI/Core/.NET/caches/Mongo8.3.11store27029. NewexclusiveDBs cosmic_cql_{zksync,abstract}_http_demo; originalintents/ACKs LocalState/COSMIC/{ZkSync,Abstract}MongoHttpCurrent; rawTestResults/{ZkSync,Abstract}PublicSourceCandidateCurrent. Exactmarker-successcleanup/failurepreserved,runnerownedservice;noNeo/newenvironment/download.2existingprojectrefs/cachedrestore,incrementalsizespending.
+
+zkSync/Abstract HTTPoutcome:2Core/4API/6config/2nativeHTTP/2clientpass0skips; retainedcataloguebuildercheck2pass.2SDKprivatecopies/9receipts each; exactDBdrop/absenceverified,servicesstopped,noNeo/download. Duringbuild C:78,399,025,152B free. Retainoriginalcohorts:
+- `LocalState/COSMIC/ZkSyncMongoHttpCurrent`: 841B,retainintent/ACK/cleanup.
+- `LocalState/COSMIC/AbstractMongoHttpCurrent`: 845B,retainintent/ACK/cleanup.

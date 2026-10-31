@@ -14,11 +14,11 @@ Independent next breadth: Optimism native/published C#/CLI3/2 and HTTP/Mongo3/2+
 
 Linea/Scroll native+publishedC#/actualCLI3/2 and HTTP/Mongo3/2+5/4/isolation pass;2Core/4API/6config/2nativeHTTP/2client checks pass. Website links/client proofs pushed8c54051;optional13source batch prepared with corrected retained-source endpoint validation,8newpresets pass shippingplanner (1test/0skips),4scopecontrols pass. Matching hostedrollout pending. Rootstock finalized-header qualificationHTTP400 remains red. Existing release candidates unchanged.
 
-zkSync/Abstract native+publishedC#/actualCLI3/2 pass (38newtests/0skips); HTTP/Mongo next. Existing13source releasecandidate unchanged.
+zkSync/Abstract native+publishedC#/CLI and HTTP3/2+Mongo5/4/isolation pass;2Core/4API/6config/2nativeHTTP/2client checks pass. Website links next. Existing13source releasecandidate unchanged.
 
 ## Working copies and release state
 
-- Work/build/test only `C:/Source/OASIS-cosmic`, parent **work/cosmic-cql-google-public**; Core same branch, **a5af5eeac2c6c16ab3f431c7fdcf4904ce8106ce** pushed/remote-verified. Parent gitlink/manifest match. Unknown root `logs` preserved.
+- Work/build/test only `C:/Source/OASIS-cosmic`, parent **work/cosmic-cql-google-public**; Core same branch, **fb43eaaf2584dc52111248e4adf31a984720e44a** pushed/remote-verified. Parent gitlink/manifest match. Unknown root `logs` preserved.
 - Parent/ Core origin/Development fetched: **0e688ac9c / 759b49a**, unchanged and already included in task history. No new Development push in the public-read work.
 - Latest observed WEB4 Railway deployment **68fb8cc4-c603-4d16-a97a-0e5a30e364c2**, parent0e688ac9c, SUCCESS. Last full eight-source HTTP acceptance remains parent498e3fd7f/deployment4dbe69d0; no fresh source gate inferred from the later deployment.
 - Frozen parent **work/cosmic-cql-hosted-release79fe887e3** / Core **work/cosmic-cql-sandbox-integration6bbd015** unchanged. Broader earlier local-provider source remains preserved on parent237403a75.
@@ -54,7 +54,7 @@ All seven have real native HTTP tests, SDK-owned private Mongo snapshots, exact 
 
 The shared EVM reader has fixed provider/chain/genesis/metadata/path descriptors. Ethereum/Polygon remain root-path-only; Arbitrum uses `/rpc`. No endpoint fallback/latest downgrade. Public balances are address-state projections, not persisted COSMIC holons or independent settlement proofs.
 
-NEAR affected admission checks: **2 API / 11 Core** pass (prior scope results remain in source reports); **23** is the supported unsigned-read tariff catalogue, not the hosted-provider count. Each source still needs explicit permission, tariff, activation and capability admission. Query-only pricing grants no signed writes.
+NEAR affected admission checks: **2 API / 11 Core** pass (prior scope results remain in source reports); **25** is the supported unsigned-read tariff catalogue, not the hosted-provider count. Each source still needs explicit permission, tariff, activation and capability admission. Query-only pricing grants no signed writes.
 
 Prepared seven-source batch: all28actual presets pass the shipping planner with real source/Mongo capabilities (1test/0skips); public-only exporter3controls pass. This is offline planning, not hosted/browser acceptance. [Release preflight](HOSTED_SANDBOX_INTEGRATION_PLAN.md#seven-source-prepared-configuration-review--31-october-2026).
 
