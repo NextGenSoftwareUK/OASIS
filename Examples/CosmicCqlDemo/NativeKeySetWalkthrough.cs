@@ -38,6 +38,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.BaseOASIS => "BaseAccountAddress",
             ProviderType.OptimismOASIS => "OptimismAccountAddress",
             ProviderType.MonadOASIS => "MonadAccountAddress",
+            ProviderType.SeiOASIS => "SeiAccountAddress",
             ProviderType.ZkSyncOASIS => "ZkSyncAccountAddress",
             ProviderType.AbstractOASIS => "AbstractAccountAddress",
             ProviderType.LineaOASIS => "LineaAccountAddress",

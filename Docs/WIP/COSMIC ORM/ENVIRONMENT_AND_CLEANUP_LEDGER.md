@@ -1786,3 +1786,11 @@ Publicationdone:oneapprovedparentdevpush57174def3/Core6bbd015 remoteverified. Ex
 31October2026:releasebranch reused/Core6bbd015 retained; V2unboundcontrolleracquisition fixed outsidebillingadmission, strictadmittedguard retained. New2actualparameterlesscontrolleracquisition regressions usingexistingAPItesthost/mocks; no newSDK/environment/download. Boundedleasedbuild/raw TestResults/HostedCqlIntegrationCurrent/routing-acquisition*. Routing-v1originalowner/record/3copies preserved,noresave/newsession. No furtherDevelopmentpush.
 
 Routing-v1actualoutcome:retainedcohort 2777B inclprotectedowner/1saveintent/ACK/3replicabaseline; privatehostedrecordnormaltemporarysandboxexpiry,noresave.3explicitreads pass,Defaultreadfailsroutecontract; rawdiagnostic/report retained. Fix13guard/61HTTPtests0skips; initialfixtureloggingfailures retained separately, correctedfixturepasses. ExistingSDK/buildcache only,noinstalls/newenvironment/nativeDB. Followupfixnotdeployed.
+
+### Sei explicitnativehashcodec implementation
+31October2026:existingsharedEVMreader addsimmutabledescriptor-level nativehashwireformat; onlySeiprofileenrollsmixedcase,existingcanonicalprofilesunchanged. Newstablepubliccatalogue LocalState/COSMIC/HostedSeiPublicSourceCurrent/source.json createdonce,retainowner,sizepending. Reuseconsole/testhost/SDK/caches,cacheonlyrestore/boundedlease. FocusnewSei+affectedsharedhashcontrols; raw EvmBreadthReadinessCurrent, noDB/services/download/newenvironment. Routingfixfollowup450614de6remainspendingdecision,nofurtherDevelopmentpush.
+
+Sei outcome:nativepublishedC#/actualCLI3/2pass. Initialcodec run227pass/1newtestassertionfailure; correctedcanonicalactivation-rejectioncase1pass,separateTRXretained. Includes204affectedexistingcontrolledcases,24newSeicases acrossruns. No oldnativegreenprofilesrerun. Cacheonlyrestores/consolebuild reuseexistingSDK; no downloads/DB/service/newenvironment. Stablecatalogue 284B retained.
+- `TestResults/EvmBreadthReadinessCurrent/sei-codec.trx`: 351038B,SHA256 `d4d4adbfdac63a897822c7b53e7a7b4e9694d46e38a8e108c63aa925873dd230`.
+- `TestResults/EvmBreadthReadinessCurrent/sei-canonical-regression.trx`: 2735B,SHA256 `c75558337d613992f45bf2f8127cfa0d5088f8408b3272fe7335ab2005e46236`.
+- `TestResults/EvmBreadthReadinessCurrent/sei-console.log`: 1352B,SHA256 `62576f02de7e21ae589d2c13a3d357606c833c810ebab93786449d86539affff`.

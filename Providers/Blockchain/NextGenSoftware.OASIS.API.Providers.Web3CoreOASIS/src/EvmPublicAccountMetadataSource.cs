@@ -27,7 +27,13 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBase,
     ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
 {
-    protected sealed record Network(PType Provider, string Name, string ChainId, string GenesisHash, string AddressMetadata, string RpcPath = "/");
+    // Native wire codecs belong to immutable provider descriptors, never request
+    // configuration. Sei emits mixed-case DATA; existing EVM profiles retain
+    // their canonical lowercase contract. All exposed identities stay lowercase.
+    protected enum BlockHashWireFormat { CanonicalLowercase, MixedCase }
+    protected sealed record Network(PType Provider, string Name, string ChainId, string GenesisHash,
+        string AddressMetadata, string RpcPath = "/",
+        BlockHashWireFormat BlockHashes = BlockHashWireFormat.CanonicalLowercase);
     private readonly AccountsBackend accounts;
     private bool disposed;
 
@@ -156,12 +162,17 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
             .ToString(CultureInfo.InvariantCulture);
     }
 
-    private static string Hash(JsonElement value)
+    private static string Hash(JsonElement value, BlockHashWireFormat format)
     {
         var text = value.GetString();
-        if (text == null || text.Length != 66 || !Regex.IsMatch(text, "^0x[0-9a-f]{64}$", RegexOptions.CultureInvariant))
-            throw new InvalidDataException("Canonical 32-byte EVM block hash required.");
-        return text;
+        var pattern = format switch {
+            BlockHashWireFormat.CanonicalLowercase => "^0x[0-9a-f]{64}$",
+            BlockHashWireFormat.MixedCase => "^0x[0-9a-fA-F]{64}$",
+            _ => throw new InvalidDataException("Unsupported native block-hash wire format.")
+        };
+        if (text == null || text.Length != 66 || !Regex.IsMatch(text, pattern, RegexOptions.CultureInvariant))
+            throw new InvalidDataException("Exact 32-byte native block hash required.");
+        return text.ToLowerInvariant();
     }
 
     private static void Unique(JsonElement value)
@@ -241,11 +252,11 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
             var identity = await RpcAsync("eth_chainId", Array.Empty<object>(), token);
             if (identity.GetString() != chainId) throw new InvalidDataException("Native chain ID differs.");
             var genesis = await RpcAsync("eth_getBlockByNumber", new object[] { "0x0", false }, token);
-            if (Hash(genesis.GetProperty("hash")) != Identity.GenesisHash ||
+            if (Hash(genesis.GetProperty("hash"), Identity.BlockHashes) != Identity.GenesisHash ||
                 genesis.GetProperty("number").GetString() != "0x0")
                 throw new InvalidDataException("Native EVM genesis differs.");
             var finalized = await RpcAsync("eth_getBlockByNumber", new object[] { "finalized", false }, token);
-            var hash = Hash(finalized.GetProperty("hash"));
+            var hash = Hash(finalized.GetProperty("hash"), Identity.BlockHashes);
             var number = Quantity(finalized.GetProperty("number").GetString());
             var rows = new List<IHolon>();
             foreach (var key in keys)
