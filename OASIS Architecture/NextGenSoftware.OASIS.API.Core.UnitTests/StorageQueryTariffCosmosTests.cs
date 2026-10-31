@@ -28,8 +28,18 @@ public class StorageQueryTariffCosmosTests
     }
 
     [Fact]
-    public void OrdinaryQueryTariffDoesNotEnrollSignedChainProvider()
+    public void OrdinaryQueryTariffRejectsChainWithoutAnUnsignedReadProfile()
         => Assert.Throws<ArgumentException>(() => StorageQueryTariff.Capture(
-            new[] { new StorageQueryTariff(ProviderType.SolanaOASIS, 0.002m, "cloud-test-v1") },
-            new[] { ProviderType.SolanaOASIS }));
+            new[] { new StorageQueryTariff(ProviderType.EthereumOASIS, 0.002m, "cloud-test-v1") },
+            new[] { ProviderType.EthereumOASIS }));
+
+    [Fact]
+    public void ExplicitUnsignedSolanaReadDoesNotGrantSignedStorageWrites()
+    {
+        var allowed=new[]{ProviderType.SolanaOASIS};
+        Assert.Single(StorageQueryTariff.Capture(new[]{new StorageQueryTariff(ProviderType.SolanaOASIS,0,"public-read-v1")},allowed));
+        Assert.Throws<ArgumentException>(()=>StorageAttemptTariff.Capture(
+            new[]{new StorageAttemptTariff(ProviderType.SolanaOASIS,"SaveHolon",0,"public-read-v1")},allowed));
+    }
+
 }
