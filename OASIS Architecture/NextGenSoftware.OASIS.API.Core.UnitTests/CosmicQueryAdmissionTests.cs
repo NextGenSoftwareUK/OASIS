@@ -111,7 +111,7 @@ public class CosmicQueryAdmissionTests
             .Returns((string id, string owner, UsageProviderAttempt attempt, CancellationToken token) =>
             {
                 Assert.Equal(type.ToString(), attempt.Provider);
-                Assert.Equal("cql-test.route.1.non-native", attempt.ClientRequestId);
+                Assert.Equal(PreparedStorageReceiptIds.NonNative("cql-admission-test", "cql-test"), attempt.ClientRequestId);
                 events.Add("attempt");
                 return admitted.Task;
             });
