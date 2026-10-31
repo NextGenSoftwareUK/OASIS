@@ -814,3 +814,9 @@ retained-fixture preflight; it does not reset data. See
 ### Base, Avalanche and BNB Chain public balance demos
 
 Use `--base-public`, `--avalanche-public` or `--bnb-public` with the corresponding retained source file. Each spaced/commented walkthrough selects three public addresses and a two-address subset through the shared HolonManager/LINQ helper. All three published native walkthroughs and actual CLI commands passed3/2. No transactions or Mongo records are written. Exact commands, query keys, currency units and finality limits are in the [combined guide](../../Docs/Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md). HTTP/Mongo and hosted/browser acceptance remain pending.
+
+### Optimism public balance walkthrough
+
+`dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj --no-build --no-restore -- --optimism-public LocalState/COSMIC/HostedOptimismPublicSourceCurrent/source.json`
+
+Uses the spaced/commented OptimismPublicWalkthrough, shared HolonManager/LINQ path and retained source catalogue. Native3/2 and actualCLI pass; HTTP/Mongo and hosting remain pending. Exact wei strings and RPC-reported finalized block hashes; no wallet/transaction/database creation.
