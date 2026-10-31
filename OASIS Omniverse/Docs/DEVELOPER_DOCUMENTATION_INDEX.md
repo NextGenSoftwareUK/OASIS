@@ -1,4 +1,4 @@
-﻿# OASIS & STARNET Developer Documentation Index
+# OASIS & STARNET Developer Documentation Index
 
 ## 📋 **Complete Developer Documentation Guide**
 
@@ -24,7 +24,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[OASIS Architecture Overview](../../../Docs/Devs/OASIS_ARCHITECTURE_OVERVIEW.md)** - Complete system architecture
 - **[OASIS Architecture Diagrams](../../../Docs/Devs/OASIS_ARCHITECTURE_DIAGRAMS.md)** - Visual system diagrams
 - **[Combined API Overview](../../../Docs/Devs/API%20Documentation/COMBINED_API_OVERVIEW.md)** - WEB4 + WEB5 integration
-- **[Current Implementation Status](../../Docs/CURRENT_IMPLEMENTATION_STATUS.md)** - Complete implementation status across all components
+- **[Current Implementation Status](<../../Docs/WIP/Release and Status/CURRENT_IMPLEMENTATION_STATUS.md>)** - Complete implementation status across all components
 
 ### **Core Managers & Systems**
 - **[OASIS Managers Complete Guide](../../../Docs/Devs/OASIS-Managers-Complete-Guide.md)** - Core managers (AvatarManager, WalletManager, KeyManager)

@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-26",
+  "mode": "source-review-only",
+  "providers": [
+    {
+      "provider": "GoogleMapsOASIS",
+      "path": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS/GoogleMapsOASIS.cs",
+      "sha256": "accf667db538563ed74f8a6435e1ad894e9bd9b58f4b586335b843585963f098",
+      "literalSuccessReturns": 46,
+      "interpretation": "source gap only; no native capability execution or pass"
+    },
+    {
+      "provider": "HEREMapsOASIS",
+      "path": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.HEREMapsOASIS/HEREMapsOASIS.cs",
+      "sha256": "8e99b1b7c397f1b82d0c2e9eec36248050cf473e925e5475f9156fab05fadcfd",
+      "literalSuccessReturns": 46,
+      "interpretation": "source gap only; no native capability execution or pass"
+    },
+    {
+      "provider": "MapLibreOASIS",
+      "path": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.MapLibreOASIS/MapLibreOASIS.cs",
+      "sha256": "4b1fdb0bad3729270c0ce867304afad489af06f2387168ba4fba634088df2e33",
+      "literalSuccessReturns": 46,
+      "interpretation": "source gap only; no native capability execution or pass"
+    },
+    {
+      "provider": "NianticLightshipOASIS",
+      "path": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.NianticLightshipOASIS/NianticLightshipOASIS.cs",
+      "sha256": "dabf991d4235f2c43ab348adabcc41d6b5b5ad9d134afc4354ae759e60df6fdf",
+      "literalSuccessReturns": 46,
+      "interpretation": "source gap only; no native capability execution or pass"
+    },
+    {
+      "provider": "WRLD3DOASIS",
+      "path": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS/WRLD3DOASIS.cs",
+      "sha256": "a174637d7b06efecb6ba2343b1d3c1667a2cd0a4c0a1072449f9c409ece8d3fa",
+      "literalSuccessReturns": 47,
+      "interpretation": "source gap only; no native capability execution or pass"
+    }
+  ]
+}

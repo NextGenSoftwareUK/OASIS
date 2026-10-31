@@ -1,0 +1,81 @@
+{
+  "scope": "controlled SDK avatar selector/signing/amount verification, no native ledger",
+  "reports": [
+    {
+      "path": "Docs\\WIP\\HyperDrive-Providers\\NativeEvidence\\solana-avatar-transfer-current.trx.gz",
+      "rawBytes": 1156592,
+      "sha256": "6e09e79a0beabd2c9cc845154b44c30b498edf0dde53113beb962580dbdb88b8",
+      "gzipBytes": 170508,
+      "counters": {
+        "total": "763",
+        "executed": "763",
+        "passed": "763",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "path": "Docs\\WIP\\HyperDrive-Providers\\NativeEvidence\\solana-avatar-transfer-final.trx.gz",
+      "rawBytes": 1159614,
+      "sha256": "728ef628b2fdbf8fcc0bf7ab395abec15bece1fc7c15c975303a6dc7007359ea",
+      "gzipBytes": 171469,
+      "counters": {
+        "total": "765",
+        "executed": "765",
+        "passed": "765",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    }
+  ],
+  "binaries": [
+    {
+      "path": "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "bytes": 3499520,
+      "sha256": "62b3a67eac232266b22102709eaf27b1a3c4ff4e2f8de847534ffb6513b65a98"
+    },
+    {
+      "path": "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+      "bytes": 379904,
+      "sha256": "dc15b3a598b097620be940721de3f27bba158c45f65ac06a770f97ae8ec386b5"
+    },
+    {
+      "path": "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.dll",
+      "bytes": 330240,
+      "sha256": "5ba5d4063e4b8ffe4d7d155bb141abf4dbdb1c40e04b390691bc0beaebdcd027"
+    },
+    {
+      "path": "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests.dll",
+      "bytes": 427520,
+      "sha256": "ce420379ca92b131f9c7120053dc4b794e7c639e5bc7636d92a2df13f472b281"
+    }
+  ],
+  "sourceDocuments": {
+    "Core": 787,
+    "Shared": 56,
+    "Solana": 69,
+    "unit": 45
+  }
+}

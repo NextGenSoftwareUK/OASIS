@@ -224,3 +224,27 @@ Limitations called out in docs today include **NFT/GeoNFT convert** not argv-com
 ## 11. Changelog suggestion for this doc
 
 When you add holon verbs, wire metaphor commands, or change `Light` / `NativeCodeGenesis`, update **§3**, **§5**, and [STAR_CLI_NonInteractive.md](./STAR_CLI_NonInteractive.md) together so scripted and interactive stories stay aligned.
+
+## `star chat` — talk to your WEB6 agent
+
+Chat with your avatar's WEB6 agent from the terminal (`POST /v1/agent/run`); every call is billed to the beamed-in avatar.
+
+```bash
+star avatar beamin
+star chat                                   # interactive
+star chat "What changed in my quests this week?" --json --non-interactive
+star chat --agent <agentHolonId> --memory <memoryHolonId> --code --mcp github=https://mcp.example.com/mcp
+```
+
+| Option | Meaning |
+|---|---|
+| `--agent <id>` | FAHRN agent holon: injects its SkillOpt skill; runs it hasn't got a skill for draft one |
+| `--memory <id>` | Your Holonic Memory holon: recall plus automatic curation |
+| `--category <name>` | SkillOpt task category (default `chat`) |
+| `--code` | Allow the metered code sandbox tool |
+| `--mcp name=url` | Add a remote MCP server's tools (repeatable, up to 4) |
+| `--provider`, `--model` | Override routing (default `auto`) |
+| `--web6 <url>` | WEB6 base URL (default `https://api.web6.oasisomniverse.one`, or `OASIS_WEB6_URL`) |
+
+Interactive commands: `/rate <0-1>` (scores the last run; a passing score keeps a drafted skill), `/tools`, `/cost`, `/reset`, `/exit`.
+

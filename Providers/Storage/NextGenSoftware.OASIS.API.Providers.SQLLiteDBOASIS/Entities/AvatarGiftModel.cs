@@ -5,6 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
@@ -27,10 +28,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public AvatarDetailModel AvatarDetail { get; set; }
         public string AvatarId { get; set; }
         
-        public long AvatarChakraId { set; get; } = 0;
+        public long? AvatarChakraId { set; get; }
+        public int SequenceIndex { get; set; }
 
         public AvatarGiftModel(){}
-        public AvatarGiftModel(AvatarGift source){
+        public AvatarGiftModel(AvatarGift source):this((IAvatarGift)source) { }
+        public AvatarGiftModel(IAvatarGift source){
+            ArgumentNullException.ThrowIfNull(source);
 
             this.AvatarId=source.AvatarId.ToString();
             this.GiftType=source.GiftType;
@@ -41,6 +45,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             this.KarmaSource=source.KarmaSource.Value;
             this.Provider=source.Provider.Value;
 
+        }
+
+        internal static AvatarGiftModel ForAvatar(IAvatarGift source,string owner,int sequence)
+        {
+            ArgumentNullException.ThrowIfNull(source);
+            var identity=Guid.Parse(owner);
+            if(source.AvatarId!=Guid.Empty && source.AvatarId!=identity)
+                throw new ArgumentException("Gift owner differs from the avatar detail.");
+            if(source.KarmaSource==null || source.Provider==null
+                ||!Enum.IsDefined(typeof(KarmaTypePositive),source.GiftType)
+                ||!Enum.IsDefined(typeof(KarmaSourceType),source.KarmaSource.Value)
+                ||!Enum.IsDefined(typeof(ProviderType),source.Provider.Value))
+                throw new ArgumentException("Gift requires valid source, provider and gift type.");
+            return new AvatarGiftModel(source){AvatarId=owner,SequenceIndex=sequence};
         }
 
         public AvatarGift GetAvatarGift(){

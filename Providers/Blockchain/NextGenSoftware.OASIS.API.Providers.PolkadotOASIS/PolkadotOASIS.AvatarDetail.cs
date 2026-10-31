@@ -37,291 +37,24 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 {
     public partial class PolkadotOASIS
     {
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaData, string value, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            // Convert single metadata key-value pair to dictionary and delegate to the dictionary version
-            var metaKeyValuePairs = new Dictionary<string, string> { { metaData, value } };
-            return await LoadHolonsByMetaDataAsync(metaKeyValuePairs, MetaKeyValuePairMatchMode.All, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
-        }
-
-        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
-        {
-            return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
-        }
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            // Load avatar details as separate objects from chain, then find by username
-            var allResult = await LoadAllAvatarDetailsAsync(version);
-            if (allResult.IsError || allResult.Result == null)
-            {
-                var response = new OASISResult<IAvatarDetail>();
-                OASISErrorHandling.HandleError(ref response, allResult.Message ?? "Avatar details not loaded");
-                return response;
-            }
-            var match = allResult.Result.FirstOrDefault(d => string.Equals(d.Username, avatarUsername, StringComparison.OrdinalIgnoreCase));
-            if (match != null)
-            {
-                var response = new OASISResult<IAvatarDetail>();
-                response.Result = match;
-                response.IsError = false;
-                response.Message = "Avatar detail loaded from Polkadot by username successfully";
-                return response;
-            }
-            var notFound = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref notFound, "Avatar detail not found by username");
-            return notFound;
-        }
-
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
-        {
-            return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
-        }
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
-        {
-            // Load avatar details as separate objects from chain, then find by email
-            var allResult = await LoadAllAvatarDetailsAsync(version);
-            if (allResult.IsError || allResult.Result == null)
-            {
-                var response = new OASISResult<IAvatarDetail>();
-                OASISErrorHandling.HandleError(ref response, allResult.Message ?? "Avatar details not loaded");
-                return response;
-            }
-            var match = allResult.Result.FirstOrDefault(d => string.Equals(d.Email, avatarEmail, StringComparison.OrdinalIgnoreCase));
-            if (match != null)
-            {
-                var response = new OASISResult<IAvatarDetail>();
-                response.Result = match;
-                response.IsError = false;
-                response.Message = "Avatar detail loaded from Polkadot by email successfully";
-                return response;
-            }
-            var notFound = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref notFound, "Avatar detail not found by email");
-            return notFound;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Query all avatar details from Polkadot blockchain using smart contract call
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "state_call",
-                    @params = new[]
-                    {
-                        "Oasis_getAllAvatarDetails",
-                        Convert.ToBase64String(Encoding.UTF8.GetBytes("{}")),
-                        null
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    if (rpcResponse.TryGetProperty("result", out var result))
-                    {
-                        var avatarDetailsData = JsonSerializer.Deserialize<AvatarDetail[]>(result.GetString());
-                        var avatarDetails = new List<IAvatarDetail>();
-                        if (avatarDetailsData != null)
-                        {
-                            foreach (var avatarDetail in avatarDetailsData)
-                            {
-                                avatarDetails.Add(avatarDetail);
-                            }
-                        }
-                        response.Result = avatarDetails;
-                        response.IsError = false;
-                        response.Message = $"Successfully loaded {avatarDetails.Count} avatar details from Polkadot";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "No avatar details found on Polkadot blockchain");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar details from Polkadot: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadAllAvatarDetailsAsync: {ex.Message}");
-            }
-            return response;
-        }
-
-        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
-        {
-            return DeleteAvatarAsync(providerKey, softDelete).Result;
-        }
-
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
-        {
-            return LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaData, string value, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return LoadHolonsByMetaDataAsync(metaData, value, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        }
-
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
-        {
-            // First load the avatar to get its ID
-            var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
-            if (avatarResult.IsError || avatarResult.Result == null)
-            {
-                var response = new OASISResult<bool>();
-                OASISErrorHandling.HandleError(ref response, $"Avatar with email {avatarEmail} not found");
-                return response;
-            }
-
-            // Then delete using the avatar ID
-            return await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
-        }
-
-        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatar)
-        {
-            return SaveAvatarDetailAsync(avatar).Result;
-        }
-
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-        {
-            // First load the avatar to get its ID
-            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
-            if (avatarResult.IsError || avatarResult.Result == null)
-            {
-                var response = new OASISResult<bool>();
-                OASISErrorHandling.HandleError(ref response, $"Avatar with username {avatarUsername} not found");
-                return response;
-            }
-
-            // Then delete using the avatar ID
-            return await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
-        }
-
-        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
-        {
-            return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
-        }
-
-        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
-        {
-            return LoadAllAvatarDetailsAsync(version).Result;
-        }
 
 
     // NFT-specific lock/unlock methods
     public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
     {
-        return LockNFTAsync(request).Result;
+        return LockNFTAsync(request).GetAwaiter().GetResult();
     }
 
-    public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
-    {
-        var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-        try
-        {
-            if (!_isActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Polkadot provider is not activated");
-                return result;
-            }
-
-            var bridgePoolAddress = "" ?? "0x0000000000000000000000000000000000000000";
-            var sendRequest = new SendWeb3NFTRequest
-            {
-                FromNFTTokenAddress = request.NFTTokenAddress,
-                FromWalletAddress = string.Empty,
-                ToWalletAddress = bridgePoolAddress,
-                TokenAddress = request.NFTTokenAddress,
-                TokenId = request.Web3NFTId.ToString(),
-                Amount = 1
-            };
-
-            var sendResult = await SendNFTAsync(sendRequest);
-            if (sendResult.IsError || sendResult.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {sendResult.Message}", sendResult.Exception);
-                return result;
-            }
-
-            result.IsError = false;
-            result.Result.TransactionResult = sendResult.Result.TransactionResult;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error locking NFT: {ex.Message}", ex);
-        }
-        return result;
-    }
+    public Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
+        =>ChangeStoredNftEscrowAsync(request?.Web3NFTId??Guid.Empty,request?.LockedByAvatarId??Guid.Empty,request?.NFTTokenAddress,false);
 
     public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request)
     {
-        return UnlockNFTAsync(request).Result;
+        return UnlockNFTAsync(request).GetAwaiter().GetResult();
     }
 
-    public async Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
-    {
-        var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-        try
-        {
-            if (!_isActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Polkadot provider is not activated");
-                return result;
-            }
-
-            var bridgePoolAddress = "" ?? "0x0000000000000000000000000000000000000000";
-            var sendRequest = new SendWeb3NFTRequest
-            {
-                FromNFTTokenAddress = request.NFTTokenAddress,
-                FromWalletAddress = bridgePoolAddress,
-                ToWalletAddress = string.Empty,
-                TokenAddress = request.NFTTokenAddress,
-                TokenId = request.Web3NFTId.ToString(),
-                Amount = 1
-            };
-
-            var sendResult = await SendNFTAsync(sendRequest);
-            if (sendResult.IsError || sendResult.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Failed to unlock NFT: {sendResult.Message}", sendResult.Exception);
-                return result;
-            }
-
-            result.IsError = false;
-            result.Result.TransactionResult = sendResult.Result.TransactionResult;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error unlocking NFT: {ex.Message}", ex);
-        }
-        return result;
-    }
+    public Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
+        =>ChangeStoredNftEscrowAsync(request?.Web3NFTId??Guid.Empty,request?.UnlockedByAvatarId??Guid.Empty,request?.NFTTokenAddress,true);
 
     // NFT Bridge Methods
     public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress, string tokenId, string senderAccountAddress, string senderPrivateKey)
@@ -342,34 +75,24 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 return result;
             }
 
-            var lockRequest = new LockWeb3NFTRequest
-            {
-                NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
-                LockedByAvatarId = Guid.Empty
+            if(string.IsNullOrWhiteSpace(_bridgePoolAddress))
+                throw new InvalidOperationException("An explicit bridge pool address is required; no guessed NFT custody destination is permitted.");
+            var transfer=await SendNFTAsync(new SendWeb3NFTRequest {
+                FromNFTTokenAddress=nftTokenAddress,TokenAddress=nftTokenAddress,TokenId=tokenId,
+                FromWalletAddress=senderAccountAddress,ToWalletAddress=_bridgePoolAddress,Amount=1,
+                OwnerPublicKey=senderAccountAddress,OwnerPrivateKey=senderPrivateKey
+            }).ConfigureAwait(false);
+            result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IWeb3NFTTransactionResponse,BridgeTransactionResponse>(transfer);
+            var unresolved=transfer.Exception as INativeMutationReconciliationRequired;
+            result.Result=new BridgeTransactionResponse {
+                TransactionId=unresolved?.OriginalTransactionId??transfer.Result?.TransactionResult??string.Empty,
+                IsSuccessful=!transfer.IsError&&transfer.Result!=null,
+                ErrorMessage=transfer.IsError?transfer.Message:null,
+                Status=unresolved!=null?BridgeTransactionStatus.Pending:
+                    transfer.IsError?BridgeTransactionStatus.Failed:BridgeTransactionStatus.Completed
             };
-
-            var lockResult = await LockNFTAsync(lockRequest);
-            if (lockResult.IsError || lockResult.Result == null)
-            {
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = lockResult.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-                OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {lockResult.Message}");
-                return result;
-            }
-
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = lockResult.Result.TransactionResult ?? string.Empty,
-                IsSuccessful = !lockResult.IsError,
-                Status = BridgeTransactionStatus.Pending
-            };
-            result.IsError = false;
+            if(!transfer.IsError&&transfer.Result!=null)
+                result.Message="Original PSP34 transfer to the configured custody pool finalized; cross-chain settlement is not established by this operation.";
         }
         catch (Exception ex)
         {
@@ -396,38 +119,31 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 return result;
             }
 
-            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
+            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress)||string.IsNullOrWhiteSpace(tokenId))
             {
-                OASISErrorHandling.HandleError(ref result, "NFT token address and receiver address are required");
+                OASISErrorHandling.HandleError(ref result, "NFT collection, native token ID and receiver address are required");
                 return result;
             }
 
-            var mintRequest = new MintWeb3NFTRequest
-            {
-                SendToAddressAfterMinting = receiverAccountAddress,
+            if(string.IsNullOrWhiteSpace(_bridgePoolAddress)||string.IsNullOrWhiteSpace(_privateKey))
+                throw new InvalidOperationException("An explicit configured custody pool and signing key are required for NFT release.");
+            // Release the existing token; never manufacture a different NFT as a deposit.
+            // Any supplied source hash must prove this same collection/token entering
+            // local custody. Cross-chain authorization remains the coordinator's job.
+            var released=await ExecuteOwnedNftAsync(owner=>Task.FromResult(new NftIntent("transfer",
+                NativeAccount(nftTokenAddress),CanonicalNftTokenId(tokenId),NativeAccount(_bridgePoolAddress),
+                NativeAccount(receiverAccountAddress),NativeAccount(_bridgePoolAddress),_bridgePoolAddress,_privateKey,null,null,
+                SourceCustodyTransaction:sourceTransactionHash))).ConfigureAwait(false);
+            result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IWeb3NFTTransactionResponse,BridgeTransactionResponse>(released);
+            var unresolved=released.Exception as INativeMutationReconciliationRequired;
+            result.Result=new BridgeTransactionResponse {
+                TransactionId=unresolved?.OriginalTransactionId??released.Result?.TransactionResult??string.Empty,
+                IsSuccessful=!released.IsError&&released.Result!=null,ErrorMessage=released.IsError?released.Message:null,
+                Status=unresolved!=null?BridgeTransactionStatus.Pending:
+                    released.IsError?BridgeTransactionStatus.Failed:BridgeTransactionStatus.Completed
             };
-
-            var mintResult = await MintNFTAsync(mintRequest);
-            if (mintResult.IsError || mintResult.Result == null)
-            {
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = mintResult.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-                OASISErrorHandling.HandleError(ref result, $"Failed to deposit/mint NFT: {mintResult.Message}");
-                return result;
-            }
-
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = mintResult.Result.TransactionResult ?? string.Empty,
-                IsSuccessful = !mintResult.IsError,
-                Status = BridgeTransactionStatus.Pending
-            };
-            result.IsError = false;
+            if(!released.IsError&&released.Result!=null)
+                result.Message="Original PSP34 custody release finalized; cross-chain settlement is separate.";
         }
         catch (Exception ex)
         {

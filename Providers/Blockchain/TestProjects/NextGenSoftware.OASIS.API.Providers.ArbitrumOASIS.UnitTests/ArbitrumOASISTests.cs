@@ -14,7 +14,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
     public class ArbitrumOASISTests
     {
         private ArbitrumOASIS _provider;
-        private const string TestHost = "https://arb1.arbitrum.io/rpc";
+        // Unit tests must never contact a public chain or spend gas.
+        private const string TestHost = "http://127.0.0.1:18546";
         private const string TestKey = "0x0000000000000000000000000000000000000000000000000000000000000001";
         private static readonly BigInteger TestChainId = 42161;
         private const string TestContract = "0x0000000000000000000000000000000000000000";

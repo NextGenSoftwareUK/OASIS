@@ -334,6 +334,45 @@ Cross-cutting AI/ML optimisation layer that learns from usage patterns to improv
 
 ---
 
+## Keeping the DNA copies in sync
+
+There is one schema (`OASIS Architecture/NextGenSoftware.OASIS.API.DNA/Default/OASIS_DNA.json`, kept equal to the code defaults by a test) and several real copies: the dev and live backups (`C:SourceBACKUPBACKUPDEV|LIVE`), the local WEB4/WEB5 files, and the `OASIS_DNA_JSON` variable of each Railway dev service (WEB4-WEB10). When the schema gains sections, run `node Scripts/DnaSync/sync-dna-copies.js` (dry run) and then `--apply`: it inserts what is missing in every copy, never changes an existing value, keeps comments, writes Railway with `--skip-deploys`, and leaves dated `.bak` copies of the backups. Railway limits a variable to 32,768 characters, so Railway copies are sent as compact JSON. Dev and live must use different `NativeImport.ConnectionEncryptionKey` values. Nothing is applied to the production Railway environment by this tool: paste the live backup there by hand when promoting.
+
+## NativeImport
+
+Native data import (see [NATIVE_DATA_IMPORT.md](NATIVE_DATA_IMPORT.md)). Every limit and timeout is here; the same defaults are written once in `NativeImportSettings` and listed in `Default/OASIS_DNA.json`. A value below 1 fails and names the setting.
+
+| Key | Default | Meaning |
+|---|---|---|
+| `AllowPrivateAddresses` | `false` | Lets imports reach loopback/private addresses. Leave false on any hosted node; enable only on a dev machine |
+| `SandboxMaximumRecordsPerSource` / `UserMaximumRecordsPerSource` | `500` / `5000` | Records per source for sandbox avatars / signed-in non-Wizard avatars (Wizards are uncapped) |
+| `DefaultPreviewRecords` / `MaximumPreviewRecords` | `5` / `20` | Preview size when unspecified / the most a preview may ask for |
+| `DefaultPageSize` / `MaximumPageSize` | `200` / `1000` | Records per page |
+| `DefaultMaximumRecordsPerSource` | `10000` | Records per source when a request does not say |
+| `ConnectTimeoutSeconds` / `ReadTimeoutSeconds` / `DnsTimeoutSeconds` | `10` / `30` / `5` | Timeouts against a caller's system |
+| `MaximumSqliteUploadMegabytes` | `8` | Largest uploaded SQLite file |
+| `MaximumSolanaAccountsPerProgram` / `SolanaSnapshotSeconds` | `10000` / `60` | Solana account cap / snapshot reuse time |
+| `MaximumIpfsListingMegabytes` / `MaximumSolidResourceMegabytes` | `4` / `1` | Largest IPFS listing / SOLID resource |
+| `MaximumNeo4jDiscoveredLabels` | `200` | Labels listed when a Neo4j connection names none |
+| `ConnectionEncryptionKey` | empty | ⚠️ **Secret.** Encrypts connections avatars save (AES-256-GCM). Empty means saving is refused. Use a long random value; changing it makes existing saved connections unreadable. Dev and live must use different keys |
+| `MaximumSavedConnectionsPerAvatar` | `10` | Saved connections per avatar |
+
+## Sandbox
+
+The public sandbox (see [SANDBOX_DEMO_AVATARS.md](SANDBOX_DEMO_AVATARS.md)). Set `Enabled` only on the sandbox deployment; with it false the sandbox endpoints answer 404 and nothing is ever deleted.
+
+| Key | Default | Meaning |
+|---|---|---|
+| `Enabled` | `false` | Turns on the sandbox endpoints and demo-avatar cleanup |
+| `Providers` | `MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS` | Providers a demo avatar's HyperDrive routes across |
+| `DemoAvatarUsernamePrefix` / `DemoAvatarEmailDomain` | `sandbox-` / `sandbox.oasisomniverse.one` | How demo avatars are named; cleanup requires both to match |
+| `DemoAvatarRetentionMinutes` | `1440` | Age at which a demo avatar and all its data are removed |
+| `CleanupIntervalMinutes` / `CleanupInitialDelayMinutes` | `15` / `1` | Sweep interval / delay after start-up |
+| `MaximumAvatarsRemovedPerSweep` | `50` | Avatars one sweep removes |
+| `ProviderOfflineDefaultSeconds` / `ProviderOfflineMinimumSeconds` / `ProviderOfflineMaximumSeconds` | `60` / `5` / `120` | How long a visitor may take a provider offline |
+| `DemoNeo4jLabel` | `ShopLoyaltyMember` | Neo4j label of the demo shop's loyalty members |
+| `MaximumSessionsPerAddressPerHour` / `MaximumSessionsPerDay` | `20` / `1000` | Demo avatars one address / the whole sandbox may create |
+
 ## ONET
 
 ONET is the OASIS peer-to-peer network that allows ONODE instances to discover and communicate with each other.

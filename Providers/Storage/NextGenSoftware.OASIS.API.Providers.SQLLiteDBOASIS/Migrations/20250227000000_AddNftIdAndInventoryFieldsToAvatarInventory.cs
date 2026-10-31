@@ -1,10 +1,14 @@
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context;
 
 #nullable disable
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 {
     /// <summary>Adds NftId, GameSource, ItemType, Stack to AvatarInventory so backend persists and returns NftId for [NFT] prefix in Doom/Quake.</summary>
+    [DbContext(typeof(DataContext))]
+    [Migration("20250227000000_AddNftIdAndInventoryFieldsToAvatarInventory")]
     public partial class AddNftIdAndInventoryFieldsToAvatarInventory : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

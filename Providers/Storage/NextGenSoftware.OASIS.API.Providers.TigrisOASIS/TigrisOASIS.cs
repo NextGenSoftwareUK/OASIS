@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
-using Amazon.S3.Util;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
@@ -71,7 +70,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TigrisOASIS
                 using var reader = new StreamReader(response.ResponseStream, Encoding.UTF8);
                 return await reader.ReadToEndAsync(cancellationToken);
             }
-            catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound && ex.ErrorCode == "NoSuchKey")
             {
                 return null;
             }
@@ -87,21 +86,27 @@ namespace NextGenSoftware.OASIS.API.Providers.TigrisOASIS
         {
             var keys = new List<string>();
             var request = new ListObjectsV2Request { BucketName = _bucket, Prefix = prefix };
+            var seenTokens = new HashSet<string>(StringComparer.Ordinal);
             ListObjectsV2Response response;
             do
             {
                 response = await _s3.ListObjectsV2Async(request, cancellationToken);
                 if (response.S3Objects != null)
                     foreach (var o in response.S3Objects) keys.Add(o.Key);
-                request.ContinuationToken = response.NextContinuationToken;
+                if (response.IsTruncated == true)
+                {
+                    if (string.IsNullOrEmpty(response.NextContinuationToken) || !seenTokens.Add(response.NextContinuationToken))
+                        throw new InvalidOperationException("S3 returned a truncated listing without a new continuation token.");
+                    request.ContinuationToken = response.NextContinuationToken;
+                }
             } while (response.IsTruncated == true);
             return keys;
         }
 
+        // Bucket provisioning is a separate, explicitly authorized operation.
         public async Task VerifyAsync(CancellationToken cancellationToken = default)
         {
-            if (!await AmazonS3Util.DoesS3BucketExistV2Async(_s3, _bucket))
-                await _s3.PutBucketAsync(new PutBucketRequest { BucketName = _bucket }, cancellationToken);
+            await _s3.HeadBucketAsync(new HeadBucketRequest { BucketName = _bucket }, cancellationToken);
         }
     }
 }

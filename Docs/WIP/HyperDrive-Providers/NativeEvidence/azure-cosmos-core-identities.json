@@ -1,0 +1,98 @@
+{
+  "date": "2026-10-27",
+  "scope": "Azure Cosmos shipping factory core-storage-v2 native52/52PASS and controlled20PASS; no mock factory/native semantics changes",
+  "cohorts": [
+    {
+      "name": "controls",
+      "dependencies": [
+        {
+          "Dependency": "Core",
+          "SHA256": "E9F0028BA1E00B34E904D4276535207B27BA72DF27D8ABAECEB307CDA3D5371D",
+          "SourceDocuments": 791
+        },
+        {
+          "Dependency": "Shared",
+          "SHA256": "CDFE401F62D422F8B739EF18808C069CF71231E92D48936A9F47E4BEF0E0D89D",
+          "SourceDocuments": 56
+        }
+      ],
+      "assemblies": [
+        {
+          "name": "NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests",
+          "sha256": "04E1434DE5088375F0AD5A661065600F80E138532DC66F6C0B83FFA945F85B5F",
+          "pdbSha256": "194258EC27519A9F941296DCC11A37070856A3A755CB95000080DB7B761EF8AF",
+          "sources": 85
+        }
+      ]
+    },
+    {
+      "name": "native",
+      "dependencies": [
+        {
+          "Dependency": "Core",
+          "SHA256": "E9F0028BA1E00B34E904D4276535207B27BA72DF27D8ABAECEB307CDA3D5371D",
+          "SourceDocuments": 791
+        },
+        {
+          "Dependency": "Shared",
+          "SHA256": "CDFE401F62D422F8B739EF18808C069CF71231E92D48936A9F47E4BEF0E0D89D",
+          "SourceDocuments": 56
+        }
+      ],
+      "assemblies": [
+        {
+          "name": "NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS",
+          "sha256": "B4CFC209B8AC477927D5C0B20E2AEFE1D0C8F0681F0D539193338B4811D038CE",
+          "pdbSha256": "502A39CCBB8861A5A354623FACAC9F0DBA256DA15F5F9F02ED270D710FBFB3E5",
+          "sources": 34
+        },
+        {
+          "name": "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS",
+          "sha256": "12C0CB936F90465739872A20D3F876FCC17970F11DC21103A89F138C17EEBC4C",
+          "pdbSha256": "92A25AE2A11B2E2015D42B22B801724A3204D56FE1A61B20F23F80C958535ACA",
+          "sources": 178
+        },
+        {
+          "name": "NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests",
+          "sha256": "81DC3A89B75FC2844A7D5A1A7EF5FE3472F6D84FEC878D7DD53596E5800889BA",
+          "pdbSha256": "37B1D4B617856115637666F0A9C10B6B0589E7E1299F66F53A76AA86C13AA177",
+          "sources": 24
+        }
+      ]
+    }
+  ],
+  "coreSource": "Peer frozen uncommitted reverse-descendant Core/SQLite changes; exact DLL/PDB/source cohort captured, no Core/gitlink staged by provider task",
+  "fixtureDisposition": "Same emulator, two fixed conformance DBs; suite point/raw-interface absence proven, preserved legacy oasis-cosmos-native data not touched",
+  "shutdown": "Retained oasis-cosmos container stopped by owned runner",
+  "freeBytes": 127971463168,
+  "reusedOutputs": [
+    {
+      "path": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests",
+      "binBytes": 47199948,
+      "objBytes": 2384703
+    },
+    {
+      "path": "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests",
+      "binBytes": 111033287,
+      "objBytes": 1571801
+    }
+  ],
+  "reports": [
+    {
+      "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/azure-core-controls-current.trx.gz",
+      "rawBytes": 31726,
+      "rawSha256": "bba2811af10de0b62260beb960db3864bf90e0a05b8af227367f5c7cad58be19",
+      "gzipBytes": 3452,
+      "gzipSha256": "551c8e434f830a0eb70704b1bad31a133ef6b90d61c0d78e931654969e75e282",
+      "rawRemovedAfterVerifiedCompression": true
+    },
+    {
+      "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/azure-cosmos-core-native-current.trx.gz",
+      "rawBytes": 4575,
+      "rawSha256": "50c5d641b2d6580f255c4c0bf986fa8db2837d18f1aa379e0ab744b725131539",
+      "gzipBytes": 1325,
+      "gzipSha256": "bde209d94ea1ad27c94bde7be368ea1b6a20018800439430b6cb041d865d0f70",
+      "rawRemovedAfterVerifiedCompression": true
+    }
+  ]
+}

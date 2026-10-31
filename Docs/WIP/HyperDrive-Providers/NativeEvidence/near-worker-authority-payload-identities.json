@@ -1,0 +1,17 @@
+{
+  "stage": "payload-fix470-green-before-environment-extension",
+  "sources": {
+    "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\\NearWorkerAuthorityTests.cs": "c4aa30b520db4a70bb0378d61a69c1496d521929857e5ba731e2a62eb0012ea0",
+    "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\\Fixtures\\worker-authority.mjs": "fa08c2b12d34fec6b2decb6bfc99b0fc1d95f2f3bbd62e46c3c62059faa4fb6c",
+    "Providers\\Blockchain\\NextGenSoftware.OASIS.API.Providers.NEAROASIS\\NearSdkService.cs": "d8e8950225ccffe66b5bb5f9e076a7fb71ee602cb2ed28a3a4209d3dfbe5faf5"
+  },
+  "reports": {
+    "near-worker-authority-red.trx": "19ba9168cf6df976dbc4b291b835294ad6856994c765a320ccefd1e9a4384cad",
+    "near-worker-authority-current.trx": "9ab597d1b116e7c31cf1047e9acbbc3e0fab66776c3bb2c4624565b633ce29e1"
+  },
+  "environmentChannelNotYetTested": true,
+  "reportArchives": {
+    "near-worker-authority-red.trx": "near-worker-authority-red.trx.gz",
+    "near-worker-authority-current.trx": "near-worker-authority-current.trx.gz"
+  }
+}

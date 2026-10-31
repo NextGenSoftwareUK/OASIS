@@ -3,6 +3,7 @@
 
 from pathlib import Path
 import sys
+from subscription_source_tree import source_tree_from_args
 
 ROOT = Path(__file__).resolve().parents[1]
 MIDDLEWARE = {
@@ -15,28 +16,29 @@ MIDDLEWARE = {
 }
 
 errors: list[str] = []
+tree = source_tree_from_args()
 for service, path in MIDDLEWARE.items():
-    if not path.exists():
+    if not tree.exists(path):
         errors.append(f"{service}: missing {path.relative_to(ROOT)}")
         continue
-    source = path.read_text(encoding="utf-8")
+    source = tree.read(path)
     for required in ("SubscriptionPolicy", "UsageEndpointPolicy"):
         if required not in source:
             errors.append(f"{service}: missing contract token {required}")
     project = path.parent.parent
-    hosting = "\n".join(p.read_text(encoding="utf-8") for p in (project / "Program.cs", project / "Startup.cs") if p.exists())
+    hosting = "\n".join(tree.read(p) for p in (project / "Program.cs", project / "Startup.cs") if tree.exists(p))
     for required in ("AddWeb4UsageLedger", "Web4UsageLedgerMiddleware", f'"{service}"'):
         if required not in hosting:
             errors.append(f"{service}: hosting does not register {required}")
-    for p in project.rglob("*.cs"):
+    for p in tree.cs_files(project):
         if any(part in {"obj", "bin"} for part in p.parts):
             continue
-        active = p.read_text(encoding="utf-8")
+        active = tree.read(p)
         if "AuthorizeRequestAsync(" in active:
             errors.append(f"{service}: obsolete authorize-request call in {p.relative_to(ROOT)}")
 
 legacy_dir = ROOT / "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/Services/Subscription"
-if legacy_dir.exists() and any(legacy_dir.glob("*.cs")):
+if tree.exists(legacy_dir) and any(p.parent == legacy_dir for p in tree.cs_files(legacy_dir)):
     errors.append("WEB5: legacy local subscription service still exists")
 
 if errors:

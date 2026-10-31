@@ -1,0 +1,128 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.Model;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+
+namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS;
+
+public partial class DynamoDBOASIS : IAvatarTombstoneStorageProvider
+{
+    public OASISResult<bool> ApplyAvatarTombstone(AvatarTombstone tombstone)
+        => ApplyAvatarTombstoneAsync(tombstone).GetAwaiter().GetResult();
+
+    public Task<OASISResult<bool>> ApplyAvatarTombstoneAsync(AvatarTombstone tombstone)
+        => tombstone == null ? Task.FromResult(new OASISResult<bool> {IsError=true,ErrorCode="HYPERDRIVE_PAYLOAD_INVALID",Message="Committed tombstone required."})
+            : ApplyAvatarLifecycleAsync(tombstone.AvatarId,true,tombstone);
+
+    private static Dictionary<string,AttributeValue> LifecycleKey(Guid id)
+        => new() {{"id",new AttributeValue {S=id.ToString()}}};
+
+    private async Task<Dictionary<string,AttributeValue>> ReadLifecycleItemAsync(string table,Guid id)
+    {
+        var read=await _client.GetItemAsync(new GetItemRequest {TableName=table,Key=LifecycleKey(id),ConsistentRead=true});
+        RequireItemRead(read);
+        return read.Item;
+    }
+
+    private static string LifecycleJson(Dictionary<string,AttributeValue> item,Guid id)
+    {
+        if(!item.TryGetValue("id",out var key) || key.S!=id.ToString()
+            || !item.TryGetValue("data_json",out var json) || string.IsNullOrWhiteSpace(json.S))
+            throw new InvalidDataException("DynamoDB lifecycle snapshot/key is invalid.");
+        return json.S;
+    }
+
+    private static TransactWriteItem LifecycleWrite(string table,Guid id,string expected,string updated)
+    {
+        var values=new Dictionary<string,AttributeValue> {{":expected",new AttributeValue {S=expected}}};
+        if(updated == null) return new TransactWriteItem {Delete=new Delete {TableName=table,Key=LifecycleKey(id),
+            ConditionExpression="data_json = :expected",ExpressionAttributeValues=values}};
+        values[":json"]=new AttributeValue {S=updated};values[":deleted"]=new AttributeValue {BOOL=true};
+        return new TransactWriteItem {Update=new Update {TableName=table,Key=LifecycleKey(id),
+            ConditionExpression="data_json = :expected",UpdateExpression="SET data_json = :json, is_deleted = :deleted",ExpressionAttributeValues=values}};
+    }
+
+    private static TransactWriteItem LifecycleCheck(string table,Guid id,string expected)
+        =>new(){ConditionCheck=new(){TableName=table,Key=LifecycleKey(id),ConditionExpression="data_json = :expected",
+            ExpressionAttributeValues=new(){{":expected",new(){S=expected}}}}};
+
+    private async Task<OASISResult<bool>> ApplyAvatarLifecycleAsync(Guid id,bool softDelete,AvatarTombstone supplied=null,Func<IAvatar,bool> selectedIdentity=null)
+    {
+        var result=new OASISResult<bool>();var dispatched=false;string? requestToken=null;
+        try
+        {
+            if(id==Guid.Empty) throw new ArgumentException("Avatar identity required.");
+            if(!IsProviderActivated || _clientDisposed) throw new InvalidOperationException("DynamoDB provider is not activated.");
+            var profileItem=await ReadLifecycleItemAsync("OasisAvatars",id);
+            if(profileItem.Count==0) return new OASISResult<bool>(false) {IsError=true,ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="Avatar not found in DynamoDB."};
+            var profileJson=LifecycleJson(profileItem,id);
+            var profile=ReadStoredIdentity<Avatar>(profileItem,id);
+            if(selectedIdentity!=null&&!selectedIdentity(profile))throw new StorageLifecycleConflictException("Avatar identity changed after selection; refusing deletion.");
+            if(supplied!=null && profile.IsDeleted && (profile.DeletedDate!=supplied.DeletedAtUtc || profile.DeletedByAvatarId!=supplied.DeletedByAvatarId))
+                throw new StorageLifecycleConflictException("Avatar has a conflicting committed tombstone.");
+            var detailItem=await ReadLifecycleItemAsync("OasisAvatarDetails",id);
+            if(supplied!=null && detailItem.Count==0) throw new StorageLifecycleConflictException("Committed tombstone requires an existing avatar detail.");
+            AvatarTombstone tombstone=null;
+            var profileNeedsChange=!profile.IsDeleted||profile.IsActive;
+            if(softDelete)
+            {
+                var date=supplied?.DeletedAtUtc ?? (profile.IsDeleted ? profile.DeletedDate:DateTime.UtcNow);
+                profile.IsActive=false;profile.DeletedDate=date;
+                if(supplied!=null) profile.DeletedByAvatarId=supplied.DeletedByAvatarId;
+                tombstone=new AvatarTombstone(id,date,profile.DeletedByAvatarId);
+            }
+            var updatedProfile=softDelete&&profileNeedsChange ? await StageRecordAsync(profile,OasisJson.ParseStoredObject(profileJson)):null;
+            var writes=new List<TransactWriteItem> {softDelete&&!profileNeedsChange?LifecycleCheck("OasisAvatars",id,profileJson):LifecycleWrite("OasisAvatars",id,profileJson,updatedProfile?.ToString(Newtonsoft.Json.Formatting.None))};
+            if(detailItem.Count==0)
+                writes.Add(new TransactWriteItem {ConditionCheck=new ConditionCheck {TableName="OasisAvatarDetails",Key=LifecycleKey(id),ConditionExpression="attribute_not_exists(id)"}});
+            else
+            {
+                var detailJson=LifecycleJson(detailItem,id);
+                var detail=ReadStoredIdentity<AvatarDetail>(detailItem,id);
+                var detailNeedsChange=!detail.IsDeleted||detail.IsActive;
+                if(softDelete)
+                {
+                    if(detail.IsDeleted && (detail.DeletedDate!=tombstone.DeletedAtUtc || detail.DeletedByAvatarId!=tombstone.DeletedByAvatarId))
+                        throw new StorageLifecycleConflictException("Avatar/detail committed tombstones conflict.");
+                    detail.IsActive=false;detail.DeletedDate=tombstone.DeletedAtUtc;detail.DeletedByAvatarId=tombstone.DeletedByAvatarId;
+                }
+                var updatedDetail=softDelete&&detailNeedsChange ? await StageRecordAsync(detail,OasisJson.ParseStoredObject(detailJson)):null;
+                writes.Add(softDelete&&!detailNeedsChange?LifecycleCheck("OasisAvatarDetails",id,detailJson):LifecycleWrite("OasisAvatarDetails",id,detailJson,updatedDetail?.ToString(Newtonsoft.Json.Formatting.None)));
+            }
+            var request=new TransactWriteItemsRequest{TransactItems=writes,ClientRequestToken=Guid.NewGuid().ToString("N")};
+            requestToken=request.ClientRequestToken;dispatched=writes.Any(write=>write.Update!=null||write.Delete!=null);
+            var response=await _client.TransactWriteItemsAsync(request);
+            if(response?.HttpStatusCode!=HttpStatusCode.OK) throw new InvalidDataException("DynamoDB lifecycle transaction lacks an authoritative acknowledgement.");
+            result.Result=true;result.IsSaved=dispatched;result.IsDeleted=true;result.DeletedCount=dispatched?1:0;
+            if(tombstone!=null) AvatarTombstoneEvidence.Attach(result,tombstone);
+        }
+        catch(TransactionCanceledException cause) when(cause.CancellationReasons?.Any(r=>r.Code=="ConditionalCheckFailed")==true
+            && cause.CancellationReasons.All(r=>r.Code=="None" || r.Code=="ConditionalCheckFailed"))
+        {
+            result.IsError=true;result.Exception=cause;result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
+            result.Message="DynamoDB avatar/detail changed before lifecycle commit; transaction canceled atomically.";
+        }
+        catch(AmazonDynamoDBException cause) when(IsNativeValidationRejection(cause))
+        {
+            OASISErrorHandling.HandleError(ref result,cause.Message,cause);
+        }
+        catch(Exception cause)
+        {
+            result.IsError=true;result.Exception=dispatched ? new DynamoDBMutationReconciliationException("OasisAvatars+OasisAvatarDetails",id.ToString(),cause,requestToken):cause;
+            result.Message=result.Exception.Message;
+            if(cause is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
+            else if(!dispatched && cause is ArgumentException) result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
+        }
+        return result;
+    }
+}

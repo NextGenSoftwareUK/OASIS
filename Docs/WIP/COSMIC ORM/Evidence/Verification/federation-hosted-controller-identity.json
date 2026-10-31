@@ -1,0 +1,13 @@
+{
+  "currentNativeCapture": {
+    "Algorithm": "SHA256",
+    "Hash": "49642E3DE3600B74F34989197BB939BB7FF1FAB6631FDD78BCD5F84DAFF2C21F",
+    "Path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\Controllers\\CqlV1Controller.cs"
+  },
+  "unchanged": true,
+  "previousHttpGate": {
+    "Path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\Controllers\\CqlV1Controller.cs",
+    "Hash": "49642E3DE3600B74F34989197BB939BB7FF1FAB6631FDD78BCD5F84DAFF2C21F"
+  },
+  "note": "Controller now explicitly included in future reusable runner source snapshots; this cross-gate hash proves unchanged source for the completed native gate."
+}

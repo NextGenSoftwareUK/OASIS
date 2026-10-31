@@ -1,0 +1,79 @@
+{
+  "scope": "PostgreSQL core-storage-v2 native52/52PASS/2schedules/no skips; shipping hides internal soft-delete tombstones, interface absence preserved; no native fixture cleanup executed",
+  "assemblies": [
+    {
+      "sources": 794,
+      "sha256": "8D00F6BF8897B979E8B4481B996FB612046A20CD0C0C8C5EB13898B505F13B92",
+      "name": "NextGenSoftware.OASIS.API.Core",
+      "pdbSha256": "973D57ED26F1D52F7770F29E52A81CB4F81E2811ED58E5910E5559E8C56D198B"
+    },
+    {
+      "sources": 56,
+      "sha256": "906CBA86982DBF41ACE5839ED0741FA1FE8E51F4246BA3E7EE8D766BE8D8173B",
+      "name": "NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage",
+      "pdbSha256": "2A4C06529C8C077FD82D21AA8514866B17CD197AF61469BEFEFF5550007602BB"
+    },
+    {
+      "sources": 9,
+      "sha256": "4CD0D178E8BCF8C096A5667525F22E4138B6E29848A5B3F8E041FD48540E1948",
+      "name": "NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS",
+      "pdbSha256": "FE92E817F5E3CF2A4F334197523C99BDB17904B325A51DEDE68511EA481CD14E"
+    },
+    {
+      "sources": 15,
+      "sha256": "E0E5152E763826923861660DFED45A51BDE1B275E40E5421529B71E12F5C0273",
+      "name": "NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests",
+      "pdbSha256": "2857A1B9A9D85892CB0D5E40BFCBEBE59D81811E0240C94717BF17958145F3A2"
+    }
+  ],
+  "freeBytes": 127625506816,
+  "date": "2026-10-27",
+  "fixtureDisposition": "Original v1/v2 failed fixtures retained unchanged; current canonical point/raw interface absence verified; native history/tombstones retained, no physical erasure claim",
+  "dependencies": [
+    {
+      "Dependency": "Core",
+      "SHA256": "8D00F6BF8897B979E8B4481B996FB612046A20CD0C0C8C5EB13898B505F13B92",
+      "SourceDocuments": 794
+    },
+    {
+      "Dependency": "Shared",
+      "SHA256": "906CBA86982DBF41ACE5839ED0741FA1FE8E51F4246BA3E7EE8D766BE8D8173B",
+      "SourceDocuments": 56
+    }
+  ],
+  "preservation": [
+    {
+      "mode": "async",
+      "BeforeCount": 26,
+      "AfterCount": 31,
+      "Preserved": true,
+      "BeforeSha256": "0611F03B233FF8929EDA96CC8148F88D400DC9AD4A0743115F89205F4D00AE17"
+    },
+    {
+      "mode": "sync",
+      "BeforeCount": 31,
+      "AfterCount": 36,
+      "Preserved": true,
+      "BeforeSha256": "F869FE10DAEE18DC68B2EC87323769723FE97281949548696CB76AF0DD6A632E"
+    }
+  ],
+  "reusedOutputs": [
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS",
+      "binBytes": 7560000,
+      "objBytes": 1037194
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests",
+      "binBytes": 48066537,
+      "objBytes": 1303994
+    }
+  ],
+  "trx": {
+    "rawBytes": 4281,
+    "gzipBytes": 1271,
+    "sha256": "52ae9dbe30f455b9260acb65a7a809aca7adb8bc72f6d88c970c78eb2bc87656",
+    "gzipSha256": "fe04812d2edd849b2491f19b8f391c208263a9ed5d9eddad649c4f2a6a67ae27",
+    "rawRemovedAfterVerifiedCompression": true
+  }
+}

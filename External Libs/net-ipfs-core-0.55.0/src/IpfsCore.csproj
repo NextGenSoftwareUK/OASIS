@@ -1,0 +1,60 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;netstandard2.0</TargetFrameworks>
+    <AssemblyName>Ipfs.Core</AssemblyName>
+    <RootNamespace>Ipfs</RootNamespace>
+    <DebugType>portable</DebugType>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- Preserve the published upstream assembly identity; rebuild its dependency ABI. -->
+    <AssemblyVersion>0.55.0.0</AssemblyVersion>
+    <!-- A distinct patch file version lets the SDK's normal conflict resolver
+         select the rebuilt private runtime over an equal-identity old package. -->
+    <FileVersion>0.55.0.1</FileVersion>
+    <InformationalVersion>0.55.0+oasis.simplebase5</InformationalVersion>
+    <Version>0.55.0</Version>
+
+    <!-- Nuget specs -->
+    <PackageId>Ipfs.Core</PackageId>
+    <Authors>Richard Schneider</Authors>
+    <Title>IPFS Core Objects</Title>
+    <Description>
+      Core objects and interfaces for IPFS.
+
+      The InterPlanetary File System is the permanent web. It is a new hypermedia distribution protocol, addressed by content and identities. IPFS enables the creation of completely distributed applications. It aims to make the web faster, safer, and more open.
+    </Description>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReleaseNotes>https://github.com/richardschneider/net-ipfs-core/releases</PackageReleaseNotes>
+    <Copyright>© 2015-2019 Richard Schneider</Copyright>
+    <PackageTags>ipfs peer-to-peer distributed file-system</PackageTags>
+    <IncludeSymbols>True</IncludeSymbols>
+    <PackageProjectUrl>https://github.com/richardschneider/net-ipfs-core</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/richardschneider/net-ipfs-core/master/doc/images/ipfs-cs-logo-64x64.png</PackageIconUrl>
+
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Optional: Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <!-- Optional: Embed source files that are not tracked by the source control manager in the PDB -->
+    <EmbedUntrackedSources>false</EmbedUntrackedSources>
+    <!-- Optional: Build symbol package (.snupkg) to distribute the PDB containing Source Link -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>.pdb;$(AllowedOutputExtensionsInPackageBuildOutputFolder)</AllowedOutputExtensionsInPackageBuildOutputFolder>
+  </PropertyGroup>
+
+  <Import Project="../RuntimeDependencies.props" />
+
+  <ItemGroup>
+    <Protobuf Include="**/*.proto" />
+    <EmbeddedResource Include="**/*.proto" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard14'">
+    <DefineConstants>NETSTANDARD14</DefineConstants>
+  </PropertyGroup>
+</Project>

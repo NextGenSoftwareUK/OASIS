@@ -1,0 +1,45 @@
+{
+  "sourceDocumentsVerified": {
+    "Core": 786,
+    "Shared": 56,
+    "provider": 21,
+    "unit": 39,
+    "integration": 13
+  },
+  "dependenciesAtCapture": {
+    "Core": "29d19a4aa84c6db026a9d030df62616becea2c4dea491e5b4344486dd791423f",
+    "Shared": "dc15b3a598b097620be940721de3f27bba158c45f65ac06a770f97ae8ec386b5"
+  },
+  "outputs": {
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS": {
+      "assemblySha256": "120275ae35001dd1d54789dd17f6419e76020436724ddc135a96d750e0d258eb",
+      "sizes": {
+        "bin": 7697941,
+        "obj": 970365
+      }
+    },
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests": {
+      "assemblySha256": "c1c4a2a5b2162c877577f85e2e482d8686853feddc758f1dc480cb31b280db97",
+      "sizes": {
+        "bin": 46837935,
+        "obj": 1171898
+      }
+    },
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests": {
+      "assemblySha256": "c39872169c415911a357cd94bbb8d0aeae588eab3e95f8aaf600c9bf5a404f68",
+      "sizes": {
+        "bin": 46799102,
+        "obj": 1071285
+      }
+    }
+  },
+  "tokensBurntYocto": "28940274889822600000000",
+  "nativeOriginals": 23,
+  "expectedNativeFailures": 3,
+  "sameRetainedAccount": true,
+  "hostedVerified": false,
+  "sdkSourceHashes": {
+    "bridge.mjs": "56fea610e5631c6ca7646e0377d5bc4da20f506de398086a746b44b66b0a352d",
+    "native-preparation.mjs": "5d4c4a03257fa26955354e5aeb15081e8469332a9dce21ffe6cb3f3b23ff4774"
+  }
+}

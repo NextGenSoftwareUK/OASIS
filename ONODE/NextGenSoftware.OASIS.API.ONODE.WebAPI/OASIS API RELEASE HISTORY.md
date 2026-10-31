@@ -1171,3 +1171,11 @@ Full Changelog: https://github.com/NextGenSoftwareUK/OASIS/compare/OASIS-Runtime
 
 - Unified HyperDrive v2, ONET and offline synchronization; cross-game inventory, GeoNFT and quest progress; API, provider, MCP, runtime and release-pipeline improvements.
 - Published by the automated OASIS global release process after CI validation.
+
+----------------------------------------------------------------------------------------------------------------------------
+## 5.3.0 (29/10/26)
+
+- **Native Data import**: bring-your-own and saved (encrypted) connections for MongoDB, SQLite, Neo4j, Azure Cosmos DB, SOLID, ActivityPub, IPFS and Solana (`/api/native-data`).
+- **Public sandbox**: throwaway demo avatars, per-avatar provider outages for HyperDrive failover demos, demo data and automatic cleanup (`/api/sandbox`).
+- **CQL**: bounded JSON queries across providers (`/api/data/query-cql`).
+- **DNA**: new `OASIS.Sandbox` and `OASIS.NativeImport` sections; every setting comes from DNA.

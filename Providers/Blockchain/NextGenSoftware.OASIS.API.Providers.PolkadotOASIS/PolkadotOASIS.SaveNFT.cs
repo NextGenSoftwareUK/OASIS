@@ -37,363 +37,62 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 {
     public partial class PolkadotOASIS
     {
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
-        {
-            var response = new OASISResult<IAvatar>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                if (avatar == null)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Avatar cannot be null");
-                    return response;
-                }
-
-                // Check if smart contract is configured
-                if (string.IsNullOrEmpty(_contractAddress))
-                {
-                    // No contract configured - delegate to ProviderManager as fallback
-                    return await AvatarManager.Instance.SaveAvatarAsync(avatar);
-                }
-
-                // Serialize avatar to Polkadot format
-                string avatarData = ConvertAvatarToPolkadot(avatar);
-                string avatarId = avatar.Id.ToString();
-
-                // Create Polkadot extrinsic to call smart contract
-                // Note: This requires a deployed OASIS smart contract on Polkadot/Substrate
-                var signedTx = await CreatePolkadotTransaction("save_avatar", avatarData);
-
-                // Submit extrinsic to Polkadot network
-                var submitRequest = new
-                {
-                    id = 1,
-                    jsonrpc = "2.0",
-                    method = "author_submitExtrinsic",
-                    @params = new[] { signedTx }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(submitRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    if (rpcResponse.TryGetProperty("result", out var result))
-                    {
-                        // Store transaction hash in provider unique storage key
-                        if (avatar.ProviderUniqueStorageKey == null)
-                            avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                        avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.PolkadotOASIS] = result.GetString() ?? string.Empty;
-
-                        response.Result = avatar;
-                        response.IsError = false;
-                        response.IsSaved = true;
-                        response.Message = $"Avatar saved successfully to Polkadot: {result.GetString()}";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to save avatar to Polkadot - no transaction hash returned");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to submit Polkadot transaction: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error saving avatar to Polkadot: {ex.Message}");
-            }
-            return response;
-        }
-
-        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
-        {
-            return SaveAvatarAsync(avatar).Result;
-        }
-
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
-            var response = new OASISResult<bool>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Delete avatar from Polkadot blockchain using smart contract call
-                var deleteData = JsonSerializer.Serialize(new { avatar_id = id.ToString(), soft_delete = softDelete });
-
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "author_submitExtrinsic",
-                    @params = new[]
-                    {
-                        await CreatePolkadotTransaction("Oasis_deleteAvatar", deleteData)
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    if (rpcResponse.TryGetProperty("result", out var result))
-                    {
-                        response.Result = true;
-                        response.IsError = false;
-                        response.Message = "Avatar deleted from Polkadot blockchain successfully";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to delete avatar from Polkadot blockchain");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to delete avatar from Polkadot: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar from Polkadot: {ex.Message}");
-            }
-            return response;
-        }
-
-        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
-        {
-            return DeleteAvatarAsync(id, softDelete).Result;
-        }
 
 
 
         OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
-        {
-            var response = new OASISResult<IEnumerable<IAvatar>>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = ActivateProviderAsync().Result;
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Load all avatars and filter by location
-                var allAvatarsResult = LoadAllAvatarsAsync().Result;
-                if (allAvatarsResult.IsError || allAvatarsResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Failed to load avatars from Polkadot blockchain");
-                    return response;
-                }
-
-                var nearbyAvatars = allAvatarsResult.Result
-                    .Where(avatar => avatar != null && null != null)
-                    .Where(avatar =>
-                    {
-                        var distance = GeoHelper.CalculateDistance(
-                            geoLat / 1000000.0,
-                            geoLong / 1000000.0,
-                            0.0,
-                            0.0);
-                        return distance <= radiusInMeters;
-                    })
-                    .ToList();
-
-                response.Result = nearbyAvatars;
-                response.IsError = false;
-                response.Message = $"Found {nearbyAvatars.Count} avatars within {radiusInMeters} meters";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error getting avatars near me from Polkadot: {ex.Message}");
-            }
-
-            return response;
-        }
+            => ReadNearbyRecordsAsync(geoLat,geoLong,radiusInMeters,()=>LoadAllAvatarsAsync()).GetAwaiter().GetResult();
 
         OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType holonType)
+            => ReadNearbyRecordsAsync(geoLat,geoLong,radiusInMeters,
+                ()=>LoadAllHolonsAsync(HolonType.All,loadChildren:false),holonType).GetAwaiter().GetResult();
+
+        private async Task<OASISResult<IEnumerable<T>>> ReadNearbyRecordsAsync<T>(long latitude,long longitude,int radius,
+            Func<Task<OASISResult<IEnumerable<T>>>> load,HolonType type=HolonType.All) where T:IHolonBase
         {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = ActivateProviderAsync().Result;
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
-                        return response;
-                    }
+            var result=new OASISResult<IEnumerable<T>>();
+            try {
+                var query=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordLocationQuery(latitude,longitude,radius);
+                if(!System.Enum.IsDefined(typeof(HolonType),type))throw new ArgumentOutOfRangeException(nameof(type));
+                if(!_isActivated) {
+                    var activation=await ActivateProviderAsync();
+                    if(activation.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IEnumerable<T>>(activation);
                 }
-
-                // Load all holons and filter by location
-                var allHolonsResult = LoadAllHolonsAsync(holonType).Result;
-                if (allHolonsResult.IsError || allHolonsResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Failed to load holons from Polkadot blockchain");
-                    return response;
-                }
-
-                var centerLat = geoLat / 1e6d;
-                var centerLng = geoLong / 1e6d;
-                var nearbyHolons = new List<IHolon>();
-
-                foreach (var holon in allHolonsResult.Result)
-                {
-                    if (holon != null && null != null)
-                    {
-                        var distance = GeoHelper.CalculateDistance(
-                            centerLat,
-                            centerLng,
-                            0.0,
-                            0.0);
-                        if (distance <= radiusInMeters)
-                            nearbyHolons.Add(holon);
-                    }
-                }
-
-                response.Result = nearbyHolons;
-                response.IsError = false;
-                response.Message = $"Found {nearbyHolons.Count} holons within {radiusInMeters} meters";
+                var loaded=await load();
+                if(loaded.IsError)return loaded;
+                result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>,IEnumerable<T>>(loaded);
+                result.Result=query.Select(loaded.Result,row=>row.IsActive&&!row.IsDeleted&&(type==HolonType.All||row.HolonType==type));
+                result.IsLoaded=true;
+            } catch(Exception cause) {
+                result.Result=null;result.IsLoaded=false;
+                OASISErrorHandling.HandleError(ref result,cause.Message,cause);
             }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error getting holons near me from Polkadot: {ex.Message}");
-            }
-
-            return response;
+            return result;
         }
-
-
 
         public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb3NFTRequest request)
         {
             return SendNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest request)
-        {
-            var response = new OASISResult<IWeb3NFTTransactionResponse>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-                // Polkadot uses Substrate framework for NFTs
-                // Use Polkadot.js SDK or Substrate API for NFT transfers
-                OASISErrorHandling.HandleError(ref response, "SendNFTAsync requires Polkadot.js SDK or Substrate API integration");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SendNFTAsync: {ex.Message}");
-            }
-            return response;
-        }
+        public Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest request)
+            =>SendOwnedNftAsync(request);
 
         public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest request)
         {
             return MintNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request)
-        {
-            var response = new OASISResult<IWeb3NFTTransactionResponse>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-                // Polkadot uses Substrate framework for NFTs
-                // Use Polkadot.js SDK or Substrate API for NFT minting
-                OASISErrorHandling.HandleError(ref response, "MintNFTAsync requires Polkadot.js SDK or Substrate API integration");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in MintNFTAsync: {ex.Message}");
-            }
-            return response;
-        }
+        public Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request)
+            =>MintOwnedNftAsync(request);
 
         public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
         {
             return BurnNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
-        {
-            var response = new OASISResult<IWeb3NFTTransactionResponse>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-                // Polkadot uses Substrate framework for NFTs
-                // Use Polkadot.js SDK or Substrate API for NFT burning
-                OASISErrorHandling.HandleError(ref response, "BurnNFTAsync requires Polkadot.js SDK or Substrate API integration");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in BurnNFTAsync: {ex.Message}");
-            }
-            return response;
-        }
+        public Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+            =>BurnOwnedNftAsync(request);
 
         public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
         {
@@ -402,80 +101,51 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
         public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
-            var response = new OASISResult<IWeb3NFT>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
-                        return response;
-                    }
+            var response=new OASISResult<IWeb3NFT>();
+            try {
+                if(!IsGenesisHash(nftTokenAddress))throw new ArgumentException("A canonical32byte PSP34 collection contract address is required.",nameof(nftTokenAddress));
+                if(_nftConfiguration==null)throw new InvalidOperationException("Configure the reviewed PSP34 code hash and explicit query origin before NFT reads.");
+                if(!_isActivated) {
+                    var activation=await ActivateProviderAsync();
+                    if(activation.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IWeb3NFT>(activation);
                 }
-
-                // Query NFT from Polkadot smart contract using state_call
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "state_call",
-                    @params = new[]
-                    {
-                        "Oasis_getNFT",
-                        Convert.ToBase64String(Encoding.UTF8.GetBytes($"{{\"token_address\":\"{nftTokenAddress}\"}}")),
-                        null
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    if (rpcResponse.TryGetProperty("result", out var result))
-                    {
-                        var nftJson = Convert.FromBase64String(result.GetString());
-                        var nftData = JsonSerializer.Deserialize<JsonElement>(Encoding.UTF8.GetString(nftJson));
-                        
-                        var imgStr = nftData.TryGetProperty("image", out var imgEl) ? imgEl.GetString() : null;
-                        var nft = new Web3NFT
-                        {
-                            NFTTokenAddress = nftTokenAddress,
-                            Title = nftData.TryGetProperty("name", out var name) ? name.GetString() : "",
-                            Description = nftData.TryGetProperty("description", out var desc) ? desc.GetString() : "",
-                            ImageUrl = imgStr ?? "",
-                            Image = !string.IsNullOrEmpty(imgStr) ? System.Text.Encoding.UTF8.GetBytes(imgStr) : null
-                        };
-                        if (nft.MetaData == null) nft.MetaData = new Dictionary<string, string>();
-                        if (nftData.TryGetProperty("external_url", out var extUrl))
-                            nft.MetaData["external_url"] = extUrl.GetString() ?? "";
-
-                        response.Result = nft;
-                        response.IsError = false;
-                        response.Message = "NFT loaded successfully from Polkadot blockchain";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "NFT not found on Polkadot blockchain");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load NFT from Polkadot: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadOnChainNFTDataAsync: {ex.Message}");
+                var address=nftTokenAddress.ToLowerInvariant();
+                var observed=await InvokePolkadotSdkAsync(new {operation="psp34ReadCollection",endpoint=_rpcEndpoint,
+                    genesisHash=ReportedGenesisHash,contractAddress=address,contractCodeHash=_nftConfiguration.CodeHash,
+                    origin=_nftConfiguration.QueryOrigin});
+                response.Result=ParsePsp34Collection(observed,address);
+                response.IsLoaded=true;response.Message="PSP34 collection metadata loaded from finalized state.";
+            } catch(Exception cause) {
+                OASISErrorHandling.HandleError(ref response,$"Error loading PSP34 collection: {cause.Message}",cause);
             }
             return response;
+        }
+
+        private IWeb3NFT ParsePsp34Collection(JsonElement observed,string address)
+        {
+            if(_nftConfiguration==null||observed.GetProperty("contractAddress").GetString()!=address
+                ||observed.GetProperty("codeHash").GetString()!=_nftConfiguration.CodeHash
+                ||!IsGenesisHash(observed.GetProperty("blockHash").GetString())
+                ||observed.GetProperty("collectionId").ValueKind!=JsonValueKind.Object)
+                throw new System.IO.InvalidDataException("PSP34 collection response differs from the reviewed contract identity.");
+            var attributes=observed.GetProperty("attributes");
+            string Attribute(string key) {
+                var value=attributes.GetProperty(key);
+                return value.ValueKind==JsonValueKind.Null?null:value.ValueKind==JsonValueKind.String?value.GetString():
+                    throw new System.IO.InvalidDataException("PSP34 metadata attribute must be text or absent.");
+            }
+            return new Web3NFT {
+                NFTTokenAddress=address,Title=Attribute("name")??string.Empty,Symbol=Attribute("symbol")??string.Empty,
+                Description=Attribute("description")??string.Empty,ImageUrl=Attribute("image")??string.Empty,
+                OnChainProvider=new EnumValue<ProviderType>(Core.Enums.ProviderType.PolkadotOASIS),
+                NFTStandardType=new EnumValue<NFTStandardType>(NFTStandardType.PSP34),
+                MetaData=new Dictionary<string,string> {
+                    [NativeNftChainKey]=ReportedGenesisHash,
+                    ["polkadot:collection-id"]=observed.GetProperty("collectionId").GetRawText(),
+                    ["polkadot:block-hash"]=observed.GetProperty("blockHash").GetString(),
+                    ["polkadot:code-hash"]=_nftConfiguration.CodeHash
+                }
+            };
         }
     }
 }

@@ -25,7 +25,27 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests
             var providerType = _provider.ProviderType;
 
             // Assert
-            Assert.AreEqual(ProviderType.HashgraphOASIS, providerType);
+            Assert.AreEqual(ProviderType.HashgraphOASIS, providerType.Value);
+        }
+
+        [DataTestMethod]
+        [DataRow(false)] [DataRow(true)]
+        public async Task CredentialValidationUsesSharedInterfaceBeforeAnyActivation(bool synchronous)
+        {
+            var storage=(IOASISStorageProvider)_provider;
+            foreach(var input in new[] {(" ",0),("owned-synthetic",-1)})
+            foreach(var kind in new[] {0,1,2,3,4})
+            {
+                var result=kind switch {
+                    0=>synchronous ? storage.LoadAvatarByVerificationToken(input.Item1,input.Item2):await storage.LoadAvatarByVerificationTokenAsync(input.Item1,input.Item2),
+                    1=>synchronous ? storage.LoadAvatarByResetToken(input.Item1,input.Item2):await storage.LoadAvatarByResetTokenAsync(input.Item1,input.Item2),
+                    2=>synchronous ? storage.LoadAvatarByRefreshToken(input.Item1,input.Item2):await storage.LoadAvatarByRefreshTokenAsync(input.Item1,input.Item2),
+                    3=>synchronous ? storage.LoadAvatarByPublicKey(input.Item1,input.Item2):await storage.LoadAvatarByPublicKeyAsync(input.Item1,input.Item2),
+                    _=>synchronous ? storage.LoadAvatarByPrivateKey(input.Item1,input.Item2):await storage.LoadAvatarByPrivateKeyAsync(input.Item1,input.Item2)};
+                Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",result.ErrorCode);Assert.IsTrue(result.IsError);
+                Assert.IsInstanceOfType(result.Exception,typeof(System.ArgumentException));Assert.IsNull(result.Result);
+                Assert.IsFalse(_provider.IsProviderActivated);
+            }
         }
 
         [TestMethod]
@@ -60,7 +80,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests
         }
 
         [TestMethod]
-        public void ActivateProvider_ShouldSetIsProviderActivatedToTrue()
+        public void UnconfiguredProviderCannotClaimRealActivation()
         {
             // Arrange
             Assert.IsFalse(_provider.IsProviderActivated);
@@ -69,16 +89,15 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests
             var result = _provider.ActivateProvider();
 
             // Assert
-            Assert.IsTrue(result.IsError == false);
-            Assert.IsTrue(_provider.IsProviderActivated);
+            Assert.IsTrue(result.IsError);
+            Assert.IsFalse(_provider.IsProviderActivated);
         }
 
         [TestMethod]
-        public void DeActivateProvider_ShouldSetIsProviderActivatedToFalse()
+        public void DeActivateUnconfiguredProviderRemainsInactive()
         {
             // Arrange
-            _provider.ActivateProvider();
-            Assert.IsTrue(_provider.IsProviderActivated);
+            Assert.IsFalse(_provider.IsProviderActivated);
 
             // Act
             var result = _provider.DeActivateProvider();
@@ -89,14 +108,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests
         }
 
         [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
+        public void ProviderCapabilities_ShouldDeclareBlockchain()
         {
             // Arrange & Act
-            var version = _provider.GetProviderVersion();
-
-            // Assert
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
+            Assert.IsTrue(_provider.ProviderCapabilities.Any(capability => capability.Value == ProviderCategory.Blockchain));
         }
 
         [TestCleanup]

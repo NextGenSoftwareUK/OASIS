@@ -1,0 +1,23 @@
+[
+  {
+    "Path": "C:\\Source\\OASIS\\TestResults\\PolkadotCurrent\\record-contract-target\\oasis-token-escrow-pruned.wasm",
+    "Bytes": 26728,
+    "Sha256": "4D29FE50C16EEE988A6527254C3BF4FA067F9DB8637029B72DEC356B83A104AE",
+    "Status": "removed",
+    "Recreate": "Same cached toolchain/target; source and exact lock retained in Git history for retired v1 executable"
+  },
+  {
+    "Path": "C:\\Source\\OASIS\\TestResults\\PolkadotCurrent\\record-contract-target\\oasis-token-escrow-optimized.wasm",
+    "Bytes": 23768,
+    "Sha256": "28E4CFBE15C88B92F58C9ACE6A2624F64831F0961FCB0B6AF05F98768B6DCFC0",
+    "Status": "removed",
+    "Recreate": "Same cached toolchain/target; source and exact lock retained in Git history for retired v1 executable"
+  },
+  {
+    "Path": "C:\\Source\\OASIS\\TestResults\\PolkadotCurrent\\record-contract-target\\debug\\deps\\oasis_token_escrow-65edd7a9962bea11",
+    "Bytes": 30436632,
+    "Sha256": "3ABBC2C067C1F702673FD1F56CC99D4EA5C9F74B632DA244A8ADF26C71CB3597",
+    "Status": "removed",
+    "Recreate": "Same cached toolchain/target; source and exact lock retained in Git history for retired v1 executable"
+  }
+]

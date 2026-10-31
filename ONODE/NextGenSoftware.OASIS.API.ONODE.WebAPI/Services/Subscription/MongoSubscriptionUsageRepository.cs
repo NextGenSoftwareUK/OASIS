@@ -52,6 +52,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             var database = client.GetDatabase(databaseName);
             _database = database;
             InitializeBillingIndexes();
+            InitializeGrantIndexes();
             _events = database.GetCollection<UsageEventDocument>("subscription_usage_events");
             _buckets = database.GetCollection<SubscriptionUsageBucket>("subscription_usage_buckets");
             _audit = database.GetCollection<SubscriptionUsageAuditEntry>("subscription_usage_audit");
@@ -119,6 +120,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 }
                 else
                     SubscriptionUsagePolicyEvaluator.EnsureAuthorized(policy, aggregate, usageEvent.MeterCategory == "ai.tokens" ? usageEvent.RequestedUnits : 0, usageEvent.ReservedCostUsd);
+                if (usageEvent.GrantId != null)
+                    await ReserveAgainstGrantAsync(session, usageEvent, ct);
                 var entry = Audit(usageEvent, "authorized", usageEvent.AuthorizedAtUtc, usageEvent.ConsumingService);
                 entry.RequestsDelta = 1;
                 entry.ReservedUnitsDelta = usageEvent.MeterCategory == "ai.tokens" ? usageEvent.RequestedUnits : 0;
@@ -199,6 +202,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 operation.SettlementFingerprint = fingerprint;
                 operation.SettledAtUtc = now;
                 operation.ProviderReceiptsJson = JsonSerializer.Serialize(request.ProviderReceipts);
+                if (operation.GrantId != null)
+                    await ApplyGrantDeltaAsync(session, operation, -operation.ReservedCostUsd, request.ActualCostUsd.Value, now, ct);
                 await ApplyDeltaAsync(session, operation, entry, ct);
                 await _events.ReplaceOneAsync(session, x => x.OperationId == operation.OperationId, operation, cancellationToken: ct);
                 await _audit.InsertOneAsync(session, entry, cancellationToken: ct);
@@ -294,6 +299,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                     var receipts = JsonSerializer.Deserialize<List<UsageProviderReceipt>>(operation.ProviderReceiptsJson ?? "[]");
                     var receipt = receipts?.SingleOrDefault(x => x.Provider == correction.Provider && x.ProviderRequestId == correction.ProviderRequestId)
                         ?? throw new SubscriptionUsageConflictException("The referenced provider receipt does not belong to this operation.");
+                    if(receipt.NativeFeeValuations!=null)
+                        throw new SubscriptionUsageConflictException("Native measurement evidence is immutable; a generic receipt-cost delta cannot replace verified native valuation evidence.");
                     var providerCorrections = previous.Where(x => x.CorrectionKind == "provider-measurement" && x.Provider == correction.Provider && x.ProviderRequestId == correction.ProviderRequestId).ToList();
                     if (checked(receipt.ActualCostUsd + providerCorrections.Sum(x => x.SettledCostDeltaUsd) + correction.CostDeltaUsd) < 0 ||
                         checked(receipt.PromptTokens + receipt.CompletionTokens + providerCorrections.Sum(x => x.SettledUnitsDelta) + correction.UnitsDelta) < 0)
@@ -346,6 +353,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 entry.ReservedUnitsDelta = operation.MeterCategory == "ai.tokens" ? -operation.RequestedUnits : 0;
                 entry.ReservedCostDeltaUsd = -operation.ReservedCostUsd;
                 entry.ReservedOverageDeltaUsd = -operation.ReservedOverageUsd;
+                if (operation.GrantId != null)
+                    await ApplyGrantDeltaAsync(session, operation, -operation.ReservedCostUsd, 0m, now, ct);
                 await ApplyDeltaAsync(session, operation, entry, ct);
             }            entry.PayloadJson = JsonSerializer.Serialize(new { operation.OperationId, operation.ExpiresAtUtc });
             await _events.ReplaceOneAsync(session, x => x.OperationId == operation.OperationId, operation, cancellationToken: ct);
@@ -435,7 +444,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
 
         public static bool SameAuthorization(SubscriptionUsageEvent x, SubscriptionUsageEvent y) =>
             x.ConsumingService == y.ConsumingService && x.Endpoint == y.Endpoint && x.MeterCategory == y.MeterCategory &&
-            x.RequestedUnits == y.RequestedUnits && x.ReservedCostUsd == y.ReservedCostUsd && x.RequestFingerprint == y.RequestFingerprint;
+            x.RequestedUnits == y.RequestedUnits && x.ReservedCostUsd == y.ReservedCostUsd && x.RequestFingerprint == y.RequestFingerprint &&
+            x.GrantId == y.GrantId;
 
         public static void ValidateAuthorization(SubscriptionUsageEvent value)
         {

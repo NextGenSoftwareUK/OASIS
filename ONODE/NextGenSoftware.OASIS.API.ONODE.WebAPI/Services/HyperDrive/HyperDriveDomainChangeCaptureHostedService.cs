@@ -50,21 +50,33 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
 
             await EnsureDomainCaptureInitializedAsync(hostedProvider, stoppingToken).ConfigureAwait(false);
 
+            var backoff = new HyperDriveWorkerBackoff();
             while (!stoppingToken.IsCancellationRequested)
             {
                 var captured = await hostedProvider.CaptureNextDomainChangesAsync(100, TimeSpan.FromSeconds(2),
                     stoppingToken).ConfigureAwait(false);
                 if (captured.IsError)
                 {
-                    _logger.LogError("HyperDrive domain capture failed ({Code}): {Message}",
+                    if (captured.ErrorCode == "MONGO_DOMAIN_CAPTURE_HISTORY_LOST")
+                    {
+                        _logger.LogCritical(captured.Exception,
+                            "HyperDrive capture stopped ({Code}): {Message} Reconcile missed state before replacing its checkpoint and restarting capture.",
+                            captured.ErrorCode, captured.Message);
+                        return;
+                    }
+                    _logger.LogError(captured.Exception, "HyperDrive domain capture failed ({Code}): {Message}",
                         captured.ErrorCode, captured.Message);
-                    await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
+                    await Task.Delay(backoff.NextDelay(false), stoppingToken).ConfigureAwait(false);
                     continue;
                 }
                 if (captured.Result?.RejectedCount > 0)
                     _logger.LogError(
                         "HyperDrive domain capture quarantined {RejectedCount} mutations. Inspect HyperDriveDomainCaptureDeadLetters before release.",
                         captured.Result.RejectedCount);
+                // A lease contender returns immediately, so a successful empty result must also wait.
+                var delay = backoff.NextDelay(captured.Result?.CapturedCount > 0 || captured.Result?.RejectedCount > 0);
+                if (delay > TimeSpan.Zero)
+                    await Task.Delay(delay, stoppingToken).ConfigureAwait(false);
             }
         }
 

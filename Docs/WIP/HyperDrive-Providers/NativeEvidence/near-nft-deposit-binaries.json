@@ -1,0 +1,35 @@
+{
+  "sourceDocumentsVerified": {
+    "Core": 786,
+    "Shared": 56,
+    "provider": 21,
+    "unit": 39
+  },
+  "dependenciesAtCapture": {
+    "Core": "9f84787d4af91dda5d4c4538d26ee4f9e73a00ae5d7080ac4f0d48e3a51e9f9f",
+    "Shared": "e564ee7d4d19ca2de123d9cea8aef61cab5c0fa8fd970d7b34c12d704ba973e7"
+  },
+  "outputs": {
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS": {
+      "assemblySha256": "369b293c2e3d088d605e3dccf43d85dd52bc2091f092da444de9e065ca78cf1c",
+      "sizes": {
+        "bin": 7697945,
+        "obj": 970365
+      }
+    },
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests": {
+      "assemblySha256": "68a6b5b856c6b797229744a43ab22385aabe396311530a827b56d83be35c7ccc",
+      "sizes": {
+        "bin": 46837939,
+        "obj": 1171898
+      }
+    }
+  },
+  "unitPassed": 453,
+  "nativeOperations": 0,
+  "modelDirectoriesEmpty": true,
+  "fixtureSha256": {
+    "nft-followup.mjs": "ccc93f92560b7896c7077f14be8dd54ec3d7df4e39dcedd23def6fd1402a3559",
+    "token-escrow.mjs": "8b6f842af3b5f356a5197b545fffc9ff5f168bc1aad83ff613e73781d93a2308"
+  }
+}

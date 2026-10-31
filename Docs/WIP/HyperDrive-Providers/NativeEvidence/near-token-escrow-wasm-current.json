@@ -1,0 +1,373 @@
+{
+  "candidate": "/var/tmp/oasis-near-evidence/build/oasis_token_escrow_candidate.wasm",
+  "sha256": "3390da66ecaa7c09e6ebdd897a7139ae2be53644deb69ccbe953bf944c6c5b31",
+  "size": 534212,
+  "activeArtifact": {
+    "path": "/var/tmp/oasis-near-evidence/build/oasis_storage.wasm",
+    "sha256": "638719d44b0305bded6096a68230d505e1fa6b811e404df8c12e0fd22d6fcefe",
+    "unchanged": true
+  },
+  "exportsOld": [
+    "memory",
+    "OasisStorage",
+    "delete_record",
+    "entries",
+    "entries_page",
+    "get",
+    "init",
+    "nft_burn",
+    "nft_mint",
+    "nft_set_locked",
+    "nft_token",
+    "nft_transfer",
+    "put",
+    "put_record_checked",
+    "record_write_protocol",
+    "token_balance",
+    "token_burn",
+    "token_get",
+    "token_mint",
+    "token_set_locked",
+    "token_transfer"
+  ],
+  "exportsNew": [
+    "memory",
+    "OasisStorage",
+    "delete_record",
+    "entries",
+    "entries_page",
+    "get",
+    "init",
+    "nft_burn",
+    "nft_mint",
+    "nft_set_locked",
+    "nft_token",
+    "nft_transfer",
+    "put",
+    "put_record_checked",
+    "record_write_protocol",
+    "token_balance",
+    "token_burn",
+    "token_escrow_protocol",
+    "token_get",
+    "token_lock",
+    "token_lock_get",
+    "token_mint",
+    "token_release",
+    "token_set_locked",
+    "token_transfer"
+  ],
+  "imports": [
+    {
+      "module": "env",
+      "name": "panic_utf8",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "register_len",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "read_register",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "write_register",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "current_account_id",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "signer_account_id",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "signer_account_pk",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "predecessor_account_id",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "input",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "block_index",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "block_timestamp",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "epoch_height",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "storage_usage",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "account_balance",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "account_locked_balance",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "attached_deposit",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "prepaid_gas",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "used_gas",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "random_seed",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "sha256",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "keccak256",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "keccak512",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "ripemd160",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "ecrecover",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "value_return",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "panic",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "log_utf8",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "log_utf16",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "promise_create",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "promise_then",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "promise_and",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "promise_batch_create",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "promise_batch_then",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "promise_batch_action_create_account",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "promise_batch_action_deploy_contract",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "promise_batch_action_function_call",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "promise_batch_action_transfer",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "promise_batch_action_stake",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "promise_batch_action_add_key_with_full_access",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "promise_batch_action_add_key_with_function_call",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "promise_batch_action_delete_key",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "promise_batch_action_delete_account",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "promise_batch_action_function_call_weight",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "promise_results_count",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "promise_result",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "promise_return",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "storage_write",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "storage_read",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "storage_remove",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "storage_has_key",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "validator_stake",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "validator_total_stake",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "alt_bn128_g1_multiexp",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "alt_bn128_g1_sum",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "alt_bn128_pairing_check",
+      "kind": "function"
+    }
+  ],
+  "sources": {
+    "contract.ts": {
+      "sourceSha256": "85567dde8adca88c89af53e2bf800d1fe2863b023abb76da8614470c578f8cb2",
+      "mirrorSha256": "85567dde8adca88c89af53e2bf800d1fe2863b023abb76da8614470c578f8cb2",
+      "normalizedSha256": "c534f666b0a8e7cb042a70a3bd87fdb194c60525cd77382053d6f242ad4ff7fd"
+    },
+    "checked-record.ts": {
+      "sourceSha256": "0f2c787fa6022888a01d55d95ec032b307307cbfb54b0c2eed93175baf6d0c9a",
+      "mirrorSha256": "0f2c787fa6022888a01d55d95ec032b307307cbfb54b0c2eed93175baf6d0c9a",
+      "normalizedSha256": "0f2c787fa6022888a01d55d95ec032b307307cbfb54b0c2eed93175baf6d0c9a"
+    },
+    "token-escrow.ts": {
+      "sourceSha256": "21d835bded893602ace0cf24d9a4de2104d2138ff470e58fc41ced36c15e4043",
+      "mirrorSha256": "21d835bded893602ace0cf24d9a4de2104d2138ff470e58fc41ced36c15e4043",
+      "normalizedSha256": "f79e608b5fbaf47419ec71e3bd723f38c4e2a22dc0b88cbad2d610746e15bf59"
+    }
+  },
+  "intermediates": [
+    {
+      "path": "/var/tmp/oasis-near-evidence/build/oasis_token_escrow_candidate.js",
+      "size": 122976,
+      "sha256": "3576c6de475ca942ef4be74d4f355b1ae9442e5a56925e6055939e30b4e8b285"
+    },
+    {
+      "path": "/var/tmp/oasis-near-evidence/build/oasis_token_escrow_candidate.js.map",
+      "size": 281048,
+      "sha256": "b879e1a1b0cc9caf7b3115f4a258b928a80196176ad08b153c9eaf67a72fa9d8"
+    }
+  ],
+  "node": "v22.22.2",
+  "sdk": "2.0.0",
+  "typescript": "4.7.4",
+  "sourceTests": 35,
+  "nativeDeployments": 0,
+  "nativeMutations": 0,
+  "liveProviderEscrowVerified": false
+}

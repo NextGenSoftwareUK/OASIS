@@ -1,8 +1,14 @@
 # Railway dependency pins for WEB4-WEB10
 
+## Required vendored IPFS source in the Docker context (2026-10-18)
+
+WEB4 dev deployment `3d266d4e-01a1-4071-81ed-25b736b41dd4` at parent `1e472f974` FAILED with CS0234/CS0246 (`Ipfs.Http`/`IpfsClient` missing), as did earlier batches. This is not a passing deployment or an indefinitely queued build. The IPFS provider's production ProjectReference targets `External Libs/net-ipfs-http-client-master/src/IpfsHttpClient.csproj`; the old `.dockerignore` excluded the entire `External Libs` tree, so restore could skip the missing project and compilation failed later. Local builds had the source and did not reproduce that context omission.
+
+The context now includes ONLY that existing vendored client's source subtree (not its bin/obj or other external trees). All seven Dockerfiles invoke shared `Docker/verify-vendored-provider-sources.sh` immediately after COPY, before private clones/restore, so a missing client project/type/FileSystem API fails explicitly and early. Do not restore a different/shadowed NuGet client as a fallback. The retained client and IPFS provider build using cached dependencies; guard positive and missing-source checks pass. No new SDK/download/clone/local Docker image was created. Corrected Railway builds and hosted responses still need terminal verification; local compilation/guard checks are not image/deployment certification. Keep this input guard when refactoring build contexts.
+
 ## Subscription protocol update (2026-09-22)
 
-WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
+WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
 
 
 Railway builds WEB4 through WEB10 from the OASIS parent repository. Several required repositories are private submodules, and Railway's source checkout does not populate them. The Docker build therefore clones those repositories explicitly.
@@ -19,6 +25,13 @@ The WEB4-WEB10 Dockerfiles must:
 4. Contain no dependency commit SHAs of their own.
 
 On `Development` and `master`, the seven private repository values in that branch's manifest must exactly match the parent repository's gitlinks. This makes the locally tested checkout and the Railway checkout identical without allowing Development revisions to leak into production.
+
+## Keeping the pins in step (automatic)
+
+Moving a submodule gitlink without the matching pin means Railway keeps building the OLD source, so the change never ships (a Core fix once sat undeployed for a day this way).
+
+- **CI fixes it:** [`sync-railway-pins.yml`](../../.github/workflows/sync-railway-pins.yml) runs on every push to `Development`/`master`, and if the pins differ from the gitlinks it commits the corrected `Docker/oasis-dependency-versions.env`. It pushes with the existing `PRIVATE_SUBMODULE_PAT` secret (the same PAT the submodule-sync and promotion workflows use), so its commit can pass branch protection and trigger the follow-up Railway deploy; if that secret is missing it falls back to the default token.
+- **A local hook prevents it:** enable once per clone with `git config core.hooksPath .githooks`. `.githooks/pre-push` refuses a push whose pins differ from the gitlinks and prints the one-line fix, so the wrong build is never deployed first.
 
 ## Files and responsibilities
 
@@ -136,6 +149,23 @@ The legacy parent `main` branch uses a vendored directory layout and does not co
 The `submodule-sync` workflow opens a pointer-update pull request when a tracked submodule branch advances. It regenerates the private manifest pins from the checked-out submodules and commits them with the gitlinks, then validates the committed state. The pull request remains an explicit reviewed release action. See [Promoting OASIS from Development to master](./DEVELOPMENT_TO_MASTER_PROMOTION.md).
 
 ## Required verification
+
+Before treating a **local** publish as pinned-source release evidence, run:
+
+```bash
+python3 Scripts/validate_railway_dependency_manifest.py --require-checkouts
+python3 Scripts/test_railway_dependency_manifest.py
+```
+
+The first command includes gitlink validation, then checks initialized, clean, exact-pinned private submodules and the existing shared `../NextGenSoftware-Libraries` and `../holochain-client-csharp` checkouts, plus a clean parent. It is read-only: never initializes, clones, switches or resets a checkout. An empty submodule must not inherit its parent's Git identity or silently substitute a NuGet package and be counted as tested source. Dirty builds may be useful compile diagnostics but are not immutable release evidence. Reuse suitable existing checkouts; do not reset another task's work or change pins merely to pass this guard. The six controlled boundary tests do not replace the real source preflight or actual publishes. Docker's existing pinned clone workflow is unchanged.
+
+When reusing existing default `obj/project.assets.json` with `--no-restore`, also run:
+
+```bash
+python3 Scripts/validate_railway_dependency_manifest.py --require-assets
+```
+
+This implies the checkout/gitlink checks and reads the seven API assets files without modifying them. Each `project.restore.projectPath` must match its logical API project path. Do not resolve junctions to equate different logical roots: a restored graph under another parent can reference that parent's Core/providers, even when the API source itself is the same junction target. Missing, malformed, relative or mismatched roots reject verification. The 14 controlled tests cover six checkout boundaries and eight cached-root boundaries; they do not prove a clean publish, DLL equality, all transitive restore references or hosted behavior. This check covers the default assets locations only; custom intermediate paths need their own reviewed provenance verification. It does not install/restore dependencies or authorize resetting shared work. A mismatch requires rebuilding a coherent source graph in the retained environment after shared-output ownership is resolved, not manually copying DLLs or relabeling a successful compile as release proof.
 
 For a manifest-only or Docker orchestration change:
 

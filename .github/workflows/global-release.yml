@@ -8,20 +8,12 @@ on:
         required: true
         type: boolean
         default: false
-      excluded_nuget_ids:
-        description: Comma-separated already-completed package IDs, recorded in the immutable plan
-        type: string
-        default: ''
-      expected_excluded_nuget_count:
-        description: Required exact exclusion count; mismatches stop before packing or upload
-        type: number
-        default: 0
-      nuget_plan_only:
-        description: Review NuGet plan without packing or publishing packages
+      advance_api_versions:
+        description: Advance the version of each WEB4-WEB10 API that has changed since its last release (unchanged APIs keep theirs), update their release histories, runtime tie, docs, and the OPORTAL-JS Postman collections and links, and commit them
         type: boolean
         default: false
       nuget_packages:
-        description: Release all first-party NuGet packages
+        description: Release NuGet packages
         required: true
         type: boolean
         default: true
@@ -35,14 +27,8 @@ on:
         required: true
         type: boolean
         default: true
-      nuget_package_scope:
-        description: Publish all first-party NuGet packages or only the Edge bundle packages
-        required: true
-        type: choice
-        default: All
-        options: [All, Edge]
       edge_runtime:
-        description: Release the validated OASIS Edge Runtime bundle
+        description: Release OASIS Edge Runtime
         required: true
         type: boolean
         default: true
@@ -51,18 +37,6 @@ on:
         required: true
         type: boolean
         default: true
-      edge_unity:
-        description: Release the separate OGEngineClient + Edge + Unity integration
-        type: boolean
-        default: false
-      ogengine_remote_only:
-        description: Select OGEngineClient RemoteOnly independently (legacy ogengine_client selects both)
-        type: boolean
-        default: false
-      ogengine_edge:
-        description: Select OGEngineClient + Edge independently (legacy ogengine_client selects both)
-        type: boolean
-        default: false
       native_endpoint:
         description: Release OASIS Native Endpoint
         required: true
@@ -89,9 +63,68 @@ on:
         required: false
         type: string
         default: ''
-      star_existing_version:
-        description: Existing STAR X.Y.Z release to rebuild in place (STAR-only maintenance)
-        required: false
+
+  workflow_call:
+    inputs:
+      publish:
+        description: "Publish after all builds pass"
+        required: true
+        type: boolean
+        default: false
+      excluded_nuget_ids:
+        description: "Comma-separated already-completed package IDs, recorded in the immutable plan"
+        type: string
+        default: ''
+      expected_excluded_nuget_count:
+        description: "Required exact exclusion count; mismatches stop before packing or upload"
+        type: number
+        default: 0
+      advance_api_versions:
+        description: "Advance the version of each WEB4-WEB10 API that has changed since its last release (unchanged APIs keep theirs), update their release histories, runtime tie, docs, and the OPORTAL-JS Postman collections and links, and commit them"
+        type: boolean
+        default: false
+      nuget_plan_only:
+        description: "Review NuGet plan without packing or publishing packages"
+        type: boolean
+        default: false
+      nuget_packages:
+        description: "Release NuGet packages"
+        type: boolean
+        default: true
+      oasis_runtime:
+        description: "Release OASIS Runtime"
+        type: boolean
+        default: true
+      star_runtime:
+        description: "Release STAR Runtime and CLI"
+        type: boolean
+        default: true
+      edge_runtime:
+        description: "Release OASIS Edge Runtime"
+        type: boolean
+        default: true
+      ogengine_client:
+        description: "Release OGEngineClient (formerly STAR API Client)"
+        type: boolean
+        default: true
+      native_endpoint:
+        description: "Release OASIS Native Endpoint"
+        type: boolean
+        default: true
+      mcp_server:
+        description: "Release MCP Server to GitHub, NuGet, and npm"
+        type: boolean
+        default: true
+      optional_components:
+        description: "Optional comma-separated releases: our_world,odoom,oquake,oide,onode_manager,hyperdrive_client"
+        type: string
+        default: 'none'
+      version_mode:
+        description: "Automatic, Patch, Minor, Major, or Manual for selected components"
+        type: string
+        default: 'Automatic'
+      manual_version:
+        description: "Stable X.Y.Z value required when version_mode is Manual"
         type: string
         default: ''
 
@@ -138,6 +171,8 @@ jobs:
           python -B Scripts/test_release_dependency_freshness.py
           python -B Scripts/validate_release_dependency_freshness.py
           python -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+      - name: Bring WEB4-WEB10 API versions into sync
+        run: python -B Scripts/api_version_sync.py --sync
       - name: Verify NuGet version-selection invariants
         shell: pwsh
         run: ./Scripts/Test-NuGetVersionSelection.ps1
@@ -150,24 +185,30 @@ jobs:
           git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
           git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
           git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
+      - name: Checkout OPORTAL-JS (Postman collections and portal links)
+        if: inputs.advance_api_versions
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/OPORTAL-JS
+          ref: dev
+          path: OPORTAL-JS
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - name: Generate and validate release plan
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          OASIS_OPORTAL_DIR: ${{ github.workspace }}/OPORTAL-JS
         run: >-
           ./Scripts/Invoke-OASISGlobalRelease.ps1
           -Operation Plan
           -NuGetPackages $${{ inputs.nuget_packages }}
-          -NuGetPackageScope '${{ inputs.nuget_package_scope }}'
           -ExcludedPackageIds ('${{ inputs.excluded_nuget_ids }}'.Split(',', [StringSplitOptions]::RemoveEmptyEntries))
-          -ExpectedExcludedPackageCount ${{ inputs.expected_excluded_nuget_count }}
+          -ExpectedExcludedPackageCount ${{ inputs.expected_excluded_nuget_count || 0 }}
           -OASISRuntime $${{ inputs.oasis_runtime }}
           -STARRuntime $${{ inputs.star_runtime }}
           -EdgeRuntime $${{ inputs.edge_runtime }}
-          -EdgeUnity $${{ inputs.edge_unity }}
-          -OGEngineClient $${{ inputs.ogengine_client || inputs.ogengine_remote_only || inputs.ogengine_edge }}
-          -OGEngineRemoteOnly $${{ inputs.ogengine_remote_only }}
-          -OGEngineEdge $${{ inputs.ogengine_edge }}
+          -EdgeUnity $${{ inputs.ogengine_client }}
+          -OGEngineClient $${{ inputs.ogengine_client }}
           -NativeEndpoint $${{ inputs.native_endpoint }}
           -MCPServer $${{ inputs.mcp_server }}
           -OurWorld $${{ contains(inputs.optional_components, 'our_world') }}
@@ -179,6 +220,34 @@ jobs:
           -VersionMode '${{ inputs.version_mode }}'
           -ManualVersion '${{ inputs.manual_version }}'
           -AllowBlockedPlan $${{ !inputs.publish }}
+          -AdvanceWeb4ToWeb6ApiVersions $${{ inputs.advance_api_versions }}
+          -AdvanceWeb7ToWeb10ApiVersions $${{ inputs.advance_api_versions }}
+      - name: Commit API version changes
+        if: inputs.publish && inputs.advance_api_versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global user.name oasis-release-bot
+          git config --global user.email noreply@github.com
+          for pair in "STAR ODK:STAR_ODK_COMMIT" "WEB6:OASIS_WEB6_COMMIT"; do
+            dir="${pair%%:*}"; pin="${pair##*:}"
+            if [ -n "$(git -C "$dir" status --porcelain)" ]; then
+              git -C "$dir" add -A
+              git -C "$dir" commit -m "API release history (global release ${GITHUB_RUN_ID})"
+              git -C "$dir" push origin HEAD:main
+              sed -i "s/^$pin=.*/$pin=$(git -C "$dir" rev-parse HEAD)/" Docker/oasis-dependency-versions.env
+            fi
+          done
+          git add -- 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.cs' Docker/oasis-dependency-versions.env Docs/API Docs/Devs/GLOBAL_RELEASE_AUTOMATION.md Scripts/Test-OASISGlobalRelease.ps1 'STAR ODK' WEB6 ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI WEB7 WEB8 WEB9 WEB10
+          if ! git diff --cached --quiet; then
+            git commit -m "Advance API versions (global release ${GITHUB_RUN_ID})"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+          git -C OPORTAL-JS add -A postman assets source
+          if ! git -C OPORTAL-JS diff --cached --quiet; then
+            git -C OPORTAL-JS commit -m "Postman collections and portal links follow the API versions (global release ${GITHUB_RUN_ID})"
+            git -C OPORTAL-JS push origin HEAD:dev
+          fi
       - id: versions
         name: Export planned versions
         shell: pwsh
@@ -188,13 +257,7 @@ jobs:
           $plan = Get-Content artifacts/global-release/release-plan.json -Raw | ConvertFrom-Json
           "nuget_count=$(@($plan.packages).Count)" >> $env:GITHUB_OUTPUT
           "oasis_version=$($plan.releaseVersions.oasisRuntime)" >> $env:GITHUB_OUTPUT
-          $starVersion = '${{ inputs.star_existing_version }}'
-          if ($starVersion) {
-            if ('${{ inputs.star_runtime }}' -ne 'true' -or '${{ inputs.nuget_packages }}' -eq 'true' -or '${{ inputs.oasis_runtime }}' -eq 'true' -or '${{ inputs.edge_runtime }}' -eq 'true' -or '${{ inputs.ogengine_client }}' -eq 'true' -or '${{ inputs.native_endpoint }}' -eq 'true' -or '${{ inputs.mcp_server }}' -eq 'true' -or '${{ inputs.optional_components }}' -ne 'none') { throw 'star_existing_version is valid only for a STAR-only maintenance release.' }
-            if ($starVersion -notmatch '^\d+\.\d+\.\d+$') { throw 'star_existing_version must be X.Y.Z.' }
-            gh release view "STAR-ODK-Runtime-v$starVersion" | Out-Null
-            if ($LASTEXITCODE -ne 0) { throw "STAR-ODK-Runtime-v$starVersion does not exist." }
-          } else { $starVersion = $plan.releaseVersions.starRuntime }
+          $starVersion = $plan.releaseVersions.starRuntime
           "star_version=$starVersion" >> $env:GITHUB_OUTPUT
           "edge_version=$($plan.releaseVersions.edgeRuntime)" >> $env:GITHUB_OUTPUT
           "edge_unity_version=$($plan.releaseVersions.edgeUnity)" >> $env:GITHUB_OUTPUT
@@ -232,6 +295,12 @@ jobs:
           foreach ($property in $plan.releaseVersions.PSObject.Properties) { "| $($property.Name) | $($plan.components.($property.Name) -eq $true) | $($property.Value) |" >> $env:GITHUB_STEP_SUMMARY }
           if (@($plan.versionDecisions).Count) { "`n### Version decisions" >> $env:GITHUB_STEP_SUMMARY; foreach ($decision in $plan.versionDecisions) { "- **$($decision.bump)**: ``$($decision.current)`` → ``$($decision.proposed)`` for $($decision.scope). $($decision.reason)" >> $env:GITHUB_STEP_SUMMARY } }
           if (@($plan.blockers).Count) { "`n### Publication blockers" >> $env:GITHUB_STEP_SUMMARY; foreach ($blocker in $plan.blockers) { "- $blocker" >> $env:GITHUB_STEP_SUMMARY } }
+          if ('${{ inputs.advance_api_versions }}' -eq 'true') {
+            "`n### API versions and release histories that would be written" >> $env:GITHUB_STEP_SUMMARY
+            $apiChanges = @(git diff --no-color -U0 -- '*OASISBootLoader.cs' '*API RELEASE HISTORY.md' 'Docs/API/*RELEASE-HISTORY.md')
+            if ($apiChanges.Count) { '```diff' >> $env:GITHUB_STEP_SUMMARY; $apiChanges >> $env:GITHUB_STEP_SUMMARY; '```' >> $env:GITHUB_STEP_SUMMARY }
+            else { 'No API has changed since its last release, so no version or history would be written.' >> $env:GITHUB_STEP_SUMMARY }
+          }
           foreach ($note in Get-ChildItem artifacts/global-release/release-notes -Filter '*.md') { "`n---`n" >> $env:GITHUB_STEP_SUMMARY; Get-Content $note.FullName >> $env:GITHUB_STEP_SUMMARY }
       - uses: actions/upload-artifact@v7
         with:
@@ -270,7 +339,7 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
-        run: ./Scripts/Invoke-OASISGlobalRelease.ps1 -Operation Pack -ReviewedPlanPath artifacts/global-release-plan/release-plan.json -NuGetPackageScope '${{ inputs.nuget_package_scope }}' -OASISRuntime $false -STARRuntime $false -EdgeRuntime $false -OGEngineClient $false -NativeEndpoint $false -MCPServer $false
+        run: ./Scripts/Invoke-OASISGlobalRelease.ps1 -Operation Pack -ReviewedPlanPath artifacts/global-release-plan/release-plan.json -OASISRuntime $false -STARRuntime $false -EdgeRuntime $false -OGEngineClient $false -NativeEndpoint $false -MCPServer $false
       - uses: actions/upload-artifact@v7
         with:
           name: global-release-nuget-packages
@@ -280,7 +349,7 @@ jobs:
         run: ./Scripts/Publish-OASISReviewedNuGet.ps1 -PlanPath artifacts/global-release-plan/release-plan.json -PackageDirectory artifacts/global-release/nuget -ValidateProvenance -ReportPath artifacts/global-release/nuget-preflight.json
 
   nuget-publish:
-    if: ${{ always() && inputs.publish && inputs.nuget_packages && needs.plan.result == 'success' && needs.nuget.result == 'success' && (inputs.edge_unity == false || needs.edge-runtime-validation.result == 'success') }}
+    if: ${{ always() && inputs.publish && inputs.nuget_packages && needs.plan.result == 'success' && needs.nuget.result == 'success' && (inputs.ogengine_client == false || needs.edge-runtime-validation.result == 'success') }}
     needs: [plan, nuget, edge-runtime-validation]
     runs-on: windows-latest
     steps:
@@ -316,13 +385,13 @@ jobs:
           ./Scripts/Publish-OASISReviewedNuGet.ps1 -PlanPath artifacts/global-release-plan/release-plan.json -PackageDirectory artifacts/global-release-nuget -Publish
 
   edge-runtime-validation:
-    if: inputs.edge_unity
+    if: inputs.ogengine_client
     needs: plan
     uses: ./.github/workflows/edge-runtime-validation.yml
     secrets: inherit
 
   edge-runtime-assets:
-    if: inputs.edge_unity
+    if: inputs.ogengine_client
     needs: [plan, nuget, edge-runtime-validation]
     runs-on: windows-latest
     permissions:
@@ -369,7 +438,7 @@ jobs:
             artifacts/OASIS.Edge.Unity.v${{ needs.plan.outputs.edge_unity_version }}.zip
 
   edge-runtime-publish:
-    if: inputs.publish && inputs.edge_unity
+    if: inputs.publish && inputs.ogengine_client
     needs: [plan, edge-runtime-assets, nuget-publish, edge-unity-nuget]
     runs-on: windows-latest
     permissions:
@@ -401,7 +470,7 @@ jobs:
     secrets: inherit
 
   edge-unity-nuget:
-    if: inputs.edge_unity
+    if: inputs.ogengine_client
     needs: [plan, edge-runtime-assets]
     runs-on: windows-latest
     steps:
@@ -433,14 +502,14 @@ jobs:
           path: artifacts/unity-nuget/*.nupkg
 
   ogengine-profiles:
-    if: inputs.ogengine_client || inputs.ogengine_remote_only || inputs.ogengine_edge
+    if: inputs.ogengine_client
     needs: plan
     uses: ./.github/workflows/build-ogengine-profiles.yml
     with:
       version: ${{ needs.plan.outputs.ogengine_version }}
       publish: ${{ inputs.publish }}
-      remote_only: ${{ inputs.ogengine_client || inputs.ogengine_remote_only }}
-      edge: ${{ inputs.ogengine_client || inputs.ogengine_edge }}
+      remote_only: ${{ inputs.ogengine_client }}
+      edge: ${{ inputs.ogengine_client }}
     secrets: inherit
 
   runtime-assets:
@@ -627,13 +696,8 @@ jobs:
         run: |
           $tag = 'STAR-ODK-Runtime-v${{ needs.plan.outputs.star_version }}'
           if ('${{ inputs.publish }}' -ne 'true') { Get-ChildItem artifacts/global-release/assets/*.zip | ForEach-Object { "- $($_.Name)" >> $env:GITHUB_STEP_SUMMARY }; exit 0 }
-          $existingVersion = '${{ inputs.star_existing_version }}'
-          if ($existingVersion) {
-            gh release upload $tag artifacts/global-release/assets/*.zip --clobber
-          } else {
-            ./Scripts/New-OASISReleaseNotes.ps1 -Component STARRuntime -Version '${{ needs.plan.outputs.star_version }}' -OutputPath 'artifacts/global-release/star-runtime.md'
-            gh release create $tag artifacts/global-release/assets/*.zip --title 'STAR ODK Runtime v${{ needs.plan.outputs.star_version }}' --notes-file 'artifacts/global-release/star-runtime.md' --verify-tag=false
-          }
+          ./Scripts/New-OASISReleaseNotes.ps1 -Component STARRuntime -Version '${{ needs.plan.outputs.star_version }}' -OutputPath 'artifacts/global-release/star-runtime.md'
+          gh release create $tag artifacts/global-release/assets/*.zip --title 'STAR ODK Runtime v${{ needs.plan.outputs.star_version }}' --notes-file 'artifacts/global-release/star-runtime.md' --verify-tag=false
 
   mcp:
     if: inputs.mcp_server
@@ -650,7 +714,7 @@ jobs:
       NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
 
   optional-established-release-workflows:
-    if: inputs.publish && (contains(inputs.optional_components, 'oide') || contains(inputs.optional_components, 'onode_manager') || contains(inputs.optional_components, 'hyperdrive_client'))
+    if: inputs.publish && (contains(inputs.optional_components, 'oide') || contains(inputs.optional_components, 'hyperdrive_client'))
     needs: plan
     runs-on: ubuntu-latest
     steps:
@@ -664,12 +728,19 @@ jobs:
             sha=$(gh api repos/NextGenSoftwareUK/OIDE/commits/main --jq .sha)
             gh api --method POST repos/NextGenSoftwareUK/OIDE/git/refs -f ref='refs/tags/v${{ needs.plan.outputs.oide_version }}' -f sha="$sha"
           fi
-          if [[ '${{ contains(inputs.optional_components, 'onode_manager') }}' == 'true' ]]; then
-            gh workflow run release-onode-manager.yml --repo NextGenSoftwareUK/OASIS --ref master -f version='${{ needs.plan.outputs.onode_manager_version }}'
-          fi
           if [[ '${{ contains(inputs.optional_components, 'hyperdrive_client') }}' == 'true' ]]; then
             gh workflow run release.yml --repo NextGenSoftwareUK/OASIS-HyperDrive-Client --ref main -f version='${{ needs.plan.outputs.hyperdrive_client_version }}'
           fi
+
+  onode-manager:
+    if: inputs.publish && contains(inputs.optional_components, 'onode_manager')
+    needs: plan
+    permissions:
+      contents: write
+    uses: ./.github/workflows/release-onode-manager.yml
+    with:
+      version: ${{ needs.plan.outputs.onode_manager_version }}
+    secrets: inherit
 
   optional-game-release-workflows:
     if: inputs.publish && (contains(inputs.optional_components, 'our_world') || contains(inputs.optional_components, 'odoom') || contains(inputs.optional_components, 'oquake'))

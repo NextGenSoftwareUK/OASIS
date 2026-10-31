@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "6.0.6");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AchievementModel", b =>
                 {
@@ -65,13 +65,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("AsteroidId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Age")
+                    b.Property<long>("Age")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("CurrentOrbitAngleOfParentStar")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("DistanceFromParentStarInMetres")
+                    b.Property<long>("DistanceFromParentStarInMetres")
                         .HasColumnType("INTEGER");
 
                     b.Property<float>("EclipticLatitute")
@@ -101,7 +101,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("GenesisType")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("GravitaionalPull")
+                    b.Property<long>("GravitaionalPull")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("HolonId")
@@ -113,13 +113,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<float>("HorizontalLongitute")
                         .HasColumnType("REAL");
 
-                    b.Property<int>("Mass")
+                    b.Property<long>("Mass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NumberActiveAvatars")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("NumberRegisteredAvatars")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("NunmerActiveAvatars")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("OrbitPositionFromParentStar")
@@ -128,10 +128,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("Radius")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("RotationSpeed")
+                    b.Property<long>("RotationSpeed")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Size")
+                    b.Property<long>("Size")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("SolarSystemId")
@@ -158,7 +158,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("UniverseId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Weight")
+                    b.Property<long>("Weight")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("AsteroidId");
@@ -260,7 +260,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Element")
+                    b.Property<int?>("Element")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Level")
@@ -287,7 +287,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("XP")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("YogaPose")
+                    b.Property<int?>("YogaPose")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -301,7 +301,28 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", b =>
                 {
+                    b.Property<int>("CreatedDateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
+                    b.Property<int>("ModifiedDateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
+                    b.Property<int>("DeletedDateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
                     b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("ActiveObjectiveId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("ActiveQuestId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Address")
@@ -309,6 +330,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
                     b.Property<int>("AvatarType")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("CelestialParentIdsJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Country")
                         .HasColumnType("TEXT");
@@ -322,11 +347,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("CreatedOASISType")
+                    b.Property<int?>("CreatedOASISType")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("CreatedProviderType")
+                    b.Property<int?>("CreatedProviderType")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("CustomHolonType")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("DOB")
                         .HasColumnType("TEXT");
@@ -338,6 +366,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DimensionLevelIdsJson")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
@@ -364,7 +396,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<bool>("IsNewHolon")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Karma")
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("Karma")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Landline")
@@ -375,6 +410,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
                     b.Property<int>("Level")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("MetaDataJson")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Mobile")
                         .HasColumnType("TEXT");
@@ -391,10 +429,29 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid>("ParentHolonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ParentHolonId2")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ParentHolonId3")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Password")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Portrait")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Postcode")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("PreviousVersionId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProviderLinksJson")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<int>("STARCLIColour")
@@ -406,11 +463,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("Town")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("UmaJson")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Username")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Version")
                         .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("VersionId")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("XP")
                         .HasColumnType("INTEGER");
@@ -426,11 +489,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<long>("AvatarChakraId")
+                    b.Property<long?>("AvatarChakraId")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("AvatarDetailId")
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("AvatarId")
                         .HasColumnType("TEXT");
@@ -453,14 +513,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("Provider")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("SequenceIndex")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("WebLink")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AvatarChakraId");
-
-                    b.HasIndex("AvatarDetailId");
 
                     b.HasIndex("AvatarId");
 
@@ -493,6 +554,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarModel", b =>
                 {
+                    b.Property<int>("CreatedDateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
+                    b.Property<int>("ModifiedDateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
+                    b.Property<int>("DeletedDateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
@@ -514,6 +590,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("CreatedProviderType")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("CustomHolonType")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("DeletedByAvatarId")
                         .HasColumnType("TEXT");
 
@@ -532,6 +611,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("FullName")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("HasAvatarType")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true)
+                        .ValueGeneratedNever();
+
+                    b.Property<bool>("HasCreatedOASISType")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true)
+                        .ValueGeneratedNever();
+
+                    b.Property<bool>("HasCreatedProviderType")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true)
+                        .ValueGeneratedNever();
+
                     b.Property<int>("HolonType")
                         .HasColumnType("INTEGER");
 
@@ -545,6 +639,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsNewHolon")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsPublic")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsVerified")
@@ -562,6 +659,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("Level")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("LocalProviderKey")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MetaDataJson")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("ModifiedByAvatarId")
                         .HasColumnType("TEXT");
 
@@ -571,10 +674,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid>("ParentHolonId")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Password")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("PasswordReset")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("PreviousVersionId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProviderKeysJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProviderWalletsJson")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("RefreshToken")
@@ -601,10 +716,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("Version")
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid>("VersionId")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("XP")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LocalProviderKey")
+                        .IsUnique();
 
                     b.ToTable("Avatar");
                 });
@@ -635,7 +756,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("Meditation")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("MelleeCombat")
+                    b.Property<int>("MeleeCombat")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Mindfulness")
@@ -644,7 +765,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("Negotiating")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("RangeCombat")
+                    b.Property<int>("RangedCombat")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Research")
@@ -732,7 +853,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("HeatVision")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Invulerability")
+                    b.Property<int>("Invulnerability")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("RemoteViewing")
@@ -744,7 +865,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("SuperStrength")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Telekineseis")
+                    b.Property<int>("Telekinesis")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Telepathy")
@@ -761,18 +882,32 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.ToTable("AvatarSuperPowers");
                 });
 
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarWalletStore", b =>
+                {
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("WalletsJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("AvatarId");
+
+                    b.ToTable("AvatarWalletStore");
+                });
+
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.CometModel", b =>
                 {
                     b.Property<string>("CometId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Age")
+                    b.Property<long>("Age")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("CurrentOrbitAngleOfParentStar")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("DistanceFromParentStarInMetres")
+                    b.Property<long>("DistanceFromParentStarInMetres")
                         .HasColumnType("INTEGER");
 
                     b.Property<float>("EclipticLatitute")
@@ -802,7 +937,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("GenesisType")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("GravitaionalPull")
+                    b.Property<long>("GravitaionalPull")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("HolonId")
@@ -814,13 +949,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<float>("HorizontalLongitute")
                         .HasColumnType("REAL");
 
-                    b.Property<int>("Mass")
+                    b.Property<long>("Mass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NumberActiveAvatars")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("NumberRegisteredAvatars")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("NunmerActiveAvatars")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("OrbitPositionFromParentStar")
@@ -829,10 +964,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("Radius")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("RotationSpeed")
+                    b.Property<long>("RotationSpeed")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Size")
+                    b.Property<long>("Size")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("SolarSystemId")
@@ -859,7 +994,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("UniverseId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Weight")
+                    b.Property<long>("Weight")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("CometId");
@@ -1014,13 +1149,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("StarId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Age")
+                    b.Property<long>("Age")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("CurrentOrbitAngleOfParentStar")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("DistanceFromParentStarInMetres")
+                    b.Property<long>("DistanceFromParentStarInMetres")
                         .HasColumnType("INTEGER");
 
                     b.Property<float>("EclipticLatitute")
@@ -1044,7 +1179,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("GenesisType")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("GravitaionalPull")
+                    b.Property<long>("GravitaionalPull")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("HolonId")
@@ -1059,13 +1194,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("Luminosity")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Mass")
+                    b.Property<long>("Mass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NumberActiveAvatars")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("NumberRegisteredAvatars")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("NunmerActiveAvatars")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("OrbitPositionFromParentStar")
@@ -1074,10 +1209,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("Radius")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("RotationSpeed")
+                    b.Property<long>("RotationSpeed")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Size")
+                    b.Property<long>("Size")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("SpaceQuadrant")
@@ -1107,7 +1242,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("TiltAngle")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Weight")
+                    b.Property<long>("Weight")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("StarId");
@@ -1120,13 +1255,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("StarId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Age")
+                    b.Property<long>("Age")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("CurrentOrbitAngleOfParentStar")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("DistanceFromParentStarInMetres")
+                    b.Property<long>("DistanceFromParentStarInMetres")
                         .HasColumnType("INTEGER");
 
                     b.Property<float>("EclipticLatitute")
@@ -1150,7 +1285,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("GenesisType")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("GravitaionalPull")
+                    b.Property<long>("GravitaionalPull")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("HolonId")
@@ -1165,13 +1300,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("Luminosity")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Mass")
+                    b.Property<long>("Mass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NumberActiveAvatars")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("NumberRegisteredAvatars")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("NunmerActiveAvatars")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("OrbitPositionFromParentStar")
@@ -1180,10 +1315,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("Radius")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("RotationSpeed")
+                    b.Property<long>("RotationSpeed")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Size")
+                    b.Property<long>("Size")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("SpaceQuadrant")
@@ -1213,7 +1348,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("TiltAngle")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Weight")
+                    b.Property<long>("Weight")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("StarId");
@@ -1236,6 +1371,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("HeartRateValue")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("SequenceIndex")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("TimeStamp")
                         .HasColumnType("TEXT");
 
@@ -1250,6 +1388,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HolonModel", b =>
                 {
+                    b.Property<int>("CreatedDateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
+                    b.Property<int>("ModifiedDateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
+                    b.Property<int>("DeletedDateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
@@ -1265,6 +1418,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("CreatedProviderType")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("CustomHolonType")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("DeletedByAvatarId")
                         .HasColumnType("TEXT");
 
@@ -1276,6 +1432,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
                     b.Property<int>("DimensionLevel")
                         .HasColumnType("INTEGER");
+
+                    b.Property<bool>("HasCreatedOASISType")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true)
+                        .ValueGeneratedNever();
+
+                    b.Property<bool>("HasCreatedProviderType")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true)
+                        .ValueGeneratedNever();
 
                     b.Property<string>("HolonModelId")
                         .HasColumnType("TEXT");
@@ -1291,6 +1457,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
                     b.Property<bool>("IsNewHolon")
                         .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("LocalProviderKey")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MetaDataJson")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("ModifiedByAvatarId")
                         .HasColumnType("TEXT");
@@ -1337,15 +1512,36 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("ParentUniverseUniverseId")
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid>("ProviderRevisionId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("PreviousVersionId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PersistentValueJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("{}");
+
+                    b.Property<string>("ProviderKeysJson")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("SubDimensionLevel")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Version")
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid>("VersionId")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("HolonModelId");
+
+                    b.HasIndex("LocalProviderKey")
+                        .IsUnique();
 
                     b.HasIndex("ParentDimensionDimesionId");
 
@@ -1378,35 +1574,86 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime>("AcquiredOn")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("AvatarId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ExtendedValueJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("{}");
+
                     b.Property<string>("GameSource")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("GeoNFTId")
+                    b.Property<Guid>("GeoNFTId")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("HolonType")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("ItemType")
+                    b.Property<byte[]>("Image2D")
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("Image2DURI")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsTradeable")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsUsable")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ItemType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastUsedOn")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MaxQuantity")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("MetaDataJson")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("NftId")
+                    b.Property<Guid>("NftId")
                         .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("Object3D")
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("Object3DURI")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PropertiesJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("PublishedSTARNETHolon")
+                        .HasColumnType("BLOB");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Rarity")
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("Stack")
                         .HasColumnType("INTEGER");
+
+                    b.Property<float>("Weight")
+                        .HasColumnType("REAL");
 
                     b.HasKey("Id");
 
@@ -1417,6 +1664,41 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.KarmaAkashicRecordModel", b =>
                 {
+                    b.Property<int>("SequenceIndex")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
+                    b.Property<int>("DateKind")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0)
+                        .ValueGeneratedNever();
+
+                    b.Property<bool>("HasKarmaSource")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true)
+                        .ValueGeneratedNever();
+
+                    b.Property<bool>("HasKarmaEarntOrLost")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true)
+                        .ValueGeneratedNever();
+
+                    b.Property<bool>("HasKarmaTypePositive")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true)
+                        .ValueGeneratedNever();
+
+                    b.Property<bool>("HasKarmaTypeNegative")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true)
+                        .ValueGeneratedNever();
+
+                    b.Property<bool>("HasProvider")
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true)
+                        .ValueGeneratedNever();
+
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
@@ -1451,7 +1733,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("Provider")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("TotalKarma")
+                    b.Property<long>("TotalKarma")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("WebLink")
@@ -1497,13 +1779,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("MeteroidId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Age")
+                    b.Property<long>("Age")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("CurrentOrbitAngleOfParentStar")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("DistanceFromParentStarInMetres")
+                    b.Property<long>("DistanceFromParentStarInMetres")
                         .HasColumnType("INTEGER");
 
                     b.Property<float>("EclipticLatitute")
@@ -1533,7 +1815,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("GenesisType")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("GravitaionalPull")
+                    b.Property<long>("GravitaionalPull")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("HolonId")
@@ -1545,13 +1827,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<float>("HorizontalLongitute")
                         .HasColumnType("REAL");
 
-                    b.Property<int>("Mass")
+                    b.Property<long>("Mass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NumberActiveAvatars")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("NumberRegisteredAvatars")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("NunmerActiveAvatars")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("OrbitPositionFromParentStar")
@@ -1560,10 +1842,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("Radius")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("RotationSpeed")
+                    b.Property<long>("RotationSpeed")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Size")
+                    b.Property<long>("Size")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("SolarSystemId")
@@ -1590,7 +1872,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("UniverseId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Weight")
+                    b.Property<long>("Weight")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("MeteroidId");
@@ -1611,13 +1893,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("MoonId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Age")
+                    b.Property<long>("Age")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("CurrentOrbitAngleOfParentStar")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("DistanceFromParentStarInMetres")
+                    b.Property<long>("DistanceFromParentStarInMetres")
                         .HasColumnType("INTEGER");
 
                     b.Property<float>("EclipticLatitute")
@@ -1641,7 +1923,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("GenesisType")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("GravitaionalPull")
+                    b.Property<long>("GravitaionalPull")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("HolonId")
@@ -1653,13 +1935,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<float>("HorizontalLongitute")
                         .HasColumnType("REAL");
 
-                    b.Property<int>("Mass")
+                    b.Property<long>("Mass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NumberActiveAvatars")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("NumberRegisteredAvatars")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("NunmerActiveAvatars")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("OrbitPositionFromParentStar")
@@ -1671,10 +1953,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("Radius")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("RotationSpeed")
+                    b.Property<long>("RotationSpeed")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Size")
+                    b.Property<long>("Size")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("SpaceQuadrant")
@@ -1695,7 +1977,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("TiltAngle")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Weight")
+                    b.Property<long>("Weight")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("MoonId");
@@ -1733,13 +2015,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("PlanetId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Age")
+                    b.Property<long>("Age")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("CurrentOrbitAngleOfParentStar")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("DistanceFromParentStarInMetres")
+                    b.Property<long>("DistanceFromParentStarInMetres")
                         .HasColumnType("INTEGER");
 
                     b.Property<float>("EclipticLatitute")
@@ -1769,7 +2051,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("GenesisType")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("GravitaionalPull")
+                    b.Property<long>("GravitaionalPull")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("HolonId")
@@ -1781,13 +2063,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<float>("HorizontalLongitute")
                         .HasColumnType("REAL");
 
-                    b.Property<int>("Mass")
+                    b.Property<long>("Mass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NumberActiveAvatars")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("NumberRegisteredAvatars")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("NunmerActiveAvatars")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("OrbitPositionFromParentStar")
@@ -1796,10 +2078,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("Radius")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("RotationSpeed")
+                    b.Property<long>("RotationSpeed")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Size")
+                    b.Property<long>("Size")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("SolarSystemId")
@@ -1826,7 +2108,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("UniverseId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Weight")
+                    b.Property<long>("Weight")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("PlanetId");
@@ -1850,6 +2132,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("AvatarDetailModelId")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("AvatarModelId")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("HolonModelId")
                         .HasColumnType("TEXT");
 
@@ -1862,6 +2147,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.HasKey("ProviderId");
 
                     b.HasIndex("AvatarDetailModelId");
+
+                    b.HasIndex("AvatarModelId");
 
                     b.HasIndex("HolonModelId");
 
@@ -1952,13 +2239,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.RefreshTokenModel", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("StorageId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("AvatarId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("AvatarModelId")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("Created")
@@ -1969,6 +2254,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
                     b.Property<DateTime>("Expires")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("INTEGER");
@@ -1988,9 +2276,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("Token")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
+                    b.HasKey("StorageId");
 
-                    b.HasIndex("AvatarModelId");
+                    b.HasIndex("AvatarId");
 
                     b.ToTable("RefreshTokens");
                 });
@@ -2076,13 +2364,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("StarId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Age")
+                    b.Property<long>("Age")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("CurrentOrbitAngleOfParentStar")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("DistanceFromParentStarInMetres")
+                    b.Property<long>("DistanceFromParentStarInMetres")
                         .HasColumnType("INTEGER");
 
                     b.Property<float>("EclipticLatitute")
@@ -2112,7 +2400,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("GenesisType")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("GravitaionalPull")
+                    b.Property<long>("GravitaionalPull")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("HolonId")
@@ -2127,13 +2415,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("Luminosity")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Mass")
+                    b.Property<long>("Mass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NumberActiveAvatars")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("NumberRegisteredAvatars")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("NunmerActiveAvatars")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("OrbitPositionFromParentStar")
@@ -2142,10 +2430,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("Radius")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("RotationSpeed")
+                    b.Property<long>("RotationSpeed")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Size")
+                    b.Property<long>("Size")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("SpaceQuadrant")
@@ -2178,7 +2466,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("UniverseId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Weight")
+                    b.Property<long>("Weight")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("StarId");
@@ -2197,13 +2485,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("StarId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Age")
+                    b.Property<long>("Age")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("CurrentOrbitAngleOfParentStar")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("DistanceFromParentStarInMetres")
+                    b.Property<long>("DistanceFromParentStarInMetres")
                         .HasColumnType("INTEGER");
 
                     b.Property<float>("EclipticLatitute")
@@ -2227,7 +2515,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("GenesisType")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("GravitaionalPull")
+                    b.Property<long>("GravitaionalPull")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("HolonId")
@@ -2242,13 +2530,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("Luminosity")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Mass")
+                    b.Property<long>("Mass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NumberActiveAvatars")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("NumberRegisteredAvatars")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("NunmerActiveAvatars")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("OrbitPositionFromParentStar")
@@ -2257,10 +2545,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("Radius")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("RotationSpeed")
+                    b.Property<long>("RotationSpeed")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Size")
+                    b.Property<long>("Size")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("SpaceQuadrant")
@@ -2290,7 +2578,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<int>("TiltAngle")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Weight")
+                    b.Property<long>("Weight")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("StarId");
@@ -2373,14 +2661,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarChakraModel", null)
                         .WithMany("GiftsUnlocked")
                         .HasForeignKey("AvatarChakraId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", "AvatarDetail")
-                        .WithMany()
-                        .HasForeignKey("AvatarDetailId");
-
-                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
                         .WithMany("Gifts")
                         .HasForeignKey("AvatarId");
 
@@ -2427,6 +2710,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", null)
                         .WithOne("SuperPowers")
                         .HasForeignKey("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarSuperPowersModel", "AvatarId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarWalletStore", b =>
+                {
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarModel", null)
+                        .WithMany()
+                        .HasForeignKey("AvatarId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -2669,6 +2961,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                         .WithMany("ProviderKey")
                         .HasForeignKey("AvatarDetailModelId");
 
+                    b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarModel", null)
+                        .WithMany("ProviderKey")
+                        .HasForeignKey("AvatarModelId");
+
                     b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HolonModel", null)
                         .WithMany("ProviderKey")
                         .HasForeignKey("HolonModelId");
@@ -2706,7 +3002,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                 {
                     b.HasOne("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarModel", null)
                         .WithMany("RefreshTokens")
-                        .HasForeignKey("AvatarModelId");
+                        .HasForeignKey("AvatarId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.SolarSystemModel", b =>
@@ -2803,6 +3100,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarModel", b =>
                 {
                     b.Navigation("MetaData");
+
+                    b.Navigation("ProviderKey");
 
                     b.Navigation("RefreshTokens");
                 });

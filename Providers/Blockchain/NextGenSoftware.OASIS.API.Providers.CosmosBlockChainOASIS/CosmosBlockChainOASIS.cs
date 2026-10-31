@@ -20,15 +20,9 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-// using Microsoft.Azure.Cosmos;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
-using Nethereum.Signer;
-using Nethereum.Hex.HexConvertors.Extensions;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
@@ -39,16 +33,13 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 {
-    public partial class CosmosBlockChainOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
+    public partial class CosmosBlockChainOASIS : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISIdBoundTokenEscrowProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar, IDisposable
     {
-        private readonly HttpClient _httpClient;
-        private readonly string _rpcEndpoint;
-        private readonly string _chainId;
         private readonly string _privateKey;
         private readonly string _contractAddress;
-        private bool _isActivated;
+        private readonly string _nativeDenom;
+        private readonly int _nativeDecimals;
         private WalletManager _walletManager;
-        private KeyManager _keyManager;
 
         public WalletManager WalletManager
         {
@@ -61,24 +52,37 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             set => _walletManager = value;
         }
 
-        private KeyManager KeyManager
-        {
-            get
-            {
-                if (_keyManager == null)
-                    _keyManager = new KeyManager(this);
-                return _keyManager;
-            }
-        }
-
         /// <summary>
         /// Initializes a new instance of the CosmosBlockChainOASIS provider
         /// </summary>
         /// <param name="rpcEndpoint">Cosmos RPC endpoint URL</param>
         /// <param name="chainId">Cosmos chain ID</param>
         /// <param name="privateKey">Private key for signing transactions</param>
-        public CosmosBlockChainOASIS(string rpcEndpoint = "https://cosmos-rpc.polkachu.com", string chainId = "cosmoshub-4", string privateKey = "", string contractAddress = "")
+        public CosmosBlockChainOASIS(string rpcEndpoint = "https://cosmos-rpc.polkachu.com", string chainId = "cosmoshub-4", string privateKey = "", string contractAddress = "", string addressPrefix = "cosmos", string gasPrice = "0.025uatom", string nativeDenom = "uatom", int nativeDecimals = 6, Func<byte[]> storageEncryptionKeyResolver = null, CosmosTokenEscrowConfiguration tokenEscrow = null)
+            : this(new CosmosSdkBackend(rpcEndpoint, chainId, privateKey, contractAddress, addressPrefix, gasPrice),privateKey,contractAddress,nativeDenom,nativeDecimals,storageEncryptionKeyResolver)
         {
+            tokenEscrow?.Validate(contractAddress);
+            _tokenEscrow = tokenEscrow;
+        }
+
+        private readonly CosmosSdkBackend _sdkBackend;
+        /// <summary>Select explicit fee ceilings without changing the existing constructor or inventing a default.</summary>
+        public static CosmosBlockChainOASIS CreateWithNativeFeeLimits(CosmosNativeFeeLimits limits,string rpcEndpoint = "https://cosmos-rpc.polkachu.com", string chainId = "cosmoshub-4", string privateKey = "", string contractAddress = "", string addressPrefix = "cosmos", string gasPrice = "0.025uatom", string nativeDenom = "uatom", int nativeDecimals = 6, Func<byte[]> storageEncryptionKeyResolver = null, CosmosTokenEscrowConfiguration tokenEscrow = null)
+            =>new(limits,rpcEndpoint,chainId,privateKey,contractAddress,addressPrefix,gasPrice,nativeDenom,nativeDecimals,storageEncryptionKeyResolver,tokenEscrow);
+
+        private CosmosBlockChainOASIS(CosmosNativeFeeLimits limits,string rpcEndpoint,string chainId,string privateKey,string contractAddress,string addressPrefix,string gasPrice,string nativeDenom,int nativeDecimals,Func<byte[]> storageEncryptionKeyResolver,CosmosTokenEscrowConfiguration tokenEscrow)
+            :this(new CosmosSdkBackend(rpcEndpoint,chainId,privateKey,contractAddress,addressPrefix,gasPrice,null,null,limits??throw new ArgumentNullException(nameof(limits))),privateKey,contractAddress,nativeDenom,nativeDecimals,storageEncryptionKeyResolver)
+        {tokenEscrow?.Validate(contractAddress);_tokenEscrow=tokenEscrow;}
+        private CosmosBlockChainOASIS(CosmosSdkBackend sdk,string privateKey,string contractAddress,string nativeDenom,int nativeDecimals,Func<byte[]> keyResolver)
+            : this(sdk,new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend(sdk,
+                keyResolver ?? (()=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend.ResolveEnvironmentKey("OASIS_COSMOS_STORAGE_ENCRYPTION_KEY"))),privateKey,contractAddress,nativeDenom,nativeDecimals)
+        { }
+        private readonly NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend _privateStorage;
+        private CosmosBlockChainOASIS(CosmosSdkBackend sdk,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend storage,string privateKey,string contractAddress,string nativeDenom,int nativeDecimals)
+            : base(storage)
+        {
+            _privateStorage=storage;
+            _sdkBackend=sdk;
             this.ProviderName = "CosmosBlockChainOASIS";
             this.ProviderDescription = "Cosmos Blockchain Provider - Inter-blockchain communication protocol";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CosmosBlockChainOASIS);
@@ -88,14 +92,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
-            _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
-            _chainId = chainId ?? throw new ArgumentNullException(nameof(chainId));
             _privateKey = privateKey;
             _contractAddress = contractAddress;
-            _httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(_rpcEndpoint)
-            };
+            if (string.IsNullOrWhiteSpace(nativeDenom)) throw new ArgumentException("Native denomination is required.", nameof(nativeDenom));
+            if (nativeDecimals < 0 || nativeDecimals > 18) throw new ArgumentOutOfRangeException(nameof(nativeDecimals));
+            _nativeDenom = nativeDenom;
+            _nativeDecimals = nativeDecimals;
         }
 
 

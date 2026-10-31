@@ -1,0 +1,83 @@
+name: Global release recovery
+
+# The rarely needed maintenance paths of Global OASIS Release, kept off its main form.
+# Each mode runs that workflow with exactly the inputs the job needs.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: What to do
+        required: true
+        type: choice
+        options:
+          - Review NuGet plan only
+          - Resume partly published NuGet batch
+      publish:
+        description: Publish after all builds pass (ignored by Review NuGet plan only)
+        type: boolean
+        default: false
+      version_mode:
+        description: Automatic, Patch, Minor, Major, or Manual
+        type: choice
+        options: [Automatic, Patch, Minor, Major, Manual]
+        default: Automatic
+      manual_version:
+        description: Stable X.Y.Z value required when version_mode is Manual
+        type: string
+        default: ''
+      excluded_nuget_ids:
+        description: Resume mode - comma-separated already-completed package IDs, recorded in the immutable plan
+        type: string
+        default: ''
+      expected_excluded_nuget_count:
+        description: Resume mode - exact number of excluded IDs; a mismatch stops before packing or upload
+        type: number
+        default: 0
+
+permissions:
+  contents: write
+  actions: read
+  id-token: write
+  attestations: write
+  artifact-metadata: write
+
+jobs:
+  review-nuget-plan:
+    if: inputs.mode == 'Review NuGet plan only'
+    uses: ./.github/workflows/global-release.yml
+    secrets: inherit
+    with:
+      publish: false
+      nuget_plan_only: true
+      nuget_packages: true
+      oasis_runtime: false
+      star_runtime: false
+      edge_runtime: false
+      ogengine_client: false
+      native_endpoint: false
+      mcp_server: false
+      optional_components: none
+      advance_api_versions: false
+      version_mode: ${{ inputs.version_mode }}
+      manual_version: ${{ inputs.manual_version }}
+
+  resume-nuget-batch:
+    if: inputs.mode == 'Resume partly published NuGet batch'
+    uses: ./.github/workflows/global-release.yml
+    secrets: inherit
+    with:
+      publish: ${{ inputs.publish }}
+      nuget_packages: true
+      excluded_nuget_ids: ${{ inputs.excluded_nuget_ids }}
+      expected_excluded_nuget_count: ${{ inputs.expected_excluded_nuget_count }}
+      oasis_runtime: false
+      star_runtime: false
+      edge_runtime: false
+      ogengine_client: false
+      native_endpoint: false
+      mcp_server: false
+      optional_components: none
+      advance_api_versions: false
+      version_mode: ${{ inputs.version_mode }}
+      manual_version: ${{ inputs.manual_version }}

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Data.Common;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -26,11 +27,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
     ///
     /// Tables: {project}.{dataset}.oasis_avatars / _avatar_details / _holons
     /// </summary>
-    public class BigQueryOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
+    public partial class BigQueryOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
     {
         /// <summary>
-        /// When true this provider stores a new record per save and links to the previous
-        /// version (blockchain-style) instead of updating in place.
+        /// Retains logical versions in the shared same-record history envelope.
+        /// Existing archives continue to be preserved when this option is disabled.
         /// </summary>
         public bool IsVersionControlEnabled { get; set; }
 
@@ -44,11 +45,17 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
 
         public BigQueryOASIS(string projectId, string dataset = "oasis")
         {
-            _projectId = projectId;
-            _dataset = dataset;
+            _projectId = ValidateSqlIdentifier(projectId,nameof(projectId));
+            _dataset = ValidateSqlIdentifier(dataset,nameof(dataset));
+            ProviderName = "BigQueryOASIS";
+            ProviderDescription = "Google BigQuery storage through the official managed client";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BigQueryOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Cloud));
         }
+
+        public string GetProviderVersion()=>typeof(BigQueryOASIS).Assembly.GetName().Version!.ToString();
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
@@ -99,17 +106,17 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var doc = await GetDocAsync<Avatar>(CollAvatars, id.ToString());
+                var doc = await GetDocAsync<Avatar>(CollAvatars, id.ToString(),version);
                 if (doc == null)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: Avatar {id} not found.");
                 else if (doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: Avatar {id} has been deleted.");
                 else
-                    result.Result = doc;
+                    CompleteRead(result,doc);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -122,15 +129,15 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var doc = await FindOneAsync<Avatar>(CollAvatars, "Username", username);
+                var doc = await FindOneAsync<Avatar>(CollAvatars, "Username", username,version);
                 if (doc == null || doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: Avatar with username '{username}' not found.");
                 else
-                    result.Result = doc;
+                    CompleteRead(result,doc);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarByUsernameAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarByUsernameAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -143,15 +150,15 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var doc = await FindOneAsync<Avatar>(CollAvatars, "Email", email);
+                var doc = await FindOneAsync<Avatar>(CollAvatars, "Email", email,version);
                 if (doc == null || doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: Avatar with email '{email}' not found.");
                 else
-                    result.Result = doc;
+                    CompleteRead(result,doc);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarByEmailAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarByEmailAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -164,12 +171,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
-                var docs = await GetAllDocsAsync<Avatar>(CollAvatars);
-                result.Result = docs.FindAll(a => !a.IsDeleted);
+                var docs = await GetAllDocsAsync<Avatar>(CollAvatars,version);
+                CompleteRows<IAvatar>(result,docs.FindAll(a => !a.IsDeleted));
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAllAvatarsAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAllAvatarsAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -177,22 +184,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
             => LoadAllAvatarsAsync(version).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                if (avatar.Id == Guid.Empty)
-                    avatar.Id = Guid.NewGuid();
-                await UpsertDocAsync(CollAvatars, avatar.Id.ToString(), avatar);
-                result.Result = avatar;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: SaveAvatarAsync failed: {ex.Message}");
-            }
-            return result;
-        }
+        public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
+            => SaveAcknowledgedRecordAsync(avatar,CollAvatars);
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
             => SaveAvatarAsync(avatar).GetAwaiter().GetResult();
@@ -204,22 +197,19 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             {
                 if (softDelete)
                 {
-                    var avatar = await GetDocAsync<Avatar>(CollAvatars, id.ToString());
-                    if (avatar != null)
-                    {
-                        avatar.DeletedDate = DateTime.UtcNow;
-                        await UpsertDocAsync(CollAvatars, id.ToString(), avatar);
-                    }
+                    await SoftDeleteRecordAsync<Avatar>(CollAvatars,id);
                 }
                 else
                 {
                     await DeleteDocAsync(CollAvatars, id.ToString());
                 }
                 result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: DeleteAvatarAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: DeleteAvatarAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -240,7 +230,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: DeleteAvatarByUsernameAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: DeleteAvatarByUsernameAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -261,7 +251,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: DeleteAvatarByEmailAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: DeleteAvatarByEmailAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -276,15 +266,15 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var doc = await GetDocAsync<AvatarDetail>(CollAvatarDetails, id.ToString());
-                if (doc == null)
+                var doc = await GetDocAsync<AvatarDetail>(CollAvatarDetails, id.ToString(),version);
+                if (doc == null || doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: AvatarDetail {id} not found.");
                 else
-                    result.Result = doc;
+                    CompleteRead(result,doc);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarDetailAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarDetailAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -297,15 +287,15 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var doc = await FindOneAsync<AvatarDetail>(CollAvatarDetails, "Username", username);
-                if (doc == null)
+                var doc = await FindOneAsync<AvatarDetail>(CollAvatarDetails, "Username", username,version);
+                if (doc == null || doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: AvatarDetail '{username}' not found.");
                 else
-                    result.Result = doc;
+                    CompleteRead(result,doc);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarDetailByUsernameAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarDetailByUsernameAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -318,15 +308,15 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var doc = await FindOneAsync<AvatarDetail>(CollAvatarDetails, "Email", email);
-                if (doc == null)
+                var doc = await FindOneAsync<AvatarDetail>(CollAvatarDetails, "Email", email,version);
+                if (doc == null || doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: AvatarDetail '{email}' not found.");
                 else
-                    result.Result = doc;
+                    CompleteRead(result,doc);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarDetailByEmailAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAvatarDetailByEmailAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -339,12 +329,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
             try
             {
-                var docs = await GetAllDocsAsync<AvatarDetail>(CollAvatarDetails);
-                result.Result = docs;
+                var docs = await GetAllDocsAsync<AvatarDetail>(CollAvatarDetails,version);
+                CompleteRows<IAvatarDetail>(result,docs.FindAll(detail => !detail.IsDeleted));
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAllAvatarDetailsAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAllAvatarDetailsAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -352,22 +342,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
             => LoadAllAvatarDetailsAsync(version).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail detail)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (detail.Id == Guid.Empty)
-                    detail.Id = Guid.NewGuid();
-                await UpsertDocAsync(CollAvatarDetails, detail.Id.ToString(), detail);
-                result.Result = detail;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: SaveAvatarDetailAsync failed: {ex.Message}");
-            }
-            return result;
-        }
+        public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail detail)
+            => SaveAcknowledgedRecordAsync(detail,CollAvatarDetails);
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail detail)
             => SaveAvatarDetailAsync(detail).GetAwaiter().GetResult();
@@ -379,17 +355,18 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var doc = await GetDocAsync<Holon>(CollHolons, id.ToString());
+                ValidateGraphDepth(maxChildDepth);
+                var doc = await GetDocAsync<Holon>(CollHolons, id.ToString(),version);
                 if (doc == null)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: Holon {id} not found.");
                 else if (doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: Holon {id} has been deleted.");
                 else
-                    result.Result = doc;
+                    CompleteRead(result,(await ProjectGraphRootsAsync(new[]{doc},loadChildren,recursive,maxChildDepth,0,loadChildrenFromProvider)).Single());
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadHolonAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadHolonAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -402,12 +379,13 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                var all = await FindAllAsync<Holon>(CollHolons, "ParentHolonId", id.ToString());
-                result.Result = all.FindAll(h => !h.IsDeleted);
+                ValidateGraphDepth(maxChildDepth,curentChildDepth);
+                var all = await FindAllAsync<Holon>(CollHolons, "ParentHolonId", id.ToString(),version);
+                CompleteRows<IHolon>(result,await ProjectGraphRootsAsync(all.FindAll(h => !h.IsDeleted && (holonType == HolonType.All || h.HolonType == holonType)),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,rootsAreChildren:true));
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadHolonsForParentAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadHolonsForParentAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -420,12 +398,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                var docs = await GetAllDocsAsync<Holon>(CollHolons);
-                result.Result = docs.FindAll(h => !h.IsDeleted);
+                ValidateGraphDepth(maxChildDepth,curentChildDepth);
+                var docs = await GetAllDocsAsync<Holon>(CollHolons,version);
+                var active=docs.FindAll(h=>!h.IsDeleted);
+                CompleteRows<IHolon>(result,await ProjectGraphRootsAsync(active.Where(h=>holonType == HolonType.All || h.HolonType == holonType),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,providerPool:version==0?active:null));
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAllHolonsAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: LoadAllHolonsAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -433,45 +413,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                if (holon.Id == Guid.Empty)
-                    holon.Id = Guid.NewGuid();
-                await UpsertDocAsync(CollHolons, holon.Id.ToString(), holon);
-                result.Result = holon;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: SaveHolonAsync failed: {ex.Message}");
-            }
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveSelectedGraphAsync(holon,saveChildren,recursive,maxChildDepth);
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>();
-            try
-            {
-                foreach (var h in holons)
-                {
-                    var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    if (!r.IsError) saved.Add(r.Result);
-                }
-                result.Result = saved;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: SaveHolonsAsync failed: {ex.Message}");
-            }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => WriteGraphAsync(holons,saveChildren,recursive,maxChildDepth,curentChildDepth);
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).GetAwaiter().GetResult();
@@ -483,22 +432,19 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             {
                 if (softDelete)
                 {
-                    var holon = await GetDocAsync<Holon>(CollHolons, id.ToString());
-                    if (holon != null)
-                    {
-                        holon.DeletedDate = DateTime.UtcNow;
-                        await UpsertDocAsync(CollHolons, id.ToString(), holon);
-                    }
+                    await SoftDeleteRecordAsync<Holon>(CollHolons,id);
                 }
                 else
                 {
                     await DeleteDocAsync(CollHolons, id.ToString());
                 }
                 result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: DeleteHolonAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: DeleteHolonAsync failed: {ex.Message}",ex);
             }
             return result;
         }
@@ -513,29 +459,18 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
-            var result = new OASISResult<IAvatar>();
-            if (Guid.TryParse(providerKey, out var id))
-                return await LoadAvatarAsync(id, version);
-
-            var all = await LoadAllAvatarsAsync(version);
-            if (all.IsError || all.Result == null)
+            if(Guid.TryParse(providerKey,out var id))return await LoadAvatarAsync(id,version);
+            var result=new OASISResult<IAvatar>();
+            try
             {
-                OASISErrorHandling.HandleError(ref result, all.Message);
-                return result;
+                if(string.IsNullOrWhiteSpace(providerKey))throw new ArgumentException("Provider key must be nonempty.",nameof(providerKey));
+                var all=await LoadAllAvatarsAsync(version);
+                if(all.IsError||all.Result==null)throw all.Exception??new System.IO.InvalidDataException("BigQuery avatar source did not complete.");
+                var selected=UniqueRecord(all.Result.Where(row=>row.ProviderUniqueStorageKey!=null&&row.ProviderUniqueStorageKey.TryGetValue(ProviderType.Value,out var key)&&key==providerKey).ToList());
+                if(selected==null)OASISErrorHandling.HandleError(ref result,"BigQuery avatar provider key was not found.");
+                else CompleteRead(result,selected);
             }
-
-            foreach (var avatar in all.Result)
-            {
-                if (avatar.ProviderUniqueStorageKey != null
-                    && avatar.ProviderUniqueStorageKey.TryGetValue(ProviderType.Value, out var key)
-                    && key == providerKey)
-                {
-                    result.Result = avatar;
-                    return result;
-                }
-            }
-
-            OASISErrorHandling.HandleError(ref result, $"Avatar with provider key '{providerKey}' not found.");
+            catch(Exception ex){OASISErrorHandling.HandleError(ref result,"BigQuery avatar provider-key read failed.",ex);}
             return result;
         }
 
@@ -548,7 +483,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var avatar = await LoadAvatarByProviderKeyAsync(providerKey);
             if (avatar.IsError || avatar.Result == null)
             {
-                OASISErrorHandling.HandleError(ref result, avatar.Message);
+                OASISErrorHandling.HandleError(ref result, avatar.Message,avatar.Exception);
                 return result;
             }
             return await DeleteAvatarAsync(avatar.Result.Id, softDelete);
@@ -559,29 +494,18 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var result = new OASISResult<IHolon>();
-            if (Guid.TryParse(providerKey, out var id))
-                return await LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
-
-            var all = await LoadAllHolonsAsync();
-            if (all.IsError || all.Result == null)
+            if(Guid.TryParse(providerKey,out var id))return await LoadHolonAsync(id,loadChildren,recursive,maxChildDepth,continueOnError,loadChildrenFromProvider,version);
+            var result=new OASISResult<IHolon>();
+            try
             {
-                OASISErrorHandling.HandleError(ref result, all.Message);
-                return result;
+                ValidateGraphDepth(maxChildDepth);
+                if(string.IsNullOrWhiteSpace(providerKey))throw new ArgumentException("Provider key must be nonempty.",nameof(providerKey));
+                var active=(await GetAllDocsAsync<Holon>(CollHolons,version)).Where(row=>!row.IsDeleted).ToList();
+                var selected=UniqueRecord(active.Where(row=>row.ProviderUniqueStorageKey!=null&&row.ProviderUniqueStorageKey.TryGetValue(ProviderType.Value,out var key)&&key==providerKey).ToList());
+                if(selected==null)OASISErrorHandling.HandleError(ref result,"BigQuery holon provider key was not found.");
+                else CompleteRead(result,(await ProjectGraphRootsAsync(new[]{selected},loadChildren,recursive,maxChildDepth,0,loadChildrenFromProvider,providerPool:version==0?active:null)).Single());
             }
-
-            foreach (var holon in all.Result)
-            {
-                if (holon.ProviderUniqueStorageKey != null
-                    && holon.ProviderUniqueStorageKey.TryGetValue(ProviderType.Value, out var key)
-                    && key == providerKey)
-                {
-                    result.Result = holon;
-                    return result;
-                }
-            }
-
-            OASISErrorHandling.HandleError(ref result, $"Holon with provider key '{providerKey}' not found.");
+            catch(Exception ex){OASISErrorHandling.HandleError(ref result,"BigQuery holon provider-key read failed.",ex);}
             return result;
         }
 
@@ -591,13 +515,25 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
+            // Admit collection options before resolving an alias: resolution is
+            // itself a potentially billable native query, not local validation.
+            try
+            {
+                ValidateGraphDepth(maxChildDepth,curentChildDepth);
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+            }
+            catch(Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result,"BigQuery parent-key read options are invalid.",ex);
+                return result;
+            }
             if (Guid.TryParse(providerKey, out var id))
                 return await LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
 
-            var parent = await LoadHolonAsync(providerKey);
+            var parent = await LoadHolonAsync(providerKey,loadChildren:false);
             if (parent.IsError || parent.Result == null)
             {
-                OASISErrorHandling.HandleError(ref result, parent.Message);
+                OASISErrorHandling.HandleError(ref result, parent.Message,parent.Exception);
                 return result;
             }
             return await LoadHolonsForParentAsync(parent.Result.Id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
@@ -612,15 +548,19 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var loaded = await LoadHolonAsync(id);
             if (loaded.IsError || loaded.Result == null)
             {
-                OASISErrorHandling.HandleError(ref result, loaded.Message);
+                OASISErrorHandling.HandleError(ref result, loaded.Message,loaded.Exception);
                 return result;
             }
 
             var deleted = await DeleteHolonSoftAsync(id, true);
             if (deleted.IsError)
-                OASISErrorHandling.HandleError(ref result, deleted.Message);
+                OASISErrorHandling.HandleError(ref result, deleted.Message,deleted.Exception);
             else
+            {
                 result.Result = loaded.Result;
+                result.IsDeleted=deleted.IsDeleted;
+                result.DeletedCount=deleted.DeletedCount;
+            }
 
             return result;
         }
@@ -634,7 +574,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             var holon = await LoadHolonAsync(providerKey);
             if (holon.IsError || holon.Result == null)
             {
-                OASISErrorHandling.HandleError(ref result, holon.Message);
+                OASISErrorHandling.HandleError(ref result, holon.Message,holon.Exception);
                 return result;
             }
             return await DeleteHolonAsync(holon.Result.Id);
@@ -646,23 +586,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
-            if (all.IsError || all.Result == null)
+            try
             {
-                OASISErrorHandling.HandleError(ref result, all.Message);
-                return result;
+                return await LoadHolonsByMetaDataAsync(new Dictionary<string,string>(StringComparer.Ordinal){{metaKey,metaValue}},MetaKeyValuePairMatchMode.All,type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version);
             }
-
-            var matches = new List<IHolon>();
-            foreach (var holon in all.Result)
+            catch(Exception ex)
             {
-                if (holon.MetaData != null
-                    && holon.MetaData.TryGetValue(metaKey, out var value)
-                    && value?.ToString() == metaValue)
-                    matches.Add(holon);
+                OASISErrorHandling.HandleError(ref result,"BigQuery metadata query failed.",ex);
             }
-
-            result.Result = matches;
             return result;
         }
 
@@ -672,39 +603,23 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
-            if (all.IsError || all.Result == null)
+            try
             {
-                OASISErrorHandling.HandleError(ref result, all.Message);
-                return result;
-            }
-
-            if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
-            {
-                result.Result = new List<IHolon>(all.Result);
-                return result;
-            }
-
-            var matches = new List<IHolon>();
-            foreach (var holon in all.Result)
-            {
-                if (holon.MetaData == null) continue;
-
-                var matched = 0;
-                foreach (var pair in metaKeyValuePairs)
+                if(metaKeyValuePairMatchMode!=MetaKeyValuePairMatchMode.All && metaKeyValuePairMatchMode!=MetaKeyValuePairMatchMode.Any)
+                    throw new ArgumentOutOfRangeException(nameof(metaKeyValuePairMatchMode));
+                var requested=metaKeyValuePairs==null?null:new Dictionary<string,string>(metaKeyValuePairs,StringComparer.Ordinal);
+                var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+                if(all.IsError || all.Result==null)
                 {
-                    if (holon.MetaData.TryGetValue(pair.Key, out var value) && value?.ToString() == pair.Value)
-                        matched++;
+                    OASISErrorHandling.HandleError(ref result,all.Message,all.Exception);
+                    return result;
                 }
-
-                var isMatch = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All
-                    ? matched == metaKeyValuePairs.Count
-                    : matched > 0;
-
-                if (isMatch) matches.Add(holon);
+                CompleteRows(result,all.Result.Where(holon=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(holon.MetaData,requested,metaKeyValuePairMatchMode)));
             }
-
-            result.Result = matches;
+            catch(Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result,"BigQuery metadata query failed.",ex);
+            }
             return result;
         }
 
@@ -715,10 +630,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         {
             var result = new OASISResult<bool>();
             var saved = await SaveHolonsAsync(holons);
+            result.SavedCount=saved.SavedCount;
             if (saved.IsError)
-                OASISErrorHandling.HandleError(ref result, saved.Message);
+                OASISErrorHandling.HandleError(ref result, saved.Message,saved.Exception);
             else
+            {
                 result.Result = true;
+                result.IsSaved=saved.IsSaved;
+            }
             return result;
         }
 
@@ -726,60 +645,73 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             => ExportAllAsync(version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-            => await LoadAllHolonsAsync(HolonType.All, true, true, 0, 0, true, false, version);
+        {
+            if(version!=-1)return await LoadAllHolonsAsync(HolonType.All,true,true,0,0,true,true,version);
+            var result=new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                var versions=await ReadRowsAsync<Holon>($"SELECT doc FROM {Table(CollHolons)}",Array.Empty<BigQueryParameter>(),version:-1,exportAllVersions:true);
+                CompleteRows<IHolon>(result,versions.Where(row=>!row.IsDeleted));
+            }
+            catch(Exception cause){OASISErrorHandling.HandleError(ref result,"BigQuery all-version export failed.",cause);}
+            return result;
+        }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
             => ExportAllDataForAvatarByIdAsync(avatarId, version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            var all = await LoadAllHolonsAsync(HolonType.All, true, true, 0, 0, true, false, version);
-            if (all.IsError || all.Result == null)
+            var result=new OASISResult<IEnumerable<IHolon>>();
+            try
             {
-                OASISErrorHandling.HandleError(ref result, all.Message);
-                return result;
+                if(avatarId==Guid.Empty)throw new ArgumentException("Avatar export requires a nonempty owner.",nameof(avatarId));
+                if(version < -1)throw new ArgumentOutOfRangeException(nameof(version));
+                if(version==-1)
+                {
+                    var all=await ExportAllAsync(-1);
+                    if(all.IsError)return all;
+                    CompleteRows(result,all.Result.Where(row=>row.CreatedByAvatarId==avatarId));
+                }
+                else
+                {
+                    var owned=(await GetAllDocsAsync<Holon>(CollHolons,version)).Where(row=>!row.IsDeleted&&row.CreatedByAvatarId==avatarId).Cast<IHolon>().ToList();
+                    var pool=version==0?owned:(await GetAllDocsAsync<Holon>(CollHolons)).Where(row=>!row.IsDeleted&&row.CreatedByAvatarId==avatarId).Cast<IHolon>().ToList();
+                    CompleteRows(result,await ProjectGraphRootsAsync(owned,true,true,0,0,true,providerPool:pool));
+                }
             }
-
-            var owned = new List<IHolon>();
-            foreach (var holon in all.Result)
-            {
-                if (holon.CreatedByAvatarId == avatarId)
-                    owned.Add(holon);
-            }
-
-            result.Result = owned;
+            catch(Exception ex){OASISErrorHandling.HandleError(ref result,"BigQuery owner export failed.",ex);}
             return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
             => ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            var avatar = await LoadAvatarByUsernameAsync(avatarUsername, version);
-            if (avatar.IsError || avatar.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, avatar.Message);
-                return result;
-            }
-            return await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+            => ExportOwnerByIdentityAsync(avatarUsername,false,version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
             => ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+            => ExportOwnerByIdentityAsync(avatarEmailAddress,true,version);
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> ExportOwnerByIdentityAsync(string identity,bool email,int version)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            var avatar = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
-            if (avatar.IsError || avatar.Result == null)
+            var result=new OASISResult<IEnumerable<IHolon>>();
+            try
             {
-                OASISErrorHandling.HandleError(ref result, avatar.Message);
-                return result;
+                if(version < -1)throw new ArgumentOutOfRangeException(nameof(version));
+                var avatar=email?await LoadAvatarByEmailAsync(identity):await LoadAvatarByUsernameAsync(identity);
+                if(avatar.IsError||avatar.Result==null)
+                {
+                    OASISErrorHandling.HandleError(ref result,avatar.Message,avatar.Exception);
+                    return result;
+                }
+                return await ExportAllDataForAvatarByIdAsync(avatar.Result.Id,version);
             }
-            return await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
+            catch(Exception cause){OASISErrorHandling.HandleError(ref result,"BigQuery owner identity export failed.",cause);}
+            return result;
         }
 
         // ─── Search ──────────────────────────────────────────────────────────────
@@ -787,217 +719,76 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             var result = new OASISResult<ISearchResults>();
-            var searchResults = new SearchResults();
-
             try
             {
-                var groups = searchParams?.SearchGroups ?? new List<ISearchGroupBase>();
-                var wantAvatars = groups.Count == 0 || groups.Exists(g => g.SearchAvatars);
-                var wantHolons = groups.Count == 0 || groups.Exists(g => g.SearchHolons);
-
-                var matchedAvatars = new Dictionary<Guid, IAvatar>();
-                var matchedHolons = new Dictionary<Guid, IHolon>();
-
-                // ── Avatars ──────────────────────────────────────────────────
-                if (wantAvatars)
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
+                searchParams=Core.Serialization.StoredRecordJson.Project<SearchParams>(searchParams);
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
+                var groups=searchParams.SearchGroups??new List<ISearchGroupBase>();
+                var wantsAvatars=groups.Count==0||groups.Any(group=>group.SearchAvatars||!group.SearchHolons);
+                var wantsHolons=groups.Count==0||groups.Any(group=>group.SearchHolons||!group.SearchAvatars);
+                var holons=new List<IHolon>();
+                if(wantsHolons||searchParams.ParentId!=Guid.Empty)
                 {
-                    var avatars = await LoadAllAvatarsAsync(version);
-                    if (avatars.IsError && !continueOnError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, avatars.Message);
-                        return result;
-                    }
-
-                    foreach (var avatar in avatars.Result ?? new List<IAvatar>())
-                    {
-                        if (avatar == null) continue;
-                        if (searchParams != null && searchParams.SearchOnlyForCurrentAvatar
-                            && searchParams.AvatarId != Guid.Empty && avatar.Id != searchParams.AvatarId)
-                            continue;
-
-                        if (groups.Count == 0 || AvatarMatchesAnyGroup(avatar, groups))
-                            matchedAvatars[avatar.Id] = avatar;
-                    }
+                    var loaded=await LoadAllHolonsAsync(HolonType.All,false,recursive,maxChildDepth,0,continueOnError,false,wantsHolons?version:0);
+                    if(loaded.IsError||loaded.Result==null)
+                        throw loaded.Exception??new System.IO.InvalidDataException("BigQuery search holon source did not complete.");
+                    holons.AddRange(loaded.Result);
                 }
-
-                // ── Holons ───────────────────────────────────────────────────
-                if (wantHolons)
+                var graphPool=holons;
+                if(version>0&&wantsHolons&&(loadChildren||searchParams.ParentId!=Guid.Empty))
+                    graphPool=(await GetAllDocsAsync<Holon>(CollHolons)).Where(row=>!row.IsDeleted).Cast<IHolon>().ToList();
+                var found=new SearchResults();
+                if(wantsAvatars)
                 {
-                    var holons = await LoadAllHolonsAsync(HolonType.All, loadChildren, recursive, maxChildDepth, 0, continueOnError, false, version);
-                    if (holons.IsError && !continueOnError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, holons.Message);
-                        return result;
-                    }
-
-                    foreach (var holon in holons.Result ?? new List<IHolon>())
-                    {
-                        if (holon == null) continue;
-
-                        if (searchParams != null)
-                        {
-                            if (searchParams.SearchOnlyForCurrentAvatar && searchParams.AvatarId != Guid.Empty
-                                && holon.CreatedByAvatarId != searchParams.AvatarId)
-                                continue;
-
-                            if (searchParams.ParentId != Guid.Empty && holon.ParentHolonId != searchParams.ParentId)
-                                continue;
-
-                            if (!MetaDataMatches(holon, searchParams.FilterByMetaData, searchParams.MetaKeyValuePairMatchMode))
-                                continue;
-                        }
-
-                        if (groups.Count == 0 || HolonMatchesAnyGroup(holon, groups))
-                            matchedHolons[holon.Id] = holon;
-                    }
+                    var loaded=await LoadAllAvatarsAsync(version);
+                    if(loaded.IsError||loaded.Result==null)
+                        throw loaded.Exception??new System.IO.InvalidDataException("BigQuery search avatar source did not complete.");
+                    found.SearchResultAvatars.AddRange(loaded.Result.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,true,searchParams,graphPool)));
                 }
-
-                searchResults.SearchResultAvatars = new List<IAvatar>(matchedAvatars.Values);
-                searchResults.SearchResultHolons = new List<IHolon>(matchedHolons.Values);
-                searchResults.NumberOfResults = searchResults.SearchResultAvatars.Count + searchResults.SearchResultHolons.Count;
-
-                result.Result = searchResults;
+                if(wantsHolons)
+                    found.SearchResultHolons.AddRange(await ProjectGraphRootsAsync(holons.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,false,searchParams,graphPool)),loadChildren,recursive,maxChildDepth,0,true,providerPool:graphPool));
+                found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
+                result.Result=found;result.IsLoaded=true;result.LoadedCount=found.NumberOfResults;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: SearchAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result,"BigQuery search failed; no complete result is available.",ex);
             }
-
             return result;
         }
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
             => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).GetAwaiter().GetResult();
 
-        private static bool Contains(string source, string query)
-            => !string.IsNullOrEmpty(source) && source.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
-
-        private static bool MetaDataMatches(IHolon holon, Dictionary<string, string> filter, MetaKeyValuePairMatchMode mode)
-        {
-            if (filter == null || filter.Count == 0) return true;
-            if (holon.MetaData == null) return false;
-
-            var matched = 0;
-            foreach (var pair in filter)
-            {
-                if (holon.MetaData.TryGetValue(pair.Key, out var value) && value?.ToString() == pair.Value)
-                    matched++;
-            }
-
-            return mode == MetaKeyValuePairMatchMode.All ? matched == filter.Count : matched > 0;
-        }
-
-        private static bool AvatarMatchesAnyGroup(IAvatar avatar, List<ISearchGroupBase> groups)
-        {
-            foreach (var group in groups)
-            {
-                if (!group.SearchAvatars) continue;
-
-                var text = group as ISearchTextGroup;
-                var query = text?.SearchQuery;
-                if (string.IsNullOrWhiteSpace(query)) return true;
-
-                var p = group.AvatarSearchParams;
-
-                // No field flags set - match the natural identity fields.
-                if (p == null)
-                {
-                    if (Contains(avatar.Username, query) || Contains(avatar.Email, query)
-                        || Contains(avatar.FirstName, query) || Contains(avatar.LastName, query))
-                        return true;
-                    continue;
-                }
-
-                if (p.Username && Contains(avatar.Username, query)) return true;
-                if (p.Email && Contains(avatar.Email, query)) return true;
-                if (p.FirstName && Contains(avatar.FirstName, query)) return true;
-                if (p.LastName && Contains(avatar.LastName, query)) return true;
-                if (p.Title && Contains(avatar.Title, query)) return true;
-                if (p.AvatarId && Contains(avatar.Id.ToString(), query)) return true;
-                if (text != null && text.SearchIds && Contains(avatar.Id.ToString(), query)) return true;
-
-                if (text != null && text.SearchProviderKeys && avatar.ProviderUniqueStorageKey != null)
-                {
-                    foreach (var key in avatar.ProviderUniqueStorageKey.Values)
-                        if (Contains(key, query)) return true;
-                }
-
-                // Flags present but none of them matched a searchable field - fall
-                // back to identity fields so a query is never silently dropped.
-                if (!p.Username && !p.Email && !p.FirstName && !p.LastName && !p.Title && !p.AvatarId)
-                {
-                    if (Contains(avatar.Username, query) || Contains(avatar.Email, query))
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool HolonMatchesAnyGroup(IHolon holon, List<ISearchGroupBase> groups)
-        {
-            foreach (var group in groups)
-            {
-                if (!group.SearchHolons) continue;
-
-                if (group.HolonType != HolonType.All && holon.HolonType != group.HolonType)
-                    continue;
-
-                var text = group as ISearchTextGroup;
-                var query = text?.SearchQuery;
-                if (string.IsNullOrWhiteSpace(query)) return true;
-
-                var p = group.HolonSearchParams;
-
-                if (p == null)
-                {
-                    if (Contains(holon.Name, query) || Contains(holon.Description, query))
-                        return true;
-                    continue;
-                }
-
-                if (p.Name && Contains(holon.Name, query)) return true;
-                if (p.Description && Contains(holon.Description, query)) return true;
-                if (text != null && text.SearchIds && Contains(holon.Id.ToString(), query)) return true;
-
-                if (p.MetaData && holon.MetaData != null)
-                {
-                    foreach (var kvp in holon.MetaData)
-                        if (Contains(kvp.Key, query) || Contains(kvp.Value?.ToString(), query)) return true;
-                }
-
-                if ((p.ProviderUniqueStorageKey || (text != null && text.SearchProviderKeys))
-                    && holon.ProviderUniqueStorageKey != null)
-                {
-                    foreach (var key in holon.ProviderUniqueStorageKey.Values)
-                        if (Contains(key, query)) return true;
-                }
-
-                if (!p.Name && !p.Description && !p.MetaData && !p.ProviderUniqueStorageKey)
-                {
-                    if (Contains(holon.Name, query) || Contains(holon.Description, query))
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
         // ─── Backend helpers ─────────────────────────────────────────────────────
+
+        private static void CompleteRead<T>(OASISResult<T> result,T record)
+        {result.Result=record;result.IsLoaded=true;result.LoadedCount=1;}
+
+        private static void CompleteRows<T>(OASISResult<IEnumerable<T>> result,IEnumerable<T> rows)
+        {var selected=System.Linq.Enumerable.ToArray(rows);result.Result=selected;result.IsLoaded=true;result.LoadedCount=selected.Length;}
 
         private static string FieldColumn(string field) => field switch
         {
             "Username" => "username",
             "Email" => "email",
             "ParentHolonId" => "parent_holon_id",
-            _ => field.ToLowerInvariant()
+            _ => throw new ArgumentException("Unsupported BigQuery indexed field.",nameof(field))
         };
 
-        private static string Esc(string v) => (v ?? string.Empty).Replace("'", "\'");
+        private static string ValidateSqlIdentifier(string value,string parameter)
+        {
+            if(string.IsNullOrWhiteSpace(value)||value.IndexOfAny(new[]{'`','\\'})>=0||System.Linq.Enumerable.Any(value,char.IsControl))
+                throw new ArgumentException("BigQuery identifier cannot contain SQL quoting,escape or control characters.",parameter);
+            return value;
+        }
+
+        private static BigQueryParameter StringParameter(string name,string value)=>new(name,BigQueryDbType.String,value);
 
         private static (string doc, string username, string email, string parent) Shred<T>(T obj)
         {
-            var json = JsonSerializer.Serialize(obj);
+            var json = Core.Serialization.StoredRecordJson.Serialize(obj);
             string u = "", e = "", p = "";
             using var d = JsonDocument.Parse(json);
             if (d.RootElement.TryGetProperty("Username", out var uu) && uu.ValueKind == JsonValueKind.String) u = uu.GetString() ?? "";
@@ -1008,53 +799,107 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
 
         private string Table(string t) => $"`{_projectId}.{_dataset}.{t}`";
 
-        private async Task<List<T>> SqlAsync<T>(string sql) where T : class
+        private async Task<List<T>> SqlAsync<T>(string sql,params BigQueryParameter[] parameters) where T : class,IHolonBase
+            => await ReadRowsAsync<T>(sql,parameters);
+
+        private async Task<List<T>> ReadRowsAsync<T>(string sql,IEnumerable<BigQueryParameter> parameters,Action<T,string>? observe=null,int version=0,bool exportAllVersions=false) where T : class,IHolonBase
         {
+            if(exportAllVersions?version!=-1:version<0)throw new ArgumentOutOfRangeException(nameof(version));
             var list = new List<T>();
-            var results = await _client!.ExecuteQueryAsync(sql, parameters: null);
-            foreach (var row in results)
+            var results = await _client!.ExecuteQueryAsync(sql, parameters,new QueryOptions{UseLegacySql=false});
+            await foreach (var row in results.GetRowsAsync())
             {
                 var raw = row["doc"]?.ToString();
-                if (string.IsNullOrEmpty(raw)) continue;
-                var item = JsonSerializer.Deserialize<T>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                if (item != null) list.Add(item);
+                if (string.IsNullOrWhiteSpace(raw))throw new System.IO.InvalidDataException("BigQuery stored record row has no canonical document.");
+                if(exportAllVersions){list.AddRange(ReadAllRecordVersions<T>(raw));continue;}
+                var item = await DecodeRecordVersionAsync<T>(raw,version);
+                if(item==null)continue;
+                observe?.Invoke(item,raw);
+                list.Add(item);
             }
             return list;
         }
 
-        private async Task<T?> GetDocAsync<T>(string table, string id) where T : class
+        private async Task<T?> GetDocAsync<T>(string table, string id,int version=0) where T : class,IHolonBase
         {
-            var rows = await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE id = '{Esc(id)}' ORDER BY updated_at DESC LIMIT 1");
-            return rows.Count > 0 ? rows[0] : null;
+            ValidatePointIdentity(Guid.Parse(id));
+            var rows = await ReadRowsAsync<T>($"SELECT doc FROM {Table(table)} WHERE id = @id LIMIT 2",new[]{StringParameter("id",id)},version:version);
+            ValidateIndexedSelection(rows,"Id",id);
+            return UniqueRecord(rows);
         }
 
-        private async Task UpsertDocAsync<T>(string table, string id, T obj)
+        private static T? UniqueRecord<T>(List<T> rows) where T : class
+        {
+            if(rows.Count>1)throw new System.IO.InvalidDataException("BigQuery point selector matched multiple stored records.");
+            return rows.Count==0?null:rows[0];
+        }
+
+        private sealed record BigQueryWriteAcknowledgement(string JobId,string Location);
+        private async Task<BigQueryWriteAcknowledgement> UpsertDocAsync<T>(string table, string id, T obj,bool checkOriginal=false,string? expectedDoc=null,string? documentJson=null)
         {
             var (doc, u, e, p) = Shred(obj);
+            if(documentJson!=null)doc=documentJson;
             var sql = $@"MERGE {Table(table)} t
-                USING (SELECT '{Esc(id)}' AS id, '{Esc(doc)}' AS doc, '{Esc(u)}' AS username,
-                              '{Esc(e)}' AS email, '{Esc(p)}' AS parent_holon_id) s
+                USING (SELECT @id AS id, @doc AS doc, @username AS username,
+                              @email AS email, @parent AS parent_holon_id) s
                 ON t.id = s.id
-                WHEN MATCHED THEN UPDATE SET doc = s.doc, username = s.username, email = s.email,
+                WHEN MATCHED{(checkOriginal?" AND @expected_exists AND t.doc = @expected_doc":"")} THEN UPDATE SET doc = s.doc, username = s.username, email = s.email,
                                              parent_holon_id = s.parent_holon_id, updated_at = CURRENT_TIMESTAMP()
-                WHEN NOT MATCHED THEN INSERT (id, doc, username, email, parent_holon_id, updated_at)
+                WHEN NOT MATCHED{(checkOriginal?" AND NOT @expected_exists":"")} THEN INSERT (id, doc, username, email, parent_holon_id, updated_at)
                                       VALUES (s.id, s.doc, s.username, s.email, s.parent_holon_id, CURRENT_TIMESTAMP())";
-            await _client!.ExecuteQueryAsync(sql, parameters: null);
+            var client=_client??throw new InvalidOperationException("BigQuery client is not activated.");
+            var parameters=new List<BigQueryParameter>{StringParameter("id",id),StringParameter("doc",doc),StringParameter("username",u),StringParameter("email",e),StringParameter("parent",p)};
+            if(checkOriginal){parameters.Add(new BigQueryParameter("expected_exists",BigQueryDbType.Bool,expectedDoc!=null));parameters.Add(new BigQueryParameter("expected_doc",BigQueryDbType.String,expectedDoc));}
+            return await ExecuteOneRowMutationAsync(client,id,sql,parameters);
         }
 
-        private async Task DeleteDocAsync(string table, string id)
-            => await _client!.ExecuteQueryAsync($"DELETE FROM {Table(table)} WHERE id = '{Esc(id)}'", parameters: null);
-
-        private async Task<T?> FindOneAsync<T>(string table, string field, string value) where T : class
+        private async Task<BigQueryWriteAcknowledgement> ExecuteOneRowMutationAsync(BigQueryClient client,string id,string sql,IEnumerable<BigQueryParameter> parameters)
         {
-            var rows = await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE {FieldColumn(field)} = '{Esc(value)}' ORDER BY updated_at DESC LIMIT 1");
-            return rows.Count > 0 ? rows[0] : null;
+            // Supply the native job identity before dispatch so even a lost response
+            // has a concrete request to reconcile. This is not a success receipt.
+            var jobId="oasis-record-"+Guid.NewGuid().ToString("N");string location="";var acknowledged=false;
+            try{
+                var completed=await client.ExecuteQueryAsync(sql,parameters,new QueryOptions{UseLegacySql=false,JobId=jobId});
+                var reference=completed?.JobReference;
+                var bound=reference?.ProjectId==_projectId&&reference.JobId==jobId;
+                if(bound)location=reference!.Location??"";
+                acknowledged=bound&&completed?.NumDmlAffectedRows==1;
+                if(!acknowledged){
+                    var invalid=new System.IO.InvalidDataException("BigQuery record mutation requires exactly one affected row and its original project/job identity.");
+                    if(reference!=null&&!bound){invalid.Data["UnboundProjectId"]=reference.ProjectId??"";invalid.Data["UnboundJobId"]=reference.JobId??"";}
+                    throw invalid;
+                }
+                return new(jobId,location);
+            }catch(Exception cause){throw new BigQueryRecordReconciliationException(Guid.Parse(id),_projectId,jobId,location,acknowledged,cause);}
         }
 
-        private async Task<List<T>> FindAllAsync<T>(string table, string field, string value) where T : class
-            => await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE {FieldColumn(field)} = '{Esc(value)}' LIMIT 1000");
+        private async Task DeleteDocAsync(string table, string id,string? expectedDoc=null)
+        {
+            ValidatePointIdentity(Guid.Parse(id));
+            var parameters=new List<BigQueryParameter>{StringParameter("id",id)};
+            if(expectedDoc!=null)parameters.Add(StringParameter("expected_doc",expectedDoc));
+            await ExecuteOneRowMutationAsync(_client??throw new InvalidOperationException("BigQuery client is not activated."),id,$"DELETE FROM {Table(table)} WHERE id = @id{(expectedDoc==null?"":" AND doc = @expected_doc")}",parameters);
+        }
 
-        private async Task<List<T>> GetAllDocsAsync<T>(string table) where T : class
-            => await SqlAsync<T>($"SELECT doc FROM {Table(table)} LIMIT 1000");
+        private async Task<T?> FindOneAsync<T>(string table, string field, string value,int version=0) where T : class,IHolonBase
+        {
+            var column=FieldColumn(field);
+            if(string.IsNullOrWhiteSpace(value))throw new ArgumentException("BigQuery identity selector must not be blank.",nameof(value));
+            var rows = version==0?await ReadRowsAsync<T>($"SELECT doc FROM {Table(table)} WHERE {column} = @value LIMIT 2",new[]{StringParameter("value",value)},version:version):
+                (await GetAllDocsAsync<T>(table,version)).Where(row=>string.Equals(IndexedRecordValue(row,field),value,StringComparison.Ordinal)).ToList();
+            ValidateIndexedSelection(rows,field,value);
+            return UniqueRecord(rows);
+        }
+
+        private async Task<List<T>> FindAllAsync<T>(string table, string field, string value,int version=0) where T : class,IHolonBase
+        {
+            var rows=version==0?await SqlAsync<T>($"SELECT doc FROM {Table(table)} WHERE {FieldColumn(field)} = @value",StringParameter("value",value)):
+                (await GetAllDocsAsync<T>(table,version)).Where(row=>string.Equals(IndexedRecordValue(row,field),value,StringComparison.Ordinal)).ToList();
+            ValidateIndexedSelection(rows,field,value);
+            return rows;
+        }
+
+        private async Task<List<T>> GetAllDocsAsync<T>(string table,int version=0) where T : class,IHolonBase
+            => await ReadRowsAsync<T>($"SELECT doc FROM {Table(table)}",Array.Empty<BigQueryParameter>(),version:version);
     }
 }

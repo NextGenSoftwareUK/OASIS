@@ -1,0 +1,27 @@
+{
+  "nativeStore": "retained Mongo8.3.11 replica27029 oasisRecoveryRs",
+  "newProjectedAllCases": 18,
+  "compositionRegressions": 31,
+  "coreCommit": "1c0f83debd4348cb2377a114c94cbb835d36ab15",
+  "binaryPairs": [
+    {
+      "sha256": "EA77172CAE913B8435488CABF1630B6050D66349D5C07FF6FCD08783D90232B6",
+      "consumer": "C:\\Source\\OASIS\\Providers\\Storage\\NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "producer": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll"
+    },
+    {
+      "sha256": "EB5FA8F4EE4B47068044FCCAEC85E9BC53B7CDFB33B9B366EB1966520DDCC136",
+      "consumer": "C:\\Source\\OASIS\\Providers\\Storage\\NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+      "producer": "C:\\Source\\OASIS\\Providers\\Shared\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll"
+    },
+    {
+      "sha256": "F53AA9324128D2A4FA3B7E7C849D221CA1A697D3F9C1828F210B8F3C66CAE102",
+      "consumer": "C:\\Source\\OASIS\\Providers\\Storage\\NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.dll",
+      "producer": "C:\\Source\\OASIS\\Providers\\Storage\\NextGenSoftware.OASIS.API.Providers.MongoOASIS\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.dll"
+    }
+  ],
+  "scope": "Q23e partial; Neo4j and full three-store acceptance pending",
+  "nativeTests": 49,
+  "status": "passed",
+  "testSourceSha256": "8E5A0C3D0C8685B9403AF6A231366534E104CA85D4E309FDA89D8C46BB41CA97"
+}

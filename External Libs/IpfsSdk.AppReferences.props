@@ -1,0 +1,9 @@
+<Project>
+  <!-- Executable composition must resolve the same private SDK that the provider
+       builds and embeds. PrivateAssets on a library cannot enforce its caller's
+       transitive NuGet graph, which can otherwise select the obsolete core. -->
+  <ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)net-ipfs-core-0.55.0/src/IpfsCore.csproj" PrivateAssets="all" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)net-ipfs-http-client-master/src/IpfsHttpClient.csproj" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

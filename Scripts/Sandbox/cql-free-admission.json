@@ -1,0 +1,239 @@
+{
+  "nativeProviders": [],
+  "ordinaryProviders": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "queryTariffs": [
+    {
+      "provider": "MongoDBOASIS",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    }
+  ],
+  "routes": [
+    {
+      "method": "POST",
+      "path": "/api/data/query-cql",
+      "policy": {
+        "meterCategory": "api.request",
+        "reservedUnits": 1,
+        "estimatedCostUsd": 0,
+        "fixedCostUsd": 0,
+        "pricingCatalogueVersion": "sandbox-demo-free-v2",
+        "requiresProviderMeasurement": true,
+        "maximumProviderAttempts": 1,
+        "maximumNativeFeeCostUsd": 0
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/data/query-cql/scalar",
+      "policy": {
+        "meterCategory": "api.request",
+        "reservedUnits": 1,
+        "estimatedCostUsd": 0,
+        "fixedCostUsd": 0,
+        "pricingCatalogueVersion": "sandbox-demo-free-v2",
+        "requiresProviderMeasurement": true,
+        "maximumProviderAttempts": 1,
+        "maximumNativeFeeCostUsd": 0
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/data/query-cql/federation",
+      "policy": {
+        "meterCategory": "api.request",
+        "reservedUnits": 1,
+        "estimatedCostUsd": 0,
+        "fixedCostUsd": 0,
+        "pricingCatalogueVersion": "sandbox-demo-free-v2",
+        "requiresProviderMeasurement": true,
+        "maximumProviderAttempts": 3,
+        "maximumNativeFeeCostUsd": 0
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/data/save-holon",
+      "policy": {
+        "meterCategory": "api.request",
+        "reservedUnits": 1,
+        "estimatedCostUsd": 0,
+        "fixedCostUsd": 0,
+        "pricingCatalogueVersion": "sandbox-demo-free-v2",
+        "requiresProviderMeasurement": true,
+        "maximumProviderAttempts": 512,
+        "maximumNativeFeeCostUsd": 0
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/data/save-holons",
+      "policy": {
+        "meterCategory": "api.request",
+        "reservedUnits": 1,
+        "estimatedCostUsd": 0,
+        "fixedCostUsd": 0,
+        "pricingCatalogueVersion": "sandbox-demo-free-v2",
+        "requiresProviderMeasurement": true,
+        "maximumProviderAttempts": 512,
+        "maximumNativeFeeCostUsd": 0
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/data/delete-holon",
+      "policy": {
+        "meterCategory": "api.request",
+        "reservedUnits": 1,
+        "estimatedCostUsd": 0,
+        "fixedCostUsd": 0,
+        "pricingCatalogueVersion": "sandbox-demo-free-v2",
+        "requiresProviderMeasurement": true,
+        "maximumProviderAttempts": 512,
+        "maximumNativeFeeCostUsd": 0
+      }
+    }
+  ],
+  "storageTariffs": [
+    {
+      "provider": "MongoDBOASIS",
+      "operation": "LoadHolon",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "MongoDBOASIS",
+      "operation": "SaveHolon",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "MongoDBOASIS",
+      "operation": "SaveHolons",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "MongoDBOASIS",
+      "operation": "LoadHolonByProviderKey",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "MongoDBOASIS",
+      "operation": "DeleteHolon",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "MongoDBOASIS",
+      "operation": "ReadConditionalHolonWriteOutcome",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "MongoDBOASIS",
+      "operation": "ReadHolonWritePreparation",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "operation": "LoadHolon",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "operation": "SaveHolon",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "operation": "SaveHolons",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "operation": "LoadHolonByProviderKey",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "operation": "DeleteHolon",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "operation": "ReadConditionalHolonWriteOutcome",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "operation": "ReadHolonWritePreparation",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "operation": "LoadHolon",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "operation": "SaveHolon",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "operation": "SaveHolons",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "operation": "LoadHolonByProviderKey",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "operation": "DeleteHolon",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "operation": "ReadConditionalHolonWriteOutcome",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "operation": "ReadHolonWritePreparation",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-demo-free-v2"
+    }
+  ]
+}

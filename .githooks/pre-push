@@ -1,0 +1,21 @@
+#!/bin/sh
+# Refuses a push when Railway's dependency pins do not match the parent gitlinks.
+# Enable once per clone:  git config core.hooksPath .githooks
+# Fix a refusal with:     python Scripts/sync_railway_dependency_manifest.py && git commit -am "sync Railway pins"
+# (CI also corrects this on Development/master, but fixing it before the push avoids a second deploy.)
+root=$(git rev-parse --show-toplevel) || exit 0
+cd "$root" || exit 0
+[ -f Scripts/sync_railway_dependency_manifest.py ] || exit 0
+# Use the first interpreter that actually runs (on Windows `python3` is often a Store stub that exits non-zero).
+PY=
+for candidate in python3 python py; do
+  if command -v "$candidate" >/dev/null 2>&1 && "$candidate" -c "" >/dev/null 2>&1; then PY=$candidate; break; fi
+done
+[ -n "$PY" ] || exit 0
+if ! "$PY" Scripts/sync_railway_dependency_manifest.py --check >/dev/null 2>&1; then
+  echo "pre-push: Docker/oasis-dependency-versions.env does not match the submodule gitlinks." >&2
+  echo "Railway builds the pinned commits, so this change would not ship. Run:" >&2
+  echo "  python Scripts/sync_railway_dependency_manifest.py && git commit -am 'sync Railway pins'" >&2
+  exit 1
+fi
+exit 0

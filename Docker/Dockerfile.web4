@@ -1,14 +1,24 @@
 # WEB4 OASIS API (ONODE)
-# Build context must be the repo root (C:/Source/OASIS2/).
-# Railway Dockerfile path: Docker/Dockerfile.onode
-# For local builds run from C:/Source/OASIS2/:
-#   docker build -f Docker/Dockerfile.onode -t oasis-onode-webapi .
+# Build context must be the repository root.
+# Railway Dockerfile path: Docker/Dockerfile.web4
+# For local builds run from the existing repository checkout:
+#   docker build -f Docker/Dockerfile.web4 -t oasis-onode-webapi .
+
+# Official Node runtime pinned to its multi-platform manifest.
+FROM node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df AS provider_node
+
+# Native IPFS runtime for explicitly configured sandbox sources. No host download.
+FROM ipfs/kubo:v0.43.1@sha256:b293923d66e490e70ced64df42ea7a6cf7eac2740e3fb29101df18070fa7be48 AS provider_ipfs
+
+# Same immutable CSS 7.1.8 image already retained by the local SOLID environment.
+FROM solidproject/community-server@sha256:125727897fde6e2225239a0748bf47d8fa559cac065d5694dc10f6428799e9f2 AS provider_solid
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 EXPOSE 8080
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+COPY --from=provider_node /usr/local/ /usr/local/
 
 COPY Docker/oasis-dependency-versions.env /tmp/oasis-dependency-versions.env
 RUN apt-get update && apt-get install -y --no-install-recommends git \
@@ -21,6 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends git \
 
 WORKDIR /src
 COPY . .
+RUN sh /src/Docker/verify-vendored-provider-sources.sh /src
 
 ARG GITHUB_PAT
 COPY Docker/clone-pinned-oasis-dependencies.sh /tmp/clone-pinned-oasis-dependencies.sh
@@ -39,14 +50,25 @@ RUN test -f "/src/STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json
 
 WORKDIR "/src/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI"
 RUN dotnet restore "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj"
-RUN dotnet publish "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
+# Two workers (the repo bound), no compiler server, and errors-only output: the warning flood otherwise fills the build log and hides the real error.
+RUN dotnet publish "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false -m:2 -nr:false -p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
 
 RUN test -f /app/publish/DNA/STAR_DNA.json
 
+RUN bash /src/Docker/package-provider-sdk-bridges.sh /app/publish
+
 FROM base AS final
 WORKDIR /app
+COPY --from=provider_node /usr/local/bin/node /usr/local/bin/node
+COPY --from=provider_ipfs /usr/local/bin/ipfs /usr/local/bin/ipfs
+COPY --from=provider_solid /community-server /opt/solid
+RUN node --version
+RUN ipfs version --enc=json
+RUN node -e "if(require('/opt/solid/package.json').version!=='7.1.8')throw Error('CSS version differs');require('/opt/solid/dist/init/AppRunner');require('/opt/solid/node_modules/n3')"
 COPY --from=build /app/publish .
 COPY Docker/entrypoint.onode.sh /entrypoint.sh
+COPY Docker/host-sandbox-ipfs.cjs /app/host-sandbox-ipfs.cjs
+COPY Docker/host-sandbox-solid.cjs /app/host-sandbox-solid.cjs
 RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 ENV ASPNETCORE_ENVIRONMENT=Production
