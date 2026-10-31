@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text.Json;
@@ -75,10 +76,14 @@ public static partial class CqlV1Compiler
         return value.ToString("R", CultureInfo.InvariantCulture) == text;
     }
     public static bool Supported(ProviderType type) => type is ProviderType.MongoDBOASIS or ProviderType.SQLLiteDBOASIS or ProviderType.Neo4jOASIS;
-    // Additional read profiles retain their own exact adapter capabilities. Existing
-    // federation/composition routes retain their independently verified scope.
-    public static bool SupportedReadProfile(ProviderType type) => Supported(type)
-        || type is ProviderType.AzureCosmosDBOASIS or ProviderType.ActivityPubOASIS or ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS;
+    // Read profiles retain their exact native capabilities. Bounded federation
+    // admits the complete selected read set; composition keeps its separate scope.
+    internal static IReadOnlyList<ProviderType> ReadProfiles { get; } = Array.AsReadOnly(new[]
+    {
+        ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS, ProviderType.Neo4jOASIS,
+        ProviderType.AzureCosmosDBOASIS, ProviderType.ActivityPubOASIS, ProviderType.IPFSOASIS, ProviderType.SOLIDOASIS
+    });
+    public static bool SupportedReadProfile(ProviderType type) => ReadProfiles.Contains(type);
 
     public static ProviderType? RequestedProvider(string name, bool includeCloudReadProfile = false)
     {
@@ -148,13 +153,14 @@ public static partial class CqlV1Compiler
         if (request == null || request.Provider != null || request.Graph != null || request.Take is < 1 or > 100)
             throw new ArgumentException("Federation source requires Take1-100 and no duplicate provider or graph selector.");
         return CompileSource(actor, null, request.Filters, request.AnyOf, request.AnyChildren, request.AnyDescendants,
-            null, request.OrderBy, request.Descending, request.Skip, request.Take, bindAccess: false);
+            null, request.OrderBy, request.Descending, request.Skip, request.Take,
+            bindAccess: false, unorderedFederation: true);
     }
 
     private static CosmicQuery<Holon> CompileSource(Guid actor, ProviderType? provider, CqlV1Filter[] filters,
         CqlV1Filter[] anyOf, CqlV1ChildExists[] anyChildren, CqlV1DescendantExists[] anyDescendants,
         CqlV1Graph graphDescription, string orderBy, bool descending, int skip, int? take,CosmicQueryReadAccess access=null,
-        bool bindAccess=true, bool includeCloudReadProfile=false, bool indexedSource=false)
+        bool bindAccess=true, bool includeCloudReadProfile=false, bool indexedSource=false, bool unorderedFederation=false)
     {
         if(access!=null)
         {
@@ -240,8 +246,9 @@ public static partial class CqlV1Compiler
 
         if (orderBy == "None")
         {
-            if (provider is not (ProviderType.ActivityPubOASIS or ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS) || !includeCloudReadProfile || descending)
-                throw new ArgumentException("OrderBy None is reserved for the unsorted ActivityPub, IPFS or SOLID point-read profiles, without Descending.");
+            if (descending || !unorderedFederation && (!includeCloudReadProfile
+                || provider is not (ProviderType.ActivityPubOASIS or ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS)))
+                throw new ArgumentException("OrderBy None requires an unsorted protocol read profile or an explicitly unordered federation, without Descending.");
             var pointPage = query.Skip(skip);
             if (take.HasValue) pointPage = pointPage.Take(take.Value);
             if (pointPage.IsError) throw new ArgumentException(pointPage.Message);

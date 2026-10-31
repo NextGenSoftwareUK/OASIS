@@ -91,8 +91,10 @@ error; it never switches to another provider. A missing admission factory yields
 an empty catalogue, not implicit provider enrollment.
 
 Discovery is a readiness observation, not native-query/deployment acceptance or a
-grant to run every native feature through every HTTP operation. The ordinary
-three-provider federation contract remains explicit until separately expanded.
+grant to run every native feature through every HTTP operation. Bounded federation
+can name an enrolled read profile alongside MongoDB. Each actual adapter must
+admit the common query and its independently bound read policy before execution.
+Joins, grouping and other composition operations retain their separate scope.
 
 ## Public ready-to-run examples
 

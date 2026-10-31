@@ -30,13 +30,13 @@ public static partial class CqlV1Endpoint
             http.RequestAborted.ThrowIfCancellationRequested();
             request = CqlRequestCapture.Capture(request);
             if (request == null || request.Providers == null || request.ProviderPriority == null
-                || request.Providers.Length > 3 || request.ProviderPriority.Length > 3
+                || request.Providers.Length > 8 || request.ProviderPriority.Length > 8
                 || request.Take is < 1 or > 100 || request.Skip is < 0 or > 1000
                 || request.MaximumOutputBytes is < 1 or > MaximumResponseBytes
                 || request.MaximumDurationMilliseconds is < 1 or > 5000
                 || request.MaximumRowsPerProvider < 1 || request.MaximumRowsPerProvider > (request.EnableContinuation ? 10000 : 100)
-                || request.MaximumInputRows < 1 || request.MaximumInputRows > (request.EnableContinuation ? 10000 : 300)
-                || request.MaximumProviderAttempts < 1 || request.MaximumProviderAttempts > (request.EnableContinuation ? 64 : 3)
+                || request.MaximumInputRows < 1 || request.MaximumInputRows > (request.EnableContinuation ? 10000 : 800)
+                || request.MaximumProviderAttempts < 1 || request.MaximumProviderAttempts > (request.EnableContinuation ? 64 : 8)
                 || request.Cursor != null && (!request.EnableContinuation || request.Cursor.Length is < 1 or > 4096))
                 throw new ArgumentException("Invalid bounded federation request.");
 
@@ -65,7 +65,7 @@ public static partial class CqlV1Endpoint
                 lineage = cursor?.Lineage ?? Guid.Parse(admittedExecution.OperationId);
             }
 
-            ProviderType Concrete(string value) => CqlV1Compiler.RequestedProvider(value)
+            ProviderType Concrete(string value) => CqlV1Compiler.RequestedProvider(value, includeCloudReadProfile: true)
                 ?? throw new ArgumentException("A concrete provider is required.");
             ProviderType?[] requested;
             switch (request.Scope)
@@ -74,7 +74,7 @@ public static partial class CqlV1Endpoint
                 case "Named" when request.Providers.Length > 0:
                     requested = request.Providers.Select(value => (ProviderType?)Concrete(value)).ToArray(); break;
                 case "AllEligible" when request.Providers.Length == 0:
-                    requested = new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS, ProviderType.Neo4jOASIS }
+                    requested = CqlV1Compiler.ReadProfiles
                         .Where(admission.HasQueryTariff).Select(value => (ProviderType?)value).ToArray(); break;
                 default: throw new ArgumentException("Scope must be CurrentDefault, Named or AllEligible with coherent selectors.");
             }
@@ -98,13 +98,16 @@ public static partial class CqlV1Endpoint
             if (options.IsError) throw new ArgumentException(options.Message);
             if (request.MaximumProviderAttempts < requested.Length)
                 throw new ArgumentException("Every resolved target requires a provider-attempt reservation.");
+            if (admittedExecution.MaximumProviderAttempts < requested.Length)
+                return Failure(400, "CQL_FEDERATION_ADMISSION_BUDGET", "The server usage reservation cannot cover every requested provider.");
             var source = CqlV1Compiler.CompileFederationSource(request.Source, actor);
             var observations = new List<ReadPolicyObservation>();
             foreach (var provider in requested)
             {
                 http.RequestAborted.ThrowIfCancellationRequested();
-                var policy = CaptureReadPolicy(http, actor, provider, providers, admission);
-                if (!TryResolveEligible(providers, provider, admission, out var storage, out var adapter, out var selected, policy))
+                var policy = CaptureReadPolicy(http, actor, provider, providers, admission, includeCloudReadProfile: true);
+                if (!TryResolveEligible(providers, provider, admission, out var storage, out var adapter, out var selected, policy,
+                    includeCloudReadProfile: true))
                     return Failure(403, "CQL_PROVIDER_NOT_ELIGIBLE", "Every federation target must be eligible for this admitted request.");
                 observations.Add(policy ?? new ReadPolicyObservation(storage, adapter, selected,
                     CqlV1Compiler.DefaultReadAccess(actor, selected).Result));
@@ -112,6 +115,11 @@ public static partial class CqlV1Endpoint
             if (observations.Select(value => value.Selected).Distinct().Count() != observations.Count)
                 throw new ArgumentException("Resolved targets must be unique.");
             var selectedProviders = observations.Select(value => value.Selected).ToArray();
+            // New read profiles have no protected continuation contract yet. Do not
+            // silently apply the existing three-database cursor protocol to them.
+            if (request.EnableContinuation && (selectedProviders.Any(type => !CqlV1Compiler.Supported(type))
+                || source.Orderings.Count == 0))
+                return Failure(400, "CQL_CURSOR_SOURCE_UNSUPPORTED", "This source requires a bounded federation without continuation.");
             source = source.WithScope(CosmicQueryScope.Named(selectedProviders).Result);
             var plan = CosmicFederationPlanner.Plan(source, options.Result, selectedProviders[0],
                 observations.Select(value => new CosmicQueryTarget(value.Selected, value.Adapter.QueryCapabilities)).ToArray(),
