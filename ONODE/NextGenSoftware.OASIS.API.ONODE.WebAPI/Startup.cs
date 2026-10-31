@@ -470,6 +470,15 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_SOLANA_PUBLIC_SOURCE_JSON"] is string solanaPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaPublicAccountMetadataSource.FromJson(solanaPublicSource)));
+            if (Configuration["CQL_BASE_PUBLIC_SOURCE_JSON"] is string basePublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.BaseOASIS.BasePublicAccountMetadataSource.FromJson(basePublicSource)));
+            if (Configuration["CQL_AVALANCHE_PUBLIC_SOURCE_JSON"] is string avalanchePublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.AvalanchePublicAccountMetadataSource.FromJson(avalanchePublicSource)));
+            if (Configuration["CQL_BNB_PUBLIC_SOURCE_JSON"] is string bnbPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.BnbPublicAccountMetadataSource.FromJson(bnbPublicSource)));
             if (Configuration["CQL_NEAR_PUBLIC_SOURCE_JSON"] is string nearPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.NEAROASIS.NearPublicAccountMetadataSource.FromJson(nearPublicSource)));
