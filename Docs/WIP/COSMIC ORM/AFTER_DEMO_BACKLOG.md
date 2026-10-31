@@ -89,3 +89,8 @@ NativeREST IDfilter/restart/MongoSDK/HTTP/browser verified,45cases; no new busin
 ### InfluxDB2 Flux current integration (30 October 2026)
 
 39cases/native6points+futurehead/tied-headrejection/restart/MongoSDK/HTTP/browser/postpair passed. NotInfluxDB3/cloud/CAS/history/transactions. Returnto generalname/description/metadataqueries, fullabsolutetimestampendpoints, graph/children/migrations/unknownwrite recovery/centralregistration/SDKwirebounds/legacyavatarlookupdeleteaudit and HyperDrive/replication/failover/loadbalancing/distributedsnapshots. Retentioncanexpirepoints; demorequiresoriginalinfiniteretentionverified. Source/timestampsimmutablebusinesslineage preserved, nativeoperationalfilesmaychange. Privatecompletedtestbin copiescleaned; runnerrebuildsconsumerfromretainedassets/cache. See INFLUXDB_CQL_MVP.md.
+
+
+### Qdrant current integration (30 October 2026)
+
+43cases/native3pointrestart/MongoSDK/HTTP/browser/postpair passed; originalpayload/zero-vector/collectionconfig/peer/inode preserved. Notsemanticsearch/hosted/CAS/history/fullparity. Generalname/description/metadataqueries, atomicconditionalwrites/unknown-write recovery, children/migration/replication/centralregistration/legacyGETPOSTlookupsearchdeleteHTTP-sizeaudit and HyperDrive/failover/loadbalancing/distributedsnapshots remainred. Completedoperationreceipt preservesUInt64precision, notconcurrency. Sparsefileslogicalsizenotallocateddiskusage. Privatecompletedtestbinscleaned; assets/cache preservedforrebuild. See QDRANT_CQL_MVP.md.
