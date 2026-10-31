@@ -601,3 +601,63 @@ C5445FDDE7F06EB0139F22FDB963CA3D9DB62609CE5F8551404523255FF6A4C5.
 No Oracle connection/schema/data/process operation ran. This adapter requires a
 complete server-authorized Oracle catalogue; read-only host activation, host access
 policy and real hosted connectivity remain pending. Do not enroll it prematurely.
+## 31 October — SOLID API proof, verifier correction and demo-budget root cause
+
+Normal visitor sandbox-2ab66e15 /97668a7f-0189-4cf4-a21f-aba6c8a5d0ce
+read SOLID3native rows and2subset through deployed HTTP/discovery. Proof
+TestResults/HostedCqlIntegrationCurrent/SOLIDOASIS-native-http.json. This raises
+native hosted HTTP breadth to6; browser-verified breadth remains5. User opened
+Edge, but fresh native window inventory exposed no Edge/browser target; no unrelated
+window was controlled. Browser acceptance still outstanding, not inferred from HTTP.
+
+A new generic HTTP verifier executes the published frontend preparation module.
+Its first caller missed the standard data-endpoint result wrapper, causing an
+incomplete-ACK assertion after a real save. The web app already unwraps correctly;
+fixed only the verifier caller by reusing exported CqlPlayground.unwrap. No product
+save fallback, provider patch, manual native write or replay was introduced.
+
+Original request5b69c436-34f2-42f6-8be8-dd37529a2199 has no retained raw ACK;
+record39e5961a-d295-8ee0-b3a1-22378b4f555b independently observed private/V1,
+owner97668a7f..., matching exact source name/description and mapping metadata.
+Archived identifiers-only client intent and materialized-state reconciliation under
+HostedQueryAcceptance-SOLIDOASIS. This explicitly does not assert the missing
+operation acknowledgement. Original operation never resubmitted; subsequent setup
+observed that record and created only the missing second snapshot.
+Second requestfe8ce7f4-6310-4d7c-83ac-188141a55969 ACKed record
+ac4d653b-7af1-838a-b8e2-408c3c8ddeab/V1/private/owner97668a7f...,
+server operation41b50624-c8b4-5bed-d73b-77ae4d382dd1. Thin ACK persisted before
+client intent removal. Full flow then stopped on HTTP429 during repeated reads;
+no save retry. Raw intermediate federation results were not persisted by the first
+verifier version, so no complete federation/replica acceptance is claimed from it.
+
+Authoritative usage/current confirmed20dailyCalls/20limit/0remaining, planfree,
+monthlySpend0. JWT expiry12:48:44Z separately confirmed; old cohort is preserved,
+not automatically reauthenticated/replaced. Generic verifier now records progress,
+uses durable identifiers-only save intents, retains thin ACKs, rejects expired
+sessions and supports only an explicit fixed-client replacement test cohort.
+Replication observation is bounded3reads/target within5seconds; no repeated writes.
+
+User approved200daily calls exclusively for temporary demo avatars. Implemented
+SandboxSubscriptionRules as the single owner of existing issued-free classification
+(reused by issuance/cleanup) plus active lifetime eligibility. Authoritative Mongo
+reservation and usage summary resolve the same200-call policy; normal plans remain
+unchanged. Monthly request/token/money caps, subscription lifetime, usage counters,
+pay-as-you-go and captured prior operations are untouched. No quota reset or tier
+upgrade. Admission captures one time for expiry and policy evaluation. Summary/
+authorization use injected TimeProvider; defaults remain system time.
+
+Final API build0errors;63targeted allowance/lifecycle/ordinary-policy/S3/schema tests
+pass/no skips. Evidence sandbox-allowance.trx SHA256
+1FE44A8D58B26EB7AC5ADA07AEA60DC3B2895C1B31B7823D6FA3E6922F0D4C3E.
+Shared operator mutation owner3in-memory tests prove observed success, unknown
+outcome replay refusal and concurrent-change preservation; log SHA256
+383A12FBA9B5B327054A24CE7E5739569C4F0B6621FACD981F2D6A4271063B3C.
+S3 publisher reuses that owner, not a parallel environment update implementation.
+
+Public S3 candidate review proved only3values changed; other DNA/routing, admission
+and provider examples preserved. Anonymous metadata mode/3objects/four presets;
+query tariff0USD/catalogue sandbox-demo-free-v2. Applied all3with skip-deploys and
+independent full-map observations/ACKs. No source account, bucket, native object,
+signing credential or new paid service created. Await one combined code release
+before testing new demo allowance and AWS live. Concurrent Development073edc99f
+CI/docs/AGENTS release-snapshot updates must be preserved; no master promotion planned.
