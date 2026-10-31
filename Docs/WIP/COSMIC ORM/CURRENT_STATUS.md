@@ -4,8 +4,8 @@ Updated31 October2026. Programme incomplete; priority is actual hosted sandbox b
 
 ## Exact next step
 
-1. Implement and test **named ActivityPub + Mongo federation**: current HTTP federation admits only the original3 and cannot compile unordered protocol membership sources. Retain per-target authorization, explicit scope, native capabilities and budgets; no point fan-out or fabricated Mongo rows.
-2. Establish2 acknowledged, owner-scoped Mongo demo copies from the public source and add a ready federated preset (5/4 physical copies). Inspect normal metadata encryption/query-key policy before mapping public native keys; do not disable encryption as a workaround.
+1. Add the ready ActivityPub + Mongo browser preset and2acknowledged owner-scoped Mongo demo records; prove actual5/4physical rows and isolation. Protocol federation admission is implemented/tested on the task branch (32Core/61API controls), not deployed. Generic server examples currently describe leaf queries only; extend their explicit operation contract before adding federation presets.
+2. Reuse normal admitted saves with durable intent/ACK and stable per-avatar demo identities; avoid duplicate setup after refresh. Native import uses an avatar-scoped identity domain. Inspect effective authenticated metadata policy, not just legacy DNA flags; do not disable encryption as a workaround.
 3. Bundle the tested CORS operation-header correction with the next verified backend batch, then verify the real browser sees its operation ID. It is committed on the task branch only, not deployed.
 4. Continue hosted Oracle/IPFS/SOLID/Solana/AWS/Azure and remaining breadth. Azure remains pending/free-only, no existing subscription. Deep LINQ terminals/POCO/migrations tooling remain paused.
 
@@ -33,6 +33,7 @@ Updated31 October2026. Programme incomplete; priority is actual hosted sandbox b
 - CORS fix:3framework controls pass; current deployed browser shows operation ID not exposed. Correct host policy is prepared for next batch, no cookie/origin/method/request-header expansion.
 - Native/browser evidence: TestResults/HostedCqlIntegrationCurrent/activitypub-hosted-wire-acceptance.json and activitypub-sandbox-{three,two}-posts.png. Native full/subset3/2, two independent normal free sessions; local links preserved.
 - Final API evidence: TestResults/HostedCqlIntegrationCurrent/membership-capture-api.trx. Earlier original failed compile/read evidence retained. Counts/hashes in [integration plan](HOSTED_SANDBOX_INTEGRATION_PLAN.md).
+- Protocol federation task Core249a223 is remote-verified/pinned: read-only captured attempt ceiling prevents caller4/server3 fan-out before I/O. New protocol scopes/AllEligible include tariff-enrolled read profiles, with bounded8targets/800rows/8attempts. New profiles/unordered sources have no continuation contract.32Core controls (12new+20existing) and61affected API controls pass; all are controlled-adapter tests, not hosted Mongo pairing proof.
 - Concrete host registry stays in production-only CqlV1Providers composition; local demo native integration compiles without importing BootLoader.
 
 ## Durable state / resources
@@ -41,7 +42,7 @@ Updated31 October2026. Programme incomplete; priority is actual hosted sandbox b
 - Fresh normal free session identity is in sandbox-session.acknowledged.json; its token is session-<id>.dpapi. Original retained baseline session expired; preserve original records and credentials, never impersonate/reseed.
 - Baseline fixture LocalState/COSMIC/HostedSandboxCqlCurrent/fixture.json completed=true/pending=null,3 acknowledged records. Original protected repair requests/journals remain locally and /data/COSMIC/ReplicaRepair remotely.
 - Existing Railway dev project712f50f6-3b7b-46d4-b229-44b49922f16b, WEB4 service5123199a-43c4-4439-9921-e10e2aec7841. No new paid source/service provisioned.
-- Cleanup removed15,310,104,295B of verified disposable test/VS staging output. Latest C free80,437,653,504B. Shared runtimes/cache/native originals preserved; full ownership/lifecycle in [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+- Cleanup removed15,310,104,295B of verified disposable test/VS staging output. Latest C free80,425,893,888B. Shared runtimes/cache/native originals preserved; full ownership/lifecycle in [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 
 ## Commands and recovery
 

@@ -90,7 +90,7 @@ public sealed class CqlHostedSources : BackgroundService
                 }
             }
             return new CqlHostedSourceDescription(type.ToString(), queryOnly.Contains(type), available,
-                available && CqlV1Compiler.Supported(type), available ? adapter.QueryCapabilities.Features.ToString() : null,
+                available && CqlV1Compiler.SupportedReadProfile(type), available ? adapter.QueryCapabilities.Features.ToString() : null,
                 available ? null : "CQL_SOURCE_NOT_READY", selected);
         }).ToArray();
 }

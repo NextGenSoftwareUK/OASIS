@@ -57,6 +57,8 @@
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlIndexedV1Preparation.cs" Link="Production/CqlIndexedV1Preparation.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Compiler.cs" Link="Production/CqlV1Compiler.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Endpoint.cs" Link="Production/CqlV1Endpoint.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlHostedSources.cs" Link="Production/CqlHostedSources.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlHostedQueryExamples.cs" Link="Production/CqlHostedQueryExamples.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlScalarV1Endpoint.cs" Link="Production/CqlScalarV1Endpoint.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectionV1Endpoint.cs" Link="Production/CqlProjectionV1Endpoint.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs" Link="Production/CqlV1Controller.cs" />

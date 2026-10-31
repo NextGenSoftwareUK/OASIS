@@ -59,3 +59,59 @@ Provider visibility, graph/window restrictions and overall request/result budget
 still apply. `In` is also available on supported canonical fields, for example
 `field: "Id"` with an array of D-format GUID strings. No source permission is
 granted merely by submitting an ID or native key.
+
+## Federate a protocol source with MongoDB
+
+A host shipping protocol federation accepts the same membership source through
+`POST /api/data/query-cql/federation`. Omit `source.provider`: the outer scope owns
+the concrete targets. For example:
+
+```json
+{
+  "scope": "Named",
+  "providers": ["MongoDBOASIS", "ActivityPubOASIS"],
+  "source": {
+    "orderBy": "None",
+    "take": 25,
+    "includeMetadata": true,
+    "filters": [
+      {
+        "metadataPath": ["MastodonStatusId"],
+        "scalar": "String",
+        "operator": "In",
+        "value": [
+          "117466985005297414",
+          "117466983307949301",
+          "117411420916699261"
+        ]
+      }
+    ]
+  },
+  "identityMode": "PreserveCopies",
+  "maximumProviderAttempts": 2,
+  "take": 25
+}
+```
+
+This query does not import records. MongoDB must already hold the intended
+owner-visible records with matching, legitimately queryable native-key metadata.
+Three public source posts and two matching Mongo records produce five physical
+rows; selecting the first two keys produces four. Inspect the actual counts and
+provider labels, rather than assuming the data has been prepared.
+
+WEB4 binds authorization independently for every target and admits the complete
+native capability set before reading either provider. A tariff, permission,
+capability or minimum attempt-budget failure rejects the complete query. Raising
+the caller's attempt limit cannot raise the server's captured admission ceiling.
+Per-attempt durable admission still applies at execution.
+
+`AllEligible` includes the supported read profiles with query tariffs, rather than
+silently omitting protocol sources. Its complete set must fit the server admission
+and query budgets. Ordinary federation accepts at most eight named targets,
+800 input rows and eight attempts, retaining the independent per-source bounds.
+Unsupported common predicates reject; providers are never silently skipped.
+
+Unordered sources and the additional read profiles require bounded requests
+without continuation. The existing protected three-database cursor contract is
+separate. Protocol row federation does not imply support for every composition,
+aggregate, graph, migration or write operation.
