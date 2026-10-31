@@ -1,6 +1,10 @@
 # COSMIC ORM / CQL — current status
 
-Updated 31 October 2026. Programme incomplete. Priority: hosted demo breadth and reproducible HyperDrive bugs; deep LINQ parity remains paused.
+Updated 31 October 2026. Programme incomplete. Current live-demo phase blocked on external state; preserve the full roadmap. Priority: hosted demo breadth and reproducible HyperDrive bugs; deep LINQ parity remains paused.
+
+## Blocker audit
+
+The same live-demo blockers have persisted across more than three goal turns: the separate routing-correction publication decision is unanswered; IAB control and its reset both return Transport closed; hosted Azure/Oracle are explicitly deferred. All17prepared profiles have local scoped proofs and their joint68preset planner gate passes. Further local hardening cannot establish hosted/browser acceptance. Resume with the existing scoped release and preserved evidence when publication/browser access changes; then plan a distinct bounded routing cohort because routing-v1 expired. No new owner question, account or hosting spend is requested. Deep parity remains paused as instructed.
 
 ## Exact next steps
 
