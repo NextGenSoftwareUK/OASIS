@@ -69,3 +69,8 @@ NativeREST IDfilter/restart/MongoSDK/HTTP/browser verified,45cases; no new busin
 ### Firebase RTDB current integration (30 October 2026)
 
 50nonnativecontrols+native/exportrestore/paired3 passed; fullFirebaseStorageConformanceTests excluded/unverified. IDselectionSDK/HTTP/browser5/4 verified overretainedexport; no nativepersistent/crashdurabilityclaim. Returnto hostedcredentials/rules, name/description/metadataqueries, fullnumeric/array/default/graphroundtrips, children/depth/history, nativeatomicconcurrency/avatar-detailownership/centralregistration and HyperDrive/failover/loadbalancing. Unsupportednumericroundtriprejectsbeforedispatch; thisdoesnotimplementfullprecisionrange. KeepdistinctfromFirestore. Preserveoriginalcheckpoint/IDs/ACK; no reseed/replay. See FIREBASE_CQL_MVP.md.
+
+
+### CouchDB current integration (30 October 2026)
+
+46cases/native3recordrestart/MongoSDK/HTTP/browser/postpair passed; savedpayloads/revisions/sourcefilesunchanged. Generalname/description/metadataqueries, graph/depth/history/versionmode, observed-tokenconditionalwrites, durableuncertainwritereconciliation, avatar/bulkatomicity/centralregistration and HyperDrive/replication/failover/loadbalancing/distributedsnapshots remainred. Currentupsertfetcheslatest_rev; exactsavedreceipt ownershipcontrols are not cross-clientCAS. PlaintextJSON; retainednativefixture3live, tombstone/errorbranches controlledHTTP only. See COUCHDB_CQL_MVP.md.
