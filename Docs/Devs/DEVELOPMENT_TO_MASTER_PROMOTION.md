@@ -4,7 +4,7 @@ This is the release process for promoting the OASIS parent repository and its su
 
 For the complete workflow, test, artifact, credential, and release-channel catalogue, see [OASIS CI/CD, Tests, Artifacts, and Releases](./CI_CD_WORKFLOWS_AND_RELEASES.md).
 
-For the normal three-step GitHub process, start with [Merge Development into master: quick start](./MERGE_DEVELOPMENT_TO_MASTER_QUICK_START.md). Run the workflow using GitHub's **Use workflow from: master** selection; the workflow fetches `Development` itself. The remainder of this guide explains the implementation, manual equivalent, failure handling, and recovery process.
+For the normal GitHub process, start with [Merge Development into master: quick start](./MERGE_DEVELOPMENT_TO_MASTER_QUICK_START.md). Promote a **release branch snapshot** (below), not the moving `Development` tip. The remainder of this guide explains the implementation, manual equivalent, failure handling, and recovery process.
 
 ## Release invariant
 
@@ -14,6 +14,35 @@ For the normal three-step GitHub process, start with [Merge Development into mas
 | `master` | `main` | Must equal the parent branch's private submodule gitlinks. |
 
 Production must never point at a submodule's `Development` commit. Each changed submodule is promoted to its `main` branch first. The parent `master` pointer and `Docker/oasis-dependency-versions.env` then advance together in one reviewed pull request.
+
+## Release branch snapshot (default)
+
+**Rule:** a release promotes `release/YYYY-MM-DD`, a branch cut from one chosen `Development` commit and tagged `release-YYYY-MM-DD`. It does not promote the live `Development` branch.
+
+**Why.** `Development` is shared by many contributors and automated agents who push continuously. The promotion workflow merges whatever `Development` is when it runs, so while a release was being checked each push changed the candidate: required checks restarted, new `Development` to `main` pull requests appeared in submodules, generated manifests went stale, and one contributor's half-finished work (a compile error in a new controller) blocked everyone's release. A fixed snapshot makes the candidate immutable, so the checks you read are the checks of what ships.
+
+**How.**
+
+1. Choose the commit. It should be a `Development` tip whose CI is green, or whose remaining failures you have decided to accept and recorded.
+2. Confirm every submodule gitlink in that commit is an ancestor of that submodule's `main`. If not, merge those submodules' `Development` to `main` pull requests first. Merge only what that commit already contains: submodule `Development` may be ahead of the pin, and the pin is what counts.
+3. Cut and tag:
+
+   ```bash
+   git fetch origin Development
+   git push origin <commit>:refs/heads/release/YYYY-MM-DD
+   git tag release-YYYY-MM-DD <commit> && git push origin release-YYYY-MM-DD
+   ```
+
+4. Run **Promote Development to master** with **Branch to promote** (`source_ref`) set to `release/YYYY-MM-DD`. The workflow merges that branch, keeps production submodules on `main`, regenerates the Railway manifest and opens or updates the **Promote Development to master** pull request.
+5. Checks run on that pull request. Fix failures **on the release branch** (the smallest change that fixes them), rerun the workflow with the same `source_ref`, and merge the pull request when green. That merge is the production release.
+6. Afterwards, merge the release branch back into `Development` so fixes are not lost, and let normal work continue. Anything pushed to `Development` after the cut ships in the next release.
+
+**Rules.**
+
+- Never move a `release/*` branch or its tag. A corrected release is a new branch, for example `release/YYYY-MM-DD-2`.
+- Only release-blocking fixes go on a release branch. New features stay on `Development`.
+- The workflow's `source_ref` defaults to `Development`, which keeps the old behaviour. Use that only for a deliberate promotion of the moving tip.
+- The generated manifests that CI verifies (HyperDrive provider I/O, WEB4 routes) and the dependency pins are part of the snapshot. Regenerate them on the release branch if the snapshot's Core or controllers changed, never against a newer Core.
 
 ## Underlying promotion sequence
 
@@ -123,7 +152,7 @@ These gates are intentional. Automation prepares and proves a concrete release c
 |---|---|
 | `.gitmodules` | Declares `Development` or `main` as the required submodule branch for the current parent branch. |
 | `.github/workflows/submodule-sync.yml` | Updates branch tips, regenerates the manifest, validates the committed result, and opens the PR. |
-| `.github/workflows/promote-development-to-master.yml` | Opens missing submodule promotion PRs and prepares the validated parent production PR. |
+| `.github/workflows/promote-development-to-master.yml` | Opens missing submodule promotion PRs and prepares the validated parent production PR. Takes a `source_ref` input: the release branch to promote (default `Development`). |
 | `.github/workflows/ci-cd.yml` | Blocks pull requests that violate the source-graph invariants. |
 | `Docker/oasis-dependency-versions.env` | Records the immutable revisions Railway clones. |
 | `Scripts/sync_railway_dependency_manifest.py` | Generates private manifest pins from checked-out submodule commits. |
@@ -137,6 +166,7 @@ These gates are intentional. Automation prepares and proves a concrete release c
 | Failure | Action |
 |---|---|
 | A required commit is missing from submodule `main` | Stop the parent promotion and merge the owning submodule PR first. |
+| Checks fail on the promotion pull request | Fix on the release branch and rerun with the same `source_ref`. Do not switch to the moving `Development` tip to make a check pass. |
 | Promotion PR reports a manifest/gitlink mismatch | Rerun the sync workflow or run the generator; do not hand-select a different SHA. |
 | A submodule merge introduces an incompatible shared contract | Fix and test the contract in its owning repositories before advancing parent `master`. |
 | Railway fails after local builds pass | Diagnose the failing environment or service log while keeping the committed source graph fixed. |
