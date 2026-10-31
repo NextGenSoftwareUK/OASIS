@@ -2,6 +2,8 @@ using System.Text.Json;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Neo4j.Driver;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -22,13 +24,19 @@ public sealed partial class ReplicaBaselineRepairCommandTests
     [NativeFact]
     public Task ReviewedCommandRepairsActualMongoToNeoAndPreservesNormalNextDelivery()=>RunReviewedNeoTarget(true);
 
-    private async Task RunReviewedNeoTarget(bool mongoSource)
+    [NativeFact]
+    public Task ManagerSaveMaintainsRecoveredMongoToNeoRoute()=>RunReviewedNeoTarget(true,true);
+
+    [NativeFact]
+    public Task ManagerSaveMaintainsRecoveredSqliteToNeoRoute()=>RunReviewedNeoTarget(false,true);
+
+    private async Task RunReviewedNeoTarget(bool mongoSource,bool managerWrites=false)
     {
         const string mongoUri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         const string neoUri="bolt://127.0.0.1:17687";
-        const string database="cosmic_reviewed_neo_target_source";
+        var database=managerWrites?"cosmic_managed_neo_cutover_source":"cosmic_reviewed_neo_target_source";
         var root=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../.."));
-        var state=Path.Combine(root,"LocalState/COSMIC",mongoSource?"MongoToNeoRepairNative":"SqliteToNeoRepairNative");Directory.CreateDirectory(state);
+        var state=Path.Combine(root,"LocalState/COSMIC",(mongoSource?"MongoToNeoRepairNative":"SqliteToNeoRepairNative")+(managerWrites?"-ManagerCutover":""));Directory.CreateDirectory(state);
         using var lease=new FileStream(Path.Combine(state,"fixture.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
         var manifest=Path.Combine(state,"fixture.json");var journal=Path.Combine(state,"application.json");var sourceFile=Path.Combine(state,"source.db");
         foreach(var file in new[]{sourceFile,sourceFile+"-wal",sourceFile+"-shm",journal,journal+".tmp",journal+".lock"})
@@ -64,6 +72,16 @@ public sealed partial class ReplicaBaselineRepairCommandTests
         var target=new NeoProvider(neoUri,"neo4j","oasis-local-test-only");
         var sourceType=mongoSource?ProviderType.MongoDBOASIS:ProviderType.SQLLiteDBOASIS;
         var sourceId=HolonReplicationRoutes.SourceId(sourceType);var targetId=HolonReplicationRoutes.TargetId(ProviderType.Neo4jOASIS);
+        var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings {
+                MongoDBOASIS=new(){ConnectionString=mongoUri,DBName=database},SQLLiteDBOASIS=new(){ConnectionString=sqlite},
+                Neo4jOASIS=new(){ConnectionString=neoUri,Username="neo4j",Password="oasis-local-test-only"}}}};
+        dna.OASIS.StorageProviders.LogSwitchingProviders=false;
+        dna.OASIS.SubscriptionConfig.PlanType="Gold";
+        var registry=new ProviderManager(null,dna);
+        registry.RegisterProvider(source);registry.RegisterProvider(target);
+        Assert.False(registry.PublishRoutingOverrides(new ProviderRoutingOverrides(false,false,false,
+            replicationProviders:new[]{ProviderType.Neo4jOASIS})).IsError);
+        var manager=new HolonManager(null,dna,registry);
         try
         {
             Assert.False((await source.ActivateProviderAsync()).IsError);Assert.False((await target.ActivateProviderAsync()).IsError);
@@ -73,6 +91,32 @@ public sealed partial class ReplicaBaselineRepairCommandTests
             async Task Save(int version)
             {
                 var operation=Guid.NewGuid();operations.Add(operation.ToString("D"));Record(false);
+                if(managerWrites)
+                {
+                    current.Name="owned managed late enrollment version "+version;
+                    var oldAvatar=OASISRequestContext.AvatarRoutingOverrides;
+                    var oldRequest=OASISRequestContext.RequestRoutingOverrides;
+                    try
+                    {
+                        OASISRequestContext.AvatarRoutingOverrides=new ProviderRoutingOverrides(autoReplicationEnabled:true,
+                            replicationProviders:new[]{ProviderType.Neo4jOASIS});
+                        OASISRequestContext.RequestRoutingOverrides=new ProviderRoutingOverrides(autoReplicationEnabled:version>=4,
+                            autoFailoverEnabled:false,autoLoadBalancingEnabled:false);
+                        // No explicit ReplicationEnrollment: HolonManager must derive it
+                        // from request > avatar > node and atomically enrol the write.
+                        var managed=await manager.SaveOwnedHolonAsync(current,actor,new CosmicWriteOptions(operation),
+                            saveChildren:false,providerType:sourceType);
+                        Assert.False(managed.IsError,managed.Message+managed.Exception);Assert.True(managed.IsSaved);
+                        Assert.Same(current,managed.Result);Assert.Equal(version,current.Version);
+                        if(version<4)Assert.Null((await outbox.PeekNextAsync(targetId)).Result);
+                    }
+                    finally
+                    {
+                        OASISRequestContext.AvatarRoutingOverrides=oldAvatar;
+                        OASISRequestContext.RequestRoutingOverrides=oldRequest;
+                    }
+                    return;
+                }
                 var request=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(operation,actor,sourceType,
                     new[]{new HolonWriteCondition(id,CosmicConcurrency.GetProviderRevisionId(current,sourceType))}),
                     ConditionalHolonOperation.Save,new[]{current},saveChildren:false);
@@ -85,9 +129,7 @@ public sealed partial class ReplicaBaselineRepairCommandTests
             Assert.Equal(1,(await dispatcher.DispatchOnceAsync(targetId)).Result.ReconciliationCount);
             var held=(await outbox.PeekNextAsync(targetId)).Result;
             var reader=(IHolonReplicationObligationReader)outbox;
-            var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings {
-                MongoDBOASIS=new(){ConnectionString=mongoUri,DBName=database},SQLLiteDBOASIS=new(){ConnectionString=sqlite},
-                Neo4jOASIS=new(){ConnectionString=neoUri,Username="neo4j",Password="oasis-local-test-only"}}}};
+
             var reviewed=new ReplicaBaselineRepairCommand.Request(actor,initialization,Guid.NewGuid(),held.Sequence,held.OperationId,actor,id,
                 (await reader.ReadObligationAsync(held.Sequence)).Result.PayloadDigest,
                 mongoSource?ReplicaBaselineRepairCommand.StoreIdentity(mongoUri,database):ReplicaBaselineRepairCommand.SqliteStoreIdentity(sqlite),null,
