@@ -60,6 +60,37 @@ public class ReplicaBaselineRepairRequestTests
     }
 
     [Fact]
+    public void LegacyReviewedSerializationKeepsTheOriginalTenFieldPolicyBinding()
+    {
+        var request=Reviewed();
+        var legacy=new {request.OperatorId,request.InitializationOperationId,request.CatalogVersion,request.Sequence,
+            request.SourceOperationId,request.SourceActorId,request.RootId,request.SourcePayloadDigest,request.SourceStoreIdentity,request.TargetFile};
+        Assert.Equal(JsonSerializer.Serialize(legacy),JsonSerializer.Serialize(request));
+        var explicitNeo=request with{SourceProvider="Neo4jOASIS"};
+        Assert.Equal(explicitNeo,ReplicaBaselineRepairCommand.ParseReviewedRequest(JsonSerializer.SerializeToUtf8Bytes(explicitNeo)));
+        Assert.NotEqual(JsonSerializer.Serialize(request),JsonSerializer.Serialize(explicitNeo));
+    }
+
+    [Theory]
+    [InlineData("")] [InlineData("Default")] [InlineData("SQLLiteDBOASIS")] [InlineData("neo4joasis")] [InlineData("EthereumOASIS")]
+    public async Task UnsupportedSourceProfilesFailBeforeAnyNativeComposition(string profile)
+    {
+        var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {
+            HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2}};
+        await Assert.ThrowsAsync<ArgumentException>(()=>ReplicaBaselineRepairCommand.ExecuteAsync(dna,Reviewed() with{SourceProvider=profile},"unused-journal"));
+    }
+
+    [Fact]
+    public void NeoSourceIdentityBindsConfiguredEndpointAndPrincipalWithoutRequestCredentials()
+    {
+        var identity=ReplicaBaselineRepairCommand.NeoStoreIdentity("bolt://127.0.0.1:17687","reader");
+        Assert.StartsWith("neo4j-store:",identity);
+        Assert.NotEqual(identity,ReplicaBaselineRepairCommand.NeoStoreIdentity("bolt://127.0.0.1:17688","reader"));
+        Assert.NotEqual(identity,ReplicaBaselineRepairCommand.NeoStoreIdentity("bolt://127.0.0.1:17687","other"));
+        Assert.Throws<ArgumentException>(()=>ReplicaBaselineRepairCommand.NeoStoreIdentity("bolt://user:inert@127.0.0.1:17687","reader"));
+    }
+
+    [Fact]
     public void OversizeInputIsRejectedBeforeJsonOrNativeWork()
         =>Assert.Throws<InvalidDataException>(()=>ReplicaBaselineRepairCommand.ParseReviewedRequest(new byte[8193]));
 }
