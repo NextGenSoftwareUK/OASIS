@@ -1,0 +1,38 @@
+[
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB5",
+    "exit": 0,
+    "log": "Docs/WIP/Source-Repository-Sync/OASIS-API-Javascript-Package-WEB5-tests.log",
+    "summary": "odules are attached to the client (0.5782ms)\n\u2714 starIgnite/starExtinguish/starStatus pass through to the generated STAR module (0.3811ms)\n\u2714 Holon creation supports a caller-assigned public GUID and updates target that GUID through the route (0.6544ms)\n\u2139 tests 13\n\u2139 suites 0\n\u2139 pass 13\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 619.9108\n"
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB6",
+    "exit": 0,
+    "log": "Docs/WIP/Source-Repository-Sync/OASIS-API-Javascript-Package-WEB6-tests.log",
+    "summary": "rams on a POST action are sent on the URL, not the body (0.3649ms)\n\u2714 missing required route param throws a clear error (0.3951ms)\n\u2714 all 6 generated modules are attached to the client (0.176ms)\n\u2714 setBaseUrl updates the underlying http client (0.1942ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 612.835\n"
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB7",
+    "exit": 0,
+    "log": "Docs/WIP/Source-Repository-Sync/OASIS-API-Javascript-Package-WEB7-tests.log",
+    "summary": "e consumed from the URL, remaining args become the body (0.634ms)\n\u2714 GET requests send remaining args as query string (0.154ms)\n\u2714 missing required route param throws a clear error (0.4325ms)\n\u2714 both generated modules are attached to the client (0.1242ms)\n\u2139 tests 9\n\u2139 suites 0\n\u2139 pass 9\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 136.9851\n"
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB8",
+    "exit": 0,
+    "log": "Docs/WIP/Source-Repository-Sync/OASIS-API-Javascript-Package-WEB8-tests.log",
+    "summary": "ctly (0.6059ms)\n\u2714 TranslateInbound sends its single primitive FromBody param as the raw JSON body (0.3144ms)\n\u2714 AddLink is a POST with all-FromQuery params - no JSON body is sent (0.8457ms)\n\u2714 both generated modules are attached to the client (0.1518ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 141.506\n"
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB9",
+    "exit": 0,
+    "log": "Docs/WIP/Source-Repository-Sync/OASIS-API-Javascript-Package-WEB9-tests.log",
+    "summary": "y and generated operations preserve it on explicit retry (0.4218ms)\n\u2714 setToken attaches Bearer header to subsequent requests (4.1676ms)\n\u2714 singularity module is attached to the client (0.1694ms)\n\u2714 setBaseUrl updates the underlying http client (0.1962ms)\n\u2139 tests 6\n\u2139 suites 0\n\u2139 pass 6\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 121.7467\n"
+  },
+  {
+    "path": "C:/Source/OASIS-API-Javascript-Package-WEB10",
+    "exit": 0,
+    "log": "Docs/WIP/Source-Repository-Sync/OASIS-API-Javascript-Package-WEB10-tests.log",
+    "summary": "ts key and generated operations preserve it on explicit retry (0.4584ms)\n\u2714 setToken attaches Bearer header to subsequent requests (4.3733ms)\n\u2714 source module is attached to the client (0.1619ms)\n\u2714 setBaseUrl updates the underlying http client (0.2002ms)\n\u2139 tests 6\n\u2139 suites 0\n\u2139 pass 6\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 143.7537\n"
+  }
+]

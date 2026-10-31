@@ -1,0 +1,15 @@
+{
+  "blockHash": "0xf159dc6f4902dd7a65cf62f067ab1e598cd50c9c20ce192a8888c14ea8d5ee48",
+  "contractAddress": "0x57c45516efaf35ef1737dfcaea6ea8c67f44dcf4e3687f3eb49bdcfced2b21a7",
+  "codeHash": "0x39cacf5a31331133ee218034e8c7bc379f250a3c86a8c1a1e775c3a3773c82f1",
+  "tokenId": {
+    "U128": "18446744073709551621"
+  },
+  "owner": null,
+  "escrowBeneficiary": null,
+  "totalSupply": "0",
+  "submitted": false,
+  "signingKeysUsed": false,
+  "nativeBeneficiaryQueryVerified": true,
+  "scope": "empty token/beneficiary and supply at this finalized snapshot; not lock/unlock lifecycle acceptance"
+}

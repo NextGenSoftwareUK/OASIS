@@ -1,0 +1,1 @@
+{"id":"a3897810-933b-4276-9a33-694554329dec","checks":24,"providers":[{"provider":"MongoDBOASIS","cycleErrors":6,"ordinaryCount":1,"emptyTerminal":true},{"provider":"SQLLiteDBOASIS","cycleErrors":6,"ordinaryCount":1,"emptyTerminal":true},{"provider":"Neo4jOASIS","cycleErrors":6,"ordinaryCount":1,"emptyTerminal":true}],"exactCleanupVerified":true,"originalFixtureUnchanged":true}

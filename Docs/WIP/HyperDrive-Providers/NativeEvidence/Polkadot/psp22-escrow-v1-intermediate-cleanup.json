@@ -1,0 +1,16 @@
+[
+  {
+    "Path": "C:\\Source\\OASIS\\TestResults\\PolkadotCurrent\\record-contract-target\\oasis-token-escrow-pruned.wasm",
+    "Bytes": 26814,
+    "Sha256": "717156D210D28EC4FD199B2FCF2DA3C8F80E0AC282F1C02D0A8FB62FC572BB94",
+    "Status": "removed",
+    "Recreate": "Same offline token-escrow builder, same target/toolchain"
+  },
+  {
+    "Path": "C:\\Source\\OASIS\\TestResults\\PolkadotCurrent\\record-contract-target\\oasis-token-escrow-optimized.wasm",
+    "Bytes": 23842,
+    "Sha256": "D15FEDB3188A769A574BEBD93E022E8E5E7527D4B55CF8AD1DFF4BED4F828B09",
+    "Status": "removed",
+    "Recreate": "Same offline token-escrow builder, same target/toolchain"
+  }
+]

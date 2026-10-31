@@ -1,596 +1,347 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using System.Threading;
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.Utilities;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-// using Microsoft.Azure.Cosmos;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
-using Nethereum.Signer;
-using Nethereum.Hex.HexConvertors.Extensions;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using NextGenSoftware.Utilities;
 
-namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
+namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
+
+public partial class CosmosBlockChainOASIS
 {
-    public partial class CosmosBlockChainOASIS
+    // Canonical NFT address: CosmWasm contract address followed by '#' and token ID.
+    private (string Contract, string TokenId, string Address) NftLocator(string address, Guid id = default)
     {
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest transation)
+        if (string.IsNullOrWhiteSpace(address) && id != Guid.Empty)
+            address = $"{_contractAddress}#{id:N}";
+        if (string.IsNullOrWhiteSpace(address)) throw new ArgumentException("NFT address is required.");
+        var parts = address.Split('#');
+        if (parts.Length != 2 || string.IsNullOrWhiteSpace(parts[0]) || string.IsNullOrWhiteSpace(parts[1]))
+            throw new ArgumentException("NFT address must be '<contract-address>#<token-id>'.");
+        return (parts[0], parts[1], address);
+    }
+
+    private async Task<string> MintRecipientAsync(IMintWeb3NFTRequest request, string signer)
+    {
+        var addresses = new List<string>();
+        if (!string.IsNullOrWhiteSpace(request.SendToAddressAfterMinting)) addresses.Add(request.SendToAddressAfterMinting);
+        if (request.SendToAvatarAfterMintingId != Guid.Empty)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+            var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.SendToAvatarAfterMintingId, Core.Enums.ProviderType.CosmosBlockChainOASIS);
+            if (wallet.IsError || wallet.Result == null) throw new InvalidOperationException(wallet.Message);
+            addresses.Add(wallet.Result.WalletAddress);
+        }
+        if (!string.IsNullOrWhiteSpace(request.SendToAvatarAfterMintingUsername))
+        {
+            var wallet = await WalletManager.GetAvatarDefaultWalletByUsernameAsync(request.SendToAvatarAfterMintingUsername, providerType: Core.Enums.ProviderType.CosmosBlockChainOASIS);
+            if (wallet.IsError || wallet.Result == null) throw new InvalidOperationException(wallet.Message);
+            addresses.Add(wallet.Result.WalletAddress);
+        }
+        if (!string.IsNullOrWhiteSpace(request.SendToAvatarAfterMintingEmail))
+        {
+            var wallet = await WalletManager.GetAvatarDefaultWalletByEmailAsync(request.SendToAvatarAfterMintingEmail, Core.Enums.ProviderType.CosmosBlockChainOASIS);
+            if (wallet.IsError || wallet.Result == null) throw new InvalidOperationException(wallet.Message);
+            addresses.Add(wallet.Result.WalletAddress);
+        }
+        return ResolveMintRecipientAddresses(addresses, signer);
+    }
+
+    private static string ResolveMintRecipientAddresses(IReadOnlyCollection<string> addresses, string signer)
+    {
+        if (addresses.Any(string.IsNullOrWhiteSpace))
+            throw new InvalidOperationException("Recipient Cosmos wallet has no address.");
+        if (addresses.Distinct(StringComparer.Ordinal).Count() > 1)
+            throw new ArgumentException("Recipient address and avatar identifiers resolve to different Cosmos wallets.");
+        var recipient = addresses.Count == 0 ? signer : addresses.First();
+        if (string.IsNullOrWhiteSpace(recipient)) throw new InvalidOperationException("Cosmos signer has no address.");
+        return recipient;
+    }
+
+    public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest request)
+        => MintNFTAsync(request).GetAwaiter().GetResult();
+
+    public Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request)
+        => MintNFTCoreAsync(request, null, null, CancellationToken.None);
+
+    /// <summary>Persists the original signed mint in the existing admitted execution outbox before broadcast.
+    /// Receipt measurement and settlement remain execution-host responsibilities.</summary>
+    public Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request,
+        UsageExecutionHandle execution, string clientRequestId, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(execution);
+        ArgumentException.ThrowIfNullOrWhiteSpace(clientRequestId);
+        return MintNFTCoreAsync(request, execution, clientRequestId, cancellationToken);
+    }
+
+    private async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTCoreAsync(IMintWeb3NFTRequest request,
+        UsageExecutionHandle execution, string clientRequestId, CancellationToken cancellationToken)
+    {
+        var result = new OASISResult<IWeb3NFTTransactionResponse>();
+        try
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            cancellationToken.ThrowIfCancellationRequested();
+            request = NftMintIntent.Capture(request);
+            NftMetadataProjection.Validate(request.StoreNFTMetaDataOnChain, request.JSONMetaDataURL);
+            if (request.NumberToMint.HasValue && request.NumberToMint != 1)
+                throw new ArgumentException("This NFT call mints one unique token; use separate calls for multiple tokens.");
+            if (request.NFTStandardType.HasValue && request.NFTStandardType != Core.Enums.NFTStandardType.OASISCosmWasm)
+                throw new ArgumentException("OASIS Cosmos custom-asset minting requires OASISCosmWasm, not another chain's standard.");
+            if (request.OnChainProvider.HasValue && request.OnChainProvider != Core.Enums.ProviderType.CosmosBlockChainOASIS
+                && request.OnChainProvider != Core.Enums.ProviderType.Default)
+                throw new ArgumentException("OnChainProvider must select CosmosBlockChainOASIS for this provider.");
+            if (request.Price < 0 || request.Discount < 0 || request.RoyaltyPercentage < 0 || request.RoyaltyPercentage > 100)
+                throw new ArgumentException("Price/discount must be nonnegative and royalty percentage must be between 0 and 100.");
+            if (request.SaleStartDate.HasValue && request.SaleEndDate.HasValue && request.SaleStartDate > request.SaleEndDate)
+                throw new ArgumentException("Sale start must not follow sale end.");
+            var actor = request.MintedByAvatarId;
+            string suppliedKey = null;
+            if (actor != Guid.Empty)
+            {
+                var wallet = await LoadSigningWalletAsync(actor);
+                if (wallet.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet,IWeb3NFTTransactionResponse>(wallet);
+                suppliedKey = wallet.Result.PrivateKey;
+            }
+            var key = await SigningKeyAsync(actor, suppliedKey);
+            var signer = await SignerAddressAsync(key);
+            var recipient = await MintRecipientAsync(request, signer);
+            var contract = string.IsNullOrWhiteSpace(request.CollectionPublicKey) ? _contractAddress : request.CollectionPublicKey;
+            if (string.IsNullOrWhiteSpace(contract)) throw new InvalidOperationException("CosmWasm asset contract is required.");
+            var id = Guid.NewGuid();
+            var locator = $"{contract}#{id:N}";
+            var nft = new Web3NFT
+            {
+                Id = id, NFTTokenAddress = locator, CollectionPublicKey = contract,
+                NFTStandardType = new EnumValue<Core.Enums.NFTStandardType>(Core.Enums.NFTStandardType.OASISCosmWasm),
+                NFTMintedUsingWalletAddress = signer, OASISMintWalletAddress = signer,
+                SendToAddressAfterMinting = recipient, Title = request.Title, Description = request.Description,
+                Symbol = request.Symbol, JSONMetaData = request.JSONMetaData, JSONMetaDataURL = request.JSONMetaDataURL,
+                MemoText = request.MemoText, Image = request.Image, Thumbnail = request.Thumbnail,
+                Price = request.Price ?? 0, Discount = request.Discount ?? 0,
+                RoyaltyPercentage = request.RoyaltyPercentage ?? 0,
+                SellerFeeBasisPoints = checked((uint)(request.RoyaltyPercentage ?? 0) * 100),
+                IsForSale = request.IsForSale ?? false, SaleStartDate = request.SaleStartDate, SaleEndDate = request.SaleEndDate,
+                ImageUrl = request.ImageUrl, ThumbnailUrl = request.ThumbnailUrl,
+                MetaData = request.MetaData == null ? new Dictionary<string, string>() : new Dictionary<string, string>(request.MetaData),
+                Tags = request.Tags?.ToList() ?? new List<string>(), MintedByAvatarId = request.MintedByAvatarId,
+                MintedOn = DateTime.UtcNow, CurrentOwnerAvatarId = request.SendToAvatarAfterMintingId,
+                OnChainProvider = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.CosmosBlockChainOASIS),
+                StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain != false
+            };
+            using var preparationServer = execution == null ? null
+                : CreateNativePreparationServer(execution, clientRequestId, _sdkBackend.ChainId, signer);
+            var hash = await ExecuteAssetAsync(new { nft_mint = new
+            {
+                token_id = id.ToString("N"), recipient, metadata_json = OasisJson.Serialize(NftMetadataProjection.ForOnChainStorage(nft))
+            } }, key, signer, contract, preparationServer, cancellationToken);
+            nft.MintTransactionHash = hash;
+            result.Result = new Web3NFTTransactionResponse { TransactionResult = hash, Web3NFT = nft };
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+        return result;
+    }
+
+    public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
+        => LoadOnChainNFTDataAsync(nftTokenAddress).GetAwaiter().GetResult();
+
+    public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+    {
+        var result = new OASISResult<IWeb3NFT>();
+        try
+        {
+            var locator = NftLocator(nftTokenAddress);
+            var state = await QueryAssetAsync(new { nft = new { token_id = locator.TokenId } }, locator.Contract);
+            if (state.GetProperty("token_id").GetString() != locator.TokenId)
+                throw new InvalidDataException("Contract returned a different NFT ID.");
+            var nft = OasisJson.Deserialize<Web3NFT>(state.GetProperty("metadata_json").GetString());
+            if (nft == null || nft.NFTTokenAddress != locator.Address)
+                throw new InvalidDataException("NFT metadata identity does not match its on-chain address.");
+            var currentOwner = state.GetProperty("owner").GetString();
+            if (nft.SendToAddressAfterMinting != currentOwner) nft.CurrentOwnerAvatarId = Guid.Empty;
+            nft.SendToAddressAfterMinting = currentOwner;
+            nft.MetaData ??= new Dictionary<string, string>();
+            nft.MetaData["CosmosLocked"] = state.GetProperty("locked").GetBoolean().ToString();
+            result.Result = nft;
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+        return result;
+    }
+
+    public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb3NFTRequest request)
+        => SendNFTAsync(request).GetAwaiter().GetResult();
+
+    public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest request)
+    {
+        var result = new OASISResult<IWeb3NFTTransactionResponse>();
+        try
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            // Freeze wallet intent before signer verification can yield; use the same
+            // recipient for native execution and committed ownership verification.
+            var sender = request.FromWalletAddress;
+            var recipient = request.ToWalletAddress;
+            if (string.IsNullOrWhiteSpace(sender) || string.IsNullOrWhiteSpace(recipient))
+                throw new ArgumentException("Sender and recipient NFT wallet addresses are required.");
+            if (request.Amount != 0m && request.Amount != 1m) throw new ArgumentException("A unique NFT transfer amount must be one.");
+            var addresses = new[] { request.TokenAddress, request.FromNFTTokenAddress }
+                .Where(value => !string.IsNullOrWhiteSpace(value)).Distinct(StringComparer.Ordinal).ToList();
+            if (addresses.Count != 1) throw new ArgumentException("Exactly one consistent Cosmos NFT address is required.");
+            var locator = NftLocator(addresses[0]);
+            if (!string.IsNullOrWhiteSpace(request.TokenId) && request.TokenId != locator.TokenId)
+                throw new ArgumentException("NFT token ID conflicts with its address.");
+            var key = await SigningKeyAsync(Guid.Empty, request.OwnerPrivateKey, request.OwnerSeedPhrase, request.OwnerPublicKey);
+            var hash = await TransferNftAsync(locator.Address, sender, recipient, key);
+            result.Result = new Web3NFTTransactionResponse { TransactionResult = hash, SendNFTTransactionResult = hash };
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (transation == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Mint request is required");
-                    return result;
-                }
-
-                // Mint NFT using Cosmos CW721 standard (CosmWasm NFT)
-                var mintToAddress = transation.SendToAddressAfterMinting ?? "";
-                
-                // Get minter address from KeyManager
-                var keysResult = KeyManager.GetProviderPrivateKeysForAvatarById(transation.MintedByAvatarId, Core.Enums.ProviderType.CosmosBlockChainOASIS);
-                if (keysResult.IsError || keysResult.Result == null || keysResult.Result.Count == 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Could not retrieve private key for avatar");
-                    return result;
-                }
-
-                var minterAddress = keysResult.Result[0]; // In production, derive address from private key
-                var contractAddress = _contractAddress ?? "cosmos1nftcontract1234567890abcdef";
-
-                // Create mint message for CW721 NFT
-                var mintMessage = new
-                {
-                    type = "/cosmwasm.wasm.v1.MsgExecuteContract",
-                    value = new
-                    {
-                        sender = minterAddress,
-                        contract = contractAddress,
-                        msg = new Dictionary<string, object>
-                        {
-                            ["mint"] = new Dictionary<string, object>
-                            {
-                                ["token_id"] = CreateDeterministicGuid($"{ProviderType.Value}:nft:{mintToAddress}:{transation.ImageUrl ?? ""}").ToString(),
-                                ["owner"] = mintToAddress,
-                                ["token_uri"] = transation.ImageUrl ?? "",
-                                ["extension"] = new Dictionary<string, object>
-                                {
-                                    ["name"] = transation.Title ?? "Cosmos NFT",
-                                    ["description"] = transation.Description ?? "NFT minted via OASIS"
-                                }
-                            }
-                        },
-                        funds = new object[] { }
-                    }
-                };
-
-                var transactionPayload = new
-                {
-                    body = new
-                    {
-                        messages = new[] { mintMessage },
-                        memo = $"OASIS NFT mint for {transation.MintedByAvatarId}"
-                    },
-                    auth_info = new
-                    {
-                        signer_infos = new object[] { },
-                        fee = new
-                        {
-                            amount = new[] { new { denom = "uatom", amount = "5000" } },
-                            gas_limit = "200000"
-                        }
-                    }
-                };
-
-                var json = JsonSerializer.Serialize(transactionPayload);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var httpResponse = await _httpClient.PostAsync("/cosmos/tx/v1beta1/txs", content);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var txHash = txResponse.TryGetProperty("tx_response", out var txResp) &&
-                                 txResp.TryGetProperty("txhash", out var hash) ? hash.GetString() : "";
-
-                    result.Result = new Web3NFTTransactionResponse
-                    {
-                        TransactionResult = txHash ?? "NFT mint transaction submitted",
-                        Web3NFT = new Web3NFT
-                        {
-                            Title = transation.Title ?? "Cosmos NFT",
-                            Description = transation.Description ?? "NFT minted via OASIS",
-                            ImageUrl = transation.ImageUrl ?? "",
-                            NFTMintedUsingWalletAddress = minterAddress
-                        }
-                    };
-                    result.IsError = false;
-                    result.Message = "Cosmos NFT minted successfully";
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"Failed to mint Cosmos NFT: {httpResponse.StatusCode} - {errorContent}");
-                }
+                var loaded = await LoadOnChainNFTDataAsync(locator.Address);
+                if (loaded.IsError || loaded.Result == null)
+                    throw new InvalidOperationException(loaded.Message ?? "Committed NFT readback returned no NFT.", loaded.Exception);
+                if (!string.Equals(loaded.Result.SendToAddressAfterMinting, recipient, StringComparison.Ordinal))
+                    throw new InvalidDataException("Post-transfer NFT ownership differs from the requested recipient.");
+                loaded.Result.SendNFTTransactionHash = hash;
+                result.Result.Web3NFT = loaded.Result;
             }
-            catch (Exception ex)
+            catch (Exception readbackError)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error minting NFT on Cosmos: {ex.Message}", ex);
+                throw new CosmosNativeMutationReconciliationException(
+                    $"NFT transfer committed as {hash}, but readback failed: {readbackError.Message}",
+                    hash, true, readbackError);
             }
-            return result;
         }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+        return result;
+    }
 
-        public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
+    private async Task<string> TransferNftAsync(string address, string from, string recipient, string key)
+    {
+        if (string.IsNullOrWhiteSpace(from) || string.IsNullOrWhiteSpace(recipient))
+            throw new ArgumentException("Sender and recipient NFT wallet addresses are required.");
+        var locator = NftLocator(address);
+        return await ExecuteAssetAsync(new { nft_transfer = new { token_id = locator.TokenId, recipient } }, key, from, locator.Contract);
+    }
+
+    public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
+        => BurnNFTAsync(request).GetAwaiter().GetResult();
+    public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+    {
+        var result = new OASISResult<IWeb3NFTTransactionResponse>();
+        try
         {
-            return BurnNFTAsync(request).Result;
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            var locator = NftLocator(request.NFTTokenAddress, request.Web3NFTId);
+            var actor = request.BurntByAvatarId;
+            var suppliedKey = request.OwnerPrivateKey;
+            var seed = request.OwnerSeedPhrase;
+            var publicKey = request.OwnerPublicKey;
+            if (actor != Guid.Empty && string.IsNullOrWhiteSpace(suppliedKey) && string.IsNullOrWhiteSpace(seed))
+            {
+                var wallet = await LoadSigningWalletAsync(actor);
+                if (wallet.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet,IWeb3NFTTransactionResponse>(wallet);
+                suppliedKey = wallet.Result.PrivateKey;
+            }
+            var key = await SigningKeyAsync(actor, suppliedKey, seed, publicKey);
+            var hash = await ExecuteAssetAsync(new { nft_burn = new { token_id = locator.TokenId } }, key, contractAddress: locator.Contract);
+            result.Result = new Web3NFTTransactionResponse { TransactionResult = hash };
         }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+        return result;
+    }
 
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+    public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
+        => LockNFTAsync(request).GetAwaiter().GetResult();
+    public Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
+        => ChangeNftLockAsync(request?.NFTTokenAddress, request?.Web3NFTId ?? Guid.Empty, request?.LockedByAvatarId ?? Guid.Empty, true);
+    public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request)
+        => UnlockNFTAsync(request).GetAwaiter().GetResult();
+    public Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
+        => ChangeNftLockAsync(request?.NFTTokenAddress, request?.Web3NFTId ?? Guid.Empty, request?.UnlockedByAvatarId ?? Guid.Empty, false);
+
+    private async Task<OASISResult<IWeb3NFTTransactionResponse>> ChangeNftLockAsync(string address, Guid id, Guid actor, bool locked)
+    {
+        var result = new OASISResult<IWeb3NFTTransactionResponse>();
+        try
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-            try
+            var locator = NftLocator(address, id);
+            string suppliedKey = null;
+            if (actor != Guid.Empty)
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.NFTTokenAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "NFT token address is required");
-                    return result;
-                }
-
-                // Cosmos NFT burn using CW721 standard (CosmWasm NFT standard)
-                // Build burn message for Cosmos transaction
-                var burnMessage = new
-                {
-                    type = "/cosmwasm.wasm.v1.MsgExecuteContract",
-                    value = new
-                    {
-                        sender = request.OwnerPublicKey ?? "",
-                        contract = request.NFTTokenAddress,
-                        msg = new Dictionary<string, object>
-                        {
-                            ["burn"] = new Dictionary<string, object>
-                            {
-                                ["token_id"] = request.Web3NFTId.ToString()
-                            }
-                        },
-                        funds = new object[] { }
-                    }
-                };
-
-                var transactionPayload = new
-                {
-                    body = new
-                    {
-                        messages = new[] { burnMessage },
-                        memo = "OASIS NFT burn transaction"
-                    },
-                    auth_info = new
-                    {
-                        signer_infos = new object[] { },
-                        fee = new
-                        {
-                            amount = new[] { new { denom = "uatom", amount = "5000" } },
-                            gas_limit = "200000"
-                        }
-                    }
-                };
-
-                var json = JsonSerializer.Serialize(transactionPayload);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var httpResponse = await _httpClient.PostAsync("/cosmos/tx/v1beta1/txs", content);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var txHash = txResponse.TryGetProperty("tx_response", out var txResp) &&
-                                 txResp.TryGetProperty("txhash", out var hash) ? hash.GetString() : "";
-
-                    result.Result = new Web3NFTTransactionResponse
-                    {
-                        TransactionResult = txHash ?? "NFT burn transaction submitted"
-                    };
-                    result.IsError = false;
-                    result.Message = "Cosmos NFT burned successfully";
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"Failed to burn Cosmos NFT: {httpResponse.StatusCode} - {errorContent}");
-                }
+                var wallet = await LoadSigningWalletAsync(actor);
+                if (wallet.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet,IWeb3NFTTransactionResponse>(wallet);
+                suppliedKey = wallet.Result.PrivateKey;
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error burning NFT: {ex.Message}", ex);
-            }
-            return result;
+            var key = await SigningKeyAsync(actor, suppliedKey);
+            var hash = await ExecuteAssetAsync(new { nft_set_locked = new { token_id = locator.TokenId, locked } }, key, contractAddress: locator.Contract);
+            result.Result = new Web3NFTTransactionResponse { TransactionResult = hash };
         }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+        return result;
+    }
 
-        public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
+    public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress, string tokenId, string senderAccountAddress, string senderPrivateKey)
+    {
+        var result = new OASISResult<BridgeTransactionResponse>();
+        try
         {
-            return LockNFTAsync(request).Result;
+            var locator = NftLocator(nftTokenAddress);
+            if (tokenId != locator.TokenId) throw new ArgumentException("NFT bridge token ID conflicts with its address.");
+            var pool = await SignerAddressAsync(await SigningKeyAsync(Guid.Empty));
+            var hash = await TransferNftAsync(nftTokenAddress, senderAccountAddress, pool, senderPrivateKey);
+            result.Result = new BridgeTransactionResponse { TransactionId = hash, IsSuccessful = true, Status = BridgeTransactionStatus.Completed };
         }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+        return result;
+    }
 
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
+    public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
+    {
+        var result = new OASISResult<BridgeTransactionResponse>();
+        try
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-            try
+            var locator = NftLocator(nftTokenAddress);
+            if (tokenId != locator.TokenId) throw new ArgumentException("NFT bridge token ID conflicts with its address.");
+            var key = await SigningKeyAsync(Guid.Empty);
+            var pool = await SignerAddressAsync(key);
+            if (!string.IsNullOrEmpty(sourceTransactionHash))
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.NFTTokenAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "NFT token address is required");
-                    return result;
-                }
-
-                // Lock NFT by transferring to bridge pool address
-                var bridgePoolAddress = _contractAddress ?? "cosmos1bridgepool1234567890abcdef";
-                
-                var sendRequest = new SendWeb3NFTRequest
-                {
-                    TokenAddress = request.NFTTokenAddress,
-                    FromWalletAddress = "", // Will be retrieved from KeyManager
-                    ToWalletAddress = bridgePoolAddress,
-                    TokenId = request.Web3NFTId.ToString(),
-                    Amount = 1
-                };
-
-                // Get owner address from KeyManager
-                var keysResult = KeyManager.GetProviderPrivateKeysForAvatarById(request.LockedByAvatarId, Core.Enums.ProviderType.CosmosBlockChainOASIS);
-                if (keysResult.IsError || keysResult.Result == null || keysResult.Result.Count == 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Could not retrieve private key for avatar");
-                    return result;
-                }
-
-                sendRequest.FromWalletAddress = keysResult.Result[0]; // In production, derive address from private key
-
-                return await SendNFTAsync(sendRequest);
+                if (!System.Text.RegularExpressions.Regex.IsMatch(sourceTransactionHash, @"\A[0-9a-fA-F]{64}\z"))
+                    throw new ArgumentException("Exact Cosmos source transaction hash required.");
+                var proof = await _sdkBackend.InvokeAsync("verifyNftCustodyReceipt", new {
+                    transactionHash = sourceTransactionHash, contractAddress = locator.Contract, tokenId = locator.TokenId, custody = pool });
+                if (!proof.GetProperty("verified").GetBoolean() || !string.Equals(proof.GetProperty("transactionHash").GetString(), sourceTransactionHash, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("Cosmos source custody receipt identity was not verified.");
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error locking NFT: {ex.Message}", ex);
-            }
-            return result;
+            // Release the existing escrowed NFT. Cross-chain provenance is the bridge coordinator's responsibility.
+            var hash = await TransferNftAsync(nftTokenAddress, pool, receiverAccountAddress, key);
+            result.Result = new BridgeTransactionResponse { TransactionId = hash, IsSuccessful = true, Status = BridgeTransactionStatus.Completed };
         }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+        return result;
+    }
 
-        public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request)
-        {
-            return UnlockNFTAsync(request).Result;
-        }
-
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
-        {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.NFTTokenAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "NFT token address is required");
-                    return result;
-                }
-
-                // Unlock NFT by transferring from bridge pool to receiver
-                var bridgePoolAddress = _contractAddress ?? "cosmos1bridgepool1234567890abcdef";
-                
-                // Get receiver address from KeyManager
-                var keysResult = KeyManager.GetProviderPrivateKeysForAvatarById(request.UnlockedByAvatarId, Core.Enums.ProviderType.CosmosBlockChainOASIS);
-                if (keysResult.IsError || keysResult.Result == null || keysResult.Result.Count == 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Could not retrieve private key for avatar");
-                    return result;
-                }
-
-                var receiverAddress = keysResult.Result[0]; // In production, derive address from private key
-                
-                var sendRequest = new SendWeb3NFTRequest
-                {
-                    TokenAddress = request.NFTTokenAddress,
-                    FromWalletAddress = bridgePoolAddress,
-                    ToWalletAddress = receiverAddress,
-                    TokenId = request.Web3NFTId.ToString(),
-                    Amount = 1
-                };
-
-                return await SendNFTAsync(sendRequest);
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error unlocking NFT: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress, string tokenId, string senderAccountAddress, string senderPrivateKey)
-        {
-            var result = new OASISResult<BridgeTransactionResponse>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) ||
-                    string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
-                {
-                    OASISErrorHandling.HandleError(ref result, "NFT token address, token ID, sender address, and private key are required");
-                    return result;
-                }
-
-                // Lock NFT by transferring to bridge pool
-                var lockRequest = new LockWeb3NFTRequest
-                {
-                    NFTTokenAddress = nftTokenAddress,
-                    Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
-                    LockedByAvatarId = Guid.Empty // Would be retrieved from senderAccountAddress in production
-                };
-
-                var lockResult = await LockNFTAsync(lockRequest);
-                
-                if (lockResult.IsError || lockResult.Result == null)
-                {
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = string.Empty,
-                        IsSuccessful = false,
-                        ErrorMessage = lockResult.Message,
-                        Status = BridgeTransactionStatus.Canceled
-                    };
-                    OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {lockResult.Message}");
-                    return result;
-                }
-
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = lockResult.Result.TransactionResult ?? string.Empty,
-                    IsSuccessful = !lockResult.IsError,
-                    Status = BridgeTransactionStatus.Pending
-                };
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error withdrawing NFT: {ex.Message}", ex);
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = ex.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-            }
-            return result;
-        }
-
-        public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
-        {
-            var result = new OASISResult<BridgeTransactionResponse>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "NFT token address and receiver address are required");
-                    return result;
-                }
-
-                // Unlock NFT by transferring from bridge pool to receiver
-                var unlockRequest = new UnlockWeb3NFTRequest
-                {
-                    NFTTokenAddress = nftTokenAddress,
-                    Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
-                    UnlockedByAvatarId = Guid.Empty // Would be retrieved from receiverAccountAddress in production
-                };
-
-                var unlockResult = await UnlockNFTAsync(unlockRequest);
-                
-                if (unlockResult.IsError || unlockResult.Result == null)
-                {
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = string.Empty,
-                        IsSuccessful = false,
-                        ErrorMessage = unlockResult.Message,
-                        Status = BridgeTransactionStatus.Canceled
-                    };
-                    OASISErrorHandling.HandleError(ref result, $"Failed to unlock NFT: {unlockResult.Message}");
-                    return result;
-                }
-
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = unlockResult.Result.TransactionResult ?? string.Empty,
-                    IsSuccessful = !unlockResult.IsError,
-                    Status = BridgeTransactionStatus.Completed
-                };
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error depositing NFT: {ex.Message}", ex);
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = ex.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-            }
-            return result;
-        }
-
-        public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
-        {
-            return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
-        }
-
-        public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
-        {
-            var result = new OASISResult<IWeb3NFT>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (string.IsNullOrWhiteSpace(nftTokenAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "NFT token address is required");
-                    return result;
-                }
-
-                // Query Cosmos NFT contract for NFT info using CW721 standard
-                // Query contract info
-                var queryPayload = new
-                {
-                    contract_info = new { }
-                };
-
-                var queryJson = JsonSerializer.Serialize(queryPayload);
-                var queryContent = new StringContent(queryJson, Encoding.UTF8, "application/json");
-
-                var httpResponse = await _httpClient.PostAsync($"/cosmwasm/wasm/v1/contract/{nftTokenAddress}/smart", queryContent);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var contractData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var nft = new Web3NFT
-                    {
-                        NFTTokenAddress = nftTokenAddress,
-                        Title = contractData.TryGetProperty("data", out var data) && 
-                                data.TryGetProperty("name", out var name) ? name.GetString() : "Cosmos NFT",
-                        Description = contractData.TryGetProperty("data", out var data2) && 
-                                     data2.TryGetProperty("description", out var desc) ? desc.GetString() : "NFT from Cosmos blockchain",
-                        Symbol = contractData.TryGetProperty("data", out var data3) && 
-                                data3.TryGetProperty("symbol", out var symbol) ? symbol.GetString() : "COSMOS"
-                    };
-
-                    result.Result = nft;
-                    result.IsError = false;
-                    result.Message = "NFT data loaded successfully from Cosmos blockchain";
-                }
-                else
-                {
-                    // Fallback: create basic NFT info
-                    result.Result = new Web3NFT
-                    {
-                        NFTTokenAddress = nftTokenAddress,
-                        Title = "Cosmos NFT",
-                        Description = "NFT from Cosmos blockchain",
-                        Symbol = "COSMOS"
-                    };
-                    result.IsError = false;
-                    result.Message = "NFT data loaded from Cosmos blockchain (basic info)";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading NFT data from Cosmos: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
-        {
-            // Cosmos provider does not generate native code from STAR metadata yet.
-            return true;
-        }
-
-
-        public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
-        {
-            return SendTokenAsync(request).Result;
-        }
-
+    public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
+    {
+        if (celestialBody == null || string.IsNullOrWhiteSpace(outputFolder) || string.IsNullOrWhiteSpace(nativeSource))
+            throw new ArgumentException("Celestial body, output folder and generated Rust source are required.");
+        var sourceDirectory = Path.Combine(Path.GetFullPath(outputFolder), "src");
+        Directory.CreateDirectory(sourceDirectory);
+        File.WriteAllText(Path.Combine(sourceDirectory, "lib.rs"), nativeSource, new System.Text.UTF8Encoding(false));
+        return true; // Source was actually written; compilation is a separate caller-owned step.
     }
 }

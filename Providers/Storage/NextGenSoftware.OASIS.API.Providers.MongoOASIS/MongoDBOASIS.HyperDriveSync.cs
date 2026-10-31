@@ -847,6 +847,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             try
             {
                 await EnsureSyncInitializedAsync(cancellationToken).ConfigureAwait(false);
+                // Avoid acquiring/releasing a write lease merely to discover an empty outbox.
+                // The authoritative ordered-head read and conditional claim remain below.
+                if (!await Database.MongoDB.GetCollection<BsonDocument>(SyncFanOutCollection)
+                    .Find(Builders<BsonDocument>.Filter.Eq("completedUtc", BsonNull.Value))
+                    .AnyAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    result.Result = new HostedFanOutClaim { LeaseAcquired = false };
+                    result.IsLoaded = true;
+                    return result;
+                }
                 DateTime now = DateTime.UtcNow;
                 var leaseFilter = Builders<BsonDocument>.Filter.Eq("_id", "ordered-dispatcher") &
                     (Builders<BsonDocument>.Filter.Eq("leaseOwner", workerId) |

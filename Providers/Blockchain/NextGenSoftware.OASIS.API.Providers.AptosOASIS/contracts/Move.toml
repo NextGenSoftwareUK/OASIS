@@ -1,0 +1,11 @@
+[package]
+name = "OasisStorage"
+version = "1.0.0"
+
+[addresses]
+oasis = "_"
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-framework.git"
+rev = "mainnet"
+subdir = "aptos-framework"

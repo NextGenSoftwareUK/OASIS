@@ -1,0 +1,387 @@
+{
+  "schemaVersion": 1,
+  "results": [
+    {
+      "provider": "EthereumOASIS",
+      "suite": "core-storage-v1",
+      "mode": "blocked-before-native",
+      "passed": 0,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-ethereumoasis-current.json",
+      "sha256": "95d79b93f8d3448f3f9bf25ba9deeded885c14343a53f074cb4111ae3c7cba5e",
+      "blockers": [
+        "async: configuration: System.InvalidOperationException",
+        "sync: configuration: System.InvalidOperationException"
+      ]
+    },
+    {
+      "provider": "ArbitrumOASIS",
+      "suite": "core-storage-v1",
+      "mode": "blocked-before-native",
+      "passed": 0,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-arbitrumoasis-current.json",
+      "sha256": "97e2a0c50249af2cb0ac662221e077b8389a6e38af2393fdb3dd50c3ddb2807f",
+      "blockers": [
+        "async: configuration: System.InvalidOperationException",
+        "sync: configuration: System.InvalidOperationException"
+      ]
+    },
+    {
+      "provider": "PolygonOASIS",
+      "suite": "core-storage-v1",
+      "mode": "blocked-before-native",
+      "passed": 0,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-polygonoasis-current.json",
+      "sha256": "655738bb849506547ff7a78de349d0ce814b3216b84558eef4d9c854a32599da",
+      "blockers": [
+        "async: configuration: System.InvalidOperationException",
+        "sync: configuration: System.InvalidOperationException"
+      ]
+    },
+    {
+      "provider": "AWSS3OASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-awss3oasis-current.json",
+      "sha256": "4946725d183ecbfdb39b2b222bab809cef90ced1171c4622699be3cef73b1d1b",
+      "blockers": [
+        "Shipping AWSS3OASIS official SDK adapter verified on MinIO compatible service only; hosted AWS S3, production IAM, all-interface coverage and broader routing remain open."
+      ]
+    },
+    {
+      "provider": "RedisOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-redisoasis-current.json",
+      "sha256": "8d0ba64d3580855e1b1795bb04517114631460d6734ae5e57b68a2e528b4e3da",
+      "blockers": []
+    },
+    {
+      "provider": "OracleDBOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-oracledboasis-current.json",
+      "sha256": "82ccdc458e33f210cf6b2c36b10dec89b125342fba12fc6822624a8f13c47c84",
+      "blockers": []
+    },
+    {
+      "provider": "KeyDBOASIS",
+      "suite": "core-storage-v2",
+      "mode": "controlled",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-keydboasis-current.json",
+      "sha256": "9124c51e0d60cb846abe62385f3287c71b1b5b8f3650c3c95dc255869b76c748",
+      "blockers": []
+    },
+    {
+      "provider": "ValKeyOASIS",
+      "suite": "core-storage-v2",
+      "mode": "controlled",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-valkeyoasis-current.json",
+      "sha256": "797522ac338635f66e84d1671aa5acdaf224e725af05b1e3c1d218e752e7aa5e",
+      "blockers": []
+    },
+    {
+      "provider": "DragonflyOASIS",
+      "suite": "core-storage-v2",
+      "mode": "controlled",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-dragonflyoasis-current.json",
+      "sha256": "072ee08b11cb18e35e7362bb01a538f3b2cda2cbd03b579e29237a54e900ef10",
+      "blockers": []
+    },
+    {
+      "provider": "GarnetOASIS",
+      "suite": "core-storage-v2",
+      "mode": "controlled",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-garnetoasis-current.json",
+      "sha256": "d7120f6681f094953f0eee15f7c2800db62a5808f54838d82ebb0120ad271f04",
+      "blockers": []
+    },
+    {
+      "provider": "SOLANAOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 4,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-solanaoasis-current.json",
+      "sha256": "015d2309179702b49090a99e2de2140396c51883f47c5a02c865b4d71ebd6783",
+      "blockers": [
+        "async: avatar-id: System.InvalidOperationException",
+        "sync: avatar-id: System.InvalidOperationException"
+      ]
+    },
+    {
+      "provider": "CosmosBlockChainOASIS",
+      "suite": "core-storage-v2",
+      "mode": "blocked-before-native",
+      "passed": 0,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-cosmosblockchainoasis-current.json",
+      "sha256": "3e861f694560ef04b44d84ccef6077927954645198966fe93e9bc4bfa6cc6b3a",
+      "blockers": [
+        "async: configuration: System.InvalidOperationException",
+        "sync: configuration: System.InvalidOperationException"
+      ]
+    },
+    {
+      "provider": "MongoDBOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-mongodboasis-current.json",
+      "sha256": "4b46fadab4539c7034b6afc2bc18ead18b335f1bea70c0078a631326adde1fab",
+      "blockers": []
+    },
+    {
+      "provider": "AzureCosmosDBOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-azurecosmosdboasis-current.json",
+      "sha256": "0f07255be037cc31324085046d4363ef5b25c9da6ed24c70099d100d70844c45",
+      "blockers": []
+    },
+    {
+      "provider": "GoogleCloudOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-googlecloudoasis-current.json",
+      "sha256": "a342d0ed9fb94193ca95de88b3222e62db037aaac4ae833b9fa8bbde6d03a7e0",
+      "blockers": []
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-neo4joasis-current.json",
+      "sha256": "35c91c8a78f48bd84639ac4a1f1793d5daa849280d8d34c9ef9370fb8f13db89",
+      "blockers": []
+    },
+    {
+      "provider": "PostgreSQLOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-postgresqloasis-current.json",
+      "sha256": "3e6afdc4bf364acb414c7d68b2c1082e56661587a120bce283d1dfd84550f168",
+      "blockers": []
+    },
+    {
+      "provider": "AWSOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-awsoasis-current.json",
+      "sha256": "fb946f3374c56ef3edcab06c6e61e1e735b90afeeb8f6af3f4553c5ee805d8a3",
+      "blockers": []
+    },
+    {
+      "provider": "DynamoDBOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-dynamodboasis-current.json",
+      "sha256": "18ec94a32d1097939badbcd369e03db4533a0d3389f42555af99142d553fc429",
+      "blockers": []
+    },
+    {
+      "provider": "ActivityPubOASIS",
+      "suite": "capability-v1",
+      "mode": "native",
+      "passed": 5,
+      "total": 5,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-activitypuboasis-current.json",
+      "sha256": "cea9d9793ee2dde71afd3770b19b86433582f2abfa8186a114c9e6cba59be77c",
+      "blockers": []
+    },
+    {
+      "provider": "LocalFileOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-localfile-current.json",
+      "sha256": "8337aff5b9bdf797b8ba6dd7483806a0f70adcf3e0505c9cf45cd446624bf2f8",
+      "blockers": []
+    },
+    {
+      "provider": "AzureStorageOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-azurestorageoasis-current.json",
+      "sha256": "aa3290ad148e8f761c6b182051428e7ade15256f4b995ae163a5ec28f925a870",
+      "blockers": []
+    },
+    {
+      "provider": "IPFSOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-ipfsoasis-current.json",
+      "sha256": "d65463641ba8999e30f774dc2c633c6bd6d2a7944a0a5fcf8df175e9f09fbd78",
+      "blockers": []
+    },
+    {
+      "provider": "SOLIDOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-solidoasis-current.json",
+      "sha256": "f29b8cdfa9aac1f4aaeb33def6558c84e6d954f35d812e9de368d8ff5a3d4c91",
+      "blockers": []
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-sqllitedboasis-current.json",
+      "sha256": "29f7cbde398613132474899157b7c16334a882fd2d216b1f32bd288cf0942f59",
+      "blockers": []
+    },
+    {
+      "provider": "DuckDBOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 2,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-duckdboasis-current.json",
+      "sha256": "f6db9356707d817dc6a1290ecf9a77036a914cb3100b85b45b25ef83f7bb05cc",
+      "blockers": [
+        "async: avatar-save: System.InvalidOperationException [save acknowledgement/count]",
+        "sync: avatar-save: System.InvalidOperationException [save acknowledgement/count]"
+      ]
+    }
+  ],
+  "providerBlockers": {
+    "PostgreSQLOASIS": [
+      "Canonical native suite12/52 stopped at detail-id acknowledgement; missing LoadedCount fixed and original-fixture read regression2PASS, full-suite rerun pending reviewed fixture cleanup; no routing/recovery depth"
+    ],
+    "CockroachDBOASIS": [
+      "SQL family unit gate90PASS is not native product conformance; product factory/access still pending"
+    ],
+    "TimescaleDBOASIS": [
+      "SQL family unit gate90PASS is not native product conformance; product factory/access still pending"
+    ],
+    "EthereumOASIS": [
+      "V2 shared Nethereum factory bound; loopback config/runtime prerequisite absent; four factory checks and BootLoader build are not native conformance"
+    ],
+    "ArbitrumOASIS": [
+      "V2 shared Nethereum factory bound; loopback config/runtime prerequisite absent; four factory checks and BootLoader build are not native conformance"
+    ],
+    "PolygonOASIS": [
+      "V2 shared Nethereum factory bound; loopback config/runtime prerequisite absent; four factory checks and BootLoader build are not native conformance"
+    ],
+    "GoogleMapsOASIS": [
+      "Source-reviewed legacy map facade contains 46 literal success returns without a native client; real map adapter/read-only capability probe required, not a storage-suite candidate"
+    ],
+    "HEREMapsOASIS": [
+      "Source-reviewed legacy map facade contains 46 literal success returns without a native client; real map adapter/read-only capability probe required, not a storage-suite candidate"
+    ],
+    "MapLibreOASIS": [
+      "Source-reviewed legacy map facade contains 46 literal success returns without a native client; real map adapter/read-only capability probe required, not a storage-suite candidate"
+    ],
+    "NianticLightshipOASIS": [
+      "Source-reviewed legacy map facade contains 46 literal success returns without a native client; real map adapter/read-only capability probe required, not a storage-suite candidate"
+    ],
+    "WRLD3DOASIS": [
+      "Source-reviewed legacy map facade contains 47 literal success returns without a native client; real map adapter/read-only capability probe required, not a storage-suite candidate"
+    ],
+    "AWSOASIS": [
+      "Canonical shipping factory bound; existing stopped Dynamo container mounts a missing pinned runtime JAR; restore/review that same environment before native baseline, never silently reset old data; 27 factory controls are not native conformance"
+    ],
+    "DynamoDBOASIS": [
+      "Canonical shipping factory bound; existing stopped Dynamo container mounts a missing pinned runtime JAR; restore/review that same environment before native baseline, never silently reset old data; 27 factory controls are not native conformance"
+    ],
+    "AWSS3OASIS": [
+      "Shipping AWSS3OASIS official SDK adapter verified on MinIO compatible service only; hosted AWS S3, production IAM, all-interface coverage and broader routing remain open."
+    ],
+    "RedisOASIS": [],
+    "KeyDBOASIS": [
+      "Thin facade shares the verified Redis SDK/record policy; 52/52 controlled checks are not native acceptance; actual product runtime/configuration and conditional/scan primitives remain unverified; legacy plaintext layout is refused, no automatic migration"
+    ],
+    "ValKeyOASIS": [
+      "Thin facade shares the verified Redis SDK/record policy; 52/52 controlled checks are not native acceptance; actual product runtime/configuration and conditional/scan primitives remain unverified; legacy plaintext layout is refused, no automatic migration"
+    ],
+    "DragonflyOASIS": [
+      "Thin facade shares the verified Redis SDK/record policy; 52/52 controlled checks are not native acceptance; actual product runtime/configuration and conditional/scan primitives remain unverified; legacy plaintext layout is refused, no automatic migration"
+    ],
+    "GarnetOASIS": [
+      "Thin facade shares the verified Redis SDK/record policy; 52/52 controlled checks are not native acceptance; actual product runtime/configuration and conditional/scan primitives remain unverified; legacy plaintext layout is refused, no automatic migration"
+    ],
+    "IPFSOASIS": [
+      "Native core-storage-v2 baseline52/52 verified, sync/async26 each, exact fixture cleanup complete;178 controlled tests pass. Reusable owned offline environment ready. CQL remains unenrolled; direct-CID versus named persistent-index execution and full lifecycle/concurrency contracts remain open."
+    ],
+    "PinataOASIS": [
+      "Real authenticated pin/gateway HTTP transport exists, but mutable GUID index, encrypted record contract, result acknowledgements and graph/version semantics need canonical-suite binding/review; existing pin service is not interchangeable with Kubo repository ownership. No configured isolated account/fixture used; no public pin/write dispatched."
+    ],
+    "FilecoinOASIS": [
+      "Lotus HTTP RPC reads actors/CIDs, but shipping SaveAvatar and SaveAvatarDetail explicitly reject record persistence; chain addresses are not an implementation of the common avatar record contract. Email lookup and metadata query explicitly unsupported. Native RPC/SDK detection is not storage conformance; no public RPC or paid deal submitted."
+    ],
+    "SOLANAOASIS": [
+      "Current canonical v2 native gate remains4/52: activation/avatar-save pass both modes, avatar-id fails. Hash-bound read-only probe of both original IDs proves collection decoding fails at DecodeStoredMemoAsync line68 because a referenced finalized memo chunk is unavailable. No cause/timing of chunk unavailability or affected commit identity proved; do not label this an acknowledgement bug or silently skip broken history. Two original synthetic avatars/ledger/report preserved; no replay/reset/cleanup/new application writes. Durable retrieval/history completeness remains an implementation/acceptance blocker, not a conformance pass."
+    ],
+    "CosmosBlockChainOASIS": [
+      "Canonical v2 shipping factory builds; both modes blocked before native dispatch (0/52). Retained wasmd container/contract state is preserved, but the source SDK dependency junction points at deleted old-worktree node_modules. Pinned CosmJS0.39.0 requires one canonical repair/restore; automatic approval review rejected the combined repair/npm command before execution (no detailed reason). No SDK download, link deletion, node start, key retrieval, deployment or write performed. Old HyperDriveCosmos evidence directory absent; unknown historical outcomes remain unverified, never reset or replayed."
+    ],
+    "GoogleCloudOASIS": [
+      "Firestore backend native core-storage-v2 52/52 passes on retained emulator1.22.0 using explicit synthetic project/named databases. This does not prove GCS, BigQuery, hosted-account acceptance, or restoration/durability of old missing GoogleCurrent export. Legacy checkpoint absent at both documented paths; no restoration/reset/reconstruction claim."
+    ],
+    "SOLIDOASIS": [
+      "Native core-storage-v2 baseline52/52 verified in fresh isolated demo Pod on retained pinned CSS environment, sync/async26 each and exact fixture cleanup complete.362 controlled tests pass. Original delete outcomes independently reconciled without replay. CQL point/index profile and full common demo remain open; storage conformance is not CQL enrollment."
+    ],
+    "FirebaseOASIS": [
+      "Firebase Realtime Database REST adapter:23 controlled tests pass after read/protocol error preservation and JSON-safe query encoding;15 regression cases reproduced red before fix. Native shared-suite binding and Realtime Database runtime/access pending. Existing Firestore emulator is a different product; no native acceptance claim."
+    ],
+    "AppwriteOASIS": [
+      "Appwrite REST read boundary:19 controlled unit cases pass;13 targeted regressions reproduced red before fixes. HTTP point/page failures and malformed/incomplete envelopes now fail visibly; boolean selector array syntax fixed. Native service, shared-suite run, deployed API query/pagination compatibility and full interfaces remain open."
+    ],
+    "PocketBaseOASIS": [
+      "PocketBase official REST:24 controlled tests pass after error preservation, complete page traversal/validation and modern superuser authentication fixes.15 targeted regressions reproduced red. No native service contacted; canonical suite, deployed API/auth/rules, selector escaping and full interfaces remain open."
+    ],
+    "ConvexOASIS": [
+      "Convex Function API boundary:20 controlled tests pass,15 regressions reproduced red. Fixes status/value envelope, explicit JSON format, deployment-key scheme and HTTP status preservation. Claimed companion oasis/avatars and oasis/holons modules are not shipped; implementation/deployment, native shared suite and full interfaces remain open."
+    ],
+    "NeonOASIS": [
+      "Thin PostgreSqlFamilyProviderBase adapter with existing Npgsql9.0.3;10 controlled cases pass,4 regressions red before fix. Correct pooler hostname/port behavior and verified TLS on known single Neon hosts. Hosted native suite, schema compatibility and full interfaces remain open."
+    ],
+    "FaunaOASIS": [
+      "Default db.fauna.com DNS host-not-found observed28October; no configured FAUNA env names or cached task runtime. Official self-hosted source exists; releases API0. Native access/runtime, shared-suite run and full interfaces remain open; no clone/install or hosted query attempted."
+    ]
+  },
+  "suites": [
+    "core-storage-v1",
+    "core-storage-v2",
+    "capability-v1"
+  ],
+  "currentCoreSuite": "core-storage-v2"
+}

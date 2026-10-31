@@ -44,7 +44,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         private AvatarManager _avatarManager = null;
         private KeyManager _keyManager = null;
         private readonly HttpClient _httpClient;
-        private const string TELOS_API_BASE_URL = "https://api.telos.net";
+        private string TELOS_API_BASE_URL => _httpClient.BaseAddress?.ToString().TrimEnd('/')
+            ?? throw new InvalidOperationException("The Telos API endpoint is not configured.");
 
         private EOSIOOASIS.EOSIOOASIS _eosioOASIS;
         public EOSIOOASIS.EOSIOOASIS EOSIOOASIS => _eosioOASIS;
@@ -62,8 +63,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
             _eosioOASIS = new EOSIOOASIS.EOSIOOASIS(host, eosAccountName, eosChainId, eosAccountPk);
             _httpClient = new HttpClient();
-            // Ensure HttpClient uses the configured Telos API base URL for relative requests
-            _httpClient.BaseAddress = new Uri(TELOS_API_BASE_URL);
+            _httpClient.BaseAddress = new Uri(host);
         }
 
         private AvatarManager AvatarManager

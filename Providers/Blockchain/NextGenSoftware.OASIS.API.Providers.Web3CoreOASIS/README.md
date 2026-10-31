@@ -13,6 +13,16 @@ EthereumOASIS and ArbitrumOASIS are developed independently, with their own smar
 
 This approach helps develop a single code base that can be shared and used by multiple providers, making the development process faster.
 
+## NFT mint metadata and collection targets
+
+The shared mint adapter uses the maintained OASIS `mint(address,string)` extension; ERC-721 does not define a universal mint function. An explicit `CollectionPublicKey` selects that compatible collection, otherwise the configured contract is used. Empty, invalid or zero collections/recipients fail before native RPC. An omitted recipient uses the configured signing wallet. The contract must authorize that signer (the maintained extension is owner-only).
+
+One source-linked `EvmNftMintMetadata` serializer is shared with standalone Ethereum. It publishes only a JSON envelope with `JSONMetaDataURL` and `JSONMetaData`; inline JSON is included only when `StoreNFTMetaDataOnChain` is explicitly true. False or omitted flags leave it null. The URI remains public. The administrative mint request, avatar/email identifiers and routing/signing controls are not serialized as NFT metadata. NFTManager remains responsible for preparing metadata/URIs and batch minting. Intent is captured before nonce/signing awaits, and the verified native mint event supplies the token ID.
+
+Explicit collection calls reuse the same SDK client, signer, mutation gate and submission/receipt owner. A target differing from an active native preparation owner is rejected before nonce lookup/signing/persistence; it does not bypass admission with another client or signer. Configured-target preparation continues to bind the signed target/calldata. The original two-argument SDK `MintAsync` overload remains available.
+
+Polygon and `ArbitrumOASIS_Web3Core` inherit this path; the separate legacy Arbitrum implementation does not. Controlled official-SDK signatures and receipt decoding are not live-chain deployment, contract authorization, finality, fees or full HyperDrive V2 certification. Current evidence and remaining native recovery gates are recorded in `Docs/WIP/HyperDrive-Providers/EVM_RECORD_HISTORY_GAPS.md`.
+
 ## Web3CoreOASIS Smart Contract
 
 Web3CoreOASIS Smart Contract comes with a single data entity, interface, and implementation.

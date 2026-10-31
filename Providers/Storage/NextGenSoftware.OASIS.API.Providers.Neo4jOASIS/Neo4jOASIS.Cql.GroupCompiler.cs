@@ -1,0 +1,227 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Queries;
+
+namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
+
+internal sealed class NeoCqlGroupedCommand
+{
+    internal string Query { get; }
+    internal IReadOnlyDictionary<string, object> Parameters { get; }
+    internal NeoCqlGroupedCommand(string query, Dictionary<string, object> parameters)
+    {
+        Query = query;
+        Parameters = new System.Collections.ObjectModel.ReadOnlyDictionary<string, object>(parameters);
+    }
+}
+
+public partial class Neo4jOASIS
+{
+    // This internal compiler grants no native capability. A grouped adapter must
+    // admit the intent, bound the complete packet buffer and validate every row.
+    internal static NeoCqlGroupedCommand CompileCqlGrouped<T, TKey, TResult>(
+        CosmicGroupedSelection<T, TKey, TResult> query, int maximumGroups, int maximumPayloadBytes = CosmicProjectionResults.MaximumPayloadLimit) where T : IHolon
+    {
+        if (query == null || maximumGroups < 0 || maximumGroups > query.Grouping.Options.MaximumGroups)
+            throw new ArgumentOutOfRangeException(nameof(maximumGroups));
+        if (maximumPayloadBytes < 0 || maximumPayloadBytes > query.Grouping.Options.MaximumPayloadBytes)
+            throw new ArgumentOutOfRangeException(nameof(maximumPayloadBytes));
+        var compiled = CompileCqlSource(query.Source);
+        var translator = compiled.Translator;
+        var ordering = translator.TranslateOrdering(query.Source.Orderings);
+        var sortValues = string.Concat(ordering.Select((key, index) => "," + key.Expression + " AS sourceSort" + index));
+        var sourceOrder = string.Join(",", ordering.Select((key, index) => "sourceSort" + index + (key.Descending ? " DESC" : " ASC"))
+            .Concat(new[] { "p.f_Id ASC" }));
+        var input = new List<string>();
+        var bad = new List<string>();
+        var identities = new List<string>();
+        var reductions = new List<string>();
+        var aggregatePackets = new List<string>();
+        var numericInputs = new List<string>();
+        string Invalid(CosmicQueryPath path, string state)
+            => path.ValueType.IsValueType && Nullable.GetUnderlyingType(path.ValueType) == null
+                ? state + "<>2" : state + "=3";
+
+        for (var index = 0; index < query.Grouping.Key.Columns.Count; index++)
+        {
+            var path = query.Grouping.Key.Columns[index].Path;
+            var cell = translator.TranslateProjectionPath(path);
+            var name = "k" + index;
+            input.Add(cell.State + " AS " + name + "s");
+            input.Add(cell.Value + " AS " + name + "v");
+            identities.Add("CASE WHEN " + name + "s=2 THEN " + name + "v ELSE null END AS " + name);
+            bad.Add(Invalid(path, name + "s"));
+        }
+        for (var index = 0; index < query.Columns.Count; index++)
+        {
+            var column = query.Columns[index];
+            if (column.KeyIndex >= 0 || column.Selector == null) continue;
+            var cell = translator.TranslateProjectionPath(column.Selector);
+            var name = "a" + index;
+            input.Add(cell.State + " AS " + name + "s");
+            input.Add(cell.Value + " AS " + name + "v");
+            bad.Add(Invalid(column.Selector, name + "s"));
+            reductions.Add("sum(CASE WHEN " + name + "s=2 THEN 1 ELSE 0 END) AS " + name + "n");
+            var value = "CASE WHEN " + name + "s=2 THEN " + name + "v ELSE 0 END";
+            if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
+            {
+                var type = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
+                if (type == typeof(decimal) || type == typeof(float) || type == typeof(double))
+                {
+                    var width = type == typeof(decimal) ? CosmicDecimalScalarResults.LimbCount
+                        : type == typeof(float) ? CosmicFloatingAggregateResults.SingleLimbCount : CosmicFloatingAggregateResults.DoubleLimbCount;
+                    var words = type == typeof(decimal) ? DecimalAggregateParts(name + "v")
+                        : FloatingAggregateParts(name + "v", type == typeof(float), translator.Bind);
+                    numericInputs.Add("CASE WHEN " + name + "s=2 THEN " + words
+                        + " ELSE [" + string.Join(",", Enumerable.Repeat("0", width)) + "] END AS " + name + "parts");
+                    for (var part = 0; part < width; part++)
+                        reductions.Add("sum(" + name + "parts[" + part + "]) AS " + name + "d" + part);
+                    aggregatePackets.Add("{present:" + name + "n,parts:[" + string.Join(",", Enumerable.Range(0,width).Select(part => name + "d" + part)) + "]}");
+                }
+                else
+                {
+                    var parts = IntegralParts(column.Selector.ValueType, name + "v");
+                    reductions.Add("sum(CASE WHEN " + name + "s=2 THEN " + parts.High + " ELSE 0 END) AS " + name + "h");
+                    reductions.Add("sum(CASE WHEN " + name + "s=2 THEN " + parts.Low + " ELSE 0 END) AS " + name + "l");
+                    aggregatePackets.Add("{present:" + name + "n,high:" + name + "h,low:" + name + "l}");
+                }
+            }
+            else if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max)
+            {
+                var op = column.Operation == CosmicScalarOperation.Min ? "min" : "max";
+                reductions.Add(op + "(CASE WHEN " + name + "s=2 THEN " + name + "v ELSE null END) AS " + name + "x");
+                aggregatePackets.Add("{present:" + name + "n,value:" + name + "x}");
+            }
+            else throw new NotSupportedException("Unknown native grouped aggregate.");
+        }
+        var keyNames = Enumerable.Range(0, query.Grouping.Key.Columns.Count).Select(i => "k" + i).ToArray();
+        var keyCells = "[" + string.Join(",", keyNames.Select(k => "{s:CASE WHEN " + k + " IS NULL THEN 1 ELSE 2 END,v:" + k + "}")) + "]";
+        var packets = "[" + string.Join(",", aggregatePackets) + "]";
+        translator.Parameters.Add("groupOffset", (long)query.Source.Offset);
+        translator.Parameters.Add("groupTake", Math.Min(query.Source.Limit.HasValue ? (long)query.Source.Limit.Value : long.MaxValue,
+            (long)CosmicNumericScalarResults.MaximumParticipatingValues + 1));
+        translator.Parameters.Add("groupLimit", maximumGroups + 1);
+        translator.Parameters.Add("groupBytes", maximumPayloadBytes);
+        translator.Parameters.Add("resultOffset", query.ResultOffset);
+        translator.Parameters.Add("resultTake", query.ResultLimit);
+        // Character length is a lower bound on UTF-8 bytes. Reject oversized
+        // cells before transfer; the shared read budget charges exact bytes.
+        long lowerBytes = 32 + 16 * (query.Grouping.Key.Columns.Count + query.Columns.Count);
+        var sizes = new List<string>();
+        void Charge(Type type, string value)
+        {
+            if (type == typeof(string)) sizes.Add("CASE WHEN " + value + " IS NULL THEN 16 ELSE size(" + value + ") END");
+            else lowerBytes += 16;
+        }
+        for (var i = 0; i < query.Grouping.Key.Columns.Count; i++)
+            Charge(query.Grouping.Key.Columns[i].Path.ValueType, "keys[" + i + "].v");
+        var aggregateIndex = 0;
+        foreach (var column in query.Columns)
+        {
+            var value = column.KeyIndex >= 0 ? "keys[" + column.KeyIndex + "].v" : "aggregates[" + aggregateIndex + "].value";
+            Charge(column.ValueType, value);
+            if (column.KeyIndex < 0 && column.Selector != null) aggregateIndex++;
+        }
+        var byteExpression = lowerBytes.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            + string.Concat(sizes.Select(size => "+(" + size + ")"));
+        const string failure = "0 AS inputs,[] AS keys,[] AS aggregates,false AS valid";
+        var traversal = translator.TraversalClauses.Count == 0 ? "" : " UNION ALL " + compiled.EligibleSource
+            + "WHERE " + compiled.Cycle + " OR " + compiled.TraversalLimit + " RETURN " + failure + ","
+            + compiled.Cycle + " AS traversalCycle," + compiled.TraversalLimit + " AS traversalLimit LIMIT 1";
+        // Error branches precede pagination. The input sentinel bounds integral
+        // limb sums; the reader must sum input proofs before publishing groups.
+        var resultOrder = new List<string>();
+        void Sort(string value, bool descending)
+        {
+            var direction = descending ? " DESC" : " ASC";
+            resultOrder.Add("CASE WHEN " + value + " IS NULL THEN 0 ELSE 1 END" + direction);
+            resultOrder.Add(value + direction);
+        }
+        foreach (var resultOrdering in query.Orderings)
+        {
+            var column = query.Columns[resultOrdering.ColumnIndex];
+            if (column.KeyIndex >= 0) Sort("keys[" + column.KeyIndex + "].v", resultOrdering.Descending);
+            else if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount)
+                Sort("inputs", resultOrdering.Descending);
+            else
+            {
+                var slot = query.Columns.Take(resultOrdering.ColumnIndex).Count(item => item.KeyIndex < 0 && item.Selector != null);
+                var packet = "aggregates[" + slot + "]";
+                if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max)
+                    Sort(packet + ".value", resultOrdering.Descending);
+                else if (column.Operation == CosmicScalarOperation.Sum)
+                {
+                    // Lexicographic floor quotient/remainder is the exact total
+                    // order, without recombining into an overflowing Int64 or Double.
+                    var type = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
+                    if (type == typeof(decimal) || type == typeof(float) || type == typeof(double))
+                        Sort("averageKeys[" + resultOrdering.ColumnIndex + "]", resultOrdering.Descending);
+                    else
+                    {
+                        var parts = GroupedIntegralParts(packet + ".high", packet + ".low");
+                        Sort(parts.High, resultOrdering.Descending); Sort(parts.Low, resultOrdering.Descending);
+                    }
+                }
+                else if (column.Operation == CosmicScalarOperation.Average)
+                    Sort("averageKeys[" + resultOrdering.ColumnIndex + "]", resultOrdering.Descending);
+                else throw new NotSupportedException("Exact native resultOrdering is not enrolled for this aggregate.");
+            }
+        }
+        foreach (var index in Enumerable.Range(0, keyNames.Length)) Sort("keys[" + index + "].v", false);
+        var meanKeys = new List<string>();
+        for (var index = 0; index < query.Columns.Count; index++)
+        {
+            var slot = query.Columns.Take(index).Count(item => item.KeyIndex < 0 && item.Selector != null);
+            var packet = "aggregates[" + slot + "]";
+            var column = query.Columns[index];
+            var type = column.Selector == null ? null : Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
+            var numeric = column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average;
+            meanKeys.Add(numeric && (type == typeof(float) || type == typeof(double))
+                ? FloatingAggregateValue(packet + ".parts", packet + ".present", column.Operation == CosmicScalarOperation.Average,
+                    type == typeof(float), translator.Bind)
+                : numeric && type == typeof(decimal)
+                    ? DecimalAggregateKey(packet + ".parts", packet + ".present", column.Operation == CosmicScalarOperation.Average)
+                    : column.Operation == CosmicScalarOperation.Average
+                        ? GroupedAverageKey(packet + ".high", packet + ".low", packet + ".present") : "null");
+        }
+        var cypher = "CALL { " + compiled.Source + "WHERE NOT valid RETURN " + failure
+            + ",false AS traversalCycle,false AS traversalLimit LIMIT 1" + traversal
+            + " UNION ALL " + compiled.EligibleSource + "WHERE (" + compiled.DescendantPredicate
+            + ") AND NOT(" + compiled.Cycle + " OR " + compiled.TraversalLimit + ") "
+            + "WITH h,p" + sortValues + " ORDER BY " + sourceOrder + " SKIP $groupOffset LIMIT $groupTake "
+            + "WITH " + string.Join(",", input) + (numericInputs.Count == 0 ? "" : " WITH *," + string.Join(",", numericInputs))
+            + " WITH *,CASE WHEN " + string.Join(" OR ", bad.Select(x => "(" + x + ")"))
+            + " THEN 1 ELSE 0 END AS bad "
+            + "WITH " + string.Join(",", identities) + ",count(*) AS inputs,sum(bad) AS invalid"
+            + (reductions.Count == 0 ? "" : "," + string.Join(",", reductions))
+            + " RETURN inputs," + keyCells + " AS keys," + packets + " AS aggregates,invalid=0 AS valid,"
+            + "false AS traversalCycle,false AS traversalLimit } WITH inputs,keys,aggregates,valid,traversalCycle,traversalLimit,"
+            + byteExpression + " > $groupBytes AS payloadLimit WITH inputs,"
+            + "CASE WHEN payloadLimit THEN [] ELSE keys END AS keys,"
+            + "CASE WHEN payloadLimit THEN [] ELSE aggregates END AS aggregates,"
+            + "valid,traversalCycle,traversalLimit,payloadLimit "
+            + "WITH *,[" + string.Join(",", meanKeys) + "] AS averageKeys "
+            + "ORDER BY valid ASC,payloadLimit DESC," + string.Join(",", resultOrder) + " LIMIT $groupLimit";
+        const string fields = "inputs,keys,aggregates,valid,traversalCycle,traversalLimit,payloadLimit";
+        var filterCompiler = new GroupFilterCompiler<T, TKey, TResult>(query, translator);
+        var filter = query.ResultPredicates.Count == 0 ? "true" : string.Join(" AND ", query.ResultPredicates.Select(filterCompiler.Translate));
+        if (query.ResultOffset != 0 || query.ResultLimit.HasValue)
+        {
+            // Bound the ordered proof first, then compute native membership.
+            // Off-page packets remain mandatory proof; no source rows hydrate.
+            cypher += " WITH " + fields + ",CASE WHEN (" + filter + ") THEN true ELSE false END AS groupMatches"
+                + " WITH collect({inputs:inputs,keys:keys,aggregates:aggregates,valid:valid,filterMember:groupMatches,"
+                + "traversalCycle:traversalCycle,traversalLimit:traversalLimit,payloadLimit:payloadLimit}) AS groupPackets"
+                + " UNWIND range(0,size(groupPackets)-1) AS groupIndex"
+                + " WITH groupPackets[groupIndex] AS packet,groupIndex,"
+                + "reduce(prior=0,candidate IN groupPackets[0..groupIndex] | prior + CASE WHEN candidate.filterMember THEN 1 ELSE 0 END) AS filteredRank RETURN "
+                + string.Join(",", fields.Split(',').Select(field => "packet." + field + " AS " + field))
+                + ",packet.filterMember AND filteredRank >= $resultOffset AND ($resultTake IS NULL OR filteredRank < $resultOffset+$resultTake) AS resultMember"
+                + " ORDER BY groupIndex";
+        }
+        else cypher += " RETURN " + fields + ",CASE WHEN (" + filter + ") THEN true ELSE false END AS resultMember";
+        return new NeoCqlGroupedCommand(cypher, translator.Parameters);
+    }
+}

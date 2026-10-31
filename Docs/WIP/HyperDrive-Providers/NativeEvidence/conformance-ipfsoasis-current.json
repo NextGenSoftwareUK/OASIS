@@ -1,0 +1,51 @@
+{
+  "suite": "core-storage-v2",
+  "runs": [
+    {
+      "SuiteVersion": "core-storage-v2",
+      "Provider": "IPFSOASIS",
+      "Mode": "native",
+      "Synchronous": false,
+      "OwnerId": "c9b6b4ab-d377-4284-9d60-3f985cd9e68a",
+      "RootId": "6c7fec65-0a6c-4852-8706-9af7c839a9c3",
+      "ChildId": "3c03b102-e7d5-4e17-b586-2eeb20afce5c",
+      "BatchIds": [
+        "e1d6b3db-0332-4e52-ae99-dc5df3e23b94",
+        "1be41058-f4ea-4d35-895e-adcbeff509dd"
+      ],
+      "ImportId": "fd6be18b-b2e4-490b-80be-6ad450d96935",
+      "Passed": [],
+      "CurrentCase": "configuration",
+      "FailureType": "System.InvalidOperationException",
+      "DeletionKinds": {},
+      "HardCleanedFixtures": [],
+      "ExpectedDefaultDeletion": null,
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": false,
+      "Succeeded": false
+    },
+    {
+      "SuiteVersion": "core-storage-v2",
+      "Provider": "IPFSOASIS",
+      "Mode": "native",
+      "Synchronous": true,
+      "OwnerId": "9308142d-0430-4d4d-aba4-7380dc1d5ad4",
+      "RootId": "2d36d2d7-0918-4b93-ace2-defb9e205a4b",
+      "ChildId": "ba570c51-aa6b-43af-b187-d45c12b595c0",
+      "BatchIds": [
+        "42d86d30-11b8-418b-8a59-e3b225bc87ac",
+        "df4720d0-71ee-4f76-a5ac-6ba7704f2718"
+      ],
+      "ImportId": "706d07eb-859e-4fa1-94c7-02f1e3fac48f",
+      "Passed": [],
+      "CurrentCase": "configuration",
+      "FailureType": "System.InvalidOperationException",
+      "DeletionKinds": {},
+      "HardCleanedFixtures": [],
+      "ExpectedDefaultDeletion": null,
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": false,
+      "Succeeded": false
+    }
+  ]
+}

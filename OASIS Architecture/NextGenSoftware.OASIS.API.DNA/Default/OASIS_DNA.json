@@ -308,6 +308,7 @@
         "ConnectionString": ""
       },
       "CosmosBlockChainOASIS": {
+        "StorageEncryptionKeyEnvironmentVariable": "OASIS_COSMOS_STORAGE_ENCRYPTION_KEY",
         "RpcEndpoint": "https://cosmos-rpc.polkachu.com",
         "Network": "mainnet",
         "ChainId": "cosmoshub-4",
@@ -328,6 +329,7 @@
         "ConnectionString": ""
       },
       "SuiOASIS": {
+        "StorageEncryptionKeyEnvironmentVariable": "OASIS_SUI_STORAGE_ENCRYPTION_KEY",
         "RpcEndpoint": "https://fullnode.mainnet.sui.io:443",
         "Network": "mainnet",
         "ChainId": "mainnet",
@@ -558,6 +560,48 @@
     "SettingsLookupHolonId": "00000000-0000-0000-0000-000000000000",
     "StatsCacheEnabled": false,
     "StatsCacheTtlSeconds": 45,
+    "NativeImport": {
+      "AllowPrivateAddresses": false,
+      "SandboxMaximumRecordsPerSource": 500,
+      "UserMaximumRecordsPerSource": 5000,
+      "DefaultPreviewRecords": 5,
+      "MaximumPreviewRecords": 20,
+      "DefaultPageSize": 200,
+      "DefaultMaximumRecordsPerSource": 10000,
+      "MaximumPageSize": 1000,
+      "ConnectTimeoutSeconds": 10,
+      "ReadTimeoutSeconds": 30,
+      "DnsTimeoutSeconds": 5,
+      "MaximumSqliteUploadMegabytes": 8,
+      "MaximumSolanaAccountsPerProgram": 10000,
+      "SolanaSnapshotSeconds": 60,
+      "MaximumIpfsListingMegabytes": 4,
+      "MaximumSolidResourceMegabytes": 1,
+      "MaximumNeo4jDiscoveredLabels": 200,
+      "ConnectionEncryptionKey": "",
+      "MaximumSavedConnectionsPerAvatar": 10
+    },
+    "Cql": {
+      "SharedReads": true,
+      "InheritedReads": true,
+      "GroupCacheSeconds": 15
+    },
+    "Sandbox": {
+      "Enabled": false,
+      "Providers": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS",
+      "DemoAvatarUsernamePrefix": "sandbox-",
+      "DemoAvatarEmailDomain": "sandbox.oasisomniverse.one",
+      "DemoAvatarRetentionMinutes": 1440,
+      "CleanupIntervalMinutes": 15,
+      "CleanupInitialDelayMinutes": 1,
+      "MaximumAvatarsRemovedPerSweep": 50,
+      "ProviderOfflineDefaultSeconds": 60,
+      "ProviderOfflineMinimumSeconds": 5,
+      "ProviderOfflineMaximumSeconds": 120,
+      "DemoNeo4jLabel": "ShopLoyaltyMember",
+      "MaximumSessionsPerAddressPerHour": 20,
+      "MaximumSessionsPerDay": 1000
+    },
     "Web6": {
       "DefaultProvider": "Auto",
       "DefaultOpenServModel": "gpt-5.4",

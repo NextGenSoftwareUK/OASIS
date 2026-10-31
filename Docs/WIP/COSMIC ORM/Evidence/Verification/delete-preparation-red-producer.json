@@ -1,0 +1,10 @@
+{
+  "date": "2026-10-26",
+  "purpose": "Frozen previous Core producer for genuine delete preparation red regression",
+  "path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+  "sha256": "1321B73F9B054DB7ECD637277179A5498184A43C3CBE267AA24E140D038532FD",
+  "executed": 16,
+  "passed": 4,
+  "failed": 12,
+  "skipped": 0
+}

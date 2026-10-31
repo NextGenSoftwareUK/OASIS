@@ -1,0 +1,32 @@
+{
+  "sourceDocumentsVerified": {
+    "Core": 786,
+    "Shared": 56,
+    "provider": 21,
+    "unit": 39
+  },
+  "dependenciesAtCapture": {
+    "Core": "d4fba0068f02c349d04b3221588b0786cae8b36f8b38c6466ed0a11750a20da7",
+    "Shared": "e564ee7d4d19ca2de123d9cea8aef61cab5c0fa8fd970d7b34c12d704ba973e7"
+  },
+  "outputs": {
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS": {
+      "assemblySha256": "6793a4a3f9c228056a60e47da42cb9d66bd6c26d052e896af766831dd498714f",
+      "sizes": {
+        "bin": 7690741,
+        "obj": 963165
+      }
+    },
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests": {
+      "assemblySha256": "83560247a25526df7c0136bfb7794c325696bb83e372a98595a6bee4f04bbb25",
+      "sizes": {
+        "bin": 46818299,
+        "obj": 1159470
+      }
+    }
+  },
+  "nativeOperations": 0,
+  "unitPassed": 433,
+  "fixtureSourceSha256": "088e473b6aa54df1263acf48e3c8f242193aac656a5505882ca42cb1c0ef480d",
+  "fixtureDirectoryEmpty": true
+}

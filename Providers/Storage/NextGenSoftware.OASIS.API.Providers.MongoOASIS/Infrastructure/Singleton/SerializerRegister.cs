@@ -9,9 +9,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Single
 {
     public sealed class SerializerRegister
     {
-        private bool _isRegisterGuidBsonSerializer = false;
-        private bool _isRegisterMetaDataSerializer = false;
-        private bool _isRegisterSTARNETDNADiscriminator = false;
+        private static bool _isRegisterGuidBsonSerializer;
+        private static bool _isRegisterMetaDataSerializer;
+        private static bool _isRegisterSTARNETDNADiscriminator;
         private static readonly SerializerRegister _register = new SerializerRegister();
         private static readonly object _registrationLock = new object();
 
@@ -22,26 +22,27 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Single
 
         public SerializerRegister()
         {
-            _isRegisterGuidBsonSerializer = false;
-            _isRegisterMetaDataSerializer = false;
-            _isRegisterSTARNETDNADiscriminator = false;
         }
         
         public void RegisterGuidBsonSerializer()
         {
-            if (_isRegisterGuidBsonSerializer) return;
-            BsonSerializer.TryRegisterSerializer(new GuidSerializer(BsonType.String));
-            _isRegisterGuidBsonSerializer = true;
+            lock (_registrationLock)
+            {
+                if (_isRegisterGuidBsonSerializer) return;
+                BsonSerializer.TryRegisterSerializer(new GuidSerializer(BsonType.String));
+                _isRegisterGuidBsonSerializer = true;
+            }
         }
 
         public void RegisterMetaDataDictionarySerializer()
         {
-            if (_isRegisterMetaDataSerializer) return;
-            
-            // Register custom serializer for Dictionary<string, object> to handle JsonElement deserialization
-            BsonSerializer.TryRegisterSerializer(typeof(Dictionary<string, object>), new MetaDataDictionarySerializer());
-            
-            _isRegisterMetaDataSerializer = true;
+            lock (_registrationLock)
+            {
+                if (_isRegisterMetaDataSerializer) return;
+                // Register custom serializer for Dictionary<string, object> to handle JsonElement deserialization.
+                BsonSerializer.TryRegisterSerializer(typeof(Dictionary<string, object>), new MetaDataDictionarySerializer());
+                _isRegisterMetaDataSerializer = true;
+            }
         }
 
         /// <summary>
@@ -51,10 +52,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Single
         /// </summary>
         public void RegisterSTARNETDNADiscriminator()
         {
-            if (_isRegisterSTARNETDNADiscriminator) return;
-
             lock (_registrationLock)
             {
+                if (_isRegisterSTARNETDNADiscriminator) return;
                 if (!BsonClassMap.IsClassMapRegistered(typeof(STARNETDNA)))
                 {
                     BsonClassMap.RegisterClassMap<STARNETDNA>(cm =>

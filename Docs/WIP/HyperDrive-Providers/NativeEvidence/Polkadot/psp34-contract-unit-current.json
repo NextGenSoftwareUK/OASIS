@@ -1,0 +1,17 @@
+{
+  "sourceSha256": "a1d64a2fa09e3a7748ffbe24f3d0207ea479c98df690f9eeb6a125a019788206",
+  "manifestSha256": "0b0d3125f80d20f99369f0943dbd1e33e25a093779a6a74f234a78435dcac239",
+  "lockSha256": "33cc9f2684ef73429943a6bb68c40e231c1383a67cc7225679715aa0bf6117bb",
+  "logSha256": "14400ba36ba8afb56ae6c4fa4655d43357138f548f8a155ef03f17600f8283d5",
+  "rustToolchain": "1.88.0",
+  "inkVersion": "5.1.1",
+  "offline": true,
+  "locked": true,
+  "jobs": 2,
+  "testsPassed": 10,
+  "testsFailed": 0,
+  "testsIgnored": 0,
+  "nativeDeployed": false,
+  "publicNftMutationsWired": false,
+  "targetDirectory": "C:/Source/OASIS/TestResults/PolkadotCurrent/record-contract-target"
+}

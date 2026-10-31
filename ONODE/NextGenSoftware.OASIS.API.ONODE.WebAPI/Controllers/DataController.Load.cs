@@ -60,7 +60,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             OASISResult<IHolon> result = null;
             try
             {
-                result = await HolonManager.LoadHolonAsync(request.Id, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version);
+                // V2 provider selection and routing must belong to the manager that
+                // executes this read, rather than activation of a node-wide default.
+                var manager = HolonManager;
+                HolonRequestContext requestContext = null;
+                if (configResult.RequestRoutingPolicy != null)
+                {
+                    var context = manager.CreateRequestContext(configResult.RequestRoutingPolicy.ToOverrides(), configResult.RequestProviderType);
+                    if (context.IsError)
+                    {
+                        var error = RequestContextError<Holon>(context);
+                        var status = HolonWriteEndpoint.Status(error);
+                        Response.StatusCode = (int)status;
+                        return HttpResponseHelper.FormatResponse(error, status, request.ShowDetailedSettings);
+                    }
+                    requestContext = context.Result;
+                    manager = requestContext.Manager;
+                }
+
+                result = await manager.LoadHolonAsync(request.Id, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version);
 
                 ResetOASISSettings(request, configResult);
 
@@ -75,14 +93,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 var holon = (Holon)result.Result;
 
                 // Non-Wizards may only read holons they created, that are public, or that were shared with them
-                if (holon != null && Avatar?.AvatarType?.Value != AvatarType.Wizard
-                    && !HolonAccess.CanRead(holon, AvatarId))
-                    return TestDataHelper.CreateErrorResponse<Holon>(
-                        "Forbidden. You do not have permission to access this holon.", null, System.Net.HttpStatusCode.Forbidden);
+                if (holon != null && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                {
+                    // Whole holon, or only the fields this avatar may read (per-holon and per-field permissions).
+                    holon = await manager.ProjectForAvatarAsync(holon, AvatarId) as Holon;
+                    if (holon == null)
+                        return TestDataHelper.CreateErrorResponse<Holon>(
+                            "Forbidden. You do not have permission to access this holon.", null, System.Net.HttpStatusCode.Forbidden);
+                }
 
                 response.Result.Result = holon;
 
-                return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
+                var formatted = HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
+                return requestContext == null ? formatted : formatted.BindRoutingPolicy(requestContext.Policy);
             }
             catch (Exception ex)
             {

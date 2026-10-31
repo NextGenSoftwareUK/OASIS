@@ -114,5 +114,112 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests
             result.IsError.Should().BeTrue();
             result.Message.Should().Contain("At least one valid avatar id");
         }
+        private static string K(Guid id) => HolonPermissionSet.Key(id);
+
+        [Fact]
+        public void CanRead_HonoursPerHolonPermissionGrants()
+        {
+            var holon = new Holon { CreatedByAvatarId = Owner };
+            holon.MetaData[HolonPermissions.MetadataKey] = HolonPermissionSet.Empty
+                .With(b => b.SetGrant(K(Friend), HolonPermission.Read | HolonPermission.Write)).Encode().Result;
+
+            HolonAccess.CanRead(holon, Friend).Should().BeTrue();
+            HolonAccess.CanRead(holon, Stranger).Should().BeFalse();
+            HolonAccess.GetPermissions(holon).Grants[K(Friend)].Should().Be(HolonPermission.Read | HolonPermission.Write);
+        }
+
+        [Fact]
+        public void Project_ShowsOnlyTheFieldsAnAvatarMayRead()
+        {
+            var holon = new Holon { CreatedByAvatarId = Owner, Name = "Dave", ParentHolonId = Owner };
+            holon.MetaData["username"] = "dave";
+            holon.MetaData["email"] = "dave@example.com";
+            holon.MetaData[HolonPermissions.MetadataKey] = HolonPermissionSet.Empty
+                .With(b => b.SetField(HolonPermissionSet.Public, "metadata.username", HolonPermission.Read)).Encode().Result;
+
+            HolonAccess.CanRead(holon, Stranger).Should().BeFalse();
+            var shown = HolonAccess.Project(holon, Stranger);
+            shown.MetaData.Should().ContainKey("username").And.NotContainKey("email");
+            shown.Name.Should().BeNullOrEmpty();
+            HolonAccess.Project(holon, Owner).Should().BeSameAs(holon);
+        }
+
+        [Fact]
+        public void RebuildReadIndex_FlagsEveryWholeHolonReader_IncludingGroupsAndPublic_AndDropsStaleFlags()
+        {
+            var group = Guid.NewGuid();
+            var holon = new Holon { CreatedByAvatarId = Owner };
+            holon.MetaData[HolonAccess.SharedWithIndexKey(Stranger)] = "true"; // stale
+            holon.MetaData[HolonAccess.SharedAvatarIdsMetaKey] = JsonSerializer.Serialize(new[] { Friend });
+            holon.MetaData[HolonPermissions.MetadataKey] = HolonPermissionSet.Empty.With(b => b
+                .SetGrant(K(group), HolonPermission.Read).SetGrant(HolonPermissionSet.Public, HolonPermission.Read)
+                .SetGrant(K(Stranger), HolonPermission.Write)
+                .SetField(K(Stranger), "name", HolonPermission.Read)).Encode().Result;
+
+            HolonAccess.RebuildReadIndex(holon);
+
+            holon.MetaData.Should().ContainKey(HolonAccess.SharedWithIndexKey(Friend));
+            holon.MetaData.Should().ContainKey(HolonAccess.SharedWithIndexKey(group));
+            holon.MetaData.Should().ContainKey(HolonAccess.SharedWithPublicKey);
+            holon.MetaData.Should().NotContainKey(HolonAccess.SharedWithIndexKey(Stranger)); // write-only and field-only never flag
+        }
+
+        [Fact]
+        public async Task SetPermissionsAsync_RejectsAnonymousCaller_BeforeTouchingStorage()
+        {
+            var result = await HolonAccess.SetPermissionsAsync(null, Guid.NewGuid(),
+                new HolonPermissionChange { Grants = new Dictionary<string, HolonPermission> { [K(Friend)] = HolonPermission.Read } }, caller: null);
+
+            result.IsError.Should().BeTrue();
+            result.Message.Should().Contain("Unauthorized");
+        }
+
+        [Theory]
+        [InlineData("not-a-grantee")]
+        [InlineData("00000000-0000-0000-0000-000000000000")]
+        public async Task SetPermissionsAsync_RejectsAnInvalidGrantee(string grantee)
+        {
+            var caller = new Mock<IAvatar>();
+            caller.SetupGet(a => a.Id).Returns(Owner);
+
+            var result = await HolonAccess.SetPermissionsAsync(null, Guid.NewGuid(),
+                new HolonPermissionChange { Grants = new Dictionary<string, HolonPermission> { [grantee] = HolonPermission.Read } }, caller.Object);
+
+            result.ErrorCode.Should().Be("COSMIC_PERMISSIONS_INPUT_INVALID");
+        }
+
+        [Fact]
+        public async Task SetPermissionsAsync_RejectsManageOnAField()
+        {
+            var caller = new Mock<IAvatar>();
+            caller.SetupGet(a => a.Id).Returns(Owner);
+            var change = new HolonPermissionChange
+            {
+                Fields = new Dictionary<string, IReadOnlyDictionary<string, HolonPermission>>
+                {
+                    [HolonPermissionSet.Public] = new Dictionary<string, HolonPermission> { ["name"] = HolonPermission.Manage },
+                },
+            };
+
+            var result = await HolonAccess.SetPermissionsAsync(null, Guid.NewGuid(), change, caller.Object);
+
+            result.ErrorCode.Should().Be("COSMIC_PERMISSIONS_INPUT_INVALID");
+        }
+
+        [Fact]
+        public async Task CreateGroupAsync_RequiresASignedInCallerAndAName()
+        {
+            var result = await HolonAccess.CreateGroupAsync(null, "  ", new[] { Friend }, caller: null);
+            result.ErrorCode.Should().Be("COSMIC_GROUP_INPUT_INVALID");
+        }
+
+        [Fact]
+        public async Task SetGroupMembersAsync_NeedsSomethingToChange()
+        {
+            var caller = new Mock<IAvatar>();
+            caller.SetupGet(a => a.Id).Returns(Owner);
+            var result = await HolonAccess.SetGroupMembersAsync(null, Guid.NewGuid(), null, null, caller.Object);
+            result.ErrorCode.Should().Be("COSMIC_GROUP_INPUT_INVALID");
+        }
     }
 }

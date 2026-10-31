@@ -237,74 +237,6 @@ public sealed partial class StarknetOASIS
         return result;
     }
 
-    public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
-    {
-        return GenerateKeyPairAsync(request).Result;
-    }
-
-    public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
-    {
-        var result = new OASISResult<IKeyPairAndWallet>();
-        try
-        {
-            if (!_isActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Starknet provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-            if (_rpcClient == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "Starknet RPC client is not initialized");
-                return result;
-            }
-
-            // Generate Starknet-specific key pair using STARK-friendly curve (production-ready)
-            // Starknet uses STARK-friendly elliptic curves (not secp256k1)
-            // Note: For production, use official Starknet SDK when available for .NET
-            // For now, we generate keys compatible with Starknet's curve requirements
-            using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
-            {
-                // Generate 32-byte private key for Starknet (STARK-friendly curve)
-                var privateKeyBytes = new byte[32];
-                rng.GetBytes(privateKeyBytes);
-
-                // Convert to hex string (Starknet uses hex format with 0x prefix)
-                var privateKey = "0x" + BitConverter.ToString(privateKeyBytes).Replace("-", "").ToLowerInvariant();
-
-                // Generate public key from private key using STARK-friendly curve
-                // In production, use official Starknet SDK for proper key derivation
-                // For now, we use a deterministic approach compatible with Starknet
-                var publicKey = DeriveStarknetPublicKey(privateKeyBytes);
-
-                // Generate Starknet address from public key
-                var starknetAddress = DeriveStarknetAddress(publicKey);
-
-                // Use KeyHelper to create the key pair structure
-                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-                if (keyPair != null)
-                {
-                    // Override with Starknet-specific values
-                    keyPair.PrivateKey = privateKey;
-                    keyPair.PublicKey = publicKey;
-                    keyPair.WalletAddressLegacy = starknetAddress;
-                }
-
-                result.Result = keyPair;
-                result.IsError = false;
-                result.Message = "Starknet key pair generated successfully (STARK-friendly curve). Note: For production, use official Starknet SDK when available.";
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error generating Starknet key pair: {ex.Message}", ex);
-        }
-        return result;
-    }
-
     /// <summary>
     /// Derives Starknet public key from private key using STARK-friendly curve
     /// Note: This is a simplified implementation. In production, use proper Starknet SDK for key derivation.
@@ -312,66 +244,10 @@ public sealed partial class StarknetOASIS
     /// <summary>
     /// Derives Starknet address from private key
     /// </summary>
-    private string DeriveStarknetAddressFromPrivateKey(string privateKey)
-    {
-        try
-        {
-            var privateKeyBytes = Convert.FromBase64String(privateKey);
-            var publicKey = DeriveStarknetPublicKey(privateKeyBytes);
-            return DeriveStarknetAddress(publicKey);
-        }
-        catch
-        {
-            // Fallback: use simplified derivation
-            return "starknet_" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(privateKey))).ToLowerInvariant();
-        }
-    }
-
-    private string DeriveStarknetPublicKey(byte[] privateKeyBytes)
-    {
-        // Starknet uses STARK-friendly elliptic curves (not secp256k1)
-        // In production, use Starknet SDK for proper key derivation
-        try
-        {
-            using (var sha256 = System.Security.Cryptography.SHA256.Create())
-            {
-                var hash = sha256.ComputeHash(privateKeyBytes);
-                // Starknet public keys are typically 64 characters (32 bytes hex)
-                var publicKey = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-                return publicKey.Length >= 64 ? publicKey.Substring(0, 64) : publicKey.PadRight(64, '0');
-            }
-        }
-        catch
-        {
-            var hash = System.Security.Cryptography.SHA256.HashData(privateKeyBytes);
-            return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant().PadRight(64, '0');
-        }
-    }
 
     /// <summary>
     /// Derives Starknet address from public key
     /// </summary>
-    private string DeriveStarknetAddress(string publicKey)
-    {
-        // Starknet addresses are derived from public keys
-        try
-        {
-            var publicKeyBytes = System.Text.Encoding.UTF8.GetBytes(publicKey);
-            using (var sha256 = System.Security.Cryptography.SHA256.Create())
-            {
-                var hash = sha256.ComputeHash(publicKeyBytes);
-                // Take portion for address (Starknet addresses are typically 66 characters with 0x prefix)
-                var addressBytes = new byte[32];
-                Array.Copy(hash, addressBytes, 32);
-                return "0x" + BitConverter.ToString(addressBytes).Replace("-", "").ToLowerInvariant();
-            }
-        }
-        catch
-        {
-            return publicKey.Length >= 64 ? "0x" + publicKey.Substring(0, 64) : "0x" + publicKey.PadRight(64, '0');
-        }
-    }
-
 
     public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
     {
@@ -412,64 +288,6 @@ public sealed partial class StarknetOASIS
         catch (Exception ex)
         {
             OASISErrorHandling.HandleError(ref result, $"Error getting account balance: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
-    {
-        var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
-        try
-        {
-            if (!_isActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
-                return result;
-            }
-
-            // Generate a new Starknet account
-            // In production, this would use a Starknet SDK like StarknetSharp or similar
-            var seedPhrase = GenerateSeedPhrase();
-            var (publicKey, privateKey) = DeriveKeysFromSeed(seedPhrase);
-
-            result.Result = (publicKey, privateKey, seedPhrase);
-            result.IsError = false;
-            result.Message = $"Starknet account created on {_network}";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error creating account: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
-    {
-        var result = new OASISResult<(string PublicKey, string PrivateKey)>();
-        try
-        {
-            if (!_isActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
-                return result;
-            }
-
-            if (string.IsNullOrWhiteSpace(seedPhrase))
-            {
-                OASISErrorHandling.HandleError(ref result, "Seed phrase is required");
-                return result;
-            }
-
-            // Derive keys from seed phrase
-            var (publicKey, privateKey) = DeriveKeysFromSeed(seedPhrase);
-
-            result.Result = (publicKey, privateKey);
-            result.IsError = false;
-            result.Message = $"Starknet account restored from seed on {_network}";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error restoring account: {ex.Message}", ex);
         }
         return result;
     }

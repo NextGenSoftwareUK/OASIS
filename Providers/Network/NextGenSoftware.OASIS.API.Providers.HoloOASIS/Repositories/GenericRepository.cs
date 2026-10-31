@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers;
 using NextGenSoftware.Holochain.HoloNET.ORM.Interfaces;
 using NextGenSoftware.Holochain.HoloNET.Client.Interfaces;
 using System.Reflection;
+using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
 {
@@ -281,7 +282,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
                 if (!string.IsNullOrEmpty(zomeDeleteFunctionName))
                     hcObject.ZomeDeleteEntryFunction = zomeDeleteFunctionName;
 
-                ZomeFunctionCallBackEventArgs response = hcObject.DeleteByCustomField(fieldValue, fieldName, customDataKeyValuePairs);
+                ZomeFunctionCallBackEventArgs response = await hcObject.DeleteByCustomFieldAsync(fieldValue, fieldName, customDataKeyValuePairs);
 
                 if (response != null)
                     result = HandleDeleteResponse(response, hcObjectType, fieldName, fieldValue, hcObject, result, "DeleteAsync");
@@ -353,7 +354,15 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             if (response != null)
             {
                 if (!response.IsError)
-                    result = DataHelper.ConvertHCResponseToOASISResult(response, hcObjectType, hcObject, result);
+                {
+                    if (holon.ProviderUniqueStorageKey == null)
+                        holon.ProviderUniqueStorageKey = new Dictionary<ProviderType, string>();
+
+                    if (!string.IsNullOrWhiteSpace(hcObject.ActionHash))
+                        holon.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcObject.ActionHash;
+
+                    result.Result = (T)holon;
+                }
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error saving {hcObjectType} with id {holon.Id} and name {holon.Name} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: {response.Message}");
             }
@@ -368,7 +377,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             if (response != null)
             {
                 if (!response.IsError)
-                    result = DataHelper.ConvertHCResponseToOASISResult(response, hcObjectType, hcObject, result);
+                {
+                    result.IsDeleted = true;
+                    result.IsError = false;
+                }
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error deleting {hcObjectType} with {fieldName} {fieldValue} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: {response.Message}");
             }

@@ -1,0 +1,83 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using MongoDB.Driver;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
+using NextGenSoftware.OASIS.Common;
+
+namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
+
+public partial class MongoDBOASIS : ICosmicQueryScalarStorageProvider
+{
+    private static class ScalarContract
+    {
+        internal static readonly CosmicScalarCapabilities Capabilities = new(
+            new[] { CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any, CosmicScalarOperation.All },
+            new[]
+            {
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Min, CqlProjectionCapabilities),
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Max, CqlProjectionCapabilities),
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, CqlProjectionCapabilities,
+                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) }),
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, CqlProjectionCapabilities,
+                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) }, supportsInt32DoubleAverage: true, supportsInt64DoubleAverage: true)
+            }, supportsAllChildren: true, supportsAllDescendants: true, supportsAllChildDescendants: true, supportsAllDescendantPredicates: true, supportsPostWindowCardinality: true);
+    }
+    public static CosmicScalarCapabilities CqlScalarCapabilities => ScalarContract.Capabilities;
+    public CosmicScalarCapabilities ScalarCapabilities => CqlScalarCapabilities;
+
+    public async Task<OASISResult<TResult>> ExecuteCosmicScalarAsync<T, TResult>(CosmicScalarPlan<T, TResult> plan,
+        CancellationToken cancellationToken = default) where T : IHolon
+    {
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var admission = CosmicScalarPlanner.Admit(plan, Core.Enums.ProviderType.MongoDBOASIS, CqlCapabilities, CqlScalarCapabilities);
+            if (admission.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, TResult>(admission);
+            if (!IsProviderActivated || _holonRepository is not HolonRepository repository)
+                return ScalarCqlFailure<TResult>("CQL_PROVIDER_NOT_READY", "Activate MongoDB before native scalar execution.");
+            var translator = new MongoCqlTranslator();
+            if (plan.Query.Operation == CosmicScalarOperation.Sum || plan.Query.Operation == CosmicScalarOperation.Average)
+            {
+                var numericCommand = translator.CompileNumeric(plan.Query);
+                var numeric = plan.Query.UsesInt64DoubleAverage
+                    ? await repository.ExecuteNativeCqlCheckedNumericAsync(numericCommand, plan.Query.Selector.ValueType, cancellationToken).ConfigureAwait(false)
+                    : await repository.ExecuteNativeCqlNumericAsync(numericCommand, plan.Query.Selector.ValueType, cancellationToken).ConfigureAwait(false);
+                if (plan.Query.UsesInt64DoubleAverage)
+                    return CosmicNumericScalarResults.FromCheckedInt64AverageParts(plan.Query, numeric.High, numeric.Low, numeric.Count,
+                        numeric.PrefixOverflow ?? throw new InvalidOperationException("Checked native prefix acknowledgement is missing."));
+                if (numeric.FloatingParts != null)
+                    return CosmicFloatingAggregateResults.FromParts(plan.Query, numeric.FloatingParts, numeric.Count);
+                return numeric.DecimalParts != null
+                    ? CosmicDecimalScalarResults.FromParts(plan.Query, numeric.DecimalParts, numeric.Count)
+                    : CosmicNumericScalarResults.FromParts(plan.Query, numeric.High, numeric.Low, numeric.Count);
+            }
+            if (plan.Query.Selector != null)
+            {
+                var selected = await repository.ExecuteNativeCqlExtremumAsync(translator.CompileExtremum(plan.Query),
+                    plan.Query.Selector.ValueType, cancellationToken).ConfigureAwait(false);
+                return CosmicSelectedScalarResults.FromValue(plan.Query, selected.Value, selected.HasValue);
+            }
+            var command = plan.Query.CardinalityPredicate != null ? translator.CompileCardinalityPredicate(plan.Query)
+                : plan.Query.Operation == CosmicScalarOperation.All
+                ? translator.CompileAll(plan.Query) : translator.CompileCount(plan.Query.Source);
+            var count = await repository.ExecuteNativeCqlCountAsync(command, cancellationToken).ConfigureAwait(false);
+            return CosmicScalarResults.FromCount(plan.Query, count);
+        }
+        catch (System.IO.InvalidDataException cause) { return ScalarCqlFailure<TResult>("CQL_DATA_INVALID", cause.Message, cause); }
+        catch (MongoCqlLimitException cause) { return ScalarCqlFailure<TResult>("CQL_QUERY_LIMIT", cause.Message, cause); }
+        catch (MongoCqlGraphTimeoutException cause) { return ScalarCqlFailure<TResult>("CQL_QUERY_TIMEOUT", cause.Message, cause); }
+        catch (NotSupportedException cause) { return ScalarCqlFailure<TResult>("CQL_CAPABILITY_UNSUPPORTED", cause.Message, cause); }
+        catch (OperationCanceledException cause) { return ScalarCqlFailure<TResult>("CQL_QUERY_CANCELLED", cause.Message, cause); }
+        catch (MongoCommandException cause) when (cause.Code == 146 || cause.Code == 292)
+        { return ScalarCqlFailure<TResult>("CQL_QUERY_LIMIT", "MongoDB scalar query exceeded its native in-memory budget.", cause); }
+        catch (MongoExecutionTimeoutException cause) { return ScalarCqlFailure<TResult>("CQL_QUERY_TIMEOUT", cause.Message, cause); }
+        catch (Exception cause) { return ScalarCqlFailure<TResult>("CQL_QUERY_FAILED", "MongoDB scalar execution failed.", cause); }
+    }
+
+    private static OASISResult<T> ScalarCqlFailure<T>(string code, string message, Exception cause = null)
+        => new() { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message, Exception = cause };
+}

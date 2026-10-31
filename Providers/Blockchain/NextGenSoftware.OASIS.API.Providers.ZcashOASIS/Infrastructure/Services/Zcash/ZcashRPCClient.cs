@@ -16,12 +16,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services
         private readonly string _rpcPassword;
         private int _requestId = 1;
 
-        public ZcashRPCClient(string rpcUrl, string rpcUser, string rpcPassword)
+        public ZcashRPCClient(string rpcUrl, string rpcUser, string rpcPassword) : this(rpcUrl, rpcUser, rpcPassword, new HttpClientHandler()) { }
+
+        internal ZcashRPCClient(string rpcUrl, string rpcUser, string rpcPassword, HttpMessageHandler handler)
         {
             _rpcUrl = rpcUrl;
             _rpcUser = rpcUser;
             _rpcPassword = rpcPassword;
-            _httpClient = new HttpClient();
+            _httpClient = new HttpClient(handler);
             
             // Set up basic authentication only if credentials are provided
             if (!string.IsNullOrWhiteSpace(_rpcUser) && !string.IsNullOrWhiteSpace(_rpcPassword))
@@ -152,6 +154,38 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services
                 result.IsError = true;
                 result.Message = ex.Message;
                 result.Exception = ex;
+            }
+            return result;
+        }
+
+        /// <summary>A new Sapling shielded address from the node wallet (zcashd z_getnewaddress).</summary>
+        public Task<OASISResult<string>> GetNewShieldedAddressAsync() => CallStringAsync("z_getnewaddress", "sapling");
+
+        /// <summary>The spending key that controls a shielded address in the node wallet (zcashd z_exportkey).</summary>
+        public Task<OASISResult<string>> ExportSpendingKeyAsync(string address) => CallStringAsync("z_exportkey", address);
+
+        /// <summary>The viewing key of a shielded address (zcashd z_exportviewingkey).</summary>
+        public Task<OASISResult<string>> ExportShieldedViewingKeyAsync(string address) => CallStringAsync("z_exportviewingkey", address);
+
+        /// <summary>Calls a zcashd method with positional parameters and returns its string result; any RPC error is an error.</summary>
+        private async Task<OASISResult<string>> CallStringAsync(string method, params object[] parameters)
+        {
+            var result = new OASISResult<string>();
+            try
+            {
+                var response = await SendRPCRequestAsync(method, parameters);
+                if (response == null)
+                    OASISErrorHandling.HandleError(ref result, $"{method}: the node returned no response.");
+                else if (response.TryGetValue("error", out var error) && error != null)
+                    OASISErrorHandling.HandleError(ref result, $"{method} failed: {error}");
+                else if (!response.TryGetValue("result", out var value) || string.IsNullOrWhiteSpace(value?.ToString()))
+                    OASISErrorHandling.HandleError(ref result, $"{method}: the node returned an empty result.");
+                else
+                    result.Result = value.ToString();
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{method} failed: {ex.Message}", ex);
             }
             return result;
         }

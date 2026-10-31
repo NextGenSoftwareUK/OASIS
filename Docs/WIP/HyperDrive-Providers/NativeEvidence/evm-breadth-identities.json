@@ -1,0 +1,231 @@
+{
+  "scope": "four factory controls; six configuration blockers before any native SDK storage dispatch; shipping BootLoader compiles",
+  "counters": {
+    "total": "10",
+    "executed": "10",
+    "passed": "4",
+    "failed": "6",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "rawBytes": 20199,
+  "rawSha256": "25d92bdc60500f34c4a95c9fb9f8ac910e8bfe9addafed50ad5e16b703c813da",
+  "gzipBytes": 2586,
+  "binaries": [
+    {
+      "path": "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "bytes": 3510784,
+      "sha256": "e03618de87d14624c6e0a3376083a32b978012b77946605f15fbbeb24fc8acce"
+    },
+    {
+      "path": "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+      "bytes": 379904,
+      "sha256": "d45330a36b1d06f3fc37bafc44d481425d4b5905bee189f223be33b8e3dbecaf"
+    },
+    {
+      "path": "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.dll",
+      "bytes": 434176,
+      "sha256": "e82c6bcceb79c023bb04fda319dc51e94edcf4ba49fc1d87d8fa8f2a5de12a0e"
+    },
+    {
+      "path": "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.dll",
+      "bytes": 344576,
+      "sha256": "ba9e997e410322f4add9824f57a3b100ac46979b9fb5fb2b6deed92339f9ce42"
+    },
+    {
+      "path": "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.PolygonOASIS.dll",
+      "bytes": 7168,
+      "sha256": "ca87e007928e0704b536e9f1d4653318152d707bebc5acc77a0927d535fa4408"
+    },
+    {
+      "path": "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.dll",
+      "bytes": 252416,
+      "sha256": "90d42a30ac734f936fcfdd2a583dac8d573256a4d76d5d260b6c558bef8528b2"
+    },
+    {
+      "path": "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests.dll",
+      "bytes": 576000,
+      "sha256": "e46b283a2477ce60157c60061b1be7b8bdceac5b551d0ea62fdadd7675b65639"
+    },
+    {
+      "path": "OASIS Architecture\\NextGenSoftware.OASIS.OASISBootLoader\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.OASISBootLoader.dll",
+      "bytes": 87552,
+      "sha256": "274fec50cbfa2fd6e7c057e911662ace8a5bc17afc2f4b87696ca6bc3ba4920c"
+    }
+  ],
+  "resources": [
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\EthereumOASIS",
+      "bytes": 985,
+      "status": "preserved configuration blocker, no native data"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\EthereumOASIS\\async\\environment.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "preserved config report/lock; inspect before reuse"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\EthereumOASIS\\async\\report.json",
+      "bytes": 493,
+      "sha256": "45914f715a79e24f2643905385ce6e3f9c40bad6cc675add96a00810769732b1",
+      "status": "preserved config report/lock; inspect before reuse"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\EthereumOASIS\\sync\\environment.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "preserved config report/lock; inspect before reuse"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\EthereumOASIS\\sync\\report.json",
+      "bytes": 492,
+      "sha256": "67ff05a8309b479f02b94b35670c7fc8fb1d21e2b5fd0d3c8d6e20cdbcdb5d20",
+      "status": "preserved config report/lock; inspect before reuse"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\ArbitrumOASIS",
+      "bytes": 985,
+      "status": "preserved configuration blocker, no native data"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\ArbitrumOASIS\\async\\environment.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "preserved config report/lock; inspect before reuse"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\ArbitrumOASIS\\async\\report.json",
+      "bytes": 493,
+      "sha256": "01a8fbb8f3f11f51fb5a52ac71c7e7c5db98ca5c2334c45a07db034efcfaaeee",
+      "status": "preserved config report/lock; inspect before reuse"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\ArbitrumOASIS\\sync\\environment.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "preserved config report/lock; inspect before reuse"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\ArbitrumOASIS\\sync\\report.json",
+      "bytes": 492,
+      "sha256": "b651c2ab8306c4decf155004c88ad21c3aa67480ea11ae8f4f80b1e91ab2a38c",
+      "status": "preserved config report/lock; inspect before reuse"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\PolygonOASIS",
+      "bytes": 983,
+      "status": "preserved configuration blocker, no native data"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\PolygonOASIS\\async\\environment.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "preserved config report/lock; inspect before reuse"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\PolygonOASIS\\async\\report.json",
+      "bytes": 492,
+      "sha256": "9f2c893c876bd75c1e3ff6417ae4c729351a745c7fe07b5d9ef62bb43e4e1a70",
+      "status": "preserved config report/lock; inspect before reuse"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\PolygonOASIS\\sync\\environment.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "preserved config report/lock; inspect before reuse"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\PolygonOASIS\\sync\\report.json",
+      "bytes": 491,
+      "sha256": "e7af22016471375b21196bc0b967255636ccf6644a6b4448a93b891b4fe088db",
+      "status": "preserved config report/lock; inspect before reuse"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Blockchain\\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\\bin",
+      "bytes": 7868959,
+      "status": "reused canonical project output"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Blockchain\\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\\obj",
+      "bytes": 1643931,
+      "status": "reused canonical project output"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Blockchain\\NextGenSoftware.OASIS.API.Providers.EthereumOASIS\\bin",
+      "bytes": 8315779,
+      "status": "reused canonical project output"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Blockchain\\NextGenSoftware.OASIS.API.Providers.EthereumOASIS\\obj",
+      "bytes": 1452854,
+      "status": "reused canonical project output"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Blockchain\\NextGenSoftware.OASIS.API.Providers.PolygonOASIS\\bin",
+      "bytes": 7903281,
+      "status": "reused canonical project output"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Blockchain\\NextGenSoftware.OASIS.API.Providers.PolygonOASIS\\obj",
+      "bytes": 907990,
+      "status": "reused canonical project output"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Blockchain\\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS\\bin",
+      "bytes": 8192905,
+      "status": "reused canonical project output"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Blockchain\\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS\\obj",
+      "bytes": 1327223,
+      "status": "reused canonical project output"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests\\bin",
+      "bytes": 92841512,
+      "status": "reused canonical project output"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests\\obj",
+      "bytes": 2046654,
+      "status": "reused canonical project output"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.OASISBootLoader\\bin",
+      "bytes": 33117709,
+      "status": "reused shipping BootLoader output; build passed"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.OASISBootLoader\\obj",
+      "bytes": 2736022,
+      "status": "reused shipping BootLoader output; build passed"
+    }
+  ],
+  "sourceDocuments": {
+    "Core": 788,
+    "Shared": 56,
+    "Web3Core": 39,
+    "Ethereum": 99,
+    "Polygon": 3,
+    "Arbitrum": 21,
+    "unit": 49,
+    "BootLoader": 24
+  },
+  "removedOrphanJunction": {
+    "path": "C:\\Source\\OASIS\\Providers\\Blockchain\\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\\node_modules",
+    "target": "C:/Source/OASIS-hyperdrive-v2-gaps/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/node_modules",
+    "targetStatus": "confirmed PathNotFound before removal",
+    "method": "nonrecursive DirectoryInfo.Delete on exact validated junction, no target deletion"
+  }
+}

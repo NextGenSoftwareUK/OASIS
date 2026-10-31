@@ -26,6 +26,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             try
             {
                 await EnsureSyncInitializedAsync(cancellationToken).ConfigureAwait(false);
+                // Advisory empty check only. Actual claims still acquire the global lease and
+                // re-read the ordered head below, so concurrent inserts/claimers remain safe.
+                if (!await Database.MongoDB.GetCollection<BsonDocument>(SyncCommandsCollection)
+                    .Find(Builders<BsonDocument>.Filter.Ne("status", "completed"))
+                    .AnyAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    result.Result = new HostedSyncCommandClaim { LeaseAcquired = false };
+                    result.IsLoaded = true;
+                    return result;
+                }
                 DateTime now = DateTime.UtcNow;
                 var leaseFilter = Builders<BsonDocument>.Filter.Eq("_id", "ordered-executor") &
                     (Builders<BsonDocument>.Filter.Eq("leaseOwner", workerId) |

@@ -1,0 +1,32 @@
+{
+  "proof": {
+    "transactionHash": "0x759c2c0015308f2d9ccfb758fb4f99762185bdd33b3d4ba1bd80026e99770db1",
+    "blockHash": "0xbbfb479e3478c33b870b5fe46ffd007c3684d3f6e45a4370eab1b58d33aa809e",
+    "blockNumber": "79",
+    "extrinsicIndex": 1,
+    "finalized": true,
+    "status": "Completed",
+    "dispatchSucceeded": true,
+    "dispatchError": null,
+    "applied": true,
+    "nftEffectMatchesRequest": true,
+    "from": "0x1a4fee48c1ba1a48e8cd43782a8485d635aa91cfb82cbb477f0c1c576bc4031c",
+    "to": "0x8ee504148e75c34e8f051899b3c6e4241ff18dc1c9211260b6a6a434bedb485f",
+    "contractAddress": "0x6c8b9e8643c72ec5fc1f406e8cb1eb4d92d810c69a742d7af154b4b987b94c85",
+    "contractCodeHash": "0xcf447d4a13ca5fbb7477a22d01d5b3ccb21df182e48bc01713e8a8cd56ec6686",
+    "tokenId": {
+      "U128": "18446744073709551618"
+    },
+    "custody": "0x8ee504148e75c34e8f051899b3c6e4241ff18dc1c9211260b6a6a434bedb485f",
+    "custodyReceiptVerified": true
+  },
+  "alteredPoolTokenCodeRejected": true,
+  "submitted": false,
+  "signingKeysUsed": false,
+  "scope": "historical local custody entry only; does not prove present ownership or cross-chain authorization",
+  "sourceSha256": {
+    "psp34-contract-outcome.mjs": "010b2f36fe092df97c714027b47a3a7d2e529d099c907965dc6ad25f61d3853c",
+    "transaction-status.mjs": "9801a07585dda3280440b2b509b0412bca1466a6f503453512638f6cc204a127",
+    "finalized-receipt.mjs": "6ea71be4c48f35958ebd01fafe7e49320265653a35f8290c1301503a5da44951"
+  }
+}

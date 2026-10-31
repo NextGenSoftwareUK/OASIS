@@ -7,14 +7,14 @@
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API Polkadot OASIS Provider</Product>
 	  <Title>WEB4 OASIS API Polkadot OASIS Provider</Title>
-	  <Summary>Polkadot OASIS Provider -- cross-chain interoperability hub. Store OASIS holons across relay chain and parachains via XCM. https://oasisomniverse.one</Summary>
-	  <Description>Connects the OASIS to Polkadot -- the leading cross-chain interoperability protocol enabling sovereign blockchains (parachains) to communicate via XCM. Stores OASIS holons, avatars, and data on the relay chain or any connected parachain, enabling true multi-chain deployments. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+	  <Summary>Polkadot OASIS adapter -- RPC connectivity verified; full provider implementation in progress.</Summary>
+	  <Description>Polkadot adapter with network-checked JSON-RPC activation. Storage, signed transactions, token/NFT and bridge capabilities remain under implementation and are not production-certified. See README verification limits.</Description>
 	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
 	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
 	  <PackageTags>OASIS API; Native; Integrated; WEB4; Provider </PackageTags>
 	  <PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one.
-- Full implementation of all remaining provider interface stubs — no more NotImplementedExceptions.
+- Provider implementation and native verification remain in progress; see README limitations.
 - Security hardening: NuGet vulnerability remediation, CORS and JWT alignment.
 - Improved error handling: explicit errors when provider returns null content; null guards throughout.
 - Updated to align with OASIS API Core v2.0.0.
@@ -48,6 +48,7 @@
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
+    <ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -55,6 +56,32 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="SdkBridge\bridge.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\bridge.mjs" />
+    <None Include="SdkBridge\account-identities.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\account-identities.mjs" />
+    <None Include="SdkBridge\record-contract-codec.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\record-contract-codec.mjs" />
+    <None Include="SdkBridge\record-contract-read.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\record-contract-read.mjs" />
+    <None Include="SdkBridge\pinned-contract-query.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\pinned-contract-query.mjs" />
+    <None Include="SdkBridge\psp34-contract-codec.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\psp34-contract-codec.mjs" />
+    <None Include="SdkBridge\psp34-contract-read.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\psp34-contract-read.mjs" />
+    <None Include="SdkBridge\oasis-psp34-mutation-codec.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\oasis-psp34-mutation-codec.mjs" />
+    <None Include="SdkBridge\psp34-contract-mutation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\psp34-contract-mutation.mjs" />
+    <None Include="SdkBridge\psp34-contract-outcome.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\psp34-contract-outcome.mjs" />
+    <None Include="SdkBridge\record-contract-mutation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\record-contract-mutation.mjs" />
+    <None Include="SdkBridge\record-contract-outcome.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\record-contract-outcome.mjs" />
+    <None Include="SdkBridge\native-transfer.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\native-transfer.mjs" />
+    <None Include="SdkBridge\asset-operation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\asset-operation.mjs" />
+    <None Include="SdkBridge\asset-outcome.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\asset-outcome.mjs" />
+    <None Include="SdkBridge\wallet-history.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\wallet-history.mjs" />
+    <None Include="SdkBridge\key-generation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\key-generation.mjs" />
+    <None Include="SdkBridge\transaction-status.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\transaction-status.mjs" />
+    <None Include="SdkBridge\read-only-provider.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\read-only-provider.mjs" />
+    <None Include="SdkBridge\verify-preparation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\verify-preparation.mjs" />
+    <None Include="SdkBridge\finalized-receipt.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\finalized-receipt.mjs" />
+    <None Include="SdkBridge\original-submission.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\original-submission.mjs" />
+    <None Include="SdkBridge\original-outcome.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\original-outcome.mjs" />
+    <None Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\prepared-submission.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\prepared-submission.mjs" />
+    <None Include="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\package.json" />
+    <None Include="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\package-lock.json" />
   </ItemGroup>
 </Project>
 

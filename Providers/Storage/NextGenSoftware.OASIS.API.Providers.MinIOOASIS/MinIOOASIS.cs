@@ -43,6 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS
     /// </summary>
     public class MinIOOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
+        protected virtual Core.Enums.ProviderType StorageProviderType => Core.Enums.ProviderType.MinIOOASIS;
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
         /// version (blockchain-style) instead of updating in place.
@@ -133,7 +134,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS
                     UseHttp = !_useSSL
                 };
                 _s3 = new AmazonS3Client(_accessKey, _secretKey, config);
-                if (!await Amazon.S3.Util.AmazonS3Util.DoesS3BucketExistV2Async(_s3, _bucket))
+                // DoesS3BucketExistV2Async probes GetBucketAcl, which is optional in
+                // S3-compatible stores such as ThreeFold QSS. ListBuckets is part of
+                // the common protocol implemented by both MinIO and QSS.
+                var buckets = await _s3.ListBucketsAsync();
+                if (!buckets.Buckets.Exists(bucket => string.Equals(bucket.BucketName, _bucket, StringComparison.Ordinal)))
                     await _s3.PutBucketAsync(new PutBucketRequest { BucketName = _bucket, UseClientRegion = true });
                 IsProviderActivated = true; result.Result = true; result.IsError = false; result.Message = "MinIOOASIS activated.";
             }
@@ -154,7 +159,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS
             {
                 if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
                 if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MinIOOASIS] = avatar.Id.ToString();
+                avatar.ProviderUniqueStorageKey[StorageProviderType] = avatar.Id.ToString();
                 await PutObjectAsync($"oasis-avatars/{avatar.Id}.json", Ser(avatar));
                 if (!string.IsNullOrEmpty(avatar.Username)) await PutObjectAsync($"oasis-indexes/avatar-by-username/{avatar.Username}.json", $"{{\"id\":\"{avatar.Id}\"}}");
                 if (!string.IsNullOrEmpty(avatar.Email)) await PutObjectAsync($"oasis-indexes/avatar-by-email/{avatar.Email}.json", $"{{\"id\":\"{avatar.Id}\"}}");
@@ -280,7 +285,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS
         public override OASISResult<bool> DeleteAvatarByUsername(string u, bool softDelete = true) => DeleteAvatarByUsernameAsync(u, softDelete).Result;
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool softDelete = true) { var a = await LoadAvatarByEmailAsync(e); if (a.IsError || a.Result == null) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "MinIOOASIS: Avatar not found."); return r; } return await DeleteAvatarAsync(a.Result.Id, softDelete); }
         public override OASISResult<bool> DeleteAvatarByEmail(string e, bool softDelete = true) => DeleteAvatarByEmailAsync(e, softDelete).Result;
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string pk, bool softDelete = true) { if (Guid.TryParse(pk, out Guid id)) return await DeleteAvatarAsync(id, softDelete); return await DeleteAvatarByUsernameAsync(pk, softDelete); }
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string pk, bool softDelete = true)
+            => GuidProviderKeyDeletion.DeleteAvatarAsync(pk, softDelete, DeleteAvatarAsync);
         public override OASISResult<bool> DeleteAvatar(string pk, bool softDelete = true) => DeleteAvatarAsync(pk, softDelete).Result;
 
         // ─── AvatarDetail ─────────────────────────────────────────────────────────
@@ -377,6 +383,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS
             try
             {
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[StorageProviderType] = holon.Id.ToString();
                 await PutObjectAsync($"oasis-holons/{holon.Id}.json", Ser(holon));
                 result.Result = holon; result.IsError = false; result.Message = $"MinIOOASIS: Holon '{holon.Name}' saved.";
             }

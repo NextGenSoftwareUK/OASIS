@@ -1,6 +1,6 @@
 # Subscription usage implementation validation — 2026-09-22
 
-This is a tested coordinated release candidate, not a completed production rollout. The [protocol](WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [operations runbook](WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md) define the implementation and the remaining external acceptance gates.
+This is a tested coordinated release candidate, not a completed production rollout. The [protocol](../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [operations runbook](../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md) define the implementation and the remaining external acceptance gates.
 
 ## Recorded source graph
 

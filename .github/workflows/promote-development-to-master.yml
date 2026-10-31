@@ -10,6 +10,11 @@ on:
         options:
           - Create or update promotion pull requests
         default: Create or update promotion pull requests
+      source_ref:
+        description: Branch to promote (a release/* snapshot, or Development for the moving tip)
+        required: false
+        type: string
+        default: Development
 
 permissions:
   contents: write
@@ -22,6 +27,8 @@ concurrency:
 jobs:
   prepare:
     runs-on: ubuntu-latest
+    env:
+      SOURCE_REF: ${{ inputs.source_ref || 'Development' }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -31,7 +38,7 @@ jobs:
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
       - name: Fetch Development
-        run: git fetch origin Development
+        run: git fetch origin "$SOURCE_REF"
 
       - name: Open missing submodule promotion pull requests
         id: submodules
@@ -47,7 +54,7 @@ jobs:
             key="${line% $path}"
             name="${key#submodule.}"
             name="${name%.path}"
-            if ! dev_sha=$(git rev-parse "origin/Development:${path}" 2>/dev/null); then
+            if ! dev_sha=$(git rev-parse "origin/${SOURCE_REF}:${path}" 2>/dev/null); then
               continue
             fi
 
@@ -96,7 +103,7 @@ jobs:
           cp Docker/oasis-dependency-versions.env /tmp/production-dependency-versions.env
 
           set +e
-          git merge --no-ff --no-commit origin/Development
+          git merge --no-ff --no-commit "origin/${SOURCE_REF}"
           merge_status=$?
           set -e
 
@@ -106,7 +113,7 @@ jobs:
           # manifest because they have no parent gitlink from which to regenerate.
           cp /tmp/production.gitmodules .gitmodules
           cp /tmp/production-dependency-versions.env Docker/oasis-dependency-versions.env
-          git show origin/Development:Docker/oasis-dependency-versions.env > /tmp/development-dependency-versions.env
+          git show "origin/${SOURCE_REF}:Docker/oasis-dependency-versions.env" > /tmp/development-dependency-versions.env
           for key in LIBRARIES_REPO LIBRARIES_COMMIT HOLOCHAIN_REPO HOLOCHAIN_COMMIT; do
             value=$(sed -n "s/^${key}=//p" /tmp/development-dependency-versions.env)
             if [ -z "$value" ]; then

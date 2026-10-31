@@ -9,30 +9,30 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests
     /// <summary>
     /// Exercises the real CRUD surface against a live backend.
     ///
-    /// Connection details come from ORACLEDBOASIS_&lt;PARAM&gt; environment variables. When the
-    /// backend is not reachable the provider fails to activate and every test is
-    /// inconclusive rather than failed - so an unconfigured machine reports "skipped"
-    /// instead of red.
+    /// Missing ORACLEDBOASIS_CONNECTIONSTRING makes the run inconclusive.
+    /// Configured activation failures fail the run. Activation currently creates
+    /// schema, so configure only an explicitly authorized test database.
     /// </summary>
     [TestClass]
     public class OracleDBOASISIntegrationTests
     {
         private OracleDBOASIS _provider = null!;
-        private bool _live;
 
         [TestInitialize]
         public void Setup()
         {
+            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")))
+                Assert.Inconclusive("Set ORACLEDBOASIS_CONNECTIONSTRING only for an authorized test database; activation currently creates schema.");
             _provider = OracleDBOASISTestFactory.Create();
-            try { _live = !_provider.ActivateProvider().IsError && _provider.IsProviderActivated; }
-            catch { _live = false; }
+            var activation = _provider.ActivateProvider();
+            Assert.IsFalse(activation.IsError, "Configured Oracle activation failed; inspect its OASISResult exception.");
+            Assert.IsTrue(activation.Result);
+            Assert.IsTrue(_provider.IsProviderActivated);
         }
 
         private void RequireLive()
         {
-            if (!_live)
-                Assert.Inconclusive(
-                    "No live OracleDBOASIS backend configured - set the ORACLEDBOASIS_* environment variables to run this.");
+            Assert.IsTrue(_provider.IsProviderActivated);
         }
 
         [TestMethod]

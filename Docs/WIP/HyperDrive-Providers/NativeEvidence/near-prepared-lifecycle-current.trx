@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="48127e01-e705-4a2c-afc8-2ff5363a7ca5" name="david@OASISOMEGA 2026-10-26 15:32:13" runUser="OASISOMEGA\david" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-26T15:32:13.9137195-05:00" queuing="2026-10-26T15:32:13.9137196-05:00" start="2026-10-26T15:31:34.5482358-05:00" finish="2026-10-26T15:32:13.9172584-05:00" />
+  <TestSettings name="default" id="9d3c0dd0-e63a-4241-b750-f03e1c641325">
+    <Deployment runDeploymentRoot="david_OASISOMEGA_2026-10-26_15_32_13" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="e79df4a2-0014-40c3-b4e5-5621f59f75fe" testId="45e51ba5-e958-b76a-6291-e815bd944ca6" testName="PublicNftBridgeWalletAndEncryptedHistoryUseOneExistingNativeOwner" computerName="OASISOMEGA" duration="00:00:38.9378863" startTime="2026-10-26T15:31:34.9099737-05:00" endTime="2026-10-26T15:32:13.8570818-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e79df4a2-0014-40c3-b4e5-5621f59f75fe">
+      <Output>
+        <StdOut>NEAR_PREPARED_PUBLIC_LIFECYCLE_VERIFIED {"token":"311cc713cc47401ebebc905ce2345977","keys":["wallet-transaction:test.near:DF7NXcC6pxdvgPHxnUuacXR4SYBN1mhoUzoCVJb6LoTG","wallet-transaction:test.near:CvoHSMXY1AQF45d3UBmpK1V8Ss1r4ukmZpChtHhcbbwU","wallet-transaction:test.near:e1SU8y67UAbSfiMpopn4LgiEiPKPtBg2a11V3Agr7Lm","wallet-transaction:test.near:4AiXGvc9fCED5ZWJYzHraoHiWDR4x5Hc8TrNgcYHb83k"],"originals":["67aP9RJ2BFrrBNuT89skhs6qfNdDiC64hbW4245fj8No","JBMDeDuT4V23Ma33WJM2R1HF2nFPfwKUfvuwhHJWPXoU","4PYFDQiA4Hi7BE1GSghU3JqBaouhkbaSCx3YjD5pg6Ry","5UGchLCwHhHGazR1dBKdzXkBTYqXp2w2wyCVUv85nsPN","HsTFxm3XP6LM57Ewz6Q5tABZfSTZivZfuPZ5Z5ciKfHW","DF7NXcC6pxdvgPHxnUuacXR4SYBN1mhoUzoCVJb6LoTG","2U8o4Ct9HuxMa1JMgyMx1VLAwA5iZT1hG5aRLpb3dYS2","JC1TNBbcBYfh2qft8WmjwxR94GDAZUwpUGeLABwPLcg3","CvoHSMXY1AQF45d3UBmpK1V8Ss1r4ukmZpChtHhcbbwU","FS5RQbVd7NRAbY1B3gMaxfVwnPagCZtiuvJjgMKsofSQ","e1SU8y67UAbSfiMpopn4LgiEiPKPtBg2a11V3Agr7Lm","E4Xut1p9UgexbkKuWkt8ESUGsDRfQKX8iw1ViKM8Gpdk","4AiXGvc9fCED5ZWJYzHraoHiWDR4x5Hc8TrNgcYHb83k","CLMCHYgBLJXB6jjhvmZXWZXExcZDiDdkgcjm2QJ5PYg2","7XvDRw4sA5m4q8EVd96344bmhanXpxXbjaksnnHCNZuo","4Foc5aMvYmc4rUKHM7UeHeUbaotGwc3DDxLJG5xc8acM","BedUf6vp8tpnXi2E674nzGymtKLKt7CPAEVXmcrBWMJ","BnmBvfusbeaNHTs891HNZMxjBuawoR6MJ3uqcqRKHEsW"]}</StdOut>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="PublicNftBridgeWalletAndEncryptedHistoryUseOneExistingNativeOwner" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.integrationtests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.integrationtests.dll" id="45e51ba5-e958-b76a-6291-e815bd944ca6">
+      <TestCategory>
+        <TestCategoryItem TestCategory="RetainedSignedInspection" />
+      </TestCategory>
+      <Execution id="e79df4a2-0014-40c3-b4e5-5621f59f75fe" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.NearPreparedLifecycleTests" name="PublicNftBridgeWalletAndEncryptedHistoryUseOneExistingNativeOwner" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="45e51ba5-e958-b76a-6291-e815bd944ca6" executionId="e79df4a2-0014-40c3-b4e5-5621f59f75fe" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="1" executed="1" passed="1" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+  </ResultSummary>
+</TestRun>

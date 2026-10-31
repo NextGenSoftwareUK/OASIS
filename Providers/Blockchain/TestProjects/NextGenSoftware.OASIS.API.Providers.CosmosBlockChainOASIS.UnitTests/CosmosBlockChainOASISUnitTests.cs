@@ -60,25 +60,28 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests
         }
 
         [TestMethod]
-        public void ActivateProvider_ShouldSetIsProviderActivatedToTrue()
+        public void UnconfiguredOwnerActivationMustFailWithoutClaimingWritableStorage()
         {
+            using var provider=new CosmosBlockChainOASIS("http://127.0.0.1:1",storageEncryptionKeyResolver:()=>new byte[32]);
             // Arrange
             Assert.IsFalse(_provider.IsProviderActivated);
 
             // Act
-            var result = _provider.ActivateProvider();
+            var result = provider.ActivateProvider();
 
             // Assert
-            Assert.IsTrue(result.IsError == false);
-            Assert.IsTrue(_provider.IsProviderActivated);
+            Assert.IsTrue(result.IsError);
+            StringAssert.Contains(result.Message,"owner signing key");
+            Assert.IsFalse(_provider.IsProviderActivated);
         }
 
         [TestMethod]
-        public void DeActivateProvider_ShouldSetIsProviderActivatedToFalse()
+        public void FailedActivationCanBeDeactivatedWithoutClaimingItWasActive()
         {
             // Arrange
-            _provider.ActivateProvider();
-            Assert.IsTrue(_provider.IsProviderActivated);
+            var activation = _provider.ActivateProvider();
+            Assert.IsTrue(activation.IsError);
+            Assert.IsFalse(_provider.IsProviderActivated);
 
             // Act
             var result = _provider.DeActivateProvider();

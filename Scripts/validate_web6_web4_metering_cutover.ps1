@@ -39,8 +39,10 @@ foreach ($base in $scanRoots) {
 }
 
 $required = [ordered]@{
-    'WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Middleware/SubscriptionMiddleware.cs' = @('UsageEndpointPolicy','RequiresProviderMeasurement','ai.tokens')
-    'OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/Web4UsageExecution.cs' = @('AuthorizeUsageAsync','StartUsageAsync','TryBeginAsync')
+    'WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Middleware/SubscriptionMiddleware.cs' = @('UsageEndpointPolicy','Web6ProviderUsage.ProviderPolicy')
+    'WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Services/Web6ProviderUsage.cs' = @('RequiresProviderMeasurement','ai.tokens','CalculateMeasurement','BeginProviderAttemptAsync')
+    'WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Services/Web6DelegatedExecution.cs' = @('BeginDelegatedAsync','Web6ProviderUsage.OpenScope','CompleteOrReconcileAsync')
+    'OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/Web4UsageExecution.cs' = @('AuthorizeUsageAsync','AuthorizeDelegatedUsageAsync','StartUsageAsync','TryBeginAsync')
     'OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/Web4UsageSettlementWorker.cs' = @('SettleUsageAsync','AcknowledgeAsync','USAGE_PROVIDER_RECONCILIATION_REQUIRED')
     'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.cs' = @('WithTransactionAsync','ux_operation_id','SameAuthorization','SettlementFingerprint')
 }

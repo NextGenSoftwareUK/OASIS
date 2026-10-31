@@ -42,6 +42,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
     {
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
+            return await _eosioOASIS.LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+#pragma warning disable CS0162
             var result = new OASISResult<IHolon>();
             try
             {
@@ -87,6 +89,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
                 OASISErrorHandling.HandleError(ref result, $"Error loading holon from Telos: {ex.Message}", ex);
             }
             return result;
+#pragma warning restore CS0162
         }
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -470,6 +473,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
+            return await _eosioOASIS.SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+#pragma warning disable CS0162
             var result = new OASISResult<IHolon>();
             try
             {
@@ -545,6 +550,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
                 OASISErrorHandling.HandleError(ref result, $"Error saving holon to Telos: {ex.Message}", ex);
             }
             return result;
+#pragma warning restore CS0162
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)

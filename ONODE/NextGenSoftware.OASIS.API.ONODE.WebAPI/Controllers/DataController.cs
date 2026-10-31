@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
@@ -36,6 +36,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 if (_holonManager == null)
                 {
+                    if(AdmittedStorageManagerAcquisition.TryCreate(
+                        ()=>OASISBootLoader.OASISBootLoader.OASISDNA,
+                        ()=>ProviderManager.Instance.CurrentStorageProvider,
+                        (provider,dna)=>new HolonManager(null,dna,ProviderManager.Instance),out HolonManager admitted))
+                    {
+                        _holonManager=admitted;
+                        return _holonManager;
+                    }
                     OASISResult<IOASISStorageProvider> result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
 
                     if (result.IsError)
@@ -48,10 +56,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
+        // Explicit trusted composition keeps provider ownership in the manager.
+        // The public parameterless constructor remains the default MVC binding.
+        internal DataController(HolonManager manager)
+        {
+            _holonManager = manager ?? throw new ArgumentNullException(nameof(manager));
+        }
+
         public DataController()
         {
 
         }
+
+        private static OASISResult<T> RequestContextError<T>(OASISResult<HolonRequestContext> context) =>
+            new OASISResult<T>
+            {
+                IsError = true, ErrorCount = 1, ErrorCode = context.ErrorCode,
+                Message = context.Message, Exception = context.Exception
+            };
 
     }
 }

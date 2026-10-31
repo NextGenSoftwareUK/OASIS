@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
     {
         public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
-            return GenerateKeyPairAsync().Result;
+            return Task.Run(() => GenerateKeyPairAsync()).GetAwaiter().GetResult();
         }
 
         public Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
@@ -49,7 +49,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
         public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
         {
-            return GenerateKeyPairAsync(request).Result;
+            return Task.Run(() => GenerateKeyPairAsync(request)).GetAwaiter().GetResult();
         }
 
         public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
@@ -63,49 +63,35 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     return result;
                 }
 
-                // Generate Polkadot SR25519 key pair using Substrate/Polkadot-specific cryptography
-                // Polkadot uses SR25519 (Schnorr signatures over Ristretto25519) for key generation
-                var privateKeyBytes = new byte[32];
-                using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
-                {
-                    rng.GetBytes(privateKeyBytes);
-                }
-
-                // Generate SR25519 key pair for Polkadot/Substrate
-                // Note: In production, use Substrate.NetApi or similar library for proper SR25519 implementation
-                // For now, we generate compatible keys using cryptographic primitives
-                var privateKey = Convert.ToBase64String(privateKeyBytes);
-                
-                // Derive public key from private key using SR25519
-                // Simplified implementation - in production use proper SR25519 library
-                using var sha512 = System.Security.Cryptography.SHA512.Create();
-                var hash = sha512.ComputeHash(privateKeyBytes);
-                var publicKeyBytes = new byte[32];
-                Array.Copy(hash, 0, publicKeyBytes, 0, 32);
-                var publicKey = Convert.ToBase64String(publicKeyBytes);
-                
-                // Generate Polkadot address from public key (SS58 encoding)
-                // Polkadot addresses use SS58 encoding with prefix 0 (Polkadot mainnet)
-                var address = DerivePolkadotAddress(publicKeyBytes);
-
-                // Create KeyPairAndWallet using KeyHelper but override with Polkadot-specific values from SR25519
-                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-                if (keyPair != null)
-                {
-                    keyPair.PrivateKey = privateKey;
-                    keyPair.PublicKey = publicKey;
-                    keyPair.WalletAddressLegacy = address; // Polkadot SS58 address
-                }
-
-                result.Result = keyPair;
-                result.IsError = false;
-                result.Message = "Polkadot SR25519 key pair generated successfully";
+                if (!string.IsNullOrWhiteSpace(request?.WalletAddress))
+                    throw new ArgumentException("New key generation does not recover or replace an existing wallet address.");
+                var generated = await InvokePolkadotSdkAsync(new { operation = "generateKeyPair", endpoint = _rpcEndpoint,
+                    genesisHash = ReportedGenesisHash }).ConfigureAwait(false);
+                result.Result = ParseSdkGeneratedWallet(generated);
+                result.Message = "New SDK sr25519 seed/public key and authoritative-network SS58 address generated; no wallet stored, funded or submitted.";
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error generating key pair: {ex.Message}", ex);
             }
             return result;
+        }
+
+        private IKeyPairAndWallet ParseSdkGeneratedWallet(JsonElement generated)
+        {
+                var seed = generated.GetProperty("privateKey").GetString();
+                var publicKey = generated.GetProperty("publicKey").GetString();
+                var address = generated.GetProperty("address").GetString();
+                var prefix = generated.GetProperty("ss58Format").GetInt32();
+                if (generated.GetProperty("chainId").GetString() != ReportedGenesisHash
+                    || generated.GetProperty("cryptoType").GetString() != "sr25519"
+                    || !IsGenesisHash(seed) || !IsGenesisHash(publicKey)
+                    || prefix < 0 || prefix > 16383 || prefix is 46 or 47
+                    || address == null || address.Length < 35 || address.Length > 50
+                    || !System.Text.RegularExpressions.Regex.IsMatch(address, "^[1-9A-HJ-NP-Za-km-z]+$"))
+                    throw new System.IO.InvalidDataException("SDK key generation response is invalid; key values withheld.");
+                return new KeyHelper.KeyPairAndWallet { PrivateKey = seed, PublicKey = publicKey,
+                    WalletAddressLegacy = address, WalletAddressSegwitP2SH = null };
         }
 
 
@@ -127,38 +113,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     return result;
                 }
 
-                // Call Polkadot RPC API to get account balance
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "balances_accountBalance",
-                    @params = new object[] { accountAddress }
-                };
-
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-                var content = await response.Content.ReadAsStringAsync(token);
-                var jsonDoc = JsonDocument.Parse(content);
-
-                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
-                {
-                    var balanceStr = resultElement.GetString();
-                    if (ulong.TryParse(balanceStr, out var balance))
-                    {
-                        // Polkadot amounts are in Planck (1 DOT = 10^10 Planck)
-                        result.Result = balance / 10_000_000_000m;
-                        result.IsError = false;
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to parse balance");
-                    }
-                }
-                else
-                {
-                    result.Result = 0m;
-                    result.IsError = false;
-                }
+                var balance = await InvokePolkadotSdkAsync(new { operation = "balance", endpoint = _rpcEndpoint,
+                    genesisHash = ReportedGenesisHash, address = accountAddress }, token).ConfigureAwait(false);
+                result.Result = ParseNativeDecimalBalance(balance);
             }
             catch (Exception ex)
             {
@@ -178,27 +135,15 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     return result;
                 }
 
-                // Generate Polkadot SR25519 key pair (Substrate uses SR25519)
-                var privateKeyBytes = new byte[32];
-                using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
-                {
-                    rng.GetBytes(privateKeyBytes);
-                }
-
-                // Generate SR25519 key pair for Polkadot/Substrate
-                // Polkadot uses SR25519 (Schnorr signatures over Ristretto25519) for key generation
-                var privateKey = Convert.ToBase64String(privateKeyBytes);
-                
-                // Derive public key from private key using SR25519 (simplified - in production use proper SR25519 library like Substrate.NetApi)
-                using var sha512 = System.Security.Cryptography.SHA512.Create();
-                var hash = sha512.ComputeHash(privateKeyBytes);
-                var publicKeyBytes = new byte[32];
-                Array.Copy(hash, 0, publicKeyBytes, 0, 32);
-                var publicKey = Convert.ToBase64String(publicKeyBytes);
-
-                result.Result = (publicKey, privateKey, string.Empty);
+                var generated = await InvokePolkadotSdkAsync(new { operation = "createAccount", endpoint = _rpcEndpoint,
+                    genesisHash = ReportedGenesisHash }, token).ConfigureAwait(false);
+                var wallet = ParseSdkGeneratedWallet(generated);
+                var phrase = generated.GetProperty("seedPhrase").GetString();
+                if (string.IsNullOrWhiteSpace(phrase) || phrase.Split(' ').Length != 24)
+                    throw new System.IO.InvalidDataException("SDK mnemonic response is invalid; values withheld.");
+                result.Result = (wallet.PublicKey, wallet.PrivateKey, phrase);
                 result.IsError = false;
-                result.Message = "Polkadot account key pair created successfully. Seed phrase not applicable for Polkadot.";
+                result.Message = "SDK sr25519 account material created; not stored, funded or submitted.";
             }
             catch (Exception ex)
             {
@@ -224,68 +169,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     return result;
                 }
 
-                // Real Polkadot implementation: Derive SR25519 key pair from seed phrase
-                // Polkadot uses SR25519 (Schnorr signatures over Ristretto25519) for key derivation
-                // Convert seed phrase to seed bytes
-                byte[] seedBytes;
-                
-                // Check if seedPhrase is a mnemonic (BIP39) or a raw seed
-                // If it's a mnemonic, it will typically have spaces and be 12-24 words
-                if (seedPhrase.Contains(' ') && seedPhrase.Split(' ').Length >= 12)
-                {
-                    // BIP39 mnemonic - derive seed from mnemonic
-                    // In production, use a proper BIP39 library like NBitcoin or BouncyCastle
-                    // For now, use PBKDF2 to derive seed from mnemonic (simplified approach)
-                    var mnemonicBytes = System.Text.Encoding.UTF8.GetBytes(seedPhrase);
-                    using (var pbkdf2 = new System.Security.Cryptography.Rfc2898DeriveBytes(mnemonicBytes, System.Text.Encoding.UTF8.GetBytes("mnemonic"), 2048, System.Security.Cryptography.HashAlgorithmName.SHA512))
-                    {
-                        seedBytes = pbkdf2.GetBytes(32);
-                    }
-                }
-                else
-                {
-                    // Treat as raw seed - convert to bytes
-                    // If it's hex, decode it; otherwise use UTF8
-                    if (seedPhrase.StartsWith("0x") || (seedPhrase.Length == 64 && System.Text.RegularExpressions.Regex.IsMatch(seedPhrase, "^[0-9a-fA-F]+$")))
-                    {
-                        // Hex seed
-                        seedBytes = Convert.FromHexString(seedPhrase.Replace("0x", ""));
-                        if (seedBytes.Length != 32)
-                        {
-                            // Pad or truncate to 32 bytes
-                            var temp = new byte[32];
-                            Array.Copy(seedBytes, 0, temp, 0, Math.Min(seedBytes.Length, 32));
-                            seedBytes = temp;
-                        }
-                    }
-                    else
-                    {
-                        // UTF8 seed phrase - hash to get 32 bytes
-                        using (var sha256 = System.Security.Cryptography.SHA256.Create())
-                        {
-                            var hash = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(seedPhrase));
-                            seedBytes = hash; // SHA256 produces 32 bytes
-                        }
-                    }
-                }
-
-                // Derive private key from seed (SR25519 uses 32-byte seeds)
-                var privateKeyBytes = new byte[32];
-                Array.Copy(seedBytes, 0, privateKeyBytes, 0, Math.Min(seedBytes.Length, 32));
-                var privateKey = Convert.ToBase64String(privateKeyBytes);
-
-                // Derive public key from private key using SR25519
-                // SR25519 public key derivation: publicKey = privateKey * G (where G is the generator point)
-                // Simplified implementation using SHA512 (in production, use proper SR25519 library like Substrate.NetApi)
-                using var sha512 = System.Security.Cryptography.SHA512.Create();
-                var pubKeyHash = sha512.ComputeHash(privateKeyBytes);
-                var publicKeyBytes = new byte[32];
-                Array.Copy(pubKeyHash, 0, publicKeyBytes, 0, 32);
-                var publicKey = Convert.ToBase64String(publicKeyBytes);
-
-                result.Result = (publicKey, privateKey);
+                var restored = await InvokePolkadotSdkAsync(new { operation = "restoreAccount", endpoint = _rpcEndpoint,
+                    genesisHash = ReportedGenesisHash, recoveryMaterial = seedPhrase }, token).ConfigureAwait(false);
+                var wallet = ParseSdkGeneratedWallet(restored);
+                result.Result = (wallet.PublicKey, wallet.PrivateKey);
                 result.IsError = false;
-                result.Message = "Polkadot account restored successfully from seed phrase";
+                result.Message = "SDK sr25519 identity restored from explicit material; no stored wallet replaced.";
             }
             catch (Exception ex)
             {
@@ -294,171 +183,80 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             return result;
         }
 
-        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
+        public Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
+            => ExecuteBridgeTransferAsync(amount, senderAccountAddress, _bridgePoolAddress, senderPrivateKey);
+
+        public Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
+            => ExecuteBridgeTransferAsync(amount, _bridgePoolAddress, receiverAccountAddress, _privateKey);
+
+        private async Task<OASISResult<BridgeTransactionResponse>> ExecuteBridgeTransferAsync(
+            decimal amount, string sender, string recipient, string signingKey)
         {
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Polkadot provider is not activated");
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Sender account address and private key are required");
-                    return result;
-                }
-
-                if (amount <= 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
-                    return result;
-                }
-
-                // Convert amount to Planck
-                var planckAmount = (ulong)(amount * 10_000_000_000m);
-                var bridgePoolAddress = _contractAddress ?? "";
-                if (string.IsNullOrWhiteSpace(bridgePoolAddress))
-                {
-                    // Fallback to default Polkadot address format if not configured
-                    bridgePoolAddress = "1" + new string('0', 47);
-                }
-
-                // Create transfer transaction using Polkadot RPC
-                // Build transaction hash deterministically from transaction parameters
-                var txData = $"{senderAccountAddress}:{bridgePoolAddress}:{planckAmount}:{DateTime.UtcNow.Ticks}";
-                using var sha256 = System.Security.Cryptography.SHA256.Create();
-                var txHashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(txData));
-                var txHash = Convert.ToHexString(txHashBytes).ToLowerInvariant();
-                
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = txHash,
-                    IsSuccessful = true,
-                    Status = BridgeTransactionStatus.Pending
+                if (!_isActivated) throw new InvalidOperationException("Polkadot provider is not activated.");
+                if (string.IsNullOrWhiteSpace(_bridgePoolAddress))
+                    throw new InvalidOperationException("An explicit bridge pool address is required; no guessed destination is permitted.");
+                if (amount <= 0 || string.IsNullOrWhiteSpace(sender) || string.IsNullOrWhiteSpace(recipient)
+                    || string.IsNullOrWhiteSpace(signingKey))
+                    throw new ArgumentException("A positive amount, explicit sender/recipient and signing key are required.");
+                var transfer = await SendOwnedNativeTransferAsync(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.SendWeb3TokenRequest {
+                    FromWalletAddress = sender, ToWalletAddress = recipient, Amount = amount, OwnerPrivateKey = signingKey
+                }).ConfigureAwait(false);
+                if (transfer.IsError) throw transfer.Exception ?? new InvalidOperationException(transfer.Message);
+                var original = transfer.Result?.TransactionResult;
+                if (!IsGenesisHash(original))
+                    throw new System.IO.InvalidDataException("Finalized native transfer returned no valid original transaction identity.");
+                result.Result = new BridgeTransactionResponse {
+                    TransactionId = original, IsSuccessful = true, Status = BridgeTransactionStatus.Completed
                 };
-                result.IsError = false;
-                result.Message = "Polkadot withdrawal transaction created (requires full transaction signing implementation)";
+                result.Message = "Native pool transfer finalized; cross-chain authorization/release and billing settlement are separate.";
             }
-            catch (Exception ex)
+            catch (Exception failure)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error withdrawing: {ex.Message}", ex);
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = ex.Message,
-                    Status = BridgeTransactionStatus.Canceled
+                OASISErrorHandling.HandleError(ref result, failure.Message, failure);
+                var uncertain = failure as INativeMutationReconciliationRequired;
+                result.Result = new BridgeTransactionResponse {
+                    TransactionId = uncertain?.OriginalTransactionId ?? string.Empty,
+                    IsSuccessful = false, ErrorMessage = failure.Message,
+                    Status = uncertain != null ? BridgeTransactionStatus.Pending : BridgeTransactionStatus.Canceled
                 };
             }
             return result;
         }
 
-        public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
-        {
-            var result = new OASISResult<BridgeTransactionResponse>();
-            try
-            {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Polkadot provider is not activated");
-                    return result;
-                }
+        public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
+            => GetTransactionStatusAsync(transactionHash, null, token);
 
-                if (string.IsNullOrWhiteSpace(receiverAccountAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Receiver account address is required");
-                    return result;
-                }
-
-                if (amount <= 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
-                    return result;
-                }
-
-                // Convert amount to Planck
-                var planckAmount = (ulong)(amount * 10_000_000_000m);
-
-                // Create transfer transaction from bridge pool to receiver
-                // Build transaction hash deterministically from transaction parameters
-                var bridgePoolAddress = _contractAddress ?? "1" + new string('0', 33);
-                var txData = $"{bridgePoolAddress}:{receiverAccountAddress}:{planckAmount}:{DateTime.UtcNow.Ticks}";
-                using var sha256 = System.Security.Cryptography.SHA256.Create();
-                var txHashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(txData));
-                var txHash = Convert.ToHexString(txHashBytes).ToLowerInvariant();
-                
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = txHash,
-                    IsSuccessful = true,
-                    Status = BridgeTransactionStatus.Pending
-                };
-                result.IsError = false;
-                result.Message = "Polkadot deposit transaction created (requires full transaction signing implementation)";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error depositing: {ex.Message}", ex);
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = ex.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-            }
-            return result;
-        }
-
-        public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
+        /// <summary>Read exact finalized dispatch in an explicit block, or search finalized ancestry under the process deadline.
+        /// Absence/timeouts remain errors: they do not imply rejection or authorize another submission.</summary>
+        public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(
+            string transactionHash, string blockHash, CancellationToken token = default)
         {
             var result = new OASISResult<BridgeTransactionStatus>();
             try
             {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Polkadot provider is not activated");
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(transactionHash))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Transaction hash is required");
-                    return result;
-                }
-
-                // Query Polkadot RPC for transaction status
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "chain_getBlock",
-                    @params = new object[] { transactionHash }
-                };
-
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-                var content = await response.Content.ReadAsStringAsync(token);
-                var jsonDoc = JsonDocument.Parse(content);
-
-                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
-                {
-                    result.Result = BridgeTransactionStatus.Completed;
-                    result.IsError = false;
-                }
-                else
-                {
-                    result.Result = BridgeTransactionStatus.NotFound;
-                    result.IsError = true;
-                    result.Message = "Transaction not found";
-                }
+                if (!_isActivated) throw new InvalidOperationException("Polkadot provider is not activated.");
+                if (!IsGenesisHash(transactionHash) || (blockHash != null && !IsGenesisHash(blockHash)))
+                    throw new ArgumentException("Explicit valid transaction and optional block hashes are required.");
+                var observed = await InvokePolkadotSdkAsync(new { operation = "transactionStatus",
+                    endpoint = _rpcEndpoint, genesisHash = ReportedGenesisHash, transactionHash, blockHash }, token).ConfigureAwait(false);
+                var status = observed.GetProperty("status").GetString();
+                if (!observed.GetProperty("finalized").GetBoolean()
+                    || observed.GetProperty("transactionHash").GetString() != transactionHash.ToLowerInvariant()
+                    || !IsGenesisHash(observed.GetProperty("blockHash").GetString())
+                    || (blockHash != null && observed.GetProperty("blockHash").GetString() != blockHash.ToLowerInvariant())
+                    || status is not ("Completed" or "Failed")
+                    || observed.GetProperty("dispatchSucceeded").GetBoolean() != (status == "Completed"))
+                    throw new System.IO.InvalidDataException("SDK status does not prove the exact finalized transaction outcome.");
+                result.Result = status == "Completed" ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Failed;
+                result.Message = "Exact finalized top-level dispatch; not proof of every nested call, bridge release or fee settlement.";
             }
-            catch (Exception ex)
+            catch (Exception failure)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error getting Polkadot transaction status: {ex.Message}", ex);
-                result.Result = BridgeTransactionStatus.NotFound;
+                OASISErrorHandling.HandleError(ref result, failure.Message, failure);
+                result.Result = BridgeTransactionStatus.Pending; // unresolved, never fabricated completion/rejection.
             }
             return result;
         }
@@ -469,77 +267,13 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
         /// Parse Polkadot blockchain response to Avatar collection
         /// </summary>
         private IEnumerable<IAvatar> ParsePolkadotToAvatars(string polkadotJson)
-        {
-            try
-            {
-                var jsonDoc = JsonDocument.Parse(polkadotJson);
-                var root = jsonDoc.RootElement;
-                var avatars = new List<IAvatar>();
-
-                if (root.ValueKind == JsonValueKind.Array)
-                {
-                    foreach (var element in root.EnumerateArray())
-                    {
-                        var avatar = ParsePolkadotToAvatar(element.GetRawText());
-                        if (avatar != null)
-                            avatars.Add(avatar);
-                    }
-                }
-                else if (root.TryGetProperty("avatars", out var avatarsArray) && avatarsArray.ValueKind == JsonValueKind.Array)
-                {
-                    foreach (var element in avatarsArray.EnumerateArray())
-                    {
-                        var avatar = ParsePolkadotToAvatar(element.GetRawText());
-                        if (avatar != null)
-                            avatars.Add(avatar);
-                    }
-                }
-
-                return avatars;
-            }
-            catch
-            {
-                return new List<IAvatar>();
-            }
-        }
+            => ParseCanonicalPolkadotRecords<Avatar>(polkadotJson,"avatars");
 
         /// <summary>
         /// Parse Polkadot blockchain response to Holon collection
         /// </summary>
         private IEnumerable<IHolon> ParsePolkadotToHolons(string polkadotJson)
-        {
-            try
-            {
-                var jsonDoc = JsonDocument.Parse(polkadotJson);
-                var root = jsonDoc.RootElement;
-                var holons = new List<IHolon>();
-
-                if (root.ValueKind == JsonValueKind.Array)
-                {
-                    foreach (var element in root.EnumerateArray())
-                    {
-                        var holon = ParsePolkadotToHolon(element.GetRawText());
-                        if (holon != null)
-                            holons.Add(holon);
-                    }
-                }
-                else if (root.TryGetProperty("holons", out var holonsArray) && holonsArray.ValueKind == JsonValueKind.Array)
-                {
-                    foreach (var element in holonsArray.EnumerateArray())
-                    {
-                        var holon = ParsePolkadotToHolon(element.GetRawText());
-                        if (holon != null)
-                            holons.Add(holon);
-                    }
-                }
-
-                return holons;
-            }
-            catch
-            {
-                return new List<IHolon>();
-            }
-        }
+            => ParseCanonicalPolkadotRecords<Holon>(polkadotJson,"holons");
 
         /// <summary>
         /// Parse Polkadot chain storage (hex-encoded) to Holon object
@@ -583,41 +317,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
         /// Parse Polkadot blockchain response to Holon object
         /// </summary>
         private IHolon ParsePolkadotToHolon(string polkadotJson)
-        {
-            try
-            {
-                var jsonDoc = JsonDocument.Parse(polkadotJson);
-                var root = jsonDoc.RootElement;
-
-                var holon = new Holon
-                {
-                    Id = root.TryGetProperty("id", out var idElement) && idElement.GetString() != null ? Guid.Parse(idElement.GetString()) : CreateDeterministicGuid($"{ProviderType.Value}:holon:{root.GetRawText()}"),
-                    Name = root.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : "Polkadot Holon",
-                    Description = root.TryGetProperty("description", out var descElement) ? descElement.GetString() : "Holon from Polkadot blockchain",
-                    ProviderUniqueStorageKey = new Dictionary<ProviderType, string>
-                    {
-                        [Core.Enums.ProviderType.PolkadotOASIS] = root.TryGetProperty("polkadotId", out var polkadotIdElement) ? polkadotIdElement.GetString() ?? CreateDeterministicGuid($"{ProviderType.Value}:holon:{root.GetRawText()}").ToString() : CreateDeterministicGuid($"{ProviderType.Value}:holon:{root.GetRawText()}").ToString()
-                    },
-                    IsActive = root.TryGetProperty("isActive", out var activeElement) ? activeElement.GetBoolean() : true,
-                    CreatedDate = root.TryGetProperty("createdDate", out var createdElement) && DateTime.TryParse(createdElement.GetString(), out var createdDate) ? createdDate : DateTime.UtcNow,
-                    ModifiedDate = root.TryGetProperty("modifiedDate", out var modifiedElement) && DateTime.TryParse(modifiedElement.GetString(), out var modifiedDate) ? modifiedDate : DateTime.UtcNow
-                };
-
-                return holon;
-            }
-            catch
-            {
-                return new Holon
-                {
-                    Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:error"),
-                    Name = "Polkadot Holon",
-                    ProviderUniqueStorageKey = new Dictionary<ProviderType, string>
-                    {
-                        [Core.Enums.ProviderType.PolkadotOASIS] = CreateDeterministicGuid($"{ProviderType.Value}:holon:error").ToString()
-                    }
-                };
-            }
-        }
+            => ParseCanonicalPolkadotRecord<Holon>(polkadotJson);
 
         /// <summary>
         /// Creates a deterministic GUID from input string using SHA-256 hash

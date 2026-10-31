@@ -1,0 +1,11 @@
+{
+  "blockHash": "0x313779bf951f27cec1beaabf59cb5999480a67435dee49a40f32d6f0e519e9cc",
+  "contractAddress": "0x62d8db2a73ed9cd046ebb2d316aff92d1ee7fced2b5cebe561768a0087fea422",
+  "codeHash": "0x7c102aaaaef5fec4e9f8f035c0542c7c6ca23f8c4e6b8de5e0498862debef0fa",
+  "generation": "15",
+  "keysBase64": [],
+  "genesisHash": "0xe8cf5d7d636a08721efaa17acc52ed3d895fe2468dccb2520cc8e249ddb6b208",
+  "helperSha256": "7b31af0ef55e489bd0583f72df712beb14da0886514e4da5a9fa2b57df568d23",
+  "readOnly": true,
+  "submitted": false
+}
