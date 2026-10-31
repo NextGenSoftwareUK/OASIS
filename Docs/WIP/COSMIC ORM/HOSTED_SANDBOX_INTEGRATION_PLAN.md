@@ -362,3 +362,28 @@ cloud account, permission, secret or paid infrastructure was created.
 
 - solid-host-controls.trx SHA256 dfdb1739785aaee009fe4803f687c530a69b48bc67ff879d2f43b8d8fa708962.
 - cloud-hosted-readiness-metadata.json SHA256 ad3b249da07bd4fe42c7373b3faaf9ffa565bed678c844fa09cf75e3c5d372a1.
+## 31 October — SOLID shipping example gate
+
+Added shipping-API checks using the actual SOLID adapter capabilities and the
+production HTTP example compiler. Four presets (3-resource selection, 2-resource
+subset, each paired with Mongo) compile only when native membership is enabled.
+With Mongo unavailable, native examples remain available and federation examples
+carry CQL_DEMO_TARGET_UNAVAILABLE. Discovery planning performs no native I/O.
+Two tests passed, zero failures/skips; consumer build passed without restores.
+Evidence: TestResults/HostedCqlIntegrationCurrent/solid-shipping-examples.trx,
+SHA256 34EF67E9899295BF8BDC9AE059C88C863129F0637BD75C7642B6269A18E27C5D.
+These tests do not establish a hosted Pod or live six-provider coverage.
+
+The retained-container read-only inspection command was rejected by automatic
+approval review before execution, with no detailed reason. No container started,
+no readiness report was produced and no Pod/identity mutation ran. Existing
+retained CSS resources remain reusable; this is not a provider failure result.
+
+Upstream pinned-package configuration documentation distinguishes ordinary
+file.json (no root writes) from file-root.json (root LDP storage, initially broad
+permissions). Hosted provisioning must explicitly choose and restrict the owned
+loopback-only source, rather than assuming a default file.json root accepts seed
+writes. Reference: https://app.unpkg.com/%40solid/community-server%407.1.8/files/config/README.md.
+Next: package pinned CSS with deliberate lifecycle ownership, persist the native
+source on the existing volume, provision three public encrypted sample records
+for its exact URI, then enroll and verify public browser queries/federation.
