@@ -1,4 +1,31 @@
 # COSMIC CQL demo
+
+Start with the [live sandbox](https://web4.oasisomniverse.one/web4-sandbox.html)
+for configured hosted providers; it needs no local SDK or database. See
+[CURRENT_STATUS](../../Docs/WIP/COSMIC%20ORM/CURRENT_STATUS.md) for verified live
+coverage. Local launchers below are separate from hosted availability.
+
+## SOLID multi-record selection in C# and HTTP
+
+[SolidPointWalkthrough.RunRecordSetAsync](SolidPointWalkthrough.cs) shows a
+commented C# membership query through HolonManager/CQL. Pass the configured Pod's
+three canonical native GUID strings, then select two for the filtered example:
+
+```csharp
+// The configured adapter must explicitly enable bounded resource-key sets.
+await SolidPointWalkthrough.RunRecordSetAsync(
+    manager, adapter, keys, actor, Console.Out);
+
+// No Pod scan: only these selected native encrypted resources are requested.
+await SolidPointWalkthrough.RunRecordSetAsync(
+    manager, adapter, keys.Take(2), actor, Console.Out);
+```
+
+The [SOLID host guide](../../Docs/Devs/SOLID_CQL_HOST_CONFIGURATION.md) provides
+the HTTP equivalent, native setup contract and limitations. Public sandbox
+enrollment requires its own final-image/browser acceptance; this example is not
+a claim that a particular deployed source is ready.
+
 ## Unified demo launcher
 
 `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SQLite` opens the existing coffee
