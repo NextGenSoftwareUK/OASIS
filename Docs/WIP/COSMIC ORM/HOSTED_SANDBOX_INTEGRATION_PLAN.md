@@ -439,3 +439,45 @@ the retained export, actual N3 response and WAC permission checks, same-volume
 restart, memory/headroom observation, host config/admission/example publication,
 and public visitor query/federation/isolation/replication acceptance. Five hosted
 providers remain the current verified coverage.
+## 31 October — native SOLID initialization and restart verified
+
+A safer probe reused the exact cached CSS image with network=none, no published
+ports and no key/credential mounts. Only the new public encrypted bundle, runtime
+scripts and a separate owned probe-data directory were mounted; the original
+private Pod/container/volume were never started or altered.
+
+The first native run caught a real configuration error: directly adding
+RootFolderGenerator.templateFolder imports two scalar values. Components.js
+rejected it before app initialization. The probe container was terminal/removed
+and its native data directory absent. Explicit reconciliation preserved its
+13KB setup files under initial-config-failure before a corrected new probe.
+Fixed the owning config with supported Override/overrideParameters semantics:
+https://componentsjs.readthedocs.io/en/latest/configuration/configurations/overrides/.
+No upstream patch, duplicate configuration path or blind failed seed replay.
+
+Corrected native startup passed: CSS7.1.8 served3actual encrypted RDF envelopes,
+compared through its real shipped N3 parser, and root WAC-Allow reported Read only.
+A second isolated process against the same data passed with fresh=false and
+unchanged bootstrap ACK. Native CSS image uses Node18.20.8; the final WEB4 image
+uses Node24.19.0 and still needs its own build/runtime compatibility verification.
+No public sandbox acceptance or full final-image proof is claimed here.
+
+Native evidence TestResults/HostedCqlIntegrationCurrent/solid-native-runtime-proof.json,
+solid-native-runtime-{first,corrected,repeat}.log. First failed log SHA256
+3E131FA2013E005864F707F6BDB12F558FE74B8278F1F788AB1E855388F768E2;
+corrected B7C45FF4BFDC918F35CE0CBD2E3A6037653C49AED176076E503915AD3B4A2E3B;
+repeat 7D2A02BB46D5D4C1AE3B4B2801DED50A146B046EB8300B33F433ABA1C2415464.
+ACK SHA256 B4025B3F96A62AC634316B5FCBE8EABBDE0B8978B3EA2160A0107127B7A6ECB5.
+Compact proof also retained at LocalState/COSMIC/HostedSolidSourceCurrent/native-runtime-proof.json.
+
+After the config fix14runtime controls pass/no skips again; latest log SHA256
+BEDF95E7E20A27B91283EEE240A3E71F7F1EED307645B58D1A6A4E5433EAF88C.
+Probe container removal is verified, original oasis-solid remains exited. The
+31,405B disposable NativeProofCurrent directory is retained: automatic approval
+review rejected the validated cleanup command before execution, with no specific
+reason. No alternate deletion attempted. This supersedes the planned cleanup in
+the prior resource entry; it is not an active service or large disk allocation.
+
+Task branch has merged the latest Development CI changes085f6b705/4a5450012;
+manifest/gitlink validation passes. These preparation changes remain off deployed
+Development until final-image/configuration acceptance is ready.
