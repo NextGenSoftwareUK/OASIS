@@ -1687,3 +1687,6 @@ Optimism outcome:19tests pass/0skips (18controlled+1nativepublishedsample), cons
 31October2026:existing Core/API/build caches/.NET/Mongo8.3.11 retained environment reused. Planned exclusive DB cosmic_cql_optimism_http_demo, original intent/ACKs LocalState/COSMIC/OptimismMongoHttpCurrent; raw TestResults/OptimismPublicSourceCandidateCurrent. Success-only exact-marker cleanup; failurepreserved. Runner owns27029service lifetime, noNeo/newruntime/download. Incremental outputs unmeasured.
 
 Optimism HTTP outcome:1Core/2API/3configuration/1nativeHTTPpass0skips; SDK2privatecopies,9queryreceipts. ExactfixtureDBdropped and absenceverified; Mongo/Kestrelstopped. Original LocalState/COSMIC/OptimismMongoHttpCurrent cohort retained,845B. No downloads/newenvironment; reusable Mongo store/buildcache retained.
+
+### Optimism website/client readiness
+31October2026:reused Web4Site/Node/Python.1new focusedclienttest passes, raw TestResults/HostedCqlIntegrationCurrent/optimism-client-preparation.log,224B,regenerable. Website taske8df3c4pushed; publicmain unchanged. Runnerhelp only, no hostedaccounts/providerwrites/newinstalls.
