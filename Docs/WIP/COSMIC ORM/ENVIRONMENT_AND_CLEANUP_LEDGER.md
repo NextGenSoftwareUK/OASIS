@@ -1812,3 +1812,5 @@ Cosmicowner; existing.NET10.0.401/cachedpackages,created/reusedbycurrenttask,log
 - `C:/Source/OASIS-cosmic/Examples/CosmicCqlDemo/obj`: 4185239logicalB; active/reusable,nostandaloneport.
 - `C:/Source/OASIS-cosmic/Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.CqlTests/bin`: 52972140logicalB; active/reusable,nostandaloneport.
 - `C:/Source/OASIS-cosmic/Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.CqlTests/obj`: 1723268logicalB; active/reusable,nostandaloneport.
+
+Website36933fbpushed withSeiCLI/guide/walkthroughlink and1passingclientcontract. Publicmainunchanged. NoextraDevelopmentpush/runtime/download/environment. NativeMongo27029listenerabsenceverified. Clientlog HostedCqlIntegrationCurrent/sei-client-preparation.log regenerable,sizeunmeasured.
