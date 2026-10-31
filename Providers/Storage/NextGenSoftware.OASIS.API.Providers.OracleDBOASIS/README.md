@@ -6,6 +6,21 @@ This provider uses the real Oracle.ManagedDataAccess.Core client with indexed lo
 
 ## Configuration and verification
 
+Hosted query activation uses `ICosmicReadOnlyQueryActivation.ActivateQuerySourceAsync`.
+It opens the configured existing database and reuses canonical schema validation;
+it never provisions or repairs tables. Missing/incompatible schemas fail with
+`CQL_QUERY_SOURCE_UNAVAILABLE`, cancellation with `CQL_QUERY_CANCELLED`, and either
+failure clears activation state. Ordinary explicit storage activation retains its
+separate schema-setup contract. Query activation does not grant record access or
+enroll Oracle into a host's writable routes.
+
+The retained local read-only probe is `Scripts/TestHosts/Test-OracleQueryActivation.ps1`:
+after producer/test builds, run through the provider build lease. It reuses the
+existing original Oracle container/secret/source and verifies unchanged schema
+and four source records before/after activation. It stops the runtime only if it
+started it. Hosted connectivity, authoritative access policy and public presets
+remain separate acceptance gates; local native success is not hosted readiness.
+
 Record-history parsing reuses the existing shared canonical JSON parser, preserving date-shaped metadata strings and high-precision untyped JSON numbers at latest and historical versions. It does not reinterpret metadata as local dates or narrow numbers through binary floating point. This does not reconstruct values already altered by an older stored write.
 
 Successful storage reads set `IsLoaded=true`. Point reads count one returned record; collection/export reads count returned roots, not recursively nested children. A successful empty collection has `LoadedCount=0` and remains loaded. Search counts its returned avatar/holon roots. Missing-record and failed reads do not claim loaded records. These response annotations do not change the query, persisted data, logical history or encryption policy.
