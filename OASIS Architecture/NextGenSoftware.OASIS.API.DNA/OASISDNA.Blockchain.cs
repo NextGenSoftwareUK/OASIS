@@ -240,7 +240,11 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class ActivityPubOASISProviderSettings : ProviderSettingsBase
     {
-        public string BaseUrl { get; set; } = "https://mastodon.social/api/v1";
+        public string BaseUrl { get; set; } = "https://mastodon.social";
+        /// <summary>Explicit instance enrollment for native multi-status CQL reads.</summary>
+        public bool EnableCqlStatusKeySets { get; set; }
+        /// <summary>Optional server-owned token reference; never a requesting avatar's JWT.</summary>
+        public string AccessTokenEnvironmentVariable { get; set; }
         public string UserAgent { get; set; } = "OASIS-ActivityPub-Provider/1.0";
         public string AcceptHeader { get; set; } = "application/json";
         public int TimeoutSeconds { get; set; } = 30;
