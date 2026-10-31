@@ -1847,3 +1847,9 @@ The actual retained public-only candidate (17 profiles,68 presets,66,092 bytes) 
 - `C:/Source/OASIS-cosmic/TestResults/HostedCqlIntegrationCurrent/seventeen-prepared-review.trx`: 3386 bytes; completed owned gate, no active process/port; regenerable evidence, disposable after summary/hash retention. Existing build outputs remain reusable.
 
 - `C:/Source/OASIS-cosmic/TestResults/HostedCqlIntegrationCurrent/seventeen-prepared-review.log`: 810709 bytes; completed owned gate, no active process/port; regenerable evidence, disposable after summary/hash retention. Existing build outputs remain reusable.
+
+
+### Enforced matching-release publication guard — 31 October 2026
+Found a release-path gap: the multi-source apply command enforced exact variable scope and concurrency, but the documented matching deployed application prerequisite was manual only. Apply now requires `COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT` as a full reviewed SHA, verifies the checked-out release equals it, and verifies the latest observed WEB4 dev deployment is SUCCESS at that SHA before invoking the sole journalled configuration mutation owner. Missing/mismatched/building/failed observations stop before writes; no fallback. Eleven application/guard controls pass, including proof the mutation owner is never invoked when the guard fails. This does not authorize a release or apply any variable. Existing protected candidates unchanged.
+
+Release-guard tests reuse installed Python and in-memory mocked git/CLI observations; no actual CLI process, network, environment, download, service or database created. No raw evidence committed.

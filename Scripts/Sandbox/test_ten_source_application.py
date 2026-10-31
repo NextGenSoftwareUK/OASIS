@@ -1,6 +1,9 @@
 import importlib.util
 from pathlib import Path
 import unittest
+import json
+from types import SimpleNamespace
+from unittest.mock import patch
 spec=importlib.util.spec_from_file_location("batch",Path(__file__).with_name("Prepare-TenSourcePublicBatch.py"))
 batch=importlib.util.module_from_spec(spec);spec.loader.exec_module(batch)
 class ApplicationScopeTests(unittest.TestCase):
@@ -68,4 +71,30 @@ class ApplicationScopeTests(unittest.TestCase):
                 if fault=="removed":del after["DNA"]
                 if fault=="existing":before[batch.SOURCE_KEYS[0]]="old-profile"
                 with self.assertRaises(ValueError):batch.application_keys(before,after)
+class DeploymentGuardTests(unittest.TestCase):
+    def configuration(self):
+        return SimpleNamespace(CLI="existing-railway",COMMON=["-e","dev"])
+    def test_missing_reviewed_sha_never_observes_or_mutates_host(self):
+        with patch.dict(batch.os.environ,{},clear=True),patch.object(batch.subprocess,"run") as run:
+            with self.assertRaises(RuntimeError):batch.require_matching_release(self.configuration())
+            run.assert_not_called()
+    def test_different_checkout_stops_before_host_observation(self):
+        with patch.dict(batch.os.environ,{"COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT":"a"*40}),patch.object(batch.subprocess,"run",return_value=SimpleNamespace(returncode=0,stdout="b"*40)) as run:
+            with self.assertRaises(RuntimeError):batch.require_matching_release(self.configuration())
+            self.assertEqual(1,run.call_count)
+    def test_apply_never_calls_mutation_owner_when_release_guard_fails(self):
+        before,after=ApplicationScopeTests().fixture()
+        from unittest.mock import Mock
+        configuration=SimpleNamespace(protected_read=Mock(side_effect=[before,after]),apply_values=Mock())
+        with patch.object(batch,"load",return_value=configuration),patch.object(batch,"require_matching_release",side_effect=RuntimeError("not deployed")):
+            with self.assertRaises(RuntimeError):batch.apply()
+        configuration.apply_values.assert_not_called()
+
+    def test_only_exact_successful_deployment_passes(self):
+        for status,commit,accepted in [("SUCCESS","a"*40,True),("BUILDING","a"*40,False),("SUCCESS","b"*40,False)]:
+            with self.subTest(status=status,commit=commit),patch.dict(batch.os.environ,{"COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT":"a"*40}),patch.object(batch.subprocess,"run",side_effect=[SimpleNamespace(returncode=0,stdout="a"*40),SimpleNamespace(returncode=0,stdout=json.dumps([{"status":status,"meta":{"commitHash":commit}}]))]):
+                if accepted:batch.require_matching_release(self.configuration())
+                else:
+                    with self.assertRaises(RuntimeError):batch.require_matching_release(self.configuration())
+
 if __name__=="__main__":unittest.main()
