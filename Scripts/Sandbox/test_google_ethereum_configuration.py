@@ -15,6 +15,8 @@ ethereum_fixture=load("ethereum_fixture", "test_ethereum_public_configuration.py
 
 polygon_fixture=load("polygon_fixture", "test_polygon_public_configuration.py")
 
+arbitrum_fixture=load("arbitrum_fixture", "test_arbitrum_public_configuration.py")
+
 class CombinedConfigurationTests(unittest.TestCase):
     def fixture(self):
         before,google=google_fixture.GoogleConfigurationTests().fixture()
@@ -50,6 +52,23 @@ class CombinedConfigurationTests(unittest.TestCase):
         with self.assertRaises(ValueError):publisher.candidate(before,google,ethereum,polygon)
         policy["AdditionalQueryableKeys"].append("PolygonAccountAddress");before["OASIS_DNA_JSON"]=json.dumps(dna)
         self.assertEqual(publisher.candidate(before,google,ethereum,polygon)["OASIS_DNA_JSON"],before["OASIS_DNA_JSON"])
+
+    def test_four_sources_preserve_sixteen_presets_and_independent_encryption_grants(self):
+        before,google,ethereum=self.fixture()
+        _,polygon=polygon_fixture.PolygonConfigurationTests().fixture()
+        _,arbitrum=arbitrum_fixture.ArbitrumConfigurationTests().fixture()
+        after=publisher.candidate(before,google,ethereum,polygon,arbitrum)
+        self.assertEqual(len([key for key in after if before.get(key)!=after[key]]),6)
+        admission=json.loads(after["PREPARED_STORAGE_ADMISSION_JSON"])
+        self.assertEqual(admission["queryOnlyProviders"],["IPFSOASIS","GoogleCloudOASIS","EthereumOASIS","PolygonOASIS","ArbitrumOASIS"])
+        self.assertEqual(sum(len(rows) for rows in json.loads(after["CQL_HOSTED_QUERY_EXAMPLES_JSON"]).values()),16)
+        with self.assertRaises(ValueError):publisher.candidate(before,google,ethereum,None,arbitrum)
+        dna=json.loads(before["OASIS_DNA_JSON"])
+        policy={"Rijndael256EncryptionEnabled":True,"AdditionalQueryableKeys":["GCSObjectKey","EthereumAccountAddress","PolygonAccountAddress"]}
+        dna["OASIS"]["Security"]={"HolonDataEncryption":policy};before["OASIS_DNA_JSON"]=json.dumps(dna)
+        with self.assertRaises(ValueError):publisher.candidate(before,google,ethereum,polygon,arbitrum)
+        policy["AdditionalQueryableKeys"].append("ArbitrumAccountAddress");before["OASIS_DNA_JSON"]=json.dumps(dna)
+        self.assertEqual(publisher.candidate(before,google,ethereum,polygon,arbitrum)["OASIS_DNA_JSON"],before["OASIS_DNA_JSON"])
 
     def test_existing_enrollment_rejects_instead_of_replacing_either_source(self):
         for provider in ("GoogleCloudOASIS","EthereumOASIS"):
