@@ -30,8 +30,8 @@ public class StorageQueryTariffCosmosTests
     [Fact]
     public void OrdinaryQueryTariffRejectsChainWithoutAnUnsignedReadProfile()
         => Assert.Throws<ArgumentException>(() => StorageQueryTariff.Capture(
-            new[] { new StorageQueryTariff(ProviderType.EthereumOASIS, 0.002m, "cloud-test-v1") },
-            new[] { ProviderType.EthereumOASIS }));
+            new[] { new StorageQueryTariff(ProviderType.PolygonOASIS, 0.002m, "cloud-test-v1") },
+            new[] { ProviderType.PolygonOASIS }));
 
     [Fact]
     public void ExplicitUnsignedSolanaReadDoesNotGrantSignedStorageWrites()
