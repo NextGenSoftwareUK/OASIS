@@ -474,7 +474,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                     as NextGenSoftware.OASIS.API.Core.Services.Subscriptions.PricedStorageAdmissionFactory,
                 provider.GetRequiredService<Services.Cql.ICqlHostedSourceRegistry>(),
                 provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Services.Cql.CqlHostedSources>>(),
-                provider.GetRequiredService<Services.Cql.CqlHostedQueryExamples>()));
+                provider.GetRequiredService<Services.Cql.CqlHostedQueryExamples>(),
+                provider.GetServices<Services.Cql.CqlPublicReadCatalogue>()));
             services.AddSingleton<IHostedService>(provider => provider.GetRequiredService<Services.Cql.CqlHostedSources>());
             if(Configuration["PREPARED_STORAGE_ADMISSION_JSON"]!=null)
                 NextGenSoftware.OASIS.API.Core.Services.Subscriptions.LocalWeb4UsageLedgerRegistration.AddLocalWeb4UsageLedger(services,Configuration,storageUsagePolicy);

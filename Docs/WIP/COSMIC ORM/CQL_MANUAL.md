@@ -8,6 +8,10 @@ Check every OASISResult error/acknowledgement before reading Result. Unsupported
 
 ## Live sandbox walkthrough
 
+Oracle's [host configuration guide](../../Devs/ORACLE_CQL_HOST_CONFIGURATION.md)
+describes its server-authorized ID catalogue and supported SQL profile. Oracle
+hosting and ID-based snapshot preparation remain open; this is not live coverage.
+
 SOLID and public AWS S3 metadata also have native three-record/two-record presets
 and Mongo-paired five-row/four-row presets. Use discovery's readiness and returned
 requests. See the [public S3 HTTP/C# guide](../../Devs/AWS_S3_PUBLIC_CQL_GUIDE.md)

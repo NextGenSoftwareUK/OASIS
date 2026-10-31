@@ -34,13 +34,16 @@ public sealed class CqlHostedSources : BackgroundService
     private readonly ConcurrentDictionary<ProviderType, bool> verified = new();
     private readonly ILogger<CqlHostedSources> logger;
     private readonly CqlHostedQueryExamples examples;
+    private readonly IReadOnlyDictionary<ProviderType, CqlPublicReadCatalogue> publicCatalogues;
 
     public CqlHostedSources(PricedStorageAdmissionFactory admission, ICqlHostedSourceRegistry registry,
-        ILogger<CqlHostedSources> logger, CqlHostedQueryExamples examples = null)
+        ILogger<CqlHostedSources> logger, CqlHostedQueryExamples examples = null,
+        IEnumerable<CqlPublicReadCatalogue> publicCatalogues = null)
     {
         this.registry = registry ?? throw new ArgumentNullException(nameof(registry));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.examples = examples ?? CqlHostedQueryExamples.FromJson(null);
+        this.publicCatalogues = (publicCatalogues ?? Array.Empty<CqlPublicReadCatalogue>()).ToDictionary(policy => policy.Provider);
         providers = admission?.QueryProviders.ToArray() ?? Array.Empty<ProviderType>();
         queryOnly = new HashSet<ProviderType>(admission?.QueryOnlyProviders ?? Array.Empty<ProviderType>());
     }
@@ -79,7 +82,9 @@ public sealed class CqlHostedSources : BackgroundService
             if (available)
             {
                 try { selected = examples.For(type, adapter.QueryCapabilities,
-                    target => ReadyAdapter(target)?.QueryCapabilities)
+                    target => ReadyAdapter(target)?.QueryCapabilities,
+                    (target, actor) => publicCatalogues.TryGetValue(target, out var catalogue)
+                        ? catalogue.Authorize(actor, target).Result : CosmicQueryReadAccess.OwnerOrPublic(actor).Result)
                     .Where(example => includeFederationExamples || example.Operation == "Rows").ToArray(); }
                 catch (ArgumentException)
                 {
