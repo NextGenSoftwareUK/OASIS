@@ -84,3 +84,8 @@ NativeREST IDfilter/restart/MongoSDK/HTTP/browser verified,45cases; no new busin
 ### ClickHouse current integration (30 October 2026)
 
 33cases/native3recordrestart/MongoSDK/HTTP/browser/postpair passed; originalJSON/UInt64versions/nativeidentities preserved. Milliseconddefaultversionscantiesoconcurrentordering/CAS/history/transactions remainred; FINAL is onlynativeversionresolution, notatomicconditionalwrite. Generalname/description/metadataqueries/children/graphs/migrations/unknownwrite recovery/centralregistration/hostedconfig/SDKwirebounds and HyperDrive/replication/failover/loadbalancing/distributedsnapshots needseparateacceptance. PlaintextcanonicalJSON/authenticatedHTTPSprivateCA, noTLSbypass. See CLICKHOUSE_CQL_MVP.md.
+
+
+### InfluxDB2 Flux current integration (30 October 2026)
+
+39cases/native6points+futurehead/tied-headrejection/restart/MongoSDK/HTTP/browser/postpair passed. NotInfluxDB3/cloud/CAS/history/transactions. Returnto generalname/description/metadataqueries, fullabsolutetimestampendpoints, graph/children/migrations/unknownwrite recovery/centralregistration/SDKwirebounds/legacyavatarlookupdeleteaudit and HyperDrive/replication/failover/loadbalancing/distributedsnapshots. Retentioncanexpirepoints; demorequiresoriginalinfiniteretentionverified. Source/timestampsimmutablebusinesslineage preserved, nativeoperationalfilesmaychange. Privatecompletedtestbin copiescleaned; runnerrebuildsconsumerfromretainedassets/cache. See INFLUXDB_CQL_MVP.md.
