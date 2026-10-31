@@ -171,4 +171,37 @@ public class CqlHostedSourcesTests
         Assert.True(rows.Single(row => row.Provider == "MongoDBOASIS").Available);
         Assert.Empty(registry.Activations);
     }
+
+    [Theory]
+    [InlineData("NativeKey", true)]
+    [InlineData("WrongKey", false)]
+    public async Task DiscoveryPublishesOnlyExamplesAdmittedByTheActualAdapter(string metadataKey, bool supported)
+    {
+        var registry = new Registry(); registry.Add(ProviderType.ActivityPubOASIS, false);
+        var json = "{\"ActivityPubOASIS\":[{\"id\":\"sample\",\"label\":\"Public sample\",\"request\":{" +
+            "\"provider\":\"ActivityPubOASIS\",\"orderBy\":\"None\",\"take\":3,\"filters\":[{" +
+            "\"metadataPath\":[\"" + metadataKey + "\"],\"scalar\":\"String\",\"operator\":\"In\",\"value\":[\"101\",\"102\"]}]}}]}";
+        using var sources = new CqlHostedSources(Admission(), registry, NullLogger<CqlHostedSources>.Instance,
+            CqlHostedQueryExamples.FromJson(json));
+        await sources.StartAsync(default); await registry.Finished.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await sources.ExecuteTask!;
+        var row = sources.Describe().Single(entry => entry.QueryOnly);
+        Assert.Equal(supported, row.Available);
+        if (supported)
+        {
+            Assert.Single(row.Examples);
+            var wire = System.Text.Json.JsonSerializer.Serialize(new OASISResult<object>(sources.Describe()),
+                new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web));
+            using var document = System.Text.Json.JsonDocument.Parse(wire);
+            var source = document.RootElement.GetProperty("result").EnumerateArray()
+                .Single(value => value.GetProperty("provider").GetString() == "ActivityPubOASIS");
+            var body = source.GetProperty("examples")[0].GetProperty("request");
+            Assert.Equal("ActivityPubOASIS", body.GetProperty("provider").GetString());
+            Assert.Equal("In", body.GetProperty("filters")[0].GetProperty("operator").GetString());
+            Assert.Equal(2, body.GetProperty("filters")[0].GetProperty("value").GetArrayLength());
+        }
+        else Assert.Equal("CQL_DEMO_EXAMPLE_UNSUPPORTED", row.ErrorCode);
+        Assert.Single(registry.Activations); // No demo query is executed during discovery.
+        await sources.StopAsync(default);
+    }
 }

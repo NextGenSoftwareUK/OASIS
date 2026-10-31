@@ -27,6 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.ONODE.WebAPI\NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" />
     <Content Include="../../Scripts/Sandbox/cql-free-admission.json" Link="cql-free-admission.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../Scripts/Sandbox/cql-activitypub-public-examples.json" Link="cql-activitypub-public-examples.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
