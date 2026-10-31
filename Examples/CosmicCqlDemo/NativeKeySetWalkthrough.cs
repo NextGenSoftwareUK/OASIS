@@ -9,7 +9,7 @@ namespace CosmicCqlDemo;
 
 /// <summary>
 /// The same bounded IN query through HolonManager and LINQ on IPFS, SOLID,
-/// Mastodon or explicit public Solana/Google/Ethereum/Polygon/Arbitrum metadata profiles.
+/// Mastodon or explicit public Solana/Google/Ethereum/Polygon/Arbitrum/Cosmos metadata profiles.
 /// The caller supplies an activated, explicitly enrolled native adapter and existing keys.
 /// </summary>
 public static class NativeKeySetWalkthrough
@@ -32,6 +32,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.EthereumOASIS => "EthereumAccountAddress",
             ProviderType.PolygonOASIS => "PolygonAccountAddress",
             ProviderType.ArbitrumOASIS => "ArbitrumAccountAddress",
+            ProviderType.CosmosBlockChainOASIS => "CosmosValidatorAddress",
             _ => throw new ArgumentException("Select an enrolled protocol key-set adapter.", nameof(adapter))
         };
 

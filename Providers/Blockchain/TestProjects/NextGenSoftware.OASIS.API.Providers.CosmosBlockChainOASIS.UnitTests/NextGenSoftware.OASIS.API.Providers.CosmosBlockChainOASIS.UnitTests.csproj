@@ -25,4 +25,8 @@
     <None Update="Fixtures\fee-limit-sdk.mjs" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="../../../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs" Link="PublishedDemo/NativeKeySetWalkthrough.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/CosmosPublicWalkthrough.cs" Link="PublishedDemo/CosmosPublicWalkthrough.cs" />
+  </ItemGroup>
 </Project>

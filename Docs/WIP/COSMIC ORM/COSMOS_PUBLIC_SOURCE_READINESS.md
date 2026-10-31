@@ -23,3 +23,25 @@ Primary contracts: [staking query proto](https://github.com/cosmos/cosmos-sdk/bl
 - Current evidence `TestResults\CosmosPublicSourceCandidateCurrent\provider-all.trx`: SHA256 `530ffc8b5882ccdec03b76fd5d8f59b9ccaee52c89f50b2297804dd5e433f969`, 30093 B.
 
 - Current evidence `TestResults\CosmosPublicSourceCandidateCurrent\readiness-cryptocrew.json`: SHA256 `afa81ecc91aae991af460e7636dd7761ce345ac304648b3bcac7f80da923934e`, 297 B.
+
+## Preview C# walkthrough (native acceptance still red)
+
+The existing `Examples/CosmicCqlDemo` console now has a spaced, commented Cosmos walkthrough. It uses the same `NativeKeySetWalkthrough` → `CosmicLinq` → `HolonManager` pipeline as other key-set sources, not a separate query engine. It reads the existing source configuration and creates no synthetic records or database fixtures.
+
+```powershell
+dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj --no-build --no-restore -- --cosmos-public LocalState/COSMIC/HostedCosmosPublicSourceCurrent/source.json
+```
+
+The intended result is three validators, then a filtered two-validator selection. Current CryptoCrew native failure is preserved; do not use this preview as a verified investor demo yet. The native acceptance test now executes the published walkthrough source verbatim, so it will exercise manager/LINQ execution as well as the source when the endpoint is available.
+
+Additional explicit endpoint checks: registry-listed Lava REST returned404, StakerHouse returned403. Neither was silently selected or written into the source catalogue. No endpoint fallback or retry added. Their bounded JSON failure summaries are in `TestResults/CosmosPublicSourceCandidateCurrent/readiness-{lava,stakerhouse}.json`.
+
+Preview validation: console build succeeded, **17 focused controls passed, zero skips**, including the published shared manager/LINQ walkthrough returning3/2 with stable IDs against controlled native responses. The newly linked full Cosmos native walkthrough has not passed live acceptance. Earlier native adapter failure remains the latest native evidence.
+
+- `TestResults/CosmosPublicSourceCandidateCurrent/console-controls.trx`: 27982 B; SHA256 `bfb6448ec5f31fb0c7bcc1606e9b2b5be7aefb2948799ec7e7cdc2ab9dd73037`.
+
+- `TestResults/CosmosPublicSourceCandidateCurrent/readiness-lava.json`: 279 B; SHA256 `4d12d74a8f74b722d0666bf264ad08c4b5c094313d3518d8d8d86a4f63f35509`.
+
+- `TestResults/CosmosPublicSourceCandidateCurrent/readiness-stakerhouse.json`: 289 B; SHA256 `1aad73d35f51b545d317b49de5d41c84defd02d9f743363b4ca4d243085dcea9`.
+
+- `TestResults/CosmosPublicSourceCandidateCurrent/console-build.log`: 835023 B; SHA256 `1f6505de86cb1b502da322d8751fe60a4a16d730010219db8841f7b7f35d2c1b`.

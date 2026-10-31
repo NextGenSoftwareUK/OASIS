@@ -5,6 +5,15 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// Preview: Cosmos requires a functioning explicitly configured REST endpoint.
+// Protocol tests pass; native acceptance is tracked in COSMOS_PUBLIC_SOURCE_READINESS.
+if (args.Length == 2 && args[0] == "--cosmos-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await CosmosPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Arbitrum uses the official finalized-state RPC with its fixed /rpc path.
 // The bounded console walkthrough needs no wallet, funding or local chain.
 if (args.Length == 2 && args[0] == "--arbitrum-public")
@@ -45,7 +54,7 @@ if (args.Length == 2 && args[0] == "--google-public")
 var serve = args.Length == 1 && args[0] == "--serve";
 if (args.Length != 0 && !serve)
 {
-    Console.Error.WriteLine("Use no arguments, --serve, --google-public <existing-source.json>, --ethereum-public <existing-source.json>, --polygon-public <existing-source.json>, or --arbitrum-public <existing-source.json>.");
+    Console.Error.WriteLine("Use no arguments, --serve, --google-public <existing-source.json>, --ethereum-public <existing-source.json>, --polygon-public <existing-source.json>, --arbitrum-public <existing-source.json>, or --cosmos-public <existing-source.json>.");
     return 2;
 }
 
