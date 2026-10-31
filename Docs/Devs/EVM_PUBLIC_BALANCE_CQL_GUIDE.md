@@ -45,3 +45,7 @@ The same explicit reader also supports OptimismOASIS through OptimismPublicAccou
 ## Linea and Scroll public balances
 
 Use `--linea-public LocalState/COSMIC/HostedLineaPublicSourceCurrent/source.json` or `--scroll-public LocalState/COSMIC/HostedScrollPublicSourceCurrent/source.json` with the same console. Spaced/commented LineaPublicWalkthrough and ScrollPublicWalkthrough use the shared HolonManager/LINQ pipeline. Linea chain0xe708/keyLineaAccountAddress; Scroll chain0x82750/keyScrollAccountAddress. Lazy HTTP config keys CQL_LINEA_PUBLIC_SOURCE_JSON/CQL_SCROLL_PUBLIC_SOURCE_JSON. Native/publishedC#/CLI3/2 and localHTTP3/2+Mongo5/4/isolation pass. Hosted/browser remain pending; existing10/11batch candidates exclude these2profiles. Exactwei strings and RPC-reported finalized hashes, no independentsettlement claim.
+
+## zkSync and Abstract public balances
+
+Run `--zksync-public LocalState/COSMIC/HostedZkSyncPublicSourceCurrent/source.json` or `--abstract-public LocalState/COSMIC/HostedAbstractPublicSourceCurrent/source.json` with the existing console. Spaced/commented walkthroughs reuse HolonManager/LINQ. zkSync chain0x144/keyZkSyncAccountAddress; Abstract0xab5/keyAbstractAccountAddress. Lazy HTTPconfigkeys CQL_ZKSYNC_PUBLIC_SOURCE_JSON/CQL_ABSTRACT_PUBLIC_SOURCE_JSON. Native/C#/CLI3/2 and localHTTP3/2+Mongo5/4/isolation pass. Hosted/browser remainpending, current13sourcecandidate excludes these2profiles. Exactwei strings and RPC-reportedfinalizedhashes, not independentsettlementproof.
