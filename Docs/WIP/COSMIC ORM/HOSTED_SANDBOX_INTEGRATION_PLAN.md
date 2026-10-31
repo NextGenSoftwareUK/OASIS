@@ -320,3 +320,32 @@ actual hosted data access despite the unavailable SSH observation.
 - ipfs-live-neo4j-replicas.json (2259B), SHA256 ad039b57030fb44d6059c6c98b2e9087d925f46c6055ae0fe06c33f2b2e7d38c.
 - ipfs-live-mongo-four.png (87513B), SHA256 2f7dfd93dde494cd66f6e1aee09bcf607d6cd993e82a51a04ca6b0a6ba997658.
 - ipfs-live-initial-failure.json (456B), SHA256 8eae5123e0e3bd2afec7fb7def0bccd922a289cc7b21069ae38f82a5a5282f39.
+
+### SOLID host adapter preparation
+
+Reused only preserved native resource-key membership implementation and9controls.
+Added explicit DNA EnableCqlRecordKeySets at the actual SolidProviderFactory,
+with the existing default point-only behavior unchanged. ICosmicReadOnlyQueryActivation
+shares one root health owner with ordinary activation, propagates cancellation,
+requests headers only (never buffers an entire Pod listing), rejects errors/redirects
+and resets activation state on failure. It creates no container/access rule/record.
+Six new controls cover ready/401/503/redirect/pre-cancel/in-flight cancel and assert
+only the exact scoped root GET occurs, with response content never consumed.
+
+37combined activation/membership/point controls pass/no skips; full transitive API
+producer builds. Not yet hosted/enrolled. Existing Ubuntu/rootful Podman image
+58bee7c3f6a20498d72eb6f8334ba84299b6df2c8fca119ce805fe8614512d7a inspected
+read-only: CSS7.1.8, upstream642983926c79dd9b91d5b2035a8accc6bc2c8bbc,
+336,257,823B. No image/container/volume created or started. Existing identity/key
+remain protected under LocalState/COSMIC/SolidCurrent. Actual record encryption
+context includes resource URI, so hosting needs deliberate source scope preservation
+or a separately journalled new owned source, not blind ciphertext relocation.
+
+Cloud metadata inspection only: no local AWS CLI/standard config or credentials
+files/access-key/web-identity configuration; protected WEB4 variable snapshot has
+no AWS_/OASIS_AWS_ or Oracle variable names. This does not prove no account exists;
+it means a hosted connection is not available in the checked configuration. No
+cloud account, permission, secret or paid infrastructure was created.
+
+- solid-host-controls.trx SHA256 dfdb1739785aaee009fe4803f687c530a69b48bc67ff879d2f43b8d8fa708962.
+- cloud-hosted-readiness-metadata.json SHA256 ad3b249da07bd4fe42c7373b3faaf9ffa565bed678c844fa09cf75e3c5d372a1.
