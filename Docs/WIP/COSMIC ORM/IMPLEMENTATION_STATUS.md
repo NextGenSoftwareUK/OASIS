@@ -20,3 +20,5 @@
 - Resources/evidence paths/hashes and safe lifecycle steps: [single ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md). Raw output stays in worktree TestResults.
 
 [Previous checkpoint](Archive/IMPLEMENTATION_STATUS_before_entity_selected_sqlite_2026-10-28.md) preserves history without establishing broader completeness.
+
+- Controlled native post-commit ACK-loss passes on Mongo/SQLite/Neo:1mutation attempt/0legacy calls, dirty caller preserved, committed status from disk-restored original request without resubmission, two normally delivered replicas each. Actual transport/hosted unknown-commit acceptance remains separate; details in REPLICA_BASELINE_AND_RECOVERY.md.
