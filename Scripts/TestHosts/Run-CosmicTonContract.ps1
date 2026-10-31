@@ -27,7 +27,7 @@ New-Item -ItemType Directory -Force -Path $results | Out-Null
                 & dotnet build $target --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly *> (Join-Path $results ([IO.Path]::GetFileNameWithoutExtension($target)+'-native-build.log'))
                 if($LASTEXITCODE){throw 'Native C# storage build failed.'}
             }
-            & dotnet test $project --no-build --no-restore --filter FullyQualifiedName~TonNativeStorageTests --results-directory $results --logger 'trx;LogFileName=ton-native-storage.trx' -v:q *> (Join-Path $results 'csharp-native-storage.log')
+            & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~TonNativeStorageTests|FullyQualifiedName~TONOASISProviderTests|FullyQualifiedName~TonCqlTests' --results-directory $results --logger 'trx;LogFileName=ton-adapter-cql.trx' -v:q *> (Join-Path $results 'csharp-native-storage.log')
             if($LASTEXITCODE){throw 'C# canonical native storage acceptance failed; preserve fixture.'}
             Get-Content (Join-Path $results 'csharp-native-storage.log') -Tail 5
         }

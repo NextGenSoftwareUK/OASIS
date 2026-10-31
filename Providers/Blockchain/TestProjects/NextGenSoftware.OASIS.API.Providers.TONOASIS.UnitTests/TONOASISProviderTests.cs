@@ -43,8 +43,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TONOASIS.UnitTests
         {
             // A TON label cannot grant access to the Polygon/Arbitrum EVM path.
             // No activation or RPC is permitted for this unsupported authority.
-            var provider = new TONOASIS("http://127.0.0.1:1", new string('0', 63) + "1",
-                "0x0000000000000000000000000000000000000001");
+            var provider = new NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.Web3CoreOASISBaseProvider(
+                "http://127.0.0.1:1", new string('0', 63) + "1", "0x0000000000000000000000000000000000000001")
+                { ProviderType = new(ProviderType.TONOASIS) };
             var id = Guid.NewGuid();
             var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.TONOASIS).Result)
                 .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(Guid.NewGuid(), ProviderType.TONOASIS, new[] { id }).Result).Result
@@ -58,7 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TONOASIS.UnitTests
             Assert.IsTrue(result.IsError);
             Assert.AreEqual("CQL_ACCESS_INVALID", result.ErrorCode);
             Assert.IsFalse(provider.IsProviderActivated);
-            StringAssert.Contains(provider.ProviderDescription, "native TON TVM provider integration pending");
+
         }
 
         [DataTestMethod]
@@ -80,11 +81,21 @@ namespace NextGenSoftware.OASIS.API.Providers.TONOASIS.UnitTests
             CollectionAssert.AreEqual(new[] { id }, compiled.Result.ToArray());
         }
 
+        [TestMethod]
+        public void NativeProviderCannotInheritOrSelectEvmStorage()
+        {
+            Assert.IsFalse(typeof(NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.Web3CoreOASISBaseProvider).IsAssignableFrom(typeof(TONOASIS)));
+#pragma warning disable CS0618
+            Assert.ThrowsException<NotSupportedException>(() => new TONOASIS("http://127.0.0.1:1", "public test fixture", "0x01"));
+#pragma warning restore CS0618
+        }
+
         [TestCleanup]
         public void Cleanup()
         {
             if (_provider != null && _provider.IsProviderActivated)
                 _provider.DeActivateProvider();
+            _provider?.Dispose();
         }
     }
 }
