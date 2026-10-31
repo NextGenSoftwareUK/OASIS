@@ -115,3 +115,5 @@ Sei evm-rpc.sei-apis.com chain0x531 passedidentity but qualificationrejects gene
 
 ### Sixteen-source preparedbatch
 Optional16profiles/64presets preparedseparately; actual4newMonadpresets passshippingplanner1/0skips,6application-scopecontrolspass. Priorcandidates preserved; nohostobservation/application/deployment. Futurematchingrelease/hostedacceptance remainsopen, existingapprovedroutingimage stillBUILDING.
+
+Sei investigation update:currentEthereumexecution-API bytes32 schema requireslowercasehex,so standardreaderstrictness is intentional. ExplicitSeinativewireprobe accepts onlyexact32bytehex thennormalizescase; readonlyfinalized/hashbound3/2qualificationpasses. OriginalstrictfailurepreservedasSei-strict-canonical-failure.json; noSei shippingprofile/sharedreaderchange. Nativecasecodec stillrequired beforeenrollment.
