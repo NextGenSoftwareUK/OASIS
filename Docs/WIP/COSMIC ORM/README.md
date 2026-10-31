@@ -42,3 +42,5 @@ Persistent, irreproducible fixture state belongs in ignored LocalState/COSMIC an
 - [Supabase local PostgREST data-plane and Mongo demo](SUPABASE_CQL_MVP.md): native JWT/ID-filter/restart scope and explicit hosted limitations.
 
 - [Firebase RTDB export-restore and Mongo demo](FIREBASE_CQL_MVP.md): distinct from Firestore, bounded key-query/ownership scope and emulator limits.
+
+- [CouchDB retained revisions and Mongo demo](COUCHDB_CQL_MVP.md): native restart/post-pair source checks, save boundary controls and launch command.
