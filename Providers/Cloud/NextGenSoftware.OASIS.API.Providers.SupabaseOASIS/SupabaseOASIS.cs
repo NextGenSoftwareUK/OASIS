@@ -42,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
     ///   supabaseUrl  — e.g. "https://xyzxyz.supabase.co"
     ///   apiKey       — anon key or service_role key from Supabase → Settings → API
     /// </summary>
-    public class SupabaseOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class SupabaseOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly HttpClient _http;
         private readonly string _baseUrl;
@@ -55,9 +55,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
         };
 
         public SupabaseOASIS(string supabaseUrl, string apiKey)
+            : this(supabaseUrl, apiKey, new HttpClient()) { }
+
+        public SupabaseOASIS(string supabaseUrl, string apiKey, HttpClient httpClient, string restApiPath = "/rest/v1")
         {
-            _baseUrl = supabaseUrl.TrimEnd('/') + "/rest/v1";
-            _http = new HttpClient();
+            // Hosted Supabase uses /rest/v1; a directly hosted PostgREST service
+            // explicitly selects an empty path. Never guess or retry another route.
+            if (restApiPath == null || restApiPath.Length > 0 && (!restApiPath.StartsWith("/") || restApiPath.Contains("?") || restApiPath.Contains("#")))
+                throw new ArgumentException("Supply a REST path or an explicit empty path.", nameof(restApiPath));
+            _baseUrl = supabaseUrl.TrimEnd('/') + restApiPath.TrimEnd('/');
+            _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _http.DefaultRequestHeaders.Add("apikey", apiKey);
             _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
             _http.DefaultRequestHeaders.Add("Prefer", "return=representation");
@@ -74,14 +81,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<bool>();
             try
             {
-                var response = await _http.GetAsync($"{_baseUrl}/oasis_avatars?limit=1");
-                if (!response.IsSuccessStatusCode && response.StatusCode != System.Net.HttpStatusCode.NotFound)
-                    throw new Exception($"HTTP {(int)response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
+                using var response = await _http.GetAsync($"{_baseUrl}/oasis_holons?select=id&limit=0");
+                response.EnsureSuccessStatusCode();
+                using var rows = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                if (rows.RootElement.ValueKind != JsonValueKind.Array) throw new System.IO.InvalidDataException("Expected a PostgREST array.");
+                IsProviderActivated = true;
                 result.Result = true; result.IsError = false;
                 result.Message = "SupabaseOASIS activated — connected to Supabase PostgREST.";
             }
             catch (Exception ex)
             {
+                IsProviderActivated = false;
                 result.Exception = ex;
                 OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: Error activating provider — {ex.Message}");
             }
@@ -90,8 +100,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
-            => await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "SupabaseOASIS deactivated." });
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "SupabaseOASIS deactivated." });
+        }
 
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
@@ -363,26 +376,40 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (holon.ProviderUniqueStorageKey == null)
-                    holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SupabaseOASIS] = holon.Id.ToString();
-
-                var row = new
+                // Freeze the proposed persisted representation before dispatch. The
+                // manager owns its baseline; the provider publishes only acknowledged IDs.
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var projection = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
+                projection["id"] = id;
+                if (projection["providerUniqueStorageKey"] is not System.Text.Json.Nodes.JsonObject keys)
                 {
-                    id = holon.Id,
-                    parent_holon_id = holon.ParentHolonId == Guid.Empty ? (Guid?)null : holon.ParentHolonId,
-                    holon_type = (int)holon.HolonType,
-                    is_deleted = holon.IsDeleted,
-                    data_json = Serialize(holon)
-                };
-                var req = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/oasis_holons") { Content = JsonContent(row) };
-                req.Headers.Add("Prefer", "resolution=merge-duplicates");
-                var response = await _http.SendAsync(req);
-                if (!response.IsSuccessStatusCode) throw new Exception($"HTTP {(int)response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
-                result.Result = holon; result.IsError = false; result.Message = $"SupabaseOASIS: Holon '{holon.Name}' saved.";
+                    keys = new System.Text.Json.Nodes.JsonObject();
+                    projection["providerUniqueStorageKey"] = keys;
+                }
+                keys["SupabaseOASIS"] = id.ToString("D");
+                var json = projection.ToJsonString(_jsonOpts);
+                var row = new { id, parent_holon_id = holon.ParentHolonId == Guid.Empty ? (Guid?)null : holon.ParentHolonId,
+                    holon_type = (int)holon.HolonType, is_deleted = holon.IsDeleted, data_json = json };
+                using var req = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/oasis_holons") { Content = JsonContent(row) };
+                req.Headers.Add("Prefer", "resolution=merge-duplicates,return=representation");
+                try
+                {
+                    using var response = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead);
+                    response.EnsureSuccessStatusCode();
+                    var acknowledged = ReadNativeRows(await ReadBoundedBody(response, default));
+                    if (acknowledged.Count != 1 || acknowledged[0].id != id.ToString("D") || acknowledged[0].data_json != json
+                        || acknowledged[0].is_deleted != row.is_deleted || acknowledged[0].holon_type != row.holon_type
+                        || acknowledged[0].parent_holon_id != row.parent_holon_id?.ToString("D"))
+                        throw new System.IO.InvalidDataException("Supabase acknowledgement does not match the proposed canonical row.");
+                }
+                catch (Exception cause) { throw new SupabaseMutationReconciliationException(id, cause); }
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SupabaseOASIS] = id.ToString("D");
+                result.Result = holon; result.IsSaved = true; result.SavedCount = 1;
+                result.Message = $"SupabaseOASIS: Holon '{holon.Name}' saved.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: Error saving holon '{holon.Name}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: Error saving holon '{holon?.Name}': {ex.Message}"); }
             return result;
         }
 
@@ -410,10 +437,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         private async Task<List<Holon>> GetHolonsByFilterAsync(string filter)
         {
-            var response = await _http.GetAsync($"{_baseUrl}/oasis_holons?{filter}");
-            var json = await response.Content.ReadAsStringAsync();
-            var rows = DeserializeList<HolonRow>(json);
-            return rows.Select(r => Deserialize<Holon>(r.data_json)).Where(h => h != null).Select(h => h!).ToList();
+            var rows = await ReadCompleteHolonRows(filter, default);
+            return rows.Select(ParseHolon).ToList();
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -421,7 +446,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var holons = await GetHolonsByFilterAsync($"id=eq.{id}&is_deleted=eq.false&limit=1");
+                var holons = await GetHolonsByFilterAsync($"id=eq.{id}&is_deleted=eq.false");
+                if (holons.Count > 1 || holons.Count == 1 && holons[0].Id != id) throw new System.IO.InvalidDataException("Supabase returned unexpected primary identities.");
                 if (holons.Count == 0) { OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No holon found with ID '{id}'."); return result; }
                 result.Result = holons[0]; result.IsError = false; result.Message = $"SupabaseOASIS: Holon loaded for ID '{id}'.";
             }
@@ -495,10 +521,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var loaded = await LoadHolonAsync(id);
-                if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No holon found with ID '{id}'."); return result; }
-                await _http.PatchAsync($"{_baseUrl}/oasis_holons?id=eq.{id}", JsonContent(new { is_deleted = true }));
-                result.Result = loaded.Result; result.IsError = false; result.Message = $"SupabaseOASIS: Holon '{id}' soft-deleted.";
+                var loaded = await LoadHolonAsync(id, loadChildren: false);
+                if (loaded.IsError || loaded.Result == null) return loaded;
+                // A soft delete is one canonical acknowledged write. Keep the
+                // payload and native deletion projection in agreement, with the
+                // same uncertain-outcome contract as every other holon save.
+                loaded.Result.DeletedDate = DateTime.UtcNow;
+                return await SaveHolonAsync(loaded.Result, saveChildren: false);
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;

@@ -59,3 +59,8 @@ Verified admittedgeneration2 nativecheckpoint/restart/SDK/HTTP/browser ID-filter
 ### PocketBase current demo integration (30 October 2026)
 
 NativeREST IDfilter/restart/MongoSDK/HTTP/browser verified,45cases; no new businesswrites in retained-source run. Saveownership/acknowledgement faultcontrols are syntheticHTTP proof, not full nativeconditionalwritecertification. Return to name/description/metadataqueries, graph/history/conditionalwrites, centralregistration/hostedadmission, HyperDrivereplication/failover/loadbalancing and distributedsnapshots. PlaintextcanonicalJSON remains explicit. Preserveoriginaldatabase/password/identity/ACKs; serviceauthentication legitimatelychanges SQLitefiles, logicalrecordbaseline unchanged. See POCKETBASE_CQL_MVP.md.
+
+
+### Supabase REST current demo integration (30 October 2026)
+
+40cases/nativePostgREST+PostgreSQLrestart/MongoSDK/HTTP/browser IDfilter scope verified, not hostedSupabase/Kong/APIkeygateway/Auth/storage/realtime/rowpolicy acceptance. Return to general name/description/metadataqueries, graph/depth/history, nativecross-clientconditionalwrites, avatar/detailownership/bulkatomicity, centralregistration and HyperDrive/failover/loadbalancing/distributedsnapshots. Save/deleteownershipfaultcontrols syntheticHTTP; retainedsource integrationdidnotissuebusinesswrites. PreserveoriginalDB/roles/JWT/password/ACK with sharedPostgresvolume; plaintextcanonicalJSON explicit. See SUPABASE_CQL_MVP.md.
