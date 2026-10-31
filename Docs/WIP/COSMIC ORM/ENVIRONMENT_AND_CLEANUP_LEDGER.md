@@ -1652,3 +1652,8 @@ Admission run completed: Core3/API6 passed0skips; reused outputs and caches; log
 Reuse Mongo8.3.11 at C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe and LocalState/COSMIC/mongo-data,27029/oasisRecoveryRs. New owned fixtures cosmic_cql_{base,avalanche,bnb}_http_demo only; stable source configs inherited. Original intents/ACKs retained in LocalState/COSMIC/{Base,Avalanche,Bnb}MongoHttpCurrent (size pending). Outputs TestResults/{Base,Avalanche,Bnb}PublicSourceCandidateCurrent. Runner owns service lifetime; success-only exact-marker database cleanup, failures preserved. No download/install/Neo service.
 
 HTTP gates3passed/0skips; all3owned fixture DBs dropped with marker/absence verification, Mongo/Kestrel stopped,27029notlistening. State cohorts retained; sizes/hashes in three-source report. Failed build and0test logs retained; no initial writes. During-run C:78,676,819,968B free. No downloads/newruntime.
+
+### Hosted preset tooling and website links — 31 October 2026
+Reuse existing Python/Node and Web4Site worktree; new3strict candidate builders and pure fixture tests only. No protected candidate regenerated, no Railway calls, no provider activation/install/download. Generated Python cache reused (size unmeasured, disposable after processes stop). Test log TestResults/EvmBreadthReadinessCurrent/publisher-controls.log; website test outputs same folder.
+
+Preset tooling outcome:10pure controls and54website controls pass. No protected output/host change/service. Website taskc09103b pushed, publicmain unchanged. Existing Python cache and two compact logs retained; size unmeasured, regenerable using unittest/node commands.
