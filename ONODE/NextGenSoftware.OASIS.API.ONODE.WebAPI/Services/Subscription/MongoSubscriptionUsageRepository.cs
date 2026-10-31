@@ -94,10 +94,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
 
                 var subscription = await Subscriptions.Find(session, x => x.UserId == usageEvent.UserId).FirstOrDefaultAsync(ct)
                     ?? throw new SubscriptionUsageLimitException("SUBSCRIPTION_REQUIRED", "A valid OASIS subscription is required.", 402);
+                var authorizationTime = _time.GetUtcNow().UtcDateTime;
                 if (subscription.Status is not ("active" or "trialing" or "free") ||
-                    subscription.CurrentPeriodEnd.HasValue && subscription.CurrentPeriodEnd.Value <= _time.GetUtcNow().UtcDateTime)
+                    subscription.CurrentPeriodEnd.HasValue && subscription.CurrentPeriodEnd.Value <= authorizationTime)
                     throw new SubscriptionUsageLimitException("INACTIVE_SUBSCRIPTION", "The OASIS subscription is inactive or expired.", 402);
-                var policy = _policyProvider.GetPolicy(subscription.PlanId, karma);
+                var policy = SandboxSubscriptionRules.EffectivePolicy(_policyProvider.GetPolicy(subscription.PlanId, karma),
+                    subscription, authorizationTime);
                 usageEvent.PlanId = subscription.PlanId; usageEvent.Karma = karma; usageEvent.AuthorizationPolicy = policy;
                 // This explicit version fence linearizes reservation authorization with concurrent
                 // Stripe/administrator subscription mutations, which also write this document.
