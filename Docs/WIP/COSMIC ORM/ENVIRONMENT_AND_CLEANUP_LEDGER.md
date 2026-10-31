@@ -1750,3 +1750,10 @@ Fifteen-source outcome:protectedbefore67,094B/candidate104,934B retained;1new8pr
 - `TestResults/HostedCqlIntegrationCurrent/fifteen-source-public-review.json`: 58490B,SHA256 `0fb5bfd4f800382fc7c6e7687ec7c4df99a36f4aa7b01308386cae9e844bd3a3`.
 - `TestResults/HostedCqlIntegrationCurrent/zksync-abstract-prepared-review.json`: 7743B,SHA256 `b4218f8fc275ded35341c19241c17d75f5286ea3696a631cfe7e14b6e3eed06e`.
 - `TestResults/HostedCqlIntegrationCurrent/zksync-abstract-prepared-review.trx`: 3359B,SHA256 `dab0a4911ac314d183cc3c128ed2ec7dff1190802759345a299c623f8e97bc4f`.
+
+### Monad/Sei protocolqualification
+31October2026:reuse existingboundedPowerShell/.NET runner/providerprojects. Readonly RPC rpc.monad.xyz/evm-rpc.sei-apis.com,chain/genesis/finalized/hashboundbalances;no wallets/writes/download/install/environment. Raw EvmBreadthReadinessCurrent/{Monad,Sei}.json regenerable,sizepending. C:78,147,960,832B precheck. No sourcecatalogue/identity untilproof.
+
+Monad qualificationpasses; Sei failedcanonicalblockzero, separateboundedreadonlyreply retained Sei-genesis-response.json,noidentity/DB forSei. Monadstablepubliccatalogue LocalState/COSMIC/HostedMonadPublicSourceCurrent/source.json createdonce,retainowner,sizepending. Existingconsole/testhostrefs/runtime/cache reused,cacheonlyrestore,raw EvmBreadthReadinessCurrent. No downloads/services/nativewrites.
+
+Monad outcome:19tests0skips(18controlled+1native),consolebuild/actualCLI3/2pass. Cacheonlyrestores,noSDKinstall/download/database/services. Stablecatalogue 276B retained. Sei genesisraw 1386B retained aspublicformatfailureevidence,notmissingchainproof. Rawlogs/TRXregenerable,incrementalbuildsizesunmeasured.
