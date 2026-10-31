@@ -1,5 +1,16 @@
 # OASIS — notes for AI / Cursor agents
 
+## Owner actions — one David list
+
+Every agent/session must add actions requiring David's accounts, access, devices,
+approval, funding or decisions to `Docs/WIP/Release and Status/ACTIONS-FOR-DAVID.md`
+in its assigned worktree before asking him, or in the same turn. Include context,
+concrete steps, reason, status/date and links; never secrets. Update the existing
+entry on his answer or verified completion. Preserve deferred/declined decisions,
+do not re-ask or create competing lists, and keep engineering/tool failures as
+agent-owned work. Preserve other agents' entries and integrate named doc changes
+through the normal branch workflow.
+
 ## Root cause only — no hacks, fallbacks, or workarounds (all code)
 
 Applies to **every change** in this repo — C#, C++, ZScript, HTTP/API, DB, scripts — not only packaging.
