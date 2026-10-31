@@ -1,6 +1,6 @@
 # Polkadot public header source readiness
 
-31 October 2026. Native source feasibility verified; no CQL adapter, HTTP federation or hosted/browser acceptance yet.
+31 October 2026. Native source and CQL3/2 verified; C# manager walkthrough, HTTP federation and hosted/browser acceptance remain open.
 
 Python HTTP probes to PublicNode and the existing provider default rpc.polkadot.io returned403 before data. An explicit .NET probe against that same existing default returned200 with the expected Polkadot genesis. The reason for the transport difference is not established; no production fallback/retry/user-agent spoofing was introduced.
 
@@ -30,3 +30,21 @@ Primary contracts: [Polkadot RPC](https://polkadot.js.org/docs/asset-hub-polkado
 - `TestResults/PolkadotPublicSourceCandidateCurrent/readiness.json`: 283 B, SHA256 `4da1ba959074c5a638134e3bb7f75b68d34f814a35864c50c1f98364bf04c3e7`.
 
 - `TestResults/PolkadotPublicSourceCandidateCurrent/validated-headers.json`: 243 B, SHA256 `b45502db9453c9d216000ee4e2f6eeda689b3488263fddd6795651e89306fd14`.
+
+## Adapter contract under verification
+
+`PolkadotPublicHeaderMetadataSource` is an explicit read representation inside the existing Polkadot provider. Strict schema: schema1/rpcUrl/genesisHash/blockHashes/sourceOwner. One to eight unique canonical lowercase32byte hashes; stable configured mapping owner. Query key PolkadotBlockHash supports point/membership, visibility and paging after complete validation. Source writes are unsupported.
+
+Each selection binds Polkadot genesis, reads and locally hashes the reported finalized header, then verifies each configured selected header's SCALE/BLAKE2b content hash, number not above the reported finalized height and canonical hash at that number. It reads no block bodies, account data, storage scan or runtimeWASM. Canonical/finality assertions remain RPC-reported, not independently verified GRANDPA proofs. Exact block numbers are decimal strings in holon metadata.
+
+Crypto reuses cached BouncyCastle.Cryptography2.7.0, matching the existing BootLoader/Aptos minimum; the initially considered2.6.2 was rejected by NuGet rather than suppressing a downgrade. Controlled vectors independently generated with Python stdlib cover all four SCALE compact-number widths. Source builds;17focused controlled tests and1native test pass, zero skips. Native query returns3configured headers and a real2hash subset. No independent consensus claim.
+
+## Native CQL milestone
+
+New `PolkadotPublicHeaderMetadataTests` verifies all four SCALE compact widths, point/membership, paging/budget, wrong genesis, modified content, noncanonical history, future height, wrong RPC id, duplicates, oversized response, cancellation/inactive/unknown keys, and invalid configuration. A malformed last row fails even with Take(0). The native3/2 test uses retained configured hashes and real rpc.polkadot.io through the guarded HTTP source. No wallet/node/signing/bodies/storage scans.
+
+Persistent `LocalState/COSMIC/HostedPolkadotPublicSourceCurrent/source.json` holds the original fixed3hash catalogue and stable mapping owner; no source reset. Do not regenerate it from newer probe output. The source has no WEB4 hosted enrollment yet. Next: C# HolonManager/LINQ walkthrough and HTTP+Mongo5/4/isolation, then strict hosted configuration and browser links.
+
+- `TestResults/PolkadotPublicSourceCandidateCurrent/provider-controls.trx`: 27614 B; SHA256 `699a394e1122658468f2b3c79db90e19bb466d7f2fa76542d819cceb2a2f981f`.
+
+- `TestResults/PolkadotPublicSourceCandidateCurrent/provider-native.trx`: 2839 B; SHA256 `fd0af2c0ab46e300ce1de3e90c0a9fbe5155211f2d2a94050c2b5b38e07f5108`.
