@@ -1,6 +1,6 @@
 # NEAR public account CQL
 
-The explicit public NEAR read profile queries configured account IDs. Native CQL 3/2 is verified; published C# walkthrough and actual CLI 3/2 also pass. Remaining HTTP/Mongo and hosted/browser acceptance is tracked in [current status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md). It is separate from canonical signed storage.
+The explicit public NEAR read profile queries configured account IDs. Native CQL 3/2 is verified; published C# walkthrough and actual CLI 3/2 also pass. Original-cohort local HTTP/Mongo 5/4 and isolation also pass. Remaining hosted/browser acceptance is tracked in [current status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md). It is separate from canonical signed storage.
 
 ## C# walkthrough
 
@@ -10,11 +10,11 @@ Build the existing sample with the normal bounded provider lease, then run from 
 dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj --no-build --no-restore -- --near-public LocalState/COSMIC/HostedNearPublicSourceCurrent/source.json
 ```
 
-[NearPublicWalkthrough.cs](../../Examples/CosmicCqlDemo/NearPublicWalkthrough.cs) queries three configured accounts, then a two-account subset through the shared [NativeKeySetWalkthrough.cs](../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs), CosmicLinq and HolonManager. It prints exact balances and the pinned block height, creating no account, transaction, fixture or Mongo record. The console uses a cancellation deadline of 60 seconds based on measured native activation/full/subset run of 34 seconds; no retries or source substitution.
+[NearPublicWalkthrough.cs](../../Examples/CosmicCqlDemo/NearPublicWalkthrough.cs) queries three configured accounts, then a two-account subset through the shared [NativeKeySetWalkthrough.cs](../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs), CosmicLinq and HolonManager. It prints exact balances and the pinned block height, creating no account, transaction, fixture or Mongo record. The console uses a cancellation deadline of 60 seconds based on the earlier slow endpoint run of 34 seconds; FastNear now completes the native test in about one second. No retries or source substitution.
 
 ## Source contract
 
-`NearPublicAccountMetadataSource.FromJson` accepts exactly schema 1, rpcUrl, networkId, accounts and sourceOwner. Mainnet only, 1–8 unique canonical lowercase NEAR account IDs, anonymous root HTTPS with no user info/query/fragment, and a nonempty stable mapping owner. The retained catalogue uses rpc.mainnet.near.org and near/wrap.near/aurora. Preserve its owner to preserve mapped OASIS IDs; it is not a private key or signing account.
+`NearPublicAccountMetadataSource.FromJson` accepts exactly schema 1, rpcUrl, networkId, accounts and sourceOwner. Mainnet only, 1–8 unique canonical lowercase NEAR account IDs, anonymous root HTTPS with no user info/query/fragment, and a nonempty stable mapping owner. The retained catalogue explicitly uses rpc.mainnet.fastnear.com and near/wrap.near/aurora. Preserve its owner to preserve mapped OASIS IDs; it is not a private key or signing account.
 
 Query metadata key **NearAccountId** supports equality and bounded membership over the configured catalogue. Unknown keys, arbitrary scans/content predicates and unsupported sorts fail. The entire selected source set validates before read visibility/paging; Take(0) does not suppress native failures. Errors/cancellation return no partial rows.
 
@@ -26,6 +26,8 @@ Metadata: NearAccountId, NearNetworkId, NearBlockHash, NearBlockHeight, NearFina
 
 ## Pending hosted integration
 
-The read profile must have its own query permission/tariff, activation and capability admission; it must never replace canonical signed storage or become a write/replication default. Hosted configuration, Mongo-paired presets and browser acceptance remain pending. With metadata encryption enabled, the specific query key needs an explicit trusted query-policy grant; do not add it to globally unencrypted system-reserved metadata.
+Optional `CQL_NEAR_PUBLIC_SOURCE_JSON` lazily registers the separate read representation. The profile must still have its own query permission/tariff, activation and capability admission; it must never replace canonical signed storage or become a write/replication default. Hosted configuration, visitor Mongo preparation and browser acceptance remain pending. Local HTTP pairs 5/4 are verified after reusing the original two acknowledged private snapshots without resaving. With metadata encryption enabled, the specific query key needs an explicit trusted query-policy grant; do not add it to globally unencrypted system-reserved metadata.
 
 [Evidence and exact remaining work](../WIP/COSMIC%20ORM/NEAR_PUBLIC_SOURCE_READINESS.md). Primary protocol contracts: [NEAR query types](https://github.com/near/nearcore/blob/master/chain/jsonrpc-primitives/src/types/query.rs), [view_account](https://docs.fastnear.com/rpc/account/view-account).
+
+The older rpc.mainnet.near.org source exceeded WEB4's fixed five-second leaf-query limit and produced HTTP 504. The explicit FastNear selection resolves this observed demo issue; shipping deadlines were not relaxed. The original failed fixture and acknowledgements were preserved, read-only continuation verified every original private copy before exact-owned cleanup, and no writes were replayed.

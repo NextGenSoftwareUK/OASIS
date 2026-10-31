@@ -1,6 +1,6 @@
 # NEAR public account CQL readiness
 
-31 October 2026.20focused controlled tests and1native CQL test pass, zero skips. Native queries return3accounts then a2account subset. Published C# walkthrough/CLI3/2 also pass; HTTP/Mongo federation, hosted and browser acceptance remain open.
+31 October 2026.20focused controlled tests and1native CQL test pass, zero skips. Native queries return3accounts then a2account subset. Published C# walkthrough/CLI3/2 also pass; Original-cohort HTTP/Mongo federation/isolation now also pass; hosted/browser remain open.
 
 Four bounded read-only .NET RPC readiness calls passed at the existing `https://rpc.mainnet.near.org/`: synced mainnet status and view_account for near/wrap.near/aurora. The first account selected `finality:final`; subsequent accounts were pinned to its exact block_id, with matching returned block_hash/height. No wallet/signing, transaction, contract execution, runtime/body download or node install.
 
@@ -37,3 +37,37 @@ Command: `dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj --no-
 - `TestResults/NearPublicSourceCandidateCurrent/console-native.trx`: 2830 B; SHA256 `cc334e98ef5addb40def1be1944f1d2edd5f7fbcb76398f3c38f0af0fc4ba92e`.
 
 - `TestResults/NearPublicSourceCandidateCurrent/console-cli.log`: 1058 B; SHA256 `32857632bb3ba16db5cb96234849426870a490c3956174a5b3db6b1c03bc8d44`.
+
+## HTTP integration under verification
+
+WEB4 compiler/admission now includes the explicit NEAR query profile, with lazy `CQL_NEAR_PUBLIC_SOURCE_JSON` registration and independent read tariff/permission. Canonical signed storage is unchanged. New focused controls cover17provider catalogues, missing grants/prices, duplicate tariffs, signed-write rejection and four native/Mongo-paired preset plans. Actual native HTTP fixture verification remains pending its build/test gate; no hosted claim yet.
+
+The native fixture reuses Mongo27029, journals two original SDK create-only operations before mutation, checks source3/2 and owner pairs5/4, and rejects another actor's private records. Success-only cleanup requires exact ownership/nonce/count and database absence. HTTP deadline60seconds is based on measured native activation/full/subset34seconds. No retry or replay allowed; unknown outcomes retain original intent/DB.
+
+## HTTP deadline issue and original-cohort recovery
+
+Original native HTTP fixture created and acknowledged two normal SDK create-only Mongo snapshots, then failed near-3 with HTTP504. The canonical NEAR RPC took34seconds for activation/full/subset and exceeded the shipping leaf endpoint's fixed5second query deadline. The failure and original intent/ACKs were preserved; no replay, source substitution in code or deadline relaxation.
+
+Explicitly selected documented free `https://rpc.mainnet.fastnear.com/` after4bounded readiness reads passed in about1second. Only rpcUrl changed; the3accounts and stable mapping owner are unchanged. Published native CQL walkthrough then passed1/0skips in1second and actualCLI3/2 passed. Original slow-endpoint evidence remains historical; current source config224B usesFastNear. No canonical provider DNA/default endpoint changed.
+
+Added an explicit `-NearMongoHttpContinuation` test gate. It reads the original actor, two operation IDs and mapped IDs from the original journal, verifies both original ACKs, privateowner/version1/provenance and exact marker/2records, and performs no additional Save. Shipping HTTP endpoints now return native3/2, owner pairs5/4, foreign-private0 and foreign-public-pair3 with9validated receipts. Continuation passed1/0skips in4seconds; sdkOwnedSaves0/reusedAcknowledgedSaves2. Original failed test was not rerun, reseeded or relabelled green.
+
+After consumers stopped, exact ownership/count checks passed and the ownedDB was dropped; absence asserted. Originalintent444B+2ACKs216B+cleaned70B=730B retained in `LocalState/COSMIC/NearMongoHttpCurrent`; source identity unchanged. Mongo process stopped, no27029listener. Controlled bearer/usage authority is not production login/billing/replication/browser proof.
+
+API admission/preset/discovery2controls and affected Core tariff11controls pass. Lazy `CQL_NEAR_PUBLIC_SOURCE_JSON` enrolls the separate read profile;17supported unsigned read types still need independent permission/price. Signed-write fence unchanged. Next: strict FastNear source publisher, joint configuration and four presets, client preparation test/links, matching hosted rollout and real hosted gates.
+
+- `TestResults/NearPublicSourceCandidateCurrent/near-mongo-http.trx`: 6680 B; SHA256 `dad7731c8bc33258b0491476ddb62bff0df21528a27b28bcb53ad316963d8d8e`.
+
+- `TestResults/NearPublicSourceCandidateCurrent/readiness-fastnear.json`: 1560 B; SHA256 `ffeb0985f1a7b36e80b5ab7ee6408421b7f5713ec652c9b1714a0d5817c3c411`.
+
+- `TestResults/NearPublicSourceCandidateCurrent/console-native-fastnear.trx`: 2830 B; SHA256 `6b192bc80149d0af76096517339effab61b12cd2d43a27a456b6d58834abae2f`.
+
+- `TestResults/NearPublicSourceCandidateCurrent/console-cli-fastnear.log`: 1058 B; SHA256 `79771e26926bb5064586e8be26ca42217923e745dd07cb053454a07219f73912`.
+
+- `TestResults/NearPublicSourceCandidateCurrent/near-mongo-http-continuation.trx`: 3329 B; SHA256 `404f608f38dde4b76b7ecb39953c1cb23c5bb2c9a63124a7cb40856b28b87121`.
+
+- `TestResults/NearPublicSourceCandidateCurrent/near-mongo-continuation-summary.json`: 249 B; SHA256 `0752a22de109aafc616898770f39480baa81f366079be5d7bebe7f73ccce9746`.
+
+- `TestResults/NearPublicSourceCandidateCurrent/api-controls.trx`: 4980 B; SHA256 `56bcacd94e596490597db5b9c1046bb6848c02aec1710a1eba6bef490f47ddc4`.
+
+- `TestResults/NearPublicSourceCandidateCurrent/core-controls.trx`: 19177 B; SHA256 `5527eaba6c91db48a199d1ded8e0572d0ec003ebff8e623447b98fb323f51166`.

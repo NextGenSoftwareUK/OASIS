@@ -20,7 +20,7 @@ static catalogue links do not make a provider available on that host.
 | Public Google metadata, Ethereum/Polygon/Arbitrum balances | Native SDK, local HTTP/Mongo pairing/isolation and runnable C# demos verified; hosted enrollment/browser gates pending |
 | Polkadot block headers | Native/local HTTP3/2, Mongo5/4/isolation and C# CLI verified; hosted/browser pending |
 | Cosmos Hub validators | Native/local HTTP3/2, Mongo5/4/isolation and C# CLI verified; hosted/browser pending |
-| NEAR public account metadata | Native CQL and C# CLI3/2 verified; HTTP/Mongo, hosted/browser pending |
+| NEAR public account metadata | Native/C#3/2 and original-cohort HTTP+Mongo5/4/isolation verified via FastNear; hosted/browser pending |
 | Azure Cosmos DB, Oracle | Emulator/local native proofs only; hosted setup deferred by David |
 
 These are scoped evidence statements; [CURRENT_STATUS](CURRENT_STATUS.md) owns
