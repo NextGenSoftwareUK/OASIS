@@ -5,6 +5,14 @@ for configured hosted providers; it needs no local SDK or database. See
 [CURRENT_STATUS](../../Docs/WIP/COSMIC%20ORM/CURRENT_STATUS.md) for verified live
 coverage. Local launchers below are separate from hosted availability.
 
+## Public Solana account metadata
+
+The [Solana CQL guide](../../Docs/Devs/SOLANA_PUBLIC_ACCOUNT_CQL_GUIDE.md) shows
+the shared LINQ walkthrough, native address membership and Mongo-paired presets.
+The exact [C# sample](NativeKeySetWalkthrough.cs) is native-tested against three
+mainnet accounts and a two-account subset, without wallets or writes. Hosted
+deployment/browser acceptance is tracked separately in CURRENT_STATUS.
+
 ## Public AWS S3 metadata and Mongo snapshots
 
 The [public S3 guide](../../Docs/Devs/AWS_S3_PUBLIC_CQL_GUIDE.md) covers the live
