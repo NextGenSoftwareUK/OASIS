@@ -20,3 +20,5 @@ Hosted Azure remains pending at the user's direction (free-only; no existing fre
 Recovery entry: [CURRENT_STATUS](CURRENT_STATUS.md). Feature acceptance: [CQL_PARITY_CHECKLIST](CQL_PARITY_CHECKLIST.md). Native recovery limits: [REPLICA_BASELINE_AND_RECOVERY](REPLICA_BASELINE_AND_RECOVERY.md).
 
 Azure Blob MVP (30 October): local Azurite + Mongo identity query is now current-branch SDK/HTTP/browser verified (all5/subset4). Return later to hosted free-only Azure acceptance, application encryption, content/metadata queries, business conditional writes and wider HyperDrive acceptance; see AZURE_BLOB_CQL_MVP.md. Do not deepen its verified bounded identity controls without a reproducible bug.
+
+LocalFile bounded identity MVP integrated30 October:7controls/native1/paired1 + independentbrowser5/4, original source unchanged. Return later to plaintext-record encryption, content/metadata queries, child semantics, conditional writes and wider HyperDrive/parity; current profile deliberately does not certify those. See LOCALFILE_CQL_MVP.md.
