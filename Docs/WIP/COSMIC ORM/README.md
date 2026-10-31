@@ -46,3 +46,5 @@ Persistent, irreproducible fixture state belongs in ignored LocalState/COSMIC an
 - [CouchDB retained revisions and Mongo demo](COUCHDB_CQL_MVP.md): native restart/post-pair source checks, save boundary controls and launch command.
 
 - [Couchbase Community SQL++ and Mongo demo](COUCHBASE_CQL_MVP.md): retained JSON/exactCAS restart/post-pair checks and launch command.
+
+- [ClickHouse HTTPS/FINAL and Mongo demo](CLICKHOUSE_CQL_MVP.md): retained JSON/UInt64 version restart/post-pair checks and launch command.

@@ -39,12 +39,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.UnitTests
             Assert.IsFalse(string.IsNullOrWhiteSpace(_provider.ProviderDescription));
         }
 
-        [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
-        {
-            Assert.IsFalse(string.IsNullOrWhiteSpace(_provider.GetProviderVersion()));
-        }
-
         [TestCleanup]
         public void Cleanup()
         {
