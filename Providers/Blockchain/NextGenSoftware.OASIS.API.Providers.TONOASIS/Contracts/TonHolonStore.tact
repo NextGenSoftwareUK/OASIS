@@ -38,4 +38,8 @@ contract TonHolonStore {
     get fun storageOwner(): Address {
         return self.owner;
     }
+
+    get fun storedRecords(): map<Int as uint256, Cell> {
+        return self.records;
+    }
 }
