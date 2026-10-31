@@ -667,3 +667,19 @@ CI/docs/AGENTS release-snapshot updates must be preserved; no master promotion p
 Railway833256b2-5008-47b7-9662-c4d60452e2e7 atd300e8254 reported SUCCESS, but runtime exited before API startup: StorageQueryTariff.Capture omitted AWSS3 and allowed at most7tariffs. Actual SOLID fixed-client session POST returned502; only owner.intent.json exists, no bearer/ACK. Preserve unknown creation intent; never replay. API readiness must be observed separately from platform deployment status.
 
 Core bf098a4fbaf8ec577459af1a53fa16bdc59c45ad explicitly adds S3, raises supported catalogue bound to8 and samples9to detect overflow. Permission, uniqueness, price/version checks retained; no generic provider enrollment or writable routes. Shipping test builds full8-provider PricedStorageAdmissionFactory and verifies absent permission/overflow/negative-price rejection. Full API and test consumer builds pass;30tests/no skips cover admission, discovery, demo allowance and GraphQL shipping schema. TestResults/HostedCqlIntegrationCurrent/s3-admission.trx SHA2566F8618D8B3E8102FDC14F121908CFF13ABAEBF43E1D0C4348AF54DAE3D9EC9EB. Core branch/Development pushes independently verified with ls-remote. Next parent pin rollout, then explicitly planned post-startup-fix SOLID cohort; original fixed-client and expired cohorts remain preserved.
+
+
+## 31 October: SOLID and public S3 hosted HTTP acceptance passed
+
+Development b3644ed3173e63769e130a6325d57b7ed5def31a / Core bf098a4, deployment5df7cbfd-c47f-4031-9c1e-9273d86e2a5c SUCCESS. Image sha256:b9b436b322bcb775701ade836d38951cb86d835bcde3fe2962978c3f0f00ceed. Unauthenticated discovery401 plus actual authenticated sources establish API readiness beyond platform status. Both sources: native3/2, preparation2saved, federation5/4, repeat0saved/2existing, exact SQLite/Neo4j2replicas each, independent visitor3public/0foreign-private IDs. Published client preparation/unwrap modules used over real HTTP; browserAcceptance=false. No browser UI proof inferred. No source object/Pod writes occurred. Both usage summaries show14daily calls/200limit/186remaining,0tokens/50klimit,0spend/$1cap. Normal Free20 remains unit-tested, not a new live ordinary-account claim.
+
+- `TestResults/HostedCqlIntegrationCurrent/SOLIDOASIS-post-startup-fix-native-http.json` SHA256 `c9ea78606fd40f770d79e581da132d30babe692ef3aa0b220377ebc908ace80b`.
+- `TestResults/HostedCqlIntegrationCurrent/SOLIDOASIS-post-startup-fix-client-http-flow.json` SHA256 `c42fe7cad8ba88294f701c2d74df0c5a3c25c1f0e71f7d79f467239f788d5835`.
+- `TestResults/HostedCqlIntegrationCurrent/SOLIDOASIS-post-startup-fix-isolation-http.json` SHA256 `4dafb6ffe99ff4f768c7427caf5bebb129720f41a05b2909470c02ea72a3425a`.
+- `TestResults/HostedCqlIntegrationCurrent/SOLIDOASIS-post-startup-fix-usage-http.json` SHA256 `ae40c9830a733599cdf1a7fe4150a351e09f1cb09e8806ceaa7e8d3ad2ef4600`.
+- `TestResults/HostedCqlIntegrationCurrent/AWSS3OASIS-fixed-client-native-http.json` SHA256 `ba6d9c05d7b7d9fab985471a24d1c936bed7ab709ef9dfdc30fc4599a814a02a`.
+- `TestResults/HostedCqlIntegrationCurrent/AWSS3OASIS-fixed-client-client-http-flow.json` SHA256 `d869d807892d505bb758bd27dc01d6aaf747f5a8e4d3296efdf1df0e62282eb8`.
+- `TestResults/HostedCqlIntegrationCurrent/AWSS3OASIS-fixed-client-isolation-http.json` SHA256 `6bcb2e03e5e694308d9c4357e78b8e68f97962a94facdf121a6acb8c4e19f8f1`.
+- `TestResults/HostedCqlIntegrationCurrent/AWSS3OASIS-fixed-client-usage-http.json` SHA256 `093d0448b31a0a93655340d5efefc6027716414badcd700d500d7f318e2afb2f`.
+
+Next browser SOLID/S3 acceptance when control surface is available, then Oracle native hosted activation/access catalogue and Solana view; Azure explicitly pending/free-only. Deep parity remains paused. Old unknown502 SOLID fixed-client intent preserved, no replay.
