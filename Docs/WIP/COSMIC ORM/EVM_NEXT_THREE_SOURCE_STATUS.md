@@ -45,3 +45,6 @@ Existing caches/projects reused; only the three new native walkthrough scopes se
 - `TestResults/EvmBreadthReadinessCurrent/console-avalanche.log`: 1351 B; SHA256 `df3e54882db5d35283b5c6c780ebac78feadc6ca68d9fc9d1c319002d8af081e`.
 
 - `TestResults/EvmBreadthReadinessCurrent/console-bnb.log`: 1359 B; SHA256 `edd67634086bad530f7c4617b9fb7dc789a67de81a4c1f535395f192018a223d`.
+
+## HTTP registration/admission milestone
+All three lazy public-source registrations and bounded no-order HTTP compiler profiles are implemented. Explicit read tariff catalogue now20; Core3 permission/signed-write-fence and API6 planning/discovery/admission tests pass,0skips. Evidence: TestResults/EvmBreadthReadinessCurrent/admission-{core,api}.trx. Full API build passed. These tests plan each native3/2 and paired Mongo preset and exercise source discovery; actual HTTP/Mongo data execution remains next, not yet verified. No hosted configuration applied.
