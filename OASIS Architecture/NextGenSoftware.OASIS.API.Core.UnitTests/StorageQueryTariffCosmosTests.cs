@@ -28,10 +28,10 @@ public class StorageQueryTariffCosmosTests
     }
 
     [Fact]
-    public void OrdinaryQueryTariffRejectsChainWithoutAnUnsignedReadProfile()
+    public void OrdinaryQueryTariffRejectsUnresolvedProviderIdentity()
         => Assert.Throws<ArgumentException>(() => StorageQueryTariff.Capture(
-            new[] { new StorageQueryTariff(ProviderType.PolygonOASIS, 0.002m, "cloud-test-v1") },
-            new[] { ProviderType.PolygonOASIS }));
+            new[] { new StorageQueryTariff(ProviderType.None, 0.002m, "cloud-test-v1") },
+            new[] { ProviderType.None }));
 
     [Fact]
     public void ExplicitUnsignedSolanaReadDoesNotGrantSignedStorageWrites()
