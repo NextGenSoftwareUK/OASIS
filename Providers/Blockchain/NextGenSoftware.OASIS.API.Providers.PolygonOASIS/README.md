@@ -114,3 +114,23 @@ WEB4 query-only admission, HTTP discovery/presets, Mongo federation/isolation,
 replication and hosted/browser acceptance remain next. No hosted Polygon enrollment
 or complete ORM parity is claimed. The retained local signed-record demo is a
 different profile. [Protocol readiness probe](../../../Scripts/Sandbox/Test-PolygonPublicMetadataCandidate.ps1).
+
+WEB4 task integration now registers CQL_POLYGON_PUBLIC_SOURCE_JSON through the
+isolated query-only profile registry. Explicit read permission/tariff remain
+separate from signed Polygon storage. Native HTTP acceptance passes3/2and Mongo
+pairing5/4with foreign-private0/public-pair3; controlled bearer/usage infrastructure
+is not production login/billing/replication/browser proof.
+
+Use the existing fixture-aware runner -PolygonMongoHttp after a leased bounded
+build. It retains original intents/ACKs and removes only the owner-checked Mongo
+fixture on success. Do not replay uncertain writes or replace a retained cohort.
+
+Four Polygon presets can be staged individually with
+Publish-HostedPolygonPublicConfiguration.py. For the joint Google/Ethereum/Polygon
+release, prepare Publish-HostedGoogleEthereumConfiguration.py with-polygon. That
+explicit option composes all3strict validators into5changed values/12presets,
+preserving wallet DNA and each independent permission/free tariff. No live change
+occurs during preparation. Use only the matching tested application/Core revision
+for the scheduled rollout; apply-with-polygon is the explicit journalled mutation.
+Encrypted snapshots require an explicit PolygonAccountAddress queryable-key grant;
+the publisher refuses missing policy rather than changing global reserved keys.
