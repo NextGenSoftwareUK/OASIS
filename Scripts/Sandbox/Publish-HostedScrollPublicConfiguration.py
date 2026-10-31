@@ -21,7 +21,7 @@ spec.loader.exec_module(configuration)
 def candidate(before, source):
     if set(source) != {"schema", "rpcUrl", "chainId", "addresses", "sourceOwner"} or type(source["schema"]) is not int or source["schema"] != 1:
         raise ValueError("Exact anonymous source schema required; wallet/signer fields forbidden.")
-    if (source["rpcUrl"] != "https://mainnet.scroll.io/" or source["chainId"] != "0x82750" or
+    if (source["rpcUrl"] != "https://rpc.scroll.io/" or source["chainId"] != "0x82750" or
             source["addresses"] != ["0x" + format(value, "040x") for value in (1, 2, 3)] or
             not isinstance(source["sourceOwner"], str) or uuid.UUID(source["sourceOwner"]).int == 0):
         raise ValueError("Retained verified Scroll mainnet catalogue differs.")
