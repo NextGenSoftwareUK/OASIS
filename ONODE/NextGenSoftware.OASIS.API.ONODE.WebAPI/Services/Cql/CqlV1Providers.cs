@@ -61,4 +61,3 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
             throw new InvalidOperationException("CQL_SOURCE_ACTIVATION_FAILED");
     }
 }
-
