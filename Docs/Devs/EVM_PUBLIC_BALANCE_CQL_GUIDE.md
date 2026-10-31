@@ -37,3 +37,7 @@ These are RPC-reported canonical/finality assertions, not independent consensus,
 Separate read permission/tariff, activation and capability admission are required before hosted enrollment. These profiles grant no signed saves or replication authority. With metadata encryption enabled, allow the specific application query key through trusted policy; do not add it to the global reserved unencrypted metadata list. C# console and native acceptance do not prove HTTP, visitor preparation, replicas or browser behavior.
 
 [Evidence and next steps](../WIP/COSMIC%20ORM/EVM_NEXT_THREE_SOURCE_STATUS.md).
+
+## Optimism public balances
+
+The same explicit reader also supports OptimismOASIS through OptimismPublicAccountMetadataSource, metadata key OptimismAccountAddress, chain0xa and root RPC path. Run `--optimism-public LocalState/COSMIC/HostedOptimismPublicSourceCurrent/source.json` with the existing console. Published C#/CLI/native3/2 and local HTTP3/2+Mongo5/4/isolation pass. HTTP source configuration key: CQL_OPTIMISM_PUBLIC_SOURCE_JSON. Hosted/browser acceptance remains pending; this profile is separate from the prepared ten-source batch. Preserve sourceOwner; exact wei strings and RPC-reported finalized hashes do not prove settlement independently.
