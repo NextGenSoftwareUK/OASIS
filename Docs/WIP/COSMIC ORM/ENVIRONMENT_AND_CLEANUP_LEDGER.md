@@ -1682,3 +1682,8 @@ Reused Python/cache;2pure scope controls pass, no application command run. TestR
 Optimism new stable public source catalogue LocalState/COSMIC/HostedOptimismPublicSourceCurrent/source.json created once,281B,retain mappingowner; public immutable config, no secrets. Existing console/testhost projectreferences reused, no package addition. Native and controlled scope tests planned under existing lease/cache-only restore; outputs TestResults/EvmBreadthReadinessCurrent.
 
 Optimism outcome:19tests pass/0skips (18controlled+1nativepublishedsample), consolebuild/CLI3/2 pass. Cache-only restores succeeded, no download or new environment/service. Source catalogue retained; testlogs/TRX/rawprotocol in EvmBreadthReadinessCurrent regenerable; incremental buildoutput size unmeasured. Ten-source protected release unchanged.
+
+### Optimism HTTP/Mongo integration
+31October2026:existing Core/API/build caches/.NET/Mongo8.3.11 retained environment reused. Planned exclusive DB cosmic_cql_optimism_http_demo, original intent/ACKs LocalState/COSMIC/OptimismMongoHttpCurrent; raw TestResults/OptimismPublicSourceCandidateCurrent. Success-only exact-marker cleanup; failurepreserved. Runner owns27029service lifetime, noNeo/newruntime/download. Incremental outputs unmeasured.
+
+Optimism HTTP outcome:1Core/2API/3configuration/1nativeHTTPpass0skips; SDK2privatecopies,9queryreceipts. ExactfixtureDBdropped and absenceverified; Mongo/Kestrelstopped. Original LocalState/COSMIC/OptimismMongoHttpCurrent cohort retained,845B. No downloads/newenvironment; reusable Mongo store/buildcache retained.
