@@ -28,6 +28,7 @@ public sealed partial class ReplicaBaselineRepairCommandTests
     {
         public IOASISStorageProvider Native=null!;
         public string IntentPath=null!;
+        public bool LoseApplicationAck = true;
         public int NativeWrites;
         public int Attempts;
         public int LegacyAttempts;
@@ -57,6 +58,7 @@ public sealed partial class ReplicaBaselineRepairCommandTests
             }
             var committed=await ((IAtomicHolonReplicationStorageProvider)Native).ExecuteReplicatingHolonWriteAsync(request,enrollment,token);
             Assert.False(committed.IsError,committed.Message+committed.Exception);Assert.Single(committed.Result);NativeWrites++;
+            if (!LoseApplicationAck) return committed;
             // The native transaction really completed; only the application ACK is lost.
             return new(){IsError=true,IsSaved=false,ErrorCode="COSMIC_WRITE_RECONCILIATION_REQUIRED",
                 Message="Controlled acknowledgement loss after native commit",Exception=new LostAck()};
@@ -77,17 +79,17 @@ public sealed partial class ReplicaBaselineRepairCommandTests
             r.GetProperty("relationships").EnumerateObject().ToDictionary(pair=>Guid.Parse(pair.Name),pair=>HolonChildRoleManifestJson.Deserialize(pair.Value.GetString()!)));
     }
 
-    private async Task LostCommittedAck(ProviderType authority)
+    private async Task LostCommittedAck(ProviderType authority, bool transport = false)
     {
         const string mongoUri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         const string neoUri="bolt://127.0.0.1:17687";
         var root=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../.."));
-        var state=Path.Combine(root,"LocalState/COSMIC/LostCommittedAck",authority.ToString());Directory.CreateDirectory(state);
+        var state=Path.Combine(root,(transport ? "LocalState/COSMIC/LostTransportAck" : "LocalState/COSMIC/LostCommittedAck"),authority.ToString());Directory.CreateDirectory(state);
         using var lease=new FileStream(Path.Combine(state,"fixture.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
         var manifest=Path.Combine(state,"fixture.json");var sqliteFile=Path.Combine(state,"owned.db");var originalPath=Path.Combine(state,"original-request.json");
         foreach(var file in new[]{sqliteFile,sqliteFile+"-wal",sqliteFile+"-shm",originalPath})Assert.False(IoFile.Exists(file),"Preserve existing outcome; never replace an intent.");
         if(IoFile.Exists(manifest)){using var previous=JsonDocument.Parse(await IoFile.ReadAllTextAsync(manifest));Assert.True(previous.RootElement.GetProperty("cleaned").GetBoolean());}
-        var database="cosmic_lost_ack_"+authority;var client=new MongoClient(mongoUri);
+        var database=(transport ? "cosmic_lost_transport_ack_" : "cosmic_lost_ack_")+authority;var client=new MongoClient(mongoUri);
         using(var names=await client.ListDatabaseNamesAsync())Assert.DoesNotContain(database,await names.ToListAsync());
         var owner=Guid.NewGuid();var actor=Guid.NewGuid();var id=Guid.NewGuid();var operation=Guid.NewGuid();var completed=false;
         void Record(bool cleaned)
@@ -108,7 +110,7 @@ public sealed partial class ReplicaBaselineRepairCommandTests
             foreach(var provider in providers.Values)Assert.False((await provider.ActivateProviderAsync()).IsError);
             foreach(var provider in providers.Values)Assert.Null((await provider.LoadHolonAsync(id,loadChildren:false)).Result);
             var wrapper=DispatchProxy.Create<IOASISStorageProvider,NativeAckLossProxy>();var fault=(NativeAckLossProxy)(object)wrapper;
-            fault.Native=native;fault.IntentPath=originalPath;
+            fault.Native=native;fault.IntentPath=originalPath;fault.LoseApplicationAck=!transport;
             var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {HyperDriveMode=HyperDriveModes.V2,StorageProviders=new(){LogSwitchingProviders=false}}};
             dna.OASIS.SubscriptionConfig.PlanType="Gold";
             ProviderManager Registry(bool wrapped)
@@ -120,8 +122,14 @@ public sealed partial class ReplicaBaselineRepairCommandTests
             }
             var caller=new Holon{Id=id,Name="owned committed ACK loss"};
             var manager=new HolonManager(null,dna,Registry(true));
-            var failed=await manager.SaveOwnedHolonAsync(caller,actor,new CosmicWriteOptions(operation),saveChildren:false,providerType:authority);
-            Assert.True(failed.IsError);Assert.False(failed.IsSaved);Assert.Equal(1,fault.NativeWrites);Assert.Equal(1,fault.Attempts);Assert.Equal(0,fault.LegacyAttempts);
+            if (transport)
+                await LoseCommittedHttpAcknowledgement(manager, caller, actor, operation, authority);
+            else
+            {
+                var failed=await manager.SaveOwnedHolonAsync(caller,actor,new CosmicWriteOptions(operation),saveChildren:false,providerType:authority);
+                Assert.True(failed.IsError);Assert.False(failed.IsSaved);
+            }
+            Assert.Equal(1,fault.NativeWrites);Assert.Equal(1,fault.Attempts);Assert.Equal(0,fault.LegacyAttempts);
             Assert.Equal(0,caller.Version);Assert.Equal(Guid.Empty,caller.VersionId);Assert.True(HolonChangeTracking.HasChanges(caller));
             foreach(var pair in targets)Assert.Null((await pair.Value.LoadHolonAsync(id,loadChildren:false)).Result);
             var stored=(await native.LoadHolonAsync(id,loadChildren:false)).Result;Assert.Equal(1,stored.Version);Assert.Equal(actor,stored.CreatedByAvatarId);
