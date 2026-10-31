@@ -79,3 +79,8 @@ NativeREST IDfilter/restart/MongoSDK/HTTP/browser verified,45cases; no new busin
 ### Couchbase current integration (30 October 2026)
 
 36cases/native3recordrestart/MongoSDK/HTTP/browser/postpair passed; originalJSON/CAS/cluster/bucketidentity preserved. Generalname/description/metadata/fullSQL++translation, SDKwirebytebounding, child/graph/history, observedtokenconditionalCAS/unknownwriterecovery, migrations/centralregistration/hostedCapella/TLS/mobilesync and HyperDrive/replication/failover/loadbalancing/distributedsnapshots remainred. ReceiptCASexactunsignedstring provesackprecision, not concurrency. Existinglegacylookup/avatarserializer/errorpaths needseparatenativeaudit; newCQLdoesnotfallbacktothem. See COUCHBASE_CQL_MVP.md.
+
+
+### ClickHouse current integration (30 October 2026)
+
+33cases/native3recordrestart/MongoSDK/HTTP/browser/postpair passed; originalJSON/UInt64versions/nativeidentities preserved. Milliseconddefaultversionscantiesoconcurrentordering/CAS/history/transactions remainred; FINAL is onlynativeversionresolution, notatomicconditionalwrite. Generalname/description/metadataqueries/children/graphs/migrations/unknownwrite recovery/centralregistration/hostedconfig/SDKwirebounds and HyperDrive/replication/failover/loadbalancing/distributedsnapshots needseparateacceptance. PlaintextcanonicalJSON/authenticatedHTTPSprivateCA, noTLSbypass. See CLICKHOUSE_CQL_MVP.md.
