@@ -17,8 +17,33 @@ polygon_fixture=load("polygon_fixture", "test_polygon_public_configuration.py")
 
 arbitrum_fixture=load("arbitrum_fixture", "test_arbitrum_public_configuration.py")
 cosmos_fixture=load("cosmos_fixture", "test_cosmos_public_configuration.py")
+polkadot_fixture=load("polkadot_fixture", "test_polkadot_public_configuration.py")
 
 class CombinedConfigurationTests(unittest.TestCase):
+    def test_six_sources_preserve_twenty_four_presets_and_require_polkadot_grant(self):
+        before,google,ethereum=self.fixture()
+        _,polygon=polygon_fixture.PolygonConfigurationTests().fixture()
+        _,arbitrum=arbitrum_fixture.ArbitrumConfigurationTests().fixture()
+        _,cosmos=cosmos_fixture.CosmosConfigurationTests().fixture()
+        _,polkadot=polkadot_fixture.PolkadotConfigurationTests().fixture()
+        original=copy.deepcopy(before)
+        after=publisher.candidate(before,google,ethereum,polygon,arbitrum,cosmos,polkadot)
+        self.assertEqual(before,original)
+        self.assertEqual(len([key for key in after if before.get(key)!=after[key]]),8)
+        self.assertEqual(after["OASIS_DNA_JSON"],before["OASIS_DNA_JSON"])
+        self.assertEqual(sum(len(rows) for rows in json.loads(after["CQL_HOSTED_QUERY_EXAMPLES_JSON"]).values()),24)
+        expected=["IPFSOASIS","GoogleCloudOASIS","EthereumOASIS","PolygonOASIS","ArbitrumOASIS","CosmosBlockChainOASIS","PolkadotOASIS"]
+        admission=json.loads(after["PREPARED_STORAGE_ADMISSION_JSON"])
+        self.assertEqual(admission["queryOnlyProviders"],expected)
+        self.assertEqual([row["provider"] for row in admission["queryTariffs"]],expected)
+        with self.assertRaises(ValueError):publisher.candidate(before,google,ethereum,polygon,arbitrum,None,polkadot)
+        dna=json.loads(before["OASIS_DNA_JSON"])
+        policy={"QuantumEncryptionEnabled":True,"AdditionalQueryableKeys":["GCSObjectKey","EthereumAccountAddress","PolygonAccountAddress","ArbitrumAccountAddress","CosmosValidatorAddress"]}
+        dna["OASIS"]["Security"]={"HolonDataEncryption":policy};before["OASIS_DNA_JSON"]=json.dumps(dna)
+        with self.assertRaises(ValueError):publisher.candidate(before,google,ethereum,polygon,arbitrum,cosmos,polkadot)
+        policy["AdditionalQueryableKeys"].append("PolkadotBlockHash");before["OASIS_DNA_JSON"]=json.dumps(dna)
+        self.assertEqual(publisher.candidate(before,google,ethereum,polygon,arbitrum,cosmos,polkadot)["OASIS_DNA_JSON"],before["OASIS_DNA_JSON"])
+
     def test_five_sources_preserve_twenty_presets_and_require_cosmos_query_grant(self):
         before,google,ethereum=self.fixture()
         _,polygon=polygon_fixture.PolygonConfigurationTests().fixture()

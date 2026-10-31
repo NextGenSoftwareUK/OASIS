@@ -33,3 +33,9 @@ If metadata encryption is enabled, the specific query key must be explicitly all
 [Scope and evidence](../WIP/COSMIC%20ORM/POLKADOT_PUBLIC_SOURCE_READINESS.md). Primary contracts: [RPC](https://polkadot.js.org/docs/asset-hub-polkadot/rpc/), [header SCALE layout](https://github.com/paritytech/polkadot-sdk/blob/master/substrate/primitives/runtime/src/generic/header.rs), [genesis identity](https://standards.chainagnostic.org/CAIPs/caip-13).
 
 Local HTTP pairing uses two normal SDK create-only private Mongo snapshots, server-derived IDs and provenance links. The owner sees5/4physical copies; another actor sees public headers and zero private snapshots. Hosted preparation/reuse and replication remain separate pending gates.
+
+## Staged configuration and presets
+
+`Publish-HostedPolkadotPublicConfiguration.py` validates only the verified rpc.polkadot.io catalogue and adds the source variable, independent free query permission/tariff and four presets. It rejects credentials, wrong genesis/keys/endpoint, paid reads, existing role overlap and missing encryption grants; canonical DNA is unchanged.
+
+The pending combined rollout uses the already prepared `Publish-HostedGoogleEthereumConfiguration.py with-polkadot` candidate, composing all six strict source validators into8values/24new presets. Do not prepare blindly over existing files or apply separate candidates from one old host snapshot. Explicit `apply-with-polkadot` is for the reviewed matching application/Core79d7859 rollout; no apply/deployment occurred. Never apply it to frozen6bb. Hosted discovery must pass permission, price, activation and capability checks before advertising live examples.
