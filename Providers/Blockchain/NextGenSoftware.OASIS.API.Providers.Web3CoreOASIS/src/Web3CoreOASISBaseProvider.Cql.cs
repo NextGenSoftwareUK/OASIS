@@ -17,7 +17,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 public partial class Web3CoreOASISBaseProvider : ICosmicQueryStorageProvider
 {
     public ProviderType QueryProviderType => ProviderType?.Value ?? Core.Enums.ProviderType.None;
-    public CosmicQueryCapabilities QueryCapabilities => Web3CoreCqlCompiler.Capabilities;
+    public CosmicQueryCapabilities QueryCapabilities => Web3CoreCqlCompiler.CapabilitiesFor(QueryProviderType);
 
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100,
