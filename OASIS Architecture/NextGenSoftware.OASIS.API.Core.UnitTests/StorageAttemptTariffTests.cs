@@ -148,7 +148,7 @@ public sealed class StorageAttemptTariffTests
         Assert.Equal(provider.ToString(), receipt.Provider);
         Assert.Equal("storage-v1", receipt.PricingCatalogueVersion);
         Assert.Equal("COSMIC-storage-service-attempt-tariff", receipt.CostSource);
-        Assert.Equal("storage-tariff.route.1.non-native", receipt.ClientRequestId);
+        Assert.Equal(PreparedStorageReceiptIds.NonNative("storage-tariff", "storage-tariff"), receipt.ClientRequestId);
         Assert.Equal(receipt.ClientRequestId, receipt.ProviderRequestId);
         Assert.Null(receipt.NativeFeeValuations);
         Assert.Null(receipt.NativeResourceUsage);
