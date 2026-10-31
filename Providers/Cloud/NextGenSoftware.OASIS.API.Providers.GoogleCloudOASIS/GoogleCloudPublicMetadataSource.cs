@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -50,6 +52,28 @@ public sealed class GoogleCloudPublicMetadataSource : KeyValueStorageProviderBas
     public ProviderType QueryProviderType => Core.Enums.ProviderType.GoogleCloudOASIS;
     public CosmicQueryCapabilities QueryCapabilities { get; } =
         CosmicQueryCapabilities.ForStringMetadataKeyLookup(ObjectKeyMetadata, 128, 8);
+
+    /// <summary>Explicit anonymous metadata catalogue; credential, billing-project
+    /// and arbitrary endpoint settings are never accepted by this profile.</summary>
+    public static GoogleCloudPublicMetadataSource FromJson(string json)
+    {
+        if(json==null || Encoding.UTF8.GetByteCount(json)>8192)
+            throw new ArgumentException("A bounded explicit Google public source is required.");
+        using var document=JsonDocument.Parse(json,new JsonDocumentOptions{MaxDepth=4});
+        var root=document.RootElement;
+        var expected=new[]{"schema","bucket","keys","owner"};
+        if(root.ValueKind!=JsonValueKind.Object)
+            throw new ArgumentException("A Google public source object is required.");
+        var fields=root.EnumerateObject().ToArray();
+        if(fields.Length!=expected.Length || fields.Select(field=>field.Name).Distinct(StringComparer.Ordinal).Count()!=fields.Length
+            || fields.Any(field=>!expected.Contains(field.Name,StringComparer.Ordinal))
+            || root.GetProperty("schema").ValueKind!=JsonValueKind.Number || !root.GetProperty("schema").TryGetInt32(out var schema) || schema!=1
+            || root.GetProperty("bucket").ValueKind!=JsonValueKind.String || root.GetProperty("keys").ValueKind!=JsonValueKind.Array
+            || root.GetProperty("keys").GetArrayLength() is <1 or >8 || root.GetProperty("keys").EnumerateArray().Any(key=>key.ValueKind!=JsonValueKind.String)
+            || root.GetProperty("owner").ValueKind!=JsonValueKind.String || !Guid.TryParseExact(root.GetProperty("owner").GetString(),"D",out var owner))
+            throw new ArgumentException("Exact public catalogue schema required; no credentials, billing project or endpoint overrides.");
+        return new(root.GetProperty("bucket").GetString(),root.GetProperty("keys").EnumerateArray().Select(key=>key.GetString()).ToArray(),owner);
+    }
 
     public override Task<OASISResult<bool>> ActivateProviderAsync() => ActivateQuerySourceAsync(default);
 
