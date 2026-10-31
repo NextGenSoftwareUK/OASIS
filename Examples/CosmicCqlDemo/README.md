@@ -13,6 +13,23 @@ The exact [C# sample](NativeKeySetWalkthrough.cs) is native-tested against three
 mainnet accounts and a two-account subset, without wallets or writes. Hosted
 deployment/browser acceptance is tracked separately in CURRENT_STATUS.
 
+## Public Arbitrum balances — runnable C# demo
+
+[The Arbitrum guide](../../Docs/Devs/ARBITRUM_PUBLIC_METADATA_CQL_GUIDE.md) covers
+the official finalized-state RPC, native3/2and local HTTP/Mongo5/4pairing. After
+a leased bounded build, run from the existing checkout:
+
+```powershell
+dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
+    --no-build --no-restore -- `
+    --arbitrum-public LocalState/COSMIC/HostedArbitrumPublicSourceCurrent/source.json
+```
+
+[ArbitrumPublicWalkthrough.cs](ArbitrumPublicWalkthrough.cs) reads through the
+shared HolonManager/LINQ sample and prints exact native balances/block hashes.
+No wallet, funding, transaction or Mongo fixture. Hosted/browser enrollment remains
+pending; RPC-reported finality is not independent rollup-settlement verification.
+
 ## Public Polygon balances — runnable C# demo
 
 [The Polygon guide](../../Docs/Devs/POLYGON_PUBLIC_METADATA_CQL_GUIDE.md) covers
