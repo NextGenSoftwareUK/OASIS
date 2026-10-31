@@ -2,7 +2,7 @@
 
 The single list of everything that needs you: your accounts, phones, admin rights, approvals or a decision. Everything else is done or in progress. Tick items off and tell Claude when one is done; it picks up the next step. Never paste passwords, API keys, tokens or connection strings into chat.
 
-Last updated 28 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (merged into Part B below) and the PIPER work log's action list (Part A).
+Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (merged into Part B below) and the PIPER work log's action list (Part A).
 
 ## Open actions at a glance
 
@@ -14,9 +14,9 @@ Last updated 28 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 4 | Release gate: Railway tokens, staging Mongo user, staging connection strings | B |
 | 5 | OurWorld Unity Cloud access | B |
 | 6 | Provider acceptance access: ActivityPub, EVM decision, AWS S3, Solana devnet funding, Oracle Cloud, CoinGecko key | C |
-| 9 | Holon permissions: publish web4-api 2.0.17, then click Reapply access once Railway has deployed | A5 |
-| 8 | Railway pin sync (one-time): enable the pre-push hook in each OASIS clone | A4 |
-| 7 | Older items: HoloNET NuGet secrets, phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
+| 8 | **Add two DNS records so the new HoloNET docs and learn sites go live** (NameSilo) | E1 |
+| 9 | Rotate the Arbitrum testnet key and the block-explorer API key that were committed to git (removed from files, still in history) | E2 |
+| 7 | Older items: phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
 
 ---
 
@@ -28,7 +28,7 @@ Last updated 28 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 
 | Package | Version | Change |
 |---|---|---|
-| `@oasisomniverse/web4-api` | 2.0.15 | `X-COSMIC-Operation-Id` on every write + `Idempotency-Key` on every request (same id on writes) |
+| `@oasisomniverse/web4-api` | 2.0.16 | 2.0.15: `X-COSMIC-Operation-Id` on every write + `Idempotency-Key` on every request (same id on writes). 2.0.16 (28 Oct): keeps `metaData`/`providerMetaData` keys as sent, so a loaded holon saves back with its revision (PIPER edits) |
 | `@oasisomniverse/web5-api` | 1.0.6 | `Idempotency-Key` on every request (committed 21 Oct, never published) |
 | `@oasisomniverse/web6-api` | 2.1.2 | same as web5 |
 | `@oasisomniverse/web7-api` … `web10-api` | 1.0.5 each | same as web5 |
@@ -59,31 +59,6 @@ Full context: `C:/Source/PIPERDOCS/milestone4-session-plan-engine/piper-m4-work-
 - [ ] Check the screens: new student, goal form, SA plan panel, session reports, hand-scored session panel, Start session.
 - [ ] Then tell Hailey it's ready for Gate 2.
 - [ ] Optional: copy Hailey's Drive recordings into piper-ui `public/voice/lines/` as .ogg and list them in `voiceLinesIndex.json`.
-
----
-
-### A4. Railway pin sync (one-time, added 28 October 2026)
-
-**Why:** Railway builds the private submodules at the commits in `Docker/oasis-dependency-versions.env`, not at the parent's gitlinks. A Core fix pushed without moving that pin never deployed (it cost a day). `sync-railway-pins.yml` now corrects the pins after each push to `Development`/`master`, and `.githooks/pre-push` stops a mismatched push before it deploys.
-
-- [ ] **Enable the hook** in each OASIS clone you push from (once per clone): `git config core.hooksPath .githooks`
-- No new secret is needed: the workflow pushes with the existing `PRIVATE_SUBMODULE_PAT`.
-
-Details: `Docs/Devs/RAILWAY_DEPENDENCY_PINS.md`.
-
----
-
-### A5. Holon permissions rollout (29 October 2026)
-
-**Why:** PIPER staff (SLP, Head of School) could not read the records the System Administrator created, which broke
-their sign-in. OASIS now has per-holon read, write, delete, add-children and manage permissions, and PIPER uses them.
-See `Docs/Devs/HOLON_PERMISSIONS.md`.
-
-- [ ] **Wait for Railway** to deploy the OASIS API from Development (root commit `6b32f6116` or later, Core `bceaee8`). Until then PIPER saves show "who can see it could not be set".
-- [ ] **Publish `@oasisomniverse/web4-api` 2.0.17** (`npm login` then `npm run publish-all`). It adds `share.setPermissions` and `share.getPermissions`. piper-server does not need it yet (it calls the endpoint directly), but other apps will.
-- [ ] **Sign in as the SA, open Staff Management and press Reapply access** once. It sets permissions on every existing district, school, staff and student record. A toast says how many were updated.
-- [ ] Sign in as an SLP (e.g. david@piperspeech.com) and check the dashboard loads their students with no "not linked" error.
-- [ ] Note: CQL queries now include what owners shared (and inherited reads on Mongo, SQLite and Neo4j) by default once this deploys. To turn it off, set `OASIS.Cql.SharedReads` to `false` in the DNA (`InheritedReads` turns off just the inherited part).
 
 ---
 
@@ -267,6 +242,12 @@ The optional `-RecordLifecycle -StorageEncryptionKeyEnvironmentVariable <variabl
 
 ---
 
+### Pending Cloudflare Workers KV native acceptance — added28October2026
+
+The real REST/shared encrypted adapter passes52controlled core checks plus25protocol/metadata controls. Hosted acceptance still needs a dedicated owned namespace and scoped KV read/write token. No Cloudflare account/namespace or installation was created; process configuration and three standard Wrangler profile locations were empty.
+
+Configure account/namespace/token and the separately persisted32-byte storage key outside chat using the `OASIS_CLOUDFLARE_CONFORMANCE_*` variables listed in [the scoped baseline](../HyperDrive-Providers/CLOUDFLARE_KV_STORAGE_BASELINE.md). The opt-in native suite preserves actual failures. Workers KV's native eventual consistency, same-key write limit and lack of CAS/transactions remain contract gates even with credentials; do not assume a controlled pass certifies immediate visibility or current credential authority. A stronger authority/Durable Objects design is separate from this KV adapter.
+
 ## Part D — Older owner actions (14–15 October 2026)
 
 Things only you can do: they need your phone, your accounts, admin rights or a decision.
@@ -277,6 +258,10 @@ Tick them off as you go; tell Claude when one is done and it will pick up the ne
 ---
 
 ### 1. Publish HoloNET 4.1.0 to NuGet
+
+> **Superseded, nothing to do (31 October 2026).** HoloNET is now published from the OASIS repo's own secrets through
+> `publish-holonet.yml` (NuGet 4.2.0 to 4.5.1 are live, each with a GitHub release and its packages attached), so the
+> two secrets on the `holochain-client-csharp` fork below are not needed. Kept for the record.
 
 **Why:** 4.1.0 (Holochain 0.7 support) is ready but can't publish until the fork has two secrets.
 Claude can't handle API keys or tokens, so you add them.
@@ -393,3 +378,35 @@ interchangeable ("callback has invalid parameters").
 - Windows Firewall: tests run `holochain.exe` only from `%APPDATA%\NextGenSoftware\HoloNET\0.7.0\` and `\0.7.1\`.
   Allow each once and it won't ask again.
 - Still no Unity test project; the TestHarness is a manual demo app.
+
+---
+
+## Part E — HoloNET sites and keys (31 October 2026)
+
+### E1. Add two DNS records for the new HoloNET sites
+
+**Context:** HoloNET, docs.holonet.oasisomniverse.one and learn.holonet.oasisomniverse.one.
+**Why:** both sites are built, deployed on Vercel and their domains are verified, but `oasisomniverse.one` DNS is hosted
+at NameSilo (nameservers `ns1-3.dnsowl.com`), not Vercel, so the names don't resolve until you add the records. HTTPS
+certificates are issued automatically once they do.
+**Action:** at NameSilo, in the DNS records for `oasisomniverse.one`, add:
+
+| Type | Host | Value |
+|---|---|---|
+| CNAME | `docs.holonet` | `805b005e3c43a61c.vercel-dns-016.com` |
+| CNAME | `learn.holonet` | `d7fd0ebb133fee9e.vercel-dns-016.com` |
+
+(The same way `holonet.oasisomniverse.one` is set up.) Then tell Claude; it checks both sites load.
+**Status:** open, 31 October 2026. **Details:** Vercel projects `holonet-docs-site` and `holonet-learn-site`; repos
+NextGenSoftwareUK/HoloNETDocsWebsite and NextGenSoftwareUK/HoloNETLearnWebsite; generated by
+`holochain-client-csharp/scripts/build-sites.py`.
+
+### E2. Rotate the Arbitrum testnet key and the block-explorer API key
+
+**Context:** OASIS repo, `Providers/Blockchain/*`.
+**Why:** a testnet chain private key (Arbitrum Sepolia, also reused in the Polygon, Rootstock and Web3Core configs) and a
+block-explorer API key were committed. I removed them from every file on 16 October 2026 (the Arbitrum test harness now reads
+`OASIS_TEST_CHAIN_PRIVATE_KEY`), but both are still in git history, so treat them as exposed.
+**Action:** stop using that key (it's a testnet key, so move any test funds out first), generate a new one for local use, and
+revoke/regenerate the block-explorer API key at the provider. Optionally purge history. Never paste the new values into chat.
+**Status:** open, 31 October 2026.
