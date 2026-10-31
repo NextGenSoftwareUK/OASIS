@@ -806,3 +806,7 @@ retained-fixture preflight; it does not reset data. See
 ### Polkadot public header demo
 
 `--polkadot-public <existing-source.json>` reads three configured headers, then filters to two using HolonManager/LINQ. [PolkadotPublicWalkthrough.cs](PolkadotPublicWalkthrough.cs) explains the steps with spacing and comments. The native published walkthrough and actual CLI passed; no transactions or Mongo records are written by this console command. Header content hashes are verified locally, while canonical/finality claims remain RPC-reported. [Source guide and HTTP scope](../../Docs/Devs/POLKADOT_PUBLIC_METADATA_CQL_GUIDE.md); hosted/browser acceptance remains pending.
+
+### NEAR public account demo
+
+`--near-public <existing-source.json>` queries three configured public accounts, then a two-account subset through HolonManager/LINQ. [NearPublicWalkthrough.cs](NearPublicWalkthrough.cs) explains the steps with spacing and comments. Balances stay exact strings in yoctoNEAR and every account selection uses one reported final block. No transactions or Mongo records are written. The command has a deadline of 60 seconds based on the earlier native run of 34 seconds. [Source guide and remaining HTTP/hosted work](../../Docs/Devs/NEAR_PUBLIC_METADATA_CQL_GUIDE.md).

@@ -33,4 +33,8 @@
     <None Include="Fixtures\prepared-action.mjs" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="../../../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs" Link="PublishedDemo/NativeKeySetWalkthrough.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/NearPublicWalkthrough.cs" Link="PublishedDemo/NearPublicWalkthrough.cs" />
+  </ItemGroup>
 </Project>
