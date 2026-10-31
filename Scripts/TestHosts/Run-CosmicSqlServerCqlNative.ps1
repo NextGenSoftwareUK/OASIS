@@ -1,0 +1,116 @@
+param([switch]$Federated,[switch]$Serve,[switch]$Content)
+if($Serve -and !$Federated){throw "Serve requires explicit federation."}
+$ErrorActionPreference='Stop'
+$root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+$state=Join-Path $root 'LocalState/COSMIC/SqlServerCql'
+$results=Join-Path $root 'TestResults/SqlServerCqlCurrent'
+[void][IO.Directory]::CreateDirectory($state)
+[void][IO.Directory]::CreateDirectory($results)
+$tool='C:/Program Files/Microsoft SQL Server/170/Tools/Binn/SqlLocalDB.exe'
+$instance='CosmicCql'
+$instanceDirectory=Join-Path $env:LOCALAPPDATA 'Microsoft/Microsoft SQL Server Local DB/Instances/CosmicCql'
+& (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner 'COSMIC SQL Server native CQL' -Operation {
+    $lease=[IO.File]::Open((Join-Path $state 'runner.lock'),'OpenOrCreate','ReadWrite','None')
+    $oldContent=$env:OASIS_SQLSERVER_CQL_CONTENT
+    $priorConnection=$env:OASIS_SQLSERVER_CQL_CONNECTION;$priorState=$env:OASIS_SQLSERVER_CQL_STATE
+    $oldMongo=$env:OASIS_MONGO_REPLICA_SET_CONNECTION;$oldServe=$env:OASIS_SQLSERVER_MONGO_SERVE
+    $mongo=$null
+    $started=$false;$passed=$false
+    try {
+        if($Content -and (Test-Path (Join-Path $state 'mongo-content.pending.json'))){throw 'Content Mongo fixture unresolved.'}
+        if($Content -and (Test-Path (Join-Path $state 'content-long-seed.pending.json'))){throw 'Content extension unresolved; preserve without replay.'}
+        if($Content -and (Test-Path (Join-Path $state 'content-seed.pending.json'))){throw 'Content setup unresolved; preserve without replay.'}
+        if(Test-Path (Join-Path $state 'demo-seed.pending.json')){throw 'Source setup unresolved; do not replay.'}
+        if(Test-Path (Join-Path $state 'mongo.pending.json')){throw 'Original Mongo fixture unresolved.'}
+        if($Federated -and !(Test-Path (Join-Path $state 'demo-seed.json'))){throw 'Original source must be admitted first.'}
+        $admission=Join-Path $state 'instance.json';$pending=Join-Path $state 'instance.pending.json'
+        if(Test-Path $pending){throw 'Instance creation unresolved; inspect original outcome.'}
+        $versions=(& $tool versions)-join ' '
+        if($LASTEXITCODE -or $versions -notmatch '17\.0\.4025\.3'){throw 'Existing pinned SQL Server2025 runtime required.'}
+        if(!(Test-Path $admission)){
+            if(Test-Path $instanceDirectory){throw 'Unowned instance exists; no adoption.'}
+            [IO.File]::WriteAllText($pending,(@{instance=$instance;version='17.0.4025.3';directory=$instanceDirectory}|ConvertTo-Json))
+            & $tool create $instance 17.0 *> (Join-Path $results 'instance-create.log')
+            if($LASTEXITCODE){throw 'Instance creation failed; retain intent.'}
+            Move-Item -LiteralPath $pending -Destination $admission
+        }
+        $record=Get-Content $admission -Raw|ConvertFrom-Json
+        if($record.instance -ne $instance -or $record.version -ne '17.0.4025.3' -or $record.directory -ne $instanceDirectory -or !(Test-Path $instanceDirectory)){throw 'Original instance admission differs.'}
+        $info=(& $tool info $instance)-join "`n"
+        if($LASTEXITCODE -or $info -notmatch 'State:\s+Stopped'){throw 'Expected stopped owned instance; no process adoption.'}
+        # Preserve prior successful evidence; never overwrite an unresolved failure.
+        foreach($name in $(if($Content){@('sqlserver-content-native.trx','sqlserver-content-mongo-federation.trx')}else{@('sqlserver-cql-native.trx','sqlserver-mongo-federation.trx')})) {
+            $reportPath=Join-Path $results $name
+            if(Test-Path $reportPath){
+                [xml]$priorReport=Get-Content $reportPath
+                if($priorReport.TestRun.ResultSummary.Counters.passed -ne '1' -or $priorReport.TestRun.ResultSummary.Counters.total -ne '1'){throw 'Preserve unresolved prior report before running again.'}
+                $archive=Join-Path $results 'Archive'
+                New-Item -ItemType Directory -Force $archive | Out-Null
+                $target=Join-Path $archive ((Get-FileHash $reportPath).Hash+'-'+$name)
+                if(Test-Path $target){throw 'Prior report already archived; reconcile explicitly.'}
+                Move-Item -LiteralPath $reportPath -Destination $target
+            }
+        }
+        $project=Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests'
+        if($Content){
+            if(!(Test-Path (Join-Path $project 'obj/project.assets.json'))){throw 'Existing integration assets required; inspect caches before restoring.'}
+        } else {
+        & dotnet restore $project --source C:/Users/david/.nuget/packages /p:NuGetAudit=false /p:RestoreRecursive=false /m:2 /nr:false *> (Join-Path $results 'native-restore.log')
+        if($LASTEXITCODE){throw 'Cached restore failed.'}
+        }
+        if($Federated){
+            & dotnet build (Join-Path $root 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS') --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false *> (Join-Path $results 'mongo-build.log')
+            if($LASTEXITCODE){throw 'Mongo producer failed.'}
+        }
+        & dotnet build (Join-Path $root 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS') --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false *> (Join-Path $results 'native-provider-build.log')
+        if($LASTEXITCODE){throw 'SQL Server producer build failed.'}
+        & dotnet build $project --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false *> (Join-Path $results 'native-build.log')
+        if($LASTEXITCODE){throw 'Cached native consumer build failed.'}
+        $started=$true
+        & $tool start $instance *> (Join-Path $results 'instance-start.log')
+        if($LASTEXITCODE){throw 'Owned LocalDB start failed.'}
+        $env:OASIS_SQLSERVER_CQL_CONNECTION='Server=(localdb)\CosmicCql;Database=cosmic_cql_demo;Integrated Security=true;Encrypt=false;Pooling=false;Connect Timeout=10'
+        $env:OASIS_SQLSERVER_CQL_STATE=$state
+        $env:OASIS_SQLSERVER_CQL_CONTENT=if($Content){'1'}else{'0'}
+        $nativeFilter=if($Content){'FullyQualifiedName~SqlServerCqlContentNativeTests'}else{'FullyQualifiedName~SqlServerCqlNativeTests'}
+        $nativeReport=if($Content){'sqlserver-content-native.trx'}else{'sqlserver-cql-native.trx'}
+        $nativeLog=if($Content){'content-native.log'}else{'native.log'}
+        & dotnet test $project --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter $nativeFilter --results-directory $results --logger "trx;LogFileName=$nativeReport" *> (Join-Path $results $nativeLog)
+        if($LASTEXITCODE){throw 'Native acceptance failed; retain original source/journals.'}
+        [xml]$report=Get-Content (Join-Path $results $nativeReport) -Raw
+        if($report.TestRun.ResultSummary.Counters.passed -ne '1' -or $report.TestRun.ResultSummary.Counters.total -ne '1'){throw 'One native pass without skips required.'}
+        if($Federated){
+            if(Get-NetTCPConnection -State Listen -LocalPort 27029,5115 -ErrorAction SilentlyContinue){throw 'Paired ports occupied; no process adoption.'}
+            $runtime='C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe'
+            $data=Join-Path $root 'LocalState/COSMIC/mongo-data'
+            if(!(Test-Path (Join-Path $data 'WiredTiger'))){throw 'Original Mongo store missing.'}
+            if(((& $runtime --version)-join ' ') -notmatch 'v8\.3\.11\b'){throw 'Pinned Mongo version differs.'}
+            $mongo=Start-Process $runtime -ArgumentList @('--dbpath',$data,'--bind_ip','127.0.0.1','--port','27029','--replSet','oasisRecoveryRs','--wiredTigerCacheSizeGB','0.25','--oplogSize','32','--logpath',(Join-Path $results 'mongo-service.log'),'--logappend') -WindowStyle Hidden -PassThru
+            $mongoReady=$false
+            for($i=0;$i -lt 40;$i++){
+                if($mongo.HasExited){throw 'Owned Mongo exited before readiness.'}
+                $listeners=Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue
+                if($listeners){if(@($listeners|Where-Object OwningProcess -ne $mongo.Id).Count){throw 'Mongo listener owner differs.'};$mongoReady=$true;break}
+                Start-Sleep -Milliseconds 500
+            }
+            if(!$mongoReady){throw 'Owned Mongo startup deadline exceeded.'}
+            $env:OASIS_MONGO_REPLICA_SET_CONNECTION='mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000'
+            $env:OASIS_SQLSERVER_MONGO_SERVE=if($Serve){'1'}else{'0'}
+            $pairedReport=if($Content){'sqlserver-content-mongo-federation.trx'}else{'sqlserver-mongo-federation.trx'}
+            $pairedLog=if($Content){'sqlserver-content-mongo-federation.log'}else{'sqlserver-mongo-federation.log'}
+            & dotnet test $project --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter FullyQualifiedName~SqlServerMongoCqlNativeTests --logger "trx;LogFileName=$pairedReport" --results-directory $results -v:q *> (Join-Path $results $pairedLog)
+            if($LASTEXITCODE){throw 'Paired SqlServer CQL failed; preserve ownership journal.'}
+            [xml]$paired=Get-Content (Join-Path $results $pairedReport)
+            if($paired.TestRun.ResultSummary.Counters.total -ne '1' -or $paired.TestRun.ResultSummary.Counters.passed -ne '1'){throw 'Exactly one paired pass required.'}
+            $mongoJournal=if($Content){'mongo-content.pending.json'}else{'mongo.pending.json'}
+            if(Test-Path (Join-Path $state $mongoJournal)){throw 'Mongo fixture cleanup incomplete.'}
+            Get-Content (Join-Path $results $pairedLog) -Tail 4
+        }
+        $passed=$true
+    } finally {
+        $env:OASIS_SQLSERVER_CQL_CONTENT=$oldContent;$env:OASIS_SQLSERVER_CQL_CONNECTION=$priorConnection;$env:OASIS_SQLSERVER_CQL_STATE=$priorState;$env:OASIS_MONGO_REPLICA_SET_CONNECTION=$oldMongo;$env:OASIS_SQLSERVER_MONGO_SERVE=$oldServe
+        if($mongo){if(!$mongo.HasExited){$mongo.Kill();if(!$mongo.WaitForExit(30000)){throw "Owned Mongo teardown incomplete."}};$mongo.Dispose()}
+        try {if($started -and $passed){& $tool stop $instance *> (Join-Path $results 'instance-stop.log');if($LASTEXITCODE){throw 'Owned instance stop failed.'}}}
+        finally {$lease.Dispose()}
+    }
+}
