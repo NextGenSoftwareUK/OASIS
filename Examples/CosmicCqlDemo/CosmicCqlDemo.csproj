@@ -12,5 +12,6 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <ProjectReference Include="../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/NextGenSoftware.OASIS.API.Core.csproj" />
     <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.csproj" />
   </ItemGroup>
 </Project>

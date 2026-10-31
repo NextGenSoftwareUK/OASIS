@@ -13,6 +13,27 @@ The exact [C# sample](NativeKeySetWalkthrough.cs) is native-tested against three
 mainnet accounts and a two-account subset, without wallets or writes. Hosted
 deployment/browser acceptance is tracked separately in CURRENT_STATUS.
 
+## Public Google Cloud metadata — runnable C# demo
+
+Reuse the existing three-key public catalogue; no Google account or database is
+needed. After building this project with the normal provider lease and bounded
+workers, run from the checkout root:
+
+```powershell
+dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
+    --no-build --no-restore -- `
+    --google-public LocalState/COSMIC/HostedGcsPublicSourceCurrent/source.json
+```
+
+[GooglePublicWalkthrough.cs](GooglePublicWalkthrough.cs) runs the shared
+[HolonManager/LINQ membership example](NativeKeySetWalkthrough.cs) against three
+public Google objects and a two-key subset. It reads metadata only and creates
+no Google or Mongo records. The bounded command exits when complete.
+
+The [Google guide](../../Docs/Devs/GOOGLE_PUBLIC_METADATA_CQL_GUIDE.md) includes
+configuration, HTTP and Mongo federation examples. Hosted Google enrollment and
+browser acceptance remain pending; the Firestore emulator launcher is separate.
+
 ## Public AWS S3 metadata and Mongo snapshots
 
 The [public S3 guide](../../Docs/Devs/AWS_S3_PUBLIC_CQL_GUIDE.md) covers the live

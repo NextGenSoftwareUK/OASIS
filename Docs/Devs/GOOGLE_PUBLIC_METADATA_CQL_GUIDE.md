@@ -92,6 +92,21 @@ if (result.IsError)
     throw new InvalidOperationException(result.Message);
 ```
 
+Run the executable console demo from the existing checkout after a leased,
+bounded build of Examples/CosmicCqlDemo:
+
+```powershell
+dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
+    --no-build --no-restore -- `
+    --google-public LocalState/COSMIC/HostedGcsPublicSourceCurrent/source.json
+```
+
+The [spaced, commented console walkthrough](../../Examples/CosmicCqlDemo/GooglePublicWalkthrough.cs)
+uses [NativeKeySetWalkthrough](../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs)
+through HolonManager/LINQ, prints each native key and OASIS identity, then exits.
+It performs no database setup or writes. The catalogue is an existing local file,
+not a credential; use your own explicitly verified public objects on another host.
+
 The [provider tests](../../Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests/GooglePublicMetadataTests.cs)
 include real anonymous SDK three/two-record reads. The
 [HTTP pairing test](../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlGcsMongoNativeTests.cs)
