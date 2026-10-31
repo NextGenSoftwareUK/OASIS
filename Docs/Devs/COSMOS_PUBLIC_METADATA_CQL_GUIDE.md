@@ -29,3 +29,9 @@ The optional `CQL_COSMOS_PUBLIC_SOURCE_JSON` configuration registers a lazy quer
 When metadata encryption is enabled, grant the specific query key through the configured query policy; do not add it to the global reserved unencrypted list. Local HTTP tests use two SDK-owned private Mongo snapshots. Hosted configuration, examples and visitor Mongo preparation remain pending their hosted acceptance gates; this guide does not claim Cosmos is live in the public playground.
 
 [Readiness, failures and proving tests](../WIP/COSMIC%20ORM/COSMOS_PUBLIC_SOURCE_READINESS.md). [Cosmos SDK query contract](https://github.com/cosmos/cosmos-sdk/blob/main/proto/cosmos/staking/v1beta1/query.proto); [endpoint registry](https://github.com/cosmos/chain-registry/blob/master/cosmoshub/chain.json).
+
+## Staged publisher and presets
+
+`Publish-HostedCosmosPublicConfiguration.py` strictly validates the verified KJNodes catalogue and adds only the source variable, explicit query permission/tariff and four examples (native3/2 plus Mongo federation). It rejects credentials, paid reads, overlapping existing enrollment and missing encryption query-key grants. It preserves canonical DNA.
+
+For the pending combined rollout, use the already prepared candidate from `Publish-HostedGoogleEthereumConfiguration.py with-cosmos`; it composes all five strict source validators and preserves all20new presets. Do not rerun preparation blindly or apply independent candidates from the same older snapshot. Explicit `apply-with-cosmos` exists for the reviewed matching application/Core rollout; no apply/deployment has occurred. It must never be applied to the older frozen6bb correctness batch. Public browser discovery will expose examples only after permission, pricing, activation and capability checks succeed.

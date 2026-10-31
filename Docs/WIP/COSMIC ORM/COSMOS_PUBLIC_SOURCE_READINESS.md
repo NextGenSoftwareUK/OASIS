@@ -75,3 +75,19 @@ Next: strict publisher+joint config and four presets, browser source links, matc
 - `TestResults/CosmosPublicSourceCandidateCurrent/api-controls.trx`: 4998 B; SHA256 `1b8007b5261e0cbe29d5711a0ecc6c023eabb256fe957b44c963b3f141974695`.
 
 - `TestResults/CosmosPublicSourceCandidateCurrent/core-controls.trx`: 15968 B; SHA256 `a7203f66f4a5a26a1c1bb9c732637f3197f93007d90df7896d854ee5a0443759`.
+
+## Hosted configuration and client staging
+
+Strict Cosmos publisher3tests pass (including malformed/paid/overlap cases and both encryption policies); combined five-source publisher6tests pass. Cosmos gets native3/2 and Mongo-paired5/4 presets. Existing DNA/unrelated variables are unchanged. Independent candidates from an old snapshot must not overwrite shared permission/examples: use the joint Google/Ethereum/Polygon/Arbitrum/Cosmos candidate.
+
+Protected joint snapshot/candidate prepared, not applied: `LocalState/COSMIC/HostedSourceRolloutCurrent/google-ethereum-public-polygon-arbitrum-cosmos-{before,candidate}-variables.dpapi`,67,094/80,454B,7values/20presets. Requires the matching application/Core169e402; never apply to frozen6bb. No hosted mutation/deployment occurred.
+
+Frontend task branch `work/cosmic-cql`, commit84e27e5: local Cosmos guide/CLI/source links and generic private snapshot preparation coverage;52client tests pass. Repeat preparation0writes/2existing, server-derived private IDs and Mongo-only writes checked. No provider-specific production JS branch added. Public main remains unchanged. Hosted preparation/replica/browser checks remain open.
+
+Next: matching scheduled hosted rollout, source availability, actual private visitor preparation/reuse/isolation and replica acceptance, then browser acceptance. This replaces the earlier next-step note to create the publisher/presets.
+
+- `TestResults/CosmosPublicSourceCandidateCurrent/config-controls.log`: 106 B; SHA256 `383a12fba9b5b327054a24ce7e5739569c4f0b6621facd981f2d6a4271063b3c`.
+
+- `TestResults/CosmosPublicSourceCandidateCurrent/combined-config-controls.log`: 109 B; SHA256 `ba9882e9ac323861c4e47fd88f712e12a56b4bd76a6d541faec02026dfe5f209`.
+
+- `TestResults/CosmosPublicSourceCandidateCurrent/frontend-controls.log`: 5045 B; SHA256 `cfea90ab5ebc87a12ef3dcc707c1479d0b58ee149a3e81091379820ca0fb372d`.

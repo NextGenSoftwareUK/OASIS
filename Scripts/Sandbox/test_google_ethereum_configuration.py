@@ -16,8 +16,33 @@ ethereum_fixture=load("ethereum_fixture", "test_ethereum_public_configuration.py
 polygon_fixture=load("polygon_fixture", "test_polygon_public_configuration.py")
 
 arbitrum_fixture=load("arbitrum_fixture", "test_arbitrum_public_configuration.py")
+cosmos_fixture=load("cosmos_fixture", "test_cosmos_public_configuration.py")
 
 class CombinedConfigurationTests(unittest.TestCase):
+    def test_five_sources_preserve_twenty_presets_and_require_cosmos_query_grant(self):
+        before,google,ethereum=self.fixture()
+        _,polygon=polygon_fixture.PolygonConfigurationTests().fixture()
+        _,arbitrum=arbitrum_fixture.ArbitrumConfigurationTests().fixture()
+        _,cosmos=cosmos_fixture.CosmosConfigurationTests().fixture()
+        original=copy.deepcopy(before)
+        after=publisher.candidate(before,google,ethereum,polygon,arbitrum,cosmos)
+        self.assertEqual(before,original)
+        self.assertEqual(len([key for key in after if before.get(key)!=after[key]]),7)
+        self.assertEqual(after["OASIS_DNA_JSON"],before["OASIS_DNA_JSON"])
+        self.assertEqual(sum(len(rows) for rows in json.loads(after["CQL_HOSTED_QUERY_EXAMPLES_JSON"]).values()),20)
+        expected=["IPFSOASIS","GoogleCloudOASIS","EthereumOASIS","PolygonOASIS","ArbitrumOASIS","CosmosBlockChainOASIS"]
+        admission=json.loads(after["PREPARED_STORAGE_ADMISSION_JSON"])
+        self.assertEqual(admission["queryOnlyProviders"],expected)
+        self.assertEqual([row["provider"] for row in admission["queryTariffs"]],expected)
+        with self.assertRaises(ValueError):publisher.candidate(before,google,ethereum,None,None,cosmos)
+        with self.assertRaises(ValueError):publisher.candidate(before,google,ethereum,polygon,None,cosmos)
+        dna=json.loads(before["OASIS_DNA_JSON"])
+        policy={"QuantumEncryptionEnabled":True,"AdditionalQueryableKeys":["GCSObjectKey","EthereumAccountAddress","PolygonAccountAddress","ArbitrumAccountAddress"]}
+        dna["OASIS"]["Security"]={"HolonDataEncryption":policy};before["OASIS_DNA_JSON"]=json.dumps(dna)
+        with self.assertRaises(ValueError):publisher.candidate(before,google,ethereum,polygon,arbitrum,cosmos)
+        policy["AdditionalQueryableKeys"].append("CosmosValidatorAddress");before["OASIS_DNA_JSON"]=json.dumps(dna)
+        self.assertEqual(publisher.candidate(before,google,ethereum,polygon,arbitrum,cosmos)["OASIS_DNA_JSON"],before["OASIS_DNA_JSON"])
+
     def fixture(self):
         before,google=google_fixture.GoogleConfigurationTests().fixture()
         _,ethereum=ethereum_fixture.EthereumConfigurationTests().fixture()
