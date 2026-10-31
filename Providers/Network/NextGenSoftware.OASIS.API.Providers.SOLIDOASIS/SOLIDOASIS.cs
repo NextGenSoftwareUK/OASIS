@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Threading;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -62,20 +63,28 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
 
         #region IOASISStorageProvider
 
-        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        public override Task<OASISResult<bool>> ActivateProviderAsync()
+            => ActivateQuerySourceAsync(CancellationToken.None);
+
+        /// <summary>Checks the existing scoped Pod root without creating containers,
+        /// modifying access rules, or publishing records.</summary>
+        public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
         {
             var result = new OASISResult<bool>();
             try
             {
                 ObjectDisposedException.ThrowIf(_disposed,this);
+                cancellationToken.ThrowIfCancellationRequested();
                 if (_isActivated)
                 {
                     result.Result = true;
                     result.Message = "SOLID provider already activated";
                     return result;
                 }
-                using var response = await _httpClient.GetAsync($"{_podServerUrl}/");
+                using var response = await _httpClient.GetAsync($"{_podServerUrl}/",
+                    HttpCompletionOption.ResponseHeadersRead, cancellationToken);
                 response.EnsureSuccessStatusCode();
+                cancellationToken.ThrowIfCancellationRequested();
                 if (response.IsSuccessStatusCode)
                 {
                     _isActivated = true;
@@ -86,6 +95,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             }
             catch (Exception ex)
             {
+                _isActivated = false;
+                IsProviderActivated = false;
                 OASISErrorHandling.HandleError(ref result, $"Error activating SOLID provider: {ex.Message}", ex);
             }
             return result;
