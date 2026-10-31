@@ -253,6 +253,8 @@ namespace NextGenSoftware.OASIS.API.DNA
     public class IPFSOASISSettings : ProviderSettingsBase
     {
         public string LookUpIPFSAddress { get; set; }
+        /// <summary>Explicitly enroll bounded CID membership over the configured authenticated catalogue.</summary>
+        public bool EnableCqlCidKeySets { get; set; }
         /// <summary>Comma-separated /ipfs/&lt;cid&gt; or /ipns/&lt;name&gt; directories native data import may read.</summary>
         public string NativeImportPaths { get; set; }
     }
