@@ -31,3 +31,9 @@ Optional `CQL_NEAR_PUBLIC_SOURCE_JSON` lazily registers the separate read repres
 [Evidence and exact remaining work](../WIP/COSMIC%20ORM/NEAR_PUBLIC_SOURCE_READINESS.md). Primary protocol contracts: [NEAR query types](https://github.com/near/nearcore/blob/master/chain/jsonrpc-primitives/src/types/query.rs), [view_account](https://docs.fastnear.com/rpc/account/view-account).
 
 The older rpc.mainnet.near.org source exceeded WEB4's fixed five-second leaf-query limit and produced HTTP 504. The explicit FastNear selection resolves this observed demo issue; shipping deadlines were not relaxed. The original failed fixture and acknowledgements were preserved, read-only continuation verified every original private copy before exact-owned cleanup, and no writes were replayed.
+
+## Staged hosted configuration
+
+`Publish-HostedNearPublicConfiguration.py` accepts only the verified free FastNear catalogue. It adds the source variable, independent query permission/tariff and four presets; credentials, paid reads, existing roles/examples and missing encryption key grants are rejected. Canonical DNA remains unchanged.
+
+The pending seven-profile rollout uses the already prepared `Publish-HostedGoogleEthereumConfiguration.py with-near` candidate:9values/28new presets through strict source validators. Do not prepare blindly over existing files or apply standalone candidates from one old snapshot. Explicit `apply-with-near` exists for the reviewed matching application/Core0eb3449 rollout; no apply/deployment occurred. Never apply to frozen6bb. Source discovery must pass permissions, prices, activation and capability checks before exposing live examples.
