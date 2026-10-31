@@ -78,3 +78,19 @@ Next: strict Polkadot publisher/joint candidate and four presets, generic browse
 - `TestResults/PolkadotPublicSourceCandidateCurrent/polkadot-mongo-http.trx`: 3371 B; SHA256 `95806817eca7ba726287c10a1b94c0668f762e899207fda38e4b30de523f978f`.
 
 - `TestResults/PolkadotPublicSourceCandidateCurrent/polkadot-mongo-native-summary.json`: 229 B; SHA256 `7a3550ec06d49f6bef110ad8b587c19c8b2a01850daf59559366f527b3450dfd`.
+
+## Hosted configuration and browser-link staging
+
+Strict Polkadot configuration controls3pass (including malformed/paid/overlap and encryption cases); joint composition7tests pass. Four presets: native3/2 and Mongo pairs5/4. The six-source composition preserves all24new presets and existing DNA/admission/settings. Only the specific query key needs an explicit encryption-policy grant; no global reserved list changed.
+
+Protected `LocalState/COSMIC/HostedSourceRolloutCurrent/google-ethereum-public-polygon-arbitrum-cosmos-polkadot-{before,candidate}-variables.dpapi` prepared,67,094/83,270B,8values/24presets. Not applied. Requires matching application/Core79d7859, never frozen6bb. Earlier individual/five-source candidates are historical, not successive changes to apply.
+
+Frontend `C:/Source/Web4Site`, work/cosmic-cql commit5066b03 pushed: local guide/CLI/commented-source links plus generic Polkadot snapshot preparation coverage.53client controls pass: two Mongo-only private writes, server-derived IDs, original source predicate preserved, repeat0writes/2existing. No provider-specific production JS branch needed. Public main unchanged; hosted preparation/replica/browser acceptance still open.
+
+Next: matching scheduled application/configuration/frontend rollout, then actual hosted availability, visitor preparation/reuse/isolation, replicas and browser verification. NEAR breadth can proceed independently while deployment timing remains pending.
+
+- `TestResults/PolkadotPublicSourceCandidateCurrent/config-controls.log`: 106 B; SHA256 `383a12fba9b5b327054a24ce7e5739569c4f0b6621facd981f2d6a4271063b3c`.
+
+- `TestResults/PolkadotPublicSourceCandidateCurrent/combined-config-controls.log`: 110 B; SHA256 `6b01cf532002921c2dd88971821b5865cafe78472020d0909e7df38db83acb08`.
+
+- `TestResults/PolkadotPublicSourceCandidateCurrent/frontend-controls.log`: 5148 B; SHA256 `77aa017bc6ee48f2f4f3fd1c06cf46433fc9c39f1fac2ae444aec9d4864602f6`.
