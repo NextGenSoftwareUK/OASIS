@@ -551,3 +551,53 @@ Initial comparison with Windows worktree bytes differed due checkout line ending
 comparison with the actual committed blob passed. Frontend39controls pass/no skips;
 TestResults/CqlCurrent/solid-links-public-proof.json and solid-links-client-tests.log
 in C:/Source/Web4Site. SOLID is not counted as verified hosted coverage yet.
+## 31 October — SOLID deployed; approved public AWS source implemented
+
+Railway2fcd7075-ae8c-44ac-81cf-c0558429746d reached SUCCESS at9962c4e46,
+which preserves the scoped SOLID batch.73a8848d-04e7-464d-b371-3d3702c2d91a was
+removed/superseded, not failed/restarted. Native runtime and API started, but the
+actual SOLID HTTP/browser query/federation/isolation gates remain outstanding.
+Browser tool cua_repl failed Transport closed. Existing @oai/sky was reused;
+Edge launched at its verified existing path, returned window327700/New tab.
+State capture then stopped Computer Use because it could not confidently identify
+the current URL. No navigation/session/data mutation occurred. No bypass attempted;
+Edge window remains for user navigation. User asked to open the sandbox URL while
+independent API/source checks continue. Do not infer a successful browser test.
+
+User explicitly selected a public S3 dataset for the AWS demo, distinct from owned
+AWS persistence. Selected3NOAA GOES-16 objects from a bounded native ListObjectsV2
+preflight; anonymous HEAD200each, no object-body downloads. Source documentation:
+https://registry.opendata.aws/noaa-goes/. Retained keys/region/bucket/stable source
+owner at LocalState/COSMIC/HostedAwsS3PublicSourceCurrent/source.json. Public
+preflight report TestResults/HostedCqlIntegrationCurrent/aws-s3-public-preflight.json.
+
+Implemented separate AwsS3PublicMetadataSource over the existing shared storage
+boundary, with Core-native mapping and official AWSSDK.S3 3.7.502. Explicit DNA
+PublicObjectMetadataOnly selects this anonymous read-only source; the existing
+private encrypted S3 provider remains its own mode. No fake storage key, default
+credential inference, object body GET, native bucket scan during queries, automatic
+retry, account creation or new service. Activation HEADs one configured object;
+point/membership selects at most8known keys of128characters, validates all selected
+metadata before paging, handles cancellation/404, and denies unknown keys before
+I/O. Backend mutations explicitly reject; host admission must remain query-only.
+The profile is included in the CQL HTTP compiler only, not admitted by configuration.
+
+Verification:11controlled SDK tests pass/no skips; native anonymous SDK test1passes,
+reading3objects and2subset through actual adapter/planner and live AWS (not emulator).
+Full transitive API build0errors/existing2,040warnings, no restore; shipping public
+S3 preset/dependency test plus GraphQL shipping schema2pass/no skips. Four presets
+compile against actual adapter capabilities; missing Mongo disables only paired
+examples. Raw evidence under TestResults/HostedCqlIntegrationCurrent:
+aws-s3-public-controls.trx SHA2568A70985B86C093A8C9FF20578FAE315A1A00C9507FE842450F466B7A38ACEEBC;
+aws-s3-public-native.trx SHA256B0ADF714AD4533AA3B2D8E71ABC47C074E784402A5C093EBC988EFC51C06BB72;
+aws-s3-public-shipping.trx SHA256F35DF5C0FCEEFD6E0E2C446AC65DFEA8D5618AD8F3735E386E1DA6336D3E7BD2.
+Native AWS is not yet configured/deployed to the sandbox; no increase in hosted count.
+
+OracleCql.cs/OracleCqlCompiler.cs/OracleCqlTests.cs were restored unchanged from
+preserved237403a75b6983e013141cf7ba44bf66858abafd into the scoped task branch.
+Producer/consumer builds pass;13compiler/authority/binding/unsupported-shape tests
+pass/no skips. Evidence oracle-scoped-cql.trx SHA256
+C5445FDDE7F06EB0139F22FDB963CA3D9DB62609CE5F8551404523255FF6A4C5.
+No Oracle connection/schema/data/process operation ran. This adapter requires a
+complete server-authorized Oracle catalogue; read-only host activation, host access
+policy and real hosted connectivity remain pending. Do not enroll it prematurely.

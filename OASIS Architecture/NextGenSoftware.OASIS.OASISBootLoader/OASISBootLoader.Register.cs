@@ -112,8 +112,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.AWSS3OASIS:
                             {
-                                result.Result = AwsS3ProviderFactory.Create(
-                                    OASISDNA.OASIS.StorageProviders.AWSS3OASIS, overrideConnectionString);
+                                var settings = OASISDNA.OASIS.StorageProviders.AWSS3OASIS;
+                                result.Result = settings?.PublicObjectMetadataOnly == true
+                                    ? AwsS3ProviderFactory.CreatePublicMetadata(settings, overrideConnectionString)
+                                    : AwsS3ProviderFactory.Create(settings, overrideConnectionString);
                             }
                             break;
 

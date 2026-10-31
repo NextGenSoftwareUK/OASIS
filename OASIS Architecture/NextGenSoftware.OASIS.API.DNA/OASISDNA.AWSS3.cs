@@ -12,4 +12,8 @@ public class AWSS3OASISSettings : ProviderSettingsBase
     public bool UseDefaultCredentials { get; set; }
     public string StorageEncryptionKeyEnvironmentVariable { get; set; } = "OASIS_AWS_S3_STORAGE_ENCRYPTION_KEY";
     public bool IsVersionControlEnabled { get; set; }
+    /// <summary>Explicit anonymous read-only object metadata profile, separate from owned-record storage.</summary>
+    public bool PublicObjectMetadataOnly { get; set; }
+    public string[] PublicObjectMetadataKeys { get; set; } = System.Array.Empty<string>();
+    public System.Guid PublicObjectMetadataOwner { get; set; }
 }

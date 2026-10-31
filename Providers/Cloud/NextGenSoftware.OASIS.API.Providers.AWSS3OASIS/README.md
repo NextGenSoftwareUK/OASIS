@@ -1,5 +1,34 @@
 # AWSS3OASIS
 
+## Public object-metadata query source
+
+`AwsS3PublicMetadataSource` is an explicit read-only alternative for public S3
+objects. It uses the official SDK's HEAD operation and never downloads object
+bodies. CQL can select one configured `S3ObjectKey` or a bounded membership set
+(up to eight keys, 128 printable ASCII characters each). It does not advertise
+general content queries or owned-record persistence for this profile.
+
+Set `PublicObjectMetadataOnly=true`, `Region`, `BucketName`,
+`PublicObjectMetadataKeys` and a nonempty `PublicObjectMetadataOwner` in the
+structured provider settings. Do not supply signing credentials or opt into
+default credentials. The owner is the host's stable mapping identity for this
+public source, not a claim about who uploaded an object. Core's native-record
+mapper derives holon identities and metadata; every projected row is public.
+
+Enroll this source as query-only with an explicit tariff and source examples.
+Activation reads the first configured object's metadata. Queries read only their
+configured selection, validate the complete selected result before paging, and
+never return partial rows after an error. Direct backend mutations are unsupported;
+normal WEB4 admission must reject writes before provider/outbox dispatch.
+
+The first demo source uses the public [NOAA GOES dataset on AWS](https://registry.opendata.aws/noaa-goes/).
+It demonstrates real object metadata, not the NetCDF observations inside each
+object. This requires no AWS account, bucket provisioning or signing credentials.
+Hosted enrollment/browser acceptance is tracked separately in
+[CURRENT_STATUS](../../../Docs/WIP/COSMIC%20ORM/CURRENT_STATUS.md).
+
+## Owned encrypted records
+
 Stores encrypted OASIS records in an existing AWS S3 general-purpose bucket through
 the official AWS SDK. This is distinct from `AWSOASIS`, which remains DynamoDB-backed.
 The shared key-value layer owns records, identity lookup, queries and history; the
