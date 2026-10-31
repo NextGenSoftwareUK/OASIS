@@ -1767,3 +1767,5 @@ Taskbranch resumed/Development57174def3merged in existingworktree; Corefb43eaa r
 31October2026:reuseexistingAPI/Core/.NET/cache/Mongo8.3.11retainedstore27029. NewexclusiveDB cosmic_cql_monad_http_demo; originalintent/ACK LocalState/COSMIC/MonadMongoHttpCurrent; rawTestResults/MonadPublicSourceCandidateCurrent. Exactmarker-successcleanup/failurepreserved,runnerownsservice;noNeo/newenvironment/download. Oneexistingprojectreference/cacheonlyrestore; outputincrementalsizespending. SameRailwayjobQUEUEDbuildslot; task-onlychanges,nofurtherdevpush.
 
 Monad HTTPoutcome:1Core/2API/3config/1nativeHTTP/1clientpass0skips; retainedcatalogueaccepted.2SDKprivatecopies/9receipts,exactDBdrop/absenceverified,servicesstopped. Originalcohort 839B retained. No downloads/newenvironment/Neo. ExistingRailwayjob e107f7e5nowBUILDING exact57174def3; noextradevpush.
+
+Website354958epushed withMonadCLI/guide/walkthroughlink and1passingnewclienttest; publicmainunchanged.27029listenerabsenceverified. ReusedNode/worktree,noenvironment/download. ExistingapprovedRailwayjob observedBUILDING exact57174def3; noextradevpush.
