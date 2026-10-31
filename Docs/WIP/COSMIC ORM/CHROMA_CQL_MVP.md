@@ -44,7 +44,7 @@ Evidence under C:/Source/OASIS-cosmic/TestResults/ChromaCqlCurrent:
 |native-postpair.trx|1|0780692DFE2B7697F35FE0B4F2DB3DE61A505741E57E4719E0E5705FE132C5E8|
 
 Browser proof: chroma-mongo-subset-current.png, chroma-catalogue-public.png.
-Private completed test bins400files/95605789B remain: automatic cleanup review
+Private completed test bins400files/95605789B were initially retained: automatic cleanup review
 rejected removal without detailed reason; nothing deleted. Retained assets/cache
 allow bounded leased rebuilds. Source, original receipts and schema retained.
 
@@ -52,3 +52,6 @@ General content predicates, central registration, generic read errors/ID bounds,
 other write bounds, avatar ownership, children/history/CAS/unknown-write recovery,
 replication/migrations/full HyperDrive and semantic/hosted security need separate
 acceptance. Advertised demo failures remain immediate fixes, not deferred items.
+
+Subsequent user-requested reviewed cleanup removed these private bins as part of63 verified directories/4751008965B. Source/evidence/cache/obj retained; see COMPLETED_TEST_OUTPUT_CLEANUP_2026-10-31.md.
+
