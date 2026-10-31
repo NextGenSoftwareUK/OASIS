@@ -35,6 +35,9 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string AutoFailOverLocalProviders { get; set; }
         public string OASISProviderBootType { get; set; }
         public AzureOASISProviderSettings AzureCosmosDBOASIS { get; set; }
+        public AWSOASISProviderSettings AWSOASIS { get; set; }
+        public AWSS3OASISSettings AWSS3OASIS { get; set; }
+        public AzureStorageOASISProviderSettings AzureStorageOASIS { get; set; }
         public HoloOASISProviderSettings HoloOASIS { get; set; }
         public MongoDBOASISProviderSettings MongoDBOASIS { get; set; }
         public EOSIOASISProviderSettings EOSIOOASIS { get; set; }
@@ -46,6 +49,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public RootstockOASISProviderSettings RootstockOASIS { get; set; }
         public PolygonOASISProviderSettings PolygonOASIS { get; set; }
         public SQLLiteDBOASISSettings SQLLiteDBOASIS { get; set; }
+        public OracleDBOASISSettings OracleDBOASIS { get; set; }
+        public OracleObjectStorageOASISSettings OracleObjectStorageOASIS { get; set; }
         public IPFSOASISSettings IPFSOASIS { get; set; }
         public Neo4jOASISSettings Neo4jOASIS { get; set; }
         public SolanaOASISSettings SolanaOASIS { get; set; }
@@ -75,8 +80,28 @@ namespace NextGenSoftware.OASIS.API.DNA
         public AztecOASISProviderSettings AztecOASIS { get; set; }
 
         // Network Providers
+        public SolidOASISProviderSettings SOLIDOASIS { get; set; }
         public ActivityPubOASISProviderSettings ActivityPubOASIS { get; set; }
         public GoogleCloudOASISProviderSettings GoogleCloudOASIS { get; set; }
+    }
+
+    public class AWSOASISProviderSettings : ProviderSettingsBase
+    {
+        public bool IsVersionControlEnabled { get; set; }
+        public string Region { get; set; } = "us-east-1";
+        public string AccessKey { get; set; }
+        public string SecretKey { get; set; }
+        public string SessionToken { get; set; }
+        public bool UseDefaultCredentials { get; set; }
+        public string ServiceUrl { get; set; }
+    }
+
+    public class AzureStorageOASISProviderSettings : ProviderSettingsBase
+    {
+        public bool IsVersionControlEnabled { get; set; }
+        public string HolonContainer { get; set; } = "oasis-holons";
+        public string AvatarContainer { get; set; } = "oasis-avatars";
+        public string AvatarDetailContainer { get; set; } = "oasis-avatar-details";
     }
 
     public class EmailSettings
@@ -95,6 +120,11 @@ namespace NextGenSoftware.OASIS.API.DNA
     public class ProviderSettingsBase
     {
         public string ConnectionString { get; set; }
+    }
+
+    public class OracleDBOASISSettings : ProviderSettingsBase
+    {
+        public bool IsVersionControlEnabled { get; set; }
     }
 
     public class PinataOASISSettings : ProviderSettingsBase
@@ -120,6 +150,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string WalletMnemonicWords { get; set; }
         public string PrivateKey { get; set; }
         public string PublicKey { get; set; }
+        /// <summary>Comma-separated program addresses whose accounts native data import may read.</summary>
+        public string NativeImportPrograms { get; set; }
     }
 
     //public class HoloOASISProviderSettings : ProviderSettingsBase
@@ -156,6 +188,8 @@ namespace NextGenSoftware.OASIS.API.DNA
     public class MongoDBOASISProviderSettings : ProviderSettingsBase
     {
         public string DBName { get; set; }
+        /// <summary>Database on the same deployment holding other applications' data for native import; must differ from DBName.</summary>
+        public string NativeImportDBName { get; set; }
     }
 
     public class EOSIOASISProviderSettings : ProviderSettingsBase
@@ -177,22 +211,29 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class EthereumOASISProviderSettings : ProviderSettingsBase
     {
+        public bool IsVersionControlEnabled { get; set; }
         public string ChainPrivateKey { get; set; }
         public long ChainId { get; set; }
         public string ContractAddress { get; set; }
+        public string TokenEscrowContractAddress { get; set; }
     }
 
     public class ArbitrumOASISProviderSettings : ProviderSettingsBase
     {
+        public bool IsVersionControlEnabled { get; set; }
         public string ChainPrivateKey { get; set; }
         public long ChainId { get; set; }
         public string ContractAddress { get; set; }
+        public string TokenEscrowContractAddress { get; set; }
     }
 
     public class PolygonOASISProviderSettings : ProviderSettingsBase
     {
+        public bool IsVersionControlEnabled { get; set; }
         public string ChainPrivateKey { get; set; }
+        public long ChainId { get; set; } = 137;
         public string ContractAddress { get; set; }
+        public string TokenEscrowContractAddress { get; set; }
         public string Abi { get; set; }
     }
 
@@ -205,17 +246,25 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class SQLLiteDBOASISSettings : ProviderSettingsBase
     {
+        /// <summary>SQLite database (another application's file) to read for native import; must not be the OASIS database.</summary>
+        public string NativeImportConnectionString { get; set; }
     }
 
     public class IPFSOASISSettings : ProviderSettingsBase
     {
         public string LookUpIPFSAddress { get; set; }
+        /// <summary>Explicitly enroll bounded CID membership over the configured authenticated catalogue.</summary>
+        public bool EnableCqlCidKeySets { get; set; }
+        /// <summary>Comma-separated /ipfs/&lt;cid&gt; or /ipns/&lt;name&gt; directories native data import may read.</summary>
+        public string NativeImportPaths { get; set; }
     }
 
     public class Neo4jOASISSettings : ProviderSettingsBase
     {
         public string Username { get; set; }
         public string Password { get; set; }
+        /// <summary>Comma-separated node labels other applications own that native import may read. Nothing else is exposed.</summary>
+        public string NativeImportLabels { get; set; }
     }
 
     public class LocalFileOASISSettings
@@ -225,10 +274,16 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class AzureOASISProviderSettings
     {
+        /// <summary>Retain record versions in the same Cosmos item. Existing archives remain retained when disabled.</summary>
+        public bool IsVersionControlEnabled { get; set; }
         public string ServiceEndpoint { get; set; }
         public string AuthKey { get; set; }
         public string DBName { get; set; }
         public string CollectionNames { get; set; }
+        /// <summary>Database other applications own, which native data import may read (Cosmos only).</summary>
+        public string NativeImportDatabaseName { get; set; }
+        /// <summary>Comma-separated containers in <see cref="NativeImportDatabaseName"/> native import may read (Cosmos only).</summary>
+        public string NativeImportContainers { get; set; }
     }
 
     // Enhanced HyperDrive Configuration Classes

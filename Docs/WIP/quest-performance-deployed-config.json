@@ -1,0 +1,14 @@
+[
+  {
+    "ServiceId": "5123199a-43c4-4439-9921-e10e2aec7841",
+    "HyperDriveMode": "OASISHyperDrive2",
+    "StorageProvider": null,
+    "Routing": "IsProduction,Terms,OASISSystemAccountId,OASISAPIURL,NetworkId,SettingsLookupHolonId,StatsCacheEnabled,StatsCacheTtlSeconds,Logging,ErrorHandling,Security,Email,StorageProviders,OASISHyperDriveConfig,HyperDriveMode,ReplicationRules,FailoverRules,SubscriptionConfig,DataPermissions,IntelligentMode,OfflineSessionGrants,ONET,Web6"
+  },
+  {
+    "ServiceId": "bb2c3e9a-ec96-44a5-9916-05e06d54b1f4",
+    "HyperDriveMode": "Legacy",
+    "StorageProvider": null,
+    "Routing": "IsProduction,Terms,OASISSystemAccountId,OASISAPIURL,NetworkId,SettingsLookupHolonId,StatsCacheEnabled,StatsCacheTtlSeconds,Logging,ErrorHandling,Security,Email,StorageProviders,OASISHyperDriveConfig,HyperDriveMode,ReplicationRules,FailoverRules,SubscriptionConfig,DataPermissions,IntelligentMode,OfflineSessionGrants,ONET,Web6"
+  }
+]

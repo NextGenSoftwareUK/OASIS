@@ -1,0 +1,356 @@
+{
+  "version": 1,
+  "status": "acceptance-vectors-not-native-certification",
+  "vectors": [
+    {
+      "name": "required-empty",
+      "domain": "Int64",
+      "nullable": false,
+      "inputs": [],
+      "expected": {
+        "error": "CQL_EMPTY_SEQUENCE"
+      }
+    },
+    {
+      "name": "nullable-empty",
+      "domain": "Int64",
+      "nullable": true,
+      "inputs": [],
+      "expected": {
+        "min": null,
+        "max": null
+      }
+    },
+    {
+      "name": "nullable-all-absent",
+      "domain": "Int64",
+      "nullable": true,
+      "inputs": [
+        {
+          "state": "missing"
+        },
+        {
+          "state": "null"
+        }
+      ],
+      "expected": {
+        "min": null,
+        "max": null
+      }
+    },
+    {
+      "name": "required-missing",
+      "domain": "Int64",
+      "nullable": false,
+      "inputs": [
+        {
+          "state": "value",
+          "value": "7"
+        },
+        {
+          "state": "missing"
+        }
+      ],
+      "expected": {
+        "error": "CQL_DATA_INVALID"
+      }
+    },
+    {
+      "name": "required-null",
+      "domain": "Int64",
+      "nullable": false,
+      "inputs": [
+        {
+          "state": "value",
+          "value": "7"
+        },
+        {
+          "state": "null"
+        }
+      ],
+      "expected": {
+        "error": "CQL_DATA_INVALID"
+      }
+    },
+    {
+      "name": "exact-int64-extremes",
+      "domain": "Int64",
+      "nullable": false,
+      "inputs": [
+        {
+          "state": "value",
+          "value": "9223372036854775807"
+        },
+        {
+          "state": "value",
+          "value": "-9223372036854775808"
+        },
+        {
+          "state": "value",
+          "value": "0"
+        }
+      ],
+      "expected": {
+        "min": "-9223372036854775808",
+        "max": "9223372036854775807"
+      }
+    },
+    {
+      "name": "beyond-binary64",
+      "domain": "Int64",
+      "nullable": false,
+      "inputs": [
+        {
+          "state": "value",
+          "value": "9007199254740993"
+        },
+        {
+          "state": "value",
+          "value": "9007199254740992"
+        },
+        {
+          "state": "value",
+          "value": "-9007199254740993"
+        }
+      ],
+      "expected": {
+        "min": "-9007199254740993",
+        "max": "9007199254740993"
+      }
+    },
+    {
+      "name": "all-negative",
+      "domain": "Int32",
+      "nullable": false,
+      "inputs": [
+        {
+          "state": "value",
+          "value": "-7"
+        },
+        {
+          "state": "value",
+          "value": "-2147483648"
+        },
+        {
+          "state": "value",
+          "value": "-1"
+        }
+      ],
+      "expected": {
+        "min": "-2147483648",
+        "max": "-1"
+      }
+    },
+    {
+      "name": "nullable-mixed",
+      "domain": "Int64",
+      "nullable": true,
+      "inputs": [
+        {
+          "state": "null"
+        },
+        {
+          "state": "value",
+          "value": "-7"
+        },
+        {
+          "state": "missing"
+        },
+        {
+          "state": "value",
+          "value": "9"
+        }
+      ],
+      "expected": {
+        "min": "-7",
+        "max": "9"
+      }
+    },
+    {
+      "name": "wrong-integer-string",
+      "domain": "Int64",
+      "nullable": false,
+      "inputs": [
+        {
+          "state": "value",
+          "value": "7"
+        },
+        {
+          "state": "wrong-domain",
+          "value": "8",
+          "storedDomain": "String"
+        }
+      ],
+      "expected": {
+        "error": "CQL_DATA_INVALID"
+      }
+    },
+    {
+      "name": "integer-not-narrowed",
+      "domain": "Byte",
+      "nullable": false,
+      "inputs": [
+        {
+          "state": "value",
+          "value": "0"
+        },
+        {
+          "state": "value",
+          "value": "255"
+        },
+        {
+          "state": "value",
+          "value": "256"
+        }
+      ],
+      "expected": {
+        "error": "CQL_DATA_INVALID"
+      }
+    },
+    {
+      "name": "byte-boundaries",
+      "domain": "Byte",
+      "nullable": false,
+      "inputs": [
+        {
+          "state": "value",
+          "value": "255"
+        },
+        {
+          "state": "value",
+          "value": "0"
+        }
+      ],
+      "expected": {
+        "min": "0",
+        "max": "255"
+      }
+    },
+    {
+      "name": "boolean-order",
+      "domain": "Boolean",
+      "nullable": false,
+      "inputs": [
+        {
+          "state": "value",
+          "value": true
+        },
+        {
+          "state": "value",
+          "value": false
+        }
+      ],
+      "expected": {
+        "min": false,
+        "max": true
+      }
+    },
+    {
+      "name": "nullable-boolean",
+      "domain": "Boolean",
+      "nullable": true,
+      "inputs": [
+        {
+          "state": "value",
+          "value": true
+        },
+        {
+          "state": "null"
+        }
+      ],
+      "expected": {
+        "min": true,
+        "max": true
+      }
+    },
+    {
+      "name": "string-empty",
+      "domain": "String",
+      "nullable": true,
+      "inputs": [],
+      "expected": {
+        "min": null,
+        "max": null
+      }
+    },
+    {
+      "name": "string-null-and-empty",
+      "domain": "String",
+      "nullable": true,
+      "inputs": [
+        {
+          "state": "null"
+        },
+        {
+          "state": "value",
+          "value": ""
+        },
+        {
+          "state": "value",
+          "value": "coffee"
+        }
+      ],
+      "expected": {
+        "min": "",
+        "max": "coffee"
+      }
+    },
+    {
+      "name": "unicode-scalar-order",
+      "domain": "String",
+      "nullable": true,
+      "inputs": [
+        {
+          "state": "value",
+          "value": "\ud800\udc00"
+        },
+        {
+          "state": "value",
+          "value": "\ue000"
+        }
+      ],
+      "expected": {
+        "min": "\ue000",
+        "max": "\ud800\udc00"
+      }
+    },
+    {
+      "name": "guid-canonical-order",
+      "domain": "Guid",
+      "nullable": false,
+      "inputs": [
+        {
+          "state": "value",
+          "value": "ffffffff-ffff-ffff-ffff-ffffffffffff"
+        },
+        {
+          "state": "value",
+          "value": "00000000-0000-0000-0000-000000000000"
+        }
+      ],
+      "expected": {
+        "min": "00000000-0000-0000-0000-000000000000",
+        "max": "ffffffff-ffff-ffff-ffff-ffffffffffff"
+      }
+    },
+    {
+      "name": "utc-tick-precision",
+      "domain": "DateTime",
+      "nullable": false,
+      "inputs": [
+        {
+          "state": "value",
+          "value": "2026-10-23T00:00:00.0000002Z"
+        },
+        {
+          "state": "value",
+          "value": "2026-10-23T00:00:00.0000001Z"
+        }
+      ],
+      "expected": {
+        "min": "2026-10-23T00:00:00.0000001Z",
+        "max": "2026-10-23T00:00:00.0000002Z"
+      }
+    }
+  ]
+}

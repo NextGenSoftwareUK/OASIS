@@ -1,0 +1,286 @@
+#Requires -Version 7.0
+param([switch]$IndexedMetadataDemo,[switch]$ServeIndexedDemo,[switch]$ArchiveCompletedDemo,[switch]$IndexedHttpDemo,[switch]$IndexedQueryDemo,[switch]$ChainIndexReadOnly,[switch]$ConformanceReadOnly,[switch]$ConformanceOnly,[switch]$Diagnostics,[switch]$InspectRecent,[switch]$InspectAvatarFailure,[switch]$CloseReviewedAvatarRejection,[switch]$AvatarOnly,[switch]$StorageTokenOnly,[switch]$FeeReceiptOnly,[switch]$AvatarTransferOnly,[ValidateRange(2,120)][int]$ObservationSeconds=2,[string[]]$HistorySignatures)
+$ErrorActionPreference='Stop'
+if($IndexedMetadataDemo -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('IndexedMetadataDemo','ServeIndexedDemo','ArchiveCompletedDemo')}).Count){throw 'Select the separately journaled metadata fixture without another mode.'}
+if(($ServeIndexedDemo -or $ArchiveCompletedDemo) -and !($IndexedHttpDemo -or $IndexedMetadataDemo)){throw 'Interactive/archive options require IndexedHttpDemo or IndexedMetadataDemo.'}
+if($IndexedHttpDemo -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('IndexedHttpDemo','ServeIndexedDemo','ArchiveCompletedDemo')}).Count){throw 'Select native indexed HTTP without another test mode.'}
+if($IndexedQueryDemo -and $PSBoundParameters.Count -ne 1){throw 'Select the separately journaled indexed demo alone.'}
+if($ChainIndexReadOnly -and $PSBoundParameters.Count -ne 1){throw 'Select read-only chain-index observation alone.'}
+if($HistorySignatures -and (!$InspectRecent -or $InspectAvatarFailure)){throw 'Exact history reads require keyless InspectRecent alone.'}
+if($ConformanceReadOnly -and ($ConformanceOnly -or $Diagnostics -or $InspectRecent -or $InspectAvatarFailure -or $CloseReviewedAvatarRejection -or $AvatarOnly -or $StorageTokenOnly -or $FeeReceiptOnly -or $AvatarTransferOnly)){
+    throw 'Select original-fixture read-only conformance diagnosis alone.'
+}
+if($ConformanceOnly -and ($Diagnostics -or $InspectRecent -or $InspectAvatarFailure -or $CloseReviewedAvatarRejection -or $AvatarOnly -or $StorageTokenOnly -or $FeeReceiptOnly -or $AvatarTransferOnly)){
+    throw 'Select canonical storage conformance alone; no inspection/recovery/depth modes.'
+}
+if($AvatarTransferOnly -and ($AvatarOnly -or $StorageTokenOnly -or $FeeReceiptOnly -or $InspectRecent -or $InspectAvatarFailure -or $CloseReviewedAvatarRejection)){throw 'Select the avatar-transfer native scope alone.'}
+if($CloseReviewedAvatarRejection -and !$InspectAvatarFailure){throw 'Reviewed closure requires exact original avatar inspection.'}
+if($InspectAvatarFailure){$InspectRecent=$true}
+if($StorageTokenOnly -and ($AvatarOnly -or $InspectRecent)){throw 'Storage/token regression must be selected without avatar or inspection modes.'}
+if($FeeReceiptOnly -and ($AvatarOnly -or $StorageTokenOnly -or $InspectRecent)){throw 'Native fee receipt reads require their own selected scope.'}
+if(!$InspectRecent -and $ObservationSeconds -ne 2){throw 'ObservationSeconds is only supported for keyless InspectRecent mode.'}
+if($InspectRecent -and $AvatarOnly){throw 'Select keyless inspection or avatar acceptance, not both.'}
+$taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+$work=Join-Path $taskRoot 'TestResults/SolanaCurrent'
+$nativeReport=if($IndexedMetadataDemo){'solana-indexed-metadata-native.trx'}elseif($IndexedHttpDemo){'solana-indexed-http-native.trx'}elseif($IndexedQueryDemo){'solana-indexed-native.trx'}elseif($ChainIndexReadOnly){'solana-chain-index-readonly.trx'}elseif($ConformanceReadOnly){'solana-core-read-current.trx'}elseif($ConformanceOnly){'solana-core-storage-current.trx'}elseif($AvatarTransferOnly){'solana-avatar-transfer-native.trx'}elseif($AvatarOnly){'solana-avatar-native-current.trx'}elseif($StorageTokenOnly){'solana-storage-token-current.trx'}elseif($FeeReceiptOnly){'solana-native-fee-current.trx'}else{'solana-validator-current.trx'}
+if($ConformanceOnly){
+    foreach($mode in @('async','sync')){
+        $report=Join-Path $taskRoot ('TestResults/ProviderConformanceCurrent/SOLANAOASIS/'+$mode+'/report.json')
+        if((Test-Path -LiteralPath $report) -or (Test-Path -LiteralPath ($report+'.next'))){
+            throw 'Preserve previous canonical Solana evidence before another submission.'
+        }
+    }
+}
+if($ConformanceReadOnly -and (Test-Path -LiteralPath (Join-Path $work 'solana-core-read-diagnostic.json'))){throw 'Preserve the previous original-fixture diagnostic.'}
+New-Item -ItemType Directory -Force -Path $work | Out-Null
+$lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+$owned=$null
+$nativeId=$null
+$secret=$null
+$names=@('SOLANA_RPC_URL','SOLANA_PRIVATE_KEY','SOLANA_PUBLIC_KEY','OASIS_SOLANA_STORAGE_ENCRYPTION_KEY','OASIS_SOLANA_NATIVE_EVIDENCE','OASIS_SOLANA_INDEXED_HTTP','OASIS_SOLANA_INDEXED_SERVE','OASIS_SOLANA_INDEXED_METADATA')
+$previous=@{}
+foreach($name in $names){$previous[$name]=[Environment]::GetEnvironmentVariable($name)}
+try {
+    if(!$ChainIndexReadOnly -and !$InspectRecent -and (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Inspect original Solana submissions; do not replay or reset.'}
+    if(($IndexedHttpDemo -or $IndexedMetadataDemo) -and $ArchiveCompletedDemo){
+        # Archive completed reports only; source acknowledgement/index/keys remain untouched.
+        $state=Join-Path $taskRoot $(if($IndexedMetadataDemo){'LocalState/COSMIC/SolanaMetadataCurrent'}else{'LocalState/COSMIC/SolanaCqlCurrent'})
+        if(!(Test-Path -LiteralPath (Join-Path $state 'seed.acknowledged.json')) -or
+            (Test-Path -LiteralPath (Join-Path $state 'seed.pending.json')) -or
+            (Test-Path -LiteralPath (Join-Path $state 'seed.acknowledged.json.next'))){throw 'Reconcile retained source state before archiving.'}
+        $priorTrx=Join-Path $work $nativeReport
+        $priorJson=Join-Path $work $(if($IndexedMetadataDemo){'solana-indexed-metadata-native.json'}else{'solana-indexed-http-native.json'})
+        if((Test-Path -LiteralPath $priorTrx) -or (Test-Path -LiteralPath $priorJson)){
+            if(!(Test-Path -LiteralPath $priorTrx) -or !(Test-Path -LiteralPath $priorJson)){throw 'Preserve incomplete native HTTP evidence.'}
+            [xml]$prior=Get-Content -LiteralPath $priorTrx -Raw
+            $counters=$prior.TestRun.ResultSummary.Counters
+            $summary=Get-Content -LiteralPath $priorJson -Raw | ConvertFrom-Json
+            $ack=Get-Content -LiteralPath (Join-Path $state 'seed.acknowledged.json') -Raw | ConvertFrom-Json
+            $acknowledgedMetadataSeed=$IndexedMetadataDemo -and $ack.Phase -eq 'acknowledged' -and
+                $ack.Id -eq $summary.Id -and $ack.IndexId -eq $summary.IndexId -and $ack.Signature -eq $summary.Signature -and
+                $ack.Genesis -eq $summary.Genesis -and $summary.schemaVersion -eq 3
+            if($IndexedMetadataDemo -and !$acknowledgedMetadataSeed){throw 'Metadata evidence does not match the retained acknowledgement.'}
+            if([int]$counters.total -ne 1 -or [int]$counters.passed -ne 1 -or [int]$counters.notExecuted -ne 0 -or
+                ($summary.submittedNewSeed -ne $false -and !$acknowledgedMetadataSeed) -or $summary.http.sourceWrites -ne 0){throw 'Only completed native HTTP evidence with an acknowledged source can be archived.'}
+            $archive=Join-Path $work 'Archive'
+            if((Get-Item -LiteralPath $work).LinkType -or ((Test-Path -LiteralPath $archive) -and (Get-Item -LiteralPath $archive).LinkType)){throw 'Evidence directories must not be links.'}
+            New-Item -ItemType Directory -Path $archive -Force | Out-Null
+            $moves=foreach($file in @($priorTrx,$priorJson)){
+                $hash=(Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash
+                $target=[IO.Path]::GetFullPath((Join-Path $archive ($hash+'-'+[IO.Path]::GetFileName($file))))
+                if([IO.Path]::GetDirectoryName($target) -ne [IO.Path]::GetFullPath($archive) -or (Test-Path -LiteralPath $target)){throw 'Archive must stay inside the exact evidence directory without overwrite.'}
+                [pscustomobject]@{Source=$file;Target=$target;Hash=$hash}
+            }
+            foreach($move in $moves){
+                Move-Item -LiteralPath $move.Source -Destination $move.Target
+                if((Get-FileHash -LiteralPath $move.Target -Algorithm SHA256).Hash -ne $move.Hash){throw 'Native evidence archive hash mismatch.'}
+                Write-Output ('Preserved evidence: '+$move.Target)
+            }
+        }
+    }
+    if(!$InspectRecent -and (Test-Path -LiteralPath (Join-Path $work $nativeReport))){throw 'Preserve and hash-verify the existing native report before another run.'}
+    $freeBefore=(Get-PSDrive C).Free
+    $prerequisites='test -x /var/tmp/oasis-runtimes/agave-4.3.0/solana-test-validator && test -f /var/tmp/oasis-solana/ledger/genesis.bin'
+    if(!$InspectRecent){$prerequisites+=' && test -f /var/tmp/oasis-solana/fixture-keypair.json && test -f /var/tmp/oasis-solana/storage-key'}
+    & wsl -d Ubuntu -- bash -lc $prerequisites
+    if($LASTEXITCODE){throw 'Retained runtime, ledger and keys are required; no download/reset/generation attempted.'}
+    $version=(& wsl -d Ubuntu -- /var/tmp/oasis-runtimes/agave-4.3.0/solana-test-validator --version).Trim()
+    if($version -ne 'solana-test-validator 4.3.0 (src:825efd18; feat:c9ad34d2, client:Agave)'){throw 'Retained runtime version differs.'}
+    & (Join-Path $PSScriptRoot 'Assert-ReusableSolanaReplayBridge.ps1')
+    & wsl -d Ubuntu -- bash -lc 'test -z "$(pgrep -x solana-test-val)" && test -z "$(ss -ltnH sport = :18899)"'
+    if($LASTEXITCODE){throw 'A validator or owned port is already active; refusing duplicate environment.'}
+    $project=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests.csproj'
+    if(!$InspectRecent){
+        & dotnet build $project --no-restore /p:IncludeCoreStorageConformance=$($ConformanceOnly.IsPresent -or $ConformanceReadOnly.IsPresent) /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+        if($LASTEXITCODE){throw 'Consumer build failed; no validator started.'}
+        $consumerOutput=Join-Path (Split-Path $project) 'bin/Debug/net10.0'
+        . (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $taskRoot -ConsumerOutput $consumerOutput -VerifySourceDocuments
+        foreach($assembly in @('NextGenSoftware.OASIS.API.Providers.SOLANAOASIS','NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests')) {
+            Write-Output ($assembly+': sources='+(Assert-SourceDocuments (Join-Path $consumerOutput ($assembly+'.dll')) $taskRoot))
+        }
+    }
+    # Do not independently purge shreds: retained snapshots/tower may still require them for replay.
+    # Bound runs and monitor disk; prune only after independently verifying a sufficient durable snapshot.
+    $owned=Start-Process -FilePath wsl.exe -ArgumentList @('-d','Ubuntu','--','/usr/bin/taskset','-c','0-3','/var/tmp/oasis-runtimes/agave-4.3.0/solana-test-validator','--ledger','/var/tmp/oasis-solana/ledger','--bind-address','127.0.0.1','--rpc-port','18899','--faucet-port','18900','--dynamic-port-range','18901-18927','--rpc-pubsub-worker-threads','1','--rpc-pubsub-notification-threads','1','--quiet') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $work 'validator-current.log') -RedirectStandardError (Join-Path $work 'validator-current.err')
+    $deadline=[DateTime]::UtcNow.AddSeconds(30)
+    $ready=$false
+    do {
+        if($owned.HasExited){throw 'Owned validator exited during startup.'}
+        $ids=@(& wsl -d Ubuntu -- pgrep -x solana-test-val | Where-Object { $_ -match '^\d+$' })
+        if($ids.Count -eq 1){$nativeId=[int]$ids[0]}
+        try { $health=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body '{"jsonrpc":"2.0","id":1,"method":"getHealth"}' -TimeoutSec 2; $ready=$health.result -eq 'ok' } catch { $ready=$false }
+        if(!$ready -or !$nativeId){Start-Sleep -Milliseconds 250}
+    } while((!$ready -or !$nativeId) -and [DateTime]::UtcNow -lt $deadline)
+    if(!$ready -or !$nativeId){throw 'Validator did not become healthy; original process will not be restarted.'}
+    $genesis=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body '{"jsonrpc":"2.0","id":1,"method":"getGenesisHash"}' -TimeoutSec 3
+    # Approved one-time recovery: original ledger/uncertain outcomes remain cold and unresolved.
+    # New identity independently observed with finalized0->101 and offline snapshot100/root102 admission.
+    if($genesis.result -ne 'F22uw23o1HuahQiQVfd7Lfi6Q51fv4KNoYAvDnDDpEvj'){throw 'Retained ledger genesis differs; refusing writes.'}
+    $slotBody='{"jsonrpc":"2.0","id":1,"method":"getSlot","params":[{"commitment":"finalized"}]}'
+    $initialRoot=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body $slotBody -TimeoutSec 3
+    if($null -eq $initialRoot.result -or $initialRoot.error){throw 'Finalized slot lookup failed; refusing writes.'}
+    if((!$InspectRecent -and !$ChainIndexReadOnly) -or $InspectAvatarFailure){
+        $rootAdvanced=$false
+        for($observation=0;$observation -lt 20;$observation++){
+            Start-Sleep -Milliseconds 500
+            $currentRoot=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body $slotBody -TimeoutSec 3
+            if($null -eq $currentRoot.result -or $currentRoot.error){throw 'Finalized slot observation failed; refusing writes.'}
+            if([long]$currentRoot.result -gt [long]$initialRoot.result -and (!$InspectAvatarFailure -or [long]$currentRoot.result -ge 1289)){$rootAdvanced=$true;break}
+        }
+        if(!$rootAdvanced){throw "Validator finalized root did not advance from $($initialRoot.result); no test transaction submitted. Inspect retained consensus state without resetting it."}
+    }
+    if($InspectRecent){
+        if($InspectAvatarFailure){
+            # Exact original evidence only. This mode never closes the intent, signs,
+            # rebroadcasts, or equates absent chain status with proof of nonexecution.
+            $journalPath=Join-Path $work 'avatar-native.pending.json'
+            $reportPath=Join-Path $work 'solana-avatar-native-current.trx'
+            if((Get-FileHash -LiteralPath $journalPath).Hash -ne 'AAF0C82279380EEFE800B8DFEC9FF3EF91AAC0882A14012AAA9E460E469FC237' -or
+                (Get-FileHash -LiteralPath $reportPath).Hash -ne 'F6FC09B2E79B9A4948EB8D968057A336630CD8B834243C78B05A49E40D1E4163'){
+                throw 'Original avatar failure evidence differs; no reconciliation inferred.'
+            }
+            $intent=Get-Content -LiteralPath $journalPath -Raw | ConvertFrom-Json
+            if($intent.Id -ne '448f05b9-4c56-416c-8cb5-91d0893aaf6b' -or $intent.State -ne 'before-detail' -or
+                $intent.ProfileSignature -ne '59idf3v1mTWPwdGhxLK9YzFda2kGGfcvdj33eeMFBBuq2paGFax2wSitkCUmZTX5nwZvH9E6c32yrkWBWo5i9mef'){
+                throw 'Original avatar intent identity differs.'
+            }
+            $attempt='4egC1Amf1VzrweSSomj2EJp24R3CVdHurf9oGEaoSjXZDKdW7d8RDhBe97zaHU7vDtRgX3EoipaHN49nkRJV1V6N'
+            $observations=foreach($reference in @($intent.ProfileSignature,$attempt)){
+                $request=@{jsonrpc='2.0';id=1;method='getTransaction';params=@($reference,@{encoding='json';commitment='finalized';maxSupportedTransactionVersion=0})} | ConvertTo-Json -Depth 6 -Compress
+                $reply=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body $request -TimeoutSec 5
+                if($reply.error){throw 'Original transaction read failed; absence is not inferred.'}
+                if($reference -eq $intent.ProfileSignature){
+                    if($null -eq $reply.result -or $null -ne $reply.result.meta.err -or
+                        @($reply.result.transaction.signatures).Count -ne 1 -or
+                        $reply.result.transaction.signatures[0] -ne $reference -or
+                        $reply.result.transaction.message.accountKeys[0] -ne 'Fi4AJCtDCehEVc7CiQVcHC9t57BmKk3B6gtMjWqA4Ffr'){
+                        $profileDiagnostic=@{Present=$null -ne $reply.result;Signatures=@($reply.result.transaction.signatures);AccountKeys=@($reply.result.transaction.message.accountKeys);NativeError=$reply.result.meta.err;InitialRoot=$initialRoot.result;ObservedRoot=$currentRoot.result}|ConvertTo-Json -Compress
+                        throw "Original finalized profile identity/writer/success could not be verified: $profileDiagnostic"
+                    }
+                }
+                @{Signature=$reference;Present=$null -ne $reply.result;Slot=$reply.result.slot;NativeError=$reply.result.meta.err;
+                    TransactionDigest=if($null -ne $reply.result){[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes(($reply.result|ConvertTo-Json -Depth 30 -Compress))))}else{$null}}
+            }
+            $statusRequest=@{jsonrpc='2.0';id=1;method='getSignatureStatuses';params=@(@($intent.ProfileSignature,$attempt),@{searchTransactionHistory=$true})}|ConvertTo-Json -Depth 6 -Compress
+            $statuses=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body $statusRequest -TimeoutSec 5
+            if($statuses.error -or @($statuses.result.value).Count -ne 2){throw 'Original native status lookup failed.'}
+            if($CloseReviewedAvatarRejection){
+                [xml]$originalReport=Get-Content -LiteralPath $reportPath
+                $messages=@($originalReport.TestRun.Results.UnitTestResult|ForEach-Object {$_.Output.ErrorInfo.Message}) -join "`n"
+                $rejection='"code":-32602,"message":"base64 encoded solana_transaction::versioned::VersionedTransaction too large: 3824 bytes (max: encoded/raw 1644/1232)"'
+                if(!$messages.Contains($attempt) -or !$messages.Contains($rejection) -or $observations[1].Present -or
+                    $null -ne $statuses.result.value[1] -or $statuses.result.value[0].confirmationStatus -ne 'finalized' -or
+                    $null -ne $statuses.result.value[0].err){throw 'Exact reviewed pre-admission rejection evidence is insufficient; intent retained.'}
+                # The explicit original RPC decode/size rejection, NOT absence alone,
+                # proves this attempt was rejected before transaction admission.
+                # Preserve both originals by MOVE, never delete/rebroadcast/replace.
+                $closedJournal=Join-Path $work 'avatar-native-size-rejected.json'
+                $closedReport=Join-Path $work 'solana-avatar-native-size-rejected.trx'
+                if((Test-Path -LiteralPath $closedJournal) -or (Test-Path -LiteralPath $closedReport)){throw 'Reviewed archive already exists; originals not moved.'}
+                if((Get-FileHash -LiteralPath $journalPath).Hash -ne 'AAF0C82279380EEFE800B8DFEC9FF3EF91AAC0882A14012AAA9E460E469FC237' -or
+                    (Get-FileHash -LiteralPath $reportPath).Hash -ne 'F6FC09B2E79B9A4948EB8D968057A336630CD8B834243C78B05A49E40D1E4163'){throw 'Evidence changed during inspection.'}
+                Move-Item -LiteralPath $reportPath -Destination $closedReport
+                Move-Item -LiteralPath $journalPath -Destination $closedJournal
+                if((Get-FileHash -LiteralPath $closedJournal).Hash -ne 'AAF0C82279380EEFE800B8DFEC9FF3EF91AAC0882A14012AAA9E460E469FC237' -or
+                    (Get-FileHash -LiteralPath $closedReport).Hash -ne 'F6FC09B2E79B9A4948EB8D968057A336630CD8B834243C78B05A49E40D1E4163'){throw 'Moved original evidence failed integrity verification.'}
+                $journalPath=$closedJournal
+            }
+            @{Mode='OriginalAvatarFailureReadOnly';Genesis=$genesis.result;Transactions=@($observations);Statuses=@($statuses.result.value);
+                JournalUnchanged=(Get-FileHash -LiteralPath $journalPath).Hash -eq 'AAF0C82279380EEFE800B8DFEC9FF3EF91AAC0882A14012AAA9E460E469FC237';
+                OutcomeClosed=[bool]$CloseReviewedAvatarRejection;Caution='Closure, if selected, relies on exact original RPC size rejection plus independent original reads, not absent status alone. Original rejected signed bytes were not retained. Finalized profile remains on ledger.'}|ConvertTo-Json -Depth 8 -Compress|Write-Output
+            return
+        }
+        # Public fixture address verified against the retained genesis/key identity.
+        # Inspection never needs client signing/encryption keys or a .NET build.
+        $publicAddress='Fi4AJCtDCehEVc7CiQVcHC9t57BmKk3B6gtMjWqA4Ffr'
+        if($HistorySignatures){
+            & (Join-Path $PSScriptRoot 'Get-SolanaHistoryAvailability.ps1') -Signatures $HistorySignatures | ConvertTo-Json -Depth 6 -Compress | Write-Output
+            return
+        }
+        $body=@{jsonrpc='2.0';id=1;method='getSignaturesForAddress';params=@($publicAddress,@{limit=5;commitment='finalized'})} | ConvertTo-Json -Depth 5 -Compress
+        $recent=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body $body -TimeoutSec 5
+        if($recent.error){throw 'Read-only native signature inspection failed.'}
+        if($null -eq $recent.result){throw 'Native signature inspection omitted its result.'}
+        $slots=@{}
+        foreach($commitment in 'processed','confirmed','finalized'){
+            $slotRequest=@{jsonrpc='2.0';id=1;method='getSlot';params=@(@{commitment=$commitment})} | ConvertTo-Json -Depth 4 -Compress
+            $slotReply=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body $slotRequest -TimeoutSec 3
+            if($slotReply.error -or $null -eq $slotReply.result){throw "Read-only $commitment slot inspection failed."}
+            $slots[$commitment]=$slotReply.result
+        }
+        $votes=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body '{"jsonrpc":"2.0","id":1,"method":"getVoteAccounts"}' -TimeoutSec 3
+        if($votes.error -or $null -eq $votes.result){throw 'Read-only vote account inspection failed.'}
+        $metadata=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body '{"jsonrpc":"2.0","id":1,"method":"getAccountInfo","params":["metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s",{"encoding":"base64","commitment":"finalized"}]}' -TimeoutSec 3
+        if($metadata.error -or $null -eq $metadata.result){throw 'Read-only Metaplex program inspection failed; absence must not be inferred from an RPC error.'}
+        $programProbe=@{Address='metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s';Present=$null -ne $metadata.result.value;
+            Executable=if($null -ne $metadata.result.value){[bool]$metadata.result.value.executable}else{$false};Owner=$metadata.result.value.owner}
+        # Observe the same live validator, without client keys, submissions, warp or reset.
+        $observationDeadline=[DateTime]::UtcNow.AddSeconds($ObservationSeconds)
+        $observedRoots=[Collections.Generic.List[long]]::new()
+        do {
+            Start-Sleep -Seconds 2
+            if($owned.HasExited){throw 'Owned validator exited during read-only consensus observation.'}
+            $rootAfter=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body $slotBody -TimeoutSec 3
+            if($rootAfter.error -or $null -eq $rootAfter.result){throw 'Read-only final root observation failed.'}
+            $observedRoots.Add([long]$rootAfter.result)
+        } while([DateTime]::UtcNow -lt $observationDeadline)
+        @{Genesis=$genesis.result;FinalizedSlot=$initialRoot.result;FinalizedAfterObservation=$rootAfter.result;Slots=$slots;
+            CurrentVotes=@($votes.result.current | Select-Object votePubkey,nodePubkey,activatedStake,lastVote,rootSlot);
+            DelinquentVotes=@($votes.result.delinquent | Select-Object votePubkey,nodePubkey,activatedStake,lastVote,rootSlot);
+            ObservationSeconds=$ObservationSeconds;ObservedFinalizedRoots=@($observedRoots);MetaplexProgram=$programProbe;
+            Count=@($recent.result).Count;Transactions=@($recent.result | Select-Object signature,slot,confirmationStatus,err)} | ConvertTo-Json -Depth 6 -Compress | Write-Output
+        return
+    }
+    Add-Type -Path (Join-Path (Split-Path $project) 'bin/Debug/net10.0/Solnet.Wallet.dll')
+    $secret=[byte[]](Get-Content -LiteralPath '\\wsl.localhost\Ubuntu\var\tmp\oasis-solana\fixture-keypair.json' -Raw | ConvertFrom-Json)
+    $env:SOLANA_PRIVATE_KEY=[Solnet.Wallet.Utilities.Encoders]::Base58.EncodeData($secret)
+    $env:SOLANA_PUBLIC_KEY=[Solnet.Wallet.Utilities.Encoders]::Base58.EncodeData([byte[]]$secret[32..63])
+    $env:SOLANA_RPC_URL='http://127.0.0.1:18899'
+    $env:OASIS_SOLANA_NATIVE_EVIDENCE=$work
+    $env:OASIS_SOLANA_STORAGE_ENCRYPTION_KEY=(Get-Content -LiteralPath '\\wsl.localhost\Ubuntu\var\tmp\oasis-solana\storage-key' -Raw).Trim()
+    $env:OASIS_SOLANA_INDEXED_METADATA=if($IndexedMetadataDemo){'1'}else{'0'}
+    $env:OASIS_SOLANA_INDEXED_HTTP=if($IndexedHttpDemo -or $IndexedMetadataDemo){'1'}else{'0'}
+    $env:OASIS_SOLANA_INDEXED_SERVE=if($ServeIndexedDemo){'1'}else{'0'}
+    $testStarted=[DateTime]::UtcNow
+    $testArguments=@('test',$project,'--no-build','--no-restore','/m:2','/nr:false','--logger',"trx;LogFileName=$nativeReport",'--results-directory',$work,'-v:q')
+    if($IndexedMetadataDemo -or $IndexedHttpDemo -or $IndexedQueryDemo){$testArguments+=@('--filter','TestCategory=SolanaIndexedQueryNative')}
+    elseif($ChainIndexReadOnly){$testArguments+=@('--filter','TestCategory=SolanaChainIndexReadOnly')}
+    elseif($ConformanceReadOnly){$testArguments+=@('--filter','TestCategory=SolanaCoreStorageInspect')}
+    elseif($ConformanceOnly){$testArguments+=@('--filter','TestCategory=SolanaCoreStorageConformance')}
+    elseif($AvatarTransferOnly){$testArguments+=@('--filter','TestCategory=AvatarTransferNative')}
+    elseif($AvatarOnly){$testArguments+=@('--filter','TestCategory=AvatarNative')}
+    elseif($StorageTokenOnly){$testArguments+=@('--filter','TestCategory!=AvatarNative&TestCategory!=NativeFeeReadOnly&TestCategory!=AvatarTransferNative&TestCategory!=SolanaIndexedQueryNative')}
+    elseif($FeeReceiptOnly){$testArguments+=@('--filter','TestCategory=NativeFeeReadOnly')}
+    else{$testArguments+=@('--filter','TestCategory!=NativeFeeReadOnly&TestCategory!=AvatarTransferNative&TestCategory!=SolanaIndexedQueryNative')}
+    if($Diagnostics){$testArguments+=@('--diag',(Join-Path $work 'validator-test-current.diag.log'))}
+    if($ServeIndexedDemo){Write-Output 'After native acceptance, open http://127.0.0.1:5089/ ; POST /demo/shutdown for verified teardown.'}
+    & dotnet @testArguments
+    $testExit=$LASTEXITCODE
+    if($ConformanceOnly){
+        & python -B (Join-Path $taskRoot 'Scripts/Providers/record_conformance_results.py') --providers SOLANAOASIS
+        if($LASTEXITCODE){throw 'Solana canonical report registration failed; preserve exact fixture.'}
+        & python -B (Join-Path $taskRoot 'Scripts/Providers/update_provider_matrix.py')
+        if($LASTEXITCODE){throw 'Solana matrix update failed.'}
+    }
+    if($testExit){throw 'Real Solana integration failed; preserve exact fixture/report, no automatic replay.'}
+    $report=Get-Item -LiteralPath (Join-Path $work $nativeReport)
+    if($report.LastWriteTimeUtc -lt $testStarted){throw 'Integration report is stale.'}
+    [xml]$trx=Get-Content -LiteralPath $report.FullName
+    $counts=$trx.TestRun.ResultSummary.Counters
+    $expected=if($IndexedMetadataDemo -or $IndexedHttpDemo -or $IndexedQueryDemo){1}elseif($ChainIndexReadOnly){1}elseif($ConformanceReadOnly){1}elseif($ConformanceOnly){2}elseif($AvatarTransferOnly){2}elseif($AvatarOnly){2}elseif($StorageTokenOnly){3}elseif($FeeReceiptOnly){1}else{5}
+    if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw "Expected $expected passing native schedules for the selected scope, no skips."}
+    Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
+} finally {
+    if($secret){[Security.Cryptography.CryptographicOperations]::ZeroMemory($secret)}
+    foreach($name in $names){[Environment]::SetEnvironmentVariable($name,$previous[$name])}
+    if($owned -and !$owned.HasExited -and !$nativeId){
+        $ids=@(& wsl -d Ubuntu -- pgrep -x solana-test-val | Where-Object { $_ -match '^\d+$' })
+        if($ids.Count -eq 1){$nativeId=[int]$ids[0]}
+    }
+    if($owned -and !$owned.HasExited -and $nativeId){
+        & wsl -d Ubuntu -- bash -lc "test `"`$(readlink -f /proc/$nativeId/exe)`" = /var/tmp/oasis-runtimes/agave-4.3.0/solana-test-validator && grep -zq /var/tmp/oasis-solana/ledger /proc/$nativeId/cmdline && kill -INT $nativeId"
+        if($LASTEXITCODE){Write-Warning 'Owned native shutdown check failed; no unrelated process stopped.'}
+        elseif(!$owned.WaitForExit(10000)){Write-Warning 'Owned validator has not exited; do not restart or remove its ledger.'}
+    }
+    $lease.Dispose()
+}

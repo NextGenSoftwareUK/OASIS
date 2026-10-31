@@ -28,6 +28,10 @@ Logos/
 **/IntegrationTests/
 **/TestResults/
 
+# Durable provider identities, credentials, native repositories and demo data
+# are deployment state, never local Docker build inputs.
+/LocalState/
+
 # Logs
 *.log
 build.log
@@ -50,7 +54,21 @@ Thumbs.db
 
 # Large directories that aren't needed for build
 Archived/
-External Libs/
+# Keep other external trees out, but this real vendored client is a production ProjectReference.
+External Libs/*
+!External Libs/IpfsSdk.AppReferences.props
+!External Libs/net-ipfs-http-client-master/
+External Libs/net-ipfs-http-client-master/*
+!External Libs/net-ipfs-http-client-master/src/
+!External Libs/net-ipfs-core-0.55.0/
+External Libs/net-ipfs-core-0.55.0/*
+!External Libs/net-ipfs-core-0.55.0/src/
+!External Libs/net-ipfs-core-0.55.0/RuntimeDependencies.props
+!External Libs/net-ipfs-core-0.55.0/LICENSE
+External Libs/net-ipfs-core-0.55.0/src/bin/
+External Libs/net-ipfs-core-0.55.0/src/obj/
+External Libs/net-ipfs-http-client-master/src/bin/
+External Libs/net-ipfs-http-client-master/src/obj/
 lumina-j5-bootstrap/
 
 # Package files

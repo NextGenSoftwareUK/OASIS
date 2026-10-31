@@ -7,6 +7,11 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="RedisCoreStorageConformanceTests.cs" />
+    <Compile Include="RedisCoreStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />

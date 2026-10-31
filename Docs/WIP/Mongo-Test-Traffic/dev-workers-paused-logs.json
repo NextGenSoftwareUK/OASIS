@@ -1,0 +1,42 @@
+[
+  {
+    "Timestamp": "2026-10-20T08:20:58.375485133Z",
+    "Message": " FIRING UP THE OASIS HYPERDRIVE..."
+  },
+  {
+    "Timestamp": "2026-10-20T08:21:05.283514497Z",
+    "Message": "info: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveFanOutHostedService[0]"
+  },
+  {
+    "Timestamp": "2026-10-20T08:21:05.283522951Z",
+    "Message": " OASIS HYPERDRIVE ONLINE."
+  },
+  {
+    "Timestamp": "2026-10-20T08:21:05.283530689Z",
+    "Message": "      Durable hosted HyperDrive synchronization is disabled in OASIS DNA."
+  },
+  {
+    "Timestamp": "2026-10-20T08:21:05.283538589Z",
+    "Message": "info: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveCommandHostedService[0]"
+  },
+  {
+    "Timestamp": "2026-10-20T08:21:05.283547262Z",
+    "Message": "      Durable hosted HyperDrive command execution is disabled in OASIS DNA."
+  },
+  {
+    "Timestamp": "2026-10-20T08:21:05.283555837Z",
+    "Message": "info: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService[0]"
+  },
+  {
+    "Timestamp": "2026-10-20T08:21:05.286003163Z",
+    "Message": "      Hosted HyperDrive domain change capture is disabled in OASIS DNA."
+  },
+  {
+    "Timestamp": "2026-10-20T08:21:05.286009126Z",
+    "Message": "info: NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HyperDriveSyncCompactionHostedService[0]"
+  },
+  {
+    "Timestamp": "2026-10-20T08:21:05.286015352Z",
+    "Message": "      HyperDrive sync-history compaction is disabled in OASIS DNA."
+  }
+]

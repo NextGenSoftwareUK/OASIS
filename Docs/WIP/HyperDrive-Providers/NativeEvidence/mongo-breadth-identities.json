@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-26",
+  "scope": "Initial canonical native Mongo baseline4/52, originalavatar-IDfailure bothmodes",
+  "dependencies": [
+    {
+      "Dependency": "Core",
+      "SHA256": "33244D4FC15529CB10879FB5E53E3C2B5D9DA572FA4EE1448026E9D9A19A11A0",
+      "SourceDocuments": 790
+    },
+    {
+      "Dependency": "Shared",
+      "SHA256": "E82EFBB3612FE8576B834E6A424AC0866F0BC560BDA0F081A246183009B624A5",
+      "SourceDocuments": 56
+    }
+  ],
+  "assemblies": [
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.MongoDBOASIS",
+      "sha256": "FF3BC7B028D1397836EB3DDFF917F35907340A967DA39012194502DE37A4C574",
+      "pdbSha256": "A318C674DD76BC9AC51BAB223F0E2EC3A742C40B611FABE3B3E17E145A46D934",
+      "sources": 124
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.IntegrationTests",
+      "sha256": "4A40DB43C158DF3D304FE6ADEBF15ABB56BA84D11BBA47690A42F13B360464C6",
+      "pdbSha256": "AD4B377D9CE56FEA76D4D2041B19E1D12CE8942BA2D13739CBC3BAE42893D7A3",
+      "sources": 6
+    }
+  ],
+  "fixtureDisposition": "Two saved avatars preserved in fixed per-mode databases; no detail/holon write reached",
+  "shutdown": "Owned server graceful MongoDB.Driver admin shutdown completed; no listener remains",
+  "freeBytes": 127570653184,
+  "trx": {
+    "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/mongo-core-initial-current.trx.gz",
+    "rawBytes": 5594,
+    "rawSha256": "8d9a51d313da7c43a4a4d848ed82bda7b8a759cec36dd0b5fba1e2a5167c9913",
+    "gzipBytes": 1460,
+    "gzipSha256": "5b8f22584f4e57613e643e8e1a7ef405c1eaee3aa1f7927ddb19a5c5d66cb212",
+    "rawRemovedAfterVerifiedCompression": true
+  }
+}

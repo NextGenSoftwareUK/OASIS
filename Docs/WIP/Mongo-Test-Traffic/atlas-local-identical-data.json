@@ -1,0 +1,211 @@
+[
+  {
+    "Label": "Copied matching records",
+    "Collection": "Holon",
+    "Count": 32,
+    "Bytes": 419565,
+    "PayloadHash": "20BD87FC716A29157558F076C10E3FD9360BAD5F03208459DAB98ED7CAE2ADEC"
+  },
+  {
+    "Label": "Full matching records",
+    "Collection": "Holon",
+    "Target": "Atlas",
+    "Pass": 1,
+    "Utc": "2026-10-20T08:42:19.5211606Z",
+    "Milliseconds": 4583.7382,
+    "Count": 32,
+    "Bytes": 419565,
+    "PayloadHash": "20BD87FC716A29157558F076C10E3FD9360BAD5F03208459DAB98ED7CAE2ADEC",
+    "MatchesSnapshot": true
+  },
+  {
+    "Label": "Full matching records",
+    "Collection": "Holon",
+    "Target": "Local",
+    "Pass": 1,
+    "Utc": "2026-10-20T08:42:19.5497739Z",
+    "Milliseconds": 15.3969,
+    "Count": 32,
+    "Bytes": 419565,
+    "PayloadHash": "20BD87FC716A29157558F076C10E3FD9360BAD5F03208459DAB98ED7CAE2ADEC",
+    "MatchesSnapshot": true
+  },
+  {
+    "Label": "Full matching records",
+    "Collection": "Holon",
+    "Target": "Atlas",
+    "Pass": 2,
+    "Utc": "2026-10-20T08:42:24.1644002Z",
+    "Milliseconds": 4610.4514,
+    "Count": 32,
+    "Bytes": 419565,
+    "PayloadHash": "20BD87FC716A29157558F076C10E3FD9360BAD5F03208459DAB98ED7CAE2ADEC",
+    "MatchesSnapshot": true
+  },
+  {
+    "Label": "Full matching records",
+    "Collection": "Holon",
+    "Target": "Local",
+    "Pass": 2,
+    "Utc": "2026-10-20T08:42:24.1707069Z",
+    "Milliseconds": 4.5315,
+    "Count": 32,
+    "Bytes": 419565,
+    "PayloadHash": "20BD87FC716A29157558F076C10E3FD9360BAD5F03208459DAB98ED7CAE2ADEC",
+    "MatchesSnapshot": true
+  },
+  {
+    "Label": "Full matching records",
+    "Collection": "Holon",
+    "Target": "Atlas",
+    "Pass": 3,
+    "Utc": "2026-10-20T08:42:28.751619Z",
+    "Milliseconds": 4574.8999,
+    "Count": 32,
+    "Bytes": 419565,
+    "PayloadHash": "20BD87FC716A29157558F076C10E3FD9360BAD5F03208459DAB98ED7CAE2ADEC",
+    "MatchesSnapshot": true
+  },
+  {
+    "Label": "Full matching records",
+    "Collection": "Holon",
+    "Target": "Local",
+    "Pass": 3,
+    "Utc": "2026-10-20T08:42:28.7554208Z",
+    "Milliseconds": 2.3581,
+    "Count": 32,
+    "Bytes": 419565,
+    "PayloadHash": "20BD87FC716A29157558F076C10E3FD9360BAD5F03208459DAB98ED7CAE2ADEC",
+    "MatchesSnapshot": true
+  },
+  {
+    "Label": "Small projection and server execution",
+    "Collection": "Holon",
+    "Target": "Atlas",
+    "ProjectionMilliseconds": 73.5623,
+    "ProjectionCount": 32,
+    "ExecutionMilliseconds": 1,
+    "Examined": 612
+  },
+  {
+    "Label": "Small projection and server execution",
+    "Collection": "Holon",
+    "Target": "Local",
+    "ProjectionMilliseconds": 1.3415,
+    "ProjectionCount": 32,
+    "ExecutionMilliseconds": 6,
+    "Examined": 32
+  },
+  {
+    "Label": "Copied matching records",
+    "Collection": "AvatarDetail",
+    "Count": 1,
+    "Bytes": 56639,
+    "PayloadHash": "08E473ECEFC3931094F7EBA87AFDAC9ABD67B7ACDEAAB61FB1D3D56E1E0BDB8F"
+  },
+  {
+    "Label": "Full matching records",
+    "Collection": "AvatarDetail",
+    "Target": "Atlas",
+    "Pass": 1,
+    "Utc": "2026-10-20T08:42:30.3846672Z",
+    "Milliseconds": 664.8243,
+    "Count": 1,
+    "Bytes": 56639,
+    "PayloadHash": "08E473ECEFC3931094F7EBA87AFDAC9ABD67B7ACDEAAB61FB1D3D56E1E0BDB8F",
+    "MatchesSnapshot": true
+  },
+  {
+    "Label": "Full matching records",
+    "Collection": "AvatarDetail",
+    "Target": "Local",
+    "Pass": 1,
+    "Utc": "2026-10-20T08:42:30.403636Z",
+    "Milliseconds": 18.418,
+    "Count": 1,
+    "Bytes": 56639,
+    "PayloadHash": "08E473ECEFC3931094F7EBA87AFDAC9ABD67B7ACDEAAB61FB1D3D56E1E0BDB8F",
+    "MatchesSnapshot": true
+  },
+  {
+    "Label": "Full matching records",
+    "Collection": "AvatarDetail",
+    "Target": "Atlas",
+    "Pass": 2,
+    "Utc": "2026-10-20T08:42:31.1196352Z",
+    "Milliseconds": 715.4049,
+    "Count": 1,
+    "Bytes": 56639,
+    "PayloadHash": "08E473ECEFC3931094F7EBA87AFDAC9ABD67B7ACDEAAB61FB1D3D56E1E0BDB8F",
+    "MatchesSnapshot": true
+  },
+  {
+    "Label": "Full matching records",
+    "Collection": "AvatarDetail",
+    "Target": "Local",
+    "Pass": 2,
+    "Utc": "2026-10-20T08:42:31.1218662Z",
+    "Milliseconds": 1.6856,
+    "Count": 1,
+    "Bytes": 56639,
+    "PayloadHash": "08E473ECEFC3931094F7EBA87AFDAC9ABD67B7ACDEAAB61FB1D3D56E1E0BDB8F",
+    "MatchesSnapshot": true
+  },
+  {
+    "Label": "Full matching records",
+    "Collection": "AvatarDetail",
+    "Target": "Atlas",
+    "Pass": 3,
+    "Utc": "2026-10-20T08:42:31.8342809Z",
+    "Milliseconds": 711.8013,
+    "Count": 1,
+    "Bytes": 56639,
+    "PayloadHash": "08E473ECEFC3931094F7EBA87AFDAC9ABD67B7ACDEAAB61FB1D3D56E1E0BDB8F",
+    "MatchesSnapshot": true
+  },
+  {
+    "Label": "Full matching records",
+    "Collection": "AvatarDetail",
+    "Target": "Local",
+    "Pass": 3,
+    "Utc": "2026-10-20T08:42:31.8362506Z",
+    "Milliseconds": 1.3758,
+    "Count": 1,
+    "Bytes": 56639,
+    "PayloadHash": "08E473ECEFC3931094F7EBA87AFDAC9ABD67B7ACDEAAB61FB1D3D56E1E0BDB8F",
+    "MatchesSnapshot": true
+  },
+  {
+    "Label": "Small projection and server execution",
+    "Collection": "AvatarDetail",
+    "Target": "Atlas",
+    "ProjectionMilliseconds": 53.4086,
+    "ProjectionCount": 1,
+    "ExecutionMilliseconds": 0,
+    "Examined": 1
+  },
+  {
+    "Label": "Small projection and server execution",
+    "Collection": "AvatarDetail",
+    "Target": "Local",
+    "ProjectionMilliseconds": 1.0166,
+    "ProjectionCount": 1,
+    "ExecutionMilliseconds": 8,
+    "Examined": 1
+  },
+  {
+    "Label": "Server version",
+    "Target": "Atlas",
+    "Version": "8.0.34"
+  },
+  {
+    "Label": "Server version",
+    "Target": "Local",
+    "Version": "8.3.11"
+  },
+  {
+    "Label": "Cleanup",
+    "LocalDatabaseRemoved": true,
+    "AtlasWrites": 0
+  }
+]

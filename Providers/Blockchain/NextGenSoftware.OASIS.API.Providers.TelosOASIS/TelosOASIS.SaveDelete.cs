@@ -129,6 +129,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
         {
+            return await _eosioOASIS.SaveAvatarAsync(Avatar);
+#pragma warning disable CS0162
             var result = new OASISResult<IAvatar>();
 
             try
@@ -241,6 +243,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             }
 
             return result;
+#pragma warning restore CS0162
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar)
@@ -380,6 +383,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
+            return await _eosioOASIS.DeleteAvatarAsync(id, softDelete);
+#pragma warning disable CS0162
             var result = new OASISResult<bool>();
             try
             {
@@ -442,6 +447,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
                 OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from Telos: {ex.Message}", ex);
             }
             return result;
+#pragma warning restore CS0162
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)

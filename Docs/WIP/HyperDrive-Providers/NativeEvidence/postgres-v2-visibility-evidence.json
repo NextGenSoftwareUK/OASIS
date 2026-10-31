@@ -1,0 +1,7 @@
+{
+  "scope": "Native36/52: test declaration expected visible tombstones but shipping readers hide them; production default unchanged. Native cleanup callback never invoked. All preexisting rows preserved. Same producer/consumer cohort as parent-read identity proof.",
+  "rawBytes": 5494,
+  "gzipBytes": 1478,
+  "sha256": "e37e09a2b95532fabe5e3d66b9986ceac3c18bab348714796e7d4eeefb91c88b",
+  "rawRemovedAfterVerifiedCompression": true
+}

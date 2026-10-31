@@ -45,6 +45,39 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 {
     public partial class TRONOASIS
     {
+        // Identifies this adapter's expected NFT ABI, not a full contract-conformance audit.
+        private static Web3NFT NativeNftDescriptor(string nativeAddress,string metadataUri)=>new()
+        {
+            NFTTokenAddress=nativeAddress,JSONMetaDataURL=metadataUri,
+            OnChainProvider=new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS),
+            NFTStandardType=new EnumValue<NFTStandardType>(Core.Enums.NFTStandardType.TRC721)
+        };
+        /// <summary>Queries one explicit enumerable TRC721 collection. This is not cross-collection discovery.</summary>
+        public async Task<OASISResult<List<IWeb3NFT>>> LoadNFTsForCollectionOwnerAsync(string collectionAddress, string ownerAddress)
+        {
+            var result = new OASISResult<List<IWeb3NFT>>();
+            try
+            {
+                if (string.IsNullOrWhiteSpace(collectionAddress) || string.IsNullOrWhiteSpace(ownerAddress))
+                    throw new ArgumentException("Explicit collection and owner addresses are required.");
+                result.Result = await ExecuteNativeRuntimeAsync(async client =>
+                {
+                    var ids = await client.GetNftIdsForOwnerAsync(collectionAddress, ownerAddress);
+                    var items = new List<IWeb3NFT>();
+                    foreach (var id in ids)
+                        items.Add(NativeNftDescriptor(collectionAddress + "/" + id.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                            await client.GetNftMetadataUriAsync(collectionAddress, id)));
+                    return items;
+                });
+                result.Message = "Native NFT identities and metadata URIs queried for the explicit collection and owner; no OASIS IDs or off-chain metadata are fabricated.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error querying TRON collection inventory: {ex.Message}", ex);
+            }
+            return result;
+        }
+
         public OASISResult<List<IWeb3NFT>> LoadAllNFTsForAvatar(Guid avatarId)
         {
             return LoadAllNFTsForAvatarAsync(avatarId).Result;
@@ -53,133 +86,53 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         public async Task<OASISResult<List<IWeb3NFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId)
         {
             var result = new OASISResult<List<IWeb3NFT>>();
-            string errorMessage = "Error in LoadAllNFTsForAvatarAsync method in TRONOASIS Provider. Reason: ";
-
             try
             {
-                if (avatarId == Guid.Empty)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Avatar ID cannot be empty");
-                    return result;
-                }
-
-                // Get wallet address for the avatar
-                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS, avatarId);
-                if (walletResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to get wallet address: {walletResult.Message}");
-                    return result;
-                }
-
-                var nfts = new List<IWeb3NFT>();
-
-                // Query TRON network for NFTs owned by the avatar's wallet
-                var nftQuery = new
-                {
-                    owner_address = walletResult.Result,
-                    limit = 200,
-                    offset = 0
-                };
-
-                var response = await _httpClient.PostAsync("/wallet/triggerconstantcontract", 
-                    new StringContent(JsonSerializer.Serialize(nftQuery), Encoding.UTF8, "application/json"));
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var nftArray = Newtonsoft.Json.Linq.JArray.Parse(content);
-                    if (nftArray != null)
-                    {
-                        foreach (var nft in nftArray)
-                        {
-                            var oasisNFT = new Web3NFT
-                            {
-                                Id = Guid.NewGuid(),
-                                Title = nft["name"]?.ToString() ?? "TRON NFT",
-                                Description = nft["description"]?.ToString() ?? string.Empty,
-                                ImageUrl = nft["imageUrl"]?.ToString() ?? string.Empty,
-                                NFTTokenAddress = nft["tokenId"]?.ToString() ?? string.Empty,
-                                OASISMintWalletAddress = walletResult.Result?.ToString(),
-                                OnChainProvider = new EnumValue<ProviderType>(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS)
-                            };
-                            nfts.Add(oasisNFT);
-                        }
-                    }
-                }
-
-                result.Result = nfts;
-                result.IsError = false;
+                if (avatarId == Guid.Empty) throw new ArgumentException("Avatar ID is required.");
+                var wallet = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager,
+                    Core.Enums.ProviderType.TRONOASIS, avatarId);
+                if (wallet.IsError || string.IsNullOrWhiteSpace(wallet.Result))
+                    throw new InvalidOperationException("Could not resolve the avatar's TRON wallet.");
+                return await LoadAllNFTsForMintAddressAsync(wallet.Result);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error loading TRON avatar inventory: {ex.Message}", ex);
             }
-
             return result;
         }
 
         public OASISResult<List<IWeb3NFT>> LoadAllNFTsForMintAddress(string mintWalletAddress)
         {
-            return LoadAllNFTsForMintAddressAsync(mintWalletAddress).Result;
+            return LoadAllNFTsForMintAddressAsync(mintWalletAddress).GetAwaiter().GetResult();
         }
 
         public async Task<OASISResult<List<IWeb3NFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress)
         {
             var result = new OASISResult<List<IWeb3NFT>>();
-            string errorMessage = "Error in LoadAllNFTsForMintAddressAsync method in TRONOASIS Provider. Reason: ";
-
             try
             {
-                if (string.IsNullOrEmpty(mintWalletAddress))
+                if (string.IsNullOrWhiteSpace(mintWalletAddress)) throw new ArgumentException("A TRON owner wallet is required.");
+                result.Result = await ExecuteNativeRuntimeAsync(async client =>
                 {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Mint wallet address cannot be null or empty");
-                    return result;
-                }
-
-                var nfts = new List<IWeb3NFT>();
-
-                // Query TRON network for NFTs owned by the mint address
-                var nftQuery = new
-                {
-                    owner_address = mintWalletAddress,
-                    limit = 200,
-                    offset = 0
-                };
-
-                var response = await _httpClient.PostAsync("/wallet/triggerconstantcontract", 
-                    new StringContent(JsonSerializer.Serialize(nftQuery), Encoding.UTF8, "application/json"));
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var nftArray = Newtonsoft.Json.Linq.JArray.Parse(content);
-                    if (nftArray != null)
+                    var history = await new TronGridTokenHistoryClient(_httpClient, client.ExpectedGenesisBlockId)
+                        .ReadAsync(mintWalletAddress, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+                    var addresses = await client.GetIndexedOwnedNftAddressesAsync(mintWalletAddress,
+                        history.Select(record => record.GetProperty("transaction_id").GetString()));
+                    var items = new List<IWeb3NFT>();
+                    foreach (var address in addresses)
                     {
-                        foreach (var nft in nftArray)
-                        {
-                            var oasisNFT = new Web3NFT
-                            {
-                                Id = Guid.NewGuid(),
-                                Title = nft["name"]?.ToString() ?? "TRON NFT",
-                                Description = nft["description"]?.ToString() ?? string.Empty,
-                                ImageUrl = nft["imageUrl"]?.ToString() ?? string.Empty,
-                                NFTTokenAddress = nft["tokenId"]?.ToString() ?? string.Empty,
-                                OASISMintWalletAddress = mintWalletAddress,
-                                OnChainProvider = new EnumValue<ProviderType>(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS)
-                            };
-                            nfts.Add(oasisNFT);
-                        }
+                        var asset = TronNativeTransferClient.ParseNftAddress(address);
+                        items.Add(NativeNftDescriptor(address,await client.GetNftMetadataUriAsync(asset.Contract, asset.TokenId)));
                     }
-                }
-
-                result.Result = nfts;
-                result.IsError = false;
+                    return items;
+                });
+                result.Message = "Native NFT identities replayed from solidified receipt order and checked against current ownership and collection balances; indexer coverage and block-pinned completeness are not guaranteed.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error loading TRON indexed inventory: {ex.Message}", ex);
             }
-
             return result;
         }
 
@@ -236,55 +189,21 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         // }
 
         public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
-        {
-            var response = new OASISResult<IWeb3NFT>();
-            try
-            {
-                // Load NFT data from TRON blockchain using TronWeb API
-                // This would query TRON smart contracts for NFT metadata
-                var nft = new Web3NFT
-                {
-                    NFTTokenAddress = nftTokenAddress,
-                    JSONMetaDataURL = $"https://api.trongrid.io/v1/contracts/{nftTokenAddress}/tokens",
-                    Title = "TRON NFT",
-                    Description = "NFT from TRON blockchain",
-                    ImageUrl = "https://tronscan.org/images/logo.png"
-                };
-
-                response.Result = nft;
-                response.Message = "NFT data loaded from TRON blockchain successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading NFT data from TRON: {ex.Message}");
-            }
-            return response;
-        }
+            => LoadOnChainNFTDataAsync(nftTokenAddress).GetAwaiter().GetResult();
 
         public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
             var response = new OASISResult<IWeb3NFT>();
             try
             {
-                // Load NFT data from TRON blockchain using TronWeb API
-                // This would query TRON smart contracts for NFT metadata
-                var nft = new Web3NFT
-                {
-                    NFTTokenAddress = nftTokenAddress,
-                    JSONMetaDataURL = $"https://api.trongrid.io/v1/contracts/{nftTokenAddress}/tokens",
-                    Title = "TRON NFT",
-                    Description = "NFT from TRON blockchain",
-                    ImageUrl = "https://tronscan.org/images/logo.png"
-                };
-
-                response.Result = nft;
-                response.Message = "NFT data loaded from TRON blockchain successfully";
+                var asset = TronNativeTransferClient.ParseNftAddress(nftTokenAddress);
+                var uri = await ExecuteNativeRuntimeAsync(client => client.GetNftMetadataUriAsync(asset.Contract, asset.TokenId));
+                response.Result = NativeNftDescriptor(nftTokenAddress,uri);
+                response.Message = "TRC721 existence and metadata URI queried through the verified SDK node; off-chain metadata is not fetched.";
             }
             catch (Exception ex)
             {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading NFT data from TRON: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error loading NFT data from TRON: {ex.Message}", ex);
             }
             return response;
         }
@@ -297,43 +216,32 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+            return await ExecuteOwnedNftEscrowAsync(request?.LockedByAvatarId ?? Guid.Empty, request?.NFTTokenAddress, false);
+        }
+
+        private async Task<OASISResult<IWeb3NFTTransactionResponse>> ExecuteOwnedNftEscrowAsync(Guid avatarId, string nftAddress, bool unlock)
+        {
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var bridgePoolAddress = _contractAddress ?? "" ?? "TQn9Y2khEsLMWDmP8KpVJwqBvZ9XKzF8XK";
-                var sendRequest = new SendWeb3NFTRequest
-                {
-                    FromNFTTokenAddress = request.NFTTokenAddress,
-                    FromWalletAddress = string.Empty,
-                    ToWalletAddress = bridgePoolAddress,
-                    TokenAddress = request.NFTTokenAddress,
-                    TokenId = request.Web3NFTId.ToString(),
-                    Amount = 1
-                };
-
-                var sendResult = await SendNFTAsync(sendRequest);
-                if (sendResult.IsError || sendResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {sendResult.Message}", sendResult.Exception);
-                    return result;
-                }
-
-                result.IsError = false;
-                result.Result.TransactionResult = sendResult.Result.TransactionResult;
+                if (avatarId == Guid.Empty) throw new ArgumentException("An avatar ID is required for NFT depositor signing.");
+                TronNativeTransferClient.ParseNftAddress(nftAddress);
+                if (string.IsNullOrWhiteSpace(_escrowContractAddress))
+                    throw new InvalidOperationException("A separate EscrowContractAddress with NFT escrow support must be configured.");
+                var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(avatarId,
+                    Core.Enums.ProviderType.TRONOASIS, showPrivateKeys: true);
+                if (wallet.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IProviderWallet,IWeb3NFTTransactionResponse>(wallet);
+                if (wallet.Result == null || wallet.Result.AvatarId != avatarId || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
+                    throw new InvalidOperationException("Could not resolve the avatar's TRON depositor signing wallet.");
+                var hash = await ExecuteNativeRuntimeAsync(client => client.ExecuteNftEscrowAsync(wallet.Result.WalletAddress,
+                    _escrowContractAddress, nftAddress, wallet.Result.PrivateKey, unlock));
+                result.Result = new Web3NFTTransactionResponse {TransactionResult=hash};
+                result.Message = "Depositor-owned NFT escrow operation confirmed by solidified contract receipt.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error locking NFT: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error executing owned NFT escrow: {ex.Message}", ex);
             }
             return result;
         }
@@ -345,45 +253,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var bridgePoolAddress = _contractAddress ?? "" ?? "TQn9Y2khEsLMWDmP8KpVJwqBvZ9XKzF8XK";
-                var sendRequest = new SendWeb3NFTRequest
-                {
-                    FromNFTTokenAddress = request.NFTTokenAddress,
-                    FromWalletAddress = bridgePoolAddress,
-                    ToWalletAddress = string.Empty,
-                    TokenAddress = request.NFTTokenAddress,
-                    TokenId = request.Web3NFTId.ToString(),
-                    Amount = 1
-                };
-
-                var sendResult = await SendNFTAsync(sendRequest);
-                if (sendResult.IsError || sendResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to unlock NFT: {sendResult.Message}", sendResult.Exception);
-                    return result;
-                }
-
-                result.IsError = false;
-                result.Result.TransactionResult = sendResult.Result.TransactionResult;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error unlocking NFT: {ex.Message}", ex);
-            }
-            return result;
+            return await ExecuteOwnedNftEscrowAsync(request?.UnlockedByAvatarId ?? Guid.Empty, request?.NFTTokenAddress, true);
         }
 
         // NFT Bridge Methods
@@ -392,62 +262,36 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
+                if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(senderAccountAddress)
+                    || string.IsNullOrWhiteSpace(senderPrivateKey))
+                    throw new ArgumentException("NFT contract, sender and private signing key are required.");
+                if (!System.Text.RegularExpressions.Regex.IsMatch(tokenId ?? "", "\\A[0-9]+\\z")
+                    || !System.Numerics.BigInteger.TryParse(tokenId, out var nativeId)
+                    || nativeId >= (System.Numerics.BigInteger.One << 256))
+                    throw new ArgumentException("NFT token ID must be an explicit unsigned uint256 decimal value.");
+                if (string.IsNullOrWhiteSpace(_bridgePoolWalletAddress))
+                    throw new InvalidOperationException("BridgePoolWalletAddress must identify the NFT custody wallet separately from token contracts.");
+                var transfer = await SendNFTAsync(new SendWeb3NFTRequest
                 {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) || 
-                    string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
+                    TokenAddress = nftTokenAddress, TokenId = tokenId,
+                    FromWalletAddress = senderAccountAddress, ToWalletAddress = _bridgePoolWalletAddress,
+                    OwnerPrivateKey = senderPrivateKey, Amount = 1
+                });
+                if (transfer == null || transfer.IsError || string.IsNullOrWhiteSpace(transfer.Result?.TransactionResult))
                 {
-                    OASISErrorHandling.HandleError(ref result, "NFT token address, token ID, sender address, and private key are required");
+                    OASISErrorHandling.HandleError(ref result, transfer?.Message ?? "NFT custody transfer returned no confirmed receipt.", transfer?.Exception);
                     return result;
                 }
-
-                var lockRequest = new LockWeb3NFTRequest
-                {
-                    NFTTokenAddress = nftTokenAddress,
-                    Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
-                    LockedByAvatarId = Guid.Empty
-                };
-
-                var lockResult = await LockNFTAsync(lockRequest);
-                if (lockResult.IsError || lockResult.Result == null)
-                {
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = string.Empty,
-                        IsSuccessful = false,
-                        ErrorMessage = lockResult.Message,
-                        Status = BridgeTransactionStatus.Canceled
-                    };
-                    OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {lockResult.Message}");
-                    return result;
-                }
-
                 result.Result = new BridgeTransactionResponse
                 {
-                    TransactionId = lockResult.Result.TransactionResult ?? string.Empty,
-                    IsSuccessful = !lockResult.IsError,
-                    Status = BridgeTransactionStatus.Pending
+                    TransactionId = transfer.Result.TransactionResult,
+                    IsSuccessful = true, Status = BridgeTransactionStatus.Completed
                 };
-                result.IsError = false;
+                result.Message = "Original TRC721 NFT transfer into custody confirmed; cross-chain settlement is separate.";
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error withdrawing NFT: {ex.Message}", ex);
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = ex.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
             }
             return result;
         }
@@ -457,59 +301,36 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
                 if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
+                    throw new ArgumentException("NFT contract and explicit receiver address are required.");
+                if (!System.Text.RegularExpressions.Regex.IsMatch(tokenId ?? "", "\\A[0-9]+\\z")
+                    || !System.Numerics.BigInteger.TryParse(tokenId, out var nativeId)
+                    || nativeId >= (System.Numerics.BigInteger.One << 256))
+                    throw new ArgumentException("NFT token ID must be an explicit unsigned uint256 decimal value.");
+                if (!string.IsNullOrWhiteSpace(sourceTransactionHash))
+                    throw new ArgumentException("Receipt-bound NFT release requires source-chain proof validation; this native custody operation cannot ignore a supplied receipt.");
+                if (string.IsNullOrWhiteSpace(_bridgePoolWalletAddress))
+                    throw new InvalidOperationException("BridgePoolWalletAddress must identify the NFT custody wallet separately from token contracts.");
+                var hash = await ExecuteNativeRuntimeAsync(async client =>
                 {
-                    OASISErrorHandling.HandleError(ref result, "NFT token address and receiver address are required");
-                    return result;
-                }
-
-                var mintRequest = new MintWeb3NFTRequest
-                {
-                    SendToAddressAfterMinting = receiverAccountAddress,
-                };
-
-                var mintResult = await MintNFTAsync(mintRequest);
-                if (mintResult.IsError || mintResult.Result == null)
-                {
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = string.Empty,
-                        IsSuccessful = false,
-                        ErrorMessage = mintResult.Message,
-                        Status = BridgeTransactionStatus.Canceled
-                    };
-                    OASISErrorHandling.HandleError(ref result, $"Failed to deposit/mint NFT: {mintResult.Message}");
-                    return result;
-                }
+                    if (_nativeSigningKeyResolver == null)
+                        throw new InvalidOperationException("NFT custody signing credentials are not configured.");
+                    var signingKey = await _nativeSigningKeyResolver(_bridgePoolWalletAddress);
+                    return await client.SendNftAsync(_bridgePoolWalletAddress, receiverAccountAddress,
+                        nftTokenAddress, nativeId, signingKey);
+                });
 
                 result.Result = new BridgeTransactionResponse
                 {
-                    TransactionId = mintResult.Result.TransactionResult ?? string.Empty,
-                    IsSuccessful = !mintResult.IsError,
-                    Status = BridgeTransactionStatus.Pending
+                    TransactionId = hash,
+                    IsSuccessful = true,
+                    Status = BridgeTransactionStatus.Completed
                 };
-                result.IsError = false;
+                result.Message = "Original TRC721 NFT transfer out of custody confirmed; coordinator authorization and cross-chain settlement are separate.";
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error depositing NFT: {ex.Message}", ex);
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = ex.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
             }
             return result;
         }

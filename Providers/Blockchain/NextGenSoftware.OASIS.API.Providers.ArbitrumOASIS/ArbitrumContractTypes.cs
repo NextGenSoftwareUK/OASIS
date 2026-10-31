@@ -355,7 +355,7 @@ public class GetHolonsCountFunction : FunctionMessage
 
 /// <summary>
 /// Lightweight Arbitrum provider using Web3CoreOASISBaseProvider and the generic Web3Core contract.
-/// Use this once the generic Web3CoreOASIS.sol contract is deployed to Arbitrum. Until then, use <see cref="ArbitrumOASIS"/> (live/deployed).
+/// Requires an explicitly configured compatible Web3CoreOASIS.sol deployment; it does not certify the legacy provider or a hosted deployment.
 /// </summary>
 public sealed class ArbitrumOASIS_Web3Core : Web3CoreOASISBaseProvider,
     IOASISDBStorageProvider,
@@ -367,8 +367,9 @@ public sealed class ArbitrumOASIS_Web3Core : Web3CoreOASISBaseProvider,
     public ArbitrumOASIS_Web3Core(
         string hostUri = "https://arb1.arbitrum.io/rpc",
         string chainPrivateKey = "",
-        string contractAddress = "")
-        : base(hostUri, chainPrivateKey, contractAddress)
+        string contractAddress = "",
+        BigInteger? expectedChainId = null)
+        : base(hostUri, chainPrivateKey, contractAddress, expectedChainId ?? new BigInteger(42161))
     {
         ProviderName = "ArbitrumOASIS";
         ProviderDescription = "Arbitrum Provider - Ethereum Layer 2 scaling solution using Web3Core";

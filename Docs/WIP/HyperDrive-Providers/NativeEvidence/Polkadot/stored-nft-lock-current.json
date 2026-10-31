@@ -1,0 +1,45 @@
+{
+  "gate": 15710,
+  "terminalExitCode": 0,
+  "corePassed": 3433,
+  "providerPassed": 347,
+  "onodeNftPassed": 119,
+  "skipped": 0,
+  "coreTargets": [
+    "netstandard2.1",
+    "net10.0"
+  ],
+  "binarySha256": {
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Core.dll": "1902F73B625DC2F9F9FC537DEC652F71F7E79FA39666869F0C444415E3888B0E",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core/bin/Debug/netstandard2.1/NextGenSoftware.OASIS.API.Core.dll": "08375C1D86D420BD227F6074298E5C8CDB3DC3AFDDD1D5F504250E3D8723F7A4",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Core.dll": "1902F73B625DC2F9F9FC537DEC652F71F7E79FA39666869F0C444415E3888B0E",
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.dll": "62610A2AE7B0BB21B144A2B1F72077C06EF5054138D30BA21633F30DEE2918F5",
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Core.dll": "1902F73B625DC2F9F9FC537DEC652F71F7E79FA39666869F0C444415E3888B0E",
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.dll": "62610A2AE7B0BB21B144A2B1F72077C06EF5054138D30BA21633F30DEE2918F5",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.Core/bin/Debug/net10.0/NextGenSoftware.OASIS.API.ONODE.Core.dll": "FA849FEE70DD0BED555DEAF40FADC7D24C711AAD4E162901F258629AFF0CCAEF",
+    "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Core.dll": "1902F73B625DC2F9F9FC537DEC652F71F7E79FA39666869F0C444415E3888B0E",
+    "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.ONODE.Core.dll": "FA849FEE70DD0BED555DEAF40FADC7D24C711AAD4E162901F258629AFF0CCAEF"
+  },
+  "sourceSha256": {
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Helpers/NFT/Web3NftMetadata.cs": "1E67C55E4D0263B95AB05894A940943B1660C6990AC024D1C2783E8E90BDE0CB",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/Web3NftMetadataTests.cs": "3F3AE971D2F121295FEFB27936B52011B9EA3847B0563D7111669DDCCCF17CA3",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/NFTManager.Bridge2.cs": "7C89C708F4ED737EDE5CA8072353513549D4C4339DA457DEF4AC21651BDD4DF9",
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/PolkadotOASIS.NftCustody.cs": "22AE2C33B536D534D6C7926D95CF84DAD401D74446BFA3F8325C584ABD78C75F",
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/PolkadotOASIS.AvatarDetail.cs": "F3B1BFDACF410C140B2D5B76EE0157C2A0690EFB31CC4FACBB19B636CD2F1B77",
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests/PolkadotNftMutationTests.cs": "3A2CCB5D0C4B742F74BE215F70CA0C7ADD75BFF6BA7E7AFFA2CE692B3C65F706",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/OASIS HyperDrive/OASISHyperDrive.cs": "0220CAF390BA767DB714449E9D6066327717C55C1B6325C68E494FEEDE97094B",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonManager-ConditionalRecovery.cs": "72FA1A709195B60D312C6516BF727ED072258292630AA1B43911C0BD6C28CD6A",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/StorageAttemptTariff.cs": "2248AD436C370C1B327C61820B46DC166B53911E14F187F0415B1099D13A3AEC"
+  },
+  "nativeLockVerified": false,
+  "hostedAdmissionVerified": false,
+  "scope": "Controlled stored-NFT lock adapter and shared decoder. Core cohort includes peer unpublished routing changes; hashes describe tested sources, not the baseline commit alone.",
+  "fullCoreReport": {
+    "gzipBytes": 885851,
+    "rawSha256": "9E2E43CB4DEB2D29579D32BC83E5E85F894A6490917F5F038F9A8A316963C279",
+    "terminalExitCode": 0,
+    "gate": 11080,
+    "rawBytes": 5479872,
+    "path": "shared-nft-core-current.trx.gz"
+  }
+}

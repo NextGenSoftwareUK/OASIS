@@ -1,0 +1,41 @@
+{
+  "sourceDocumentsVerified": {
+    "Core": 785,
+    "Shared": 56,
+    "NEARProvider": 21,
+    "NEARUnit": 39,
+    "NEARIntegration": 13
+  },
+  "capturedDependencies": {
+    "Core": "813b395f2e90aa8fc97d4e4bd0093a7e2cbd68a58811727d9889146c8655233f",
+    "Shared": "e564ee7d4d19ca2de123d9cea8aef61cab5c0fa8fd970d7b34c12d704ba973e7"
+  },
+  "outputs": {
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS": {
+      "assemblySha256": "84ce6cc166f69d49a8bbc9e3fc79c0385ca8e04773f927079f43797b82985d98",
+      "bytes": {
+        "bin": 7680715,
+        "obj": 960273
+      }
+    },
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests": {
+      "assemblySha256": "0cd5422820d2bad6a84b6bc8eae4452bd0c2ceca2fb0dc77e8d9da0084d1d1a9",
+      "bytes": {
+        "bin": 46803050,
+        "obj": 1152466
+      }
+    },
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests": {
+      "assemblySha256": "78e40e22cd16d400e5751539b7567a003f79a60df99f9724377731b43c076210",
+      "bytes": {
+        "bin": 46772440,
+        "obj": 1061849
+      }
+    }
+  },
+  "tokensBurntYocto": "10766185771346600000000",
+  "nativeOriginals": 8,
+  "expectedNativeFailures": 1,
+  "sameRetainedAccount": true,
+  "hostedVerified": false
+}

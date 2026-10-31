@@ -1,0 +1,902 @@
+[
+  {
+    "owner": "COSMIC ORM",
+    "id": "microsoft.netcore.targets",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\microsoft.netcore.targets\\1.0.1",
+    "state": "active/reusable",
+    "version": "1.0.1",
+    "bytes": 52834.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "microsoft.win32.primitives",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\microsoft.win32.primitives\\4.0.1",
+    "state": "active/reusable",
+    "version": "4.0.1",
+    "bytes": 178214.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "runtime.native.system",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\runtime.native.system\\4.0.0",
+    "state": "active/reusable",
+    "version": "4.0.0",
+    "bytes": 38877.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "runtime.native.system.io.compression",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\runtime.native.system.io.compression\\4.1.0",
+    "state": "active/reusable",
+    "version": "4.1.0",
+    "bytes": 38972.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "runtime.native.system.security.cryptography.apple",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\runtime.native.system.security.cryptography.apple\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 39022.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "runtime.osx.10.10-x64.runtime.native.system.security.cryptography.apple",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\runtime.osx.10.10-x64.runtime.native.system.security.cryptography.apple\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 55653.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.appcontext",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.appcontext\\4.1.0",
+    "state": "active/reusable",
+    "version": "4.1.0",
+    "bytes": 410617.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.buffers",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.buffers\\4.0.0",
+    "state": "active/reusable",
+    "version": "4.0.0",
+    "bytes": 96196.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.buffers",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.buffers\\4.5.1",
+    "state": "active/reusable",
+    "version": "4.5.1",
+    "bytes": 260178.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.buffers",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.buffers\\4.6.1",
+    "state": "active/reusable",
+    "version": "4.6.1",
+    "bytes": 172682.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.collections",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.collections\\4.0.11",
+    "state": "active/reusable",
+    "version": "4.0.11",
+    "bytes": 10403060.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.collections",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.collections\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 10403060.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.collections.concurrent",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.collections.concurrent\\4.0.12",
+    "state": "active/reusable",
+    "version": "4.0.12",
+    "bytes": 4974744.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.collections.concurrent",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.collections.concurrent\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 4974751.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.console",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.console\\4.0.0",
+    "state": "active/reusable",
+    "version": "4.0.0",
+    "bytes": 565199.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.diagnostics.debug",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.diagnostics.debug\\4.0.11",
+    "state": "active/reusable",
+    "version": "4.0.11",
+    "bytes": 1236040.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.diagnostics.debug",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.diagnostics.debug\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 1236035.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.diagnostics.tools",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.diagnostics.tools\\4.0.1",
+    "state": "active/reusable",
+    "version": "4.0.1",
+    "bytes": 214336.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.diagnostics.tracing",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.diagnostics.tracing\\4.1.0",
+    "state": "active/reusable",
+    "version": "4.1.0",
+    "bytes": 4171029.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.diagnostics.tracing",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.diagnostics.tracing\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 4171055.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.dynamic.runtime",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.dynamic.runtime\\4.0.11",
+    "state": "active/reusable",
+    "version": "4.0.11",
+    "bytes": 4522800.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.globalization",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.globalization\\4.0.11",
+    "state": "active/reusable",
+    "version": "4.0.11",
+    "bytes": 6589823.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.globalization",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.globalization\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 6589819.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.globalization.calendars",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.globalization.calendars\\4.0.1",
+    "state": "active/reusable",
+    "version": "4.0.1",
+    "bytes": 2274394.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.globalization.calendars",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.globalization.calendars\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 2274463.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.globalization.extensions",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.globalization.extensions\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 510632.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.io",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.io\\4.1.0",
+    "state": "active/reusable",
+    "version": "4.1.0",
+    "bytes": 9018323.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.io",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.io\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 9018322.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.io.compression",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.io.compression\\4.1.0",
+    "state": "active/reusable",
+    "version": "4.1.0",
+    "bytes": 2209262.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.io.compression.zipfile",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.io.compression.zipfile\\4.0.1",
+    "state": "active/reusable",
+    "version": "4.0.1",
+    "bytes": 630834.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.io.filesystem",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.io.filesystem\\4.0.1",
+    "state": "active/reusable",
+    "version": "4.0.1",
+    "bytes": 3527227.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.io.filesystem",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.io.filesystem\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 3527270.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.io.filesystem.primitives",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.io.filesystem.primitives\\4.0.1",
+    "state": "active/reusable",
+    "version": "4.0.1",
+    "bytes": 318172.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.io.filesystem.primitives",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.io.filesystem.primitives\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 318248.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.linq",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.linq\\4.1.0",
+    "state": "active/reusable",
+    "version": "4.1.0",
+    "bytes": 6386803.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.linq",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.linq\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 6389009.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.linq.expressions",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.linq.expressions\\4.1.0",
+    "state": "active/reusable",
+    "version": "4.1.0",
+    "bytes": 25260538.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.memory",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.memory\\4.5.5",
+    "state": "active/reusable",
+    "version": "4.5.5",
+    "bytes": 715333.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.memory",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.memory\\4.6.3",
+    "state": "active/reusable",
+    "version": "4.6.3",
+    "bytes": 935640.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.net.primitives",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.net.primitives\\4.0.11",
+    "state": "active/reusable",
+    "version": "4.0.11",
+    "bytes": 5892219.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.net.primitives",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.net.primitives\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 5892211.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.net.sockets",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.net.sockets\\4.1.0",
+    "state": "active/reusable",
+    "version": "4.1.0",
+    "bytes": 789537.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.numerics.vectors",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.numerics.vectors\\4.4.0",
+    "state": "active/reusable",
+    "version": "4.4.0",
+    "bytes": 2354650.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.objectmodel",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.objectmodel\\4.0.12",
+    "state": "active/reusable",
+    "version": "4.0.12",
+    "bytes": 2679338.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.reflection",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.reflection\\4.1.0",
+    "state": "active/reusable",
+    "version": "4.1.0",
+    "bytes": 5281155.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.reflection",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.reflection\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 5281157.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.reflection.emit",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.reflection.emit\\4.0.1",
+    "state": "active/reusable",
+    "version": "4.0.1",
+    "bytes": 1904498.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.reflection.emit",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.reflection.emit\\4.7.0",
+    "state": "active/reusable",
+    "version": "4.7.0",
+    "bytes": 3374227.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.reflection.emit.ilgeneration",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.reflection.emit.ilgeneration\\4.0.1",
+    "state": "active/reusable",
+    "version": "4.0.1",
+    "bytes": 797011.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.reflection.emit.lightweight",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.reflection.emit.lightweight\\4.0.1",
+    "state": "active/reusable",
+    "version": "4.0.1",
+    "bytes": 407195.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.reflection.extensions",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.reflection.extensions\\4.0.1",
+    "state": "active/reusable",
+    "version": "4.0.1",
+    "bytes": 1086801.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.reflection.extensions",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.reflection.extensions\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 1086799.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.reflection.primitives",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.reflection.primitives\\4.0.1",
+    "state": "active/reusable",
+    "version": "4.0.1",
+    "bytes": 2283048.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.reflection.primitives",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.reflection.primitives\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 2283050.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.reflection.typeextensions",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.reflection.typeextensions\\4.1.0",
+    "state": "active/reusable",
+    "version": "4.1.0",
+    "bytes": 642993.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.resources.resourcemanager",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.resources.resourcemanager\\4.0.1",
+    "state": "active/reusable",
+    "version": "4.0.1",
+    "bytes": 341889.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.resources.resourcemanager",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.resources.resourcemanager\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 341880.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.runtime",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.runtime\\4.1.0",
+    "state": "active/reusable",
+    "version": "4.1.0",
+    "bytes": 88090045.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.runtime",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.runtime\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 88090104.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.runtime.compilerservices.unsafe",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\4.5.3",
+    "state": "active/reusable",
+    "version": "4.5.3",
+    "bytes": 354673.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.runtime.extensions",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.runtime.extensions\\4.1.0",
+    "state": "active/reusable",
+    "version": "4.1.0",
+    "bytes": 14569194.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.runtime.extensions",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.runtime.extensions\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 14569244.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.runtime.handles",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.runtime.handles\\4.0.1",
+    "state": "active/reusable",
+    "version": "4.0.1",
+    "bytes": 239771.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.runtime.handles",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.runtime.handles\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 239770.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.runtime.interopservices",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.runtime.interopservices\\4.1.0",
+    "state": "active/reusable",
+    "version": "4.1.0",
+    "bytes": 23611220.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.runtime.interopservices",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.runtime.interopservices\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 23776564.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.runtime.interopservices.runtimeinformation",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.runtime.interopservices.runtimeinformation\\4.0.0",
+    "state": "active/reusable",
+    "version": "4.0.0",
+    "bytes": 469732.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.runtime.interopservices.runtimeinformation",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.runtime.interopservices.runtimeinformation\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 506448.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.runtime.numerics",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.runtime.numerics\\4.0.1",
+    "state": "active/reusable",
+    "version": "4.0.1",
+    "bytes": 2433075.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.runtime.numerics",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.runtime.numerics\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 2433126.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.security.cryptography.algorithms",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.security.cryptography.algorithms\\4.2.0",
+    "state": "active/reusable",
+    "version": "4.2.0",
+    "bytes": 1112596.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.security.cryptography.algorithms",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.security.cryptography.algorithms\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 1256459.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.security.cryptography.csp",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.security.cryptography.csp\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 331698.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.security.cryptography.encoding",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.security.cryptography.encoding\\4.0.0",
+    "state": "active/reusable",
+    "version": "4.0.0",
+    "bytes": 539851.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.security.cryptography.encoding",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.security.cryptography.encoding\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 540074.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.security.cryptography.primitives",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.security.cryptography.primitives\\4.0.0",
+    "state": "active/reusable",
+    "version": "4.0.0",
+    "bytes": 222558.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.security.cryptography.primitives",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.security.cryptography.primitives\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 222611.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.text.encoding",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.text.encoding\\4.0.11",
+    "state": "active/reusable",
+    "version": "4.0.11",
+    "bytes": 3558857.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.text.encoding",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.text.encoding\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 3558851.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.text.encoding.extensions",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.text.encoding.extensions\\4.0.11",
+    "state": "active/reusable",
+    "version": "4.0.11",
+    "bytes": 3719796.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.text.regularexpressions",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.text.regularexpressions\\4.1.0",
+    "state": "active/reusable",
+    "version": "4.1.0",
+    "bytes": 4592851.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.threading",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.threading\\4.0.11",
+    "state": "active/reusable",
+    "version": "4.0.11",
+    "bytes": 7119221.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.threading",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.threading\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 7119268.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.threading.tasks",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.threading.tasks\\4.0.11",
+    "state": "active/reusable",
+    "version": "4.0.11",
+    "bytes": 13467254.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.threading.tasks",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.threading.tasks\\4.3.0",
+    "state": "active/reusable",
+    "version": "4.3.0",
+    "bytes": 13467251.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.threading.tasks.extensions",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.threading.tasks.extensions\\4.0.0",
+    "state": "active/reusable",
+    "version": "4.0.0",
+    "bytes": 148126.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.threading.tasks.extensions",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.threading.tasks.extensions\\4.5.4",
+    "state": "active/reusable",
+    "version": "4.5.4",
+    "bytes": 273134.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.threading.timer",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.threading.timer\\4.0.1",
+    "state": "active/reusable",
+    "version": "4.0.1",
+    "bytes": 288890.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.xml.readerwriter",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.xml.readerwriter\\4.0.11",
+    "state": "active/reusable",
+    "version": "4.0.11",
+    "bytes": 12365509.0
+  },
+  {
+    "owner": "COSMIC ORM",
+    "id": "system.xml.xdocument",
+    "purpose": "required original Core netstandard2.1 dependency graph",
+    "date": "2026-10-26",
+    "path": "C:\\Users\\david\\.nuget\\packages\\system.xml.xdocument\\4.0.11",
+    "state": "active/reusable",
+    "version": "4.0.11",
+    "bytes": 5987395.0
+  }
+]

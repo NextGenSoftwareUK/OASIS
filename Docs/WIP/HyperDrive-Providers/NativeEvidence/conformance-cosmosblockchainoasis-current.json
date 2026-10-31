@@ -1,0 +1,51 @@
+{
+  "suite": "core-storage-v2",
+  "runs": [
+    {
+      "SuiteVersion": "core-storage-v2",
+      "Provider": "CosmosBlockChainOASIS",
+      "Mode": "native",
+      "Synchronous": false,
+      "OwnerId": "9708e74e-9b1f-46b6-8073-81fc162c9dbf",
+      "RootId": "33305e84-7a48-42b1-abe2-8c8e9736c978",
+      "ChildId": "0c9a4231-42d7-4f7a-abff-beb7803fcd4f",
+      "BatchIds": [
+        "f4685dbe-c05e-4995-ab76-319f41aaab9d",
+        "abfb2a90-18f7-452e-95a1-376096094456"
+      ],
+      "ImportId": "76f39caf-779a-4a98-a412-4764c5c06377",
+      "Passed": [],
+      "CurrentCase": "configuration",
+      "FailureType": "System.InvalidOperationException",
+      "DeletionKinds": {},
+      "HardCleanedFixtures": [],
+      "ExpectedDefaultDeletion": null,
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": false,
+      "Succeeded": false
+    },
+    {
+      "SuiteVersion": "core-storage-v2",
+      "Provider": "CosmosBlockChainOASIS",
+      "Mode": "native",
+      "Synchronous": true,
+      "OwnerId": "bd0c6da3-9761-4a0b-920a-854eecc8e38f",
+      "RootId": "ffdb3b23-386c-4cdf-a264-2b6302d51fc3",
+      "ChildId": "016d1860-1914-4c83-8679-7ad3c052708b",
+      "BatchIds": [
+        "84868edf-286c-4059-9fb0-35e5ecf6c093",
+        "19dbe661-e8e2-4d77-a42f-a1d619b6a992"
+      ],
+      "ImportId": "43613e96-2d30-46c1-a19b-486ad7e736d0",
+      "Passed": [],
+      "CurrentCase": "configuration",
+      "FailureType": "System.InvalidOperationException",
+      "DeletionKinds": {},
+      "HardCleanedFixtures": [],
+      "ExpectedDefaultDeletion": null,
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": false,
+      "Succeeded": false
+    }
+  ]
+}

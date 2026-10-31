@@ -1,0 +1,41 @@
+{
+  "capturedUtc": "2026-10-27T00:23:02.0395991Z",
+  "buildLeaseHeld": true,
+  "identities": [
+    {
+      "sha256": "052BBE642F122E9E441EDA4787F9AFCF610E78CCFAC647E87963F73B472EE0B9",
+      "producer": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "consumer": "C:\\Source\\OASIS\\Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll"
+    },
+    {
+      "sha256": "C129962081B7BF669EA08608D57A4B2477081E08F3AD31E0E155C848EC99261D",
+      "producer": "C:\\Source\\OASIS\\Providers\\Shared\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+      "consumer": "C:\\Source\\OASIS\\Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll"
+    },
+    {
+      "sha256": "EE7BEC32413D2CA1075F24C52E1C495CD4B21602DCB482BB39006983A7067147",
+      "producer": "C:\\Source\\OASIS\\Providers\\Storage\\NextGenSoftware.OASIS.API.Providers.MongoOASIS\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.dll",
+      "consumer": "C:\\Source\\OASIS\\Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.dll"
+    },
+    {
+      "sha256": "5F4145F92683A74273F2344622C9CF65909D1E0F85D35C5AEC17955C0EF6E41F",
+      "producer": "C:\\Source\\OASIS\\Providers\\Storage\\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll",
+      "consumer": "C:\\Source\\OASIS\\Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.dll"
+    },
+    {
+      "sha256": "EAF0B662F5A9F7274FA169D425F866A1A24D4C980F7D042B74BDD8FC528C5683",
+      "producer": "C:\\Source\\OASIS\\Providers\\Storage\\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.dll",
+      "consumer": "C:\\Source\\OASIS\\Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.dll"
+    },
+    {
+      "sha256": "E8F6CE4DAD399B0BFA49F1F87FD4C208B2996A90DE9B8864A6E3B0442738D8AF",
+      "producer": "C:\\Source\\OASIS\\Providers\\Storage\\Neo4j.Driver.OASIS\\bin\\Debug\\net10.0\\Neo4j.Driver.dll",
+      "consumer": "C:\\Source\\OASIS\\Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests\\bin\\Debug\\net10.0\\Neo4j.Driver.dll"
+    },
+    {
+      "sha256": "8D3030712298F1427C15AEC0D6C72F6B55F5067CA3C325696E3E26C35B5A94E6",
+      "producer": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.ONODE.WebAPI.dll",
+      "consumer": "C:\\Source\\OASIS\\Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.ONODE.WebAPI.dll"
+    }
+  ]
+}

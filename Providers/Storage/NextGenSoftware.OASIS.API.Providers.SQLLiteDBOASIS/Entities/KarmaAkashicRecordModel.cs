@@ -15,6 +15,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public long Id{ set; get; }
 
         public String AvatarId { get; set; }
+        public int SequenceIndex { get; set; }
+        public int DateKind { get; set; }
+        public bool HasKarmaSource { get; set; } = true;
+        public bool HasKarmaEarntOrLost { get; set; } = true;
+        public bool HasKarmaTypePositive { get; set; } = true;
+        public bool HasKarmaTypeNegative { get; set; } = true;
+        public bool HasProvider { get; set; } = true;
 
         public DateTime Date { get; set; }
         public int Karma { get; set; }
@@ -29,10 +36,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public ProviderType Provider { get; set; } 
 
         public KarmaAkashicRecordModel(){}
-        public KarmaAkashicRecordModel(KarmaAkashicRecord source){
+        public KarmaAkashicRecordModel(NextGenSoftware.OASIS.API.Core.Interfaces.Avatar.IKarmaAkashicRecord source){
 
             this.AvatarId=source.AvatarId.ToString();
             this.Date = source.Date;
+            this.DateKind = (int)source.Date.Kind;
+            this.HasKarmaSource=source.KarmaSource!=null;
+            this.HasKarmaEarntOrLost=source.KarmaEarntOrLost!=null;
+            this.HasKarmaTypePositive=source.KarmaTypePositive!=null;
+            this.HasKarmaTypeNegative=source.KarmaTypeNegative!=null;
+            this.HasProvider=source.Provider!=null;
 
             this.Karma = source.Karma;
             this.TotalKarma = source.TotalKarma;
@@ -40,12 +53,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             this.KarmaSourceTitle=source.KarmaSourceTitle;
             this.KarmaSourceDesc=source.KarmaSourceDesc;
             this.WebLink=source.WebLink;
-            this.KarmaSource=source.KarmaSource.Value;
+            this.KarmaSource=source.KarmaSource?.Value ?? default;
 
-            this.KarmaEarntOrLost = source.KarmaEarntOrLost.Value;
-            this.KarmaTypePositive=source.KarmaTypePositive.Value;
-            this.KarmaTypeNegative=source.KarmaTypeNegative.Value;
-            this.Provider=source.Provider.Value;
+            this.KarmaEarntOrLost = source.KarmaEarntOrLost?.Value ?? default;
+            this.KarmaTypePositive=source.KarmaTypePositive?.Value ?? default;
+            this.KarmaTypeNegative=source.KarmaTypeNegative?.Value ?? default;
+            this.Provider=source.Provider?.Value ?? default;
         }
 
         public KarmaAkashicRecord GetKarmaAkashicRecord(){
@@ -53,7 +66,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             KarmaAkashicRecord item=new KarmaAkashicRecord();
 
             item.AvatarId=new Guid(this.AvatarId);
-            item.Date = this.Date;
+            if(DateKind<0 || DateKind>2)throw new System.IO.InvalidDataException("Stored karma history date kind is invalid.");
+            item.Date = DateTime.SpecifyKind(this.Date,(DateTimeKind)DateKind);
 
             item.Karma = this.Karma;
             item.TotalKarma = this.TotalKarma;
@@ -62,12 +76,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             item.KarmaSourceDesc=this.KarmaSourceDesc;
             item.WebLink=this.WebLink;
 
-            item.KarmaSource=new EnumValue<KarmaSourceType>(this.KarmaSource);
-            item.KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(this.KarmaEarntOrLost);
-            item.KarmaTypePositive=new EnumValue<KarmaTypePositive>(this.KarmaTypePositive);
+            item.KarmaSource=HasKarmaSource ? new EnumValue<KarmaSourceType>(this.KarmaSource):null;
+            item.KarmaEarntOrLost = HasKarmaEarntOrLost ? new EnumValue<KarmaEarntOrLost>(this.KarmaEarntOrLost):null;
+            item.KarmaTypePositive=HasKarmaTypePositive ? new EnumValue<KarmaTypePositive>(this.KarmaTypePositive):null;
 
-            item.KarmaTypeNegative=new EnumValue<KarmaTypeNegative>(this.KarmaTypeNegative);
-            item.Provider=new EnumValue<ProviderType>(this.Provider);
+            item.KarmaTypeNegative=HasKarmaTypeNegative ? new EnumValue<KarmaTypeNegative>(this.KarmaTypeNegative):null;
+            item.Provider=HasProvider ? new EnumValue<ProviderType>(this.Provider):null;
 
             return(item);
         }

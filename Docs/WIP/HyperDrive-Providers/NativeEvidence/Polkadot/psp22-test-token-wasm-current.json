@@ -1,0 +1,88 @@
+{
+  "path": "C:\\Source\\OASIS\\TestResults\\PolkadotCurrent\\record-contract-target\\oasis-native-psp22-test-token.wasm",
+  "kind": "psp22-test-token",
+  "sources": {
+    "contracts/native-psp22-test-token/lib.rs": "0b76f50510ed4a54967567207249b5709a9f1b7fb37a39443935bdb809f47a74",
+    "contracts/native-psp22-test-token/Cargo.toml": "4d1260db685339773268274df700bbb2188d7f2abb705730bafca6d5e37aa71c",
+    "contracts/native-psp22-test-token/Cargo.lock": "8b95b0beb7df2e36401b1d7ec6c35ee1f87fac24a97d8fab3f5737fe50ef058f"
+  },
+  "bytes": 26917,
+  "sha256": "4bbf8b9cb7fc673e06521e0395b18b27207bee56cc43aca72cbc4672b596566c",
+  "codeHash": "0xcf8ae46b358235015dc3b1d5beb9e684f592a5817e71cc666c028faa59bf3a2e",
+  "exports": [
+    {
+      "name": "call",
+      "kind": "function"
+    },
+    {
+      "name": "deploy",
+      "kind": "function"
+    }
+  ],
+  "imports": [
+    {
+      "module": "seal1",
+      "name": "get_storage",
+      "kind": "function"
+    },
+    {
+      "module": "seal0",
+      "name": "input",
+      "kind": "function"
+    },
+    {
+      "module": "seal0",
+      "name": "caller",
+      "kind": "function"
+    },
+    {
+      "module": "seal2",
+      "name": "set_storage",
+      "kind": "function"
+    },
+    {
+      "module": "seal0",
+      "name": "value_transferred",
+      "kind": "function"
+    },
+    {
+      "module": "seal0",
+      "name": "hash_blake2_256",
+      "kind": "function"
+    },
+    {
+      "module": "seal0",
+      "name": "deposit_event",
+      "kind": "function"
+    },
+    {
+      "module": "seal0",
+      "name": "seal_return",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "memory",
+      "kind": "memory"
+    }
+  ],
+  "formatVerified": true,
+  "nativeDeploymentVerified": false,
+  "HostTestsPassed": 3,
+  "RemovedIntermediates": [
+    {
+      "Path": "C:\\Source\\OASIS\\TestResults\\PolkadotCurrent\\record-contract-target\\oasis-native-psp22-test-token-pruned.wasm",
+      "Bytes": 30238,
+      "Sha256": "CEFF1A9EFF85C7FD8D211B7CF5B732AE2BC62F13E822D76A19133AF483284403",
+      "Status": "removed",
+      "Recreate": "Same offline psp22-test-token builder and retained target/tools"
+    },
+    {
+      "Path": "C:\\Source\\OASIS\\TestResults\\PolkadotCurrent\\record-contract-target\\oasis-native-psp22-test-token-optimized.wasm",
+      "Bytes": 26824,
+      "Sha256": "3E698D51BC78C5DA203DCB28F877EDBAE41EC7FE9D729E8C57B3110B782F16C2",
+      "Status": "removed",
+      "Recreate": "Same offline psp22-test-token builder and retained target/tools"
+    }
+  ]
+}

@@ -1,6 +1,18 @@
 # NextGenSoftware.OASIS.API.Providers.AWSOASIS
 
-Connects the OASIS to Amazon Web Services -- leveraging DynamoDB (key-value/document) and S3 (object storage) for OASIS holon and avatar persistence at global AWS scale. Ideal for existing AWS-hosted applications adding OASIS capabilities with enterprise SLAs. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one
+Connects OASIS to DynamoDB through the official AWSSDK.DynamoDBv2 client. AWSOASIS reuses DynamoDBOASIS storage operations with AWS-specific provider identity and configuration; this adapter does not implement S3 object storage. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one
+
+## Current verification scope
+
+The retained provider/history runner is `Scripts/TestHosts/Run-ReusableDynamoHistoryTests.ps1` (`-FullAwsSuite` for the AWS suite); it reuses the installed runtime, shared dependency cache and fixed output directories. `Scripts/run_aws_provider_evidence.ps1` is the earlier standalone evidence entry point, not a substitute for the current history/reconciliation gates. Local native tests do not certify hosted AWS credentials, costs, scale or all provider interfaces/options. Do not overwrite retained reports or bypass unresolved fixture journals. The older in-memory runner is not a durable production recovery journal.
+
+Save operations require an authoritative SDK HTTP 200 acknowledgement before publishing caller IDs/provider keys. Missing/invalid responses retain mutation-reconciliation evidence; do not blindly retry them. Avatar-detail records persist the provider-specific storage key and deletion projection, like profile/holon records. Historical record APIs use the existing shared embedded-history codec: version zero selects latest, positive versions select the requested retained version, and negative versions are rejected. Enable `IsVersionControlEnabled` to create histories; disabling new history creation does not erase already retained archives. An absent version is not replaced with latest. Historical credential authentication remains explicitly disallowed; record history is not credential authority. Additional interface, concurrency, recovery and hosted-release gates remain open. Current evidence and limitations are recorded in `Docs/WIP/HyperDrive-Providers/HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md`.
+
+Exports additionally support `version=-1` for all validated stored versions, with
+owner/deletion filtering per version and stored archived child payloads. This is
+not a cross-version graph snapshot. Values below `-1` remain invalid; ordinary
+point/collection reads do not accept negative versions. Username/email export
+selectors use the current avatar identity independently of the holon version.
 
 ## Installation
 
@@ -45,7 +57,7 @@ Target-framework compatibility is not proof that every native dependency or exte
 
 ## Releases and further documentation
 
-[Verified release matrix](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/Devs/OASIS_RELEASE_STATUS.md) · [Documentation audit](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/Devs/RELEASE_DOCUMENTATION_AUDIT.md)
+[Verified release matrix](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/WIP/Release and Status/OASIS_RELEASE_STATUS.md) · [Documentation audit](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/WIP/Release and Status/RELEASE_DOCUMENTATION_AUDIT.md)
 
 Published NuGet versions are immutable. Updated documentation ships with a new unpublished package version after checked promotion and publication. This metadata-backed guide does not replace product-specific API examples or claim unverified platform tests.
 

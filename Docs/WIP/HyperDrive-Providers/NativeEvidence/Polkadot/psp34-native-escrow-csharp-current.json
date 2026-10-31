@@ -1,0 +1,23 @@
+{
+  "gate": 54473,
+  "terminalExitCode": 0,
+  "providerPassed": 358,
+  "skipped": 0,
+  "durationSeconds": 19,
+  "producerConsumerSha256": {
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Core.dll": "03C5F43D23C89A80B5BC35DD9D236A5F4E7A18F4DC82521FECDE369E1E1C359A",
+    "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/bin/Debug/net10.0/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll": "4632092111B9C75284D6CE8FBEB5C6CA65E75384D53F18E50CB8664F52E5B0FE",
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.dll": "437C4EF97B27B1F825B037A5542FC4A10B6D6A526CA77011DDCD7C701BFFC646"
+  },
+  "sourceSha256": {
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/PolkadotOASIS.NftCustody.cs": "32C13CBC1E06C49BBCC33F034F40B0D303F55C89D72C64D3B869D2F0E52FE723",
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/PolkadotOASIS.AvatarDetail.cs": "BF5CDB2B2AA97B9BD6A769917C7A35389C5399541C598177A40950D1DF4E0727",
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests/PolkadotNftMutationTests.cs": "6AE524C52290A0957397091E59A82F40C0163BE8872C94E9A071B97407CC83D4",
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/PolkadotOASIS.NftMutation.cs": "B4C9B821E1DC72AAF7D973312FDF091E6AA1862BE14232A11926E6BDF70D2F49",
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/PolkadotOASIS.SaveNFT.cs": "D660B5FCFEBAD08C30230D1780BCE387B13213ECFC9FAF3A7F8EBC12659D82B0"
+  },
+  "nativeDeploymentVerified": false,
+  "hostedAuthorizationVerified": false,
+  "legacyCustodyFixtureRecoveryOnly": true,
+  "genesisBindingVerified": true
+}

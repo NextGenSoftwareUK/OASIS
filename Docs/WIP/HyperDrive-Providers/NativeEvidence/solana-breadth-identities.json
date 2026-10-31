@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-26",
+  "scope": "Canonical v2 native baseline, 4/52 passed; avatar-id fails both modes after confirmed avatar-save",
+  "dependencies": [
+    {
+      "Dependency": "Core",
+      "SHA256": "D8EFE25ABBD8B9EAEAFF5F4BC494994D1C38660EE3AEF98DB27688C6F97F132C",
+      "SourceDocuments": 789
+    },
+    {
+      "Dependency": "Shared",
+      "SHA256": "1BC52D8ADE846FEF412A3157F01043E07A5FEBD46CEA1E1D02AE9CAA26BF6129",
+      "SourceDocuments": 56
+    }
+  ],
+  "assemblies": [
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS",
+      "sha256": "B0F19767204F68F0AB5920948AEF4CD5EC1DAA6ED60CDD0C62245286B49DBE3F",
+      "pdbSha256": "4C7F7538C04F3A8AE49C4775E0E9A6A838A22407E3D3B824490AA307357A0DF9",
+      "sources": 69
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests",
+      "sha256": "C30EAE91F8824542EB17899B1AF905FC24A4610B87F43B64D62F05E36F5827E6",
+      "pdbSha256": "A159105C07E84941A604E1B7586BE315EBAA0937D9B5C93FFBA5160ECC4F3820",
+      "sources": 11
+    }
+  ],
+  "fixtureDisposition": "Two original synthetic avatars preserved; no replay or cleanup; no detail/holon writes reached",
+  "runtime": "/var/tmp/oasis-runtimes/agave-4.3.0",
+  "genesis": "F22uw23o1HuahQiQVfd7Lfi6Q51fv4KNoYAvDnDDpEvj",
+  "freeBytes": 127715016704,
+  "reusedOutputs": [
+    {
+      "path": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage",
+      "binBytes": 7345349,
+      "objBytes": 1411601
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SolanaOASIS",
+      "binBytes": 7803572,
+      "objBytes": 1471655
+    },
+    {
+      "path": "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests",
+      "binBytes": 52403625,
+      "objBytes": 1243065
+    }
+  ],
+  "trx": {
+    "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/solana-core-storage-current.trx.gz",
+    "rawBytes": 5638,
+    "rawSha256": "671b1494994387d0eacc35a3bf8af1de61fe5dfa8e8318f754b8551162db8387",
+    "gzipBytes": 1481,
+    "gzipSha256": "af5c93edda50ea70a12dbba06a60215b15a2e1955261108afb859b1b8228370c",
+    "outcome": "2 native failures at avatar-id, 4/52 checks passed; zero skips",
+    "rawRemovedAfterVerifiedCompression": true
+  }
+}

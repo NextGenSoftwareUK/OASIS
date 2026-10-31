@@ -1,0 +1,32 @@
+[
+  {
+    "From": "C:\\Source\\OASIS\\Docs\\WIP\\HyperDrive-Providers\\NativeEvidence\\Polkadot\\psp22-escrow-wasm-current.json",
+    "To": "C:\\Source\\OASIS\\Docs\\WIP\\HyperDrive-Providers\\NativeEvidence\\Polkadot\\psp22-escrow-v1-wasm-current.json",
+    "Bytes": 1449,
+    "Sha256": "8662FE70AB417CA75366ED3017D80B0E3BC33C022D64D808C0CA9E06AD195E8D"
+  },
+  {
+    "From": "C:\\Source\\OASIS\\Docs\\WIP\\HyperDrive-Providers\\NativeEvidence\\Polkadot\\psp22-escrow-constructor-simulation-current.json",
+    "To": "C:\\Source\\OASIS\\Docs\\WIP\\HyperDrive-Providers\\NativeEvidence\\Polkadot\\psp22-escrow-v1-constructor-simulation-current.json",
+    "Bytes": 865,
+    "Sha256": "1F0F39B99E9498DD37005D8BD8FF4D7F93D88510C5D660DB0D86487779756CA6"
+  },
+  {
+    "From": "C:\\Source\\OASIS\\Docs\\WIP\\HyperDrive-Providers\\NativeEvidence\\Polkadot\\psp22-escrow-deployment.completed.json",
+    "To": "C:\\Source\\OASIS\\Docs\\WIP\\HyperDrive-Providers\\NativeEvidence\\Polkadot\\psp22-escrow-v1-deployment.completed.json",
+    "Bytes": 99187,
+    "Sha256": "C138AF26929C4720441EC0470ADA65ED829E4CDAB961CE1D8E675BEC32182F7A"
+  },
+  {
+    "From": "C:\\Source\\OASIS\\Docs\\WIP\\HyperDrive-Providers\\NativeEvidence\\Polkadot\\psp22-escrow-intermediate-cleanup.json",
+    "To": "C:\\Source\\OASIS\\Docs\\WIP\\HyperDrive-Providers\\NativeEvidence\\Polkadot\\psp22-escrow-v1-intermediate-cleanup.json",
+    "Bytes": 682,
+    "Sha256": "15783ECEDCEAFF87E80AFFA1C177865A1C037B43FAA9214F42FE18B22BFDCC76"
+  },
+  {
+    "From": "C:\\Source\\OASIS\\TestResults\\PolkadotCurrent\\record-contract-target\\oasis-token-escrow.wasm",
+    "To": "C:\\Source\\OASIS\\TestResults\\PolkadotCurrent\\record-contract-target\\oasis-token-escrow-v1.wasm",
+    "Bytes": 23940,
+    "Sha256": "AB02419B74B767BB76524927FBB3CF21D70976780BB4C6238C0FDF4F921C316D"
+  }
+]

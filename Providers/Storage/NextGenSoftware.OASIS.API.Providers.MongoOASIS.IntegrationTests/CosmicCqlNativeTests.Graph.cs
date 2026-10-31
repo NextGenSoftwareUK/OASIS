@@ -1,0 +1,638 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Queries;
+using Xunit;
+using Provider=NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
+
+namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
+
+public sealed partial class CosmicCqlNativeTests
+{
+    private sealed class MongoGraphFixture
+    {
+        public Provider Provider=null!;
+        public IMongoDatabase Database=null!;
+        public IMongoClient Client=null!;
+        public Holon Root=null!;
+        public bool KnownOutcome;
+        public IMongoCollection<BsonDocument> Records=>Database.GetCollection<BsonDocument>("Holon");
+    }
+
+    private async Task WithMongoGraph(Func<MongoGraphFixture,Task> verify,bool manifest=true,int width=2,bool largeChild=false,Action<Holon>? configure=null,Func<Holon>? createRoot=null,Guid? actor=null)
+    {
+        const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
+        var workspace=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../.."));
+        using var lease=File.Open(Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent/cosmic-cql-environment.lock"),
+            FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        const string name="cosmic_cql_fixture";
+        var client=new MongoClient(uri);
+        using var names=await client.ListDatabaseNamesAsync();
+        Assert.DoesNotContain(name,await names.ToListAsync());
+        var database=client.GetDatabase(name);
+        await database.CreateCollectionAsync("CosmicOwnedFixture");
+        var provider=new Provider(uri+"&appName=CosmicCqlGraph",name);
+        var fixture=new MongoGraphFixture{Provider=provider,Database=database,Client=client,
+            Root=createRoot?.Invoke()??new Holon{Id=Guid.NewGuid(),Name="owned CQL graph root"}};
+        try
+        {
+            Assert.False((await provider.ActivateProviderAsync()).IsError);
+            for(var i=0;i<width;i++)
+                fixture.Root.Children.Add(new Holon{Id=Guid.NewGuid(),ParentHolonId=fixture.Root.Id,
+                    Name="owned CQL graph child "+i,HolonType=i==0?HolonType.Quest:HolonType.Cafe,
+                    Description=largeChild&&i==0?new string('x',10000):"child before"});
+            if(width==2)
+            {
+                var quest=fixture.Root.Children.First();
+                quest.Children.Add(new Holon{Id=Guid.NewGuid(),ParentHolonId=quest.Id,
+                    HolonType=HolonType.Quest,Name="owned CQL graph grandchild"});
+            }
+            configure?.Invoke(fixture.Root);
+            var nodes=new List<IHolon>{fixture.Root};
+            for(var index=0;index<nodes.Count;index++)nodes.AddRange(nodes[index].AllChildren);
+            if(manifest)
+            {
+                // Assigned fixture IDs deliberately declare create-only preconditions.
+                var expected=nodes.ToDictionary(node=>node.Id,_=>(Guid?)null);
+                var seeded=await Manager(provider).SaveHolonAsync(fixture.Root,actor??Guid.NewGuid(),
+                    new CosmicWriteOptions(Guid.NewGuid(),expected),saveChildren:true,providerType:ProviderType.MongoDBOASIS);
+                Assert.False(seeded.IsError,seeded.Message+seeded.Exception);
+            }
+            else
+                foreach(var node in nodes)
+                {
+                    var seeded=await provider.SaveHolonAsync(node,saveChildren:false);
+                    Assert.False(seeded.IsError,seeded.Message+seeded.Exception);
+                }
+            // Later query assertion failures are safe to clean up: all fixture
+            // writes are acknowledged and queries themselves cannot mutate it.
+            fixture.KnownOutcome=true;
+            await verify(fixture);
+        }
+        finally
+        {
+            await provider.DeActivateProviderAsync();
+            if(fixture.KnownOutcome)await client.DropDatabaseAsync(name);
+            else output.WriteLine("Preserved owned graph fixture after an unknown/unacknowledged write; inspect before reuse.");
+        }
+    }
+
+    private static CosmicQueryPlan<Holon> AnyChildRacePlan(MongoGraphFixture fixture,CosmicQueryReadAccess? access=null)
+    {
+        var id=fixture.Root.Id;var query=CosmicQuery<Holon>.Create();
+        if(access!=null)query=query.WithReadAccess(access).Result;
+        var filtered=query.Where(root=>root.Id==id).WhereAnyChild(child=>child.Name=="owned CQL graph child 0");
+        Assert.False(filtered.IsError,filtered.Message);
+        var planned=CosmicQueryPlanner.Plan(filtered.Result,ProviderType.MongoDBOASIS,
+            new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,Provider.CqlCapabilities)});
+        Assert.False(planned.IsError,planned.Message);return planned.Result;
+    }
+
+    [Fact]
+    public Task NativeAnyChildValidationAndLookupShareTheSnapshotDuringAccessMutation()
+        =>WithMongoGraph(async fixture=>
+        {
+            var plan=AnyChildRacePlan(fixture,CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result);
+            var admin=fixture.Client.GetDatabase("admin");
+            var configured=await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},
+                {"mode",new BsonDocument("skip",1)},{"data",new BsonDocument{{"failCommands",new BsonArray{"aggregate"}},
+                    {"appName","CosmicCqlGraph"},{"blockConnection",true},{"blockTimeMS",5000}}}});
+            Task<NextGenSoftware.OASIS.Common.OASISResult<IReadOnlyList<IHolon>>>? pending=null;
+            try
+            {
+                // Validation completes first and pins the read snapshot. The next
+                // aggregate owns correlation/access matching, before the root page.
+                pending=fixture.Provider.ExecuteCosmicQueryAsync(plan);
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"waitForFailPoint","failCommand"},
+                    {"timesEntered",configured["count"].ToInt64()+1},{"maxTimeMS",10000}});
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","off"}});
+                fixture.KnownOutcome=false;
+                await fixture.Records.UpdateOneAsync(new BsonDocument("HolonId",fixture.Root.Children.First().Id.ToString("D")),
+                    new BsonDocument("$set",new BsonDocument("IsPublic",false)));
+                fixture.KnownOutcome=true;
+                var admitted=await pending;Assert.False(admitted.IsError,admitted.Message+admitted.Exception);Assert.Single(admitted.Result);
+                var fresh=await fixture.Provider.ExecuteCosmicQueryAsync(plan);
+                Assert.False(fresh.IsError,fresh.Message+fresh.Exception);Assert.Empty(fresh.Result);
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","off"}});
+                if(pending!=null)await pending;
+            }
+        },configure:root=>{root.IsPublic=true;root.Children.First().IsPublic=true;});
+
+    [Fact]
+    public Task NativeAnyChildDeadlineCoversValidationAndLookupTogether()
+        =>WithMongoGraph(async fixture=>
+        {
+            var admin=fixture.Client.GetDatabase("admin");
+            var configured=await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","alwaysOn"},
+                {"data",new BsonDocument{{"failCommands",new BsonArray{"aggregate"}},{"appName","CosmicCqlGraph"},
+                    {"blockConnection",true},{"blockTimeMS",17000}}}});
+            BsonDocument? disabled=null;
+            try
+            {
+                var read=await fixture.Provider.ExecuteCosmicQueryAsync(AnyChildRacePlan(fixture));
+                Assert.Equal("CQL_QUERY_TIMEOUT",read.ErrorCode);Assert.Null(read.Result);Assert.False(read.IsLoaded);
+            }
+            finally{disabled=await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","off"}});}
+            Assert.True(disabled["count"].ToInt64()>=configured["count"].ToInt64()+2,
+                "Both validation and lookup must start before the shared deadline expires.");
+        });
+
+    [Fact]
+    public Task NativeAnyChildCancellationDuringValidationDoesNotPublishRows()
+        =>WithMongoGraph(async fixture=>
+        {
+            var admin=fixture.Client.GetDatabase("admin");
+            var configured=await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","alwaysOn"},
+                {"data",new BsonDocument{{"failCommands",new BsonArray{"aggregate"}},{"appName","CosmicCqlGraph"},
+                    {"blockConnection",true},{"blockTimeMS",3000}}}});
+            using var cancellation=new CancellationTokenSource();
+            Task<NextGenSoftware.OASIS.Common.OASISResult<IReadOnlyList<IHolon>>>? pending=null;
+            try
+            {
+                pending=fixture.Provider.ExecuteCosmicQueryAsync(AnyChildRacePlan(fixture),cancellationToken:cancellation.Token);
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"waitForFailPoint","failCommand"},
+                    {"timesEntered",configured["count"].ToInt64()+1},{"maxTimeMS",10000}});
+                cancellation.Cancel();var read=await pending;
+                Assert.Equal("CQL_QUERY_CANCELLED",read.ErrorCode);Assert.Null(read.Result);Assert.False(read.IsLoaded);
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","off"}});
+                if(pending!=null)await pending;
+            }
+        });
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public Task NativeAnyChildReparentingRequiresCurrentParentAndNewOwnerMembership(bool declaredEmpty)
+        =>WithMongoGraph(async fixture=>
+        {
+            var other=new Holon{Id=Guid.NewGuid(),Name="owned CQL second parent"};
+            if(declaredEmpty)other.ChildRoleManifestJson=Core.Serialization.HolonChildRoleManifestJson.Serialize(
+                new HolonChildRoleManifest(1,other.Id,new[]{new HolonChildRole("Children",Array.Empty<Guid>())}));
+            fixture.KnownOutcome=false;
+            var created=await fixture.Provider.SaveHolonAsync(other,saveChildren:false);
+            fixture.KnownOutcome=!created.IsError;Assert.False(created.IsError,created.Message+created.Exception);
+            var childId=fixture.Root.Children.First().Id;
+            var loaded=await fixture.Provider.LoadHolonAsync(childId,loadChildren:false);
+            Assert.False(loaded.IsError,loaded.Message+loaded.Exception);
+            loaded.Result.ParentHolonId=other.Id;
+            fixture.KnownOutcome=false;
+            var moved=await fixture.Provider.SaveHolonAsync(loaded.Result,saveChildren:false);
+            fixture.KnownOutcome=!moved.IsError;Assert.False(moved.IsError,moved.Message+moved.Exception);
+            var old=await fixture.Provider.ExecuteCosmicQueryAsync(AnyChildRacePlan(fixture));
+            Assert.False(old.IsError,old.Message+old.Exception);Assert.Empty(old.Result);
+            var id=other.Id;
+            var query=CosmicQuery<Holon>.Create().Where(root=>root.Id==id)
+                .WhereAnyChild(child=>child.Name=="owned CQL graph child 0");
+            Assert.False(query.IsError,query.Message);
+            var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.MongoDBOASIS,
+                new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,Provider.CqlCapabilities)});
+            Assert.False(plan.IsError,plan.Message);
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
+            Assert.False(read.IsError,read.Message+read.Exception);Assert.Equal(declaredEmpty?0:1,read.Result.Count);
+            await global::OASIS.ProviderTests.Fixtures.CqlDescendantAcceptance.VerifyMovedSubtreeAsync(
+                fixture.Provider,fixture.Root.Id,other.Id,declaredEmpty,"owned CQL graph grandchild");
+        });
+
+    [Theory]
+    [InlineData(0)] [InlineData(1)] [InlineData(2)]
+    public Task NativeAnyChildUsesVisibilityExactMetadataAndIndependentSiblings(int visibility)
+    {
+        var actor=Guid.NewGuid();
+        return WithMongoGraph(async fixture=>
+        {
+            var id=fixture.Root.Id;
+            var query=CosmicQuery<Holon>.Create().WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result)
+                .Where(root=>root.Id==id)
+                .WhereAnyChild(child=>child.Name=="owned CQL graph child 0" &&
+                    CosmicQueryMetadata.Value<long>(child,"precision")==9007199254740993L)
+                .WhereAnyChild(child=>child.HolonType==HolonType.Cafe).OrderBy(root=>root.Name).Take(1);
+            Assert.False(query.IsError,query.Message);
+            var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.MongoDBOASIS,
+                new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,Provider.CqlCapabilities)});
+            Assert.False(plan.IsError,plan.Message);
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
+            Assert.False(read.IsError,read.Message+read.Exception);Assert.Equal(visibility==0?0:1,read.Result.Count);
+        },configure:root=>
+        {
+            root.IsPublic=true;root.Children.Last().IsPublic=true;
+            var child=root.Children.First();child.IsPublic=visibility==1;
+            child.MetaData["precision"]=9007199254740993L;
+        },actor:visibility==2?actor:null);
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public Task NativeAnyChildHonorsDeclaredMembershipOrExplicitParentLinks(bool manifested)
+        =>WithMongoGraph(async fixture=>
+        {
+            var orphan=new Holon{Id=Guid.NewGuid(),ParentHolonId=fixture.Root.Id,Name="unlisted match"};
+            fixture.KnownOutcome=false;
+            var saved=await fixture.Provider.SaveHolonAsync(orphan,saveChildren:false);
+            fixture.KnownOutcome=!saved.IsError;Assert.False(saved.IsError,saved.Message+saved.Exception);
+            var id=fixture.Root.Id;
+            var query=CosmicQuery<Holon>.Create().Where(root=>root.Id==id)
+                .WhereAnyChild(child=>child.Name=="unlisted match").OrderBy(root=>root.Name).Take(1);
+            Assert.False(query.IsError,query.Message);
+            var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.MongoDBOASIS,
+                new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,Provider.CqlCapabilities)});
+            Assert.False(plan.IsError,plan.Message);
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
+            Assert.False(read.IsError,read.Message+read.Exception);Assert.Equal(manifested?0:1,read.Result.Count);
+        },manifest:manifested);
+
+    [Fact]
+    public Task NativeAnyChildUpgradePreservesEveryCanonicalRecordAndRevision()
+        =>WithMongoGraph(async fixture=>
+        {
+            var before=await fixture.Records.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+            foreach(var row in before)row.Remove("CosmicCqlMembership");
+            await fixture.Records.UpdateManyAsync(FilterDefinition<BsonDocument>.Empty,
+                new BsonDocument("$unset",new BsonDocument("CosmicCqlMembership",1)));
+            var id=fixture.Root.Id;
+            var query=CosmicQuery<Holon>.Create().Where(root=>root.Id==id).WhereAnyChild(child=>child.HolonType==HolonType.Quest);
+            Assert.False(query.IsError,query.Message);
+            var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.MongoDBOASIS,
+                new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,Provider.CqlCapabilities)});
+            Assert.False(plan.IsError,plan.Message);
+            var rejected=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
+            Assert.True(rejected.IsError);Assert.Equal("CQL_DATA_INVALID",rejected.ErrorCode);
+            var upgrade=new Provider("mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000",fixture.Database.DatabaseNamespace.DatabaseName);
+            try
+            {
+                fixture.KnownOutcome=false;var activated=await upgrade.ActivateProviderAsync();
+                fixture.KnownOutcome=!activated.IsError;Assert.False(activated.IsError,activated.Message+activated.Exception);
+            }
+            finally{await upgrade.DeActivateProviderAsync();}
+            var loaded=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
+            Assert.False(loaded.IsError,loaded.Message+loaded.Exception);Assert.Single(loaded.Result);
+            var after=await fixture.Records.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+            Assert.Equal(before.Count,after.Count);
+            foreach(var row in after){row.Remove("CosmicCqlMembership");Assert.Equal(before.Single(old=>old["_id"]==row["_id"]),row);}
+        });
+
+    [Fact]
+    public Task NativeAnyChildRejectsStaleProjectionOutsideTheRootPage()
+        =>WithMongoGraph(async fixture=>
+        {
+            var grandchild=fixture.Root.Children.First().Children.Single().Id.ToString("D");
+            await fixture.Records.UpdateOneAsync(new BsonDocument("HolonId",grandchild),
+                new BsonDocument("$set",new BsonDocument("CosmicCqlMembership.source","stale")));
+            var id=fixture.Root.Id;
+            var query=CosmicQuery<Holon>.Create().Where(root=>root.Id==id)
+                .WhereAnyChild(child=>child.HolonType==HolonType.Quest).Take(1);
+            Assert.False(query.IsError,query.Message);
+            var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.MongoDBOASIS,
+                new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,Provider.CqlCapabilities)});
+            var rejected=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
+            Assert.True(rejected.IsError);Assert.Equal("CQL_DATA_INVALID",rejected.ErrorCode);
+        });
+
+    [Fact]
+    public Task NativeAnyChildFutureSchemaFailsActivationWithoutDowngrade()
+        =>WithMongoGraph(async fixture=>
+        {
+            var id=fixture.Root.Id.ToString("D");var filter=new BsonDocument("HolonId",id);
+            await fixture.Records.UpdateOneAsync(filter,new BsonDocument("$set",new BsonDocument("CosmicCqlMembership.schema",2)));
+            var before=await fixture.Records.Find(filter).SingleAsync();
+            var upgrade=new Provider("mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000",fixture.Database.DatabaseNamespace.DatabaseName);
+            try{var rejected=await upgrade.ActivateProviderAsync();Assert.True(rejected.IsError);Assert.False(upgrade.IsProviderActivated);}
+            finally{await upgrade.DeActivateProviderAsync();}
+            Assert.Equal(before,await fixture.Records.Find(filter).SingleAsync());
+        });
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task NativeCanonicalMembershipProjectionSharesTheFinalWrite(bool manifested)
+        =>WithMongoGraph(async fixture=>
+        {
+            void Check(BsonDocument row)
+            {
+                var projection=row["CosmicCqlMembership"].AsBsonDocument;
+                var source=row.GetValue("ChildRoleManifestJson",BsonNull.Value);
+                var declared=!source.IsBsonNull;
+                Assert.Equal(1,projection["schema"].AsInt32);
+                Assert.Equal(row["HolonId"].AsString.ToLowerInvariant(),projection["owner"].AsString);
+                Assert.Equal(source,projection["source"]);Assert.Equal(declared,projection["declared"].AsBoolean);
+                var members=declared?Core.Serialization.HolonChildRoleManifestJson.Deserialize(source.AsString)
+                    .Roles.SelectMany(role=>role.ChildIds).Select(id=>id.ToString("D")).ToArray():Array.Empty<string>();
+                Assert.Equal(members,projection["members"].AsBsonArray.Select(id=>id.AsString).ToArray());
+            }
+            var rows=await fixture.Records.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+            Assert.Equal(4,rows.Count);Assert.All(rows,Check);
+            var id=fixture.Root.Id.ToString("D");
+            var rootFilter=new BsonDocument("HolonId",id);
+            // Derived-state corruption must not survive a new canonical replacement.
+            await fixture.Records.UpdateOneAsync(rootFilter,new BsonDocument("$set",new BsonDocument(
+                "CosmicCqlMembership",new BsonDocument("members",new BsonArray{"stale"}))));
+            var read=await Manager(fixture.Provider).ExecuteQueryAsync(
+                MongoGraphPlan(fixture.Root,CosmicQueryGraphOptions.Create().Result),new ICosmicQueryStorageProvider[]{fixture.Provider});
+            Assert.False(read.IsError,read.Message+read.Exception);
+            var observedRoot=Assert.Single(Assert.Single(read.Result.Providers).Rows);
+            observedRoot.Description="membership owner replacement";
+            fixture.KnownOutcome=false;
+            var saved=await Manager(fixture.Provider).SaveHolonAsync(observedRoot,Guid.NewGuid(),
+                new CosmicWriteOptions(Guid.NewGuid()),saveChildren:false,providerType:ProviderType.MongoDBOASIS);
+            fixture.KnownOutcome=!saved.IsError;
+            Assert.False(saved.IsError,saved.Message+saved.Exception);
+            Check(await fixture.Records.Find(rootFilter).SingleAsync());
+            var children=await fixture.Records.Find(new BsonDocument("HolonId",new BsonDocument("$ne",id))).ToListAsync();
+            foreach(var child in children)Assert.Equal(rows.Single(row=>row["_id"]==child["_id"]),child);
+        },manifest:manifested);
+
+    [Theory]
+    [InlineData(true,true)] [InlineData(false,true)]
+    [InlineData(true,false)] [InlineData(false,false)]
+    public Task NativeGraphAccessFiltersBeforeChildBudget(bool visible,bool manifested)
+        =>WithMongoGraph(async fixture=>
+        {
+            var policy=CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result;
+            var plan=MongoGraphPlan(fixture.Root,CosmicQueryGraphOptions.Create(maximumNodes:visible?2:1).Result,policy);
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(plan);
+            Assert.False(read.IsError,read.Message+read.Exception);
+            var root=Assert.Single(read.Result);
+            Assert.Equal(visible?1:0,root.Children.Count());
+            Assert.All(root.Children,child=>{Assert.True(child.IsPublic);Assert.Empty(child.Children);});
+            if(manifested)Assert.Equal(2,Core.Serialization.HolonChildRoleManifestJson.Deserialize(((Holon)root).ChildRoleManifestJson).Roles.Single().ChildIds.Count);
+        },manifest:manifested,configure:root=>{root.IsPublic=true;root.Children.First().IsPublic=visible;});
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public Task NativeGraphHydratesNamedTypedRoles(bool accessBound)
+        =>WithMongoGraph(fixture=>global::OASIS.ProviderTests.Fixtures.CqlCustomRoleGraph.VerifyAsync(
+            Manager(fixture.Provider),fixture.Provider,fixture.Root,accessBound),
+            configure:global::OASIS.ProviderTests.Fixtures.CqlCustomRoleGraph.Configure,
+            createRoot:global::OASIS.ProviderTests.Fixtures.CqlCustomRoleGraph.CreateRoot);
+
+    private static CosmicQuery<Holon> BindNativeGraphPolicy(CosmicQuery<Holon> query,CosmicQueryReadAccess policy)
+    {
+        var bound=query.WithReadAccess(policy);
+        if(bound.IsError)throw new InvalidOperationException(bound.Message);
+        return bound.Result;
+    }
+
+    private static CosmicQueryPlan<Holon> MongoGraphPlan(Holon root,CosmicQueryGraphOptions options,CosmicQueryReadAccess? access=null)
+    {
+        var id=root.Id;
+        var query=CosmicQuery<Holon>.Create().Where(row=>row.Id==id).WithChildren(options);
+        Assert.False(query.IsError,query.Message);
+        var plan=CosmicQueryPlanner.Plan(access==null ? query.Result : BindNativeGraphPolicy(query.Result,access),ProviderType.MongoDBOASIS,
+            new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,Provider.CqlCapabilities)});
+        Assert.False(plan.IsError,plan.Message);
+        return plan.Result;
+    }
+
+    [Theory]
+    [InlineData(true,0,true)] [InlineData(true,1,false)] [InlineData(true,2,true)]
+    [InlineData(false,0,false)] [InlineData(false,2,false)]
+    public Task NativeCqlGraphRespectsDepthAndRecursion(bool recursive,int depth,bool grandchildren)
+        =>WithMongoGraph(async fixture=>
+        {
+            var options=CosmicQueryGraphOptions.Create(recursive:recursive,maxChildDepth:depth).Result;
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(MongoGraphPlan(fixture.Root,options));
+            Assert.False(read.IsError,read.Message+read.Exception);
+            var root=Assert.Single(read.Result);
+            Assert.Equal(fixture.Root.Children.Select(child=>child.Id),root.Children.Select(child=>child.Id));
+            var quest=Assert.Single(root.Children.Where(child=>child.HolonType==HolonType.Quest));
+            Assert.Equal(grandchildren?1:0,quest.Children.Count());
+        });
+
+    [Theory]
+    [InlineData(false,false)] [InlineData(true,false)] [InlineData(false,true)] [InlineData(true,true)]
+    public Task NativeCqlGraphPartialViewsCannotReplaceUnseenChildren(bool manifest,bool accessBound)
+        =>WithMongoGraph(async fixture=>
+        {
+            var manager=Manager(fixture.Provider);
+            var policy=accessBound?CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result:null;
+            var shape=CosmicQueryGraphOptions.Create(maxChildDepth:1,childType:accessBound?HolonType.All:HolonType.Quest).Result;
+            var baseline=await fixture.Provider.ExecuteCosmicQueryAsync(MongoGraphPlan(fixture.Root,CosmicQueryGraphOptions.Create().Result));
+            if(baseline.IsError)throw new InvalidOperationException(baseline.Message);
+            var childState=baseline.Result.Single().Children.ToDictionary(child=>child.Id,
+                child=>(child.Version,CosmicConcurrency.GetProviderRevisionId(child,ProviderType.MongoDBOASIS)));
+            var plan=MongoGraphPlan(fixture.Root,shape,policy);
+            ICosmicQueryStorageProvider adapter=fixture.Provider;
+            var read=await manager.ExecuteQueryAsync(plan,new[]{adapter});
+            Assert.False(read.IsError,read.Message+read.Exception);
+            var root=Assert.Single(Assert.Single(read.Result.Providers).Rows);
+            Assert.Equal(HolonType.Quest,Assert.Single(root.Children).HolonType);
+            root.AcceptChanges();
+            // Direct provider entry points must honor the same private partial-view
+            // observation as HolonManager. Record each probe before submitting it;
+            // retain the fixture if rejection or the native after-image is uncertain.
+            var beforeOrdinary = await fixture.Records.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+            var beforeBodies = beforeOrdinary.OrderBy(row => row["_id"].ToString()).Select(row => row.ToJson()).ToArray();
+            foreach (var synchronous in new[] { false, true })
+            foreach (var batch in new[] { false, true })
+            {
+                await fixture.Database.GetCollection<BsonDocument>("CosmicOwnedFixture").InsertOneAsync(
+                    new BsonDocument { { "ordinaryPartialProbe", true }, { "root", root.Id.ToString() },
+                        { "synchronous", synchronous }, { "batch", batch } });
+                fixture.KnownOutcome = false;
+                bool error, probeSaved;
+                string code;
+                if (batch)
+                {
+                    var outcome = synchronous
+                        ? fixture.Provider.SaveHolons(new[] { root }, saveChildren: true)
+                        : await fixture.Provider.SaveHolonsAsync(new[] { root }, saveChildren: true);
+                    error = outcome.IsError; probeSaved = outcome.IsSaved; code = outcome.ErrorCode;
+                }
+                else
+                {
+                    var outcome = synchronous
+                        ? fixture.Provider.SaveHolon(root, saveChildren: true)
+                        : await fixture.Provider.SaveHolonAsync(root, saveChildren: true);
+                    error = outcome.IsError; probeSaved = outcome.IsSaved; code = outcome.ErrorCode;
+                }
+                var afterOrdinary = await fixture.Records.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+                Assert.Equal(beforeBodies, afterOrdinary.OrderBy(row => row["_id"].ToString()).Select(row => row.ToJson()).ToArray());
+                Assert.True(error);
+                Assert.False(probeSaved);
+                Assert.Equal("HYPERDRIVE_PAYLOAD_INVALID", code);
+                fixture.KnownOutcome = true;
+            }
+            root.Name+=" edited";
+            var version=root.Version;
+            var rejected=await manager.SaveHolonAsync(root,Guid.NewGuid(),saveChildren:true,providerType:ProviderType.MongoDBOASIS);
+            Assert.True(rejected.IsError);
+            Assert.False(rejected.IsSaved);
+            Assert.Equal(version,root.Version);
+            fixture.KnownOutcome=false;
+            var saved=await manager.SaveHolonAsync(root,Guid.NewGuid(),saveChildren:false,providerType:ProviderType.MongoDBOASIS);
+            fixture.KnownOutcome=!saved.IsError;
+            Assert.False(saved.IsError,saved.Message+saved.Exception);
+            var fresh=await fixture.Provider.ExecuteCosmicQueryAsync(MongoGraphPlan(fixture.Root,CosmicQueryGraphOptions.Create().Result));
+            Assert.False(fresh.IsError,fresh.Message+fresh.Exception);
+            Assert.Equal(2,Assert.Single(fresh.Result).Children.Count());
+            foreach(var child in fresh.Result.Single().Children)
+                Assert.Equal(childState[child.Id],(child.Version,CosmicConcurrency.GetProviderRevisionId(child,ProviderType.MongoDBOASIS)));
+            Assert.Equal(version+1,fresh.Result.Single().Version);
+        },manifest:manifest,configure:root=>{root.IsPublic=true;root.Children.First().IsPublic=true;});
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public Task NativeCqlGraphRejectsBudgetsWithoutLeavingASnapshotOwner(bool payload)
+        =>WithMongoGraph(async fixture=>
+        {
+            var options=CosmicQueryGraphOptions.Create(maximumNodes:payload?100:2,maximumPayloadBytes:payload?8000:32000).Result;
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(MongoGraphPlan(fixture.Root,options));
+            Assert.Equal("CQL_QUERY_LIMIT",read.ErrorCode);
+            Assert.Null(read.Result);Assert.False(read.IsLoaded);
+            var leaf=CosmicQuery<Holon>.Create().Where(row=>row.Name=="owned CQL graph root");
+            var plan=CosmicQueryPlanner.Plan(leaf.Result,ProviderType.MongoDBOASIS,
+                new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,Provider.CqlCapabilities)});
+            var recovered=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
+            Assert.False(recovered.IsError,recovered.Message+recovered.Exception);Assert.Single(recovered.Result);
+        },largeChild:payload);
+
+    [Fact]
+    public Task NativeCqlGraphBatchesMembershipBeyondOneLiteralList()
+        =>WithMongoGraph(async fixture=>
+        {
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(MongoGraphPlan(fixture.Root,
+                CosmicQueryGraphOptions.Create(maximumNodes:151).Result));
+            Assert.False(read.IsError,read.Message+read.Exception);
+            Assert.Equal(fixture.Root.Children.Select(child=>child.Id),Assert.Single(read.Result).Children.Select(child=>child.Id));
+        },width:150);
+
+    [Fact]
+    public Task NativeCqlGraphPagesRootsBeforeExpandingChildren()
+        =>WithMongoGraph(async fixture=>
+        {
+            fixture.KnownOutcome=false;
+            var other=new Holon{Id=Guid.NewGuid(),Name="zz owned CQL graph root"};
+            var saved=await fixture.Provider.SaveHolonAsync(other,saveChildren:false);
+            fixture.KnownOutcome=!saved.IsError;
+            Assert.False(saved.IsError,saved.Message+saved.Exception);
+            var ids=new[]{fixture.Root.Id,other.Id};
+            var query=CosmicQuery<Holon>.Create().Where(row=>ids.Contains(row.Id))
+                .OrderBy(row=>row.Name).Take(1).WithChildren(CosmicQueryGraphOptions.Create(maximumNodes:4).Result);
+            var plan=CosmicQueryPlanner.Plan(query.Result,ProviderType.MongoDBOASIS,
+                new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,Provider.CqlCapabilities)});
+            Assert.False(plan.IsError,plan.Message);
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(plan.Result);
+            Assert.False(read.IsError,read.Message+read.Exception);
+            Assert.Equal(fixture.Root.Id,Assert.Single(read.Result).Id);
+        });
+
+    [Fact]
+    public Task NativeCqlGraphRejectsMissingPersistedMembers()
+        =>WithMongoGraph(async fixture=>
+        {
+            fixture.KnownOutcome=false;
+            await fixture.Records.DeleteOneAsync(new BsonDocument("HolonId",fixture.Root.Children.First().Id.ToString("D")));
+            fixture.KnownOutcome=true;
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(MongoGraphPlan(fixture.Root,CosmicQueryGraphOptions.Create().Result));
+            Assert.Equal("CQL_DATA_INVALID",read.ErrorCode);Assert.Null(read.Result);
+        });
+
+    [Fact]
+    public Task NativeCqlGraphRejectsParentLinkCycles()
+        =>WithMongoGraph(async fixture=>
+        {
+            fixture.KnownOutcome=false;
+            await fixture.Records.UpdateOneAsync(new BsonDocument("HolonId",fixture.Root.Id.ToString("D")),
+                new BsonDocument("$set",new BsonDocument("ParentHolonId",fixture.Root.Children.First().Id.ToString("D"))));
+            fixture.KnownOutcome=true;
+            var read=await fixture.Provider.ExecuteCosmicQueryAsync(MongoGraphPlan(fixture.Root,CosmicQueryGraphOptions.Create().Result));
+            Assert.Equal("CQL_DATA_INVALID",read.ErrorCode);Assert.Null(read.Result);
+        },manifest:false);
+
+    [Fact]
+    public Task NativeCqlGraphRetainsTheRootSnapshotAcrossAConcurrentChildWrite()
+        =>WithMongoGraph(async fixture=>
+        {
+            var admin=fixture.Client.GetDatabase("admin");
+            var configured=await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},
+                {"mode",new BsonDocument("skip",1)},{"data",new BsonDocument{{"failCommands",new BsonArray{"aggregate"}},
+                    {"appName","CosmicCqlGraph"},{"blockConnection",true},{"blockTimeMS",5000}}}});
+            Task<NextGenSoftware.OASIS.Common.OASISResult<IReadOnlyList<IHolon>>>? pending=null;
+            try
+            {
+                pending=fixture.Provider.ExecuteCosmicQueryAsync(MongoGraphPlan(fixture.Root,CosmicQueryGraphOptions.Create(CosmicQueryGraphConsistency.ProviderSnapshot).Result));
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"waitForFailPoint","failCommand"},
+                    {"timesEntered",configured["count"].ToInt64()+1},{"maxTimeMS",10000}});
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","off"}});
+                fixture.KnownOutcome=false;
+                await fixture.Records.UpdateOneAsync(new BsonDocument("HolonId",fixture.Root.Children.First().Id.ToString("D")),
+                    new BsonDocument("$set",new BsonDocument("Description","child after")));
+                fixture.KnownOutcome=true;
+                var read=await pending;
+                Assert.False(read.IsError,read.Message+read.Exception);
+                Assert.Equal("child before",Assert.Single(read.Result).Children.First().Description);
+                var current=await fixture.Records.Find(new BsonDocument("HolonId",fixture.Root.Children.First().Id.ToString("D"))).SingleAsync();
+                Assert.Equal("child after",current["Description"].AsString);
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","off"}});
+                if(pending!=null)await pending;
+            }
+        });
+
+    [Fact]
+    public Task NativeCqlGraphDeadlineCoversTheWholeExpansionRatherThanEachCommand()
+        =>WithMongoGraph(async fixture=>
+        {
+            var admin=fixture.Client.GetDatabase("admin");
+            // Each native command is individually shorter than the 30-second
+            // contract. Two commands together must exhaust the one read owner.
+            var configured=await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","alwaysOn"},
+                {"data",new BsonDocument{{"failCommands",new BsonArray{"aggregate"}},{"appName","CosmicCqlGraph"},
+                    {"blockConnection",true},{"blockTimeMS",17000}}}});
+            BsonDocument? disabled=null;
+            try
+            {
+                var read=await fixture.Provider.ExecuteCosmicQueryAsync(MongoGraphPlan(fixture.Root,CosmicQueryGraphOptions.Create().Result));
+                Assert.Equal("CQL_QUERY_TIMEOUT",read.ErrorCode);
+                Assert.Null(read.Result);Assert.False(read.IsLoaded);
+            }
+            finally
+            {
+                disabled=await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","off"}});
+            }
+            Assert.True(disabled["count"].ToInt64()>=configured["count"].ToInt64()+2,
+                "The cumulative deadline must be observed after both root and descendant native commands actually start.");
+        });
+
+    [Fact]
+    public Task NativeCqlGraphCancelsDuringNativeReadWithoutPublishingRows()
+        =>WithMongoGraph(async fixture=>
+        {
+            var admin=fixture.Client.GetDatabase("admin");
+            var configured=await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","alwaysOn"},
+                {"data",new BsonDocument{{"failCommands",new BsonArray{"aggregate"}},{"appName","CosmicCqlGraph"},
+                    {"blockConnection",true},{"blockTimeMS",3000}}}});
+            using var cancellation=new CancellationTokenSource();
+            Task<NextGenSoftware.OASIS.Common.OASISResult<IReadOnlyList<IHolon>>>? pending=null;
+            try
+            {
+                pending=fixture.Provider.ExecuteCosmicQueryAsync(MongoGraphPlan(fixture.Root,CosmicQueryGraphOptions.Create().Result),
+                    cancellationToken:cancellation.Token);
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"waitForFailPoint","failCommand"},
+                    {"timesEntered",configured["count"].ToInt64()+1},{"maxTimeMS",10000}});
+                cancellation.Cancel();
+                var read=await pending;
+                Assert.Equal("CQL_QUERY_CANCELLED",read.ErrorCode);Assert.Null(read.Result);Assert.False(read.IsLoaded);
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument{{"configureFailPoint","failCommand"},{"mode","off"}});
+                if(pending!=null)await pending;
+            }
+        });
+}

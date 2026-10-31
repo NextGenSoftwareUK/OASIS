@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WEB6 × OpenServ — Live Demo</title>
+<title>WEB6 — Live Agent Platform Demo</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -135,31 +135,67 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:13px 32px;display:fl
   .panels,.tabs-row,.auth-card{margin-left:12px;margin-right:12px}
   .hero{padding:96px 16px 28px}
 }
+/* ── Agent chat & new WEB6 surfaces ── */
+.chat-wrap{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:16px}
+@media(max-width:860px){.chat-wrap{grid-template-columns:1fr}}
+.chat-log{background:#020810;border:1px solid var(--border);border-radius:10px;padding:14px;height:460px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:88%;padding:10px 13px;border-radius:10px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word}
+.msg.user{align-self:flex-end;background:rgba(253,216,53,.1);border:1px solid rgba(253,216,53,.3);color:var(--textb)}
+.msg.agent{align-self:flex-start;background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.22);color:var(--textb)}
+.msg.sys{align-self:center;background:transparent;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:11px}
+.msg.err{align-self:flex-start;background:rgba(255,82,82,.07);border:1px solid rgba(255,82,82,.25);color:var(--red)}
+.trace{margin-top:8px;display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-family:'Share Tech Mono',monospace;font-size:10px;padding:2px 7px;border-radius:999px;border:1px solid rgba(0,229,255,.3);color:var(--cyan)}
+.chip.gold{border-color:rgba(253,216,53,.35);color:var(--gold)}
+.chip.green{border-color:rgba(0,230,118,.35);color:var(--green)}
+.chip.red{border-color:rgba(255,82,82,.35);color:var(--red)}
+.tool-detail{margin-top:6px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text);border-left:2px solid rgba(0,229,255,.3);padding-left:8px;white-space:pre-wrap}
+.rate{margin-top:8px;display:flex;gap:6px;align-items:center;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text)}
+.rate button{background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--textb);cursor:pointer;padding:2px 8px}
+.chat-input{display:flex;gap:8px;margin-top:10px}
+.chat-input textarea{flex:1;background:rgba(0,0,0,.42);border:1px solid rgba(253,216,53,.2);border-radius:8px;padding:10px 12px;color:var(--textb);font-size:14px;min-height:46px;resize:vertical}
+.toggle{display:flex;align-items:center;gap:8px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--textb);margin-bottom:10px;cursor:pointer}
+.toggle input{accent-color:var(--gold)}
+.side-note{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text);line-height:1.6}
+.cmp{width:100%;border-collapse:collapse;font-size:13px}
+.cmp th,.cmp td{border-bottom:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+.cmp th{font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:.08em;color:var(--gold)}
+.cmp td:last-child{color:var(--textb)}
+.yes{color:var(--green)}.no{color:var(--red)}.part{color:var(--gold)}
+.list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.row-item{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--textb)}
 </style>
 </head>
 <body>
 
 <nav>
   <a class="nb" href="https://web6.oasisomniverse.one">OASIS <span>WEB6</span></a>
-  <span class="nt">× OpenServ Live Demo</span>
+  <span class="nt">Live Agent Platform Demo</span>
 </nav>
 
 <div class="hero">
-  <div class="kicker">Holonic BRAID + FAHRN + OpenServ</div>
-  <h1>The <em>74×</em> Cost Reduction Demo</h1>
-  <p>Live proof-of-concept using the <code style="font-family:'Share Tech Mono',monospace;color:var(--cyan);font-size:.9em">@oasisomniverse/web6-api</code> npm package — Generator/Solver plan persistence, fractal memory hierarchy, and OpenServ multi-agent orchestration.</p>
+  <div class="kicker">Agent Runtime · Holonic Memory · SkillOpt · Channels · BRAID · FAHRN · OpenServ</div>
+  <h1>One platform. <em>Every</em> agent capability.</h1>
+  <p>Everything a model router or a single-user agent app does — and the multi-user, metered, privacy-first platform neither has. Chat with a live WEB6 agent, link it to WhatsApp or Telegram, schedule it, and see the <em>74×</em> BRAID cost reduction, all against the real API using the <code style="font-family:'Share Tech Mono',monospace;color:var(--cyan);font-size:.9em">@oasisomniverse/web6-api</code> stack.</p>
 </div>
 
 <div class="auth-card" style="max-width:900px">
-  <label>Development Avatar JWT</label>
-  <input type="password" id="jwt" autocomplete="off" placeholder="Authenticating test avatar…">
-  <div class="auth-note">This development sandbox authenticates the temporary test avatar through <code>dev.api.web4.oasisomniverse.one</code>, then sends its JWT only to <code>dev.api.web6.oasisomniverse.one</code>. The token is kept in memory and is never stored.</div>
+  <label>Sign in with your OASIS avatar</label>
+  <input type="text" id="auth-user" autocomplete="username" placeholder="Username or email">
+  <input type="password" id="auth-pass" autocomplete="current-password" placeholder="Password">
+  <button class="btn bg" id="auth-btn" onclick="signIn()">Sign in</button>
+  <input type="password" id="jwt" autocomplete="off" placeholder="…or paste a WEB4 JWT">
+  <div class="auth-note" id="auth-note">Your credentials go only to <code>dev.api.web4.oasisomniverse.one</code> to sign in; the returned JWT is sent only to <code>dev.api.web6.oasisomniverse.one</code>. Nothing is stored, and every call is billed to your own avatar. No account? <a href="https://oportal.oasisomniverse.one" style="color:var(--cyan)">Create one free</a>.</div>
 </div>
 
 <div class="tabs-row">
   <div class="tabs">
+    <button class="tab active" onclick="sw('chat',this)">Agent Chat</button>
+    <button class="tab" onclick="sw('channels',this)">Channels</button>
+    <button class="tab" onclick="sw('schedules',this)">Schedules</button>
+    <button class="tab" onclick="sw('compare',this)">vs Router &amp; Hermes</button>
     <button class="tab" onclick="sw('platform',this)">Platform</button>
-    <button class="tab active" onclick="sw('braid',this)">BRAID</button>
+    <button class="tab" onclick="sw('braid',this)">BRAID</button>
     <button class="tab" onclick="sw('fahrn',this)">FAHRN + OpenServ</button>
     <button class="tab" onclick="sw('memory',this)">Memory Hierarchy</button>
     <button class="tab" onclick="sw('cost',this)">Cost Comparison</button>
@@ -168,6 +204,114 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:13px 32px;display:fl
 </div>
 
 <div class="panels">
+
+  <!-- ═══ AGENT CHAT ═══ -->
+  <div class="panel active" id="panel-chat">
+    <div class="card">
+      <div class="ct">WEB6 Agent Chat — Live</div>
+      <div class="cs">A real server-side agent loop (<code>POST /v1/agent/run</code>) under one metered WEB4 reservation: 98 providers with cost routing, Holonic Memory that curates itself, self-drafting SkillOpt skills, a metered code sandbox and any remote MCP server as tools. Every step is billed to this avatar.</div>
+      <div class="chat-wrap">
+        <div>
+          <div class="chat-log" id="c-log">
+            <div class="msg sys">Ask anything. Try "What is 2^61 - 1, and is it prime?" with the code sandbox on, or tell it about yourself with memory on, then ask what it remembers.</div>
+          </div>
+          <div class="chat-input">
+            <textarea id="c-in" placeholder="Message your WEB6 agent… (Enter to send, Shift+Enter for a new line)"></textarea>
+            <button class="btn bg" id="c-send" onclick="agentSend()">Send</button>
+          </div>
+          <div class="sb hide" id="c-sb" style="margin-top:10px"><span class="dot pulse"></span><span id="c-sbt"></span></div>
+        </div>
+        <div>
+          <label class="toggle"><input type="checkbox" id="c-mem" checked> Holonic Memory (recall + auto-curate)</label>
+          <label class="toggle"><input type="checkbox" id="c-code"> Code sandbox tool (metered)</label>
+          <div class="fl"><label>Agent (SkillOpt skill)</label><select id="c-agent"><option value="">— none —</option></select></div>
+          <div class="fl"><label>Task category</label><input id="c-cat" value="chat"></div>
+          <div class="fl"><label>Remote MCP server (optional)</label><input id="c-mcp" placeholder="name=https://server.example/mcp"></div>
+          <div class="fl"><label>Model</label><select id="c-model"><option value="auto">auto (cost-routed)</option></select></div>
+          <div class="brow"><button class="btn bc" onclick="agentReset()">New conversation</button></div>
+          <div class="mrow">
+            <div class="met"><div class="mv g" id="c-turns">0</div><div class="ml">Turns</div></div>
+            <div class="met"><div class="mv c" id="c-calls">0</div><div class="ml">Model calls</div></div>
+            <div class="met"><div class="mv gr" id="c-cost">$0</div><div class="ml">Session cost</div></div>
+          </div>
+          <p class="side-note" style="margin-top:12px">👍 / 👎 score a run for the chosen agent. If the agent had no skill for this category, the run drafted one — a 👍 makes it the agent's skill, and later SkillOpt epochs refine it.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CHANNELS ═══ -->
+  <div class="panel" id="panel-channels">
+    <div class="card">
+      <div class="ct">Messaging Channels — Telegram · WhatsApp · Slack · Discord · Signal · Email</div>
+      <div class="cs">Clients link their chat to their avatar with a one-time code. Every reply runs the agent under that client's own revocable, budget-capped WEB4 grant — with conversation memory, voice notes and per-client billing.</div>
+      <div class="fl"><label>1 — Create a WEB4 delegated grant for chat replies</label>
+        <div class="brow"><input id="ch-budget" value="5" style="width:110px" title="Monthly USD budget"> <span class="side-note" style="align-self:center">USD / month</span>
+        <button class="btn bg" onclick="createGrant('CHANNEL /v1/channels message','ch-grant','ch-sb','ch-sbt')">Create grant</button></div>
+        <input id="ch-grant" placeholder="grant id appears here" style="margin-top:6px">
+      </div>
+      <div class="fl"><label>2 — Channel</label>
+        <select id="ch-channel"><option>telegram</option><option>whatsapp</option><option>slack</option><option>discord</option><option>signal</option><option>email</option></select>
+      </div>
+      <div class="brow">
+        <button class="btn bc" onclick="createLinkCode()">Generate link code</button>
+        <button class="btn bc" onclick="listBindings()">My linked chats</button>
+      </div>
+      <div class="sb hide" id="ch-sb" style="margin-top:10px"><span class="dot pulse"></span><span id="ch-sbt"></span></div>
+      <div class="mrow" id="ch-code-row" style="display:none">
+        <div class="met"><div class="mv g" id="ch-code">—</div><div class="ml">Send "link CODE" in the chat app</div></div>
+        <div class="met"><div class="mv c" id="ch-exp">—</div><div class="ml">Expires</div></div>
+      </div>
+      <div class="list" id="ch-list"></div>
+    </div>
+  </div>
+
+  <!-- ═══ SCHEDULES ═══ -->
+  <div class="panel" id="panel-schedules">
+    <div class="card">
+      <div class="ct">Scheduled Agent Runs</div>
+      <div class="cs">Cron-timed agent tasks that run unattended under a WEB4 grant, exactly once across servers, delivering to a webhook or straight into a linked chat. Revoking the grant disables the schedule.</div>
+      <div class="fl"><label>Name</label><input id="s-name" value="Morning check-in"></div>
+      <div class="fl"><label>Cron (5 fields) · time zone</label>
+        <div class="brow"><input id="s-cron" value="0 8 * * *" style="width:140px"><input id="s-tz" value="Europe/London" style="width:180px"></div></div>
+      <div class="fl"><label>Prompt</label><textarea id="s-prompt">Write me a short, warm good-morning check-in with one small suggestion for today.</textarea></div>
+      <div class="fl"><label>Grant</label>
+        <div class="brow"><button class="btn bg" onclick="createGrant('SCHEDULE /v1/schedules run','s-grant','s-sb','s-sbt')">Create schedule grant</button></div>
+        <input id="s-grant" placeholder="grant id" style="margin-top:6px"></div>
+      <div class="fl"><label>Deliver to linked chat (binding id, optional)</label><input id="s-binding" placeholder="leave empty for run history only"></div>
+      <div class="brow">
+        <button class="btn bc" onclick="createSchedule()">Create schedule</button>
+        <button class="btn bc" onclick="listSchedules()">My schedules</button>
+      </div>
+      <div class="sb hide" id="s-sb" style="margin-top:10px"><span class="dot pulse"></span><span id="s-sbt"></span></div>
+      <div class="list" id="s-list"></div>
+    </div>
+  </div>
+
+  <!-- ═══ COMPARISON ═══ -->
+  <div class="panel" id="panel-compare">
+    <div class="card">
+      <div class="ct">WEB6 vs a Model Router vs Hermes Agent</div>
+      <div class="cs">A router only fixes model access. An agent app only gives one person an agent. WEB6 is the whole platform — multi-user, metered and privacy-first.</div>
+      <table class="cmp">
+        <tr><th>Capability</th><th>Model router (e.g. OpenRouter)</th><th>Hermes Agent</th><th>WEB6</th></tr>
+        <tr><td>One OpenAI-compatible API, any model</td><td class="yes">Yes</td><td class="part">As a client</td><td class="yes">98 providers, cost / latency / quality routing, failover</td></tr>
+        <tr><td>Cost reduction</td><td class="part">Platform fee on top</td><td class="no">Full price + extra calls</td><td class="yes">Semantic cache, BRAID reuse, FAHRN cheap-model routing</td></tr>
+        <tr><td>Server-side agent loop</td><td class="no">No</td><td class="yes">Yes</td><td class="yes">/v1/agent/run, metered per step</td></tr>
+        <tr><td>Long-term memory</td><td class="no">No</td><td class="part">One agent's local notes</td><td class="yes">Holonic Memory, auto-curated, per avatar</td></tr>
+        <tr><td>Self-improving skills</td><td class="no">No</td><td class="yes">Writes skills</td><td class="yes">Drafts skills + SkillOpt validates and evolves them</td></tr>
+        <tr><td>Code execution</td><td class="no">No</td><td class="yes">Local shell</td><td class="yes">Isolated metered sandboxes (E2B, Judge0, Daytona)</td></tr>
+        <tr><td>Any MCP server as tools</td><td class="no">No</td><td class="yes">Yes</td><td class="yes">Yes, public-HTTPS guarded — and 500+ MCP tools served</td></tr>
+        <tr><td>Chat channels</td><td class="no">No</td><td class="yes">6 channels</td><td class="yes">Telegram, WhatsApp, Slack, Discord, Signal, Email + voice notes</td></tr>
+        <tr><td>Scheduled runs</td><td class="no">No</td><td class="part">Cron, single user, unbilled</td><td class="yes">Exactly-once cron under budget-capped grants</td></tr>
+        <tr><td>Multi-user isolation &amp; billing</td><td class="no">No</td><td class="no">No</td><td class="yes">WEB4 avatars, plans, limits, delegated grants</td></tr>
+        <tr><td>Document corpus / RAG storage</td><td class="no">No</td><td class="no">No</td><td class="yes">Holonic Memory ingestion + semantic search</td></tr>
+        <tr><td>Data sovereignty</td><td class="no">Their servers</td><td class="part">Your box</td><td class="yes">Hosted or self-hosted ONODE</td></tr>
+        <tr><td>CLI chat</td><td class="no">No</td><td class="yes">hermes</td><td class="yes">star chat</td></tr>
+      </table>
+    </div>
+  </div>
+
 
   <!-- ═══ PLATFORM READINESS ═══ -->
   <div class="panel" id="panel-platform">
@@ -189,7 +333,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:13px 32px;display:fl
   </div>
 
   <!-- ═══ BRAID ═══ -->
-  <div class="panel active" id="panel-braid">
+  <div class="panel" id="panel-braid">
     <div class="card">
       <div class="ct">Holonic BRAID — Generator / Solver Split</div>
       <div class="cs">Generator builds a Mermaid reasoning graph once per task type. Solver executes it for every subsequent query at a fraction of the cost. Plans persist to MongoDB + Solana + IPFS via COSMIC ORM.</div>
@@ -472,47 +616,45 @@ import { Web6Client } from 'https://esm.sh/@oasisomniverse/web6-api@2.0.3';
 
 const WEB4_BASE = 'https://dev.api.web4.oasisomniverse.one';
 const BASE = 'https://dev.api.web6.oasisomniverse.one';
-const DEV_TEST_AVATAR = {
-  username: 'davidellams@hotmail.com',
-  password: 'test1234567'
-};
-
-let authenticationPromise;
-
+// The visitor signs in with their own avatar. Credentials go only to WEB4, are never stored, and the password field is
+// cleared after use; the JWT lives only in this page's memory (the JWT field).
 async function authenticateTestAvatar() {
-  const jwtInput = document.getElementById('jwt');
-  if (jwtInput.value.trim()) return jwtInput.value.trim();
-  if (authenticationPromise) return authenticationPromise;
+  const jwt = document.getElementById('jwt').value.trim();
+  if (!jwt) throw new Error('Sign in with your OASIS avatar first (top of the page).');
+  return jwt;
+}
 
-  authenticationPromise = (async () => {
+window.signIn = async () => {
+  const user = document.getElementById('auth-user');
+  const pass = document.getElementById('auth-pass');
+  const note = document.getElementById('auth-note');
+  const button = document.getElementById('auth-btn');
+  if (!user.value.trim() || !pass.value) { note.textContent = 'Enter your username and password.'; return; }
+  button.disabled = true;
+  try {
     const response = await fetch(`${WEB4_BASE}/api/avatar/authenticate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(DEV_TEST_AVATAR)
+      body: JSON.stringify({ username: user.value.trim(), password: pass.value })
     });
     const data = await response.json();
     const authResult = data?.result;
     const avatar = authResult?.result;
-
     if (!response.ok || authResult?.isError || !avatar?.jwtToken) {
-      throw new Error(authResult?.message || data?.message || `Authentication failed with HTTP ${response.status}`);
+      throw new Error(authResult?.message || data?.message || `Sign-in failed with HTTP ${response.status}`);
     }
-
-    jwtInput.value = avatar.jwtToken;
-    jwtInput.placeholder = 'Authenticated development avatar';
-    return avatar.jwtToken;
-  })().catch(error => {
-    authenticationPromise = undefined;
-    jwtInput.placeholder = 'Development avatar authentication failed';
-    throw error;
-  });
-
-  return authenticationPromise;
-}
-
-authenticateTestAvatar().catch(error => {
-  console.error('Development avatar authentication failed:', error);
-});
+    document.getElementById('jwt').value = avatar.jwtToken;
+    note.textContent = `Signed in as ${avatar.username || user.value.trim()}. Calls are billed to this avatar.`;
+    window.loadChatChoices?.();
+  } catch (error) {
+    note.textContent = 'Sign-in failed: ' + error.message;
+  } finally {
+    pass.value = '';
+    button.disabled = false;
+  }
+};
+document.getElementById('auth-pass').addEventListener('keydown', e => { if (e.key === 'Enter') signIn(); });
+document.getElementById('jwt').addEventListener('change', () => window.loadChatChoices?.());
 
 function client() {
   const jwt = document.getElementById('jwt').value.trim();
@@ -880,6 +1022,207 @@ window.calcCost = () => {
   document.getElementById('sbanner').style.display='';
 };
 window.calcCost();
+
+// ─── AGENT CHAT ───
+const chat = { history: [], turns: 0, calls: 0, cost: 0, memoryHolonId: null };
+
+function chatBubble(cls, html) {
+  const log = document.getElementById('c-log');
+  const div = document.createElement('div');
+  div.className = 'msg ' + cls;
+  div.innerHTML = html;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return div;
+}
+
+async function ensureMemoryHolon() {
+  if (chat.memoryHolonId) return chat.memoryHolonId;
+  let stored = null;
+  try { stored = localStorage.getItem('web6-sandbox-memory-holon'); } catch {}
+  if (stored) return (chat.memoryHolonId = stored);
+  const name = 'sandbox-chat-' + crypto.randomUUID().slice(0, 8);
+  const d = await apiJson(`${BASE}/v1/holonic-memory/holons?level=User&name=${encodeURIComponent(name)}&parentHolonId=00000000-0000-0000-0000-000000000000`,
+    { method: 'POST', headers: hdrs() });
+  chat.memoryHolonId = d.result?.id;
+  if (!chat.memoryHolonId) throw new Error('WEB6 did not return a memory holon id.');
+  try { localStorage.setItem('web6-sandbox-memory-holon', chat.memoryHolonId); } catch {}
+  return chat.memoryHolonId;
+}
+
+window.agentReset = () => {
+  chat.history = []; chat.turns = 0; chat.calls = 0; chat.cost = 0;
+  document.getElementById('c-log').innerHTML = '<div class="msg sys">New conversation. Memory (if on) is kept across conversations.</div>';
+  ['c-turns','c-calls'].forEach(id => document.getElementById(id).textContent = '0');
+  document.getElementById('c-cost').textContent = '$0';
+};
+
+window.agentSend = async () => {
+  const input = document.getElementById('c-in');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  chatBubble('user', esc(text));
+  const send = document.getElementById('c-send');
+  send.disabled = true;
+  sb('c-sb','c-sbt','Agent is working — model steps and tools run server-side…');
+  try {
+    await authenticateTestAvatar();
+    const body = {
+      task: text, history: chat.history.slice(-12), taskCategory: document.getElementById('c-cat').value.trim() || 'chat',
+      model: document.getElementById('c-model').value, provider: 'auto',
+      // A chat turn reserves only what it can spend: 3 steps of up to 600 tokens (plus one reflection call).
+      maxSteps: 3, maxTokens: 600,
+      allowCodeExecution: document.getElementById('c-code').checked
+    };
+    if (document.getElementById('c-mem').checked) body.memoryHolonId = await ensureMemoryHolon();
+    const agent = document.getElementById('c-agent').value;
+    if (agent) body.agentHolonId = agent;
+    const mcp = document.getElementById('c-mcp').value.trim();
+    if (mcp) {
+      const eq = mcp.indexOf('=');
+      if (eq <= 0) throw new Error('MCP server must be name=https://server/mcp');
+      body.mcpServers = [{ name: mcp.slice(0, eq), url: mcp.slice(eq + 1) }];
+    }
+    const d = await apiJson(`${BASE}/v1/agent/run`, { method: 'POST', headers: hdrs(), body: JSON.stringify(body) });
+    const r = d.result;
+    if (r.status !== 'completed') throw new Error({ step_budget_exhausted: 'The agent ran out of steps — try a more specific question.',
+      context_budget_exhausted: 'The conversation outgrew the budget reserved for this turn — start a new conversation.' }[r.status] || 'Agent stopped: ' + r.status);
+    chat.history.push({ role: 'user', content: text }, { role: 'assistant', content: r.finalAnswer || '' });
+    chat.turns++; chat.calls += r.providerCalls || 0; chat.cost += Number(r.estimatedCostUSD || 0);
+    document.getElementById('c-turns').textContent = chat.turns;
+    document.getElementById('c-calls').textContent = chat.calls;
+    document.getElementById('c-cost').textContent = '$' + chat.cost.toFixed(6);
+
+    const chips = [`<span class="chip">${r.providerCalls} model call${r.providerCalls === 1 ? '' : 's'}</span>`];
+    if (r.codeExecutions) chips.push(`<span class="chip gold">${r.codeExecutions} sandbox run${r.codeExecutions === 1 ? '' : 's'}</span>`);
+    if (r.skillApplied) chips.push('<span class="chip green">skill applied</span>');
+    if (r.skillDrafted) chips.push('<span class="chip gold">skill drafted — 👍 to keep</span>');
+    (r.curatedMemories || []).forEach(m => chips.push(`<span class="chip green">remembered: ${esc(m)}</span>`));
+    chips.push(`<span class="chip">$${Number(r.estimatedCostUSD || 0).toFixed(6)}</span>`);
+    const tools = (r.steps || []).flatMap(s => s.toolCalls || []);
+    const toolHtml = tools.map(t => `<div class="tool-detail">⚙ ${esc(t.name)}${t.isError ? ' (error)' : ''}\n${esc((t.arguments || '').slice(0, 300))}\n→ ${esc((t.result || '').slice(0, 400))}</div>`).join('');
+    const rate = agent ? `<div class="rate">Rate this run: <button onclick="agentRate('${agent}','${r.runId}',1,this)">👍</button><button onclick="agentRate('${agent}','${r.runId}',0.2,this)">👎</button></div>` : '';
+    chatBubble('agent', esc(r.finalAnswer || '') + toolHtml + `<div class="trace">${chips.join('')}</div>` + rate);
+    sbh('c-sb');
+  } catch (e) {
+    chatBubble('err', esc(e.message));
+    sb('c-sb','c-sbt', e.message, 'err');
+  } finally { send.disabled = false; input.focus(); }
+};
+
+window.agentRate = async (agentHolonId, runId, score, button) => {
+  const box = button.parentElement;
+  try {
+    const d = await apiJson(`${BASE}/v1/agent/feedback`, { method: 'POST', headers: hdrs(), body: JSON.stringify({ agentHolonId, runId, score }) });
+    box.innerHTML = '✓ ' + esc(d.message || 'Rated.');
+  } catch (e) { box.innerHTML = '✗ ' + esc(e.message); }
+};
+
+document.getElementById('c-in').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); agentSend(); }
+});
+
+window.loadChatChoices = async function loadChatChoices() {
+  if (!document.getElementById('jwt').value.trim()) return;
+  const agentSelect = document.getElementById('c-agent');
+  const modelSelect = document.getElementById('c-model');
+  agentSelect.length = 1; modelSelect.length = 1;
+  try {
+    const agents = await apiJson(`${BASE}/v1/reasoning-network/agents`, { headers: hdrs() });
+    const select = document.getElementById('c-agent');
+    (agents.result || []).slice(0, 50).forEach(a => {
+      const o = document.createElement('option');
+      o.value = a.id;
+      o.textContent = a.agentName || o.value;
+      if (o.value) select.appendChild(o);
+    });
+  } catch (e) { console.warn('Agent list unavailable:', e.message); }
+  try {
+    const models = await apiJson(`${BASE}/v1/models`, { headers: hdrs() });
+    const select = document.getElementById('c-model');
+    (models.models || models.result || []).slice(0, 60).forEach(m => {
+      const o = document.createElement('option');
+      o.value = m.id; o.textContent = `${m.id} (${m.provider ?? m.providerName ?? ''})`;
+      select.appendChild(o);
+    });
+  } catch (e) { console.warn('Model list unavailable:', e.message); }
+};
+
+// ─── GRANTS, CHANNELS, SCHEDULES ───
+window.createGrant = async (endpoint, targetId, sbId, sbtId) => {
+  sb(sbId, sbtId, 'Creating a revocable WEB4 grant for ' + endpoint + '…');
+  try {
+    const jwt = await authenticateTestAvatar();
+    const monthly = Number(document.getElementById('ch-budget')?.value || 5);
+    const response = await fetch(`${WEB4_BASE}/api/subscription/usage/grants`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+      body: JSON.stringify({ consumingService: 'WEB6', scope: 'web6-sandbox-demo', endpoints: [endpoint],
+        monthlyBudgetUsd: monthly, maxOperationCostUsd: Math.min(1, monthly), expiresAtUtc: new Date(Date.now() + 30 * 864e5).toISOString() })
+    });
+    const d = await response.json();
+    if (!response.ok || d.isError) throw new Error(d.message || `WEB4 returned ${response.status}`);
+    document.getElementById(targetId).value = d.grantId;
+    sb(sbId, sbtId, `Grant ${d.grantId} — $${d.monthlyBudgetUsd}/month, revocable any time.`, 'ok');
+  } catch (e) { sb(sbId, sbtId, 'Error: ' + e.message, 'err'); }
+};
+
+window.createLinkCode = async () => {
+  sb('ch-sb','ch-sbt','Creating a one-time link code…');
+  try {
+    const grantId = document.getElementById('ch-grant').value.trim();
+    if (!grantId) throw new Error('Create or paste a grant first.');
+    const d = await apiJson(`${BASE}/v1/channels/link-codes`, { method: 'POST', headers: hdrs(),
+      body: JSON.stringify({ channel: document.getElementById('ch-channel').value, grantId }) });
+    document.getElementById('ch-code').textContent = d.result.code;
+    document.getElementById('ch-exp').textContent = new Date(d.result.expiresUtc).toLocaleTimeString();
+    document.getElementById('ch-code-row').style.display = '';
+    sb('ch-sb','ch-sbt', `Send "link ${d.result.code}" to the OASIS bot on ${d.result.channel} within 15 minutes.`, 'ok');
+  } catch (e) { sb('ch-sb','ch-sbt','Error: ' + e.message, 'err'); }
+};
+
+window.listBindings = async () => {
+  try {
+    const d = await apiJson(`${BASE}/v1/channels/bindings`, { headers: hdrs() });
+    const list = document.getElementById('ch-list');
+    list.innerHTML = (d.result || []).length ? '' : '<div class="row-item">No linked chats yet.</div>';
+    (d.result || []).forEach(b => {
+      list.insertAdjacentHTML('beforeend', `<div class="row-item">${esc(b.channel)} · ${esc(b.externalUserId)} · binding <b>${esc(b.bindingId)}</b> · ${(b.recentTurns || []).length} remembered exchange(s)${b.memoryHolonId ? ' · long-term memory on' : ''}</div>`);
+    });
+    sbh('ch-sb');
+  } catch (e) { sb('ch-sb','ch-sbt','Error: ' + e.message, 'err'); }
+};
+
+window.createSchedule = async () => {
+  sb('s-sb','s-sbt','Creating schedule…');
+  try {
+    const binding = document.getElementById('s-binding').value.trim();
+    const body = {
+      name: document.getElementById('s-name').value, cronExpression: document.getElementById('s-cron').value,
+      timeZone: document.getElementById('s-tz').value, prompt: document.getElementById('s-prompt').value,
+      provider: 'auto', model: 'auto', grantId: document.getElementById('s-grant').value.trim(),
+      delivery: binding ? { kind: 'channel', channelBindingId: binding } : { kind: 'none' }
+    };
+    const d = await apiJson(`${BASE}/v1/schedules`, { method: 'POST', headers: hdrs(), body: JSON.stringify(body) });
+    sb('s-sb','s-sbt', `Scheduled "${d.result.name}" — next run ${new Date(d.result.nextRunAtUtc).toLocaleString()}.`, 'ok');
+    listSchedules();
+  } catch (e) { sb('s-sb','s-sbt','Error: ' + e.message, 'err'); }
+};
+
+window.listSchedules = async () => {
+  try {
+    const d = await apiJson(`${BASE}/v1/schedules`, { headers: hdrs() });
+    const list = document.getElementById('s-list');
+    list.innerHTML = (d.result || []).length ? '' : '<div class="row-item">No schedules yet.</div>';
+    for (const s of d.result || []) {
+      let runs = [];
+      try { runs = (await apiJson(`${BASE}/v1/schedules/${s.id}/runs?limit=3`, { headers: hdrs() })).result || []; } catch {}
+      const last = runs.map(r => `${esc(r.status)}${r.deliveryStatus && r.deliveryStatus !== 'none' ? ' / ' + esc(r.deliveryStatus) : ''}`).join(', ');
+      list.insertAdjacentHTML('beforeend', `<div class="row-item"><b>${esc(s.name)}</b> · ${esc(s.cronExpression)} ${esc(s.timeZone)} · ${esc(s.status)} · next ${s.nextRunAtUtc ? new Date(s.nextRunAtUtc).toLocaleString() : '—'}${last ? ' · recent: ' + last : ''}</div>`);
+    }
+    sbh('s-sb');
+  } catch (e) { sb('s-sb','s-sbt','Error: ' + e.message, 'err'); }
+};
 </script>
 </body>
 </html>

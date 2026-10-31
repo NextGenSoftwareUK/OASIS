@@ -1,0 +1,211 @@
+[
+  [
+    "C:/Source/OASIS-API-Javascript-Package-WEB5",
+    [
+      "index.d.ts",
+      "package.json",
+      "scripts/generate-types.js",
+      "src",
+      "docs/idempotency.md",
+      "test/idempotency.test.js"
+    ],
+    "Preserve operation identity in generated SDK calls and TypeScript options"
+  ],
+  [
+    "C:/Source/OASIS-API-Javascript-Package-WEB6",
+    [
+      "index.d.ts",
+      "package.json",
+      "scripts/generate-types.js",
+      "src",
+      "docs/idempotency.md",
+      "test/idempotency.test.js"
+    ],
+    "Preserve operation identity in generated SDK calls and TypeScript options"
+  ],
+  [
+    "C:/Source/OASIS-API-Javascript-Package-WEB7",
+    [
+      "index.d.ts",
+      "package.json",
+      "scripts/generate-types.js",
+      "src",
+      "docs/idempotency.md",
+      "test/idempotency.test.js"
+    ],
+    "Preserve operation identity in generated SDK calls and TypeScript options"
+  ],
+  [
+    "C:/Source/OASIS-API-Javascript-Package-WEB8",
+    [
+      "index.d.ts",
+      "package.json",
+      "scripts/generate-types.js",
+      "src",
+      "docs/idempotency.md",
+      "test/idempotency.test.js"
+    ],
+    "Preserve operation identity in generated SDK calls and TypeScript options"
+  ],
+  [
+    "C:/Source/OASIS-API-Javascript-Package-WEB9",
+    [
+      "index.d.ts",
+      "package.json",
+      "scripts/generate-types.js",
+      "src",
+      "docs/idempotency.md",
+      "test/idempotency.test.js"
+    ],
+    "Preserve operation identity in generated SDK calls and TypeScript options"
+  ],
+  [
+    "C:/Source/OASIS-API-Javascript-Package-WEB10",
+    [
+      "index.d.ts",
+      "package.json",
+      "scripts/generate-types.js",
+      "src",
+      "docs/idempotency.md",
+      "test/idempotency.test.js"
+    ],
+    "Preserve operation identity in generated SDK calls and TypeScript options"
+  ],
+  [
+    "C:/Source/OASIS/ONODE/ONODEManager",
+    [
+      "NextGenSoftware.OASIS.ONODE.Client/README.md"
+    ],
+    "Update client documentation links"
+  ],
+  [
+    "C:/Source/OASIS/STAR ODK",
+    [
+      "NextGenSoftware.OASIS.STAR.CLI.Lib/README.md",
+      "NextGenSoftware.OASIS.STAR.STARDNA/README.md",
+      "NextGenSoftware.OASIS.STAR/README.md"
+    ],
+    "Update STAR documentation links"
+  ],
+  [
+    "C:/Source/OASIS/WEB6",
+    [
+      "NextGenSoftware.OASIS.MCP.Server/README.md",
+      "NextGenSoftware.OASIS.Web6.Core/README.md",
+      "npm/README.md"
+    ],
+    "Update WEB6 documentation links"
+  ],
+  [
+    "C:/Source/holochain-client-csharp/HoloNET-API",
+    [
+      "NextGenSoftware.Holochain.HoloNET.API/NextGenSoftware.Holochain.HoloNET.API.csproj",
+      "README.md"
+    ],
+    "Document HoloNET API 4.5 storage and notification surface"
+  ],
+  [
+    "C:/Source/trust",
+    [
+      "api/leela-chat.js"
+    ],
+    "Preserve operation identity when calling WEB6 through older SDKs"
+  ],
+  [
+    "C:/Source/piper-ui",
+    [
+      "scripts/process_train_era_assets.py"
+    ],
+    "Preserve train era asset processing source"
+  ],
+  [
+    "C:/Source/OPORTAL-JS",
+    [
+      "assets/js/oasis-web4-sdk.js",
+      "assets/js/oasis-web5-sdk.js",
+      "assets/js/oasis-web6-sdk.js"
+    ],
+    "Synchronize bundled OASIS SDK operation identity support"
+  ],
+  [
+    "C:/Source/ODOOM",
+    [
+      "src",
+      "wadsrc/static/about.txt",
+      "wadsrc/static/menudef.txt"
+    ],
+    "Checkpoint OGEngine integration and game interface updates"
+  ],
+  [
+    "C:/Source/OQuake3",
+    [
+      "code/game/ogengine.h",
+      "code/game/ogengine_sync.h",
+      "code/game/oglib_edge.h",
+      "code/game/oglib_json.h"
+    ],
+    "Preserve OGEngine game integration headers"
+  ],
+  [
+    "C:/Source/quake-rerelease-qc",
+    [
+      "WINDOWS_INTEGRATION.md",
+      "oquake_version.h",
+      "ogengine.h",
+      "ogengine_sync.h",
+      "oquake_ogengine_integration.c",
+      "oquake_ogengine_integration.h"
+    ],
+    "Checkpoint Windows OGEngine integration source"
+  ],
+  [
+    "C:/Source/Our-World",
+    [
+      "Assets",
+      "Docs/GAMEPLAY_TUNING.md",
+      "Docs/OASIS_COMPATIBILITY_AUDIT_2026-10-15.md",
+      "Docs/WIP/walking-routes-quest-verification.md",
+      "Scripts",
+      "Tools/QuestPerformance",
+      "Tools/WalkingVerification"
+    ],
+    "Checkpoint walking routes, quest navigation and gameplay source"
+  ],
+  [
+    "C:/Source/OGEngineClient",
+    [
+      "OGEngineClient.Quests.Map.cs",
+      "TestProjects/OGEngine.Client.Tests/HttpOperationIdentityTests.cs"
+    ],
+    "Preserve quest map operation identity and regression coverage"
+  ],
+  [
+    "C:/Source/OASIS-hyperdrive-v2-gaps/OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    [
+      "Services/Subscriptions/Web4UsageLedgerMiddleware.cs",
+      "Services/Subscriptions/UsageRequestClassification.cs"
+    ],
+    "Reject coalesced operation keys and preserve usage classification"
+  ],
+  [
+    "C:/Source/OASIS/WEB6/.claude/worktrees/agent-a0e0bfdbdfa93e2a4",
+    [
+      "WEB6/NextGenSoftware.OASIS.MCP.Server/Tools/Web4ToolsBatchD.cs"
+    ],
+    "Preserve MCP WEB4 tool batch worktree source"
+  ],
+  [
+    "C:/Source/OASIS/WEB6/.claude/worktrees/agent-a5708ca8a984c4340",
+    [
+      "NextGenSoftware.OASIS.MCP.Server/Tools/Web4ToolsBatchC.cs"
+    ],
+    "Preserve MCP WEB4 tool batch worktree source"
+  ],
+  [
+    "C:/Source/OASIS/WEB6/.claude/worktrees/agent-ae6cb813f900c021a",
+    [
+      "WEB6/NextGenSoftware.OASIS.MCP.Server/Tools/Web4ToolsBatchE.cs"
+    ],
+    "Preserve MCP WEB4 tool batch worktree source"
+  ]
+]

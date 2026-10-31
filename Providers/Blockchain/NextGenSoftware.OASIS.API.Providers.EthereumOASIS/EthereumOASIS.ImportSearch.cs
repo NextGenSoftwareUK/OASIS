@@ -98,6 +98,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+                if(avatarId==Guid.Empty)throw new ArgumentException("A nonempty export avatar identity is required.",nameof(avatarId));
                 if (!IsProviderActivated)
                 {
                     var activateResult = ActivateProvider();
@@ -109,16 +111,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 // Export all holons for avatar from Ethereum
-                var holonsResult = await LoadHolonsForParentAsync(avatarId);
+                var holonsResult = await LoadAllHolonsAsync(loadChildrenFromProvider:true,version:version);
                 if (holonsResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar: {holonsResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar: {holonsResult.Message}",holonsResult.Exception);
+                    result.ErrorCode=holonsResult.ErrorCode;
                     return result;
                 }
 
-                result.Result = holonsResult.Result;
+                result.Result = holonsResult.Result.Where(row=>row.CreatedByAvatarId==avatarId || row.ParentHolonId==avatarId).ToArray();
+                result.IsLoaded=true;
                 result.IsError = false;
-                result.Message = $"Successfully exported {holonsResult.Result?.Count() ?? 0} holons for avatar from Ethereum";
+                result.Message = $"Successfully exported {result.Result.Count()} holons for avatar from Ethereum";
             }
             catch (Exception ex)
             {
@@ -137,6 +141,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
                 if (!IsProviderActivated)
                 {
                     var activateResult = ActivateProvider();
@@ -151,23 +156,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
                 if (avatarResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
-                    return result;
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatarResult);
                 }
 
                 if (avatarResult.Result != null)
                 {
                     // Export all holons for this avatar
-                    var holonsResult = await LoadHolonsForParentAsync(avatarResult.Result.Id);
-                    if (holonsResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar: {holonsResult.Message}");
-                        return result;
-                    }
-
-                    result.Result = holonsResult.Result;
-                    result.IsError = false;
-                    result.Message = $"Successfully exported {holonsResult.Result?.Count() ?? 0} holons for avatar by username from Ethereum";
+                    return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id,version);
                 }
                 else
                 {
@@ -191,6 +186,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
                 if (!IsProviderActivated)
                 {
                     var activateResult = ActivateProvider();
@@ -205,23 +201,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress);
                 if (avatarResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
-                    return result;
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(avatarResult);
                 }
 
                 if (avatarResult.Result != null)
                 {
                     // Export all holons for this avatar
-                    var holonsResult = await LoadHolonsForParentAsync(avatarResult.Result.Id);
-                    if (holonsResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar: {holonsResult.Message}");
-                        return result;
-                    }
-
-                    result.Result = holonsResult.Result;
-                    result.IsError = false;
-                    result.Message = $"Successfully exported {holonsResult.Result?.Count() ?? 0} holons for avatar by email from Ethereum";
+                    return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id,version);
                 }
                 else
                 {
@@ -242,7 +228,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
         {
-            return await LoadAllHolonsAsync(HolonType.All, true, true, 0, 0, true, false, version);
+            return await LoadAllHolonsAsync(HolonType.All, true, true, 0, 0, true, true, version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
@@ -252,48 +238,46 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            var result = new OASISResult<ISearchResults>();
+            var result=new OASISResult<ISearchResults>();
             try
             {
-                if (!IsProviderActivated)
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
+                searchParams=Core.Serialization.StoredRecordJson.Project<SearchParams>(searchParams);
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
+                var groups=searchParams.SearchGroups ?? new List<ISearchGroupBase>();
+                var wantsAvatars=groups.Count == 0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
+                var wantsHolons=groups.Count == 0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
+                var avatars=new List<IAvatar>();
+                var holons=new List<IHolon>();
+                if(wantsAvatars)
                 {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
+                    var loaded=await LoadAllAvatarsAsync(version);
+                    if(loaded.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
+                        OASISErrorHandling.HandleError(ref result,loaded.Message,loaded.Exception);
+                        result.ErrorCode=loaded.ErrorCode; return result;
                     }
+                    avatars=loaded.Result.ToList();
                 }
-
-                // Search avatars and holons from Ethereum smart contract
-                var searchResults = new SearchResults();
-                
-                // Search avatars
-                if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
+                if(wantsHolons || searchParams.ParentId != Guid.Empty)
                 {
-                    var avatarsResult = await LoadAllAvatarsAsync();
-                    if (!avatarsResult.IsError && avatarsResult.Result != null)
+                    var loaded=await LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,0,continueOnError,true,version);
+                    if(loaded.IsError)
                     {
-                        searchResults.SearchResultAvatars.AddRange(avatarsResult.Result);
+                        OASISErrorHandling.HandleError(ref result,loaded.Message,loaded.Exception);
+                        result.ErrorCode=loaded.ErrorCode; return result;
                     }
+                    holons=loaded.Result.ToList();
                 }
-                
-                // Search holons
-                    var holonsResult = await LoadAllHolonsAsync();
-                    if (!holonsResult.IsError && holonsResult.Result != null)
-                    {
-                    searchResults.SearchResultHolons.AddRange(holonsResult.Result);
-                }
-                
-                searchResults.NumberOfResults = searchResults.SearchResultAvatars.Count + searchResults.SearchResultHolons.Count;
-                
-                result.Result = searchResults;
-                result.IsError = false;
-                result.Message = $"Successfully searched Ethereum blockchain and found {searchResults.NumberOfResults} results";
+                var found=new SearchResults();
+                found.SearchResultAvatars.AddRange(avatars.Where(row=>SearchRecordMatches(row,true,searchParams,holons)));
+                if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>SearchRecordMatches(row,false,searchParams,holons)));
+                found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
+                result.Result=found; result.IsLoaded=true;
             }
-            catch (Exception ex)
+            catch(Exception cause)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error searching Ethereum blockchain: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result,$"Ethereum native search failed: {cause.Message}",cause);
             }
             return result;
         }

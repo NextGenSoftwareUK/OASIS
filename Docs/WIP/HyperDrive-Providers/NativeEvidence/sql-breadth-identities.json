@@ -1,0 +1,89 @@
+{
+  "date": "2026-10-26",
+  "scope": "SQL canonical baseline and read-only acknowledgement regression; no routing/recovery depth",
+  "coreSuite": {
+    "passed": 12,
+    "total": 52,
+    "failure": "detail-id acknowledgement count missing; original reports preserved unchanged"
+  },
+  "targetedReadRegression": {
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 246,
+    "writes": 0
+  },
+  "sourceDocuments": {
+    "Core": 788,
+    "PostgreSQLOASIS": 9,
+    "PostgreSQLOASIS.IntegrationTests": 15
+  },
+  "assemblies": [
+    {
+      "path": "OASIS Architecture/NextGenSoftware.OASIS.API.Core/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Core.dll",
+      "sha256": "e03618de87d14624c6e0a3376083a32b978012b77946605f15fbbeb24fc8acce",
+      "bytes": 3510784,
+      "pdbSha256": "4b95ac1a4bd5df150af82bad6dea262ce4f608708276175471a720c5ef91101d"
+    },
+    {
+      "path": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/bin/Debug/net10.0/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+      "sha256": "ca061eedc0a0202d42c2af61caad13b767e63cd8ef41066d3e0893b3538fbb96",
+      "bytes": 379904,
+      "pdbSha256": "bc5d7795c4f5db9f922b622e78b9a08f8a00c5577c705b01d579b4df43c28f3a"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.dll",
+      "sha256": "f9c61fb52ef88a6e4cb842d1399321c3eb4436b8882fd06511aabad5f6b9f6ac",
+      "bytes": 138752,
+      "pdbSha256": "5b3f2768665301599d919e7c3b5b2b82d56512629601b07b74563c054d856221"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests.dll",
+      "sha256": "366445a4c3910baa637c43cbacc0876d5cced5a80e77faf1a03688574d83cc95",
+      "bytes": 207360,
+      "pdbSha256": "c14a2f87d119663c894c25303161d41272638be58a8b13ef13df1139888cd03b"
+    }
+  ],
+  "reports": [
+    {
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/postgres-core-conformance.trx.gz",
+      "rawBytes": 5422,
+      "gzipBytes": 1428,
+      "rawSha256": "76c06a16b01b14c4235eac2aa82fb7489a085e46ec89466ffd220490b80f7e7b",
+      "gzipSha256": "fad7d0d10909c32c3b405ab2dd3a64c0cc4f70c5a9785c4d6bbb774d0ab8b885"
+    },
+    {
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/postgres-conformance-detail-read.trx.gz",
+      "rawBytes": 4239,
+      "gzipBytes": 1276,
+      "rawSha256": "a911b182a27da8aa070c37e707f48a2110b6ed3518b8aaf5d2b30795547440b5",
+      "gzipSha256": "034a494fb5207e92d1c83eb6857f66d5305db6152ff8a6de1556c18c8ed9c5ba"
+    }
+  ],
+  "outputs": {
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS/bin": {
+      "bytes": 7524823,
+      "files": 32
+    },
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS/obj": {
+      "bytes": 1037190,
+      "files": 19
+    },
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests/bin": {
+      "bytes": 48009976,
+      "files": 200
+    },
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests/obj": {
+      "bytes": 1278514,
+      "files": 21
+    }
+  },
+  "runtime": {
+    "name": "oasis-postgres",
+    "image": "79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537",
+    "volume": "oasis-postgres-data",
+    "stateAfter": "exited",
+    "preservedFixtures": "two avatar and two detail rows; exact identities in canonical reports; no holon writes reached"
+  },
+  "downloads": 0
+}

@@ -738,9 +738,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             decimal amountSTX,
             string memo)
         {
-            // Decode private key — Stacks appends 01 for compressed; strip it if present
-            var rawHex = senderPrivateKeyHex.StartsWith("01", StringComparison.OrdinalIgnoreCase) && senderPrivateKeyHex.Length == 66
-                ? senderPrivateKeyHex[2..]
+            // Decode private key: Stacks appends the 01 compression marker as a suffix (66 hex chars).
+            var rawHex = senderPrivateKeyHex.Length == 66 && senderPrivateKeyHex.EndsWith("01", StringComparison.OrdinalIgnoreCase)
+                ? senderPrivateKeyHex[..64]
                 : senderPrivateKeyHex;
             var privKey = new NBitcoin.Key(NBitcoin.DataEncoders.Encoders.Hex.DecodeData(rawHex));
             var pubKey = privKey.PubKey;
@@ -929,20 +929,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         private static ulong Rot64(ulong x, int n) => (x >> n) | (x << (64 - n));
 
-        private static string EncodeStacksAddress(byte[] hash160, bool isMainnet)
-        {
-            var payload = new byte[21];
-            payload[0] = isMainnet ? (byte)22 : (byte)26; // 0x16 mainnet, 0x1A testnet
-            Array.Copy(hash160, 0, payload, 1, 20);
-            return NBitcoin.DataEncoders.Encoders.Base58Check.EncodeData(payload);
-        }
+        // Stacks addresses are c32check, not Base58Check (the previous encoding produced and accepted non-Stacks strings).
+        private static string EncodeStacksAddress(byte[] hash160, bool isMainnet) =>
+            StacksC32.Address(isMainnet ? StacksC32.MainnetSingleSig : StacksC32.TestnetSingleSig, hash160);
 
-        private static byte[] DecodeStacksAddressToHash160(string stacksAddress)
-        {
-            var decoded = NBitcoin.DataEncoders.Encoders.Base58Check.DecodeData(stacksAddress);
-            var hash = new byte[20];
-            Array.Copy(decoded, 1, hash, 0, 20); // skip version byte
-            return hash;
-        }
+        private static byte[] DecodeStacksAddressToHash160(string stacksAddress) => StacksC32.Decode(stacksAddress).Hash160;
     }
 }

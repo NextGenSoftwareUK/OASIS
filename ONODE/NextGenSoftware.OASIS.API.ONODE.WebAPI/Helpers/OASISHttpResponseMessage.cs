@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http;
+using System.Linq;
+using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 
@@ -7,6 +9,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
 {
     public class OASISHttpResponseMessage<T> : HttpResponseMessage
     {
+        private ProviderRoutingPolicy _routingPolicy;
+        internal OASISHttpResponseMessage<T> BindRoutingPolicy(ProviderRoutingPolicy policy)
+        {
+            _routingPolicy = policy ?? throw new System.ArgumentNullException(nameof(policy));
+            return this;
+        }
+        // Result projection must retain the request's captured routing policy.
+        internal OASISHttpResponseMessage<TTarget> WithResult<TTarget>(OASISResult<TTarget> result)
+            => new OASISHttpResponseMessage<TTarget>
+            {
+                Result = result, StatusCode = StatusCode,
+                ShowDetailedSettings = ShowDetailedSettings, _routingPolicy = _routingPolicy
+            };
         public bool ShowDetailedSettings { get; set; }
         public OASISResult<T> Result { get; set; }
         public string OASISVersion
@@ -32,7 +47,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
         {
             get
             {
-                return ProviderManager.Instance.IsAutoLoadBalanceEnabled;
+                return _routingPolicy?.AutoLoadBalancingEnabled ?? ProviderManager.Instance.IsAutoLoadBalanceEnabled;
 
                 //if (_autoLoadBalanceMode == AutoLoadBalanceMode.NotSet || _autoLoadBalanceMode == AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA)
                 //    return OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoLoadBalanceEnabled;
@@ -45,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
         {
             get
             {
-                return ProviderManager.Instance.IsAutoFailOverEnabled;
+                return _routingPolicy?.AutoFailoverEnabled ?? ProviderManager.Instance.IsAutoFailOverEnabled;
 
                 //if (_autoFailOverMode == AutoFailOverMode.NotSet || _autoFailOverMode == AutoFailOverMode.UseGlobalDefaultInOASISDNA)
                 //    return OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoFailOverEnabled;
@@ -58,7 +73,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
         {
             get
             {
-                return ProviderManager.Instance.IsAutoReplicationEnabled;
+                return _routingPolicy?.AutoReplicationEnabled ?? ProviderManager.Instance.IsAutoReplicationEnabled;
 
                 //if (_autoReplicationMode == AutoReplicationMode.NotSet || _autoReplicationMode == AutoReplicationMode.UseGlobalDefaultInOASISDNA)
                 //    return OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.AutoReplicationEnabled;
@@ -72,7 +87,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
             get
             {
                 if (ShowDetailedSettings)
-                    return ProviderManager.Instance.GetProviderAutoLoadBalanceListAsString();
+                    return _routingPolicy == null ? ProviderManager.Instance.GetProviderAutoLoadBalanceListAsString() :
+                        string.Join(",", _routingPolicy.LoadBalancingProviders.Select(value => value.ToString()));
                 else
                     return null;
             }
@@ -83,7 +99,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
             get
             {
                 if (ShowDetailedSettings)
-                    return ProviderManager.Instance.GetProviderAutoFailOverListAsString();
+                    return _routingPolicy == null ? ProviderManager.Instance.GetProviderAutoFailOverListAsString() :
+                        string.Join(",", _routingPolicy.FailoverProviders.Select(value => value.ToString()));
                 else
                     return null;
             }
@@ -94,7 +111,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
             get
             {
                 if (ShowDetailedSettings)
-                    return ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString();
+                    return _routingPolicy == null ? ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString() :
+                        string.Join(",", _routingPolicy.ReplicationProviders.Select(value => value.ToString()));
                 else
                     return null;
             }
@@ -104,7 +122,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
         {
             get
             {
-                return ProviderManager.Instance.CurrentStorageProviderType.Name;
+                return _routingPolicy?.PreferredProvider.ToString() ?? ProviderManager.Instance.CurrentStorageProviderType.Name;
             }
         }
 

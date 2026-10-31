@@ -47,10 +47,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
                 var holon = (Holon)result.Result;
 
-                if (holon != null && Avatar?.AvatarType?.Value != AvatarType.Wizard
-                    && !HolonAccess.CanRead(holon, AvatarId))
-                    return TestDataHelper.CreateErrorResponse<Holon>(
-                        "Forbidden. You do not have permission to access this holon.", null, System.Net.HttpStatusCode.Forbidden);
+                if (holon != null && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                {
+                    // Whole holon, or only the fields this avatar may read (per-holon and per-field permissions).
+                    holon = await HolonManager.ProjectForAvatarAsync(holon, AvatarId) as Holon;
+                    if (holon == null)
+                        return TestDataHelper.CreateErrorResponse<Holon>(
+                            "Forbidden. You do not have permission to access this holon.", null, System.Net.HttpStatusCode.Forbidden);
+                }
 
                 response.Result.Result = holon;
                 return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, false);
@@ -103,7 +107,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     if (searchOnlyForCurrentAvatar)
                         holons = holons.Where(h => h.CreatedByAvatarId == AvatarId).ToList();
                     else if (includePublic)
-                        holons = holons.Where(h => HolonAccess.CanRead(h, AvatarId)).ToList();
+                        holons = (await HolonManager.ProjectForAvatarAsync(holons, AvatarId)).OfType<Holon>().ToList();
                     else
                         return TestDataHelper.CreateErrorResponse<IEnumerable<Holon>>(
                             "Forbidden. Returning all holons requires a Wizard avatar.", null, System.Net.HttpStatusCode.Forbidden);
@@ -147,6 +151,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISHttpResponseMessage<Holon>> DeleteHolonByProviderKey(string providerKey, bool softDelete = true)
         {
+            var engineMode = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HyperDriveMode;
+            var mode = HolonWriteEndpoint.ValidateEngineMode<Holon>(engineMode);
+            if (mode.IsError)
+            {
+                var status = HolonWriteEndpoint.Status(mode);
+                Response.StatusCode = (int)status;
+                return HttpResponseHelper.FormatResponse(mode, status, false);
+            }
+            if (engineMode == NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2)
+            {
+                // Keep this alias on the canonical request-scoped conditional
+                // delete boundary. A key never substitutes for logical intent.
+                var idHeader = Request.Headers[HolonWriteEndpoint.HolonIdHeader].ToString();
+                if (!Guid.TryParseExact(idHeader, "D", out var id) || id == Guid.Empty ||
+                    string.IsNullOrWhiteSpace(providerKey) || providerKey.Length > 4096)
+                {
+                    Response.StatusCode = StatusCodes.Status400BadRequest;
+                    return TestDataHelper.CreateErrorResponse<Holon>("A canonical nonempty holon ID header and bounded native key are required.",
+                        null, System.Net.HttpStatusCode.BadRequest);
+                }
+                var deleted = await DeleteHolon(new NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.DeleteHolonRequest
+                    { Id = id, ProviderKey = providerKey, SoftDelete = softDelete,
+                        ProviderType = Request.Query.TryGetValue("providerType", out var selectedProvider)
+                            ? selectedProvider.ToString() : "Default" });
+                var converted = new OASISHttpResponseMessage<Holon>();
+                converted.Result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon, Holon>(deleted.Result);
+                converted.Result.Result = deleted.Result.Result == null ? null : (Holon)deleted.Result.Result;
+                return deleted.WithResult(converted.Result);
+            }
             var response = new OASISHttpResponseMessage<Holon>();
             try
             {

@@ -1,618 +1,197 @@
-﻿using System;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text;
+using System;
+using System.Numerics;
 using System.Text.Json;
-using System.Threading;
+using System.Linq;
+using System.IO;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.Utilities;
-using System.Security.Cryptography;
 
-namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
+namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS;
+
+public partial class NEAROASIS
 {
-    public partial class NEAROASIS
+    public void Dispose() { }
+
+    public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request) =>
+        LockNFTAsync(request).GetAwaiter().GetResult();
+
+    public Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request) =>
+        SetAvatarNftLockAsync(request?.NFTTokenAddress, true,request?.LockedByAvatarId??Guid.Empty);
+
+    public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request) =>
+        UnlockNFTAsync(request).GetAwaiter().GetResult();
+
+    public Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request) =>
+        SetAvatarNftLockAsync(request?.NFTTokenAddress, false,request?.UnlockedByAvatarId??Guid.Empty);
+
+    private async Task<OASISResult<IWeb3NFTTransactionResponse>> SetAvatarNftLockAsync(string tokenId,bool locked,Guid actor)
     {
-        private Avatar ParseNEARToAvatar(string nearJson)
-        {
-            try
-            {
-                // Deserialize the complete Avatar object from NEAR JSON
-                var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(nearJson, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                });
-
-                return avatar;
-            }
-            catch (Exception)
-            {
-                // If JSON deserialization fails, try to extract basic info
-                return CreateAvatarFromNEAR(nearJson);
-            }
-        }
-
-        /// <summary>
-        /// Create Avatar from NEAR response when JSON deserialization fails
-        /// </summary>
-        private Avatar CreateAvatarFromNEAR(string nearJson)
-        {
-            try
-            {
-                // Extract basic information from NEAR JSON response
-                var avatar = new Avatar
-                {
-                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{ExtractNEARProperty(nearJson, "account_id") ?? "near_user"}"),
-                    Username = ExtractNEARProperty(nearJson, "account_id") ?? "near_user",
-                    Email = ExtractNEARProperty(nearJson, "email") ?? "user@near.example",
-                    FirstName = ExtractNEARProperty(nearJson, "first_name"),
-                    LastName = ExtractNEARProperty(nearJson, "last_name"),
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow
-                };
-
-                return avatar;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Extract property value from NEAR JSON response
-        /// </summary>
-        private string ExtractNEARProperty(string nearJson, string propertyName)
-        {
-            try
-            {
-                // Simple regex-based extraction for NEAR properties
-                var pattern = $"\"{propertyName}\"\\s*:\\s*\"([^\"]+)\"";
-                var match = System.Text.RegularExpressions.Regex.Match(nearJson, pattern);
-                return match.Success ? match.Groups[1].Value : null;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Convert Avatar to NEAR blockchain format
-        /// </summary>
-        private string ConvertAvatarToNEAR(IAvatar avatar)
-        {
-            try
-            {
-                // Serialize Avatar to JSON with NEAR blockchain structure
-                var nearData = new
-                {
-                    account_id = avatar.Username,
-                    email = avatar.Email,
-                    first_name = avatar.FirstName,
-                    last_name = avatar.LastName,
-                    created = avatar.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                    modified = avatar.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
-                };
-
-                return System.Text.Json.JsonSerializer.Serialize(nearData, new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                });
-            }
-            catch (Exception)
-            {
-                // Fallback to basic JSON serialization
-                return System.Text.Json.JsonSerializer.Serialize(avatar, new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                });
-            }
-        }
-
-        /// <summary>
-        /// Convert Holon to NEAR blockchain format
-        /// </summary>
-        private string ConvertHolonToNEAR(IHolon holon)
-        {
-            try
-            {
-                // Serialize Holon to JSON with NEAR blockchain structure
-                var nearData = new
-                {
-                    id = holon.Id.ToString(),
-                    type = holon.HolonType.ToString(),
-                    name = holon.Name,
-                    description = holon.Description,
-                    created = holon.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                    modified = holon.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
-                };
-
-                return System.Text.Json.JsonSerializer.Serialize(nearData, new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                });
-            }
-            catch (Exception)
-            {
-                // Fallback to basic JSON serialization
-                return System.Text.Json.JsonSerializer.Serialize(holon, new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                });
-            }
-        }
-
-
-
-        /// <summary>
-        /// Get public key for NEAR account
-        /// </summary>
-        private async Task<string> GetPublicKeyForAccountAsync(string accountId)
-        {
-            try
-            {
-                // Try to get from KeyManager first
-                if (KeyManager.Instance != null)
-                {
-                    var keysResult = KeyManager.Instance.GetProviderPrivateKeysForAvatarById(
-                        Guid.Empty, // Use default avatar or get from context
-                        Core.Enums.ProviderType.NEAROASIS);
-                    
-                    if (keysResult != null && !keysResult.IsError && keysResult.Result != null && keysResult.Result.Any())
-                    {
-                        var firstPrivateKey = keysResult.Result.First();
-                        if (!string.IsNullOrWhiteSpace(firstPrivateKey))
-                            return await DerivePublicKeyFromPrivateKeyAsync(firstPrivateKey);
-                    }
-                }
-
-                // Get from wallet manager
-                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(
-                    Guid.Empty, // Use default avatar or get from context
-                    Core.Enums.ProviderType.NEAROASIS);
-                
-                if (!walletResult.IsError && walletResult.Result != null && !string.IsNullOrWhiteSpace(walletResult.Result.PublicKey))
-                {
-                    return walletResult.Result.PublicKey;
-                }
-
-                // Derive from private key if available
-                var privateKey = await GetPrivateKeyForAccountAsync(accountId);
-                if (!string.IsNullOrWhiteSpace(privateKey))
-                {
-                    return await DerivePublicKeyFromPrivateKeyAsync(privateKey);
-                }
-
-                // Generate new key pair if none exists
-                var keyPair = await GenerateNEARKeyPairAsync();
-                return keyPair.PublicKey;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error getting public key for account {accountId}: {ex.Message}", ex);
-                return "ed25519:...";
-            }
-        }
-
-        /// <summary>
-        /// Derive public key from private key
-        /// </summary>
-        private async Task<string> DerivePublicKeyFromPrivateKeyAsync(string privateKey)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(privateKey))
-                    return "ed25519:...";
-
-                // Use hash-based derivation (real cryptographic operation)
-                // In production, use a proper Ed25519 library to derive public key from private key
-                    var keyBytes = Convert.FromBase64String(privateKey.Replace("ed25519:", ""));
-                
-                // NEAR private keys may be 64 bytes (private + public), extract first 32 bytes
-                var privateKeyBytes = keyBytes.Length >= 32 ? keyBytes.Take(32).ToArray() : keyBytes;
-                
-                // Use SHA-256 hash of private key as deterministic public key derivation
-                    using (var sha256 = System.Security.Cryptography.SHA256.Create())
-                    {
-                    var hash = sha256.ComputeHash(privateKeyBytes);
-                        return "ed25519:" + Convert.ToBase64String(hash);
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error deriving public key from private key: {ex.Message}", ex);
-                return "ed25519:...";
-            }
-        }
-
-        /// <summary>
-        /// Generate new NEAR key pair
-        /// </summary>
-        private async Task<NEARKeyPair> GenerateNEARKeyPairAsync()
-        {
-            try
-            {
-                // Generate new Ed25519 key pair using cryptographic random number generator
-                // Real implementation using secure random key generation
-                    var privateKeyBytes = new byte[32];
-                    using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
-                    {
-                        rng.GetBytes(privateKeyBytes);
-                    }
-                    
-                // Derive public key from private key using SHA-256 hash (real cryptographic operation)
-                byte[] publicKeyBytes;
-                using (var sha256 = System.Security.Cryptography.SHA256.Create())
-                {
-                    publicKeyBytes = sha256.ComputeHash(privateKeyBytes);
-                }
-                    
-                    return new NEARKeyPair
-                    {
-                        PrivateKey = "ed25519:" + Convert.ToBase64String(privateKeyBytes),
-                        PublicKey = "ed25519:" + Convert.ToBase64String(publicKeyBytes)
-                    };
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error generating NEAR key pair: {ex.Message}", ex);
-                return new NEARKeyPair
-                {
-                    PrivateKey = "ed25519:...",
-                    PublicKey = "ed25519:..."
-                };
-            }
-        }
-
-
-
-        public void Dispose()
-        {
-            _httpClient?.Dispose();
-        }
-
-        /// <summary>
-        /// NEAR key pair data structure
-        /// </summary>
-        private class NEARKeyPair
-        {
-            public string PrivateKey { get; set; } = string.Empty;
-            public string PublicKey { get; set; } = string.Empty;
-        }
-
-        // NFT-specific lock/unlock methods
-        public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
-    {
-        return LockNFTAsync(request).Result;
+        if(actor==Guid.Empty)return await SetNftLockAsync(tokenId,locked);
+        var result=new OASISResult<IWeb3NFTTransactionResponse>();
+        try {
+            if(string.IsNullOrWhiteSpace(tokenId))throw new ArgumentException("NFT token id is required.");
+            var signer=await ResolveLockSignerAsync(actor,null,null);
+            return await SetNftLockAsync(tokenId,locked,signer.Account,signer.Key);
+        }catch(Exception failure){OASISErrorHandling.HandleError(ref result,failure.Message,failure);return result;}
     }
 
-    public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
+    private async Task<OASISResult<IWeb3NFTTransactionResponse>> SetNftLockAsync(string tokenId, bool locked,
+        string signerAccountId = null, string signerPrivateKey = null,string requiredLockId=null)
     {
-        var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+        var result = new OASISResult<IWeb3NFTTransactionResponse>();
+        string acknowledged=null;
         try
         {
-            if (!_isActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "NEAR provider is not activated");
-                return result;
-            }
-
-            var bridgePoolAccount = _contractAddress ?? "oasisbridge.near";
-            var sendRequest = new SendWeb3NFTRequest
-            {
-                FromNFTTokenAddress = request.NFTTokenAddress,
-                FromWalletAddress = string.Empty,
-                ToWalletAddress = bridgePoolAccount,
-                TokenAddress = request.NFTTokenAddress,
-                TokenId = request.Web3NFTId.ToString(),
-                Amount = 1
-            };
-
-            var sendResult = await SendNFTAsync(sendRequest);
-            if (sendResult.IsError || sendResult.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {sendResult.Message}", sendResult.Exception);
-                return result;
-            }
-
-            result.IsError = false;
-            result.Result.TransactionResult = sendResult.Result.TransactionResult;
+            if (string.IsNullOrWhiteSpace(tokenId)) throw new ArgumentException("NFT token id is required.");
+            if (!await EnsureSdkActiveAsync(result)) return result;
+            if(_chainId!=_networkId)throw new InvalidOperationException("Consistent NEAR network required for NFT custody.");
+            var protocol=await _sdk.ViewAsync("nft_escrow_protocol",new{});
+            if(protocol.ValueKind!=JsonValueKind.Number||!protocol.TryGetInt32(out var version)||version!=1)
+                throw new InvalidOperationException("Native NFT deposit protocol1 required before signing.");
+            var owner=signerAccountId??_accountId;
+            var current=await _sdk.ViewAsync("nft_token",new{token_id=tokenId});
+            if(current.ValueKind!=JsonValueKind.Object||current.GetProperty("token_id").GetString()!=tokenId||current.GetProperty("owner_id").GetString()!=owner||current.GetProperty("locked").GetBoolean()==locked)
+                throw new InvalidDataException("NFT must be owned by the signer and in the opposite custody state.");
+            var id=locked?Guid.NewGuid().ToString("N"):NearSdkService.RequireNftLockId(current.GetProperty("lock_id").GetString());
+            if(requiredLockId!=null&&NearSdkService.RequireNftLockId(requiredLockId)!=id)
+                throw new InvalidDataException("Source receipt belongs to another NFT lock cycle.");
+            var previous=await _sdk.ViewAsync("nft_lock_get",new{lock_id=id});
+            if(locked){if(previous.ValueKind!=JsonValueKind.Null)throw new InvalidDataException("NFT deposit ID already used.");}
+            else VerifyNftDeposit(previous,id,tokenId,owner,false);
+            var tx = await _sdk.CallAsync("nft_set_locked", new { token_id = tokenId, locked,lock_id=id },
+                signerAccountId: signerAccountId, signerPrivateKey: signerPrivateKey);
+            acknowledged=tx;
+            VerifyNftDeposit(await _sdk.ViewAsync("nft_lock_get",new{lock_id=id}),id,tokenId,owner,!locked);
+            var loaded = await LoadOnChainNFTDataAsync(tokenId);
+            if (loaded.IsError) throw loaded.Exception ?? new InvalidOperationException(loaded.Message);
+            if(loaded.Result?.MetaData==null||!loaded.Result.MetaData.TryGetValue("near:locked",out var observed)
+                ||!string.Equals(observed?.ToString(),locked.ToString(),StringComparison.Ordinal))
+                throw new System.IO.InvalidDataException("Native NFT lock state after acknowledgement differs from the requested state.");
+            if(loaded.Result.SendToAddressAfterMinting!=owner||!loaded.Result.MetaData.TryGetValue("near:lock-id",out var observedId)||observedId?.ToString()!=id)
+                throw new InvalidDataException("Native NFT current deposit differs after acknowledgement.");
+            result.Result = new Web3NFTTransactionResponse { TransactionResult = tx, Web3NFT = loaded.Result };
+            result.Message = $"NFT {(locked ? "locked" : "unlocked")} by the deployed NEAR contract.";
         }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error locking NFT: {ex.Message}", ex);
+        catch (Exception ex) {
+            if(!string.IsNullOrWhiteSpace(acknowledged))ex=new NativeTransactionFollowupException(Core.Enums.ProviderType.NEAROASIS,acknowledged,ex);
+            OASISErrorHandling.HandleError(ref result, $"Error changing NEAR NFT lock: {ex.Message}", ex);
         }
         return result;
     }
 
-    public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request)
+    private static void VerifyNftDeposit(JsonElement value,string id,string token,string owner,bool released)
     {
-        return UnlockNFTAsync(request).Result;
+        if(value.ValueKind!=JsonValueKind.Object||value.EnumerateObject().Count()!=5||value.GetProperty("protocol").GetInt32()!=1
+            ||value.GetProperty("lock_id").GetString()!=NearSdkService.RequireNftLockId(id)||value.GetProperty("token_id").GetString()!=token
+            ||value.GetProperty("owner_id").GetString()!=owner||value.GetProperty("released").GetBoolean()!=released)
+            throw new InvalidDataException("Native NFT deposit differs from exact ID/token/owner/state.");
     }
 
-    public async Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
+    public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress,
+        string tokenId, string senderAccountAddress, string senderPrivateKey)
     {
-        var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+        var locked = await SetNftLockAsync(tokenId, true, senderAccountAddress, senderPrivateKey);
+        return ToBridgeResult(locked.Result?.TransactionResult, locked.IsError, locked.Message,locked.Exception);
+    }
+
+    public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress,
+        string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
+    {
+        string sourceLockId=null;
+        if (!string.IsNullOrWhiteSpace(sourceTransactionHash))
+        {
+            try {
+                var active=new OASISResult<BridgeTransactionResponse>();
+                if(!await EnsureSdkActiveAsync(active))return ToBridgeResult(null,true,active.Message,active.Exception);
+                sourceLockId=await _sdk.VerifyNftLockSourceAsync(sourceTransactionHash,tokenId);
+            }catch(Exception failure){return ToBridgeResult(null,true,failure.Message,failure);}
+        }
+        var unlocked = await SetNftLockAsync(tokenId, false,requiredLockId:sourceLockId);
+        if (unlocked.IsError) return ToBridgeResult(null, true, unlocked.Message,unlocked.Exception);
+        var sent = await SendNFTAsync(new Core.Objects.NFT.Requests.SendWeb3NFTRequest
+        {
+            TokenId = tokenId,
+            ToWalletAddress = receiverAccountAddress
+        });
+        if(sent.IsError){
+            var failure=new NativeTransactionFollowupException(Core.Enums.ProviderType.NEAROASIS,unlocked.Result.TransactionResult,
+                sent.Exception??new InvalidOperationException(sent.Message));
+            return ToBridgeResult(unlocked.Result.TransactionResult,true,sent.Message,failure);
+        }
+        return ToBridgeResult(sent.Result?.TransactionResult, false, sent.Message);
+    }
+
+    private static OASISResult<BridgeTransactionResponse> ToBridgeResult(string transactionId,bool error,string message,Exception failure=null)
+    {
+        transactionId??=failure switch{
+            NativeTransactionFollowupException followup=>followup.OriginalTransactionId,
+            NearMutationUncertainException uncertain=>uncertain.OriginalTransactionId,
+            NearMutationRejectedException rejected=>rejected.OriginalTransactionId,
+            _=>null
+        };
+        var status=!error?BridgeTransactionStatus.Completed:failure is NearMutationRejectedException?BridgeTransactionStatus.Failed:BridgeTransactionStatus.Pending;
+        return new(new BridgeTransactionResponse(transactionId??string.Empty,null,!error,error?message:null,status)){
+            IsError=error,Message=message,Exception=failure
+        };
+    }
+
+    public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request) =>
+        SendTokenAsync(request).GetAwaiter().GetResult();
+
+    public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        string acknowledged=null;
         try
         {
-            if (!_isActivated)
+            if (request == null || string.IsNullOrWhiteSpace(request.ToWalletAddress) || request.Amount <= 0)
+                throw new ArgumentException("Destination account and a positive amount are required.");
+            // Freeze all used caller fields before activation or any SDK await.
+            var destination=request.ToWalletAddress;var source=request.FromWalletAddress;
+            var tokenAddress=request.FromTokenAddress;var ownerKey=request.OwnerPrivateKey;var amount=request.Amount;
+            var publicKey=request.OwnerPublicKey;var seed=request.OwnerSeedPhrase;
+            var native=string.IsNullOrWhiteSpace(tokenAddress)||string.Equals(tokenAddress,"NEAR",StringComparison.OrdinalIgnoreCase);
+            var units=native?NearNativeAmount.ToYocto(amount):ToTokenUnits(amount);
+            var knownKey=await ResolveNearExplicitKeyAsync(ownerKey,seed);
+            var owner=string.IsNullOrWhiteSpace(source)?knownKey?.ImplicitAccountId??_accountId:source;
+            var signer=await ResolveNearSignerAsync(owner,ownerKey,publicKey,knownKey);
+            if (!await EnsureSdkActiveAsync(result)) return result;
+            string tx;
+            if (native)
             {
-                OASISErrorHandling.HandleError(ref result, "NEAR provider is not activated");
-                return result;
+                tx = await _sdk.TransferAsync(destination, units,signer.Account,signer.Key);
             }
-
-            var bridgePoolAccount = _contractAddress ?? "oasisbridge.near";
-            var sendRequest = new SendWeb3NFTRequest
+            else
             {
-                FromNFTTokenAddress = request.NFTTokenAddress,
-                FromWalletAddress = bridgePoolAccount,
-                ToWalletAddress = string.Empty,
-                TokenAddress = request.NFTTokenAddress,
-                TokenId = request.Web3NFTId.ToString(),
-                Amount = 1
-            };
-
-            var sendResult = await SendNFTAsync(sendRequest);
-            if (sendResult.IsError || sendResult.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Failed to unlock NFT: {sendResult.Message}", sendResult.Exception);
-                return result;
-            }
-
-            result.IsError = false;
-            result.Result.TransactionResult = sendResult.Result.TransactionResult;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error unlocking NFT: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    // NFT Bridge Methods
-    public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress, string tokenId, string senderAccountAddress, string senderPrivateKey)
-    {
-        var result = new OASISResult<BridgeTransactionResponse>();
-        try
-        {
-            if (!_isActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "NEAR provider is not activated");
-                return result;
-            }
-
-            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) || 
-                string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
-            {
-                OASISErrorHandling.HandleError(ref result, "NFT token address, token ID, sender address, and private key are required");
-                return result;
-            }
-
-            var lockRequest = new LockWeb3NFTRequest
-            {
-                NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
-                LockedByAvatarId = Guid.Empty
-            };
-
-            var lockResult = await LockNFTAsync(lockRequest);
-            if (lockResult.IsError || lockResult.Result == null)
-            {
-                result.Result = new BridgeTransactionResponse
+                tx = await _sdk.CallAsync("token_transfer", new
                 {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = lockResult.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-                OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {lockResult.Message}");
-                return result;
+                    symbol = tokenAddress,
+                    from_id = signer.Account,
+                    receiver_id = destination,
+                    amount = units
+                },signerAccountId:signer.Account,signerPrivateKey:signer.Key);
             }
-
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = lockResult.Result.TransactionResult ?? string.Empty,
-                IsSuccessful = !lockResult.IsError,
-                Status = BridgeTransactionStatus.Pending
-            };
-            result.IsError = false;
+            acknowledged=tx;
+            await RecordWalletTransactionAsync(tx,
+                signer.Account,destination,amount,
+                native ? "Native NEAR transfer" : $"NEAR token transfer {tokenAddress}");
+            result.Result = new TransactionResponse { TransactionResult = tx };
+            result.Message = "Token transferred through the official NEAR SDK.";
         }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error withdrawing NFT: {ex.Message}", ex);
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = string.Empty,
-                IsSuccessful = false,
-                ErrorMessage = ex.Message,
-                Status = BridgeTransactionStatus.Canceled
-            };
+        catch (Exception ex) {
+            if(!string.IsNullOrWhiteSpace(acknowledged))ex=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.NativeTransactionFollowupException(Core.Enums.ProviderType.NEAROASIS,acknowledged,ex);
+            OASISErrorHandling.HandleError(ref result, $"Error sending NEAR token: {ex.Message}", ex);
         }
         return result;
-    }
-
-    public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
-    {
-        var result = new OASISResult<BridgeTransactionResponse>();
-        try
-        {
-            if (!_isActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "NEAR provider is not activated");
-                return result;
-            }
-
-            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
-            {
-                OASISErrorHandling.HandleError(ref result, "NFT token address and receiver address are required");
-                return result;
-            }
-
-            var mintRequest = new MintWeb3NFTRequest
-            {
-                SendToAddressAfterMinting = receiverAccountAddress,
-            };
-
-            var mintResult = await MintNFTAsync(mintRequest);
-            if (mintResult.IsError || mintResult.Result == null)
-            {
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = mintResult.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-                OASISErrorHandling.HandleError(ref result, $"Failed to deposit/mint NFT: {mintResult.Message}");
-                return result;
-            }
-
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = mintResult.Result.TransactionResult ?? string.Empty,
-                IsSuccessful = !mintResult.IsError,
-                Status = BridgeTransactionStatus.Pending
-            };
-            result.IsError = false;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error depositing NFT: {ex.Message}", ex);
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = string.Empty,
-                IsSuccessful = false,
-                ErrorMessage = ex.Message,
-                Status = BridgeTransactionStatus.Canceled
-            };
-        }
-        return result;
-    }
-
-
-        public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
-        {
-            return SendTokenAsync(request).Result;
-        }
-
-        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
-        {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "NEAR provider is not activated");
-                    return result;
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.FromTokenAddress) || 
-                    string.IsNullOrWhiteSpace(request.ToWalletAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Token address and to wallet address are required");
-                    return result;
-                }
-
-                // Get private key from request
-                string privateKey = request.OwnerPrivateKey;
-                if (string.IsNullOrWhiteSpace(privateKey))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Private key is required (OwnerPrivateKey)");
-                    return result;
-                }
-
-                // Convert amount to yoctoNEAR (1 NEAR = 10^24 yoctoNEAR)
-                var amountInYoctoNEAR = (ulong)(request.Amount * 1_000_000_000_000_000_000_000_000m);
-
-                // Create NEAR FT (Fungible Token) transfer transaction
-                var transferArgs = JsonSerializer.Serialize(new
-                {
-                    receiver_id = request.ToWalletAddress,
-                    amount = amountInYoctoNEAR.ToString()
-                });
-
-                var signedTx = await CreateSignedTransaction(request.FromTokenAddress, "ft_transfer", transferArgs);
-                
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = "dontcare",
-                    method = "broadcast_tx_commit",
-                    @params = new { signed_tx = signedTx }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    if (rpcResponse.TryGetProperty("result", out var rpcResult))
-                    {
-                        var transactionHash = rpcResult.TryGetProperty("transaction", out var tx) &&
-                                             tx.TryGetProperty("hash", out var hash) ? hash.GetString() : "";
-                        
-                        result.Result.TransactionResult = transactionHash;
-                        result.IsError = false;
-                        result.Message = "Token sent successfully on NEAR blockchain";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to send token on NEAR blockchain");
-                    }
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"NEAR API error: {httpResponse.StatusCode} - {errorContent}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error sending token: {ex.Message}", ex);
-            }
-            return result;
-        }
-
     }
 }

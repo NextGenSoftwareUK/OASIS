@@ -67,14 +67,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
             _logger.LogInformation("HyperDrive fan-out worker {WorkerId} started with {TargetCount} explicit targets.",
                 _workerId, targets.Count);
 
+            var backoff = new HyperDriveWorkerBackoff();
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dispatched = await dispatcher.DispatchOnceAsync(25, TimeSpan.FromMinutes(2), stoppingToken)
                     .ConfigureAwait(false);
                 if (dispatched.IsError)
                     _logger.LogError("HyperDrive fan-out failed ({Code}): {Message}", dispatched.ErrorCode, dispatched.Message);
-                await Task.Delay(dispatched.IsError ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(1), stoppingToken)
-                    .ConfigureAwait(false);
+                var delay = backoff.NextDelay(!dispatched.IsError && dispatched.Result?.ClaimedCount > 0);
+                if (delay > TimeSpan.Zero)
+                    await Task.Delay(delay, stoppingToken).ConfigureAwait(false);
             }
         }
 

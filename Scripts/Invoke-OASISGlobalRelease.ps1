@@ -25,6 +25,7 @@ param(
     [string]$ManualVersion = '',
     [bool]$AllowBlockedPlan = $true,
     [bool]$AdvanceWeb4ToWeb6ApiVersions = $false,
+    [bool]$AdvanceWeb7ToWeb10ApiVersions = $false,
     [bool]$AdvanceWeb4ApiVersion = $false,
     [bool]$AdvanceWeb5ApiVersion = $false,
     [bool]$AdvanceWeb6ApiVersion = $false,
@@ -163,7 +164,7 @@ function Get-ReleaseLabelOverride([string]$Repository, $Commits) {
     return $null
 }
 
-function Get-RequestedVersion([string]$Baseline, [string[]]$Paths, [string[]]$TagPrefixes, [string]$GitRoot = $repoRoot) {
+function Get-RequestedVersion([string]$Baseline, [string[]]$Paths, [string[]]$TagPrefixes, [string]$GitRoot = $repoRoot, [string]$SinceCommit = '', [string]$RoutesDir = '') {
     $current = [version]$Baseline
     if ($VersionMode -eq 'Manual') {
         if ($ManualVersion -notmatch '^\d+\.\d+\.\d+$') { throw 'Manual mode requires a stable X.Y.Z ManualVersion.' }
@@ -172,6 +173,7 @@ function Get-RequestedVersion([string]$Baseline, [string[]]$Paths, [string[]]$Ta
         return $ManualVersion
     }
     $bump = $VersionMode
+    $routeNote = ''
     if ($bump -eq 'Automatic') {
         $tags = foreach ($tag in @(& git -C $GitRoot tag --list)) {
             foreach ($prefix in $TagPrefixes) {
@@ -180,7 +182,7 @@ function Get-RequestedVersion([string]$Baseline, [string[]]$Paths, [string[]]$Ta
         }
         $previous = @($tags | Sort-Object Version -Descending | Select-Object -First 1)
         if ($previous.Count -and $previous[0].Version -gt $current) { $current = $previous[0].Version }
-        $range = if ($previous.Count) { "$($previous[0].Tag)..HEAD" } else { 'HEAD' }
+        $range = if ($SinceCommit) { "$SinceCommit..HEAD" } elseif ($previous.Count) { "$($previous[0].Tag)..HEAD" } else { 'HEAD' }
         $commits = @(& git -C $GitRoot log $range --no-merges --format='%H%x09%s' -- @Paths | ForEach-Object { $parts=$_ -split "`t",2; if($parts.Count -eq 2 -and $parts[1] -notmatch '^(Merge |Promote |chore: bump submodule|chore: update submodule)'){[pscustomobject]@{Sha=$parts[0];Subject=$parts[1]}} })
         $subjects = @($commits.Subject)
         if ($subjects.Count -eq 0) {
@@ -194,17 +196,36 @@ function Get-RequestedVersion([string]$Baseline, [string[]]$Paths, [string[]]$Ta
         if ($override -eq 'release:none') { $message="A release:none label blocks changes in $repository."; if($Operation -eq 'Plan' -and $AllowBlockedPlan){$planBlockers.Add($message);return $Baseline};throw $message }
         if ($override) { $bump = (Get-Culture).TextInfo.ToTitleCase($override.Split(':')[1]) }
         elseif (@($subjects | Where-Object { $_ -match 'BREAKING CHANGE|^[a-z]+(?:\([^)]+\))?!:' }).Count) { $bump = 'Major' }
-        elseif (@($subjects | Where-Object { $_ -match '^(feat|add|implement)(?:\([^)]+\))?:|\b(add|introduc|implement|support|expand)' }).Count) { $bump = 'Minor' }
+        elseif (@($subjects | Where-Object { $_ -match '^(feat|add|implement)(?:\([^)]+\))?:' }).Count) { $bump = 'Minor' }
         else { $bump = 'Patch' }
+        # An API's routes are its contract: a removed or changed route is breaking, a new route is a new capability. This only raises the bump.
+        if (-not $override -and $RoutesDir -and $SinceCommit) {
+            $routes = (& python (Join-Path $PSScriptRoot 'api_route_diff.py') --git-root $GitRoot --since $SinceCommit --dir $RoutesDir) | ConvertFrom-Json
+            if ($LASTEXITCODE -ne 0) { throw "Route comparison failed for $RoutesDir." }
+            if (@($routes.removed).Count -gt 0) { $bump = 'Major'; $routeNote = "$(@($routes.removed).Count) route(s) removed or changed (breaking): $((@($routes.removed) | Select-Object -First 3) -join '; ')." }
+            elseif (@($routes.added).Count -gt 0 -and $bump -eq 'Patch') { $bump = 'Minor'; $routeNote = "$(@($routes.added).Count) route(s) added." }
+        }
     }
     $proposed = switch ($bump) {
         Major { '{0}.0.0' -f ($current.Major + 1) }
         Minor { '{0}.{1}.0' -f $current.Major, ($current.Minor + 1) }
         Patch { '{0}.{1}.{2}' -f $current.Major, $current.Minor, ($current.Build + 1) }
     }
-    $reason = if ($VersionMode -eq 'Automatic') { "Automatic classification of commits since the previous component tag selected $bump." } else { "Explicit $bump mode." }
+    $reason = if ($VersionMode -eq 'Automatic') { "Automatic classification of commits since the previous release selected $bump." } else { "Explicit $bump mode." }
+    if ($routeNote) { $reason += " $routeNote" }
     $versionDecisions.Add([pscustomobject]@{ scope=($Paths -join ', '); current=$Baseline; proposed=$proposed; bump=$bump; reason=$reason })
     return $proposed
+}
+
+# An API's release point is the commit that last wrote its release history (the APIs are deployed from Railway and have no release tags).
+function Get-ApiReleasePoint([string]$HistoryPath, [string]$GitRoot = $repoRoot) { return (& git -C $GitRoot log -1 --format=%H -- $HistoryPath) }
+
+# An API has changed when commits touch its paths after its release point.
+function Test-ApiChangedSinceRelease([string]$HistoryPath, [string[]]$Paths, [string]$GitRoot = $repoRoot) {
+    $releasePoint = Get-ApiReleasePoint $HistoryPath $GitRoot
+    $range = if ($releasePoint) { "$releasePoint..HEAD" } else { 'HEAD' }
+    $subjects = @(& git -C $GitRoot log $range --no-merges --format='%s' -- @Paths | Where-Object { $_ -notmatch '^(Merge |Promote |chore: bump submodule|chore: update submodule)' })
+    return $subjects.Count -gt 0
 }
 
 function Get-LatestNuGetVersion([string]$PackageId) {
@@ -284,7 +305,7 @@ function Get-NextOptionalReleaseVersion([string]$Repository, [string[]]$TagPrefi
         if ($override -eq 'release:major' -or (-not $override -and @($subjects | Where-Object { $_ -match 'BREAKING CHANGE|^[a-z]+(?:\([^)]+\))?!:' }).Count)) { $bump='Major'; $proposed='{0}.0.0' -f ($current.Major + 1) }
         elseif ($override -eq 'release:minor') { $bump='Minor'; $proposed='{0}.{1}.0' -f $current.Major, ($current.Minor + 1) }
         elseif ($override -eq 'release:patch') { $bump='Patch'; $proposed=Get-NextPatchVersion $publishedVersion }
-        elseif (@($subjects | Where-Object { $_ -match '^(feat|add|implement)(?:\([^)]+\))?:|\b(add|introduc|implement|support|expand)' }).Count) { $bump='Minor'; $proposed='{0}.{1}.0' -f $current.Major, ($current.Minor + 1) }
+        elseif (@($subjects | Where-Object { $_ -match '^(feat|add|implement)(?:\([^)]+\))?:' }).Count) { $bump='Minor'; $proposed='{0}.{1}.0' -f $current.Major, ($current.Minor + 1) }
         else { $bump='Patch'; $proposed=Get-NextPatchVersion $publishedVersion }
         $versionDecisions.Add([pscustomobject]@{ scope=$Repository; current=$publishedVersion; proposed=$proposed; bump=$bump; reason="Automatic classification of owning-repository commits selected $bump." })
         return $proposed
@@ -422,11 +443,28 @@ function Get-BootLoaderVersions {
 function Set-Web4ToWeb6VersionsAndHistory($Versions) {
     $bootLoaderPath = Join-Path $repoRoot 'OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\OASISBootLoader.cs'
     $content = Get-Content -LiteralPath $bootLoaderPath -Raw
+    $histories = @(
+        @{ Key='OASISAPIVersion'; Controllers='ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers'; GitRoot=$repoRoot; Repository='NextGenSoftwareUK/OASIS'; Path = 'ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\OASIS API RELEASE HISTORY.md'; Name = 'WEB4 OASIS API'; Intro = 'WEB4 is the OASIS identity, data, provider, NFT, GeoNFT, inventory, ONET and HyperDrive API.'; Prefixes = @('WEB4-v','OASIS-Runtime-v', 'OASIS-Runtime-'); Paths = @('ONODE', 'OASIS Architecture', 'Providers', 'ONET', 'Edge') },
+        @{ Key='STARAPIVersion'; Controllers='NextGenSoftware.OASIS.STAR.WebAPI/Controllers'; GitRoot=(Join-Path $repoRoot 'STAR ODK'); Repository='NextGenSoftwareUK/STAR-ODK'; Path = 'STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI\STAR API RELEASE HISTORY.md'; PublicPath = 'Docs\API\WEB5-STAR-API-RELEASE-HISTORY.md'; Name = 'WEB5 STAR API'; Intro = 'WEB5 is the STAR gamification and metaverse API for OAPPs, quests, missions, GeoHotSpots, games and STARNET content.'; Prefixes = @('WEB5-v','STAR-ODK-Runtime-v', 'STAR-ODK-Runtime-'); Paths = @('.') },
+        @{ Key='WEB6APIVersion'; Controllers='NextGenSoftware.OASIS.Web6.WebAPI/Controllers'; GitRoot=(Join-Path $repoRoot 'WEB6'); Repository='NextGenSoftwareUK/OASIS-WEB6'; Path = 'WEB6\NextGenSoftware.OASIS.Web6.WebAPI\WEB6 API RELEASE HISTORY.md'; PublicPath = 'Docs\API\WEB6-AI-API-RELEASE-HISTORY.md'; Name = 'WEB6 OASIS AI API'; Intro = 'WEB6 is the unified OASIS AI, agent, orchestration, memory, MCP and model-provider API.'; Prefixes = @('WEB6-v','mcp-v'); Paths = @('.') },
+        @{ Key='WEB7APIVersion'; Controllers='WEB7/NextGenSoftware.OASIS.Web7.WebAPI/Controllers'; GitRoot=$repoRoot; Repository='NextGenSoftwareUK/OASIS'; Path = 'WEB7\NextGenSoftware.OASIS.Web7.WebAPI\WEB7 API RELEASE HISTORY.md'; Name = 'WEB7 OASIS Symbiotic Layer API'; Intro = 'WEB7 is the OASIS Symbiotic Layer API.'; Prefixes = @('WEB7-v'); Paths = @('WEB7') },
+        @{ Key='WEB8APIVersion'; Controllers='WEB8/NextGenSoftware.OASIS.Web8.WebAPI/Controllers'; GitRoot=$repoRoot; Repository='NextGenSoftwareUK/OASIS'; Path = 'WEB8\NextGenSoftware.OASIS.Web8.WebAPI\WEB8 API RELEASE HISTORY.md'; Name = 'WEB8 OASIS IGN API'; Intro = 'WEB8 is the OASIS IGN API.'; Prefixes = @('WEB8-v'); Paths = @('WEB8') },
+        @{ Key='WEB9APIVersion'; Controllers='WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Controllers'; GitRoot=$repoRoot; Repository='NextGenSoftwareUK/OASIS'; Path = 'WEB9\NextGenSoftware.OASIS.Web9.WebAPI\WEB9 API RELEASE HISTORY.md'; Name = 'WEB9 OASIS Singularity API'; Intro = 'WEB9 is the OASIS Singularity API.'; Prefixes = @('WEB9-v'); Paths = @('WEB9') },
+        @{ Key='WEB10APIVersion'; Controllers='WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Controllers'; GitRoot=$repoRoot; Repository='NextGenSoftwareUK/OASIS'; Path = 'WEB10\NextGenSoftware.OASIS.Web10.WebAPI\WEB10 API RELEASE HISTORY.md'; Name = 'WEB10 The Source API'; Intro = 'WEB10 is The Source API.'; Prefixes = @('WEB10-v'); Paths = @('WEB10') }
+    )
     $all = $AdvanceWeb4ToWeb6ApiVersions
     $updates = [ordered]@{}
-    if ($all -or $AdvanceWeb4ApiVersion) { $updates.OASISAPIVersion = Get-RequestedVersion $Versions.OASISAPIVersion @('ONODE','OASIS Architecture','Providers','ONET','Edge') @('WEB4-v','OASIS-Runtime-v') }
-    if ($all -or $AdvanceWeb5ApiVersion) { $updates.STARAPIVersion = Get-RequestedVersion $Versions.STARAPIVersion @('.') @('WEB5-v','STAR-ODK-Runtime-v') (Join-Path $repoRoot 'STAR ODK') }
-    if ($all -or $AdvanceWeb6ApiVersion) { $updates.WEB6APIVersion = Get-RequestedVersion $Versions.WEB6APIVersion @('.') @('WEB6-v','mcp-v') (Join-Path $repoRoot 'WEB6') }
+    $wanted = [ordered]@{ OASISAPIVersion = ($all -or $AdvanceWeb4ApiVersion); STARAPIVersion = ($all -or $AdvanceWeb5ApiVersion); WEB6APIVersion = ($all -or $AdvanceWeb6ApiVersion) }
+    foreach ($n in 7..10) { $wanted["WEB${n}APIVersion"] = $AdvanceWeb7ToWeb10ApiVersions }
+    foreach ($history in $histories) {
+        if (-not $wanted[$history.Key]) { continue }
+        # Manual mode is an explicit version; Automatic and Major/Minor/Patch bump only an API whose code changed since its last release.
+        if ($VersionMode -ne 'Manual' -and -not (Test-ApiChangedSinceRelease (Join-Path $repoRoot $history.Path) $history.Paths $history.GitRoot)) {
+            $versionDecisions.Add([pscustomobject]@{ scope=($history.Paths -join ', '); current=$Versions[$history.Key]; proposed=$Versions[$history.Key]; bump='None'; reason="$($history.Name) has no changes since its last release; version kept." })
+            continue
+        }
+        $updates[$history.Key] = Get-RequestedVersion $Versions[$history.Key] $history.Paths $history.Prefixes $history.GitRoot (Get-ApiReleasePoint (Join-Path $repoRoot $history.Path) $history.GitRoot) $history.Controllers
+    }
     foreach ($entry in $updates.GetEnumerator()) {
         $pattern = "(?m)(public static string $($entry.Key) \{ get; set; \} = `")\d+\.\d+\.\d+(`";)"
         $content = [regex]::Replace($content, $pattern, "`${1}$($entry.Value)`${2}", 1)
@@ -434,11 +472,6 @@ function Set-Web4ToWeb6VersionsAndHistory($Versions) {
     Set-TextPreservingUtf8Bom $bootLoaderPath $content
 
     $date = Get-Date -Format 'dd/MM/yy'
-    $histories = @(
-        @{ Key='OASISAPIVersion'; GitRoot=$repoRoot; Repository='NextGenSoftwareUK/OASIS'; Path = 'ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\OASIS API RELEASE HISTORY.md'; Name = 'WEB4 OASIS API'; Intro = 'WEB4 is the OASIS identity, data, provider, NFT, GeoNFT, inventory, ONET and HyperDrive API.'; Prefixes = @('WEB4-v','OASIS-Runtime-v', 'OASIS-Runtime-'); Paths = @('ONODE', 'OASIS Architecture', 'Providers', 'ONET', 'Edge') },
-        @{ Key='STARAPIVersion'; GitRoot=(Join-Path $repoRoot 'STAR ODK'); Repository='NextGenSoftwareUK/STAR-ODK'; Path = 'STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI\STAR API RELEASE HISTORY.md'; PublicPath = 'Docs\API\WEB5-STAR-API-RELEASE-HISTORY.md'; Name = 'WEB5 STAR API'; Intro = 'WEB5 is the STAR gamification and metaverse API for OAPPs, quests, missions, GeoHotSpots, games and STARNET content.'; Prefixes = @('WEB5-v','STAR-ODK-Runtime-v', 'STAR-ODK-Runtime-'); Paths = @('.') },
-        @{ Key='WEB6APIVersion'; GitRoot=(Join-Path $repoRoot 'WEB6'); Repository='NextGenSoftwareUK/OASIS-WEB6'; Path = 'WEB6\NextGenSoftware.OASIS.Web6.WebAPI\WEB6 API RELEASE HISTORY.md'; PublicPath = 'Docs\API\WEB6-AI-API-RELEASE-HISTORY.md'; Name = 'WEB6 OASIS AI API'; Intro = 'WEB6 is the unified OASIS AI, agent, orchestration, memory, MCP and model-provider API.'; Prefixes = @('WEB6-v','mcp-v'); Paths = @('.') }
-    )
     foreach ($history in $histories) {
         if (-not $updates.Contains($history.Key)) { continue }
         $history.Version = $updates[$history.Key]
@@ -450,7 +483,8 @@ function Set-Web4ToWeb6VersionsAndHistory($Versions) {
             }
         }
         $previous = @($previousTags | Sort-Object Version -Descending | Select-Object -First 1)
-        $range = if ($previous.Count -gt 0) { "$($previous[0].Tag)..HEAD" } else { 'HEAD' }
+        $releasePoint = Get-ApiReleasePoint $path $history.GitRoot
+        $range = if ($releasePoint) { "$releasePoint..HEAD" } elseif ($previous.Count -gt 0) { "$($previous[0].Tag)..HEAD" } else { 'HEAD' }
         $logArgs = @('-C', $history.GitRoot, 'log', $range, '--no-merges', '--format=%H%x09%s', '--') + $history.Paths
         $seenSubjects = @{}
         $changes = @(& git @logArgs | ForEach-Object {
@@ -465,7 +499,7 @@ function Set-Web4ToWeb6VersionsAndHistory($Versions) {
         if ($ReleaseNotes) { $changes = @("- $ReleaseNotes") + $changes }
         if ($changes.Count -eq 0) { $changes = @('- No API-path changes were detected after the previous release tag; this version records the validated coordinated API source graph.') }
         $changeText = $changes -join "`n"
-        $changelog = if ($previous.Count -gt 0) { "https://github.com/$($history.Repository)/compare/$($previous[0].Tag)...HEAD" } else { 'Initial API release; the list above is the complete version changelog.' }
+        $changelog = if ($releasePoint) { "https://github.com/$($history.Repository)/compare/$releasePoint...HEAD" } elseif ($previous.Count -gt 0) { "https://github.com/$($history.Repository)/compare/$($previous[0].Tag)...HEAD" } else { 'Initial API release; the list above is the complete version changelog.' }
         $entry = "`n----------------------------------------------------------------------------------------------------------------------------`n## $($history.Version) ($date)`n`n$($history.Intro)`n`n### What's new in $($history.Version)`n`n$changeText`n`n### Full changelog`n`n$changelog`n`n- Published by the automated OASIS global release process after CI validation.`n"
         # Release histories are chronological documents: oldest at the top, newest at the bottom.
         $updated = $existing.TrimEnd() + "`n" + $entry
@@ -482,10 +516,12 @@ function Set-Web4ToWeb6VersionsAndHistory($Versions) {
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $bootVersions = Get-BootLoaderVersions
 $webVersions = $null
-if ($AdvanceWeb4ToWeb6ApiVersions -or $AdvanceWeb4ApiVersion -or $AdvanceWeb5ApiVersion -or $AdvanceWeb6ApiVersion) {
+if ($AdvanceWeb7ToWeb10ApiVersions -or $AdvanceWeb4ToWeb6ApiVersions -or $AdvanceWeb4ApiVersion -or $AdvanceWeb5ApiVersion -or $AdvanceWeb6ApiVersion) {
     $webVersions = Set-Web4ToWeb6VersionsAndHistory $bootVersions
+    & python (Join-Path $PSScriptRoot 'api_version_sync.py') --sync
+    if ($LASTEXITCODE -ne 0) { throw 'API version sync failed; see Docs/Devs/GLOBAL_RELEASE_AUTOMATION.md.' }
     $unchanged = Get-BootLoaderVersions
-    foreach ($name in @('WEB7APIVersion', 'WEB8APIVersion', 'WEB9APIVersion', 'WEB10APIVersion')) {
+    foreach ($name in @('WEB7APIVersion', 'WEB8APIVersion', 'WEB9APIVersion', 'WEB10APIVersion').Where({ -not $AdvanceWeb7ToWeb10ApiVersions })) {
         if ($unchanged[$name] -ne $bootVersions[$name]) { throw "$name changed, but global release automation may only advance WEB4-WEB6." }
     }
 }
@@ -591,6 +627,7 @@ $components = [ordered]@{
     onodeManager = $ONODEManager
     hyperDriveClient = $HyperDriveClient
     advanceWeb4ToWeb6ApiVersions = $AdvanceWeb4ToWeb6ApiVersions
+    advanceWeb7ToWeb10ApiVersions = $AdvanceWeb7ToWeb10ApiVersions
     advanceWeb4ApiVersion = $AdvanceWeb4ApiVersion
     advanceWeb5ApiVersion = $AdvanceWeb5ApiVersion
     advanceWeb6ApiVersion = $AdvanceWeb6ApiVersion
@@ -602,7 +639,7 @@ $releaseVersions = [ordered]@{
         Get-PlannedPackageVersion $unityProject (Get-LatestNuGetRelease $unityProject.PackageId)
     } else { 'not-selected' }
     edgeUnity = if ($EdgeUnity) { Get-NextReleaseVersion '1.0.0' @('OASIS-Edge-Unity-v') @('UnityPackages','Scripts/build_edge_unity_package.ps1','Scripts/New-OASISEdgeRuntimeArchive.ps1') } else { 'not-selected' }
-    oasisRuntime = if ($OASISRuntime) { Get-NextReleaseVersion $bootVersions.OASISRuntimeVersion @('OASIS-Runtime-v') @('OASIS Architecture','ONODE','Providers','ONET','Edge') } else { $bootVersions.OASISRuntimeVersion }
+    oasisRuntime = if ($OASISRuntime -and $webVersions -and $webVersions.Contains('OASISAPIVersion')) { $webVersions['OASISAPIVersion'] } elseif ($OASISRuntime) { Get-NextReleaseVersion $bootVersions.OASISRuntimeVersion @('OASIS-Runtime-v') @('OASIS Architecture','ONODE','Providers','ONET','Edge') } else { $bootVersions.OASISRuntimeVersion }
     starRuntime = if ($STARRuntime) { Get-NextReleaseVersion $bootVersions.STARRuntimeVersion @('STAR-ODK-Runtime-v') @('STAR ODK') } else { $bootVersions.STARRuntimeVersion }
     edgeRuntime = if ($EdgeRuntime) { Get-NextReleaseVersion (Get-SourceVersion ([pscustomobject]@{ Xml = [xml](Get-Content -LiteralPath (Join-Path $repoRoot 'OASIS Architecture\NextGenSoftware.OASIS.Edge.Runtime\NextGenSoftware.OASIS.Edge.Runtime.csproj') -Raw); PackageId = 'NextGenSoftware.OASIS.Edge.Runtime' })) @('OASIS-Edge-Runtime-v') @('OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime','OASIS Architecture/NextGenSoftware.OASIS.Edge.ONET.Runtime','OASIS Architecture/NextGenSoftware.OASIS.HyperDrive.Synchronization','OASIS Architecture/NextGenSoftware.OASIS.ONET','Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge','Providers/Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS','Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge','Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity','OASIS Omniverse/OGEngineClient/Edge') } else { 'not-selected' }
     ogEngineClient = if ($OGEngineClient) { Get-NextReleaseVersion (Get-SourceVersion ([pscustomobject]@{ Xml = [xml](Get-Content -LiteralPath (Join-Path $repoRoot 'OASIS Omniverse\OGEngineClient\OGEngineClient.csproj') -Raw); PackageId = 'NextGenSoftware.OGEngine.Client' })) @('OGEngineClient-v', 'STAR-API-CLIENT-v', 'OGEngineClient-RemoteOnly-v', 'OGEngineClient-Edge-v') @('OASIS Omniverse/OGEngineClient','ONET','Edge') } else { 'not-selected' }

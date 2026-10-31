@@ -1,27 +1,30 @@
 require("@nomicfoundation/hardhat-toolbox");
 
+const configuredAccounts = process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [];
+const localChainId = Number(process.env.LOCAL_CHAIN_ID || "1337");
+
 module.exports = {
     solidity: "0.8.20",
     networks: {
         hardhat: {
-            chainId: 1337,
+            chainId: localChainId,
         },
         localhost: {
             url: "http://127.0.0.1:8545",
-            chainId: 1337,
+            chainId: localChainId,
         },
         rootstock: {
             url: "https://public-node.testnet.rsk.co",
-            accounts: [process.env.PRIVATE_KEY],
+            accounts: configuredAccounts,
         },
         polygon: {
             url: "https://rpc-amoy.polygon.technology/",
-            accounts: [process.env.PRIVATE_KEY],
+            accounts: configuredAccounts,
         },
         arbitrum: {
             url: "https://sepolia-rollup.arbitrum.io/rpc",
             chainId: 421614,
-            accounts: [process.env.PRIVATE_KEY],
+            accounts: configuredAccounts,
         },
     },
     etherscan: {
