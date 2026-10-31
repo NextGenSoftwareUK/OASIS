@@ -1293,3 +1293,7 @@ S3 publisher applied3reviewed values with independent ACK/skip-deploys, protecte
 ### 31 October 2026 — hosted Solana catalogue copy audit
 
 Reused C:/Source/Web4Site (work/cosmic-cql), existing python and Node runtimes; exact versions/sizes not remeasured. COSMIC session changed only tracked HTML and ran the existing three client test files:47passed,0failed/skipped. No downloads, restores, services, datasets or persistent test output introduced; console-only output. Existing checkout/runtimes remain reusable; no cleanup required for this step. Historical unavailable ledger was neither recreated nor removed.
+
+### 31 October 2026 — public frontend publication
+
+Reused C:/Source/Web4Site and existing Python/Node/Git (versions/sizes not remeasured). Published existing tested commit46f1af8 to origin/main without a new build environment or backend deployment. Public HTML and both CQL JS responses read in memory, exact git-blob equality verified; no new files, data or services. IAB retry returned Transport closed, no Windows control attempted. Existing reusable resources retained; no disposable artifacts created. Frontend status archived/summarized in its existing Docs/WIP/CQL folder.
