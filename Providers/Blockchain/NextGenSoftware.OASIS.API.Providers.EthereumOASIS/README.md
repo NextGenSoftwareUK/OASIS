@@ -105,3 +105,24 @@ bounded unordered address lookups, not the richer composition/query-parity set.
 Four server examples can describe native3/2and Mongo-paired5/4selections; missing
 Mongo disables only paired examples. Profile/admission/discovery/schema controls
 pass, but native HTTP pairing and hosted/browser enrollment are still pending.
+
+Ethereum/Mongo HTTP pairing is now locally native-verified: public3/2, paired5/4,
+foreign private0and public-only pair3. The shipping CQL endpoints run over
+loopback HTTP with controlled bearer/usage authority;2private Mongo records use
+normal SDK create-only saves. This does not certify hosted billing/login,
+replication or browser rendering. Run the existing fixture-aware
+`Scripts/Sandbox/Test-CqlReplicaBaselineRepair.ps1 -EthereumMongoHttp` after a
+leased bounded build; retain original intent/ACK files and never replay an
+uncertain cohort. Successful fixture cleanup removes only the owned Mongo DB.
+
+`Publish-HostedEthereumPublicConfiguration.py` prepares an individual protected
+candidate; `Publish-HostedGoogleEthereumConfiguration.py` composes both providers
+for one joint rollout. The combined candidate preserves both source profiles,
+query permissions/free tariffs and all8presets. Use it for a joint release,
+not two candidates built independently from the same old host snapshot.
+Preparation changes no live settings. Apply only with the matching tested
+application/Core revision under the normal scheduled deployment workflow.
+
+For encrypted Mongo demo snapshots, explicitly grant EthereumAccountAddress in
+the trusted AdditionalQueryableKeys policy. Publisher preflight refuses missing
+grants; it does not globally reserve the key or weaken canonical wallet DNA.
