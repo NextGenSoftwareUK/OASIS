@@ -28,6 +28,7 @@ and [current evidence](HOSTED_SANDBOX_INTEGRATION_PLAN.md).
 | C# query construction, provider scope, metadata, filters/order/windows | [Full manual](Archive/CQL_MANUAL_history_2026-10-27.md#cql-developer-manual) |
 | HTTP/API, SDK examples, typed hydration, projections, joins/grouping, scalar domains | [Full manual](Archive/CQL_MANUAL_history_2026-10-27.md) and maintained demo |
 | Child/descendant filtering and graph loading | [Graph reference](Archive/CQL_GRAPH_LOADING.md), [relationships](Archive/CQL_RELATIONSHIPS.md) |
+| Hosting a bounded encrypted IPFS source | [IPFS host configuration](../../Devs/IPFS_CQL_HOST_CONFIGURATION.md) (native source preparation; current hosted coverage in status) |
 | Native provider details | [MongoDB](Archive/CQL_MONGO_NATIVE.md), [SQLite](Archive/CQL_SQLITE_NATIVE.md), [Neo4j](Archive/CQL_NEO4J_NATIVE.md) |
 | Projected All and source-composition caveats | [Active contract](CQL_PROJECTED_ALL_EXECUTION_CONTRACT.md) |
 | Exact per-database feature support/proofs | [Parity checklist](CQL_PARITY_CHECKLIST.md) |

@@ -171,3 +171,49 @@ configuration and acceptance ACK live in LocalState/COSMIC/HostedSourceRolloutCu
 - browser-activitypub-mongo-four.png (86492B), SHA256 876e08bafc765ec5a7c76609d62083392d0efcc3939ede2f66b27111aef7fba6.
 
 Next-provider feasibility inspection: protected prior variables contain no Oracle/AWS/SOLID provider entries. IPFS connection is localhost:5001 and a catalogue is configured, but daemon/source availability is unverified. Scoped branch has CID equality; preserved broad branch has the native bounded key-set implementation (50line delta). Production host registry requires ICosmicReadOnlyQueryActivation; do not enroll IPFS by bypassing it or claiming local acceptance as hosted. Next inspect reusable hosted/Linux native resources, then explicitly provision source/configuration and test the live flow. No runtime/service/account was created in this inspection.
+
+
+### Hosted IPFS source preparation — 31 October 2026
+
+Restored only the preserved bounded CID membership implementation and four
+controls; explicit DNA EnableCqlCidKeySets reaches the actual BootLoader provider.
+Read-only activation now shares the native health owner with normal activation,
+propagates cancellation and performs no catalogue/data mutation. Six new controls
+cover native readiness/errors/cancellation. Initial23-case run reproduced one
+blank-version readiness defect; fixed at the shared activation owner. Final23pass,
+zero skips. Full transitive API build passes after the fix.
+
+One new native source case creates/retains a separate public3-record demo cohort
+on the existing Kubo0.43.1 repository/key. Actual CID membership returns3/2matching
+IDs/names/CIDs; a second run verifies the same acknowledged source without saves.
+Four CAR exports retain the catalogue and selected records for hosted transfer;
+raw source data stays LocalState, not docs or TestResults. No historical fixture
+was restored/replayed. This does not establish hosted IPFS coverage (still4live
+providers).
+
+Runner testing found cross-script process-handle scope loss in its first readiness
+failure. Exact owned PID48452 was verified by executable/arguments, then shut down
+via native RPC; listener absence confirmed. One explicit shared owner object now
+survives the build lease scope, and normal native runs stop the owned daemon in
+finally. Use the same explicit non-browser native User-Agent as existing runners.
+Original failed readiness/activation evidence preserved. No source save occurred
+before that readiness failure.
+
+Hosted SSH inspection: Linux x64/Node24.19.0 and existing volume,4,818,817,024Bfree,
+no IPFS runtime or repository at the intended owned paths. Official distribution
+checksum metadata timed out; no archive downloaded/installed. Official OCI
+ipfs/kubo:v0.43.1 index digest
+sha256:b293923d66e490e70ced64df42ea7a6cf7eac2740e3fb29101df18070fa7be48,
+linux-amd64 digest
+sha256:97ece99cfccea95613ab3634f761d0200e9e8b1f49294b5428e19b5b9056759d,
+compressed image layers59,145,329B. Metadata only; no image pulled. Next package
+that pinned Linux runtime and own its lifecycle on the existing sandbox volume,
+import/verify the retained source with protected key/configuration, then enroll
+and prove actual hosted leaf3/2and Mongo5/4/isolation in the existing generic UI.
+
+- ipfs-host-initial.trx SHA256 d299d36723a2a7cdbc98413d557fad57e023141466210731206005bc462b2eb2.
+- ipfs-host-final.trx SHA256 215cc87ceef14e700c1b6cf2f7e1bf219faf9b283b0903dd3f9f42fbd0089021.
+- ipfs-host-source.trx SHA256 baaa16301d8e6e5e00f88f12e02fab04816069b8da9dfe2a9bda62fc7646d27a.
+- ipfs-host-source-summary.json SHA256 9aad480517eae883ae77d6140e61bb789196e35eb1b676d66260dc4e5d1d5a75.
+- ipfs-runtime-manifest.json SHA256 5fec6634543b1618b5d4198e3db2141c3a6da59995c7ffe10af70e9049883c10.
+- ipfs-host-resources.json SHA256 7971b34f94f39a7d21bd0bfbf8061d6caf6da8f2c85f77841575ea3e0ca21c45.

@@ -35,18 +35,27 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return ActivateProviderAsync().GetAwaiter().GetResult();
         }
 
-        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        public override Task<OASISResult<bool>> ActivateProviderAsync()
+            => ActivateQuerySourceAsync(CancellationToken.None);
+
+        /// <summary>Checks the configured native daemon without writing a catalogue,
+        /// changing the default provider, or starting a replacement daemon.</summary>
+        public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 _ipfsClient = new IpfsClient(_OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
-                using CancellationTokenSource timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                using CancellationTokenSource timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                timeout.CancelAfter(TimeSpan.FromSeconds(10));
                 Dictionary<string, string> version = await _ipfsClient.VersionAsync(timeout.Token);
+                timeout.Token.ThrowIfCancellationRequested();
 
-                if (version == null || version.Count == 0)
-                    throw new InvalidOperationException("The IPFS daemon returned an empty version response.");
+                if (version == null || !version.TryGetValue("Version", out var nativeVersion)
+                    || string.IsNullOrWhiteSpace(nativeVersion))
+                    throw new InvalidOperationException("The IPFS daemon returned no native version.");
 
                 result.Result = true;
                 IsProviderActivated = true;
