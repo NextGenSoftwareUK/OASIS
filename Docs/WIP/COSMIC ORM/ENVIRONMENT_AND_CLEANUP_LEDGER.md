@@ -1672,3 +1672,6 @@ Read-only reconciliation complete:exact snapshot,0drift,12planned settings;1pure
 
 ### Three-source client readiness
 Existing Web4Site/Node reused,3new module contracts pass. Compact three-source-client-preparation.log in TestResults/HostedCqlIntegrationCurrent (regenerable,size unmeasured). No native services/downloads/hosted sessions. Hosted runner whitelist extended; help only, no accounts or mutations. IAB transport retry failed; no Windows automation.
+
+### Ten-source application scope tooling
+Reused Python/cache;2pure scope controls pass, no application command run. TestResults/HostedCqlIntegrationCurrent/ten-source-application-controls.log regenerable,size 105B. No host observation/mutation/service/download/install in this step. Original protected candidates retained.

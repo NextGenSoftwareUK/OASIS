@@ -1,7 +1,8 @@
-"""Offline extension of the preserved seven-source candidate. Never applies variables."""
+"""Offline extension of the preserved seven-source candidate. Explicit apply-reviewed uses the journalled publisher without deployment."""
 from pathlib import Path
 import importlib.util
 import json
+import sys
 
 ROOT=Path(__file__).resolve().parents[2]
 PREFIX="ten-source-public"
@@ -16,6 +17,29 @@ def candidate(seven,sources):
     for name in ("Base","Avalanche","Bnb"):
         after=load("Publish-Hosted"+name+"PublicConfiguration").candidate(after,sources[name])
     return after
+
+SOURCE_KEYS=("CQL_GCS_PUBLIC_SOURCE_JSON","CQL_ETHEREUM_PUBLIC_SOURCE_JSON",
+    "CQL_POLYGON_PUBLIC_SOURCE_JSON","CQL_ARBITRUM_PUBLIC_SOURCE_JSON",
+    "CQL_COSMOS_PUBLIC_SOURCE_JSON","CQL_POLKADOT_PUBLIC_SOURCE_JSON",
+    "CQL_NEAR_PUBLIC_SOURCE_JSON","CQL_BASE_PUBLIC_SOURCE_JSON",
+    "CQL_AVALANCHE_PUBLIC_SOURCE_JSON","CQL_BNB_PUBLIC_SOURCE_JSON")
+APPLY_KEYS=SOURCE_KEYS+("PREPARED_STORAGE_ADMISSION_JSON","CQL_HOSTED_QUERY_EXAMPLES_JSON")
+
+def application_keys(before,after):
+    changed={key for key in before.keys()|after.keys() if before.get(key)!=after.get(key)}
+    if changed!=set(APPLY_KEYS) or any(key not in after for key in before):
+        raise ValueError("Exactly ten source profiles and shared admission/examples may change; no removal")
+    if any(key in before for key in SOURCE_KEYS):
+        raise ValueError("Existing source enrollment requires reconciliation")
+    return APPLY_KEYS
+
+def apply():
+    configuration=load("Publish-HostedSolidConfiguration")
+    before=configuration.protected_read(PREFIX+"-before-variables.dpapi")
+    after=configuration.protected_read(PREFIX+"-candidate-variables.dpapi")
+    # All intent, concurrency, exact-observation and no-replay semantics have
+    # one owner in the existing publisher. This command never deploys.
+    configuration.apply_values(PREFIX,application_keys(before,after))
 
 def main():
     configuration=load("Publish-HostedSolidConfiguration")
@@ -40,4 +64,7 @@ def main():
     path.write_text(json.dumps(public,indent=2)+"\n",encoding="utf-8")
     print("Offline protected ten-source candidate and public-only40preset review prepared; no host observation/application/deployment.")
 
-if __name__=="__main__":main()
+if __name__=="__main__":
+    if not sys.argv[1:]:main()
+    elif sys.argv[1:]==["apply-reviewed"]:apply()
+    else:raise SystemExit("Use no arguments for offline preparation; apply-reviewed only after matching release and publication timing are verified")
