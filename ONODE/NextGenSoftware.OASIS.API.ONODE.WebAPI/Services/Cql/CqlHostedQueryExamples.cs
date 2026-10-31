@@ -5,12 +5,41 @@ using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 public sealed record CqlHostedQueryExample(string Id, string Label, JsonElement Request,
     string Operation = "Rows", bool Available = true, string ErrorCode = null);
+
+public sealed record CqlDemoMappedIdentity(Guid Id, string NativeKey, IReadOnlyDictionary<string, string> Metadata);
+public sealed record CqlDemoIdentityResult(Guid OwnerId, string Provider, IReadOnlyList<CqlDemoMappedIdentity> Records);
+
+/// <summary>Pure owner-scoped identity mapping. No source reads, storage writes,
+/// permission grants or client copy of the Core native-import identity algorithm.</summary>
+public static class CqlHostedDemoIdentities
+{
+    public const string SourceName = "cosmic-cql-demo";
+
+    public static CqlDemoIdentityResult Create(CqlDemoIdentityRequest request, Guid actor)
+    {
+        if (actor == Guid.Empty || request?.Keys == null || request.Keys.Length is < 1 or > 2
+            || request.Keys.Any(key => string.IsNullOrEmpty(key) || key.Length > 128 || key.Any(c => c < 33 || c > 126))
+            || request.Keys.Distinct(StringComparer.Ordinal).Count() != request.Keys.Length)
+            throw new ArgumentException("One or two bounded unique native keys and an authenticated owner are required.");
+        var provider = CqlV1Compiler.RequestedProvider(request.Provider, true)
+            ?? throw new ArgumentException("A concrete configured-source profile is required.");
+        return new(actor, provider.ToString(), Array.AsReadOnly(request.Keys.Select(key => new CqlDemoMappedIdentity(
+            NativeRecordHolonMapper.StableHolonId(actor, provider, SourceName, key), key,
+            new System.Collections.ObjectModel.ReadOnlyDictionary<string, string>(new Dictionary<string, string>
+            {
+                [NativeRecordHolonMapper.ProviderMetaDataKey] = provider.ToString(),
+                [NativeRecordHolonMapper.SourceMetaDataKey] = SourceName,
+                [NativeRecordHolonMapper.KeyMetaDataKey] = key
+            }))).ToArray()));
+    }
+}
 
 /// <summary>Public demo requests, never authorization or credentials. Captured server
 /// configuration owns examples; each must still pass native capability planning.</summary>
