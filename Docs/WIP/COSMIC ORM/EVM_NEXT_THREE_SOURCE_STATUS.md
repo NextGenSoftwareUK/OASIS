@@ -66,3 +66,7 @@ All three pass native3/2,private SDK-owned Mongo2,federation5/4,foreign-private0
 - `TestResults/BnbPublicSourceCandidateCurrent/bnb-mongo-http.trx`:1pass/0skips,SHA256 `7144361cef690ae0cdb8159781955a77cfb1a0ae0dc6cbbce0aef047cf9db835`. Original intent/ACK cohort `LocalState/COSMIC/BnbMongoHttpCurrent` retained,835B.
 
 Next: hosted publishers/presets and sandbox demo links, then matching permitted rollout.
+
+## Preset builders and website links — 31 October 2026
+Strict Base/Avalanche/Bnb configuration builders each pass3controls; composed-candidate test also passes:10total. Each adds native3/2 and Mongo-paired presets, preserves DNA, rejects credentials/paid tariffs/conflicting enrollment and requires explicit encryption query-key policy. Composition preserves earlier seven preset groups. No host variables read/applied or protected candidate generated in this step. Do not independently apply candidates based on the same host snapshot: compose all ten against one reconciled snapshot before rollout.
+Website task commit c09103b links the3spaced C# samples and guide, with hosted-pending labels;54client tests pass. Public main unchanged. Evidence: TestResults/EvmBreadthReadinessCurrent/{publisher-controls,website-links}.log. Next: actual ten-source protected candidate composition and shipping-planner preflight, then permitted matching hosted rollout/acceptance.
