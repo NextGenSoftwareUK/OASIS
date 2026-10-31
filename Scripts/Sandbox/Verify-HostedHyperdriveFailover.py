@@ -32,6 +32,26 @@ def raw_request(token, route, body):
         return response.status, flow.verification.unwrap(json.loads(raw))
 
 
+
+def verify_failover_response(response, expected, requested):
+    """Require this response to prove a successful move away from the faulted source."""
+    row = response.get("result") or {}
+    if response.get("isError") or any(row.get(key) != value for key, value in expected.items()):
+        raise ValueError("Failover did not preserve the acknowledged record identity/content/version/owner.")
+    encoded = response.get("metaData", {}).get("hyperDriveRoute")
+    if not isinstance(encoded, str):
+        raise ValueError("Failover requires per-response route evidence.")
+    route = json.loads(encoded)
+    if (requested not in PROVIDERS or route.get("RequestedProvider") != requested
+            or route.get("InitialProvider") != requested
+            or route.get("ServingProvider") not in PROVIDERS
+            or route.get("ServingProvider") == requested
+            or route.get("RequestedStrategy") != "Auto"
+            or route.get("Succeeded") is not True):
+        raise ValueError("Response does not prove failover from the faulted provider to an enrolled replica.")
+    return route
+
+
 def main():
     state = ROOT / "LocalState/COSMIC/HostedQueryAcceptance-SolanaOASIS"
     journal = state / "hyperdrive-failover.intent.json"
@@ -66,10 +86,8 @@ def main():
                 raise RuntimeError("Disabled failover must report the exact offline provider error.")
             loaded = flow.call("data/load-holon", token, {"id": identity, "providerType": provider,
                 "autoFailOverMode": "ON", "autoLoadBalanceMode": "OFF", "loadChildren": False})
-            row = loaded.get("result") or {}
-            if any(row.get(key) != value for key, value in {"id": identity, "name": expected["name"],
-                    "version": expected["version"], "createdByAvatarId": owner}.items()):
-                raise RuntimeError("Failover did not preserve the acknowledged record identity/content/version/owner.")
+            route = verify_failover_response(loaded, {"id": identity, "name": expected["name"],
+                "version": expected["version"], "createdByAvatarId": owner}, provider)
             after = flow.call("sandbox/refusals", token, method="GET")["result"]
             if after.get(provider, 0) - before.get(provider, 0) < 2:
                 raise RuntimeError("No independently observed offline refusals for both attempts.")
@@ -81,7 +99,7 @@ def main():
                 raise RuntimeError("Independent visitor read foreign private records.")
             results.append({"provider": provider, "blockedCode": blocked["errorCode"],
                 "refusals": after[provider] - before.get(provider, 0), "id": identity,
-                "foreignPrivateRows": 0, "loaded": True})
+                "foreignPrivateRows": 0, "loaded": True, "route": route})
         finally:
             # Before-state was fault-free and this is our short-lived avatar-only fault.
             # Restoration is safe even if the preceding fault outcome is unknown.
