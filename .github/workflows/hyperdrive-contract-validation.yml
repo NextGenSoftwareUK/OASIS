@@ -73,6 +73,14 @@ jobs:
         shell: pwsh
         run: ./Scripts/verify_hyperdrive_v2_operation_contracts.ps1
 
+      - name: Build the WEB4 artifact the controller contracts load
+        shell: pwsh
+        run: >-
+          dotnet build
+          'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj'
+          --configuration Release
+          /m:2 /nr:false /p:UseSharedCompilation=false
+
       - name: Run HyperDrive behavioral contracts
         shell: pwsh
         run: >-
