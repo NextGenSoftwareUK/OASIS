@@ -1,8 +1,10 @@
 # Actions for David
 
-The single list of everything that needs you: your accounts, phones, admin rights, approvals or a decision. Everything else is done or in progress. Tick items off and tell the working agent when one is done; it picks up the next step. Never paste passwords, API keys, tokens or connection strings into chat. All agents must add owner-dependent requests here before asking, update your answers, and preserve deferred decisions without repeatedly asking.
+The single list of everything that needs you: your accounts, phones, admin rights, approvals or a decision. Everything else is done or in progress. Tick items off and tell Claude when one is done; it picks up the next step. Never paste passwords, API keys, tokens or connection strings into chat.
 
-Last updated 31 October 2026 (COSMIC/CQL decisions in Part E; unrelated actions retained). This file replaces `OWNER_SETUP_CHECKLIST.md` (merged into Part B below) and the PIPER work log's action list (Part A).
+All agents must record owner-dependent requests here before asking, update answers, and preserve deferred decisions without repeatedly asking. Agent implementation/tool failures remain agent work.
+
+Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (merged into Part B below) and the PIPER work log's action list (Part A).
 
 ## Open actions at a glance
 
@@ -14,10 +16,10 @@ Last updated 31 October 2026 (COSMIC/CQL decisions in Part E; unrelated actions 
 | 4 | Release gate: Railway tokens, staging Mongo user, staging connection strings | B |
 | 5 | OurWorld Unity Cloud access | B |
 | 6 | Provider acceptance access: ActivityPub, EVM decision, AWS S3, Solana devnet funding, Oracle Cloud, CoinGecko key | C |
-| 9 | Holon permissions: publish web4-api 2.0.17, then click Reapply access once Railway has deployed | A5 |
-| 8 | Railway pin sync (one-time): enable the pre-push hook in each OASIS clone | A4 |
-| 7 | Older items: HoloNET NuGet secrets, phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
-| 10 | CQL demo decisions: hosted Azure/Oracle **deferred by David**, not setup due now; approved public S3 and temporary-demo 200-call budget recorded | E |
+| 8 | **Add two DNS records so the new HoloNET docs and learn sites go live** (NameSilo) | E1 |
+| 9 | Rotate the Arbitrum testnet key and the block-explorer API key that were committed to git (removed from files, still in history) | E2 |
+| 7 | Older items: phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
+| 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 
 ---
 
@@ -29,7 +31,7 @@ Last updated 31 October 2026 (COSMIC/CQL decisions in Part E; unrelated actions 
 
 | Package | Version | Change |
 |---|---|---|
-| `@oasisomniverse/web4-api` | 2.0.15 | `X-COSMIC-Operation-Id` on every write + `Idempotency-Key` on every request (same id on writes) |
+| `@oasisomniverse/web4-api` | 2.0.16 | 2.0.15: `X-COSMIC-Operation-Id` on every write + `Idempotency-Key` on every request (same id on writes). 2.0.16 (28 Oct): keeps `metaData`/`providerMetaData` keys as sent, so a loaded holon saves back with its revision (PIPER edits) |
 | `@oasisomniverse/web5-api` | 1.0.6 | `Idempotency-Key` on every request (committed 21 Oct, never published) |
 | `@oasisomniverse/web6-api` | 2.1.2 | same as web5 |
 | `@oasisomniverse/web7-api` … `web10-api` | 1.0.5 each | same as web5 |
@@ -60,31 +62,6 @@ Full context: `C:/Source/PIPERDOCS/milestone4-session-plan-engine/piper-m4-work-
 - [ ] Check the screens: new student, goal form, SA plan panel, session reports, hand-scored session panel, Start session.
 - [ ] Then tell Hailey it's ready for Gate 2.
 - [ ] Optional: copy Hailey's Drive recordings into piper-ui `public/voice/lines/` as .ogg and list them in `voiceLinesIndex.json`.
-
----
-
-### A4. Railway pin sync (one-time, added 28 October 2026)
-
-**Why:** Railway builds the private submodules at the commits in `Docker/oasis-dependency-versions.env`, not at the parent's gitlinks. A Core fix pushed without moving that pin never deployed (it cost a day). `sync-railway-pins.yml` now corrects the pins after each push to `Development`/`master`, and `.githooks/pre-push` stops a mismatched push before it deploys.
-
-- [ ] **Enable the hook** in each OASIS clone you push from (once per clone): `git config core.hooksPath .githooks`
-- No new secret is needed: the workflow pushes with the existing `PRIVATE_SUBMODULE_PAT`.
-
-Details: `Docs/Devs/RAILWAY_DEPENDENCY_PINS.md`.
-
----
-
-### A5. Holon permissions rollout (29 October 2026)
-
-**Why:** PIPER staff (SLP, Head of School) could not read the records the System Administrator created, which broke
-their sign-in. OASIS now has per-holon read, write, delete, add-children and manage permissions, and PIPER uses them.
-See `Docs/Devs/HOLON_PERMISSIONS.md`.
-
-- [ ] **Wait for Railway** to deploy the OASIS API from Development (root commit `6b32f6116` or later, Core `bceaee8`). Until then PIPER saves show "who can see it could not be set".
-- [ ] **Publish `@oasisomniverse/web4-api` 2.0.17** (`npm login` then `npm run publish-all`). It adds `share.setPermissions` and `share.getPermissions`. piper-server does not need it yet (it calls the endpoint directly), but other apps will.
-- [ ] **Sign in as the SA, open Staff Management and press Reapply access** once. It sets permissions on every existing district, school, staff and student record. A toast says how many were updated.
-- [ ] Sign in as an SLP (e.g. david@piperspeech.com) and check the dashboard loads their students with no "not linked" error.
-- [ ] Note: CQL queries now include what owners shared (and inherited reads on Mongo, SQLite and Neo4j) by default once this deploys. To turn it off, set `OASIS.Cql.SharedReads` to `false` in the DNA (`InheritedReads` turns off just the inherited part).
 
 ---
 
@@ -221,11 +198,6 @@ Current original `C:/Source/OASIS/Providers/Blockchain/TestProjects/NextGenSoftw
 
 ### Pending AWS S3 live acceptance access — added 23 October 2026
 
-31 October CQL update: the public S3 object-metadata demo uses anonymous reads and
-is live through HTTP, including Mongo pairing. It needs no AWS account from David.
-The owned/encrypted storage acceptance below is a separate broader provider gate;
-do not treat its credentials as a prerequisite for the public metadata demo.
-
 25 October update: the SAME runner now also supports `-RecordLifecycle -StorageEncryptionKeyEnvironmentVariable OASIS_AWS_S3_STORAGE_ENCRYPTION_KEY` with the existing region/bucket/profile and explicit cost-approval arguments. Reserve an initially EMPTY exclusive `oasis-provider-acceptance/` prefix; do not use customer data or concurrent writers. This invokes the actual encrypted public provider through the shared OCI/S3 acceptance body, not only object transport. Nine public mutations plus queries/index/history observations can issue many more SDK requests; this is not a fee cap. Current-object cleanup does not purge retained bucket versions/delete markers or certify zero storage cost. Keep secrets outside chat/Git. Controlled signed-SDK tests pass; hosted execution remains pending an approved test account/bucket/profile/cost scope.
 
 The guarded native transport entry point is prepared (not run against AWS): `Scripts/TestHosts/Run-AwsS3LiveAcceptance.ps1 -Region <region> -BucketName <isolated-test-bucket> -ProfileName <protected-profile> -ApproveCloudRequests`. Omit ProfileName only to use the explicitly configured SDK default credential chain. It reuses the existing .NET10 PowerShell/build outputs, checks source identity and requires deliberate cost approval; it does not install/build/provision. The fixed object is `oasis-acceptance/transport-probe`. Existing pending/success/interrupted-snapshot evidence blocks another run. Do not delete that evidence to force a retry. A successful transport probe is not full provider/IAM/billing/HyperDrive certification. S3 bucket versioning can retain billable versions even after the probe's current-object deletion; choose an appropriate isolated test bucket and review retention costs.
@@ -250,11 +222,7 @@ The earlier approved RPC faucet request returned an internal error and no signat
 
 The retained local Oracle test schema is already upgraded and verified; David need not repeat that operation. The unchecked review above applies only to existing hosted/client schemas before deployment.
 
-31 October decision: David confirmed **no existing Oracle account; leave hosting pending**.
-The Oracle cloud access/setup items below are deferred, not immediate tasks or
-permission to create an account or paid resources. Do not keep asking for the same
-access. Local Oracle Free and signed SDK loopback tests do not replace live cloud
-acceptance. Revisit these items only if David resumes hosted Oracle.
+Oracle is the first provider priority (both database and object storage), followed by AWS. Local Oracle Free and signed SDK loopback tests do not replace live cloud acceptance. David plans to check access tomorrow; no new paid resources are authorized by this checklist.
 
 - [ ] **Autonomous Database:** provide an isolated test database's connection/service name and test username; configure its password securely outside chat. If wallet-based access is required, place the wallet locally and share only its path and connection alias. Keep customer data out of the test database.
 - [ ] **Database read-only preflight target:** provide the approved `DB_UNIQUE_NAME`, effective test schema/session username and actual service name (non-secret target identity). Configure the full test connection through a protected environment variable; share its NAME only, never the value. The separate `Run-OracleDatabaseLivePreflight.ps1` requires these exact identities and explicit `-ApproveCloudReadRequests`, observes TCPS on its inspection connection and validates existing canonical schema with provisioning denied. It does not execute the local fixture's triggers/DDL/CRUD or provision any cloud resource. Connection/read requests and database compute can still incur charges. Wallet/certificate/server-name validation policy requires separate review; a TCPS observation is not full TLS/security certification.
@@ -277,29 +245,11 @@ The optional `-RecordLifecycle -StorageEncryptionKeyEnvironmentVariable <variabl
 
 ---
 
-## Part E — COSMIC ORM / CQL demo owner decisions (31 October 2026)
+### Pending Cloudflare Workers KV native acceptance — added28October2026
 
-Current owner decision: **approved publication of one consolidated Development batch now** (31 October 2026). Engineering, native cleanup and browser tooling remain agent-owned work. No account/credential setup is requested.
-See [COSMIC current status](../COSMIC%20ORM/CURRENT_STATUS.md).
+The real REST/shared encrypted adapter passes52controlled core checks plus25protocol/metadata controls. Hosted acceptance still needs a dedicated owned namespace and scoped KV read/write token. No Cloudflare account/namespace or installation was created; process configuration and three standard Wrangler profile locations were empty.
 
-| Item | Status / David's decision | When action is needed |
-|---|---|---|
-| Consolidated Development batch timing (31 October) | **Approved; published** — David replied “Publish one consolidated batch now”. Development now parent57174def3/Core6bbd015, both remote-verified; newer public-provider expansion remains on its separate task branch | One additional consolidated Development publication authorized. No master/production promotion or hosting spend. [Scope/evidence](../COSMIC%20ORM/HOSTED_SANDBOX_INTEGRATION_PLAN.md#consolidated-release-preflight--31-october-2026). |
-| Hosted Azure Cosmos | **Deferred** — free only; no existing free subscription; David said leave hosted Azure pending | Only if David chooses to resume. No paid upgrade, card/signup request or new account creation now. |
-| Hosted Oracle Database / OCI | **Deferred** — no existing Oracle account; David said leave hosting pending | Only if David resumes. Then record the actual account/connection/wallet setup needed here; request paths or variable names only, never secret values. |
-| First AWS demo | **Approved** — use a public S3 dataset | Decision implemented: anonymous native metadata reads and Mongo pairing verified through hosted HTTP. No AWS account or bucket setup needed for this demo. |
-| Temporary demo avatar daily calls | **Approved: 200** | Implemented/live-verified. Normal Free accounts stay at 20; token/spending limits unchanged. No further approval requested. |
-| Browser access for demo verification | **Already supplied** — David opened the demo in Edge; the demo is also open in the in-app browser | The agent must resolve its control/verification tooling. Do not repeatedly ask David to open it. Record any genuinely new manual step here before asking. |
-
-These decisions do not close unrelated full-provider, production release, device
-or credential actions elsewhere in this file. No blanket cloud spending, on-chain
-funding, paid account setup or production promotion is authorized here.
-
-All future David-dependent actions from this COSMIC/CQL work belong in this list,
-with date, reason, exact next step and supporting links. Do not create another
-David checklist or turn code/test/automation fixes into owner setup tasks.
-
----
+Configure account/namespace/token and the separately persisted32-byte storage key outside chat using the `OASIS_CLOUDFLARE_CONFORMANCE_*` variables listed in [the scoped baseline](../HyperDrive-Providers/CLOUDFLARE_KV_STORAGE_BASELINE.md). The opt-in native suite preserves actual failures. Workers KV's native eventual consistency, same-key write limit and lack of CAS/transactions remain contract gates even with credentials; do not assume a controlled pass certifies immediate visibility or current credential authority. A stronger authority/Durable Objects design is separate from this KV adapter.
 
 ## Part D — Older owner actions (14–15 October 2026)
 
@@ -311,6 +261,10 @@ Tick them off as you go; tell Claude when one is done and it will pick up the ne
 ---
 
 ### 1. Publish HoloNET 4.1.0 to NuGet
+
+> **Superseded, nothing to do (31 October 2026).** HoloNET is now published from the OASIS repo's own secrets through
+> `publish-holonet.yml` (NuGet 4.2.0 to 4.5.1 are live, each with a GitHub release and its packages attached), so the
+> two secrets on the `holochain-client-csharp` fork below are not needed. Kept for the record.
 
 **Why:** 4.1.0 (Holochain 0.7 support) is ready but can't publish until the fork has two secrets.
 Claude can't handle API keys or tokens, so you add them.
@@ -427,3 +381,62 @@ interchangeable ("callback has invalid parameters").
 - Windows Firewall: tests run `holochain.exe` only from `%APPDATA%\NextGenSoftware\HoloNET\0.7.0\` and `\0.7.1\`.
   Allow each once and it won't ask again.
 - Still no Unity test project; the TestHarness is a manual demo app.
+
+---
+
+## Part E — HoloNET sites and keys (31 October 2026)
+
+### E1. Add two DNS records for the new HoloNET sites
+
+**Context:** HoloNET, docs.holonet.oasisomniverse.one and learn.holonet.oasisomniverse.one.
+**Why:** both sites are built, deployed on Vercel and their domains are verified, but `oasisomniverse.one` DNS is hosted
+at NameSilo (nameservers `ns1-3.dnsowl.com`), not Vercel, so the names don't resolve until you add the records. HTTPS
+certificates are issued automatically once they do.
+**Action:** at NameSilo, in the DNS records for `oasisomniverse.one`, add:
+
+| Type | Host | Value |
+|---|---|---|
+| CNAME | `docs.holonet` | `805b005e3c43a61c.vercel-dns-016.com` |
+| CNAME | `learn.holonet` | `d7fd0ebb133fee9e.vercel-dns-016.com` |
+
+(The same way `holonet.oasisomniverse.one` is set up.) Then tell Claude; it checks both sites load.
+**Status:** open, 31 October 2026. **Details:** Vercel projects `holonet-docs-site` and `holonet-learn-site`; repos
+NextGenSoftwareUK/HoloNETDocsWebsite and NextGenSoftwareUK/HoloNETLearnWebsite; generated by
+`holochain-client-csharp/scripts/build-sites.py`.
+
+### E2. Rotate the Arbitrum testnet key and the block-explorer API key
+
+**Context:** OASIS repo, `Providers/Blockchain/*`.
+**Why:** a testnet chain private key (Arbitrum Sepolia, also reused in the Polygon, Rootstock and Web3Core configs) and a
+block-explorer API key were committed. I removed them from every file on 16 October 2026 (the Arbitrum test harness now reads
+`OASIS_TEST_CHAIN_PRIVATE_KEY`), but both are still in git history, so treat them as exposed.
+**Action:** stop using that key (it's a testnet key, so move any test funds out first), generate a new one for local use, and
+revoke/regenerate the block-explorer API key at the provider. Optionally purge history. Never paste the new values into chat.
+**Status:** open, 31 October 2026.
+
+---
+
+## Part F — COSMIC ORM / CQL demo owner decisions (31 October 2026)
+
+Current owner decision: **first consolidated batch published successfully; approve or defer the separately tested Default-routing correction** below (31 October 2026). Engineering, native cleanup and browser tooling remain agent-owned work. No account/credential setup is requested.
+See [COSMIC current status](../COSMIC%20ORM/CURRENT_STATUS.md).
+
+| Item | Status / David's decision | When action is needed |
+|---|---|---|
+| Consolidated Development batch timing (31 October) | **Approved; published** — David replied “Publish one consolidated batch now”. Development now parent57174def3/Core6bbd015, both remote-verified; newer public-provider expansion remains on its separate task branch | One additional consolidated Development publication authorized. No master/production promotion or hosting spend. [Scope/evidence](../COSMIC%20ORM/HOSTED_SANDBOX_INTEGRATION_PLAN.md#consolidated-release-preflight--31-october-2026). |
+| Default-routing follow-up publication (31 October) | **Pending decision** — permit one additional scoped Development push for the live-found V2 controller acquisition bug.13guard+61controllerHTTPtests pass0skips; original routing fixture/3replicas preserved | First approved extra batch57174def3 deployedSUCCESS, revealing Default is bound toMongo before balancing. Dailycadence exception needed for another deployment. No provider expansion/Corepin/hosting spend. [Root cause/tests](../COSMIC%20ORM/HOSTED_SANDBOX_INTEGRATION_PLAN.md#live-default-routing-root-cause-and-scoped-fix--31-october-2026). |
+| Hosted Azure Cosmos | **Deferred** — free only; no existing free subscription; David said leave hosted Azure pending | Only if David chooses to resume. No paid upgrade, card/signup request or new account creation now. |
+| Hosted Oracle Database / OCI | **Deferred** — no existing Oracle account; David said leave hosting pending | Only if David resumes. Then record the actual account/connection/wallet setup needed here; request paths or variable names only, never secret values. |
+| First AWS demo | **Approved** — use a public S3 dataset | Decision implemented: anonymous native metadata reads and Mongo pairing verified through hosted HTTP. No AWS account or bucket setup needed for this demo. |
+| Temporary demo avatar daily calls | **Approved: 200** | Implemented/live-verified. Normal Free accounts stay at 20; token/spending limits unchanged. No further approval requested. |
+| Browser access for demo verification | **Already supplied** — David opened the demo in Edge; the demo is also open in the in-app browser | The agent must resolve its control/verification tooling. Do not repeatedly ask David to open it. Record any genuinely new manual step here before asking. |
+
+These decisions do not close unrelated full-provider, production release, device
+or credential actions elsewhere in this file. No blanket cloud spending, on-chain
+funding, paid account setup or production promotion is authorized here.
+
+All future David-dependent actions from this COSMIC/CQL work belong in this list,
+with date, reason, exact next step and supporting links. Do not create another
+David checklist or turn code/test/automation fixes into owner setup tasks.
+
+---
