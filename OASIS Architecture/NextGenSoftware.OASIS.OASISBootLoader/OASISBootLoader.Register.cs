@@ -205,10 +205,12 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 {
                                     OASISDNA overrideDNA = OASISDNA;
                                     overrideDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString = overrideConnectionString;
-                                    IPFSOASIS = new IPFSOASIS(overrideDNA, OASISDNAPath);
+                                    IPFSOASIS = new IPFSOASIS(overrideDNA, OASISDNAPath)
+                                        { EnableCqlCidKeySets = overrideDNA.OASIS.StorageProviders.IPFSOASIS.EnableCqlCidKeySets };
                                 }
                                 else
-                                    IPFSOASIS = new IPFSOASIS(OASISDNA, OASISDNAPath);
+                                    IPFSOASIS = new IPFSOASIS(OASISDNA, OASISDNAPath)
+                                        { EnableCqlCidKeySets = OASISDNA.OASIS.StorageProviders.IPFSOASIS.EnableCqlCidKeySets };
 
                                 IPFSOASIS.OnStorageProviderError += IPFSOASIS_StorageProviderError;
                                 result.Result = IPFSOASIS;
