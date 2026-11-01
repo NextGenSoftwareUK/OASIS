@@ -44,7 +44,7 @@ Each new profile proves native **3/2**, two private Mongo creates, paired **5/4*
 
 ## Active next provider
 
-Berachain qualifies against mainnet chain0x138de/genesis d5781942...cfb38. Native/C#/actualCLI3/2 and localHTTP3/2+Mongo5/4/isolation pass. API2,Core1,tariff regression22,configuration3,client1 and actual4preset planner1tests pass. Development parent1b2626499/Core08c4977 pushed and remote-verified; committed dependency pins pass. Exact jobcbe0789f-7df7-4d3c-9013-7a7e3c93e34e BUILDING. Canonical signed roles remain separate. Three-setting protected candidate prepared, not applied. Next publish matching application/Core, enroll source/admission/preset partition, roll settings and run hosted proof.
+Berachain qualifies against mainnet chain0x138de/genesis d5781942...cfb38. Native/C#/actualCLI3/2 and localHTTP3/2+Mongo5/4/isolation pass. API2,Core1,tariff regression22,configuration3,client1 and actual4preset planner1tests pass. Development parent1b2626499/Core08c4977 pushed and remote-verified; committed dependency pins pass. Exact jobcbe0789f-7df7-4d3c-9013-7a7e3c93e34e SUCCESS. All3Berachain settings applied/observed exactly; intended settings rolloutc6fb86d9-d057-4b8d-a5f1-bbb4d0ba9597 BUILDING. Canonical signed roles remain separate. Three-setting protected candidate applied with3ACKs; no source/chain write. Next publish matching application/Core, enroll source/admission/preset partition, roll settings and run hosted proof.
 
 ## Exact next work
 
