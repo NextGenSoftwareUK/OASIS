@@ -10,7 +10,7 @@ All18addedprofiles passed hosted HTTP/client-module acceptance: original17plusBe
 
 Live application: Development **1b2626499f652c6a418d7d0295b8232e1de84814**, Core **08c4977215f55006e6c7b00de62c9a70c1968d9b**. Exact settings rollout **c6fb86d9-d057-4b8d-a5f1-bbb4d0ba9597 SUCCESS**; current variables match the preserved candidate exactly.
 
-Website main **adbf7c8** serves the exact expanded demo HTML; 64 client tests pass. Each new profile exposes four server-planned presets, including Mongo pairing.
+Website main **c932346** serves byte-identical demo HTML (SHA256 d1c96b2a5612cb4fe62eaf446a806f6a66fe4ba7e5b02ff781e6d4845c7fb9c2); 64 earlier client tests pass. Each new profile exposes four server-planned presets, including Mongo pairing.
 
 ## Provider evidence
 
@@ -48,13 +48,13 @@ Berachain passed local and hosted native/C#/CLI/HTTP+Mongo gates. All3settings a
 
 ## Exact next work
 
-1. Preserve completed cohorts; do not repeat green save/query gates. Continue red provider breadth and reproducible demo defects.
+1. Next: implement Bitcoin bounded header metadata CQL adapter, native controls and C#/CLI walkthrough, then local HTTP/Mongo pairing. [Readiness](BITCOIN_PUBLIC_SOURCE_STATUS.md): six anonymous GETs, three linked PoW/hash-verified genesis-era headers, seven controls pass. Not admitted/live; preserve completed cohorts.
 2. Browser gates remain open for21providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
 ## Recovery/resources
 
-- Work/build/test only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public. Frozen public release branch4e0d58f08. Unknown root logs untouched.
+- Work/build/test only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public. Frozen public release branch1b2626499. Unknown root logs untouched.
 - Durable source identities/tokens/save intents/ACKs: LocalState/COSMIC. Fresh completion hashes: HostedQueryAcceptance-<Provider>/cql-http-acceptance.acknowledged.json. Never regenerate owners or replay uncertainty after cleanup.
 - Protected settings snapshots/intents/outcomes: HostedSourceRolloutCurrent. Preserve rejected combined-catalogue and successful partition journals. Raw output only TestResults/HostedCqlIntegrationCurrent, never Docs.
 - No new runtime/environment/container/download in this rollout. Reuse pinned resources. Final free C:82,832,003,072bytes. [Ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
