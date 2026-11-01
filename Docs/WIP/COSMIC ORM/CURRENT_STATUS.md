@@ -6,9 +6,9 @@ David authorizes necessary Development pushes for live demo testing/fixes withou
 
 ## Current milestone
 
-All 17 new profiles passed hosted HTTP/client-module acceptance. Combined with the earlier eight-provider proof, **25 providers** have scoped hosted HTTP evidence. Browser proof remains **5**, with **20 open**. Earlier eight-provider acceptance was not broadly rerun.
+All18addedprofiles passed hosted HTTP/client-module acceptance: original17plusBerachain. Combined with earlier8proofs, **26 providers** have scoped hosted HTTP evidence. Browser proof remains **5**, with **21 open**. Earlier eight-provider acceptance was not broadly rerun.
 
-Live application: Development **4e0d58f0868a7a4d0e6e1951a7331e04888e19c6**, Core **56c869ff8de0a520da8c09ba8ebc6f85bbd40ea4**. Exact settings rollout **aff4bf53-41eb-4e03-9811-dc4f809c3e50 SUCCESS**; current variables match the preserved candidate exactly.
+Live application: Development **1b2626499f652c6a418d7d0295b8232e1de84814**, Core **08c4977215f55006e6c7b00de62c9a70c1968d9b**. Exact settings rollout **c6fb86d9-d057-4b8d-a5f1-bbb4d0ba9597 SUCCESS**; current variables match the preserved candidate exactly.
 
 Website main **adbf7c8** serves the exact expanded demo HTML; 64 client tests pass. Each new profile exposes four server-planned presets, including Mongo pairing.
 
@@ -19,13 +19,13 @@ Website main **adbf7c8** serves the exact expanded demo HTML; 64 client tests pa
 | Advanced canonical CQL; earlier hosted/browser proof | MongoDB, SQLite, Neo4j. Original baseline35/35; full EF parity incomplete. |
 | Earlier hosted/browser source proof | ActivityPub, IPFS. |
 | Earlier hosted HTTP source proof; browser open | SOLID, S3 public metadata, Solana public accounts. |
-| Fresh hosted HTTP/client proof; browser open | Google Cloud Storage, Ethereum, Polygon, Arbitrum, Cosmos Hub, Polkadot, NEAR, Base, Avalanche, BNB, Optimism, Linea, Scroll, zkSync, Abstract, Monad, Sei. |
+| Fresh hosted HTTP/client proof; browser open | Google Cloud Storage, Ethereum, Polygon, Arbitrum, Cosmos Hub, Polkadot, NEAR, Base, Avalanche, BNB, Optimism, Linea, Scroll, zkSync, Abstract, Monad, Sei, Berachain. |
 | Local/emulator only; hosting explicitly deferred | Azure Cosmos DB, Oracle Database. No signup/payment re-asks. |
 | Not admitted | Rootstock endpoint rejects finalized headers; no downgrade. |
 
-Each new profile proves native **3/2**, two private Mongo creates, paired **5/4**, repeat **0** new / **2** existing, foreign-private **0**, and **2** matching rows on each of SQLite/Neo4j. Total **34** new private snapshots. No source/chain writes or browser proof inferred.
+Each new profile proves native **3/2**, two private Mongo creates, paired **5/4**, repeat **0** new / **2** existing, foreign-private **0**, and **2** matching rows on each of SQLite/Neo4j. Total **36** private snapshots across the18additions. No source/chain writes or browser proof inferred.
 
-[Fresh proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). [Every provider project](PROVIDER_CQL_AND_SANDBOX_STATUS.md) covers the maintained229-project inventory. Core's27query-tariff types are not27hosted certifications.
+[Fresh proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). [Every provider project](PROVIDER_CQL_AND_SANDBOX_STATUS.md) covers the maintained229-project inventory. Core's28query-tariff types are not28hosted certifications.
 
 ## Root causes resolved
 
@@ -42,14 +42,14 @@ Each new profile proves native **3/2**, two private Mongo creates, paired **5/4*
 - Six native repair/continuation/interleaving routes and three-authority ACK-loss/HTTP-disconnect proofs remain scoped. Replica delivery is not write-authority migration.
 - Open: broader operator/transport recovery, authority cutover, scale and full ORM lifecycle/child/history/migration reconciliation. No universal uptime or all-provider write/replication claim.
 
-## Active next provider
+## Latest provider milestone
 
-Berachain qualifies against mainnet chain0x138de/genesis d5781942...cfb38. Native/C#/actualCLI3/2 and localHTTP3/2+Mongo5/4/isolation pass. API2,Core1,tariff regression22,configuration3,client1 and actual4preset planner1tests pass. Development parent1b2626499/Core08c4977 pushed and remote-verified; committed dependency pins pass. Exact jobcbe0789f-7df7-4d3c-9013-7a7e3c93e34e SUCCESS. All3Berachain settings applied/observed exactly; intended settings rolloutc6fb86d9-d057-4b8d-a5f1-bbb4d0ba9597 BUILDING. Canonical signed roles remain separate. Three-setting protected candidate applied with3ACKs; no source/chain write. Next publish matching application/Core, enroll source/admission/preset partition, roll settings and run hosted proof.
+Berachain passed local and hosted native/C#/CLI/HTTP+Mongo gates. All3settings and matching live rollout verified. Source19/API2/Core1/tariff22/config3/client1/prepared4preset1checks pass. Original save/replica/isolation evidence and durable completion hashes retained. No source/chain writes. Continue remaining red provider breadth; do not repeat completed Berachain saves.
 
 ## Exact next work
 
 1. Preserve completed cohorts; do not repeat green save/query gates. Continue red provider breadth and reproducible demo defects.
-2. Browser gates remain open for20providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
+2. Browser gates remain open for21providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
 ## Recovery/resources
