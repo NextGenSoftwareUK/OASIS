@@ -2,11 +2,11 @@
 
 ## Current verified milestone — 1 November 2026
 
-**35 providers have scoped hosted HTTP evidence; 5 have browser evidence and 30 browser gates remain open.** Radix native3/2 and Mongo5/4 pass; the original cohort resumed after the atomic settlement fix with zero new saves/two reused copies, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2. Source writes and browser interaction are not inferred.
+**36 providers have scoped hosted HTTP evidence; 5 have browser evidence and 31 browser gates remain open.** Starknet passes native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2. Two private saves were acknowledged once. Source writes and browser interaction are not inferred.
 
-Latest provider acceptance remains Radix at74aaa9b4d/Core8b79301; original cohort completed with no duplicate saves. Session correctiond9332469d/Coreb835014 is live: same-avatar secure rotation, refresh revocation/cookie clear and rejected revoked refresh pass. Website main9e18b7dedda7c4e6cfaa358fa8987774616deaac serves matching HTML150878bytes and both versioned JS assets. Publication/HTTP checks do not certify browser interaction or real expiry waiting. See SESSION_RENEWAL_STATUS.md for proof hashes.
+Latest hosted provider acceptance: parentcafd0f8c8ea93c22f5d4638acc336df5795a05d7/Core8a5ab453ee6734195331abeec0ad5c04e84b5332, app151477e9/settings03760bc9 SUCCESS. Original Starknet cohort completion ACK retained; never replay its writes. Session lifecycle correction and website9e18b7d publication also pass; Starknet card is staged for publication. Browser and real-expiry interaction remain separate open gates.
 
-There are **38 implemented query types**: 3 canonical adapters, 33 bounded public/source profiles and 2 local Azure/Oracle implementations. Starknet now has31native controls, real CQL/manager/CLI3/2,3API/schema checks and local HTTP native3/2 + Mongo5/4 + foreign-private0/public3; hosted admission remains pending. Deployed query tariffs remain **35**, scoped hosted HTTP providers **35**, browser proofs **5** with **30 open**. Azure/Oracle hosting stays deferred; TRON429 stays red. These bounded read profiles do not prove full ORM, source writes, independent consensus or full EF parity.
+There are **38 implemented query types**: 3 canonical adapters,33bounded public/source profiles and2local Azure/Oracle implementations. Deployed query tariffs36; hosted HTTP36; browser5/open31. Starknet31controls, real CQL/manager/CLI3/2, API/local HTTP and actual presets plus hosted federation/reuse/isolation/replicas pass. Azure/Oracle hosting deferred; TRON429red. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
 
 Current support and limitations: [parity checklist](CQL_PARITY_CHECKLIST.md). Active work/commands: [CURRENT_STATUS](CURRENT_STATUS.md).
