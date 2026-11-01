@@ -14,7 +14,7 @@ There are **38 implemented query types**: 3 canonical adapters,33bounded public/
 
 1. Radix card published/byte-verified at website0228db6; setup guide74ccc3752/C#74aaa9b4d linked. Original HostedQueryAcceptance-RadixOASIS completion ACK exists: do not replay saves or create a new owner.
 2. Session lifecycle HTTP proof complete on original avatar, completion ACK retained: do not replay. Frontend9e18b7d published and HTML/JS byte-verified; browser gates remain open. [Proof and limits](SESSION_RENEWAL_STATUS.md).
-3. Starknet API/local HTTP/Mongo/privacy and actual four-preset candidate now pass. Core8a5ab45 query-only admission is task-only; three settings staged in DPAPI, no host mutation. Selected release274ccf42e passes4shipping checks; TRON adapter absent from actual DLL. Next publish selected release, then three-setting admission and hosted acceptance. Original local fixture cleaned; do not reseed/replay.
+3. Starknet API/local HTTP/Mongo/privacy and actual four-preset candidate now pass. Core8a5ab45 query-only admission is task-only; three settings staged in DPAPI, no host mutation. Selected release274ccf42e passes4shipping checks; TRON adapter absent from actual DLL. Applicationcafd0f8c8 job151477e9 SUCCESS. Three settings applied/individually acknowledged/whole-candidate verified. One settings deployment03760bc9-9984-40c1-8963-55f907f51e66 QUEUED; observe, never resend. Config now36query tariffs; hosted proof remains35until fresh acceptance. Then run Verify-HostedQuerySource.py StarknetOASIS --prepare once. Original local fixture cleaned; do not reseed/replay.
 4. Browser gates:5verified/30open. CUA transport remains closed; David already opened the browser. No OS control resumed or repeated owner request.
 
 ## Guarantees and limits
