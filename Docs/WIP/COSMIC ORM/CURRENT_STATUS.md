@@ -12,7 +12,7 @@ Sui brings implemented query types to **35**, with **30 native tests and an actu
 
 ## Exact next step
 
-1. Finish the Sui developer guide with fresh-checkout JSON; commit its tested native adapter/tests/demo on the task branch.
+1. Sui native adapter/tests/demo and fresh-checkout [developer guide](../../Devs/SUI_PUBLIC_OBJECT_CQL_GUIDE.md) are ready; next implement query admission and prove the API boundary.
 2. Add Sui query admission and native/Mongo presets; prove shipping planner and local HTTP privacy before any hosted grant.
 3. Roll out only verified Sui work, retain stable catalogue/owner and write acknowledgements, then test hosted native/federated/repeat/privacy/replicas.
 4. Browser gates remain open for 27 providers. Browser tooling failed with Transport closed; agent-owned, David already opened browser. No repeated owner request.

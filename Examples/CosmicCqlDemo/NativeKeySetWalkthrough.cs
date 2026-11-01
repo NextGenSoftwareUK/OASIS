@@ -40,6 +40,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.AlgorandOASIS => "AlgorandAddress",
             ProviderType.AptosOASIS => "AptosAccountAddress",
             ProviderType.HashgraphOASIS => "HederaAccountId",
+            ProviderType.SuiOASIS => "SuiObjectId",
             ProviderType.NEAROASIS => "NearAccountId",
             ProviderType.BaseOASIS => "BaseAccountAddress",
             ProviderType.OptimismOASIS => "OptimismAccountAddress",
