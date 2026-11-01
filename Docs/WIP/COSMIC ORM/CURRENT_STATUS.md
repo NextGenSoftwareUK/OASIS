@@ -12,7 +12,7 @@ Sui brings implemented query types to **35**, with **30 native tests and an actu
 
 ## Exact next step
 
-1. Sui native/API/local HTTP work is verified and the [developer guide](../../Devs/SUI_PUBLIC_OBJECT_CQL_GUIDE.md) is ready; next prepare/review the hosted candidate.
+1. Sui native/API/local HTTP work is verified and the [developer guide](../../Devs/SUI_PUBLIC_OBJECT_CQL_GUIDE.md) is ready; exact hosted candidate prepared and its four presets pass; next publish the verified application.
 2. Publish the verified application/Core batch, observe exact deployment SUCCESS, then apply journalled Sui settings.
 3. Roll out only verified Sui work, retain stable catalogue/owner and write acknowledgements, then test hosted native/federated/repeat/privacy/replicas.
 4. Browser gates remain open for 27 providers. Browser tooling failed with Transport closed; agent-owned, David already opened browser. No repeated owner request.
