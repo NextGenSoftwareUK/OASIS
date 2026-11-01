@@ -1927,3 +1927,5 @@ TestResults/HostedCqlIntegrationCurrent/expansion-release-core.trx SHA256 d580e3
 TestResults/HostedCqlIntegrationCurrent/expansion-release-api.trx SHA256 d8a98bfec58a032bc7151dcbbe8c21082aff3a9bbb934c608f1bae4e61ccf3a8
 
 1 November 2026: website main fast-forward published36933fbe64ac705d08a7fb792841984a62df85f5 after64client tests passed/0skips and clean-tree/ancestor checks. Existing Web4Site worktree, Node24.19 and in-memory client fixtures reused; no native session/service/database/install. Bounded log TestResults/HostedCqlIntegrationCurrent/expansion-release-website.log, size unmeasured/regenerable. API expansion exact jobfddf3159-50cc-4b4f-a6c9-2e3af8882f9d building0287c75c4/Core56c869f. No new public-source settings applied yet.
+
+1 November 2026: public web4-sandbox.html byte-for-byte equals git36933fb:web4-sandbox.html,137753bytes,SHA2560e70753d85674d2a49cb97d2acffd20a627d4e757a0386a86c9d79c0305011bc. Compared committed blob, not Windows checkout CRLF. Sei/Monad links present. Reused Python/network in memory; no download retained or new runtime. API expansionfddf3159 remains BUILDING; source settings untouched.
