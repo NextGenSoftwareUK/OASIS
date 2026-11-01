@@ -1,6 +1,6 @@
 # MultiversX / Elrond public source status
 
-Updated 1 November 2026. Native CQL/shared-manager/C# CLI verified; API/local HTTP verified; hosted/browser gates open. Programme:36implemented query types,33scoped hosted HTTP providers,5browser proofs/28open. No count grant from a public API probe.
+Updated 1 November 2026. Native CQL/shared-manager/C# CLI verified; API/local HTTP and hosted HTTP verified; browser gate open. Programme:36implemented query types,34scoped hosted HTTP providers,5browser proofs/29open. No count grant from a public API probe.
 
 ## Qualified contract
 
@@ -67,3 +67,23 @@ Core task `f41b2a11253c222aac6bfdf67278d226e01ff96e` pushed and remote-ref verif
 Selective release prepared from39b12bc28 on existing work/cosmic-cql-public-release (base7e0b60994),41reviewed files. Excluded TRON native adapter, its test file and test-project change. TRON qualification reports/probes remain evidence only; no API/tariff grant. Next verify actual release API/planner build and absence of candidate TRON type before Development publication.
 
 Scoped release43ca9f0d0verification passes3API/planner cases without skips and5SDK source/import closures. Rebuilt TRON DLL lacks task-only candidate type identifier; source also absent. Raw elrond-release.trx SHA256 `3a71d8f79e5a11d786500fb4b174c2e6876d4b4e0667e79a82ebfb62e9c0f2ce`; release-tron-assembly.json SHA256 `254e2097a792e8e152a97dae4d7893984d589e0d817d75ed199fd94bac722a58`; release-file-scope.json SHA256 `fcb887d9ed7a5179263259e160b721075a9de47758f150e5907aca7491de70a4`. Native green Mongo fixture was not replayed. Ready for fresh-fetch/non-force Development publication; no Elrond hosted variables applied yet.
+
+Published verified parent801795a648a1ae0b9211c0a478027673cb79c156 and Coref41b2a11253c222aac6bfdf67278d226e01ff96e to Development after fresh-fetch/ancestry checks, non-force pushes and exact ls-remote verification. Exact app19f65f59-e370-4cad-94ce-b0246872b891 QUEUED; settings candidate still unapplied. Do not restart job or replay green seeds. Existing frozen release branch matches801795a64 for later apply guard.
+
+Exact app19f65f59 SUCCESS at801795a64/Coref41b2a1. Guarded three-setting apply completed once using matching frozen release HEAD; each value and whole protected candidate observed exactly. One journalled settings job18c4f04e-6ac3-4fa7-ac2a-ff312d095159 BUILDING. No hosted visitor/snapshot cohort yet; observe same job before normal-visitor acceptance. No settings replay/restart or extra hosting spend.
+
+## Elrond hosted HTTP complete — 1 November 2026
+
+**34 providers have scoped hosted HTTP evidence; 5 have browser evidence and 29 browser gates remain open.** MultiversX/Elrond now passes native 3/2, Mongo federation 5/4, repeat reuse (zero new/two existing), foreign-private zero/public three, and two matching replicas on both SQLite and Neo4j. No source/chain writes or browser certification are inferred.
+
+Latest verified hosted acceptance: application `801795a648a1ae0b9211c0a478027673cb79c156`, Core `f41b2a11253c222aac6bfdf67278d226e01ff96e`, app `19f65f59-e370-4cad-94ce-b0246872b891` and settings `18c4f04e-6ac3-4fa7-ac2a-ff312d095159` succeeded. Website main `95c53ccd3d20a99df4e8059c105c2aa4fcb8ebbb` serves byte-identical committed HTML (149523bytes, SHA256 `988e89929f268a5a447f00a09e7602d0c59a01e6bd15ef44ed0c37be16343a63`), including Elrond setup/C# links. This proves publication, not browser interaction.
+
+There are **37 implemented query types**: 3 canonical adapters, 32 bounded public/source profiles and 2 locally scoped Azure/Oracle implementations. Radix now passes 50/50 focused tests (zero skips), real shared-manager three/two selection and the actual C# console demo; API admission and local HTTP/Mongo federation pass; hosted/browser remain pending. Deployed query-tariff catalogue remains 36 types and scoped hosted HTTP count remains 34. Elrond hosted acceptance stays green. Azure/Oracle hosting remains deferred. TRON real429 remains red; Starknet transport works but its CQL contract is unqualified. Full ORM/parity/HyperDrive certification remains incomplete.
+
+Original sourceOwner/catalogue and owner/foreign cohort retained. Completion ACK under `LocalState/COSMIC/HostedQueryAcceptance-ElrondOASIS/` verified from raw native/federated/isolation/replica counts. Do not replay its saves. LatestIndexed is not a pinned/shared historical snapshot. Mongo demo copies capture private name/description/native-key observations, not full native account/state snapshots. API nonce safe-integer limitation remains explicit.
+
+| Evidence under TestResults/HostedCqlIntegrationCurrent | SHA256 |
+|---|---|
+| ElrondOASIS-native-http.json | `f104103460d61fad4742b13a2f79031b28db5103c8a7e73a4b93d8ce7dc72f71` |
+| ElrondOASIS-client-http-flow.json | `71e8b470f90b49c69e9d023636d90c487fd8edae7a08f072e25964c6c001b42b` |
+| ElrondOASIS-isolation-http.json | `03a08a90c1efd0b55c9dcb5e9519ff22830f7539c640d4cac7aa3c45485e200c` |

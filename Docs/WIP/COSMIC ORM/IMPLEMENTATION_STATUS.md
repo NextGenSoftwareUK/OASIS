@@ -2,16 +2,16 @@
 
 ## Current verified milestone — 1 November 2026
 
-**33 providers have scoped hosted HTTP evidence; 5 have browser evidence and 28 browser gates remain open.** Sui now passes native 3/2, Mongo federation 5/4, repeat reuse (zero new/two existing), foreign-private zero/public three, and two matching replicas on both SQLite and Neo4j. No source/chain writes or browser certification are inferred.
+**34 providers have scoped hosted HTTP evidence; 5 have browser evidence and 29 browser gates remain open.** MultiversX/Elrond now passes native 3/2, Mongo federation 5/4, repeat reuse (zero new/two existing), foreign-private zero/public three, and two matching replicas on both SQLite and Neo4j. No source/chain writes or browser certification are inferred.
 
-Application `7e0b60994921d03e09abe4a7050ca5bf5f02bfdb`, Core `0e540eb911671a6a249458ea9b69d3e96fb1d212`, app deployment `81794c84-1f8b-41e1-a9e4-6b79015fa173` and settings deployment `1d5007cb-e593-458e-b838-9d535ba93e70` succeeded. Website main `9679699d391b5b49117c3009ee2bfcc0add41464` serves byte-identical committed HTML (148135bytes, SHA256 `b8d17101a869a1dffb8cd2c076b8c6577a24086bfcd052394100e7245d069a35`), including Sui setup/C# links. This proves publication, not browser interaction.
+Latest verified hosted acceptance: application `801795a648a1ae0b9211c0a478027673cb79c156`, Core `f41b2a11253c222aac6bfdf67278d226e01ff96e`, app `19f65f59-e370-4cad-94ce-b0246872b891` and settings `18c4f04e-6ac3-4fa7-ac2a-ff312d095159` succeeded. Website main `95c53ccd3d20a99df4e8059c105c2aa4fcb8ebbb` serves byte-identical committed HTML (149523bytes, SHA256 `988e89929f268a5a447f00a09e7602d0c59a01e6bd15ef44ed0c37be16343a63`), including Elrond setup/C# links. This proves publication, not browser interaction.
 
-There are **36 implemented query types**, including the new MultiversX/Elrond native profile:34tests plus actual shared-manager/C# CLI3/2pass; API/local HTTP native3/2+Mongo5/4+privacy now verified, hosting remains open. Sui retains30native tests and its CLI/hosted proof. Sui API admission (2 tests), Core tariff (1), generated preset planning (1), local HTTP/Mongo (1), and configuration controls (3) also pass. TRON is an unadmitted candidate with34controlled passes and a real429failure; it is not counted. Azure/Oracle hosting stays explicitly deferred. Full ORM/parity/HyperDrive certification remains incomplete. Dated milestones retain their original scope.
+There are **37 implemented query types**: 3 canonical adapters, 32 bounded source profiles and 2 locally scoped Azure/Oracle implementations. Radix passes50/50 focused tests (zero skips), real shared-manager3/2 and actual C# console3/2; API admission and local HTTP/Mongo federation pass; hosted/browser remain pending. Deployed tariff remains36 types; hosted HTTP34/browser5 unchanged. Elrond hosted acceptance remains green. Azure/Oracle hosting deferred. TRON429 remains red; Starknet transport qualified, CQL unqualified. Full roadmap remains incomplete.
 
 
 Updated1November2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state; [checklist](CQL_PARITY_CHECKLIST.md) owns acceptance. Full programme incomplete.
 
-- 33 providers have scoped hosted HTTP proof: earlier8 plus25additions. Browser proof remains5;28open. [Fresh evidence](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
+- 34 providers have scoped hosted HTTP proof: earlier8 plus26additions. Browser proof remains5;29open. [Fresh evidence](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
 - Each addition passed native3/2, private Mongo preparation, paired5/4, repeat zero writes, foreign-private zero and matching SQLite/Neo4j replicas. Public projections are not owned native chain writes/full ORM.
 - Live applicationc6e7f14ba/Coree032d0a and XRPL endpoint correction74bdf044 succeeded. Strict partitions preserve68original plus12Berachain/Bitcoin/XRPL presets. Polkadot publish root cause fixed.
 - Original12investor-demo scopes are green on MongoDB/SQLite/Neo4j. Their query checklist has50/82green rows per database; overlapping/uneven rows are not an overall parity percentage.
