@@ -23,7 +23,7 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 
 ## Next work
 
-1. Fantom native/manager/actual CLI3/2 now pass;278controls include21Fantom and preserved constructor contract. Explicit immutable latest-canonical-at-read, not finalized. Exact next: WEB4 registration/admission/discovery/4presets, local shipping HTTP/Mongo/privacy, then hosted proof/card. No Fantom live admission yet; see FANTOM_PUBLIC_SOURCE_STATUS.md. Native-qualified ACK freezes source owner/addresses.
+1. Fantom native/manager/actual CLI3/2 now pass;278controls include21Fantom and preserved constructor contract. Explicit immutable latest-canonical-at-read, not finalized. WEB4/local HTTP now pass40controls and native3/2/Mongo5/4/privacy0/3; exact local cleanup done.8publisher controls pass,3-key/free4preset candidate prepared. Exact next: preserve new Development OLAND quote changes in integration, verify merged controls, then code deployment/settings/hosted proof/card. No Fantom live admission yet; see FANTOM_PUBLIC_SOURCE_STATUS.md. Native-qualified ACK freezes source owner/addresses.
 2. PostgreSQL hosting explicitly deferred by David ("Leave hosted PostgreSQL pending"); no owner setup, re-ask or new paid resource. Azure Cosmos and Oracle hosted access also remain deferred.
 3. TRON remains unqualified after native429/diagnostic403; Rootstock finalized-header endpoint rejected400. Preserve original failures; do not blindly rerun them.
 4. Keep full ORM tracking/concurrency/children/history/deltas/migration/placement acceptance and wider HyperDrive recovery work on the roadmap. Deep LINQ, POCO mapping and migrations tooling remain deferred behind demo breadth. V2 implementation only; legacy gaps documentation only.
