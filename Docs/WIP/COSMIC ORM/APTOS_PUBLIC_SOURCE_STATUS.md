@@ -56,3 +56,5 @@ Aptos prepared-host milestone1November: protected3setting candidate prepared aga
 Guarded3setting apply must wait for the exact future Aptos application SUCCESS. No overlap with current Algorand deploymentf3ee7f37.
 
 Development publication1November: parent1cfb893c80166bf497c3112de359126a8a456fa4/Coree845c62261a74ae800c89a4175daddf0cc9d8f16, both remote refs verified after fresh fetch/ancestry checks. Committed manifest/gitlinks and5SDK closures pass. Exact appbb19d2ab-c34e-492a-9274-5e49c6e4c3b5 QUEUED. Settings candidate unapplied; no hosted visitor/save cohort. Observe same job, never restart for observation timeout.
+
+Rollout update1November: exact appbb19d2ab SUCCESS at1cfb893c8/Coree845c62. All3Aptos settings individually acknowledged and whole protected candidate observed exactly. One journalled settings deployment1c100994-b781-41e5-a239-fed9ecf14511 submitted. No hosted visitor/save cohort yet. Later Hedera native work excluded from this release.
