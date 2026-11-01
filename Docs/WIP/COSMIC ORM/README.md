@@ -40,6 +40,6 @@ Public read-profile guides: [S3](../../Devs/AWS_S3_PUBLIC_CQL_GUIDE.md), [Solana
 
 The bounded EVM and Bitcoin profiles have hosted HTTP proof within their recorded scope. XRPL and Stellar also have hosted HTTP/Mongo/isolation/replica proof; browser gates remain open. [All-provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md), [XRPL next steps](XRPL_PUBLIC_SOURCE_STATUS.md).
 
-[Algorand current-account guide](../../Devs/ALGORAND_PUBLIC_ACCOUNT_CQL_GUIDE.md): native CQL/shared-manager/CLI3/2 verified; API/hosting remain open. [Proof](ALGORAND_PUBLIC_SOURCE_STATUS.md).
+[Algorand current-account guide](../../Devs/ALGORAND_PUBLIC_ACCOUNT_CQL_GUIDE.md): native CQL/shared-manager/CLI3/2 plus hosted HTTP/Mongo/privacy/replica proof verified; browser remains open. [Proof](ALGORAND_PUBLIC_SOURCE_STATUS.md).
 
-[Aptos account guide](../../Devs/APTOS_PUBLIC_ACCOUNT_CQL_GUIDE.md): native CQL/shared-manager/commentedCLI3/2 verified; API/hosting remain open. [Proof](APTOS_PUBLIC_SOURCE_STATUS.md).
+[Aptos account guide](../../Devs/APTOS_PUBLIC_ACCOUNT_CQL_GUIDE.md): native CQL/shared-manager/commentedCLI3/2 and local API/Mongo verified; hosting remains open. [Proof](APTOS_PUBLIC_SOURCE_STATUS.md).

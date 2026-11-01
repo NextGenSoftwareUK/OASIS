@@ -6,11 +6,11 @@ David authorizes necessary Development pushes for live demo testing/fixes withou
 
 ## Current milestone
 
-All21addedprofiles passed hosted HTTP/client-module acceptance: original17plusBerachain/Bitcoin/XRPL/Stellar. Combined with earlier8proofs, **29 providers** have scoped hosted HTTP evidence. Browser proof remains **5**, with **24 open**. Earlier eight-provider acceptance was not broadly rerun.
+All22addedprofiles passed hosted HTTP/client-module acceptance: original17plusBerachain/Bitcoin/XRPL/Stellar/Algorand. Combined with earlier8proofs, **30 providers** have scoped hosted HTTP evidence. Browser proof remains **5**, with **25 open**. Earlier eight-provider acceptance was not broadly rerun.
 
-Live application: Development **7a9ca308e5a4c94a6529b1848e41571d1180d3b7**, Core **c17db5f5a062822c92f2f7250fe60e484b4e5967**. Exact Stellar settings deployment **3eda0ea7-5238-4a7d-bd91-f47ba2f8102d SUCCESS**; protected3setting candidate exact. Stellar native/Mongo/isolation/replica HTTP gates pass; durable completion ACK retained. No source writes.
+Live application: Development **7a9ca308e5a4c94a6529b1848e41571d1180d3b7**, Core **c17db5f5a062822c92f2f7250fe60e484b4e5967**. Exact Algorand settings deployment **f3ee7f37-769e-4c02-b70c-7b54837a6e45 SUCCESS**; protected3setting candidate exact. Native/Mongo/isolation/replica HTTP gates pass; durable completion ACK retained. No source writes.
 
-Website main **d88a0a4** serves byte-identical committed Stellar-inclusive HTML, SHA256 **be55fc9b52d099588c50cf400d78d6652d315fc698ced617dc6c988c7c285fcc**. Readable CLI/guide/commented C# links published; focused Stellar client test passes. Browser proof remains separate.
+Website main **ada6e92** serves byte-identical committed Algorand-inclusive HTML, SHA256 **cfff7aa51aafe061966682309ed258ca3e000d313b79c9dbdf678224375c95be**. Spaced CLI/guide/commented C# links published; focused client test1pass. Aptos card remains task-only; browser proof separate.
 
 ## Provider evidence
 
@@ -19,11 +19,11 @@ Website main **d88a0a4** serves byte-identical committed Stellar-inclusive HTML,
 | Advanced canonical CQL; earlier hosted/browser proof | MongoDB, SQLite, Neo4j. Original baseline35/35; full EF parity incomplete. |
 | Earlier hosted/browser source proof | ActivityPub, IPFS. |
 | Earlier hosted HTTP source proof; browser open | SOLID, S3 public metadata, Solana public accounts. |
-| Fresh hosted HTTP/client proof; browser open | Google Cloud Storage, Ethereum, Polygon, Arbitrum, Cosmos Hub, Polkadot, NEAR, Base, Avalanche, BNB, Optimism, Linea, Scroll, zkSync, Abstract, Monad, Sei, Berachain, Bitcoin, XRPL, Stellar. |
+| Fresh hosted HTTP/client proof; browser open | Google Cloud Storage, Ethereum, Polygon, Arbitrum, Cosmos Hub, Polkadot, NEAR, Base, Avalanche, BNB, Optimism, Linea, Scroll, zkSync, Abstract, Monad, Sei, Berachain, Bitcoin, XRPL, Stellar, Algorand. |
 | Local/emulator only; hosting explicitly deferred | Azure Cosmos DB, Oracle Database. No signup/payment re-asks. |
 | Not admitted | Rootstock endpoint rejects finalized headers; no downgrade. |
 
-Each new profile proves native **3/2**, two private Mongo creates, paired **5/4**, repeat **0** new / **2** existing, foreign-private **0**, and **2** matching rows on each of SQLite/Neo4j. Total **42** private snapshots across the21additions. No source/chain writes or browser proof inferred.
+Each new profile proves native **3/2**, two private Mongo creates, paired **5/4**, repeat **0** new / **2** existing, foreign-private **0**, and **2** matching rows on each of SQLite/Neo4j. Total **44** private snapshots across the22additions. No source/chain writes or browser proof inferred.
 
 [Fresh proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). [Every provider project](PROVIDER_CQL_AND_SANDBOX_STATUS.md) covers the maintained229-project inventory. Core's32query-tariff types are not32hosted certifications.
 
@@ -44,15 +44,15 @@ Each new profile proves native **3/2**, two private Mongo creates, paired **5/4*
 
 ## Latest provider milestone
 
-Stellar passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2. Complete XDR-bound hash-pinned headers; no signature/consensus verification. Original source identity/catalogue retained. Website main d88a0a4 published and exact committed HTML verified; browser acceptance remains open.
+Algorand passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2. Current-account amounts exact, each response carries its observed round; no historical/shared snapshot or consensus proof. Original source identity/catalogue retained. Website main ada6e92 published; exact committed/live HTML verified. Aptos card remains task-only.
 
 ## Exact next work
 
-1. Next: observe exact Algorand settings deploymentf3ee7f37-769e-4c02-b70c-7b54837a6e45 until SUCCESS. Exact app7bb36bf0 SUCCESS at7a9ca308e/Corec17db5f; all3settings observed/candidate exact and rollout intent/outcome retained. Then normal visitor native/Mongo/isolation/replica proof and staged card. [Local proof](ALGORAND_PUBLIC_SOURCE_STATUS.md#api-and-local-http-complete). No visitor cohort yet; no green save replay.
+1. Next: website main ada6e92 exact HTML verified; publish the already-tested Aptos application batch (Coree845c62/task1a15453d0+). Its protected3setting candidate/planner are ready; do not apply until exact app SUCCESS. Algorand cohort is green: never replay saves. [Hosted proof](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-algorand-acceptance).
 
 Aptos native milestone:26tests+actualCLI3/2 pass, shared-manager execution verified.33implemented query types; API2+Core1+nativeHTTP1 pass, privateMongo5/4/private0 verified. Later task-only Coree845c62 stays out of Algorand7a9ca308e release; protected candidate/actual4preset planner pass; hosting next after Algorand. Original catalogue/sourceOwner retained. [Proof and next gates](APTOS_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
 
-2. Browser gates remain open for24providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
+2. Browser gates remain open for25providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
 ## Recovery/resources
