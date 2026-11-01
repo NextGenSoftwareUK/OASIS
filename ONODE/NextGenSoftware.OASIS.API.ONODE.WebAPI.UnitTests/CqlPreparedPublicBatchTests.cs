@@ -56,6 +56,10 @@ public sealed class CqlPreparedPublicBatchTests
     public async Task ActualBerachainCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [PublicBatchReviewFact]
+    public async Task ActualBitcoinCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
     private static async Task CheckPreparedBatch(int expected)
     {
         var path = Environment.GetEnvironmentVariable("COSMIC_CQL_PUBLIC_REVIEW")!;
@@ -98,6 +102,7 @@ public sealed class CqlPreparedPublicBatchTests
                     ProviderType.ZkSyncOASIS => Providers.ZkSyncOASIS.ZkSyncPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.AbstractOASIS => Providers.AbstractOASIS.AbstractPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.MonadOASIS => Providers.MonadOASIS.MonadPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.BitcoinOASIS => Providers.BitcoinOASIS.BitcoinPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.BerachainOASIS => Providers.BerachainOASIS.BerachainPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.SeiOASIS => Providers.SeiOASIS.SeiPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
                     _ => throw new InvalidOperationException("Unexpected source in the explicit reviewed batch.")

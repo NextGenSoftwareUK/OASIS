@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -58,6 +58,7 @@
     <Compile Remove="Helpers\OASISSettings.cs" />
   
     <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.csproj" />
   </ItemGroup>
 
   <ItemGroup>

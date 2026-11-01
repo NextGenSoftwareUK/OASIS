@@ -32,6 +32,6 @@ Activation verifies the configured catalogue. Cancellation, a malformed response
 
 ## Current availability
 
-Native controlled and real-public CQL/C# evidence is tracked in [Bitcoin status](../WIP/COSMIC%20ORM/BITCOIN_PUBLIC_SOURCE_STATUS.md). Local HTTP/Mongo federation, hosted sandbox admission and browser verification are separate unfinished gates. Bitcoin must not appear as a live sandbox provider until those gates pass. The planned hosted demo includes one ready Mongo-paired preset.
+Native controlled and real-public CQL/C# evidence is tracked in [Bitcoin status](../WIP/COSMIC%20ORM/BITCOIN_PUBLIC_SOURCE_STATUS.md). Local HTTP/Mongo federation now passes native3/2, paired5/4 and private isolation. Hosted application/settings rollout and browser verification are unfinished gates. Bitcoin must not appear as a live sandbox provider until those gates pass. The planned hosted demo includes one ready Mongo-paired preset.
 
 Protocol reference: [Blockstream Esplora API](https://github.com/Blockstream/esplora/blob/master/API.md).
