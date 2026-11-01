@@ -7,7 +7,7 @@ This profile exposes a small, explicitly configured set of public XRPL ledger he
 After building the existing console project from the COSMIC worktree:
 
 ```powershell
-dotnet run --project Examples/CosmicCqlDemo --no-build -- --xrpl-public LocalState/COSMIC/HostedXrplPublicSourceCurrent/source.json
+dotnet run --project Examples/CosmicCqlDemo --no-build -- --xrpl-public LocalState/COSMIC/HostedXrplPublicSourceCurrent/source-free-endpoint.json
 ```
 
 [Commented walkthrough](../../Examples/CosmicCqlDemo/XrplPublicWalkthrough.cs) · [Shared query construction](../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs)
@@ -32,8 +32,30 @@ Network identity and validation are reported by the authenticated public endpoin
 
 ## Configuration
 
-Reuse `LocalState/COSMIC/HostedXrplPublicSourceCurrent/source.json`, preserving the source owner and retained hash catalogue. Its exact schema is `schema` (1), `rpcUrl`, `networkId` (0), `ledgerHashes` and `sourceOwner` (nonempty GUID). The qualified endpoint is `https://xrplcluster.com/`, listed by XRPL as a public Mainnet full-history service. Unknown fields and malformed configuration are rejected; production JSON loading uses the existing guarded HTTP handler.
+Reuse `LocalState/COSMIC/HostedXrplPublicSourceCurrent/source-free-endpoint.json`, preserving the source owner and retained hash catalogue. Its exact schema is `schema` (1), `rpcUrl`, `networkId` (0), `ledgerHashes` and `sourceOwner` (nonempty GUID). The hosted-qualified free endpoint is `https://s2.ripple.com:51234/`, listed by XRPL as Ripple’s Mainnet full-history service. The original xrplcluster.com endpoint returned HTTP402 from the hosted environment; no payment or automatic fallback was enabled. Unknown fields and malformed configuration are rejected; production JSON loading uses the existing guarded HTTP handler.
 
-Native/C#/CLI and local HTTP/Mongo5/4/private-isolation evidence, plus remaining hosted/browser work are tracked in [XRPL status](../WIP/COSMIC%20ORM/XRPL_PUBLIC_SOURCE_STATUS.md). XRPL must not appear as a verified live sandbox provider until those separate gates pass. The planned hosted demo includes a ready Mongo-paired preset.
+## Live sandbox
+
+Open the [WEB4 sandbox](https://web4.oasisomniverse.one/web4-sandbox.html), choose the CQL tab and select `XRPLOASIS`. Four ready presets show three public headers, a two-header subset, and each selection paired with your private Mongo snapshots. Prepare the paired example once to create two private Mongo records; repeating preparation reuses them. Expected paired counts are five and four. Another visitor sees public headers and no private snapshots.
+
+Hosted native/Mongo/reuse/isolation and exact SQLite/Neo4j replica checks pass on c6e7f14ba/Coree032d0a, correction74bdf044. Browser interaction verification remains open. These are public native reads plus owned Mongo snapshots, not signed XRPL memo persistence or independent validator consensus.
+
+For a fresh developer checkout, save this public example as your source JSON. `sourceOwner` is a stable projection namespace, not a wallet or signing permission. Keep it fixed between runs; reuse existing configured source identities.
+
+```json
+{
+  "schema": 1,
+  "rpcUrl": "https://s2.ripple.com:51234/",
+  "networkId": 0,
+  "ledgerHashes": [
+    "3AA1A57F3E24012170CD2922194620B795D9CBA8698E79A4EEFA10A26A8F6592",
+    "EDDBA0BAB31F6EEC15E0C3913B2CB0207D11F7F8020DC77C76CFED364AF3520C",
+    "9F7C6331BE65A669963F42357757C6E0C47B7B2A52E67793E86AA87A877BC87A"
+  ],
+  "sourceOwner": "00000000-0000-0000-0000-000000000123"
+}
+```
+
+[Native/local/hosted scope and retained proof](../WIP/COSMIC%20ORM/XRPL_PUBLIC_SOURCE_STATUS.md).
 
 References: [XRPL public servers](https://xrpl.org/docs/tutorials/public-servers), [XRPLF header hashing](https://github.com/XRPLF/rippled/blob/develop/src/libxrpl/protocol/LedgerHeader.cpp).
