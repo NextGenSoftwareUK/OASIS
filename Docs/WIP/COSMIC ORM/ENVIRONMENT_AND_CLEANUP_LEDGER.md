@@ -2448,3 +2448,26 @@ Session resource reconciliation: reused API test+shipping bin/obj1519files/80202
 - 2026-11-01: application151477e9 SUCCESS at cafd0f8c8/Core8a5ab45. Apply planned three reviewed settings via existing journalled publisher, --skip-deploys: CQL_STARKNET_PUBLIC_SOURCE_JSON, PREPARED_STORAGE_ADMISSION_JSON, CQL_HOSTED_QUERY_EXAMPLES__StarknetOASIS. Protected before/candidate and per-key intents/ACKs under LocalState/COSMIC/HostedSourceRolloutCurrent/starknet-public-*. Preserve all outcomes; no replay of uncertain intent. No new account/funding/runtime/container/source write. One subsequent journalled settings deployment only after whole-candidate comparison.
 
 - Three Starknet setting writes individually ACKed and whole candidate exactly observed. One settings redeploy03760bc9-9984-40c1-8963-55f907f51e66 queued on same cafd0f8c8 image; intent/outcome retained, no duplicate deploy. No new runtime, wallet, spend or local process. Planned acceptance durable cohort C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedQueryAcceptance-StarknetOASIS: two normal temporary demo avatars, two private Mongo copies plus existing SQLite/Neo replication. Protect credentials with DPAPI; preserve owner/source identity and save receipts, never rerun completed/uncertain writes. Raw proof in TestResults/HostedCqlIntegrationCurrent/StarknetOASIS-*.json; size unmeasured. Retain live copies for demo, do not delete source/user data during cleanup.
+
+
+### 2026-11-01 measured reusable build/evidence outputs
+Free C:69607825408bytes observed. Read-only inventory; no claim of complete machine attribution or historical download delta. Existing SDK10.0.401/runtime10.0.11/cache and build outputs reused across this task. No task .NET/test service active now; retain these reusable outputs for demo and failure diagnosis, regenerate with bounded build lease before safe cleanup. Protected rollout directory is shared durable task evidence, never bulk-delete. Evidence report resource-size-observation.json remains TestResults, no credentials recorded.
+
+| Exact path | Files | Measured bytes | Lifecycle |
+|---|---:|---:|---|
+| C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\bin | 676 | 398375536 | active/reusable; disposable only after required proof retained and consumers terminal |
+| C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\obj | 128 | 13364103 | active/reusable; disposable only after required proof retained and consumers terminal |
+| C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests\bin | 706 | 384783701 | active/reusable; disposable only after required proof retained and consumers terminal |
+| C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests\obj | 21 | 6248402 | active/reusable; disposable only after required proof retained and consumers terminal |
+| C:\Source\OASIS-cosmic\Examples\CosmicCqlDemo\bin | 510 | 338282342 | active/reusable; disposable only after required proof retained and consumers terminal |
+| C:\Source\OASIS-cosmic\Examples\CosmicCqlDemo\obj | 22 | 4434123 | active/reusable; disposable only after required proof retained and consumers terminal |
+| C:\Source\OASIS-cosmic\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.StarknetOASIS.UnitTests\bin | 203 | 47243551 | active/reusable; disposable only after required proof retained and consumers terminal |
+| C:\Source\OASIS-cosmic\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.StarknetOASIS.UnitTests\obj | 21 | 1071673 | active/reusable; disposable only after required proof retained and consumers terminal |
+| C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.Core.UnitTests\bin | 187 | 52420649 | active/reusable; disposable only after required proof retained and consumers terminal |
+| C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.Core.UnitTests\obj | 21 | 6982380 | active/reusable; disposable only after required proof retained and consumers terminal |
+| C:\Source\OASIS-cosmic\LocalState\COSMIC\HostedSourceRolloutCurrent | 301 | 5945595 | preserved durable evidence; no bulk cleanup |
+| C:\Source\OASIS-cosmic\LocalState\COSMIC\HostedStarknetPublicSourceCurrent | 1 | 466 | preserved durable evidence; no bulk cleanup |
+| C:\Source\OASIS-cosmic\TestResults\StarknetPublicSourceCandidateCurrent | 44 | 8727941 | active/reusable; disposable only after required proof retained and consumers terminal |
+| C:\Source\OASIS-cosmic\TestResults\SandboxSessionRenewalCurrent | 22 | 3853978 | active/reusable; disposable only after required proof retained and consumers terminal |
+
+- Measured Starknet protected rollout files: before136902bytes/candidate139766bytes, six per-key intent/ACK files145/170/136/161/136/161bytes, deployment intent260bytes/outcome310bytes. Shared durable directory retained, not disposable. OS-owned C:/pagefile.sys remains allocated12288MiB/current188MiB/peak5573MiB; not an owned artifact and not deleted. These observations do not account for all disk changes. Settings job03760bc9 now BUILDING; original intent/outcome preserved.
