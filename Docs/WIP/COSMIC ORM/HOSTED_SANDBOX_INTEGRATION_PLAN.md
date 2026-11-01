@@ -870,3 +870,7 @@ Found a release-path gap: the multi-source apply command enforced exact variable
 
 ### Approved Default-routing correction publication — 1 November 2026
 David explicitly approved: Publish correction now. Scope: production correction51de129d3 plus its existing13guard/61HTTP tests and documentation; no new public-provider expansion or Core pin change. Fetched Development494f988bc is an ancestor of the scoped release450614de6. Original74passing/zero-skipped TRX revalidated and Railway manifest/gitlinks pass. Core Development6bbd015 independently verified remotely. No production/master promotion, settings change or hosting spend.
+
+
+### Explicit post-correction routing cohort - 1 November 2026
+Deployment d8876691-5ce2-4495-9e3d-dedfb1732de0 remains QUEUED at051ac6af7. Explicit routing-v2 uses HostedHyperdriveRoutingV2Current and preserves expired routing-v1. No account/save/fault sent.23protocol checks pass. After exact job SUCCESS: prepare routing-v2 once, run balancing reads, explicitly prepare its independent visitor, run failover. Unknown writes/fault journals stop replay; preserve original intent and restore owned faults.
