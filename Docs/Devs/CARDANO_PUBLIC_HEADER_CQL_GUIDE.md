@@ -1,6 +1,6 @@
 # Cardano public header CQL demo
 
-Native CQL35controls and real3/2selection pass. Actual commented C# walkthrough also passes3/2through HolonManager/LINQ. API/hosted sandbox admission and browser interaction remain separate pending gates. [Current proof](../WIP/COSMIC%20ORM/CARDANO_PUBLIC_SOURCE_STATUS.md).
+Native CQL35controls and real3/2selection pass. Actual commented C# walkthrough also passes3/2through HolonManager/LINQ. Local API admission, HTTP/Mongo federation and visitor privacy are verified. Hosted sandbox admission and browser interaction remain pending. [Current proof](../WIP/COSMIC%20ORM/CARDANO_PUBLIC_SOURCE_STATUS.md).
 
 This read-only profile selects explicitly enrolled historical block hashes from the public Mainnet Koios indexer. It uses the shared CQL planner and HolonManager/LINQ path, separate from signed Cardano wallet/storage settings. No wallet, account, funding or chain transaction is required.
 

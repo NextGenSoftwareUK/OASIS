@@ -8,13 +8,13 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 
 Latest hosted provider acceptance: parentcafd0f8c8ea93c22f5d4638acc336df5795a05d7/Core8a5ab453ee6734195331abeec0ad5c04e84b5332, app151477e9/settings03760bc9 SUCCESS. Original Starknet cohort completion ACK retained; never replay its writes. Session lifecycle correction passes. Website80ba51052c14a2f705e24e9825a9fe8b495fe642 publishes the verified Starknet card, guide164b4bb96 and C#cafd0f8c8; HTML152265bytes/SHA25658bd2b0b5edec25c29d16f9351006dc4621dd6ca2818df5d08dec1551163a2a6 matches committed bytes. Browser and real-expiry interaction remain separate open gates.
 
-There are **39 implemented query types**, including the native-only Cardano candidate: 3 canonical adapters,34bounded public/source profiles and2local Azure/Oracle implementations. Cardano35controls/realCQL3/2/manager-CLI3/2pass; its Core/API admission is next. Other38query types retain recorded API/local scopes. Deployed tariffs36/hosted36/browser5/open31 remain unchanged. Full ORM/EF parity/HyperDrive certification remains incomplete.
+There are **39 implemented query types**, including locally verified Cardano: 3 canonical adapters,34bounded public/source profiles and2local Azure/Oracle implementations. Cardano35controls/realCQL3/2/manager-CLI3/2, API/local HTTP3/2+Mongo5/4+visitor privacy and actual presets pass; hosting is next. Deployed tariffs36/hosted36/browser5/open31 remain unchanged. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
 ## Exact next step
 
 1. Radix card published/byte-verified at website0228db6; setup guide74ccc3752/C#74aaa9b4d linked. Original HostedQueryAcceptance-RadixOASIS completion ACK exists: do not replay saves or create a new owner.
 2. Session lifecycle HTTP proof complete on original avatar, completion ACK retained: do not replay. Frontend9e18b7d published and HTML/JS byte-verified; browser gates remain open. [Proof and limits](SESSION_RENEWAL_STATUS.md).
-3. Cardano native CQL35controls/real3/2and actual commented manager/CLI3/2pass, with complete-set validation and exact values/order. Source403bytes retained. Next Core/API read-only admission, four presets, local HTTP/Mongo/privacy proof and actual candidate before hosting. [Evidence/commands](CARDANO_PUBLIC_SOURCE_STATUS.md). No broadening of paused deep LINQ parity.
+3. Cardano Core/API, native HTTP3/2+Mongo5/4+visitor privacy and actual four-preset candidate now pass. Corebe397f1 task-only; protected three-setting candidate prepared, no host mutation. Next select verified release excluding red TRON, build/check shipping artifact, publish, then guarded config/one deployment/hosted acceptance/card. Original local fixture cleaned; no reseed. [Evidence](CARDANO_PUBLIC_SOURCE_STATUS.md).
 4. Browser gates:5verified/30open. CUA transport remains closed; David already opened the browser. No OS control resumed or repeated owner request.
 
 ## Guarantees and limits
