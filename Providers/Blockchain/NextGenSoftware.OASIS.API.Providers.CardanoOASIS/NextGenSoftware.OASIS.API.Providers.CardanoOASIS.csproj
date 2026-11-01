@@ -55,7 +55,7 @@
   <ItemGroup>
     <!-- HoloNET uses this pinned sibling implementation. A second NuGet
          implementation with the same assembly name breaks full runtime builds. -->
-    <ProjectReference Include="..\..\..\..\holochain-client-csharp\Chaos.NaCl\Chaos.NaCl.Portable.Standard.csproj" />
+    <ProjectReference Include="..\..\..\..\holochain-client-csharp\Chaos.NaCl\Chaos.NaCl.Portable.Standard.csproj" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -65,6 +65,16 @@
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" Aliases="BouncyCastleCryptography" />
   </ItemGroup>
   <ItemGroup><ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" /></ItemGroup>
+  <!-- Chaos.NaCl is a sibling project with no NuGet package: keep it private and ship its DLL inside this package. -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeChaosNaClInPackage</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="IncludeChaosNaClInPackage">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(OutDir)Chaos.NaCl.dll" />
+    </ItemGroup>
+  </Target>
+
 </Project>
 
 
