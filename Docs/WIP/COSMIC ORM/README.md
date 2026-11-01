@@ -69,3 +69,5 @@ Update CURRENT_STATUS.md and the full provider report together with the affected
 - [Azure public Blob status](AZURE_PUBLIC_BLOB_STATUS.md) and [C# / HTTP guide](../../Devs/AZURE_PUBLIC_BLOB_CQL_GUIDE.md): real properties queries, separate from pending hosted Cosmos DB.
 
 Azure publication milestone:40scoped hosted HTTP providers,5browser/35open; live Azure Blob CQL/Mongo/privacy/reuse/replicas and website9694621 byte proof are complete. Current recovery entry remains CURRENT_STATUS.md; [Azure evidence](AZURE_PUBLIC_BLOB_STATUS.md).
+
+- [Fantom native/local CQL status](FANTOM_PUBLIC_SOURCE_STATUS.md): explicit canonical-at-read balances and readable [local guide](../../Devs/FANTOM_PUBLIC_ACCOUNT_CQL_GUIDE.md); hosted enrollment pending.
