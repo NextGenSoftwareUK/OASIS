@@ -1,6 +1,6 @@
 # Stellar public header readiness
 
-Updated1November2026. Complete native header decoder verified; CQL, HTTP/Mongo and hosting remain red. XRPL hosted acceptance is complete within its recorded scope.
+Updated1November2026. Complete native decoder/CQL/C#/CLI verified; HTTP/Mongo and hosting remain red. XRPL hosted acceptance is complete within its recorded scope.
 
 - Reuses the existing StellarOASIS Horizon endpoint https://horizon.stellar.org/ and Python stdlib; two anonymous bounded GETs, no account, SDK install or source writes.
 - Root explicitly reports the public-network passphrase. A three-record ledger page has contiguous API-reported sequences and linked parent hashes.
@@ -30,3 +30,17 @@ Protocol: [Stellar ledger XDR](https://github.com/stellar/stellar-xdr/blob/maste
 - Build/test logs stay under TestResults/StellarPublicSourceCandidateCurrent; public golden vectors reside in the test source, not raw evidence in docs.
 
 Next: implement bounded Stellar public-header CQL adapter using this decoder, binding Horizon sequence/hash/parent/protocol to the decoded header. Use one immutable configured catalogue and stable source owner, equality/membership over native ledger sequences; then readable C#/CLI3/2, local HTTP/Mongo5/4, four presets and explicit hosted admission/acceptance. No Stellar CQL/provider-count increase yet.
+
+## Native CQL / developer demo complete
+
+`StellarPublicHeaderMetadataSource` provides explicit sequence-key equality/membership over one to eight pinned sequence/hash pairs. Each row binds Horizon hash/sequence/parent/protocol to the verified complete native XDR. Public-network identity is explicit; metadata uses exact signed/unsigned decimal strings. Access/window/budget/cancellation and whole-selection failures are checked, with no partial rows or source writes.
+
+21controlled cases,1real shared-manager C# case and actualCLI3/2 pass. [Developer guide](../../Devs/STELLAR_PUBLIC_HEADER_CQL_GUIDE.md).
+
+- `TestResults\StellarPublicSourceCandidateCurrent\stellar-source.trx`: 21passed/0skips, SHA256 `9e703676b959313b3951d673d3ec7010ad28a8692ad4e3ce9a9d378f44f7747e`.
+- `TestResults\StellarPublicSourceCandidateCurrent\stellar-native.trx`: 1passed/0skips, SHA256 `11a3cccfa28b9e48ab75a748f95ca6fe6a5d3af58bc53d1657d05ef78a3c9d78`.
+- ActualCLI3/2 exit0; `TestResults\StellarPublicSourceCandidateCurrent/console-run.log` SHA256 `1a914e68b73b582f928ff4ea3a305a1b12d166de9f1bda398097b2f0b7475f2b`.
+
+Existing hosted container read-only egress probe returns200 for Horizon root and one retained ledger, matching public network/sequence/hash/XDR SHA256. `TestResults/StellarPublicSourceCandidateCurrent/hosted-egress.json` is reachability evidence only, not CQL, auth, replicas or browser acceptance.
+
+Stable source `LocalState/COSMIC/HostedStellarPublicSourceCurrent/source.json` created once, original three sequence/hash pairs retained. Next: lazy API profile/independent read tariff, four exact shipping-planned presets, local HTTP/Mongo5/4/private isolation, guarded hosted rollout and browser gates. Counts31implemented query types (Stellar native-only),30deployed tariff types,28hosted HTTP/5browser; no Stellar live permission/count.
