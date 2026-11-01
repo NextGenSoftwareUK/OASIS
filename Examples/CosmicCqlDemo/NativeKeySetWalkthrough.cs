@@ -37,6 +37,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.BitcoinOASIS => "BitcoinBlockHash",
             ProviderType.XRPLOASIS => "XRPLLedgerHash",
             ProviderType.StellarOASIS => "StellarLedgerSequence",
+            ProviderType.AlgorandOASIS => "AlgorandAddress",
             ProviderType.NEAROASIS => "NearAccountId",
             ProviderType.BaseOASIS => "BaseAccountAddress",
             ProviderType.OptimismOASIS => "OptimismAccountAddress",

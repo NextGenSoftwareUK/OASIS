@@ -48,7 +48,7 @@ Stellar passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/publ
 
 ## Exact next work
 
-1. Next: implement the qualified Algorand current-account source: explicit catalogue/address checksum, exact amounts, per-row rounds, no historical/shared snapshot. Eight boundary tests and six real GETs pass; original sourceOwner/catalogue retained. [Qualification and next gates](ALGORAND_PUBLIC_SOURCE_STATUS.md). No Algorand CQL/hosted count yet; no green save replay.
+1. Next: Algorand native adapter22tests pass including real manager3/2. actualCLI3/2 passes; next independent API admission, planner presets and local HTTP/Mongo proof. Explicit current state/per-row rounds, no historical/shared snapshot. Original sourceOwner/catalogue retained. [Qualification and next gates](ALGORAND_PUBLIC_SOURCE_STATUS.md). No Algorand CQL/hosted count yet; no green save replay.
 2. Browser gates remain open for24providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
