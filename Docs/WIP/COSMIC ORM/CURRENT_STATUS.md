@@ -6,6 +6,10 @@ Updated 1 November 2026. Programme incomplete. Goal resumed after the routing pu
 
 David approved the correction on 1 November. Scoped Development051ac6af7841f95d4babb1a3e061feee06b4a6c6 is pushed and remote-verified; Core stays6bbd015. Exact Railway jobd8876691-5ce2-4495-9e3d-dedfb1732de0 is SUCCESS. Exact deployed commit verified. New public profiles/settings are excluded. Browser transport and deferred hosting remain separate limits.
 
+## Next consolidated release
+
+Seventeen-profile expansion preflight now passes970Core+101API contracts (zero skips),53configuration controls, both source manifests and dependency pins. Preparing the second normal daily Development batch; existing correction is already live. Joint19settings remain unapplied until matching revision deployment succeeds.
+
 ## Exact next steps
 
 1. Auto policy is verified configured as Auto: deterministic scoring does not promise rotation. A separate live candidate-routing gate now passes all3request-scoped singleton lists using Default, exact record preservation and no saved/global settings changes. Keep the original variation gate unacknowledged; score optimality/fairness remains unverified. Next resolve remaining browser/source rollout gates without replaying successful routing/failover scopes. Owner approval is recorded in [David list, Part F](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
