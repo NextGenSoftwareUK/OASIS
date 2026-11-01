@@ -1,6 +1,6 @@
 # Radix public source qualification
 
-Updated 1 November 2026. Exact guarded .NET native API qualification now passes3/2at one requested ledger version; CQL/API enrollment/hosted/browser gates remain open. Earlier Python denials below are retained history, not a global endpoint failure.
+Updated 1 November 2026. Native CQL50/50 tests and actual console3/2 pass; API enrollment/local HTTP/hosted/browser remain open. Earlier Python denials below are retained history, not a global endpoint failure.
 
 ## Observed access
 
@@ -12,7 +12,7 @@ A separate bounded denial diagnostic returned403with server `cloudflare`, JSON c
 - `denial-diagnostic.json`, 596bytes; SHA256 `661d290229bd5d7562e3f9f7aa53eccdd225c28e7c8fc192035864f82a13afbc`.
 - No sourceOwner/catalogue, blockchain account, key, SDK/runtime install, database or local process/port. Existing Radix signed-storage client was inspected only; not executed or certified.
 
-## Potential native design — not implemented
+## Initial design — historical, implemented in milestone below
 
 Official docs identify Mainnet network ID1and `_rdx` addresses. A future explicitly qualified Gateway profile could read a small enrolled resource/entity catalogue with native `/state/entity/details` membership and an acknowledged `at_ledger_state`, if the actual endpoint proves those contracts. Bech32M/checksum/entity type, exact decimal strings, complete identities, ledger-state equality, response budgets, cancellation and public visibility need implementation/tests before any CQL grant. Do not reuse ordinary Bech32 validation or silently drop a requested ledger state.
 
@@ -39,3 +39,15 @@ Shared transport evidence in `TestResults/PublicSourceEgressCurrent/`:
 | dotnet-reachability.json | 1206 | `1a23703de60e4a691f77bb99c5b3d61f1e4235db91392426b22cdab7dbfa01ca` |
 
 Exact next work: implement explicit read-only Radix resource-address CQL source with per-query ledger pinning, Bech32M/resource type validation, native decimal-string precision and complete page/cancellation checks; controlled tests, real shared manager3/2 and spaced C# guide; then query-only admission/planner/local HTTP before hosted rollout. Keep all access guards enabled and preserve successful/failed observations. No CQL/count grant yet.
+
+## Native CQL and console milestone — 1 November 2026
+
+Read-only adapter implemented: exact Bech32m resource identity/kind, signed192-bit scale18 supply strings, complete selected identities, optional explicit string metadata, per-query ledger tuple, budgets and cancellation. Focused MSTest50/50 pass, zero skips, including real HolonManager/LINQ3/2. Actual compiled console --radix-public also returns3/2 (full-query ledger566680138). Stable source/catalogue retained under LocalState/COSMIC/HostedRadixPublicSourceCurrent; no wallet/key/database or source writes.
+
+- `TestResults/RadixPublicSourceCandidateCurrent/radix-source.trx`, 75493bytes; SHA256 `f1a6d9cb6310a7c9318388b512cca1425f60febc77695a56ab5153d6f0ba5a8d`.
+- `TestResults/RadixPublicSourceCandidateCurrent/cli-native-execution.log`, 1530bytes; SHA256 `6cb7304932b1ae9caa3652d00c60397d2e384579f7fbe1e13fd7d3cc3fddec2b`.
+- `TestResults/RadixPublicSourceCandidateCurrent/entities-explicit.response.json`, 25060bytes; SHA256 `8439d1f88dfbd2b4f9ea8c85fada1116b8a4335122878c5b61f4f73e184d23c7`.
+
+Initial cache-only restore stopped NU1101; existing pinned toolkit2.2.2 then restored into the shared NuGet cache. Initial dotnet-run forwarded build switches to app/printed usage; direct execution of compiled CLI passed. Neither was a native query failure.
+
+Next: query-only API admission/planner tests, local HTTP/Mongo federation, then hosted rollout/card/browser. Counts37 implemented/36tariff/34hosted/5browser. No full ORM/write/consensus claim. [Developer guide](../../Devs/RADIX_PUBLIC_RESOURCE_CQL_GUIDE.md).
