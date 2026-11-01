@@ -81,6 +81,13 @@
     <None Include="SdkBridge\original-submission.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\original-submission.mjs" />
     <None Include="SdkBridge\original-outcome.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\original-outcome.mjs" />
     <None Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\prepared-submission.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\prepared-submission.mjs" />
+    <None Include="SdkBridge\psp22-escrow-api.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\psp22-escrow-api.mjs" />
+    <None Include="SdkBridge\psp22-escrow-mutation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\psp22-escrow-mutation.mjs" />
+    <None Include="SdkBridge\psp22-escrow-outcome.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\psp22-escrow-outcome.mjs" />
+    <None Include="SdkBridge\psp22-escrow-read.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\psp22-escrow-read.mjs" />
+    <None Include="SdkBridge\psp22-token-precision.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\psp22-token-precision.mjs" />
+    <None Include="SdkBridge\ink-scale-result.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\ink-scale-result.mjs" />
+    <None Include="SdkBridge\oasis-psp22-escrow-codec.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\oasis-psp22-escrow-codec.mjs" />
     <None Include="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\package.json" />
     <None Include="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\package-lock.json" />
   </ItemGroup>

@@ -8,7 +8,7 @@ David approved the correction on 1 November. Scoped Development051ac6af7841f95d4
 
 ## Next consolidated release
 
-Seventeen-profile expansion preflight now passes970Core+101API contracts (zero skips),53configuration controls, both source manifests and dependency pins. Second normal daily batch pushed: Development0287c75c4/Core56c869f, remote-verified; exact Railway jobfddf3159-50cc-4b4f-a6c9-2e3af8882f9d BUILDING. Existing correction remains live. Website main36933fb published after64client tests pass; public HTML matches the committed36933fbblob exactly (137,753bytes). Joint19settings remain unapplied until matching revision deployment succeeds.
+Seventeen-profile expansion preflight now passes970Core+101API contracts (zero skips),53configuration controls, both source manifests and dependency pins. Second normal daily batch pushed: Development0287c75c4/Core56c869f, remote-verified; exact Railway jobfddf3159-50cc-4b4f-a6c9-2e3af8882f9d FAILED at the strict SDK packaging check: seven Polkadot bridge modules omitted from its project publish list. Scoped fix now verified by actual MSBuild publish metadata, five bridge closures and two regression tests; an extra deployment timing decision is recorded in the David list. Existing correction remains live. Website main36933fb published after64client tests pass; public HTML matches the committed36933fbblob exactly (137,753bytes). Joint19settings remain unapplied until matching revision deployment succeeds.
 
 ## Exact next steps
 
