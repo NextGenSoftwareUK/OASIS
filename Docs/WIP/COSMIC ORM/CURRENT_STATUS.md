@@ -14,9 +14,9 @@ There are **40 implemented query types**: 3 canonical adapters,35bounded public/
 
 1. Radix card published/byte-verified at website0228db6; setup guide74ccc3752/C#74aaa9b4d linked. Original HostedQueryAcceptance-RadixOASIS completion ACK exists: do not replay saves or create a new owner.
 2. Session lifecycle HTTP proof complete on original avatar, completion ACK retained: do not replay. Frontend9e18b7d published and HTML/JS byte-verified; browser gates remain open. [Proof and limits](SESSION_RENEWAL_STATUS.md).
-3. Arweave hosted acceptance complete on original cohort; completion ACK blocks replay. Arweave card61e85b7 is published/byte-verified with updated guide/C# links. Continue breadth; TON native429 remains isolated, other provider candidates next. [Proof](ARWEAVE_PUBLIC_SOURCE_STATUS.md).
+3. Arweave hosted acceptance complete on original cohort; completion ACK blocks replay. Arweave card61e85b7 is published/byte-verified with updated guide/C# links. Continue breadth; TON manager/CLI HTTP500 remains isolated, other provider candidates next. [Proof](ARWEAVE_PUBLIC_SOURCE_STATUS.md).
 4. Browser gates:5verified/33open. CUA transport remains closed; David already opened the browser. No OS control resumed or repeated owner request.
-5. TON work/cosmic-cql-ton-public: slow-response pacing defect reproduced/fixed;13affected controls pass. Native activation stillHTTP500 despite individual descriptor diagnostics200/matching. Stop full-flow rechecks; next compare native request URI/bounded error detail. Earlier23decoder+1captured untouched. [Evidence](TON_PUBLIC_SOURCE_STATUS.md). Candidate stays isolated/unadmitted.
+5. TON work/cosmic-cql-ton-public: pacing fix13controls and one real shared-planner3/2 pass; manager/CLI build0errors but activationHTTP500. Trace4requests200/URIs match independent reads. Next capture bounded error context from actual failing path; no repeated full flow or catalogue replacement. [Evidence/guide](TON_PUBLIC_SOURCE_STATUS.md). No qualified/hosted count grant.
 
 ## Guarantees and limits
 
@@ -30,7 +30,7 @@ There are **40 implemented query types**: 3 canonical adapters,35bounded public/
 
 ## Recovery and commands
 
-- Work only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public; verified release branch work/cosmic-cql-public-release excludes red TRON and new Starknet work. Frontend C:/Source/Web4Site work/cosmic-cql.
+- Work only C:/Source/OASIS-cosmic; active candidate work/cosmic-cql-ton-public, Core work/cosmic-cql-google-public. Verified release work/cosmic-cql-public-release excludes unqualified TRON/TON query candidates; TON source must stay isolated until its gates pass. Frontend C:/Source/Web4Site work/cosmic-cql.
 - Live app37a530a87/Core5fd361d job3da7f986 SUCCESS, exact tested codeb158bda61 plus David-list update. Frontend61e85b7 Arweave published/byte-verified. No Development push solely for docs.
 - Raw outputs TestResults/. Durable source/config/identities/ACKs LocalState/COSMIC/. Original Radix settlement-continuation manifest hashes are preserved; acceptance completion ACK now blocks reruns.
 - Reuse pinned environments; inventory/cleanup in ENVIRONMENT_AND_CLEANUP_LEDGER.md. Unknown root logs preserved. Owned diagnostic DLLs removed; no new runtime or test service retained.

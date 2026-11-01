@@ -60,3 +60,13 @@ One explicit native verification after the code change failedHTTP500 on a header
 - TestResults\TonPublicSourceCandidateCurrent\native-after-pacing-fix.trx: 0passed/1failed, 4568bytes, SHA256706ea35022b8cc981b6137dd25dbd8c6a1d6c0ddf7a595c23995aa932cc6ad7f.
 - TestResults\TonPublicSourceCandidateCurrent\native-after-diagnostic-ready.trx: 0passed/1failed, 4568bytes, SHA256a6b4450f1b3e5c17f1d9e9d07aa65962b7569cfbaa22a21335919d580db1fc36.
 Next: capture/compare exact native-flow request URI and bounded error detail against successful independent reads, without changing source identity, replacing records, retry loops or alternate endpoints. Keep candidate isolated; hosted38/implemented40/browser5/open33 unchanged. No David action or new environment is required for this investigation.
+
+## Native CQL3/2 verified; manager/CLI remains red
+
+A one-activation runtime diagnostic observed identity plus all three exact headers200 through the same adapter/decoder. Actual URI strings match independently successful .NET requests, including encoded root/file hashes; HTTP1.1 was observed. No successful response/body was modified. The diagnostic records activation only, not CQL readiness.
+
+After that new readiness evidence, one complete FromJson/shared-planner native verification passed3/2 with0skips. All earlier429/500 failures remain retained; no retry or alternate endpoint was added. The new spaced shared-manager console walkthrough builds with0errors but its one actual run failedHTTP500 during activation, before manager queries. Therefore the full local demo/API/hosted gates remain open and TON is not added to qualified provider totals.
+- TestResults\TonPublicSourceCandidateCurrent\native-transport-diagnostic.trx: 1, 2811bytes, SHA25668dc5ad43fee30cf84152ca76e10f4ece2c7d43f023ff21d6f51097d693f5a68.
+- TestResults\TonPublicSourceCandidateCurrent\native-after-activation-observation.trx: 1, 2771bytes, SHA2565b7dbccd12032e8c123d6fc0865c4cde43cee12fcf68dd138f9221f33109f8f5.
+- TestResults\TonPublicSourceCandidateCurrent\cli-native.log: HTTP500 during activation, manager queries not reached, 1811bytes, SHA256cdae8e916c0e9b634ac0c9052bd0a541765042bda979db6ea05d8c3ca2d80d85.
+[Spaced setup and C# examples](../../Devs/TON_PUBLIC_HEADER_CQL_GUIDE.md). Next capture bounded status/route/error detail from the actual failing runtime path, then fix the evidenced cause; do not cycle full-flow rechecks or replace the source catalogue. Candidate remains on work/cosmic-cql-ton-public. Qualified40/hosted38/browser5/open33 unchanged.
