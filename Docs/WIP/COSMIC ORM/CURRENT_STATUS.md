@@ -15,19 +15,18 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 ## Current release and settings
 
 - Original TON code 24f548550 / Core 2ac915f: app job 4f6eba6c-5ee4-4afe-95a5-07849a92d7ec SUCCESS.
-- Newer reviewed Development fb29aa936870dcfb3182102642e5997b2cedd90f preserves TON code and Core/ONODE pins, adds OLAND contracts; task merge 99b4f080 preserves it. App job 571cb5f0-85f4-40fa-9d99-568339833b3e is SUCCESS. Observe this same job; never resubmit.
+- Newer reviewed Development fb29aa936870dcfb3182102642e5997b2cedd90f preserves TON code and Core/ONODE pins, adds OLAND contracts; task merge 99b4f080 preserves it. App job 571cb5f0-85f4-40fa-9d99-568339833b3e is SUCCESS; reviewed code is deployed.
 - Two live settings changed after preparation. Explicit reviewed revision ton-public-duration-oland preserves all current unrelated values; only three TON keys differ, and their values/public review bytes equal the tested candidate.
 - Protected before/candidate snapshots: LocalState/COSMIC/HostedSourceRolloutCurrent/ton-public-duration-oland-*.dpapi. Public review: TestResults/TonPublicSourceCandidateCurrent/ton-duration-oland-prepared-review.json.
-- Earlier ton-public and ton-public-duration candidates are stale. No TON mutation intent, apply, hosted acceptance session or card exists.
+- All three ton-public-duration-oland settings applied once under exact fb29aa936 release/HEAD guard. Per-key ACK hashes and whole candidate matched. Earlier candidates are stale; never replay any apply.
+- One journalled settings deployment e3ae497c-3f19-45b2-a577-b0fc40a7ae6b at fb29aa936 is BUILDING. Original rollout intent/protected outcome retained; no hosted acceptance session or card yet.
 
 ## Exact next steps
 
-1. Observe job 571cb5f0 with expected commit fb29aa936870dcfb3182102642e5997b2cedd90f until terminal. A timeout is not failure or permission to restart.
-2. After SUCCESS, recheck the entire current variables dictionary against the revised protected before snapshot. Preserve concurrent changes; never overwrite or silently rebase.
-3. In this same worktree temporarily select the exact reviewed deployed commit. Set COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT, run unchanged require_matching_release(configuration), then generic configuration.apply_values("ton-public-duration-oland", KEYS). KEYS are exactly CQL_TON_PUBLIC_SOURCE_JSON, PREPARED_STORAGE_ADMISSION_JSON, CQL_HOSTED_QUERY_EXAMPLES__TONOASIS. Return task branch before doc commits.
-4. Verify all three per-key ACK hashes and whole candidate match. Journal exactly one settings rollout; preserve unknown outcomes without replay. Observe its exact job.
-5. After exact settings SUCCESS, run python -B Scripts/Sandbox/Verify-HostedQuerySource.py TONOASIS --prepare once, using the task branch's explicit TON selector. Original hosted cohort must retain its sessions, IDs, save intents/ACKs and completed stages across any failure.
-6. Prove native 3/2, paired 5/4, reuse 0/2, privacy 0/3 and exact SQLite/Neo4j copies, then completion ACK. Publish the TON card with local demo/guide links only after these gates pass.
+1. Observe existing settings job e3ae497c-3f19-45b2-a577-b0fc40a7ae6b with expected commit fb29aa936870dcfb3182102642e5997b2cedd90f until terminal. Never reapply or resubmit after timeout/unknown outcome.
+2. After SUCCESS, verify whole current configuration still equals the protected ton-public-duration-oland candidate; preserve any concurrent changes and reconcile differences before acceptance.
+3. Run python -B Scripts/Sandbox/Verify-HostedQuerySource.py TONOASIS --prepare once from the task branch. Retain that original hosted cohort's sessions, IDs, save intents/ACKs and completed stages across any failure; no replacement owner or blind save replay.
+4. Prove native 3/2, paired 5/4, reuse 0/2, privacy 0/3 and exact SQLite/Neo4j copies, then completion ACK. Publish TON card with local demo/guide links only after gates pass. Hosted counts stay 38 until then.
 
 ## Limits and deferred work
 

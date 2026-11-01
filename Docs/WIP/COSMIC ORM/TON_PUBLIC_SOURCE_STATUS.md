@@ -27,13 +27,13 @@ Updated 1 November 2026. Local CQL, HTTP federation and privacy checks pass. Hos
 
 ## Deployment and exact next step
 
-1. Tested code published: parent 24f548550dd2caaf99de00c2bf44003b2a2f8219 / Core 2ac915f709ded7aabcd28a9db02aaea92fc52d97. Remote heads verified.
-2. Original app job 4f6eba6c-5ee4-4afe-95a5-07849a92d7ec is SUCCESS; do not resubmit.
-3. New descendant fb29aa936870dcfb3182102642e5997b2cedd90f preserves TON code/Core/ONODE pins, adds OLAND contracts. Job 571cb5f0-85f4-40fa-9d99-568339833b3e is BUILDING. Integrated into task99b4f080; changed contracts/schema/admission/actual presets pass 32/32, zero skips.
-4. Latest observed successful app is 24f548550/job 4f6eba6c; newer fb29aa936/job 571cb5f0 is building and the unchanged latest-release guard prevents apply. No TON settings have been applied.
-5. Latest reviewed prepare-only prefix: ton-public-duration-oland. Earlier ton-public and ton-public-duration candidates are stale. Protected before/candidate snapshots live under LocalState/COSMIC/HostedSourceRolloutCurrent; public review is TestResults/TonPublicSourceCandidateCurrent/ton-duration-oland-prepared-review.json. Old ton-public candidate is stale and must never be applied.
-6. Observe existing jobs. Two concurrent baseline changes are preserved in the new oland revision; all three TON values and public review bytes match the tested candidate. Five publisher controls pass. Never apply a stale snapshot. After exact reviewed code SUCCESS, temporarily check out that exact commit in this worktree for the release guard. Apply revised settings once, preserving per-key intents/ACKs and all unrelated live configuration. Return task branch before doc commits.
-7. Journal one settings rollout; reconcile unknown outcomes, never blindly replay. Then run one original hosted acceptance cohort and publish the TON card only after its gates pass.
+- Reviewed parent fb29aa936870dcfb3182102642e5997b2cedd90f / Core 2ac915f709ded7aabcd28a9db02aaea92fc52d97 deployed successfully: job 571cb5f0-85f4-40fa-9d99-568339833b3e SUCCESS. Combined integration controls 32/32 pass.
+- Two concurrent baseline changes were preserved in reviewed revision ton-public-duration-oland. Three TON values/public review bytes matched the tested candidate; publisher controls 5/5 pass.
+- Exact HEAD/live-release guard and full baseline check passed. All three settings applied once with skip-deploys; per-key ACK hashes and complete candidate matched. No source/wallet DNA changes.
+- One journalled settings job e3ae497c-3f19-45b2-a577-b0fc40a7ae6b is BUILDING at exact fb29aa936. Original rollout intent/protected outcome retained under LocalState/COSMIC/HostedSourceRolloutCurrent. Never replay apply or deployment.
+- Earlier ton-public and ton-public-duration snapshots are stale. Revised before/candidate snapshots and all three mutation intents/ACKs are preserved. No TON hosted acceptance session or card yet.
+- Observe this exact settings job. After SUCCESS verify whole candidate still matches, then run Verify-HostedQuerySource.py TONOASIS --prepare once on the task branch. Preserve the original cohort across failures; only explicitly reconcile unfinished stages.
+- Prove native 3/2, paired 5/4, reuse 0/2, privacy 0/3 and exact SQLite/Neo4j copies, record completion ACK, then publish the TON card with pinned local demo/guide links. Hosted count stays 38 until proved.
 
 ## Evidence
 
@@ -51,7 +51,7 @@ Production billing, native replication, browser interaction and hosted TON succe
 
 - descendant-integration.trx: 32 combined passes, zero failures/skips; 50597 bytes, SHA256 abf100d2eb73fd3c65c966182f55ea9e308636e1c7ed07ae0cfe03b476abc7fb.
 
-Revision procedure: prepare-revision oland creates new protected snapshots without overwriting prior evidence; it refuses any prior TON mutation intent/ACK. For apply after exact code SUCCESS, set COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT to the reviewed SHA, check out that exact commit in this worktree, call unchanged require_matching_release(configuration), then configuration.apply_values("ton-public-duration-oland", KEYS) through the existing generic publisher. KEYS are exactly CQL_TON_PUBLIC_SOURCE_JSON, PREPARED_STORAGE_ADMISSION_JSON, CQL_HOSTED_QUERY_EXAMPLES__TONOASIS. Return task branch before docs. Do not invoke original stale apply or weaken the guard.
+Completed preparation procedure (do not replay): prepare-revision oland created new protected snapshots without overwriting prior evidence; it refuses any prior TON mutation intent/ACK. The completed apply used COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT to the reviewed SHA, check out that exact commit in this worktree, call unchanged require_matching_release(configuration), then configuration.apply_values("ton-public-duration-oland", KEYS) through the existing generic publisher. KEYS are exactly CQL_TON_PUBLIC_SOURCE_JSON, PREPARED_STORAGE_ADMISSION_JSON, CQL_HOSTED_QUERY_EXAMPLES__TONOASIS. Returned to task branch before docs. Apply is complete; do not invoke it again or weaken the guard.
 
 - Revision publisher controls: 5 passed; revision-publisher-controls.log, 208 bytes, SHA256 9daf9fa68c78d7e0c79733c7f2df7575c44c5cdf468677377d8c663e7704b711. Sanitized configuration-revision-review.json confirms exact scope/current baseline, zero mutation intents.
 
