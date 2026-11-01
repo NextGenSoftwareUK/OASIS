@@ -42,6 +42,15 @@ if (args.Length == 2 && args[0] == "--sei-public")
     return 0;
 }
 
+// Read a small explicit Bitcoin header catalogue through the shared CQL manager.
+// This read profile never signs or broadcasts a Bitcoin transaction.
+if (args.Length == 2 && args[0] == "--bitcoin-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await BitcoinPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 if (args.Length == 2 && args[0] == "--berachain-public")
 {
     using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));

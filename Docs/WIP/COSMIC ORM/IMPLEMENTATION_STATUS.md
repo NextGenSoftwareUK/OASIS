@@ -14,3 +14,5 @@ Updated1November2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state; [c
 [All provider projects](PROVIDER_CQL_AND_SANDBOX_STATUS.md), [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [remaining work](AFTER_DEMO_BACKLOG.md). V2 implementation only; legacy gaps document-only.
 
 Latest1Novembermilestone: Berachain native/HTTP+Mongo/isolation/replica acceptance passes on1b2626499/Core08c4977, rolloutc6fb86d9. Total26scoped hosted HTTP providers; browser5,21open. [Recorded proof](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-berachain-acceptance).
+
+Bitcoin native milestone (1 November): bounded public-header equality/key-set source passes20 controlled checks and real shared-manager C#/CLI3/2. [Guide](../../Devs/BITCOIN_PUBLIC_HEADER_CQL_GUIDE.md), [proof/next HTTP gates](BITCOIN_PUBLIC_SOURCE_STATUS.md). No hosted admission, full Bitcoin consensus or canonical on-chain write claim; live count remains26.
