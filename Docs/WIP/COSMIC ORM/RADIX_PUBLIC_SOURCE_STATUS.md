@@ -102,3 +102,7 @@ The original JWT expired during deployment. Only this owned test avatar's existi
 - `TestResults/HostedCqlIntegrationCurrent/RadixOASIS-isolation-http.json` SHA256 `23c38e3fbf1d5abe6dd1585226486f13193402dd98b8b8dfaf95ac2e2dbc0019`.
 
 Actual live admission has35unique query tariffs/32query-only profiles; admission SHA256 `0fb67d847620012fe9d67448584f81a82045db1da1c9fab2a8ef3b4d011fcdc2`. Earlier tariff headlines incorrectly included2locally scoped Azure/Oracle implementations. Implementation count37; hosted35; browser5/open30. Next publish card and fix guest-cookie renewal.
+
+## Website publication verified
+
+Website main0228db6adca82f3c457e30aa836b117d9690577d now serves the Radix card and pinned setup/C# links byte-identically (150955bytes, SHA25654588e7bd9c0368714d9b57b6f4f370c772d93b648665ada00d6a3dc8dbfca42). This proves publication, not browser interaction. Browser gate remains open. Original hosted cohort is complete/frozen. Next root fix is guest-session refresh-cookie issuance/retention and renewal, followed by remaining breadth (Starknet native adapter first).
