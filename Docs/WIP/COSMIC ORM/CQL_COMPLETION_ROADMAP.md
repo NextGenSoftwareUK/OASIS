@@ -15,3 +15,5 @@ Update CURRENT_STATUS and the resource ledger at milestones. Raw evidence goes o
 [Earlier roadmap history](Archive/CQL_COMPLETION_ROADMAP_before_entity_selected_sqlite_2026-10-28.md), [implementation roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md), [demo expansion](CQL_DEMO_EXPANSION_ROADMAP.md).
 
 Deferred after demo: operation/representation-aware admission for public unsigned reads and canonical signed writes on the same provider. Current factory explicitly rejects overlapping roles; keep that fence until a designed/tested replacement exists. Details/evidence: [demo expansion roadmap](CQL_DEMO_EXPANSION_ROADMAP.md).
+
+Latest1Novembermilestone: Berachain native/HTTP+Mongo/isolation/replica acceptance passes on1b2626499/Core08c4977, rolloutc6fb86d9. Total26scoped hosted HTTP providers; browser5,21open. [Recorded proof](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-berachain-acceptance).
