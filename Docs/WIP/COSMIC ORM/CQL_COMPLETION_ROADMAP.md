@@ -29,3 +29,5 @@ XRPL native milestone1November: bounded hash-verified header CQL passes21control
 XRPL API milestone1November: explicit read-only profile/admission, four exact shipping-planned presets and local HTTP3/2+Mongo5/4/private0 pass. Protected candidate prepared only; hosting/browser remain open, live27unchanged. [Proof and rollout next](XRPL_PUBLIC_SOURCE_STATUS.md).
 
 XRPL hosted completion1November: free Ripple endpoint correction74bdf044 SUCCESS/c6e7f14ba/Coree032d0a, native3/2, paired5/4, repeat0new, private0 and replicas2/2. Prior402/expired-empty cohort preserved; explicit post-fix cohort has original ACKs. Counts28HTTP/5browser/23browseropen; no source writes. [Proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-xrpl-acceptance).
+
+Stellar complete header decoder1November:20cases pass, including real protocol29 headers, all5specified StellarValue unions and exact signed/unsigned64bit fields. Next CQL adapter must bind API metadata to decoded identities before publication. [Proof](STELLAR_PUBLIC_SOURCE_STATUS.md#complete-header-decoder-milestone). No Stellar CQL/hosted certification yet.
