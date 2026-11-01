@@ -39,11 +39,23 @@ public class TronPublicHeaderMetadataTests
             token.ThrowIfCancellationRequested();
             Interlocked.Increment(ref Requests);
             Assert.Equal(HttpMethod.Post, request.Method);
-            Assert.Equal(TronPublicHeaderMetadataSource.PublicEndpoint, request.RequestUri!.AbsoluteUri);
             using var body = JsonDocument.Parse(await request.Content!.ReadAsStringAsync(token));
-            Assert.False(body.RootElement.GetProperty("detail").GetBoolean());
-            string key = body.RootElement.GetProperty("id_or_num").GetString()!;
-            long height = long.Parse(key, CultureInfo.InvariantCulture);
+            bool batch = request.RequestUri!.AbsoluteUri.EndsWith("getblockbylimitnext", StringComparison.Ordinal);
+            long height;
+            long end;
+            if (batch)
+            {
+                height = body.RootElement.GetProperty("startNum").GetInt64();
+                end = body.RootElement.GetProperty("endNum").GetInt64();
+                Assert.InRange(end - height, 2, 8);
+            }
+            else
+            {
+                Assert.Equal(TronPublicHeaderMetadataSource.PublicEndpoint, request.RequestUri.AbsoluteUri);
+                Assert.False(body.RootElement.GetProperty("detail").GetBoolean());
+                height = long.Parse(body.RootElement.GetProperty("id_or_num").GetString()!, CultureInfo.InvariantCulture);
+                end = height == long.MaxValue ? height : height + 1;
+            }
             if (Gated && height != 0)
             {
                 int active = Interlocked.Increment(ref InFlight);
@@ -55,8 +67,10 @@ public class TronPublicHeaderMetadataTests
                 finally { Interlocked.Decrement(ref InFlight); }
             }
 
-            var raw = new JsonObject();
-            var result = new JsonObject { ["blockID"] = height == 0 ? TronPublicHeaderMetadataSource.PublicGenesis
+            JsonObject Make(long height)
+            {
+                var raw = new JsonObject();
+                var result = new JsonObject { ["blockID"] = height == 0 ? TronPublicHeaderMetadataSource.PublicGenesis
                 : height.ToString("x16") + new string('a', 48), ["block_header"] = new JsonObject { ["raw_data"] = raw } };
             if (height == 0)
             {
@@ -82,6 +96,19 @@ public class TronPublicHeaderMetadataTests
                 if (Fault == "last" && height == 3) raw.Remove("number");
                 if (Fault == "null") result["block_header"] = null;
             }
+                return result;
+            }
+            JsonObject result;
+            if (batch)
+            {
+                var blocks = new JsonArray();
+                for (long value = height; value < end; value++) blocks.Add(Make(value));
+                if (Fault == "range-missing") blocks.RemoveAt(blocks.Count - 1);
+                if (Fault == "range-extra") blocks.Add(Make(end));
+                if (Fault == "range-order") { var swap = blocks[0]!.DeepClone(); blocks[0] = blocks[1]!.DeepClone(); blocks[1] = swap; }
+                result = new JsonObject { ["block"] = blocks };
+            }
+            else result = Make(height);
             if (Fault == "error") result["Error"] = "";
             if (Fault == "transactions") result["transactions"] = new JsonArray();
             string text = result.ToJsonString();
@@ -109,6 +136,7 @@ public class TronPublicHeaderMetadataTests
     [InlineData("parent")] [InlineData("root")] [InlineData("witness")] [InlineData("missing")] [InlineData("last")]
     [InlineData("null")] [InlineData("error")] [InlineData("transactions")] [InlineData("duplicate")]
     [InlineData("oversize")] [InlineData("http")] [InlineData("inactive")] [InlineData("cancel")]
+    [InlineData("range-missing")] [InlineData("range-extra")] [InlineData("range-order")]
     [InlineData("off-catalogue")] [InlineData("empty-window-error")]
     public async Task OnlyCompleteNativeSelectionsEscape(string scenario)
     {
@@ -156,7 +184,7 @@ public class TronPublicHeaderMetadataTests
     {
         var native = new Native();
         using var client = new HttpClient(native);
-        var keys = Enumerable.Range(1, 6).Select(value => value.ToString(CultureInfo.InvariantCulture)).ToArray();
+        var keys = Enumerable.Range(1, 6).Select(value => (value * 2 - 1).ToString(CultureInfo.InvariantCulture)).ToArray();
         using var source = new TronPublicHeaderMetadataSource(client, new Uri(TronPublicHeaderMetadataSource.PublicEndpoint), keys, Guid.NewGuid());
         Assert.False((await source.ActivateQuerySourceAsync(default)).IsError);
         native.Gated = true;

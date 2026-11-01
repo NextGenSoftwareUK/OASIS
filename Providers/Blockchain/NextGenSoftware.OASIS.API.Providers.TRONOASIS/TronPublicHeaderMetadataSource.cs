@@ -207,11 +207,14 @@ public sealed class TronPublicHeaderMetadataSource : KeyValueStorageProviderBase
                 NativeRecordHolonMapper.StableHolonId(owner, PType.TRONOASIS, SourceName, key).ToString("N"), key => key);
         }
 
-        private async Task<JsonElement> GetNativeAsync(string height, CancellationToken token)
+        private Task<JsonElement> GetNativeAsync(string height, CancellationToken token)
+            => SendNativeAsync(endpoint, new { id_or_num = height, detail = false }, token);
+
+        private async Task<JsonElement> SendNativeAsync(Uri uri, object payload, CancellationToken token)
         {
             // POST submits a header-only read, never a transaction or mutation.
-            using var request = new HttpRequestMessage(HttpMethod.Post, endpoint) {
-                Content = new StringContent(JsonSerializer.Serialize(new { id_or_num = height, detail = false }), Encoding.UTF8, "application/json") };
+            using var request = new HttpRequestMessage(HttpMethod.Post, uri) {
+                Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json") };
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
             response.EnsureSuccessStatusCode();
             await using var stream = await response.Content.ReadAsStreamAsync(token);
@@ -230,6 +233,26 @@ public sealed class TronPublicHeaderMetadataSource : KeyValueStorageProviderBase
             return root.Clone();
         }
 
+        private async Task<IReadOnlyList<JsonElement>> ReadRangeAsync(string[] keys, CancellationToken token)
+        {
+            if (keys.Length == 1)
+            {
+                var point = await GetNativeAsync(keys[0], token);
+                return new[] { point };
+            }
+            long first = long.Parse(keys[0], CultureInfo.InvariantCulture);
+            long end = checked(long.Parse(keys[keys.Length - 1], CultureInfo.InvariantCulture) + 1);
+            var page = await SendNativeAsync(new Uri("https://api.trongrid.io/walletsolidity/getblockbylimitnext"),
+                new { startNum = first, endNum = end }, token);
+            if (!page.TryGetProperty("block", out var blocks) || blocks.ValueKind != JsonValueKind.Array || blocks.GetArrayLength() != keys.Length)
+                throw new InvalidDataException("Complete exact native range required.");
+            var result = blocks.EnumerateArray().ToArray();
+            for (int index = 0; index < result.Length; index++)
+                if (NonnegativeInt64(result[index].GetProperty("block_header").GetProperty("raw_data").GetProperty("number")) != keys[index])
+                    throw new InvalidDataException("Native range contains missing, duplicate or unexpected heights.");
+            return result;
+        }
+
         public async Task<IReadOnlyList<IHolon>> ReadAsync(IReadOnlyList<string> keys, CancellationToken token)
         {
             var genesis = await GetNativeAsync("0", token);
@@ -240,19 +263,33 @@ public sealed class TronPublicHeaderMetadataSource : KeyValueStorageProviderBase
                 genesisRaw.TryGetProperty("number", out var genesisNumber) && NonnegativeInt64(genesisNumber) != "0")
                 throw new InvalidDataException("Genesis header identity differs.");
 
-            // Independent immutable-height reads overlap within the existing query
-            // deadline. Await every task before publishing rows or disposing gate.
+            // Combine only adjacent requested heights into exact native ranges.
+            // Sparse selections do not fetch intervening records. Int64.MaxValue
+            // uses its point primitive because an exclusive range end cannot fit.
+            // A failed primitive is never retried or replaced by another route.
+            var ordered = keys.Select(key => long.Parse(key, CultureInfo.InvariantCulture)).OrderBy(value => value).ToArray();
+            var ranges = new List<List<string>>();
+            foreach (long height in ordered)
+            {
+                if (ranges.Count == 0 || height == long.MaxValue ||
+                    long.Parse(ranges[ranges.Count - 1].Last(), CultureInfo.InvariantCulture) != height - 1)
+                    ranges.Add(new List<string>());
+                ranges[ranges.Count - 1].Add(height.ToString(CultureInfo.InvariantCulture));
+            }
             using var gate = new SemaphoreSlim(3);
-            var pages = await Task.WhenAll(keys.Select(async key => {
+            var pages = await Task.WhenAll(ranges.Select(async range => {
                 await gate.WaitAsync(token);
-                try { return await GetNativeAsync(key, token); }
+                try { return await ReadRangeAsync(range.ToArray(), token); }
                 finally { gate.Release(); }
             }));
+            var byHeight = pages.SelectMany(page => page).ToDictionary(
+                row => NonnegativeInt64(row.GetProperty("block_header").GetProperty("raw_data").GetProperty("number")),
+                row => row, StringComparer.Ordinal);
             var rows = new List<IHolon>();
             for (int index = 0; index < keys.Count; index++)
             {
                 string key = keys[index];
-                var native = pages[index];
+                var native = byHeight[key];
                 string blockId = Hash32(native.GetProperty("blockID").GetString());
                 var raw = native.GetProperty("block_header").GetProperty("raw_data");
                 if (NonnegativeInt64(raw.GetProperty("number")) != key ||
