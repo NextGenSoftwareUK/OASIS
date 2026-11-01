@@ -332,3 +332,5 @@ TRON qualification update1November:9 pure controls plus anonymous genesis/header
 TRON native candidate:31controlled passes,1real activation failure HTTP429,0skips. Not counted or enrolled; inspect [red native gate](TRON_PUBLIC_SOURCE_STATUS.md#native-candidate--live-gate-red). Sui exact app81794c84 now BUILDING.
 
 MultiversX/Elrond qualification:9controls and actual native address-filter3/2pass, stable catalogue/owner retained. No native CQL/admission/hosted grant or count increase. [Contract/next](ELROND_PUBLIC_SOURCE_STATUS.md).
+
+Starknet anonymous source qualification: advertised PublicNode endpoint returnedHTTP403on first specVersion read. No chain/header data, CQL/hosted grant or count change. Canonical SDK not executed. [Observed scope/next](STARKNET_PUBLIC_SOURCE_STATUS.md).
