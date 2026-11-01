@@ -10,6 +10,48 @@ The profile supports equality or bounded membership on `AzureBlobKey`, with `Ski
 
 Returned metadata includes account, container, exact blob name, ETag, last modification time, content type and byte length. Byte length is a decimal string to preserve values beyond JavaScript integer precision. Each read observes that object's current properties; the objects do not share a transactional snapshot.
 
+## First local setup: one reusable catalogue
+
+Use an initialized OASIS checkout with your existing .NET 10 SDK and dependencies. The catalogue below identifies public objects and assigns a stable local mapping owner; it contains no credentials. Create it once, then preserve it between runs.
+
+```powershell
+$sourcePath = Join-Path $PWD 'LocalState/COSMIC/AzureBlobDemo/source.json'
+
+if (Test-Path -LiteralPath $sourcePath) {
+    throw 'Reuse your existing catalogue; do not replace its owner.'
+}
+
+New-Item -ItemType Directory -Force (Split-Path $sourcePath) | Out-Null
+
+$source = @{
+    schema = 1
+    account = 'azureopendatastorage'
+    container = 'censusdatacontainer'
+    sourceOwner = [Guid]::NewGuid().ToString('D')
+    keys = @(
+        'release/us_population_county/year=2010/part-00178-tid-926394737839939592-51ecde30-440a-40fd-9b41-831814678ab5-1919151.c000.snappy.parquet'
+        'release/us_population_county/year=2010/_committed_926394737839939592'
+        'release/us_population_county/year=2010/_SUCCESS'
+    )
+}
+
+$source | ConvertTo-Json -Depth 5 |
+    Set-Content -LiteralPath $sourcePath -Encoding utf8NoBOM
+```
+
+Build once using the existing repository lease; do not nest it inside another lease:
+
+```powershell
+& ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner 'azure-blob-demo' -Operation {
+    dotnet build Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
+        /m:2 /nr:false /p:UseSharedCompilation=false
+
+    if ($LASTEXITCODE -ne 0) { throw 'Demo build failed.' }
+}
+```
+
+This creates a small local configuration file, not a cloud account or dataset copy. Its local projection IDs are scoped to this stable owner; they need not equal the hosted profile's projection IDs.
+
 ## C# demonstration
 
 The readable entry point is [AzureBlobPublicWalkthrough.cs](../../Examples/CosmicCqlDemo/AzureBlobPublicWalkthrough.cs). It activates the anonymous source, creates a WEB4 V2 manager, then runs the same shared LINQ walkthrough used by other native-key providers:
@@ -38,7 +80,7 @@ After building the existing demo, run:
 ```powershell
 dotnet Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll `
     --azure-blob-public `
-    LocalState/COSMIC/HostedAzureBlobPublicSourceCurrent/source.json
+    LocalState/COSMIC/AzureBlobDemo/source.json
 ```
 
 Reuse the retained catalogue. The command does not create an account, source object or Mongo fixture. It returns 3 full / 2 filtered records. Inspect `IsError` before using an `OASISResult.Result` in application code.
@@ -57,7 +99,7 @@ Host enrollment uses `CQL_AZURE_BLOB_PUBLIC_SOURCE_JSON`. Its exact schema is:
 }
 ```
 
-The example above illustrates the schema; use the verified retained catalogue for the actual demo. Arbitrary endpoints, credentials, SAS fields, duplicate properties and noncanonical path segments are rejected. Public source permissions and an explicit query tariff must also be enrolled; configuration alone does not certify a live service.
+The example above illustrates the schema; use the exact three-object catalogue from the setup above for the actual demo. Arbitrary endpoints, credentials, SAS fields, duplicate properties and noncanonical path segments are rejected. Public source permissions and an explicit query tariff must also be enrolled; configuration alone does not certify a live service.
 
 A leaf request to `api/data/query-cql` uses `provider: AzureStorageOASIS`, `orderBy: None` and an `In` string filter at metadata path `["AzureBlobKey"]`. A federated request to `api/data/query-cql/federation` names `["MongoDBOASIS", "AzureStorageOASIS"]` and supplies the same source filter. The two private Mongo snapshots are explicit copies, not native Azure writes; `PreserveCopies` exposes both providers' provenance.
 
