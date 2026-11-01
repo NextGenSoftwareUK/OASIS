@@ -8,6 +8,20 @@ for configured hosted providers; it needs no local SDK or database. See
 [CURRENT_STATUS](../../Docs/WIP/COSMIC%20ORM/CURRENT_STATUS.md) for verified live
 coverage. Local launchers below are separate from hosted availability.
 
+## Public MultiversX / Elrond accounts — native C# demo
+
+[Setup and query guide](../../Docs/Devs/ELROND_PUBLIC_ACCOUNT_CQL_GUIDE.md) includes complete public JSON and precision/consistency limits. [ElrondPublicWalkthrough.cs](ElrondPublicWalkthrough.cs) uses the shared HolonManager/LINQ path to return three accounts, then a filtered two-account subset.
+
+```powershell
+dotnet run `
+    --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
+    --no-build `
+    --no-restore `
+    -- --elrond-public LocalState/COSMIC/HostedElrondPublicSourceCurrent/source.json
+```
+
+Native tests and actual CLI pass. API admission, HTTP/Mongo federation and sandbox hosting remain pending. Balances stay exact strings; nonce is restricted to the API's safe JSON-number range. No wallet, funding, chain transaction or local database is needed.
+
 ## Public Sui objects — C# and hosted HTTP demo
 
 The [Sui guide](../../Docs/Devs/SUI_PUBLIC_OBJECT_CQL_GUIDE.md) contains a complete fresh-checkout JSON configuration and explains checkpoint semantics. Reuse the retained source configuration when present.
