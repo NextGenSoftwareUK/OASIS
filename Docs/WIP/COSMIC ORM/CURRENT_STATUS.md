@@ -10,6 +10,8 @@ All19addedprofiles passed hosted HTTP/client-module acceptance: original17plusBe
 
 Live application: Development **19ebbfe2c496b6a528b5f5b31e6138c317bae146**, Core **7317ba1cd4301a1794294b78be685070db45c3e2**. Exact app joba64660e1-9676-405d-beaa-a0b8de327278 SUCCESS. Three Bitcoin settings acknowledged and whole candidate read back exactly. Single journalled settings rollout **f71e482c-851f-446b-9bbc-886caae3c30f SUCCESS** on the same commit. Bitcoin hosted native/Mongo/isolation/replica acceptance passes.
 
+XRPL verified batch published: parentc6e7f14baf89cacb9a1938cf11bfe574b51bc3ba/Coree032d0a4701e1c5bc4fa4d8f1545cac41745376b, both Development refs remotely verified. Exact app9ee52c89-7695-4065-9328-13f2be82b8e7 BUILDING; no XRPL settings applied yet.
+
 Website main **bc00ef2** serves byte-identical Bitcoin demo HTML, SHA2563a15fd6fb9806e013a274b70f16a61df10834703cb36f8f86efa363b6f327d92. Native CLI/guide/commented C# links present. Existing64client checks and focused Bitcoin preparation1pass remain scoped; browser proof separate.
 
 ## Provider evidence
@@ -48,7 +50,7 @@ Bitcoin local and hosted CQL/C#/CLI/HTTP+Mongo pass: native3/2, paired5/4, repea
 
 ## Exact next work
 
-1. Next: publish verified XRPL parent/Coree032d0a batch, exact app SUCCESS, guarded3setting apply + one journalled settings rollout, then hosted acceptance/website card. [Proof](XRPL_PUBLIC_SOURCE_STATUS.md):21source/C#1/API+prepared3/Core1/HTTP1 pass; CLI/native3/2 and local Mongo5/4, private0. No replay of completed fixtures.
+1. Next: observe exact9ee52c89 for c6e7f14ba SUCCESS; frozen release branch must fast-forward to that SHA. Set COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT, apply guarded XRPL3setting candidate, journal one settings rollout, then hosted acceptance once. [Local proof](XRPL_PUBLIC_SOURCE_STATUS.md). No completed save replay.
 2. Browser gates remain open for22providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
