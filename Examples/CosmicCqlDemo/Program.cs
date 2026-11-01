@@ -42,6 +42,15 @@ if (args.Length == 2 && args[0] == "--sei-public")
     return 0;
 }
 
+// Query explicit TON descriptors through shared HolonManager/LINQ.
+// No wallet or source write; preserve the reusable catalogue and owner.
+if (args.Length == 2 && args[0] == "--ton-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await TonPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Read explicit historical Arweave keys through shared HolonManager/LINQ.
 // This anonymous profile never signs transactions or scans the chain.
 if (args.Length == 2 && args[0] == "--arweave-public")
