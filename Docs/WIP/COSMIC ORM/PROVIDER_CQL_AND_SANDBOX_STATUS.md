@@ -334,3 +334,5 @@ TRON native candidate:31controlled passes,1real activation failure HTTP429,0skip
 MultiversX/Elrond qualification:9controls and actual native address-filter3/2pass, stable catalogue/owner retained. No native CQL/admission/hosted grant or count increase. [Contract/next](ELROND_PUBLIC_SOURCE_STATUS.md).
 
 Starknet anonymous source qualification: advertised PublicNode endpoint returnedHTTP403on first specVersion read. No chain/header data, CQL/hosted grant or count change. Canonical SDK not executed. [Observed scope/next](STARKNET_PUBLIC_SOURCE_STATUS.md).
+
+Radix public Gateway qualification returned403before network/ledger/entity data; Starknet also403on first RPC. Bounded diagnostics show Cloudflare-fronted access denial, cause unknown. No SDK execution, CQL/hosting grant or count increase. [Radix scope](RADIX_PUBLIC_SOURCE_STATUS.md), [Starknet scope](STARKNET_PUBLIC_SOURCE_STATUS.md). Elrond exact job19f65f59 BUILDING; settings unapplied.
