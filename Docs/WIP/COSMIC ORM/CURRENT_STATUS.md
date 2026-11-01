@@ -6,11 +6,11 @@ David authorizes necessary Development pushes for live demo testing/fixes withou
 
 ## Current milestone
 
-All22addedprofiles passed hosted HTTP/client-module acceptance: original17plusBerachain/Bitcoin/XRPL/Stellar/Algorand. Combined with earlier8proofs, **30 providers** have scoped hosted HTTP evidence. Browser proof remains **5**, with **25 open**. Earlier eight-provider acceptance was not broadly rerun.
+All23addedprofiles passed hosted HTTP/client-module acceptance: original17plusBerachain/Bitcoin/XRPL/Stellar/Algorand/Aptos. Combined with earlier8proofs, **31 providers** have scoped hosted HTTP evidence. Browser proof remains **5**, with **26 open**. Earlier eight-provider acceptance was not broadly rerun.
 
-Live application: Development **1cfb893c80166bf497c3112de359126a8a456fa4**, Core **e845c62261a74ae800c89a4175daddf0cc9d8f16**. Exact Aptos app **bb19d2ab SUCCESS**; protected3setting candidate applied/observed exactly. One settings deployment **1c100994-b781-41e5-a239-fed9ecf14511** submitted; hosted acceptance pending. Algorand proof remains bound to7a9ca308e/f3ee7f37.
+Live application: Development **1cfb893c80166bf497c3112de359126a8a456fa4**, Core **e845c62261a74ae800c89a4175daddf0cc9d8f16**. Exact Aptos settings deployment **1c100994-b781-41e5-a239-fed9ecf14511 SUCCESS**; whole protected candidate exact. Native/Mongo/repeat/privacy/replica HTTP proof passes; original cohort/completion ACK retained. Earlier providers retain their original release bindings.
 
-Website main **ada6e92** serves byte-identical committed Algorand-inclusive HTML, SHA256 **cfff7aa51aafe061966682309ed258ca3e000d313b79c9dbdf678224375c95be**. Spaced CLI/guide/commented C# links published; focused client test1pass. Aptos card remains task-only; browser proof separate.
+Website main **8e3db22** serves byte-identical committed Aptos-inclusive HTML, SHA256 **b679d18f8c949778cf33fb824277c12eef9bbd2d3ae2e6a3f31620adbaeef127**. Spaced CLI/guide/commented C# links published. No Hedera card/hosted grant; browser proof separate.
 
 ## Provider evidence
 
@@ -19,11 +19,11 @@ Website main **ada6e92** serves byte-identical committed Algorand-inclusive HTML
 | Advanced canonical CQL; earlier hosted/browser proof | MongoDB, SQLite, Neo4j. Original baseline35/35; full EF parity incomplete. |
 | Earlier hosted/browser source proof | ActivityPub, IPFS. |
 | Earlier hosted HTTP source proof; browser open | SOLID, S3 public metadata, Solana public accounts. |
-| Fresh hosted HTTP/client proof; browser open | Google Cloud Storage, Ethereum, Polygon, Arbitrum, Cosmos Hub, Polkadot, NEAR, Base, Avalanche, BNB, Optimism, Linea, Scroll, zkSync, Abstract, Monad, Sei, Berachain, Bitcoin, XRPL, Stellar, Algorand. |
+| Fresh hosted HTTP/client proof; browser open | Google Cloud Storage, Ethereum, Polygon, Arbitrum, Cosmos Hub, Polkadot, NEAR, Base, Avalanche, BNB, Optimism, Linea, Scroll, zkSync, Abstract, Monad, Sei, Berachain, Bitcoin, XRPL, Stellar, Algorand, Aptos. |
 | Local/emulator only; hosting explicitly deferred | Azure Cosmos DB, Oracle Database. No signup/payment re-asks. |
 | Not admitted | Rootstock endpoint rejects finalized headers; no downgrade. |
 
-Each new profile proves native **3/2**, two private Mongo creates, paired **5/4**, repeat **0** new / **2** existing, foreign-private **0**, and **2** matching rows on each of SQLite/Neo4j. Total **44** private snapshots across the22additions. No source/chain writes or browser proof inferred.
+Each new profile proves native **3/2**, two private Mongo creates, paired **5/4**, repeat **0** new / **2** existing, foreign-private **0**, and **2** matching rows on each of SQLite/Neo4j. Total **46** private snapshots across the23additions. No source/chain writes or browser proof inferred.
 
 [Fresh proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). [Every provider project](PROVIDER_CQL_AND_SANDBOX_STATUS.md) covers the maintained229-project inventory. Core's33query-tariff types are not33hosted certifications.
 
@@ -44,17 +44,17 @@ Each new profile proves native **3/2**, two private Mongo creates, paired **5/4*
 
 ## Latest provider milestone
 
-Algorand passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2. Current-account amounts exact, each response carries its observed round; no historical/shared snapshot or consensus proof. Original source identity/catalogue retained. Website main ada6e92 published; exact committed/live HTML verified. Aptos card remains task-only.
+Aptos passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2. One explicit ledger version per native query, exact sequence strings; no cross-provider historical snapshot/state/consensus proof. Original source identity/catalogue retained. Website main8e3db22 published; exact committed/live HTML verified. Hedera has no hosted grant.
 
 ## Exact next work
 
-1. Next: observe exact Aptos settings deployment1c100994-b781-41e5-a239-fed9ecf14511 until SUCCESS. Exact appbb19d2ab SUCCESS at1cfb893c8/Coree845c62; all3settings observed/whole candidate exact, rollout intent/outcome retained. Then visitor HTTP/Mongo/privacy/replica checks and staged card. No hosted cohort yet; no green save replay.
+1. Next: website main8e3db22 exact HTML verified; publish reviewed Hedera application batch (Core89b5ffa/task7a28c74ee+). Protected3setting candidate/actual4preset planner ready, no settings applied; require exact app SUCCESS before application. Aptos cohort is green: never replay saves.
 
-Aptos native milestone:26tests+actualCLI3/2 pass, shared-manager execution verified.33implemented query types; API2+Core1+nativeHTTP1 pass, privateMongo5/4/private0 verified. Aptos batch published to Development; Algorand proof remains bound to7a9ca308e; protected candidate/actual4preset planner pass; hosting next after Algorand. Original catalogue/sourceOwner retained. [Proof and next gates](APTOS_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
+Aptos evidence: 26 native tests, 2 API + 1 Core + 1 local HTTP + 1 actual preset-planner test pass, plus the hosted cohort above. Browser verification remains open. [Hosted proof](APTOS_PUBLIC_SOURCE_STATUS.md#hosted-http-complete).
 
-Hedera/Hashgraph native milestone:22tests+actualCLI3/2 pass through shared manager.34implemented query types; API/hosting next after Aptos rollout. LatestIndexed/per-account timestamps, official Mainnet endpoint binding (no API ledger ID). Original catalogue/sourceOwner retained. [Proof/next](HEDERA_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
+Hedera/Hashgraph native milestone:22tests+actualCLI3/2 pass through shared manager.34implemented query types; API2+Core1+nativeHTTP1+actual4preset1 pass; Core89b5ffa task-only. Hosting next after Aptos publication. LatestIndexed/per-account timestamps, official Mainnet endpoint binding (no API ledger ID). Original catalogue/sourceOwner retained. [Proof/next](HEDERA_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
 
-2. Browser gates remain open for25providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
+2. Browser gates remain open for26providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
 ## Recovery/resources

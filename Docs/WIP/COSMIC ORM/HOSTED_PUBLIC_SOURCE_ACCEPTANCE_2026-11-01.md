@@ -320,3 +320,13 @@ Application7a9ca308e/Corec17db5f, exact settings deploymentf3ee7f37 SUCCESS. Nat
 - `TestResults/HostedCqlIntegrationCurrent/AlgorandOASIS-native-http.json`: SHA256 `430e0452c2353a943734e30fc4d7b4ec6b1c25ab0da47d53f4400659a9db2f29`.
 - `TestResults/HostedCqlIntegrationCurrent/AlgorandOASIS-client-http-flow.json`: SHA256 `94c5d624020c31d9847d782f9e1391f082297872e7aab3f7bad6ac0e057c8ffd`.
 - `TestResults/HostedCqlIntegrationCurrent/AlgorandOASIS-isolation-http.json`: SHA256 `057cf90e1688eb2d2742f13d26c43e6f0e9e64ff31f4884626397064722ce795`.
+
+## Additional Aptos acceptance
+
+Aptos hosted completion1November:1cfb893c8/Coree845c62, exact settings1c100994 SUCCESS. Native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2 pass. Per-native-query ledger version and exact strings; no cross-provider historical snapshot, state/consensus proof or source writes. Counts31hosted HTTP/5browser/26open;33deployed query-tariff types. [Proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-aptos-acceptance).
+
+Original owner/visitor/save/completion ACKs retained under LocalState/COSMIC/HostedQueryAcceptance-AptosOASIS. Earlier provider gates were not broadly rerun. No source writes or browser proof inferred.
+
+- `TestResults/HostedCqlIntegrationCurrent/AptosOASIS-native-http.json`: SHA256 `f73cde54cff7be3b2bb2d8e5476628bd7526a9d737203a89dab4e35d4c35bcf2`.
+- `TestResults/HostedCqlIntegrationCurrent/AptosOASIS-client-http-flow.json`: SHA256 `6ed61db431bc7f64fc145e17a9a61fb6e86aded67b2ea807be690b298f2de682`.
+- `TestResults/HostedCqlIntegrationCurrent/AptosOASIS-isolation-http.json`: SHA256 `3f126fb464e2303fdb1a999a051b62e71cb01bcee307feda74b212b4d2b4bf92`.
