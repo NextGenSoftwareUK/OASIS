@@ -14,8 +14,8 @@ There are **35 implemented query types**, including 30 native Sui tests and an a
 
 1. Sui hosted acceptance is green; original cohort completion ACK retained. Do not replay saves or create another owner.
 2. Sui card is published and byte-verified at website9679699; no browser interaction claim. Preserve the green native/HTTP/save cohorts.
-3. Continue red demo providers, next MultiversX/Elrond qualification while TRON access is unresolved. TRON34controlled passes but real429failure, alternate endpoint unqualified; no blind retry/count grant. MultiversX official API docs inspected only, no environment/probe yet.
-4. Browser gates remain open for 27 providers. Browser tooling failed with Transport closed; agent-owned, David already opened browser. No repeated owner request.
+3. Continue red demo providers, next MultiversX/Elrond native adapter while TRON access is unresolved. TRON34controlled passes but real429failure, alternate endpoint unqualified; no blind retry/count grant. [MultiversX qualification](ELROND_PUBLIC_SOURCE_STATUS.md) passes9pure tests plus real native address-filter3/2. Stable catalogue/owner retained; next common CQL adapter, controlled/native manager tests and C# demo. No CQL/count grant yet.
+4. Browser gates remain open for 28 providers. Browser tooling failed with Transport closed; agent-owned, David already opened browser. No repeated owner request.
 
 Next breadth candidate: [TRON qualification](TRON_PUBLIC_SOURCE_STATUS.md), strict qualification now passes 9 pure tests plus genesis/three ordinary headers; no native CQL/count grant. Native batch candidate passes34controlled tests; real query still hits429. No certification/count grant; actual anonymous capacity remains unresolved, no blind retry.
 

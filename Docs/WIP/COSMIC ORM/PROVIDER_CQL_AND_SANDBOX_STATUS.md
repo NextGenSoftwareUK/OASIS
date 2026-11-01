@@ -330,3 +330,5 @@ Hedera live gate1November remains red: initial native504/CQL_QUERY_CANCELLED bef
 TRON qualification update1November:9 pure controls plus anonymous genesis/headers1/2/3 pass. No CQL, admission or hosted claim/count increment. [Qualification/next](TRON_PUBLIC_SOURCE_STATUS.md). Sui app81794c84 at7e0b60994 remains queued; settings unchanged.
 
 TRON native candidate:31controlled passes,1real activation failure HTTP429,0skips. Not counted or enrolled; inspect [red native gate](TRON_PUBLIC_SOURCE_STATUS.md#native-candidate--live-gate-red). Sui exact app81794c84 now BUILDING.
+
+MultiversX/Elrond qualification:9controls and actual native address-filter3/2pass, stable catalogue/owner retained. No native CQL/admission/hosted grant or count increase. [Contract/next](ELROND_PUBLIC_SOURCE_STATUS.md).
