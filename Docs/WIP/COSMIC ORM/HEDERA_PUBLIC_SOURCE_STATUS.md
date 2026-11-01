@@ -1,6 +1,6 @@
 # Hedera / Hashgraph public account CQL status
 
-Updated 1 November 2026. Native CQL/shared-manager/CLI complete; API/hosted/browser gates open. Provider type is the existing `HashgraphOASIS`. Counts:34implemented query types and30scoped hosted HTTP providers.
+Updated 1 November 2026. Native CQL/shared-manager/CLI complete; API/local HTTP complete; hosted/browser gates open. Provider type is the existing `HashgraphOASIS`. Counts:34implemented query types and30scoped hosted HTTP providers.
 
 ## Qualified contract
 
@@ -27,7 +27,7 @@ Primary references: [official Mainnet Swagger](https://mainnet.mirrornode.hedera
 
 1. Complete: explicit read-only mirror source, strict Mainnet endpoint, exact identity/balance/timestamp validation, bounds/cancellation and complete-page failure. Unknown config/signing/history options/unsupported scans reject.
 2. Complete:21controlled+1real HolonManager3/2 tests pass/no skips; readable actual C#/CLI3/2 passes.
-3. Independent query admission, native/Mongo presets, shipping planner, local HTTP/Mongo privacy and focused client preparation.
+3. Complete:2API+1Core+1native HTTP+1actual4preset planner tests pass/no skips;3pure publisher+1focused client controls pass.
 4. Guarded hosted rollout, visitor3/2+5/4, repeat reuse, foreign-private0 and exact replica checks; retain original save intents/ACKs.
 5. Sandbox/local-demo links and separate browser verification. No provider-count promotion before the appropriate acceptance gate.
 
@@ -38,3 +38,15 @@ HederaPublicAccountMetadataSource uses shared capabilities/planner/manager and e
 - TestResults/HederaPublicSourceCandidateCurrent/hedera-source.trx:22passed/0skips; SHA2562ce3a468e9b611dc24be8c917b431405e39c5dbc152baee332cbfa5d15528067.
 - ActualCLI exit0,3/2; TestResults/HederaPublicSourceCandidateCurrent/demo-run.log SHA25684be881a19c4173fad629c94d37446cad57b1c156eb6adc4ebbf246fab6243b5.
 - [Developer guide](../../Devs/HEDERA_PUBLIC_ACCOUNT_CQL_GUIDE.md). No API admission/hosted grant yet. Existing SDK bridge is not used for these reads.
+
+## API and local HTTP complete
+
+Native3/2, two private Mongo creates, paired5/4, foreign-private0/public3 and nine query receipts pass. Auth/billing remain controlled fixture infrastructure; no production/hosted replication claim. Exact cosmic_cql_hedera_http_demo marker9d45a9b3-513e-4ca6-a9c7-7d0ade42922c verified then DB dropped; owned Mongo stopped/27029 absent. Durable HederaMongoHttpCurrent original intents/save ACKs/cleanup retained; never replay.
+
+- TestResults/HederaPublicSourceCandidateCurrent/hedera-admission.trx:2passed, SHA25605523d979287c2f819f0dc1f57d0c0aac0b20f220a6a2b528b1e7507c026da1b.
+- hedera-tariff.trx:1passed, SHA25696b12c7d1b36ac9992aae138e5a0b79ddb1e69efb4dfd9412e4615c95a53b719.
+- hedera-mongo-http.trx:1passed, SHA2566c8bc48c5b575d0359d9a532db40c68e563d1d14001e7236545cbf4c326cdd42.
+- hedera-prepared.trx:1passed, SHA256e8c97d1e93096796089d168592a4edd571659ac14bd660784d380c2dd47541d6.
+- Separate deployed Node reachability3account reads200, no balance-number interpretation/CQL proof: hosted-egress.json SHA256727c1442365ef9daa515fd04d498cad54b58fbdcfd952b728e17fb357d06a747.
+
+Protected3setting candidate prepared against verified exact applied Aptos variables; actual4preset shipping planner passes. No Hedera setting/deployment/visitor mutation. Core89b5ffa task pushed/ref verified; keep later work out of current Aptos1cfb893c8 release. After Aptos acceptance/publication, publish this reviewed application batch, require exact SUCCESS, then guarded settings/one rollout and hosted visitor gates.
