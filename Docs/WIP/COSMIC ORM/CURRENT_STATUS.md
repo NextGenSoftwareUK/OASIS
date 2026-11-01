@@ -14,10 +14,10 @@ There are **37 implemented query types**: 3 canonical adapters, 32 bounded publi
 
 1. Sui hosted acceptance is green; original cohort completion ACK retained. Do not replay saves or create another owner.
 2. Sui card is published and byte-verified at website9679699; no browser interaction claim. Preserve the green native/HTTP/save cohorts.
-3. Elrond hosted acceptance is green and durable completion ACK retained. Website95c53cc is published/byte-verified with setup/C# links; browser interaction remains separate. No save/cohort replay. Next: Radix query-only API admission/planner tests and local HTTP/Mongo federation, then hosted rollout/card. Native50/50 tests and actual CLI3/2 are green; preserve the stable source namespace. Starknet CQL remains unqualified.
+3. Elrond hosted acceptance is green and durable completion ACK retained. Website95c53cc is published/byte-verified with setup/C# links; browser interaction remains separate. No save/cohort replay. Next: Radix selective verified release and protected hosted rollout, then sandbox card. API/preset2 + schema1/Core1/config3/localHTTP1 pass; actual native3/2, paired5/4, foreign-private0/public3; original fixture cleaned, ACKs retained. Native50/50 tests and actual CLI3/2 are green; preserve the stable source namespace. Starknet CQL remains unqualified.
 4. Browser gates remain open for 29 providers. Fresh bridge reset still fails Transport closed; agent-owned, David already opened browser. No repeated owner request.
 
-Red source scopes: [TRON](TRON_PUBLIC_SOURCE_STATUS.md)34controlled passes/real429; [Starknet](STARKNET_PUBLIC_SOURCE_STATUS.md)transport200but no header3/2/CQL yet; [Radix](RADIX_PUBLIC_SOURCE_STATUS.md)native CQL/CLI3/2green; API/hosting pending. Python403denials are preserved as client-specific observations; .NET guard unchanged, no account/key/environment created.
+Red source scopes: [TRON](TRON_PUBLIC_SOURCE_STATUS.md)34controlled passes/real429; [Starknet](STARKNET_PUBLIC_SOURCE_STATUS.md)transport200but no header3/2/CQL yet; [Radix](RADIX_PUBLIC_SOURCE_STATUS.md)native CQL/CLI3/2green; API/localHTTP green; hosting pending. Python403denials are preserved as client-specific observations; .NET guard unchanged, no account/key/environment created.
 
 ## Existing guarantees and limits
 

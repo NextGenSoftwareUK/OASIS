@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -152,4 +152,5 @@
     <Protobuf Include="Protos\subscription.proto" GrpcServices="Server" />
   </ItemGroup>
 
+  <ItemGroup><ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/NextGenSoftware.OASIS.API.Providers.RadixOASIS.csproj" /></ItemGroup>
 </Project>
