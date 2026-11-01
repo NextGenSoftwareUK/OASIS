@@ -59,3 +59,5 @@ Raw evidence stays in `TestResults/SuiPublicSourceCandidateCurrent/`:
 | sui-mongo-http.trx | 1 | `9df1446dcc463117f02a91ef1bbbbf1b332ff98b0afdc2ca492426010f1cbdbd` |
 
 Hosted candidate prepared against current exact variables; all four actual prepared presets pass shipping capabilities (one test, no skips), SHA256 `a3c70bb8bd2a33049a7f8bcfc32b5e858c23036b9db1e9804d67b9754e4fedf2`. Core Development remote verified at0e540eb911671a6a249458ea9b69d3e96fb1d212; parent application publication next. Protected three-setting candidate remains unapplied.
+
+Development publication: exact parent7e0b60994921d03e09abe4a7050ca5bf5f02bfdb/Core0e540eb911671a6a249458ea9b69d3e96fb1d212 pushed and remote refs verified. Exact app81794c84-1f8b-41e1-a9e4-6b79015fa173 repeatedly observed QUEUED; no settings mutation/restart. Wait for this same job; guard must use exact release checkout before apply. Browser transport retry still closed; not a David action.
