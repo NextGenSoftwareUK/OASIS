@@ -2,7 +2,7 @@
 
 Updated1November2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state; [checklist](CQL_PARITY_CHECKLIST.md) owns acceptance. Full programme incomplete.
 
-- 28 providers have scoped hosted HTTP proof: earlier8 plus20additions. Browser proof remains5;23open. [Fresh evidence](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
+- 29 providers have scoped hosted HTTP proof: earlier8 plus21additions. Browser proof remains5;24open. [Fresh evidence](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
 - Each addition passed native3/2, private Mongo preparation, paired5/4, repeat zero writes, foreign-private zero and matching SQLite/Neo4j replicas. Public projections are not owned native chain writes/full ORM.
 - Live applicationc6e7f14ba/Coree032d0a and XRPL endpoint correction74bdf044 succeeded. Strict partitions preserve68original plus12Berachain/Bitcoin/XRPL presets. Polkadot publish root cause fixed.
 - Original12investor-demo scopes are green on MongoDB/SQLite/Neo4j. Their query checklist has50/82green rows per database; overlapping/uneven rows are not an overall parity percentage.
@@ -32,3 +32,5 @@ Stellar complete header decoder1November:20cases pass, including real protocol29
 Stellar native CQL1November: complete XDR-bound sequence-key queries pass21source+1real C# controls and actualCLI3/2. [Guide](../../Devs/STELLAR_PUBLIC_HEADER_CQL_GUIDE.md), [proof/HTTP next](STELLAR_PUBLIC_SOURCE_STATUS.md#native-cql--developer-demo-complete). Counts31implemented/30deployed tariff/28hosted HTTP; no Stellar hosting grant.
 
 Stellar API milestone1November: independent read-only admission, exact four-preset shipping planner and local HTTP3/2+Mongo5/4/private0 pass; protected3setting candidate prepared only. Hosting/browser remain open; live28unchanged. [Proof/next rollout](STELLAR_PUBLIC_SOURCE_STATUS.md#api--local-http-complete).
+
+Stellar hosted completion (1 November): application637a6d49f/Core2dd3c37, exact settings deployment3eda0ea7 SUCCESS. Native3/2, private Mongo2, federation5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2 pass. Counts29hosted HTTP,5browser,24browser-open;31deployed query-tariff types. Read-only hash-pinned public headers, no Stellar writes or consensus/signature verification. [Evidence](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-stellar-acceptance).
