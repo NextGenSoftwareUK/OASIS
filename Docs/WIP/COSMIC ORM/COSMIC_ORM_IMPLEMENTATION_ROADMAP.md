@@ -2,11 +2,11 @@
 
 ## Current verified milestone — 1 November 2026
 
-**37 providers have scoped hosted HTTP evidence; 5 have browser evidence and 32 browser gates remain open.** Cardano passes native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2. Two private saves were acknowledged once. Source writes and browser interaction are not inferred.
+**38 providers have scoped hosted HTTP evidence; 5 have browser evidence and 33 browser gates remain open.** Arweave passes native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2. Two private saves were acknowledged once. Source writes and browser interaction are not inferred.
 
-Latest hosted provider acceptance: parentaffe5719070d7b149d165b901306708e7643fb97/Corebe397f10419cf8b5c0dafc93ff1f4958b88588a2, app1615af0d/settingscfe35470 SUCCESS. Original Cardano cohort completion ACK retained; never replay its writes. Session lifecycle correction passes. Website5d9845c publishes the verified Cardano card with guide64f448f84/C#affe57190. Public HTML153728bytes/SHA2564ebca2803c9c4739e6ac5a15043b7ca4b8feabf55731dd8868be192c6b59f81f exactly matches committed git blob. Browser and real-expiry interaction remain separate open gates.
+Latest hosted acceptance: parent37a530a87e601397f187430728bb9fb02b224f87/Core5fd361db11f5d54e3e99282536d7c7be842edf86, job3da7f986 SUCCESS. This docs-only descendant preserves testedb158bda61 code; original settings jobec59010e was removed and never replayed. Original Arweave cohort completion ACK retained. Website61e85b75a933004d1f005f85f1318fa05ad139de publishes Arweave with guided089a778c/C#b158bda61. Public HTML155229bytes/SHA2566fda659c10e90bb99d7636e04b62d3dc343b3a0c36cd85bb5b3f3c3e3c5c94f3 matches the committed git blob. Browser/real-expiry gates remain separate.
 
-There are **40 implemented query types**, including locally verified Arweave: 3 canonical adapters,35bounded public/source profiles and2local Azure/Oracle implementations. Arweave33controls/realCQL3/2/manager-CLI3/2/API3/localHTTP1/actual-presets1 pass; hosted admission is next. Cardano native35controls/realCQL3/2/manager-CLI3/2, API/local HTTP and hosted visitor federation/reuse/isolation/replicas pass. Deployed tariffs37/hosted37/browser5/open32. Full ORM/EF parity/HyperDrive certification remains incomplete.
+There are **40 implemented query types**: 3 canonical adapters,35bounded public/source profiles and2local Azure/Oracle implementations. Arweave native/control/manager/API/local and hosted federation/reuse/privacy/replica gates pass. Deployed tariffs38/hosted38/browser5/open33. TON candidate controls pass but nativeHTTP429 remains red and isolated; no TON support grant. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
 
 [Current status](CURRENT_STATUS.md) is the recovery entry point. Full goal remains active and incomplete.
