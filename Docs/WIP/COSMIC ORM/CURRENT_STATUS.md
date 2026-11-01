@@ -24,7 +24,7 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 ## Exact next steps
 
 1. TON card is published at website6cfa7dc, with pinned updated guide34ae56281 and tested C#fb29aa936. Public HTML and both scripts match exact git blobs; browser interaction remains open.
-2. PostgreSQL restoration now passes16controls, native17cases and local paired SDK/HTTP2/4/4/2 plus identity5/4. Original JSON/xmin and15source metadata files unchanged; exact temporary Mongo cleanup/owned service stops verified. Next inspect existing hosted service/config placement before any admission; no paid provisioning or green-baseline rerun. See POSTGRESQL_CQL_MVP.md. DynamoDB preserved code is a later reuse candidate.
+2. PostgreSQL restoration now passes16controls, native17cases and local paired SDK/HTTP2/4/4/2 plus identity5/4. Original JSON/xmin and15source metadata files unchanged; exact temporary Mongo cleanup/owned service stops verified. Hosted inventory found no PostgreSQL service in observed OASIS project; existing dev connection/deferral question recorded in David list and pending; no admission or paid provisioning. No green-baseline rerun. See POSTGRESQL_CQL_MVP.md. DynamoDB preserved code is a later reuse candidate.
 3. TRON remains unqualified after native429/diagnostic403; no blind acceptance rerun. Azure/Oracle hosting remains deferred; do not re-ask. Deep LINQ parity remains paused.
 4. Original HostedQueryAcceptance-TONOASIS has completion ACK: native3/2, paired5/4, reuse0/2, privacy0/3, replicas2/2, two saves at version1 and no pending preparation intents. Never rerun this completed cohort or resave its copies.
 
@@ -44,3 +44,5 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 - Builds under Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 with /m:2 /nr:false /p:UseSharedCompilation=false. Committed dependency pins validate; fetch before integrations and verify submodule pushes. No production/master promotion.
 
 [TON evidence and procedure](TON_PUBLIC_SOURCE_STATUS.md) | [Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) | [Manual](CQL_MANUAL.md) | [Architecture](CQL_ARCHITECTURE.md) | [Parity checklist](CQL_PARITY_CHECKLIST.md) | [Deferred work](AFTER_DEMO_BACKLOG.md) | [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
+
+Dynamo restoration:13current controls pass using shared bounded-key compiler; native qualification pending. Separate CQL data already resides in assigned AwsCql/dynamo-data (51KB), while runtime bind/helper points at old cache. Next repair that runtime binding with provenance/identity preserved, never recreate source. Canonical old-history container is a different environment and remains untouched. See AWS_CQL_MVP.md.
