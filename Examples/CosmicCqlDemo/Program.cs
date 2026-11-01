@@ -42,6 +42,15 @@ if (args.Length == 2 && args[0] == "--sei-public")
     return 0;
 }
 
+// Query public Radix resources with one acknowledged ledger state per query.
+// No wallet, transaction signing or write-provider enrollment is involved.
+if (args.Length == 2 && args[0] == "--radix-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await RadixPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Select explicitly enrolled public MultiversX accounts through native filters.
 // The existing signed Elrond wallet provider is not invoked by this read profile.
 if (args.Length == 2 && args[0] == "--elrond-public")
@@ -225,7 +234,7 @@ if (args.Length == 2 && args[0] == "--google-public")
 var serve = args.Length == 1 && args[0] == "--serve";
 if (args.Length != 0 && !serve)
 {
-    Console.Error.WriteLine("Use no arguments, --serve, --google-public <existing-source.json>, --ethereum-public <existing-source.json>, --polygon-public <existing-source.json>, --arbitrum-public <existing-source.json>, --cosmos-public <existing-source.json>, --polkadot-public <existing-source.json>, --near-public <existing-source.json>, or --base-public / --avalanche-public / --bnb-public <existing-source.json>.");
+    Console.Error.WriteLine("Use no arguments, --serve, --radix-public <existing-source.json>, --google-public <existing-source.json>, --ethereum-public <existing-source.json>, --polygon-public <existing-source.json>, --arbitrum-public <existing-source.json>, --cosmos-public <existing-source.json>, --polkadot-public <existing-source.json>, --near-public <existing-source.json>, or --base-public / --avalanche-public / --bnb-public <existing-source.json>.");
     return 2;
 }
 
