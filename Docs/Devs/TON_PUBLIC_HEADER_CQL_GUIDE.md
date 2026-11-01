@@ -89,3 +89,7 @@ Primary contracts: [TON header API](https://docs.ton.org/api/v2/rpc/get-block-he
 The original2021 archive catalogue is retained in the qualification history after an operator Merkle-proof/hash rejection. The recipe above pins the separately qualified recent dataset; it never falls back at runtime or bypasses proof rejection. The source owner was preserved during local promotion, and no native transactions or private copies were written.
 
 Signed hash-fragment domain: [official tonlib API schema](https://github.com/ton-blockchain/ton/blob/master/tl/generate/scheme/tonlib_api.tl).
+
+### Federation budget
+
+The paired TON/Mongo preset must explicitly request `maximumDurationMilliseconds: 30000`. TON serializes public RPCs with a 1.1-second interval after completion; a three-header query includes network validation and three header calls. The normal federation default remains 5000ms. A deadline failure is an error, never partial success or permission to replay saved copies. HTTP admission for the explicit Core 30-second ceiling is currently under verification; TON hosted acceptance remains pending.

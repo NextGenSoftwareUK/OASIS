@@ -48,4 +48,14 @@ Real local HTTP/Mongo fixture stopped during source activation before first pers
 - TestResults\TonPublicSourceCandidateCurrent\api-admission.trx: 3passed/0failed, 6523bytes, SHA25679d3a81e4d6d268036db1e511c0d715fc29b78107490cb2d2983f2e0e1040690.
 - TestResults\TonPublicSourceCandidateCurrent\actual-prepared-candidate.trx: 1passed/0failed, 3323bytes, SHA256e7c9b74d5a950c4922e046421d9063307ee97404053e2f82f7f27d05cee8f1ca.
 - TestResults\TonPublicSourceCandidateCurrent\ton-mongo-http.trx: 0passed/1failed, 4831bytes, SHA25668e4b902498996563945d54da1d38804ba0be3394692c072a4bf34a2f1d08969.
-Next implement one explicitly reviewed continuation of the original pre-persistence fixture with the same IDs and fresh no-DB check, preserving first failure; capture readiness detail before writes. Local/hosted HTTP acceptance remain unproved; no TON deploy/grant.
+Explicit same-ID continuation is implemented with original intent/TRX/catalogue hashes, fresh no-DB check and a one-shot journal. First build failed with CS0136 (overlapping original variable names); renamed intent document to originalIntent. Rebuild and native continuation remain pending; no native operation started. Preserve the first failure and capture readiness detail before writes. Local/hosted HTTP acceptance remain unproved; no TON deploy/grant.
+
+## Original-cohort continuation checkpoint
+
+Corrected build passed. The one-shot reviewed continuation verified DB absence, reused all original identities, activated the source, and acknowledged two private Mongo saves at version1. Native HTTP3 passed; paired3 returned HTTP504 under the default5000ms federation budget. Remaining paired2/privacy/receipt/cleanup gates were not reached. Owned Mongo stopped; port27029 absent; fixture DB, intent and save ACKs preserved. No repeat of the seeding test is allowed.
+
+Core already accepts explicit1..30000ms federation durations; HTTP capture previously capped requests at5000ms. Aligning that boundary and requesting30000ms only in TON paired presets; default5000ms unchanged. Six lower/upper/default boundary controls added; publisher3 controls pass. A separately reviewed read-only continuation over the existing DB/ACKs is next, after controlled verification. Prepared protected candidate predates this budget change and must not be applied as-is.
+
+Original continuation evidence: TestResults/TonPublicSourceCandidateCurrent/ton-mongo-http-prepersistence-continuation.trx, 0passed/1failed, 6652bytes, SHA25668043846418e989590925ceceecaaff0b1580152d934e143a6cf934e003d2e49. Original failure and both save ACKs retained; no hosted acceptance claimed.
+
+Duration/admission controls verified: 8passed/0failed/0skipped (six duration boundaries plus existing two TON admission controls); TestResults/TonPublicSourceCandidateCurrent/duration-admission.trx, 14423bytes, SHA256fd33bcf0be7bfef05eeac2c5f18ed7dd20c94bf1fd309800fa443d85285d312b. Pure publisher controls3/3pass. This does not establish native paired/hosted success.

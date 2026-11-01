@@ -1324,3 +1324,7 @@ Radix native resource CQL: [commented C# guide](../../Devs/RADIX_PUBLIC_RESOURCE
 Radix hosted milestone: original cohort completed at74aaa9b4d/Core8b79301 after settlement correction; no duplicate saves. [Scope, failure history and hashes](RADIX_PUBLIC_SOURCE_STATUS.md#hosted-acceptance-complete). Browser renewal/interaction remain separate. Earlier deployed-tariff headlines incorrectly included local Azure/Oracle: actual live catalogue35, implemented types37.
 
 Starknet bounded header profile: [setup/commented C# guide](../../Devs/STARKNET_PUBLIC_HEADER_CQL_GUIDE.md), [native/API/local HTTP proof and pending hosted gates](STARKNET_PUBLIC_SOURCE_STATUS.md). Explicit enrolled block-hash equality/membership, exact field/integer strings and RPC-reported L1 acceptance. Local paired3+2/2+2results and visitor privacy verified; hosted/browser publication separate.
+
+### Explicit federation duration
+
+`maximumDurationMilliseconds` defaults to5000 and admits1..30000 inclusive, matching the Core federation options. Slower bounded remote sources may request an explicit larger budget, for example30000 for TON/Mongo paired presets. The budget still cancels the complete query: no partial result or automatic write replay is implied. TON live paired acceptance remains tracked separately in [TON status](TON_PUBLIC_SOURCE_STATUS.md).

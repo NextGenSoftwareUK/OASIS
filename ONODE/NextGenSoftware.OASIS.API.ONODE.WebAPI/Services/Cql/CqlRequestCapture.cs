@@ -16,7 +16,7 @@ internal static class CqlRequestCapture
             || request.Providers.Length > 8 || request.ProviderPriority.Length > 8
             || request.Take is < 1 or > 100 || request.Skip is < 0 or > 1000
             || request.MaximumOutputBytes is < 1 or > CqlV1Endpoint.MaximumResponseBytes
-            || request.MaximumDurationMilliseconds is < 1 or > 5000
+            || request.MaximumDurationMilliseconds is < 1 or > 30000
             || request.MaximumRowsPerProvider < 1 || request.MaximumRowsPerProvider > (request.EnableContinuation ? 10000 : 100)
             || request.MaximumInputRows < 1 || request.MaximumInputRows > (request.EnableContinuation ? 10000 : 800)
             || request.MaximumProviderAttempts < 1 || request.MaximumProviderAttempts > (request.EnableContinuation ? 64 : 8)
