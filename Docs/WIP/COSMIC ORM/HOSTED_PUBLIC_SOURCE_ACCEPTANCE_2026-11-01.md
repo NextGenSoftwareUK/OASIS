@@ -366,3 +366,19 @@ Evidence in `TestResults/HostedCqlIntegrationCurrent/`, retained sourceOwner/cat
 | SuiOASIS-native-http.json | `1c63b45d54a1a268f0ebe1ac45ac5e202a6613cc6997d401bf99b58e4d2a444b` |
 | SuiOASIS-client-http-flow.json | `2b3b990994635b9f2ab169a1c665664fedebc7aca8d190a3c9aac2f3399a9011` |
 | SuiOASIS-isolation-http.json | `4b45192d96bdbfaff28f45d54ac37d2f04c9d50ba3f28723439d8c2f3ee2dd89` |
+
+## Elrond hosted HTTP complete — 1 November 2026
+
+**34 providers have scoped hosted HTTP evidence; 5 have browser evidence and 29 browser gates remain open.** MultiversX/Elrond now passes native 3/2, Mongo federation 5/4, repeat reuse (zero new/two existing), foreign-private zero/public three, and two matching replicas on both SQLite and Neo4j. No source/chain writes or browser certification are inferred.
+
+Latest verified hosted acceptance: application `801795a648a1ae0b9211c0a478027673cb79c156`, Core `f41b2a11253c222aac6bfdf67278d226e01ff96e`, app `19f65f59-e370-4cad-94ce-b0246872b891` and settings `18c4f04e-6ac3-4fa7-ac2a-ff312d095159` succeeded. Website main `95c53ccd3d20a99df4e8059c105c2aa4fcb8ebbb` serves byte-identical committed HTML (149523bytes, SHA256 `988e89929f268a5a447f00a09e7602d0c59a01e6bd15ef44ed0c37be16343a63`), including Elrond setup/C# links. This proves publication, not browser interaction.
+
+There are **36 implemented query types**: 3 canonical adapters, 31 bounded public/source profiles and 2 locally scoped Azure/Oracle implementations. Elrond has34native tests + actual shared-manager/CLI3/2, API2/Core1/shipping1/localHTTP1/config3passes and a scoped release3test/artifact check excluding TRON's unverified adapter. Azure/Oracle hosting remains explicitly deferred. TRON's real429and Starknet/Radix403access qualifications stay red and uncounted. Full ORM/parity/HyperDrive certification remains incomplete. Dated milestones retain their original scope.
+
+Original sourceOwner/catalogue and owner/foreign cohort retained. Completion ACK under `LocalState/COSMIC/HostedQueryAcceptance-ElrondOASIS/` verified from raw native/federated/isolation/replica counts. Do not replay its saves. LatestIndexed is not a pinned/shared historical snapshot. Mongo demo copies capture private name/description/native-key observations, not full native account/state snapshots. API nonce safe-integer limitation remains explicit.
+
+| Evidence under TestResults/HostedCqlIntegrationCurrent | SHA256 |
+|---|---|
+| ElrondOASIS-native-http.json | `f104103460d61fad4742b13a2f79031b28db5103c8a7e73a4b93d8ce7dc72f71` |
+| ElrondOASIS-client-http-flow.json | `71e8b470f90b49c69e9d023636d90c487fd8edae7a08f072e25964c6c001b42b` |
+| ElrondOASIS-isolation-http.json | `03a08a90c1efd0b55c9dcb5e9519ff22830f7539c640d4cac7aa3c45485e200c` |
