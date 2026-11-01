@@ -43,6 +43,6 @@ Core task7317ba1 is pushed and verified remotely. Parent gitlink/dependency mani
 
 ## Next acceptance work
 
-Publish the verified application batch, wait for its exact successful deployment, then apply the guarded three-setting candidate and journal one settings rollout. Use a new hosted acceptance cohort for independent visitor isolation and SQLite/Neo4j replica checks. Expose the hosted presets and local walkthrough links in the website, then verify browser interaction separately.
+Application19ebbfe2c/Core7317ba1 published to Development, remote refs verified; exact joba64660e1-9676-405d-beaa-a0b8de327278 queued. Wait for that successful deployment, then apply the guarded three-setting candidate and journal one settings rollout. Use a new hosted acceptance cohort for independent visitor isolation and SQLite/Neo4j replica checks. Expose the hosted presets and local walkthrough links in the website, then verify browser interaction separately.
 
 Bitcoin is not yet in the live provider count: totals remain26 scoped hosted HTTP and5 browser proofs. Native adapter implementation count and candidate tariff catalogue are29; deployed catalogue remains28 until the matching rollout succeeds.
