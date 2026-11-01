@@ -5,9 +5,9 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 ## Verified scope
 
 - 41 implemented query types: 3 canonical, 36 bounded source profiles, 2 local Azure/Oracle implementations.
-- 38 providers have scoped hosted HTTP proof and deployed query tariffs. Browser proof: 5; 33 browser gates open. TON is not yet included in hosted counts.
+- 39 providers have scoped hosted HTTP proof and deployed query tariffs. Browser proof: 5; 34 browser gates open. TON is now included in the scoped hosted count.
 - MongoDB/SQLite/Neo4j parity checklist: 50/82 each; original investor demo subset green. Work red rows only unless a reproducible bug appears.
-- Latest completed hosted cohort: Arweave, native 3/2, Mongo 5/4, repeat 0 new/2 existing, foreign-private 0/public 3, SQLite/Neo4j replicas 2/2. Completion ACK exists; never replay.
+- Latest completed hosted cohort: TON, native 3/2, Mongo 5/4, repeat 0 new/2 existing, foreign-private 0/public 3, SQLite/Neo4j replicas 2/2. Completion ACK exists; never replay.
 - TON native/manager CQL 3/2 and local HTTP native 3/2, paired 5/4, privacy 0/3, nine receipts pass. Two original saves acknowledged once; local database cleaned and Mongo stopped. Never replay its cleaned fixture.
 - TON duration/admission/schema controls: 15; merged actual-preset controls: 16; latest changed OLAND/integration checks: 32; publisher/revision controls: 5. All scoped runs pass without skips.
 - Website main 299c376: query timer plus preparation duration fixes published and exact HTML/JS bytes verified. All 90 client tests pass. Browser interaction is not inferred.
@@ -19,14 +19,14 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 - Two live settings changed after preparation. Explicit reviewed revision ton-public-duration-oland preserves all current unrelated values; only three TON keys differ, and their values/public review bytes equal the tested candidate.
 - Protected before/candidate snapshots: LocalState/COSMIC/HostedSourceRolloutCurrent/ton-public-duration-oland-*.dpapi. Public review: TestResults/TonPublicSourceCandidateCurrent/ton-duration-oland-prepared-review.json.
 - All three ton-public-duration-oland settings applied once under exact fb29aa936 release/HEAD guard. Per-key ACK hashes and whole candidate matched. Earlier candidates are stale; never replay any apply.
-- One journalled settings deployment e3ae497c-3f19-45b2-a577-b0fc40a7ae6b at fb29aa936 is BUILDING. Original rollout intent/protected outcome retained; no hosted acceptance session yet. TON card staged on website task25733b4, not main.
+- One journalled settings deployment e3ae497c-3f19-45b2-a577-b0fc40a7ae6b at fb29aa936 is SUCCESS. Original rollout intent/protected outcome retained. First hosted TON cohort completed; completion ACK retained. TON card staged on website task25733b4, not main.
 
 ## Exact next steps
 
-1. Observe existing settings job e3ae497c-3f19-45b2-a577-b0fc40a7ae6b with expected commit fb29aa936870dcfb3182102642e5997b2cedd90f until terminal. Never reapply or resubmit after timeout/unknown outcome.
-2. After SUCCESS, verify whole current configuration still equals the protected ton-public-duration-oland candidate; preserve any concurrent changes and reconcile differences before acceptance.
-3. Run python -B Scripts/Sandbox/Verify-HostedQuerySource.py TONOASIS --prepare once from the task branch. Retain that original hosted cohort's sessions, IDs, save intents/ACKs and completed stages across any failure; no replacement owner or blind save replay.
-4. Prove native 3/2, paired 5/4, reuse 0/2, privacy 0/3 and exact SQLite/Neo4j copies, then completion ACK. Publish TON card with local demo/guide links only after gates pass. Hosted counts stay 38 until then.
+1. Publish staged TON card after changing its pending note to the now-proven HTTP scope. Pin its setup guide to the updated docs commit and its C# example to tested fb29aa936. Preserve the local command, spacing and capability limits.
+2. Fetch website main first, preserve other work, publish the verified card and compare public HTML/scripts with exact git blobs. Browser interaction remains a separate gate.
+3. Continue breadth on remaining unsupported provider rows from the full provider report. TRON remains unqualified after native429/diagnostic403; no blind acceptance rerun. Azure/Oracle hosting remains deferred; do not re-ask.
+4. Original HostedQueryAcceptance-TONOASIS now has completion ACK: native3/2, paired5/4, reuse0/2, privacy0/3, replicas2/2, two saves at version1 and no pending preparation intents. Never rerun this completed cohort or resave its copies.
 
 ## Limits and deferred work
 
