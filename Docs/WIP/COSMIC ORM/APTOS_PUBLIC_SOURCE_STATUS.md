@@ -54,3 +54,5 @@ Aptos prepared-host milestone1November: protected3setting candidate prepared aga
 - hosted-egress.json:646bytes, SHA256f8fee42b40bf00ae3a6f13ab70c25bebf4092734d3e75d8ff9235ca20bbacac3.
 
 Guarded3setting apply must wait for the exact future Aptos application SUCCESS. No overlap with current Algorand deploymentf3ee7f37.
+
+Development publication1November: parent1cfb893c80166bf497c3112de359126a8a456fa4/Coree845c62261a74ae800c89a4175daddf0cc9d8f16, both remote refs verified after fresh fetch/ancestry checks. Committed manifest/gitlinks and5SDK closures pass. Exact appbb19d2ab-c34e-492a-9274-5e49c6e4c3b5 QUEUED. Settings candidate unapplied; no hosted visitor/save cohort. Observe same job, never restart for observation timeout.
