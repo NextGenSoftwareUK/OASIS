@@ -62,4 +62,30 @@ Supply validation uses signed 192-bit scaled-integer bounds; no double or System
 
 ## Evidence and remaining gates
 
-The focused suite passed 50/50 with zero skips, including actual shared-manager native three/two selection. [Current Radix status](../WIP/COSMIC%20ORM/RADIX_PUBLIC_SOURCE_STATUS.md) records evidence hashes and rollout gates. Query-only API admission, local HTTP/Mongo federation, hosted configuration, sandbox card and browser interaction remain separate requirements. This source cannot become a default write or replication provider; signed Radix storage is a different implementation.
+The focused suite passed 50/50 with zero skips, including actual shared-manager native three/two selection. [Current Radix status](../WIP/COSMIC%20ORM/RADIX_PUBLIC_SOURCE_STATUS.md) records evidence hashes and rollout gates. Query-only API admission and actual local HTTP/Mongo federation now pass (native3/2, paired5/4, foreign-private0/public3). Hosted configuration, sandbox card and browser interaction remain pending. This source cannot become a default write or replication provider; signed Radix storage is a different implementation.
+
+## HTTP request shape (enrollment pending)
+
+Once the server explicitly enrolls this read profile, the same native selection is:
+
+```json
+{
+  "provider": "RadixOASIS",
+  "orderBy": "None",
+  "take": 8,
+  "includeMetadata": true,
+  "filters": [
+    {
+      "metadataPath": ["RadixResourceAddress"],
+      "scalar": "String",
+      "operator": "In",
+      "value": [
+        "resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd",
+        "resource_rdx1nfxxxxxxxxxxsecpsgxxxxxxxxx004638826440xxxxxxxxxsecpsg"
+      ]
+    }
+  ]
+}
+```
+
+POST to `/api/data/query-cql` with the demo's authentication and request identity. A Mongo pair uses `/api/data/query-cql/federation`, explicit `Named` scope, providers `["MongoDBOASIS", "RadixOASIS"]`, the above selection as `source` (omit `provider`), `PreserveCopies`, `maximumProviderAttempts: 2` and `take: 8`. Matching private Mongo copies must first be created by the authenticated owner through the demo's existing prepare action. Merely selecting two providers does not create copies or grant access.

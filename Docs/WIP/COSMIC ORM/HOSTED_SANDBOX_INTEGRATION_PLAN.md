@@ -6,7 +6,7 @@
 
 Latest verified hosted acceptance: application `801795a648a1ae0b9211c0a478027673cb79c156`, Core `f41b2a11253c222aac6bfdf67278d226e01ff96e`, app `19f65f59-e370-4cad-94ce-b0246872b891` and settings `18c4f04e-6ac3-4fa7-ac2a-ff312d095159` succeeded. Website main `95c53ccd3d20a99df4e8059c105c2aa4fcb8ebbb` serves byte-identical committed HTML (149523bytes, SHA256 `988e89929f268a5a447f00a09e7602d0c59a01e6bd15ef44ed0c37be16343a63`), including Elrond setup/C# links. This proves publication, not browser interaction.
 
-There are **37 implemented query types**: 3 canonical adapters, 32 bounded source profiles and 2 locally scoped Azure/Oracle implementations. Radix passes50/50 focused tests (zero skips), real shared-manager3/2 and actual C# console3/2; API admission/local HTTP/hosted/browser remain pending. Deployed tariff remains36 types; hosted HTTP34/browser5 unchanged. Elrond hosted acceptance remains green. Azure/Oracle hosting deferred. TRON429 remains red; Starknet transport qualified, CQL unqualified. Full roadmap remains incomplete.
+There are **37 implemented query types**: 3 canonical adapters, 32 bounded source profiles and 2 locally scoped Azure/Oracle implementations. Radix passes50/50 focused tests (zero skips), real shared-manager3/2 and actual C# console3/2; API admission and local HTTP/Mongo federation pass; hosted/browser remain pending. Deployed tariff remains36 types; hosted HTTP34/browser5 unchanged. Elrond hosted acceptance remains green. Azure/Oracle hosting deferred. TRON429 remains red; Starknet transport qualified, CQL unqualified. Full roadmap remains incomplete.
 
 
 31 October2026. User clarified that all demonstrated providers must run through
