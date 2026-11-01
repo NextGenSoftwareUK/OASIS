@@ -2253,3 +2253,9 @@ While exact Sui application81794c84 remains queued, planned anonymous read-only 
 TRON qualification terminal: three HTTP200 header-only reads, compact readiness.json 1985bytes; no local process or port, no source catalogue/owner created. Public evidence disposable after report hash retention; SDK/signing not invoked.
 
 Sui application deploy81794c84 queued, exact7e0b60994; Core0e540eb Development verified. No owned local processes/new resources, free C78524657664bytes; no attribution of external disk variation. Existing reusable frozen release branch will advance by fast-forward to exact7e0b60994 for guarded settings apply; same worktree/environment, no duplicate checkout.
+
+### 1 November 2026 - strict TRON qualification
+
+Reuse Python3.12 stdlib and existing TestResults/TronPublicSourceCandidateCurrent; planned four bounded anonymous header reads (genesis and1/2/3) to same official SolidityNode endpoint. New compact qualified-readiness.json initially unmeasured; no runtime/install/account/key/process/port or source owner allocation. Retain report hash, regenerate public reads if needed. Owner COSMIC CQL. No CQL capability or hosted grant inferred.
+
+TRON strict qualification terminal:9pure tests and4native header-only reads pass. qualified-readiness.json 1725bytes, no process/port/source identity; lifecycle regenerable public observation, preserve report hash. Scripts introduce no dependencies. Current Sui application81794c84 remains queued, no visitor/settings mutations.
