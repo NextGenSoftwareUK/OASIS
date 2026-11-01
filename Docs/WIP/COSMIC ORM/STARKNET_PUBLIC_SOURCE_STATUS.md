@@ -1,6 +1,6 @@
 # Starknet public source qualification
 
-Updated 1 November 2026. Endpoint qualification red; no CQL/API/hosted grant or count increase.
+Updated 1 November 2026. Guarded .NET/Node transport now reaches Mainnet; native multi-record contract/CQL/API/hosted gates remain open. Earlier Python403is client-specific evidence, not a global endpoint failure.
 
 ## Observed result
 
@@ -19,3 +19,9 @@ This is agent-owned research; no new David action/account request. Browser bridg
 Primary contracts: [operator endpoint listing](https://starknet.publicnode.com/), [official Starknet OpenRPC specification](https://github.com/starkware-libs/starknet-specs/blob/master/api/starknet_api_openrpc.json).
 
 Denial diagnostic: HTTP403, servercloudflare, JSON response, cloudflare/access-denied body indicators, no retry-after/proxy-block-reason header. Policy cause remains unverified. Raw denial-diagnostic.json 574bytes, SHA256 `ca81564db2db3d33c317cfd20f9196abbaeeefccfb39adbe643ebd0cb155bbbe`. No acceptance retry or endpoint/config migration.
+
+## Intended transport reaches Mainnet
+
+Existing deployed Node24and local Node24returned HTTP200for specVersion/chainId; local .NET10using actual Coref41b2a1 NativeConnectionGuard handler also returned200. RPC reports version **0.10.3**, chain ID **0x534e5f4d41494e (SN_MAIN)**. No endpoint fallback, guard suppression, credentials, new runtime or network write. Earlier Pythonurllib403remains preserved; cause is client-specific/undetermined, not proved to be a service-wide denial.
+
+Evidence/hashes are shared with [Radix transport qualification](RADIX_PUBLIC_SOURCE_STATUS.md#guarded-native-transport-and-entity-contract-qualified). No Starknet header catalogue or three/two-record CQL selection is proven yet. Next qualify the current RPC's bounded immutable/header selection and exact FELT/numeric/status contract before implementation. Prioritize the now-qualified Radix native3/2resource contract first.
