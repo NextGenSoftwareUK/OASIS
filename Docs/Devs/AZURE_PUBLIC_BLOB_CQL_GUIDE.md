@@ -103,7 +103,15 @@ The example above illustrates the schema; use the exact three-object catalogue f
 
 A leaf request to `api/data/query-cql` uses `provider: AzureStorageOASIS`, `orderBy: None` and an `In` string filter at metadata path `["AzureBlobKey"]`. A federated request to `api/data/query-cql/federation` names `["MongoDBOASIS", "AzureStorageOASIS"]` and supplies the same source filter. The two private Mongo snapshots are explicit copies, not native Azure writes; `PreserveCopies` exposes both providers' provenance.
 
-Hosted publication and live sandbox acceptance are tracked separately in [the current Azure report](../WIP/COSMIC%20ORM/AZURE_PUBLIC_BLOB_STATUS.md). Do not infer their completion from a local test. Hosted Cosmos DB remains deferred.
+Hosted acceptance passes at WEB4 release `bccef53d6` / Core `d133cc2`, with settings rollout `8e382a80-86ec-4d1d-8709-ca459f9e9781`: native3/2, Mongo-paired5/4, repeat reuse, visitor privacy and exact SQLite/Neo4j replicas. Browser interaction remains an open gate. See [the current Azure report](../WIP/COSMIC%20ORM/AZURE_PUBLIC_BLOB_STATUS.md) for hashes and immutable cohort evidence. Hosted Cosmos DB remains deferred.
+
+## Live sandbox workflow
+
+Open the [WEB4 sandbox](https://web4.oasisomniverse.one/web4-sandbox.html), start a temporary session and select `AzureStorageOASIS` in the CQL tab. The provider supplies ready three-object and two-object presets.
+
+For a Mongo-paired preset, prepare your two private snapshots through the normal WEB4 save path, then run the query. The full preset returns five physical copies and the subset returns four, with each provider identified. Repeating setup reuses the same copies. An uncertain save retains its operation identity and must be reconciled before another attempt; never blindly resubmit it.
+
+The Azure side remains anonymous and read-only. These presets query object properties, not census rows or arbitrary blobs; use the configured keys. A visitor's Mongo snapshots stay private, even though the Azure source itself is public.
 
 ## Verification and limits
 
