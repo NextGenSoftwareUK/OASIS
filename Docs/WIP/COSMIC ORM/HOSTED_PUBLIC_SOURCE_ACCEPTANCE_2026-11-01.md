@@ -1,6 +1,6 @@
 # Hosted public-source acceptance — 1 November 2026
 
-Latest: **28 scoped hosted HTTP providers**, including XRPL, Bitcoin and Berachain below. Browser proof remains **5**; **23 open**. Earlier evidence retains its original deployment/cohort.
+Latest: **37 scoped hosted HTTP providers**, including Cardano. Browser proof remains **5**; **32 open**. Earlier evidence retains its original deployment/cohort; historical counts below are not current totals.
 
 
 
@@ -397,3 +397,7 @@ Full scope/failure history: [Radix report](RADIX_PUBLIC_SOURCE_STATUS.md#hosted-
 ## Additional Starknet acceptance
 
 Applicationcafd0f8c8/Core8a5ab45, app151477e9 and settings03760bc9 SUCCESS. Native3/2, Mongo federation5/4,2private saves once, repeat0new/2existing, foreign-private0/public3, matching SQLite/Neo4j replicas2/2. Original cohort completion ACK retained; no repeated writes. Browser open. Hosted36/browser5/open31, implemented38, query tariffs36;28additions/56copies/112presets. [Proof and hashes](STARKNET_PUBLIC_SOURCE_STATUS.md#hosted-acceptance-complete).
+
+## Cardano completed
+
+Parentaffe57190/Corebe397f1, app1615af0d/settingscfe35470 SUCCESS. Native3/2, private Mongo federation5/4, repeat0new/2existing, foreign-private0/public3 and SQLite/Neo4j replicas2/2 pass on original cohort; both creates acknowledged version1, no pending preparation intent. Durable completion ACK prevents replay. [Counts, hashes and limits](CARDANO_PUBLIC_SOURCE_STATUS.md#hosted-acceptance-complete). Total29added profiles/58private demo copies/116presets plus earlier8provider proofs. Website5d9845c card is published and exact git-blob bytes verified; browser interaction remains open.

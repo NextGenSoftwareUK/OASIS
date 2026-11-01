@@ -69,3 +69,5 @@ Settingscfe35470 SUCCESS at parentaffe57190/Corebe397f1. Original cohort native3
 - TestResults\HostedCqlIntegrationCurrent\CardanoOASIS-native-http.json: 15588bytes; SHA25692f22d90c9e4fbfd3b096abaaf630862c4925e1a2f081e00aef41c5dadd8a848.
 - TestResults\HostedCqlIntegrationCurrent\CardanoOASIS-client-http-flow.json: 41139bytes; SHA256e64217681ae069562d3c128e79b87533c6317b074a8e7c647ec8918875a77af6.
 - TestResults\HostedCqlIntegrationCurrent\CardanoOASIS-isolation-http.json: 6291bytes; SHA2560522a921d2e50566c7a284b3af53bd67227e7856c6dc2cb52a656becd8b9d0ee.
+
+Website5d9845c published with guide64f448f84/C#affe57190. Public HTML200/153728bytes/SHA2564ebca2803c9c4739e6ac5a15043b7ca4b8feabf55731dd8868be192c6b59f81f exactly matches committed git blob; working checkout CRLF differs only in line endings. Compact site-publication.json retained outside Docs. Browser gate remains open.
