@@ -48,9 +48,9 @@ Algorand passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/pub
 
 ## Exact next work
 
-1. Next: website main ada6e92 exact HTML verified; publish the already-tested Aptos application batch (Coree845c62/task1a15453d0+). Its protected3setting candidate/planner are ready; do not apply until exact app SUCCESS. Algorand cohort is green: never replay saves. [Hosted proof](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-algorand-acceptance).
+1. Next: observe exact Aptos applicationbb19d2ab-c34e-492a-9274-5e49c6e4c3b5 (QUEUED), parent1cfb893c80166bf497c3112de359126a8a456fa4/Coree845c62261a74ae800c89a4175daddf0cc9d8f16. After SUCCESS, fast-forward existing frozen release branch, guarded3setting application and one journalled rollout. Then visitor HTTP/Mongo/privacy/replica checks and staged Aptos card. Candidate prepared only; no visitor cohort or save replay.
 
-Aptos native milestone:26tests+actualCLI3/2 pass, shared-manager execution verified.33implemented query types; API2+Core1+nativeHTTP1 pass, privateMongo5/4/private0 verified. Later task-only Coree845c62 stays out of Algorand7a9ca308e release; protected candidate/actual4preset planner pass; hosting next after Algorand. Original catalogue/sourceOwner retained. [Proof and next gates](APTOS_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
+Aptos native milestone:26tests+actualCLI3/2 pass, shared-manager execution verified.33implemented query types; API2+Core1+nativeHTTP1 pass, privateMongo5/4/private0 verified. Aptos batch published to Development; Algorand proof remains bound to7a9ca308e; protected candidate/actual4preset planner pass; hosting next after Algorand. Original catalogue/sourceOwner retained. [Proof and next gates](APTOS_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
 
 2. Browser gates remain open for25providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
@@ -60,7 +60,7 @@ Aptos native milestone:26tests+actualCLI3/2 pass, shared-manager execution verif
 - Work/build/test only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public. Frozen public release branch7a9ca308e. Unknown root logs untouched.
 - Durable source identities/tokens/save intents/ACKs: LocalState/COSMIC. Fresh completion hashes: HostedQueryAcceptance-<Provider>/cql-http-acceptance.acknowledged.json. Never regenerate owners or replay uncertainty after cleanup.
 - Protected settings snapshots/intents/outcomes: HostedSourceRolloutCurrent. Preserve rejected combined-catalogue and successful partition journals. Raw output only TestResults/HostedCqlIntegrationCurrent, never Docs.
-- No new runtime/environment/container/download in this rollout. Reuse pinned resources. Latest free C:79873458176bytes; no attribution to unmeasured external changes. [Ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+- No new runtime/environment/container/download in this rollout. Reuse pinned resources. Latest free C:78870900736bytes; no attribution to unmeasured external changes. [Ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 - Builds: Invoke-WithProviderBuildLease.ps1, /m:2 /nr:false /p:UseSharedCompilation=false; never nest. Pins: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks. Source packaging: python -B Scripts/validate_all_provider_sdk_publish_manifests.py.
 
 Links: [checklist](CQL_PARITY_CHECKLIST.md), [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [integration](HOSTED_SANDBOX_INTEGRATION_PLAN.md), [backlog](AFTER_DEMO_BACKLOG.md), [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
