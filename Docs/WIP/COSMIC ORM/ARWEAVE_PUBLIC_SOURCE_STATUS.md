@@ -1,6 +1,6 @@
 # Arweave public-source qualification
 
-Updated 1 November 2026. Native CQL implemented/verified; API and hosted admission remain pending.
+Updated 1 November 2026. Native CQL/API/hosted HTTP acceptance verified; browser gate remains open.
 
 The existing Arweave provider is the candidate after Cardano hosted acceptance. Four bounded anonymous reads against https://arweave.net returned HTTP200: `/info` (292 bytes) identifies `arweave.N.1`; `/block/height/269512` (919 bytes) supplies a historical header. No account, wallet, database, transaction or source owner was created.
 
@@ -47,3 +47,14 @@ Frontend task4f22ac3 stages the spaced Arweave local command and guide/C# links 
 ## Hosted settings rollout
 
 App73ec2804 SUCCESS atb158bda61/Core5fd361d. Three reviewed settings applied once, individual ACK hashes and complete hosted candidate matched. One journalled settings deploymentec59010e-e01a-4606-b91c-371c79a11414 is BUILDING. Original arweave-public-rollout.intent.json/protected outcome retained; do not replay apply/redeploy. After exact SUCCESS run Verify-HostedQuerySource.py ArweaveOASIS --prepare once on its fresh durable cohort, then inspect ACKs/identities/versions/replicas/privacy and write completion ACK before card publication. Hosted37/tariffs37/browser5/open32 remain evidence counts until acceptance. Checkpoint docs may now be committed; exact apply guard is complete.
+
+Settings jobec59010e is now REMOVED. Newer Development descendant37a530a87e601397f187430728bb9fb02b224f87 job3da7f986-6e65-4fcf-b8f8-4916e688a9b6 is BUILDING. Exact ancestry/diff confirms only ACTIONS-FOR-DAVID.md changed; Core/gitlink/manifest/code are identical to testedb158bda61. The complete hosted candidate still matches, so no settings/deployment replay. Observe this replacement; after SUCCESS accept using its exact release identity. Original removed-job evidence retained.
+
+## Hosted acceptance complete
+
+Deployment3da7f986 SUCCESS at37a530a87/Core5fd361d (identical tested codeb158bda61 plus David-list update). Original Arweave cohort proves native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and SQLite/Neo4j2/2; both private creates acknowledged version1, no pending intents. Durable completion ACK blocks replay. Two private snapshots retained for demo, no native writes. Hosted38/implemented40/tariffs38/browser5/open33. Publish staged card next; browser not inferred.
+- TestResults\HostedCqlIntegrationCurrent\ArweaveOASIS-native-http.json: 15507bytes; SHA256dca50b8eaf4fc8274a0f001a4389b86cfccaa4d0a4560f440133bb795d02f5f2.
+- TestResults\HostedCqlIntegrationCurrent\ArweaveOASIS-client-http-flow.json: 40733bytes; SHA25633802c3f6f3b2454f5dd175a3c099eb12b49bf5e0e5942b69cfbb53c69fdd075.
+- TestResults\HostedCqlIntegrationCurrent\ArweaveOASIS-isolation-http.json: 6251bytes; SHA2563eead081c4727aebdda90208798a8918476a25e88f1b63c6548da7b96f74aef2.
+
+Website61e85b75a933004d1f005f85f1318fa05ad139de published with guided089a778c/C#b158bda61. Public HTML200/155229bytes/SHA2566fda659c10e90bb99d7636e04b62d3dc343b3a0c36cd85bb5b3f3c3e3c5c94f3 exactly matches committed git blob; compact site-publication.json retained. Browser interaction remains open.
