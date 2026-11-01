@@ -1,6 +1,6 @@
 # Hedera / Hashgraph public account CQL status
 
-Updated 1 November 2026. Native CQL/shared-manager/CLI complete; API/local HTTP complete; hosted/browser gates open. Provider type is the existing `HashgraphOASIS`. Counts:34implemented query types and30scoped hosted HTTP providers.
+Updated 1 November 2026. Native CQL/shared-manager/CLI complete; API/local HTTP complete; hosted/browser gates open. Provider type is the existing `HashgraphOASIS`. Counts:34implemented query types and31scoped hosted HTTP providers.
 
 ## Qualified contract
 
