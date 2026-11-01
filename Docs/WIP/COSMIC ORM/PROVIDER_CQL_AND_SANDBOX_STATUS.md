@@ -9,7 +9,7 @@ Snapshot: 1 November 2026. This is a report, not a claim of full production read
 - Hosted HTTP evidence now covers **27** providers: earlier eight, seventeen additions, Berachain and Bitcoin, each at its recorded release. Browser proof remains **5**; twenty-two are open.
 - Each addition passed native3/2, private Mongo preparation, paired5/4, repeat reuse, foreign-private isolation and exact SQLite/Neo4j replicas. The original **68** new presets plus **4** Berachain and **4** Bitcoin presets are live (**76** added presets total). [Fresh proof](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
 - Latest application **19ebbfe2c/Core7317ba1**, Bitcoin settings rollout **f71e482c SUCCESS**; original17proofs at4e0d58f08/aff4bf53 are preserved. All seventeen small preset partitions match the protected candidate; original rejected combined-catalogue journal preserved.
-- Public website mainc932346 serves the exact committed expanded demo links. A link is not live enrollment.
+- Public website mainbc00ef2 serves byte-identical Bitcoin-inclusive demo HTML with CLI/guide/C# links. A link is not live enrollment.
 - Azure hosted free account and Oracle hosted connection are deferred by David; existing local/emulator evidence does not prove cloud hosting.
 
 ## What each CQL level means
