@@ -21,7 +21,11 @@ def main():
     parser.add_argument('--deployment', required=True)
     parser.add_argument('--reconcile-insecure-issuance', action='store_true',
                         help='Explicitly rotate the original sealed insecure-cookie issuance; never create another session.')
+    parser.add_argument('--continue-rejected-revoke', action='store_true',
+                        help='Explicitly continue the original captured Unauthorized revoke after its owner-check correction.')
     options = parser.parse_args()
+    if options.reconcile_insecure_issuance and options.continue_rejected_revoke:
+        parser.error('Select exactly one reconciliation phase.')
     configuration = load('Publish-HostedSolidConfiguration')
     helper = load('Verify-HostedQuerySource')
     observed = subprocess.run([str(configuration.CLI), 'deployment', 'list', *configuration.COMMON,
@@ -36,7 +40,7 @@ def main():
     results = ROOT / 'TestResults/SandboxSessionRenewalCurrent'
     if (state / 'flow.acknowledged.json').exists():
         raise RuntimeError('Completed lifecycle proof must not be replayed.')
-    if (state / 'flow.intent.json').exists() != options.reconcile_insecure_issuance:
+    if (state / 'flow.intent.json').exists() != (options.reconcile_insecure_issuance or options.continue_rejected_revoke):
         raise RuntimeError('Existing issuance requires explicit reconciliation; fresh issuance cannot use reconciliation.')
     preflights = []
     for origin, trusted in [(helper.BROWSER_ORIGIN, True), ('https://session-proof.invalid', False)]:
@@ -50,7 +54,25 @@ def main():
             assert 'origin' in response.headers.get('Vary', '').lower()
             preflights.append({'origin': origin, 'trustedCookies': trusted, 'status': response.status})
     state.mkdir(parents=True, exist_ok=True)
-    if options.reconcile_insecure_issuance:
+    if options.continue_rejected_revoke:
+        original_response = state / 'revoke.response.dpapi'
+        captured = json.loads(helper.verification.protected_token(original_response.read_bytes(), decrypt=True))
+        rejected_revoke = helper.verification.unwrap(json.loads(base64.b64decode(captured['bodyBase64'])))
+        if (captured['status'] != 200 or rejected_revoke.get('isError') is not True
+                or rejected_revoke.get('result') != 'Unauthorized' or captured['cookies']
+                or (state / 'revoke.acknowledged.json').exists()):
+            raise RuntimeError('Original revoke is not the precise authoritative pre-mutation rejection.')
+        helper.session_credentials.no_pending_rotation(state, 'owner')
+        acknowledged = json.loads((state / 'issuance-reconciliation.acknowledged.json').read_text())
+        credentials = helper.session_credentials.validate(json.loads(helper.verification.protected_token(
+            (state / 'owner.session.dpapi').read_bytes(), decrypt=True)), acknowledged['ownerId'])
+        avatar = {'id': credentials['ownerId']}
+        helper.write_new(state / 'revoke-continuation.intent.json', json.dumps({
+            'ownerId': avatar['id'], 'commit': options.expected_commit, 'deployment': options.deployment,
+            'originalRejectionSha256': hashlib.sha256(original_response.read_bytes()).hexdigest(),
+            'action': 'same-owner normal rotation and corrected revoke; original rejection retained'}).encode())
+        initial_faults = None
+    elif options.reconcile_insecure_issuance:
         # Only the precisely diagnosed failed issuance can enter this path. The
         # original cookie is never represented as a successful secure issuance.
         if (state / 'owner.acknowledged.json').exists() or (state / 'owner.session.dpapi').exists():
@@ -99,13 +121,15 @@ def main():
     else:
         repeated_faults = helper.call('sandbox/faults', renewed['jwtToken'], method='GET')
         assert renewed_faults['result'] == repeated_faults['result']
-        helper.write_new(state / 'issuance-reconciliation.acknowledged.json', json.dumps({
+        helper.write_new(state / ('revoke-continuation.rotation-acknowledged.json' if options.continue_rejected_revoke
+                                  else 'issuance-reconciliation.acknowledged.json'), json.dumps({
             'ownerId': avatar['id'], 'sameAvatarRenewed': True, 'newCookieSecure': True}).encode())
-    helper.write_new(state / 'revoke.intent.json', json.dumps({'ownerId': avatar['id'],
+    revoke_prefix = 'revoke-after-ownership-fix' if options.continue_rejected_revoke else 'revoke'
+    helper.write_new(state / (revoke_prefix + '.intent.json'), json.dumps({'ownerId': avatar['id'],
         'cookieHeaderSha256': hashlib.sha256(renewed['cookieHeader'].encode()).hexdigest()}).encode())
     revoked = []
     def capture_revoke(status, raw, cookies):
-        helper.write_new(state / 'revoke.response.dpapi', helper.verification.protected_token(json.dumps({
+        helper.write_new(state / (revoke_prefix + '.response.dpapi'), helper.verification.protected_token(json.dumps({
             'status': status, 'bodyBase64': base64.b64encode(raw).decode(), 'cookies': cookies}).encode()))
         revoked.append((status, cookies))
     helper.call('avatar/revoke-token', renewed['jwtToken'], body={},
@@ -118,7 +142,7 @@ def main():
             cookie = jar['refreshToken']; deleted.append(cookie)
     assert len(deleted) == 1 and not deleted[0].value and deleted[0]['path'] == '/'
     assert deleted[0]['httponly'] and deleted[0]['secure']
-    helper.write_new(state / 'revoke.acknowledged.json', json.dumps({'ownerId': avatar['id'],
+    helper.write_new(state / (revoke_prefix + '.acknowledged.json'), json.dumps({'ownerId': avatar['id'],
         'normalRevokeSucceeded': True, 'cookieCleared': True}).encode())
     rejected = []
     def capture_rejected(status, raw, cookies):
@@ -138,7 +162,8 @@ def main():
     proof = {'commit': options.expected_commit, 'deployment': options.deployment, 'avatarId': avatar['id'],
         'preflights': preflights, 'secureHttpOnlyCookie': True, 'sameAvatarRenewed': True,
         'faultScopePreserved': initial_faults is not None,
-        'originalInsecureIssuanceReconciled': options.reconcile_insecure_issuance, 'normalRevokeSucceeded': True, 'revokedRefreshRejected': True,
+        'originalInsecureIssuanceReconciled': options.reconcile_insecure_issuance or options.continue_rejected_revoke,
+        'originalRejectedRevokeContinued': options.continue_rejected_revoke, 'normalRevokeSucceeded': True, 'revokedRefreshRejected': True,
         'providerSaves': 0, 'browserInteractionVerified': False, 'realTokenExpiryWaited': False,
         'scope': 'normal HTTPS cookie protocol; expiry-triggered client behavior has separate controlled-clock tests'}
     encoded = json.dumps(proof, indent=2).encode() + b'\n'
