@@ -315,3 +315,5 @@ Stellar decoder milestone1November: complete native header decoder20cases/0skips
 Stellar native CQL milestone supersedes preflight-only status: full XDR-bound rows,21source/1real C# and actualCLI3/2 pass; cloud egress200 observed separately. API/HTTP/hosting remain red; [proof](STELLAR_PUBLIC_SOURCE_STATUS.md#native-cql--developer-demo-complete). Live counts unchanged.
 
 Stellar API/local HTTP milestone:3API/prepared+1Core+1native HTTP,3publisher and1client gates pass; native3/2+Mongo5/4/private0, original fixture removed. Hosting/browser still red. [Proof](STELLAR_PUBLIC_SOURCE_STATUS.md#api--local-http-complete).
+
+Hedera live gate1November remains red: initial native504/CQL_QUERY_CANCELLED before any private saves. Source now uses max3parallel independent reads, same5second budget;24affected tests pass. Correction4fb66c687/Core89b5ffa app122310fc INITIALIZING, no settings change/count grant. [Defect/proof](HEDERA_PUBLIC_SOURCE_STATUS.md#live-scheduling-defect-and-correction).
