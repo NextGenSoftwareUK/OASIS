@@ -305,3 +305,5 @@ XRPL readiness1November: official public endpoint returns three linked/validated
 XRPL native milestone supersedes preflight-only status: adapter21controlled+1real shared-manager C# and actualCLI3/2 pass. [Proof/HTTP next](XRPL_PUBLIC_SOURCE_STATUS.md). No hosted permission/count change.
 
 XRPL API/local HTTP milestone:3API/prepared+1Core+1native HTTP gates,3publisher and1client controls pass. Paired5/4/private0, exact fixture cleaned, no hosted grant yet. [Proof](XRPL_PUBLIC_SOURCE_STATUS.md).
+
+Stellar feasibility1November:2public GETs/3linked XDR-hash/fixed-parent-prefix checked headers,7controls pass. Complete XDR decoder/CQL/hosting remain unverified; [scope and next gates](STELLAR_PUBLIC_SOURCE_STATUS.md). No counts changed.
