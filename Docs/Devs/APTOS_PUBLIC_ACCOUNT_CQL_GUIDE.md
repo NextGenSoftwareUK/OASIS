@@ -46,3 +46,7 @@ Each query reads Mainnet ledger info once, checks body/header agreement, then in
 Metadata includes `AptosAccountAddress`, `AptosSequenceNumber`, `AptosAuthenticationKey`, `AptosLedgerVersion`, `AptosChainId` and `AptosConsistency`. UInt64 values remain exact decimal strings. Authentication keys are public account data and do not establish the caller's ownership or signing authority.
 
 The API does not echo the account address in its account body. The profile preserves the explicit request identity and validates the documented account response; it does not independently verify state proofs or consensus. [Official account API](https://aptos.guide/rest-api/operations/get_account).
+
+## Live sandbox
+
+Open the WEB4 sandbox CQL tab, start a temporary session and select AptosOASIS. Choose the three-account or two-account preset. The Mongo-paired preset prepares two private snapshots and reuses them on repeat setup. Hosted HTTP proof covers native3/2, paired5/4, privacy and SQLite/Neo4j replicas. Native reads select a version per query; captured Mongo observations need not have that same version. Browser interaction is a separate gate.

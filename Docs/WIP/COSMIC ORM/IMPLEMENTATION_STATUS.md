@@ -2,7 +2,7 @@
 
 Updated1November2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state; [checklist](CQL_PARITY_CHECKLIST.md) owns acceptance. Full programme incomplete.
 
-- 30 providers have scoped hosted HTTP proof: earlier8 plus22additions. Browser proof remains5;25open. [Fresh evidence](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
+- 31 providers have scoped hosted HTTP proof: earlier8 plus23additions. Browser proof remains5;26open. [Fresh evidence](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
 - Each addition passed native3/2, private Mongo preparation, paired5/4, repeat zero writes, foreign-private zero and matching SQLite/Neo4j replicas. Public projections are not owned native chain writes/full ORM.
 - Live applicationc6e7f14ba/Coree032d0a and XRPL endpoint correction74bdf044 succeeded. Strict partitions preserve68original plus12Berachain/Bitcoin/XRPL presets. Polkadot publish root cause fixed.
 - Original12investor-demo scopes are green on MongoDB/SQLite/Neo4j. Their query checklist has50/82green rows per database; overlapping/uneven rows are not an overall parity percentage.
@@ -50,3 +50,5 @@ Algorand hosted completion1November:7a9ca308e/Corec17db5f, exact settingsf3ee7f3
 Hedera/Hashgraph native milestone1November:21controlled+1real shared HolonManager3/2 tests pass/no skips; actual commentedCLI3/2 passes. LatestIndexed account catalogue, exact tinybars/native timestamps and strict official Mainnet endpoint; no SDK payment, source writes, freshness/shared snapshot or consensus proof.34implemented query types/30hosted HTTP; API/hosting remain open. [Guide](../../Devs/HEDERA_PUBLIC_ACCOUNT_CQL_GUIDE.md), [proof](HEDERA_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
 
 Hedera API/local HTTP milestone1November:2API+1Core+1native HTTP+1actual4preset shipping planner pass/no skips;3publisher+1client controls pass. Native3/2, Mongo federation5/4 and private0 locally verified; owned fixture removed/ACKs retained. Protected3setting candidate prepared only, Core89b5ffa/task-only. Hosted/cloud query/browser gates remain open. [Proof](HEDERA_PUBLIC_SOURCE_STATUS.md#api-and-local-http-complete).
+
+Aptos hosted completion1November:1cfb893c8/Coree845c62, exact settings1c100994 SUCCESS. Native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2 pass. Per-native-query ledger version and exact strings; no cross-provider historical snapshot, state/consensus proof or source writes. Counts31hosted HTTP/5browser/26open;33deployed query-tariff types. [Proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-aptos-acceptance).

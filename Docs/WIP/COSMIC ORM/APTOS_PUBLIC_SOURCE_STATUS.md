@@ -1,6 +1,6 @@
 # Aptos public account CQL status
 
-Updated 1 November 2026. Native CQL/shared-manager/CLI complete; API/local HTTP complete; hosted/browser remain open. Counts:33implemented query types and29scoped hosted HTTP providers.
+Updated 1 November 2026. Native CQL/shared-manager/CLI complete; API/local and hosted HTTP complete; browser remains open. Counts:34implemented query types and31scoped hosted HTTP providers.
 
 ## Qualified contract
 
@@ -58,3 +58,9 @@ Guarded3setting apply must wait for the exact future Aptos application SUCCESS. 
 Development publication1November: parent1cfb893c80166bf497c3112de359126a8a456fa4/Coree845c62261a74ae800c89a4175daddf0cc9d8f16, both remote refs verified after fresh fetch/ancestry checks. Committed manifest/gitlinks and5SDK closures pass. Exact appbb19d2ab-c34e-492a-9274-5e49c6e4c3b5 QUEUED. Settings candidate unapplied; no hosted visitor/save cohort. Observe same job, never restart for observation timeout.
 
 Rollout update1November: exact appbb19d2ab SUCCESS at1cfb893c8/Coree845c62. All3Aptos settings individually acknowledged and whole protected candidate observed exactly. One journalled settings deployment1c100994-b781-41e5-a239-fed9ecf14511 submitted. No hosted visitor/save cohort yet. Later Hedera native work excluded from this release.
+
+## Hosted HTTP complete
+
+Aptos hosted completion1November:1cfb893c8/Coree845c62, exact settings1c100994 SUCCESS. Native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2 pass. Per-native-query ledger version and exact strings; no cross-provider historical snapshot, state/consensus proof or source writes. Counts31hosted HTTP/5browser/26open;33deployed query-tariff types. [Proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-aptos-acceptance).
+
+Original owner/independent visitor, save intents/ACKs and completion hashes retained under HostedQueryAcceptance-AptosOASIS. Never replay. Original sourceOwner/accounts unchanged. Website main8e3db22 publishes the verified card, local CLI/guide/commented C#; exact committed/live HTML verified (SHA256b679d18f8c949778cf33fb824277c12eef9bbd2d3ae2e6a3f31620adbaeef127). Earlier pending statements describe milestone history.

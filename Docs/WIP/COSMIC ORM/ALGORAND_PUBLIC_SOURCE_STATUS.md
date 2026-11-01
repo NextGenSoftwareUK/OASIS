@@ -1,6 +1,6 @@
 # Algorand public account CQL status
 
-Updated 1 November 2026. Native CQL adapter and shared-manager tests pass; API/local HTTP complete; hosted/browser gates remain open. Counts: 32 implemented query types, 31 deployed query-tariff types and 29 scoped hosted HTTP providers.
+Updated 1 November 2026. Native CQL, API/local and hosted HTTP complete; browser remains open. Programme counts: 34 implemented query types, 33 deployed query-tariff types and 31 scoped hosted HTTP providers. Earlier sections preserve milestone history.
 
 ## Qualified contract
 
