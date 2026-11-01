@@ -872,3 +872,21 @@ Use `--sei-public LocalState/COSMIC/HostedSeiPublicSourceCurrent/source.json` wi
 ## Radix public resource demo
 
 Use `--radix-public <existing-source.json>` for three Mainnet resource definitions and a two-address CQL filter. [Setup and consistency](../../Docs/Devs/RADIX_PUBLIC_RESOURCE_CQL_GUIDE.md). Native console verified; hosted enrollment pending.
+
+
+## Public Azure Blob properties: runnable C# demo
+
+The real public Azure dataset needs no account or subscription. Reuse the retained
+catalogue; queries return three object-property records or a two-record subset.
+No Parquet contents or source objects are downloaded or written.
+
+```powershell
+dotnet Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll `
+    --azure-blob-public `
+    LocalState/COSMIC/HostedAzureBlobPublicSourceCurrent/source.json
+```
+
+[AzureBlobPublicWalkthrough.cs](AzureBlobPublicWalkthrough.cs) uses shared manager/LINQ
+planning and execution. The [guide](../../Docs/Devs/AZURE_PUBLIC_BLOB_CQL_GUIDE.md)
+explains configuration, HTTP and Mongo federation. Hosted sandbox publication is
+tracked separately; this is not hosted Cosmos DB acceptance.

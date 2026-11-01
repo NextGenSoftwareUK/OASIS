@@ -29,6 +29,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.ActivityPubOASIS => "MastodonStatusId",
             ProviderType.SolanaOASIS => "SolanaAccountAddress",
             ProviderType.GoogleCloudOASIS => "GCSObjectKey",
+            ProviderType.AzureStorageOASIS => "AzureBlobKey",
             ProviderType.EthereumOASIS => "EthereumAccountAddress",
             ProviderType.PolygonOASIS => "PolygonAccountAddress",
             ProviderType.ArbitrumOASIS => "ArbitrumAccountAddress",
@@ -106,7 +107,7 @@ public static class NativeKeySetWalkthrough
     {
         if (mongo.QueryProviderType != ProviderType.MongoDBOASIS)
             throw new ArgumentException("The first target must be the explicitly configured Mongo provider.", nameof(mongo));
-        if (protocol.QueryProviderType is not (ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS or ProviderType.ActivityPubOASIS or ProviderType.SolanaOASIS or ProviderType.GoogleCloudOASIS))
+        if (protocol.QueryProviderType is not (ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS or ProviderType.ActivityPubOASIS or ProviderType.SolanaOASIS or ProviderType.GoogleCloudOASIS or ProviderType.AzureStorageOASIS))
             throw new ArgumentException("Select IPFS, SOLID, Mastodon or public Solana/Google metadata as the second target.", nameof(protocol));
         var descriptor = protocol.QueryCapabilities.StringKeySetLookup
             ?? throw new ArgumentException("Enroll native membership on the protocol target before planning.", nameof(protocol));

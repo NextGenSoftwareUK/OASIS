@@ -24,12 +24,15 @@ public static class CqlHostedDemoIdentities
 
     public static CqlDemoIdentityResult Create(CqlDemoIdentityRequest request, Guid actor)
     {
+        var provider = CqlV1Compiler.RequestedProvider(request?.Provider, true)
+            ?? throw new ArgumentException("A concrete configured-source profile is required.");
+        // Azure dataset blob names can exceed 128 characters. Match the source's
+        // declared bound without expanding other providers' identity contracts.
+        var maximumKeyLength = provider == ProviderType.AzureStorageOASIS ? 512 : 128;
         if (actor == Guid.Empty || request?.Keys == null || request.Keys.Length is < 1 or > 2
-            || request.Keys.Any(key => string.IsNullOrEmpty(key) || key.Length > 128 || key.Any(c => c < 33 || c > 126))
+            || request.Keys.Any(key => string.IsNullOrEmpty(key) || key.Length > maximumKeyLength || key.Any(c => c < 33 || c > 126))
             || request.Keys.Distinct(StringComparer.Ordinal).Count() != request.Keys.Length)
             throw new ArgumentException("One or two bounded unique native keys and an authenticated owner are required.");
-        var provider = CqlV1Compiler.RequestedProvider(request.Provider, true)
-            ?? throw new ArgumentException("A concrete configured-source profile is required.");
         return new(actor, provider.ToString(), Array.AsReadOnly(request.Keys.Select(key => new CqlDemoMappedIdentity(
             NativeRecordHolonMapper.StableHolonId(actor, provider, SourceName, key), key,
             new System.Collections.ObjectModel.ReadOnlyDictionary<string, string>(new Dictionary<string, string>

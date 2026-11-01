@@ -7,6 +7,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs" Link="Demo/NativeKeySetWalkthrough.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/AzureBlobPublicWalkthrough.cs" Link="Demo/AzureBlobPublicWalkthrough.cs" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
