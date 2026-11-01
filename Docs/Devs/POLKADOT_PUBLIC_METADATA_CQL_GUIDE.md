@@ -1,41 +1,60 @@
-# Polkadot public header CQL
+# Polkadot block headers with CQL
 
-This explicit read representation queries a retained catalogue of public Polkadot block headers. Native CQL3/2 is verified. C# walkthrough/CLI3/2 and local HTTP/Mongo5/4/isolation also pass; remaining hosted/browser acceptance is tracked in [current status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md); do not infer hosted availability from a local test.
+Updated 1 November 2026. This explicit read-only profile is live in the hosted demo.
+Native CQL, published C#/CLI, local HTTP and hosted visitor/Mongo acceptance pass.
+Browser interaction remains unverified for this profile. [Exact hosted proof](../WIP/COSMIC%20ORM/HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
 
-## C# walkthrough
+## Run the live demo
 
-Use the existing stable catalogue after the normal bounded build. The command creates no wallet, synthetic records or database fixture.
+Open the [WEB4 sandbox](https://web4.oasisomniverse.one/web4-sandbox.html), start a
+demo session and open CQL Playground. Select **PolkadotOASIS** when server discovery
+marks it available. The server supplies four editable presets:
+
+| Preset | Physical rows |
+|---|---:|
+| Three configured native records | 3 |
+| Two-key native subset | 2 |
+| Three native records plus your Mongo snapshots | 5 |
+| Two native records plus your Mongo snapshots | 4 |
+
+Use **Prepare my Mongo records** before the paired presets. It creates two private
+snapshots through normal create-only saves; repeating it reuses acknowledged
+records. Another visitor can see the public source but not your snapshots.
+Matching SQLite/Neo4j copies were verified on the configured demo routes.
+
+## Run the C# example
+
+Reuse the retained nonsecret source catalogue and the existing SDK/runtime:
 
 ```powershell
-dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj --no-build --no-restore -- --polkadot-public LocalState/COSMIC/HostedPolkadotPublicSourceCurrent/source.json
+dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
+    --no-build --no-restore -- `
+    --polkadot-public LocalState/COSMIC/HostedPolkadotPublicSourceCurrent/source.json
 ```
 
-[PolkadotPublicWalkthrough.cs](../../Examples/CosmicCqlDemo/PolkadotPublicWalkthrough.cs) selects three configured hashes, then two, using the shared [NativeKeySetWalkthrough.cs](../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs). That pipeline uses CosmicLinq and HolonManager's planner/executor. Source keys are block hashes, distinct from projected OASIS IDs. Do not regenerate the source owner: it contributes to stable native mapping IDs.
+The spaced/commented [PolkadotPublicWalkthrough.cs](../../Examples/CosmicCqlDemo/PolkadotPublicWalkthrough.cs)
+uses the shared HolonManager/LINQ pipeline. It selects three native keys, then two.
+This console run performs native reads; it does not create Mongo records or rerun
+hosted/browser acceptance. Build normally under the bounded provider build lease
+if those compiled outputs are absent.
 
-## Source contract
+## Query contract and identity
 
-`PolkadotPublicHeaderMetadataSource.FromJson` accepts exactly schema1, rpcUrl, genesisHash, blockHashes and sourceOwner. Use1–8 unique canonical lowercase32byte hashes, Polkadot's configured genesis and a stable nonempty owner. Endpoint must be anonymous HTTPS at root, with no user info, query or fragment. The retained source explicitly uses rpc.polkadot.io; no runtime endpoint fallback or retry exists.
+- Native selection key: **PolkadotBlockHash**, equality or bounded constant-set membership.
+- Use explicit provider scope. Unsupported predicates/operators are errors; this
+  profile does not authorize an arbitrary scan, full ORM or signed source writes.
+- Public native records and visitor-owned Mongo snapshots have different mapped
+  OASIS IDs. Keep the source-reference metadata; never substitute a native key for
+  a mapped holon ID. Preserve stable catalogue owners rather than regenerating them.
+- Federation preserves physical copies. It does not provide a transactional snapshot
+  spanning the source and Mongo. Public state may change between separate queries.
+- If metadata encryption is enabled, grant this specific query key through trusted
+  AdditionalQueryableKeys policy. Do not expand the global reserved unencrypted list.
+- Pricing, permissions, source activation, native capabilities and work budgets are
+  independent checks. Query permission does not grant signed storage authority.
 
-**PolkadotBlockHash** supports equality and bounded membership over that catalogue. Unknown hashes and unsupported scans/sorts/predicates fail. All selected records validate before visibility/paging; a bad final record fails the query even if the requested page is empty. No partial rows escape on cancellation/error.
+See the [manual](../WIP/COSMIC%20ORM/CQL_MANUAL.md) for request syntax and scope;
+[current status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md) owns rollout state.
+Earlier staged candidates are historical; never apply them over the current host.
 
-Each query verifies the genesis response, reads the RPC-reported finalized header and verifies its content hash, then verifies each selected header's content hash, height not above the reported finalized height and canonical hash at its number. Header identity is BLAKE2b-256 over SCALE encoding, including all digest logs; duplicate fields, noncanonical values, excessive digest counts/depth and responses over256KiB fail. No block bodies, runtimeWASM or storage scans are requested.
-
-Content hashing verifies identity. Canonical history and finality remain assertions from the configured RPC; this is not an independently verified GRANDPA light client or state inclusion proof. These native projections do not prove COSMIC holons are stored on-chain.
-
-Metadata: PolkadotBlockHash, PolkadotGenesisHash, PolkadotBlockNumber, PolkadotParentHash, PolkadotStateRoot, PolkadotExtrinsicsRoot, PolkadotReportedFinalizedHash and PolkadotReportedFinalizedNumber. Numbers remain exact decimal strings. Rows are public active roots, no children, using the shared NativeRecordHolonMapper.
-
-## WEB4 admission
-
-Optional `CQL_POLKADOT_PUBLIC_SOURCE_JSON` registers a lazy read representation separately from canonical signed storage. Independent query permission/tariff, query-only enrollment, activation and capability checks are still required. It grants no writes or replication authority. Mixed unsigned-read/signed-write roles for one provider remain rejected by one admission factory; preserve the fence.
-
-If metadata encryption is enabled, the specific query key must be explicitly allowed by the trusted query policy. Do not globally reserve it as unencrypted system metadata. Hosted configuration/presets and browser acceptance remain pending, and the public playground must not advertise an unavailable source.
-
-[Scope and evidence](../WIP/COSMIC%20ORM/POLKADOT_PUBLIC_SOURCE_READINESS.md). Primary contracts: [RPC](https://polkadot.js.org/docs/asset-hub-polkadot/rpc/), [header SCALE layout](https://github.com/paritytech/polkadot-sdk/blob/master/substrate/primitives/runtime/src/generic/header.rs), [genesis identity](https://standards.chainagnostic.org/CAIPs/caip-13).
-
-Local HTTP pairing uses two normal SDK create-only private Mongo snapshots, server-derived IDs and provenance links. The owner sees5/4physical copies; another actor sees public headers and zero private snapshots. Hosted preparation/reuse and replication remain separate pending gates.
-
-## Staged configuration and presets
-
-`Publish-HostedPolkadotPublicConfiguration.py` validates only the verified rpc.polkadot.io catalogue and adds the source variable, independent free query permission/tariff and four presets. It rejects credentials, wrong genesis/keys/endpoint, paid reads, existing role overlap and missing encryption grants; canonical DNA is unchanged.
-
-The pending combined rollout uses the already prepared `Publish-HostedGoogleEthereumConfiguration.py with-polkadot` candidate, composing all six strict source validators into8values/24new presets. Do not prepare blindly over existing files or apply separate candidates from one old host snapshot. Explicit `apply-with-polkadot` is for the reviewed matching application/Core79d7859 rollout; no apply/deployment occurred. Never apply it to frozen6bb. Hosted discovery must pass permission, price, activation and capability checks before advertising live examples.
+Header content hashes and SCALE encoding are checked. Canonical/finality claims remain RPC-reported; this is not independent consensus verification or on-chain storage.

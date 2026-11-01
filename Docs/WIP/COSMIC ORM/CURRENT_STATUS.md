@@ -42,6 +42,10 @@ Each new profile proves native **3/2**, two private Mongo creates, paired **5/4*
 - Six native repair/continuation/interleaving routes and three-authority ACK-loss/HTTP-disconnect proofs remain scoped. Replica delivery is not write-authority migration.
 - Open: broader operator/transport recovery, authority cutover, scale and full ORM lifecycle/child/history/migration reconciliation. No universal uptime or all-provider write/replication claim.
 
+## Active next provider
+
+Berachain qualifies against mainnet chain0x138de/genesis d5781942...cfb38. Native/C#/actualCLI3/2 and localHTTP3/2+Mongo5/4/isolation pass. API2,Core1,tariff regression22,configuration3,client1 and actual4preset planner1tests pass. Core08c4977 is pushed on the task branch; parent pin/gitlink staged together, verify after commit. Canonical signed roles remain separate. Three-setting protected candidate prepared, not applied. Next publish matching application/Core, enroll source/admission/preset partition, roll settings and run hosted proof.
+
 ## Exact next work
 
 1. Preserve completed cohorts; do not repeat green save/query gates. Continue red provider breadth and reproducible demo defects.
