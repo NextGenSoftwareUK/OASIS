@@ -6,13 +6,11 @@ David authorizes necessary Development pushes for live demo testing/fixes withou
 
 ## Current milestone
 
-All20addedprofiles passed hosted HTTP/client-module acceptance: original17plusBerachain/Bitcoin/XRPL. Combined with earlier8proofs, **28 providers** have scoped hosted HTTP evidence. Browser proof remains **5**, with **23 open**. Earlier eight-provider acceptance was not broadly rerun.
+All21addedprofiles passed hosted HTTP/client-module acceptance: original17plusBerachain/Bitcoin/XRPL/Stellar. Combined with earlier8proofs, **29 providers** have scoped hosted HTTP evidence. Browser proof remains **5**, with **24 open**. Earlier eight-provider acceptance was not broadly rerun.
 
-Live application: Development **c6e7f14baf89cacb9a1938cf11bfe574b51bc3ba**, Core **e032d0a4701e1c5bc4fa4d8f1545cac41745376b**. Exact free-endpoint correction **74bdf044-485b-40f7-9fca-29b846bc775b SUCCESS**; protected candidate exact. XRPL native/Mongo/isolation/replica HTTP gates pass. Original402/expired empty cohort retained separately.
+Live application: Development **637a6d49fecceb047bb17025169d8632e2d3082e**, Core **2dd3c379a04ef164fec8f419f07383dabe366dce**. Exact Stellar settings deployment **3eda0ea7-5238-4a7d-bd91-f47ba2f8102d SUCCESS**; protected3setting candidate exact. Stellar native/Mongo/isolation/replica HTTP gates pass; durable completion ACK retained. No source writes.
 
-Stellar verified batch published: parent637a6d49fecceb047bb17025169d8632e2d3082e/Core2dd3c379a04ef164fec8f419f07383dabe366dce, both Development refs verified. Exact app6f4d9a65-48c6-465e-af2e-f2359deea85b SUCCESS; all3Stellar settings observed exactly. Journalled settings deployment3eda0ea7-5238-4a7d-bd91-f47ba2f8102d pending verification.
-
-Website main **b71d25f** serves byte-identical XRPL-inclusive HTML, SHA2563edd644ff6ac436dccf224e0428af84a2ed7e6e62dda977c2c3386316e654725. Free-endpoint CLI path, guide123340f6c and C#c6e7f14ba links published. Existing/focused client proofs remain scoped; browser proof separate.
+Website main **d88a0a4** serves byte-identical committed Stellar-inclusive HTML, SHA256 **be55fc9b52d099588c50cf400d78d6652d315fc698ced617dc6c988c7c285fcc**. Readable CLI/guide/commented C# links published; focused Stellar client test passes. Browser proof remains separate.
 
 ## Provider evidence
 
@@ -21,13 +19,13 @@ Website main **b71d25f** serves byte-identical XRPL-inclusive HTML, SHA2563edd64
 | Advanced canonical CQL; earlier hosted/browser proof | MongoDB, SQLite, Neo4j. Original baseline35/35; full EF parity incomplete. |
 | Earlier hosted/browser source proof | ActivityPub, IPFS. |
 | Earlier hosted HTTP source proof; browser open | SOLID, S3 public metadata, Solana public accounts. |
-| Fresh hosted HTTP/client proof; browser open | Google Cloud Storage, Ethereum, Polygon, Arbitrum, Cosmos Hub, Polkadot, NEAR, Base, Avalanche, BNB, Optimism, Linea, Scroll, zkSync, Abstract, Monad, Sei, Berachain, Bitcoin, XRPL. |
+| Fresh hosted HTTP/client proof; browser open | Google Cloud Storage, Ethereum, Polygon, Arbitrum, Cosmos Hub, Polkadot, NEAR, Base, Avalanche, BNB, Optimism, Linea, Scroll, zkSync, Abstract, Monad, Sei, Berachain, Bitcoin, XRPL, Stellar. |
 | Local/emulator only; hosting explicitly deferred | Azure Cosmos DB, Oracle Database. No signup/payment re-asks. |
 | Not admitted | Rootstock endpoint rejects finalized headers; no downgrade. |
 
-Each new profile proves native **3/2**, two private Mongo creates, paired **5/4**, repeat **0** new / **2** existing, foreign-private **0**, and **2** matching rows on each of SQLite/Neo4j. Total **40** private snapshots across the20additions. No source/chain writes or browser proof inferred.
+Each new profile proves native **3/2**, two private Mongo creates, paired **5/4**, repeat **0** new / **2** existing, foreign-private **0**, and **2** matching rows on each of SQLite/Neo4j. Total **42** private snapshots across the21additions. No source/chain writes or browser proof inferred.
 
-[Fresh proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). [Every provider project](PROVIDER_CQL_AND_SANDBOX_STATUS.md) covers the maintained229-project inventory. Core's30query-tariff types are not30hosted certifications.
+[Fresh proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). [Every provider project](PROVIDER_CQL_AND_SANDBOX_STATUS.md) covers the maintained229-project inventory. Core's31query-tariff types are not31hosted certifications.
 
 ## Root causes resolved
 
@@ -46,12 +44,12 @@ Each new profile proves native **3/2**, two private Mongo creates, paired **5/4*
 
 ## Latest provider milestone
 
-XRPL passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2. Explicit free Ripple endpoint migration preserves sourceOwner/ledger hashes; no source writes. Post-startup-fix cohort has original save/completion ACKs; prior empty failed owner retained after token expiry. Website mainb71d25f publishes the exact verified XRPL/free-endpoint links.
+Stellar passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2. Complete XDR-bound hash-pinned headers; no signature/consensus verification. Original source identity/catalogue retained. Website main d88a0a4 published and exact committed HTML verified; browser acceptance remains open.
 
 ## Exact next work
 
-1. Next: observe exact settings deployment3eda0ea7-5238-4a7d-bd91-f47ba2f8102d until SUCCESS; never restart on observation timeout. Then normal-visitor Stellar native/Mongo/isolation/replica proof and staged website links. [Local proof](STELLAR_PUBLIC_SOURCE_STATUS.md#api--local-http-complete). No green save replay.
-2. Browser gates remain open for23providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
+1. Next: Stellar website links published and exact committed HTML verified. Continue remaining provider breadth from explicit red rows. Algorand free endpoint rejects account rewind; qualify honest current-state semantics or immutable headers. No green save replay.
+2. Browser gates remain open for24providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
 ## Recovery/resources

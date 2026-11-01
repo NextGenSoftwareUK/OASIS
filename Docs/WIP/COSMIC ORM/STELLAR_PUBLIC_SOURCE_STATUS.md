@@ -58,3 +58,11 @@ Local loopback HTTP proves native3/2, two private SDK Mongo creates, paired5/4, 
 Core2dd3c37 task branch pushed/remotely verified; parent gitlink/dependency manifest advance together. Candidate is prepared only, no settings applied. Next verified Development publication, exact app SUCCESS, guarded3setting application, one journalled settings rollout, then normal visitor native/Mongo/isolation/replica acceptance and website links. Wait for the settings rollout before creating a visitor; require discovery readiness before any save. Counts31implemented/candidate31tariff/deployed30tariff/28hosted HTTP/5browser; no Stellar hosted grant.
 
 1 November rollout update: exact application6f4d9a65 SUCCESS at637a6d49f. All three protected Stellar settings observed exactly; one journalled settings deployment3eda0ea7-5238-4a7d-bd91-f47ba2f8102d submitted. Hosted acceptance and website publication remain pending; no new hosted-provider count yet.
+
+## Hosted HTTP complete
+
+Stellar hosted completion (1 November): application637a6d49f/Core2dd3c37, exact settings deployment3eda0ea7 SUCCESS. Native3/2, private Mongo2, federation5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2 pass. Counts29hosted HTTP,5browser,24browser-open;31deployed query-tariff types. Read-only hash-pinned public headers, no Stellar writes or consensus/signature verification. [Evidence](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-stellar-acceptance).
+
+Original owner/independent visitor and completion ACK preserved; native header catalogue/sourceOwner unchanged. Website card publication is next; browser verification remains open. Earlier sections record the milestone history rather than current pending gates.
+
+Website main d88a0a4 published. Live HTML equals committed bytes: SHA256 be55fc9b52d099588c50cf400d78d6652d315fc698ced617dc6c988c7c285fcc. Focused client test1pass; browser acceptance remains open.

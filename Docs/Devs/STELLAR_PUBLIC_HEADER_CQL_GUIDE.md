@@ -64,3 +64,7 @@ The exact schema rejects unknown fields, duplicate sequences, malformed hashes, 
 Native controlled CQL, real C# and actual CLI3/2 pass. A read-only probe from the existing hosted container reaches the same public network/retained header; it is not hosted CQL acceptance. API read admission and exact four-preset planner pass; local HTTP proves native3/2, Mongo5/4 and private isolation. Hosted rollout/replicas and browser checks remain unfinished gates. [Current evidence and next steps](../WIP/COSMIC%20ORM/STELLAR_PUBLIC_SOURCE_STATUS.md).
 
 References: [Stellar header XDR](https://github.com/stellar/stellar-xdr/blob/master/Stellar-ledger.x), [Horizon ledgers](https://developers.stellar.org/docs/data/apis/horizon/api-reference/resources/ledgers).
+
+## Live sandbox
+
+Open the WEB4 sandbox CQL tab and choose StellarOASIS. The three-header and two-header presets read public headers. The Mongo-paired preset prepares two private snapshots; repeating preparation reuses them. Hosted HTTP checks verify native 3/2, paired 5/4, visitor privacy and matching SQLite/Neo4j replicas. No wallet or Stellar transaction is needed. Browser interaction and general chain search remain separate gates.
