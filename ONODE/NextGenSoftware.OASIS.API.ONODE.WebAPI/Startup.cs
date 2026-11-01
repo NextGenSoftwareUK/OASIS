@@ -494,6 +494,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_SEI_PUBLIC_SOURCE_JSON"] is string seiPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.SeiOASIS.SeiPublicAccountMetadataSource.FromJson(seiPublicSource)));
+            if (Configuration["CQL_TON_PUBLIC_SOURCE_JSON"] is string tonPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.TONOASIS.TonPublicHeaderMetadataSource.FromJson(tonPublicSource)));
             if (Configuration["CQL_ARWEAVE_PUBLIC_SOURCE_JSON"] is string arweavePublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.ArweavePublicHeaderMetadataSource.FromJson(arweavePublicSource)));
