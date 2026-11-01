@@ -1,6 +1,6 @@
 # Starknet public source qualification
 
-Updated 1 November 2026. Guarded .NET/Node transport now reaches Mainnet; native multi-record contract/CQL/API/hosted gates remain open. Earlier Python403is client-specific evidence, not a global endpoint failure.
+Updated 1 November 2026. Native CQL/manager/CLI, API/local HTTP and hosted native/federation/reuse/privacy/replicas verified. Card published; browser interaction remains open. Earlier failures/research below are historical.
 
 ## Observed result
 
@@ -75,3 +75,5 @@ Settings03760bc9-9984-40c1-8963-55f907f51e66 SUCCESS on cafd0f8c8/Core8a5ab45. F
 - TestResults/HostedCqlIntegrationCurrent/StarknetOASIS-isolation-http.json:6301bytes; SHA2564e2e971826748e20d207f01936c2478205bb564fc1bd4eef8bad2220d1866609.
 
 Next publish the staged card with verified HTTP scope and first-setup/C# links; do not claim browser or independent consensus verification. Full ORM/signed Starknet writes remain outside this bounded read profile.
+
+Website main80ba51052c14a2f705e24e9825a9fe8b495fe642 now publishes the Starknet card and pinned guide164b4bb96/C#cafd0f8c8 links byte-identically:152265bytes, SHA25658bd2b0b5edec25c29d16f9351006dc4621dd6ca2818df5d08dec1551163a2a6. Public site-publication.json is under TestResults/StarknetPublicSourceCandidateCurrent. Publication does not certify browser interaction; gate remains open. Next breadth candidate is documented in CARDANO_PUBLIC_SOURCE_STATUS.md.
