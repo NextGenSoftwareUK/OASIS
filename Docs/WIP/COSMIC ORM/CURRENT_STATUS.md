@@ -14,7 +14,7 @@ There are **38 implemented query types**: 3 canonical adapters,33bounded public/
 
 1. Radix card published/byte-verified at website0228db6; setup guide74ccc3752/C#74aaa9b4d linked. Original HostedQueryAcceptance-RadixOASIS completion ACK exists: do not replay saves or create a new owner.
 2. Session lifecycle HTTP proof complete on original avatar, completion ACK retained: do not replay. Frontend9e18b7d published and HTML/JS byte-verified; browser gates remain open. [Proof and limits](SESSION_RENEWAL_STATUS.md).
-3. Starknet card published/byte-verified at website80ba510. Original cohort is complete/frozen; no reruns. Continue breadth: Cardano public genesis returned Mainnet/764824073. Read operator specs, then qualify bounded historical headers through guarded .NET before implementation. API-root OpenAPI guess404is retained, not a provider-wide outage. [Research](CARDANO_PUBLIC_SOURCE_STATUS.md).
+3. Starknet card is published/byte-verified at80ba510; original cohort complete/frozen. Cardano now passes guarded native genesis and explicit header3/2 qualification using operator fixture2e8ad7768. Complete keys/stable headers agree, response ordering differs, quantities exact. Next implement/test bounded source with complete-set validation and requested-key ordering; no CQL/count grant yet. [Contract/evidence](CARDANO_PUBLIC_SOURCE_STATUS.md).
 4. Browser gates:5verified/30open. CUA transport remains closed; David already opened the browser. No OS control resumed or repeated owner request.
 
 ## Guarantees and limits
