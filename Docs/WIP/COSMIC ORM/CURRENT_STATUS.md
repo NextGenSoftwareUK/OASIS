@@ -14,7 +14,7 @@ There are **39 implemented query types**, including locally verified Cardano: 3 
 
 1. Radix card published/byte-verified at website0228db6; setup guide74ccc3752/C#74aaa9b4d linked. Original HostedQueryAcceptance-RadixOASIS completion ACK exists: do not replay saves or create a new owner.
 2. Session lifecycle HTTP proof complete on original avatar, completion ACK retained: do not replay. Frontend9e18b7d published and HTML/JS byte-verified; browser gates remain open. [Proof and limits](SESSION_RENEWAL_STATUS.md).
-3. Cardano Core/API, native HTTP3/2+Mongo5/4+visitor privacy and actual four-preset candidate now pass. Corebe397f1 task-only; protected three-setting candidate prepared, no host mutation. Next select verified release excluding red TRON, build/check shipping artifact, publish, then guarded config/one deployment/hosted acceptance/card. Original local fixture cleaned; no reseed. [Evidence](CARDANO_PUBLIC_SOURCE_STATUS.md).
+3. Cardano Core/API, native HTTP3/2+Mongo5/4+visitor privacy and actual four-preset candidate now pass. Corebe397f1 task-only; protected three-setting candidate prepared, no host mutation. Selected releasec9410b9b9 passes4shipping checks; actual TRON adapter absent/Cardano present. Publish selected batch, observe exact job, then guarded three-setting apply/one deployment/hosted acceptance/card. Original local fixture cleaned; no reseed. [Evidence](CARDANO_PUBLIC_SOURCE_STATUS.md).
 4. Browser gates:5verified/30open. CUA transport remains closed; David already opened the browser. No OS control resumed or repeated owner request.
 
 ## Guarantees and limits
