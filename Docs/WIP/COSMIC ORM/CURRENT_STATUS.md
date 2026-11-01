@@ -4,23 +4,23 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 
 ## Current verified milestone
 
-**35 providers have scoped hosted HTTP evidence; 5 have browser evidence and 30 browser gates remain open.** Radix native3/2 and Mongo5/4 pass; the original cohort resumed after the atomic settlement fix with zero new saves/two reused copies, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2. Source writes and browser interaction are not inferred.
+**36 providers have scoped hosted HTTP evidence; 5 have browser evidence and 31 browser gates remain open.** Starknet passes native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2. Two private saves were acknowledged once. Source writes and browser interaction are not inferred.
 
-Latest provider acceptance remains Radix at74aaa9b4d/Core8b79301; original cohort completed with no duplicate saves. Session correctiond9332469d/Coreb835014 is now live: same-avatar secure rotation, refresh revocation/cookie clear and rejected revoked refresh pass. Website main9e18b7dedda7c4e6cfaa358fa8987774616deaac serves matching HTML150878bytes and both versioned JS assets, including Radix setup/C# links. Publication/HTTP checks do not certify browser interaction or real expiry waiting. See SESSION_RENEWAL_STATUS.md for exact proof hashes.
+Latest hosted provider acceptance: parentcafd0f8c8ea93c22f5d4638acc336df5795a05d7/Core8a5ab453ee6734195331abeec0ad5c04e84b5332, app151477e9/settings03760bc9 SUCCESS. Original Starknet cohort completion ACK retained; never replay its writes. Session lifecycle correction and website9e18b7d publication also pass; Starknet card is staged for publication. Browser and real-expiry interaction remain separate open gates.
 
-There are **38 implemented query types**: 3 canonical adapters,33bounded public/source profiles and2local Azure/Oracle implementations. Starknet31controls, real CQL/manager/CLI3/2, API/schema3/3, local HTTP3/2+Mongo5/4+foreign-private0/public3 and actual four-preset planning pass; hosting remains pending. Deployed tariffs35, hosted HTTP35, browser5/open30. Azure/Oracle hosting deferred; TRON429red. Full ORM/EF parity/HyperDrive certification remains incomplete.
+There are **38 implemented query types**: 3 canonical adapters,33bounded public/source profiles and2local Azure/Oracle implementations. Deployed query tariffs36; hosted HTTP36; browser5/open31. Starknet31controls, real CQL/manager/CLI3/2, API/local HTTP and actual presets plus hosted federation/reuse/isolation/replicas pass. Azure/Oracle hosting deferred; TRON429red. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
 ## Exact next step
 
 1. Radix card published/byte-verified at website0228db6; setup guide74ccc3752/C#74aaa9b4d linked. Original HostedQueryAcceptance-RadixOASIS completion ACK exists: do not replay saves or create a new owner.
 2. Session lifecycle HTTP proof complete on original avatar, completion ACK retained: do not replay. Frontend9e18b7d published and HTML/JS byte-verified; browser gates remain open. [Proof and limits](SESSION_RENEWAL_STATUS.md).
-3. Starknet API/local HTTP/Mongo/privacy and actual four-preset candidate now pass. Core8a5ab45 query-only admission is task-only; three settings staged in DPAPI, no host mutation. Selected release274ccf42e passes4shipping checks; TRON adapter absent from actual DLL. Applicationcafd0f8c8 job151477e9 SUCCESS. Three settings applied/individually acknowledged/whole-candidate verified. One settings deployment03760bc9-9984-40c1-8963-55f907f51e66 BUILDING; observe, never resend. Config now36query tariffs; hosted proof remains35until fresh acceptance. Then run Verify-HostedQuerySource.py StarknetOASIS --prepare once. Original local fixture cleaned; do not reseed/replay.
+3. Starknet hosted cohort is complete/frozen. Publish the staged card after its pending note is replaced with verified scope; pin the updated guide and actual C# source, byte-verify publication. Then continue breadth: Cardano public genesis returned Mainnet/764824073; documented schema/native guarded multi-header contract is next. API-root OpenAPI guess404is retained, not a provider-wide outage.
 4. Browser gates:5verified/30open. CUA transport remains closed; David already opened the browser. No OS control resumed or repeated owner request.
 
 ## Guarantees and limits
 
 - MongoDB/SQLite/Neo4j checklist50/82each; original demo set green. Work only on red rows unless a bug is reproduced.
-- Added27hosted profiles retain54private demo copies and108presets. Original earlier eight proofs were not broadly rerun. Copies carry name/description/native key, not complete native chain state.
+- Added28hosted profiles retain56private demo copies and112presets. Original earlier eight proofs were not broadly rerun. Copies carry name/description/native key, not complete native chain state.
 - HyperDrive scoped selection/failover/recovery proofs remain recorded; public source demos do not certify full provider writes, authority migration or universal uptime.
 - Atomic billing handoff publishes settlement evidence and inline lease in one Mongo CAS. Genuine delivery failures remain durable/pending; lease expiry preserves worker recovery.
 - Radix native/federation evidence began at1f39016fa; remaining reuse/isolation/replica checks completed at74aaa9b4d using the same cohort. Original failure and credential recovery are retained, not hidden.
@@ -30,7 +30,7 @@ There are **38 implemented query types**: 3 canonical adapters,33bounded public/
 ## Recovery and commands
 
 - Work only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public; verified release branch work/cosmic-cql-public-release excludes red TRON and new Starknet work. Frontend C:/Source/Web4Site work/cosmic-cql.
-- Live serverd9332469d/Coreb835014; provider acceptance remains74aaa9b4d. Frontend9e18b7d is published/byte-verified. Selected Starknet release274ccf42e/Core8a5ab45 awaits publication.
+- Live servercafd0f8c8/Core8a5ab45, settings03760bc9 SUCCESS. Frontend9e18b7d remains live until Starknet card publication. No extra Development push solely for docs.
 - Raw outputs TestResults/. Durable source/config/identities/ACKs LocalState/COSMIC/. Original Radix settlement-continuation manifest hashes are preserved; acceptance completion ACK now blocks reruns.
 - Reuse pinned environments; inventory/cleanup in ENVIRONMENT_AND_CLEANUP_LEDGER.md. Unknown root logs preserved. Owned diagnostic DLLs removed; no new runtime or test service retained.
 - Build lease: Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1; /m:2 /nr:false /p:UseSharedCompilation=false. Explicit bounded build/test, then run frozen DLL; do not forward build flags to dotnet run.

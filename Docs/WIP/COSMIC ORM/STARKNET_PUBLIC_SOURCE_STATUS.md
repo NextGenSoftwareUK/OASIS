@@ -64,3 +64,14 @@ Selected release274ccf42eb91e1de518c299f93ce3d6155b56dcd/Core8a5ab453ee673419533
 Application releasecafd0f8c8ea93c22f5d4638acc336df5795a05d7/Core8a5ab453ee6734195331abeec0ad5c04e84b5332 pushed; job151477e9-730b-42b2-a29a-fa7b13378502 BUILDING. No configuration applied yet. Exact apply guard requires checked-out HEAD=cafd0f8c8; pending checkpoint docs intentionally uncommitted until apply. After exact SUCCESS, use COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT=cafd0f8c8ea93c22f5d4638acc336df5795a05d7 and Publish-HostedStarknetPublicConfiguration.py apply; reconcile per-key ACKs/whole candidate, then one journalled settings deployment. Never resend uncertain mutations.
 
 Application151477e9 SUCCESS. Guarded three-setting apply completed with per-key ACKs and exact whole-candidate comparison; canonical DNA unchanged. One journalled redeploy requested, protected outcome retained: settings job03760bc9-9984-40c1-8963-55f907f51e66 QUEUED on same cafd0f8c8 image. Never repeat apply or redeploy. Hosted config now36query tariffs/33query-only profiles; runtime/native/federation acceptance still pending. Once exact settings SUCCESS, run Verify-HostedQuerySource.py StarknetOASIS --prepare with its one durable new cohort, then inspect all native/federation/reuse/isolation/replica evidence before completion ACK/card/count promotion.
+
+
+## Hosted acceptance complete
+
+Settings03760bc9-9984-40c1-8963-55f907f51e66 SUCCESS on cafd0f8c8/Core8a5ab45. Fresh original cohort native3/2 and Mongo federation5/4pass;2new private copies, repeat0new/2existing, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2. Every native header hash matches the configured selection and reports ACCEPTED_ON_L1. Exactly2save ACKs, private copies version1; preparation intents empty. Completion ACK stored in LocalState/COSMIC/HostedQueryAcceptance-StarknetOASIS/cql-http-acceptance.acknowledged.json; never rerun/reseed. Browser remains open. Counts38implemented/36hosted/36tariffs/browser5/open31;28added profiles/56copies/112presets.
+
+- TestResults/HostedCqlIntegrationCurrent/StarknetOASIS-native-http.json:15591bytes; SHA2565bc12e889363694c5dfa20e863fcf330b2da102be84b57e406c48c44dbe4f599.
+- TestResults/HostedCqlIntegrationCurrent/StarknetOASIS-client-http-flow.json:40878bytes; SHA25632500441fc33a07d4915d3eb92c16cfbba404cf43f6d9511ab855b49b9b3c59d.
+- TestResults/HostedCqlIntegrationCurrent/StarknetOASIS-isolation-http.json:6301bytes; SHA2564e2e971826748e20d207f01936c2478205bb564fc1bd4eef8bad2220d1866609.
+
+Next publish the staged card with verified HTTP scope and first-setup/C# links; do not claim browser or independent consensus verification. Full ORM/signed Starknet writes remain outside this bounded read profile.
