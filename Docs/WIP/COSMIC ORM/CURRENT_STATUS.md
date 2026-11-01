@@ -6,7 +6,7 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 
 **38 providers have scoped hosted HTTP evidence; 5 have browser evidence and 33 browser gates remain open.** Arweave passes native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2. Two private saves were acknowledged once. Source writes and browser interaction are not inferred.
 
-Latest hosted acceptance: parent37a530a87e601397f187430728bb9fb02b224f87/Core5fd361db11f5d54e3e99282536d7c7be842edf86, job3da7f986 SUCCESS. This docs-only descendant preserves testedb158bda61 code; original settings jobec59010e was removed and never replayed. Original Arweave cohort completion ACK retained. Website5d9845c is the last byte-verified publication; Arweave card4f22ac3 is staged. Browser/real-expiry gates remain separate.
+Latest hosted acceptance: parent37a530a87e601397f187430728bb9fb02b224f87/Core5fd361db11f5d54e3e99282536d7c7be842edf86, job3da7f986 SUCCESS. This docs-only descendant preserves testedb158bda61 code; original settings jobec59010e was removed and never replayed. Original Arweave cohort completion ACK retained. Website61e85b75a933004d1f005f85f1318fa05ad139de publishes Arweave with guided089a778c/C#b158bda61. Public HTML155229bytes/SHA2566fda659c10e90bb99d7636e04b62d3dc343b3a0c36cd85bb5b3f3c3e3c5c94f3 matches the committed git blob. Browser/real-expiry gates remain separate.
 
 There are **40 implemented query types**: 3 canonical adapters,35bounded public/source profiles and2local Azure/Oracle implementations. Arweave native/control/manager/API/local and hosted federation/reuse/privacy/replica gates pass. Deployed tariffs38/hosted38/browser5/open33. TON candidate controls pass but nativeHTTP429 remains red and isolated; no TON support grant. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
@@ -14,7 +14,7 @@ There are **40 implemented query types**: 3 canonical adapters,35bounded public/
 
 1. Radix card published/byte-verified at website0228db6; setup guide74ccc3752/C#74aaa9b4d linked. Original HostedQueryAcceptance-RadixOASIS completion ACK exists: do not replay saves or create a new owner.
 2. Session lifecycle HTTP proof complete on original avatar, completion ACK retained: do not replay. Frontend9e18b7d published and HTML/JS byte-verified; browser gates remain open. [Proof and limits](SESSION_RENEWAL_STATUS.md).
-3. Arweave hosted acceptance complete on original cohort; completion ACK blocks replay. Publish staged card4f22ac3 with updated guide and actual C#b158bda61 links, byte-verify HTML, then return to breadth work. [Proof](ARWEAVE_PUBLIC_SOURCE_STATUS.md).
+3. Arweave hosted acceptance complete on original cohort; completion ACK blocks replay. Arweave card61e85b7 is published/byte-verified with updated guide/C# links. Continue breadth; TON native429 remains isolated, other provider candidates next. [Proof](ARWEAVE_PUBLIC_SOURCE_STATUS.md).
 4. Browser gates:5verified/33open. CUA transport remains closed; David already opened the browser. No OS control resumed or repeated owner request.
 5. TON candidate2764d64e1 on work/cosmic-cql-ton-public:12new query controls pass, live activationHTTP429; earlier23decoder controls+1captured test green. [Evidence](TON_PUBLIC_SOURCE_STATUS.md). Do not merge/deploy as native-ready; no retry/fallback or support-count grant.
 
@@ -31,7 +31,7 @@ There are **40 implemented query types**: 3 canonical adapters,35bounded public/
 ## Recovery and commands
 
 - Work only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public; verified release branch work/cosmic-cql-public-release excludes red TRON and new Starknet work. Frontend C:/Source/Web4Site work/cosmic-cql.
-- Live app37a530a87/Core5fd361d job3da7f986 SUCCESS, exact tested codeb158bda61 plus David-list update. Frontend5d9845c last published; Arweave staged4f22ac3 next. No Development push solely for docs.
+- Live app37a530a87/Core5fd361d job3da7f986 SUCCESS, exact tested codeb158bda61 plus David-list update. Frontend61e85b7 Arweave published/byte-verified. No Development push solely for docs.
 - Raw outputs TestResults/. Durable source/config/identities/ACKs LocalState/COSMIC/. Original Radix settlement-continuation manifest hashes are preserved; acceptance completion ACK now blocks reruns.
 - Reuse pinned environments; inventory/cleanup in ENVIRONMENT_AND_CLEANUP_LEDGER.md. Unknown root logs preserved. Owned diagnostic DLLs removed; no new runtime or test service retained.
 - Build lease: Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1; /m:2 /nr:false /p:UseSharedCompilation=false. Explicit bounded build/test, then run frozen DLL; do not forward build flags to dotnet run.
