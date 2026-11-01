@@ -20,7 +20,7 @@ Session lifecycle HTTP proof and updated website publication are verified; brows
 - Hosted HTTP evidence covers **38** providers: earlier8 plus30additions including Arweave, each at its recorded release. Browser proof remains **5**; **33** are open.
 - Each addition passed native3/2, private Mongo preparation, paired5/4, repeat reuse, visitor isolation and matching SQLite/Neo4j replicas. Added profiles expose **120 presets** (30partitions ×4). [Proof](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
 - Elrond application **801795a64/Coref41b2a1**, app19f65f59 and settings18c4f04e SUCCESS; hosted acceptance passes. Original cohorts/earlier release-specific proofs preserved, no green saves replayed.
-- Byte-verified website main **61e85b7** includes verified Arweave/Cardano/Starknet/Radix/Elrond/Sui/Hedera, first-setup guides and C# links. Browser interaction remains separately open.
+- Byte-verified website main **7a02a23** includes verified Arweave/Cardano/Starknet/Radix/Elrond/Sui/Hedera, first-setup guides and C# links. Browser interaction remains separately open.
 - Azure hosted free account and Oracle hosted connection are deferred by David; existing local/emulator evidence does not prove cloud hosting.
 
 ## What each CQL level means
@@ -343,3 +343,5 @@ Updated transport scope: deployed/localNode and exact local .NET guard return200
 
 
 Radix hosted milestone: original cohort completed at74aaa9b4d/Core8b79301 after settlement correction; no duplicate saves. [Scope, failure history and hashes](RADIX_PUBLIC_SOURCE_STATUS.md#hosted-acceptance-complete). Browser renewal/interaction remain separate. Earlier deployed-tariff headlines incorrectly included local Azure/Oracle: actual live catalogue35, implemented types37.
+
+CQL browser duration correction7a02a23 is published and byte-verified: explicit30s query budget receives35s client timeout, default remains15s, no retry. All89client controls pass; browser interaction remains unverified. TON stays local-only until exact code deployment4f6eba6c (currently QUEUED), revised settings and hosted acceptance pass.
