@@ -39,3 +39,13 @@ Query-type inventory41 (TON locally verified), hosted38/tariffs38/browser5/open3
 [Setup/manual and commented demo](../../Devs/TON_PUBLIC_HEADER_CQL_GUIDE.md) - [current task](CURRENT_STATUS.md) - [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 
 Primary wire domain: [official tonlib schema](https://github.com/ton-blockchain/ton/blob/master/tl/generate/scheme/tonlib_api.tl).
+
+## API admission checkpoint
+
+API/schema3/3, actual protected four-preset planning1/1 and pure publisher3/3 pass. Read-only Core admissionddabbf5447257a2136fa02aff3d4ca1c81035f3c is pushed/ls-remote verified on task only; parent gitlink/manifest advance together. Protected3-setting candidate prepared from acknowledged recent catalogue, no host changes.
+
+Real local HTTP/Mongo fixture stopped during source activation before first persistence; original intent/actor/copy/operation IDs retained in LocalState/COSMIC/TonMongoHttpCurrent. Original assertion discarded the activation exception, so the failure cause is not established. Assertions now include actual exception detail. pre-persistence-failure.review.json ties original intent/TRX/source hashes and failure line100 to the code boundary; DB absence must be verified by the owned runner before any explicit continuation. Never delete/reset/reseed the intent or create replacement identities. Mongo runner stopped and port27029 is absent.
+- TestResults\TonPublicSourceCandidateCurrent\api-admission.trx: 3passed/0failed, 6523bytes, SHA25679d3a81e4d6d268036db1e511c0d715fc29b78107490cb2d2983f2e0e1040690.
+- TestResults\TonPublicSourceCandidateCurrent\actual-prepared-candidate.trx: 1passed/0failed, 3323bytes, SHA256e7c9b74d5a950c4922e046421d9063307ee97404053e2f82f7f27d05cee8f1ca.
+- TestResults\TonPublicSourceCandidateCurrent\ton-mongo-http.trx: 0passed/1failed, 4831bytes, SHA25668e4b902498996563945d54da1d38804ba0be3394692c072a4bf34a2f1d08969.
+Next implement one explicitly reviewed continuation of the original pre-persistence fixture with the same IDs and fresh no-DB check, preserving first failure; capture readiness detail before writes. Local/hosted HTTP acceptance remain unproved; no TON deploy/grant.
