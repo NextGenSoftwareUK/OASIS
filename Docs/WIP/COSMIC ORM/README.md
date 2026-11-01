@@ -67,3 +67,5 @@ Update CURRENT_STATUS.md and the full provider report together with the affected
 [TON native CQL setup and commented C# candidate](../../Devs/TON_PUBLIC_HEADER_CQL_GUIDE.md):Native32decoder/13query/3error controls, realCQL3/2 and manager/CLI3/2 pass on the qualified recent dataset. Local HTTP native 3/2, paired 5/4 and privacy 0/3 pass; Hosted native3/2, paired5/4, reuse0/2, privacy0/3 and replicas2/2 pass; card publication next. [Evidence](TON_PUBLIC_SOURCE_STATUS.md).
 
 - [Azure public Blob status](AZURE_PUBLIC_BLOB_STATUS.md) and [C# / HTTP guide](../../Devs/AZURE_PUBLIC_BLOB_CQL_GUIDE.md): real properties queries, separate from pending hosted Cosmos DB.
+
+Azure publication milestone:40scoped hosted HTTP providers,5browser/35open; live Azure Blob CQL/Mongo/privacy/reuse/replicas and website9694621 byte proof are complete. Current recovery entry remains CURRENT_STATUS.md; [Azure evidence](AZURE_PUBLIC_BLOB_STATUS.md).
