@@ -21,16 +21,25 @@ public sealed class TonPublicHeaderMetadataTests
         public string Fault = "normal";
         public int Requests;
         public readonly List<long> Starts = new();
+        public readonly List<long> Completions = new();
+        public bool SlowFirst;
 
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
+        private HttpResponseMessage Complete(HttpResponseMessage response)
+        {
+            Completions.Add(System.Diagnostics.Stopwatch.GetTimestamp());
+            return response;
+        }
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
             Requests++;
             Starts.Add(System.Diagnostics.Stopwatch.GetTimestamp());
+            if (SlowFirst && Requests == 1) await Task.Delay(1300, token);
             Assert.AreEqual("toncenter.com", request.RequestUri!.Host);
             Assert.AreEqual(HttpMethod.Get, request.Method);
             Assert.IsNull(request.Headers.Authorization);
-            if (Fault == "http") return Task.FromResult(new HttpResponseMessage(HttpStatusCode.TooManyRequests));
+            if (Fault == "http") return Complete(new HttpResponseMessage(HttpStatusCode.TooManyRequests));
 
             object result;
             if (request.RequestUri.AbsolutePath.EndsWith("getMasterchainInfo"))
@@ -72,10 +81,31 @@ public sealed class TonPublicHeaderMetadataTests
             string json = JsonSerializer.Serialize(new { ok = true, result });
             if (Fault == "protocol") json = "{\"ok\":false,\"result\":{}}";
             if (Fault == "oversize") json = new string(' ', 262145);
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) {
+            return Complete(new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
             });
         }
+    }
+
+    [TestMethod]
+    public async Task SlowResponseDoesNotConsumeNextAdmissionInterval()
+    {
+        // Connection setup and server latency happen after dispatch starts.
+        // Waiting from that start can allow the next request immediately after
+        // a slow response, despite a nominal one-request-per-second gate.
+        var gateway = new Gateway { SlowFirst = true };
+        using var client = new HttpClient(gateway);
+        using var source = new TonPublicHeaderMetadataSource(client,
+            new Uri(TonPublicHeaderMetadataSource.PublicEndpoint), Blocks, Guid.NewGuid());
+
+        var activated = await source.ActivateQuerySourceAsync(default);
+        Assert.IsFalse(activated.IsError, activated.Exception?.ToString());
+        Assert.AreEqual(4, gateway.Starts.Count);
+        Assert.AreEqual(4, gateway.Completions.Count);
+        for (int index = 1; index < gateway.Starts.Count; index++)
+            Assert.IsTrue(System.Diagnostics.Stopwatch.GetElapsedTime(
+                gateway.Completions[index - 1], gateway.Starts[index]).TotalMilliseconds >= 1000,
+                "A slow completed request must not consume the next anonymous admission interval.");
     }
 
     private static CosmicQueryPlan<Holon> Plan(TonPublicHeaderMetadataSource source, string[] keys, string mode)

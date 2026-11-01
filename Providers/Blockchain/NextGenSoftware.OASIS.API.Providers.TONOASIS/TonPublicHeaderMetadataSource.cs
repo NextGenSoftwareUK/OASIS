@@ -168,10 +168,11 @@ public sealed class TonPublicHeaderMetadataSource : KeyValueStorageProviderBase,
         public string Prefix => "ton-public-metadata/";
         public IReadOnlyList<string> Addresses { get; }
 
-        // Anonymous TON Center permits one request/second. One process-wide
-        // owner paces starts across all instances; errors are never retried.
+        // Anonymous TON Center permits one request/second. Measure from the
+        // preceding completion: connection setup/latency must not consume the
+        // next admission interval. This is pacing, never an error-driven retry.
         private static readonly SemaphoreSlim EndpointGate = new(1, 1);
-        private static long previousStart;
+        private static long previousCompletion;
 
         public HeadersBackend(HttpClient client, Uri endpoint, IEnumerable<TonPublicHeaderReference> selections,
             Guid owner, bool ownsClient)
@@ -197,17 +198,18 @@ public sealed class TonPublicHeaderMetadataSource : KeyValueStorageProviderBase,
         private async Task<JsonElement> RequestAsync(string route, CancellationToken token)
         {
             await EndpointGate.WaitAsync(token);
+            bool dispatched = false;
             try
             {
-                if (previousStart != 0)
+                if (previousCompletion != 0)
                 {
-                    var elapsed = System.Diagnostics.Stopwatch.GetElapsedTime(previousStart);
+                    var elapsed = System.Diagnostics.Stopwatch.GetElapsedTime(previousCompletion);
                     var wait = TimeSpan.FromMilliseconds(1100) - elapsed;
                     if (wait > TimeSpan.Zero) await Task.Delay(wait, token);
                 }
                 token.ThrowIfCancellationRequested();
-                previousStart = System.Diagnostics.Stopwatch.GetTimestamp();
                 using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(endpoint, route));
+                dispatched = true;
                 using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
                 response.EnsureSuccessStatusCode();
                 await using var stream = await response.Content.ReadAsStreamAsync(token);
@@ -222,7 +224,11 @@ public sealed class TonPublicHeaderMetadataSource : KeyValueStorageProviderBase,
                 token.ThrowIfCancellationRequested();
                 return document.RootElement.Clone();
             }
-            finally { EndpointGate.Release(); }
+            finally
+            {
+                if (dispatched) previousCompletion = System.Diagnostics.Stopwatch.GetTimestamp();
+                EndpointGate.Release();
+            }
         }
 
         public async Task<IReadOnlyList<IHolon>> ReadAsync(IReadOnlyList<string> keys, CancellationToken token)
