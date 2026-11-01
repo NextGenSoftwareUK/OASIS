@@ -54,6 +54,8 @@ Aptos evidence: 26 native tests, 2 API + 1 Core + 1 local HTTP + 1 actual preset
 
 Hedera/Hashgraph native milestone:22tests+actualCLI3/2 pass through shared manager.34implemented query types; API2+Core1+nativeHTTP1+actual4preset1 pass; Core89b5ffa deployed; exact settings job above pending. LatestIndexed/per-account timestamps, official Mainnet endpoint binding (no API ledger ID). Original catalogue/sourceOwner retained. [Proof/next](HEDERA_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
 
+Sui qualification:8tests+1checkpoint-scoped GraphQL query/3objects pass. Existing SDK already uses gRPC; no JSON-RPC fallback/install. Stable catalogue/sourceOwner retained; CQL/API/hosting open. [Next gates](SUI_PUBLIC_SOURCE_STATUS.md).
+
 2. Browser gates remain open for26providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
