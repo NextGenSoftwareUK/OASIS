@@ -1,14 +1,14 @@
 # COSMIC ORM / CQL — current status
 
-Updated 31 October 2026. Programme incomplete. Current live-demo phase blocked on external state; preserve the full roadmap. Priority: hosted demo breadth and reproducible HyperDrive bugs; deep LINQ parity remains paused.
+Updated 1 November 2026. Programme incomplete. Goal resumed after the routing publication approval; preserve the full roadmap. Priority: hosted demo breadth and reproducible HyperDrive bugs; deep LINQ parity remains paused.
 
-## Blocker audit
+## Active deployment
 
-The same live-demo blockers have persisted across more than three goal turns: the separate routing-correction publication decision is unanswered; IAB control and its reset both return Transport closed; hosted Azure/Oracle are explicitly deferred. All17prepared profiles have local scoped proofs and their joint68preset planner gate passes. Further local hardening cannot establish hosted/browser acceptance. Resume with the existing scoped release and preserved evidence when publication/browser access changes; then plan a distinct bounded routing cohort because routing-v1 expired. No new owner question, account or hosting spend is requested. Deep parity remains paused as instructed.
+David approved the correction on 1 November. Scoped Development051ac6af7841f95d4babb1a3e061feee06b4a6c6 is pushed and remote-verified; Core stays6bbd015. Exact Railway jobd8876691-5ce2-4495-9e3d-dedfb1732de0 is QUEUED. Poll this job; never trigger a replacement because observation times out. New public profiles/settings are excluded. Browser transport and deferred hosting remain separate limits.
 
 ## Exact next steps
 
-1. Default-routing correction awaits the follow-up publication decision in [David list, Part F](../Release%20and%20Status/ACTIONS-FOR-DAVID.md). The earlier approval was already used for Development57174def3/Core6bbd015; it is not approval for another push.
+1. Observe the exact approved correction job above until terminal. Do not infer live behavior from a successful git push. Owner approval is recorded in [David list, Part F](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
 2. The routing-v1 owner session is now verified expired. Preserve its owner, record and save ACK; do not rerun setup or replace that identity. After the matching correction deploys, explicitly plan a distinct bounded acceptance cohort before live balancing/failover checks.
 3. Integrate the separately tested public-read expansion with its matching Core, application and joint configuration in a permitted release batch. Then verify hosted native queries, Mongo presets, isolation, replicas and browser behavior.
 4. Finish SOLID, S3 and Solana browser acceptance when browser control recovers. IAB documentation retry still returns `Transport closed`; this is agent-owned work.
