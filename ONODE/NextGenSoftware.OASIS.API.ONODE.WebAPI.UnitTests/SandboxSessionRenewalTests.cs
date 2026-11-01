@@ -14,6 +14,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
 public sealed class SandboxSessionRenewalTests
 {
+    [Fact]
+    public async Task NonLoopbackRailwayProxyPublishesSecureRefreshCookie()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        await using var provider = services.BuildServiceProvider();
+        var app = new ApplicationBuilder(provider);
+        var options = Startup.CreateForwardedHeadersOptions();
+        Assert.Empty(options.KnownNetworks);
+        Assert.Empty(options.KnownProxies);
+        Assert.Equal(1, options.ForwardLimit);
+        app.UseForwardedHeaders(options);
+        app.Run(context =>
+        {
+            Assert.True(context.Request.IsHttps);
+            AvatarSessionCookie.Append(context, "controlled-refresh");
+            return Task.CompletedTask;
+        });
+        var context = new DefaultHttpContext { RequestServices = provider };
+        context.Connection.RemoteIpAddress = System.Net.IPAddress.Parse("10.23.45.67");
+        context.Request.Scheme = "http";
+        context.Request.Headers["X-Forwarded-Proto"] = "https";
+        await app.Build()(context);
+        Assert.True(SetCookieHeaderValue.Parse(Assert.Single(context.Response.Headers.SetCookie)).Secure);
+    }
+
     [Theory]
     [InlineData(true, 3)]
     [InlineData(false, 3)]
