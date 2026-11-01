@@ -10,7 +10,7 @@ All23addedprofiles passed hosted HTTP/client-module acceptance: original17plusBe
 
 Live application: Development **1cfb893c80166bf497c3112de359126a8a456fa4**, Core **e845c62261a74ae800c89a4175daddf0cc9d8f16**. Exact Aptos settings deployment **1c100994-b781-41e5-a239-fed9ecf14511 SUCCESS**; whole protected candidate exact. Native/Mongo/repeat/privacy/replica HTTP proof passes; original cohort/completion ACK retained. Earlier providers retain their original release bindings.
 
-Website main **8e3db22** serves byte-identical committed Aptos-inclusive HTML, SHA256 **b679d18f8c949778cf33fb824277c12eef9bbd2d3ae2e6a3f31620adbaeef127**. Spaced CLI/guide/commented C# links published. No Hedera card/hosted grant; browser proof separate.
+Website main **97481d9** serves byte-identical committed HTML, SHA256 **b988858745b7ddba1e50ce2d69dda3e68e5ceb54f72478a799c0e54e5c0fcb8b**. Algorand/Aptos guide links now include complete fresh-checkout JSON setup. Hedera card remains task-only; browser proof separate.
 
 ## Provider evidence
 
@@ -48,11 +48,11 @@ Aptos passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/public
 
 ## Exact next work
 
-1. Next: website main8e3db22 exact HTML verified; publish reviewed Hedera application batch (Core89b5ffa/task7a28c74ee+). Protected3setting candidate/actual4preset planner ready, no settings applied; require exact app SUCCESS before application. Aptos cohort is green: never replay saves.
+1. Next: observe exact Hedera applicatione5e9ef07-6e15-4ed2-99a7-779ad413cd5d (BUILDING), parent9d9b28872565d54ca058238e8e89ce6e8b454bf2/Core89b5ffad5c589e6607f26892f46a4ee718335fe2. After SUCCESS, advance existing frozen release branch, guarded3setting apply and one journalled rollout. Then visitor proof and staged card. No Hedera setting/cohort mutation yet; no green save replay.
 
 Aptos evidence: 26 native tests, 2 API + 1 Core + 1 local HTTP + 1 actual preset-planner test pass, plus the hosted cohort above. Browser verification remains open. [Hosted proof](APTOS_PUBLIC_SOURCE_STATUS.md#hosted-http-complete).
 
-Hedera/Hashgraph native milestone:22tests+actualCLI3/2 pass through shared manager.34implemented query types; API2+Core1+nativeHTTP1+actual4preset1 pass; Core89b5ffa task-only. Hosting next after Aptos publication. LatestIndexed/per-account timestamps, official Mainnet endpoint binding (no API ledger ID). Original catalogue/sourceOwner retained. [Proof/next](HEDERA_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
+Hedera/Hashgraph native milestone:22tests+actualCLI3/2 pass through shared manager.34implemented query types; API2+Core1+nativeHTTP1+actual4preset1 pass; Core89b5ffa Development published; exact app above building. LatestIndexed/per-account timestamps, official Mainnet endpoint binding (no API ledger ID). Original catalogue/sourceOwner retained. [Proof/next](HEDERA_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
 
 2. Browser gates remain open for26providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
