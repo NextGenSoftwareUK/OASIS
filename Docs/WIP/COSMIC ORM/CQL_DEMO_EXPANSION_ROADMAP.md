@@ -260,3 +260,5 @@ Example/test builds pass after cache-only restore of the existing Arbitrum refer
 Starknet bounded header profile: [setup/commented C# guide](../../Devs/STARKNET_PUBLIC_HEADER_CQL_GUIDE.md), [native/API/local HTTP proof and pending hosted gates](STARKNET_PUBLIC_SOURCE_STATUS.md). Explicit enrolled block-hash equality/membership, exact field/integer strings and RPC-reported L1 acceptance. Local paired3+2/2+2results and visitor privacy verified; hosted/browser publication separate.
 
 [Cardano native CQL and shared-manager C# demo](../../Devs/CARDANO_PUBLIC_HEADER_CQL_GUIDE.md):35controls/real3/2/actual CLI3/2 plus hosted native3/2/Mongo5/4/reuse/privacy/replicas2/2 pass. Browser open. [Proof and next gate](CARDANO_PUBLIC_SOURCE_STATUS.md#native-cql-and-developer-demo-verified).
+
+[Arweave native CQL and commented shared-manager demo](../../Devs/ARWEAVE_PUBLIC_HEADER_CQL_GUIDE.md):33controls/real3/2/actualCLI3/2pass,0skips; API/hosted gates next. [Evidence and exact historical scope](ARWEAVE_PUBLIC_SOURCE_STATUS.md).
