@@ -43,3 +43,5 @@ Inspect existing hosted database services/configuration without disclosing secre
 
 - TestResults/PostgreSqlCqlCurrent/postgres-content-native.trx:1passed/0failed/0skipped, 2783bytes, SHA256546a6bd65f62b9e7d170d96d51a05ed8e02cda3ffa8a4ba0a6b0fcea287d4fb2.
 - TestResults/PostgreSqlCqlCurrent/postgres-content-mongo-federation.trx:1passed/0failed/0skipped, 11478bytes, SHA2564b51c1eecf189d1ff8877810c7f0d955750fa798cc0c79a9c1b549fc8439fa4f.
+
+Hosted placement observation: the OASIS Railway project inventory lists9services and no PostgreSQL service. Existing development database/configuration availability vs deferral is recorded in the central David list and asked once; answer pending. No paid resource, account, database or setting was created. Continue independent Dynamo restoration while waiting.
