@@ -69,7 +69,7 @@ public static partial class CqlV1Endpoint
             if (plan.IsError) return Failure(400, plan.ErrorCode, "The selected provider does not support this query.");
 
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(http.RequestAborted);
-            deadline.CancelAfter(TimeSpan.FromSeconds(5));
+            deadline.CancelAfter(request.MaximumDurationMilliseconds);
             var manager = providers.CreateManager(storage);
             http.Items[CqlV1ResourceFilter.DispatchedKey] = true;
             var result = await manager.ExecuteQueryAsync(plan.Result, new[] { adapter }, maximumResults: request.Take, cancellationToken: deadline.Token);

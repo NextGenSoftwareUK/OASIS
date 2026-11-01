@@ -61,7 +61,7 @@ def candidate(before, source):
                 "value": [block["rootHash"] for block in source["blocks"][:count]]}]}
         suffix = "records" if count == 3 else "subset"
         rows.append({"id": "public-" + suffix, "label": "Ton historical gateway headers (" + str(count) + " headers)",
-            "request": {"provider": "TONOASIS", **selection}})
+            "request": {"provider": "TONOASIS", "maximumDurationMilliseconds": 30000, **selection}})
         rows.append({"id": "mongo-public-" + suffix, "label": "Ton public metadata + my Mongo records",
             "operation": "Federation", "request": {"scope": "Named", "providers": ["MongoDBOASIS", "TONOASIS"],
                 "source": selection, "identityMode": "PreserveCopies", "maximumProviderAttempts": 2, "maximumDurationMilliseconds": 30000, "take": 25}})

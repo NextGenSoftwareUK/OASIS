@@ -36,6 +36,7 @@ class TonConfigurationTests(unittest.TestCase):
         self.assertEqual(admission["queryOnlyProviders"], ["IPFSOASIS", "TONOASIS"])
         rows = json.loads(after[publisher.KEYS[2]])
         self.assertEqual(len(rows), 4)
+        self.assertTrue(all(row["request"]["maximumDurationMilliseconds"] == 30000 for row in rows))
         self.assertEqual([row["request"]["maximumDurationMilliseconds"] for row in rows if "source" in row["request"]], [30000, 30000])
         self.assertEqual([len(row["request"].get("source", row["request"])["filters"][0]["value"]) for row in rows], [3, 3, 2, 2])
 

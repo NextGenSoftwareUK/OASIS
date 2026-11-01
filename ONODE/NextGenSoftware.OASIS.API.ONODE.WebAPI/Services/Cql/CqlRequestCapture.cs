@@ -44,6 +44,8 @@ internal static class CqlRequestCapture
     internal static CqlV1Request Capture(CqlV1Request value)
     {
         if (value == null) throw new ArgumentException("A source request is required.");
+        if (value.MaximumDurationMilliseconds is < 1 or > 30000)
+            throw new ArgumentException("Source execution duration is outside its bounded domain.");
         var filterCount = 0;
         CqlV1Filter Filter(CqlV1Filter filter)
         {
@@ -78,6 +80,7 @@ internal static class CqlRequestCapture
         {
             Provider = value.Provider, OrderBy = value.OrderBy, Descending = value.Descending,
             Skip = value.Skip, Take = value.Take, IncludeMetadata = value.IncludeMetadata,
+            MaximumDurationMilliseconds = value.MaximumDurationMilliseconds,
             Filters = Array(value.Filters, 64, Filter), AnyOf = Array(value.AnyOf, 64, Filter),
             AnyChildren = Array(value.AnyChildren, 8, group => group == null
                 ? throw new ArgumentException("Missing child group.")

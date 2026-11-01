@@ -8,7 +8,7 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 
 Latest hosted acceptance: parent37a530a87e601397f187430728bb9fb02b224f87/Core5fd361db11f5d54e3e99282536d7c7be842edf86, job3da7f986 SUCCESS. This docs-only descendant preserves testedb158bda61 code; original settings jobec59010e was removed and never replayed. Original Arweave cohort completion ACK retained. Website61e85b75a933004d1f005f85f1318fa05ad139de publishes Arweave with guided089a778c/C#b158bda61. Public HTML155229bytes/SHA2566fda659c10e90bb99d7636e04b62d3dc343b3a0c36cd85bb5b3f3c3e3c5c94f3 matches the committed git blob. Browser/real-expiry gates remain separate.
 
-There are **41 implemented query types**, including locally verified TON: 3 canonical adapters,36bounded public/source profiles and2local Azure/Oracle implementations. TON native/manager3/2 and signed-field/error/pacing controls pass on an explicitly qualified recent dataset; API/hosting is next. Hosted38/tariffs38/browser5/open33 remain unchanged. Full ORM/EF parity/HyperDrive certification remains incomplete.
+There are **41 implemented query types**, including locally verified TON: 3 canonical adapters,36bounded public/source profiles and2local Azure/Oracle implementations. TON native/manager 3/2 and local HTTP native 3/2, Mongo-paired 5/4 and privacy 0/3 pass on the qualified recent dataset; hosted verification is next. Hosted38/tariffs38/browser5/open33 remain unchanged. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
 ## Exact next step
 
@@ -16,7 +16,7 @@ There are **41 implemented query types**, including locally verified TON: 3 cano
 2. Session lifecycle HTTP proof complete on original avatar, completion ACK retained: do not replay. Frontend9e18b7d published and HTML/JS byte-verified; browser gates remain open. [Proof and limits](SESSION_RENEWAL_STATUS.md).
 3. Arweave hosted acceptance complete on original cohort; completion ACK blocks replay. Arweave card61e85b7 is published/byte-verified with updated guide/C# links. Continue breadth; TON API/hosted gates remain pending, other provider candidates next. [Proof](ARWEAVE_PUBLIC_SOURCE_STATUS.md).
 4. Browser gates:5verified/33open. CUA transport remains closed; David already opened the browser. No OS control resumed or repeated owner request.
-5. TON API/schema3, actual presets1 and publisher3 passed. Reviewed original-ID continuation rebuilt, activated and acknowledged both private Mongo saves; native3 passed, paired3 failed HTTP504 under default5s. Preserve fixture/ACKs; do not rerun/reseed. HTTP duration admission is being aligned with existing Core1..30000ms domain, default5s unchanged; TON paired presets request30s. Duration/admission8 controls and publisher3 pass; read-only original-cohort continuation still needed. Coreddabbf5 task-only, no TON host mutation. [Evidence](TON_PUBLIC_SOURCE_STATUS.md).
+5. TON local HTTP complete on original cohort: native 3/2, paired 5/4, foreign-private 0/public 3 and 9 receipts; zero repeat saves. Duration/schema 15 and publisher 3 controls pass. Both native/paired requests explicitly use 30000ms; defaults remain 5000ms. Success-only cleanup verified DB absent and Mongo stopped/27029 absent. Next revise protected candidate, recheck actual presets, integrate Development b175fe4/Core c9af864 and shipping gates before hosted rollout. Existing candidate is stale; no TON host mutation. [Evidence](TON_PUBLIC_SOURCE_STATUS.md).
 
 ## Guarantees and limits
 

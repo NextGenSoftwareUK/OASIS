@@ -73,10 +73,16 @@ public sealed class CqlTonMongoNativeTests
         var state = Path.Combine(root, "LocalState/COSMIC/TonMongoHttpCurrent");
         Directory.CreateDirectory(state);
         var intent = Path.Combine(state, "fixture.intent.json");
-        bool continuing = Environment.GetEnvironmentVariable("COSMIC_TON_HTTP_CONTINUE_PREPERSISTENCE") == "reviewed-original-intent";
+        bool nativeBudgetContinuation = Environment.GetEnvironmentVariable("COSMIC_TON_HTTP_CONTINUE_READS") == "reviewed-native-budget";
+        bool readOnlyContinuation = nativeBudgetContinuation || Environment.GetEnvironmentVariable("COSMIC_TON_HTTP_CONTINUE_READS") == "reviewed-two-saves";
+        bool continuing = readOnlyContinuation || Environment.GetEnvironmentVariable("COSMIC_TON_HTTP_CONTINUE_PREPERSISTENCE") == "reviewed-original-intent";
         string reviewPath = Path.Combine(state, "pre-persistence-failure.review.json");
         string continuationPath = Path.Combine(state, "pre-persistence-continuation.intent.json");
-        var expectedFiles = continuing ? new[] { intent, reviewPath }.Order().ToArray() : Array.Empty<string>();
+        var savedFiles = new[] { intent, reviewPath, continuationPath,
+            Path.Combine(state, "save-0.acknowledged.json"), Path.Combine(state, "save-1.acknowledged.json") };
+        var expectedFiles = nativeBudgetContinuation ? savedFiles.Append(Path.Combine(state, "read-continuation.intent.json")).Order().ToArray()
+            : readOnlyContinuation ? savedFiles.Order().ToArray()
+            : continuing ? new[] { intent, reviewPath }.Order().ToArray() : Array.Empty<string>();
         Assert.Equal(expectedFiles, Directory.EnumerateFiles(state).Order().ToArray());
         var configPath = Path.Combine(root, "LocalState/COSMIC/HostedTonPublicSourceCurrent/source.json");
         var configJson = await IoFile.ReadAllTextAsync(configPath);
@@ -115,8 +121,53 @@ public sealed class CqlTonMongoNativeTests
         if (continuing) Assert.Equal(copies, originalIntent!.RootElement.GetProperty("copies").EnumerateArray().Select(value => value.GetGuid()).ToArray());
         var client = new MongoClient(mongoConnection);
         using (var names = await client.ListDatabaseNamesAsync())
-            Assert.DoesNotContain(Database, await names.ToListAsync());
-        if (continuing)
+        {
+            var databases = await names.ToListAsync();
+            if (readOnlyContinuation) Assert.Contains(Database, databases);
+            else Assert.DoesNotContain(Database, databases);
+        }
+        if (readOnlyContinuation)
+        {
+            // This reserved cohort has two acknowledged writes. Validate it before
+            // making remote reads; never save, repair or replace its records.
+            var database = client.GetDatabase(Database);
+            var cohortMarker = await database.GetCollection<BsonDocument>("CosmicOwnedFixture")
+                .Find(new BsonDocument("_id", nonce)).SingleAsync();
+            Assert.Equal(Owner, cohortMarker["owner"].AsString);
+            Assert.Equal(1, await database.GetCollection<BsonDocument>("CosmicOwnedFixture").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+            Assert.Equal(2, await database.GetCollection<BsonDocument>("Holon").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+            var failedBytes = await IoFile.ReadAllBytesAsync(Path.Combine(root,
+                "TestResults/TonPublicSourceCandidateCurrent/ton-mongo-http-prepersistence-continuation.trx"));
+            Assert.Equal("68043846418e989590925ceceecaaff0b1580152d934e143a6cf934e003d2e49",
+                Convert.ToHexString(SHA256.HashData(failedBytes)).ToLowerInvariant());
+            if (nativeBudgetContinuation)
+            {
+                var leafFailure = await IoFile.ReadAllBytesAsync(Path.Combine(root,
+                    "TestResults/TonPublicSourceCandidateCurrent/ton-mongo-http-read-continuation.trx"));
+                Assert.Equal("9ba60c08e7229f65d676bd885a91bcebad7d10c355e9657e4325c670a5cbc96d",
+                    Convert.ToHexString(SHA256.HashData(leafFailure)).ToLowerInvariant());
+                using var priorRead = JsonDocument.Parse(await IoFile.ReadAllBytesAsync(Path.Combine(state, "read-continuation.intent.json")));
+                Assert.Equal(actor, priorRead.RootElement.GetProperty("actor").GetGuid());
+                Assert.Equal(nonce, priorRead.RootElement.GetProperty("nonce").GetString());
+                Assert.Equal(copies, priorRead.RootElement.GetProperty("copies").EnumerateArray().Select(value => value.GetGuid()).ToArray());
+                Assert.Equal(operations, priorRead.RootElement.GetProperty("operations").EnumerateArray().Select(value => value.GetGuid()).ToArray());
+            }
+            var acknowledgements = new List<string>();
+            for (var index = 0; index < copies.Length; index++)
+            {
+                var bytes = await IoFile.ReadAllBytesAsync(Path.Combine(state, "save-" + index + ".acknowledged.json"));
+                using var ack = JsonDocument.Parse(bytes);
+                Assert.Equal(copies[index], ack.RootElement.GetProperty("id").GetGuid());
+                Assert.Equal(operations[index], ack.RootElement.GetProperty("operation").GetGuid());
+                Assert.Equal(1, ack.RootElement.GetProperty("version").GetInt32());
+                acknowledgements.Add(Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant());
+            }
+            await using var journal = new FileStream(Path.Combine(state, nativeBudgetContinuation ? "native-budget-continuation.intent.json" : "read-continuation.intent.json"), FileMode.CreateNew, FileAccess.Write, FileShare.Read);
+            await JsonSerializer.SerializeAsync(journal, new { actor, foreignActor, nonce, copies, operations,
+                acknowledgements, databaseValidated = true, maximumDurationMilliseconds = 30000 });
+            journal.Flush(true);
+        }
+        else if (continuing)
         {
             // The original failure preceded all DB writes. Resume only those
             // reserved IDs after a fresh DB-absence check; never reseed a DB or
@@ -148,8 +199,9 @@ public sealed class CqlTonMongoNativeTests
         Assert.Equal(3, source.Result.Count);
 
         var native = client.GetDatabase(Database);
-        await native.GetCollection<BsonDocument>("CosmicOwnedFixture").InsertOneAsync(
-            new BsonDocument { { "_id", nonce }, { "owner", Owner } });
+        if (!readOnlyContinuation)
+            await native.GetCollection<BsonDocument>("CosmicOwnedFixture").InsertOneAsync(
+                new BsonDocument { { "_id", nonce }, { "owner", Owner } });
         var mongo = new MongoSource(mongoConnection, Database);
         Assert.False((await mongo.ActivateProviderAsync()).IsError);
         var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS { HyperDriveMode = HyperDriveModes.V2 } };
@@ -163,6 +215,18 @@ public sealed class CqlTonMongoNativeTests
         {
             var identity = identities.Records[index];
             var original = source.Result.Single(row => (string)row.MetaData[TonSource.AddressMetadata] == identity.NativeKey);
+            if (readOnlyContinuation)
+            {
+                var loaded = await mongo.LoadHolonAsync(identity.Id, loadChildren: false);
+                Assert.False(loaded.IsError, loaded.ErrorCode);
+                Assert.Equal(identity.Id, loaded.Result.Id);
+                Assert.Equal(actor, loaded.Result.CreatedByAvatarId);
+                Assert.Equal(1, loaded.Result.Version);
+                Assert.False(loaded.Result.IsPublic);
+                Assert.Equal(original.Id.ToString("D"), loaded.Result.MetaData["COSMIC.Demo.SourceHolonId"]);
+                foreach (var pair in identity.Metadata) Assert.Equal(pair.Value, loaded.Result.MetaData[pair.Key]);
+                continue; // No Save or replacement operation in read-only continuation.
+            }
             var metadata = original.MetaData.ToDictionary(pair => pair.Key, pair => pair.Value);
             foreach (var pair in identity.Metadata) metadata[pair.Key] = pair.Value;
             metadata["COSMIC.Demo.Dataset"] = "COSMIC.CQL.Demo.v1";
@@ -244,7 +308,7 @@ public sealed class CqlTonMongoNativeTests
         try
         {
             var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
-            using var http = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(20) };
+            using var http = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(40) };
             var counts = new Dictionary<string, int>();
             object Selection(IEnumerable<string> selected) => new { orderBy = "None", take = 8, includeMetadata = true,
                 filters = new[] { new { metadataPath = new[] { TonSource.AddressMetadata }, scalar = "String", @operator = "In", value = selected.ToArray() } } };
@@ -254,8 +318,10 @@ public sealed class CqlTonMongoNativeTests
                 http.DefaultRequestHeaders.Remove("Idempotency-Key");
                 http.DefaultRequestHeaders.Add("Idempotency-Key", Guid.NewGuid().ToString("D"));
                 using var response = await http.PostAsJsonAsync(route, request);
-                Assert.True(response.IsSuccessStatusCode, name + ": HTTP " + (int)response.StatusCode);
-                using var body = JsonDocument.Parse(await response.Content.ReadAsByteArrayAsync());
+                var responseBytes = await response.Content.ReadAsByteArrayAsync();
+                Assert.True(response.IsSuccessStatusCode, name + ": HTTP " + (int)response.StatusCode
+                    + " " + Encoding.UTF8.GetString(responseBytes));
+                using var body = JsonDocument.Parse(responseBytes);
                 var rows = body.RootElement.GetProperty("result").GetProperty("rows");
                 Assert.Equal(expected, rows.GetArrayLength()); counts.Add(name, rows.GetArrayLength());
                 // Counts alone could hide duplicate or substituted records. Check every
@@ -282,18 +348,18 @@ public sealed class CqlTonMongoNativeTests
             foreach (var count in new[] { 3, 2 })
             {
                 var selected = allowed.Take(count).ToArray();
-                await Check("ton-" + count, ownerToken, "/api/data/query-cql", new { provider = "TONOASIS",
+                await Check("ton-" + count, ownerToken, "/api/data/query-cql", new { provider = "TONOASIS", maximumDurationMilliseconds = 30000,
                     orderBy = "None", take = 8, includeMetadata = true,
                     filters = new[] { new { metadataPath = new[] { TonSource.AddressMetadata }, scalar = "String", @operator = "In", value = selected } } }, count);
                 await Check("paired-" + count, ownerToken, "/api/data/query-cql/federation", new { scope = "Named",
                     providers = new[] { "MongoDBOASIS", "TONOASIS" }, source = Selection(selected),
-                    identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8 }, count + 2);
+                    identityMode = "PreserveCopies", maximumProviderAttempts = 2, maximumDurationMilliseconds = 30000, take = 8 }, count + 2);
             }
             await Check("foreign-private", foreignToken, "/api/data/query-cql", new { provider = "MongoDBOASIS",
                 orderBy = "Id", take = 8, filters = new[] { new { field = "Id", scalar = "Guid", @operator = "In", value = copies } } }, 0);
             await Check("foreign-public-pair", foreignToken, "/api/data/query-cql/federation", new { scope = "Named",
                 providers = new[] { "MongoDBOASIS", "TONOASIS" }, source = Selection(allowed),
-                identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8 }, 3);
+                identityMode = "PreserveCopies", maximumProviderAttempts = 2, maximumDurationMilliseconds = 30000, take = 8 }, 3);
             Assert.Equal(configJson, await IoFile.ReadAllTextAsync(configPath));
             Assert.Equal(9, receipts.Count);
             await IoFile.WriteAllTextAsync(Path.Combine(root, "TestResults/TonPublicSourceCandidateCurrent/ton-mongo-native-summary.json"),
