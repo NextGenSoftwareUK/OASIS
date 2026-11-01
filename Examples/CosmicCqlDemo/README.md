@@ -868,3 +868,7 @@ Use `--monad-public LocalState/COSMIC/HostedMonadPublicSourceCurrent/source.json
 ### Sei public balances
 
 Use `--sei-public LocalState/COSMIC/HostedSeiPublicSourceCurrent/source.json` with the existing console. Spaced/commented SeiPublicWalkthrough uses HolonManager/LINQ; native/C#/actualCLI3/2pass. The fixedSeinativecodec normalizes32byte mixedcaseblockhashes; otherEVMprofileskeepcanonicalwirevalidation. Exactnativebaseunits,RPC-reportedfinalizedhashes; no wallet/transaction/databasecreation. HTTP/Mongo/hosted acceptance passes; browser interaction remains open.
+
+## Radix public resource demo
+
+Use `--radix-public <existing-source.json>` for three Mainnet resource definitions and a two-address CQL filter. [Setup and consistency](../../Docs/Devs/RADIX_PUBLIC_RESOURCE_CQL_GUIDE.md). Native console verified; hosted enrollment pending.

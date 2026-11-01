@@ -16,4 +16,5 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.RadixOASIS\NextGenSoftware.OASIS.API.Providers.RadixOASIS.csproj" />
     <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
   </ItemGroup>
+  <ItemGroup><Compile Include="../../../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs" Link="Demo/NativeKeySetWalkthrough.cs" /></ItemGroup>
 </Project>
