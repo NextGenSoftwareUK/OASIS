@@ -8,7 +8,7 @@ David approved the correction on 1 November. Scoped Development051ac6af7841f95d4
 
 ## Next consolidated release
 
-Seventeen-profile expansion preflight now passes970Core+101API contracts (zero skips),53configuration controls, both source manifests and dependency pins. Second normal daily batch pushed: Development0287c75c4/Core56c869f, remote-verified; exact Railway jobfddf3159-50cc-4b4f-a6c9-2e3af8882f9d BUILDING. Existing correction remains live. Website main36933fb published after64client tests pass; public artifact verification pending. Joint19settings remain unapplied until matching revision deployment succeeds.
+Seventeen-profile expansion preflight now passes970Core+101API contracts (zero skips),53configuration controls, both source manifests and dependency pins. Second normal daily batch pushed: Development0287c75c4/Core56c869f, remote-verified; exact Railway jobfddf3159-50cc-4b4f-a6c9-2e3af8882f9d BUILDING. Existing correction remains live. Website main36933fb published after64client tests pass; public HTML matches the committed36933fbblob exactly (137,753bytes). Joint19settings remain unapplied until matching revision deployment succeeds.
 
 ## Exact next steps
 
@@ -22,7 +22,7 @@ Seventeen-profile expansion preflight now passes970Core+101API contracts (zero s
 - Work/build/test only `C:/Source/OASIS-cosmic`; parent/Core task branch `work/cosmic-cql-google-public`. Parent b36259d1e pushed; Core56c869ff8de0a520da8c09ba8ebc6f85bbd40ea4 pushed and remote-verified. Gitlink/manifest match. Unknown root `logs` preserved.
 - Scoped correction branch `work/cosmic-cql-hosted-release`:450614de6 includes production fix51de129d3 and incoming Development494f988bc owner-document updates. It excludes the public-read expansion.
 - Approved Development57174def3/Core6bbd015 deployed successfully: Railway e107f7e5-fb8b-4cce-854b-46ebad7c8600. Remote Development is now494f988bc (another contributor's owner-document update).
-- Frontend `C:/Source/Web4Site`, branch `work/cosmic-cql`,36933fb pushed. Public main last verified9b65a88; later source links remain task-only.
+- Frontend `C:/Source/Web4Site`, branch `work/cosmic-cql`,36933fb pushed. Public main36933fb now serves the exact committed HTML, including all expanded local source links;64client tests pass. This does not make unenrolled providers available.
 
 ## What is actually verified
 
