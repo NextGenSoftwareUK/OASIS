@@ -67,3 +67,5 @@ Actual native endpoint results: Radix3/2, Mongo+Radix5/4, foreign-private0, fore
 - `TestResults/RadixPublicSourceCandidateCurrent/idle-worker-cleanup.json`, 75bytes; SHA256 `bd7160e6f1b926126dffa368b5dc48179fb36b078b174c099f47ea4094d5eec6`.
 
 Next: prepare/review protected hosted configuration, selectively assemble verified release excluding red TRON adapter, verify artifact/dependency pins, publish, apply and run one original hosted cohort; then sandbox card/browser. Hosted count remains34; native/API support alone does not increment it.
+
+Exact generated hosted candidate now passes shipping planner review1/1, zero skips: four presets, Mongo capability resolution, no native activation or live mutation. `TestResults/RadixPublicSourceCandidateCurrent/radix-prepared-review.trx`, 3329bytes, SHA256 `1a0c690d362c39ccbdb2ff69c2dd47e78cad2d4f336a20ffa2d97dd83f8e34bc`. Protected before/candidate journals retained; apply remains pending.
