@@ -1,6 +1,6 @@
 # Hosted public-source acceptance — 1 November 2026
 
-Latest: **26 scoped hosted HTTP providers**, including Berachain below. Browser proof remains **5**; **21 open**. Original seventeen-profile evidence is preserved separately from the additional Berachain deployment.
+Latest: **27 scoped hosted HTTP providers**, including Bitcoin and Berachain below. Browser proof remains **5**; **22 open**. Earlier seventeen-profile and Berachain evidence retain their original deployments.
 
 
 
@@ -282,3 +282,13 @@ Application1b2626499/Core08c4977, exact settings rolloutc6fb86d9 SUCCESS. Native
 - `BerachainOASIS-native-http.json` SHA256 `b8680b77a96b2d59f7262360be006040d01e1f9c0a75e5e2a71c76f952443588`
 - `BerachainOASIS-client-http-flow.json` SHA256 `55a41485336d57f60fc7fc9791cbaee95b4d48da18d87eb808d7f696f57584f5`
 - `BerachainOASIS-isolation-http.json` SHA256 `e7ec98ad8732e0ea0cad756083487cb65962a3019037a00bb07955f9d7203184`
+
+## Additional Bitcoin acceptance
+
+Application19ebbfe2c496b6a528b5f5b31e6138c317bae146/Core7317ba1cd4301a1794294b78be685070db45c3e2; exact settings rolloutf71e482c-851f-446b-9bbc-886caae3c30f SUCCESS. Guarded3settings individually acknowledged and complete candidate verified.
+
+Normal temporary owner plus independent visitor: native3/2, two private Mongo snapshots, paired5/4, repeat0new/2existing, foreign-private0/public3, exact two replicas on each SQLite/Neo4j. No Bitcoin/source writes or browser proof. Durable cohort LocalState/COSMIC/HostedQueryAcceptance-BitcoinOASIS includes original identities/intents/save ACKs and completion hashes; never replay successful writes.
+
+- `TestResults/HostedCqlIntegrationCurrent/BitcoinOASIS-native-http.json`: SHA256 `97d2aa65704ee36aeb4b0715c2ef8ec614422038394b11f387cd6c015545028c`.
+- `TestResults/HostedCqlIntegrationCurrent/BitcoinOASIS-client-http-flow.json`: SHA256 `1a14244041f8441a78165f2bd1812db5c1de0b4946a264126832df291bfb63d8`.
+- `TestResults/HostedCqlIntegrationCurrent/BitcoinOASIS-isolation-http.json`: SHA256 `79ed4ccf24f098cb90ec6c7d5d07dcaa798c2edcbb93840653501c3040570e39`.
