@@ -45,6 +45,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.ElrondOASIS => "ElrondAccountAddress",
             ProviderType.RadixOASIS => "RadixResourceAddress",
             ProviderType.StarknetOASIS => "StarknetBlockHash",
+            ProviderType.CardanoOASIS => "CardanoBlockHash",
             ProviderType.NEAROASIS => "NearAccountId",
             ProviderType.BaseOASIS => "BaseAccountAddress",
             ProviderType.OptimismOASIS => "OptimismAccountAddress",

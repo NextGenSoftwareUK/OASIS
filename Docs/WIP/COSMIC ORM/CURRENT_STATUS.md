@@ -8,13 +8,13 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 
 Latest hosted provider acceptance: parentcafd0f8c8ea93c22f5d4638acc336df5795a05d7/Core8a5ab453ee6734195331abeec0ad5c04e84b5332, app151477e9/settings03760bc9 SUCCESS. Original Starknet cohort completion ACK retained; never replay its writes. Session lifecycle correction passes. Website80ba51052c14a2f705e24e9825a9fe8b495fe642 publishes the verified Starknet card, guide164b4bb96 and C#cafd0f8c8; HTML152265bytes/SHA25658bd2b0b5edec25c29d16f9351006dc4621dd6ca2818df5d08dec1551163a2a6 matches committed bytes. Browser and real-expiry interaction remain separate open gates.
 
-There are **38 implemented query types**: 3 canonical adapters,33bounded public/source profiles and2local Azure/Oracle implementations. Deployed query tariffs36; hosted HTTP36; browser5/open31. Starknet31controls, real CQL/manager/CLI3/2, API/local HTTP and actual presets plus hosted federation/reuse/isolation/replicas pass. Azure/Oracle hosting deferred; TRON429red. Full ORM/EF parity/HyperDrive certification remains incomplete.
+There are **39 implemented query types**, including locally verified Cardano: 3 canonical adapters,34bounded public/source profiles and2local Azure/Oracle implementations. Cardano35controls/realCQL3/2/manager-CLI3/2, API/local HTTP3/2+Mongo5/4+visitor privacy and actual presets pass; hosting is next. Deployed tariffs36/hosted36/browser5/open31 remain unchanged. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
 ## Exact next step
 
 1. Radix card published/byte-verified at website0228db6; setup guide74ccc3752/C#74aaa9b4d linked. Original HostedQueryAcceptance-RadixOASIS completion ACK exists: do not replay saves or create a new owner.
 2. Session lifecycle HTTP proof complete on original avatar, completion ACK retained: do not replay. Frontend9e18b7d published and HTML/JS byte-verified; browser gates remain open. [Proof and limits](SESSION_RENEWAL_STATUS.md).
-3. Starknet card published/byte-verified at website80ba510. Original cohort is complete/frozen; no reruns. Continue breadth: Cardano public genesis returned Mainnet/764824073. Read operator specs, then qualify bounded historical headers through guarded .NET before implementation. API-root OpenAPI guess404is retained, not a provider-wide outage. [Research](CARDANO_PUBLIC_SOURCE_STATUS.md).
+3. Cardano Core/API, native HTTP3/2+Mongo5/4+visitor privacy and actual four-preset candidate now pass. Corebe397f1 task-only; protected three-setting candidate prepared, no host mutation. Next select verified release excluding red TRON, build/check shipping artifact, publish, then guarded config/one deployment/hosted acceptance/card. Original local fixture cleaned; no reseed. [Evidence](CARDANO_PUBLIC_SOURCE_STATUS.md).
 4. Browser gates:5verified/30open. CUA transport remains closed; David already opened the browser. No OS control resumed or repeated owner request.
 
 ## Guarantees and limits

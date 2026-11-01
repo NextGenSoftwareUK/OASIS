@@ -42,6 +42,15 @@ if (args.Length == 2 && args[0] == "--sei-public")
     return 0;
 }
 
+// Read historical Cardano headers through the shared manager and LINQ planner.
+// No wallet or source transaction is involved; reuse your stable catalogue.
+if (args.Length == 2 && args[0] == "--cardano-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await CardanoPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Query explicitly selected accepted Starknet headers through shared manager/LINQ.
 // This anonymous read profile cannot become a wallet or replication authority.
 if (args.Length == 2 && args[0] == "--starknet-public")
@@ -243,7 +252,7 @@ if (args.Length == 2 && args[0] == "--google-public")
 var serve = args.Length == 1 && args[0] == "--serve";
 if (args.Length != 0 && !serve)
 {
-    Console.Error.WriteLine("Use no arguments, --serve, --starknet-public <existing-source.json>, --radix-public <existing-source.json>, --google-public <existing-source.json>, --ethereum-public <existing-source.json>, --polygon-public <existing-source.json>, --arbitrum-public <existing-source.json>, --cosmos-public <existing-source.json>, --polkadot-public <existing-source.json>, --near-public <existing-source.json>, or --base-public / --avalanche-public / --bnb-public <existing-source.json>.");
+    Console.Error.WriteLine("Use no arguments, --serve, --cardano-public <existing-source.json>, --starknet-public <existing-source.json>, --radix-public <existing-source.json>, --google-public <existing-source.json>, --ethereum-public <existing-source.json>, --polygon-public <existing-source.json>, --arbitrum-public <existing-source.json>, --cosmos-public <existing-source.json>, --polkadot-public <existing-source.json>, --near-public <existing-source.json>, or --base-public / --avalanche-public / --bnb-public <existing-source.json>.");
     return 2;
 }
 
