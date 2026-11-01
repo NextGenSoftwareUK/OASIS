@@ -6,7 +6,9 @@ David explicitly waived the daily Development push limit for live demo testing/f
 
 ## Current rollout
 
-David approved the packaging correction on1November. Development89681ce4067ca2a10b97182b292c2fa98bf623eb is pushed and remote-verified; Core56c869f is unchanged. Revalidated all five bridge closures and both regression tests. Observe the exact new deployment; do not replay failedfddf3159 or change source settings before SUCCESS. Early CI follow-up2e5fa3d31 remains task-only, outside this scoped correction. Browser transport and deferred hosting remain separate limits.
+Packaging correction89681ce40/Core56c869f deployedSUCCESS (job5e6a80b0). Guarded enrollment applied and verified17source settings plus admission; the final combined preset catalogue40,443characters was rejected by Railway's32768-character limit. Existing shared catalogue remains unchanged, no unrelated drift. Original intent and protected explicit-continuation error retained; no uncertain holon/save replay. No settings rollout was triggered.
+
+Root fix: provider-partitioned preset configuration with strict ownership/total bounds. Preserves shared catalogue and all68new presets; each new variable at most2399characters.17APItests (including shipping68preset planner) and3Python controls pass. Preparing verified Development publication now; after its SUCCESS apply17partition variables from preserved candidate and perform one intended settings rollout, then live source acceptance.
 
 ## Active deployment
 
