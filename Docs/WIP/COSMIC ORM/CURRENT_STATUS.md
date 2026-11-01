@@ -12,9 +12,9 @@ Sui brings implemented query types to **35**, with **30 native tests and an actu
 
 ## Exact next step
 
-1. Observe exact Sui application deployment `81794c84-1f8b-41e1-a9e4-6b79015fa173`, now **SUCCESS**, at parent `7e0b60994921d03e09abe4a7050ca5bf5f02bfdb` / Core `0e540eb911671a6a249458ea9b69d3e96fb1d212`. Both Development refs verified; no restart or duplicate deployment.
-2. After exact SUCCESS, use existing frozen release branch at that exact parent SHA for guarded application. Protected `sui-public` candidate: three settings/four presets, actual shipping planner passes. No settings applied yet. Guard requires checked-out HEAD equal deployed SHA.
-3. Apply once with `COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT` set, observe whole candidate, journal one settings rollout, then hosted native/federated/repeat/privacy/replicas via `Verify-HostedQuerySource.py SuiOASIS --prepare`. No Sui visitor cohort exists yet; record intents before mutations.
+1. Sui application `81794c84-1f8b-41e1-a9e4-6b79015fa173` **SUCCESS**, parent `7e0b60994921d03e09abe4a7050ca5bf5f02bfdb` / Core `0e540eb911671a6a249458ea9b69d3e96fb1d212`. Both Development refs verified.
+2. Exact three-setting Sui candidate applied once, each intent/ACK retained; whole configuration observed exactly. One settings rollout `1d5007cb-e593-458e-b838-9d535ba93e70` submitted and last observed BUILDING at the same commit. Do not restart or repeat apply.
+3. After that exact settings job SUCCESS, run `python -B Scripts/Sandbox/Verify-HostedQuerySource.py SuiOASIS --prepare` for native/federated/repeat/privacy/replicas. No Sui visitor cohort exists yet; preserve every session/save intent/ACK. Then publish card and verify exact live HTML; browser remains separate.
 4. Browser gates remain open for 27 providers. Browser tooling failed with Transport closed; agent-owned, David already opened browser. No repeated owner request.
 
 Next breadth candidate: [TRON qualification](TRON_PUBLIC_SOURCE_STATUS.md), strict qualification now passes 9 pure tests plus genesis/three ordinary headers; no native CQL/count grant. Native batch candidate passes34controlled tests; real query still hits429. No certification/count grant; actual anonymous capacity remains unresolved, no blind retry.
