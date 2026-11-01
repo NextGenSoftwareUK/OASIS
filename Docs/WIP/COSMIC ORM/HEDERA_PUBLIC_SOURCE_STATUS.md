@@ -54,3 +54,16 @@ Protected3setting candidate prepared against verified exact applied Aptos variab
 Development publication1November: parent9d9b28872565d54ca058238e8e89ce6e8b454bf2/Core89b5ffad5c589e6607f26892f46a4ee718335fe2, both remote refs verified after fresh fetch/ancestry checks. Committed dependency manifest/gitlinks and5SDK closures pass. Exact applicatione5e9ef07-6e15-4ed2-99a7-779ad413cd5d BUILDING; candidate still prepared only, no hosted visitor. Monitor same job/no restart on observation timeout. Guidecbba242f7 adds complete first-checkout JSON; card task-only.
 
 Rollout update1November: exact appe5e9ef07 SUCCESS at9d9b28872/Core89b5ffa. All3Hedera values individually acknowledged and whole protected candidate observed exactly. One journalled settings deployment9dfe2fbd-45f9-4706-a3d4-85ca0f5c2a3d submitted. No hosted visitor/save cohort yet. Observe same job; no timeout replay/restart.
+
+## Live scheduling defect and correction
+
+First hosted native selection returned504/CQL_QUERY_CANCELLED before any private preparation/save artifact. Original owner cohort retained; token expires2026-11-01T12:22:42Z. No hosted pass/count granted. Endpoint query deadline remains5seconds.
+
+Deployed read-only timing: serial account calls294/522/2872ms,total3688ms. This observation is below the deadline but shows additive latency and limited margin; the actual acceptance request timed out. Independent latest-indexed account reads now overlap with maximum3inflight, preserve input order and await all reads before decoding/publishing or disposing the gate. No retry, endpoint fallback, partial success or deadline increase.
+
+Two deterministic gate-based regressions prove overlap/bound/order and cancellation of inflight/queued reads. All24affected source tests pass/no skips, including real shared-manager3/2 and complete-page failure cases. Native HTTP/Mongo seed fixture is already green/cleaned and must not be replayed.
+
+- TestResults/HederaPublicSourceCandidateCurrent/hedera-scheduling.trx SHA2565b327c03f3df79b3f63b4b742a06c5c7dab8f30970d4d95ae930581e9503c9ba.
+- hosted-read-timing.json SHA2564f677824b9aca958f812203e88931f0869949c33c4d53c04a0225dd796a92812.
+
+Deploy correction, then resume original owner cohort if still valid; preserve it if expired and explicitly plan a separate cohort. Sui new source file remains uncommitted/unverified and excluded from this fix.

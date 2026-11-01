@@ -48,7 +48,7 @@ Aptos passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/public
 
 ## Exact next work
 
-1. Next: observe exact Hedera settings deployment9dfe2fbd-45f9-4706-a3d4-85ca0f5c2a3d until SUCCESS. Exact appe5e9ef07 SUCCESS at9d9b28872/Core89b5ffa; all3settings/whole candidate exact, rollout intent/outcome retained. Then visitor HTTP/Mongo/privacy/replica checks and staged card. No hosted Hedera cohort yet; no green save replay.
+1. Next: publish the verified Hedera bounded-read scheduling correction (24source tests pass), then exact app SUCCESS and hosted acceptance. Original first native call504/cancelled before preparation/save; owner cohort retained/expires12:22:42Z. No count increase. Source now max3parallel independent reads, same5second deadline/no retry. Sui source file uncommitted/unverified; exclude from fix. [Defect/proof](HEDERA_PUBLIC_SOURCE_STATUS.md#live-scheduling-defect-and-correction).
 
 Aptos evidence: 26 native tests, 2 API + 1 Core + 1 local HTTP + 1 actual preset-planner test pass, plus the hosted cohort above. Browser verification remains open. [Hosted proof](APTOS_PUBLIC_SOURCE_STATUS.md#hosted-http-complete).
 
