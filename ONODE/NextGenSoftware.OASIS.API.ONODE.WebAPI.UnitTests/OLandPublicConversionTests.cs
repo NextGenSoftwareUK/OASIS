@@ -30,7 +30,7 @@ public sealed class OLandPublicConversionTests
         Assert.Contains("coingecko.com",order.NativePriceSource);
         await source.GetUsdQuoteAsync("SOL");
         Assert.Equal(1,handler.Calls);
-        Assert.False(handler.SentCredential);
+        Assert.False(handler.SentCredential);Assert.Contains("OASIS-MarketQuotes/1.0",handler.UserAgent);
     }
 
     [Theory]
@@ -58,10 +58,10 @@ public sealed class OLandPublicConversionTests
 
     private sealed class PriceHandler(DateTime at,int price=100,HttpStatusCode status=HttpStatusCode.OK):HttpMessageHandler
     {
-        public int Calls;public bool SentCredential;
+        public int Calls;public bool SentCredential;public string UserAgent="";
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
         {
-            Calls++;SentCredential=request.Headers.Contains("x-cg-demo-api-key")||request.Headers.Contains("x-cg-pro-api-key");
+            UserAgent=request.Headers.UserAgent.ToString();Calls++;SentCredential=request.Headers.Contains("x-cg-demo-api-key")||request.Headers.Contains("x-cg-pro-api-key");
             return Task.FromResult(new HttpResponseMessage(status) {Content=new StringContent(
                 "{\"solana\":{\"usd\":"+price+",\"last_updated_at\":"+new DateTimeOffset(at).ToUnixTimeSeconds()+"}}",Encoding.UTF8,"application/json")});
         }
