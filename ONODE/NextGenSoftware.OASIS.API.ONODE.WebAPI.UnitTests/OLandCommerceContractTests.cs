@@ -133,6 +133,19 @@ public sealed class OLandCommerceContractTests
         f.Payments.Verify(p => p.VerifyStripe(It.IsAny<OLandOrder>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
+    [Fact] public async Task PublicNftMetadataIsPublishedOnlyForPaidOwnershipAndExcludesPrivateFormDetails()
+    {
+        var f=new Fixture();var order=await f.Service.Quote(f.Actor,Guid.NewGuid().ToString("D"),f.Request(),default);
+        Assert.Equal("SPL",order.NftStandard);
+        await Assert.ThrowsAsync<OLandCommerceException>(()=>f.Service.PublicNftMetadata(order.Id,default));
+        await f.Service.BeginCheckout(f.Actor,order.Id,default);
+        f.Payments.Setup(p=>p.VerifyStripe(It.IsAny<OLandOrder>(),It.IsAny<CancellationToken>())).ReturnsAsync(("paid","stripe:cs_test_order",f.Now));
+        await f.Service.Status(f.Actor,order.Id,default);
+        string json=System.Text.Json.JsonSerializer.Serialize(await f.Service.PublicNftMetadata(order.Id,default));
+        Assert.Contains(order.ParcelIds[0],json);
+        Assert.DoesNotContain(order.Email,json);Assert.DoesNotContain(order.IntendedUse,json);Assert.DoesNotContain(order.AvatarId,json);
+    }
+
     private sealed class Fixture
     {
         public readonly Guid Actor = Guid.NewGuid(); public readonly DateTime Now = DateTime.UtcNow;
@@ -149,7 +162,7 @@ public sealed class OLandCommerceContractTests
             Payments.Setup(p => p.CreateStripe(It.IsAny<OLandOrder>(), It.IsAny<CancellationToken>())).ReturnsAsync(("cs_test_order", "https://checkout.stripe.com/test"));
             Payments.Setup(p => p.VerifyStripe(It.IsAny<OLandOrder>(), It.IsAny<CancellationToken>())).ReturnsAsync(("pending", (string)null, default(DateTime)));
             Issuer.Setup(p => p.Mint(It.IsAny<OLandOrder>(), It.IsAny<CancellationToken>())).ReturnsAsync(("native-mint-test", "Minted test fixture"));
-            Service = new(new OLandCommerceSettings { Enabled = true, Chains = new() { ["SolanaOASIS"] = new() { ChainId = "test-genesis" } } },
+            Service = new(new OLandCommerceSettings { Enabled = true, PublicApiBaseUrl = "https://example.com/api", Chains = new() { ["SolanaOASIS"] = new() { ChainId = "test-genesis", NftStandard = "SPL" } } },
                 Store, Payments.Object, Issuer.Object, count => Task.FromResult(count * 17), () => new[] { provider.Object }, () => Now);
         }
         public OLandQuoteRequest Request() => new() { ParcelIds = new() { OLandParcelGrid.At(21.1619, -86.8515).Id },

@@ -91,6 +91,12 @@ public sealed class OLandCommerceService
             if (!NativeEnabled(request.ProviderType)) throw Error("OLAND_CHAIN_PAYMENT_UNAVAILABLE", "Verified native payments are unavailable for this chain; use card checkout if offered.");
             Bounded(request.PayingWallet, 256, "Paying wallet");
         }
+        if (!Enum.TryParse<NFTStandardType>(settings.Chains[request.ProviderType].NftStandard, false, out var nftStandard) ||
+            !Uri.TryCreate(settings.PublicApiBaseUrl, UriKind.Absolute, out var publicApi) || publicApi.Scheme != "https")
+            throw Error("OLAND_CONFIGURATION_INVALID", "The ownership chain NFT standard and public metadata API must be configured before accepting payment.");
+        var standardCheck = new NextGenSoftware.OASIS.API.ONODE.Core.Managers.NFTManager(actor)
+            .IsNFTStandardTypeValid(nftStandard, Enum.Parse<ProviderType>(request.ProviderType));
+        if (standardCheck.IsError) throw Error("OLAND_CONFIGURATION_INVALID", standardCheck.Message);
         string[] ids = request.ParcelIds.OrderBy(p => p, StringComparer.Ordinal).ToArray();
         string fingerprint = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
         { Actor = actor, ParcelIds = ids, request.PaymentMethod, request.ProviderType, request.ReceivingWallet, request.PayingWallet, request.Email, request.IntendedUse }))));
@@ -108,10 +114,21 @@ public sealed class OLandCommerceService
             Fingerprint = fingerprint, ParcelIds = ids.ToList(), AmountMinorUsd = checked((long)amountUsd * 100), AreaSquareMetres = ids.Length,
             PaymentMethod = request.PaymentMethod, ProviderType = request.ProviderType, ReceivingWallet = request.ReceivingWallet,
             PayingWallet = request.PayingWallet, Email = request.Email, IntendedUse = request.IntendedUse,
-            CreatedUtc = now(), ExpiresUtc = now().AddMinutes(settings.QuoteMinutes), ChainId = settings.Chains[request.ProviderType].ChainId
+            NftStandard = nftStandard.ToString(), CreatedUtc = now(), ExpiresUtc = now().AddMinutes(settings.QuoteMinutes), ChainId = settings.Chains[request.ProviderType].ChainId
         };
         if (request.PaymentMethod == "blockchain") await payments.PrepareNative(order, token);
         return await store.Reserve(order, token);
+    }
+
+    public async Task<object> PublicNftMetadata(string id, CancellationToken token)
+    {
+        var order = await store.Get(id, token);
+        if (order == null || order.State != "paid") throw Error("OLAND_ORDER_NOT_FOUND", "Paid OLAND ownership metadata not found.");
+        return new { name = "OLAND " + order.Id, symbol = "OLAND",
+            description = order.ParcelIds.Count + " OLAND parcels, each 1 by 1 projected metre.",
+            attributes = new[] { new { trait_type = "Area (square metres)", value = order.AreaSquareMetres } },
+            properties = new { grid = "WGS84 UTM v1", parcelIds = order.ParcelIds,
+                boundaries = order.ParcelIds.Select(p => OLandParcelGrid.Parse(p).Boundary).ToArray() } };
     }
 
     public async Task<object> History(Guid actor, string beforeOrderId, int limit, CancellationToken token)
@@ -128,6 +145,7 @@ public sealed class OLandCommerceService
         if (order.State == "paid") return order;
         if (order.State == "quoted")
         {
+            if (string.IsNullOrWhiteSpace(order.NftStandard)) throw Error("OLAND_QUOTE_REFRESH_REQUIRED", "Cancel this older quote and request a new one before payment.");
             if (order.ExpiresUtc <= now()) throw Error("OLAND_QUOTE_EXPIRED", "The quote expired. Request a new quote before paying.");
             if (!await store.Transition(order.Id, "quoted", order.PaymentMethod == "stripe" ? "checkout_starting" : "payment_pending", token))
                 return await OwnedOrder(actor, orderId, token);

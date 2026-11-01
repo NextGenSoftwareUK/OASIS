@@ -12,6 +12,7 @@ public sealed class OLandCommerceSettings
     public int CheckoutMinutes { get; set; } = 30;
     public string MongoDatabase { get; set; } = "oasis_oland";
     public string StripeWebhookSecret { get; set; }
+    public string PublicApiBaseUrl { get; set; }
     public string SuccessUrl { get; set; }
     public string CancelUrl { get; set; }
     public string CoinGeckoDemoApiKey { get; set; }
@@ -20,6 +21,7 @@ public sealed class OLandCommerceSettings
 
 public sealed class OLandChainSettings
 {
+    public string NftStandard { get; set; }
     public string ChainId { get; set; }
     public string TreasuryAddress { get; set; }
     public string NativeSymbol { get; set; }
