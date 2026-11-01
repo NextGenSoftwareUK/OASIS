@@ -17,3 +17,5 @@ Update CURRENT_STATUS and the resource ledger at milestones. Raw evidence goes o
 Deferred after demo: operation/representation-aware admission for public unsigned reads and canonical signed writes on the same provider. Current factory explicitly rejects overlapping roles; keep that fence until a designed/tested replacement exists. Details/evidence: [demo expansion roadmap](CQL_DEMO_EXPANSION_ROADMAP.md).
 
 Latest1Novembermilestone: Berachain native/HTTP+Mongo/isolation/replica acceptance passes on1b2626499/Core08c4977, rolloutc6fb86d9. Total26scoped hosted HTTP providers; browser5,21open. [Recorded proof](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-berachain-acceptance).
+
+Bitcoin native milestone (1 November): bounded public-header equality/key-set source passes20 controlled checks and real shared-manager C#/CLI3/2. [Guide](../../Devs/BITCOIN_PUBLIC_HEADER_CQL_GUIDE.md), [proof/next HTTP gates](BITCOIN_PUBLIC_SOURCE_STATUS.md). No hosted admission, full Bitcoin consensus or canonical on-chain write claim; live count remains26.

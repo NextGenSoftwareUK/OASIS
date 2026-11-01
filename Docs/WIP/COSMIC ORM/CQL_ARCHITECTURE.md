@@ -290,3 +290,5 @@ source entities as an intermediate query engine.
 
 Combined graph sources, reselection and element/cardinality/numeric terminals
 following this selection remain unintegrated. Q01f stays red.
+
+Bitcoin native milestone (1 November): bounded public-header equality/key-set source passes20 controlled checks and real shared-manager C#/CLI3/2. [Guide](../../Devs/BITCOIN_PUBLIC_HEADER_CQL_GUIDE.md), [proof/next HTTP gates](BITCOIN_PUBLIC_SOURCE_STATUS.md). No hosted admission, full Bitcoin consensus or canonical on-chain write claim; live count remains26.

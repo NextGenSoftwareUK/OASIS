@@ -48,7 +48,7 @@ Berachain passed local and hosted native/C#/CLI/HTTP+Mongo gates. All3settings a
 
 ## Exact next work
 
-1. Next: implement Bitcoin bounded header metadata CQL adapter, native controls and C#/CLI walkthrough, then local HTTP/Mongo pairing. [Readiness](BITCOIN_PUBLIC_SOURCE_STATUS.md): six anonymous GETs, three linked PoW/hash-verified genesis-era headers, seven controls pass. Not admitted/live; preserve completed cohorts.
+1. Next: Bitcoin API/admission, local HTTP/Mongo pairing and four shipping-planned presets, then guarded hosted rollout. [Bitcoin native milestone](BITCOIN_PUBLIC_SOURCE_STATUS.md):20 controlled tests +1 real C# demo pass, actualCLI3/2; no hosted admission yet. Preserve completed cohorts.
 2. Browser gates remain open for21providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
