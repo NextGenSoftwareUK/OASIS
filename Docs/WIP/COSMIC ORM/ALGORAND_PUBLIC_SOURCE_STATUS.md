@@ -1,6 +1,6 @@
 # Algorand public account CQL status
 
-Updated 1 November 2026. Qualification complete; CQL/API/hosted/browser gates remain open. Counts remain 31 implemented query types and 29 scoped hosted HTTP providers.
+Updated 1 November 2026. Native CQL adapter and shared-manager tests pass; API/hosted/browser gates remain open. Counts: 32 implemented query types, 31 deployed query-tariff types and 29 scoped hosted HTTP providers.
 
 ## Qualified contract
 
@@ -23,8 +23,14 @@ The official [account lookup reference](https://dev.algorand.co/reference/rest-a
 
 ## Next acceptance gates
 
-1. Implement explicit read-only source with canonical SHA512/256 checksum, exact numbers and current-state semantics. Reject historical options, unknown config, writes and unsupported scans.
-2. Controlled source tests and real shared-manager C#/CLI native3/2 demo; readable comments/spacing.
+1. Complete: explicit read-only source with canonical SHA512/256 checksum, exact numbers and current-state semantics. Historical options/unknown config/writes/unsupported scans reject.
+2. Controlled source tests and real shared-manager3/2 pass. Commented C#/CLI walkthrough added; actual CLI build/run passes3/2.
 3. Independent query admission, shipping planner presets, local HTTP/Mongo/isolation tests and generic client preparation proof.
 4. Guarded hosted enrollment, exact deployment success, native3/2 + Mongo5/4 + repeat reuse + foreign-private0 + replicas2/2. Preserve original save intents and ACKs.
 5. Publish sandbox/local-demo links and verify browser interaction separately. Do not promote provider counts before the appropriate evidence exists.
+
+## Native CQL milestone
+
+AlgorandPublicAccountMetadataSource uses Shared.KeyValueStorage and explicit read-only activation, canonical address membership, per-query network checks and exact per-response amounts/rounds.22tests pass (21controlled +1real shared HolonManager3/2), no skips. Raw TestResults/AlgorandPublicSourceCandidateCurrent/algorand-source.trx SHA256172d5e57a9e0f221644093bca61883d7d9dbac6a2854460aa92e76f7ff48f436. Explicit modern BouncyCastle2.6.2 alias resolves inherited duplicate crypto assemblies; no fallback. [Developer guide](../../Devs/ALGORAND_PUBLIC_ACCOUNT_CQL_GUIDE.md).
+
+Actual CLI exit0,3/2; TestResults/AlgorandPublicSourceCandidateCurrent/demo-run.log SHA2567143af57a95707516e11b3f6a1d6f52fd4e1ab0987887d64696d538198f67258. Build0errors; existing dependency warnings remain. No source/Mongo writes.
