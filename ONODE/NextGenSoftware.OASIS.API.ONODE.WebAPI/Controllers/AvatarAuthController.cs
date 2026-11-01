@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -519,7 +519,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!Avatar.OwnsToken(token) && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<string>() { Result = "Unauthorized", IsError = true }, HttpStatusCode.Unauthorized);
 
-            return HttpResponseHelper.FormatResponse(AvatarManager.RevokeToken(token, ipAddress()));
+            var revoked = AvatarManager.RevokeToken(token, ipAddress());
+            if (!revoked.IsError) AvatarSessionCookie.Clear(HttpContext);
+            return HttpResponseHelper.FormatResponse(revoked);
         }
 
         /// <summary>
@@ -628,16 +630,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         private void setTokenCookie(string token)
-        {
-            var refreshDays = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Security?.RefreshTokenExpirationDays ?? 7;
-            if (refreshDays <= 0) refreshDays = 7;
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Expires = DateTime.UtcNow.AddDays(refreshDays)
-            };
-            Response.Cookies.Append("refreshToken", token, cookieOptions);
-        }
+            => AvatarSessionCookie.Append(HttpContext, token);
 
         private string ipAddress()
         {

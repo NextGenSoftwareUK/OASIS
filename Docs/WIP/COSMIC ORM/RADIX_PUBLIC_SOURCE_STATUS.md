@@ -84,3 +84,25 @@ Exact failing lookup operation99031cee-f6e7-dfcc-dd54-16f033a7dda1 was read from
 - `TestResults/RadixPublicSourceCandidateCurrent/inline-stock-usage-corrected.trx`, 208664bytes; SHA256 `b10f53bae132470996d6ffd3a1212c22af4992ba44c077add6e5c3627d2b963d`.
 
 Original evidence: TestResults/HostedCqlIntegrationCurrent/RadixOASIS-native-http.json and partial client-http-flow.json.progress.json; durable HostedQueryAcceptance-RadixOASIS contains two save ACKs and empty preparation-intents. Original-settlement-state.json records the read-only settled observation. Next publish verified atomic correction, then explicitly continue remaining read-only checks on the same cohort. No resave/replay of the failed operation or green stages.
+
+Atomic correction selected releasef45ed83aa/Core8b79301 passes shipping API/preset/schema/actual-candidate4/4, zero skips. Rebuilt TRON assembly still excludes its unqualified query adapter. Release TRX SHA256 `2754953db18a7576f9db7beccc6a43fc4293570dafa96a9b0a2d7960ecb9a76e`; compact inline-release-artifact.json under TestResults/RadixPublicSourceCandidateCurrent. Existing six native/125related proofs retained. Next non-force verified Development publication, then explicit read-only continuation of original cohort; settings/source namespace unchanged.
+
+Correction published to Development parent74aaa9b4daeadfad00ce9c667d78bb957f219ea8/Core8b79301b275536c04e7a971dc88d61735ebde96f, exact jobf4c02dbd-7e7d-4482-9e2c-1ee28f5e1cc6 BUILDING. No settings changes/replacement deployment. Durable original continuation evidence/manifest under HostedQueryAcceptance-RadixOASIS/settlement-continuation; verify hashes before resuming and forbid all saves in continuation. Remaining reuse/isolation/replica/card/browser gates open.
+
+Explicit read-only continuation harness implemented: original manifest/evidence hashes, settled operation/server-log link, owner, two private ACKs and prior3/2+5/4provenance required. Pending save intents reject continuation. All mutation/unknown routes blocked. Normal preparation refuses an existing partial flow and acknowledged completed cohorts. Eight in-memory validator/route tests pass, zero skips; actual original manifest validates offline without network/writes. `TestResults/RadixPublicSourceCandidateCurrent/continuation-tests.log` SHA256 `a1a38cb9020cd70f98c098ee411c82cfe10d4e75f2f1015b536271313a28d7ac`. After correction jobf4c02dbd succeeds, run `python -B Scripts/Sandbox/Verify-HostedQuerySource.py RadixOASIS --prepare --continue-settled-read`; this retains prior native/federation proofs and performs only unfinished reuse/replica/isolation checks. No completed marker until those pass.
+
+## Hosted acceptance complete
+
+Correctionf4c02dbd SUCCESS at74aaa9b4d/Core8b79301. Original cohort completion ACK retained. Native3/2 and paired5/4 proofs from initial1f39016fa preserved; explicit continuation after the atomic settlement fix reused2copies with0new saves, verified foreign-private0/public3 and2matching replicas each on SQLite/Neo4j. Continuation sent no save requests; original two ACKs remain version1. Browser acceptance is open.
+
+The original JWT expired during deployment. Only this owned test avatar's existing refresh credential was recovered from its exact native HolonId+Username, protected in DPAPI, then sent once to the normal avatar/refresh-token endpoint. Identity/subscription/ownership unchanged; rotated credentials/intent/ACK retained. This fixture recovery does not prove automatic visitor session renewal. Sandbox/session lacks refresh-cookie issuance: root fix queued immediately after card publication. No new owner or save replay.
+
+- `TestResults/HostedCqlIntegrationCurrent/RadixOASIS-native-http.json` SHA256 `1b30a3480bb96308f6a51f8804fad7a3a891ee45d9508c87bc9f2d829a0d07cc`.
+- `TestResults/HostedCqlIntegrationCurrent/RadixOASIS-client-http-flow.json` SHA256 `33cdd2a4cdb139e3a76bccfdf0cf944c7abe1b0aa3ab046f5546632977d123a0`.
+- `TestResults/HostedCqlIntegrationCurrent/RadixOASIS-isolation-http.json` SHA256 `23c38e3fbf1d5abe6dd1585226486f13193402dd98b8b8dfaf95ac2e2dbc0019`.
+
+Actual live admission has35unique query tariffs/32query-only profiles; admission SHA256 `0fb67d847620012fe9d67448584f81a82045db1da1c9fab2a8ef3b4d011fcdc2`. Earlier tariff headlines incorrectly included2locally scoped Azure/Oracle implementations. Implementation count37; hosted35; browser5/open30. Next publish card and fix guest-cookie renewal.
+
+## Website publication verified
+
+Website main0228db6adca82f3c457e30aa836b117d9690577d now serves the Radix card and pinned setup/C# links byte-identically (150955bytes, SHA25654588e7bd9c0368714d9b57b6f4f370c772d93b648665ada00d6a3dc8dbfca42). This proves publication, not browser interaction. Browser gate remains open. Original hosted cohort is complete/frozen. Next root fix is guest-session refresh-cookie issuance/retention and renewal, followed by remaining breadth (Starknet native adapter first).
