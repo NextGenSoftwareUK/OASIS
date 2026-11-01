@@ -28,8 +28,8 @@ The exact deployed4434e2c28 passed trusted/untrusted preflight, then issued one 
 
 ## Exact next step
 
-1. Server4434e2c28 is deployed; frontend43af923 remains on its task branch. Publish the page only after live cookie protocol verification.
-2. Deployment success observed. Create one owned session-verification cohort under LocalState/COSMIC/SandboxSessionRenewalCurrent; capture cookies/bearers only in DPAPI. Prove exact trusted-origin preflight, secure HttpOnly cookie, normal same-avatar rotation and revoke/clear; no provider saves or completed cohort reruns.
+1. Proxy correctionb0b308037 is committed/pushed to Development; exact job e52770a9-42e7-401b-9d08-4ed4b7f1ee05 observed QUEUED. Observe this job; do not restart it. Frontend43af923 stays unpublished until protocol verification.
+2. Once that exact job succeeds: python -B Scripts/Sandbox/Verify-HostedSessionRenewal.py --expected-commit b0b3080378c74d1148b1b76b31eb4880363a467d --deployment e52770a9-42e7-401b-9d08-4ed4b7f1ee05 --reconcile-insecure-issuance. This rotates the original sealed session, requiring a secure new cookie, same avatar and revoke/clear. No provider saves or replacement owner. Original pre-rotation fault baseline was never collected; do not claim it was preserved.
 3. Publish frontend only after HTTP protocol passes; verify exact HTML and both changed JS assets (versioned URLs). Actual browser interaction remains open while CUA is unavailable; do not ask David to reopen or resume OS control.
 4. Update CURRENT_STATUS/provider report/manual/architecture/resource ledgers, then continue Starknet native CQL breadth. Full roadmap remains active.
 
