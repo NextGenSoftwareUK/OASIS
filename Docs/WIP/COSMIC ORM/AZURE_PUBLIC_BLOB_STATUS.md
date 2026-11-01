@@ -29,6 +29,10 @@ Raw TestResults/AzurePublicSourceCurrent:
 
 Durable source LocalState/COSMIC/HostedAzureBlobPublicSourceCurrent/source.json451bytes/SHA256cdd1607e68e647fc2c3d932abd151658479eaa2aa0e2b1bbfb730c7fe2be1124. Preserve its owner/keys; never recreate them per run. Failed marker-only and single-Parquet selection observations are retained separately from the actual selected three-object catalogue.
 
+## Hosted candidate
+
+The source-bound native qualification ACK is retained. Six pure publisher controls pass. Protected azure-blob-public before/candidate snapshots were prepared once under LocalState/COSMIC/HostedSourceRolloutCurrent. Public review: TestResults/AzurePublicSourceCurrent/prepared-review.json. Exactly three changed keys: CQL_AZURE_BLOB_PUBLIC_SOURCE_JSON, PREPARED_STORAGE_ADMISSION_JSON and CQL_HOSTED_QUERY_EXAMPLES__AzureStorageOASIS. Four presets, free tariff, canonical DNA/unrelated values unchanged. No settings mutation or deployment yet; exact successful deployed HEAD is required before apply.
+
 ## Next
 
 1. Local HTTP/Mongo gate completed; retained fixture.cleaned.json proves exact owned database deletion. No Mongo listener remains; do not replay.
