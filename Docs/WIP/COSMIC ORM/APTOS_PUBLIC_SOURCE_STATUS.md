@@ -24,7 +24,7 @@ Primary references: [Aptos account lookup](https://aptos.guide/rest-api/operatio
 
 1. Complete: explicit read-only source with per-query version selection, canonical native values/addresses, cancellation/bounds and whole-page failure. Unknown configuration/history overrides/signing fields/unsupported scans reject.
 2. Complete:25controlled tests plus1real shared HolonManager3/2 pass/no skips; actual readable C#/CLI3/2 passes.
-3. API admission/planner2tests, local native HTTP/Mongo privacy1test, Core tariff1test, pure configuration3tests and focused client1test pass. Protected candidate preparation/actual four-preset export planning await Algorand configuration rollout.
+3. API admission/planner2tests, local native HTTP/Mongo privacy1test, Core tariff1test, pure configuration3tests and focused client1test pass. Protected candidate and actual four-preset export planning pass after verifying exact applied Algorand variables; no Aptos mutation.
 4. Guarded hosted rollout, normal visitor3/2 and5/4, repeat reuse, independent visitor privacy and replica checks. Retain original write ACKs.
 5. Sandbox/local-demo links and separate browser proof. No count promotion until the appropriate gate is proven.
 
@@ -45,3 +45,12 @@ Native3/2, two private Mongo creates, paired5/4, foreign-private0/public3 and ni
 - aptos-mongo-http.trx:1passed/0skips; SHA256f1a80fe614839b3bb884d5972176a72d6886aa4f311f4c3482cd5c23413f950f.
 
 Coree845c62 task branch pushed/ref verified, not Development. Keep this later batch out of current Algorand release7a9ca308e. No hosted Aptos snapshots/settings/cohort created; prepare only after Algorand enrollment completes so before-state is accurate.
+
+## Protected candidate ready
+
+Aptos prepared-host milestone1November: protected3setting candidate prepared against the exact applied Algorand settings; actual4preset shipping planner1test passes/no skips. Separate deployed Node4GET reachability/version probe passes, not hosted CQL. Candidate remains unapplied, no visitor cohort. Complete Algorand settings/acceptance before next application batch.
+
+- TestResults/AptosPublicSourceCandidateCurrent/aptos-prepared.trx:1passed/0skips,3329bytes, SHA256f0615584ca1cfd1fb61ac01326423938c3e061a3227b72252efdcb94e644d7c5.
+- hosted-egress.json:646bytes, SHA256f8fee42b40bf00ae3a6f13ab70c25bebf4092734d3e75d8ff9235ca20bbacac3.
+
+Guarded3setting apply must wait for the exact future Aptos application SUCCESS. No overlap with current Algorand deploymentf3ee7f37.
