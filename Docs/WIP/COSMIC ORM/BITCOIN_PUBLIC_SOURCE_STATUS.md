@@ -1,6 +1,6 @@
 # Bitcoin public source readiness
 
-Updated 1 November 2026. Native CQL adapter, shared-manager C# walkthrough and actual CLI passed; HTTP/Mongo pairing and hosting remain incomplete.
+Updated 1 November 2026. Native CQL/C#/CLI and local HTTP/Mongo pairing passed; hosted rollout and browser acceptance remain incomplete.
 
 ## Verified scope
 
@@ -28,8 +28,21 @@ The C# walkthrough and standalone CLI both returned3/2 through HolonManager/LINQ
 
 Initial failures are preserved in `tests.log` (two obsolete pre-existing unit-test API assumptions) and `console-build.log` (new command used bare return in an integer-returning entry point). The assertions now use current enum/category contracts; the command returns0. Corrected test/build logs are separate. No implementation fallback or disabled test introduced.
 
+## API / local HTTP acceptance
+
+Lazy explicit `CQL_BITCOIN_PUBLIC_SOURCE_JSON` read-profile registration, independent permission/free read tariff and API compiler scope are implemented. No signed-write grant or wallet DNA change. Actual protected publisher candidate has three settings/four presets; its exact public export passes the shipping planner with real Mongo capabilities. Three pure configuration controls and one generic website preparation contract pass.
+
+Local loopback HTTP proves native3/2 and Mongo-paired5/4, two SDK-owned private saves, nine query receipts, foreign-private0/public3, exact physical IDs/provider/visibility. Billing authentication is controlled fixture infrastructure; this is not production billing, browser or replication acceptance. The exact marker-verified database was dropped, source configuration unchanged, owned Mongo stopped and port27029 absent. Durable intent/save ACKs/cleanup confirmation remain under LocalState/COSMIC/BitcoinMongoHttpCurrent; do not rerun the successful fixture.
+
+- `TestResults\BitcoinPublicSourceCandidateCurrent\bitcoin-admission.trx`: 2 passed, zero skips; SHA256 `386384f23e900f4bb660c1bceecc350e31742771dee5bd878c01942a3bfe4a45`.
+- `TestResults\BitcoinPublicSourceCandidateCurrent\bitcoin-prepared.trx`: 1 passed, zero skips; SHA256 `204d873053b4aee7fb3125b44b463661a47b12fdac7fd302e411e25078857738`.
+- `TestResults\BitcoinPublicSourceCandidateCurrent\bitcoin-tariff.trx`: 1 passed, zero skips; SHA256 `5ba63e939e822360c442c08ce121511678fd825a01b172932c0e7aee01599d20`.
+- `TestResults\BitcoinPublicSourceCandidateCurrent\bitcoin-mongo-http.trx`: 1 passed, zero skips; SHA256 `4089b2c02e8585c137e41bd3f4d976b39bb23dbb9456cc4827c64d0619035ad3`.
+
+Core task7317ba1 is pushed and verified remotely. Parent gitlink/dependency manifest advance together. Protected rollout before/candidate snapshots are retained under LocalState/COSMIC/HostedSourceRolloutCurrent; nothing applied yet.
+
 ## Next acceptance work
 
-Add lazy API factory registration and explicit project reference, read-only tariff/admission, local HTTP/Mongo federation and four shipping-planned presets. Then guarded hosted rollout and independent visitor isolation/replication checks. Retain one ready Mongo-paired preset; browser proof is separate.
+Publish the verified application batch, wait for its exact successful deployment, then apply the guarded three-setting candidate and journal one settings rollout. Use a new hosted acceptance cohort for independent visitor isolation and SQLite/Neo4j replica checks. Expose the hosted presets and local walkthrough links in the website, then verify browser interaction separately.
 
-Bitcoin is not yet in the live provider count: totals remain26 scoped hosted HTTP and5 browser proofs. Native adapter implementation count is now29; deployed tariff catalogue remains28.
+Bitcoin is not yet in the live provider count: totals remain26 scoped hosted HTTP and5 browser proofs. Native adapter implementation count and candidate tariff catalogue are29; deployed catalogue remains28 until the matching rollout succeeds.
