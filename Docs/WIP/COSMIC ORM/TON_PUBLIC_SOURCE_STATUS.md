@@ -39,3 +39,11 @@ Smaller apply_patch source edits passed tool review. TonPublicHeaderReference va
 - TestResults\TonPublicSourceCandidateCurrent\contract-controls.trx: 23passed, 35629bytes, SHA256b32a0899e24afce880ea0b2cdf98683d7805affd6f08f4ca5e0501a2e7cf3e45.
 - TestResults\TonPublicSourceCandidateCurrent\contract-captured.trx: 1passed, 2791bytes, SHA2569a9955e0619aa070f2d69d0613e293f5346bb807735a5dc3402972a5e2fdebec.
 Next: connect this tested decoder to bounded read-only native key selection with one endpoint-wide anonymous pacing owner, then shared planner/manager tests and spaced demo before API/hosted admission. Keep Arweave rollout separate.
+
+## CQL candidate: controls pass, live HTTP429 gate remains red
+
+Bounded native root-hash selection now uses complete configured sequence/root/file descriptors, the tested decoder, capability admission, deterministic paging after validation and a process-wide1.1second request-start gate.12new controlled query checks pass,0skips (previous green decoder tests not rerun). Actual native activation failed on its identity request with HTTP429; no automatic retry, alternate endpoint or native-success claim. Preserve original failed response evidence. Implementation/hosted totals remain40/37 until the separate Arweave milestone updates hosted totals.
+
+The candidate is isolated on work/cosmic-cql-ton-public and must not be merged/deployed as qualified TON support. Next establish an evidenced admissible free native endpoint/access policy before another explicit live check; then finish manager/CLI/API/hosted gates. No David request has been made; this is agent-owned provider qualification.
+- TestResults\TonPublicSourceCandidateCurrent\cql-controls.trx: 12passed/0failed, 19892bytes, SHA25685c654599ef9b201d277d4524e5cf7f0d46be02e79d50f375058148a3731c0a8.
+- TestResults\TonPublicSourceCandidateCurrent\cql-native.trx: 0passed/1failed, 4564bytes, SHA25645215a8d8cca58b6d5d0bd1a116729ac820ea0476d826eda14cc9340e81f6187.
