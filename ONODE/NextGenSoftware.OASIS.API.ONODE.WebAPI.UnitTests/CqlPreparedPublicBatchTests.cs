@@ -88,6 +88,10 @@ public sealed class CqlPreparedPublicBatchTests
     public async Task ActualElrondCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [PublicBatchReviewFact]
+    public async Task ActualRadixCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
     private static async Task CheckPreparedBatch(int expected)
     {
         var path = Environment.GetEnvironmentVariable("COSMIC_CQL_PUBLIC_REVIEW")!;
@@ -114,6 +118,7 @@ public sealed class CqlPreparedPublicBatchTests
                 var type = Enum.Parse<ProviderType>(profile.Name);
                 ICosmicQueryStorageProvider source = type switch
                 {
+                    ProviderType.RadixOASIS => Providers.RadixOASIS.RadixPublicResourceMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.GoogleCloudOASIS => Providers.GoogleCloudOASIS.GoogleCloudPublicMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.EthereumOASIS => Providers.EthereumOASIS.EthereumPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.PolygonOASIS => Providers.PolygonOASIS.PolygonPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
