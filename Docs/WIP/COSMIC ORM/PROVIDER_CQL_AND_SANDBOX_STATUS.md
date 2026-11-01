@@ -4,14 +4,14 @@
 
 **35 providers have scoped hosted HTTP evidence; 5 have browser evidence and 30 browser gates remain open.** Radix native3/2 and Mongo5/4 pass; the original cohort resumed after the atomic settlement fix with zero new saves/two reused copies, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2. Source writes and browser interaction are not inferred.
 
-Latest hosted acceptance: parent `74aaa9b4daeadfad00ce9c667d78bb957f219ea8`, Core `8b79301b275536c04e7a971dc88d61735ebde96f`, correction job `f4c02dbd-7e7d-4482-9e2c-1ee28f5e1cc6` SUCCESS. Initial Radix app0b41c4b9/settings15f047fd succeeded at1f39016fa. Original owner was renewed through the normal refresh endpoint after scoped owned-fixture credential recovery; automatic sandbox/browser session renewal remains open. Website main0228db6adca82f3c457e30aa836b117d9690577d now serves the Radix card and pinned setup/C# links byte-identically (150955bytes, SHA25654588e7bd9c0368714d9b57b6f4f370c772d93b648665ada00d6a3dc8dbfca42). This proves publication, not browser interaction.
+Latest provider acceptance remains Radix at74aaa9b4d/Core8b79301; original cohort completed with no duplicate saves. Session correctiond9332469d/Coreb835014 is live: same-avatar secure rotation, refresh revocation/cookie clear and rejected revoked refresh pass. Website main9e18b7dedda7c4e6cfaa358fa8987774616deaac serves matching HTML150878bytes and both versioned JS assets. Publication/HTTP checks do not certify browser interaction or real expiry waiting. See SESSION_RENEWAL_STATUS.md for proof hashes.
 
 There are **38 implemented query types**: 3 canonical adapters,33bounded public/source profiles and2local Azure/Oracle implementations. Starknet31controls, real CQL/manager/CLI3/2, API/schema3/3, local HTTP3/2+Mongo5/4+foreign-private0/public3 and actual four-preset planning pass; hosting remains pending. Deployed tariffs35, hosted HTTP35, browser5/open30. Azure/Oracle hosting deferred; TRON429red. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
 
 Snapshot: 1 November 2026. This is a report, not a claim of full production readiness.
 
-Session renewal proxy correctionb0b308037/e52770a9 is deployed successfully. Live normal rotation now returns a Secure cookie for the same avatar; logout exposed a redacted-token-list ownership bug. Coreb835014 fixes authoritative owner validation and passes5V2 tests; API consumer verification/deployment is pending. Frontend renewal remains staged. These checks do not increase provider/browser counts. [Rollout](SESSION_RENEWAL_STATUS.md).
+Session lifecycle HTTP proof and updated website publication are verified; browser interaction remains separate. [Detailed scope and hashes](SESSION_RENEWAL_STATUS.md).
 
 ## Read this first
 

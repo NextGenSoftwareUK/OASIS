@@ -1,46 +1,45 @@
 # WEB4 demo session renewal
 
-Updated 1 November 2026. Local implementation verified; API4434e2c28 deployment6402f4ec-b203-42a5-8508-589f683708fc SUCCESS. Live protocol failed securely at initial cookie validation; frontend publication pending. Provider/browser counts remain35hosted HTTP/5browser/30open.
+Updated 1 November 2026. **Live HTTP lifecycle and frontend publication verified.** Actual browser interaction remains open. Hosted provider35/browser5/open30counts unchanged.
 
-## Root causes and correction
+## Live lifecycle and page publication complete
 
-- Sandbox session authentication omitted its generated refresh cookie. Normal and demo authentication now share AvatarSessionCookie; missing access/refresh credentials cannot publish a successful demo session.
-- Wildcard CORS cannot support cookie credentials. Exact https://web4.oasisomniverse.one receives explicit-origin credentialed CORS; other clients retain existing public bearer CORS. Both expose operation IDs and responses vary by Origin.
-- Browser auth now sends cookie credentials and serializes login, refresh and logout. Expiry preflight happens before the original request. Uncertain rotation is blocked rather than retried; no automatic fresh avatar or replayed write.
-- JWT remains memory-only. Stable avatar/environment/generation identity survives renewal; old identity/environment responses cannot publish into a new session. CQL discovery/results/preparation and HyperDrive/ORM calls share these guards.
-- Logout revokes the normal refresh credential and clears its scoped cookie. Genuine failures are reported; no request retry.
-- HTTP acceptance harness stores access + encoded cookie header together in one DPAPI bundle, versioned in its existing ACK. Rotation journals intent/response, requires same owner, and atomically replaces one credential bundle. Pending rotations stop further actions. Retained legacy JWT-only cohorts are never silently replaced.
+- Backendd9332469ddf4587ebca3d74ed3ccec914bad2ef4/Coreb835014a16748d745346f1265b0753e911dbd64d; exact deployment9724c407-ac0c-4624-ac5e-fed6c8dec493 SUCCESS.
+- Original owned avatar normally rotated with a Secure/HttpOnly/Lax/path-correct cookie; same identity retained. Corrected revoke succeeded, cookie cleared, and known revoked refresh was rejected.
+- Zero provider holon saves. Original insecure issuance and Unauthorized revoke rejection remain sealed, with explicit continuation intents/ACKs. LocalState/COSMIC/SandboxSessionRenewalCurrent/flow.acknowledged.json now blocks reruns. **Do not create another cohort or replay completed phases.**
+- No pre-rotation fault baseline was collected, so faultScopePreserved=false is retained honestly. Post-rotation repeated fault reads agree. No real expiry wait or browser interaction claim.
+- Website main9e18b7dedda7c4e6cfaa358fa8987774616deaac published. HTML and both versioned JS assets return HTTP200and exactly match committed bytes; cache policy public,max-age=0,must-revalidate.
 
-## Local verification
+## Root causes fixed
 
-- API16/16:15cookie/session/proxy/preflight checks plus1shipping GraphQL schema check; zero skips.
-- Client80/80:12session-state/rotation/logout/context cases, CQL renewal integration and existing affected preparation/UI regressions; zero skips. This is in-memory client testing, not browser certification.
-- Credential tool9/9: encoded-cookie retention, same owner, one atomic bundle install, missing/unknown outcomes and no replay. Tiny owned test fixture directory removed at teardown.
-- Initial compile had test type aliases wrong (fixed without changing production contracts). Initial UI tests assumed synchronous fetch; replaced assumptions with request-start gates. One stalled owned fake-transport Node runner/child stopped; no production process touched.
+1. Demo authentication omitted the generated refresh cookie. Normal/demo issuance now share AvatarSessionCookie; incomplete credentials cannot publish a successful session.
+2. Wildcard CORS cannot support cookie credentials. Exact https://web4.oasisomniverse.one receives credentialed explicit-origin CORS; other origins retain public bearer CORS without cookie grants. Both expose operation IDs; responses vary by Origin.
+3. Empty collection initializers did not clear default loopback proxy trust. Startup now explicitly clears the existing Railway edge-trust lists before processing one forwarded hop. This deployment policy requires an edge-protected application listener.
+4. Logout checked OwnsToken on a deliberately redacted request avatar. Core's requester-aware overload checks the exact authoritative token owner before mutation/save, preserving normal owner/Wizard rules and rejecting foreign/missing/empty identities. Request token lists stay hidden.
+5. Browser/tooling omitted credential retention and used JWT string changes as identity changes. Serialized cookie ownership and stable avatar/environment/generation identity now survive rotation. JWT stays in browser memory; uncertain outcomes stop without automatic fresh avatars, token retries or replayed writes.
 
-- `TestResults/SandboxSessionRenewalCurrent/session-renewal-api-final.trx`, 26165bytes; SHA256 `c84bc6f60c6eec81d38702a797b59913e05deb87f15dbda8beb6af362f2756a2`.
-- `TestResults/SandboxSessionRenewalCurrent/browser-unit-suite-final.log`, 7775bytes; SHA256 `9cdd405c8d7a64042c908bd57b4c1dfa6f4563de8349ad54c30f1a5c8aa77798`.
-- `TestResults/SandboxSessionRenewalCurrent/credential-unit-tests-final.log`; final9-case run includes successive rotations with unchanged JWT and changed refresh cookie.
+## Verification and compact evidence
 
-## Reproduced hosted blocker
+- API16/16including non-loopback forwarded-HTTPS/cookie middleware, CORS and GraphQL shipping schema; Core revocation ownership5/5; client80/80; credential tool9/9. Zero skips in these selected checks.
+- Client tests cover controlled-clock expiry preflight, coalesced refresh, logout, identity/environment changes and late responses. They are not browser certification.
+- HTTP tools retain encoded wire cookies and access tokens together in versioned DPAPI bundles. Rotation journals intent/response and atomically replaces one bundle. Legacy JWT-only cohorts are never silently replaced.
+- Raw evidence stays in TestResults/SandboxSessionRenewalCurrent; durable identity/rotation/ACK material stays in LocalState/COSMIC/SandboxSessionRenewalCurrent.
 
-The exact deployed4434e2c28 passed trusted/untrusted preflight, then issued one owned session with HttpOnly/Lax/path-correct cookie but **Secure=false**. Sealed original response and intent remain in LocalState/COSMIC/SandboxSessionRenewalCurrent; no replacement owner, rotation or provider save occurred. Startup used empty collection initializers, leaving default loopback proxy trust intact and ignoring Railway�s non-loopback forwarded HTTPS scheme. Correction explicitly clears those collections under the existing edge-trust policy; new middleware regression exercises the actual proxy/scheme/cookie chain. Preserve and reconcile the original issuance; do not rerun the original flow command.
+| Evidence | SHA256 |
+|---|---|
+| live-session-protocol.json | af9cdf4e7d4c64b1ba081c9f72b17c24231b369c8a44a8168604862a3acee399 |
+| site-publication.json | 66a750ebd607c59cba5b5c7cdd9385019d03a9012981ccb72add0e771a413d54 |
+| revoke-owner.trx | 3e14f1f9b25bdb7e7bdeb23c5ebe10b72ccb6d9474048b846f5c38d377919b40 |
+| revoke-api-shipping.trx | 5746bbdaa744350648e1af24e229437b232d1dccf688c835c1b6eb6400ebaa82 |
 
-## Exact next step
+| Published file | Bytes | SHA256 |
+|---|---:|---|
+| web4-sandbox.html | 150878 | 4a046882f2afb01373f2077329cb789fdb3ccd60b55f42c4543c9a695e0cf26a |
+| web4-session.js | 6533 | 41f7adf87786fc3071b23377eb1278fb4d41ce6f17b8519b19cc8a97acafc856 |
+| cql-playground.js | 21279 | 4a3b036211e281941d4815d157a17e880c310707031ef3ce774402fdae644def |
 
-1. Proxy correctionb0b308037 is committed/pushed to Development; exact job e52770a9-42e7-401b-9d08-4ed4b7f1ee05 observed QUEUED. Observe this job; do not restart it. Frontend43af923 stays unpublished until protocol verification.
-2. Once that exact job succeeds: python -B Scripts/Sandbox/Verify-HostedSessionRenewal.py --expected-commit b0b3080378c74d1148b1b76b31eb4880363a467d --deployment e52770a9-42e7-401b-9d08-4ed4b7f1ee05 --reconcile-insecure-issuance. This rotates the original sealed session, requiring a secure new cookie, same avatar and revoke/clear. No provider saves or replacement owner. Original pre-rotation fault baseline was never collected; do not claim it was preserved.
-3. Publish frontend only after HTTP protocol passes; verify exact HTML and both changed JS assets (versioned URLs). Actual browser interaction remains open while CUA is unavailable; do not ask David to reopen or resume OS control.
-4. Update CURRENT_STATUS/provider report/manual/architecture/resource ledgers, then continue Starknet native CQL breadth. Full roadmap remains active.
+## Next
 
-[Current status](CURRENT_STATUS.md) · [protocol](../../Devs/WEB4_SANDBOX_SESSION_AUTH.md) · [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+Continue Starknet selected release and hosted acceptance. Browser renewal/expiry interaction stays separately open while CUA is unavailable; do not resume OS control or ask David to reopen the browser. Preserve the completed session cohort and all original failure evidence.
 
-Proxy regression run:16passed/0failed/0skipped; TestResults/SandboxSessionRenewalCurrent/session-proxy-final.trx SHA256d2ac7c028fe5b47fdda1529564e32fe9ea3daea862fcd00fff58fa93089dd9cb. The prior15-case proof remains historical. Next: deploy tested proxy correction, then run Verify-HostedSessionRenewal.py with exact new commit/deployment and --reconcile-insecure-issuance. Do not use fresh-session mode on the retained cohort.
-
-Live correctionb0b308037/e52770a9 SUCCESS: original insecure issuance reconciled through normal rotation; Secure=true, same avatar, and two post-rotation fault reads agree. Logout returned an explicit Unauthorized result before revoke/cookie clear. JWT middleware intentionally loads a redacted avatar (RefreshTokens hidden); controller OwnsToken therefore rejects the real owner. Move owner validation to the authoritative refresh-token lookup, retain redaction, add owner/foreign-owner tests. Original revoke.response.dpapi and intent preserved; no revoke retry or fresh avatar. Frontend remains unpublished.
-
-Secure rotation subsequently passed on b0b308037. Logout failed with captured Unauthorized because its request avatar has RefreshTokens intentionally redacted. Coreb835014 now checks the exact lookup owner before any revoke mutation/save;5V2 tests cover redacted owner, foreign user, Wizard, missing and empty identities. API switches to that overload; consumer build pending. Original rejection and live rotation ACKs remain preserved; frontend not published.
-
-Ownership correction consumer verification:16/16API/schema checks,0skips. TestResults/SandboxSessionRenewalCurrent/revoke-api-shipping.trx SHA2565746bbdaa744350648e1af24e229437b232d1dccf688c835c1b6eb6400ebaa82. Core5/5ownership proof retained. Next publish only this correction, observe its exact job, then run Verify-HostedSessionRenewal.py with exact commit/deployment and --continue-rejected-revoke. This requires the sealed original Unauthorized response and journals a new explicit phase; unknown outcomes never qualify.
-
-Published correction: parentd9332469ddf4587ebca3d74ed3ccec914bad2ef4/Coreb835014a16748d745346f1265b0753e911dbd64d; exact deployment9724c407-ac0c-4624-ac5e-fed6c8dec493 observed QUEUED. Do not start a replacement job. After SUCCESS: python -B Scripts/Sandbox/Verify-HostedSessionRenewal.py --expected-commit d9332469ddf4587ebca3d74ed3ccec914bad2ef4 --deployment 9724c407-ac0c-4624-ac5e-fed6c8dec493 --continue-rejected-revoke. Original known Unauthorized rejection, issuance and refresh ACKs must remain; no fresh cohort or replay of prior phase.
+[Current status](CURRENT_STATUS.md) / [protocol](../../Devs/WEB4_SANDBOX_SESSION_AUTH.md) / [rollout history](Archive/SESSION_RENEWAL_ROLLOUT_HISTORY_2026-11-01.md) / [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
