@@ -312,3 +312,11 @@ Durable cohort LocalState/COSMIC/HostedQueryAcceptance-StellarOASIS retains orig
 - `TestResults/HostedCqlIntegrationCurrent/StellarOASIS-native-http.json`: SHA256 `3c93f4bf357d997ef141fee7fa6821182f48751b59e98a0e8f12d2e312423c1e`.
 - `TestResults/HostedCqlIntegrationCurrent/StellarOASIS-client-http-flow.json`: SHA256 `3f0e5310c03aa10d6ee49152975a0ef68dc502a657e6655ca30709f26c609b02`.
 - `TestResults/HostedCqlIntegrationCurrent/StellarOASIS-isolation-http.json`: SHA256 `a9384035111be6f14cb59c98470410433b133e9d3d63dd11289c91dfd31cb100`.
+
+## Additional Algorand acceptance
+
+Application7a9ca308e/Corec17db5f, exact settings deploymentf3ee7f37 SUCCESS. Native3/2, private Mongo2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2 pass. Current-state account reads, exact UInt64 amount strings and per-response observed rounds; no historical/shared snapshot, consensus proof or source writes. Adds scoped hosted HTTP provider30; browser5/25open. Earlier providers were not broadly rerun. Original owner/visitor/save/completion ACKs retained in LocalState/COSMIC/HostedQueryAcceptance-AlgorandOASIS; never replay successful saves.
+
+- `TestResults/HostedCqlIntegrationCurrent/AlgorandOASIS-native-http.json`: SHA256 `430e0452c2353a943734e30fc4d7b4ec6b1c25ab0da47d53f4400659a9db2f29`.
+- `TestResults/HostedCqlIntegrationCurrent/AlgorandOASIS-client-http-flow.json`: SHA256 `94c5d624020c31d9847d782f9e1391f082297872e7aab3f7bad6ac0e057c8ffd`.
+- `TestResults/HostedCqlIntegrationCurrent/AlgorandOASIS-isolation-http.json`: SHA256 `057cf90e1688eb2d2742f13d26c43e6f0e9e64ff31f4884626397064722ce795`.

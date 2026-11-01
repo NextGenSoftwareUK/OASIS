@@ -50,3 +50,11 @@ Raw reports only TestResults/AlgorandPublicSourceCandidateCurrent. Separate depl
 Development publication: parent7a9ca308e5a4c94a6529b1848e41571d1180d3b7/Corec17db5f5a062822c92f2f7250fe60e484b4e5967, both remote refs verified. Manifest/gitlinks and five SDK import closures pass. Exact application7bb36bf0-4f29-4869-8a97-c2f305876b40 QUEUED. Three hosted settings remain prepared only. Observe same handle; do not resubmit on timeout.
 
 Rollout update1November: exact app7bb36bf0 SUCCESS at7a9ca308e/Corec17db5f. All3Algorand values observed exactly; protected whole candidate equality verified. One journalled settings deploymentf3ee7f37-769e-4c02-b70c-7b54837a6e45 submitted. No visitor/save cohort yet; hosted acceptance remains pending. Later Aptos task work excluded.
+
+## Hosted HTTP complete
+
+Algorand hosted completion1November:7a9ca308e/Corec17db5f, exact settingsf3ee7f37 SUCCESS. Native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2 pass. Current-account/per-response-round semantics, exact quantities; no source writes/historical/shared snapshot. Counts30hosted HTTP/5browser/25open,32deployed query-tariff types. [Proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-algorand-acceptance).
+
+Original owner/visitor/save/completion ACKs retained in HostedQueryAcceptance-AlgorandOASIS. Original sourceOwner/account catalogue unchanged. Website mainada6e92 publishes only this verified card; Aptos remains staged. Browser proof remains open. Earlier pending statements describe milestone history.
+
+Website mainada6e92 live HTML equals exact committed bytes, SHA256cfff7aa51aafe061966682309ed258ca3e000d313b79c9dbdf678224375c95be. Aptos card absent from main/live. Focused Algorand preparation1pass; browser gate remains open.
