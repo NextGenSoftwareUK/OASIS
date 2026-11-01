@@ -63,3 +63,9 @@ Core task `f41b2a11253c222aac6bfdf67278d226e01ff96e` pushed and remote-ref verif
 | elrond-tariff.trx | 1 | `c1cd0b8513f76a8fe1f6f7b918e7100e51ce4e25d90db5777dc84c17d690f73b` |
 | elrond-shipping-presets.trx | 1 | `fab9657b82aecce53626467e89b85e64e38c0015abf481c124dc0bab8eb502a4` |
 | elrond-mongo-http.trx | 1 | `fdca17392d2a71255cf26a58d7b69b1d9cbc082fc2ee378a110d88eb266d14ba` |
+
+Selective release prepared from39b12bc28 on existing work/cosmic-cql-public-release (base7e0b60994),41reviewed files. Excluded TRON native adapter, its test file and test-project change. TRON qualification reports/probes remain evidence only; no API/tariff grant. Next verify actual release API/planner build and absence of candidate TRON type before Development publication.
+
+Scoped release43ca9f0d0verification passes3API/planner cases without skips and5SDK source/import closures. Rebuilt TRON DLL lacks task-only candidate type identifier; source also absent. Raw elrond-release.trx SHA256 `3a71d8f79e5a11d786500fb4b174c2e6876d4b4e0667e79a82ebfb62e9c0f2ce`; release-tron-assembly.json SHA256 `254e2097a792e8e152a97dae4d7893984d589e0d817d75ed199fd94bac722a58`; release-file-scope.json SHA256 `fcb887d9ed7a5179263259e160b721075a9de47758f150e5907aca7491de70a4`. Native green Mongo fixture was not replayed. Ready for fresh-fetch/non-force Development publication; no Elrond hosted variables applied yet.
+
+Published verified parent801795a648a1ae0b9211c0a478027673cb79c156 and Coref41b2a11253c222aac6bfdf67278d226e01ff96e to Development after fresh-fetch/ancestry checks, non-force pushes and exact ls-remote verification. Exact app19f65f59-e370-4cad-94ce-b0246872b891 QUEUED; settings candidate still unapplied. Do not restart job or replay green seeds. Existing frozen release branch matches801795a64 for later apply guard.
