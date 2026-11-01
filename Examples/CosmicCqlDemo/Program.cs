@@ -42,6 +42,15 @@ if (args.Length == 2 && args[0] == "--sei-public")
     return 0;
 }
 
+// Read the retained Stellar ledger catalogue through the shared manager/LINQ API.
+// The source verifies complete native XDR; this demo does not sign transactions.
+if (args.Length == 2 && args[0] == "--stellar-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await StellarPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Query the retained public XRPL ledger hashes through HolonManager and LINQ.
 // This read-only example needs no wallet and submits no transaction.
 if (args.Length == 2 && args[0] == "--xrpl-public")
