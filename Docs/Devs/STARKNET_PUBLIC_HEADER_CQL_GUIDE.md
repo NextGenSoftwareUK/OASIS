@@ -1,6 +1,6 @@
 # Starknet public header CQL demo
 
-Status: native adapter31controls, real native3/2and actual shared-manager C# console3/2pass. Local API admission, HTTP/Mongo federation and visitor privacy are verified; hosted sandbox admission and browser interaction are not yet verified. See [current evidence](../WIP/COSMIC%20ORM/STARKNET_PUBLIC_SOURCE_STATUS.md).
+Status: native adapter31controls, real native3/2and actual shared-manager C# console3/2pass. Local and hosted HTTP/Mongo federation, reuse, visitor privacy and SQLite/Neo4j replicas are verified. Browser interaction remains open. See [current evidence](../WIP/COSMIC%20ORM/STARKNET_PUBLIC_SOURCE_STATUS.md).
 
 This anonymous read profile queries an explicit catalogue of up to eight historical block hashes. It is separate from the signed Starknet wallet/storage provider. Native key equality and membership, supported paging and public read access use the shared CQL planner. Arbitrary metadata/name predicates, scanning, writes, proof verification and general ORM support are outside this profile.
 
@@ -61,6 +61,6 @@ Here `query` is the configured deferred query shown in NativeKeySetWalkthrough; 
 - Every returned block must match its requested hash and report ACCEPTED_ON_L1. Status is RPC-reported; this code does not independently verify consensus, STARK proofs or recompute block hashes.
 - Hashes/state roots/sequencer values are canonical lowercase field-element strings below the Starknet field prime. Heights and timestamps use this profile's explicit nonnegative UInt64 domain and remain exact decimal strings; values above JavaScript's exact integer range are not rounded.
 - Errors, cancellation, oversized responses or any invalid selected header publish no partial page. Unsupported capabilities fail explicitly. There is no endpoint substitution or automatic retry.
-- This does not enroll a write/replication authority or create Mongo snapshots. The future sandbox federation step has its own acceptance gate.
+- This does not enroll a write/replication authority or create Mongo snapshots. The sandbox supplies native3/2and paired Mongo5/4presets; two private copies are reused on repeat setup. Only name, description and native key are copied into Mongo; complete native header metadata stays with the source read.
 
 Contract references: [version-pinned OpenRPC](https://github.com/starkware-libs/starknet-specs/blob/v0.10.3/api/starknet_api_openrpc.json), [official field-element domain](https://www.starknet.io/cairo-book/ch02-02-data-types.html).
