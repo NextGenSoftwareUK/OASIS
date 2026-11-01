@@ -309,3 +309,5 @@ XRPL API/local HTTP milestone:3API/prepared+1Core+1native HTTP gates,3publisher 
 Stellar feasibility1November:2public GETs/3linked XDR-hash/fixed-parent-prefix checked headers,7controls pass. Complete XDR decoder/CQL/hosting remain unverified; [scope and next gates](STELLAR_PUBLIC_SOURCE_STATUS.md). No counts changed.
 
 XRPL hosted completion supersedes earlier pending statements: exact74bdf044 SUCCESS/c6e7f14ba/Coree032d0a; explicit free Ripple endpoint, original source identity preserved. Post-fix cohort passes native3/2, paired5/4, repeat0new, private0, replicas2/2. Original402/expired-empty cohort retained. [Hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-xrpl-acceptance).
+
+Stellar decoder milestone1November: complete native header decoder20cases/0skips (3real headers,5union forms, exact integer limits,428truncation points) now verified. CQL/HTTP/hosting remain red; [scope/next](STELLAR_PUBLIC_SOURCE_STATUS.md#complete-header-decoder-milestone). No count increase.

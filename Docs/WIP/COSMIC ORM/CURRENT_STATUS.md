@@ -48,7 +48,7 @@ XRPL passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3
 
 ## Exact next work
 
-1. Next: Stellar complete native XDR decoder/CQL over retained catalogue, then C#/CLI3/2, API/Mongo/hosted gates. [Limited preflight](STELLAR_PUBLIC_SOURCE_STATUS.md)7controls/2GETs only; bind sequence/full input to XDR before admission. [XRPL proof](XRPL_PUBLIC_SOURCE_STATUS.md) complete within HTTP scope; never replay successful save cohorts.
+1. Next: Stellar CQL header adapter using verified complete XDR decoder; bind API sequence/hash/parent/protocol to decoded fields, then C#/CLI3/2 and API/Mongo/hosted gates. [Decoder proof](STELLAR_PUBLIC_SOURCE_STATUS.md#complete-header-decoder-milestone):20cases pass/0skips, including real headers/all5known unions/428truncations. Counts unchanged; never replay completed save cohorts.
 2. Browser gates remain open for23providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
