@@ -42,6 +42,15 @@ if (args.Length == 2 && args[0] == "--sei-public")
     return 0;
 }
 
+// Select explicitly enrolled public MultiversX accounts through native filters.
+// The existing signed Elrond wallet provider is not invoked by this read profile.
+if (args.Length == 2 && args[0] == "--elrond-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await ElrondPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Query public Sui objects under one GraphQL checkpoint per source query.
 // The existing signed-storage gRPC bridge remains separate and is not invoked.
 if (args.Length == 2 && args[0] == "--sui-public")

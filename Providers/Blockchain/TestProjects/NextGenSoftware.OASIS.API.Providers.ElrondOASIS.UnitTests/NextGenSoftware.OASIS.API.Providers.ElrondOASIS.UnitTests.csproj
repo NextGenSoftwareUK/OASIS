@@ -25,4 +25,5 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.ElrondOASIS\NextGenSoftware.OASIS.API.Providers.ElrondOASIS.csproj" />
   </ItemGroup>
 
+  <ItemGroup><Compile Include="../../../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs" Link="Demo/NativeKeySetWalkthrough.cs" /></ItemGroup>
 </Project>
