@@ -48,13 +48,13 @@ Aptos passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/public
 
 ## Exact next work
 
-1. Next: publish the verified Hedera bounded-read scheduling correction (24source tests pass), then exact app SUCCESS and hosted acceptance. Original first native call504/cancelled before preparation/save; owner cohort retained/expires12:22:42Z. No count increase. Source now max3parallel independent reads, same5second deadline/no retry. Sui source file uncommitted/unverified; exclude from fix. [Defect/proof](HEDERA_PUBLIC_SOURCE_STATUS.md#live-scheduling-defect-and-correction).
+1. Next: observe exact Hedera scheduling-fix app122310fc-11ec-45cf-a631-2ebd471ce66a (INITIALIZING) at4fb66c68705be82d37bb97d9764b97f165661fca/Core89b5ffa. No setting changes needed. After SUCCESS, resume original owner if valid (expires12:22:42Z); original native504 occurred before any preparation/save. If expired, retain empty cohort and explicitly plan separate post-fix acceptance.24source tests pass; no timeout increase/retry/fallback/count grant. [Proof](HEDERA_PUBLIC_SOURCE_STATUS.md#live-scheduling-defect-and-correction).
 
 Aptos evidence: 26 native tests, 2 API + 1 Core + 1 local HTTP + 1 actual preset-planner test pass, plus the hosted cohort above. Browser verification remains open. [Hosted proof](APTOS_PUBLIC_SOURCE_STATUS.md#hosted-http-complete).
 
 Hedera/Hashgraph native milestone:22tests+actualCLI3/2 pass through shared manager.34implemented query types; API2+Core1+nativeHTTP1+actual4preset1 pass; Core89b5ffa deployed; exact settings job above pending. LatestIndexed/per-account timestamps, official Mainnet endpoint binding (no API ledger ID). Original catalogue/sourceOwner retained. [Proof/next](HEDERA_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
 
-Sui qualification:8tests+1checkpoint-scoped GraphQL query/3objects pass. Existing SDK already uses gRPC; no JSON-RPC fallback/install. Stable catalogue/sourceOwner retained; CQL/API/hosting open. [Next gates](SUI_PUBLIC_SOURCE_STATUS.md).
+Sui qualification:8tests+1checkpoint-scoped GraphQL query/3objects pass. New SuiPublicObjectMetadataSource.cs is untracked/unverified; test it next, exclude it from Hedera release. Existing SDK already uses gRPC; no JSON-RPC fallback/install. Stable catalogue/sourceOwner retained; CQL/API/hosting open. [Next gates](SUI_PUBLIC_SOURCE_STATUS.md).
 
 2. Browser gates remain open for26providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.

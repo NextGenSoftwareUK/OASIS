@@ -67,3 +67,5 @@ Two deterministic gate-based regressions prove overlap/bound/order and cancellat
 - hosted-read-timing.json SHA2564f677824b9aca958f812203e88931f0869949c33c4d53c04a0225dd796a92812.
 
 Deploy correction, then resume original owner cohort if still valid; preserve it if expired and explicitly plan a separate cohort. Sui new source file remains uncommitted/unverified and excluded from this fix.
+
+Correction published1November: exact parent4fb66c68705be82d37bb97d9764b97f165661fca Development ref verified, Core89b5ffa unchanged/manifest valid. App122310fc-11ec-45cf-a631-2ebd471ce66a INITIALIZING; same existing Hedera variables/sourceOwner/catalogue. No settings redeploy required. Original cohort/no private writes retained; resume only after exact app SUCCESS, never restart job for timeout.
