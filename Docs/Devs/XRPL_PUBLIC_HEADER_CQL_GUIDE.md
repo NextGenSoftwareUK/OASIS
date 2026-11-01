@@ -34,6 +34,6 @@ Network identity and validation are reported by the authenticated public endpoin
 
 Reuse `LocalState/COSMIC/HostedXrplPublicSourceCurrent/source.json`, preserving the source owner and retained hash catalogue. Its exact schema is `schema` (1), `rpcUrl`, `networkId` (0), `ledgerHashes` and `sourceOwner` (nonempty GUID). The qualified endpoint is `https://xrplcluster.com/`, listed by XRPL as a public Mainnet full-history service. Unknown fields and malformed configuration are rejected; production JSON loading uses the existing guarded HTTP handler.
 
-Native/C#/CLI evidence and remaining HTTP/Mongo, admission, hosting and browser work are tracked in [XRPL status](../WIP/COSMIC%20ORM/XRPL_PUBLIC_SOURCE_STATUS.md). XRPL must not appear as a verified live sandbox provider until those separate gates pass. The planned hosted demo includes a ready Mongo-paired preset.
+Native/C#/CLI and local HTTP/Mongo5/4/private-isolation evidence, plus remaining hosted/browser work are tracked in [XRPL status](../WIP/COSMIC%20ORM/XRPL_PUBLIC_SOURCE_STATUS.md). XRPL must not appear as a verified live sandbox provider until those separate gates pass. The planned hosted demo includes a ready Mongo-paired preset.
 
 References: [XRPL public servers](https://xrpl.org/docs/tutorials/public-servers), [XRPLF header hashing](https://github.com/XRPLF/rippled/blob/develop/src/libxrpl/protocol/LedgerHeader.cpp).

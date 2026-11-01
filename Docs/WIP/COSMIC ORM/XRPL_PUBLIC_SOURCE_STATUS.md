@@ -1,6 +1,6 @@
 # XRPL public header source
 
-Updated1November2026. Native CQL/C#/CLI passed; HTTP/Mongo and hosted/browser acceptance remain red.
+Updated1November2026. Native CQL/C#/CLI and local HTTP/Mongo passed; hosted/browser acceptance remain red.
 
 ## Verified qualification
 
@@ -29,11 +29,25 @@ The spaced/commented [C#/CLI walkthrough](../../Devs/XRPL_PUBLIC_HEADER_CQL_GUID
 
 Initial controlled run2passed/19failed because the new fixture cast the documented quoted ledger index directly to a JSON numeric value. The fixture now decodes the explicit decimal representation; corrected21pass. Original failure log/TRX retained. Production total_coins type is explicitly required to be a decimal string. Two obsolete existing unit-test API assumptions (enum wrapper comparison/nonexistent GetProviderVersion) were updated to current enum/category contracts; legacy provider implementation unchanged.
 
-## Next implementation
+## API / local HTTP milestone
 
-Add explicit lazy API read-profile registration, independent unsigned-read admission/tariff, and local HTTP/Mongo5/4 plus isolation. Build/test four exact publisher presets, then guarded hosted rollout/replicas and a website card with live/local links. Browser verification remains separate. Preserve the original source owner/catalogue; never regenerate it or replay successful save cohorts.
+Explicit lazy `CQL_XRPL_PUBLIC_SOURCE_JSON` profile, compiler scope and independent unsigned-read permission/tariff are implemented. Three-setting protected candidate preserves wallet DNA and canonical write admission; three pure configuration controls and one generic website preparation control pass. The exact candidate's four presets pass the shipping planner with native and Mongo capabilities.
 
-The canonical provider's archive-account placeholder and signed memo persistence remain separate and uncertified by this public profile. Counts now30implemented query types (XRPL native-only),29deployed tariff types,27hosted HTTP and5browser proofs. No XRPL hosted permission or availability claim.
+Local loopback HTTP proves native3/2, two private SDK Mongo snapshots, paired5/4, nine receipts and independent visitor public3/private0. IDs, provider labels, owner and visibility are checked. Auth/billing are fixture infrastructure; this is not production billing, browser or replica acceptance. Original config unchanged; exact marker-verified database dropped, owned Mongo stopped/27029 absent. Preserve LocalState/COSMIC/XrplMongoHttpCurrent intents/save ACKs/cleaned confirmation; never replay the successful fixture.
+
+- `TestResults\XrplPublicSourceCandidateCurrent\xrpl-admission-prepared-corrected.trx`: 3passed, zero skips; SHA256 `10fb08b52a864ad51631c9c447ecc57f72fad99a864b3d7f8c28bf3c6d225fea`.
+- `TestResults\XrplPublicSourceCandidateCurrent\xrpl-tariff.trx`: 1passed, zero skips; SHA256 `dc9896fd2de71b1eb5499958708c6c8b4d86dcc451d8ae2dbc9b1bb40e163605`.
+- `TestResults\XrplPublicSourceCandidateCurrent\xrpl-mongo-http.trx`: 1passed, zero skips; SHA256 `4b7c350ce6aeb228a613e8d8c326317c02843227d7e78eab6938aa23c00c44d9`.
+
+Initial admission run1passed/2failed because an owned line-ending serialization error left XRPL out of the compiled Core tariff list. Corrected the owning list to one canonical source-line change; all3API/prepared and1Core controls now pass. Original failure log/TRX retained, no bypass/disabled test.
+
+Coree032d0a pushed and remotely verified; parent gitlink/dependency manifest advance together. Protected before/candidate state under LocalState/COSMIC/HostedSourceRolloutCurrent is prepared only, no settings applied.
+
+## Exact next implementation
+
+Publish the verified parent/Core batch, wait for exact matching deployment success, then guarded3setting apply and one journalled settings rollout. Run normal-visitor hosted acceptance once with original identities/save ACKs, verify isolation and SQLite/Neo4j replicas, then publish the staged website card/local links and inspect exact public HTML. Browser proof is separate.
+
+Counts30implemented query types; candidate30/deployed29tariff types;27hosted HTTP and5browser proofs. No XRPL hosted permission, source write or signed memo persistence claim.
 
 ## Primary protocol references
 

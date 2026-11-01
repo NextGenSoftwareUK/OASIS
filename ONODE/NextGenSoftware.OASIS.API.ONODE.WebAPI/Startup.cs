@@ -473,6 +473,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_SEI_PUBLIC_SOURCE_JSON"] is string seiPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.SeiOASIS.SeiPublicAccountMetadataSource.FromJson(seiPublicSource)));
+            if (Configuration["CQL_XRPL_PUBLIC_SOURCE_JSON"] is string xrplPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.XRPLOASIS.XrplPublicHeaderMetadataSource.FromJson(xrplPublicSource)));
             if (Configuration["CQL_BITCOIN_PUBLIC_SOURCE_JSON"] is string bitcoinPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.BitcoinPublicHeaderMetadataSource.FromJson(bitcoinPublicSource)));
