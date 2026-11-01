@@ -1,10 +1,10 @@
 # COSMIC ORM / CQL — current status
 
-Updated 1 November 2026. Programme incomplete. Live-demo phase blocked on external state; full roadmap remains incomplete. Priority: hosted demo breadth and reproducible HyperDrive bugs; deep LINQ parity remains paused.
+Updated 1 November 2026. Programme incomplete. Goal active after explicit packaging publication approval; full roadmap remains incomplete. Priority: hosted demo breadth and reproducible HyperDrive bugs; deep LINQ parity remains paused.
 
-## Current blocker audit
+## Current rollout
 
-The extra packaging-deployment timing decision remains unanswered across three goal turns. Latest expansion jobfddf3159 is terminal FAILED; the previous correction jobd8876691 is SUCCESS and remains the live release. Root fix89681ce40 and early CI gate2e5fa3d31 are pushed only to the task branch. Browser control again returns Transport closed; Azure/Oracle hosting remains deferred. Do not bypass the daily publication rule, re-ask the same question, redo green scopes or resume paused parity depth. Resume with the reviewed correction when the timing decision arrives (or the next normal daily batch), then verify a successful exact deployment before applying any of the19protected settings. No settings have been applied. All roadmap requirements remain open unless their scoped evidence proves otherwise.
+David approved the packaging correction on1November. Development89681ce4067ca2a10b97182b292c2fa98bf623eb is pushed and remote-verified; Core56c869f is unchanged. Revalidated all five bridge closures and both regression tests. Observe the exact new deployment; do not replay failedfddf3159 or change source settings before SUCCESS. Early CI follow-up2e5fa3d31 remains task-only, outside this scoped correction. Browser transport and deferred hosting remain separate limits.
 
 ## Active deployment
 
