@@ -2,6 +2,27 @@
 
 This explicit read-only profile uses the existing `HashgraphOASIS` provider type and the shared COSMIC planner/HolonManager. It queries a bounded public account catalogue without an SDK payment, signing key, account creation or transaction. See the [acceptance report](../WIP/COSMIC%20ORM/HEDERA_PUBLIC_SOURCE_STATUS.md) for local versus hosted gates.
 
+## First setup in a fresh checkout
+
+The retained local configuration is intentionally untracked. If it is absent, create `LocalState/COSMIC/HostedHederaPublicSourceCurrent/source.json` with the complete public example below. If it already exists, reuse it. No chain account, key or environment is created by this configuration.
+
+```json
+{
+  "schema": 1,
+  "mirrorUrl": "https://mainnet.mirrornode.hedera.com/api/v1/",
+  "network": "mainnet",
+  "consistency": "LatestIndexed",
+  "accounts": [
+    "0.0.2",
+    "0.0.3",
+    "0.0.98"
+  ],
+  "sourceOwner": "00000000-0000-0000-0000-000000000123"
+}
+```
+
+The example GUID is a public projection namespace, not a credential or signing account. For your own application, choose one nonempty GUID once (for example with `[Guid]::NewGuid()`), save it and retain it between runs. Do not generate a new namespace on every launch.
+
 ## Run the C# demo
 
 Reuse `LocalState/COSMIC/HostedHederaPublicSourceCurrent/source.json`. Keep its stable sourceOwner and account catalogue. After restoring/building the demo project:
