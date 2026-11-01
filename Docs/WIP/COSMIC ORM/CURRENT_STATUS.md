@@ -8,15 +8,15 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 
 Latest hosted acceptance: parent37a530a87e601397f187430728bb9fb02b224f87/Core5fd361db11f5d54e3e99282536d7c7be842edf86, job3da7f986 SUCCESS. This docs-only descendant preserves testedb158bda61 code; original settings jobec59010e was removed and never replayed. Original Arweave cohort completion ACK retained. Website61e85b75a933004d1f005f85f1318fa05ad139de publishes Arweave with guided089a778c/C#b158bda61. Public HTML155229bytes/SHA2566fda659c10e90bb99d7636e04b62d3dc343b3a0c36cd85bb5b3f3c3e3c5c94f3 matches the committed git blob. Browser/real-expiry gates remain separate.
 
-There are **40 implemented query types**: 3 canonical adapters,35bounded public/source profiles and2local Azure/Oracle implementations. Arweave native/control/manager/API/local and hosted federation/reuse/privacy/replica gates pass. Deployed tariffs38/hosted38/browser5/open33. TON candidate controls pass but nativeHTTP429 remains red and isolated; no TON support grant. Full ORM/EF parity/HyperDrive certification remains incomplete.
+There are **41 implemented query types**, including locally verified TON: 3 canonical adapters,36bounded public/source profiles and2local Azure/Oracle implementations. TON native/manager3/2 and signed-field/error/pacing controls pass on an explicitly qualified recent dataset; API/hosting is next. Hosted38/tariffs38/browser5/open33 remain unchanged. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
 ## Exact next step
 
 1. Radix card published/byte-verified at website0228db6; setup guide74ccc3752/C#74aaa9b4d linked. Original HostedQueryAcceptance-RadixOASIS completion ACK exists: do not replay saves or create a new owner.
 2. Session lifecycle HTTP proof complete on original avatar, completion ACK retained: do not replay. Frontend9e18b7d published and HTML/JS byte-verified; browser gates remain open. [Proof and limits](SESSION_RENEWAL_STATUS.md).
-3. Arweave hosted acceptance complete on original cohort; completion ACK blocks replay. Arweave card61e85b7 is published/byte-verified with updated guide/C# links. Continue breadth; TON manager/CLI HTTP500 remains isolated, other provider candidates next. [Proof](ARWEAVE_PUBLIC_SOURCE_STATUS.md).
+3. Arweave hosted acceptance complete on original cohort; completion ACK blocks replay. Arweave card61e85b7 is published/byte-verified with updated guide/C# links. Continue breadth; TON API/hosted gates remain pending, other provider candidates next. [Proof](ARWEAVE_PUBLIC_SOURCE_STATUS.md).
 4. Browser gates:5verified/33open. CUA transport remains closed; David already opened the browser. No OS control resumed or repeated owner request.
-5. TON work/cosmic-cql-ton-public: pacing fix13controls and one real shared-planner3/2 pass; manager/CLI build0errors but activationHTTP500. Trace4requests200/URIs match independent reads. Next capture bounded error context from actual failing path; no repeated full flow or catalogue replacement. [Evidence/guide](TON_PUBLIC_SOURCE_STATUS.md). No qualified/hosted count grant.
+5. TON native/manager3/2 pass on qualified recent descriptors; signed-hash domain bug fixed, archive proof rejection retained, same owner/ACKed local catalogue migration. Next Core/API admission, four presets, local HTTP/Mongo/privacy and actual candidate tests before hosting. [Evidence/guide](TON_PUBLIC_SOURCE_STATUS.md).
 
 ## Guarantees and limits
 

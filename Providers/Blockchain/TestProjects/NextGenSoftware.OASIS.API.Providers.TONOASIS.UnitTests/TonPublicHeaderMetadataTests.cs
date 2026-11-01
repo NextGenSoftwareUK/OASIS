@@ -40,6 +40,12 @@ public sealed class TonPublicHeaderMetadataTests
             Assert.AreEqual(HttpMethod.Get, request.Method);
             Assert.IsNull(request.Headers.Authorization);
             if (Fault == "http") return Complete(new HttpResponseMessage(HttpStatusCode.TooManyRequests));
+            if (Fault is "http-detail" or "http-long")
+                return Complete(new HttpResponseMessage(HttpStatusCode.InternalServerError) {
+                    Content = new StringContent(Fault == "http-detail"
+                        ? "{\"error\":\"controlled native error\"}"
+                        : new string('x', 5000) + "END_MARKER")
+                });
 
             object result;
             if (request.RequestUri.AbsolutePath.EndsWith("getMasterchainInfo"))
@@ -84,6 +90,31 @@ public sealed class TonPublicHeaderMetadataTests
             return Complete(new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
             });
+        }
+    }
+
+    [DataTestMethod]
+    [DataRow("http")] [DataRow("http-detail")] [DataRow("http-long")]
+    public async Task HttpFailurePreservesStatusRouteAndBoundedOperatorDetailWithoutRetry(string fault)
+    {
+        var gateway = new Gateway { Fault = fault };
+        using var client = new HttpClient(gateway);
+        using var source = new TonPublicHeaderMetadataSource(client,
+            new Uri(TonPublicHeaderMetadataSource.PublicEndpoint), Blocks, Guid.NewGuid());
+
+        var activated = await source.ActivateQuerySourceAsync(default);
+        Assert.IsTrue(activated.IsError);
+        var error = activated.Exception as HttpRequestException;
+        Assert.IsNotNull(error);
+        Assert.AreEqual(fault == "http" ? HttpStatusCode.TooManyRequests : HttpStatusCode.InternalServerError, error.StatusCode);
+        StringAssert.Contains(error.Message, "https://toncenter.com/api/v2/getMasterchainInfo");
+        Assert.AreEqual(1, gateway.Requests, "Error observation must not replay the request.");
+        if (fault == "http-detail") StringAssert.Contains(error.Message, "controlled native error");
+        if (fault == "http-long")
+        {
+            StringAssert.Contains(error.Message, "[truncated to4096bytes]");
+            Assert.IsFalse(error.Message.Contains("END_MARKER"));
+            Assert.IsTrue(error.Message.Length < 5000);
         }
     }
 

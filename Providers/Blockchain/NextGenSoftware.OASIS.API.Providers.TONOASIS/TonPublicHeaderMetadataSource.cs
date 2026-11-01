@@ -211,7 +211,26 @@ public sealed class TonPublicHeaderMetadataSource : KeyValueStorageProviderBase,
                 using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(endpoint, route));
                 dispatched = true;
                 using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
-                response.EnsureSuccessStatusCode();
+                if (!response.IsSuccessStatusCode)
+                {
+                    // Preserve the failing public route and bounded operator
+                    // detail. A status alone cannot distinguish a bad request
+                    // from unavailable historical data. No request is replayed.
+                    await using var errorStream = await response.Content.ReadAsStreamAsync(token);
+                    var errorBytes = new byte[4097];
+                    int offset = 0;
+                    while (offset < errorBytes.Length)
+                    {
+                        int read = await errorStream.ReadAsync(errorBytes.AsMemory(offset), token);
+                        if (read == 0) break;
+                        offset += read;
+                    }
+                    string detail = JsonSerializer.Serialize(Encoding.UTF8.GetString(errorBytes, 0, Math.Min(offset, 4096)));
+                    string truncated = offset > 4096 ? " [truncated to4096bytes]" : "";
+                    throw new HttpRequestException(
+                        $"TON GET {request.RequestUri.AbsoluteUri} returned HTTP{(int)response.StatusCode}; response={detail}{truncated}",
+                        null, response.StatusCode);
+                }
                 await using var stream = await response.Content.ReadAsStreamAsync(token);
                 using var body = new MemoryStream();
                 var buffer = new byte[8192]; int count;
@@ -254,6 +273,7 @@ public sealed class TonPublicHeaderMetadataSource : KeyValueStorageProviderBase,
                     ["TonStartLogicalTime"] = header.GetProperty("start_lt").GetString(),
                     ["TonEndLogicalTime"] = header.GetProperty("end_lt").GetString(),
                     ["TonTimestamp"] = header.GetProperty("gen_utime").GetRawText(),
+                    ["TonValidatorListHashShort"] = header.GetProperty("validator_list_hash_short").GetRawText(),
                     ["TonParentRootHash"] = header.GetProperty("prev_blocks")[0].GetProperty("root_hash").GetString(),
                     ["TonParentFileHash"] = header.GetProperty("prev_blocks")[0].GetProperty("file_hash").GetString()
                 };
