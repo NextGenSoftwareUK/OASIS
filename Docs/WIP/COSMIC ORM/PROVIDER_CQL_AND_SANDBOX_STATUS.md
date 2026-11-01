@@ -6,7 +6,7 @@
 
 Latest hosted provider acceptance: parentaffe5719070d7b149d165b901306708e7643fb97/Corebe397f10419cf8b5c0dafc93ff1f4958b88588a2, app1615af0d/settingscfe35470 SUCCESS. Original Cardano cohort completion ACK retained; never replay its writes. Session lifecycle correction passes. Website5d9845c publishes the verified Cardano card with guide64f448f84/C#affe57190. Public HTML153728bytes/SHA2564ebca2803c9c4739e6ac5a15043b7ca4b8feabf55731dd8868be192c6b59f81f exactly matches committed git blob. Browser and real-expiry interaction remain separate open gates.
 
-There are **40 implemented query types**, including locally verified Arweave: 3 canonical adapters,35bounded public/source profiles and2local Azure/Oracle implementations. Arweave33controls/realCQL3/2/manager-CLI3/2 pass; API/hosted admission is next. Cardano native35controls/realCQL3/2/manager-CLI3/2, API/local HTTP and hosted visitor federation/reuse/isolation/replicas pass. Deployed tariffs37/hosted37/browser5/open32. Full ORM/EF parity/HyperDrive certification remains incomplete.
+There are **40 implemented query types**, including locally verified Arweave: 3 canonical adapters,35bounded public/source profiles and2local Azure/Oracle implementations. Arweave33controls/realCQL3/2/manager-CLI3/2/API3/localHTTP1/actual-presets1 pass; hosted admission is next. Cardano native35controls/realCQL3/2/manager-CLI3/2, API/local HTTP and hosted visitor federation/reuse/isolation/replicas pass. Deployed tariffs37/hosted37/browser5/open32. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
 
 Snapshot: 1 November 2026. This is a report, not a claim of full production readiness.

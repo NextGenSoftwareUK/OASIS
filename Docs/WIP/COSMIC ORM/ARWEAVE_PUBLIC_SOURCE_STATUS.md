@@ -39,3 +39,11 @@ Core5fd361db11f5d54e3e99282536d7c7be842edf86 pushed/ls-remote verified on task a
 - TestResults\ArweavePublicSourceCandidateCurrent\api-admission.trx: 3passed, 6559bytes, SHA256f6b190101deb23febed737ea17b06b0eb5b99585c8b50cf5c646d75068f334b0.
 - TestResults\ArweavePublicSourceCandidateCurrent\arweave-mongo-http.trx: 1passed, 3365bytes, SHA256c09f4d94e473387b5dc4620f57a2bceae7b18449f7b1cbc373309e33f6afebb0.
 - TestResults\ArweavePublicSourceCandidateCurrent\actual-prepared-candidate.trx: 1passed, 3335bytes, SHA256d420137b413d834eb40d5faff605775fe92c7f99acac5aab5fa7490955ac2416.
+
+App releaseb158bda6134d14195cf99dc04695904395dac9b1/Core5fd361d published to Development after fresh ancestry/pin checks. Exact deployment73ec2804-4e32-48de-b367-4ef750a82e9a BUILDING. Observe this job without redeploying. After SUCCESS keep HEAD=b158bda61; set COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT=b158bda6134d14195cf99dc04695904395dac9b1 and apply reviewed Arweave candidate once. Verify all per-key ACKs/whole candidate before one journalled settings redeploy. Checkpoint docs intentionally pending until guarded apply; no host setting applied.
+
+Frontend task4f22ac3 stages the spaced Arweave local command and guide/C# links pinnedb158bda61; not published to main. Await original exact app job, then guarded settings and hosted acceptance before publication.
+
+## Hosted settings rollout
+
+App73ec2804 SUCCESS atb158bda61/Core5fd361d. Three reviewed settings applied once, individual ACK hashes and complete hosted candidate matched. One journalled settings deploymentec59010e-e01a-4606-b91c-371c79a11414 is BUILDING. Original arweave-public-rollout.intent.json/protected outcome retained; do not replay apply/redeploy. After exact SUCCESS run Verify-HostedQuerySource.py ArweaveOASIS --prepare once on its fresh durable cohort, then inspect ACKs/identities/versions/replicas/privacy and write completion ACK before card publication. Hosted37/tariffs37/browser5/open32 remain evidence counts until acceptance. Checkpoint docs may now be committed; exact apply guard is complete.
