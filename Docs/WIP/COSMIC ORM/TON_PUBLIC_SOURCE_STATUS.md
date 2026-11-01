@@ -85,3 +85,7 @@ Parent b26724b integrates Development6b5db934; Core2ac915f integrates c9af864 an
 - TestResults/TonPublicSourceCandidateCurrent/merged-duration-admission.trx:16passed/0failed/0skipped, 27168bytes, SHA2566777b1b5002255e3db86c873b07d34cb4967bf21a466aabe1a21da2a0afbf773.
 
 Next publish the tested Core/parent Development batch, verify exact deployed commit, then apply only revised candidate with existing per-key journal/ACK and a single observed settings rollout. No TON settings apply or live acceptance has occurred yet.
+
+## Development code publication
+
+Parent24f548550dd2caaf99de00c2bf44003b2a2f8219 and Core2ac915f709ded7aabcd28a9db02aaea92fc52d97 published to Development after fresh fetch/ancestry checks; both remote heads verified. Exact app deployment4f6eba6c-5ee4-4afe-95a5-07849a92d7ec observed QUEUED (not success). Observe this same ID with Observe-HostedDeployment.py and expected commit24f548550dd2caaf99de00c2bf44003b2a2f8219; do not trigger another code build. Revised TON settings remain prepared only, no apply/intent/ACK. After exact code SUCCESS, use ton-public-duration candidate and existing guarded per-key apply, then one journalled settings deployment.
