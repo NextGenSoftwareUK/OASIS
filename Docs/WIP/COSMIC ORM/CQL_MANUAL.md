@@ -17,11 +17,11 @@ static catalogue links do not make a provider available on that host.
 | MongoDB, SQLite, Neo4j | Hosted general query/demo baseline and browser acceptance |
 | ActivityPub, IPFS | Hosted native three/two-record filters, private Mongo preparation, five/four-row federation, isolation, replicas and browser acceptance |
 | SOLID, public S3 metadata, public Solana account metadata | Same hosted HTTP/preparation/federation/isolation/replica gates; browser execution remains open |
-| Public Google metadata, Ethereum/Polygon/Arbitrum balances | Native SDK, local HTTP/Mongo pairing/isolation and runnable C# demos verified; hosted enrollment/browser gates pending |
-| Polkadot block headers | Native/local HTTP3/2, Mongo5/4/isolation and C# CLI verified; hosted/browser pending |
-| Cosmos Hub validators | Native/local HTTP3/2, Mongo5/4/isolation and C# CLI verified; hosted/browser pending |
-| NEAR public account metadata | Native/C#3/2 and original-cohort HTTP+Mongo5/4/isolation verified via FastNear; hosted/browser pending |
-| Base, Avalanche, BNB, Optimism, Linea, Scroll, zkSync, Abstract, Monad, Sei public balances | Native/C#/CLI and local HTTP/Mongo pairing/isolation verified; hosted/browser pending |
+| Public Google metadata, Ethereum/Polygon/Arbitrum balances | Native SDK, local HTTP/Mongo pairing/isolation and runnable C# demos verified; hosted HTTP/Mongo/isolation/replica gates verified; browser open |
+| Polkadot block headers | Native/local HTTP3/2, Mongo5/4/isolation and C# CLI verified; hosted HTTP/Mongo/isolation/replica gates verified; browser open |
+| Cosmos Hub validators | Native/local HTTP3/2, Mongo5/4/isolation and C# CLI verified; hosted HTTP/Mongo/isolation/replica gates verified; browser open |
+| NEAR public account metadata | Native/C#3/2 and original-cohort HTTP+Mongo5/4/isolation verified via FastNear; hosted HTTP/Mongo/isolation/replica gates verified; browser open |
+| Base, Avalanche, BNB, Optimism, Linea, Scroll, zkSync, Abstract, Monad, Sei public balances | Native/C#/CLI and local HTTP/Mongo pairing/isolation verified; hosted HTTP/Mongo/isolation/replica gates verified; browser open |
 | Azure Cosmos DB, Oracle | Emulator/local native proofs only; hosted setup deferred by David |
 
 These are scoped evidence statements; [CURRENT_STATUS](CURRENT_STATUS.md) owns

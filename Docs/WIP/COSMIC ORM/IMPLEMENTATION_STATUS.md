@@ -1,18 +1,14 @@
 # COSMIC ORM implementation status
 
-Updated 31 October 2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state/next commands; [checklist](CQL_PARITY_CHECKLIST.md) owns acceptance.
+Updated1November2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state; [checklist](CQL_PARITY_CHECKLIST.md) owns acceptance. Full programme incomplete.
 
-- Full ORM/CQL programme remains incomplete. Work only on red scopes; freeze green features/cursors unless a reproducible bug is found.
-- Original twelve investor-demo rows are green on MongoDB/SQLite/Neo4j. Existing Q01a-e/Q23/Q23e/Q49a proofs remain scoped; Q01f and full EF/NHibernate parity are incomplete.
-- Deep All/element/numeric terminals after entity-selected stages, unrestricted POCO mapping and migration tooling remain paused for demo breadth. Preserved implementation details are historical, not new active work.
-- Eight sources pass hosted HTTP query gates; five pass browser gates. SOLID/public S3/Solana browser execution remains open. Original three-store baseline35/35, hosted private Mongo snapshots, Mongo federation/isolation and SQLite/Neo4j replicas are verified within their cohorts.
-- Google public object metadata and Ethereum/Polygon/Arbitrum public balances now each pass native3/2, local HTTP/Mongo5/4/isolation and runnable C#3/2. They are task-only; hosted auth/billing/replication/browser acceptance remains open. Public address-state projections are not owned on-chain holons.
-- Source/read permission capture supports14explicit unsigned profiles, not14hosted providers. Query-only permission/tariff cannot authorize signed writes. Mixed signed/unsigned roles on one provider remain a documented future admission contract.
-- Hosted Azure/Oracle are deferred by David (free-only/no account). Existing emulator/local Oracle proofs do not satisfy hosted acceptance; do not repeat signup/payment requests.
-- Source baseline completion, all6reviewed repair routes, all6manager continuation directions and all6native paused-baseline interleavings pass. Reviewed hosted Mongo-to-SQLite held6/8recovery is complete; do not treat it as an outstanding blocker or replay it.
-- Native post-commit ACK loss and real loopback HTTP disconnect pass on all3authorities: one mutation, original-intent receipt recovery, two ordinary replicas. Broader hosted/operator/transport, large-store, primary-authority migration and full lifecycle/graph audit remain red.
-- Worktree `C:/Source/OASIS-cosmic`, task `work/cosmic-cql-google-public`, Coreb84ab80pushed; manifest/gitlink match. Frozen correctness release79fe887e3/Core6bbd015 excludes the four new profiles. Deployment state/timing belongs only in CURRENT_STATUS.
-- Frontend publicmain9b65a88has Google/Ethereum local links; Polygon/Arbitrum links are staged on its task branch.51client controls pass. Latest affected API/Core admission checks28/80pass; no parity percentage inferred.
-- Resources, failure preservation, cleanup and evidence hashes: [ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md), [expansion](CQL_DEMO_EXPANSION_ROADMAP.md), [recovery](REPLICA_BASELINE_AND_RECOVERY.md). Raw output only TestResults; durable state only LocalState.
+- 25 providers have scoped hosted HTTP proof: earlier8 plus17fresh additions. Browser proof remains5;20open. [Fresh evidence](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
+- Each addition passed native3/2, private Mongo preparation, paired5/4, repeat zero writes, foreign-private zero and matching SQLite/Neo4j replicas. Public projections are not owned native chain writes/full ORM.
+- Application4e0d58f08/Core56c869f and settings rollout aff4bf53 succeeded. Strict partitions preserve all68new presets. Polkadot publish root cause fixed.
+- Original12investor-demo scopes are green on MongoDB/SQLite/Neo4j. Their query checklist has50/82green rows per database; overlapping/uneven rows are not an overall parity percentage.
+- Live three-store candidate routing/failover passes. Native six-route recovery/interleaving and three-authority ACK-loss/disconnect proofs remain scoped. Broader operator/transport, optimality, scale and write-authority cutover remain open.
+- Core27unsigned tariff types do not imply27hosted proofs or signed-write grants. Mixed-role admission fence retained.
+- Hosted Azure/Oracle explicitly deferred. Deep post-selected All/element/numeric parity, unrestricted POCO mapping and migrations tooling paused for breadth.
+- Durable identities/ACKs only LocalState; raw evidence only TestResults. Reuse existing resources. [Ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 
-[Prior status/backlog](Archive/STATUS_BEFORE_PUBLIC_READ_PROFILE_RECONCILIATION_2026-10-31.md) is superseded. HyperDrive code work is V2 only; legacy gaps remain document-only.
+[All provider projects](PROVIDER_CQL_AND_SANDBOX_STATUS.md), [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [remaining work](AFTER_DEMO_BACKLOG.md). V2 implementation only; legacy gaps document-only.
