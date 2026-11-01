@@ -4,7 +4,7 @@
 
 **37 providers have scoped hosted HTTP evidence; 5 have browser evidence and 32 browser gates remain open.** Cardano passes native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2. Two private saves were acknowledged once. Source writes and browser interaction are not inferred.
 
-Latest hosted provider acceptance: parentaffe5719070d7b149d165b901306708e7643fb97/Corebe397f10419cf8b5c0dafc93ff1f4958b88588a2, app1615af0d/settingscfe35470 SUCCESS. Original Cardano cohort completion ACK retained; never replay its writes. Session lifecycle correction passes. Website80ba510 remains the last byte-verified publication; Cardano card publication is next. Browser and real-expiry interaction remain separate open gates.
+Latest hosted provider acceptance: parentaffe5719070d7b149d165b901306708e7643fb97/Corebe397f10419cf8b5c0dafc93ff1f4958b88588a2, app1615af0d/settingscfe35470 SUCCESS. Original Cardano cohort completion ACK retained; never replay its writes. Session lifecycle correction passes. Website5d9845c publishes the verified Cardano card with guide64f448f84/C#affe57190. Public HTML153728bytes/SHA2564ebca2803c9c4739e6ac5a15043b7ca4b8feabf55731dd8868be192c6b59f81f exactly matches committed git blob. Browser and real-expiry interaction remain separate open gates.
 
 There are **39 implemented query types**: 3 canonical adapters,34bounded public/source profiles and2local Azure/Oracle implementations. Cardano native35controls/realCQL3/2/manager-CLI3/2, API/local HTTP and hosted visitor federation/reuse/isolation/replicas pass. Deployed tariffs37/hosted37/browser5/open32. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
@@ -20,7 +20,7 @@ Session lifecycle HTTP proof and updated website publication are verified; brows
 - Hosted HTTP evidence covers **37** providers: earlier8 plus29additions including Cardano, each at its recorded release. Browser proof remains **5**; **32** are open.
 - Each addition passed native3/2, private Mongo preparation, paired5/4, repeat reuse, visitor isolation and matching SQLite/Neo4j replicas. Added profiles expose **116 presets** (29partitions ×4). [Proof](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
 - Elrond application **801795a64/Coref41b2a1**, app19f65f59 and settings18c4f04e SUCCESS; hosted acceptance passes. Original cohorts/earlier release-specific proofs preserved, no green saves replayed.
-- Byte-verified website main **80ba510** includes verified Starknet/Radix/Elrond/Sui/Hedera, first-setup guides and C# links. Browser interaction remains separately open.
+- Byte-verified website main **5d9845c** includes verified Cardano/Starknet/Radix/Elrond/Sui/Hedera, first-setup guides and C# links. Browser interaction remains separately open.
 - Azure hosted free account and Oracle hosted connection are deferred by David; existing local/emulator evidence does not prove cloud hosting.
 
 ## What each CQL level means
