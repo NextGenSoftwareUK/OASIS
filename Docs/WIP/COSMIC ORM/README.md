@@ -58,10 +58,10 @@ Radix hosted milestone: original cohort completed at74aaa9b4d/Core8b79301 after 
 
 Update CURRENT_STATUS.md and the full provider report together with the affected parity checklist, implementation status, roadmaps, demo instructions, manual, architecture and provider guide when their contracts or verified scope change. Record reproducible deferred gaps in AFTER_DEMO_BACKLOG.md, resources in the cleanup ledger, and David-owned actions in the central David list. Keep counts, release references and links consistent; distinguish local tests, hosted HTTP evidence, publication and browser verification. Keep raw output in TestResults/, and retain only compact evidence summaries and paths in reports.
 
-[Starknet candidate: native CQL and shared-manager C# demo](../../Devs/STARKNET_PUBLIC_HEADER_CQL_GUIDE.md) · [evidence and remaining API/hosting gates](STARKNET_PUBLIC_SOURCE_STATUS.md). Not part of the hosted provider count yet.
+[Starknet candidate: native CQL and shared-manager C# demo](../../Devs/STARKNET_PUBLIC_HEADER_CQL_GUIDE.md) · [hosted evidence and remaining browser gates](STARKNET_PUBLIC_SOURCE_STATUS.md). Included in the current scoped hosted count.
 
 [Cardano native CQL and shared-manager C# demo](../../Devs/CARDANO_PUBLIC_HEADER_CQL_GUIDE.md):35controls/real3/2/actual CLI3/2 plus hosted native3/2/Mongo5/4/reuse/privacy/replicas2/2 pass. Browser open. [Proof and next gate](CARDANO_PUBLIC_SOURCE_STATUS.md#native-cql-and-developer-demo-verified).
 
 [Arweave native CQL and commented shared-manager demo](../../Devs/ARWEAVE_PUBLIC_HEADER_CQL_GUIDE.md):33controls/real3/2/actualCLI3/2 plus hosted3/2/Mongo5/4/reuse/privacy/replicas2/2 pass. Browser open. [Evidence and exact historical scope](ARWEAVE_PUBLIC_SOURCE_STATUS.md).
 
-[TON native CQL setup and commented C# candidate](../../Devs/TON_PUBLIC_HEADER_CQL_GUIDE.md):Native32decoder/13query/3error controls, realCQL3/2 and manager/CLI3/2 pass on the qualified recent dataset. API/hosted gates next; [evidence and next root-cause step](TON_PUBLIC_SOURCE_STATUS.md).
+[TON native CQL setup and commented C# candidate](../../Devs/TON_PUBLIC_HEADER_CQL_GUIDE.md):Native32decoder/13query/3error controls, realCQL3/2 and manager/CLI3/2 pass on the qualified recent dataset. Local HTTP native 3/2, paired 5/4 and privacy 0/3 pass; hosted gates next. [Evidence and next step](TON_PUBLIC_SOURCE_STATUS.md).

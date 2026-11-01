@@ -34,6 +34,29 @@ public class CqlTonHostedAdmissionTests
         Assert.Equal(5000, new NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlFederationV1Request().MaximumDurationMilliseconds);
     }
 
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(1, true)]
+    [InlineData(5000, true)]
+    [InlineData(5001, true)]
+    [InlineData(30000, true)]
+    [InlineData(30001, false)]
+    public void NativeDurationIsBoundedAndDetached(int milliseconds, bool accepted)
+    {
+        var request = new NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Request
+        {
+            MaximumDurationMilliseconds = milliseconds
+        };
+        if (accepted)
+        {
+            var captured = CqlRequestCapture.Capture(request);
+            request.MaximumDurationMilliseconds = 1;
+            Assert.Equal(milliseconds, captured.MaximumDurationMilliseconds);
+        }
+        else Assert.Throws<ArgumentException>(() => CqlRequestCapture.Capture(request));
+        Assert.Equal(5000, new NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Request().MaximumDurationMilliseconds);
+    }
+
     [Fact]
     public void ReadCatalogueRequiresIndependentTonPermissionAndTariff()
     {
