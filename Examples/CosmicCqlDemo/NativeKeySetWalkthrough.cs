@@ -39,6 +39,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.StellarOASIS => "StellarLedgerSequence",
             ProviderType.AlgorandOASIS => "AlgorandAddress",
             ProviderType.AptosOASIS => "AptosAccountAddress",
+            ProviderType.HashgraphOASIS => "HederaAccountId",
             ProviderType.NEAROASIS => "NearAccountId",
             ProviderType.BaseOASIS => "BaseAccountAddress",
             ProviderType.OptimismOASIS => "OptimismAccountAddress",

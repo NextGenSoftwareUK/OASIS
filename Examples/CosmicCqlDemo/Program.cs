@@ -42,6 +42,15 @@ if (args.Length == 2 && args[0] == "--sei-public")
     return 0;
 }
 
+// Read bounded Hedera Mainnet mirror account observations through CQL.
+// Native timestamps are retained; no SDK payment or transaction is submitted.
+if (args.Length == 2 && args[0] == "--hedera-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await HederaPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Read public Aptos accounts at one explicit version per source query.
 // No key, transaction or account creation is required.
 if (args.Length == 2 && args[0] == "--aptos-public")

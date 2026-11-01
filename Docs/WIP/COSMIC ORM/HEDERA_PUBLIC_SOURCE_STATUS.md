@@ -1,6 +1,6 @@
 # Hedera / Hashgraph public account CQL status
 
-Updated 1 November 2026. Qualification complete; CQL/API/hosted/browser gates open. Provider type is the existing `HashgraphOASIS`. Counts remain33implemented query types and30scoped hosted HTTP providers.
+Updated 1 November 2026. Native CQL/shared-manager/CLI complete; API/hosted/browser gates open. Provider type is the existing `HashgraphOASIS`. Counts:34implemented query types and30scoped hosted HTTP providers.
 
 ## Qualified contract
 
@@ -25,8 +25,16 @@ Primary references: [official Mainnet Swagger](https://mainnet.mirrornode.hedera
 
 ## Next gates
 
-1. Implement explicit read-only mirror source: strict Mainnet endpoint, exact identity/balance/timestamp validation, bounded responses/cancellation and complete-page failure. Reject unknown config/signing/history options and unsupported scans.
-2. Controlled source tests and real shared HolonManager/LINQ3/2 with readable C#/CLI walkthrough.
+1. Complete: explicit read-only mirror source, strict Mainnet endpoint, exact identity/balance/timestamp validation, bounds/cancellation and complete-page failure. Unknown config/signing/history options/unsupported scans reject.
+2. Complete:21controlled+1real HolonManager3/2 tests pass/no skips; readable actual C#/CLI3/2 passes.
 3. Independent query admission, native/Mongo presets, shipping planner, local HTTP/Mongo privacy and focused client preparation.
 4. Guarded hosted rollout, visitor3/2+5/4, repeat reuse, foreign-private0 and exact replica checks; retain original save intents/ACKs.
 5. Sandbox/local-demo links and separate browser verification. No provider-count promotion before the appropriate acceptance gate.
+
+## Native CQL milestone
+
+HederaPublicAccountMetadataSource uses shared capabilities/planner/manager and explicit read-only key-value backend. Official Mainnet endpoint bound; account identity/deleted state, exact nonnegative Int64 tinybars and seconds/nanoseconds timestamp checked before output. Incidental transaction history bounded/not mapped or followed. No freshness/shared-snapshot or consensus proof.
+
+- TestResults/HederaPublicSourceCandidateCurrent/hedera-source.trx:22passed/0skips; SHA2562ce3a468e9b611dc24be8c917b431405e39c5dbc152baee332cbfa5d15528067.
+- ActualCLI exit0,3/2; TestResults/HederaPublicSourceCandidateCurrent/demo-run.log SHA25684be881a19c4173fad629c94d37446cad57b1c156eb6adc4ebbf246fab6243b5.
+- [Developer guide](../../Devs/HEDERA_PUBLIC_ACCOUNT_CQL_GUIDE.md). No API admission/hosted grant yet. Existing SDK bridge is not used for these reads.
