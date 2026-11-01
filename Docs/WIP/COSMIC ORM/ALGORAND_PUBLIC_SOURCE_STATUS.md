@@ -1,6 +1,6 @@
 # Algorand public account CQL status
 
-Updated 1 November 2026. Native CQL adapter and shared-manager tests pass; API/hosted/browser gates remain open. Counts: 32 implemented query types, 31 deployed query-tariff types and 29 scoped hosted HTTP providers.
+Updated 1 November 2026. Native CQL adapter and shared-manager tests pass; API/local HTTP complete; hosted/browser gates remain open. Counts: 32 implemented query types, 31 deployed query-tariff types and 29 scoped hosted HTTP providers.
 
 ## Qualified contract
 
@@ -25,7 +25,7 @@ The official [account lookup reference](https://dev.algorand.co/reference/rest-a
 
 1. Complete: explicit read-only source with canonical SHA512/256 checksum, exact numbers and current-state semantics. Historical options/unknown config/writes/unsupported scans reject.
 2. Controlled source tests and real shared-manager3/2 pass. Commented C#/CLI walkthrough added; actual CLI build/run passes3/2.
-3. Independent query admission, shipping planner presets, local HTTP/Mongo/isolation tests and generic client preparation proof.
+3. Complete: independent query admission, actual four-preset shipping planning, local HTTP/Mongo/isolation and focused generic client preparation.
 4. Guarded hosted enrollment, exact deployment success, native3/2 + Mongo5/4 + repeat reuse + foreign-private0 + replicas2/2. Preserve original save intents and ACKs.
 5. Publish sandbox/local-demo links and verify browser interaction separately. Do not promote provider counts before the appropriate evidence exists.
 
@@ -34,3 +34,15 @@ The official [account lookup reference](https://dev.algorand.co/reference/rest-a
 AlgorandPublicAccountMetadataSource uses Shared.KeyValueStorage and explicit read-only activation, canonical address membership, per-query network checks and exact per-response amounts/rounds.22tests pass (21controlled +1real shared HolonManager3/2), no skips. Raw TestResults/AlgorandPublicSourceCandidateCurrent/algorand-source.trx SHA256172d5e57a9e0f221644093bca61883d7d9dbac6a2854460aa92e76f7ff48f436. Explicit modern BouncyCastle2.6.2 alias resolves inherited duplicate crypto assemblies; no fallback. [Developer guide](../../Devs/ALGORAND_PUBLIC_ACCOUNT_CQL_GUIDE.md).
 
 Actual CLI exit0,3/2; TestResults/AlgorandPublicSourceCandidateCurrent/demo-run.log SHA2567143af57a95707516e11b3f6a1d6f52fd4e1ab0987887d64696d538198f67258. Build0errors; existing dependency warnings remain. No source/Mongo writes.
+
+## API and local HTTP complete
+
+Three API/prepared tests, one Core tariff test and one native loopback HTTP/Mongo test pass, zero skips; three pure publisher controls and one generic frontend preparation control pass. Corec17db5f pushed and remote ref verified. Protected3setting candidate prepared only, wallet DNA byte-identical; no settings applied or hosted Algorand cohort yet.
+
+Native3/2, two private Mongo creates, paired5/4, foreign-private0/public3 and nine query receipts pass. Auth/billing are controlled fixture infrastructure, not production billing or hosted replication proof. Exact DB cosmic_cql_algorand_http_demo marker d2767954-0a23-4261-8031-866081c5715f verified then dropped; Mongo stopped/27029 absent. Durable AlgorandMongoHttpCurrent intents/save ACKs/cleanup retained; never replay.
+
+- algorand-admission-prepared.trx:3passed, SHA256ad7948cd073a30d2997342b2486291c72fb747034b5b4ab6523778340a23c5a3.
+- algorand-tariff.trx:1passed, SHA2561cb53255d58f356462c940849e3d69a132c642bf5c48f3ab4d00f400f59ef6da.
+- algorand-mongo-http.trx:1passed, SHA2561d68b685f29f5246b10145401bfc793943963584eacb895868ffb06c0c7e5544.
+
+Raw reports only TestResults/AlgorandPublicSourceCandidateCurrent. Separate deployed Node probe reports both network endpoints and one configured account200; reachability only. Next verified Development batch, exact application SUCCESS, guarded3setting application and one journalled rollout, then hosted visitor native/Mongo/isolation/replica checks. Current-state account values may change between observations; copies are captured observations, not synchronized historical chain snapshots.
