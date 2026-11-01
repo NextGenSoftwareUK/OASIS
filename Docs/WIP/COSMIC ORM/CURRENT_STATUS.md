@@ -48,7 +48,7 @@ Bitcoin local and hosted CQL/C#/CLI/HTTP+Mongo pass: native3/2, paired5/4, repea
 
 ## Exact next work
 
-1. Next: XRPL API/read-only admission, local HTTP/Mongo5/4+isolation and four actual shipping-planned presets, then guarded hosted rollout. [Native proof](XRPL_PUBLIC_SOURCE_STATUS.md):21controlled+1real C# pass; actual CLI3/2. Original source owner/hash catalogue retained. No XRPL hosted grant; no completed Bitcoin save replay.
+1. Next: publish verified XRPL parent/Coree032d0a batch, exact app SUCCESS, guarded3setting apply + one journalled settings rollout, then hosted acceptance/website card. [Proof](XRPL_PUBLIC_SOURCE_STATUS.md):21source/C#1/API+prepared3/Core1/HTTP1 pass; CLI/native3/2 and local Mongo5/4, private0. No replay of completed fixtures.
 2. Browser gates remain open for22providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
