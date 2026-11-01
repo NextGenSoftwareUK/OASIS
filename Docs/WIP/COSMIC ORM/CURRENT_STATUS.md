@@ -8,7 +8,7 @@ David explicitly waived the daily Development push limit for live demo testing/f
 
 Packaging correction89681ce40/Core56c869f deployedSUCCESS (job5e6a80b0). Guarded enrollment applied and verified17source settings plus admission; the final combined preset catalogue40,443characters was rejected by Railway's32768-character limit. Existing shared catalogue remains unchanged, no unrelated drift. Original intent and protected explicit-continuation error retained; no uncertain holon/save replay. No settings rollout was triggered.
 
-Root fix: provider-partitioned preset configuration with strict ownership/total bounds. Preserves shared catalogue and all68new presets; each new variable at most2399characters.17APItests (including shipping68preset planner) and3Python controls pass. Preparing verified Development publication now; after its SUCCESS apply17partition variables from preserved candidate and perform one intended settings rollout, then live source acceptance.
+Root fix: provider-partitioned preset configuration with strict ownership/total bounds. Preserves shared catalogue and all68new presets; each new variable at most2399characters.17APItests (including shipping68preset planner) and3Python controls pass. Development4e0d58f08 pushed and remote-verified; exact job8444dbca-3156-46dc-9583-90ba444b4003 QUEUED; after its SUCCESS apply17partition variables from preserved candidate and perform one intended settings rollout, then live source acceptance.
 
 ## Active deployment
 

@@ -7,7 +7,7 @@ Snapshot: 1 November 2026. This is a report, not a claim of full production read
 - Repository inventory: **229 shipping provider projects**, including alternate implementations; **173 storage/specialized-storage**, **56 non-storage**. These are projects, not 229 equivalent databases or certified CQL adapters.
 - CQL programme: **27 explicit query-provider types**: 3 deeper canonical adapters, 22 bounded source profiles, 2 separately scoped Azure/Oracle implementations. Admission-catalogue membership alone does not prove readiness.
 - Last verified hosted HTTP set: **8** (MongoDB, SQLite, Neo4j, ActivityPub, IPFS, SOLID, S3 public metadata, Solana public accounts). Verified browser set: **5** (first five above). SOLID/S3/Solana browser acceptance remains open.
-- Seventeen additional source profiles have native/C#/CLI/local HTTP + Mongo/isolation proofs and **68 jointly planned presets**. Their corrected application89681ce40 is currently building (Railway5e6a80b0); **19 joint settings remain unapplied**. They are not yet live provider acceptance.
+- Seventeen additional source profiles have native/C#/CLI/local HTTP + Mongo/isolation proofs and **68 jointly planned presets**. Their packaging-corrected application89681ce40 deployed successfully. Eighteen source/admission settings were stored without triggering deployment; the combined40,443-character presets value was explicitly rejected at Railway's32,768-character limit. The strict provider-partition configuration fix4e0d58f08 is queued (job8444dbca);17small preset partitions remain unapplied. They are not yet live provider acceptance.
 - Public website main36933fb serves the exact committed expanded demo links. A link is not live enrollment.
 - Azure hosted free account and Oracle hosted connection are deferred by David; existing local/emulator evidence does not prove cloud hosting.
 
@@ -285,8 +285,8 @@ Storage/SDK columns are a snapshot of the [maintained provider matrix](../HyperD
 
 ## Immediate work
 
-1. Observe exact packaging correction deployment5e6a80b0 at89681ce40; never restart it solely because observation times out.
-2. After SUCCESS, use the matching release branch and guarded journalled publisher to apply the preserved17source/19setting candidate. Observe one intended settings rollout, then execute provider-specific hosted native/Mongo/preparation/reuse/isolation/replica gates. Never replay uncertain mutations or replace expired cohorts automatically.
+1. Observe exact provider-partition configuration deployment8444dbca at4e0d58f08; never restart it solely because observation times out.
+2. After SUCCESS, use the matching release branch and guarded journalled publisher to apply the preserved17provider preset partitions over the exact reviewed18setting partial state. Keep the original rejected combined-catalogue journal. Observe one intended settings rollout, then execute provider-specific hosted native/Mongo/preparation/reuse/isolation/replica gates. Never replay uncertain mutations or replace expired cohorts automatically.
 3. Complete browser gates when browser control recovers. Current control failure is agent-owned; no new request for David to open the page.
 4. Keep green feature scopes frozen unless a reproducible bug appears. Continue breadth before paused depth; return to full parity/ORM roadmap afterward.
 
