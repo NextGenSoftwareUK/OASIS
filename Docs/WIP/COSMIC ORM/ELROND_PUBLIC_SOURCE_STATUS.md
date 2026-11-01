@@ -1,6 +1,6 @@
 # MultiversX / Elrond public source status
 
-Updated 1 November 2026. Native CQL/shared-manager/C# CLI verified; API/local HTTP verified; hosted/browser gates open. Programme:36implemented query types,33scoped hosted HTTP providers,5browser proofs/28open. No count grant from a public API probe.
+Updated 1 November 2026. Native CQL/shared-manager/C# CLI verified; API/local HTTP and hosted HTTP verified; browser gate open. Programme:36implemented query types,34scoped hosted HTTP providers,5browser proofs/29open. No count grant from a public API probe.
 
 ## Qualified contract
 
@@ -71,3 +71,19 @@ Scoped release43ca9f0d0verification passes3API/planner cases without skips and5S
 Published verified parent801795a648a1ae0b9211c0a478027673cb79c156 and Coref41b2a11253c222aac6bfdf67278d226e01ff96e to Development after fresh-fetch/ancestry checks, non-force pushes and exact ls-remote verification. Exact app19f65f59-e370-4cad-94ce-b0246872b891 QUEUED; settings candidate still unapplied. Do not restart job or replay green seeds. Existing frozen release branch matches801795a64 for later apply guard.
 
 Exact app19f65f59 SUCCESS at801795a64/Coref41b2a1. Guarded three-setting apply completed once using matching frozen release HEAD; each value and whole protected candidate observed exactly. One journalled settings job18c4f04e-6ac3-4fa7-ac2a-ff312d095159 BUILDING. No hosted visitor/snapshot cohort yet; observe same job before normal-visitor acceptance. No settings replay/restart or extra hosting spend.
+
+## Elrond hosted HTTP complete — 1 November 2026
+
+**34 providers have scoped hosted HTTP evidence; 5 have browser evidence and 29 browser gates remain open.** MultiversX/Elrond now passes native 3/2, Mongo federation 5/4, repeat reuse (zero new/two existing), foreign-private zero/public three, and two matching replicas on both SQLite and Neo4j. No source/chain writes or browser certification are inferred.
+
+Latest verified hosted acceptance: application `801795a648a1ae0b9211c0a478027673cb79c156`, Core `f41b2a11253c222aac6bfdf67278d226e01ff96e`, app `19f65f59-e370-4cad-94ce-b0246872b891` and settings `18c4f04e-6ac3-4fa7-ac2a-ff312d095159` succeeded. Elrond card publication is next; last byte-verified website main remains `9679699`.
+
+There are **36 implemented query types**: 3 canonical adapters, 31 bounded public/source profiles and 2 locally scoped Azure/Oracle implementations. Elrond has34native tests + actual shared-manager/CLI3/2, API2/Core1/shipping1/localHTTP1/config3passes and a scoped release3test/artifact check excluding TRON's unverified adapter. Azure/Oracle hosting remains explicitly deferred. TRON's real429and Starknet/Radix403access qualifications stay red and uncounted. Full ORM/parity/HyperDrive certification remains incomplete. Dated milestones retain their original scope.
+
+Original sourceOwner/catalogue and owner/foreign cohort retained. Completion ACK under `LocalState/COSMIC/HostedQueryAcceptance-ElrondOASIS/` verified from raw native/federated/isolation/replica counts. Do not replay its saves. LatestIndexed is not a pinned/shared historical snapshot. Mongo demo copies capture private name/description/native-key observations, not full native account/state snapshots. API nonce safe-integer limitation remains explicit.
+
+| Evidence under TestResults/HostedCqlIntegrationCurrent | SHA256 |
+|---|---|
+| ElrondOASIS-native-http.json | `f104103460d61fad4742b13a2f79031b28db5103c8a7e73a4b93d8ce7dc72f71` |
+| ElrondOASIS-client-http-flow.json | `71e8b470f90b49c69e9d023636d90c487fd8edae7a08f072e25964c6c001b42b` |
+| ElrondOASIS-isolation-http.json | `03a08a90c1efd0b55c9dcb5e9519ff22830f7539c640d4cac7aa3c45485e200c` |

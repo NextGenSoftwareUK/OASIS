@@ -1,6 +1,6 @@
 # MultiversX / Elrond public account CQL guide
 
-This explicit read-only profile queries Mainnet account metadata through CQL's shared planner and HolonManager. The provider type remains `ElrondOASIS`. It uses the public MultiversX indexing API and does not invoke the signed wallet provider. Native CQL, API admission and local HTTP/Mongo federation are verified; hosting remains pending. See [current evidence](../WIP/COSMIC%20ORM/ELROND_PUBLIC_SOURCE_STATUS.md).
+This explicit read-only profile queries Mainnet account metadata through CQL's shared planner and HolonManager. The provider type remains `ElrondOASIS`. It uses the public MultiversX indexing API and does not invoke the signed wallet provider. Native CQL, API admission and local HTTP/Mongo federation are verified; hosted HTTP acceptance also passes, with browser interaction still unverified. See [current evidence](../WIP/COSMIC%20ORM/ELROND_PUBLIC_SOURCE_STATUS.md).
 
 ## First setup
 
@@ -70,6 +70,8 @@ The API emits nonce as a JSON number. This profile rejects values above `2^53 - 
 
 Missing, duplicate, unexpected or malformed accounts, imprecise numbers, HTTP failures, duplicate JSON, cancellation and oversized responses fail the complete selection. There is no partial-page publication, endpoint fallback or automatic retry.
 
-## Sandbox status
+## Live sandbox
 
-The C# native demo is the current entry point. Do not claim a live Elrond sandbox preset until hosted acceptance and publication gates pass. Browser interaction is verified separately. Public account projections do not certify signed storage, conditional writes or replication into MultiversX.
+Open the WEB4 sandbox CQL tab, start a temporary session and select ElrondOASIS. Native presets query three accounts or a two-account subset. Mongo-paired presets prepare two private records and reuse them on repeat setup. Hosted HTTP checks verify native3/2, paired5/4, foreign-private zero and matching SQLite/Neo4j replicas. Browser interaction remains a separate open gate.
+
+Mongo demo copies capture name, description and native account key; they are not full account/state snapshots. Native API observations are latest indexed, with no snapshot shared across providers. No blockchain transaction is submitted. Public account projections do not certify signed storage, conditional writes or replication into MultiversX.
