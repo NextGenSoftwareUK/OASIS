@@ -1,6 +1,6 @@
 # Arweave public-header CQL demo
 
-This read-only profile uses shared HolonManager/LINQ planning to select explicit historical Arweave block IDs. It does not use wallet settings, sign transactions or scan the chain. 33 controlled checks, the real native3/2 query and actual shared-manager console3/2 demo pass. Hosted enrollment is a separate gate.
+This read-only profile uses shared HolonManager/LINQ planning to select explicit historical Arweave block IDs. It does not use wallet settings, sign transactions or scan the chain. 33 controlled checks, the real native3/2 query and actual shared-manager console3/2 demo pass. Hosted HTTP federation/reuse/privacy/replica checks also pass; browser verification remains separate.
 
 ## Create one reusable catalogue
 
@@ -70,3 +70,7 @@ var filtered = query.Where(row => selected.Contains(
 - Cancellation, malformed/oversized responses and HTTP errors return explicit errors. Hosted HTTP federation, visitor preparation/isolation and replica checks must pass separately before the profile is published in the live playground.
 
 [Native HTTP contract and historical formats](https://docs.arweave.org/developers/arweave-node-server/http-api). [Current qualification and evidence](../WIP/COSMIC%20ORM/ARWEAVE_PUBLIC_SOURCE_STATUS.md).
+
+## Live sandbox
+
+Select ArweaveOASIS in the [CQL playground](https://web4.oasisomniverse.one/web4-sandbox.html). Query three headers or their two-key subset, prepare two private Mongo snapshots, then run the Mongo+Arweave presets (five/four physical rows). Repeat preparation reuses both snapshots; independent visitor privacy and matching SQLite/Neo4j replicas pass. Snapshots contain name, description and native key, not the complete native block. This bounded flow does not grant arbitrary storage search or native writes.
