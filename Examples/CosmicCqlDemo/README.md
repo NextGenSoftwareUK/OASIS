@@ -1,12 +1,28 @@
 # COSMIC CQL demo
 
-**Live milestone, 1 November 2026:** all seventeen added public-source profiles now pass hosted HTTP native 3/2, private Mongo pairing 5/4, preparation/reuse/isolation and matching SQLite/Neo4j replicas. This brings scoped hosted HTTP coverage to 25 providers; browser proof remains 5. [Exact evidence and limitations](../../Docs/WIP/COSMIC%20ORM/HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). Console commands demonstrate native reads only; they do not rerun hosted/browser checks.
+**Live milestone, 1 November 2026:** 33 providers have scoped hosted HTTP proof, including Sui;5 have browser proof and28browser gates remain open. Native3/2, Mongo5/4, preparation/reuse/isolation and matching SQLite/Neo4j replicas are verified for the25added profiles. [Exact evidence and limits](../../Docs/WIP/COSMIC%20ORM/HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). Console commands perform native reads and do not rerun hosted/browser checks.
 
 
 Start with the [live sandbox](https://web4.oasisomniverse.one/web4-sandbox.html)
 for configured hosted providers; it needs no local SDK or database. See
 [CURRENT_STATUS](../../Docs/WIP/COSMIC%20ORM/CURRENT_STATUS.md) for verified live
 coverage. Local launchers below are separate from hosted availability.
+
+## Public Sui objects — C# and hosted HTTP demo
+
+The [Sui guide](../../Docs/Devs/SUI_PUBLIC_OBJECT_CQL_GUIDE.md) contains a complete fresh-checkout JSON configuration and explains checkpoint semantics. Reuse the retained source configuration when present.
+
+```powershell
+dotnet run `
+    --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
+    --no-build `
+    --no-restore `
+    -- --sui-public LocalState/COSMIC/HostedSuiPublicSourceCurrent/source.json
+```
+
+[SuiPublicWalkthrough.cs](SuiPublicWalkthrough.cs) uses the shared HolonManager/LINQ query path for three objects and a two-object subset. Versions stay exact decimal strings; each native query selects one checkpoint. No wallet, chain transaction or local Mongo write is needed.
+
+In the sandbox CQL tab, select SuiOASIS for native presets or Mongo-paired presets. Hosted HTTP checks pass; browser interaction remains an open gate. Mongo copies capture name/description/native-key observations, not full native object/state snapshots.
 
 ## Public Solana account metadata
 
@@ -30,8 +46,7 @@ dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
 
 [ArbitrumPublicWalkthrough.cs](ArbitrumPublicWalkthrough.cs) reads through the
 shared HolonManager/LINQ sample and prints exact native balances/block hashes.
-No wallet, funding, transaction or Mongo fixture. Hosted/browser enrollment remains
-pending; RPC-reported finality is not independent rollup-settlement verification.
+No wallet, funding, transaction or Mongo fixture. Hosted HTTP enrollment is verified; browser interaction remains open; RPC-reported finality is not independent rollup-settlement verification.
 
 ## Public Polygon balances — runnable C# demo
 
@@ -64,7 +79,7 @@ dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
 
 [EthereumPublicWalkthrough.cs](EthereumPublicWalkthrough.cs) is a commented
 HolonManager/LINQ example. It reads public balances without wallets, funding,
-transactions or Mongo writes. Hosted enrollment/browser proof remain pending;
+transactions or Mongo writes. Hosted HTTP enrollment is verified; browser interaction remains open;
 local HTTP pairing and the console example are verified separately.
 
 ## Public Google Cloud metadata — runnable C# demo
@@ -802,9 +817,9 @@ MongoDB/SQLite/Neo4j walkthrough on5088/demo. Native launch currently stops at
 retained-fixture preflight; it does not reset data. See
 [required ownership audit](../../Docs/WIP/COSMIC%20ORM/CQL_DATABASE_DEMO_HUB.md).
 
-### Cosmos Hub — native local demo verified, federation pending
+### Cosmos Hub — native and hosted HTTP federation verified
 
-`--cosmos-public <existing-source.json>` reads three configured validators, then filters to two through the shared HolonManager/LINQ path. [CosmosPublicWalkthrough.cs](CosmosPublicWalkthrough.cs) has spaced examples and comments. The17controlled tests, native published walkthrough and CLI pass against explicitly selected KJNodes. Earlier CryptoCrew502 remains documented. Hosted and HTTP federation acceptance remain pending. See [readiness and exact command](../../Docs/WIP/COSMIC%20ORM/COSMOS_PUBLIC_SOURCE_READINESS.md). No wallet, funding or source writes.
+`--cosmos-public <existing-source.json>` reads three configured validators, then filters to two through the shared HolonManager/LINQ path. [CosmosPublicWalkthrough.cs](CosmosPublicWalkthrough.cs) has spaced examples and comments. The17controlled tests, native published walkthrough and CLI pass against explicitly selected KJNodes. Earlier CryptoCrew502 remains documented. Hosted HTTP federation is verified; browser interaction remains open. See [readiness and exact command](../../Docs/WIP/COSMIC%20ORM/COSMOS_PUBLIC_SOURCE_READINESS.md). No wallet, funding or source writes.
 
 ### Polkadot public header demo
 
@@ -822,11 +837,11 @@ Use `--base-public`, `--avalanche-public` or `--bnb-public` with the correspondi
 
 `dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj --no-build --no-restore -- --optimism-public LocalState/COSMIC/HostedOptimismPublicSourceCurrent/source.json`
 
-Uses the spaced/commented OptimismPublicWalkthrough, shared HolonManager/LINQ path and retained source catalogue. Native3/2 and actualCLI pass; HTTP/Mongo and hosting remain pending. Exact wei strings and RPC-reported finalized block hashes; no wallet/transaction/database creation.
+Uses the spaced/commented OptimismPublicWalkthrough, shared HolonManager/LINQ path and retained source catalogue. Native3/2 and actualCLI pass; HTTP/Mongo and hosted acceptance pass; browser interaction remains open. Exact wei strings and RPC-reported finalized block hashes; no wallet/transaction/database creation.
 
 ### Linea and Scroll public balances
 
-Use `--linea-public LocalState/COSMIC/HostedLineaPublicSourceCurrent/source.json` or `--scroll-public LocalState/COSMIC/HostedScrollPublicSourceCurrent/source.json` with the same console command above. Spaced/commented walkthroughs use HolonManager/LINQ, exact wei strings and RPC-reported finalized block hashes. Native3/2 and actualCLI pass; HTTP/Mongo/hosting remain pending. No wallet, transaction or database creation.
+Use `--linea-public LocalState/COSMIC/HostedLineaPublicSourceCurrent/source.json` or `--scroll-public LocalState/COSMIC/HostedScrollPublicSourceCurrent/source.json` with the same console command above. Spaced/commented walkthroughs use HolonManager/LINQ, exact wei strings and RPC-reported finalized block hashes. Native3/2 and actualCLI pass; HTTP/Mongo and hosted acceptance pass; browser interaction remains open. No wallet, transaction or database creation.
 
 ### zkSync and Abstract public balances
 
@@ -838,4 +853,4 @@ Use `--monad-public LocalState/COSMIC/HostedMonadPublicSourceCurrent/source.json
 
 ### Sei public balances
 
-Use `--sei-public LocalState/COSMIC/HostedSeiPublicSourceCurrent/source.json` with the existing console. Spaced/commented SeiPublicWalkthrough uses HolonManager/LINQ; native/C#/actualCLI3/2pass. The fixedSeinativecodec normalizes32byte mixedcaseblockhashes; otherEVMprofileskeepcanonicalwirevalidation. Exactnativebaseunits,RPC-reportedfinalizedhashes; no wallet/transaction/databasecreation. HTTP/Mongo/hostingremainpending.
+Use `--sei-public LocalState/COSMIC/HostedSeiPublicSourceCurrent/source.json` with the existing console. Spaced/commented SeiPublicWalkthrough uses HolonManager/LINQ; native/C#/actualCLI3/2pass. The fixedSeinativecodec normalizes32byte mixedcaseblockhashes; otherEVMprofileskeepcanonicalwirevalidation. Exactnativebaseunits,RPC-reportedfinalizedhashes; no wallet/transaction/databasecreation. HTTP/Mongo/hosted acceptance passes; browser interaction remains open.
