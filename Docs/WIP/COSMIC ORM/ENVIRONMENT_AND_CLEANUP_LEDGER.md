@@ -1385,3 +1385,7 @@ Publicationdone:oneapprovedparentdevpush57174def3/Core6bbd015 remoteverified. Ex
 31October2026:releasebranch reused/Core6bbd015 retained; V2unboundcontrolleracquisition fixed outsidebillingadmission, strictadmittedguard retained. New2actualparameterlesscontrolleracquisition regressions usingexistingAPItesthost/mocks; no newSDK/environment/download. Boundedleasedbuild/raw TestResults/HostedCqlIntegrationCurrent/routing-acquisition*. Routing-v1originalowner/record/3copies preserved,noresave/newsession. No furtherDevelopmentpush.
 
 Routing-v1actualoutcome:retainedcohort 2777B inclprotectedowner/1saveintent/ACK/3replicabaseline; privatehostedrecordnormaltemporarysandboxexpiry,noresave.3explicitreads pass,Defaultreadfailsroutecontract; rawdiagnostic/report retained. Fix13guard/61HTTPtests0skips; initialfixtureloggingfailures retained separately, correctedfixturepasses. ExistingSDK/buildcache only,noinstalls/newenvironment/nativeDB. Followupfixnotdeployed.
+
+
+### Approved Default-routing correction publication — 1 November 2026
+David explicitly approved: Publish correction now. Scope: production correction51de129d3 plus its existing13guard/61HTTP tests and documentation; no new public-provider expansion or Core pin change. Fetched Development494f988bc is an ancestor of the scoped release450614de6. Original74passing/zero-skipped TRX revalidated and Railway manifest/gitlinks pass. Core Development6bbd015 independently verified remotely. No production/master promotion, settings change or hosting spend.
