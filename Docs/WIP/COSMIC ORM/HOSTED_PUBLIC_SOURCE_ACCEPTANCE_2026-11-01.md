@@ -382,3 +382,13 @@ Original sourceOwner/catalogue and owner/foreign cohort retained. Completion ACK
 | ElrondOASIS-native-http.json | `f104103460d61fad4742b13a2f79031b28db5103c8a7e73a4b93d8ce7dc72f71` |
 | ElrondOASIS-client-http-flow.json | `71e8b470f90b49c69e9d023636d90c487fd8edae7a08f072e25964c6c001b42b` |
 | ElrondOASIS-isolation-http.json | `03a08a90c1efd0b55c9dcb5e9519ff22830f7539c640d4cac7aa3c45485e200c` |
+
+## Radix — original cohort completed after atomic settlement correction
+
+Parent74aaa9b4d/Core8b79301, correctionf4c02dbd SUCCESS. Initial app0b41c4b9/settings15f047fd at1f39016fa supplied native3/2 and Mongo5/4; remaining checks resumed on the same owner after a reproduced enqueue/claim billing race was fixed atomically. Repeat0new/2existing, foreign-private0/public3, matching SQLite/Neo4j replicas2/2. Two original saves only; no original-operation replay. Expired owned test JWT renewed through the normal refresh endpoint after scoped credential recovery; automatic sandbox renewal/browser gates remain open.
+
+- RadixOASIS-native-http.json: `1b30a3480bb96308f6a51f8804fad7a3a891ee45d9508c87bc9f2d829a0d07cc`.
+- RadixOASIS-client-http-flow.json: `33cdd2a4cdb139e3a76bccfdf0cf944c7abe1b0aa3ab046f5546632977d123a0`.
+- RadixOASIS-isolation-http.json: `23c38e3fbf1d5abe6dd1585226486f13193402dd98b8b8dfaf95ac2e2dbc0019`.
+
+Full scope/failure history: [Radix report](RADIX_PUBLIC_SOURCE_STATUS.md#hosted-acceptance-complete). Totals35scoped hosted HTTP/5browser/30open;27added profiles54private copies/108presets. Actual deployed tariffs35; implemented types37including2local cloud scopes.
