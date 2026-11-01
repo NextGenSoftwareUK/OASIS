@@ -58,3 +58,5 @@ Three protected settings/four presets prepared without hosted mutation. Original
 - TestResults/CardanoPublicSourceCandidateCurrent/cardano-mongo-native-summary.json:227bytes; SHA25660cf2a9833af5b490d1727eb150d122decf064612c0d3034d790f0205f4ae0b4.
 
 Core task commitbe397f10419cf8b5c0dafc93ff1f4958b88588a2; parent manifest/gitlink updated together. Shipping release and hosted gates remain open.
+
+Selected releasec9410b9b9a578c21bb928e494106934db0e1621b/Corebe397f10419cf8b5c0dafc93ff1f4958b88588a2 passes4/4shipping API/schema/actual-candidate checks,0skips. Actual rebuilt DLL metadata contains CardanoPublicHeaderMetadataSource and excludes unqualified TronPublicHeaderMetadataSource. selected-release.trx SHA256f908892922b195398f7f308c4276197f830476dec3e04da3af872b2e4f6a7f30; exact assembly hashes recorded in TestResults/CardanoPublicSourceCandidateCurrent/selected-release-artifact.json. Ready for scoped Development publication, then exact app/config/hosted acceptance. No broad claims from this shipping gate.
