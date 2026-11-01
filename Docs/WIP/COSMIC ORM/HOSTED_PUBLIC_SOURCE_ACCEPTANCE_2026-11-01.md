@@ -1,6 +1,6 @@
 # Hosted public-source acceptance — 1 November 2026
 
-Latest: **27 scoped hosted HTTP providers**, including Bitcoin and Berachain below. Browser proof remains **5**; **22 open**. Earlier seventeen-profile and Berachain evidence retain their original deployments.
+Latest: **28 scoped hosted HTTP providers**, including XRPL, Bitcoin and Berachain below. Browser proof remains **5**; **23 open**. Earlier evidence retains its original deployment/cohort.
 
 
 
@@ -292,3 +292,13 @@ Normal temporary owner plus independent visitor: native3/2, two private Mongo sn
 - `TestResults/HostedCqlIntegrationCurrent/BitcoinOASIS-native-http.json`: SHA256 `97d2aa65704ee36aeb4b0715c2ef8ec614422038394b11f387cd6c015545028c`.
 - `TestResults/HostedCqlIntegrationCurrent/BitcoinOASIS-client-http-flow.json`: SHA256 `1a14244041f8441a78165f2bd1812db5c1de0b4946a264126832df291bfb63d8`.
 - `TestResults/HostedCqlIntegrationCurrent/BitcoinOASIS-isolation-http.json`: SHA256 `79ed4ccf24f098cb90ec6c7d5d07dcaa798c2edcbb93840653501c3040570e39`.
+
+## Additional XRPL acceptance
+
+Applicationc6e7f14baf89cacb9a1938cf11bfe574b51bc3ba/Coree032d0a4701e1c5bc4fa4d8f1545cac41745376b; exact free-endpoint correction74bdf044-485b-40f7-9fca-29b846bc775b SUCCESS. Original endpoint returned402 from deployed container; explicit qualified Ripple free endpoint changes only URI, preserving sourceOwner/three hashes/admission/presets/DNA. No fallback or payment.
+
+Original empty failed owner cohort retained; its15minute JWT expired before any preparation/save intent. Explicit post-startup-fix cohort proves native3/2, two private Mongo creates, paired5/4, repeat0new/2existing, foreign-private0/public3 and exact two replicas on SQLite/Neo4j. Native source identity/catalogue unchanged. Completion hashes/visitor/save ACKs retained under LocalState/COSMIC/HostedQueryAcceptance-XRPLOASIS-post-startup-fix; never replay successful saves. No source writes or browser claim.
+
+- `TestResults/HostedCqlIntegrationCurrent/XRPLOASIS-post-startup-fix-native-http.json`: SHA256 `320bceac4b3ae2ba6111ca22a4f6b80c0807d71785ed7983e337869b6e998ae9`.
+- `TestResults/HostedCqlIntegrationCurrent/XRPLOASIS-post-startup-fix-client-http-flow.json`: SHA256 `a806eefd11b8fba4a160af7a2f7d6d56edebbb621a5782bcf89e816d3e6fd052`.
+- `TestResults/HostedCqlIntegrationCurrent/XRPLOASIS-post-startup-fix-isolation-http.json`: SHA256 `2e074024bebf4a6484a24b4aaab45853c8f883af46c2fc07aa4a8c6b0a9f49aa`.

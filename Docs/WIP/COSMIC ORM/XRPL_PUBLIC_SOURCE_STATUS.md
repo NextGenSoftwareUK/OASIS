@@ -1,6 +1,6 @@
 # XRPL public header source
 
-Updated1November2026. Native CQL/C#/CLI and local HTTP/Mongo passed; hosted/browser acceptance remain red.
+Updated1November2026. Native/local/hosted HTTP acceptance passed with the free Ripple endpoint. Browser proof remains open.
 
 ## Verified qualification
 
@@ -67,3 +67,9 @@ Choose Ripple full-history explicitly; no shipping fallback/retry. Original sour
 Remote free-endpoint evidence: TestResults/XrplPublicSourceCandidateCurrent/hosted-free-endpoint-probes-corrected.json; initial diagnostic syntax failure retained separately. No full CQL/native-write/browser certification inferred.
 
 Endpoint-only correction applied through exactc6e7f14ba guard:1setting ACK and full candidate readback exact. Distinct journalled correction rollout74bdf044-485b-40f7-9fca-29b846bc775b BUILDING on samecode. Retain both original and correction protected before/candidate/intents/outcomes. Continue original owner after readiness; no private save or foreign visitor yet.
+
+## Hosted acceptance complete
+
+Exact74bdf044 SUCCESS/c6e7f14ba/Coree032d0a. Original owner token expired at09:52:46Z,401observed09:58:28Z; original cohort has exactly owner intent/ACK/DPAPI and0preparation/save/foreign intents. Preserve it; no replacement inside old cohort. Explicit post-startup-fix cohort passes native3/2, two private Mongo creates, paired5/4, repeat0new/2existing, independent visitor public3/private0 and two exact replicas on SQLite/Neo4j. Save IDs07a05d35-3486-44d2-affb-d484f48fcbb0 and8491eda4-58f2-44b4-97fd-17b7e9b82c64, original identities/intents/ACKs/completion hashes retained. No native source owner/hash regeneration or source writes.
+
+[Evidence/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-xrpl-acceptance). Earlier pending sections record historical progression and are superseded. Counts28hosted HTTP/5browser/23browseropen;30deployed tariff types.
