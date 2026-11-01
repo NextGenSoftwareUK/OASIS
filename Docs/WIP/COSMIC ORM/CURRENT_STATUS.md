@@ -13,7 +13,7 @@ There are **37 implemented query types**: 3 canonical adapters, 32 bounded publi
 ## Exact next step
 
 1. Radix card published/byte-verified at website0228db6; setup guide74ccc3752/C#74aaa9b4d linked. Original HostedQueryAcceptance-RadixOASIS completion ACK exists: do not replay saves or create a new owner.
-2. Session renewal root correction locally passes15API/80client/8credential-tool tests. [Exact rollout steps](SESSION_RENEWAL_STATUS.md): deploy server cookie/CORS fix first; verify one fresh owned same-avatar cookie/rotate/revoke cohort, then publish staged frontend. No bearer lifetime extension, new-avatar fallback or replayed writes. Current live page remains0228db6 until server passes.
+2. Session renewal root correction locally passes16API/80client/9credential-tool tests. [Exact rollout steps](SESSION_RENEWAL_STATUS.md): server4434e2c28 deployed successfully (job6402f4ec-b203-42a5-8508-589f683708fc); initial live cookie validation reproduced Secure=false from uncleared proxy defaults. Fix/test forwarded scheme, then reconcile the preserved original cohort (no replacement avatar), then publish staged frontend. No bearer lifetime extension, new-avatar fallback or replayed writes. Current live page remains0228db6 until server passes.
 3. Continue Starknet: guarded native spec/chain/genesis and explicitly selected headers3/2pass, including parent links and repeated result equality. Implement/test the native CQL adapter before API/hosting admission. TRON's real429remains red; no blind retry or grant.
 4. Browser gates:5verified/30open. CUA transport remains closed; David already opened the browser. No OS control resumed or repeated owner request.
 
@@ -30,7 +30,7 @@ There are **37 implemented query types**: 3 canonical adapters, 32 bounded publi
 ## Recovery and commands
 
 - Work only C:/Source/OASIS-cosmic; parent currently work/cosmic-cql-public-release, Core work/cosmic-cql-google-public. Main task work/cosmic-cql-google-public. Frontend C:/Source/Web4Site work/cosmic-cql.
-- Live parent74aaa9b4d/Core8b79301; subsequent release-branch commits contain docs and local continuation tools. No extra Development push solely for those docs.
+- Live server4434e2c28/Core8b79301; provider acceptance remains recorded at74aaa9b4d. Frontend renewal43af923 is staged, not published. No extra Development push solely for those docs.
 - Raw outputs TestResults/. Durable source/config/identities/ACKs LocalState/COSMIC/. Original Radix settlement-continuation manifest hashes are preserved; acceptance completion ACK now blocks reruns.
 - Reuse pinned environments; inventory/cleanup in ENVIRONMENT_AND_CLEANUP_LEDGER.md. Unknown root logs preserved. Owned diagnostic DLLs removed; no new runtime or test service retained.
 - Build lease: Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1; /m:2 /nr:false /p:UseSharedCompilation=false. Explicit bounded build/test, then run frozen DLL; do not forward build flags to dotnet run.

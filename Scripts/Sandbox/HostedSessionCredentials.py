@@ -58,12 +58,13 @@ def rotate(state, label, original, transport, protect, write_new):
     validate(original, original["ownerId"])
     no_pending_rotation(state, label)
     digest = hashlib.sha256(original["jwtToken"].encode()).hexdigest()
-    prefix = label + "-refresh-" + digest[:16]
+    credential_digest = hashlib.sha256(json.dumps(original, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    prefix = label + "-refresh-" + credential_digest[:16]
     intent = state / (prefix + ".intent.json")
     if intent.exists():
         raise RuntimeError("Original rotation already has an outcome; reconcile rather than replay.")
     write_new(intent, json.dumps({"ownerId": original["ownerId"], "route": "avatar/refresh-token",
-                                 "originalJwtSha256": digest}).encode())
+                                 "originalJwtSha256": digest, "originalCredentialSha256": credential_digest}).encode())
 
     def capture(status, raw, cookies):
         write_new(state / (prefix + ".response.dpapi"), protect(json.dumps({"status": status,

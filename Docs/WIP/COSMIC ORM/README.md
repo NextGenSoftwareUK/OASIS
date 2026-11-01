@@ -53,3 +53,7 @@ The bounded EVM and Bitcoin profiles have hosted HTTP proof within their recorde
 Radix native resource CQL: [commented C# guide](../../Devs/RADIX_PUBLIC_RESOURCE_CQL_GUIDE.md). 50/50 tests and actual CLI3/2 verified; API/localHTTP/hosted scopes pass; browser renewal remains open. Exact supply strings and one Gateway ledger state per query.
 
 Radix hosted milestone: original cohort completed at74aaa9b4d/Core8b79301 after settlement correction; no duplicate saves. [Scope, failure history and hashes](RADIX_PUBLIC_SOURCE_STATUS.md#hosted-acceptance-complete). Browser renewal/interaction remain separate. Earlier deployed-tariff headlines incorrectly included local Azure/Oracle: actual live catalogue35, implemented types37.
+
+## Documentation upkeep at each milestone
+
+Update CURRENT_STATUS.md and the full provider report together with the affected parity checklist, implementation status, roadmaps, demo instructions, manual, architecture and provider guide when their contracts or verified scope change. Record reproducible deferred gaps in AFTER_DEMO_BACKLOG.md, resources in the cleanup ledger, and David-owned actions in the central David list. Keep counts, release references and links consistent; distinguish local tests, hosted HTTP evidence, publication and browser verification. Keep raw output in TestResults/, and retain only compact evidence summaries and paths in reports.

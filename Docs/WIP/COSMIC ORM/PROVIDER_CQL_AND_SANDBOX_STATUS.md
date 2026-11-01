@@ -11,6 +11,8 @@ There are **37 implemented query types**: 3 canonical adapters, 32 bounded publi
 
 Snapshot: 1 November 2026. This is a report, not a claim of full production readiness.
 
+Session renewal server correction4434e2c28 is deployed successfully (job6402f4ec-b203-42a5-8508-589f683708fc); local checks16API/80client/9credential-tool pass. Live protocol then rejected an insecure refresh cookie; Railway forwarded HTTPS was ignored because default proxy trust lists were never cleared. Proxy correction/regression is in progress; frontend43af923 publication remains pending. Original issued test session is preserved without replay. This does not increase provider or browser counts. [Rollout](SESSION_RENEWAL_STATUS.md).
+
 ## Read this first
 
 - Repository inventory: **229 shipping provider projects**, including alternate implementations; **173 storage/specialized-storage**, **56 non-storage**. These are projects, not 229 equivalent databases or certified CQL adapters.

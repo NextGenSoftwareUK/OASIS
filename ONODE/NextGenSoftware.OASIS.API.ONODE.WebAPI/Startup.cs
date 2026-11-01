@@ -673,20 +673,28 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         //public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DataContext context)
+        internal static Microsoft.AspNetCore.Builder.ForwardedHeadersOptions CreateForwardedHeadersOptions()
+        {
+            var options = new Microsoft.AspNetCore.Builder.ForwardedHeadersOptions
+            {
+                ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
+                                 | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+                                 | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedHost
+            };
+            // Railway edge addresses vary. Empty collection initializers do not remove
+            // ASP.NET's default loopback trust entries; explicitly clear both lists.
+            // This preserves the existing edge-trust policy; the service must stay behind its proxy.
+            options.KnownNetworks.Clear();
+            options.KnownProxies.Clear();
+            return options;
+        }
+
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             // Railway terminates TLS at its edge and forwards plain HTTP, so without this UseHttpsRedirection
             // saw scheme=http and 301-redirected https://.../graphql to http://.../graphql (a downgrade).
             // Must run before UseHttpsRedirection/UseRouting so Request.Scheme is already corrected.
-            app.UseForwardedHeaders(new Microsoft.AspNetCore.Builder.ForwardedHeadersOptions
-            {
-                ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
-                                 | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
-                                 | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedHost,
-                // The Railway proxy IP is not fixed, so the default known-network allow-list would drop the headers.
-                KnownNetworks = { },
-                KnownProxies = { }
-            });
+            app.UseForwardedHeaders(CreateForwardedHeadersOptions());
 
 
             // Fail loudly at startup when outbound email is not configured - a stale/blank Resend key
