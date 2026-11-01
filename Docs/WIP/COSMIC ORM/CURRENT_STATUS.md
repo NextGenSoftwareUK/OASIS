@@ -48,7 +48,7 @@ XRPL passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3
 
 ## Exact next work
 
-1. Next: Stellar API/read-only admission, four actual shipping-planned presets, local HTTP/Mongo5/4/private isolation, then guarded hosted rollout. [Native proof](STELLAR_PUBLIC_SOURCE_STATUS.md#native-cql--developer-demo-complete):21source+1real C# pass, actualCLI3/2; complete decoder20pass. Cloud egress200 only, not hosted CQL. Original owner/catalogue retained; no green save replay.
+1. Next: publish verified Stellar parent/Core2dd3c37 batch, exact app SUCCESS, guarded3setting apply + one journalled settings rollout, then hosted acceptance/website. [Proof](STELLAR_PUBLIC_SOURCE_STATUS.md#api--local-http-complete):21source/C#1/API+prepared3/Core1/HTTP1 pass, CLI/native3/2 and Mongo5/4/private0; decoder20pass. Do not replay green fixtures; wait for the settings rollout before creating a visitor, then poll readiness without saves.
 2. Browser gates remain open for23providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
@@ -57,7 +57,7 @@ XRPL passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3
 - Work/build/test only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public. Frozen public release branchc6e7f14ba. Unknown root logs untouched.
 - Durable source identities/tokens/save intents/ACKs: LocalState/COSMIC. Fresh completion hashes: HostedQueryAcceptance-<Provider>/cql-http-acceptance.acknowledged.json. Never regenerate owners or replay uncertainty after cleanup.
 - Protected settings snapshots/intents/outcomes: HostedSourceRolloutCurrent. Preserve rejected combined-catalogue and successful partition journals. Raw output only TestResults/HostedCqlIntegrationCurrent, never Docs.
-- No new runtime/environment/container/download in this rollout. Reuse pinned resources. Latest free C:63,512,604,672bytes; no attribution to unmeasured external changes. [Ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+- No new runtime/environment/container/download in this rollout. Reuse pinned resources. Latest free C:79873458176bytes; no attribution to unmeasured external changes. [Ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 - Builds: Invoke-WithProviderBuildLease.ps1, /m:2 /nr:false /p:UseSharedCompilation=false; never nest. Pins: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks. Source packaging: python -B Scripts/validate_all_provider_sdk_publish_manifests.py.
 
 Links: [checklist](CQL_PARITY_CHECKLIST.md), [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [integration](HOSTED_SANDBOX_INTEGRATION_PLAN.md), [backlog](AFTER_DEMO_BACKLOG.md), [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
