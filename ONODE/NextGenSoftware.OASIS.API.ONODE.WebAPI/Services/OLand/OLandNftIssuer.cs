@@ -9,10 +9,11 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.OLand;
 
-public sealed class OLandNftIssuer : IOLandNftIssuer
+public sealed class OLandNftIssuer(OLandCommerceSettings settings) : IOLandNftIssuer
 {
     public async Task<(string TransactionId, string Message)> Mint(OLandOrder order, CancellationToken token)
     {
@@ -22,6 +23,9 @@ public sealed class OLandNftIssuer : IOLandNftIssuer
         var result = await new NFTManager(Guid.Parse(order.AvatarId)).MintNftAsync(new MintWeb4NFTRequest
         {
             NumberToMint = order.ParcelIds.Count,
+            NFTStandardType = new EnumValue<NFTStandardType>(Enum.Parse<NFTStandardType>(order.NftStandard)),
+            NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>(NFTOffChainMetaType.ExternalJSONURL),
+            JSONMetaDataURL = settings.PublicApiBaseUrl.TrimEnd('/') + "/oland/nft-metadata/" + order.Id,
             Title = "OLAND " + order.Id, Description = order.ParcelIds.Count + " parcels, each1x1 metre.", Symbol = "OLAND",
             MintedByAvatarId = Guid.Parse(order.AvatarId), SendToAddressAfterMinting = order.ReceivingWallet,
             OnChainProvider = new EnumValue<ProviderType>(Enum.Parse<ProviderType>(order.ProviderType)),
