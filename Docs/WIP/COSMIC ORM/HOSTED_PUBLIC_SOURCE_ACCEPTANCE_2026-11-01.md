@@ -405,3 +405,7 @@ Parentaffe57190/Corebe397f1, app1615af0d/settingscfe35470 SUCCESS. Native3/2, pr
 ## Arweave completed
 
 Release37a530a87/Core5fd361d job3da7f986 SUCCESS; tested codeb158bda61 unchanged except David-list docs. Original settings job removed, never replayed; whole candidate verified. Native3/2, Mongo5/4, repeat0new/2existing, privacy0private/3public and replicas2/2 pass. Durable completion ACK retained. [Hashes and scope](ARWEAVE_PUBLIC_SOURCE_STATUS.md#hosted-acceptance-complete). Thirty additions now retain60private snapshots/120presets; browser verification separate.
+
+## Azure Blob addition (1 November)
+
+Hosted count40 now includes anonymous AzureStorageOASIS properties atbccef53d6/Cored133cc2/settings8e382a80 SUCCESS. Native3/2, Mongo5/4, reuse0/2, privacy0/3 and exact SQLite/Neo replicas2/2 pass; both private saves version1, no pending intents, immutable completion ACK retained. Website9694621 and both scripts byte-verified,92client tests pass; browser proof not inferred. This is not hosted Cosmos DB. Detailed hashes and original cohort in [Azure status](AZURE_PUBLIC_BLOB_STATUS.md).
