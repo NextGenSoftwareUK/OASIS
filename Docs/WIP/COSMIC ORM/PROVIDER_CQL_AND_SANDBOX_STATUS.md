@@ -291,3 +291,5 @@ Berachain is the next pending addition:19source tests including native3/2, actua
 Preserve completed cohorts/durable hashes. Continue red provider breadth and real demo defects. Browser gates remain open for twenty-one providers; hosted Azure/Oracle and deeper parity remain separately deferred. Never repeat successful saves because raw reports were cleaned.
 
 References: [current status](CURRENT_STATUS.md), [fresh hosted proof](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md), [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md), [backlog](AFTER_DEMO_BACKLOG.md).
+
+Bitcoin readiness update (1 November 2026): [three-header native preflight](BITCOIN_PUBLIC_SOURCE_STATUS.md) passes six public GETs and seven verifier controls. No shipping CQL adapter or hosted/browser certification is inferred; counts unchanged.
