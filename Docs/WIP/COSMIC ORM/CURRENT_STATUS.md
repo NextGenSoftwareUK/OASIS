@@ -14,7 +14,7 @@ There are **41 implemented query types**, including locally verified TON: 3 cano
 
 1. Radix card published/byte-verified at website0228db6; setup guide74ccc3752/C#74aaa9b4d linked. Original HostedQueryAcceptance-RadixOASIS completion ACK exists: do not replay saves or create a new owner.
 2. Session lifecycle HTTP proof complete on original avatar, completion ACK retained: do not replay. Frontend9e18b7d published and HTML/JS byte-verified; browser gates remain open. [Proof and limits](SESSION_RENEWAL_STATUS.md).
-3. Arweave hosted acceptance complete on original cohort; completion ACK blocks replay. Arweave card61e85b7 is published/byte-verified with updated guide/C# links. Continue breadth; TON API/hosted gates remain pending, other provider candidates next. [Proof](ARWEAVE_PUBLIC_SOURCE_STATUS.md).
+3. Arweave hosted acceptance complete on original cohort; completion ACK blocks replay. Arweave card61e85b7 is published/byte-verified with updated guide/C# links. Continue breadth; TON hosted gates remain pending, other provider candidates next. [Proof](ARWEAVE_PUBLIC_SOURCE_STATUS.md).
 4. Browser gates:5verified/33open. CUA transport remains closed; David already opened the browser. No OS control resumed or repeated owner request.
 5. TON local HTTP complete on original cohort: native 3/2, paired 5/4, foreign-private 0/public 3 and 9 receipts; zero repeat saves. Duration/schema 15 and publisher 3 controls pass. Both native/paired requests explicitly use 30000ms; defaults remain 5000ms. Success-only cleanup verified DB absent and Mongo stopped/27029 absent. Revised protected ton-public-duration candidate prepared, all four 30s presets verified. Development 6b5db934/Core c9af864 integrated in parent b26724b/Core 2ac915f; combined admission/preset/schema 16 controls and publisher 3 pass; SDK manifests/pins pass. Code published to Development: parent 24f548550/Core 2ac915f, remote heads verified. Exact deployment 4f6eba6c-5ee4-4afe-95a5-07849a92d7ec is QUEUED. Observe that same job; only after SUCCESS apply revised candidate once, never stale ton-public. No TON settings mutation yet. [Evidence](TON_PUBLIC_SOURCE_STATUS.md).
 
@@ -31,7 +31,7 @@ There are **41 implemented query types**, including locally verified TON: 3 cano
 ## Recovery and commands
 
 - Work only C:/Source/OASIS-cosmic; active candidate work/cosmic-cql-ton-public, Core work/cosmic-cql-google-public. Verified release work/cosmic-cql-public-release excludes unqualified TRON/TON query candidates; TON source must stay isolated until its gates pass. Frontend C:/Source/Web4Site work/cosmic-cql.
-- Live app37a530a87/Core5fd361d job3da7f986 SUCCESS, exact tested codeb158bda61 plus David-list update. Frontend61e85b7 Arweave published/byte-verified. No Development push solely for docs.
+- Live app37a530a87/Core5fd361d job3da7f986 SUCCESS, exact tested codeb158bda61 plus David-list update. Frontend7a02a23 duration fix published/byte-verified; Arweave card preserved. No Development push solely for docs.
 - Raw outputs TestResults/. Durable source/config/identities/ACKs LocalState/COSMIC/. Original Radix settlement-continuation manifest hashes are preserved; acceptance completion ACK now blocks reruns.
 - Reuse pinned environments; inventory/cleanup in ENVIRONMENT_AND_CLEANUP_LEDGER.md. Unknown root logs preserved. Owned diagnostic DLLs removed; no new runtime or test service retained.
 - Build lease: Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1; /m:2 /nr:false /p:UseSharedCompilation=false. Explicit bounded build/test, then run frozen DLL; do not forward build flags to dotnet run.
@@ -42,3 +42,5 @@ There are **41 implemented query types**, including locally verified TON: 3 cano
 - Fetch before integration, preserve concurrent changes, non-force Development pushes allowed for live demo verification. Red TRON adapter/test changes remain excluded from releases.
 
 [Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) · [manual](CQL_MANUAL.md) · [architecture](CQL_ARCHITECTURE.md) · [checklist](CQL_PARITY_CHECKLIST.md) · [backlog](AFTER_DEMO_BACKLOG.md) · [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
+
+Browser query timeout bug fixed and published: website7a02a23 aligns timeout with explicit server budget (up to30s plus5s transport allowance, minimum15s), no retry. All89client tests pass, including actual run() timer/one-dispatch regression; four stale session test harnesses corrected. Public HTML and versioned JS exactly match git blobs. Backend deployment4f6eba6c still QUEUED; observe same job, no duplicate build. After exact24f548550 SUCCESS, checkout that reviewed commit temporarily in this same worktree for guarded settings apply; return task branch before doc commits.
