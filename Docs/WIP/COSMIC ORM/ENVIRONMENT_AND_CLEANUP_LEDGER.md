@@ -1863,3 +1863,49 @@ Release-guard tests reuse installed Python and in-memory mocked git/CLI observat
 David explicitly approved: Publish correction now. Scope: production correction51de129d3 plus its existing13guard/61HTTP tests and documentation; no new public-provider expansion or Core pin change. Fetched Development494f988bc is an ancestor of the scoped release450614de6. Original74passing/zero-skipped TRX revalidated and Railway manifest/gitlinks pass. Core Development6bbd015 independently verified remotely. No production/master promotion, settings change or hosting spend.
 
 1 November 2026: planned explicit post-correction routing-v2 cohort path C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current. Not yet created; only after exact deployment SUCCESS, one temporary owner/one create-only save/one independent visitor, stable protected intents and ACKs retained until reviewed expiry. Original expired routing-v1 remains preserved. Reports TestResults/HostedCqlIntegrationCurrent/hyperdrive-*-routing-v2-http.json regenerable, no native local service/download/environment. No setup executed while deployment queued.
+
+
+### Deployed routing correction and live failover - 1 November 2026
+Exact Railway jobd8876691-5ce2-4495-9e3d-dedfb1732de0 SUCCESS at051ac6af7841f95d4babb1a3e061feee06b4a6c6/Core6bbd015. Routing-v2record0f952286-685f-485c-96bf-d55f4e33c1d6 created once; all three replicas match. Three explicit and six Default reads return exact record; Default is preserved and selects Neo4j rather than binding Mongo. Existing balancing verifier remains red because all six choose Neo4j; inspect configured/deterministic policy before changing acceptance, no false variation pass. Live failover passed Mongo->SQLite, SQLite->Mongo, Neo4j->Mongo. Each fault produces the offline error with failover off, succeeds via a different enrolled serving provider with failover on, records2refusals, isolates foreign private rows (0), and restores the fault in finally. No gate saves. Browser acceptance not inferred. Failover report SHA256 79919b7712c2867b44b2db6a2fcda0d7ad3187ba85d967d3822631f3d625bc6d. Durable intents/ACKs remain LocalState/COSMIC/HostedHyperdriveRoutingV2Current; no repeat of completed gate.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/fault-MongoDBOASIS.acknowledged.json`: 43 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/fault-MongoDBOASIS.intent.json`: 43 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/fault-MongoDBOASIS.restored.json`: 17 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/fault-Neo4jOASIS.acknowledged.json`: 43 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/fault-Neo4jOASIS.intent.json`: 41 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/fault-Neo4jOASIS.restored.json`: 17 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/fault-SQLLiteDBOASIS.acknowledged.json`: 43 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/fault-SQLLiteDBOASIS.intent.json`: 45 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/fault-SQLLiteDBOASIS.restored.json`: 17 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/foreign.acknowledged.json`: 153 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/foreign.dpapi`: 630 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/foreign.intent.json`: 103 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/hyperdrive-failover.acknowledged.json`: 30 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/hyperdrive-failover.intent.json`: 233 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/owner.acknowledged.json`: 151 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/owner.dpapi`: 630 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/owner.intent.json`: 101 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/record-save.acknowledged.json`: 360 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/record-save.intent.json`: 490 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/replica-baseline.acknowledged.json`: 768 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
+
+- `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedHyperdriveRoutingV2Current/routing-record.acknowledged.json`: 277 bytes; created routing-v2 task, durable protected session/operation/fault evidence; no local process/port. All owned remote faults restored. Preserve through acceptance/review; demo record/avatars follow normal expiry, no blind replay/recreation.
