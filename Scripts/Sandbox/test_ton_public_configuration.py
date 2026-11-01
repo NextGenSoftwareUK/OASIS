@@ -4,6 +4,7 @@ import importlib.util
 import json
 from pathlib import Path
 import unittest
+import tempfile
 
 spec = importlib.util.spec_from_file_location("base_configuration", Path(__file__).with_name("Publish-HostedTonPublicConfiguration.py"))
 publisher = importlib.util.module_from_spec(spec)
@@ -11,6 +12,29 @@ spec.loader.exec_module(publisher)
 
 
 class TonConfigurationTests(unittest.TestCase):
+    def test_revision_names_cannot_escape_the_existing_state_directory(self):
+        self.assertEqual(publisher.revision_prefix("oland"), "ton-public-duration-oland")
+        for invalid in (None, "", "../oland", "a/b", "a\\b", "A", "a" * 17):
+            with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                publisher.revision_prefix(invalid)
+
+    def test_revision_requires_original_snapshots_and_refuses_any_mutation_evidence(self):
+        with tempfile.TemporaryDirectory(prefix="cosmic-ton-publisher-") as temporary:
+            state = Path(temporary)
+            self.assertEqual(state.resolve().parent, Path(tempfile.gettempdir()).resolve())
+            print("Disposable revision control state:", state)
+            with self.assertRaises(RuntimeError):
+                publisher.require_unapplied_revision(state)
+            for suffix in ("-before-variables.dpapi", "-candidate-variables.dpapi"):
+                (state / (publisher.PREFIX + suffix)).write_bytes(b"inert-test-marker")
+            publisher.require_unapplied_revision(state)
+            for suffix in (".intent.json", ".acknowledged.json"):
+                evidence = state / ("ton-public-duration-CQL_TON_PUBLIC_SOURCE_JSON" + suffix)
+                evidence.write_bytes(b"inert-test-marker")
+                with self.assertRaises(RuntimeError):
+                    publisher.require_unapplied_revision(state)
+                evidence.unlink()
+
     def fixture(self):
         source = {'schema': 1, 'restUrl': 'https://toncenter.com/api/v2/', 'globalId': -239, 'blocks': [{'fileHash': 'fm6uQx6+r+QPcjvxtYiKq2RYdJ14If7BcskBcBGpFAY=', 'seqno': 102765318, 'rootHash': 'Y9wDd3pZpST/McLYMsPERk6s7WO6+p19kJ36oNcBOc8='}, {'fileHash': '8rGzd/bbQwbuEk76O1OyobR3vZoBnR6GWVbx4AZkLRc=', 'seqno': 102765319, 'rootHash': 'gzkgCwmATjDXVh41RK0tjESsu0V+EG0ApXxQe6zsOP4='}, {'fileHash': 'Y2mAEz86fWZD6YToEZrMbPnTg9aB0ZTRqX+RFwJVjKk=', 'seqno': 102765320, 'rootHash': 'Xhj82aH+7pa4qHMEe2NCR2/O0gzJy/nAL/VrYi0cLTU='}], 'sourceOwner': '00000000-0000-0000-0000-000000000123'}
         before = {"OASIS_DNA_JSON": json.dumps({"OASIS": {"Sandbox": {"Enabled": True},

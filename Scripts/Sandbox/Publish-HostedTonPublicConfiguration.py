@@ -8,6 +8,7 @@ import copy
 import hashlib
 import importlib.util
 import json
+import re
 import sys
 import uuid
 
@@ -77,10 +78,30 @@ def candidate(before, source):
     return after
 
 
-def prepare():
+def revision_prefix(revision):
+    if not isinstance(revision, str) or not re.fullmatch(r"[a-z][a-z0-9-]{0,15}", revision):
+        raise ValueError("Use a bounded lowercase revision name, never a path.")
+    return PREFIX + "-" + revision
+
+
+def require_unapplied_revision(state):
+    if not all((state / (PREFIX + suffix)).is_file() for suffix in
+               ("-before-variables.dpapi", "-candidate-variables.dpapi")):
+        raise RuntimeError("Original prepared snapshots must be preserved before revision.")
+    if (any(state.glob("ton-public-*.intent.json"))
+            or any(state.glob("ton-public-*.acknowledged.json"))):
+        raise RuntimeError("TON mutation evidence exists; reconcile its outcome, never prepare another apply.")
+
+
+def prepare(revision=None):
     state = configuration.STATE
-    snapshot = state / (PREFIX + "-before-variables.dpapi")
+    prefix = PREFIX if revision is None else revision_prefix(revision)
+    if revision is not None:
+        require_unapplied_revision(state)
+    snapshot = state / (prefix + "-before-variables.dpapi")
     before = configuration.variables()
+    if revision is not None and before == configuration.protected_read(PREFIX + "-before-variables.dpapi"):
+        raise RuntimeError("No baseline drift; reuse the original reviewed candidate.")
     if snapshot.exists():
         if configuration.protected_read(snapshot.name) != before:
             raise RuntimeError("Configuration changed since snapshot; reconcile first.")
@@ -94,11 +115,12 @@ def prepare():
         raise RuntimeError("Explicit qualified source promotion acknowledgement required; never replace the owner/catalogue.")
     source = json.loads(source_bytes)
     after = candidate(before, source)
-    configuration.write_new(state / (PREFIX + "-candidate-variables.dpapi"),
+    configuration.write_new(state / (prefix + "-candidate-variables.dpapi"),
         configuration.verification.protected_token(configuration.compact(after).encode()))
     review = {"profiles": {"TONOASIS": source},
         "examples": {"TONOASIS": json.loads(after[KEYS[2]])}}
-    target = ROOT / "TestResults/TonPublicSourceCandidateCurrent/ton-duration-prepared-review.json"
+    review_name = "ton-duration" + ("-" + revision if revision is not None else "") + "-prepared-review.json"
+    target = ROOT / "TestResults/TonPublicSourceCandidateCurrent" / review_name
     target.write_text(json.dumps(review, indent=2) + "\n", encoding="utf-8")
     print("Protected Ton candidate prepared: three values/four presets; DNA unchanged; no mutation or deployment.")
 
@@ -106,6 +128,8 @@ def prepare():
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prepare()
+    elif len(sys.argv) == 3 and sys.argv[1] == "prepare-revision":
+        prepare(sys.argv[2])
     elif sys.argv[1:] == ["apply"]:
         spec = importlib.util.spec_from_file_location("release_guard", Path(__file__).with_name("Prepare-TenSourcePublicBatch.py"))
         guard = importlib.util.module_from_spec(spec)
@@ -113,4 +137,4 @@ if __name__ == "__main__":
         guard.require_matching_release(configuration)
         configuration.apply_values(PREFIX, KEYS)
     else:
-        raise SystemExit("Use no arguments to prepare, or apply for the reviewed candidate.")
+        raise SystemExit("Use no arguments to prepare, prepare-revision NAME for reviewed baseline drift, or apply for the original candidate.")
