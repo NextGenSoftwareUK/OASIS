@@ -10,7 +10,7 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 - Latest completed hosted cohort: TON, native 3/2, Mongo 5/4, repeat 0 new/2 existing, foreign-private 0/public 3, SQLite/Neo4j replicas 2/2. Completion ACK exists; never replay.
 - TON native/manager CQL 3/2 and local HTTP native 3/2, paired 5/4, privacy 0/3, nine receipts pass. Two original saves acknowledged once; local database cleaned and Mongo stopped. Never replay its cleaned fixture.
 - TON duration/admission/schema controls: 15; merged actual-preset controls: 16; latest changed OLAND/integration checks: 32; publisher/revision controls: 5. All scoped runs pass without skips.
-- Website main 299c376: query timer plus preparation duration fixes published and exact HTML/JS bytes verified. All 90 client tests pass. Browser interaction is not inferred.
+- Website main 6cfa7dc: query timer plus preparation duration fixes published and exact HTML/JS bytes verified. All 90 client tests pass. Browser interaction is not inferred.
 
 ## Current release and settings
 
@@ -19,14 +19,14 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 - Two live settings changed after preparation. Explicit reviewed revision ton-public-duration-oland preserves all current unrelated values; only three TON keys differ, and their values/public review bytes equal the tested candidate.
 - Protected before/candidate snapshots: LocalState/COSMIC/HostedSourceRolloutCurrent/ton-public-duration-oland-*.dpapi. Public review: TestResults/TonPublicSourceCandidateCurrent/ton-duration-oland-prepared-review.json.
 - All three ton-public-duration-oland settings applied once under exact fb29aa936 release/HEAD guard. Per-key ACK hashes and whole candidate matched. Earlier candidates are stale; never replay any apply.
-- One journalled settings deployment e3ae497c-3f19-45b2-a577-b0fc40a7ae6b at fb29aa936 is SUCCESS. Original rollout intent/protected outcome retained. First hosted TON cohort completed; completion ACK retained. TON card staged on website task25733b4, not main.
+- One journalled settings deployment e3ae497c-3f19-45b2-a577-b0fc40a7ae6b at fb29aa936 is SUCCESS. Original rollout intent/protected outcome retained. First hosted TON cohort completed; completion ACK retained. TON card published/byte-verified at website6cfa7dc; guide34ae56281 and C#fb29aa936 pinned.
 
 ## Exact next steps
 
-1. Publish staged TON card after changing its pending note to the now-proven HTTP scope. Pin its setup guide to the updated docs commit and its C# example to tested fb29aa936. Preserve the local command, spacing and capability limits.
-2. Fetch website main first, preserve other work, publish the verified card and compare public HTML/scripts with exact git blobs. Browser interaction remains a separate gate.
-3. Continue breadth on remaining unsupported provider rows from the full provider report. TRON remains unqualified after native429/diagnostic403; no blind acceptance rerun. Azure/Oracle hosting remains deferred; do not re-ask.
-4. Original HostedQueryAcceptance-TONOASIS now has completion ACK: native3/2, paired5/4, reuse0/2, privacy0/3, replicas2/2, two saves at version1 and no pending preparation intents. Never rerun this completed cohort or resave its copies.
+1. TON card is published at website6cfa7dc, with pinned updated guide34ae56281 and tested C#fb29aa936. Public HTML and both scripts match exact git blobs; browser interaction remains open.
+2. Continue breadth on remaining unsupported provider rows. First inspect existing PostgreSQL and DynamoDB CQL foundations/retained environments to choose a native-capable next adapter; do not rerun green storage baselines or allocate duplicate environments.
+3. TRON remains unqualified after native429/diagnostic403; no blind acceptance rerun. Azure/Oracle hosting remains deferred; do not re-ask. Deep LINQ parity remains paused.
+4. Original HostedQueryAcceptance-TONOASIS has completion ACK: native3/2, paired5/4, reuse0/2, privacy0/3, replicas2/2, two saves at version1 and no pending preparation intents. Never rerun this completed cohort or resave its copies.
 
 ## Limits and deferred work
 

@@ -32,7 +32,7 @@ Updated 1 November 2026. Local CQL, HTTP federation and privacy checks pass. Hos
 - First normal-visitor hosted cohort passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2. Both private saves acknowledged version1, no pending preparation intents.
 - Original LocalState/COSMIC/HostedQueryAcceptance-TONOASIS/cql-http-acceptance.acknowledged.json now blocks reruns. Preserve sessions, IDs, ACKs, two Mongo snapshots and their replicas; no replacement owner or repeat saves.
 - Hosted39 / implemented41 / tariffs39 / browser5 / browser gates34. No source transaction, independent consensus, general metadata scan or full ORM certification inferred.
-- Publish staged website card25733b4 after replacing its pending note with verified HTTP scope. Pin updated guide and tested C# links; verify exact public asset bytes. Browser remains separate.
+- Website card6cfa7dc is published with guide34ae56281/C#fb29aa936 and the verified HTTP scope. Exact public HTML/scripts match committed blobs. Browser remains separate.
 
 ## Evidence
 
@@ -63,3 +63,5 @@ Acceptance runner now explicitly admits TONOASIS; --help check passes without cr
 - TestResults/HostedCqlIntegrationCurrent/TONOASIS-isolation-http.json: 5948 bytes, SHA256 3f1c9fb45a2bab499b615586daf73011f833789151434ba63218a2c1d7d26edf.
 
 Completion acknowledgement was written only after exact identities, public/private ownership, all selected physical copies, replica metadata/versions and two save ACKs were checked. Do not rerun acceptance.
+
+Website6cfa7dcf91097108d8de679a1dc317ecc33da29d publication verified: HTML156743bytes, SHA25667f86c263203e2f88d3a485abe72d938f9847a229f12ee6c29b771f172719612. Both versioned preparation/query scripts also match exact git blobs. Compact site-publication.json remains in TestResults/TonPublicSourceCandidateCurrent. Browser interaction is not inferred.
