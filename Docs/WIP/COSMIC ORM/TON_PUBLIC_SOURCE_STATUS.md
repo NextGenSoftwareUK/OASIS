@@ -28,9 +28,9 @@ Updated 1 November 2026. Local CQL, HTTP federation and privacy checks pass. Hos
 ## Deployment and exact next step
 
 1. Tested code published: parent 24f548550dd2caaf99de00c2bf44003b2a2f8219 / Core 2ac915f709ded7aabcd28a9db02aaea92fc52d97. Remote heads verified.
-2. Original app job 4f6eba6c-5ee4-4afe-95a5-07849a92d7ec is BUILDING; do not resubmit.
+2. Original app job 4f6eba6c-5ee4-4afe-95a5-07849a92d7ec is SUCCESS; do not resubmit.
 3. New descendant fb29aa936870dcfb3182102642e5997b2cedd90f preserves TON code/Core/ONODE pins, adds OLAND contracts. Job 571cb5f0-85f4-40fa-9d99-568339833b3e is QUEUED. Integrated into task99b4f080; changed contracts/schema/admission/actual presets pass 32/32, zero skips.
-4. Latest observed successful app is 6b5db934/job 5191ee53, which predates TON. No TON settings have been applied.
+4. Latest observed successful app is 24f548550/job 4f6eba6c; newer fb29aa936/job 571cb5f0 remains queued and the unchanged latest-release guard prevents apply. No TON settings have been applied.
 5. Latest reviewed prepare-only prefix: ton-public-duration-oland. Earlier ton-public and ton-public-duration candidates are stale. Protected before/candidate snapshots live under LocalState/COSMIC/HostedSourceRolloutCurrent; public review is TestResults/TonPublicSourceCandidateCurrent/ton-duration-oland-prepared-review.json. Old ton-public candidate is stale and must never be applied.
 6. Observe existing jobs. Two concurrent baseline changes are preserved in the new oland revision; all three TON values and public review bytes match the tested candidate. Five publisher controls pass. Never apply a stale snapshot. After exact reviewed code SUCCESS, temporarily check out that exact commit in this worktree for the release guard. Apply revised settings once, preserving per-key intents/ACKs and all unrelated live configuration. Return task branch before doc commits.
 7. Journal one settings rollout; reconcile unknown outcomes, never blindly replay. Then run one original hosted acceptance cohort and publish the TON card only after its gates pass.
