@@ -22,7 +22,7 @@ static catalogue links do not make a provider available on that host.
 | Cosmos Hub validators | Native/local HTTP3/2, Mongo5/4/isolation and C# CLI verified; hosted HTTP/Mongo/isolation/replica gates verified; browser open |
 | NEAR public account metadata | Native/C#3/2 and original-cohort HTTP+Mongo5/4/isolation verified via FastNear; hosted HTTP/Mongo/isolation/replica gates verified; browser open |
 | Base, Avalanche, BNB, Optimism, Linea, Scroll, zkSync, Abstract, Monad, Sei public balances | Native/C#/CLI and local HTTP/Mongo pairing/isolation verified; hosted HTTP/Mongo/isolation/replica gates verified; browser open |
-| Berachain public balances | Native/C#/CLI and local HTTP/Mongo verified; API admission and four presets pass; hosted/browser pending |
+| Berachain public balances | Native/C#/CLI and local HTTP/Mongo verified; API admission and four presets pass; hosted HTTP/Mongo verified; browser open |
 | Azure Cosmos DB, Oracle | Emulator/local native proofs only; hosted setup deferred by David |
 
 These are scoped evidence statements; [CURRENT_STATUS](CURRENT_STATUS.md) owns
@@ -1273,3 +1273,5 @@ streamed before selected-input and stage proofs. The reader validates source
 proofs before accepting the selected packet; shared validation still precedes
 DTO constructors. Neo4j retains its ProviderDefault consistency restrictions;
 this read transaction does not establish ProviderSnapshot support.
+
+Latest1Novembermilestone: Berachain native/HTTP+Mongo/isolation/replica acceptance passes on1b2626499/Core08c4977, rolloutc6fb86d9. Total26scoped hosted HTTP providers; browser5,21open. [Recorded proof](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-berachain-acceptance).

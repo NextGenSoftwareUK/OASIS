@@ -3,8 +3,7 @@
 Updated 1 November 2026. These explicit anonymous profiles share one native EVM
 reader and the same HolonManager/LINQ pipeline. They do not authorize wallet or
 source-storage writes. Existing ten profiles below passed hosted native3/2,
-Mongo-paired5/4, repeat preparation, isolation and replica checks. Berachain is the
-next locally verified addition; it is not yet hosted. [Current evidence](../WIP/COSMIC%20ORM/HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
+Mongo-paired5/4, repeat preparation, isolation and replica checks. Berachain also passed its separate hosted gate on1b2626499/Core08c4977. [Current evidence](../WIP/COSMIC%20ORM/HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
 
 | Profile | Chain ID | Native query key | CLI mode | Acceptance |
 |---|---|---|---|---|
@@ -18,7 +17,7 @@ next locally verified addition; it is not yet hosted. [Current evidence](../WIP/
 | Abstract | `0xab5` | `AbstractAccountAddress` | `--abstract-public` | Hosted HTTP verified; browser open |
 | Monad | `0x8f` | `MonadAccountAddress` | `--monad-public` | Hosted HTTP verified; browser open |
 | Sei | `0x531` | `SeiAccountAddress` | `--sei-public` | Hosted HTTP verified; browser open |
-| Berachain | `0x138de` | `BerachainAccountAddress` | `--berachain-public` | Local native/C#/HTTP verified; hosted pending |
+| Berachain | `0x138de` | `BerachainAccountAddress` | `--berachain-public` | Hosted HTTP verified; browser open |
 
 ## C# demo
 
