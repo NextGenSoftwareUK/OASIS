@@ -24,7 +24,7 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 ## Exact next steps
 
 1. TON card is published at website6cfa7dc, with pinned updated guide34ae56281 and tested C#fb29aa936. Public HTML and both scripts match exact git blobs; browser interaction remains open.
-2. Continue breadth on remaining unsupported provider rows. First inspect existing PostgreSQL and DynamoDB CQL foundations/retained environments to choose a native-capable next adapter; do not rerun green storage baselines or allocate duplicate environments.
+2. PostgreSQL next: preserved adapter/compiler/shared bounded-identity helper and tests restored from237403a75; current16controls pass. Retained source/container exist and are stopped. Review/port complete native runner/dependencies, then qualify unchanged original records; no schema/source reset or green storage-baseline rerun. See POSTGRESQL_CQL_MVP.md. DynamoDB preserved code is a later reuse candidate, not a new implementation.
 3. TRON remains unqualified after native429/diagnostic403; no blind acceptance rerun. Azure/Oracle hosting remains deferred; do not re-ask. Deep LINQ parity remains paused.
 4. Original HostedQueryAcceptance-TONOASIS has completion ACK: native3/2, paired5/4, reuse0/2, privacy0/3, replicas2/2, two saves at version1 and no pending preparation intents. Never rerun this completed cohort or resave its copies.
 
