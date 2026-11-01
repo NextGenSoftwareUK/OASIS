@@ -30,3 +30,5 @@ The official tonlib conversion overload explicitly represents zeroStateIdExt as 
 Both explicit two-record subset requests included documented root_hash/file_hash parameters and returned payloads exactly equal to their original historical headers. Native3/2 wire qualification now passes; CQL remains unimplemented. TestResults/TonPublicSourceCandidateCurrent/wire-qualification.json records source hash and conversion line6037. [Official conversion implementation](https://github.com/ton-blockchain/ton/blob/master/tonlib/tonlib/TonlibClient.cpp).
 - subset-10000000: 859bytes; SHA256da859821f9ef0150a279b771130634a5ca55145ee066881f161c765820d4114a.
 - subset-10000002: 859bytes; SHA256b22dd7affda8775210c9ed73c0bdebcb21c415bf29d043f53652d35e7773023d.
+
+Implementation has not started: the large proposed editing command was rejected by automatic tool review with only "blocked by policy", no detailed reason. Subsequent git status and exact target absence confirm no TON source/project edits or environments were created. This is agent-owned tooling work; no David action. Continue with small reviewable source edits after the Arweave hosted gate.
