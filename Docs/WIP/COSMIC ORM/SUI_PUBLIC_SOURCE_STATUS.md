@@ -57,3 +57,5 @@ Raw evidence stays in `TestResults/SuiPublicSourceCandidateCurrent/`:
 | sui-tariff.trx | 1 | `4f6e220cfee521fe79c0c10652aa612fd669d563a17ed75ff4af655e63a346c9` |
 | sui-shipping-presets.trx | 1 | `983ffece31170a7d54397cecd9f0fa831598e966ac16140ad3a381054e02e8ad` |
 | sui-mongo-http.trx | 1 | `9df1446dcc463117f02a91ef1bbbbf1b332ff98b0afdc2ca492426010f1cbdbd` |
+
+Hosted candidate prepared against current exact variables; all four actual prepared presets pass shipping capabilities (one test, no skips), SHA256 `a3c70bb8bd2a33049a7f8bcfc32b5e858c23036b9db1e9804d67b9754e4fedf2`. Core Development remote verified at0e540eb911671a6a249458ea9b69d3e96fb1d212; parent application publication next. Protected three-setting candidate remains unapplied.
