@@ -1,6 +1,6 @@
 # Aptos public account CQL status
 
-Updated 1 November 2026. Native CQL/shared-manager/CLI complete; API/hosted/browser remain open. Counts:33implemented query types and29scoped hosted HTTP providers.
+Updated 1 November 2026. Native CQL/shared-manager/CLI complete; API/local HTTP complete; hosted/browser remain open. Counts:33implemented query types and29scoped hosted HTTP providers.
 
 ## Qualified contract
 
@@ -24,7 +24,7 @@ Primary references: [Aptos account lookup](https://aptos.guide/rest-api/operatio
 
 1. Complete: explicit read-only source with per-query version selection, canonical native values/addresses, cancellation/bounds and whole-page failure. Unknown configuration/history overrides/signing fields/unsupported scans reject.
 2. Complete:25controlled tests plus1real shared HolonManager3/2 pass/no skips; actual readable C#/CLI3/2 passes.
-3. Independent query admission and native/Mongo presets, shipping planner, local HTTP/Mongo privacy and focused client preparation.
+3. API admission/planner2tests, local native HTTP/Mongo privacy1test, Core tariff1test, pure configuration3tests and focused client1test pass. Protected candidate preparation/actual four-preset export planning await Algorand configuration rollout.
 4. Guarded hosted rollout, normal visitor3/2 and5/4, repeat reuse, independent visitor privacy and replica checks. Retain original write ACKs.
 5. Sandbox/local-demo links and separate browser proof. No count promotion until the appropriate gate is proven.
 
@@ -35,3 +35,13 @@ AptosPublicAccountMetadataSource uses the shared query capability/planner/manage
 - TestResults/AptosPublicSourceCandidateCurrent/aptos-source.trx:26passed/0skips, SHA256f584c81fafd559020fba155e5538d14d9c73cba4e48134c51a107aac4e8e6f9d.
 - Actual CLI exit0,3/2; TestResults/AptosPublicSourceCandidateCurrent/demo-run.log SHA2569422b16016a6f340df667a782294e74820511a3b39f6f1effeef8df02c76ca11.
 - [Developer guide](../../Devs/APTOS_PUBLIC_ACCOUNT_CQL_GUIDE.md). No API admission or hosted-provider count granted yet.
+
+## API and local HTTP milestone
+
+Native3/2, two private Mongo creates, paired5/4, foreign-private0/public3 and nine measured query receipts pass. Auth/billing remain controlled fixture infrastructure; no production/hosted replication claim. Exact cosmic_cql_aptos_http_demo owner marker debf8b77-f612-4ceb-9ead-2a34825bb76b verified then dropped. Owned Mongo stopped/27029 absent. Durable AptosMongoHttpCurrent original intents/save ACKs/cleanup retained; never replay.
+
+- TestResults/AptosPublicSourceCandidateCurrent/aptos-admission.trx:2passed/0skips; SHA256f6613342f4645b455d850b4010a9e8daed8e7d3fbc0af3ac719cfebb2f6285e3.
+- aptos-tariff.trx:1passed/0skips; SHA2565a498eec7af669c66cfc8f0b877c1b6e2e2f01f5899ee55baec84e28dc0781c9.
+- aptos-mongo-http.trx:1passed/0skips; SHA256f1a80fe614839b3bb884d5972176a72d6886aa4f311f4c3482cd5c23413f950f.
+
+Coree845c62 task branch pushed/ref verified, not Development. Keep this later batch out of current Algorand release7a9ca308e. No hosted Aptos snapshots/settings/cohort created; prepare only after Algorand enrollment completes so before-state is accurate.
