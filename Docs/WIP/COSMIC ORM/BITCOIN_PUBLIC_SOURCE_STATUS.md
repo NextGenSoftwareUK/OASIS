@@ -1,6 +1,6 @@
 # Bitcoin public source readiness
 
-Updated 1 November 2026. Native CQL/C#/CLI and local HTTP/Mongo pairing passed; hosted rollout and browser acceptance remain incomplete.
+Updated 1 November 2026. Native CQL/C#/CLI and local HTTP/Mongo pairing passed; hosted acceptance also passed; browser proof remains open.
 
 ## Verified scope
 
@@ -50,3 +50,7 @@ Bitcoin is not yet in the live provider count: totals remain26 scoped hosted HTT
 ## Hosted rollout progress
 
 Exact appa64660e1 SUCCESS at19ebbfe2c/Core7317ba1. Guarded publisher applied3settings; all3ACKs and whole candidate equality verified. One journalled settings rolloutf71e482c-851f-446b-9bbc-886caae3c30f is BUILDING at the same commit. Before/candidate, per-key intent/ACKs and protected redeploy outcome retained. No visitor session or hosted save started before rollout success. No hosting spend/new service. Website taskff01272 stages local links only; mainc932346 unchanged.
+
+## Hosted acceptance complete
+
+Exact f71e482c SUCCESS at19ebbfe2c/Core7317ba1. Normal visitors prove native3/2, Mongo2 private creates, paired5/4, repeat0new/2existing, foreign-private0/public3, two exact replicas on SQLite and Neo4j. Original saves517646f6-21a6-4d54-a100-6778d44378c1 and2f9e5db2-2aaa-49cf-977d-609d9ef36d78 retained with original cohort/save/completion ACKs; never reseed/replay. [Evidence hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-bitcoin-acceptance). Earlier pending sections are historical progression, superseded by this completion. Totals27HTTP/5browser/22browseropen.

@@ -6,9 +6,9 @@ David authorizes necessary Development pushes for live demo testing/fixes withou
 
 ## Current milestone
 
-All18addedprofiles passed hosted HTTP/client-module acceptance: original17plusBerachain. Combined with earlier8proofs, **26 providers** have scoped hosted HTTP evidence. Browser proof remains **5**, with **21 open**. Earlier eight-provider acceptance was not broadly rerun.
+All19addedprofiles passed hosted HTTP/client-module acceptance: original17plusBerachainandBitcoin. Combined with earlier8proofs, **27 providers** have scoped hosted HTTP evidence. Browser proof remains **5**, with **22 open**. Earlier eight-provider acceptance was not broadly rerun.
 
-Live application: Development **19ebbfe2c496b6a528b5f5b31e6138c317bae146**, Core **7317ba1cd4301a1794294b78be685070db45c3e2**. Exact app joba64660e1-9676-405d-beaa-a0b8de327278 SUCCESS. Three Bitcoin settings acknowledged and whole candidate read back exactly. Single journalled settings rollout **f71e482c-851f-446b-9bbc-886caae3c30f BUILDING** on the same commit. No Bitcoin hosted claim yet.
+Live application: Development **19ebbfe2c496b6a528b5f5b31e6138c317bae146**, Core **7317ba1cd4301a1794294b78be685070db45c3e2**. Exact app joba64660e1-9676-405d-beaa-a0b8de327278 SUCCESS. Three Bitcoin settings acknowledged and whole candidate read back exactly. Single journalled settings rollout **f71e482c-851f-446b-9bbc-886caae3c30f SUCCESS** on the same commit. Bitcoin hosted native/Mongo/isolation/replica acceptance passes.
 
 Website main **c932346** serves byte-identical demo HTML (SHA256 d1c96b2a5612cb4fe62eaf446a806f6a66fe4ba7e5b02ff781e6d4845c7fb9c2); 64 earlier client tests pass. Each new profile exposes four server-planned presets, including Mongo pairing.
 
@@ -19,13 +19,13 @@ Website main **c932346** serves byte-identical demo HTML (SHA256 d1c96b2a5612cb4
 | Advanced canonical CQL; earlier hosted/browser proof | MongoDB, SQLite, Neo4j. Original baseline35/35; full EF parity incomplete. |
 | Earlier hosted/browser source proof | ActivityPub, IPFS. |
 | Earlier hosted HTTP source proof; browser open | SOLID, S3 public metadata, Solana public accounts. |
-| Fresh hosted HTTP/client proof; browser open | Google Cloud Storage, Ethereum, Polygon, Arbitrum, Cosmos Hub, Polkadot, NEAR, Base, Avalanche, BNB, Optimism, Linea, Scroll, zkSync, Abstract, Monad, Sei, Berachain. |
+| Fresh hosted HTTP/client proof; browser open | Google Cloud Storage, Ethereum, Polygon, Arbitrum, Cosmos Hub, Polkadot, NEAR, Base, Avalanche, BNB, Optimism, Linea, Scroll, zkSync, Abstract, Monad, Sei, Berachain, Bitcoin. |
 | Local/emulator only; hosting explicitly deferred | Azure Cosmos DB, Oracle Database. No signup/payment re-asks. |
 | Not admitted | Rootstock endpoint rejects finalized headers; no downgrade. |
 
-Each new profile proves native **3/2**, two private Mongo creates, paired **5/4**, repeat **0** new / **2** existing, foreign-private **0**, and **2** matching rows on each of SQLite/Neo4j. Total **36** private snapshots across the18additions. No source/chain writes or browser proof inferred.
+Each new profile proves native **3/2**, two private Mongo creates, paired **5/4**, repeat **0** new / **2** existing, foreign-private **0**, and **2** matching rows on each of SQLite/Neo4j. Total **38** private snapshots across the19additions. No source/chain writes or browser proof inferred.
 
-[Fresh proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). [Every provider project](PROVIDER_CQL_AND_SANDBOX_STATUS.md) covers the maintained229-project inventory. Core's28query-tariff types are not28hosted certifications.
+[Fresh proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). [Every provider project](PROVIDER_CQL_AND_SANDBOX_STATUS.md) covers the maintained229-project inventory. Core's29query-tariff types are not29hosted certifications.
 
 ## Root causes resolved
 
@@ -44,12 +44,12 @@ Each new profile proves native **3/2**, two private Mongo creates, paired **5/4*
 
 ## Latest provider milestone
 
-Berachain passed local and hosted native/C#/CLI/HTTP+Mongo gates. All3settings and matching live rollout verified. Source19/API2/Core1/tariff22/config3/client1/prepared4preset1checks pass. Original save/replica/isolation evidence and durable completion hashes retained. No source/chain writes. Continue remaining red provider breadth; do not repeat completed Berachain saves.
+Bitcoin local and hosted CQL/C#/CLI/HTTP+Mongo pass: native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2. Original two visitor identities/save ACKs and durable completion hashes retained. No source/chain write or browser claim. Website taskff01272 has staged Bitcoin guide/CLI/C# links; publish/update after the verified proof.
 
 ## Exact next work
 
-1. Next: observe f71e482c for exact19ebbfe2c SUCCESS, then run task-branch `python -B Scripts/Sandbox/Verify-HostedQuerySource.py BitcoinOASIS --prepare` once. Preserve the original two visitors/save intents/ACKs; no replay. Publish staged Web4Site Bitcoin card only after hosted proof. [Local proof](BITCOIN_PUBLIC_SOURCE_STATUS.md):20source/C#1/API2/tariff1/prepared1/HTTP1 pass; HTTP3/2+Mongo5/4, foreign-private0.
-2. Browser gates remain open for21providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
+1. Next: publish staged Bitcoin website links with verified HTTP status, check exact public HTML artifact, then continue remaining red provider breadth. Do not replay Bitcoin hosted/native save cohorts. [Proof](BITCOIN_PUBLIC_SOURCE_STATUS.md).
+2. Browser gates remain open for22providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
 ## Recovery/resources

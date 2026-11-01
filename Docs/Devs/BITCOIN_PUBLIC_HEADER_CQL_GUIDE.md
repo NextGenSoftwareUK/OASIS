@@ -30,8 +30,12 @@ Use the retained source file rather than regenerating its owner. The exact schem
 
 Activation verifies the configured catalogue. Cancellation, a malformed response, an orphaned header or any incomplete selection returns an explicit error with no partial rows, including when the requested output window is empty.
 
-## Current availability
+## Live sandbox demo
 
-Native controlled and real-public CQL/C# evidence is tracked in [Bitcoin status](../WIP/COSMIC%20ORM/BITCOIN_PUBLIC_SOURCE_STATUS.md). Local HTTP/Mongo federation now passes native3/2, paired5/4 and private isolation. Hosted application/settings rollout and browser verification are unfinished gates. Bitcoin must not appear as a live sandbox provider until those gates pass. The planned hosted demo includes one ready Mongo-paired preset.
+Open the [WEB4 sandbox](https://web4.oasisomniverse.one/web4-sandbox.html), enter the CQL tab and choose `BitcoinOASIS`. Four ready presets show three headers, a two-header subset, and each selection paired with your private Mongo snapshots. Use the paired preset's preparation action once: it creates two Mongo records; repeating preparation reuses them. The full pair returns five physical copies, the subset four. Another visitor can read the public headers and cannot read your private snapshots.
+
+Hosted HTTP/native queries, private isolation and exact SQLite/Neo4j replica checks pass at19ebbfe2c/Core7317ba1, settings rolloutf71e482c. Browser rendering/interaction verification remains open. These are public Bitcoin reads and owned Mongo snapshots; no Bitcoin transaction is sent.
+
+Native/local/hosted evidence and remaining scope: [Bitcoin status](../WIP/COSMIC%20ORM/BITCOIN_PUBLIC_SOURCE_STATUS.md).
 
 Protocol reference: [Blockstream Esplora API](https://github.com/Blockstream/esplora/blob/master/API.md).
