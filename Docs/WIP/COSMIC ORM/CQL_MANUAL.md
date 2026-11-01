@@ -6,7 +6,7 @@
 
 Latest hosted acceptance: parent fb29aa936870dcfb3182102642e5997b2cedd90f / Core 2ac915f709ded7aabcd28a9db02aaea92fc52d97, settings job e3ae497c-3f19-45b2-a577-b0fc40a7ae6b SUCCESS. Revised settings applied once, all ACK hashes/full candidate matched, unrelated changes preserved. Original TON cohort completion ACK retained. Website6cfa7dcf91097108d8de679a1dc317ecc33da29d publishes TON with guide34ae56281/C#fb29aa936. Public HTML156743bytes/SHA25667f86c263203e2f88d3a485abe72d938f9847a229f12ee6c29b771f172719612 matches the committed blob; both versioned JS assets also match. Browser and real-expiry gates remain separate.
 
-There are **42 currently integrated query types**: 3 canonical adapters, 36 bounded public/source profiles and 3 local PostgreSQL/Azure/Oracle implementations. PostgreSQL restored native content and local Mongo/HTTP proof pass; hosted PostgreSQL remains open. Hosted39/tariffs39/browser5/open34. Preserved broad-branch prototypes are not silently counted as current hosted coverage. Full ORM/EF parity/HyperDrive certification remains incomplete.
+There are **43 currently integrated query types**: 3 canonical adapters, 36 bounded public/source profiles and 4 local PostgreSQL/Azure/Oracle/AWS implementations. PostgreSQL content and AWS DynamoDB Local identity queries pass native and local Mongo/HTTP checks; hosted PostgreSQL/owned AWS remain open. Hosted39/tariffs39/browser5/open34. Preserved broad-branch prototypes are not silently counted as current hosted coverage. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
 
 Current support and limitations: [parity checklist](CQL_PARITY_CHECKLIST.md). Active work/commands: [CURRENT_STATUS](CURRENT_STATUS.md).
