@@ -296,3 +296,5 @@ Bitcoin native milestone (1 November): bounded public-header equality/key-set so
 Bitcoin API milestone1November: explicit lazy read profile, independent tariff, actual four-preset planner and local HTTP3/2+Mongo5/4/isolation pass. Protected candidate prepared only; hosted/browser open. [Proof and exact rollout next step](BITCOIN_PUBLIC_SOURCE_STATUS.md). No signed-chain writes or hosted certification inferred.
 
 Bitcoin hosted completion1November: exact f71e482c SUCCESS at19ebbfe2c/Core7317ba1. Normal visitors pass native3/2, paired5/4, repeat0new, foreign-private0 and SQLite/Neo4j replicas2/2. Totals27HTTP/5browser/22browseropen; no Bitcoin source writes. Earlier Bitcoin pending notes superseded. [Proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-bitcoin-acceptance).
+
+XRPL native milestone1November: bounded hash-verified header CQL passes21controls,1real C# walkthrough and actualCLI3/2. [Guide](../../Devs/XRPL_PUBLIC_HEADER_CQL_GUIDE.md), [proof/next HTTP gates](XRPL_PUBLIC_SOURCE_STATUS.md). Counts30implemented/29deployed tariff/27hosted HTTP; no XRPL hosting or signed-write claim.
