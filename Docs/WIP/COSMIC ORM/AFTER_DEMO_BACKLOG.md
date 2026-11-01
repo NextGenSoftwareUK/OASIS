@@ -19,3 +19,7 @@ Priority now: reproducible demo blockers, actual hosted breadth/presets and scop
 The hosted SQLite6/8barrier was explicitly repaired; it is not an outstanding blocker. Preserve the original evidence and do not resave/reset it. Hosted Azure/Oracle remain deferred; no signup/payment re-asks. V2 implementation only, legacy issues document-only.
 
 Recovery: [CURRENT_STATUS](CURRENT_STATUS.md). Acceptance: [checklist](CQL_PARITY_CHECKLIST.md). Details: [recovery](REPLICA_BASELINE_AND_RECOVERY.md), [expansion](CQL_DEMO_EXPANSION_ROADMAP.md). [Superseded backlog](Archive/STATUS_BEFORE_PUBLIC_READ_PROFILE_RECONCILIATION_2026-10-31.md).
+
+## Native activation diagnostics found during XRPL demo
+
+Reproducible operator gap: `CqlV1Providers.ActivateReadSourceAsync` discards the provider OASISResult.Exception when raising CQL_SOURCE_ACTIVATION_FAILED; `CqlHostedSources` records/logs only the outer InvalidOperationException and public CQL_SOURCE_UNAVAILABLE. Deployed XRPL endpoint returned HTTP402, but identifying that required a read-only in-container RPC probe. Later preserve a sanitized native failure type/stage/HTTP status for operators, with tests proving credentials, URLs/tokens and raw exception messages stay out of public discovery/logs. Do not add retries or weaken readiness. Evidence and exact original/correction deployments: [XRPL status](XRPL_PUBLIC_SOURCE_STATUS.md#hosted-endpoint-correction). Current demo fix is the explicit, tested free endpoint migration; this diagnostics improvement remains open.
