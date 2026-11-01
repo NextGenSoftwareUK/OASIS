@@ -47,3 +47,5 @@ The bounded EVM and Bitcoin profiles have hosted HTTP proof within their recorde
 [Hedera mirror account guide](../../Devs/HEDERA_PUBLIC_ACCOUNT_CQL_GUIDE.md): native CQL/shared-manager/commentedCLI3/2 and local API/Mongo verified; hosted HTTP is verified; browser verification remains open. [Proof](HEDERA_PUBLIC_SOURCE_STATUS.md).
 
 [Sui public object guide](../../Devs/SUI_PUBLIC_OBJECT_CQL_GUIDE.md): checkpoint-scoped native CQL and commented C# CLI verified; hosted HTTP native3/2 and Mongo5/4, repeat/isolation/replicas verified; browser gate open.
+
+[MultiversX/Elrond public account guide](../../Devs/ELROND_PUBLIC_ACCOUNT_CQL_GUIDE.md):34native tests and shared-manager/C# CLI3/2verified; API/hosting still open. [Evidence](ELROND_PUBLIC_SOURCE_STATUS.md).

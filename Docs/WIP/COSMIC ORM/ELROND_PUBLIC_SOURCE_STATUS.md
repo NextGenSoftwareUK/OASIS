@@ -1,6 +1,6 @@
 # MultiversX / Elrond public source status
 
-Updated 1 November 2026. Qualification complete; native CQL/API/hosted/browser gates open. Programme remains35implemented query types,33scoped hosted HTTP providers,5browser proofs/28open. No count grant from a public API probe.
+Updated 1 November 2026. Native CQL/shared-manager/C# CLI verified; API/HTTP/hosted/browser gates open. Programme:36implemented query types,33scoped hosted HTTP providers,5browser proofs/28open. No count grant from a public API probe.
 
 ## Qualified contract
 
@@ -19,7 +19,7 @@ Nine pure tests pass: network/denomination, checksums, exact identity sets, nati
 
 [Probe](../../../Scripts/Sandbox/Probe-ElrondPublicReadiness.py) performs API identity plus native3/2membership reads. Raw `TestResults/ElrondPublicSourceCandidateCurrent/qualified-readiness.json`, 2138bytes, SHA256 `0c88e3364b8aca835e748ac91b9ddf6ee38000f69cbac1fab63226297dc8d36c`. Initial schema/network observation: `shape-readiness.json`, public-only, bounded64KiB per response.
 
-Durable `LocalState/COSMIC/HostedElrondPublicSourceCurrent/{source,catalogue}.json`,742bytes. SourceOwner is a stable projection namespace, not a wallet, credential or avatar ownership claim. Preserve the original keys/namespace; do not rediscover or regenerate on each run. Source schema is a candidate until native implementation consumes it.
+Durable `LocalState/COSMIC/HostedElrondPublicSourceCurrent/{source,catalogue}.json`,742bytes. SourceOwner is a stable projection namespace, not a wallet, credential or avatar ownership claim. Preserve the original keys/namespace; do not rediscover or regenerate on each run. Source schema is consumed by the native read profile; original namespace retained.
 
 ## Exact next gates
 
@@ -30,3 +30,21 @@ Durable `LocalState/COSMIC/HostedElrondPublicSourceCurrent/{source,catalogue}.js
 5. Publish sandbox/local demo links and verify browser separately. Keep completed cohorts frozen.
 
 Primary contracts: [official API role and Mainnet endpoints](https://docs.multiversx.com/sdk-and-tools/rest-api/multiversx-api/), [network configuration](https://docs.multiversx.com/sdk-and-tools/rest-api/network/), [public API reference](https://api.multiversx.com/), [native address filter release](https://multiversx.com/release/release-mx-api-service-v1-10-0).
+
+## Native CQL milestone
+
+34tests passed without skips, including real shared HolonManager/LINQ3/2. After correcting a response-identity fixture that previously shortened its page, all33controlled tests pass with an actual unexpected valid address at unchanged count. Native code is unchanged by that fixture correction. Actual commented C# CLI also passes3/2. No source or Mongo writes.
+
+The adapter uses existing Core Bech32 decoding/encoding, common query/read-activation interfaces and Shared key-value base. One API network identity check precedes the native address-filter request per source query. Complete results validate before windows/publication; HTTP/identity/precision/cancellation errors return real OASISResult failures. This does not certify full UInt64 nonce precision or arbitrary metadata querying.
+
+[Fresh-checkout guide](../../Devs/ELROND_PUBLIC_ACCOUNT_CQL_GUIDE.md), [commented C# walkthrough](../../../Examples/CosmicCqlDemo/ElrondPublicWalkthrough.cs).
+
+Raw evidence stays in `TestResults/ElrondPublicSourceCandidateCurrent/`:
+
+| Evidence | Passed | SHA256 |
+|---|---:|---|
+| elrond-source.trx | 34 | `210ba37c78d4ea2e756b8c52faacb6c1eaaf8f2bc7bb723b87cfd96250824638` |
+| elrond-controls.trx | 33 | `bf6892307634314a8a837dcddddab0c3337ef3b14bd30baae5d3112adf6aa1fc` |
+| demo-run.log | CLI3/2 | `41abfff644c0eb68c71d4400013a09f68043c584da7f1039ca775a328163a701` |
+
+Next: independent API query-only enrollment/tariff, native/Mongo presets, shipping planning and local HTTP privacy. No hosted configuration/card/count promotion before those gates.
