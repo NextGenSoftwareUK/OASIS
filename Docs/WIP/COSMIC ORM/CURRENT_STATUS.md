@@ -2,6 +2,8 @@
 
 Updated 1 November 2026. Programme incomplete. Goal active after explicit packaging publication approval; full roadmap remains incomplete. Priority: hosted demo breadth and reproducible HyperDrive bugs; deep LINQ parity remains paused.
 
+David explicitly waived the daily Development push limit for live demo testing/fixes on1November. Continue necessary verified pushes without asking again; no production/master promotion or new hosting spend.
+
 ## Current rollout
 
 David approved the packaging correction on1November. Development89681ce4067ca2a10b97182b292c2fa98bf623eb is pushed and remote-verified; Core56c869f is unchanged. Revalidated all five bridge closures and both regression tests. Observe the exact new deployment; do not replay failedfddf3159 or change source settings before SUCCESS. Early CI follow-up2e5fa3d31 remains task-only, outside this scoped correction. Browser transport and deferred hosting remain separate limits.
