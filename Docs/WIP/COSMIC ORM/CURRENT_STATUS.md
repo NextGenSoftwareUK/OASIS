@@ -48,11 +48,11 @@ Algorand passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/pub
 
 ## Exact next work
 
-1. Next: observe exact Aptos applicationbb19d2ab-c34e-492a-9274-5e49c6e4c3b5 (QUEUED), parent1cfb893c80166bf497c3112de359126a8a456fa4/Coree845c62261a74ae800c89a4175daddf0cc9d8f16. After SUCCESS, fast-forward existing frozen release branch, guarded3setting application and one journalled rollout. Then visitor HTTP/Mongo/privacy/replica checks and staged Aptos card. Candidate prepared only; no visitor cohort or save replay.
+1. Next: observe exact Aptos applicationbb19d2ab-c34e-492a-9274-5e49c6e4c3b5 (BUILDING), parent1cfb893c80166bf497c3112de359126a8a456fa4/Coree845c62261a74ae800c89a4175daddf0cc9d8f16. After SUCCESS, fast-forward existing frozen release branch, guarded3setting application and one journalled rollout. Then visitor HTTP/Mongo/privacy/replica checks and staged Aptos card. Candidate prepared only; no visitor cohort or save replay.
 
 Aptos native milestone:26tests+actualCLI3/2 pass, shared-manager execution verified.33implemented query types; API2+Core1+nativeHTTP1 pass, privateMongo5/4/private0 verified. Aptos batch published to Development; Algorand proof remains bound to7a9ca308e; protected candidate/actual4preset planner pass; hosting next after Algorand. Original catalogue/sourceOwner retained. [Proof and next gates](APTOS_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
 
-Hedera/Hashgraph qualification:8tests+3real account reads pass. LatestIndexed/per-account timestamps, Mainnet bound by official endpoint (no API ledger ID). Stable catalogue/sourceOwner retained; CQL/API/hosting open. [Next gates](HEDERA_PUBLIC_SOURCE_STATUS.md).
+Hedera/Hashgraph native milestone:22tests+actualCLI3/2 pass through shared manager.34implemented query types; API/hosting next after Aptos rollout. LatestIndexed/per-account timestamps, official Mainnet endpoint binding (no API ledger ID). Original catalogue/sourceOwner retained. [Proof/next](HEDERA_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
 
 2. Browser gates remain open for25providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
