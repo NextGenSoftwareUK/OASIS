@@ -4,7 +4,7 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 
 ## Verified scope
 
-- 43 currently integrated query types: 3 canonical, 36 bounded source profiles, 4 local PostgreSQL/Azure/Oracle/AWS implementations.
+- 44 currently integrated query types: 3 canonical, 37 bounded source profiles, 4 local PostgreSQL/Azure/Oracle/AWS implementations.
 - 39 providers have scoped hosted HTTP proof and deployed query tariffs. Browser proof: 5; 34 browser gates open. TON is now included in the scoped hosted count.
 - MongoDB/SQLite/Neo4j parity checklist: 50/82 each; original investor demo subset green. Work red rows only unless a reproducible bug appears.
 - Latest completed hosted cohort: TON, native 3/2, Mongo 5/4, repeat 0 new/2 existing, foreign-private 0/public 3, SQLite/Neo4j replicas 2/2. Completion ACK exists; never replay.
@@ -45,4 +45,6 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 
 [TON evidence and procedure](TON_PUBLIC_SOURCE_STATUS.md) | [Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) | [Manual](CQL_MANUAL.md) | [Architecture](CQL_ARCHITECTURE.md) | [Parity checklist](CQL_PARITY_CHECKLIST.md) | [Deferred work](AFTER_DEMO_BACKLOG.md) | [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
 
-Dynamo checkpoint:13controls plus retained native3/2 and Mongo SDK/HTTP5/4 pass. Original records unchanged, temporary Mongo fixture deleted, container exited and18002/27029/5096 absent. AWSOASIS local qualification adds one type; DynamoDBOASIS alias is not independently native-qualified. Next inspect preserved Dynamo name/description/metadata-query work and current hosted admission requirements; no replay of green cohorts. See AWS_CQL_MVP.md.
+Dynamo checkpoint:13controls plus retained native3/2 and Mongo SDK/HTTP5/4 pass. Original records unchanged, temporary Mongo fixture deleted, container exited and18002/27029/5096 absent. AWSOASIS local qualification adds one type; DynamoDBOASIS alias is not independently native-qualified. General Dynamo content predicates and hosted admission remain open; no replay of green cohorts. See AWS_CQL_MVP.md.
+
+Azure Blob milestone: real public Azure properties3/2, documented manager/LINQ3/2 and local HTTP/Mongo5/4/privacy0/3 pass;24source/43APIcontrols, zero skips. Existing free public dataset, no account/body download. Native count44 includes this separate public profile; hosted39 unchanged. Console binary also passes3/2. Next prepare/review the Azure Blob hosted-only admission and four presets, integrate verified code, then verify the first hosted cohort; browser remains open. See AZURE_PUBLIC_BLOB_STATUS.md.
