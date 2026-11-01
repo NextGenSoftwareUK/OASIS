@@ -2,6 +2,29 @@
 
 This read-only profile queries a small explicit catalogue of public Mainnet accounts through the shared COSMIC query planner and HolonManager. It needs no wallet, signing key or paid service. Hosted sandbox enrollment is a separate acceptance gate; consult the [current report](../WIP/COSMIC%20ORM/ALGORAND_PUBLIC_SOURCE_STATUS.md).
 
+## First setup in a fresh checkout
+
+The retained local configuration is intentionally untracked. If it is absent, create `LocalState/COSMIC/HostedAlgorandPublicSourceCurrent/source.json` with the complete public example below. If it already exists, reuse it. No chain account, key or environment is created by this configuration.
+
+```json
+{
+  "schema": 1,
+  "algodUrl": "https://mainnet-api.algonode.cloud/",
+  "indexerUrl": "https://mainnet-idx.algonode.cloud/",
+  "genesisId": "mainnet-v1.0",
+  "genesisHash": "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=",
+  "consistency": "Current",
+  "accounts": [
+    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+    "AAAAAAAAAATLOVN6WSNYBWSCZGEO4PS5BKS7KGB4PPJXA6WCTIII35HJZE",
+    "AAAAAAAAACV43GFSJHXLCG7ZLTNYZJJLUDOQT35CK4ZB74U3CGSAMNCUBA"
+  ],
+  "sourceOwner": "00000000-0000-0000-0000-000000000123"
+}
+```
+
+The example GUID is a public projection namespace, not a credential or signing account. For your own application, choose one nonempty GUID once (for example with `[Guid]::NewGuid()`), save it and retain it between runs. Do not generate a new namespace on every launch.
+
 ## Run the C# demo
 
 Use the retained `LocalState/COSMIC/HostedAlgorandPublicSourceCurrent/source.json` catalogue. Do not recreate its sourceOwner between runs. After restoring and building `Examples/CosmicCqlDemo/CosmicCqlDemo.csproj`, run:

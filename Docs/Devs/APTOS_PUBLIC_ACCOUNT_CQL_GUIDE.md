@@ -2,6 +2,27 @@
 
 This explicit read-only profile queries a small public Mainnet account catalogue through COSMIC's shared planner and HolonManager. No wallet, signing key or account creation is required. Check the [current acceptance report](../WIP/COSMIC%20ORM/APTOS_PUBLIC_SOURCE_STATUS.md) for local versus hosted support.
 
+## First setup in a fresh checkout
+
+The retained local configuration is intentionally untracked. If it is absent, create `LocalState/COSMIC/HostedAptosPublicSourceCurrent/source.json` with the complete public example below. If it already exists, reuse it. No chain account, key or environment is created by this configuration.
+
+```json
+{
+  "schema": 1,
+  "restUrl": "https://api.mainnet.aptoslabs.com/v1/",
+  "chainId": 1,
+  "consistency": "PerQueryLedgerVersion",
+  "accounts": [
+    "0x0000000000000000000000000000000000000000000000000000000000000001",
+    "0x0000000000000000000000000000000000000000000000000000000000000003",
+    "0x0000000000000000000000000000000000000000000000000000000000000004"
+  ],
+  "sourceOwner": "00000000-0000-0000-0000-000000000123"
+}
+```
+
+The example GUID is a public projection namespace, not a credential or signing account. For your own application, choose one nonempty GUID once (for example with `[Guid]::NewGuid()`), save it and retain it between runs. Do not generate a new namespace on every launch.
+
 ## Run the C# walkthrough
 
 Reuse `LocalState/COSMIC/HostedAptosPublicSourceCurrent/source.json`. Its sourceOwner is a stable projection namespace, not a signing identity. After restoring/building the demo project:
