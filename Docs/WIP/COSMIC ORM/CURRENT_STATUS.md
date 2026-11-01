@@ -15,7 +15,7 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 ## Current release and settings
 
 - Original TON code 24f548550 / Core 2ac915f: app job 4f6eba6c-5ee4-4afe-95a5-07849a92d7ec SUCCESS.
-- Newer reviewed Development fb29aa936870dcfb3182102642e5997b2cedd90f preserves TON code and Core/ONODE pins, adds OLAND contracts; task merge 99b4f080 preserves it. App job 571cb5f0-85f4-40fa-9d99-568339833b3e is BUILDING. Observe this same job; never resubmit.
+- Newer reviewed Development fb29aa936870dcfb3182102642e5997b2cedd90f preserves TON code and Core/ONODE pins, adds OLAND contracts; task merge 99b4f080 preserves it. App job 571cb5f0-85f4-40fa-9d99-568339833b3e is SUCCESS. Observe this same job; never resubmit.
 - Two live settings changed after preparation. Explicit reviewed revision ton-public-duration-oland preserves all current unrelated values; only three TON keys differ, and their values/public review bytes equal the tested candidate.
 - Protected before/candidate snapshots: LocalState/COSMIC/HostedSourceRolloutCurrent/ton-public-duration-oland-*.dpapi. Public review: TestResults/TonPublicSourceCandidateCurrent/ton-duration-oland-prepared-review.json.
 - Earlier ton-public and ton-public-duration candidates are stale. No TON mutation intent, apply, hosted acceptance session or card exists.
