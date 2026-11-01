@@ -9,7 +9,7 @@ Snapshot: 1 November 2026. This is a report, not a claim of full production read
 - Hosted HTTP evidence now covers **31** providers: earlier eight, seventeen additions, Berachain, Bitcoin, XRPL, Stellar, Algorand and Aptos, each at its recorded release. Browser proof remains **5**; twenty-six are open.
 - Each addition passed native3/2, private Mongo preparation, paired5/4, repeat reuse, foreign-private isolation and exact SQLite/Neo4j replicas. The original **68** new presets plus **4** each for Berachain/Bitcoin/XRPL/Stellar/Algorand/Aptos are live (**92** added presets total). [Fresh proof](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
 - Latest application **1cfb893c8/Coree845c62**; Aptos settings deployment **1c100994 SUCCESS**, native/Mongo/privacy/repeat/replica proof passes. Algorand native/Mongo/privacy/replica proof remains bound to7a9ca308e/f3ee7f37. Stellar proof remains bound to637a6d49f/3eda0ea7; original17proofs at4e0d58f08/aff4bf53 are preserved. All seventeen small preset partitions match the protected candidate; original rejected combined-catalogue journal preserved.
-- Public website main8e3db22 serves byte-identical committed Aptos-inclusive HTML, SHA256b679d18f8c949778cf33fb824277c12eef9bbd2d3ae2e6a3f31620adbaeef127. Hedera card absent; a link is not enrollment.
+- Public website main97481d9 serves byte-identical committed HTML, SHA256b988858745b7ddba1e50ce2d69dda3e68e5ceb54f72478a799c0e54e5c0fcb8b, including complete first-setup guide links. Hedera card remains staged; app e5e9ef07 building at9d9b28872/Core89b5ffa. A link is not enrollment.
 - Azure hosted free account and Oracle hosted connection are deferred by David; existing local/emulator evidence does not prove cloud hosting.
 
 ## What each CQL level means
