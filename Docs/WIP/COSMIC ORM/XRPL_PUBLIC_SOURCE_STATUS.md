@@ -55,3 +55,5 @@ Counts30implemented query types; candidate30/deployed29tariff types;27hosted HTT
 - [Server info](https://xrpl.org/docs/references/http-websocket-apis/public-api-methods/server-info-methods/server_info).
 - [Ledger header fields](https://xrpl.org/docs/references/protocol/ledger-data/ledger-header).
 - [XRPLF native serialization/hash implementation](https://github.com/XRPLF/rippled/blob/develop/src/libxrpl/protocol/LedgerHeader.cpp) and [hash prefix](https://github.com/XRPLF/rippled/blob/develop/include/xrpl/protocol/HashPrefix.h).
+
+Hosted rollout progress: exact application9ee52c89 SUCCESS atc6e7f14ba/Coree032d0a. Guarded3setting apply acknowledged with whole candidate equality. One journalled settings rolloutcdc70f3a-4dea-4cb7-a881-306c478056bd BUILDING on samecommit. Protected originals/intents/outcome retained; no hosted visitor/save started yet.
