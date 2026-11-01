@@ -10,6 +10,8 @@ All18addedprofiles passed hosted HTTP/client-module acceptance: original17plusBe
 
 Live application: Development **1b2626499f652c6a418d7d0295b8232e1de84814**, Core **08c4977215f55006e6c7b00de62c9a70c1968d9b**. Exact settings rollout **c6fb86d9-d057-4b8d-a5f1-bbb4d0ba9597 SUCCESS**; current variables match the preserved candidate exactly.
 
+Bitcoin release published: parent19ebbfe2c496b6a528b5f5b31e6138c317bae146/Core7317ba1cd4301a1794294b78be685070db45c3e2, both Development remote refs verified. Exact app joba64660e1-9676-405d-beaa-a0b8de327278 queued; do not apply settings until exact SUCCESS. No live Bitcoin claim.
+
 Website main **c932346** serves byte-identical demo HTML (SHA256 d1c96b2a5612cb4fe62eaf446a806f6a66fe4ba7e5b02ff781e6d4845c7fb9c2); 64 earlier client tests pass. Each new profile exposes four server-planned presets, including Mongo pairing.
 
 ## Provider evidence
@@ -48,7 +50,7 @@ Berachain passed local and hosted native/C#/CLI/HTTP+Mongo gates. All3settings a
 
 ## Exact next work
 
-1. Next: publish Bitcoin verified API/Core batch, exact successful app deployment, guarded3setting apply and journalled settings rollout, then hosted acceptance. [Local proof](BITCOIN_PUBLIC_SOURCE_STATUS.md): native20/C#1/API2/tariff1/prepared1/HTTP1 pass; HTTP3/2+Mongo5/4, foreign-private0. Fixture cleaned, no replay.
+1. Next: observe joba64660e1 for exact19ebbfe2c SUCCESS; then frozen release branch19ebbfe2c + expected-release env guard, guarded3setting apply and one journalled settings rollout; afterward task-branch Bitcoin hosted acceptance. [Local proof](BITCOIN_PUBLIC_SOURCE_STATUS.md): native20/C#1/API2/tariff1/prepared1/HTTP1 pass; HTTP3/2+Mongo5/4, foreign-private0. Fixture cleaned, no replay.
 2. Browser gates remain open for21providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
