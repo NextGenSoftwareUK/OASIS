@@ -1,6 +1,6 @@
 # Cardano public-source qualification
 
-Updated 1 November 2026. Native CQL/manager/CLI candidate verified; API admission and hosting pending. No hosted count grant.
+Updated 1 November 2026. Native CQL/manager/CLI, API admission/local HTTP/Mongo/privacy and actual presets verified; hosting pending. No hosted count grant.
 
 - The [operator's introduction](https://www.koios.rest/guide/introduction.html) lists its Mainnet endpoint and points to the [operator's API artifacts](https://github.com/cardano-community/koios-artifacts) for specifications and SQL contracts.
 - One anonymous Node24 GET to https://api.koios.rest/api/v1/genesis returned HTTP200, one record with networkid=Mainnet and networkmagic=764824073. This is an indexer-reported identity observation, not independent consensus proof.
@@ -44,3 +44,17 @@ Fixed Mainnet identity and2160minimum reported-confirmation profile remain separ
 - Compact native-cql-milestone.json records result counts/sizes/hashes; no raw evidence committed to docs.
 
 Next explicit read-only Core/API admission, four presets, local HTTP/Mongo federation/privacy and actual candidate checks before selected hosted rollout. [First-checkout setup and commented demo](../../Devs/CARDANO_PUBLIC_HEADER_CQL_GUIDE.md). Native candidate raises implementation inventory to39, but only36hosted and38other API/local query types; do not infer API admission from native proof.
+
+
+## API/local HTTP and prepared candidate verified
+
+Core read-only admission now includes Cardano with independent permission/tariff; signed/write permissions and canonical wallet DNA remain unchanged. API/schema3/3, real loopback HTTP/Mongo1/1, actual prepared-preset1/1and publisher3/3pass, zero skips. Native3/2, paired5/4, foreign-private0/public3and9controlled billing receipts. Two SDK-owned private copies removed after exact fixture marker/nonce/count checks; fixture.cleaned.json confirms DB absence and runner-owned Mongo stopped/port27029absent.
+
+Three protected settings/four presets prepared without hosted mutation. Original stable source403bytes retained. Next select verified release excluding red TRON, verify shipping artifact/actual presets, publish, then exact guarded three-setting apply/one journalled deployment/fresh hosted acceptance/card. Never replay a fixture or uncertain write.
+
+- TestResults/CardanoPublicSourceCandidateCurrent/api-admission.trx:6559bytes; SHA256dee7c17919c2a9753d8ba26977a781df96c703221261f6f761fb78e8ffe96875.
+- TestResults/CardanoPublicSourceCandidateCurrent/cardano-mongo-http.trx:3365bytes; SHA2560d7cdc541fa72592e0b32650106587a9eb4df9751fff0b0f67948cae8e2dc06a.
+- TestResults/CardanoPublicSourceCandidateCurrent/actual-prepared-candidate.trx:3335bytes; SHA256554867ed09e81fed9c5f1c1958aef9ead3c30fac06bba3c223e57931d8680387.
+- TestResults/CardanoPublicSourceCandidateCurrent/cardano-mongo-native-summary.json:227bytes; SHA25660cf2a9833af5b490d1727eb150d122decf064612c0d3034d790f0205f4ae0b4.
+
+Core task commitbe397f10419cf8b5c0dafc93ff1f4958b88588a2; parent manifest/gitlink updated together. Shipping release and hosted gates remain open.
