@@ -16,6 +16,7 @@ There are **40 implemented query types**, including locally verified Arweave: 3 
 2. Session lifecycle HTTP proof complete on original avatar, completion ACK retained: do not replay. Frontend9e18b7d published and HTML/JS byte-verified; browser gates remain open. [Proof and limits](SESSION_RENEWAL_STATUS.md).
 3. Arweave appb158bda6134d14195cf99dc04695904395dac9b1/Core5fd361d job73ec2804 SUCCESS. Three settings applied once, per-key ACKs and whole candidate match. One journalled settings deploymentec59010e-e01a-4606-b91c-371c79a11414 BUILDING. Observe this job; never repeat apply/redeploy. After SUCCESS run fresh Arweave hosted acceptance once, then publish staged card4f22ac3.
 4. Browser gates:5verified/32open. CUA transport remains closed; David already opened the browser. No OS control resumed or repeated owner request.
+5. TON decoder foundation363d16abb passes23controlled+1captured-native test,0skips. [Wire contract and next adapter step](TON_PUBLIC_SOURCE_STATUS.md); not counted as a CQL adapter/hosted provider. Continue after Arweave live gate; no TON runtime, wallet or database created.
 
 ## Guarantees and limits
 
