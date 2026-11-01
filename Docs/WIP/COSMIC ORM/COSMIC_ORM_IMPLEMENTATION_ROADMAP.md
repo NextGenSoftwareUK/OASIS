@@ -2,11 +2,11 @@
 
 ## Current verified milestone — 1 November 2026
 
-**32 providers have scoped hosted HTTP evidence; 5 have browser evidence and 27 browser gates remain open.** Hedera now passes native 3/2, Mongo federation 5/4, repeat reuse (zero new/two existing), foreign-private zero/public three, and two matching replicas on both SQLite and Neo4j. The original owner cohort was resumed after the scheduling correction; no duplicate seed saves were required.
+**33 providers have scoped hosted HTTP evidence; 5 have browser evidence and 28 browser gates remain open.** Sui now passes native 3/2, Mongo federation 5/4, repeat reuse (zero new/two existing), foreign-private zero/public three, and two matching replicas on both SQLite and Neo4j. No source/chain writes or browser certification are inferred.
 
-Application `4fb66c68705be82d37bb97d9764b97f165661fca`, Core `89b5ffad5c589e6607f26892f46a4ee718335fe2`, deployment `122310fc-11ec-45cf-a631-2ebd471ce66a` succeeded. Existing settings deployment `9dfe2fbd-45f9-4706-a3d4-85ca0f5c2a3d` was retained. Website main `07a36e7` is byte-identical to the served HTML (SHA256 `742262270af5294b0e16a3cb254a8152b545d668e81d7037314f64f024644367`); this proves publication, not browser interaction.
+Application `7e0b60994921d03e09abe4a7050ca5bf5f02bfdb`, Core `0e540eb911671a6a249458ea9b69d3e96fb1d212`, app deployment `81794c84-1f8b-41e1-a9e4-6b79015fa173` and settings deployment `1d5007cb-e593-458e-b838-9d535ba93e70` succeeded. Website publication of the Sui card is next; last verified main remains `07a36e7`.
 
-Sui brings implemented query types to **35**, with **30 native tests and an actual shared-manager CLI 3/2 pass**. Sui API admission (2 tests), Core tariff (1), generated preset planning (1), local HTTP/Mongo 3/2 + 5/4 + privacy (1), and configuration controls (3) now pass. Hosting and browser verification remain open. Azure/Oracle hosting stays explicitly deferred. Full ORM/parity/HyperDrive certification remains incomplete. Dated older milestones below retain their original scope and are superseded by this current summary.
+There are **35 implemented query types**, including 30 native Sui tests and an actual shared-manager CLI 3/2 pass. Sui API admission (2 tests), Core tariff (1), generated preset planning (1), local HTTP/Mongo (1), and configuration controls (3) also pass. TRON is an unadmitted candidate with34controlled passes and a real429failure; it is not counted. Azure/Oracle hosting stays explicitly deferred. Full ORM/parity/HyperDrive certification remains incomplete. Dated milestones retain their original scope.
 
 
 [Current status](CURRENT_STATUS.md) is the recovery entry point. Full goal remains active and incomplete.
