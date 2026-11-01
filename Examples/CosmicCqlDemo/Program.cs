@@ -42,6 +42,15 @@ if (args.Length == 2 && args[0] == "--sei-public")
     return 0;
 }
 
+// Read public Aptos accounts at one explicit version per source query.
+// No key, transaction or account creation is required.
+if (args.Length == 2 && args[0] == "--aptos-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await AptosPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Query current public Algorand accounts through HolonManager and LINQ.
 // Each row carries its own observed round; this is not a historical snapshot.
 if (args.Length == 2 && args[0] == "--algorand-public")
