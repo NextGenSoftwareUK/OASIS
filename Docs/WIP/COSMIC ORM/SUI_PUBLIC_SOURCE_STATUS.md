@@ -1,0 +1,32 @@
+# Sui public object CQL status
+
+Updated 1 November 2026. Qualification complete; CQL/API/hosted/browser gates open. Existing programme counts:34implemented query types and31scoped hosted HTTP providers.
+
+## Qualified contract
+
+- Use the official anonymous `https://graphql.mainnet.sui.io/graphql` endpoint. The existing Sui SDK bridge already uses `SuiGrpcClient` with pinned `@mysten/sui2.35.0`; leave it intact. No SDK restore, keys, account creation or source writes.
+- Three canonical object addresses, numeric IDs5,6,7 represented as lowercase `0x` plus64hex characters. Proposed predicate key `SuiObjectId`, equality/bounded membership within an explicit catalogue.
+- One parameterized GraphQL **query**, not a mutation: request chainIdentifier, genesis checkpoint digest, and the selected objects under `checkpoint { sequenceNumber digest query { ... } }`.
+- Bind the full API-reported Mainnet genesis digest `4btiuiMPvEENsttpZC7CZ53DruC3MAgfznDbASZ7DR6S` in both reported identities. This GraphQL digest is not the old JSON-RPC eight-character chain fingerprint.
+- All selected objects share the explicit per-query checkpoint scope. Preserve object identity, version, digest and checkpoint metadata. Later queries can select newer checkpoints; this is not a cross-provider historical snapshot.
+- Versions/checkpoint sequences use the native UInt53 domain and are exposed as decimal strings. Digests must be canonical Base58 encodings of32bytes. Digest encoding validation is not independent BCS/object hashing or consensus/state verification.
+- Reject GraphQL errors even alongside data, missing/null/extra selected aliases, mismatched identity, malformed digests, invalid numeric domains and duplicate JSON. No partial page or JSON-RPC/endpoint fallback.
+- The public endpoint is rate-limited development/public-good access, not a production SLA.
+
+Primary references: [current Sui RPC status](https://docs.sui.io/references/sui-api), [GraphQL endpoint and checkpoint scope](https://docs.sui.io/develop/accessing-data/graphql/query-with-graphql). Sui Foundation's public JSON-RPC service is retired; this profile starts on the supported GraphQL interface. Existing gRPC bridge needs no transport replacement.
+
+## Evidence
+
+`Scripts/Sandbox/Probe-SuiPublicReadiness.py`: one bounded anonymous GraphQL query, three complete object observations at checkpoint340483550, zero mutations. Three earlier memory-only read/schema queries established the response shape. `test_sui_public_readiness.py`: eight boundary tests pass, no skips/network dependencies.
+
+- Raw `TestResults/SuiPublicSourceCandidateCurrent/readiness.json`,1494bytes; SHA256 `cc77dc43149227044b5d26c51909c62fa504fd67fe364b1c3c7eac2029f7c4cd`.
+- Durable `LocalState/COSMIC/HostedSuiPublicSourceCurrent/{source,catalogue}.json`,1982bytes. Stable sourceOwner created once; preserve it and all three object addresses. Candidate schema is not consumed by shipping code yet.
+- Retained checkpoint/version values are historical evidence, not a permanently pinned/prunable configuration view. The eventual source selects a fresh checkpoint per native query.
+
+## Next gates
+
+1. Implement explicit read-only GraphQL object source with checkpoint-scoped selection, variable binding, bounded/cancelled reads and exact complete-page validation. Reject unknown config/history/signing fields and unsupported scans.
+2. Controlled tests and real shared HolonManager/LINQ3/2 plus readable C#/CLI walkthrough and fresh-checkout JSON example.
+3. Independent query admission, native/Mongo presets, shipping planner, local HTTP/Mongo privacy and focused client preparation.
+4. Guarded hosted rollout, native3/2+paired5/4, repeat reuse, foreign-private0 and replica checks; retain original save intents/ACKs.
+5. Publish sandbox/local-demo links and verify browser interaction separately. No provider-count promotion before the corresponding gate passes.
