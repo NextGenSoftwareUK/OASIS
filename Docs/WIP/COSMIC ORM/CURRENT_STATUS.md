@@ -10,7 +10,7 @@ All 17 new profiles passed hosted HTTP/client-module acceptance. Combined with t
 
 Live application: Development **4e0d58f0868a7a4d0e6e1951a7331e04888e19c6**, Core **56c869ff8de0a520da8c09ba8ebc6f85bbd40ea4**. Exact settings rollout **aff4bf53-41eb-4e03-9811-dc4f809c3e50 SUCCESS**; current variables match the preserved candidate exactly.
 
-Website main **36933fb** serves the exact expanded demo HTML; 64 client tests pass. Each new profile exposes four server-planned presets, including Mongo pairing.
+Website main **adbf7c8** serves the exact expanded demo HTML; 64 client tests pass. Each new profile exposes four server-planned presets, including Mongo pairing.
 
 ## Provider evidence
 
@@ -44,7 +44,7 @@ Each new profile proves native **3/2**, two private Mongo creates, paired **5/4*
 
 ## Active next provider
 
-Berachain qualifies against mainnet chain0x138de/genesis d5781942...cfb38. Native/C#/actualCLI3/2 and localHTTP3/2+Mongo5/4/isolation pass. API2,Core1,tariff regression22,configuration3,client1 and actual4preset planner1tests pass. Core08c4977 is pushed on the task branch; parent pin/gitlink staged together, verify after commit. Canonical signed roles remain separate. Three-setting protected candidate prepared, not applied. Next publish matching application/Core, enroll source/admission/preset partition, roll settings and run hosted proof.
+Berachain qualifies against mainnet chain0x138de/genesis d5781942...cfb38. Native/C#/actualCLI3/2 and localHTTP3/2+Mongo5/4/isolation pass. API2,Core1,tariff regression22,configuration3,client1 and actual4preset planner1tests pass. Development parent1b2626499/Core08c4977 pushed and remote-verified; committed dependency pins pass. Exact jobcbe0789f-7df7-4d3c-9013-7a7e3c93e34e BUILDING. Canonical signed roles remain separate. Three-setting protected candidate prepared, not applied. Next publish matching application/Core, enroll source/admission/preset partition, roll settings and run hosted proof.
 
 ## Exact next work
 

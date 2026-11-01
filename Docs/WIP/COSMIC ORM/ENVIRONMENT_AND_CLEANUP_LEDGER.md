@@ -2011,3 +2011,5 @@ TestResults/EvmBreadthReadinessCurrent/berachain-tariff.trx passed=1 SHA256 3dc2
 TestResults/EvmBreadthReadinessCurrent/berachain-tariff-integration.trx passed=22 SHA256 9a01e320cf56deda718a8fd6bbd2a6d0220616a092e5494d64eef3cb2fba9ef9
 TestResults/EvmBreadthReadinessCurrent/berachain-prepared-review.trx passed=1 SHA256 ab5e36d0a01a4812b261eae9938e49d1bcd223247bde584b40596028737c8292
 TestResults/BerachainPublicSourceCandidateCurrent/berachain-mongo-http.trx passed=1 SHA256 5a8d858656992c145b8e0ba85d05e44d9d443ef0a97e418b4a842f53d78351fa
+
+Berachain parent1b2626499/Core08c4977 Development pushes verified remotely; matching jobcbe0789f building. Frontendmainadbf7c8 published after focused client pass, correcting stale public-card readiness and maintaining owned/emulator distinctions. No source setting applied yet. After matching SUCCESS: guarded3setting apply, one journalled settings rollout, then fresh HostedQueryAcceptance-BerachainOASIS cohort (at most2temporary visitor identities/2private Mongo snapshots). Reuse existing resources, no new hosting/runtime/service installation.

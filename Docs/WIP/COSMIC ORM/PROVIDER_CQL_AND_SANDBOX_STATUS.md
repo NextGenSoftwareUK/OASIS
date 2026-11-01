@@ -5,11 +5,11 @@ Snapshot: 1 November 2026. This is a report, not a claim of full production read
 ## Read this first
 
 - Repository inventory: **229 shipping provider projects**, including alternate implementations; **173 storage/specialized-storage**, **56 non-storage**. These are projects, not 229 equivalent databases or certified CQL adapters.
-- CQL programme: **27 explicit query-provider types**: 3 deeper canonical adapters, 22 bounded source profiles, 2 separately scoped Azure/Oracle implementations. Admission-catalogue membership alone does not prove readiness.
+- CQL programme: **28 implemented query-provider types**: 3 deeper canonical adapters, 23 bounded source profiles (Berachain awaiting hosted rollout), 2 separately scoped Azure/Oracle implementations. Admission-catalogue membership alone does not prove readiness.
 - Hosted HTTP evidence now covers **25** providers: earlier eight plus seventeen additions freshly verified on the current rollout. Browser proof remains **5**; twenty are open.
 - Each addition passed native3/2, private Mongo preparation, paired5/4, repeat reuse, foreign-private isolation and exact SQLite/Neo4j replicas. All **68** new presets are live. [Fresh proof](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
 - Application **4e0d58f08/Core56c869f**, settings rollout **aff4bf53 SUCCESS**. All seventeen small preset partitions match the protected candidate; original rejected combined-catalogue journal preserved.
-- Public website main36933fb serves the exact committed expanded demo links. A link is not live enrollment.
+- Public website mainadbf7c8 serves the exact committed expanded demo links. A link is not live enrollment.
 - Azure hosted free account and Oracle hosted connection are deferred by David; existing local/emulator evidence does not prove cloud hosting.
 
 ## What each CQL level means
