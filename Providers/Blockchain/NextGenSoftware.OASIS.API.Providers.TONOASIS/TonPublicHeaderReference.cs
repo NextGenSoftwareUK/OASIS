@@ -86,7 +86,10 @@ public sealed record TonPublicHeaderReference
         if (start > end)
             throw new InvalidDataException("The TON logical-time interval is reversed.");
 
-        foreach (string field in new[] { "version", "gen_utime", "validator_list_hash_short",
+        // tonlib exposes this hash fragment as signed int32. Preserve its wire
+        // value; a negative hash fragment is not a negative counter or balance.
+        Int32Token(header.GetProperty("validator_list_hash_short"));
+        foreach (string field in new[] { "version", "gen_utime",
             "catchain_seqno", "min_ref_mc_seqno", "prev_key_block_seqno" })
             UInt32Token(header.GetProperty(field));
 
@@ -116,6 +119,17 @@ public sealed record TonPublicHeaderReference
         if (value.ValueKind != JsonValueKind.Number || !Regex.IsMatch(text, @"\A(?:0|[1-9][0-9]{0,9})\z") ||
             !uint.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out uint number))
             throw new InvalidDataException("An exact nonnegative UInt32 JSON integer is required.");
+
+        return number;
+    }
+
+    public static int Int32Token(JsonElement value)
+    {
+        string text = value.GetRawText();
+        if (value.ValueKind != JsonValueKind.Number ||
+            !Regex.IsMatch(text, @"\A(?:0|[1-9][0-9]{0,9}|-[1-9][0-9]{0,9})\z") ||
+            !int.TryParse(text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out int number))
+            throw new InvalidDataException("An exact canonical Int32 JSON integer is required.");
 
         return number;
     }

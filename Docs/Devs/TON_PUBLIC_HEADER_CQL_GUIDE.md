@@ -1,6 +1,6 @@
 # TON public-header CQL demo
 
-This explicit read-only profile selects historical Mainnet masterchain descriptors through the shared CQL planner and HolonManager/LINQ. No wallet, account, funding or native transaction is required. Native CQL3/2 passes. The console builds, but its current runtime gate is red after an HTTP500 during activation; manager/demo, hosted/API and browser acceptance are not yet granted.
+This explicit read-only profile selects historical Mainnet masterchain descriptors through the shared CQL planner and HolonManager/LINQ. No wallet, account, funding or native transaction is required. Native CQL3/2 and the actual shared-manager console3/2 pass on the qualified recent dataset. Hosted/API and browser acceptance remain separate gates.
 
 ## Create one reusable catalogue
 
@@ -22,19 +22,19 @@ $source = @{
     sourceOwner = [Guid]::NewGuid().ToString()
     blocks = @(
         @{
-            seqno = 10000000
-            rootHash = 'tmBKX+61bZpEgrecLQttjvK0PfMar7UMZUDc3LdlBEo='
-            fileHash = '+Sq0deY2rf5ejAhY5ps1DBwxfOVuSDsNO6qrzdE8ALk='
+            seqno = 102765318
+            rootHash = 'Y9wDd3pZpST/McLYMsPERk6s7WO6+p19kJ36oNcBOc8='
+            fileHash = 'fm6uQx6+r+QPcjvxtYiKq2RYdJ14If7BcskBcBGpFAY='
         }
         @{
-            seqno = 10000001
-            rootHash = 'vnLSqDyLLLS1TELs/YGZkvdhts2Blq+qdA3vLhz/bNg='
-            fileHash = 'cFm+eQm/07MOSYWjcTJWl8CcXT79XpsSMBHQ/1QNb/g='
+            seqno = 102765319
+            rootHash = 'gzkgCwmATjDXVh41RK0tjESsu0V+EG0ApXxQe6zsOP4='
+            fileHash = '8rGzd/bbQwbuEk76O1OyobR3vZoBnR6GWVbx4AZkLRc='
         }
         @{
-            seqno = 10000002
-            rootHash = 'Y6g3oLh+DDO9ZkeNCxNZTHA0TdpaDwIbHCE0M8B6Nms='
-            fileHash = 'GHV0V0YOLN4o8gDHqrGuyX+gtMqkCa8sNvX7r7Ddvzc='
+            seqno = 102765320
+            rootHash = 'Xhj82aH+7pa4qHMEe2NCR2/O0gzJy/nAL/VrYi0cLTU='
+            fileHash = 'Y2mAEz86fWZD6YToEZrMbPnTg9aB0ZTRqX+RFwJVjKk='
         }
     )
 }
@@ -78,10 +78,14 @@ var filtered = query.Where(row => selected.Contains(
 
 - Root/file hashes are canonical padded32byte base64. Every response must match the complete requested descriptor, Mainnet global_id-239, masterchain-1/shard-9223372036854775808, predecessor shape and native type.
 - Mainnet zero-state root/file anchors are pinned. Tonlib deliberately presents that zero-state identifier with shard0/seqno0; this is checked separately from actual block descriptors, without silently substituting a shard.
-- Logical times remain exact canonical UInt64 decimal strings, including values beyond JavaScript integer precision. Native UInt32 integer tokens and booleans are validated without float conversion.
+- Logical times remain exact canonical UInt64 decimal strings, including values beyond JavaScript integer precision. Native counters/timestamps and booleans are validated without float conversion. The validator-list hash fragment uses its signedInt32 wire domain and remains an exact signed string in metadata; negative hash fragments are valid.
 - Every selected row is validated before paging, including an empty page. Unsupported predicates fail capability planning. Arbitrary Name/Description/other metadata filters, scans, general joins and writes are not admitted by this profile.
 - One process-wide owner waits1.1seconds after a completed HTTP attempt before dispatching the next, so connection setup or slow responses cannot consume the admission interval. Cancellation while waiting does not reset that clock. This honors the documented anonymous1RPS policy; it adds no retry or alternate endpoint.
 - The operator returned429/500 during qualification. Failures remain explicit; no latency, availability or shared-snapshot guarantee is implied. Successful native3/2 proof does not erase earlier failures or independently verify consensus.
 - Hosted federation, visitor-owned Mongo preparation, reuse/privacy/replica checks and browser interaction must pass separately before a live sandbox support grant.
 
 Primary contracts: [TON header API](https://docs.ton.org/api/v2/rpc/get-block-header), [masterchain identity API](https://docs.ton.org/api/v2/rpc/get-masterchain-info), [Mainnet anchors](https://ton.org/global-config.json), [tonlib zero-state conversion](https://github.com/ton-blockchain/ton/blob/master/tonlib/tonlib/TonlibClient.cpp). [Evidence and remaining gates](../WIP/COSMIC%20ORM/TON_PUBLIC_SOURCE_STATUS.md).
+
+The original2021 archive catalogue is retained in the qualification history after an operator Merkle-proof/hash rejection. The recipe above pins the separately qualified recent dataset; it never falls back at runtime or bypasses proof rejection. The source owner was preserved during local promotion, and no native transactions or private copies were written.
+
+Signed hash-fragment domain: [official tonlib API schema](https://github.com/ton-blockchain/ton/blob/master/tl/generate/scheme/tonlib_api.tl).

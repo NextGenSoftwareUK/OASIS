@@ -263,4 +263,4 @@ Starknet bounded header profile: [setup/commented C# guide](../../Devs/STARKNET_
 
 [Arweave native CQL and commented shared-manager demo](../../Devs/ARWEAVE_PUBLIC_HEADER_CQL_GUIDE.md):33controls/real3/2/actualCLI3/2 plus hosted3/2/Mongo5/4/reuse/privacy/replicas2/2 pass. Browser open. [Evidence and exact historical scope](ARWEAVE_PUBLIC_SOURCE_STATUS.md).
 
-[TON native CQL setup and commented C# candidate](../../Devs/TON_PUBLIC_HEADER_CQL_GUIDE.md):13affected controls and one real3/2check pass; actual manager/CLI activationHTTP500 remains red. Not hosted/admitted; [evidence and next root-cause step](TON_PUBLIC_SOURCE_STATUS.md).
+[TON native CQL setup and commented C# candidate](../../Devs/TON_PUBLIC_HEADER_CQL_GUIDE.md):Native32decoder/13query/3error controls, realCQL3/2 and manager/CLI3/2 pass on the qualified recent dataset. API/hosted gates next; [evidence and next root-cause step](TON_PUBLIC_SOURCE_STATUS.md).
