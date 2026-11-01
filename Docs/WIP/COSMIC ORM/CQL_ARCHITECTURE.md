@@ -4,7 +4,7 @@
 
 **34 providers have scoped hosted HTTP evidence; 5 have browser evidence and 29 browser gates remain open.** MultiversX/Elrond now passes native 3/2, Mongo federation 5/4, repeat reuse (zero new/two existing), foreign-private zero/public three, and two matching replicas on both SQLite and Neo4j. No source/chain writes or browser certification are inferred.
 
-Latest verified hosted acceptance: application `801795a648a1ae0b9211c0a478027673cb79c156`, Core `f41b2a11253c222aac6bfdf67278d226e01ff96e`, app `19f65f59-e370-4cad-94ce-b0246872b891` and settings `18c4f04e-6ac3-4fa7-ac2a-ff312d095159` succeeded. Elrond card publication is next; last byte-verified website main remains `9679699`.
+Latest verified hosted acceptance: application `801795a648a1ae0b9211c0a478027673cb79c156`, Core `f41b2a11253c222aac6bfdf67278d226e01ff96e`, app `19f65f59-e370-4cad-94ce-b0246872b891` and settings `18c4f04e-6ac3-4fa7-ac2a-ff312d095159` succeeded. Website main `95c53ccd3d20a99df4e8059c105c2aa4fcb8ebbb` serves byte-identical committed HTML (149523bytes, SHA256 `988e89929f268a5a447f00a09e7602d0c59a01e6bd15ef44ed0c37be16343a63`), including Elrond setup/C# links. This proves publication, not browser interaction.
 
 There are **36 implemented query types**: 3 canonical adapters, 31 bounded public/source profiles and 2 locally scoped Azure/Oracle implementations. Elrond has34native tests + actual shared-manager/CLI3/2, API2/Core1/shipping1/localHTTP1/config3passes and a scoped release3test/artifact check excluding TRON's unverified adapter. Azure/Oracle hosting remains explicitly deferred. TRON's real429and Starknet/Radix403access qualifications stay red and uncounted. Full ORM/parity/HyperDrive certification remains incomplete. Dated milestones retain their original scope.
 

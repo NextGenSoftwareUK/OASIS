@@ -4,7 +4,7 @@
 
 **34 providers have scoped hosted HTTP evidence; 5 have browser evidence and 29 browser gates remain open.** MultiversX/Elrond now passes native 3/2, Mongo federation 5/4, repeat reuse (zero new/two existing), foreign-private zero/public three, and two matching replicas on both SQLite and Neo4j. No source/chain writes or browser certification are inferred.
 
-Latest verified hosted acceptance: application `801795a648a1ae0b9211c0a478027673cb79c156`, Core `f41b2a11253c222aac6bfdf67278d226e01ff96e`, app `19f65f59-e370-4cad-94ce-b0246872b891` and settings `18c4f04e-6ac3-4fa7-ac2a-ff312d095159` succeeded. Elrond card publication is next; last byte-verified website main remains `9679699`.
+Latest verified hosted acceptance: application `801795a648a1ae0b9211c0a478027673cb79c156`, Core `f41b2a11253c222aac6bfdf67278d226e01ff96e`, app `19f65f59-e370-4cad-94ce-b0246872b891` and settings `18c4f04e-6ac3-4fa7-ac2a-ff312d095159` succeeded. Website main `95c53ccd3d20a99df4e8059c105c2aa4fcb8ebbb` serves byte-identical committed HTML (149523bytes, SHA256 `988e89929f268a5a447f00a09e7602d0c59a01e6bd15ef44ed0c37be16343a63`), including Elrond setup/C# links. This proves publication, not browser interaction.
 
 There are **36 implemented query types**: 3 canonical adapters, 31 bounded public/source profiles and 2 locally scoped Azure/Oracle implementations. Elrond has34native tests + actual shared-manager/CLI3/2, API2/Core1/shipping1/localHTTP1/config3passes and a scoped release3test/artifact check excluding TRON's unverified adapter. Azure/Oracle hosting remains explicitly deferred. TRON's real429and Starknet/Radix403access qualifications stay red and uncounted. Full ORM/parity/HyperDrive certification remains incomplete. Dated milestones retain their original scope.
 
@@ -18,7 +18,7 @@ Snapshot: 1 November 2026. This is a report, not a claim of full production read
 - Hosted HTTP evidence covers **34** providers: earlier8 plus26additions including Elrond, each at its recorded release. Browser proof remains **5**; **29** are open.
 - Each addition passed native3/2, private Mongo preparation, paired5/4, repeat reuse, visitor isolation and matching SQLite/Neo4j replicas. Added profiles expose **104 presets** (26partitions ×4). [Proof](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
 - Elrond application **801795a64/Coref41b2a1**, app19f65f59 and settings18c4f04e SUCCESS; hosted acceptance passes. Original cohorts/earlier release-specific proofs preserved, no green saves replayed.
-- Byte-verified website main **9679699** includes verified Sui and Hedera, first-setup guides and C# links. Browser interaction remains separately open.
+- Byte-verified website main **95c53cc** includes verified Elrond/Sui/Hedera, first-setup guides and C# links. Browser interaction remains separately open.
 - Azure hosted free account and Oracle hosted connection are deferred by David; existing local/emulator evidence does not prove cloud hosting.
 
 ## What each CQL level means
