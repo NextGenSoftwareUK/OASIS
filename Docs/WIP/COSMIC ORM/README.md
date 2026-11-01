@@ -50,4 +50,6 @@ The bounded EVM and Bitcoin profiles have hosted HTTP proof within their recorde
 
 [MultiversX/Elrond public account guide](../../Devs/ELROND_PUBLIC_ACCOUNT_CQL_GUIDE.md):34native tests and shared-manager/C# CLI3/2verified; hosted HTTP native3/2+Mongo5/4/reuse/isolation/replicas verified; browser open. [Evidence](ELROND_PUBLIC_SOURCE_STATUS.md).
 
-Radix native resource CQL: [commented C# guide](../../Devs/RADIX_PUBLIC_RESOURCE_CQL_GUIDE.md). 50/50 tests and actual CLI3/2 verified; API/localHTTP green; hosting pending. Exact supply strings and one Gateway ledger state per query.
+Radix native resource CQL: [commented C# guide](../../Devs/RADIX_PUBLIC_RESOURCE_CQL_GUIDE.md). 50/50 tests and actual CLI3/2 verified; API/localHTTP/hosted scopes pass; browser renewal remains open. Exact supply strings and one Gateway ledger state per query.
+
+Radix hosted milestone: original cohort completed at74aaa9b4d/Core8b79301 after settlement correction; no duplicate saves. [Scope, failure history and hashes](RADIX_PUBLIC_SOURCE_STATUS.md#hosted-acceptance-complete). Browser renewal/interaction remain separate. Earlier deployed-tariff headlines incorrectly included local Azure/Oracle: actual live catalogue35, implemented types37.

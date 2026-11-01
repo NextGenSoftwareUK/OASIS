@@ -1,6 +1,6 @@
 # Radix public resource CQL demo
 
-This read-only profile queries real Mainnet resource definitions through the shared HolonManager/CQL planner. It uses the public Radix Gateway without an account, wallet or transaction. Hosted sandbox enrollment remains pending.
+This read-only profile queries real Mainnet resource definitions through the shared HolonManager/CQL planner. It uses the public Radix Gateway without an account, wallet or transaction. Hosted HTTP acceptance now passes; browser interaction and automatic session renewal remain separate gates.
 
 ## Run the C# console demo
 
@@ -108,11 +108,11 @@ Supply validation uses signed 192-bit scaled-integer bounds; no double or System
 
 ## Evidence and remaining gates
 
-The focused suite passed 50/50 with zero skips, including actual shared-manager native three/two selection. [Current Radix status](../WIP/COSMIC%20ORM/RADIX_PUBLIC_SOURCE_STATUS.md) records evidence hashes and rollout gates. Query-only API admission and actual local HTTP/Mongo federation now pass (native3/2, paired5/4, foreign-private0/public3). Hosted configuration, sandbox card and browser interaction remain pending. This source cannot become a default write or replication provider; signed Radix storage is a different implementation.
+The focused suite passed 50/50 with zero skips, including actual shared-manager native three/two selection. [Current Radix status](../WIP/COSMIC%20ORM/RADIX_PUBLIC_SOURCE_STATUS.md) records evidence hashes and rollout gates. Query-only API admission and actual local HTTP/Mongo federation now pass (native3/2, paired5/4, foreign-private0/public3). Hosted configuration and HTTP acceptance pass (original native3/2, paired5/4, reuse0new/2existing, isolation and replicas). Sandbox card publication and browser interaction remain separate. This source cannot become a default write or replication provider; signed Radix storage is a different implementation.
 
-## HTTP request shape (enrollment pending)
+## HTTP request shape (enrolled read profile)
 
-Once the server explicitly enrolls this read profile, the same native selection is:
+On a server with this read profile explicitly enrolled, the same native selection is:
 
 ```json
 {
@@ -135,3 +135,7 @@ Once the server explicitly enrolls this read profile, the same native selection 
 ```
 
 POST to `/api/data/query-cql` with the demo's authentication and request identity. A Mongo pair uses `/api/data/query-cql/federation`, explicit `Named` scope, providers `["MongoDBOASIS", "RadixOASIS"]`, the above selection as `source` (omit `provider`), `PreserveCopies`, `maximumProviderAttempts: 2` and `take: 8`. Matching private Mongo copies must first be created by the authenticated owner through the demo's existing prepare action. Merely selecting two providers does not create copies or grant access.
+
+## Live sandbox proof
+
+Select RadixOASIS and one of its four provider/Mongo presets. Scoped HTTP acceptance passed using the original two private demo copies, with a documented settlement correction and read-only continuation. Mongo copies contain name, description and native key; they do not capture full native resource state. Exact deployment/evidence and session-renewal limitations are maintained in the [Radix report](../WIP/COSMIC%20ORM/RADIX_PUBLIC_SOURCE_STATUS.md#hosted-acceptance-complete).
