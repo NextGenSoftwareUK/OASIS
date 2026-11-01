@@ -66,3 +66,5 @@ The profile validates canonical numeric account IDs, response identity, explicit
 Metadata includes `HederaAccountId`, `HederaBalanceTinybars`, `HederaBalanceTimestamp`, `HederaNetwork` and `HederaConsistency`. A balance timestamp can be much older than the request and different from another row's timestamp. The profile promises latest indexed observations, with no freshness SLA or shared/historical snapshot. A Mongo copy is a captured observation and need not match a later native read.
 
 Mirror indexing is not independent state/consensus/signature verification or proof that the caller owns the native account. A failed selected account rejects the complete page, even if a result window would otherwise hide it. [Official Mainnet REST reference](https://mainnet.mirrornode.hedera.com/api/v1/docs/).
+
+Independent account reads overlap with a maximum of three native requests in flight, preserving selection order. The source awaits every read before exposing a page, including failure or cancellation. The API query deadline is unchanged; no retry or alternate endpoint is used.
