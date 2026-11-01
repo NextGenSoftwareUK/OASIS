@@ -1,6 +1,6 @@
 # Aptos public account CQL status
 
-Updated 1 November 2026. Qualification complete; CQL/API/hosted/browser remain open. Existing counts remain 32 implemented query types and 29 scoped hosted HTTP providers.
+Updated 1 November 2026. Native CQL/shared-manager/CLI complete; API/hosted/browser remain open. Counts:33implemented query types and29scoped hosted HTTP providers.
 
 ## Qualified contract
 
@@ -22,8 +22,16 @@ Primary references: [Aptos account lookup](https://aptos.guide/rest-api/operatio
 
 ## Next gates
 
-1. Explicit read-only source implementing per-query version selection, exact native values, canonical addresses, cancellation/bounds and whole-page failure. Reject unknown configuration/history overrides/signing fields/unsupported scans.
-2. Controlled source tests plus real shared HolonManager/LINQ and readable C#/CLI3/2 walkthrough.
+1. Complete: explicit read-only source with per-query version selection, canonical native values/addresses, cancellation/bounds and whole-page failure. Unknown configuration/history overrides/signing fields/unsupported scans reject.
+2. Complete:25controlled tests plus1real shared HolonManager3/2 pass/no skips; actual readable C#/CLI3/2 passes.
 3. Independent query admission and native/Mongo presets, shipping planner, local HTTP/Mongo privacy and focused client preparation.
 4. Guarded hosted rollout, normal visitor3/2 and5/4, repeat reuse, independent visitor privacy and replica checks. Retain original write ACKs.
 5. Sandbox/local-demo links and separate browser proof. No count promotion until the appropriate gate is proven.
+
+## Native CQL milestone
+
+AptosPublicAccountMetadataSource uses the shared query capability/planner/manager and read-only key-value base. Body/header network and ledger agreement, mandatory unique headers, exact decimal UInt64s, retained version ranges and complete selection validation precede output. No pruned/unversioned retry. Public account identity is the requested canonical URI, not an independent state proof.
+
+- TestResults/AptosPublicSourceCandidateCurrent/aptos-source.trx:26passed/0skips, SHA256f584c81fafd559020fba155e5538d14d9c73cba4e48134c51a107aac4e8e6f9d.
+- Actual CLI exit0,3/2; TestResults/AptosPublicSourceCandidateCurrent/demo-run.log SHA2569422b16016a6f340df667a782294e74820511a3b39f6f1effeef8df02c76ca11.
+- [Developer guide](../../Devs/APTOS_PUBLIC_ACCOUNT_CQL_GUIDE.md). No API admission or hosted-provider count granted yet.
