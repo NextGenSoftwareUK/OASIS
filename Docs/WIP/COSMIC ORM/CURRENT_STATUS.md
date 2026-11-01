@@ -10,7 +10,7 @@ All20addedprofiles passed hosted HTTP/client-module acceptance: original17plusBe
 
 Live application: Development **c6e7f14baf89cacb9a1938cf11bfe574b51bc3ba**, Core **e032d0a4701e1c5bc4fa4d8f1545cac41745376b**. Exact free-endpoint correction **74bdf044-485b-40f7-9fca-29b846bc775b SUCCESS**; protected candidate exact. XRPL native/Mongo/isolation/replica HTTP gates pass. Original402/expired empty cohort retained separately.
 
-Stellar verified batch published: parent637a6d49fecceb047bb17025169d8632e2d3082e/Core2dd3c379a04ef164fec8f419f07383dabe366dce, both Development refs verified. Exact app6f4d9a65-48c6-465e-af2e-f2359deea85b SUCCESS; no Stellar settings applied.
+Stellar verified batch published: parent637a6d49fecceb047bb17025169d8632e2d3082e/Core2dd3c379a04ef164fec8f419f07383dabe366dce, both Development refs verified. Exact app6f4d9a65-48c6-465e-af2e-f2359deea85b SUCCESS; all3Stellar settings observed exactly. Journalled settings deployment3eda0ea7-5238-4a7d-bd91-f47ba2f8102d pending verification.
 
 Website main **b71d25f** serves byte-identical XRPL-inclusive HTML, SHA2563edd644ff6ac436dccf224e0428af84a2ed7e6e62dda977c2c3386316e654725. Free-endpoint CLI path, guide123340f6c and C#c6e7f14ba links published. Existing/focused client proofs remain scoped; browser proof separate.
 
@@ -50,13 +50,13 @@ XRPL passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3
 
 ## Exact next work
 
-1. Next: app6f4d9a65 exact637a6d49f SUCCESS verified; fast-forward existing frozen release branch to that SHA, set expected-release guard, apply Stellar3setting candidate and journal one settings rollout. Then normal-visitor native/Mongo/isolation/replica proof and staged website links. [Local proof](STELLAR_PUBLIC_SOURCE_STATUS.md#api--local-http-complete). No green save replay.
+1. Next: observe exact settings deployment3eda0ea7-5238-4a7d-bd91-f47ba2f8102d until SUCCESS; never restart on observation timeout. Then normal-visitor Stellar native/Mongo/isolation/replica proof and staged website links. [Local proof](STELLAR_PUBLIC_SOURCE_STATUS.md#api--local-http-complete). No green save replay.
 2. Browser gates remain open for23providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
 ## Recovery/resources
 
-- Work/build/test only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public. Frozen public release branchc6e7f14ba. Unknown root logs untouched.
+- Work/build/test only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public. Frozen public release branch637a6d49f. Unknown root logs untouched.
 - Durable source identities/tokens/save intents/ACKs: LocalState/COSMIC. Fresh completion hashes: HostedQueryAcceptance-<Provider>/cql-http-acceptance.acknowledged.json. Never regenerate owners or replay uncertainty after cleanup.
 - Protected settings snapshots/intents/outcomes: HostedSourceRolloutCurrent. Preserve rejected combined-catalogue and successful partition journals. Raw output only TestResults/HostedCqlIntegrationCurrent, never Docs.
 - No new runtime/environment/container/download in this rollout. Reuse pinned resources. Latest free C:79873458176bytes; no attribution to unmeasured external changes. [Ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).

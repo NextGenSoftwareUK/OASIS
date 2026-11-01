@@ -56,3 +56,5 @@ Local loopback HTTP proves native3/2, two private SDK Mongo creates, paired5/4, 
 - `TestResults\StellarPublicSourceCandidateCurrent\stellar-mongo-http.trx`: 1passed/0skips, SHA256 `7922a183eaa76ab223586b1c01105316359e80fd40b7b8cba45de87a07d8e0ae`.
 
 Core2dd3c37 task branch pushed/remotely verified; parent gitlink/dependency manifest advance together. Candidate is prepared only, no settings applied. Next verified Development publication, exact app SUCCESS, guarded3setting application, one journalled settings rollout, then normal visitor native/Mongo/isolation/replica acceptance and website links. Wait for the settings rollout before creating a visitor; require discovery readiness before any save. Counts31implemented/candidate31tariff/deployed30tariff/28hosted HTTP/5browser; no Stellar hosted grant.
+
+1 November rollout update: exact application6f4d9a65 SUCCESS at637a6d49f. All three protected Stellar settings observed exactly; one journalled settings deployment3eda0ea7-5238-4a7d-bd91-f47ba2f8102d submitted. Hosted acceptance and website publication remain pending; no new hosted-provider count yet.
