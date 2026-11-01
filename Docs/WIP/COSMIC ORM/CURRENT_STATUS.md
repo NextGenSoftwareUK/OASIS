@@ -13,7 +13,7 @@ There are **37 implemented query types**: 3 canonical adapters, 32 bounded publi
 ## Exact next step
 
 1. Radix card published/byte-verified at website0228db6; setup guide74ccc3752/C#74aaa9b4d linked. Original HostedQueryAcceptance-RadixOASIS completion ACK exists: do not replay saves or create a new owner.
-2. Fix the newly reproduced sandbox session-renewal gap: sandbox/session does not issue the refresh cookie; the acceptance harness retained only JWT. Existing normal avatar/refresh-token works. Preserve original session/rotated credentials in DPAPI and use the same avatar. Add cookie/session tests; no expiry extension or identity replacement to hide it.
+2. Session renewal root correction locally passes15API/80client/8credential-tool tests. [Exact rollout steps](SESSION_RENEWAL_STATUS.md): deploy server cookie/CORS fix first; verify one fresh owned same-avatar cookie/rotate/revoke cohort, then publish staged frontend. No bearer lifetime extension, new-avatar fallback or replayed writes. Current live page remains0228db6 until server passes.
 3. Continue Starknet: guarded native spec/chain/genesis and explicitly selected headers3/2pass, including parent links and repeated result equality. Implement/test the native CQL adapter before API/hosting admission. TRON's real429remains red; no blind retry or grant.
 4. Browser gates:5verified/30open. CUA transport remains closed; David already opened the browser. No OS control resumed or repeated owner request.
 
