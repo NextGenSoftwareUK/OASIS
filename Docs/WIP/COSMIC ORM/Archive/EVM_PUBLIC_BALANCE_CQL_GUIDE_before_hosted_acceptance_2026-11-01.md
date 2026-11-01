@@ -1,0 +1,61 @@
+Superseded by [current guide](../../../Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md); historical checkpoints only.
+
+# Base, Avalanche and BNB Chain public balance CQL
+
+These explicit read representations reuse the common EVM reader and HolonManager/LINQ pipeline. Native CQL 3/2 is verified for each. Published C# walkthroughs and actual CLI3/2 also pass for all three. Local HTTP/Mongo3/2+5/4 and isolation also pass for all three. Remaining hosted and browser acceptance is tracked in [current status](../WIP/COSMIC%20ORM/CURRENT_STATUS.md); no full ORM or signed-storage parity is implied.
+
+## Readable C# walkthroughs
+
+Build the existing console under the bounded provider lease, then select an existing retained catalogue:
+
+```powershell
+dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj --no-build --no-restore -- --base-public LocalState/COSMIC/HostedBasePublicSourceCurrent/source.json
+
+dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj --no-build --no-restore -- --avalanche-public LocalState/COSMIC/HostedAvalanchePublicSourceCurrent/source.json
+
+dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj --no-build --no-restore -- --bnb-public LocalState/COSMIC/HostedBnbPublicSourceCurrent/source.json
+```
+
+The spaced/commented [Base](../../Examples/CosmicCqlDemo/BasePublicWalkthrough.cs), [Avalanche](../../Examples/CosmicCqlDemo/AvalanchePublicWalkthrough.cs) and [BNB Chain](../../Examples/CosmicCqlDemo/BnbPublicWalkthrough.cs) walkthroughs select three configured addresses, then a two-address subset. [NativeKeySetWalkthrough](../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs) contains the shared Contains→bounded metadata membership→CosmicLinq→HolonManager query. No account, wallet, transaction or Mongo fixture is created. Preserve existing mapping owners; regenerating them changes source holon IDs.
+
+## Explicit native profiles
+
+| Provider | Class | Metadata query key | Native network/path |
+|---|---|---|---|
+| BaseOASIS | BasePublicAccountMetadataSource | BaseAccountAddress | 0x2105, root RPC path |
+| AvalancheOASIS | AvalanchePublicAccountMetadataSource | AvalancheAccountAddress | 0xa86a, /ext/bc/C/rpc |
+| BNBChainOASIS | BnbPublicAccountMetadataSource | BNBChainAccountAddress | 0x38, root RPC path |
+
+Each accepts the existing exact anonymous schema: schema1/rpcUrl/chainId/addresses/sourceOwner. One to eight unique lowercase20byte addresses, stable nonempty source owner, credential-free HTTPS, fixed descriptor chain/genesis/path. No source mutation, secret fields, wallet defaults or endpoint fallback. Canonical signed-provider DNA is separate.
+
+Query capabilities are equality/membership over the configured address catalogue, bounded paging and read visibility. Arbitrary content/name/description scans, ordering or unsupported operators fail at planning. Every selected native response validates before visibility/paging, including empty pages; no partial rows escape.
+
+Per query, the reader checks chain ID and pinned genesis, selects a reported finalized block and reads all balances using that exact blockHash with requireCanonical:true. Unsupported hash-pinned semantics fail rather than downgrading to latest or numeric-height reads. Quantities remain exact decimal UInt256 strings; metadata includes the network-specific AccountAddress/ChainId/BlockHash/BlockNumber/Commitment/BalanceWei fields. Amounts are in the smallest units of each chain's native currency (ETH, AVAX or BNB), not decimal coin amounts; the shared suffix does not promise a shared currency or conversion.
+
+These are RPC-reported canonical/finality assertions, not independent consensus, L1 settlement or rollup proof. They expose native account state, not evidence of COSMIC holons persisted on-chain. No contract call, transaction body or hidden storage scan is required.
+
+## Remaining integration
+
+Separate read permission/tariff, activation and capability admission are required before hosted enrollment. These profiles grant no signed saves or replication authority. With metadata encryption enabled, allow the specific application query key through trusted policy; do not add it to the global reserved unencrypted metadata list. C# console and native acceptance do not prove HTTP, visitor preparation, replicas or browser behavior.
+
+[Evidence and next steps](../WIP/COSMIC%20ORM/EVM_NEXT_THREE_SOURCE_STATUS.md).
+
+## Optimism public balances
+
+The same explicit reader also supports OptimismOASIS through OptimismPublicAccountMetadataSource, metadata key OptimismAccountAddress, chain0xa and root RPC path. Run `--optimism-public LocalState/COSMIC/HostedOptimismPublicSourceCurrent/source.json` with the existing console. Published C#/CLI/native3/2 and local HTTP3/2+Mongo5/4/isolation pass. HTTP source configuration key: CQL_OPTIMISM_PUBLIC_SOURCE_JSON. Hosted/browser acceptance remains pending; this profile is separate from the prepared ten-source batch. Preserve sourceOwner; exact wei strings and RPC-reported finalized hashes do not prove settlement independently.
+
+## Linea and Scroll public balances
+
+Use `--linea-public LocalState/COSMIC/HostedLineaPublicSourceCurrent/source.json` or `--scroll-public LocalState/COSMIC/HostedScrollPublicSourceCurrent/source.json` with the same console. Spaced/commented LineaPublicWalkthrough and ScrollPublicWalkthrough use the shared HolonManager/LINQ pipeline. Linea chain0xe708/keyLineaAccountAddress; Scroll chain0x82750/keyScrollAccountAddress. Lazy HTTP config keys CQL_LINEA_PUBLIC_SOURCE_JSON/CQL_SCROLL_PUBLIC_SOURCE_JSON. Native/publishedC#/CLI3/2 and localHTTP3/2+Mongo5/4/isolation pass. Hosted/browser remain pending; existing10/11batch candidates exclude these2profiles. Exactwei strings and RPC-reported finalized hashes, no independentsettlement claim.
+
+## zkSync and Abstract public balances
+
+Run `--zksync-public LocalState/COSMIC/HostedZkSyncPublicSourceCurrent/source.json` or `--abstract-public LocalState/COSMIC/HostedAbstractPublicSourceCurrent/source.json` with the existing console. Spaced/commented walkthroughs reuse HolonManager/LINQ. zkSync chain0x144/keyZkSyncAccountAddress; Abstract0xab5/keyAbstractAccountAddress. Lazy HTTPconfigkeys CQL_ZKSYNC_PUBLIC_SOURCE_JSON/CQL_ABSTRACT_PUBLIC_SOURCE_JSON. Native/C#/CLI3/2 and localHTTP3/2+Mongo5/4/isolation pass. Hosted/browser remainpending, current13sourcecandidate excludes these2profiles. Exactwei strings and RPC-reportedfinalizedhashes, not independentsettlementproof.
+
+## Monad public balances
+
+Run `--monad-public LocalState/COSMIC/HostedMonadPublicSourceCurrent/source.json` with the existing console. The spaced/commented MonadPublicWalkthrough uses HolonManager/LINQ. Monad chain0x8f/keyMonadAccountAddress; lazy HTTPconfiguration CQL_MONAD_PUBLIC_SOURCE_JSON. Native/C#/CLI3/2 and localHTTP3/2+Mongo5/4/isolation pass. Hosted/browserremainpending; existing15sourcecandidate excludesMonad. Exactnativebaseunits and RPC-reportedfinalizedhashes, not independentsettlementproof.
+
+## Sei public balances
+
+Run `--sei-public LocalState/COSMIC/HostedSeiPublicSourceCurrent/source.json` with the existingconsole. SeiPublicWalkthrough usesHolonManager/LINQ,chain0x531/keySeiAccountAddress; lazyHTTPconfig CQL_SEI_PUBLIC_SOURCE_JSON. Itsfixednativecodec accepts32bytemixedcaseblockhashes andnormalizesidentity/requestmetadata lowercase; otherEVMprofiles retaincanonicalvalidation. Native/C#/CLI3/2 andlocalHTTP3/2+Mongo5/4/isolationpass. Hosted/browser remainpending,current16sourcecandidateexcludesSei. Exactnativebaseunits/RPCreportedfinalizedhashes,notindependentsettlementproof.
