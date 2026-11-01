@@ -55,14 +55,14 @@ def verify_failover_response(response, expected, requested):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--cohort", choices=["original-solana", "routing-v1"], default="original-solana")
+    parser.add_argument("--cohort", choices=["original-solana", "routing-v1", "routing-v2"], default="original-solana")
     parser.add_argument("--prepare-foreign", action="store_true",
         help="Explicitly prepare only an independent temporary visitor; never creates a record or replaces the owner.")
     options = parser.parse_args()
     state = ROOT / "LocalState/COSMIC" / ("HostedQueryAcceptance-SolanaOASIS"
-        if options.cohort == "original-solana" else "HostedHyperdriveRoutingCurrent")
+        if options.cohort == "original-solana" else "HostedHyperdriveRoutingV2Current" if options.cohort == "routing-v2" else "HostedHyperdriveRoutingCurrent")
     if options.prepare_foreign:
-        if options.cohort != "routing-v1" or not (state / "routing-record.acknowledged.json").is_file():
+        if options.cohort not in ("routing-v1", "routing-v2") or not (state / "routing-record.acknowledged.json").is_file():
             raise RuntimeError("Independent visitor setup requires the acknowledged routing-v1 fixture.")
         # Validate the retained owner before allocating an independent visitor.
         flow.session(state, "owner", allow_create=False)
@@ -77,7 +77,7 @@ def main():
     foreign_identity, foreign = flow.session(state, "foreign", allow_create=False)
     if foreign_identity["id"] == owner:
         raise RuntimeError("Foreign visitor must be independent of the acknowledged owner.")
-    if options.cohort == "routing-v1":
+    if options.cohort in ("routing-v1", "routing-v2"):
         spec = importlib.util.spec_from_file_location("routing", Path(__file__).with_name("Verify-HostedHyperdriveLoadBalancing.py"))
         routing = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(routing)
@@ -100,7 +100,7 @@ def main():
         "purpose": "bounded avatar-only read failover", "maximumFaultSeconds": 30}).encode())
     results = []
     report = ROOT / "TestResults/HostedCqlIntegrationCurrent" / ("hyperdrive-failover-http.json"
-        if options.cohort == "original-solana" else "hyperdrive-failover-routing-v1-http.json")
+        if options.cohort == "original-solana" else "hyperdrive-failover-" + options.cohort + "-http.json")
     for provider in PROVIDERS:
         flow.write_new(state / ("fault-" + provider + ".intent.json"), json.dumps({"provider": provider, "seconds": 30}).encode())
         try:

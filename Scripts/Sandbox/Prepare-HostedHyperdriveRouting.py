@@ -5,6 +5,7 @@ planned new cohort, not replacement of original Solana sessions or operations.
 """
 from pathlib import Path
 import hashlib
+import argparse
 import importlib.util
 import json
 import uuid
@@ -100,4 +101,9 @@ def prepare(state):
 
 
 if __name__ == "__main__":
-    print(json.dumps(prepare(ROOT / "LocalState/COSMIC/HostedHyperdriveRoutingCurrent")))
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--cohort", choices=["routing-v1", "routing-v2"], default="routing-v1")
+    options = parser.parse_args()
+    # V2 is a separately planned post-correction cohort. V1 is never overwritten.
+    directory = "HostedHyperdriveRoutingCurrent" if options.cohort == "routing-v1" else "HostedHyperdriveRoutingV2Current"
+    print(json.dumps(prepare(ROOT / "LocalState/COSMIC" / directory)))
