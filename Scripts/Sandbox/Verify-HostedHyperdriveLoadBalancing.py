@@ -56,12 +56,12 @@ def reviewed_record(document, owner):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--cohort", choices=["original-solana", "routing-v1"], default="original-solana")
+    parser.add_argument("--cohort", choices=["original-solana", "routing-v1", "routing-v2"], default="original-solana")
     options = parser.parse_args()
     state = ROOT / "LocalState/COSMIC" / ("HostedQueryAcceptance-SolanaOASIS"
-        if options.cohort == "original-solana" else "HostedHyperdriveRoutingCurrent")
+        if options.cohort == "original-solana" else "HostedHyperdriveRoutingV2Current" if options.cohort == "routing-v2" else "HostedHyperdriveRoutingCurrent")
     report = ROOT / "TestResults/HostedCqlIntegrationCurrent" / ("hyperdrive-load-balancing-http.json"
-        if options.cohort == "original-solana" else "hyperdrive-load-balancing-routing-v1-http.json")
+        if options.cohort == "original-solana" else "hyperdrive-load-balancing-" + options.cohort + "-http.json")
     acknowledgement = state / "hyperdrive-load-balancing.acknowledged.json"
     if acknowledgement.exists():
         raise RuntimeError("Completed gate retained; do not repeat a green scope.")
