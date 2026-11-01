@@ -13,6 +13,24 @@ if(Test-Path -LiteralPath $awsRuntimePath){throw 'Existing runtime must be reuse
 if(Test-Path -LiteralPath $awsRuntimeZip){throw 'Existing download must be reviewed/reused; no automatic redownload.'}
 $awsState=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.State.Status}}' oasis-dynamo-retained).Trim()
 if($LASTEXITCODE -or $awsState -ne 'exited'){throw 'The retained runtime owner must be stopped before restoring its missing bind.'}
+# Restore only the runtime actually mounted by this assigned checkout. A stale
+# mount into another worktree must not produce an unused second installation.
+$awsMounts=@(& wsl -d Ubuntu -u root -- podman inspect --format '{{json .Mounts}}' oasis-dynamo-retained | ConvertFrom-Json)
+if($LASTEXITCODE){throw 'Cannot verify retained Dynamo mounts; no download or directory creation.'}
+$awsRuntimeTranslation=& wsl -d Ubuntu -u root -- wslpath -a -u $awsRuntimePath.Replace('\','/')
+if($LASTEXITCODE -or @($awsRuntimeTranslation).Count -ne 1 -or [string]::IsNullOrWhiteSpace($awsRuntimeTranslation)){
+    throw 'Cannot resolve assigned runtime path; no download or directory creation.'
+}
+$awsExpectedRuntime=$awsRuntimeTranslation.Trim()
+$awsDataTranslation=& wsl -d Ubuntu -u root -- wslpath -a -u (Join-Path $awsRuntimeRoot 'retained-history-data').Replace('\','/')
+if($LASTEXITCODE -or @($awsDataTranslation).Count -ne 1 -or [string]::IsNullOrWhiteSpace($awsDataTranslation)){
+    throw 'Cannot resolve assigned data path; no download or directory creation.'
+}
+$awsExpectedData=$awsDataTranslation.Trim()
+if(@($awsMounts | Where-Object {$_.Type -eq 'bind' -and $_.Destination -eq '/dynamo' -and $_.Source -eq $awsExpectedRuntime}).Count -ne 1 -or
+   @($awsMounts | Where-Object {$_.Type -eq 'bind' -and $_.Destination -eq '/dynamo-data' -and $_.Source -eq $awsExpectedData}).Count -ne 1){
+    throw 'Retained Dynamo mounts belong to a different checkout; review migration before restoring. No download or directory creation.'
+}
 if((Get-PSDrive C).Free -lt 1GB){throw 'Insufficient bounded restoration headroom.'}
 New-Item -ItemType Directory -Path $awsRuntimeRoot -Force | Out-Null
 $awsRestoreLease=[IO.File]::Open((Join-Path $awsRuntimeRoot 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
