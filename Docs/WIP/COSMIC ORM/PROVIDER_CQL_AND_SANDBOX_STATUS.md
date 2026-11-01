@@ -9,7 +9,7 @@ Snapshot: 1 November 2026. This is a report, not a claim of full production read
 - Hosted HTTP evidence now covers **28** providers: earlier eight, seventeen additions, Berachain, Bitcoin and XRPL, each at its recorded release. Browser proof remains **5**; twenty-three are open.
 - Each addition passed native3/2, private Mongo preparation, paired5/4, repeat reuse, foreign-private isolation and exact SQLite/Neo4j replicas. The original **68** new presets plus **4** each for Berachain/Bitcoin/XRPL are live (**80** added presets total). [Fresh proof](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
 - Latest application **c6e7f14ba/Coree032d0a**, XRPL endpoint correction **74bdf044 SUCCESS**; original17proofs at4e0d58f08/aff4bf53 are preserved. All seventeen small preset partitions match the protected candidate; original rejected combined-catalogue journal preserved.
-- Public website mainbc00ef2 serves byte-identical Bitcoin-inclusive demo HTML with CLI/guide/C# links. A link is not live enrollment.
+- Public website mainb71d25f serves byte-identical XRPL-inclusive demo HTML with free-endpoint CLI/guide/C# links. A link is not live enrollment.
 - Azure hosted free account and Oracle hosted connection are deferred by David; existing local/emulator evidence does not prove cloud hosting.
 
 ## What each CQL level means
