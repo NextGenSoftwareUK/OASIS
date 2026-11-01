@@ -392,3 +392,8 @@ Parent74aaa9b4d/Core8b79301, correctionf4c02dbd SUCCESS. Initial app0b41c4b9/set
 - RadixOASIS-isolation-http.json: `23c38e3fbf1d5abe6dd1585226486f13193402dd98b8b8dfaf95ac2e2dbc0019`.
 
 Full scope/failure history: [Radix report](RADIX_PUBLIC_SOURCE_STATUS.md#hosted-acceptance-complete). Totals35scoped hosted HTTP/5browser/30open;27added profiles54private copies/108presets. Actual deployed tariffs35; implemented types37including2local cloud scopes.
+
+
+## Additional Starknet acceptance
+
+Applicationcafd0f8c8/Core8a5ab45, app151477e9 and settings03760bc9 SUCCESS. Native3/2, Mongo federation5/4,2private saves once, repeat0new/2existing, foreign-private0/public3, matching SQLite/Neo4j replicas2/2. Original cohort completion ACK retained; no repeated writes. Browser open. Hosted36/browser5/open31, implemented38, query tariffs36;28additions/56copies/112presets. [Proof and hashes](STARKNET_PUBLIC_SOURCE_STATUS.md#hosted-acceptance-complete).
