@@ -52,6 +52,7 @@ public sealed class OLandOrder
     public DateTime? NativePriceFetchedUtc { get; set; }
     public string NativeAmountUnit { get; set; }
     public int NativeDecimals { get; set; }
+    public string NftStandard { get; set; }
     public string ChainId { get; set; }
     public string PaymentMemo { get; set; }
     public DateTime? PaidUtc { get; set; }

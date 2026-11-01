@@ -21,6 +21,11 @@ public partial class OLandController
         "<p>You can return to Our World now. Open Purchase OLAND to check your order's verified payment and delivery status.</p>" +
         "<p>Closing checkout does not confirm payment.</p></body></html>", "text/html");
 
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+    [HttpGet("nft-metadata/{orderId}")]
+    public Task<IActionResult> NftMetadata(string orderId, [FromServices] OLandCommerceService commerce) =>
+        Commerce(() => commerce.PublicNftMetadata(orderId, HttpContext.RequestAborted));
+
     [HttpGet("purchase-options")]
     public Task<IActionResult> PurchaseOptions([FromServices] OLandCommerceService commerce) => Commerce(() => Task.FromResult(commerce.Options()));
 
