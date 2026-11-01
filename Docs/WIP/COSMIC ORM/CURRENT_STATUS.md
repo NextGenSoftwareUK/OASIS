@@ -8,13 +8,13 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 
 Latest hosted acceptance: parent `74aaa9b4daeadfad00ce9c667d78bb957f219ea8`, Core `8b79301b275536c04e7a971dc88d61735ebde96f`, correction job `f4c02dbd-7e7d-4482-9e2c-1ee28f5e1cc6` SUCCESS. Initial Radix app0b41c4b9/settings15f047fd succeeded at1f39016fa. Original owner was renewed through the normal refresh endpoint after scoped owned-fixture credential recovery; automatic sandbox/browser session renewal remains open. Website main0228db6adca82f3c457e30aa836b117d9690577d now serves the Radix card and pinned setup/C# links byte-identically (150955bytes, SHA25654588e7bd9c0368714d9b57b6f4f370c772d93b648665ada00d6a3dc8dbfca42). This proves publication, not browser interaction.
 
-There are **37 implemented query types**: 3 canonical adapters, 32 bounded public/source profiles and 2 local Azure/Oracle implementations. Actual deployed query-tariff catalogue has **35 entries**, confirmed from live configuration (the two local cloud implementations are excluded). Radix50native tests, actual CLI3/2, API/local HTTP and hosted continuation pass; atomic settlement fix has6native/125related/4shipping checks. Azure/Oracle hosting remains deferred. TRON429 stays red; Starknet native API headers3/2qualified, CQL not implemented. Full ORM/EF parity/HyperDrive certification remains incomplete.
+There are **37 implemented query types**: 3 canonical adapters, 32 bounded public/source profiles and 2 local Azure/Oracle implementations. Actual deployed query-tariff catalogue has **35 entries**, confirmed from live configuration (the two local cloud implementations are excluded). Radix50native tests, actual CLI3/2, API/local HTTP and hosted continuation pass; atomic settlement fix has6native/125related/4shipping checks. Azure/Oracle hosting remains deferred. TRON429 stays red; Starknet candidate native CQL31controls + real3/2and actual manager/CLI3/2pass; API/hosting not admitted. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
 ## Exact next step
 
 1. Radix card published/byte-verified at website0228db6; setup guide74ccc3752/C#74aaa9b4d linked. Original HostedQueryAcceptance-RadixOASIS completion ACK exists: do not replay saves or create a new owner.
 2. Session renewal root correction locally passes16API/80client/9credential-tool tests. [Exact rollout steps](SESSION_RENEWAL_STATUS.md): server4434e2c28 deployed successfully (job6402f4ec-b203-42a5-8508-589f683708fc); initial live cookie validation reproduced Secure=false from uncleared proxy defaults. Proxy fixb0b308037 passes16API checks; deployment e52770a9-42e7-401b-9d08-4ed4b7f1ee05 QUEUED. Observe exact job, then reconcile the preserved original cohort (no replacement avatar), then publish staged frontend. No bearer lifetime extension, new-avatar fallback or replayed writes. Current live page remains0228db6 until server passes.
-3. Continue Starknet: guarded native spec/chain/genesis and explicitly selected headers3/2pass, including parent links and repeated result equality. Implement/test the native CQL adapter before API/hosting admission. TRON's real429remains red; no blind retry or grant.
+3. Continue Starknet: guarded native spec/chain/genesis and explicitly selected headers3/2pass, including parent links and repeated result equality. Native CQL31controls + real3/2and actual manager/CLI3/2now pass. Next explicit API/local HTTP admission before hosting. TRON's real429remains red; no blind retry or grant.
 4. Browser gates:5verified/30open. CUA transport remains closed; David already opened the browser. No OS control resumed or repeated owner request.
 
 ## Guarantees and limits
@@ -29,7 +29,7 @@ There are **37 implemented query types**: 3 canonical adapters, 32 bounded publi
 
 ## Recovery and commands
 
-- Work only C:/Source/OASIS-cosmic; parent currently work/cosmic-cql-public-release, Core work/cosmic-cql-google-public. Main task work/cosmic-cql-google-public. Frontend C:/Source/Web4Site work/cosmic-cql.
+- Work only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public; verified release branch work/cosmic-cql-public-release excludes red TRON and new Starknet work. Frontend C:/Source/Web4Site work/cosmic-cql.
 - Live server4434e2c28/Core8b79301; provider acceptance remains recorded at74aaa9b4d. Frontend renewal43af923 is staged, not published. No extra Development push solely for those docs.
 - Raw outputs TestResults/. Durable source/config/identities/ACKs LocalState/COSMIC/. Original Radix settlement-continuation manifest hashes are preserved; acceptance completion ACK now blocks reruns.
 - Reuse pinned environments; inventory/cleanup in ENVIRONMENT_AND_CLEANUP_LEDGER.md. Unknown root logs preserved. Owned diagnostic DLLs removed; no new runtime or test service retained.
