@@ -57,3 +57,11 @@ Counts30implemented query types; candidate30/deployed29tariff types;27hosted HTT
 - [XRPLF native serialization/hash implementation](https://github.com/XRPLF/rippled/blob/develop/src/libxrpl/protocol/LedgerHeader.cpp) and [hash prefix](https://github.com/XRPLF/rippled/blob/develop/include/xrpl/protocol/HashPrefix.h).
 
 Hosted rollout progress: exact application9ee52c89 SUCCESS atc6e7f14ba/Coree032d0a. Guarded3setting apply acknowledged with whole candidate equality. One journalled settings rolloutcdc70f3a-4dea-4cb7-a881-306c478056bd BUILDING on samecommit. Protected originals/intents/outcome retained; no hosted visitor/save started yet.
+
+## Hosted endpoint correction
+
+Rolloutcdc70f3a succeeded, but discovery reports CQL_SOURCE_UNAVAILABLE. Original owner is acknowledged in HostedQueryAcceptance-XRPLOASIS; no private snapshot/save/foreign visitor. Read-only Node diagnosis in the deployed container observes HTTP402 from xrplcluster.com for both server_info and ledger. No payment enabled. Official free Ripple s2.ripple.com:51234 and Honeycluster both return200/Mainnet0/validated original ledger identity.
+
+Choose Ripple full-history explicitly; no shipping fallback/retry. Original source.json and failed rollout evidence remain intact; source-free-endpoint.json changes only rpcUrl, preserving sourceOwner and all three hashes. Real C# native3/2 and actualCLI3/2 pass on Ripple; TRX SHA256 `67ab79caf7630bc598ef7405f05a1bb9366ac28440d6f87902a5ebd40c62d679`, CLI SHA256 `fb49147b137f12f8a658c00b6ae2b736711cd5c2200f930dd026b2e8cc72f328`. Three pure reconciliation controls pass; prepared candidate changes only CQL_XRPL_PUBLIC_SOURCE_JSON and preserves admission/tariff/presets/DNA. Apply only through the original exact-release guard and journal a distinct correction rollout. Continue the original visitor cohort after readiness, never create a replacement owner.
+
+Remote free-endpoint evidence: TestResults/XrplPublicSourceCandidateCurrent/hosted-free-endpoint-probes-corrected.json; initial diagnostic syntax failure retained separately. No full CQL/native-write/browser certification inferred.
