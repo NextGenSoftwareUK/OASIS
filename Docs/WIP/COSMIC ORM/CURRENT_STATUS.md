@@ -14,7 +14,7 @@ There are **40 implemented query types**, including locally verified Arweave: 3 
 
 1. Radix card published/byte-verified at website0228db6; setup guide74ccc3752/C#74aaa9b4d linked. Original HostedQueryAcceptance-RadixOASIS completion ACK exists: do not replay saves or create a new owner.
 2. Session lifecycle HTTP proof complete on original avatar, completion ACK retained: do not replay. Frontend9e18b7d published and HTML/JS byte-verified; browser gates remain open. [Proof and limits](SESSION_RENEWAL_STATUS.md).
-3. Cardano hosted acceptance is complete on original cohort; completion ACK blocks replay. Cardano card5d9845c is published/byte-verified. Arweave33controls/realCQL3/2/manager-CLI3/2 pass. Next add independent read-only Core/API admission, four presets, local HTTP/Mongo/privacy and actual prepared-candidate proof before selected hosted release.
+3. Cardano hosted acceptance is complete on original cohort; completion ACK blocks replay. Cardano card5d9845c is published/byte-verified. Arweave33controls/realCQL3/2/manager-CLI3/2 pass. API3/3/local HTTP1/1/actual presets1/1/publisher3/3pass. Core5fd361d pushed; protected3-setting candidate prepared. Next publish verified app release, exact guarded apply/one settings rollout, then fresh hosted acceptance/card.
 4. Browser gates:5verified/32open. CUA transport remains closed; David already opened the browser. No OS control resumed or repeated owner request.
 
 ## Guarantees and limits
