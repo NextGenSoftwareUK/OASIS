@@ -12,10 +12,12 @@ Sui brings implemented query types to **35**, with **30 native tests and an actu
 
 ## Exact next step
 
-1. Sui native/API/local HTTP work is verified and the [developer guide](../../Devs/SUI_PUBLIC_OBJECT_CQL_GUIDE.md) is ready; exact hosted candidate prepared and its four presets pass; next publish the verified application.
-2. Publish the verified application/Core batch, observe exact deployment SUCCESS, then apply journalled Sui settings.
-3. Roll out only verified Sui work, retain stable catalogue/owner and write acknowledgements, then test hosted native/federated/repeat/privacy/replicas.
+1. Observe exact Sui application deployment `81794c84-1f8b-41e1-a9e4-6b79015fa173`, currently **QUEUED**, at parent `7e0b60994921d03e09abe4a7050ca5bf5f02bfdb` / Core `0e540eb911671a6a249458ea9b69d3e96fb1d212`. Both Development refs verified; no restart or duplicate deployment.
+2. After exact SUCCESS, use existing frozen release branch at that exact parent SHA for guarded application. Protected `sui-public` candidate: three settings/four presets, actual shipping planner passes. No settings applied yet. Guard requires checked-out HEAD equal deployed SHA.
+3. Apply once with `COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT` set, observe whole candidate, journal one settings rollout, then hosted native/federated/repeat/privacy/replicas via `Verify-HostedQuerySource.py SuiOASIS --prepare`. No Sui visitor cohort exists yet; record intents before mutations.
 4. Browser gates remain open for 27 providers. Browser tooling failed with Transport closed; agent-owned, David already opened browser. No repeated owner request.
+
+Next breadth candidate: [TRON qualification](TRON_PUBLIC_SOURCE_STATUS.md), three anonymous header-only reads; no native CQL/count grant. Continue after Sui hosted gate.
 
 ## Existing guarantees and limits
 
