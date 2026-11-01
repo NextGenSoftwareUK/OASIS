@@ -473,6 +473,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_SEI_PUBLIC_SOURCE_JSON"] is string seiPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.SeiOASIS.SeiPublicAccountMetadataSource.FromJson(seiPublicSource)));
+            if (Configuration["CQL_SUI_PUBLIC_SOURCE_JSON"] is string suiPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.SuiOASIS.SuiPublicObjectMetadataSource.FromJson(suiPublicSource)));
             if (Configuration["CQL_HEDERA_PUBLIC_SOURCE_JSON"] is string hederaPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.HederaPublicAccountMetadataSource.FromJson(hederaPublicSource)));
