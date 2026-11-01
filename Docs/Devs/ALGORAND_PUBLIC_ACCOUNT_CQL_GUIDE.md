@@ -47,3 +47,7 @@ Both endpoints must report the configured genesis. Addresses use canonical Base3
 `AlgorandAmountMicroAlgos`, `AlgorandAmountWithoutPendingRewards`, `AlgorandPendingRewards`, `AlgorandRewards`, `AlgorandMinBalance`, `AlgorandStatus`, `AlgorandObservedRound`, `AlgorandGenesisHash`, `AlgorandGenesisId` and `AlgorandConsistency` describe API-reported current state. Rows may have different observed rounds. A Mongo copy is a captured observation; it need not match a later current-state read.
 
 The selected free indexer rejects historical account rewind. The adapter explicitly requests current state and never retries a failed historical request as current. It does not independently verify consensus, state proofs, account ownership or signing authority. Any failed record rejects the complete page, including when a result window would otherwise hide that record.
+
+## Live sandbox
+
+Open the WEB4 sandbox CQL tab, start a temporary session and select AlgorandOASIS. Try the three-account or two-account preset. The Mongo-paired preset prepares two private snapshots; repeated setup reuses them. Hosted HTTP acceptance verifies native3/2, paired5/4, visitor privacy and SQLite/Neo4j replicas. Accounts remain current-state observations with per-row rounds; browser interaction is a separate gate.

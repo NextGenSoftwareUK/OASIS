@@ -2,7 +2,7 @@
 
 Updated1November2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state; [checklist](CQL_PARITY_CHECKLIST.md) owns acceptance. Full programme incomplete.
 
-- 29 providers have scoped hosted HTTP proof: earlier8 plus21additions. Browser proof remains5;24open. [Fresh evidence](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
+- 30 providers have scoped hosted HTTP proof: earlier8 plus22additions. Browser proof remains5;25open. [Fresh evidence](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
 - Each addition passed native3/2, private Mongo preparation, paired5/4, repeat zero writes, foreign-private zero and matching SQLite/Neo4j replicas. Public projections are not owned native chain writes/full ORM.
 - Live applicationc6e7f14ba/Coree032d0a and XRPL endpoint correction74bdf044 succeeded. Strict partitions preserve68original plus12Berachain/Bitcoin/XRPL presets. Polkadot publish root cause fixed.
 - Original12investor-demo scopes are green on MongoDB/SQLite/Neo4j. Their query checklist has50/82green rows per database; overlapping/uneven rows are not an overall parity percentage.
@@ -44,3 +44,5 @@ Aptos native milestone1November:25controlled+1real HolonManager3/2 pass/no skips
 Aptos API/local HTTP milestone1November:2API+1Core+1native HTTP pass/no skips,3pure publisher+1client controls pass. Native3/2, Mongo federation5/4 and foreign-private0 locally verified; marker-owned fixture removed/ACKs retained. Coree845c62/task-only. Protected candidate/export planner and hosting wait for current Algorand rollout. [Proof](APTOS_PUBLIC_SOURCE_STATUS.md#api-and-local-http-milestone).
 
 Aptos prepared-host milestone1November: protected3setting candidate prepared against the exact applied Algorand settings; actual4preset shipping planner1test passes/no skips. Separate deployed Node4GET reachability/version probe passes, not hosted CQL. Candidate remains unapplied, no visitor cohort. Complete Algorand settings/acceptance before next application batch. [Proof](APTOS_PUBLIC_SOURCE_STATUS.md#protected-candidate-ready).
+
+Algorand hosted completion1November:7a9ca308e/Corec17db5f, exact settingsf3ee7f37 SUCCESS. Native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2 pass. Current-account/per-response-round semantics, exact quantities; no source writes/historical/shared snapshot. Counts30hosted HTTP/5browser/25open,32deployed query-tariff types. [Proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-algorand-acceptance).
