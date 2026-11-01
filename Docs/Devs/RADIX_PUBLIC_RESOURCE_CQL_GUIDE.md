@@ -14,6 +14,52 @@ dotnet run --project Examples/CosmicCqlDemo --no-build -- `
 
 The demo prints three public resources, then two selected resources. See [commented walkthrough](../../Examples/CosmicCqlDemo/RadixPublicWalkthrough.cs) and [shared LINQ example](../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs). Build first when source has changed; use the repository build lease and worker limits.
 
+## First checkout setup
+
+If the retained configuration already exists, reuse it. On a first checkout, create it once from the repository root:
+
+```powershell
+$sourcePath = Join-Path $PWD `
+    "LocalState/COSMIC/HostedRadixPublicSourceCurrent/source.json"
+
+if (Test-Path -LiteralPath $sourcePath) {
+    throw "Configuration already exists. Reuse it; do not replace its source owner."
+}
+
+New-Item -ItemType Directory -Force `
+    -Path (Split-Path $sourcePath) | Out-Null
+
+@{
+    schema = 1
+    gatewayUrl = "https://mainnet.radixdlt.com/"
+    networkId = 1
+    consistency = "PerQueryLedgerState"
+    resources = @(
+        "resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd"
+        "resource_rdx1nfxxxxxxxxxxsecpsgxxxxxxxxx004638826440xxxxxxxxxsecpsg"
+        "resource_rdx1nfxxxxxxxxxxed25sgxxxxxxxxx002236757237xxxxxxxxxed25sg"
+    )
+    sourceOwner = [Guid]::NewGuid().ToString("D")
+} | ConvertTo-Json -Depth 4 | Set-Content -Encoding utf8 $sourcePath
+```
+
+The owner GUID is a stable projection namespace. It creates no blockchain account or credentials. Keep this configuration outside disposable test output.
+
+Build once using the installed .NET 10 SDK and the repository's build lease:
+
+```powershell
+& ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 `
+    -Owner radix-demo-build `
+    -Operation {
+        dotnet build Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
+            /m:2 /nr:false /p:UseSharedCompilation=false
+
+        if ($LASTEXITCODE) { throw "Demo build failed." }
+    }
+```
+
+Then run the console command above. The first build restores existing pinned dependencies; subsequent runs reuse the build and configuration. Pass build switches to `dotnet build`, separately from application arguments.
+
 ## Query shape
 
 The walkthrough uses this shared query shape, with an activated Radix adapter and a HolonManager:
