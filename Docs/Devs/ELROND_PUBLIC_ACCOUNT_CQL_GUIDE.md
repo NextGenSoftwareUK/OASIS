@@ -1,6 +1,6 @@
 # MultiversX / Elrond public account CQL guide
 
-This explicit read-only profile queries Mainnet account metadata through CQL's shared planner and HolonManager. The provider type remains `ElrondOASIS`. It uses the public MultiversX indexing API and does not invoke the signed wallet provider. Native CQL is verified; API admission, Mongo federation and hosting are separate pending gates. See [current evidence](../WIP/COSMIC%20ORM/ELROND_PUBLIC_SOURCE_STATUS.md).
+This explicit read-only profile queries Mainnet account metadata through CQL's shared planner and HolonManager. The provider type remains `ElrondOASIS`. It uses the public MultiversX indexing API and does not invoke the signed wallet provider. Native CQL, API admission and local HTTP/Mongo federation are verified; hosting remains pending. See [current evidence](../WIP/COSMIC%20ORM/ELROND_PUBLIC_SOURCE_STATUS.md).
 
 ## First setup
 
@@ -72,4 +72,4 @@ Missing, duplicate, unexpected or malformed accounts, imprecise numbers, HTTP fa
 
 ## Sandbox status
 
-The C# native demo is the current entry point. Do not claim a live Elrond sandbox preset until independent API admission, local HTTP/Mongo privacy, hosted acceptance and publication gates pass. Browser interaction is verified separately. Public account projections do not certify signed storage, conditional writes or replication into MultiversX.
+The C# native demo is the current entry point. Do not claim a live Elrond sandbox preset until hosted acceptance and publication gates pass. Browser interaction is verified separately. Public account projections do not certify signed storage, conditional writes or replication into MultiversX.

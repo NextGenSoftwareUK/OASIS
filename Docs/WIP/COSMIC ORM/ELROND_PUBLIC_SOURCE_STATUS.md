@@ -1,6 +1,6 @@
 # MultiversX / Elrond public source status
 
-Updated 1 November 2026. Native CQL/shared-manager/C# CLI verified; API/HTTP/hosted/browser gates open. Programme:36implemented query types,33scoped hosted HTTP providers,5browser proofs/28open. No count grant from a public API probe.
+Updated 1 November 2026. Native CQL/shared-manager/C# CLI verified; API/local HTTP verified; hosted/browser gates open. Programme:36implemented query types,33scoped hosted HTTP providers,5browser proofs/28open. No count grant from a public API probe.
 
 ## Qualified contract
 
@@ -48,3 +48,18 @@ Raw evidence stays in `TestResults/ElrondPublicSourceCandidateCurrent/`:
 | demo-run.log | CLI3/2 | `41abfff644c0eb68c71d4400013a09f68043c584da7f1039ca775a328163a701` |
 
 Next: independent API query-only enrollment/tariff, native/Mongo presets, shipping planning and local HTTP privacy. No hosted configuration/card/count promotion before those gates.
+
+## API and local HTTP complete
+
+2API admission/discovery tests,1Core tariff,1shipping planner over all4actual prepared presets,1native HTTP/Mongo case and3pure configuration tests pass without skips. Native3/2, paired5/4and foreign-private0verified over loopback shipping endpoints. Controlled bearer/admission are fixture infrastructure, not production billing/signup or hosted replication proof.
+
+Exact owned database `cosmic_cql_elrond_http_demo` removed after marker verification, Mongo stopped/27029absent. Durable `LocalState/COSMIC/ElrondMongoHttpCurrent` retains intent,2save ACKs and cleaned acknowledgement. Never replay this green fixture. Prepared protected3setting candidate is unapplied; canonical wallet DNA unchanged.
+
+Core task `f41b2a11253c222aac6bfdf67278d226e01ff96e` pushed and remote-ref verified. Next select verified Elrond/Sui files into the existing release branch, exclude TRON adapter/test changes, fetch/integrate shared refs without force, validate committed pins and require exact application SUCCESS before guarded settings/one rollout/hosted acceptance.
+
+| Raw evidence under TestResults/ElrondPublicSourceCandidateCurrent | Passed | SHA256 |
+|---|---:|---|
+| elrond-admission.trx | 2 | `44abea992ed5b2f9fc37dfc8bee622e6809b3b4176e980dcca748efc9fc0c8b6` |
+| elrond-tariff.trx | 1 | `c1cd0b8513f76a8fe1f6f7b918e7100e51ce4e25d90db5777dc84c17d690f73b` |
+| elrond-shipping-presets.trx | 1 | `fab9657b82aecce53626467e89b85e64e38c0015abf481c124dc0bab8eb502a4` |
+| elrond-mongo-http.trx | 1 | `fdca17392d2a71255cf26a58d7b69b1d9cbc082fc2ee378a110d88eb266d14ba` |

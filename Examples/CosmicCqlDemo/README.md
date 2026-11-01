@@ -20,7 +20,7 @@ dotnet run `
     -- --elrond-public LocalState/COSMIC/HostedElrondPublicSourceCurrent/source.json
 ```
 
-Native tests and actual CLI pass. API admission, HTTP/Mongo federation and sandbox hosting remain pending. Balances stay exact strings; nonce is restricted to the API's safe JSON-number range. No wallet, funding, chain transaction or local database is needed.
+Native tests, actual CLI, API admission and local HTTP/Mongo federation pass. Sandbox hosting remains pending. Balances stay exact strings; nonce is restricted to the API's safe JSON-number range. No wallet, funding, chain transaction or local database is needed.
 
 ## Public Sui objects — C# and hosted HTTP demo
 
