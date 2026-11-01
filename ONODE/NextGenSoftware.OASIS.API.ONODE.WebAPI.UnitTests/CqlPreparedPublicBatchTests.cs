@@ -106,7 +106,15 @@ public sealed class CqlPreparedPublicBatchTests
 
     [PublicBatchReviewFact]
     public async Task ActualTonCandidatePlansFourPresetsWithShippingCapabilities()
-        => await CheckPreparedBatch(1);
+    {
+        await CheckPreparedBatch(1);
+        // The live paced source needs an explicit duration on both leaf and
+        // paired requests. A stale five-second candidate must fail this gate.
+        using var review = JsonDocument.Parse(await System.IO.File.ReadAllBytesAsync(
+            Environment.GetEnvironmentVariable("COSMIC_CQL_PUBLIC_REVIEW")!));
+        foreach (var example in review.RootElement.GetProperty("examples").GetProperty("TONOASIS").EnumerateArray())
+            Assert.Equal(30000, example.GetProperty("request").GetProperty("maximumDurationMilliseconds").GetInt32());
+    }
 
     private static async Task CheckPreparedBatch(int expected)
     {
