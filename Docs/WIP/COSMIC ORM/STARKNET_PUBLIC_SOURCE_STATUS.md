@@ -46,3 +46,15 @@ Task-only StarknetPublicHeaderMetadataSource now passes31controlled tests (zero 
 Actual CLI evidence: TestResults/StarknetPublicSourceCandidateCurrent/cli-native.log SHA2560fdf6b017020fd778a499a13d8853a8310343b64ecae8a944a66dfa74901f879. Compact native-cql-milestone.json records all counts and evidence hashes. No source writes, Mongo copies or hosted visitor creation.
 
 API candidate wiring and four-preset publisher controls are task-only. Publisher3/3passes. Initial API tests: schema1pass/admission2fail because Core StorageQueryTariff.SupportedQueryProviders has not admitted Starknet. This is an expected incomplete enrollment gate, not native query failure; no hosted grant or count increase. Finish the reproduced logout ownership root fix first, then explicitly add/test read-only Core admission and local HTTP/Mongo proof.
+
+
+## API/local HTTP and prepared candidate verified
+
+Core8a5ab453ee6734195331abeec0ad5c04e84b5332 extends the explicit unsigned-read catalogue only; independent permission/tariff still required. API/schema3/3and actual prepared-candidate1/1pass, zero skips. Publisher3/3passes. Actual local HTTP source3/2, private Mongo federation5/4and visitor isolation0private/3public pass; two SDK-owned copies,9controlled billing receipts. Owned DB deleted only after marker/nonce/count verification; fixture.cleaned.json and port27029absence confirmed. No production billing, replication or browser proof inferred.
+
+38implemented types now include this locally verified candidate; deployed tariffs35/hosted35/browser5remain unchanged. Three protected settings/four presets prepared without any host mutation. Preserve sourceOwner, fixture journals and protected snapshots. Next exact selected release, then settings apply/one deployment/hosted acceptance after the session lifecycle correction.
+
+- TestResults/StarknetPublicSourceCandidateCurrent/api-admission-final.trx:6568bytes, SHA25626f59165de4f59747ceb5c76c2094bd7bb20fa73be7ed62c95bae8585347bf70.
+- TestResults/StarknetPublicSourceCandidateCurrent/starknet-mongo-http.trx:3371bytes, SHA2565534d70eecde7d0d4a3bd821274817aa1035e1d4ff22478e8643e254de1a2cf0.
+- TestResults/StarknetPublicSourceCandidateCurrent/actual-prepared-candidate.trx:3338bytes, SHA2566b66a0f133baac3838cf5b56f16e6aea8bf9d2ccce976b29b37a2c9f4a7229e0.
+- TestResults/StarknetPublicSourceCandidateCurrent/starknet-mongo-native-summary.json:229bytes, SHA2566cabf9ca67d44ad32fc5fc1d496db1a67460749a3f6a532a3337a381f6e9f6bd.

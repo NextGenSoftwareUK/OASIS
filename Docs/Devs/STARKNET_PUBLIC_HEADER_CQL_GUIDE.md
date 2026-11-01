@@ -1,6 +1,6 @@
 # Starknet public header CQL demo
 
-Status: native adapter31controls, real native3/2and actual shared-manager C# console3/2pass. API/hosted sandbox admission and browser interaction are not yet verified. See [current evidence](../WIP/COSMIC%20ORM/STARKNET_PUBLIC_SOURCE_STATUS.md).
+Status: native adapter31controls, real native3/2and actual shared-manager C# console3/2pass. Local API admission, HTTP/Mongo federation and visitor privacy are verified; hosted sandbox admission and browser interaction are not yet verified. See [current evidence](../WIP/COSMIC%20ORM/STARKNET_PUBLIC_SOURCE_STATUS.md).
 
 This anonymous read profile queries an explicit catalogue of up to eight historical block hashes. It is separate from the signed Starknet wallet/storage provider. Native key equality and membership, supported paging and public read access use the shared CQL planner. Arbitrary metadata/name predicates, scanning, writes, proof verification and general ORM support are outside this profile.
 

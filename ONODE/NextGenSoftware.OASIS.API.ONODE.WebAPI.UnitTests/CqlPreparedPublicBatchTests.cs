@@ -92,6 +92,10 @@ public sealed class CqlPreparedPublicBatchTests
     public async Task ActualRadixCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [PublicBatchReviewFact]
+    public async Task ActualStarknetCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
     private static async Task CheckPreparedBatch(int expected)
     {
         var path = Environment.GetEnvironmentVariable("COSMIC_CQL_PUBLIC_REVIEW")!;
