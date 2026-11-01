@@ -38,3 +38,22 @@ Primary references: [current Sui RPC status](https://docs.sui.io/references/sui-
 - `TestResults/SuiPublicSourceCandidateCurrent/sui-source.trx`: SHA256 `2232c8efe7166ce3f0006ed4853c538db9987752250c2faad03ef1763b8fa212`.
 - `TestResults/SuiPublicSourceCandidateCurrent/demo-run.log`: SHA256 `d5431694cf2426b5d1952f8143dfb9f5260e335892a35642041cf5d47c8ce1ea`.
 - Existing catalogue/sourceOwner retained. API admission, local HTTP/Mongo, hosted acceptance and sandbox browser gates remain open; previous implementation/test gates above are complete.
+
+## API and local HTTP complete — 1 November 2026
+
+Two API admission/discovery tests, one independent Core tariff test, one shipping planner test over all four actual publisher-generated presets and one native HTTP/Mongo test pass without skips. Three pure Python configuration tests also pass. Preset review used the retained public source and a controlled admission baseline; it is not a captured hosted configuration.
+
+The native HTTP fixture proves 3/2 public objects, paired 5/4 and foreign-private zero. Controlled authentication/admission is test infrastructure, not production signup/billing or hosted replication proof. Exact owned database `cosmic_cql_sui_http_demo` was marker-verified and dropped; `LocalState/COSMIC/SuiMongoHttpCurrent` retains intent, two save ACKs and cleaned acknowledgement. Port27029 is no longer listening. Do not replay this green fixture.
+
+The first runner invocation selected zero tests because its frozen binary predated the added fixture. Its count gate failed before fixture creation; the new test was compiled and the subsequent selected test passed. No failed writes or duplicate seed cohort.
+
+Core task commit `0e540eb911671a6a249458ea9b69d3e96fb1d212` is pushed and remote-ref verified. No Development deployment or Sui setting mutation yet. Next: prepare/review exact hosted candidate, publish verified application and observe exact SUCCESS before applying journalled settings and running hosted acceptance.
+
+Raw evidence stays in `TestResults/SuiPublicSourceCandidateCurrent/`:
+
+| Evidence | Passed | SHA256 |
+|---|---:|---|
+| sui-admission.trx | 2 | `f7884fd9d6fe6b6c5eabf9f02e4ddf7569bfc20936c928a4bfda495e931f5dce` |
+| sui-tariff.trx | 1 | `4f6e220cfee521fe79c0c10652aa612fd669d563a17ed75ff4af655e63a346c9` |
+| sui-shipping-presets.trx | 1 | `983ffece31170a7d54397cecd9f0fa831598e966ac16140ad3a381054e02e8ad` |
+| sui-mongo-http.trx | 1 | `9df1446dcc463117f02a91ef1bbbbf1b332ff98b0afdc2ca492426010f1cbdbd` |

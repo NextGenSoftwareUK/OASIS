@@ -1,6 +1,6 @@
 # Sui public object CQL guide
 
-This read-only profile queries an explicit public Mainnet object catalogue through the shared CQL planner and HolonManager. No wallet, signing key, Sui runtime or transaction is needed. Native tests and the C# CLI are verified; API admission, Mongo federation and hosted sandbox support are still pending. See the [acceptance report](../WIP/COSMIC%20ORM/SUI_PUBLIC_SOURCE_STATUS.md).
+This read-only profile queries an explicit public Mainnet object catalogue through the shared CQL planner and HolonManager. No wallet, signing key, Sui runtime or transaction is needed. Native tests, the C# CLI, API admission and local HTTP/Mongo federation are verified; hosted sandbox support is still pending. See the [acceptance report](../WIP/COSMIC%20ORM/SUI_PUBLIC_SOURCE_STATUS.md).
 
 ## First setup
 
@@ -70,4 +70,4 @@ Missing/null objects, partial GraphQL errors, unexpected identities, malformed d
 
 ## Sandbox status
 
-Sui is currently a native C#/CLI demo only. Do not advertise a working Sui sandbox preset until API admission, native/Mongo HTTP privacy, hosted acceptance and publication gates pass. Browser interaction is verified separately. This explicit query profile stays outside the signed wallet provider registry and cannot become a default write or replication target.
+Sui currently has verified native C#/CLI and local HTTP/Mongo demos. Do not advertise a working Sui sandbox preset until hosted acceptance and publication gates pass. Browser interaction is verified separately. This explicit query profile stays outside the signed wallet provider registry and cannot become a default write or replication target.
