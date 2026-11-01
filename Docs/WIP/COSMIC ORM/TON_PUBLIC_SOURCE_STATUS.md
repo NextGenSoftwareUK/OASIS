@@ -77,3 +77,11 @@ Duration/admission/schema controls pass 15/15 with zero skips; publisher control
 - TestResults/TonPublicSourceCandidateCurrent/native-duration-admission.trx: 25574bytes, SHA256e9063eb27327a51c6f60f70a1636fc9f16037b8984edd2cb1a05371819304b23.
 - TestResults/TonPublicSourceCandidateCurrent/ton-mongo-http-native-budget-continuation.trx: 3341bytes, SHA256777e05b8e0f4f545e0d6dde2ebc0470ae8dfe2c5e33963c115479672c6f2fff8.
 - TestResults/TonPublicSourceCandidateCurrent/ton-mongo-native-summary.json: 219bytes, SHA256d2c639fafa1f306fa8269f42e01d1615cb7d3671fdb52ff76d4b64938649e767.
+
+## Combined Development candidate
+
+Parent b26724b integrates Development6b5db934; Core2ac915f integrates c9af864 and TON read-only admission. Both upstream work and manifest/gitlinks preserved; committed-pin validator and five SDK bridge manifests pass. Core task push verified by ls-remote. Revised prepare-only prefix ton-public-duration preserves stale ton-public candidate and stages four explicit30s presets without mutating host settings. Combined API duration/admission/schema and actual revised preset gate pass16/16, zero skips; publisher3/3pass.
+
+- TestResults/TonPublicSourceCandidateCurrent/merged-duration-admission.trx:16passed/0failed/0skipped, 27168bytes, SHA2566777b1b5002255e3db86c873b07d34cb4967bf21a466aabe1a21da2a0afbf773.
+
+Next publish the tested Core/parent Development batch, verify exact deployed commit, then apply only revised candidate with existing per-key journal/ACK and a single observed settings rollout. No TON settings apply or live acceptance has occurred yet.

@@ -12,7 +12,7 @@ import sys
 import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
-PREFIX = "ton-public"
+PREFIX = "ton-public-duration"
 KEYS = ["CQL_TON_PUBLIC_SOURCE_JSON", "PREPARED_STORAGE_ADMISSION_JSON", "CQL_HOSTED_QUERY_EXAMPLES__TONOASIS"]
 spec = importlib.util.spec_from_file_location("configuration", ROOT / "Scripts/Sandbox/Publish-HostedSolidConfiguration.py")
 configuration = importlib.util.module_from_spec(spec)
@@ -98,7 +98,7 @@ def prepare():
         configuration.verification.protected_token(configuration.compact(after).encode()))
     review = {"profiles": {"TONOASIS": source},
         "examples": {"TONOASIS": json.loads(after[KEYS[2]])}}
-    target = ROOT / "TestResults/TonPublicSourceCandidateCurrent/ton-prepared-review.json"
+    target = ROOT / "TestResults/TonPublicSourceCandidateCurrent/ton-duration-prepared-review.json"
     target.write_text(json.dumps(review, indent=2) + "\n", encoding="utf-8")
     print("Protected Ton candidate prepared: three values/four presets; DNA unchanged; no mutation or deployment.")
 
