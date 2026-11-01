@@ -48,7 +48,7 @@ Bitcoin local and hosted CQL/C#/CLI/HTTP+Mongo pass: native3/2, paired5/4, repea
 
 ## Exact next work
 
-1. Next: XRPL public-read readiness: inspect existing provider/SDK/config, qualify a bounded anonymous three-record query, then implement red CQL/native/HTTP/Mongo gates. No new account/spend/install. Preserve Bitcoin completed cohorts; no replay. [Proof](BITCOIN_PUBLIC_SOURCE_STATUS.md).
+1. Next: implement XRPL header CQL adapter and C#/CLI3/2 walkthrough. [Readiness](XRPL_PUBLIC_SOURCE_STATUS.md) passes4anonymous reads/3linked SHA512Half-verified headers and7controls; original three hashes/source owner retained. CQL/HTTP/hosting still red. Preserve completed Bitcoin cohorts; no replay.
 2. Browser gates remain open for22providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 

@@ -299,3 +299,5 @@ Bitcoin native CQL update: adapter and spaced/commented C#/CLI demos now pass; [
 Bitcoin API/local HTTP milestone: independent read-only admission, actual four-preset shipping planning,3configuration and1client controls pass; local private Mongo isolation verified and owned fixture removed. Hosting/browser remain pending; [proof](BITCOIN_PUBLIC_SOURCE_STATUS.md).
 
 Bitcoin hosted completion supersedes earlier pending statements: exact f71e482c SUCCESS at19ebbfe2c/Core7317ba1; native3/2, paired5/4, repeat0new, foreign-private0 and replicas2/2. No independent full-chain consensus or native Bitcoin persistence claim. [Hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-bitcoin-acceptance).
+
+XRPL readiness1November: official public endpoint returns three linked/validated, SHA512Half-verified headers in4read-only calls;7controls pass. [Scope and next adapter gates](XRPL_PUBLIC_SOURCE_STATUS.md). No XRPL CQL/hosted certification yet; counts unchanged.
