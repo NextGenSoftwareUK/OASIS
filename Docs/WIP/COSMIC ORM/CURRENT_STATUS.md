@@ -10,7 +10,7 @@ All20addedprofiles passed hosted HTTP/client-module acceptance: original17plusBe
 
 Live application: Development **c6e7f14baf89cacb9a1938cf11bfe574b51bc3ba**, Core **e032d0a4701e1c5bc4fa4d8f1545cac41745376b**. Exact free-endpoint correction **74bdf044-485b-40f7-9fca-29b846bc775b SUCCESS**; protected candidate exact. XRPL native/Mongo/isolation/replica HTTP gates pass. Original402/expired empty cohort retained separately.
 
-Website main **bc00ef2** serves byte-identical Bitcoin demo HTML, SHA2563a15fd6fb9806e013a274b70f16a61df10834703cb36f8f86efa363b6f327d92. Native CLI/guide/commented C# links present. Existing64client checks and focused Bitcoin preparation1pass remain scoped; browser proof separate.
+Website main **b71d25f** serves byte-identical XRPL-inclusive HTML, SHA2563edd644ff6ac436dccf224e0428af84a2ed7e6e62dda977c2c3386316e654725. Free-endpoint CLI path, guide123340f6c and C#c6e7f14ba links published. Existing/focused client proofs remain scoped; browser proof separate.
 
 ## Provider evidence
 
@@ -44,11 +44,11 @@ Each new profile proves native **3/2**, two private Mongo creates, paired **5/4*
 
 ## Latest provider milestone
 
-XRPL passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2. Explicit free Ripple endpoint migration preserves sourceOwner/ledger hashes; no source writes. Post-startup-fix cohort has original save/completion ACKs; prior empty failed owner retained after token expiry. Website task3372669 has staged links; publish verified status next.
+XRPL passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2. Explicit free Ripple endpoint migration preserves sourceOwner/ledger hashes; no source writes. Post-startup-fix cohort has original save/completion ACKs; prior empty failed owner retained after token expiry. Website mainb71d25f publishes the exact verified XRPL/free-endpoint links.
 
 ## Exact next work
 
-1. Next: publish staged XRPL website card with verified HTTP status and corrected free-endpoint local command; inspect exact live HTML. Then Stellar complete native XDR decoder/CQL. [XRPL proof](XRPL_PUBLIC_SOURCE_STATUS.md); [Stellar limited preflight](STELLAR_PUBLIC_SOURCE_STATUS.md)7controls/2GETs only. Never replay completed saves.
+1. Next: Stellar complete native XDR decoder/CQL over retained catalogue, then C#/CLI3/2, API/Mongo/hosted gates. [Limited preflight](STELLAR_PUBLIC_SOURCE_STATUS.md)7controls/2GETs only; bind sequence/full input to XDR before admission. [XRPL proof](XRPL_PUBLIC_SOURCE_STATUS.md) complete within HTTP scope; never replay successful save cohorts.
 2. Browser gates remain open for23providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
