@@ -1,6 +1,6 @@
 # XRPL public header source
 
-Updated1November2026. Readiness passed; CQL adapter, HTTP/Mongo and hosted/browser acceptance remain red.
+Updated1November2026. Native CQL/C#/CLI passed; HTTP/Mongo and hosted/browser acceptance remain red.
 
 ## Verified qualification
 
@@ -17,13 +17,23 @@ Updated1November2026. Readiness passed; CQL adapter, HTTP/Mongo and hosted/brows
 - Qualification command: `python -B Scripts/Sandbox/Probe-XrplPublicReadiness.py`.
 - Controls: `python -B -m unittest discover -s Scripts/Sandbox -p test_xrpl_public_readiness.py`.
 
+## Native CQL milestone
+
+`XrplPublicHeaderMetadataSource` now provides read-only equality and bounded membership over configured `XRPLLedgerHash` values. It checks Mainnet0, closed/validated flags, native SHA512Half, envelope/header identity and bounded exact unsigned values. No scans, source writes or partial selections; access/window/budget/cancellation/invalid-result checks pass.
+
+The spaced/commented [C#/CLI walkthrough](../../Devs/XRPL_PUBLIC_HEADER_CQL_GUIDE.md) proves3/2 through the shared HolonManager/LINQ pipeline. Exact total drops remain decimal strings; no floating-point conversion.
+
+- `TestResults\XrplPublicSourceCandidateCurrent\xrpl-source-corrected.trx`: 21passed, zero skips; SHA256 `d237133bd1fdda4f1dedfb5721103d0ae1f61d58f7e177e627c19c094df2f4ba`.
+- `TestResults\XrplPublicSourceCandidateCurrent\xrpl-native.trx`: 1passed, zero skips; SHA256 `31fe246c221888f086ee80d27c00e5244252e65fb0d71b8c440bea48decb2911`.
+- Actual CLI3/2, exit0; `TestResults\XrplPublicSourceCandidateCurrent/console-run.log` SHA256 `fb49147b137f12f8a658c00b6ae2b736711cd5c2200f930dd026b2e8cc72f328`.
+
+Initial controlled run2passed/19failed because the new fixture cast the documented quoted ledger index directly to a JSON numeric value. The fixture now decodes the explicit decimal representation; corrected21pass. Original failure log/TRX retained. Production total_coins type is explicitly required to be a decimal string. Two obsolete existing unit-test API assumptions (enum wrapper comparison/nonexistent GetProviderVersion) were updated to current enum/category contracts; legacy provider implementation unchanged.
+
 ## Next implementation
 
-Implement `XrplPublicHeaderMetadataSource` in the existing XRPLOASIS provider, separate from canonical signed memo storage. Exact planned source schema: schema1, rpcUrl, networkId0, ledgerHashes, sourceOwner. Query metadata key `XRPLLedgerHash` uses native uppercase64hex. Add equality/bounded membership and full-selection/error/access/window controls, then a spaced/commented C#/CLI walkthrough proving3/2 through HolonManager/LINQ. Next local HTTP/Mongo5/4, four shipping-planned presets, explicit unsigned-read admission, guarded hosted rollout/isolation/replicas and a live website card.
+Add explicit lazy API read-profile registration, independent unsigned-read admission/tariff, and local HTTP/Mongo5/4 plus isolation. Build/test four exact publisher presets, then guarded hosted rollout/replicas and a website card with live/local links. Browser verification remains separate. Preserve the original source owner/catalogue; never regenerate it or replay successful save cohorts.
 
-The existing provider's archive-account default is a placeholder; do not imply the public header profile configures signed memo persistence. Keep legacy implementation issues documented rather than altering legacy paths.
-
-Counts remain29implemented query types,27hosted HTTP and5browser proofs. This preflight grants no CQL capability or permission.
+The canonical provider's archive-account placeholder and signed memo persistence remain separate and uncertified by this public profile. Counts now30implemented query types (XRPL native-only),29deployed tariff types,27hosted HTTP and5browser proofs. No XRPL hosted permission or availability claim.
 
 ## Primary protocol references
 

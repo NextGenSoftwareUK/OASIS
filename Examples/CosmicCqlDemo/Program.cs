@@ -42,6 +42,15 @@ if (args.Length == 2 && args[0] == "--sei-public")
     return 0;
 }
 
+// Query the retained public XRPL ledger hashes through HolonManager and LINQ.
+// This read-only example needs no wallet and submits no transaction.
+if (args.Length == 2 && args[0] == "--xrpl-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await XrplPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Read a small explicit Bitcoin header catalogue through the shared CQL manager.
 // This read profile never signs or broadcasts a Bitcoin transaction.
 if (args.Length == 2 && args[0] == "--bitcoin-public")
