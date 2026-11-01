@@ -1,6 +1,6 @@
 # COSMIC CQL demo
 
-**Live milestone, 1 November 2026:** 33 providers have scoped hosted HTTP proof, including Sui;5 have browser proof and28browser gates remain open. Native3/2, Mongo5/4, preparation/reuse/isolation and matching SQLite/Neo4j replicas are verified for the25added profiles. [Exact evidence and limits](../../Docs/WIP/COSMIC%20ORM/HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). Console commands perform native reads and do not rerun hosted/browser checks.
+**Live milestone, 1 November 2026:** 34 providers have scoped hosted HTTP proof, including MultiversX/Elrond;5 have browser proof and29browser gates remain open. Native3/2, Mongo5/4, preparation/reuse/isolation and matching SQLite/Neo4j replicas are verified for the26added profiles. [Exact evidence and limits](../../Docs/WIP/COSMIC%20ORM/HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). Console commands perform native reads and do not rerun hosted/browser checks.
 
 
 Start with the [live sandbox](https://web4.oasisomniverse.one/web4-sandbox.html)
@@ -20,7 +20,7 @@ dotnet run `
     -- --elrond-public LocalState/COSMIC/HostedElrondPublicSourceCurrent/source.json
 ```
 
-Native tests, actual CLI, API admission and local HTTP/Mongo federation pass. Sandbox hosting remains pending. Balances stay exact strings; nonce is restricted to the API's safe JSON-number range. No wallet, funding, chain transaction or local database is needed.
+Native tests, actual CLI, API admission and local HTTP/Mongo federation pass. Hosted HTTP native3/2+Mongo5/4/reuse/isolation/replicas also pass; browser interaction remains open. Balances stay exact strings; nonce is restricted to the API's safe JSON-number range. No wallet, funding, chain transaction or local database is needed.
 
 ## Public Sui objects — C# and hosted HTTP demo
 
