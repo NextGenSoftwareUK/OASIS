@@ -1,0 +1,406 @@
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.Core.Managers;
+
+namespace CosmicCqlDemo;
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class IdentityFederationRequest
+{
+    public string Preset { get; set; } = "";
+}
+
+/// <summary>Loopback teaching host; production authentication belongs to WEB4.</summary>
+public static class IdentityFederationApiHost
+{
+    public static WebApplication Build(
+        HolonManager manager,
+        ICosmicQueryStorageProvider mongo,
+        ICosmicQueryStorageProvider secondary,
+        Guid actor,
+        IEnumerable<Guid> selectedIds,
+        IEnumerable<Guid> readableMongoIds,
+        IEnumerable<Guid> readableSecondaryIds,
+        string address = "http://127.0.0.1:5090",
+        IReadOnlyDictionary<string, CosmicQuery<Holon>> contentPresets = null)
+    {
+        var uri = new Uri(address);
+        if (uri.Scheme != "http" || uri.Host != "127.0.0.1")
+            throw new ArgumentException("This teaching host requires IPv4 loopback HTTP.", nameof(address));
+
+        // Capture trusted fixture/catalogues once. Browser input selects only a
+        // named preset and cannot grant access, choose a provider or change actor.
+        var content = contentPresets?.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+        var ids = selectedIds.ToArray();
+        var mongoIds = readableMongoIds.ToArray();
+        var secondaryIds = readableSecondaryIds.ToArray();
+        if (ids.Length != 3 || ids.Distinct().Count() != 3)
+            throw new ArgumentException("The synthetic demo requires three distinct selected IDs.");
+
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions { Args = Array.Empty<string>() });
+        builder.Configuration.Sources.Clear();
+        builder.Configuration.AddInMemoryCollection();
+        builder.WebHost.UseUrls(address);
+        var app = builder.Build();
+
+        var page = Page.Replace("OracleDBOASIS", secondary.QueryProviderType.ToString(), StringComparison.Ordinal)
+            .Replace("Oracle", IdentityFederationWalkthrough.DisplayName(secondary), StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.AWSOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and DynamoDB Local through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep reusable AWS seed)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType is NextGenSoftware.OASIS.API.Core.Enums.ProviderType.EthereumOASIS
+            or NextGenSoftware.OASIS.API.Core.Enums.ProviderType.PolygonOASIS
+            or NextGenSoftware.OASIS.API.Core.Enums.ProviderType.ArbitrumOASIS
+            or NextGenSoftware.OASIS.API.Core.Enums.ProviderType.BaseOASIS
+            or NextGenSoftware.OASIS.API.Core.Enums.ProviderType.AvalancheOASIS
+            or NextGenSoftware.OASIS.API.Core.Enums.ProviderType.OptimismOASIS
+            or NextGenSoftware.OASIS.API.Core.Enums.ProviderType.RootstockOASIS
+            or NextGenSoftware.OASIS.API.Core.Enums.ProviderType.BNBChainOASIS
+            or NextGenSoftware.OASIS.API.Core.Enums.ProviderType.FantomOASIS
+            or NextGenSoftware.OASIS.API.Core.Enums.ProviderType.LineaOASIS
+            or NextGenSoftware.OASIS.API.Core.Enums.ProviderType.ScrollOASIS
+            or NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MonadOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and local EVM chain31338 through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep reusable " + IdentityFederationWalkthrough.DisplayName(secondary) + " seed)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.GoogleCloudOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and the Firestore emulator through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep reusable Firestore seed)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.CosmosBlockChainOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and the retained local Cosmos chain through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep reusable Cosmos seed)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.PolkadotOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and the retained local Polkadot chain through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep reusable Polkadot seed)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TONOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and the retained local TON TVM emulator through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep retained TON TVM source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and the retained local TRON chain through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original TRON source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.NEAROASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and the retained local NEAR chain through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original NEAR source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.AzureStorageOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and Azurite through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep reusable Blob source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.AWSS3OASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and an explicitly configured local S3-compatible service through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original S3 source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.LocalFileOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained local files through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original LocalFile source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.AptosOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and the retained local Aptos chain through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original Aptos source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SuiOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and the retained local Sui chain through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep admitted Sui source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.RedisOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained encrypted Redis through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original Redis source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.PostgreSQLOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained native PostgreSQL through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original PostgreSQL source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLServerDBOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained native SQL Server through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original SQL Server source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.DuckDBOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained native DuckDB through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original DuckDB source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.LitestreamOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained native Linux Litestream through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original Linux Litestream source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.ValKeyOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained encrypted Linux Valkey through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original Valkey source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.KeyDBOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained encrypted Linux KeyDB through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original KeyDB source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.DragonflyOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained encrypted Linux Dragonfly through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original Dragonfly source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.GarnetOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained encrypted Linux Garnet through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original Garnet source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MemcachedOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and volatile Linux Memcached through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (retire volatile cache generation)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.UpstashOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained hosted Upstash through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original Upstash source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.PocketBaseOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained native Linux PocketBase through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original PocketBase source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.CouchDBOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native CouchDB through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original CouchDB source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SurrealDBOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native SurrealDB through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original SurrealDB source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.ArangoDBOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native ArangoDB through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original ArangoDB source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.RavenDBOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native RavenDB through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original RavenDB source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.CockroachDBOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native CockroachDB through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original CockroachDB source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TimescaleDBOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native TimescaleDB through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original TimescaleDB source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.CassandraOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native Cassandra through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original Cassandra source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.ElasticsearchOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native Elasticsearch through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original Elasticsearch source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.OpenSearchOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native OpenSearch through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original OpenSearch source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.CouchbaseOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native Couchbase through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original Couchbase source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.ClickHouseOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native ClickHouse through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original ClickHouse source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.InfluxDBOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native InfluxDB through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original InfluxDB source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.QdrantOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native Qdrant through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original Qdrant source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.WeaviateOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native Weaviate through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original Weaviate source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MeilisearchOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native Meilisearch through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original Meilisearch source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TypesenseOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native Typesense through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original Typesense source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SolrOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native Solr through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original Solr source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.ChromaOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained local native Chroma through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original Chroma source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.ScyllaDBOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native ScyllaDB through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original ScyllaDB source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SupabaseOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained local PostgREST data plane for Supabase through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original Supabase REST source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.FirebaseOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained Realtime Database emulator checkpoint for Firebase through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original Firebase checkpoint)", StringComparison.Ordinal);
+        if (content != null)
+        {
+            page = page.Replace("<button id=\"subset\">Query two-record subset</button>",
+                "<button id=\"subset\">Query two-record subset</button>" + ContentButtons, StringComparison.Ordinal);
+            page = page.Replace("document.getElementById('subset').onclick = () => query('subset');",
+                "document.getElementById('subset').onclick = () => query('subset');" +
+                "\n['name','description','metadata','combined'].forEach(preset => document.getElementById(preset).onclick = () => query(preset));", StringComparison.Ordinal);
+        }
+        app.MapGet("/", () => Results.Content(page, "text/html"));
+        app.MapPost("/api/cql/federation", async (IdentityFederationRequest request, CancellationToken cancellation) =>
+        {
+            var selection = request.Preset switch
+            {
+                "all" => ids,
+                "subset" => ids.Take(2).ToArray(),
+                _ => null
+            };
+            CosmicQuery<Holon> contentSource = null;
+            if (selection == null && (content == null || !content.TryGetValue(request.Preset, out contentSource)))
+                return Results.BadRequest(new { code = "DEMO_PRESET_REQUIRED" });
+
+            try
+            {
+                // The same C# walkthrough used by the SDK acceptance executes the
+                // native providers; no HTTP-specific query engine or local scan.
+                var result = contentSource != null
+                    ? await IdentityFederationWalkthrough.RunQueryAsync(manager, mongo, secondary,
+                        contentSource, mongoIds, secondaryIds, actor, TextWriter.Null, cancellation)
+                    : await IdentityFederationWalkthrough.RunAsync(manager, mongo, secondary,
+                        selection, mongoIds, secondaryIds, actor, TextWriter.Null, cancellation);
+                return Results.Ok(new
+                {
+                    preset = request.Preset,
+                    count = result.Rows.Count,
+                    observedPhysicalRows = result.ObservedInputRows,
+                    consistency = "MovingProviderReads",
+                    rows = result.Rows.Select(row => new
+                    {
+                        provider = row.Selected.Provider.ToString(),
+                        id = row.Selected.Row.Id,
+                        name = row.Selected.Row.Name
+                    })
+                });
+            }
+            catch (InvalidOperationException)
+            {
+                // Never expose connection details or return the successful source
+                // as a partial replacement when the other native source failed.
+                return Results.Json(new { code = "DEMO_NATIVE_QUERY_FAILED" }, statusCode: 503);
+            }
+        });
+
+        app.MapPost("/demo/shutdown", (IHostApplicationLifetime lifetime) =>
+        {
+            lifetime.StopApplication();
+            return Results.Ok(new { stopping = true });
+        });
+        return app;
+    }
+
+    private const string ContentButtons = """
+        <h3>Filter native content on both providers</h3>
+        <p>Each button runs the same CQL predicate on both sources. Copies stay visible.</p>
+        <pre><code>// Exact name (2 copies of Espresso)
+        source.Where(h =&gt; h.Name == "Espresso");
+
+        // Description text (4 coffee copies)
+        source.Where(h =&gt; h.Description.Contains("coffee"));
+
+        // String metadata (4 coffee copies)
+        source.Where(h =&gt;
+            CosmicQueryMetadata.Value&lt;string&gt;(h, "category") == "coffee");
+
+        // AND / OR: Espresso matches; Tea is excluded by category.
+        source.Where(h =&gt;
+            (h.Name == "Espresso" || h.Name == "Tea") &amp;&amp;
+            CosmicQueryMetadata.Value&lt;string&gt;(h, "category") == "coffee");</code></pre>
+        <button id="name">Exact name</button>
+        <button id="description">Description Contains</button>
+        <button id="metadata">Metadata equality</button>
+        <button id="combined">AND / OR</button>
+        """;
+
+    private const string Page = """
+        <!doctype html>
+        <html lang="en">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>CQL - Mongo + Oracle</title>
+          <style>
+            body { margin: 0; background: #111827; color: #e5e7eb; font: 18px/1.7 system-ui; }
+            main { max-width: 1000px; margin: 48px auto; padding: 0 28px 60px; }
+            section { margin: 32px 0; padding: 24px; background: #1f2937; border-radius: 12px; }
+            h1, h2 { line-height: 1.3; } h2 { font-size: 22px; }
+            pre { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.9; }
+            button { margin: 8px 12px 8px 0; padding: 12px 20px; font: inherit; cursor: pointer; }
+            #result { min-height: 100px; } code { color: #93c5fd; }
+          </style>
+        </head>
+        <body><main>
+          <h1>One CQL query. Mongo + Oracle.</h1>
+          <p>Read synthetic holons from two native databases through HolonManager.</p>
+          <section>
+            <h2>1. Select records with C#</h2>
+            <pre><code>// Scope explicitly selects MongoDBOASIS and OracleDBOASIS.
+        // Each provider receives its own trusted authorization catalogue.
+
+        source.Where(row =&gt; selectedIds.Contains(row.Id));
+
+        // HolonManager executes both native reads and preserves provider copies.
+        await manager.ExecuteFederationQueryAsync(plan, adapters);</code></pre>
+          </section>
+          <section>
+            <h2>2. Run the native query</h2>
+            <p>All records: Oracle 3 + Mongo 2 = 5 physical rows.<br>
+               Subset: Oracle 2 + Mongo 2 = 4 physical rows.</p>
+            <button id="all">Query all records</button>
+            <button id="subset">Query two-record subset</button>
+            <p>Copies retain their source provider. Reads may observe different moments;
+               this demo does not claim a distributed snapshot.</p>
+          </section>
+          <section>
+            <h2>3. Inspect provider provenance</h2>
+            <pre id="result" role="status" aria-live="polite">Choose a query above.</pre>
+          </section>
+          <button id="shutdown">Stop demo and clean fixtures</button>
+        </main>
+        <script>
+          const result = document.getElementById('result');
+          async function query(preset) {
+            result.textContent = 'Reading Mongo and Oracle...';
+            try {
+              const response = await fetch('/api/cql/federation', {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({preset})
+              });
+              result.textContent = JSON.stringify(await response.json(), null, 2);
+            } catch { result.textContent = 'The native query could not complete.'; }
+          }
+          document.getElementById('all').onclick = () => query('all');
+          document.getElementById('subset').onclick = () => query('subset');
+          document.getElementById('shutdown').onclick = async () => {
+            await fetch('/demo/shutdown', {method:'POST'});
+            result.textContent = 'Demo stopping; the runner verifies fixture cleanup.';
+          };
+          // A catalogue link can start a read-only example, never shutdown or
+          // change the trusted actor/provider scope captured by this native host.
+          const initialPreset = new URLSearchParams(window.location.search).get('preset');
+          if (['all', 'subset', 'name', 'description', 'metadata', 'combined'].includes(initialPreset)) {
+            const button = document.getElementById(initialPreset);
+            if (button) button.click();
+          }
+        </script>
+        </body></html>
+        """;
+}

@@ -4,7 +4,7 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 
 ## Verified scope
 
-- 41 implemented query types: 3 canonical, 36 bounded source profiles, 2 local Azure/Oracle implementations.
+- 42 currently integrated query types: 3 canonical, 36 bounded source profiles, 3 local PostgreSQL/Azure/Oracle implementations.
 - 39 providers have scoped hosted HTTP proof and deployed query tariffs. Browser proof: 5; 34 browser gates open. TON is now included in the scoped hosted count.
 - MongoDB/SQLite/Neo4j parity checklist: 50/82 each; original investor demo subset green. Work red rows only unless a reproducible bug appears.
 - Latest completed hosted cohort: TON, native 3/2, Mongo 5/4, repeat 0 new/2 existing, foreign-private 0/public 3, SQLite/Neo4j replicas 2/2. Completion ACK exists; never replay.
@@ -24,7 +24,7 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 ## Exact next steps
 
 1. TON card is published at website6cfa7dc, with pinned updated guide34ae56281 and tested C#fb29aa936. Public HTML and both scripts match exact git blobs; browser interaction remains open.
-2. PostgreSQL next: preserved adapter/compiler/shared bounded-identity helper and tests restored from237403a75; current16controls pass. Retained source/container exist and are stopped. Review/port complete native runner/dependencies, then qualify unchanged original records; no schema/source reset or green storage-baseline rerun. See POSTGRESQL_CQL_MVP.md. DynamoDB preserved code is a later reuse candidate, not a new implementation.
+2. PostgreSQL restoration now passes16controls, native17cases and local paired SDK/HTTP2/4/4/2 plus identity5/4. Original JSON/xmin and15source metadata files unchanged; exact temporary Mongo cleanup/owned service stops verified. Next inspect existing hosted service/config placement before any admission; no paid provisioning or green-baseline rerun. See POSTGRESQL_CQL_MVP.md. DynamoDB preserved code is a later reuse candidate.
 3. TRON remains unqualified after native429/diagnostic403; no blind acceptance rerun. Azure/Oracle hosting remains deferred; do not re-ask. Deep LINQ parity remains paused.
 4. Original HostedQueryAcceptance-TONOASIS has completion ACK: native3/2, paired5/4, reuse0/2, privacy0/3, replicas2/2, two saves at version1 and no pending preparation intents. Never rerun this completed cohort or resave its copies.
 
