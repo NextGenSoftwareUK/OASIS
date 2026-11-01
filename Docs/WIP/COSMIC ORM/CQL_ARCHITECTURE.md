@@ -2,11 +2,11 @@
 
 ## Current verified milestone — 1 November 2026
 
-**36 providers have scoped hosted HTTP evidence; 5 have browser evidence and 31 browser gates remain open.** Starknet passes native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2. Two private saves were acknowledged once. Source writes and browser interaction are not inferred.
+**37 providers have scoped hosted HTTP evidence; 5 have browser evidence and 32 browser gates remain open.** Cardano passes native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2. Two private saves were acknowledged once. Source writes and browser interaction are not inferred.
 
-Latest hosted provider acceptance: parentcafd0f8c8ea93c22f5d4638acc336df5795a05d7/Core8a5ab453ee6734195331abeec0ad5c04e84b5332, app151477e9/settings03760bc9 SUCCESS. Original Starknet cohort completion ACK retained; never replay its writes. Session lifecycle correction passes. Website80ba51052c14a2f705e24e9825a9fe8b495fe642 publishes the verified Starknet card, guide164b4bb96 and C#cafd0f8c8; HTML152265bytes/SHA25658bd2b0b5edec25c29d16f9351006dc4621dd6ca2818df5d08dec1551163a2a6 matches committed bytes. Browser and real-expiry interaction remain separate open gates.
+Latest hosted provider acceptance: parentaffe5719070d7b149d165b901306708e7643fb97/Corebe397f10419cf8b5c0dafc93ff1f4958b88588a2, app1615af0d/settingscfe35470 SUCCESS. Original Cardano cohort completion ACK retained; never replay its writes. Session lifecycle correction passes. Website80ba510 remains the last byte-verified publication; Cardano card publication is next. Browser and real-expiry interaction remain separate open gates.
 
-There are **39 implemented query types**, including locally verified Cardano: 3 canonical adapters,34bounded public/source profiles and2local Azure/Oracle implementations. Cardano35controls/realCQL3/2/manager-CLI3/2, API/local HTTP3/2+Mongo5/4+visitor privacy and actual presets pass; hosting is next. Deployed tariffs36/hosted36/browser5/open31 remain unchanged. Full ORM/EF parity/HyperDrive certification remains incomplete.
+There are **39 implemented query types**: 3 canonical adapters,34bounded public/source profiles and2local Azure/Oracle implementations. Cardano native35controls/realCQL3/2/manager-CLI3/2, API/local HTTP and hosted visitor federation/reuse/isolation/replicas pass. Deployed tariffs37/hosted37/browser5/open32. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
 
 Current implementation state: [CURRENT_STATUS](CURRENT_STATUS.md); feature acceptance: [parity checklist](CQL_PARITY_CHECKLIST.md).

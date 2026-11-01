@@ -65,3 +65,9 @@ Here `query` is the initialized deferred query in NativeKeySetWalkthrough; the f
 - Cancellation, response budget violations, API errors and unsupported capabilities return explicit errors without partial rows, retries or alternate endpoints. This profile cannot become a write/replication authority.
 
 Contract: [operator endpoints](https://github.com/cardano-community/koios-artifacts/blob/main/specs/fragments/paths/block.yaml), [response fields](https://github.com/cardano-community/koios-artifacts/blob/main/specs/fragments/schemas/block.yaml), [pinned example catalogue](https://github.com/cardano-community/koios-artifacts/blob/2e8ad77681a29a9a3aca94617acacebbb85d8d59/specs/examples/fixtures.yaml). Source tests independently cover exact values, complete sets, ordering, nullable fields, malformed domains and cancellation.
+
+## Live sandbox
+
+The hosted HTTP flow is verified: choose Cardano public records or its two-key subset, prepare two private Mongo snapshots, then use the Mongo+Cardano presets (five/four physical rows). Repeating preparation reuses the two snapshots. Visitor isolation and matching SQLite/Neo4j replicas pass. This proves this bounded query/demo flow, not arbitrary metadata queries, owned Cardano writes or browser interaction. Card publication is tracked in the current status report.
+
+[Live playground](https://web4.oasisomniverse.one/web4-sandbox.html) - [acceptance evidence and limits](../WIP/COSMIC%20ORM/CARDANO_PUBLIC_SOURCE_STATUS.md).
