@@ -6,7 +6,7 @@ name: Publish HoloNET NuGet Packages
 #
 # Packs and pushes, in order:
 #   1. the NextGenSoftware libraries HoloNET depends on (Logging, Logging.NLog, WebSocket, Utilities, ErrorHandling, CLI.Engine)
-#   2. HoloNET Client, ORM (+ Embedded variants), HDK, HyperNET, Manager and API
+#   2. every HoloNET package listed in holochain-client-csharp/packages.json (7 libraries x 4 conductor variants, plus the dotnet new templates)
 # Pushes use --skip-duplicate, so versions already on NuGet are left alone.
 
 on:
@@ -81,54 +81,28 @@ jobs:
           Get-ChildItem ..\nupkgs-libraries\*.nupkg | ForEach-Object { Write-Host $_.Name }
           if ($failed -gt 0) { exit 1 }
 
-      - name: Build HoloNET
-        shell: pwsh
-        working-directory: holochain-client-csharp
-        run: |
-          $projects = @(
-            "NextGenSoftware.Holochain.HoloNET.Client\NextGenSoftware.Holochain.HoloNET.Client.csproj",
-            "NextGenSoftware.Holochain.HoloNET.ORM\NextGenSoftware.Holochain.HoloNET.ORM.csproj",
-            "NextGenSoftware.Holochain.HoloNET.HDK\NextGenSoftware.Holochain.HoloNET.HDK.csproj",
-            "NextGenSoftware.Holochain.HoloNET.HyperNET\NextGenSoftware.Holochain.HoloNET.HyperNET.csproj",
-            "HoloNET-Manager\NextGenSoftware.Holochain.HoloNET.Manager\NextGenSoftware.Holochain.HoloNET.Manager.csproj",
-            "HoloNET-API\NextGenSoftware.Holochain.HoloNET.API\NextGenSoftware.Holochain.HoloNET.API.csproj"
-          )
-          $failed = 0
-          foreach ($proj in $projects) {
-            dotnet build $proj --configuration Release
-            if ($LASTEXITCODE -ne 0) { $failed++; Write-Host "BUILD FAILED: $proj" }
-          }
-          if ($failed -gt 0) { exit 1 }
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
-      - name: Pack HoloNET
-        shell: pwsh
+      # HoloNET's packages are listed once, in packages.json (holochain-client-csharp), and built, packed and verified by
+      # scripts/holonet_packages.py, so a library or variant can never be left out of a publish. Nothing below names a project.
+      - name: Check the HoloNET package manifest
         working-directory: holochain-client-csharp
-        run: |
-          New-Item -ItemType Directory -Force -Path .\nupkgs | Out-Null
-          $projects = @(
-            "NextGenSoftware.Holochain.HoloNET.Client\NextGenSoftware.Holochain.HoloNET.Client.csproj",
-            "NextGenSoftware.Holochain.HoloNET.ORM\NextGenSoftware.Holochain.HoloNET.ORM.csproj",
-            "NextGenSoftware.Holochain.HoloNET.HDK\NextGenSoftware.Holochain.HoloNET.HDK.csproj",
-            "NextGenSoftware.Holochain.HoloNET.HyperNET\NextGenSoftware.Holochain.HoloNET.HyperNET.csproj",
-            "HoloNET-Manager\NextGenSoftware.Holochain.HoloNET.Manager\NextGenSoftware.Holochain.HoloNET.Manager.csproj",
-            "HoloNET-API\NextGenSoftware.Holochain.HoloNET.API\NextGenSoftware.Holochain.HoloNET.API.csproj"
-          )
-          $failed = 0
-          foreach ($proj in $projects) {
-            dotnet pack $proj --configuration Release --output .\nupkgs --no-build
-            if ($LASTEXITCODE -ne 0) { $failed++; Write-Host "PACK FAILED: $proj" }
-          }
-          # Embedded variants (Client and ORM): .Embedded bundles Holochain 0.7.1 and 0.7.0, .Embedded.Holochain071 and
-          # .Embedded.Holochain070 one version each. --no-incremental so each variant really gets its own conductors.
-          foreach ($variant in @("both", "0.7.1", "0.7.0")) {
-            foreach ($proj in $projects[0..1]) {
-              dotnet build $proj --configuration Release --no-incremental -p:Embedded=true -p:EmbeddedHolochain=$variant
-              if ($LASTEXITCODE -eq 0) { dotnet pack $proj --configuration Release --output .\nupkgs --no-build -p:Embedded=true -p:EmbeddedHolochain=$variant }
-              if ($LASTEXITCODE -ne 0) { $failed++; Write-Host "PACK FAILED (embedded $variant): $proj" }
-            }
-          }
-          Get-ChildItem .\nupkgs\*.nupkg | ForEach-Object { Write-Host $_.Name }
-          if ($failed -gt 0) { exit 1 }
+        run: python scripts/holonet_packages.py check
+
+      - name: Build and pack HoloNET (every library x every variant, plus the dotnet new templates)
+        working-directory: holochain-client-csharp
+        run: python scripts/holonet_packages.py pack nupkgs
+
+      - name: Verify the packed HoloNET packages
+        working-directory: holochain-client-csharp
+        run: python scripts/holonet_packages.py verify-packed nupkgs
+
+      - name: Smoke test - install every HoloNET library package into a fresh app and build it
+        working-directory: holochain-client-csharp
+        run: python scripts/holonet_packages.py smoke nupkgs
 
       - name: Record immutable standalone publication source graph
         shell: pwsh
@@ -174,6 +148,11 @@ jobs:
             if ($LASTEXITCODE -ne 0) { $pushFailed++ }
           }
           if ($pushFailed -gt 0) { exit 1 }
+
+      - name: Verify every HoloNET package is on NuGet.org at this version
+        if: inputs.publish
+        working-directory: holochain-client-csharp
+        run: python scripts/holonet_packages.py verify-nuget --wait 30
 
       - name: GitHub release with every package attached
         if: inputs.publish && inputs.release_tag != ''
