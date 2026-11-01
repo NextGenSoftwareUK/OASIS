@@ -1,6 +1,6 @@
 # TON public-header CQL demo
 
-This explicit read-only profile selects historical Mainnet masterchain descriptors through the shared CQL planner and HolonManager/LINQ. No wallet, account, funding or native transaction is required. Native CQL3/2 and the actual shared-manager console3/2 pass on the qualified recent dataset. Hosted/API and browser acceptance remain separate gates.
+This explicit read-only profile selects historical Mainnet masterchain descriptors through the shared CQL planner and HolonManager/LINQ. No wallet, account, funding or native transaction is required. Native CQL3/2 and the actual shared-manager console3/2 pass on the qualified recent dataset. Hosted native3/2, Mongo-paired5/4, repeat reuse, visitor privacy and SQLite/Neo4j replicas are verified. Browser interaction remains a separate open gate.
 
 ## Create one reusable catalogue
 
@@ -92,4 +92,8 @@ Signed hash-fragment domain: [official tonlib API schema](https://github.com/ton
 
 ### Federation budget
 
-The paired TON/Mongo preset must explicitly request `maximumDurationMilliseconds: 30000`. TON serializes public RPCs with a 1.1-second interval after completion; a three-header query includes network validation and three header calls. The normal federation default remains 5000ms. A deadline failure is an error, never partial success or permission to replay saved copies. Both native and paired requests must carry the explicit budget. Local HTTP verification passes native 3/2, paired 5/4 and privacy 0/3 with nine query receipts. Hosted acceptance remains pending; see the TON status report for exact evidence.
+The paired TON/Mongo preset must explicitly request `maximumDurationMilliseconds: 30000`. TON serializes public RPCs with a 1.1-second interval after completion; a three-header query includes network validation and three header calls. The normal federation default remains 5000ms. A deadline failure is an error, never partial success or permission to replay saved copies. Both native and paired requests must carry the explicit budget. Local HTTP verification passes native 3/2, paired 5/4 and privacy 0/3 with nine query receipts. Hosted acceptance also passes native3/2, paired5/4, repeat0new/2existing, privacy0/3 and exact SQLite/Neo4j replicas2/2. See the TON status report for release-scoped evidence; browser interaction remains open.
+
+## Live sandbox workflow
+
+In the CQL tab, start a temporary demo session and select TONOASIS. Choose the three-header or two-header preset. For a paired preset, prepare your two private Mongo snapshots through the normal WEB4 save path, then run the query. Repeating setup reuses those same copies; an uncertain save must be reconciled rather than blindly repeated. The chain side stays read-only. Use the configured root-hash keys and the explicit 30000ms budget; arbitrary Name/Description scans are not supported by this profile.

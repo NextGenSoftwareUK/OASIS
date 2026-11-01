@@ -2,11 +2,11 @@
 
 ## Current verified milestone — 1 November 2026
 
-**38 providers have scoped hosted HTTP evidence; 5 have browser evidence and 33 browser gates remain open.** Arweave passes native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2. Two private saves were acknowledged once. Source writes and browser interaction are not inferred.
+**39 providers have scoped hosted HTTP evidence; 5 have browser evidence and 34 browser gates remain open.** TON passes native 3/2, Mongo-paired 5/4, repeat 0 new/2 existing, foreign-private 0/public 3 and exact SQLite/Neo4j replicas 2/2. Two private saves acknowledged once; completion ACK prevents replay. Source writes and browser interaction are not inferred.
 
-Latest hosted acceptance: parent37a530a87e601397f187430728bb9fb02b224f87/Core5fd361db11f5d54e3e99282536d7c7be842edf86, job3da7f986 SUCCESS. This docs-only descendant preserves testedb158bda61 code; original settings jobec59010e was removed and never replayed. Original Arweave cohort completion ACK retained. Website61e85b75a933004d1f005f85f1318fa05ad139de publishes Arweave with guided089a778c/C#b158bda61. Public HTML155229bytes/SHA2566fda659c10e90bb99d7636e04b62d3dc343b3a0c36cd85bb5b3f3c3e3c5c94f3 matches the committed git blob. Browser/real-expiry gates remain separate.
+Latest hosted acceptance: parent fb29aa936870dcfb3182102642e5997b2cedd90f / Core 2ac915f709ded7aabcd28a9db02aaea92fc52d97, settings job e3ae497c-3f19-45b2-a577-b0fc40a7ae6b SUCCESS. Revised settings applied once, all ACK hashes/full candidate matched, unrelated changes preserved. Original TON cohort completion ACK retained. Website main299c376 is byte-verified; TON card is staged on task25733b4, not published yet. Browser and real-expiry gates remain separate.
 
-There are **41 implemented query types**, including locally verified TON: 3 canonical adapters,36bounded public/source profiles and2local Azure/Oracle implementations. TON native/manager 3/2 and local HTTP native 3/2, Mongo-paired 5/4 and privacy 0/3 pass on the qualified recent dataset; hosted verification is next. Hosted38/tariffs38/browser5/open33 remain unchanged. Full ORM/EF parity/HyperDrive certification remains incomplete.
+There are **41 implemented query types**: 3 canonical adapters, 36 bounded public/source profiles and 2 local Azure/Oracle implementations. TON native/manager and hosted HTTP proof pass on its qualified explicit dataset. Hosted39/tariffs39/browser5/open34. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
 
 [Current status](CURRENT_STATUS.md) is the recovery entry point. Full goal remains active and incomplete.
