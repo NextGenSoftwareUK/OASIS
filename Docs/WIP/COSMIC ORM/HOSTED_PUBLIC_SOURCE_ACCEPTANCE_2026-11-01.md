@@ -302,3 +302,13 @@ Original empty failed owner cohort retained; its15minute JWT expired before any 
 - `TestResults/HostedCqlIntegrationCurrent/XRPLOASIS-post-startup-fix-native-http.json`: SHA256 `320bceac4b3ae2ba6111ca22a4f6b80c0807d71785ed7983e337869b6e998ae9`.
 - `TestResults/HostedCqlIntegrationCurrent/XRPLOASIS-post-startup-fix-client-http-flow.json`: SHA256 `a806eefd11b8fba4a160af7a2f7d6d56edebbb621a5782bcf89e816d3e6fd052`.
 - `TestResults/HostedCqlIntegrationCurrent/XRPLOASIS-post-startup-fix-isolation-http.json`: SHA256 `2e074024bebf4a6484a24b4aaab45853c8f883af46c2fc07aa4a8c6b0a9f49aa`.
+
+## Additional Stellar acceptance
+
+Stellar hosted completion (1 November): application637a6d49f/Core2dd3c37, exact settings deployment3eda0ea7 SUCCESS. Native3/2, private Mongo2, federation5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2 pass. Counts29hosted HTTP,5browser,24browser-open;31deployed query-tariff types. Read-only hash-pinned public headers, no Stellar writes or consensus/signature verification. [Evidence](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-stellar-acceptance).
+
+Durable cohort LocalState/COSMIC/HostedQueryAcceptance-StellarOASIS retains original identities, intents, save ACKs and completion hashes. Never replay successful saves. Previous providers were not broadly rerun.
+
+- `TestResults/HostedCqlIntegrationCurrent/StellarOASIS-native-http.json`: SHA256 `3c93f4bf357d997ef141fee7fa6821182f48751b59e98a0e8f12d2e312423c1e`.
+- `TestResults/HostedCqlIntegrationCurrent/StellarOASIS-client-http-flow.json`: SHA256 `3f0e5310c03aa10d6ee49152975a0ef68dc502a657e6655ca30709f26c609b02`.
+- `TestResults/HostedCqlIntegrationCurrent/StellarOASIS-isolation-http.json`: SHA256 `a9384035111be6f14cb59c98470410433b133e9d3d63dd11289c91dfd31cb100`.
