@@ -10,6 +10,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
 public class CqlTonHostedAdmissionTests
 {
+    // A paced remote source needs an explicit bounded budget. The HTTP contract
+    // must admit the same duration domain as the Core federation planner.
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(1, true)]
+    [InlineData(5000, true)]
+    [InlineData(5001, true)]
+    [InlineData(30000, true)]
+    [InlineData(30001, false)]
+    public void HttpDurationAdmissionMatchesCore(int milliseconds, bool accepted)
+    {
+        var request = new NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlFederationV1Request
+        {
+            MaximumDurationMilliseconds = milliseconds
+        };
+        var core = CosmicFederationOptions.Create(maximumDurationMilliseconds: milliseconds);
+        Assert.Equal(accepted, !core.IsError);
+        if (accepted)
+            Assert.Equal(milliseconds, CqlRequestCapture.CaptureAndValidateFederation(request).MaximumDurationMilliseconds);
+        else
+            Assert.Throws<ArgumentException>(() => CqlRequestCapture.CaptureAndValidateFederation(request));
+        Assert.Equal(5000, new NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlFederationV1Request().MaximumDurationMilliseconds);
+    }
+
     [Fact]
     public void ReadCatalogueRequiresIndependentTonPermissionAndTariff()
     {

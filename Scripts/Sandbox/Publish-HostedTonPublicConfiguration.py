@@ -64,7 +64,7 @@ def candidate(before, source):
             "request": {"provider": "TONOASIS", **selection}})
         rows.append({"id": "mongo-public-" + suffix, "label": "Ton public metadata + my Mongo records",
             "operation": "Federation", "request": {"scope": "Named", "providers": ["MongoDBOASIS", "TONOASIS"],
-                "source": selection, "identityMode": "PreserveCopies", "maximumProviderAttempts": 2, "take": 25}})
+                "source": selection, "identityMode": "PreserveCopies", "maximumProviderAttempts": 2, "maximumDurationMilliseconds": 30000, "take": 25}})
     after[KEYS[0]] = configuration.compact(source)
     after[KEYS[1]] = configuration.compact(admission)
     after[KEYS[2]] = configuration.compact(rows)
