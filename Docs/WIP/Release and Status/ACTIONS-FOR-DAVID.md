@@ -418,7 +418,7 @@ revoke/regenerate the block-explorer API key at the provider. Optionally purge h
 
 ## Part F — COSMIC ORM / CQL demo owner decisions (31 October 2026)
 
-Current owner decision: **Default-routing correction approved for publication on 1 November 2026** below (31 October 2026). Engineering, native cleanup and browser tooling remain agent-owned work. No account/credential setup is requested.
+Current owner decision: **1 November 2026: David explicitly authorized as many Development pushes as needed to test and fix the live demo. Do not ask again for daily-cadence exceptions for this work.** Production/master promotion and new hosting spend remain outside this authorization.
 See [COSMIC current status](../COSMIC%20ORM/CURRENT_STATUS.md).
 
 | Item | Status / David's decision | When action is needed |
