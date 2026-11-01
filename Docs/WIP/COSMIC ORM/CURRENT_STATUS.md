@@ -4,12 +4,12 @@ Updated 1 November 2026. Programme incomplete. Goal resumed after the routing pu
 
 ## Active deployment
 
-David approved the correction on 1 November. Scoped Development051ac6af7841f95d4babb1a3e061feee06b4a6c6 is pushed and remote-verified; Core stays6bbd015. Exact Railway jobd8876691-5ce2-4495-9e3d-dedfb1732de0 is QUEUED. Poll this job; never trigger a replacement because observation times out. New public profiles/settings are excluded. Browser transport and deferred hosting remain separate limits.
+David approved the correction on 1 November. Scoped Development051ac6af7841f95d4babb1a3e061feee06b4a6c6 is pushed and remote-verified; Core stays6bbd015. Exact Railway jobd8876691-5ce2-4495-9e3d-dedfb1732de0 is SUCCESS. Exact deployed commit verified. New public profiles/settings are excluded. Browser transport and deferred hosting remain separate limits.
 
 ## Exact next steps
 
-1. Observe the exact approved correction job above until terminal. Do not infer live behavior from a successful git push. Owner approval is recorded in [David list, Part F](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
-2. The routing-v1 owner session is now verified expired. Preserve its owner, record and save ACK; do not rerun setup or replace that identity. After the matching correction deploys, use the explicitly planned routing-v2 cohort via --cohort routing-v2 in preparation and both verifiers. Its independent visitor is prepared explicitly before failover, after owner validation. Twenty-three routing protocol checks pass. No v2 session/save has been created while queued.
+1. Investigate the automatic-selection policy: all six Default reads correctly selected Neo4j, but the current gate requires variation and remains unacknowledged. Do not rerun the completed failover gate or create another fixture. Owner approval is recorded in [David list, Part F](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
+2. The routing-v1 owner session is now verified expired. Preserve its owner, record and save ACK; do not rerun setup or replace that identity. After the matching correction deploys, use the explicitly planned routing-v2 cohort via --cohort routing-v2 in preparation and both verifiers. Its independent visitor is prepared explicitly before failover, after owner validation. Twenty-three routing protocol checks pass. Routing-v2 is now prepared: one acknowledged create, exact three-store copies, nine correct reads and three successful/restored failover cases. Reuse this live cohort.
 3. Integrate the separately tested public-read expansion with its matching Core, application and joint configuration in a permitted release batch. Then verify hosted native queries, Mongo presets, isolation, replicas and browser behavior.
 4. Finish SOLID, S3 and Solana browser acceptance when browser control recovers. IAB documentation retry still returns `Transport closed`; this is agent-owned work.
 
@@ -30,7 +30,7 @@ David approved the correction on 1 November. Scoped Development051ac6af7841f95d4
 | Original three-store baseline | 35/35 within its declared scope; not full ORM parity. |
 | Frozen correctness preflight | 1,009 contracts pass; full API/Core-test builds and three static manifests pass. |
 | New routing-v1 cohort | One acknowledged Mongo create; exact three-store baseline and three explicit-provider reads pass. Default balancing fails on the deployed image. |
-| Default-routing correction | Unbound manager acquisition preserves Default until HyperDrive chooses. 13 acquisition guards plus61 HTTP/controller tests pass, zero skips. Fix committed; live acceptance pending. |
+| Default-routing correction | Unbound manager acquisition preserves Default until HyperDrive chooses. 13 acquisition guards plus61 HTTP/controller tests pass, zero skips. Deployed correction verified: Default stays Default and all six automatic reads selected Neo4j. Variation gate remains open. |
 
 Hosted Azure is deferred: free-only, no subscription. Hosted Oracle is deferred: no account/connection. Do not re-ask signup/payment. Existing Azure emulator and Oracle local native proofs are separate from hosting.
 
@@ -55,7 +55,9 @@ All six native directed repair routes, manager continuations and paused-baseline
 
 The unfinished hosted failover gate now requires per-response proof of a different enrolled serving provider, in addition to exact record preservation; eight acceptance controls pass (including all six directed routes and expiry/replay guards). This is verifier coverage, not a new live pass.
 
-Still red: hosted Default balancing; wider operator/late-enrollment/transport acceptance; primary-authority cutover; scale certification; full ORM acceptance reconciliation. Replica delivery is not migration of write authority. Mixed unsigned-read/signed-write representations retain the admission fence.
+Hosted routing-v2 failover now passes all three faulted sources with response-owned alternate routes, two refusals per source, foreign-private0 and verified restoration. No save during the gate.
+
+Still red: automatic-selection policy/variation acceptance; wider operator/late-enrollment/transport acceptance; primary-authority cutover; scale certification; full ORM acceptance reconciliation. Replica delivery is not migration of write authority. Mixed unsigned-read/signed-write representations retain the admission fence.
 
 Deep LINQ terminals, unrestricted non-IHolon POCO mapping and migration tooling remain deferred. Work only on red acceptance scopes; revisit green scopes only for a reproducible bug. Legacy implementation remains document-only.
 
