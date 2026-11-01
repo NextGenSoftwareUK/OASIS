@@ -10,7 +10,7 @@ All19addedprofiles passed hosted HTTP/client-module acceptance: original17plusBe
 
 Live application: Development **19ebbfe2c496b6a528b5f5b31e6138c317bae146**, Core **7317ba1cd4301a1794294b78be685070db45c3e2**. Exact app joba64660e1-9676-405d-beaa-a0b8de327278 SUCCESS. Three Bitcoin settings acknowledged and whole candidate read back exactly. Single journalled settings rollout **f71e482c-851f-446b-9bbc-886caae3c30f SUCCESS** on the same commit. Bitcoin hosted native/Mongo/isolation/replica acceptance passes.
 
-Website main **c932346** serves byte-identical demo HTML (SHA256 d1c96b2a5612cb4fe62eaf446a806f6a66fe4ba7e5b02ff781e6d4845c7fb9c2); 64 earlier client tests pass. Each new profile exposes four server-planned presets, including Mongo pairing.
+Website main **bc00ef2** serves byte-identical Bitcoin demo HTML, SHA2563a15fd6fb9806e013a274b70f16a61df10834703cb36f8f86efa363b6f327d92. Native CLI/guide/commented C# links present. Existing64client checks and focused Bitcoin preparation1pass remain scoped; browser proof separate.
 
 ## Provider evidence
 
@@ -44,11 +44,11 @@ Each new profile proves native **3/2**, two private Mongo creates, paired **5/4*
 
 ## Latest provider milestone
 
-Bitcoin local and hosted CQL/C#/CLI/HTTP+Mongo pass: native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2. Original two visitor identities/save ACKs and durable completion hashes retained. No source/chain write or browser claim. Website taskff01272 has staged Bitcoin guide/CLI/C# links; publish/update after the verified proof.
+Bitcoin local and hosted CQL/C#/CLI/HTTP+Mongo pass: native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2. Original two visitor identities/save ACKs and durable completion hashes retained. No source/chain write or browser claim. Website mainbc00ef2 publishes Bitcoin guide/CLI/C# links; exact public artifact verified.
 
 ## Exact next work
 
-1. Next: publish staged Bitcoin website links with verified HTTP status, check exact public HTML artifact, then continue remaining red provider breadth. Do not replay Bitcoin hosted/native save cohorts. [Proof](BITCOIN_PUBLIC_SOURCE_STATUS.md).
+1. Next: XRPL public-read readiness: inspect existing provider/SDK/config, qualify a bounded anonymous three-record query, then implement red CQL/native/HTTP/Mongo gates. No new account/spend/install. Preserve Bitcoin completed cohorts; no replay. [Proof](BITCOIN_PUBLIC_SOURCE_STATUS.md).
 2. Browser gates remain open for22providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
