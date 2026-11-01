@@ -1,70 +1,38 @@
-# COSMIC ORM / CQL - current status
+# COSMIC ORM / CQL — current status
 
-Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: live demo breadth. Deep post-selected LINQ parity remains paused.
+Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth-first live demo. Deep LINQ parity remains paused.
 
-David authorizes necessary Development pushes for live demo testing/fixes without daily-cadence questions. No production/master promotion or new hosting spend.
+## Current verified milestone — 1 November 2026
 
-## Current milestone
+**32 providers have scoped hosted HTTP evidence; 5 have browser evidence and 27 browser gates remain open.** Hedera now passes native 3/2, Mongo federation 5/4, repeat reuse (zero new/two existing), foreign-private zero/public three, and two matching replicas on both SQLite and Neo4j. The original owner cohort was resumed after the scheduling correction; no duplicate seed saves were required.
 
-All23addedprofiles passed hosted HTTP/client-module acceptance: original17plusBerachain/Bitcoin/XRPL/Stellar/Algorand/Aptos. Combined with earlier8proofs, **31 providers** have scoped hosted HTTP evidence. Browser proof remains **5**, with **26 open**. Earlier eight-provider acceptance was not broadly rerun.
+Application `4fb66c68705be82d37bb97d9764b97f165661fca`, Core `89b5ffad5c589e6607f26892f46a4ee718335fe2`, deployment `122310fc-11ec-45cf-a631-2ebd471ce66a` succeeded. Existing settings deployment `9dfe2fbd-45f9-4706-a3d4-85ca0f5c2a3d` was retained. Website main `07a36e7` is byte-identical to the served HTML (SHA256 `742262270af5294b0e16a3cb254a8152b545d668e81d7037314f64f024644367`); this proves publication, not browser interaction.
 
-Live application: Development **9d9b28872565d54ca058238e8e89ce6e8b454bf2**, Core **89b5ffad5c589e6607f26892f46a4ee718335fe2**. Exact Hedera app **e5e9ef07 SUCCESS**; protected3setting candidate applied/observed exactly. One settings deployment **9dfe2fbd-45f9-4706-a3d4-85ca0f5c2a3d** submitted; hosted acceptance pending. Aptos proof remains bound to1cfb893c8/1c100994.
+Sui brings implemented query types to **35**, with **30 native tests and an actual shared-manager CLI 3/2 pass**. Sui API admission, local HTTP/Mongo integration, hosting and browser verification remain open. Azure/Oracle hosting stays explicitly deferred. Full ORM/parity/HyperDrive certification remains incomplete. Dated older milestones below retain their original scope and are superseded by this current summary.
 
-Website main **97481d9** serves byte-identical committed HTML, SHA256 **b988858745b7ddba1e50ce2d69dda3e68e5ceb54f72478a799c0e54e5c0fcb8b**. Algorand/Aptos guide links now include complete fresh-checkout JSON setup. Hedera card remains task-only; browser proof separate.
+## Exact next step
 
-## Provider evidence
+1. Finish the Sui developer guide with fresh-checkout JSON; commit its tested native adapter/tests/demo on the task branch.
+2. Add Sui query admission and native/Mongo presets; prove shipping planner and local HTTP privacy before any hosted grant.
+3. Roll out only verified Sui work, retain stable catalogue/owner and write acknowledgements, then test hosted native/federated/repeat/privacy/replicas.
+4. Browser gates remain open for 27 providers. Browser tooling failed with Transport closed; agent-owned, David already opened browser. No repeated owner request.
 
-| Scope | Providers / limits |
-|---|---|
-| Advanced canonical CQL; earlier hosted/browser proof | MongoDB, SQLite, Neo4j. Original baseline35/35; full EF parity incomplete. |
-| Earlier hosted/browser source proof | ActivityPub, IPFS. |
-| Earlier hosted HTTP source proof; browser open | SOLID, S3 public metadata, Solana public accounts. |
-| Fresh hosted HTTP/client proof; browser open | Google Cloud Storage, Ethereum, Polygon, Arbitrum, Cosmos Hub, Polkadot, NEAR, Base, Avalanche, BNB, Optimism, Linea, Scroll, zkSync, Abstract, Monad, Sei, Berachain, Bitcoin, XRPL, Stellar, Algorand, Aptos. |
-| Local/emulator only; hosting explicitly deferred | Azure Cosmos DB, Oracle Database. No signup/payment re-asks. |
-| Not admitted | Rootstock endpoint rejects finalized headers; no downgrade. |
+## Existing guarantees and limits
 
-Each new profile proves native **3/2**, two private Mongo creates, paired **5/4**, repeat **0** new / **2** existing, foreign-private **0**, and **2** matching rows on each of SQLite/Neo4j. Total **46** private snapshots across the23additions. No source/chain writes or browser proof inferred.
+- Canonical MongoDB/SQLite/Neo4j CQL checklist remains 50/82 each; original demo set green. Work only on red rows unless a reproducible bug appears.
+- Added 24 hosted profiles retain 48 private snapshots; existing earlier eight proofs were not broadly rerun.
+- HyperDrive request-scoped selection and three failover directions passed; six native repair routes and three-authority ACK-loss/disconnect checks remain scoped.
+- Open: recovery breadth, authority migration, scale and full ORM child/history/migrations reconciliation. No universal uptime or all-provider writes claim. Legacy gaps are documentation-only.
+- Azure and Oracle hosting deferred by David; no signup/spending re-asks. No production/master promotion.
 
-[Fresh proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). [Every provider project](PROVIDER_CQL_AND_SANDBOX_STATUS.md) covers the maintained229-project inventory. Core's34query-tariff types are not34hosted certifications.
+## Recovery and commands
 
-## Root causes resolved
+- Work only C:/Source/OASIS-cosmic; parent/Core branch work/cosmic-cql-google-public. Frontend C:/Source/Web4Site branch work/cosmic-cql.
+- Raw outputs: TestResults/. Durable identities/config/save intents/ACKs: LocalState/COSMIC/. Never regenerate owners or replay acknowledged/uncertain writes.
+- Reuse pinned environments; record resources in [ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md). Unknown root logs preserved.
+- Build with Invoke-WithProviderBuildLease.ps1 and /m:2 /nr:false /p:UseSharedCompilation=false; never nest leases.
+- Validate committed pins: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks.
+- Source packaging: python -B Scripts/validate_all_provider_sdk_publish_manifests.py.
+- Fetch before integration; non-force Development pushes permitted for live verification. Preserve other contributors.
 
-- Polkadot omitted seven imported bridge modules from publishing. Fixed the owning csproj; actual MSBuild publish metadata and all five source closures pass. Fast CI gate added; strict Docker verification retained.
-- Railway rejected the40,443-character combined preset variable at its32,768-character limit. Original failed intent/protected rejection retained; eighteen source/admission values matched and shared examples stayed unchanged.
-- Strict provider-partitioned configuration retains all68presets; maximum partition2,399characters. Duplicate ownership/malformed values fail without override/fallback. All17partition writes acknowledged; one intended settings rollout succeeded.
-- Validation:17API tests including actual68preset shipping planning,3publisher tests; release970Core+101API contracts (zero skips),53configuration controls and source/pin manifests pass.
-
-## HyperDrive evidence and limits
-
-- Live correction preserves Default until V2 chooses. Three request-scoped singleton lists select MongoDB/SQLite/Neo4j respectively, preserving the exact record without settings changes.
-- Live failover: Mongo to SQLite, SQLite to Mongo, Neo4j to Mongo. Disabled mode returns offline; enabled mode preserves record/owner/version/content. Foreign-private zero; all faults restored.
-- Auto scores providers; it does not promise rotation. Six unoverridden reads chose Neo4j. Earlier variation gate stays unacknowledged; optimality/geography/fairness not certified.
-- Six native repair/continuation/interleaving routes and three-authority ACK-loss/HTTP-disconnect proofs remain scoped. Replica delivery is not write-authority migration.
-- Open: broader operator/transport recovery, authority cutover, scale and full ORM lifecycle/child/history/migration reconciliation. No universal uptime or all-provider write/replication claim.
-
-## Latest provider milestone
-
-Aptos passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2. One explicit ledger version per native query, exact sequence strings; no cross-provider historical snapshot/state/consensus proof. Original source identity/catalogue retained. Website main8e3db22 published; exact committed/live HTML verified. Hedera has no hosted grant.
-
-## Exact next work
-
-1. Next: observe exact Hedera scheduling-fix app122310fc-11ec-45cf-a631-2ebd471ce66a (INITIALIZING) at4fb66c68705be82d37bb97d9764b97f165661fca/Core89b5ffa. No setting changes needed. After SUCCESS, resume original owner if valid (expires12:22:42Z); original native504 occurred before any preparation/save. If expired, retain empty cohort and explicitly plan separate post-fix acceptance.24source tests pass; no timeout increase/retry/fallback/count grant. [Proof](HEDERA_PUBLIC_SOURCE_STATUS.md#live-scheduling-defect-and-correction).
-
-Aptos evidence: 26 native tests, 2 API + 1 Core + 1 local HTTP + 1 actual preset-planner test pass, plus the hosted cohort above. Browser verification remains open. [Hosted proof](APTOS_PUBLIC_SOURCE_STATUS.md#hosted-http-complete).
-
-Hedera/Hashgraph native milestone:22tests+actualCLI3/2 pass through shared manager.34implemented query types; API2+Core1+nativeHTTP1+actual4preset1 pass; Core89b5ffa deployed; exact settings job above pending. LatestIndexed/per-account timestamps, official Mainnet endpoint binding (no API ledger ID). Original catalogue/sourceOwner retained. [Proof/next](HEDERA_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
-
-Sui qualification:8tests+1checkpoint-scoped GraphQL query/3objects pass. New SuiPublicObjectMetadataSource.cs is untracked/unverified; test it next, exclude it from Hedera release. Existing SDK already uses gRPC; no JSON-RPC fallback/install. Stable catalogue/sourceOwner retained; CQL/API/hosting open. [Next gates](SUI_PUBLIC_SOURCE_STATUS.md).
-
-2. Browser gates remain open for26providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
-3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
-
-## Recovery/resources
-
-- Work/build/test only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public. Frozen public release branch9d9b28872. Unknown root logs untouched.
-- Durable source identities/tokens/save intents/ACKs: LocalState/COSMIC. Fresh completion hashes: HostedQueryAcceptance-<Provider>/cql-http-acceptance.acknowledged.json. Never regenerate owners or replay uncertainty after cleanup.
-- Protected settings snapshots/intents/outcomes: HostedSourceRolloutCurrent. Preserve rejected combined-catalogue and successful partition journals. Raw output only TestResults/HostedCqlIntegrationCurrent, never Docs.
-- No new runtime/environment/container/download in this rollout. Reuse pinned resources. Latest free C:78870900736bytes; no attribution to unmeasured external changes. [Ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
-- Builds: Invoke-WithProviderBuildLease.ps1, /m:2 /nr:false /p:UseSharedCompilation=false; never nest. Pins: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks. Source packaging: python -B Scripts/validate_all_provider_sdk_publish_manifests.py.
-
-Links: [checklist](CQL_PARITY_CHECKLIST.md), [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [integration](HOSTED_SANDBOX_INTEGRATION_PLAN.md), [backlog](AFTER_DEMO_BACKLOG.md), [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
+[Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) · [manual](CQL_MANUAL.md) · [architecture](CQL_ARCHITECTURE.md) · [checklist](CQL_PARITY_CHECKLIST.md) · [backlog](AFTER_DEMO_BACKLOG.md) · [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
