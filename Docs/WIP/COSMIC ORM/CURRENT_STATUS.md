@@ -9,7 +9,7 @@ David approved the correction on 1 November. Scoped Development051ac6af7841f95d4
 ## Exact next steps
 
 1. Observe the exact approved correction job above until terminal. Do not infer live behavior from a successful git push. Owner approval is recorded in [David list, Part F](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
-2. The routing-v1 owner session is now verified expired. Preserve its owner, record and save ACK; do not rerun setup or replace that identity. After the matching correction deploys, explicitly plan a distinct bounded acceptance cohort before live balancing/failover checks.
+2. The routing-v1 owner session is now verified expired. Preserve its owner, record and save ACK; do not rerun setup or replace that identity. After the matching correction deploys, use the explicitly planned routing-v2 cohort via --cohort routing-v2 in preparation and both verifiers. Its independent visitor is prepared explicitly before failover, after owner validation. Twenty-three routing protocol checks pass. No v2 session/save has been created while queued.
 3. Integrate the separately tested public-read expansion with its matching Core, application and joint configuration in a permitted release batch. Then verify hosted native queries, Mongo presets, isolation, replicas and browser behavior.
 4. Finish SOLID, S3 and Solana browser acceptance when browser control recovers. IAB documentation retry still returns `Transport closed`; this is agent-owned work.
 

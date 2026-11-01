@@ -1,4 +1,4 @@
-"""Prepare one distinct, durable routing-v1 fixture; never retry an uncertain save.
+"""Prepare one explicitly selected, durable routing fixture; never retry an uncertain save.
 
 Run only after the response-owned routing metadata release. This is an explicitly
 planned new cohort, not replacement of original Solana sessions or operations.
