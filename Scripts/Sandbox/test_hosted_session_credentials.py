@@ -71,6 +71,20 @@ class SessionCredentialTests(unittest.TestCase):
         self.assertEqual(calls, [("avatar/refresh-token", original["cookieHeader"])])
         credentials.no_pending_rotation(self.state, label)
 
+    def test_successive_rotations_can_share_a_jwt_but_not_a_refresh_credential(self):
+        original = credentials.bundle(OWNER, token(), [COOKIE]); calls = []
+        def transport(route, **options):
+            calls.append(True)
+            header = "refreshToken=cycle" + str(len(calls)) + "; Path=/; Secure; HttpOnly; SameSite=Lax"
+            options["capture_auth"](200, b"inert-response", [header])
+            return {"isError": False, "result": {"id": OWNER, "jwtToken": original["jwtToken"]}}
+        first = credentials.rotate(self.state, "same-jwt", original, transport, seal, write_new)
+        second = credentials.rotate(self.state, "same-jwt", first, transport, seal, write_new)
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(first["jwtToken"], second["jwtToken"])
+        self.assertNotEqual(first["cookieHeader"], second["cookieHeader"])
+        credentials.no_pending_rotation(self.state, "same-jwt")
+
     def test_unknown_outcome_blocks_a_second_refresh_attempt(self):
         original = credentials.bundle(OWNER, token(), [COOKIE]); calls = []
         def transport(*args, **kwargs):

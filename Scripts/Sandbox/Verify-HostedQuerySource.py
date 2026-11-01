@@ -19,6 +19,7 @@ import HostedSessionCredentials as session_credentials
 
 ROOT = Path(__file__).resolve().parents[2]
 BASE = "https://dev.api.web4.oasisomniverse.one/api/"
+BROWSER_ORIGIN = "https://web4.oasisomniverse.one"
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(verification)
@@ -37,7 +38,7 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 def call(route, token=None, body=None, method="POST", operation=None, *, cookie_header=None, capture_auth=None):
-    headers = {"Accept": "application/json", "Idempotency-Key": operation or str(uuid.uuid4())}
+    headers = {"Accept": "application/json", "Origin": BROWSER_ORIGIN, "Idempotency-Key": operation or str(uuid.uuid4())}
     if token:
         headers["Authorization"] = "Bearer " + token
     if cookie_header:
@@ -56,6 +57,9 @@ def call(route, token=None, body=None, method="POST", operation=None, *, cookie_
             capture_auth(response.status, raw, response.headers.get_all("Set-Cookie") or [])
         if len(raw) > 2 * 1024 * 1024:
             raise RuntimeError("HTTP proof exceeds its response budget.")
+        if (response.headers.get("Access-Control-Allow-Origin") != BROWSER_ORIGIN
+                or response.headers.get("Access-Control-Allow-Credentials") != "true"):
+            raise RuntimeError("The exact hosted browser credential origin was not acknowledged.")
         if not raw:
             raise RuntimeError("HTTP acceptance failed with an empty response: " + str(response.status))
         data = json.loads(raw)
