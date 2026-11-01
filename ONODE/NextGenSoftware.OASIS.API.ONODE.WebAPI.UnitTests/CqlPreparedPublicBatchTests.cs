@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -60,7 +61,14 @@ public sealed class CqlPreparedPublicBatchTests
         Assert.Equal(new[] { "examples", "profiles" }, json.RootElement.EnumerateObject().Select(value => value.Name).Order().ToArray());
         var profiles = json.RootElement.GetProperty("profiles");
         Assert.Equal(expected, profiles.EnumerateObject().Count());
-        var examples = CqlHostedQueryExamples.FromJson(json.RootElement.GetProperty("examples").GetRawText());
+        var exampleJson = json.RootElement.GetProperty("examples");
+        // Exercise the shipping per-provider configuration layout used by hosted
+        // deployment variables, rather than only the unpartitioned JSON parser.
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(
+            exampleJson.EnumerateObject().Select(entry => new KeyValuePair<string, string?>(
+                CqlHostedQueryExamples.ProviderConfigurationSection + ":" + entry.Name,
+                entry.Value.GetRawText()))).Build();
+        var examples = CqlHostedQueryExamples.FromConfiguration(configuration);
         var disposables = new List<IDisposable>();
         var sources = new Dictionary<ProviderType, ICosmicQueryStorageProvider>();
         try
