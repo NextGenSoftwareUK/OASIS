@@ -11,3 +11,13 @@ Mainnet genesis observed: `00000000000000001ebf88508a03865c71d452e25f4d51194196a
 Raw public observation: `TestResults/TronPublicSourceCandidateCurrent/readiness.json`, SHA256 `894646b9935fa21f92ff8bdb552956aa8112a29ff56c922e44e7fe5a2f4ed3a8`, 1985bytes. Source identity/catalogue not created yet.
 
 Next after Sui hosted gate: qualify third ordinary header and strict native schema/precision/identity rules; implement explicit bounded read-only header profile, tests and commented C# sample; then admission/planner/localHTTP before hosting. Existing TRON signed wallet provider remains separate. No generic scans/metadata queries/signed writes are certified by this probe.
+
+## Strict qualification complete
+
+Nine pure tests pass. Four bounded anonymous reads (genesis plus ordinary headers1/2/3) pass exact block ID/header height agreement, canonical encodings, nonnegative native Int64 precision, and adjacent parent linkage. Header-only request `detail:false` is enforced; duplicate JSON properties, HTTP200 Error bodies, transaction bodies, malformed fields and numeric coercion fail. Genesis zero omission is explicitly scoped to genesis; ordinary missing fields are not defaulted.
+
+- Probe: [Probe-TronPublicReadiness.py](../../../Scripts/Sandbox/Probe-TronPublicReadiness.py).
+- Controls: [test_tron_public_readiness.py](../../../Scripts/Sandbox/test_tron_public_readiness.py).
+- Raw `TestResults/TronPublicSourceCandidateCurrent/qualified-readiness.json`: 1725bytes, SHA256 `1552532a1bdf389c9ae32cf9cf25cb39453dfc1ce615f753c32959254b76f380`.
+
+No provider admission, CQL adapter, signing operation, sourceOwner or catalogue was created. Next independent work is the bounded native header adapter and shared-manager demo; hosted enrollment must wait for its own controls. Sui exact deployment is still tracked separately, without duplicate submission.

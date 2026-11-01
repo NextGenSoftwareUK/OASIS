@@ -17,7 +17,7 @@ Sui brings implemented query types to **35**, with **30 native tests and an actu
 3. Apply once with `COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT` set, observe whole candidate, journal one settings rollout, then hosted native/federated/repeat/privacy/replicas via `Verify-HostedQuerySource.py SuiOASIS --prepare`. No Sui visitor cohort exists yet; record intents before mutations.
 4. Browser gates remain open for 27 providers. Browser tooling failed with Transport closed; agent-owned, David already opened browser. No repeated owner request.
 
-Next breadth candidate: [TRON qualification](TRON_PUBLIC_SOURCE_STATUS.md), three anonymous header-only reads; no native CQL/count grant. Continue after Sui hosted gate.
+Next breadth candidate: [TRON qualification](TRON_PUBLIC_SOURCE_STATUS.md), strict qualification now passes 9 pure tests plus genesis/three ordinary headers; no native CQL/count grant. Native adapter/shared-manager demo can progress while the exact Sui job remains queued.
 
 ## Existing guarantees and limits
 
