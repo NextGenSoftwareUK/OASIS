@@ -1,6 +1,6 @@
 # Hosted CQL demo expansion
 
-Updated 31 October 2026. User priority: broader hosted demo before full EF/NHibernate parity.
+Updated 1 November 2026. User priority: broader hosted demo before full EF/NHibernate parity.
 The original full roadmap remains active; defer depth the demo does not need.
 Current release state/counts: [CURRENT_STATUS](CURRENT_STATUS.md). Detailed dated checkpoints below are historical.
 
@@ -11,7 +11,8 @@ Current release state/counts: [CURRENT_STATUS](CURRENT_STATUS.md). Detailed date
 | Baseline | MongoDB, SQLite, Neo4j | Existing 12-row demo set is green. Use the proven common query subset; unfinished Q01f parity must not delay expansion. |
 | 1: cloud | **Azure Cosmos DB for NoSQL** | Hosted Azure explicitly deferred by David: free only, no existing subscription. Existing local/emulator/native CQL proofs remain separate; do not re-ask signup/payment. [Earlier native evidence](CQL_COSMOS_NATIVE_ADMISSION.md). |
 | Cloud breadth | **Public AWS S3 metadata** | Hosted native3/2, Mongo5/4, repeat0writes, isolation and exact SQLite/Neo4j copies verified through HTTP. Browser gate open. This is anonymous object HEAD metadata, not owned encrypted S3/DynamoDB acceptance. |
-| Next free cloud candidate | **Google Cloud Storage public metadata** | Anonymous source now implements common CQL interfaces;17controls +1native3/2case pass. Cached Google.Cloud.Storage.V1 4.11.0 reused, no body downloads/account. Not hosted sandbox acceptance. WEB4 read registration/config/admission/discovery now implemented (11JSON/22API-schema/77Core controls pass). Native HTTP Google3/2+Mongo5/4and tenant isolation now pass.48client preparation controls and3configuration tests pass; fourpresets staged, no live settings changed. Next scheduled application/config rollout and hosted/browser gates; keep separate from frozen release batch. |
+| Cloud breadth | **Google Cloud Storage public metadata** | Hosted native3/2, Mongo5/4, repeat reuse, privacy and exact SQLite/Neo4j copies verified through HTTP; browser remains open. Anonymous object metadata with no body downloads/account. Firestore emulator/owned Google storage remains a separate representation. |
+| Latest cloud breadth | **Azure public Blob properties** | Hosted native3/2, Mongo5/4, repeat reuse, privacy and exact SQLite/Neo4j replicas verified atbccef53d6/Cored133cc2; live card9694621 and first-setup guide published/byte-verified. No account/body download; this is separate from deferred Cosmos DB. [Proof](AZURE_PUBLIC_BLOB_STATUS.md). |
 | Deferred hosting | **Oracle Database** | Read-only activation, provider-scoped catalogue/discovery and local native HTTP3/2+Mongo5/4 verified. SDK seeds2private copies; production billing/login/JS REST setup/replica/browser proof remain separate. David has no Oracle account and explicitly deferred hosting. |
 | 2: chain | **Solana public account metadata** | Hosted native3/2, Mongo5/4, repeat0writes, isolation and exact SQLite/Neo4j copies verified through HTTP; verbatim C# LINQ sample passes mainnet3/2. Browser pending. Read-only configured accounts; original memo/history recovery and full ORM remain separate. |
 | 3 | **IPFS** | Hosted HTTP/browser native3/2, Mongo5/4, private preparation/reuse/isolation and exact SQLite/Neo4j copies verified. Bounded configured CIDs on isolated Kubo; no general search or public-network resilience claim. [Earlier evidence](CQL_IPFS_DEMO_ADMISSION.md). |
@@ -29,7 +30,7 @@ Official references: [Cosmos query overview](https://learn.microsoft.com/en-us/c
 Cosmos supports SQL-style selection/filtering/ordering; Solana RPC account filters are narrower.
 Neither reference proves the current OASIS adapter already supports CQL.
 
-## Next three EVM demo scopes
+## Earlier EVM qualification snapshot (historical)
 
 | Scope | Native CQL | C# / CLI | HTTP + Mongo / isolation | Hosted / browser |
 |---|---|---|---|---|
