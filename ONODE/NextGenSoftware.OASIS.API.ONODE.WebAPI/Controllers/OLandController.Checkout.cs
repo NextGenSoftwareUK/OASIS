@@ -13,6 +13,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers;
 
 public partial class OLandController
 {
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+    [HttpGet("checkout-return")]
+    public ContentResult CheckoutReturn() => Content(
+        "<!doctype html><html><head><meta name=viewport content='width=device-width,initial-scale=1'><title>Our World OLAND</title></head>" +
+        "<body style='background:#04121c;color:white;font:24px sans-serif;padding:8%;line-height:1.6'><h1>Our World OLAND</h1>" +
+        "<p>You can return to Our World now. Open Purchase OLAND to check your order's verified payment and delivery status.</p>" +
+        "<p>Closing checkout does not confirm payment.</p></body></html>", "text/html");
+
     [HttpGet("purchase-options")]
     public Task<IActionResult> PurchaseOptions([FromServices] OLandCommerceService commerce) => Commerce(() => Task.FromResult(commerce.Options()));
 
