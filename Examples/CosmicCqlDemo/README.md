@@ -890,3 +890,19 @@ dotnet Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll `
 planning and execution. The [guide](../../Docs/Devs/AZURE_PUBLIC_BLOB_CQL_GUIDE.md)
 explains configuration, HTTP and Mongo federation. Hosted sandbox publication is
 tracked separately; this is not hosted Cosmos DB acceptance.
+
+
+## Fantom Opera: explicit canonical-at-read balances
+
+Follow the [Fantom setup guide](../../Docs/Devs/FANTOM_PUBLIC_ACCOUNT_CQL_GUIDE.md)
+once, then reuse the catalogue and built console:
+
+```powershell
+dotnet ./Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll `
+    --fantom-public LocalState/COSMIC/FantomDemo/source.json
+```
+
+[FantomPublicWalkthrough.cs](FantomPublicWalkthrough.cs) runs the shared manager/LINQ
+selection over three addresses, then two. It prints exact balances and explicitly
+labels the canonical-at-read block. It performs no native writes. HTTP/Mongo,
+hosted sandbox and browser qualification remain separate, pending gates.

@@ -4,13 +4,13 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 
 ## Verified scope
 
-- 44 integrated query types:3 canonical,37 bounded public/source profiles,4 local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
+- 45 integrated query types:3 canonical,38 bounded public/source profiles,4 local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
 - 40 providers have scoped hosted HTTP proof and deployed query tariffs. Browser proof:5;35browser gates open. Read-only discovery now reports40/40providers ready at the current release; this is readiness, not a fresh replay of all provider data proofs. Current provider-by-provider authority: PROVIDER_CQL_AND_SANDBOX_STATUS.md.
 - MongoDB/SQLite/Neo4j parity checklist50/82each; original investor-demo subset green. Work red rows only unless a reproducible bug appears.
 - Latest completed hosted cohort: AzureStorageOASIS public Blob properties, native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, exact SQLite/Neo4j replicas2/2. Two saves at version1; no pending intents. Completion ACK exists; never replay/resave.
 - Azure native/local:24source controls,43API controls,6publisher controls, SDK/manager/actual console3/2 and local HTTP/Mongo/privacy pass. No account, source write or object-body download. This is not hosted Cosmos DB.
 - Website9694621 publishes Azure/TON cards and local-guide links; public HTML and both scripts match exact git blobs. All 92 client tests pass. Browser interaction is not inferred.
-- PostgreSQL retained content:16controls,17native cases, local paired SDK/HTTP2/4/4/2 and identity5/4 pass. Original JSON/xmin/source metadata unchanged; owned Mongo fixture cleaned/services stopped. Hosted connection question pending in David list.
+- PostgreSQL retained content:16controls,17native cases, local paired SDK/HTTP2/4/4/2 and identity5/4 pass. Original JSON/xmin/source metadata unchanged; owned Mongo fixture cleaned/services stopped. Hosted PostgreSQL explicitly deferred by David; do not re-ask.
 - AWSOASIS retained DynamoDB Local:13controls, native3/2 and Mongo SDK/HTTP5/4 pass. Source preserved; runtime3.3.2 binding repaired. Owned hosted AWS and separate DynamoDBOASIS alias native acceptance remain open. Public S3 is already hosted.
 
 ## Exact deployed release and immutable evidence
@@ -23,8 +23,8 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 
 ## Next work
 
-1. Continue a red provider: inspect the existing Fantom adapter and primary RPC contracts, then qualify an explicit bounded public read profile if supported. No provider admission/count increase without native and hosted evidence; no fallback, guessed retry or source substitution.
-2. PostgreSQL hosted availability question remains pending; no new paid hosting/account. Azure Cosmos and Oracle hosted access are explicitly deferred; do not re-ask.
+1. Fantom native/manager/actual CLI3/2 now pass;278controls include21Fantom and preserved constructor contract. Explicit immutable latest-canonical-at-read, not finalized. Exact next: WEB4 registration/admission/discovery/4presets, local shipping HTTP/Mongo/privacy, then hosted proof/card. No Fantom live admission yet; see FANTOM_PUBLIC_SOURCE_STATUS.md. Native-qualified ACK freezes source owner/addresses.
+2. PostgreSQL hosting explicitly deferred by David ("Leave hosted PostgreSQL pending"); no owner setup, re-ask or new paid resource. Azure Cosmos and Oracle hosted access also remain deferred.
 3. TRON remains unqualified after native429/diagnostic403; Rootstock finalized-header endpoint rejected400. Preserve original failures; do not blindly rerun them.
 4. Keep full ORM tracking/concurrency/children/history/deltas/migration/placement acceptance and wider HyperDrive recovery work on the roadmap. Deep LINQ, POCO mapping and migrations tooling remain deferred behind demo breadth. V2 implementation only; legacy gaps documentation only.
 

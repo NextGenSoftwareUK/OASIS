@@ -31,9 +31,16 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
     // configuration. Sei emits mixed-case DATA; existing EVM profiles retain
     // their canonical lowercase contract. All exposed identities stay lowercase.
     protected enum BlockHashWireFormat { CanonicalLowercase, MixedCase }
+    // This is an immutable provider descriptor, never a request option or a
+    // fallback after an unsupported finalized read. Existing profiles keep their policy.
+    protected enum ReadBlockPolicy { Finalized, LatestCanonicalAtRead }
     protected sealed record Network(PType Provider, string Name, string ChainId, string GenesisHash,
         string AddressMetadata, string RpcPath = "/",
-        BlockHashWireFormat BlockHashes = BlockHashWireFormat.CanonicalLowercase);
+        BlockHashWireFormat BlockHashes = BlockHashWireFormat.CanonicalLowercase)
+    {
+        // Preserve the existing constructor contract for compiled provider plugins.
+        public ReadBlockPolicy ReadPolicy { get; init; } = ReadBlockPolicy.Finalized;
+    }
     private readonly AccountsBackend accounts;
     private bool disposed;
 
@@ -46,7 +53,7 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
         this.accounts = accounts;
         var network = accounts.Identity;
         ProviderName = network.Provider.ToString();
-        ProviderDescription = $"Read-only finalized public {network.Name} balances; no wallet or transaction-body download";
+        ProviderDescription = $"Read-only {accounts.Commitment} public {network.Name} balances; no wallet or transaction-body download";
         ProviderType = new EnumValue<PType>(network.Provider);
         ProviderCategory = new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         QueryCapabilities = CosmicQueryCapabilities.ForStringMetadataKeyLookup(network.AddressMetadata, 42, 8);
@@ -200,6 +207,11 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
         private readonly Dictionary<string, string> records;
         public IReadOnlyList<string> Addresses { get; }
         public Network Identity { get; }
+        public string Commitment => Identity.ReadPolicy switch {
+            ReadBlockPolicy.Finalized => "finalized",
+            ReadBlockPolicy.LatestCanonicalAtRead => "latest-canonical-at-read",
+            _ => throw new InvalidDataException("Unknown native block-read policy.")
+        };
         public string Prefix => Identity.Name.ToLowerInvariant() + "-public-metadata/";
 
         public AccountsBackend(HttpClient client, Uri rpc, string chainId, IEnumerable<string> addresses, Guid owner, bool ownsClient, Network network)
@@ -255,22 +267,27 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
             if (Hash(genesis.GetProperty("hash"), Identity.BlockHashes) != Identity.GenesisHash ||
                 genesis.GetProperty("number").GetString() != "0x0")
                 throw new InvalidDataException("Native EVM genesis differs.");
-            var finalized = await RpcAsync("eth_getBlockByNumber", new object[] { "finalized", false }, token);
+            var tag = Identity.ReadPolicy switch {
+                ReadBlockPolicy.Finalized => "finalized",
+                ReadBlockPolicy.LatestCanonicalAtRead => "latest",
+                _ => throw new InvalidDataException("Unknown native block-read policy.")
+            };
+            var finalized = await RpcAsync("eth_getBlockByNumber", new object[] { tag, false }, token);
             var hash = Hash(finalized.GetProperty("hash"), Identity.BlockHashes);
             var number = Quantity(finalized.GetProperty("number").GetString());
             var rows = new List<IHolon>();
             foreach (var key in keys)
             {
-                // Every selected address is read from the same finalized canonical
+                // Every selected address is read from the same explicitly selected canonical
                 // block. Unknown/unsupported block semantics fail, never fall back.
                 var balance = await RpcAsync("eth_getBalance", new object[] {
                     key, new { blockHash = hash, requireCanonical = true } }, token);
                 var fields = new Dictionary<string, object> {
                     ["name"] = Identity.Name + " address " + key,
-                    ["description"] = "Public finalized " + Identity.Name + " address balance; no wallet or transactions.",
+                    ["description"] = "Public " + Commitment + " " + Identity.Name + " address balance; no wallet or transactions.",
                     [Identity.AddressMetadata] = key, [Identity.Name + "ChainId"] = chainId,
                     [Identity.Name + "BlockHash"] = hash, [Identity.Name + "BlockNumber"] = number,
-                    [Identity.Name + "Commitment"] = "finalized", [Identity.Name + "BalanceWei"] = Quantity(balance.GetString())
+                    [Identity.Name + "Commitment"] = Commitment, [Identity.Name + "BalanceWei"] = Quantity(balance.GetString())
                 };
                 var mapped = NativeRecordHolonMapper.CreateHolon(owner, Identity.Provider,
                     new NativeRecord(sourceName, key, fields), NativeDataMapping.ForSource(sourceName));
@@ -278,6 +295,17 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
                 var row = mapped.Result;
                 row.CreatedByAvatarId = owner; row.IsPublic = true; row.IsActive = true; row.Children = Array.Empty<IHolon>();
                 row.ProviderUniqueStorageKey[Identity.Provider] = key; rows.Add(row);
+            }
+            if (Identity.ReadPolicy == ReadBlockPolicy.LatestCanonicalAtRead)
+            {
+                // The selected head can advance or reorganize. All balances used
+                // EIP-1898 requireCanonical; additionally fence publication against
+                // a different hash at the captured height. A change fails, never retries.
+                var check = await RpcAsync("eth_getBlockByNumber", new object[] {
+                    finalized.GetProperty("number").GetString(), false }, token);
+                if (Hash(check.GetProperty("hash"), Identity.BlockHashes) != hash
+                    || Quantity(check.GetProperty("number").GetString()) != number)
+                    throw new InvalidDataException("Selected canonical block changed during the native read.");
             }
             token.ThrowIfCancellationRequested();
             return rows.AsReadOnly();
