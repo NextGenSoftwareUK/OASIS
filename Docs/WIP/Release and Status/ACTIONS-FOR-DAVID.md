@@ -424,10 +424,14 @@ A conductor cannot run on Vercel; it needs a machine, which is a hosting decisio
 it cannot create the paid hosting or the DNS record.
 **Status:** open, 1 November 2026. Nothing is requested until you choose; the page works as a local demo meanwhile.
 
-### E4. Publish HoloNET 4.6.0 (after the final tests)
+### E4. Create a new NuGet API key for HoloNET 4.6.0 (the old one has expired)
 
-**Context:** HoloNET 4.6.0: 29 packages (7 libraries x 4 conductor variants + the `dotnet new` template pack), the Client NuGet fix and the templates.
-**Why:** the published Client 4.5.0 depends on a `Chaos.NaCl` package that is not on nuget.org, so it cannot be installed; 4.6.0 fixes that.
-**Action:** none yet. When Claude has finished the live tests it will run the publish workflow; if the workflow needs the NuGet key re-entered or a
-manual approval, it will say exactly what.
-**Status:** pending Claude's testing, 1 November 2026.
+**Context:** HoloNET 4.6.0, GitHub Actions workflow `publish-holonet.yml` in NextGenSoftwareUK/OASIS (secret `NUGET_API_KEY`).
+**Why:** 4.6.0 is built, tested and ready (29 packages: 7 libraries x 4 conductor variants + the `dotnet new` template pack; the dry run on GitHub passed
+the manifest check, packing, verification and the install smoke test). The real publish on 1 November 2026 failed at the NuGet push: nuget.org answered
+403 "The specified API key has expired", for every package, so nothing was published. The currently published Client (4.5.0) cannot be installed because it
+depends on a package that does not exist; 4.6.0 fixes that.
+**Action:** at https://www.nuget.org/account/apikeys create a new API key (Push new packages and package versions; glob pattern `NextGenSoftware.*`), then
+put it in the `NUGET_API_KEY` secret of NextGenSoftwareUK/OASIS (Settings > Secrets and variables > Actions). Never paste the key into chat. Then tell Claude;
+it re-runs the publish (about 25 minutes), attaches the packages to the v4.6.0 GitHub release and checks every package is on nuget.org.
+**Status:** open, 1 November 2026. **Details:** failed run https://github.com/NextGenSoftwareUK/OASIS/actions/runs/41338513590 (the step "Push to NuGet.org").
