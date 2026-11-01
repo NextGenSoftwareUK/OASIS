@@ -8,7 +8,7 @@ David authorizes necessary Development pushes for live demo testing/fixes withou
 
 All19addedprofiles passed hosted HTTP/client-module acceptance: original17plusBerachainandBitcoin. Combined with earlier8proofs, **27 providers** have scoped hosted HTTP evidence. Browser proof remains **5**, with **22 open**. Earlier eight-provider acceptance was not broadly rerun.
 
-Live application: Development **c6e7f14baf89cacb9a1938cf11bfe574b51bc3ba**, Core **e032d0a4701e1c5bc4fa4d8f1545cac41745376b**. Exact app9ee52c89-7695-4065-9328-13f2be82b8e7 SUCCESS. Three XRPL settings individually acknowledged/full candidate exact. One journalled settings rollout **cdc70f3a-4dea-4cb7-a881-306c478056bd BUILDING** on samecommit; no XRPL hosted claim yet.
+Live application: Development **c6e7f14baf89cacb9a1938cf11bfe574b51bc3ba**, Core **e032d0a4701e1c5bc4fa4d8f1545cac41745376b**. Exact app9ee52c89-7695-4065-9328-13f2be82b8e7 SUCCESS. Three XRPL settings individually acknowledged/full candidate exact. One journalled settings rollout **cdc70f3a-4dea-4cb7-a881-306c478056bd SUCCESS** on samecommit; no XRPL hosted claim yet.
 
 Website main **bc00ef2** serves byte-identical Bitcoin demo HTML, SHA2563a15fd6fb9806e013a274b70f16a61df10834703cb36f8f86efa363b6f327d92. Native CLI/guide/commented C# links present. Existing64client checks and focused Bitcoin preparation1pass remain scoped; browser proof separate.
 
@@ -48,7 +48,7 @@ Bitcoin local and hosted CQL/C#/CLI/HTTP+Mongo pass: native3/2, paired5/4, repea
 
 ## Exact next work
 
-1. Next: observe cdc70f3a for exactc6e7f14ba SUCCESS, then run `python -B Scripts/Sandbox/Verify-HostedQuerySource.py XRPLOASIS --prepare` once. Preserve original visitor identities/save intents/ACKs. Publish staged website card only after hosted acceptance. [Local proof](XRPL_PUBLIC_SOURCE_STATUS.md).
+1. Next: guarded endpoint-only XRPL correction: original container endpoint returns402, no private saves. Ripple free full-history passes deployed native probe and C#/CLI3/2;3reconciliation controls pass. Frozen release c6e7f14ba + expected-release guard, apply xrpl-public-free-endpoint candidate one key, journal one rollout, then continue original visitor. [Evidence](XRPL_PUBLIC_SOURCE_STATUS.md#hosted-endpoint-correction).
 2. Browser gates remain open for22providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
