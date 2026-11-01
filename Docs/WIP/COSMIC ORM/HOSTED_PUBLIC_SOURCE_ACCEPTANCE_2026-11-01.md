@@ -350,3 +350,19 @@ Evidence is retained under `TestResults/HostedCqlIntegrationCurrent/`; durable o
 | HashgraphOASIS-isolation-http.json | 2c10605fa0a9bf5461e51e1587b6f4271233a1f66ee8e9e24470369f8bbe2eba |
 
 Scheduling is bounded to three concurrent reads **per native query**, with the existing five-second budget. Per-account index timestamps can differ; no freshness, shared snapshot, independent consensus proof or source writes are claimed.
+
+## Sui hosted HTTP complete — 1 November 2026
+
+**33 providers have scoped hosted HTTP evidence; 5 have browser evidence and 28 browser gates remain open.** Sui now passes native 3/2, Mongo federation 5/4, repeat reuse (zero new/two existing), foreign-private zero/public three, and two matching replicas on both SQLite and Neo4j. No source/chain writes or browser certification are inferred.
+
+Application `7e0b60994921d03e09abe4a7050ca5bf5f02bfdb`, Core `0e540eb911671a6a249458ea9b69d3e96fb1d212`, app deployment `81794c84-1f8b-41e1-a9e4-6b79015fa173` and settings deployment `1d5007cb-e593-458e-b838-9d535ba93e70` succeeded. Website main `9679699d391b5b49117c3009ee2bfcc0add41464` serves byte-identical committed HTML (148135bytes, SHA256 `b8d17101a869a1dffb8cd2c076b8c6577a24086bfcd052394100e7245d069a35`), including Sui setup/C# links. This proves publication, not browser interaction.
+
+There are **35 implemented query types**, including 30 native Sui tests and an actual shared-manager CLI 3/2 pass. Sui API admission (2 tests), Core tariff (1), generated preset planning (1), local HTTP/Mongo (1), and configuration controls (3) also pass. TRON is an unadmitted candidate with34controlled passes and a real429failure; it is not counted. Azure/Oracle hosting stays explicitly deferred. Full ORM/parity/HyperDrive certification remains incomplete. Dated milestones retain their original scope.
+
+Evidence in `TestResults/HostedCqlIntegrationCurrent/`, retained sourceOwner/catalogue and original owner/foreign cohort under `LocalState/COSMIC/HostedQueryAcceptance-SuiOASIS/`. Completion ACK verified against raw native/federated/isolation/replica counts; no replay. Each native response uses one API-reported checkpoint; later queries may use another. Mongo demo records capture private name/description/native-key observations, not independently proved full native object/state snapshots.
+
+| Evidence | SHA256 |
+|---|---|
+| SuiOASIS-native-http.json | `1c63b45d54a1a268f0ebe1ac45ac5e202a6613cc6997d401bf99b58e4d2a444b` |
+| SuiOASIS-client-http-flow.json | `2b3b990994635b9f2ab169a1c665664fedebc7aca8d190a3c9aac2f3399a9011` |
+| SuiOASIS-isolation-http.json | `4b45192d96bdbfaff28f45d54ac37d2f04c9d50ba3f28723439d8c2f3ee2dd89` |

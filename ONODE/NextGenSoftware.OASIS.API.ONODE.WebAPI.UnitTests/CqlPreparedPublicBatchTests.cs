@@ -84,6 +84,10 @@ public sealed class CqlPreparedPublicBatchTests
     public async Task ActualSuiCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [PublicBatchReviewFact]
+    public async Task ActualElrondCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
     private static async Task CheckPreparedBatch(int expected)
     {
         var path = Environment.GetEnvironmentVariable("COSMIC_CQL_PUBLIC_REVIEW")!;
@@ -129,6 +133,7 @@ public sealed class CqlPreparedPublicBatchTests
                     ProviderType.StellarOASIS => Providers.StellarOASIS.StellarPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.AlgorandOASIS => NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.AlgorandPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.AptosOASIS => NextGenSoftware.OASIS.API.Providers.AptosOASIS.AptosPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.ElrondOASIS => Providers.ElrondOASIS.ElrondPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.SuiOASIS => Providers.SuiOASIS.SuiPublicObjectMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.HashgraphOASIS => NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.HederaPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.XRPLOASIS => Providers.XRPLOASIS.XrplPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),

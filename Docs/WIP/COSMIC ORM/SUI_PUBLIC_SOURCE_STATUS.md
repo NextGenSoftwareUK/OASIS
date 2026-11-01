@@ -1,6 +1,6 @@
 # Sui public object CQL status
 
-Updated 1 November 2026. Qualification complete; CQL/API/hosted/browser gates open. Existing programme counts:34implemented query types and31scoped hosted HTTP providers.
+Updated 1 November 2026. Native CQL, API, local HTTP/Mongo and hosted HTTP acceptance complete; browser verification remains open. Programme:35implemented query types,33scoped hosted HTTP providers. Earlier dated stages below are history.
 
 ## Qualified contract
 
@@ -20,7 +20,7 @@ Primary references: [current Sui RPC status](https://docs.sui.io/references/sui-
 `Scripts/Sandbox/Probe-SuiPublicReadiness.py`: one bounded anonymous GraphQL query, three complete object observations at checkpoint340483550, zero mutations. Three earlier memory-only read/schema queries established the response shape. `test_sui_public_readiness.py`: eight boundary tests pass, no skips/network dependencies.
 
 - Raw `TestResults/SuiPublicSourceCandidateCurrent/readiness.json`,1494bytes; SHA256 `cc77dc43149227044b5d26c51909c62fa504fd67fe364b1c3c7eac2029f7c4cd`.
-- Durable `LocalState/COSMIC/HostedSuiPublicSourceCurrent/{source,catalogue}.json`,1982bytes. Stable sourceOwner created once; preserve it and all three object addresses. Candidate schema is not consumed by shipping code yet.
+- Durable `LocalState/COSMIC/HostedSuiPublicSourceCurrent/{source,catalogue}.json`,1982bytes. Stable sourceOwner created once; preserve it and all three object addresses. Schema is consumed by the shipping explicit read profile; source identity is retained.
 - Retained checkpoint/version values are historical evidence, not a permanently pinned/prunable configuration view. The eventual source selects a fresh checkpoint per native query.
 
 ## Next gates
@@ -59,3 +59,23 @@ Raw evidence stays in `TestResults/SuiPublicSourceCandidateCurrent/`:
 | sui-mongo-http.trx | 1 | `9df1446dcc463117f02a91ef1bbbbf1b332ff98b0afdc2ca492426010f1cbdbd` |
 
 Hosted candidate prepared against current exact variables; all four actual prepared presets pass shipping capabilities (one test, no skips), SHA256 `a3c70bb8bd2a33049a7f8bcfc32b5e858c23036b9db1e9804d67b9754e4fedf2`. Core Development remote verified at0e540eb911671a6a249458ea9b69d3e96fb1d212; parent application publication next. Protected three-setting candidate remains unapplied.
+
+Development publication: exact parent7e0b60994921d03e09abe4a7050ca5bf5f02bfdb/Core0e540eb911671a6a249458ea9b69d3e96fb1d212 pushed and remote refs verified. Exact app81794c84-1f8b-41e1-a9e4-6b79015fa173 repeatedly observed QUEUED; no settings mutation/restart. Wait for this same job; guard must use exact release checkout before apply. Browser transport retry still closed; not a David action.
+
+Application81794c84 SUCCESS at exact7e0b60994921d03e09abe4a7050ca5bf5f02bfdb/Core0e540eb. Guarded three-setting apply completed once; each value and whole candidate observed exactly. One settings rollout1d5007cb-e593-458e-b838-9d535ba93e70 BUILDING, protected intent/outcome retained. No native visitor cohort/private snapshots yet. Observe same job before acceptance; no replay.
+
+## Sui hosted HTTP complete — 1 November 2026
+
+**33 providers have scoped hosted HTTP evidence; 5 have browser evidence and 28 browser gates remain open.** Sui now passes native 3/2, Mongo federation 5/4, repeat reuse (zero new/two existing), foreign-private zero/public three, and two matching replicas on both SQLite and Neo4j. No source/chain writes or browser certification are inferred.
+
+Application `7e0b60994921d03e09abe4a7050ca5bf5f02bfdb`, Core `0e540eb911671a6a249458ea9b69d3e96fb1d212`, app deployment `81794c84-1f8b-41e1-a9e4-6b79015fa173` and settings deployment `1d5007cb-e593-458e-b838-9d535ba93e70` succeeded. Website main `9679699d391b5b49117c3009ee2bfcc0add41464` serves byte-identical committed HTML (148135bytes, SHA256 `b8d17101a869a1dffb8cd2c076b8c6577a24086bfcd052394100e7245d069a35`), including Sui setup/C# links. This proves publication, not browser interaction.
+
+There are **35 implemented query types**, including 30 native Sui tests and an actual shared-manager CLI 3/2 pass. Sui API admission (2 tests), Core tariff (1), generated preset planning (1), local HTTP/Mongo (1), and configuration controls (3) also pass. TRON is an unadmitted candidate with34controlled passes and a real429failure; it is not counted. Azure/Oracle hosting stays explicitly deferred. Full ORM/parity/HyperDrive certification remains incomplete. Dated milestones retain their original scope.
+
+Evidence in `TestResults/HostedCqlIntegrationCurrent/`, retained sourceOwner/catalogue and original owner/foreign cohort under `LocalState/COSMIC/HostedQueryAcceptance-SuiOASIS/`. Completion ACK verified against raw native/federated/isolation/replica counts; no replay. Each native response uses one API-reported checkpoint; later queries may use another. Mongo demo records capture private name/description/native-key observations, not independently proved full native object/state snapshots.
+
+| Evidence | SHA256 |
+|---|---|
+| SuiOASIS-native-http.json | `1c63b45d54a1a268f0ebe1ac45ac5e202a6613cc6997d401bf99b58e4d2a444b` |
+| SuiOASIS-client-http-flow.json | `2b3b990994635b9f2ab169a1c665664fedebc7aca8d190a3c9aac2f3399a9011` |
+| SuiOASIS-isolation-http.json | `4b45192d96bdbfaff28f45d54ac37d2f04c9d50ba3f28723439d8c2f3ee2dd89` |
