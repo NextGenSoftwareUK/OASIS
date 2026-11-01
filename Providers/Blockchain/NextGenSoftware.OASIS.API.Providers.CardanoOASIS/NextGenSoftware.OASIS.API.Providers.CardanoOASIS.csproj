@@ -64,6 +64,7 @@
   <ItemGroup>
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" Aliases="BouncyCastleCryptography" />
   </ItemGroup>
+  <ItemGroup><ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" /></ItemGroup>
 </Project>
 
 
