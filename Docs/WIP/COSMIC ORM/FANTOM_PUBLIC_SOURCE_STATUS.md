@@ -25,9 +25,17 @@ Updated 1 November 2026. Protocol qualification passes for an explicit latest-ca
 
 Source source.json322bytes/SHA25686b7ba36bc665a74cd77fa0469c6276156c95967a480e9eadbb1aa09389a5550; durable native-qualified.acknowledged.json binds current proof to it. Preserve owner/addresses and both original diagnostic intents.
 
+## WEB4/local HTTP checkpoint
+
+-40controlled permission/tariff/discovery/preset regressions pass0skips. New explicit CQL_FANTOM_PUBLIC_SOURCE_JSON registration does not alter canonical wallet DNA or default routing.
+- Local shipping HTTP1test passes0skips: native3/2, Mongo5/4, foreign-private0/public3,2SDK-owned private saves/9query receipts. HTTP asserts latest-canonical-at-read metadata on every returned source/copy. Exact ownership/count checks precede verified DB deletion; Mongo stopped/27029absent.
+- Durable web4-local-qualified.acknowledged.json binds both results to the unchanged source. Native/HTTP ACKs keep separate proof fields; no replay of original fixture.
+- Raw web4-controls.trx66591bytes/SHA256650c34c1c86ebae5912592c9c8ee8ac7076ff08f62a9b191a3389591f5ce722c; mongo-http-native.trx3359bytes/SHA256f54b02961294e213c905af4aa75636bf39f6694df1dce10d4b7b8c8308cfea5d, under TestResults/FantomPublicSourceCurrent.
+-8pure publisher controls pass. Protected fantom-public before/candidate snapshots prepared once; public prepared-review.json contains exactly3changed keys/4free30-second presets, original source/DNA/unrelated values preserved. No live mutation yet.
+
 ## Next
 
-Integrate WEB4 source registration, independent free tariff/permission, discovery and4presets; then run local shipping HTTP/Mongo privacy before any Development publication. Complete first hosted native/federation/reuse/privacy/replica cohort before adding sandbox card. Counts45integrated/40hosted/browser5/open35; no hosted Fantom or full ORM claim yet. [Local C# guide](../../Devs/FANTOM_PUBLIC_ACCOUNT_CQL_GUIDE.md).
+WEB4/local HTTP is qualified. Fetch/integrate current Development (new OLAND checkout quote changes must be preserved), verify merged controls, then publish the exact code before applying the reviewed3settings once. Complete first hosted native/federation/reuse/privacy/replica cohort before adding sandbox card. Counts45integrated/40hosted/browser5/open35; no hosted Fantom or full ORM claim yet. [Local C# guide](../../Devs/FANTOM_PUBLIC_ACCOUNT_CQL_GUIDE.md).
 
 ## Current primary references
 
