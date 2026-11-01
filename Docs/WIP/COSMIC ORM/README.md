@@ -50,4 +50,4 @@ The bounded EVM and Bitcoin profiles have hosted HTTP proof within their recorde
 
 [MultiversX/Elrond public account guide](../../Devs/ELROND_PUBLIC_ACCOUNT_CQL_GUIDE.md):34native tests and shared-manager/C# CLI3/2verified; hosted HTTP native3/2+Mongo5/4/reuse/isolation/replicas verified; browser open. [Evidence](ELROND_PUBLIC_SOURCE_STATUS.md).
 
-Radix native resource CQL: [commented C# guide](../../Devs/RADIX_PUBLIC_RESOURCE_CQL_GUIDE.md). 50/50 tests and actual CLI3/2 verified; API/hosting pending. Exact supply strings and one Gateway ledger state per query.
+Radix native resource CQL: [commented C# guide](../../Devs/RADIX_PUBLIC_RESOURCE_CQL_GUIDE.md). 50/50 tests and actual CLI3/2 verified; API/localHTTP green; hosting pending. Exact supply strings and one Gateway ledger state per query.

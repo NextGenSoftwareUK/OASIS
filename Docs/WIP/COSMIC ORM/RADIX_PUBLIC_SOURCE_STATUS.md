@@ -51,3 +51,19 @@ Read-only adapter implemented: exact Bech32m resource identity/kind, signed192-b
 Initial cache-only restore stopped NU1101; existing pinned toolkit2.2.2 then restored into the shared NuGet cache. Initial dotnet-run forwarded build switches to app/printed usage; direct execution of compiled CLI passed. Neither was a native query failure.
 
 Next: query-only API admission/planner tests, local HTTP/Mongo federation, then hosted rollout/card/browser. Counts37 implemented/36tariff/34hosted/5browser. No full ORM/write/consensus claim. [Developer guide](../../Devs/RADIX_PUBLIC_RESOURCE_CQL_GUIDE.md).
+
+## Query admission and local HTTP federation — 1 November 2026
+
+API read-only enrollment/preset planning2, shipping GraphQL schema1, Core tariff1, configuration controls3 and local native HTTP1 all pass with no skips. Required explicit Radix project reference added to the shipping API after first build identified it missing. No fallback paths. Core task commit e4d6e4b274f719a9acee2a0b8a4150ec5e660299 pushed/ls-remote verified.
+
+Actual native endpoint results: Radix3/2, Mongo+Radix5/4, foreign-private0, foreign-public pair3. Two SDK-owned private Mongo saves acknowledged,9receipts; controlled authentication/admission is test infrastructure, not production billing or replication proof. Exact marker-verified DB cosmic_cql_radix_http_demo dropped after success, Mongo owned process stopped/27029absent. Preserve original durable intent/ACKs/cleanup marker; never reseed this green cohort.
+
+- `TestResults/RadixPublicSourceCandidateCurrent/radix-api.trx`, 6547bytes; SHA256 `ee5d0513a905594b7a9190a379d479d219f29822fbf3cea5988c125bd7919a36`.
+- `TestResults/RadixPublicSourceCandidateCurrent/radix-tariff.trx`, 3294bytes; SHA256 `3897d26ade4229a8ab06613158ccbfa6ecebe196be913d64335bab2fccf37fae`.
+- `TestResults/RadixPublicSourceCandidateCurrent/radix-mongo-http.trx`, 3353bytes; SHA256 `a69c1dba9696b430ded1c971e3924514fd477ed71e004a6627af4d94e9b1c92b`.
+- `TestResults/RadixPublicSourceCandidateCurrent/radix-mongo-native-summary.json`, 223bytes; SHA256 `5a36344f3d765302e9271ab0bac8e67a91e0d6a2f2782e1088cbfeccd1d318fe`.
+- `TestResults/RadixPublicSourceCandidateCurrent/config-tests.log`, 106bytes; SHA256 `383a12fba9b5b327054a24ce7e5739569c4f0b6621facd981f2d6a4271063b3c`.
+- `TestResults/RadixPublicSourceCandidateCurrent/sdk-closure.log`, 388bytes; SHA256 `b18bbfd5e5fe62d2de36ddc0de77e6d344d7e93f30817b777092834f19a64885`.
+- `TestResults/RadixPublicSourceCandidateCurrent/idle-worker-cleanup.json`, 75bytes; SHA256 `bd7160e6f1b926126dffa368b5dc48179fb36b078b174c099f47ea4094d5eec6`.
+
+Next: prepare/review protected hosted configuration, selectively assemble verified release excluding red TRON adapter, verify artifact/dependency pins, publish, apply and run one original hosted cohort; then sandbox card/browser. Hosted count remains34; native/API support alone does not increment it.
