@@ -876,14 +876,14 @@ Use `--radix-public <existing-source.json>` for three Mainnet resource definitio
 
 ## Public Azure Blob properties: runnable C# demo
 
-The real public Azure dataset needs no account or subscription. Reuse the retained
-catalogue; queries return three object-property records or a two-record subset.
+The real public Azure dataset needs no account or subscription. Follow the linked
+guide once to create a reusable catalogue; queries return three object-property records or a two-record subset.
 No Parquet contents or source objects are downloaded or written.
 
 ```powershell
 dotnet Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll `
     --azure-blob-public `
-    LocalState/COSMIC/HostedAzureBlobPublicSourceCurrent/source.json
+    LocalState/COSMIC/AzureBlobDemo/source.json
 ```
 
 [AzureBlobPublicWalkthrough.cs](AzureBlobPublicWalkthrough.cs) uses shared manager/LINQ

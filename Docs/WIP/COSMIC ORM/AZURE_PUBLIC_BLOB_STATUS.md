@@ -31,12 +31,12 @@ Durable source LocalState/COSMIC/HostedAzureBlobPublicSourceCurrent/source.json4
 
 ## Hosted candidate
 
-The source-bound native qualification ACK is retained. Six pure publisher controls pass. Protected azure-blob-public before/candidate snapshots were prepared once under LocalState/COSMIC/HostedSourceRolloutCurrent. Public review: TestResults/AzurePublicSourceCurrent/prepared-review.json. Exactly three changed keys: CQL_AZURE_BLOB_PUBLIC_SOURCE_JSON, PREPARED_STORAGE_ADMISSION_JSON and CQL_HOSTED_QUERY_EXAMPLES__AzureStorageOASIS. Four presets, free tariff, canonical DNA/unrelated values unchanged. No settings mutation or deployment yet; exact successful deployed HEAD is required before apply.
+The source-bound native qualification ACK is retained. Six pure publisher controls pass. Protected azure-blob-public before/candidate snapshots were prepared once under LocalState/COSMIC/HostedSourceRolloutCurrent. Public review: TestResults/AzurePublicSourceCurrent/prepared-review.json. Exactly three changed keys: CQL_AZURE_BLOB_PUBLIC_SOURCE_JSON, PREPARED_STORAGE_ADMISSION_JSON and CQL_HOSTED_QUERY_EXAMPLES__AzureStorageOASIS. Four presets, free tariff, canonical DNA/unrelated values unchanged. Code/Core Development refs are published and remote-verified at bccef53d6/d133cc2; app job e6a98438-bf39-444e-89eb-5367322525bc succeeded. All three settings applied once with per-key ACKs and complete candidate equality; one settings rollout8e382a80-86ec-4d1d-8709-ca459f9e9781 is queued at the same release. No replay permitted; exact successful deployed HEAD is required before apply.
 
 ## Next
 
 1. Local HTTP/Mongo gate completed; retained fixture.cleaned.json proves exact owned database deletion. No Mongo listener remains; do not replay.
-2. Actual C# console binary also passes3/2. Next prepare/review free query-only admission and four server presets without modifying canonical DNA, then publish verified code/config.
+2. Actual C# console binary passes3/2; first-time setup recipe now creates one reusable local catalogue, and all3PowerShell blocks parse. Exact code deployment succeeded and the three reviewed settings were applied once. Observe settings job8e382a80-86ec-4d1d-8709-ca459f9e9781 to success; do not redeploy/reapply.
 3. Complete the first hosted cohort with native3/2, paired5/4, repeat reuse, privacy and exact replicas; publish the sandbox card/local guide links only after honest evidence. No green cohort replay.
 
 Limits: key equality/IN only, up to8configured keys, per-object properties/ETags, no shared snapshot, general scans, native mutation or full ORM claim. Browser gates remain separate. [Guide](../../Devs/AZURE_PUBLIC_BLOB_CQL_GUIDE.md) | [Current programme](CURRENT_STATUS.md) | [Resources](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
