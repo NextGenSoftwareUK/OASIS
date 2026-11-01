@@ -56,3 +56,5 @@ Deployment3da7f986 SUCCESS at37a530a87/Core5fd361d (identical tested codeb158bda
 - TestResults\HostedCqlIntegrationCurrent\ArweaveOASIS-native-http.json: 15507bytes; SHA256dca50b8eaf4fc8274a0f001a4389b86cfccaa4d0a4560f440133bb795d02f5f2.
 - TestResults\HostedCqlIntegrationCurrent\ArweaveOASIS-client-http-flow.json: 40733bytes; SHA25633802c3f6f3b2454f5dd175a3c099eb12b49bf5e0e5942b69cfbb53c69fdd075.
 - TestResults\HostedCqlIntegrationCurrent\ArweaveOASIS-isolation-http.json: 6251bytes; SHA2563eead081c4727aebdda90208798a8918476a25e88f1b63c6548da7b96f74aef2.
+
+Website61e85b75a933004d1f005f85f1318fa05ad139de published with guided089a778c/C#b158bda61. Public HTML200/155229bytes/SHA2566fda659c10e90bb99d7636e04b62d3dc343b3a0c36cd85bb5b3f3c3e3c5c94f3 exactly matches committed git blob; compact site-publication.json retained. Browser interaction remains open.
