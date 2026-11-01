@@ -131,3 +131,13 @@ Sei chain0x531/genesis0xf9d3845df25b43b1c6926f3ceda6845c17f5624e12212fd8847d0ba0
 
 The optional seventeen-source candidate contains 68 presets and 19 application settings. The four actual Sei presets pass the shipping planner using shipping source/Mongo capabilities: 1 passed, 0 failed, 0 skipped. Application-scope controls: 7 passed. Earlier candidates are preserved. No hosted variables were applied, and no deployment or hosted acceptance is inferred. Evidence: `TestResults/HostedCqlIntegrationCurrent/sei-prepared-review.trx`; regenerate with the focused `ActualSeiCandidatePlansFourPresetsWithShippingCapabilities` test and retained public review.
 TRX SHA-256: `6dd472c7a76f2c8ec3f01d00bc09519a3662816ba584e7e4fe1693d858f7e9db`.
+
+
+### Berachain next-profile preflight - 1 November2026
+Read-only mainnet qualification passes at https://rpc.berachain.com, chain0x138de, pinned genesisd57819422128da1c44339fc7956662378c17e2213e669b427ac91cd11dfcfb38. Primary references: https://github.com/berachain/morpho-blue-deployment/blob/main/.env.example and https://github.com/berachain/beacon-kit.19source controls/nativeC# tests, actualCLI3/2, API2,Core1,tariff regression22,local HTTP/Mongo1,prepared4preset planner1,configuration3 and client1 pass. No old green native profile rerun. Core08c4977215f55006e6c7b00de62c9a70c1968d9b pushed; parentgitlink/manifest updated together. Source/admission/provider-example3setting candidate prepared, not applied; canonicalDNA byte-identical. New profile is not yet a26thhosted proof. Earlier build-prerequisite failures retained, no native write replay.
+TestResults/EvmBreadthReadinessCurrent/berachain-cql.trx passed=19 SHA256 a9f8e39565f666439672fdb4e9f809b05a67b3c67be6b4e700ffd213e976601d
+TestResults/EvmBreadthReadinessCurrent/berachain-admission.trx passed=2 SHA256 4232e4c5e822fd0c77e1bed9dcb16e4dd537632d62f3b429c0a54c5838bf66c8
+TestResults/EvmBreadthReadinessCurrent/berachain-tariff.trx passed=1 SHA256 3dc2417290958acfdbb23f2b6541b9a342d209122a236ac1958ded4d8505a31b
+TestResults/EvmBreadthReadinessCurrent/berachain-tariff-integration.trx passed=22 SHA256 9a01e320cf56deda718a8fd6bbd2a6d0220616a092e5494d64eef3cb2fba9ef9
+TestResults/EvmBreadthReadinessCurrent/berachain-prepared-review.trx passed=1 SHA256 ab5e36d0a01a4812b261eae9938e49d1bcd223247bde584b40596028737c8292
+TestResults/BerachainPublicSourceCandidateCurrent/berachain-mongo-http.trx passed=1 SHA256 5a8d858656992c145b8e0ba85d05e44d9d443ef0a97e418b4a842f53d78351fa

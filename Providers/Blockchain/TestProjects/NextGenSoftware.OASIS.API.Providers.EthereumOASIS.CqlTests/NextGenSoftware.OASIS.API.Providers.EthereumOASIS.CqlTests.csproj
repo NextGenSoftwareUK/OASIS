@@ -18,6 +18,7 @@
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.BaseOASIS/NextGenSoftware.OASIS.API.Providers.BaseOASIS.csproj" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.OptimismOASIS/NextGenSoftware.OASIS.API.Providers.OptimismOASIS.csproj" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.MonadOASIS/NextGenSoftware.OASIS.API.Providers.MonadOASIS.csproj" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.BerachainOASIS/NextGenSoftware.OASIS.API.Providers.BerachainOASIS.csproj" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.SeiOASIS/NextGenSoftware.OASIS.API.Providers.SeiOASIS.csproj" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS/NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS.csproj" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.AbstractOASIS/NextGenSoftware.OASIS.API.Providers.AbstractOASIS.csproj" />
@@ -45,6 +46,7 @@
     <Compile Include="../../../../Examples/CosmicCqlDemo/BasePublicWalkthrough.cs" Link="PublishedDemo/BasePublicWalkthrough.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/OptimismPublicWalkthrough.cs" Link="PublishedDemo/OptimismPublicWalkthrough.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/MonadPublicWalkthrough.cs" Link="PublishedDemo/MonadPublicWalkthrough.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/BerachainPublicWalkthrough.cs" Link="PublishedDemo/BerachainPublicWalkthrough.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/SeiPublicWalkthrough.cs" Link="PublishedDemo/SeiPublicWalkthrough.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/ZkSyncPublicWalkthrough.cs" Link="PublishedDemo/ZkSyncPublicWalkthrough.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/AbstractPublicWalkthrough.cs" Link="PublishedDemo/AbstractPublicWalkthrough.cs" />

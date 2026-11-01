@@ -22,6 +22,7 @@ static catalogue links do not make a provider available on that host.
 | Cosmos Hub validators | Native/local HTTP3/2, Mongo5/4/isolation and C# CLI verified; hosted HTTP/Mongo/isolation/replica gates verified; browser open |
 | NEAR public account metadata | Native/C#3/2 and original-cohort HTTP+Mongo5/4/isolation verified via FastNear; hosted HTTP/Mongo/isolation/replica gates verified; browser open |
 | Base, Avalanche, BNB, Optimism, Linea, Scroll, zkSync, Abstract, Monad, Sei public balances | Native/C#/CLI and local HTTP/Mongo pairing/isolation verified; hosted HTTP/Mongo/isolation/replica gates verified; browser open |
+| Berachain public balances | Native/C#/CLI and local HTTP/Mongo verified; API admission and four presets pass; hosted/browser pending |
 | Azure Cosmos DB, Oracle | Emulator/local native proofs only; hosted setup deferred by David |
 
 These are scoped evidence statements; [CURRENT_STATUS](CURRENT_STATUS.md) owns
@@ -74,6 +75,7 @@ sorts or terminals are rejected rather than evaluated over an implicit scan.
 | Abstract balance state | AbstractAccountAddress | [EVM walkthroughs](../../Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md) |
 | Monad balance state | MonadAccountAddress | [EVM walkthroughs](../../Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md) |
 | Sei balance state | SeiAccountAddress | [EVM walkthroughs](../../Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md) |
+| Berachain balance state | BerachainAccountAddress | [EVM walkthroughs](../../Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md) |
 
 The new Google/EVM console modes reuse an existing nonsecret catalogue. Build the
 sample with the normal bounded provider lease, then run from your checkout:
