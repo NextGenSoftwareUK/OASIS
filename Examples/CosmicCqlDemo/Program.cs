@@ -42,6 +42,15 @@ if (args.Length == 2 && args[0] == "--sei-public")
     return 0;
 }
 
+// Read explicit historical Arweave keys through shared HolonManager/LINQ.
+// This anonymous profile never signs transactions or scans the chain.
+if (args.Length == 2 && args[0] == "--arweave-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await ArweavePublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Read historical Cardano headers through the shared manager and LINQ planner.
 // No wallet or source transaction is involved; reuse your stable catalogue.
 if (args.Length == 2 && args[0] == "--cardano-public")

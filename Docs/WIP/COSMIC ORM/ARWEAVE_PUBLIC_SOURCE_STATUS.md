@@ -1,6 +1,6 @@
 # Arweave public-source qualification
 
-Updated 1 November 2026. Research only; not admitted to CQL or hosted demo counts.
+Updated 1 November 2026. Native CQL implemented/verified; API and hosted admission remain pending.
 
 The existing Arweave provider is the candidate after Cardano hosted acceptance. Four bounded anonymous reads against https://arweave.net returned HTTP200: `/info` (292 bytes) identifies `arweave.N.1`; `/block/height/269512` (919 bytes) supplies a historical header. No account, wallet, database, transaction or source owner was created.
 
@@ -22,3 +22,11 @@ Three headers now observed at269512/269513/269514; consecutive previous_block li
 Three height responses and the two explicit hash responses now agree exactly; all IDs decode to48bytes, consecutive parent links match, difficulty/cumulative difficulty remain bounded canonical decimal strings, and numeric fields pass exact UInt64 checks. This fixes the candidate wire era to269510<=height<422250, matching the native HTTP manual. No general-era support or independent consensus verification is inferred.
 
 `TestResults/ArweavePublicSourceCandidateCurrent/wire-qualification.json` records native3/2 with CQL=false. Hash responses: hash-269512 919bytes SHA256ba1f75e157154733d85ffd1a8ed53d45249820e6347963223200b1fb0e51e668; hash-269514 1020bytes SHA256bb93c22522fd70b150dcf2396248e61a2c22e30ad17c2bc0fd0fb0193c5870f2. Next: implement and test the read-only CQL adapter using this exact contract, then local manager/CLI before any hosted admission.
+
+## Native CQL adapter verified
+
+The existing Arweave provider now includes an explicit read-only public-header query profile.33controlled checks and1real native CQL test pass with0skips. Shared planner native3/2 selections preserve requested keys, exact values and reject malformed/network/era/identity/partial selections before paging. No chain scan, wallet, database or source write. The actual spaced console walkthrough also passes shared HolonManager/deferred LINQ3/2; build0errors. [Setup, scope and examples](../../Devs/ARWEAVE_PUBLIC_HEADER_CQL_GUIDE.md).
+- TestResults\ArweavePublicSourceCandidateCurrent\cql-controls.trx: 33passed, 51822bytes, SHA2566dc1ac9df530c10ac50d4bc126c1009975b334efef744e531af706a906fca12e.
+- TestResults\ArweavePublicSourceCandidateCurrent\cql-native.trx: 1passed, 2799bytes, SHA256aa8b77d87fd6658865993ff892d3333215db04a6295a933e88ad183c9b60bbf8.
+
+Actual CLI evidence TestResults/ArweavePublicSourceCandidateCurrent/cli-native.log: 1678bytes, SHA256162eb90f37a545be25726877d52480761652ad6e54f50b6c778731b3f593e996. Source catalogue retained at LocalState/COSMIC/HostedArweavePublicSourceCurrent/source.json; preserve owner. Implemented query types40; hosted37/tariffs37/browser5/open32 unchanged. Next Core/API read-only admission, local HTTP/Mongo/privacy and actual prepared presets before hosting.
