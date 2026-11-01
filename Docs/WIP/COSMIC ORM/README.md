@@ -57,3 +57,5 @@ Radix hosted milestone: original cohort completed at74aaa9b4d/Core8b79301 after 
 ## Documentation upkeep at each milestone
 
 Update CURRENT_STATUS.md and the full provider report together with the affected parity checklist, implementation status, roadmaps, demo instructions, manual, architecture and provider guide when their contracts or verified scope change. Record reproducible deferred gaps in AFTER_DEMO_BACKLOG.md, resources in the cleanup ledger, and David-owned actions in the central David list. Keep counts, release references and links consistent; distinguish local tests, hosted HTTP evidence, publication and browser verification. Keep raw output in TestResults/, and retain only compact evidence summaries and paths in reports.
+
+[Starknet candidate: native CQL and shared-manager C# demo](../../Devs/STARKNET_PUBLIC_HEADER_CQL_GUIDE.md) · [evidence and remaining API/hosting gates](STARKNET_PUBLIC_SOURCE_STATUS.md). Not part of the hosted provider count yet.
