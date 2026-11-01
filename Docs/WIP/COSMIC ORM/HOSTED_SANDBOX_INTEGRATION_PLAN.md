@@ -932,3 +932,5 @@ XRPL API milestone1November: explicit read-only profile/admission, four exact sh
 XRPL hosted completion1November: free Ripple endpoint correction74bdf044 SUCCESS/c6e7f14ba/Coree032d0a, native3/2, paired5/4, repeat0new, private0 and replicas2/2. Prior402/expired-empty cohort preserved; explicit post-fix cohort has original ACKs. Counts28HTTP/5browser/23browseropen; no source writes. [Proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-xrpl-acceptance).
 
 Stellar API milestone1November: independent read-only admission, exact four-preset shipping planner and local HTTP3/2+Mongo5/4/private0 pass; protected3setting candidate prepared only. Hosting/browser remain open; live28unchanged. [Proof/next rollout](STELLAR_PUBLIC_SOURCE_STATUS.md#api--local-http-complete).
+
+1 November rollout update: exact application6f4d9a65 SUCCESS at637a6d49f. All three protected Stellar settings observed exactly; one journalled settings deployment3eda0ea7-5238-4a7d-bd91-f47ba2f8102d submitted. Hosted acceptance and website publication remain pending; no new hosted-provider count yet.
