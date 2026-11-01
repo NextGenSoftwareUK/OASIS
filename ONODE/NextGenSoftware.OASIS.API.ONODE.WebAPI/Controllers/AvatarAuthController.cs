@@ -515,11 +515,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (string.IsNullOrEmpty(token))
                 return HttpResponseHelper.FormatResponse(new OASISResult<string>() { Result = "Token is required", IsError = true });
 
-            // users can revoke their own tokens and admins can revoke any tokens
-            if (!Avatar.OwnsToken(token) && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return HttpResponseHelper.FormatResponse(new OASISResult<string>() { Result = "Unauthorized", IsError = true }, HttpStatusCode.Unauthorized);
-
-            var revoked = AvatarManager.RevokeToken(token, ipAddress());
+            // The request avatar is intentionally redacted. Core resolves the exact
+            // refresh credential and checks its authoritative owner before mutation.
+            var revoked = AvatarManager.RevokeToken(token, ipAddress(), Avatar);
             if (!revoked.IsError) AvatarSessionCookie.Clear(HttpContext);
             return HttpResponseHelper.FormatResponse(revoked);
         }
