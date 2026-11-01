@@ -39,9 +39,9 @@ Local page: http://127.0.0.1:5114/. Four content presets return2/4/4/2 physical 
 
 ## Next placement work
 
-Inspect existing hosted database services/configuration without disclosing secrets or provisioning paid resources. Selected provider sections absent from DNA are not proof no existing service/account exists. Add normal hosted read admission, exact trusted catalogue and visitor/replica acceptance only after placement is qualified; never call the local demo hosted PostgreSQL. Broader name/description/metadata capability is already native, so avoid another compiler rewrite.
+David explicitly deferred hosted PostgreSQL on1November2026: "Leave hosted PostgreSQL pending". No owner setup or new paid resource is needed now; continue other demo providers and do not re-ask. Local native/SDK/HTTP proof stays valid in its declared scope. Revisit hosted placement/admission/trusted catalogue/visitor acceptance only when David resumes it; never call the local demo hosted PostgreSQL.
 
 - TestResults/PostgreSqlCqlCurrent/postgres-content-native.trx:1passed/0failed/0skipped, 2783bytes, SHA256546a6bd65f62b9e7d170d96d51a05ed8e02cda3ffa8a4ba0a6b0fcea287d4fb2.
 - TestResults/PostgreSqlCqlCurrent/postgres-content-mongo-federation.trx:1passed/0failed/0skipped, 11478bytes, SHA2564b51c1eecf189d1ff8877810c7f0d955750fa798cc0c79a9c1b549fc8439fa4f.
 
-Hosted placement observation: the OASIS Railway project inventory lists9services and no PostgreSQL service. Existing development database/configuration availability vs deferral is recorded in the central David list and asked once; answer pending. No paid resource, account, database or setting was created. Continue independent Dynamo restoration while waiting.
+Hosted placement observation: the OASIS Railway project inventory lists9services and no PostgreSQL service. David answered the existing central action once: leave hosted PostgreSQL pending. Its status is now explicitly deferred. No paid resource, account, database or setting was created. Continue the other demo providers.
