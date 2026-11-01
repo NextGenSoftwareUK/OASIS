@@ -60,4 +60,4 @@ Update CURRENT_STATUS.md and the full provider report together with the affected
 
 [Starknet candidate: native CQL and shared-manager C# demo](../../Devs/STARKNET_PUBLIC_HEADER_CQL_GUIDE.md) · [evidence and remaining API/hosting gates](STARKNET_PUBLIC_SOURCE_STATUS.md). Not part of the hosted provider count yet.
 
-[Cardano native CQL and shared-manager C# demo](../../Devs/CARDANO_PUBLIC_HEADER_CQL_GUIDE.md):35controls/real3/2/actual CLI3/2pass; API/hosting pending. [Proof and next gate](CARDANO_PUBLIC_SOURCE_STATUS.md#native-cql-and-developer-demo-verified).
+[Cardano native CQL and shared-manager C# demo](../../Devs/CARDANO_PUBLIC_HEADER_CQL_GUIDE.md):35controls/real3/2/actual CLI3/2 plus hosted native3/2/Mongo5/4/reuse/privacy/replicas2/2 pass. Browser open. [Proof and next gate](CARDANO_PUBLIC_SOURCE_STATUS.md#native-cql-and-developer-demo-verified).
