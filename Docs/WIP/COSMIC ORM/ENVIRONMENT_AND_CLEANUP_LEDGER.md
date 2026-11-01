@@ -2311,3 +2311,5 @@ Elrond API/local fixture terminal:2API+1Core+1shipping+1nativeHTTP/config3pass. 
 ### Elrond selective release verification
 
 Same existing worktree/environment/release branch reused; no new clone/worktree/install. TestResults/ElrondPublicSourceCandidateCurrent/release-file-scope.json records41selected/3excluded paths, size unmeasured, regenerable from git revisions. Existing build outputs may contain task-only TRON candidate: release build must remove/recompile source graph and verify type identifier absent from TRON DLL before publication. Bounded lease/API+planner checks; raw release log/TRX under same candidate folder. No DB/port/save replay; previous native HTTP fixture stays green/cleaned.
+
+Elrond selective release terminal:3release API/planner tests pass, actual rebuilt TRON DLL excludes candidate identifier;5SDK closures pass. Release evidence files retained in existing candidate TestResults folder (sizes unmeasured, compact hashes in report). No database/save replay, no owned build/lease/service active. Existing source/profile/rollout state reused. Ready to publish existing service only, no new hosting spend/resources.
