@@ -16,7 +16,7 @@ There are **40 implemented query types**: 3 canonical adapters,35bounded public/
 2. Session lifecycle HTTP proof complete on original avatar, completion ACK retained: do not replay. Frontend9e18b7d published and HTML/JS byte-verified; browser gates remain open. [Proof and limits](SESSION_RENEWAL_STATUS.md).
 3. Arweave hosted acceptance complete on original cohort; completion ACK blocks replay. Arweave card61e85b7 is published/byte-verified with updated guide/C# links. Continue breadth; TON native429 remains isolated, other provider candidates next. [Proof](ARWEAVE_PUBLIC_SOURCE_STATUS.md).
 4. Browser gates:5verified/33open. CUA transport remains closed; David already opened the browser. No OS control resumed or repeated owner request.
-5. TON candidate2764d64e1 on work/cosmic-cql-ton-public:12new query controls pass, live activationHTTP429; earlier23decoder controls+1captured test green. [Evidence](TON_PUBLIC_SOURCE_STATUS.md). Do not merge/deploy as native-ready; no retry/fallback or support-count grant.
+5. TON work/cosmic-cql-ton-public: slow-response pacing defect reproduced/fixed;13affected controls pass. Native activation stillHTTP500 despite individual descriptor diagnostics200/matching. Stop full-flow rechecks; next compare native request URI/bounded error detail. Earlier23decoder+1captured untouched. [Evidence](TON_PUBLIC_SOURCE_STATUS.md). Candidate stays isolated/unadmitted.
 
 ## Guarantees and limits
 

@@ -49,3 +49,14 @@ The candidate is isolated on work/cosmic-cql-ton-public and must not be merged/d
 - TestResults\TonPublicSourceCandidateCurrent\cql-native.trx: 0passed/1failed, 4564bytes, SHA25645215a8d8cca58b6d5d0bd1a116729ac820ea0476d826eda14cc9340e81f6187.
 
 Failure-location correction: original stack ReadAsync line240 in candidate2764d64e1 is the getBlockHeader request; identity validation is line231 and had returned. Earlier summary wording incorrectly called this the identity request. Raw failure/TRX are unchanged; derived summary corrected. Existing generic Web3 signed-provider scaffolding is not proof of TON-native storage; the independent read candidate grants no signed-write certification.
+
+## Reproduced pacing defect fixed; native HTTP500 still red
+
+A slow-response regression failed on the old gate: measuring from dispatch lets DNS/TLS/server latency consume the next admission interval. The single endpoint owner now waits1.1seconds after the preceding request completes; cancellation while waiting does not reset that clock. The affected query suite passes13/13 with0skips; earlier green decoder suite was not rerun. This is a root timing fix, not retry/backoff or a new endpoint.
+
+One explicit native verification after the code change failedHTTP500 on a header request. A bounded diagnostic for the first exact descriptor then returned200/matching payload; one readiness recheck still failed500 and further full-flow checks stopped. Individual remaining descriptor diagnostics also returned200/matching original payloads (859bytes each). Thus the complete runtime flow remains unproved despite independent record availability. Do not infer that all prior429s were caused by the fixed pacing defect.
+- TestResults\TonPublicSourceCandidateCurrent\pacing-repro.trx: 0passed/1failed, 3254bytes, SHA256041bc25c16ab782474bdbad04b683849367bcf986e438510a6072d4731843260.
+- TestResults\TonPublicSourceCandidateCurrent\pacing-fixed-controls.trx: 13passed/0failed, 21372bytes, SHA2567e9e3a85b7ad69a3c3cb80d74f19060896fab72cb80854eb394900adbdb168c4.
+- TestResults\TonPublicSourceCandidateCurrent\native-after-pacing-fix.trx: 0passed/1failed, 4568bytes, SHA256706ea35022b8cc981b6137dd25dbd8c6a1d6c0ddf7a595c23995aa932cc6ad7f.
+- TestResults\TonPublicSourceCandidateCurrent\native-after-diagnostic-ready.trx: 0passed/1failed, 4568bytes, SHA256a6b4450f1b3e5c17f1d9e9d07aa65962b7569cfbaa22a21335919d580db1fc36.
+Next: capture/compare exact native-flow request URI and bounded error detail against successful independent reads, without changing source identity, replacing records, retry loops or alternate endpoints. Keep candidate isolated; hosted38/implemented40/browser5/open33 unchanged. No David action or new environment is required for this investigation.
