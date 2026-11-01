@@ -1,6 +1,6 @@
 # Hosted public-source acceptance — 1 November 2026
 
-Latest: **37 scoped hosted HTTP providers**, including Cardano. Browser proof remains **5**; **32 open**. Earlier evidence retains its original deployment/cohort; historical counts below are not current totals.
+Latest: **38 scoped hosted HTTP providers**, including Arweave. Browser proof remains **5**; **33 open**. Historical counts below retain their original release/cohort.
 
 
 
@@ -401,3 +401,7 @@ Applicationcafd0f8c8/Core8a5ab45, app151477e9 and settings03760bc9 SUCCESS. Nati
 ## Cardano completed
 
 Parentaffe57190/Corebe397f1, app1615af0d/settingscfe35470 SUCCESS. Native3/2, private Mongo federation5/4, repeat0new/2existing, foreign-private0/public3 and SQLite/Neo4j replicas2/2 pass on original cohort; both creates acknowledged version1, no pending preparation intent. Durable completion ACK prevents replay. [Counts, hashes and limits](CARDANO_PUBLIC_SOURCE_STATUS.md#hosted-acceptance-complete). Total29added profiles/58private demo copies/116presets plus earlier8provider proofs. Website5d9845c card is published and exact git-blob bytes verified; browser interaction remains open.
+
+## Arweave completed
+
+Release37a530a87/Core5fd361d job3da7f986 SUCCESS; tested codeb158bda61 unchanged except David-list docs. Original settings job removed, never replayed; whole candidate verified. Native3/2, Mongo5/4, repeat0new/2existing, privacy0private/3public and replicas2/2 pass. Durable completion ACK retained. [Hashes and scope](ARWEAVE_PUBLIC_SOURCE_STATUS.md#hosted-acceptance-complete). Thirty additions now retain60private snapshots/120presets; browser verification separate.

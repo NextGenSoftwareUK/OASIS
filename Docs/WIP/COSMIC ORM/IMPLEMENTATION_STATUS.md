@@ -2,21 +2,21 @@
 
 ## Current verified milestone — 1 November 2026
 
-**37 providers have scoped hosted HTTP evidence; 5 have browser evidence and 32 browser gates remain open.** Cardano passes native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2. Two private saves were acknowledged once. Source writes and browser interaction are not inferred.
+**38 providers have scoped hosted HTTP evidence; 5 have browser evidence and 33 browser gates remain open.** Arweave passes native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2. Two private saves were acknowledged once. Source writes and browser interaction are not inferred.
 
-Latest hosted provider acceptance: parentaffe5719070d7b149d165b901306708e7643fb97/Corebe397f10419cf8b5c0dafc93ff1f4958b88588a2, app1615af0d/settingscfe35470 SUCCESS. Original Cardano cohort completion ACK retained; never replay its writes. Session lifecycle correction passes. Website5d9845c publishes the verified Cardano card with guide64f448f84/C#affe57190. Public HTML153728bytes/SHA2564ebca2803c9c4739e6ac5a15043b7ca4b8feabf55731dd8868be192c6b59f81f exactly matches committed git blob. Browser and real-expiry interaction remain separate open gates.
+Latest hosted acceptance: parent37a530a87e601397f187430728bb9fb02b224f87/Core5fd361db11f5d54e3e99282536d7c7be842edf86, job3da7f986 SUCCESS. This docs-only descendant preserves testedb158bda61 code; original settings jobec59010e was removed and never replayed. Original Arweave cohort completion ACK retained. Website5d9845c is the last byte-verified publication; Arweave card4f22ac3 is staged. Browser/real-expiry gates remain separate.
 
-There are **40 implemented query types**, including locally verified Arweave: 3 canonical adapters,35bounded public/source profiles and2local Azure/Oracle implementations. Arweave33controls/realCQL3/2/manager-CLI3/2/API3/localHTTP1/actual-presets1 pass; hosted admission is next. Cardano native35controls/realCQL3/2/manager-CLI3/2, API/local HTTP and hosted visitor federation/reuse/isolation/replicas pass. Deployed tariffs37/hosted37/browser5/open32. Full ORM/EF parity/HyperDrive certification remains incomplete.
+There are **40 implemented query types**: 3 canonical adapters,35bounded public/source profiles and2local Azure/Oracle implementations. Arweave native/control/manager/API/local and hosted federation/reuse/privacy/replica gates pass. Deployed tariffs38/hosted38/browser5/open33. TON candidate controls pass but nativeHTTP429 remains red and isolated; no TON support grant. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
 
 Updated1November2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state; [checklist](CQL_PARITY_CHECKLIST.md) owns acceptance. Full programme incomplete.
 
-- 37 providers have scoped hosted HTTP proof: earlier8 plus29additions. Browser proof remains5;32open. [Fresh evidence](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
+- 38 providers have scoped hosted HTTP proof: earlier8 plus30additions. Browser proof remains5;33open. [Fresh evidence](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
 - Each addition passed native3/2, private Mongo preparation, paired5/4, repeat zero writes, foreign-private zero and matching SQLite/Neo4j replicas. Public projections are not owned native chain writes/full ORM.
 - Live applicationc6e7f14ba/Coree032d0a and XRPL endpoint correction74bdf044 succeeded. Strict partitions preserve68original plus12Berachain/Bitcoin/XRPL presets. Polkadot publish root cause fixed.
 - Original12investor-demo scopes are green on MongoDB/SQLite/Neo4j. Their query checklist has50/82green rows per database; overlapping/uneven rows are not an overall parity percentage.
 - Live three-store candidate routing/failover passes. Native six-route recovery/interleaving and three-authority ACK-loss/disconnect proofs remain scoped. Broader operator/transport, optimality, scale and write-authority cutover remain open.
-- Deployed37unsigned tariff types do not imply hosted proofs or signed-write grants. Mixed-role admission fence retained.
+- Deployed38unsigned tariff types do not imply hosted proofs or signed-write grants. Mixed-role admission fence retained.
 - Hosted Azure/Oracle explicitly deferred. Deep post-selected All/element/numeric parity, unrestricted POCO mapping and migrations tooling paused for breadth.
 - Durable identities/ACKs only LocalState; raw evidence only TestResults. Reuse existing resources. [Ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 
