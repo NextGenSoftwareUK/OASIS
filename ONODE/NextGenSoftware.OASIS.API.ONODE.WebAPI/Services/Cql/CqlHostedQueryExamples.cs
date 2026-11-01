@@ -50,8 +50,34 @@ public sealed class CqlHostedQueryExamples
     private static readonly Guid ExampleActor = Guid.Parse("00000000-0000-0000-0000-000000000001");
     private readonly Dictionary<ProviderType, IReadOnlyList<CqlHostedQueryExample>> examples = new();
 
+    // Partition large catalogues by provider so each deployment variable remains
+    // bounded. The existing shared catalogue and named sections compose strictly:
+    // conflicting ownership is an error, never an override or fallback.
+    public const string ProviderConfigurationSection = "CQL_HOSTED_QUERY_EXAMPLES";
+
     public static CqlHostedQueryExamples FromConfiguration(IConfiguration configuration)
-        => FromJson(configuration[ConfigurationKey]);
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        var shared = configuration[ConfigurationKey];
+        var result = FromJson(shared);
+        var children = configuration.GetSection(ProviderConfigurationSection).GetChildren().Take(129).ToArray();
+        if (children.Length > 128)
+            throw new ArgumentException("A bounded provider example catalogue is required.");
+        long total = shared?.Length ?? 0;
+        foreach (var child in children)
+        {
+            if (child.Value == null || child.GetChildren().Any())
+                throw new ArgumentException("Each provider example section must contain one JSON request array.");
+            total += child.Key.Length + child.Value.Length;
+            if (total > 262144)
+                throw new ArgumentException("Combined CQL example configuration exceeds its work budget.");
+            var partition = FromJson("{" + JsonSerializer.Serialize(child.Key) + ":" + child.Value + "}");
+            foreach (var pair in partition.examples)
+                if (!result.examples.TryAdd(pair.Key, pair.Value))
+                    throw new ArgumentException("A provider's CQL examples must have exactly one configuration owner.");
+        }
+        return result;
+    }
 
     public static CqlHostedQueryExamples FromJson(string json)
     {
