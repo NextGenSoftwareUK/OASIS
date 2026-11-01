@@ -6,9 +6,9 @@ David explicitly waived the daily Development push limit for live demo testing/f
 
 ## Current rollout
 
-Packaging correction89681ce40/Core56c869f deployedSUCCESS (job5e6a80b0). Guarded enrollment applied and verified17source settings plus admission; the final combined preset catalogue40,443characters was rejected by Railway's32768-character limit. Existing shared catalogue remains unchanged, no unrelated drift. Original intent and protected explicit-continuation error retained; no uncertain holon/save replay. No settings rollout was triggered.
+Provider-partition configuration4e0d58f08/Core56c869f deployedSUCCESS (job8444dbca). All18source/admission settings and17provider preset partitions now match their preserved candidates exactly; no unrelated drift. Each partition is at most2399characters; all68new presets retained. Original rejected combined-catalogue intent/outcome remains preserved and is not retried.
 
-Root fix: provider-partitioned preset configuration with strict ownership/total bounds. Preserves shared catalogue and all68new presets; each new variable at most2399characters.17APItests (including shipping68preset planner) and3Python controls pass. Development4e0d58f08 pushed and remote-verified; exact job8444dbca-3156-46dc-9583-90ba444b4003 QUEUED; after its SUCCESS apply17partition variables from preserved candidate and perform one intended settings rollout, then live source acceptance.
+One intended settings rollout of the same artifact is BUILDING: aff4bf53-41eb-4e03-9811-dc4f809c3e50 at4e0d58f08. Track this exact job, then run hosted Google/chain native+Mongo/preparation/reuse/isolation/replica gates. Do not create avatars/saves before SUCCESS or replay successful/uncertain cohorts. Standing user authorization permits necessary Development demo pushes without cadence questions.
 
 ## Active deployment
 
