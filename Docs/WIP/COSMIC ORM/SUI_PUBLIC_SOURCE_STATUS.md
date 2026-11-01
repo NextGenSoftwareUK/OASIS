@@ -30,3 +30,11 @@ Primary references: [current Sui RPC status](https://docs.sui.io/references/sui-
 3. Independent query admission, native/Mongo presets, shipping planner, local HTTP/Mongo privacy and focused client preparation.
 4. Guarded hosted rollout, native3/2+paired5/4, repeat reuse, foreign-private0 and replica checks; retain original save intents/ACKs.
 5. Publish sandbox/local-demo links and verify browser interaction separately. No provider-count promotion before the corresponding gate passes.
+
+## Native CQL complete — 1 November 2026
+
+30 native tests pass without skips, including real shared HolonManager 3/2; actual `--sui-public` CLI also passes 3/2. One read-only GraphQL query binds all object addresses under one checkpoint. Strict genesis, identity, complete-page, digest encoding, UInt53 precision, response-size and cancellation validation is covered. No source mutations, new SDK or runtime installs.
+
+- `TestResults/SuiPublicSourceCandidateCurrent/sui-source.trx`: SHA256 `2232c8efe7166ce3f0006ed4853c538db9987752250c2faad03ef1763b8fa212`.
+- `TestResults/SuiPublicSourceCandidateCurrent/demo-run.log`: SHA256 `d5431694cf2426b5d1952f8143dfb9f5260e335892a35642041cf5d47c8ce1ea`.
+- Existing catalogue/sourceOwner retained. API admission, local HTTP/Mongo, hosted acceptance and sandbox browser gates remain open; previous implementation/test gates above are complete.
