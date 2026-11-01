@@ -15,6 +15,8 @@ import urllib.error
 import urllib.request
 import uuid
 
+import HostedSessionCredentials as session_credentials
+
 ROOT = Path(__file__).resolve().parents[2]
 BASE = "https://dev.api.web4.oasisomniverse.one/api/"
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
@@ -29,20 +31,29 @@ def write_new(path, data):
         os.fsync(stream.fileno())
 
 
-def call(route, token=None, body=None, method="POST", operation=None):
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, request, response, code, message, headers, url):
+        return None
+
+
+def call(route, token=None, body=None, method="POST", operation=None, *, cookie_header=None, capture_auth=None):
     headers = {"Accept": "application/json", "Idempotency-Key": operation or str(uuid.uuid4())}
     if token:
         headers["Authorization"] = "Bearer " + token
+    if cookie_header:
+        headers["Cookie"] = cookie_header
     if body is not None:
         headers["Content-Type"] = "application/json"
     request = urllib.request.Request(BASE + route, method=method, headers=headers,
                                     data=json.dumps(body).encode() if body is not None else None)
     try:
-        response = urllib.request.urlopen(request, timeout=45)
+        response = urllib.request.build_opener(NoRedirect()).open(request, timeout=45)
     except urllib.error.HTTPError as error:
         response = error
     with response:
         raw = response.read(2 * 1024 * 1024 + 1)
+        if capture_auth is not None:
+            capture_auth(response.status, raw, response.headers.get_all("Set-Cookie") or [])
         if len(raw) > 2 * 1024 * 1024:
             raise RuntimeError("HTTP proof exceeds its response budget.")
         if not raw:
@@ -60,23 +71,42 @@ def session(state, label, *, allow_create=True):
     ack = state / (label + ".acknowledged.json")
     token_file = state / (label + ".dpapi")
     intent = state / (label + ".intent.json")
+    session_file = state / (label + ".session.dpapi")
     if ack.exists():
+        acknowledged = json.loads(ack.read_text())
+        if acknowledged.get("credentialsSchema") == 1:
+            session_credentials.no_pending_rotation(state, label)
+            credential = session_credentials.validate(json.loads(verification.protected_token(
+                session_file.read_bytes(), decrypt=True)), acknowledged["id"])
+            if session_credentials.claims(credential["jwtToken"])["exp"] <= datetime.datetime.now(datetime.timezone.utc).timestamp():
+                credential = session_credentials.rotate(state, label, credential, call, verification.protected_token, write_new)
+            return acknowledged, credential["jwtToken"]
+        # Retained unversioned cohorts own only their original JWT. Never guess a
+        # refresh format or create a replacement identity for an expired legacy fixture.
         token = verification.protected_token(token_file.read_bytes(), decrypt=True).decode()
-        claims = json.loads(base64.urlsafe_b64decode(token.split('.')[1] + '==='))
+        claims = session_credentials.claims(token)
         if claims["exp"] <= datetime.datetime.now(datetime.timezone.utc).timestamp():
-            raise RuntimeError("Acknowledged session expired; no automatic replacement. Preserve its cohort and explicitly plan a fresh acceptance cohort.")
-        return json.loads(ack.read_text()), token
+            raise RuntimeError("Acknowledged legacy session expired without retained cookie credentials; reconcile the same cohort explicitly.")
+        return acknowledged, token
     if not allow_create:
         raise RuntimeError("Selected read-only cohort has no acknowledged session; no replacement created.")
-    if intent.exists() or token_file.exists():
+    if intent.exists() or token_file.exists() or session_file.exists():
         raise RuntimeError("Unacknowledged session creation; reconcile, never create another avatar.")
     operation = str(uuid.uuid4())
     write_new(intent, json.dumps({"route": "sandbox/session", "operationId": operation, "label": label}).encode())
-    result = call("sandbox/session", operation=operation)
+    captured = []
+    def capture(status, raw, cookies):
+        write_new(state / (label + ".auth-response.dpapi"), verification.protected_token(json.dumps({
+            "status": status, "bodyBase64": base64.b64encode(raw).decode(), "cookies": cookies}).encode()))
+        captured.append((status, cookies))
+    result = call("sandbox/session", operation=operation, capture_auth=capture)
     identity = verification.acknowledged_identity("sandbox/session", result)
     avatar = result["result"]
-    write_new(token_file, verification.protected_token(avatar["jwtToken"].encode()))
-    recorded = {"id": identity, "username": avatar["username"], "label": label, "operationId": operation}
+    if len(captured) != 1 or captured[0][0] != 200:
+        raise RuntimeError("Session cookie issuance outcome is incomplete; no replacement avatar.")
+    credential = session_credentials.bundle(identity, avatar["jwtToken"], captured[0][1])
+    write_new(session_file, verification.protected_token(json.dumps(credential).encode()))
+    recorded = {"id": identity, "username": avatar["username"], "label": label, "operationId": operation, "credentialsSchema": 1}
     write_new(ack, json.dumps(recorded).encode())
     return recorded, avatar["jwtToken"]
 

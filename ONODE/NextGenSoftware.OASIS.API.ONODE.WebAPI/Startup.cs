@@ -34,6 +34,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
                 .WithExposedHeaders("X-OASIS-Operation-Id");
 
+        internal const string SessionCookieOrigin = "https://web4.oasisomniverse.one";
+
+        internal static void ConfigureSessionCookieCorsPolicy(CorsPolicyBuilder policy)
+            => policy.WithOrigins(SessionCookieOrigin).AllowCredentials().AllowAnyMethod().AllowAnyHeader()
+                .WithExposedHeaders("X-OASIS-Operation-Id");
+
+        internal static void ConfigureBrowserCors(IApplicationBuilder app)
+        {
+            // Cookie access requires an explicit trusted origin. Other applications
+            // retain the existing public bearer-token policy, with no cookie grant.
+            static bool CookieOrigin(HttpContext context)
+                => context.Request.Headers.Origin.ToString() == SessionCookieOrigin;
+            app.Use(async (context, next) =>
+            {
+                context.Response.Headers.AppendCommaSeparatedValues("Vary", "Origin");
+                await next();
+            });
+            app.UseWhen(CookieOrigin, branch => branch.UseCors(ConfigureSessionCookieCorsPolicy));
+            app.UseWhen(context => !CookieOrigin(context), branch => branch.UseCors(ConfigureCorsPolicy));
+        }
+
         private string VERSION
         {
             get
@@ -780,7 +801,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //app.UseSession();
 
             // global cors policy — open to any origin so OASIS APIs are pluggable everywhere
-            app.UseCors(ConfigureCorsPolicy);
+            ConfigureBrowserCors(app);
 
             //TODO: Was this, check later...
             //app.UseCors(MyAllowSpecificOrigins);
