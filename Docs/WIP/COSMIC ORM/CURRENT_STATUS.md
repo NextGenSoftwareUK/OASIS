@@ -19,7 +19,7 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 - Two live settings changed after preparation. Explicit reviewed revision ton-public-duration-oland preserves all current unrelated values; only three TON keys differ, and their values/public review bytes equal the tested candidate.
 - Protected before/candidate snapshots: LocalState/COSMIC/HostedSourceRolloutCurrent/ton-public-duration-oland-*.dpapi. Public review: TestResults/TonPublicSourceCandidateCurrent/ton-duration-oland-prepared-review.json.
 - All three ton-public-duration-oland settings applied once under exact fb29aa936 release/HEAD guard. Per-key ACK hashes and whole candidate matched. Earlier candidates are stale; never replay any apply.
-- One journalled settings deployment e3ae497c-3f19-45b2-a577-b0fc40a7ae6b at fb29aa936 is BUILDING. Original rollout intent/protected outcome retained; no hosted acceptance session or card yet.
+- One journalled settings deployment e3ae497c-3f19-45b2-a577-b0fc40a7ae6b at fb29aa936 is BUILDING. Original rollout intent/protected outcome retained; no hosted acceptance session yet. TON card staged on website task25733b4, not main.
 
 ## Exact next steps
 

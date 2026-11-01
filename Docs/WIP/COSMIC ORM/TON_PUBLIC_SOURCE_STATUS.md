@@ -31,7 +31,7 @@ Updated 1 November 2026. Local CQL, HTTP federation and privacy checks pass. Hos
 - Two concurrent baseline changes were preserved in reviewed revision ton-public-duration-oland. Three TON values/public review bytes matched the tested candidate; publisher controls 5/5 pass.
 - Exact HEAD/live-release guard and full baseline check passed. All three settings applied once with skip-deploys; per-key ACK hashes and complete candidate matched. No source/wallet DNA changes.
 - One journalled settings job e3ae497c-3f19-45b2-a577-b0fc40a7ae6b is BUILDING at exact fb29aa936. Original rollout intent/protected outcome retained under LocalState/COSMIC/HostedSourceRolloutCurrent. Never replay apply or deployment.
-- Earlier ton-public and ton-public-duration snapshots are stale. Revised before/candidate snapshots and all three mutation intents/ACKs are preserved. No TON hosted acceptance session or card yet.
+- Earlier ton-public and ton-public-duration snapshots are stale. Revised before/candidate snapshots and all three mutation intents/ACKs are preserved. No TON hosted acceptance session yet. Website task25733b4 stages the spaced TON command and pinned fb29aa936 guide/C# links; not published to main.
 - Observe this exact settings job. After SUCCESS verify whole candidate still matches, then run Verify-HostedQuerySource.py TONOASIS --prepare once on the task branch. Preserve the original cohort across failures; only explicitly reconcile unfinished stages.
 - Prove native 3/2, paired 5/4, reuse 0/2, privacy 0/3 and exact SQLite/Neo4j copies, record completion ACK, then publish the TON card with pinned local demo/guide links. Hosted count stays 38 until proved.
 
