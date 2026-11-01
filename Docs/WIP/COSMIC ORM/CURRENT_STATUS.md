@@ -1,4 +1,4 @@
-# COSMIC ORM / CQL â€” current status
+# COSMIC ORM / CQL — current status
 
 Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth-first live demo. Deep LINQ parity remains paused.
 
@@ -13,7 +13,7 @@ There are **37 implemented query types**: 3 canonical adapters, 32 bounded publi
 ## Exact next step
 
 1. Radix card published/byte-verified at website0228db6; setup guide74ccc3752/C#74aaa9b4d linked. Original HostedQueryAcceptance-RadixOASIS completion ACK exists: do not replay saves or create a new owner.
-2. Session renewal root correction locally passes16API/80client/9credential-tool tests. [Exact rollout steps](SESSION_RENEWAL_STATUS.md): server4434e2c28 deployed successfully (job6402f4ec-b203-42a5-8508-589f683708fc); initial live cookie validation reproduced Secure=false from uncleared proxy defaults. Proxy fixb0b308037 passes16API checks; deployment e52770a9 SUCCESS. Original session securely rotated; logout rejects owner because JWT avatar is redacted. Fix authoritative token ownership before continuing the preserved original cohort (no replacement avatar), then publish staged frontend. No bearer lifetime extension, new-avatar fallback or replayed writes. Current live page remains0228db6 until server passes.
+2. Session renewal: proxy correctionb0b308037/e52770a9 SUCCESS. Same original avatar securely rotated, but logout returned Unauthorized because request-avatar token lists are redacted. Coreb835014 moves authorization to the exact token-owner lookup;5V2 tests pass, API consumer16/16pass. Correctiond9332469d/Coreb835014 pushed; exact job9724c407-ac0c-4624-ac5e-fed6c8dec493 QUEUED. [Exact rollout](SESSION_RENEWAL_STATUS.md). Preserve original rejection; use explicit --continue-rejected-revoke after corrected deployment, not another session or blind retry. Frontend remains0228db6 until lifecycle passes.
 3. Continue Starknet: guarded native spec/chain/genesis and explicitly selected headers3/2pass, including parent links and repeated result equality. Native CQL31controls + real3/2and actual manager/CLI3/2now pass. Next explicit API/local HTTP admission before hosting. TRON's real429remains red; no blind retry or grant.
 4. Browser gates:5verified/30open. CUA transport remains closed; David already opened the browser. No OS control resumed or repeated owner request.
 
@@ -39,4 +39,4 @@ There are **37 implemented query types**: 3 canonical adapters, 32 bounded publi
 - Continuation tests: node --test Scripts/Sandbox/test_hosted_source_continuation.cjs. Completed hosted cohorts stay frozen.
 - Fetch before integration, preserve concurrent changes, non-force Development pushes allowed for live demo verification. Red TRON adapter/test changes remain excluded from releases.
 
-[Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) Â· [manual](CQL_MANUAL.md) Â· [architecture](CQL_ARCHITECTURE.md) Â· [checklist](CQL_PARITY_CHECKLIST.md) Â· [backlog](AFTER_DEMO_BACKLOG.md) Â· [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
+[Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) · [manual](CQL_MANUAL.md) · [architecture](CQL_ARCHITECTURE.md) · [checklist](CQL_PARITY_CHECKLIST.md) · [backlog](AFTER_DEMO_BACKLOG.md) · [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
