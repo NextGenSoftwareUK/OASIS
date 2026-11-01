@@ -8,7 +8,7 @@ David authorizes necessary Development pushes for live demo testing/fixes withou
 
 All21addedprofiles passed hosted HTTP/client-module acceptance: original17plusBerachain/Bitcoin/XRPL/Stellar. Combined with earlier8proofs, **29 providers** have scoped hosted HTTP evidence. Browser proof remains **5**, with **24 open**. Earlier eight-provider acceptance was not broadly rerun.
 
-Live application: Development **637a6d49fecceb047bb17025169d8632e2d3082e**, Core **2dd3c379a04ef164fec8f419f07383dabe366dce**. Exact Stellar settings deployment **3eda0ea7-5238-4a7d-bd91-f47ba2f8102d SUCCESS**; protected3setting candidate exact. Stellar native/Mongo/isolation/replica HTTP gates pass; durable completion ACK retained. No source writes.
+Live application: Development **7a9ca308e5a4c94a6529b1848e41571d1180d3b7**, Core **c17db5f5a062822c92f2f7250fe60e484b4e5967**. Exact Stellar settings deployment **3eda0ea7-5238-4a7d-bd91-f47ba2f8102d SUCCESS**; protected3setting candidate exact. Stellar native/Mongo/isolation/replica HTTP gates pass; durable completion ACK retained. No source writes.
 
 Website main **d88a0a4** serves byte-identical committed Stellar-inclusive HTML, SHA256 **be55fc9b52d099588c50cf400d78d6652d315fc698ced617dc6c988c7c285fcc**. Readable CLI/guide/commented C# links published; focused Stellar client test passes. Browser proof remains separate.
 
@@ -25,7 +25,7 @@ Website main **d88a0a4** serves byte-identical committed Stellar-inclusive HTML,
 
 Each new profile proves native **3/2**, two private Mongo creates, paired **5/4**, repeat **0** new / **2** existing, foreign-private **0**, and **2** matching rows on each of SQLite/Neo4j. Total **42** private snapshots across the21additions. No source/chain writes or browser proof inferred.
 
-[Fresh proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). [Every provider project](PROVIDER_CQL_AND_SANDBOX_STATUS.md) covers the maintained229-project inventory. Core's31query-tariff types are not31hosted certifications.
+[Fresh proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). [Every provider project](PROVIDER_CQL_AND_SANDBOX_STATUS.md) covers the maintained229-project inventory. Core's32query-tariff types are not32hosted certifications.
 
 ## Root causes resolved
 
@@ -48,7 +48,8 @@ Stellar passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/publ
 
 ## Exact next work
 
-1. Next: observe exact Algorand app7bb36bf0-4f29-4869-8a97-c2f305876b40 (BUILDING) at parent7a9ca308e5a4c94a6529b1848e41571d1180d3b7/Corec17db5f. After SUCCESS, fast-forward existing frozen release branch, guarded3setting application and one journalled settings rollout. Then hosted visitor proof/card. [Local proof](ALGORAND_PUBLIC_SOURCE_STATUS.md#api-and-local-http-complete). No settings applied yet; no green save replay.
+1. Next: observe exact Algorand settings deploymentf3ee7f37-769e-4c02-b70c-7b54837a6e45 until SUCCESS. Exact app7bb36bf0 SUCCESS at7a9ca308e/Corec17db5f; all3settings observed/candidate exact and rollout intent/outcome retained. Then normal visitor native/Mongo/isolation/replica proof and staged card. [Local proof](ALGORAND_PUBLIC_SOURCE_STATUS.md#api-and-local-http-complete). No visitor cohort yet; no green save replay.
+
 Aptos native milestone:26tests+actualCLI3/2 pass, shared-manager execution verified.33implemented query types; API2+Core1+nativeHTTP1 pass, privateMongo5/4/private0 verified. Later task-only Coree845c62 stays out of Algorand7a9ca308e release; candidate preparation/hosting next after Algorand. Original catalogue/sourceOwner retained. [Proof and next gates](APTOS_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
 
 2. Browser gates remain open for24providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
@@ -56,7 +57,7 @@ Aptos native milestone:26tests+actualCLI3/2 pass, shared-manager execution verif
 
 ## Recovery/resources
 
-- Work/build/test only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public. Frozen public release branch637a6d49f. Unknown root logs untouched.
+- Work/build/test only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public. Frozen public release branch7a9ca308e. Unknown root logs untouched.
 - Durable source identities/tokens/save intents/ACKs: LocalState/COSMIC. Fresh completion hashes: HostedQueryAcceptance-<Provider>/cql-http-acceptance.acknowledged.json. Never regenerate owners or replay uncertainty after cleanup.
 - Protected settings snapshots/intents/outcomes: HostedSourceRolloutCurrent. Preserve rejected combined-catalogue and successful partition journals. Raw output only TestResults/HostedCqlIntegrationCurrent, never Docs.
 - No new runtime/environment/container/download in this rollout. Reuse pinned resources. Latest free C:79873458176bytes; no attribution to unmeasured external changes. [Ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
