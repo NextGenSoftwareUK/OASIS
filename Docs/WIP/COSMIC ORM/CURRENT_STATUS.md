@@ -8,7 +8,7 @@ David authorizes necessary Development pushes for live demo testing/fixes withou
 
 All22addedprofiles passed hosted HTTP/client-module acceptance: original17plusBerachain/Bitcoin/XRPL/Stellar/Algorand. Combined with earlier8proofs, **30 providers** have scoped hosted HTTP evidence. Browser proof remains **5**, with **25 open**. Earlier eight-provider acceptance was not broadly rerun.
 
-Live application: Development **7a9ca308e5a4c94a6529b1848e41571d1180d3b7**, Core **c17db5f5a062822c92f2f7250fe60e484b4e5967**. Exact Algorand settings deployment **f3ee7f37-769e-4c02-b70c-7b54837a6e45 SUCCESS**; protected3setting candidate exact. Native/Mongo/isolation/replica HTTP gates pass; durable completion ACK retained. No source writes.
+Live application: Development **1cfb893c80166bf497c3112de359126a8a456fa4**, Core **e845c62261a74ae800c89a4175daddf0cc9d8f16**. Exact Aptos app **bb19d2ab SUCCESS**; protected3setting candidate applied/observed exactly. One settings deployment **1c100994-b781-41e5-a239-fed9ecf14511** submitted; hosted acceptance pending. Algorand proof remains bound to7a9ca308e/f3ee7f37.
 
 Website main **ada6e92** serves byte-identical committed Algorand-inclusive HTML, SHA256 **cfff7aa51aafe061966682309ed258ca3e000d313b79c9dbdf678224375c95be**. Spaced CLI/guide/commented C# links published; focused client test1pass. Aptos card remains task-only; browser proof separate.
 
@@ -25,7 +25,7 @@ Website main **ada6e92** serves byte-identical committed Algorand-inclusive HTML
 
 Each new profile proves native **3/2**, two private Mongo creates, paired **5/4**, repeat **0** new / **2** existing, foreign-private **0**, and **2** matching rows on each of SQLite/Neo4j. Total **44** private snapshots across the22additions. No source/chain writes or browser proof inferred.
 
-[Fresh proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). [Every provider project](PROVIDER_CQL_AND_SANDBOX_STATUS.md) covers the maintained229-project inventory. Core's32query-tariff types are not32hosted certifications.
+[Fresh proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). [Every provider project](PROVIDER_CQL_AND_SANDBOX_STATUS.md) covers the maintained229-project inventory. Core's33query-tariff types are not33hosted certifications.
 
 ## Root causes resolved
 
@@ -48,7 +48,7 @@ Algorand passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/pub
 
 ## Exact next work
 
-1. Next: observe exact Aptos applicationbb19d2ab-c34e-492a-9274-5e49c6e4c3b5 (BUILDING), parent1cfb893c80166bf497c3112de359126a8a456fa4/Coree845c62261a74ae800c89a4175daddf0cc9d8f16. After SUCCESS, fast-forward existing frozen release branch, guarded3setting application and one journalled rollout. Then visitor HTTP/Mongo/privacy/replica checks and staged Aptos card. Candidate prepared only; no visitor cohort or save replay.
+1. Next: observe exact Aptos settings deployment1c100994-b781-41e5-a239-fed9ecf14511 until SUCCESS. Exact appbb19d2ab SUCCESS at1cfb893c8/Coree845c62; all3settings observed/whole candidate exact, rollout intent/outcome retained. Then visitor HTTP/Mongo/privacy/replica checks and staged card. No hosted cohort yet; no green save replay.
 
 Aptos native milestone:26tests+actualCLI3/2 pass, shared-manager execution verified.33implemented query types; API2+Core1+nativeHTTP1 pass, privateMongo5/4/private0 verified. Aptos batch published to Development; Algorand proof remains bound to7a9ca308e; protected candidate/actual4preset planner pass; hosting next after Algorand. Original catalogue/sourceOwner retained. [Proof and next gates](APTOS_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
 
@@ -59,7 +59,7 @@ Hedera/Hashgraph native milestone:22tests+actualCLI3/2 pass through shared manag
 
 ## Recovery/resources
 
-- Work/build/test only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public. Frozen public release branch7a9ca308e. Unknown root logs untouched.
+- Work/build/test only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public. Frozen public release branch1cfb893c8. Unknown root logs untouched.
 - Durable source identities/tokens/save intents/ACKs: LocalState/COSMIC. Fresh completion hashes: HostedQueryAcceptance-<Provider>/cql-http-acceptance.acknowledged.json. Never regenerate owners or replay uncertainty after cleanup.
 - Protected settings snapshots/intents/outcomes: HostedSourceRolloutCurrent. Preserve rejected combined-catalogue and successful partition journals. Raw output only TestResults/HostedCqlIntegrationCurrent, never Docs.
 - No new runtime/environment/container/download in this rollout. Reuse pinned resources. Latest free C:78870900736bytes; no attribution to unmeasured external changes. [Ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
