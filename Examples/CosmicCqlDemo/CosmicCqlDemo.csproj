@@ -41,4 +41,5 @@
   </ItemGroup>
   <ItemGroup><ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/NextGenSoftware.OASIS.API.Providers.RadixOASIS.csproj" /></ItemGroup>
   <ItemGroup><ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.StarknetOASIS/NextGenSoftware.OASIS.API.Providers.StarknetOASIS.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CardanoOASIS/NextGenSoftware.OASIS.API.Providers.CardanoOASIS.csproj" /></ItemGroup>
 </Project>
