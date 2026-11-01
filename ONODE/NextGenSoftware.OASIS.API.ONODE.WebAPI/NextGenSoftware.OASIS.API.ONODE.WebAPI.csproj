@@ -60,6 +60,7 @@
     <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.XRPLOASIS/NextGenSoftware.OASIS.API.Providers.XRPLOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AptosOASIS/NextGenSoftware.OASIS.API.Providers.AptosOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.StellarOASIS/NextGenSoftware.OASIS.API.Providers.StellarOASIS.csproj" />
   </ItemGroup>
