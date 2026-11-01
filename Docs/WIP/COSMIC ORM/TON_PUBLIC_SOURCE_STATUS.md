@@ -1,6 +1,6 @@
 # TON public-source status
 
-Updated 1 November 2026. Local CQL, HTTP federation and privacy checks pass. Hosted rollout and browser acceptance remain open; full ORM parity is incomplete.
+Updated 1 November 2026. Local CQL, HTTP federation and privacy checks pass. Hosted HTTP acceptance now passes; browser acceptance remains open; full ORM parity is incomplete.
 
 ## Verified scope
 
@@ -25,15 +25,14 @@ Updated 1 November 2026. Local CQL, HTTP federation and privacy checks pass. Hos
 - Complete selected headers validated before paging. Bounded operator error detail retained without partial rows.
 - Gateway observations do not independently prove consensus or universal archive availability.
 
-## Deployment and exact next step
+## Hosted milestone and exact next step
 
-- Reviewed parent fb29aa936870dcfb3182102642e5997b2cedd90f / Core 2ac915f709ded7aabcd28a9db02aaea92fc52d97 deployed successfully: job 571cb5f0-85f4-40fa-9d99-568339833b3e SUCCESS. Combined integration controls 32/32 pass.
-- Two concurrent baseline changes were preserved in reviewed revision ton-public-duration-oland. Three TON values/public review bytes matched the tested candidate; publisher controls 5/5 pass.
-- Exact HEAD/live-release guard and full baseline check passed. All three settings applied once with skip-deploys; per-key ACK hashes and complete candidate matched. No source/wallet DNA changes.
-- One journalled settings job e3ae497c-3f19-45b2-a577-b0fc40a7ae6b is BUILDING at exact fb29aa936. Original rollout intent/protected outcome retained under LocalState/COSMIC/HostedSourceRolloutCurrent. Never replay apply or deployment.
-- Earlier ton-public and ton-public-duration snapshots are stale. Revised before/candidate snapshots and all three mutation intents/ACKs are preserved. No TON hosted acceptance session yet. Website task25733b4 stages the spaced TON command and pinned fb29aa936 guide/C# links; not published to main.
-- Observe this exact settings job. After SUCCESS verify whole candidate still matches, then run Verify-HostedQuerySource.py TONOASIS --prepare once on the task branch. Preserve the original cohort across failures; only explicitly reconcile unfinished stages.
-- Prove native 3/2, paired 5/4, reuse 0/2, privacy 0/3 and exact SQLite/Neo4j copies, record completion ACK, then publish the TON card with pinned local demo/guide links. Hosted count stays 38 until proved.
+- Reviewed parent fb29aa936870dcfb3182102642e5997b2cedd90f / Core 2ac915f709ded7aabcd28a9db02aaea92fc52d97; settings job e3ae497c-3f19-45b2-a577-b0fc40a7ae6b SUCCESS.
+- Revised ton-public-duration-oland settings preserve concurrent changes; three keys applied once, all per-key ACK hashes/full candidate matched. Rollout intent/protected outcome retained; never replay.
+- First normal-visitor hosted cohort passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2. Both private saves acknowledged version1, no pending preparation intents.
+- Original LocalState/COSMIC/HostedQueryAcceptance-TONOASIS/cql-http-acceptance.acknowledged.json now blocks reruns. Preserve sessions, IDs, ACKs, two Mongo snapshots and their replicas; no replacement owner or repeat saves.
+- Hosted39 / implemented41 / tariffs39 / browser5 / browser gates34. No source transaction, independent consensus, general metadata scan or full ORM certification inferred.
+- Publish staged website card25733b4 after replacing its pending note with verified HTTP scope. Pin updated guide and tested C# links; verify exact public asset bytes. Browser remains separate.
 
 ## Evidence
 
@@ -45,7 +44,7 @@ Raw reports remain in TestResults/TonPublicSourceCandidateCurrent; durable sourc
 
 - merged-duration-admission.trx: 16 combined passes, 27168 bytes, SHA256 6777b1b5002255e3db86c873b07d34cb4967bf21a466aabe1a21da2a0afbf773.
 
-Production billing, native replication, browser interaction and hosted TON success are not inferred from local HTTP checks. Current hosted provider count stays 38.
+Production billing, native replication, browser interaction and hosted TON success are not inferred from local HTTP checks. Current scoped hosted provider count is 39.
 
 [Guide and C# demo](../../Devs/TON_PUBLIC_HEADER_CQL_GUIDE.md) | [Current task](CURRENT_STATUS.md) | [Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) | [Preserved history](Archive/TON_PUBLIC_SOURCE_HISTORY_2026-11-01.md) | [Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 
@@ -56,3 +55,11 @@ Completed preparation procedure (do not replay): prepare-revision oland created 
 - Revision publisher controls: 5 passed; revision-publisher-controls.log, 208 bytes, SHA256 9daf9fa68c78d7e0c79733c7f2df7575c44c5cdf468677377d8c663e7704b711. Sanitized configuration-revision-review.json confirms exact scope/current baseline, zero mutation intents.
 
 Acceptance runner now explicitly admits TONOASIS; --help check passes without creating any session or mutation. Execute its --prepare flow only after exact code/settings success. Existing completed cohorts remain frozen.
+
+## Hosted evidence
+
+- TestResults/HostedCqlIntegrationCurrent/TONOASIS-native-http.json: 14958 bytes, SHA256 15ecde469bb8ac4de0592c83b251df21cf5f964dec30224c4d2b1d52b8cee135.
+- TestResults/HostedCqlIntegrationCurrent/TONOASIS-client-http-flow.json: 39077 bytes, SHA256 fb71d9710fd7064a51329ea6666d78e2c209406dff6c960f537cb6d95175229d.
+- TestResults/HostedCqlIntegrationCurrent/TONOASIS-isolation-http.json: 5948 bytes, SHA256 3f1c9fb45a2bab499b615586daf73011f833789151434ba63218a2c1d7d26edf.
+
+Completion acknowledgement was written only after exact identities, public/private ownership, all selected physical copies, replica metadata/versions and two save ACKs were checked. Do not rerun acceptance.
