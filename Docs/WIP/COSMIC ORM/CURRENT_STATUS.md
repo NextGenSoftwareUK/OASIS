@@ -48,8 +48,8 @@ Stellar passes native3/2, paired5/4, repeat0new/2existing, foreign-private0/publ
 
 ## Exact next work
 
-1. Next: observe exact Algorand app7bb36bf0-4f29-4869-8a97-c2f305876b40 (QUEUED) at parent7a9ca308e5a4c94a6529b1848e41571d1180d3b7/Corec17db5f. After SUCCESS, fast-forward existing frozen release branch, guarded3setting application and one journalled settings rollout. Then hosted visitor proof/card. [Local proof](ALGORAND_PUBLIC_SOURCE_STATUS.md#api-and-local-http-complete). No settings applied yet; no green save replay.
-Aptos next-source qualification:7tests+4GETs/3accounts at one requested version pass. Original catalogue/sourceOwner retained; no CQL/API/hosting grant. [Next gates](APTOS_PUBLIC_SOURCE_STATUS.md).
+1. Next: observe exact Algorand app7bb36bf0-4f29-4869-8a97-c2f305876b40 (BUILDING) at parent7a9ca308e5a4c94a6529b1848e41571d1180d3b7/Corec17db5f. After SUCCESS, fast-forward existing frozen release branch, guarded3setting application and one journalled settings rollout. Then hosted visitor proof/card. [Local proof](ALGORAND_PUBLIC_SOURCE_STATUS.md#api-and-local-http-complete). No settings applied yet; no green save replay.
+Aptos native milestone:26tests+actualCLI3/2 pass, shared-manager execution verified.33implemented query types; API/admission/HTTP/hosting remain next, original catalogue/sourceOwner retained. [Proof and next gates](APTOS_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
 
 2. Browser gates remain open for24providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.

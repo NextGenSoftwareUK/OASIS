@@ -38,6 +38,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.XRPLOASIS => "XRPLLedgerHash",
             ProviderType.StellarOASIS => "StellarLedgerSequence",
             ProviderType.AlgorandOASIS => "AlgorandAddress",
+            ProviderType.AptosOASIS => "AptosAccountAddress",
             ProviderType.NEAROASIS => "NearAccountId",
             ProviderType.BaseOASIS => "BaseAccountAddress",
             ProviderType.OptimismOASIS => "OptimismAccountAddress",
