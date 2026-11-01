@@ -100,6 +100,10 @@ public sealed class CqlPreparedPublicBatchTests
     public async Task ActualCardanoCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [PublicBatchReviewFact]
+    public async Task ActualArweaveCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
     private static async Task CheckPreparedBatch(int expected)
     {
         var path = Environment.GetEnvironmentVariable("COSMIC_CQL_PUBLIC_REVIEW")!;
@@ -126,6 +130,7 @@ public sealed class CqlPreparedPublicBatchTests
                 var type = Enum.Parse<ProviderType>(profile.Name);
                 ICosmicQueryStorageProvider source = type switch
                 {
+                    ProviderType.ArweaveOASIS => Providers.ArweaveOASIS.ArweavePublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.CardanoOASIS => Providers.CardanoOASIS.CardanoPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.StarknetOASIS => Providers.StarknetOASIS.StarknetPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.RadixOASIS => Providers.RadixOASIS.RadixPublicResourceMetadataSource.FromJson(profile.Value.GetRawText()),
