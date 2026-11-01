@@ -222,12 +222,24 @@ public sealed class HederaPublicAccountMetadataSource : KeyValueStorageProviderB
 
         public async Task<IReadOnlyList<IHolon>> ReadAsync(IReadOnlyList<string> keys, CancellationToken token)
         {
-            var rows = new List<IHolon>();
-            foreach (string key in keys)
+            // Account observations are independent. Bound native fan-out to
+            // three reads so their latencies do not add up serially against
+            // the caller's deadline. Await every operation before publishing
+            // any row or disposing the gate, including failure/cancellation.
+            using var gate = new SemaphoreSlim(3);
+            var snapshots = await Task.WhenAll(keys.Select(async key =>
             {
+                await gate.WaitAsync(token);
+                try { return await GetNativeAsync("accounts/" + key + "?limit=1", token); }
+                finally { gate.Release(); }
+            }));
+            var rows = new List<IHolon>();
+            for (int index = 0; index < keys.Count; index++)
+            {
+                string key = keys[index];
                 // Limit the incidental history payload, never follow its links.
                 // This profile maps the account observation, not transactions.
-                var native = await GetNativeAsync("accounts/" + key + "?limit=1", token);
+                var native = snapshots[index];
                 if (ValidateAddress(native.GetProperty("account").GetString()) != key ||
                     native.GetProperty("deleted").GetBoolean() ||
                     native.GetProperty("transactions").ValueKind != JsonValueKind.Array ||
