@@ -1,6 +1,6 @@
 # Stellar public header readiness
 
-Updated1November2026. Complete native decoder/CQL/C#/CLI verified; HTTP/Mongo and hosting remain red. XRPL hosted acceptance is complete within its recorded scope.
+Updated1November2026. Complete native decoder/CQL/C#/CLI and local HTTP/Mongo verified; hosting/browser remain red. XRPL hosted acceptance is complete within its recorded scope.
 
 - Reuses the existing StellarOASIS Horizon endpoint https://horizon.stellar.org/ and Python stdlib; two anonymous bounded GETs, no account, SDK install or source writes.
 - Root explicitly reports the public-network passphrase. A three-record ledger page has contiguous API-reported sequences and linked parent hashes.
@@ -44,3 +44,15 @@ Next: implement bounded Stellar public-header CQL adapter using this decoder, bi
 Existing hosted container read-only egress probe returns200 for Horizon root and one retained ledger, matching public network/sequence/hash/XDR SHA256. `TestResults/StellarPublicSourceCandidateCurrent/hosted-egress.json` is reachability evidence only, not CQL, auth, replicas or browser acceptance.
 
 Stable source `LocalState/COSMIC/HostedStellarPublicSourceCurrent/source.json` created once, original three sequence/hash pairs retained. Next: lazy API profile/independent read tariff, four exact shipping-planned presets, local HTTP/Mongo5/4/private isolation, guarded hosted rollout and browser gates. Counts31implemented query types (Stellar native-only),30deployed tariff types,28hosted HTTP/5browser; no Stellar live permission/count.
+
+## API / local HTTP complete
+
+Explicit lazy CQL_STELLAR_PUBLIC_SOURCE_JSON read profile, compiler scope and independent unsigned tariff/admission implemented. Three pure configuration controls and one generic client preparation control pass. Exact protected three-setting candidate/four presets pass the shipping native+Mongo planner, preserving original source owner/catalogue, wallet DNA and write admission.
+
+Local loopback HTTP proves native3/2, two private SDK Mongo creates, paired5/4, nine query receipts, foreign-private0/public3 and exact physical IDs/provider/owner/visibility. Auth/billing is controlled fixture infrastructure; no production billing/hosted/replication claim. Original config unchanged, exact marker-verified database dropped, owned Mongo stopped/27029 absent. Durable StellarMongoHttpCurrent intents/ACKs/cleanup confirmation retained; never replay the successful fixture.
+
+- `TestResults\StellarPublicSourceCandidateCurrent\stellar-admission-prepared.trx`: 3passed/0skips, SHA256 `186fcfa72b4d0ae7138705b0132d1d7baa355efb1fed946ce7e0f768b5faed50`.
+- `TestResults\StellarPublicSourceCandidateCurrent\stellar-tariff.trx`: 1passed/0skips, SHA256 `674c2d33dbbe5f6966d447c1c23558c4ddba0be414ff56419730aa2b57e7fcc6`.
+- `TestResults\StellarPublicSourceCandidateCurrent\stellar-mongo-http.trx`: 1passed/0skips, SHA256 `7922a183eaa76ab223586b1c01105316359e80fd40b7b8cba45de87a07d8e0ae`.
+
+Core2dd3c37 task branch pushed/remotely verified; parent gitlink/dependency manifest advance together. Candidate is prepared only, no settings applied. Next verified Development publication, exact app SUCCESS, guarded3setting application, one journalled settings rollout, then normal visitor native/Mongo/isolation/replica acceptance and website links. Wait for the settings rollout before creating a visitor; require discovery readiness before any save. Counts31implemented/candidate31tariff/deployed30tariff/28hosted HTTP/5browser; no Stellar hosted grant.
