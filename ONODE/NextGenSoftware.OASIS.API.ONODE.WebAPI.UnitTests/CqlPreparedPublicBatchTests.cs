@@ -118,6 +118,7 @@ public sealed class CqlPreparedPublicBatchTests
                 var type = Enum.Parse<ProviderType>(profile.Name);
                 ICosmicQueryStorageProvider source = type switch
                 {
+                    ProviderType.StarknetOASIS => Providers.StarknetOASIS.StarknetPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.RadixOASIS => Providers.RadixOASIS.RadixPublicResourceMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.GoogleCloudOASIS => Providers.GoogleCloudOASIS.GoogleCloudPublicMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.EthereumOASIS => Providers.EthereumOASIS.EthereumPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),

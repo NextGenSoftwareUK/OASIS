@@ -494,6 +494,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_SEI_PUBLIC_SOURCE_JSON"] is string seiPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.SeiOASIS.SeiPublicAccountMetadataSource.FromJson(seiPublicSource)));
+            if (Configuration["CQL_STARKNET_PUBLIC_SOURCE_JSON"] is string starknetPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.StarknetOASIS.StarknetPublicHeaderMetadataSource.FromJson(starknetPublicSource)));
             if (Configuration["CQL_RADIX_PUBLIC_SOURCE_JSON"] is string radixPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.RadixOASIS.RadixPublicResourceMetadataSource.FromJson(radixPublicSource)));

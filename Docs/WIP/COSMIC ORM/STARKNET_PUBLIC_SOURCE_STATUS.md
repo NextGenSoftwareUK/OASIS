@@ -44,3 +44,5 @@ Task-only StarknetPublicHeaderMetadataSource now passes31controlled tests (zero 
 - [Setup and usage guide](../../Devs/STARKNET_PUBLIC_HEADER_CQL_GUIDE.md). Field domain follows the official Cairo reference linked there; UInt64 is an explicit bounded profile choice, not a claim that OpenRPC defines all integers this way.
 
 Actual CLI evidence: TestResults/StarknetPublicSourceCandidateCurrent/cli-native.log SHA2560fdf6b017020fd778a499a13d8853a8310343b64ecae8a944a66dfa74901f879. Compact native-cql-milestone.json records all counts and evidence hashes. No source writes, Mongo copies or hosted visitor creation.
+
+API candidate wiring and four-preset publisher controls are task-only. Publisher3/3passes. Initial API tests: schema1pass/admission2fail because Core StorageQueryTariff.SupportedQueryProviders has not admitted Starknet. This is an expected incomplete enrollment gate, not native query failure; no hosted grant or count increase. Finish the reproduced logout ownership root fix first, then explicitly add/test read-only Core admission and local HTTP/Mongo proof.
