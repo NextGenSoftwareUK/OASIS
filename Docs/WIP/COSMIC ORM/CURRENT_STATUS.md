@@ -8,9 +8,7 @@ David authorizes necessary Development pushes for live demo testing/fixes withou
 
 All19addedprofiles passed hosted HTTP/client-module acceptance: original17plusBerachainandBitcoin. Combined with earlier8proofs, **27 providers** have scoped hosted HTTP evidence. Browser proof remains **5**, with **22 open**. Earlier eight-provider acceptance was not broadly rerun.
 
-Live application: Development **19ebbfe2c496b6a528b5f5b31e6138c317bae146**, Core **7317ba1cd4301a1794294b78be685070db45c3e2**. Exact app joba64660e1-9676-405d-beaa-a0b8de327278 SUCCESS. Three Bitcoin settings acknowledged and whole candidate read back exactly. Single journalled settings rollout **f71e482c-851f-446b-9bbc-886caae3c30f SUCCESS** on the same commit. Bitcoin hosted native/Mongo/isolation/replica acceptance passes.
-
-XRPL verified batch published: parentc6e7f14baf89cacb9a1938cf11bfe574b51bc3ba/Coree032d0a4701e1c5bc4fa4d8f1545cac41745376b, both Development refs remotely verified. Exact app9ee52c89-7695-4065-9328-13f2be82b8e7 BUILDING; no XRPL settings applied yet.
+Live application: Development **c6e7f14baf89cacb9a1938cf11bfe574b51bc3ba**, Core **e032d0a4701e1c5bc4fa4d8f1545cac41745376b**. Exact app9ee52c89-7695-4065-9328-13f2be82b8e7 SUCCESS. Three XRPL settings individually acknowledged/full candidate exact. One journalled settings rollout **cdc70f3a-4dea-4cb7-a881-306c478056bd BUILDING** on samecommit; no XRPL hosted claim yet.
 
 Website main **bc00ef2** serves byte-identical Bitcoin demo HTML, SHA2563a15fd6fb9806e013a274b70f16a61df10834703cb36f8f86efa363b6f327d92. Native CLI/guide/commented C# links present. Existing64client checks and focused Bitcoin preparation1pass remain scoped; browser proof separate.
 
@@ -50,13 +48,13 @@ Bitcoin local and hosted CQL/C#/CLI/HTTP+Mongo pass: native3/2, paired5/4, repea
 
 ## Exact next work
 
-1. Next: observe exact9ee52c89 for c6e7f14ba SUCCESS; frozen release branch must fast-forward to that SHA. Set COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT, apply guarded XRPL3setting candidate, journal one settings rollout, then hosted acceptance once. [Local proof](XRPL_PUBLIC_SOURCE_STATUS.md). No completed save replay.
+1. Next: observe cdc70f3a for exactc6e7f14ba SUCCESS, then run `python -B Scripts/Sandbox/Verify-HostedQuerySource.py XRPLOASIS --prepare` once. Preserve original visitor identities/save intents/ACKs. Publish staged website card only after hosted acceptance. [Local proof](XRPL_PUBLIC_SOURCE_STATUS.md).
 2. Browser gates remain open for22providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
 ## Recovery/resources
 
-- Work/build/test only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public. Frozen public release branch19ebbfe2c. Unknown root logs untouched.
+- Work/build/test only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public. Frozen public release branchc6e7f14ba. Unknown root logs untouched.
 - Durable source identities/tokens/save intents/ACKs: LocalState/COSMIC. Fresh completion hashes: HostedQueryAcceptance-<Provider>/cql-http-acceptance.acknowledged.json. Never regenerate owners or replay uncertainty after cleanup.
 - Protected settings snapshots/intents/outcomes: HostedSourceRolloutCurrent. Preserve rejected combined-catalogue and successful partition journals. Raw output only TestResults/HostedCqlIntegrationCurrent, never Docs.
 - No new runtime/environment/container/download in this rollout. Reuse pinned resources. Latest free C:63,512,604,672bytes; no attribution to unmeasured external changes. [Ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
