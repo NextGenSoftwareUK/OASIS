@@ -19,7 +19,7 @@ public sealed class TonPublicHeaderReferenceTests
         ["@type"] = "blocks.header", ["id"] = Block(10), ["global_id"] = -239,
         ["prev_blocks"] = new[] { Block(9) }, ["start_lt"] = "9007199254740993",
         ["end_lt"] = "18446744073709551615", ["version"] = 0,
-        ["gen_utime"] = uint.MaxValue, ["validator_list_hash_short"] = uint.MaxValue,
+        ["gen_utime"] = uint.MaxValue, ["validator_list_hash_short"] = int.MaxValue,
         ["catchain_seqno"] = 1, ["min_ref_mc_seqno"] = 9, ["prev_key_block_seqno"] = 8,
         ["after_merge"] = false, ["after_split"] = false, ["before_split"] = false,
         ["want_merge"] = true, ["want_split"] = false, ["is_key_block"] = false
@@ -35,6 +35,26 @@ public sealed class TonPublicHeaderReferenceTests
         Assert.AreEqual("9007199254740993", header.GetProperty("start_lt").GetString());
         Assert.AreEqual(ulong.MaxValue, TonPublicHeaderReference.LogicalTime(header.GetProperty("end_lt")));
         Assert.AreEqual(uint.MaxValue, TonPublicHeaderReference.UInt32Token(header.GetProperty("gen_utime")));
+    }
+
+    [DataTestMethod]
+    [DataRow(-2147483648)] [DataRow(-564262473)] [DataRow(2147483647)]
+    public void SignedValidatorHashFragmentRetainsItsExactWireValue(int value)
+    {
+        var header = Header();
+        header["validator_list_hash_short"] = value;
+        using var document = JsonDocument.Parse(JsonSerializer.Serialize(new { ok = true, result = header }));
+        var validated = new TonPublicHeaderReference(10, Root, FileHash).ValidateHeader(document.RootElement);
+        Assert.AreEqual(value, validated.GetProperty("validator_list_hash_short").GetInt32());
+    }
+
+    [DataTestMethod]
+    [DataRow("2147483648")] [DataRow("-2147483649")] [DataRow("-0")]
+    [DataRow("1.5")] [DataRow("1e0")] [DataRow("\"1\"")]
+    public void InvalidSignedHashTokenIsRejected(string token)
+    {
+        using var document = JsonDocument.Parse(token);
+        Assert.ThrowsException<InvalidDataException>(() => TonPublicHeaderReference.Int32Token(document.RootElement));
     }
 
     [DataTestMethod]

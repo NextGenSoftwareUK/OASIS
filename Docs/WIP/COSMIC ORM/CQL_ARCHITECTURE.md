@@ -6,7 +6,7 @@
 
 Latest hosted acceptance: parent37a530a87e601397f187430728bb9fb02b224f87/Core5fd361db11f5d54e3e99282536d7c7be842edf86, job3da7f986 SUCCESS. This docs-only descendant preserves testedb158bda61 code; original settings jobec59010e was removed and never replayed. Original Arweave cohort completion ACK retained. Website61e85b75a933004d1f005f85f1318fa05ad139de publishes Arweave with guided089a778c/C#b158bda61. Public HTML155229bytes/SHA2566fda659c10e90bb99d7636e04b62d3dc343b3a0c36cd85bb5b3f3c3e3c5c94f3 matches the committed git blob. Browser/real-expiry gates remain separate.
 
-There are **40 implemented query types**: 3 canonical adapters,35bounded public/source profiles and2local Azure/Oracle implementations. Arweave native/control/manager/API/local and hosted federation/reuse/privacy/replica gates pass. Deployed tariffs38/hosted38/browser5/open33. TON pacing fix/13controls and native3/2 pass but manager/CLI activationHTTP500 remains red and isolated; no TON support grant. Full ORM/EF parity/HyperDrive certification remains incomplete.
+There are **41 implemented query types**, including locally verified TON: 3 canonical adapters,36bounded public/source profiles and2local Azure/Oracle implementations. TON native/manager3/2 and signed-field/error/pacing controls pass on an explicitly qualified recent dataset; API/hosting is next. Hosted38/tariffs38/browser5/open33 remain unchanged. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
 
 Current implementation state: [CURRENT_STATUS](CURRENT_STATUS.md); feature acceptance: [parity checklist](CQL_PARITY_CHECKLIST.md).
