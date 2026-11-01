@@ -34,6 +34,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.ArbitrumOASIS => "ArbitrumAccountAddress",
             ProviderType.CosmosBlockChainOASIS => "CosmosValidatorAddress",
             ProviderType.PolkadotOASIS => "PolkadotBlockHash",
+            ProviderType.BitcoinOASIS => "BitcoinBlockHash",
             ProviderType.NEAROASIS => "NearAccountId",
             ProviderType.BaseOASIS => "BaseAccountAddress",
             ProviderType.OptimismOASIS => "OptimismAccountAddress",
