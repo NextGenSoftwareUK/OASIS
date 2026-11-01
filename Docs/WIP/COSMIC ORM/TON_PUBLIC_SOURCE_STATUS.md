@@ -32,3 +32,10 @@ Both explicit two-record subset requests included documented root_hash/file_hash
 - subset-10000002: 859bytes; SHA256b22dd7affda8775210c9ed73c0bdebcb21c415bf29d043f53652d35e7773023d.
 
 Implementation has not started: the large proposed editing command was rejected by automatic tool review with only "blocked by policy", no detailed reason. Subsequent git status and exact target absence confirm no TON source/project edits or environments were created. This is agent-owned tooling work; no David action. Continue with small reviewable source edits after the Arweave hosted gate.
+
+## Exact header contract implemented and tested
+
+Smaller apply_patch source edits passed tool review. TonPublicHeaderReference validates pinned Mainnet zero-state wire identity, the complete requested block descriptor, predecessor shape, native UInt32 fields/UInt64 logical-time strings and duplicate JSON properties.23controlled tests and1decoder test over the original native identity/three headers/two pinned subset responses pass,0skips. No new HTTP requests. This is the decoder foundation, not a connected CQL adapter, so implementation/hosted counts are unchanged.
+- TestResults\TonPublicSourceCandidateCurrent\contract-controls.trx: 23passed, 35629bytes, SHA256b32a0899e24afce880ea0b2cdf98683d7805affd6f08f4ca5e0501a2e7cf3e45.
+- TestResults\TonPublicSourceCandidateCurrent\contract-captured.trx: 1passed, 2791bytes, SHA2569a9955e0619aa070f2d69d0613e293f5346bb807735a5dc3402972a5e2fdebec.
+Next: connect this tested decoder to bounded read-only native key selection with one endpoint-wide anonymous pacing owner, then shared planner/manager tests and spaced demo before API/hosted admission. Keep Arweave rollout separate.
