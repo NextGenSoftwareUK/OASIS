@@ -32,7 +32,9 @@ public static class OLandCommerceRegistration
         {
             var settings = s.GetRequiredService<OLandCommerceSettings>();
             return new OLandPaymentGateway(settings, configuration, () => ConfiguredProviders(settings),
-                new CoinGeckoExchangeRateService(null, settings.CoinGeckoDemoApiKey));
+                string.IsNullOrWhiteSpace(settings.CoinGeckoDemoApiKey)
+                    ? CoinGeckoExchangeRateService.ForPublicMarketQuotes()
+                    : new CoinGeckoExchangeRateService(null, settings.CoinGeckoDemoApiKey));
         });
         services.AddSingleton<IOLandNftIssuer, OLandNftIssuer>();
         services.AddHostedService<OLandFulfilmentWorker>();
