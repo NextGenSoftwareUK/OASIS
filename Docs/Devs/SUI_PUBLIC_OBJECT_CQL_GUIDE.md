@@ -1,6 +1,6 @@
 # Sui public object CQL guide
 
-This read-only profile queries an explicit public Mainnet object catalogue through the shared CQL planner and HolonManager. No wallet, signing key, Sui runtime or transaction is needed. Native tests, the C# CLI, API admission and local HTTP/Mongo federation are verified; hosted sandbox support is still pending. See the [acceptance report](../WIP/COSMIC%20ORM/SUI_PUBLIC_SOURCE_STATUS.md).
+This read-only profile queries an explicit public Mainnet object catalogue through the shared CQL planner and HolonManager. No wallet, signing key, Sui runtime or transaction is needed. Native tests, the C# CLI, API admission and local HTTP/Mongo federation are verified; hosted HTTP acceptance also passes; browser interaction remains unverified. See the [acceptance report](../WIP/COSMIC%20ORM/SUI_PUBLIC_SOURCE_STATUS.md).
 
 ## First setup
 
@@ -68,6 +68,8 @@ Metadata includes `SuiObjectId`, `SuiObjectVersion`, `SuiObjectDigest`, `SuiChec
 
 Missing/null objects, partial GraphQL errors, unexpected identities, malformed digest encodings, imprecise numbers, oversized responses and cancellation reject the complete result. No partial page, unscoped retry or endpoint fallback is used. Digest encoding validation does not independently prove object BCS content, state proofs or consensus. A future Mongo snapshot would capture an observation rather than establish a cross-provider historical snapshot.
 
-## Sandbox status
+## Live sandbox
 
-Sui currently has verified native C#/CLI and local HTTP/Mongo demos. Do not advertise a working Sui sandbox preset until hosted acceptance and publication gates pass. Browser interaction is verified separately. This explicit query profile stays outside the signed wallet provider registry and cannot become a default write or replication target.
+Open the WEB4 sandbox CQL tab, start a temporary session and select SuiOASIS. Native presets query three objects or a two-object subset. Mongo-paired presets prepare two private records and reuse them on repeat setup. Hosted HTTP acceptance verifies native3/2, paired5/4, foreign-private zero and matching SQLite/Neo4j replicas. Browser interaction is a separate open gate.
+
+Mongo demo copies capture name, description and the native object key; they are not full native object/state snapshots. Each native request has its own checkpoint. No Sui transaction is submitted. The explicit query profile stays outside the signed wallet registry and cannot become a default write or replication target.

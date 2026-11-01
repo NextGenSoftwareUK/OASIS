@@ -41,6 +41,8 @@ public static class NativeKeySetWalkthrough
             ProviderType.AptosOASIS => "AptosAccountAddress",
             ProviderType.HashgraphOASIS => "HederaAccountId",
             ProviderType.SuiOASIS => "SuiObjectId",
+            ProviderType.TRONOASIS => "TronBlockHeight",
+            ProviderType.ElrondOASIS => "ElrondAccountAddress",
             ProviderType.NEAROASIS => "NearAccountId",
             ProviderType.BaseOASIS => "BaseAccountAddress",
             ProviderType.OptimismOASIS => "OptimismAccountAddress",

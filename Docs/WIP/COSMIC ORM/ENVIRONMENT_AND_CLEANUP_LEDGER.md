@@ -2247,3 +2247,67 @@ Sui API/native run terminal:2API+1Core+1shipping+1native HTTP passes;3Python con
 ### 1 November 2026 - Sui hosted preparation
 
 Reused pinned Railway CLI5.62.1/Node24.19.0; no installation. Created protected sui-public-before-variables.dpapi and sui-public-candidate-variables.dpapi in LocalState/COSMIC/HostedSourceRolloutCurrent; exact sizes unmeasured, contains protected configuration, retention required for no-replay/concurrency reconciliation. Public prepared review TestResults/SuiPublicSourceCandidateCurrent/sui-prepared-review.json (size unmeasured), reproducible from original source/protected candidate, disposable only after report hashes retained. Candidate changes exactly3settings; no remote mutation yet. Owner COSMIC CQL; no local process/port. Existing runtime environments reused. Next bounded no-build planner reads actual prepared review.
+
+While exact Sui application81794c84 remains queued, planned anonymous read-only TRON qualification: existing Python3.12 stdlib, three bounded header-only SolidityNode requests to https://api.trongrid.io/walletsolidity/getblock (heights0/1/2), no API key/account/install/signing. Raw compact result TestResults/TronPublicSourceCandidateCurrent/readiness.json; size initially unmeasured, disposable/recreatable public observations; owner COSMIC CQL. No new runtime/database/process/port. Profile/admission not granted.
+
+TRON qualification terminal: three HTTP200 header-only reads, compact readiness.json 1985bytes; no local process or port, no source catalogue/owner created. Public evidence disposable after report hash retention; SDK/signing not invoked.
+
+Sui application deploy81794c84 queued, exact7e0b60994; Core0e540eb Development verified. No owned local processes/new resources, free C78524657664bytes; no attribution of external disk variation. Existing reusable frozen release branch will advance by fast-forward to exact7e0b60994 for guarded settings apply; same worktree/environment, no duplicate checkout.
+
+### 1 November 2026 - strict TRON qualification
+
+Reuse Python3.12 stdlib and existing TestResults/TronPublicSourceCandidateCurrent; planned four bounded anonymous header reads (genesis and1/2/3) to same official SolidityNode endpoint. New compact qualified-readiness.json initially unmeasured; no runtime/install/account/key/process/port or source owner allocation. Retain report hash, regenerate public reads if needed. Owner COSMIC CQL. No CQL capability or hosted grant inferred.
+
+TRON strict qualification terminal:9pure tests and4native header-only reads pass. qualified-readiness.json 1725bytes, no process/port/source identity; lifecycle regenerable public observation, preserve report hash. Scripts introduce no dependencies. Current Sui application81794c84 remains queued, no visitor/settings mutations.
+
+### 1 November 2026 - TRON native adapter build
+
+Planned reuse .NET10.0.401, existing NuGet cache/TRON xUnit test project and shared manager walkthrough. New reusable public catalogue LocalState/COSMIC/HostedTronPublicSourceCurrent/source.json + catalogue.json; choose sourceOwner once, no chain account/key or wallet. Files sizes initially unmeasured, preserve stable IDs. Raw bounded build/test/CLI outputs TestResults/TronPublicSourceCandidateCurrent; reusable bin/obj regenerable after owned build exits. No downloads/new runtime/database/ports. Owner COSMIC CQL; lease/bounded workers required.
+
+TRON candidate run terminal:31controlled pass/1real429failure/0skips; failure evidence preserved under TestResults/TronPublicSourceCandidateCurrent (size unmeasured), no live build/owned service. New durable HostedTronPublicSourceCurrent source.json/catalogue.json total476bytes, stable GUID namespace, preserve and never regenerate. No source or Mongo writes; no account/download/install. Free C78407704576bytes. Native test retry not authorized by evidence; investigate actual rate/access contract.
+
+### 1 November 2026 - TRON batch primitive qualification
+
+Plan one distinct native range read to https://api.trongrid.io/walletsolidity/getblockbylimitnext for exact interval[1,4), using existing Python stdlib/no key/account. Raw compact batch-readiness.json in existing TestResults/TronPublicSourceCandidateCurrent; bounded body64KiB retained only as summary/hash, size initially unmeasured. This tests a documented native primitive, not a retry of failed adapter activation. No installation/database/service/source writes. Owner COSMIC CQL.
+
+TRON native redesign planned after verified batch qualification: exact adjacent requested heights use documented native range; sparse/single selections retain point primitive, no intervening block scan or failure fallback. New range response has bounded block bodies; only header fields mapped, raw transaction bodies never exposed. Original failed tron-source.trx preserved as tron-source-initial-point-burst-failed.trx before rebuild. Reuse sourceOwner/catalogue, .NET/cache/lease; no DB/download/account. New test evidence remains TestResults/TronPublicSourceCandidateCurrent, size unmeasured until terminal.
+
+TRON batch run terminal:34controlled pass/1real429failure. Retain original and batch failure reports, no new identity or writes; no live build/process. Sui exact app81794c84 now SUCCESS at7e0b60994/Core0e540eb. Next guarded3setting apply, journal intent/ACK per existing publisher, whole candidate observation then one settings rollout. Protected outcomes retained in HostedSourceRolloutCurrent; no new hosting resources/spend.
+
+Sui guarded apply terminal:3values independently acknowledged and complete candidate equal; new sui-public intent/ACK/rollout/protected-outcome resources 10files, 261229bytes. Preserve protected configuration journals; no secrets in docs. Settings job1d5007cb BUILDING at7e0b60994, no restart. Planned acceptance reuses current frontend modules; new owned demo visitor cohort LocalState/COSMIC/HostedQueryAcceptance-SuiOASIS will retain DPAPI tokens/intents/ACKs; max2private Mongo snapshots and replicas, no source/chain writes. Raw evidence TestResults/HostedCqlIntegrationCurrent, sizes unmeasured until completion. No new installation/environment/local service; server-side sandbox fixtures retained as evidence.
+
+TRON explicit endpoint qualification planned: official operator https://tron.publicnode.com advertises free Solidity HTTP at https://tron-rpc.publicnode.com. Two bounded read-only requests (genesis plus exact[1,4) range); no auto-fallback or change to retained source until full identity check. Compact publicnode-readiness.json in existing TestResults/TronPublicSourceCandidateCurrent; size initially unmeasured. Same Python/no install/account/key/service. Preserve original TronGrid failures.
+
+PublicNode probe terminal HTTPError (status not captured; cause unverified), compact publicnode-readiness.json 139bytes. No enrollment/config/source identity changes. Preserve hash/failed original as evidence; file disposable after retention reconciliation. No local service/download/install.
+
+Sui hosted acceptance terminal success: original cohort retained, 9durable files/3085bytes (DPAPI owner/foreign tokens, session/save intents/ACKs and completion ACK). Raw 5files/100921bytes under HostedCqlIntegrationCurrent. Two private Mongo copies and matching SQLite/Neo4j replicas are server-side retained demo evidence; do not resave/delete without explicit fixture reconciliation. No chain writes/downloads/local process/port. Owner COSMIC CQL; report hashes retained.
+
+Sui website9679699 publication verified: served148135bytes identical to git object, SHA256b8d17101a869a1dffb8cd2c076b8c6577a24086bfcd052394100e7245d069a35. Comparison memory-only, no downloaded file/environment/runtime/port. Existing frontend module reused without behavior change. Backend cohort50snapshot total across25added profiles retained; no green saves replayed.
+
+### 1 November 2026 - MultiversX/Elrond public qualification
+
+Reuse existing Python3.12 stdlib/worktree; no SDK/install/download/account/database. Planned3bounded anonymous GETs: gateway.multiversx.com/network/config, api.multiversx.com/dapp/config, and accounts size3 with explicit public fields. Memory responses <=64KiB, compact shape-readiness.json under TestResults/ElrondPublicSourceCandidateCurrent, initially unmeasured; owner COSMIC CQL, disposable public observation after hash retention. Source owner/catalogue not allocated until contract proven; no live process/port. Free C78407077888bytes before probe.
+
+MultiversX schema/control qualification passes9pure tests; initial3GETs returned200. Planned stable public projection catalogue LocalState/COSMIC/HostedElrondPublicSourceCurrent/source.json and catalogue.json, new GUID namespace chosen once (not wallet/key/account). Preserve sourceOwner/addresses, sizes initially unmeasured; no local process/port. Next3GETs validate API identity plus actual address filters for3/2; raw qualified-readiness.json existing candidate TestResults folder. Reuse Python/no installation.
+
+MultiversX qualification terminal:9pure tests and API identity/native3/2pass, no writes. Retained HostedElrondPublicSourceCurrent source/catalogue742bytes, active reusable namespace; no process/port. Raw qualified-readiness.json 2138bytes, hashes in component report. Initial schema/network observation retained in same TestResults folder. No download/restore/SDK/new runtime/database. Preserve namespace, regenerate public observations only when justified.
+
+### 1 November 2026 - MultiversX native CQL build plan
+
+Reuse .NET10.0.401, existing NuGet cache and provider/Core Bech32 helper. Elrond xUnit project assets absent after cleanup; restore from C:/Users/david/.nuget/packages only, no network package source/download. Add existing Shared.KeyValueStorage project dependency (already restored reusable sources), no new SDK. Raw logs/TRX/CLI output TestResults/ElrondPublicSourceCandidateCurrent; generated bin/obj regenerable after owned lease/build exits, sizes initially unmeasured. Source/catalogue742bytes reused, no new namespace/database/service/port. Owner COSMIC CQL; bounded workers and one build lease.
+
+Elrond first native run terminal34passes/0skips, same retained catalogue/owner, cache-only2project restores/10already current; no download. One response-identity test was incorrectly shortened before validation; corrected fixture to preserve count with an actual unknown valid address, rerun only33controlled tests (no repeated green native read required). Next reuse demo project/cache assets and bounded lease for real CLI3/2; outputs in same TestResults folder, no new environment/service/port.
+
+Elrond native/CLI milestone terminal:34initial tests (real shared manager included),33corrected controls, actualCLI3/2 pass. Cached restore reused pinned packages only; no network download/install/new environment. Raw candidate file total876859bytes; durable source/catalogue742bytes preserved. Owned build lease released, no local database/service/port; free C78354264064bytes. Build bin/obj reusable/regenerable; retain compact hashes and source state, do not recreate namespace.
+
+### 1 November 2026 - Elrond API/local HTTP admission
+
+Reuse .NET10.0.401/NuGet cache and existing API/Core test outputs; no install/download. New controlled API/Core tests and one local native HTTP fixture, exact database cosmic_cql_elrond_http_demo / owner cosmic-cql-elrond-http-v1; durable LocalState/COSMIC/ElrondMongoHttpCurrent intent/ACKs, raw TestResults/ElrondPublicSourceCandidateCurrent (sizes initially unmeasured). Reuse Mongo8.3.11 runtime C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe and LocalState/COSMIC/mongo-data/oasisRecoveryRs27029. Runner owns port/process/lease, marker-verifies and removes exact DB only on success, stops owned process; retain identities/intents/ACKs/failure outcomes and never reseed green fixtures. No hosted mutation until gates pass. Owner COSMIC CQL.
+
+Elrond protected candidate prepared only: 2files/265308bytes in HostedSourceRolloutCurrent (elrond-public-before-variables.dpapi, elrond-public-candidate-variables.dpapi); public review TestResults/ElrondPublicSourceCandidateCurrent/elrond-prepared-review.json. Reuses pinned RailwayCLI5.62.1/Node24.19.0/DPAPI, no installation/download/live mutation. Preserve protected snapshot/candidate for guarded no-replay rollout; public review regenerable from preserved inputs. Exact3settings/4presets; DNA unchanged and only free read tariff admitted.
+
+Elrond API/local fixture terminal:2API+1Core+1shipping+1nativeHTTP/config3pass. Owned DB marker-verified/dropped, Mongo stopped/27029absent. Durable ElrondMongoHttpCurrent 901bytes (intent/two save ACKs/cleaned ACK), preserve and never reseed; raw candidate files 5485870bytes, report hashes retained. No hosted writes/settings mutation, no new environment/install/download. Coref41b2a1 pushed/ref verified; bounded lease released.
+
+### Elrond selective release verification
+
+Same existing worktree/environment/release branch reused; no new clone/worktree/install. TestResults/ElrondPublicSourceCandidateCurrent/release-file-scope.json records41selected/3excluded paths, size unmeasured, regenerable from git revisions. Existing build outputs may contain task-only TRON candidate: release build must remove/recompile source graph and verify type identifier absent from TRON DLL before publication. Bounded lease/API+planner checks; raw release log/TRX under same candidate folder. No DB/port/save replay; previous native HTTP fixture stays green/cleaned.
