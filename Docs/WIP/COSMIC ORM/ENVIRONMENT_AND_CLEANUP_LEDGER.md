@@ -2259,3 +2259,9 @@ Sui application deploy81794c84 queued, exact7e0b60994; Core0e540eb Development v
 Reuse Python3.12 stdlib and existing TestResults/TronPublicSourceCandidateCurrent; planned four bounded anonymous header reads (genesis and1/2/3) to same official SolidityNode endpoint. New compact qualified-readiness.json initially unmeasured; no runtime/install/account/key/process/port or source owner allocation. Retain report hash, regenerate public reads if needed. Owner COSMIC CQL. No CQL capability or hosted grant inferred.
 
 TRON strict qualification terminal:9pure tests and4native header-only reads pass. qualified-readiness.json 1725bytes, no process/port/source identity; lifecycle regenerable public observation, preserve report hash. Scripts introduce no dependencies. Current Sui application81794c84 remains queued, no visitor/settings mutations.
+
+### 1 November 2026 - TRON native adapter build
+
+Planned reuse .NET10.0.401, existing NuGet cache/TRON xUnit test project and shared manager walkthrough. New reusable public catalogue LocalState/COSMIC/HostedTronPublicSourceCurrent/source.json + catalogue.json; choose sourceOwner once, no chain account/key or wallet. Files sizes initially unmeasured, preserve stable IDs. Raw bounded build/test/CLI outputs TestResults/TronPublicSourceCandidateCurrent; reusable bin/obj regenerable after owned build exits. No downloads/new runtime/database/ports. Owner COSMIC CQL; lease/bounded workers required.
+
+TRON candidate run terminal:31controlled pass/1real429failure/0skips; failure evidence preserved under TestResults/TronPublicSourceCandidateCurrent (size unmeasured), no live build/owned service. New durable HostedTronPublicSourceCurrent source.json/catalogue.json total476bytes, stable GUID namespace, preserve and never regenerate. No source or Mongo writes; no account/download/install. Free C78407704576bytes. Native test retry not authorized by evidence; investigate actual rate/access contract.

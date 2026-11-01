@@ -21,3 +21,17 @@ Nine pure tests pass. Four bounded anonymous reads (genesis plus ordinary header
 - Raw `TestResults/TronPublicSourceCandidateCurrent/qualified-readiness.json`: 1725bytes, SHA256 `1552532a1bdf389c9ae32cf9cf25cb39453dfc1ce615f753c32959254b76f380`.
 
 No provider admission, CQL adapter, signing operation, sourceOwner or catalogue was created. Next independent work is the bounded native header adapter and shared-manager demo; hosted enrollment must wait for its own controls. Sui exact deployment is still tracked separately, without duplicate submission.
+
+## Native candidate — live gate red
+
+The new `TronPublicHeaderMetadataSource` implements common query/read-activation interfaces and the existing shared key-value base. It admits only equality or bounded IN on canonical positive Int64 `TronBlockHeight` keys. Explicit Mainnet genesis and header/block-ID identities are verified. Native Int64 values remain decimal strings. Complete selection validation precedes windows/publication; no source writes or retries. Maximum three concurrent ordinary-header reads per native query are drained on cancellation.
+
+**31 controlled tests pass; the single real shared-manager test fails with HTTP429 during activation.** The earlier four-request qualification passed, but does not establish sustained anonymous capacity. No native CQL certification/count increment, CLI acceptance, API enrollment or hosted grant. Native catalogue/sourceOwner retained once under `LocalState/COSMIC/HostedTronPublicSourceCurrent`; no chain account was created.
+
+- Raw `TestResults/TronPublicSourceCandidateCurrent/tron-source.trx`:31passed/1failed/0skips, SHA256 `123fbcdab402eb1e0c3832bd714d334a4f9b0a0d76f4a2b1d5c0307701d65dc7`.
+- `native-build.log` retains HTTP429 and exact stage; no write fixture or database exists.
+- Controlled tests include complete-page failures, identity/genesis, numeric precision, HTTP errors, unknown catalogue keys, concurrent overlap/order and inflight/queued cancellation.
+
+[Official rate-limit policy](https://developers.tron.network/reference/rate-limits) says anonymous requests may be restricted by IP and endpoint; current limits vary. Do not invent a fixed QPS promise or sleep/retry until a test turns green. Investigate a properly bounded native batch selection contract or explicit suitable access before another real acceptance attempt. A block-range API is a distinct native query design, not an automatic fallback; retain header-only/privacy/byte-budget/capability invariants if adopting it. [Official query primitives](https://developers.tron.network/reference/query-the-network).
+
+This is agent-owned work; no new David account/action request yet. Sui live deployment remains the immediate release priority.

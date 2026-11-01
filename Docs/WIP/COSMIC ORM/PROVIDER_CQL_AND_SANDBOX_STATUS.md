@@ -328,3 +328,5 @@ Stellar API/local HTTP milestone:3API/prepared+1Core+1native HTTP,3publisher and
 Hedera live gate1November remains red: initial native504/CQL_QUERY_CANCELLED before any private saves. Source now uses max3parallel independent reads, same5second budget;24affected tests pass. Correction4fb66c687/Core89b5ffa app122310fc INITIALIZING, no settings change/count grant. [Defect/proof](HEDERA_PUBLIC_SOURCE_STATUS.md#live-scheduling-defect-and-correction).
 
 TRON qualification update1November:9 pure controls plus anonymous genesis/headers1/2/3 pass. No CQL, admission or hosted claim/count increment. [Qualification/next](TRON_PUBLIC_SOURCE_STATUS.md). Sui app81794c84 at7e0b60994 remains queued; settings unchanged.
+
+TRON native candidate:31controlled passes,1real activation failure HTTP429,0skips. Not counted or enrolled; inspect [red native gate](TRON_PUBLIC_SOURCE_STATUS.md#native-candidate--live-gate-red). Sui exact app81794c84 now BUILDING.
