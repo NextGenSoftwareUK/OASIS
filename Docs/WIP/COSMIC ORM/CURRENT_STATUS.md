@@ -16,7 +16,7 @@ There are **41 implemented query types**, including locally verified TON: 3 cano
 2. Session lifecycle HTTP proof complete on original avatar, completion ACK retained: do not replay. Frontend9e18b7d published and HTML/JS byte-verified; browser gates remain open. [Proof and limits](SESSION_RENEWAL_STATUS.md).
 3. Arweave hosted acceptance complete on original cohort; completion ACK blocks replay. Arweave card61e85b7 is published/byte-verified with updated guide/C# links. Continue breadth; TON API/hosted gates remain pending, other provider candidates next. [Proof](ARWEAVE_PUBLIC_SOURCE_STATUS.md).
 4. Browser gates:5verified/33open. CUA transport remains closed; David already opened the browser. No OS control resumed or repeated owner request.
-5. TON native/manager3/2 pass on qualified recent descriptors; signed-hash domain bug fixed, archive proof rejection retained, same owner/ACKed local catalogue migration. Next Core/API admission, four presets, local HTTP/Mongo/privacy and actual candidate tests before hosting. [Evidence/guide](TON_PUBLIC_SOURCE_STATUS.md).
+5. TON API/schema3, actual presets1 and publisher3 pass; local HTTP stops at activation before first persistence (detail discarded by old assertion). Original TonMongoHttpCurrent intent/review retained; runner stopped/27029absent. Next explicit original-ID continuation with fresh DB-absence check/new diagnostics, never reset/reseed. Coreddabbf5 task-only; no TON host mutation. [Evidence](TON_PUBLIC_SOURCE_STATUS.md).
 
 ## Guarantees and limits
 
