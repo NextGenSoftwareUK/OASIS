@@ -2414,3 +2414,10 @@ Session resource reconciliation: reused API test+shipping bin/obj1519files/80202
 - Outcome: one original session issued; Secure=false rejected before credential publication or rotation. Preserved 3 intent/sealed-response files,4951bytes, no active process dependency. No provider saves. Local bounded test rebuild reuses existing SDK/NuGet and project/sibling outputs under build lease; free space73432981504bytes observed during run. Retain original cohort for explicit reconciliation; never automatic new-avatar retry.
 
 - Proxy regression build terminal:16passed/0failed/0skipped; credential tests9/9 terminal. Existing SDK/cache/project outputs reused; no installation, extra database or service. Evidence session-proxy-final.trx SHA256d2ac7c028fe5b47fdda1529564e32fe9ea3daea862fcd00fff58fa93089dd9cb. Retain compact proof; build outputs regenerable with the documented bounded lease command.
+
+
+### 2026-11-01 secure rotation and revoke ownership correction
+- Reused original C:/Source/OASIS-cosmic/LocalState/COSMIC/SandboxSessionRenewalCurrent. Proxy correction deployed successfully; normal rotation produced Secure cookie and same avatar, then explicit Unauthorized revoke rejection recorded in revoke.response.dpapi. No cookie cleared/provider save/replacement avatar. Preserve original intents, rotation ACKs and sealed response; no blind retry. Resource size unmeasured; remote hosted session active until verified revoke.
+- Core authoritative-owner regression5/5passed terminal, existing .NET/cache/Core.UnitTests bin/obj reused under build lease. TestResults/SandboxSessionRenewalCurrent/revoke-owner.trx SHA2563e14f1f9b25bdb7e7bdeb23c5ebe10b72ccb6d9474048b846f5c38d377919b40. No install/new service/database. API consumer rebuild uses same bounded existing environment; logs/results in TestResults.
+
+- Revoke consumer checks terminal16/16,0skips; no owned live process left from build. API TRX SHA2565746bbdaa744350648e1af24e229437b232d1dccf688c835c1b6eb6400ebaa82. Free space73130422272bytes observed; generated outputs reusable until verification completes, no blind deletion of shared processes/caches.

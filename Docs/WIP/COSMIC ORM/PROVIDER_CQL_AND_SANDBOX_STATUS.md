@@ -11,7 +11,7 @@ There are **37 implemented query types**: 3 canonical adapters, 32 bounded publi
 
 Snapshot: 1 November 2026. This is a report, not a claim of full production readiness.
 
-Session renewal server correction4434e2c28 is deployed successfully (job6402f4ec-b203-42a5-8508-589f683708fc); local checks16API/80client/9credential-tool pass. Live protocol then rejected an insecure refresh cookie; Railway forwarded HTTPS was ignored because default proxy trust lists were never cleared. Proxy correction/regression is in progress; frontend43af923 publication remains pending. Original issued test session is preserved without replay. This does not increase provider or browser counts. [Rollout](SESSION_RENEWAL_STATUS.md).
+Session renewal proxy correctionb0b308037/e52770a9 is deployed successfully. Live normal rotation now returns a Secure cookie for the same avatar; logout exposed a redacted-token-list ownership bug. Coreb835014 fixes authoritative owner validation and passes5V2 tests; API consumer verification/deployment is pending. Frontend renewal remains staged. These checks do not increase provider/browser counts. [Rollout](SESSION_RENEWAL_STATUS.md).
 
 ## Read this first
 
