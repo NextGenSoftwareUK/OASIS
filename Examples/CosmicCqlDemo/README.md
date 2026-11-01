@@ -1,5 +1,8 @@
 # COSMIC CQL demo
 
+**Live milestone, 1 November 2026:** all seventeen added public-source profiles now pass hosted HTTP native 3/2, private Mongo pairing 5/4, preparation/reuse/isolation and matching SQLite/Neo4j replicas. This brings scoped hosted HTTP coverage to 25 providers; browser proof remains 5. [Exact evidence and limitations](../../Docs/WIP/COSMIC%20ORM/HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). Console commands demonstrate native reads only; they do not rerun hosted/browser checks.
+
+
 Start with the [live sandbox](https://web4.oasisomniverse.one/web4-sandbox.html)
 for configured hosted providers; it needs no local SDK or database. See
 [CURRENT_STATUS](../../Docs/WIP/COSMIC%20ORM/CURRENT_STATUS.md) for verified live
@@ -805,7 +808,7 @@ retained-fixture preflight; it does not reset data. See
 
 ### Polkadot public header demo
 
-`--polkadot-public <existing-source.json>` reads three configured headers, then filters to two using HolonManager/LINQ. [PolkadotPublicWalkthrough.cs](PolkadotPublicWalkthrough.cs) explains the steps with spacing and comments. The native published walkthrough and actual CLI passed; no transactions or Mongo records are written by this console command. Header content hashes are verified locally, while canonical/finality claims remain RPC-reported. [Source guide and HTTP scope](../../Docs/Devs/POLKADOT_PUBLIC_METADATA_CQL_GUIDE.md); hosted/browser acceptance remains pending.
+`--polkadot-public <existing-source.json>` reads three configured headers, then filters to two using HolonManager/LINQ. [PolkadotPublicWalkthrough.cs](PolkadotPublicWalkthrough.cs) explains the steps with spacing and comments. The native published walkthrough and actual CLI passed; no transactions or Mongo records are written by this console command. Header content hashes are verified locally, while canonical/finality claims remain RPC-reported. [Source guide and HTTP scope](../../Docs/Devs/POLKADOT_PUBLIC_METADATA_CQL_GUIDE.md); hosted HTTP/Mongo acceptance now passes; browser acceptance remains open.
 
 ### NEAR public account demo
 
@@ -813,7 +816,7 @@ retained-fixture preflight; it does not reset data. See
 
 ### Base, Avalanche and BNB Chain public balance demos
 
-Use `--base-public`, `--avalanche-public` or `--bnb-public` with the corresponding retained source file. Each spaced/commented walkthrough selects three public addresses and a two-address subset through the shared HolonManager/LINQ helper. All three published native walkthroughs and actual CLI commands passed3/2. No transactions or Mongo records are written. Exact commands, query keys, currency units and finality limits are in the [combined guide](../../Docs/Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md). HTTP/Mongo and hosted/browser acceptance remain pending.
+Use `--base-public`, `--avalanche-public` or `--bnb-public` with the corresponding retained source file. Each spaced/commented walkthrough selects three public addresses and a two-address subset through the shared HolonManager/LINQ helper. All three published native walkthroughs and actual CLI commands passed3/2. No transactions or Mongo records are written. Exact commands, query keys, currency units and finality limits are in the [combined guide](../../Docs/Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md). HTTP/Mongo acceptance now passes locally and hosted; browser acceptance remains open.
 
 ### Optimism public balance walkthrough
 
@@ -827,11 +830,11 @@ Use `--linea-public LocalState/COSMIC/HostedLineaPublicSourceCurrent/source.json
 
 ### zkSync and Abstract public balances
 
-Use `--zksync-public LocalState/COSMIC/HostedZkSyncPublicSourceCurrent/source.json` or `--abstract-public LocalState/COSMIC/HostedAbstractPublicSourceCurrent/source.json` with the existing console. Spaced/commented C# walkthroughs use HolonManager/LINQ and return3/2records; actualCLI/native proofs pass. HTTP/Mongo/hosted remain pending. Stablecatalogue owners, exactwei strings, RPC-reported finalizedhash; no wallet, transaction or DBcreation.
+Use `--zksync-public LocalState/COSMIC/HostedZkSyncPublicSourceCurrent/source.json` or `--abstract-public LocalState/COSMIC/HostedAbstractPublicSourceCurrent/source.json` with the existing console. Spaced/commented C# walkthroughs use HolonManager/LINQ and return3/2records; actualCLI/native proofs pass. Local and hosted HTTP/Mongo acceptance now passes; browser acceptance remains open. Stablecatalogue owners, exactwei strings, RPC-reported finalizedhash; no wallet, transaction or DBcreation.
 
 ### Monad public balances
 
-Use `--monad-public LocalState/COSMIC/HostedMonadPublicSourceCurrent/source.json` with the existing console. Spaced/commented MonadPublicWalkthrough uses HolonManager/LINQ and returns3/2records; native/actualCLIpass. HTTP/Mongo/hostedremainpending. Exactnativebaseunits and RPC-reportedfinalizedhashes;no wallet/transaction/databasecreation.
+Use `--monad-public LocalState/COSMIC/HostedMonadPublicSourceCurrent/source.json` with the existing console. Spaced/commented MonadPublicWalkthrough uses HolonManager/LINQ and returns3/2records; native/actualCLIpass. Local and hosted HTTP/Mongo acceptance now passes; browser acceptance remains open. Exactnativebaseunits and RPC-reportedfinalizedhashes;no wallet/transaction/databasecreation.
 
 ### Sei public balances
 

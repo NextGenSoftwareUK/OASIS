@@ -1,84 +1,59 @@
-# COSMIC ORM / CQL — current status
+# COSMIC ORM / CQL - current status
 
-Updated 1 November 2026. Programme incomplete. Goal active after explicit packaging publication approval; full roadmap remains incomplete. Priority: hosted demo breadth and reproducible HyperDrive bugs; deep LINQ parity remains paused.
+Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: live demo breadth. Deep post-selected LINQ parity remains paused.
 
-David explicitly waived the daily Development push limit for live demo testing/fixes on1November. Continue necessary verified pushes without asking again; no production/master promotion or new hosting spend.
+David authorizes necessary Development pushes for live demo testing/fixes without daily-cadence questions. No production/master promotion or new hosting spend.
 
-## Current rollout
+## Current milestone
 
-Provider-partition configuration4e0d58f08/Core56c869f deployedSUCCESS (job8444dbca). All18source/admission settings and17provider preset partitions now match their preserved candidates exactly; no unrelated drift. Each partition is at most2399characters; all68new presets retained. Original rejected combined-catalogue intent/outcome remains preserved and is not retried.
+All 17 new profiles passed hosted HTTP/client-module acceptance. Combined with the earlier eight-provider proof, **25 providers** have scoped hosted HTTP evidence. Browser proof remains **5**, with **20 open**. Earlier eight-provider acceptance was not broadly rerun.
 
-One intended settings rollout of the same artifact is BUILDING: aff4bf53-41eb-4e03-9811-dc4f809c3e50 at4e0d58f08. Track this exact job, then run hosted Google/chain native+Mongo/preparation/reuse/isolation/replica gates. Do not create avatars/saves before SUCCESS or replay successful/uncertain cohorts. Standing user authorization permits necessary Development demo pushes without cadence questions.
+Live application: Development **4e0d58f0868a7a4d0e6e1951a7331e04888e19c6**, Core **56c869ff8de0a520da8c09ba8ebc6f85bbd40ea4**. Exact settings rollout **aff4bf53-41eb-4e03-9811-dc4f809c3e50 SUCCESS**; current variables match the preserved candidate exactly.
 
-## Active deployment
+Website main **36933fb** serves the exact expanded demo HTML; 64 client tests pass. Each new profile exposes four server-planned presets, including Mongo pairing.
 
-David approved the correction on 1 November. Scoped Development051ac6af7841f95d4babb1a3e061feee06b4a6c6 is pushed and remote-verified; Core stays6bbd015. Exact Railway jobd8876691-5ce2-4495-9e3d-dedfb1732de0 is SUCCESS. Exact deployed commit verified. New public profiles/settings are excluded. Browser transport and deferred hosting remain separate limits.
+## Provider evidence
 
-## Next consolidated release
-
-Seventeen-profile expansion preflight now passes970Core+101API contracts (zero skips),53configuration controls, both source manifests and dependency pins. Second normal daily batch pushed: Development0287c75c4/Core56c869f, remote-verified; exact Railway jobfddf3159-50cc-4b4f-a6c9-2e3af8882f9d FAILED at the strict SDK packaging check: seven Polkadot bridge modules omitted from its project publish list. Scoped fix now verified by actual MSBuild publish metadata, five bridge closures and two regression tests; an extra deployment timing decision is recorded in the David list. A lightweight all-five-bridge CI gate and pre-image check now run the verified source-closure command; hosted CI execution remains pending publication. Existing correction remains live. Website main36933fb published after64client tests pass; public HTML matches the committed36933fbblob exactly (137,753bytes). Joint19settings remain unapplied until matching revision deployment succeeds.
-
-## Exact next steps
-
-1. Auto policy is verified configured as Auto: deterministic scoring does not promise rotation. A separate live candidate-routing gate now passes all3request-scoped singleton lists using Default, exact record preservation and no saved/global settings changes. Keep the original variation gate unacknowledged; score optimality/fairness remains unverified. Next resolve remaining browser/source rollout gates without replaying successful routing/failover scopes. Owner approval is recorded in [David list, Part F](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
-2. The routing-v1 owner session is now verified expired. Preserve its owner, record and save ACK; do not rerun setup or replace that identity. After the matching correction deploys, use the explicitly planned routing-v2 cohort via --cohort routing-v2 in preparation and both verifiers. Its independent visitor is prepared explicitly before failover, after owner validation. Twenty-three routing protocol checks pass. Routing-v2 is now prepared: one acknowledged create, exact three-store copies, nine correct reads and three successful/restored failover cases. Reuse this live cohort.
-3. Integrate the separately tested public-read expansion with its matching Core, application and joint configuration in a permitted release batch. Then verify hosted native queries, Mongo presets, isolation, replicas and browser behavior.
-4. Finish SOLID, S3 and Solana browser acceptance when browser control recovers. IAB documentation retry still returns `Transport closed`; this is agent-owned work.
-
-## Release and working copies
-
-- Work/build/test only `C:/Source/OASIS-cosmic`; parent/Core task branch `work/cosmic-cql-google-public`. Parent b36259d1e pushed; Core56c869ff8de0a520da8c09ba8ebc6f85bbd40ea4 pushed and remote-verified. Gitlink/manifest match. Unknown root `logs` preserved.
-- Scoped correction branch `work/cosmic-cql-hosted-release`:450614de6 includes production fix51de129d3 and incoming Development494f988bc owner-document updates. It excludes the public-read expansion.
-- Approved Development57174def3/Core6bbd015 deployed successfully: Railway e107f7e5-fb8b-4cce-854b-46ebad7c8600. Remote Development is now494f988bc (another contributor's owner-document update).
-- Frontend `C:/Source/Web4Site`, branch `work/cosmic-cql`,36933fb pushed. Public main36933fb now serves the exact committed HTML, including all expanded local source links;64client tests pass. This does not make unenrolled providers available.
-
-## What is actually verified
-
-| Scope | Evidence and limits |
+| Scope | Providers / limits |
 |---|---|
-| Hosted HTTP: 8 providers | MongoDB, SQLite, Neo4j, ActivityPub, IPFS, SOLID, public S3 object metadata, public Solana account metadata. Last full eight-source acceptance498e3fd7f; later deployment does not imply a fresh complete run. |
-| Browser: 5 providers | MongoDB, SQLite, Neo4j, ActivityPub and IPFS. SOLID/S3/Solana remain open. |
-| Hosted source/Mongo presets | Native3/2, private Mongo2, paired5/4, repeated preparation0writes/2existing, foreign-private0. Snapshot replicas match SQLite/Neo4j IDs, versions, owners, visibility and metadata. |
-| Original three-store baseline | 35/35 within its declared scope; not full ORM parity. |
-| Frozen correctness preflight | 1,009 contracts pass; full API/Core-test builds and three static manifests pass. |
-| New routing-v1 cohort | One acknowledged Mongo create; exact three-store baseline and three explicit-provider reads pass. Default balancing fails on the deployed image. |
-| Default-routing correction | Unbound manager acquisition preserves Default until HyperDrive chooses. 13 acquisition guards plus61 HTTP/controller tests pass, zero skips. Deployed correction verified: Default stays Default and all six automatic reads selected Neo4j. Variation gate remains open. |
+| Advanced canonical CQL; earlier hosted/browser proof | MongoDB, SQLite, Neo4j. Original baseline35/35; full EF parity incomplete. |
+| Earlier hosted/browser source proof | ActivityPub, IPFS. |
+| Earlier hosted HTTP source proof; browser open | SOLID, S3 public metadata, Solana public accounts. |
+| Fresh hosted HTTP/client proof; browser open | Google Cloud Storage, Ethereum, Polygon, Arbitrum, Cosmos Hub, Polkadot, NEAR, Base, Avalanche, BNB, Optimism, Linea, Scroll, zkSync, Abstract, Monad, Sei. |
+| Local/emulator only; hosting explicitly deferred | Azure Cosmos DB, Oracle Database. No signup/payment re-asks. |
+| Not admitted | Rootstock endpoint rejects finalized headers; no downgrade. |
 
-Hosted Azure is deferred: free-only, no subscription. Hosted Oracle is deferred: no account/connection. Do not re-ask signup/payment. Existing Azure emulator and Oracle local native proofs are separate from hosting.
+Each new profile proves native **3/2**, two private Mongo creates, paired **5/4**, repeat **0** new / **2** existing, foreign-private **0**, and **2** matching rows on each of SQLite/Neo4j. Total **34** new private snapshots. No source/chain writes or browser proof inferred.
 
-## Prepared public-read expansion — not hosted
+[Fresh proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). [Every provider project](PROVIDER_CQL_AND_SANDBOX_STATUS.md) covers the maintained229-project inventory. Core's27query-tariff types are not27hosted certifications.
 
-Seventeen new profiles have native/C#/CLI and local HTTP/Mongo/isolation proofs: Google Cloud Storage, Ethereum, Polygon, Arbitrum, Cosmos Hub, Polkadot, NEAR, Base, Avalanche, BNB, Optimism, Linea, Scroll, zkSync, Abstract, Monad and Sei.
+## Root causes resolved
 
-These are bounded unsigned public projections, not owned native persistence or independent chain settlement proofs. Each has one ready Mongo federation preset family. HTTP gates verify native3/2, paired5/4, exact IDs/provenance/visibility and query receipts; controlled bearer/usage authority is not production auth/billing proof.
+- Polkadot omitted seven imported bridge modules from publishing. Fixed the owning csproj; actual MSBuild publish metadata and all five source closures pass. Fast CI gate added; strict Docker verification retained.
+- Railway rejected the40,443-character combined preset variable at its32,768-character limit. Original failed intent/protected rejection retained; eighteen source/admission values matched and shared examples stayed unchanged.
+- Strict provider-partitioned configuration retains all68presets; maximum partition2,399characters. Duplicate ownership/malformed values fail without override/fallback. All17partition writes acknowledged; one intended settings rollout succeeded.
+- Validation:17API tests including actual68preset shipping planning,3publisher tests; release970Core+101API contracts (zero skips),53configuration controls and source/pin manifests pass.
 
-- Optional seventeen-source candidate:68 presets,19 settings, preserved under `LocalState/COSMIC/HostedSourceRolloutCurrent/seventeen-source-public-{before,candidate}-variables.dpapi`. Earlier candidates remain preserved; do not apply them sequentially.
-- The complete seventeen-source candidate now passes the shipping planner: all68actual presets using shipping provider/Mongo capabilities (1 test, zero skips). Eleven application/release-guard controls also pass. Publication now enforces an exact successful deployment matching the reviewed checked-out release before any configuration mutation. This is offline planning, not hosted execution.
-- Read-only hosted reconciliation now confirms the original snapshot still matches exactly: zero changed keys,19 planned settings, no mutation or deployment.
-- Public review, planner TRX and reconciliation: `TestResults/HostedCqlIntegrationCurrent/`. No protected values in reports.
-- Core supports27 unsigned-read tariff types; that is not the hosted-provider count. Query pricing never grants signing/storage authority.
-- Rootstock remains red: selected endpoint rejects finalized-header requests. No silent downgrade or source profile created. Sei's explicit mixed-case hash codec is scoped to Sei; canonical profiles remain strict.
+## HyperDrive evidence and limits
 
-Developer manual now lists all17prepared profiles, their native metadata keys/CLI modes and an explicit two-key HTTP example. Nine stale console messages now distinguish native-run proof, separately verified local federation and pending hosting.
+- Live correction preserves Default until V2 chooses. Three request-scoped singleton lists select MongoDB/SQLite/Neo4j respectively, preserving the exact record without settings changes.
+- Live failover: Mongo to SQLite, SQLite to Mongo, Neo4j to Mongo. Disabled mode returns offline; enabled mode preserves record/owner/version/content. Foreign-private zero; all faults restored.
+- Auto scores providers; it does not promise rotation. Six unoverridden reads chose Neo4j. Earlier variation gate stays unacknowledged; optimality/geography/fairness not certified.
+- Six native repair/continuation/interleaving routes and three-authority ACK-loss/HTTP-disconnect proofs remain scoped. Replica delivery is not write-authority migration.
+- Open: broader operator/transport recovery, authority cutover, scale and full ORM lifecycle/child/history/migration reconciliation. No universal uptime or all-provider write/replication claim.
 
-## Remaining HyperDrive and ORM work
+## Exact next work
 
-All six native directed repair routes, manager continuations and paused-baseline interleavings pass. Three application ACK-loss cases and three real loopback HTTP post-commit disconnect cases prove one mutation, original receipt recovery without resubmission and two ordinary replicas. Owned fixtures were cleaned after verification.
+1. Preserve completed cohorts; do not repeat green save/query gates. Continue red provider breadth and reproducible demo defects.
+2. Browser gates remain open for20providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
+3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
-The unfinished hosted failover gate now requires per-response proof of a different enrolled serving provider, in addition to exact record preservation; eight acceptance controls pass (including all six directed routes and expiry/replay guards). This is verifier coverage, not a new live pass.
+## Recovery/resources
 
-Hosted routing-v2 failover now passes all three faulted sources with response-owned alternate routes, two refusals per source, foreign-private0 and verified restoration. No save during the gate.
+- Work/build/test only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public. Frozen public release branch4e0d58f08. Unknown root logs untouched.
+- Durable source identities/tokens/save intents/ACKs: LocalState/COSMIC. Fresh completion hashes: HostedQueryAcceptance-<Provider>/cql-http-acceptance.acknowledged.json. Never regenerate owners or replay uncertainty after cleanup.
+- Protected settings snapshots/intents/outcomes: HostedSourceRolloutCurrent. Preserve rejected combined-catalogue and successful partition journals. Raw output only TestResults/HostedCqlIntegrationCurrent, never Docs.
+- No new runtime/environment/container/download in this rollout. Reuse pinned resources. Final free C:82,832,003,072bytes. [Ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+- Builds: Invoke-WithProviderBuildLease.ps1, /m:2 /nr:false /p:UseSharedCompilation=false; never nest. Pins: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks. Source packaging: python -B Scripts/validate_all_provider_sdk_publish_manifests.py.
 
-Still red: automatic-selection policy/variation acceptance; wider operator/late-enrollment/transport acceptance; primary-authority cutover; scale certification; full ORM acceptance reconciliation. Replica delivery is not migration of write authority. Mixed unsigned-read/signed-write representations retain the admission fence.
-
-Deep LINQ terminals, unrestricted non-IHolon POCO mapping and migration tooling remain deferred. Work only on red acceptance scopes; revisit green scopes only for a reproducible bug. Legacy implementation remains document-only.
-
-## Resources and key commands
-
-- Durable source identities/intents/ACKs: `LocalState/COSMIC`; regenerable logs/TRX: `TestResults`, never Docs. Do not replay acknowledged setup or regenerate stable source owners.
-- Reuse Mongo8.3.11, `LocalState/COSMIC/mongo-data`,27029/oasisRecoveryRs; stopped pinned `oasis-neo4j`. No new downloads/installations for this milestone. Latest free C:75,428,438,016 bytes.
-- Builds use `Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1` and `/m:2 /nr:false /p:UseSharedCompilation=false`. Provider runners own their lease; never nest.
-- Pins: `python Scripts/validate_railway_dependency_manifest.py --require-gitlinks`.
-- Read-only drift check: `python Scripts/Sandbox/Reconcile-TenSourceHostedConfiguration.py --scope seventeen`.
-
-Details: [integration](HOSTED_SANDBOX_INTEGRATION_PLAN.md), [source expansion](EVM_NEXT_THREE_SOURCE_STATUS.md), [recovery](REPLICA_BASELINE_AND_RECOVERY.md), [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md), [backlog](AFTER_DEMO_BACKLOG.md), [strict parity checklist](CQL_PARITY_CHECKLIST.md).
+Links: [checklist](CQL_PARITY_CHECKLIST.md), [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [integration](HOSTED_SANDBOX_INTEGRATION_PLAN.md), [backlog](AFTER_DEMO_BACKLOG.md), [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
