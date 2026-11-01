@@ -8,9 +8,7 @@ David authorizes necessary Development pushes for live demo testing/fixes withou
 
 All18addedprofiles passed hosted HTTP/client-module acceptance: original17plusBerachain. Combined with earlier8proofs, **26 providers** have scoped hosted HTTP evidence. Browser proof remains **5**, with **21 open**. Earlier eight-provider acceptance was not broadly rerun.
 
-Live application: Development **1b2626499f652c6a418d7d0295b8232e1de84814**, Core **08c4977215f55006e6c7b00de62c9a70c1968d9b**. Exact settings rollout **c6fb86d9-d057-4b8d-a5f1-bbb4d0ba9597 SUCCESS**; current variables match the preserved candidate exactly.
-
-Bitcoin release published: parent19ebbfe2c496b6a528b5f5b31e6138c317bae146/Core7317ba1cd4301a1794294b78be685070db45c3e2, both Development remote refs verified. Exact app joba64660e1-9676-405d-beaa-a0b8de327278 QUEUED (Railway: Waiting for build slot); do not apply settings until exact SUCCESS. No live Bitcoin claim.
+Live application: Development **19ebbfe2c496b6a528b5f5b31e6138c317bae146**, Core **7317ba1cd4301a1794294b78be685070db45c3e2**. Exact app joba64660e1-9676-405d-beaa-a0b8de327278 SUCCESS. Three Bitcoin settings acknowledged and whole candidate read back exactly. Single journalled settings rollout **f71e482c-851f-446b-9bbc-886caae3c30f BUILDING** on the same commit. No Bitcoin hosted claim yet.
 
 Website main **c932346** serves byte-identical demo HTML (SHA256 d1c96b2a5612cb4fe62eaf446a806f6a66fe4ba7e5b02ff781e6d4845c7fb9c2); 64 earlier client tests pass. Each new profile exposes four server-planned presets, including Mongo pairing.
 
@@ -50,13 +48,13 @@ Berachain passed local and hosted native/C#/CLI/HTTP+Mongo gates. All3settings a
 
 ## Exact next work
 
-1. Next: observe joba64660e1 for exact19ebbfe2c SUCCESS; then frozen release branch19ebbfe2c + expected-release env guard, guarded3setting apply and one journalled settings rollout; afterward task-branch Bitcoin hosted acceptance. [Local proof](BITCOIN_PUBLIC_SOURCE_STATUS.md): native20/C#1/API2/tariff1/prepared1/HTTP1 pass; HTTP3/2+Mongo5/4, foreign-private0. Fixture cleaned, no replay.
+1. Next: observe f71e482c for exact19ebbfe2c SUCCESS, then run task-branch `python -B Scripts/Sandbox/Verify-HostedQuerySource.py BitcoinOASIS --prepare` once. Preserve the original two visitors/save intents/ACKs; no replay. Publish staged Web4Site Bitcoin card only after hosted proof. [Local proof](BITCOIN_PUBLIC_SOURCE_STATUS.md):20source/C#1/API2/tariff1/prepared1/HTTP1 pass; HTTP3/2+Mongo5/4, foreign-private0.
 2. Browser gates remain open for21providers. CUA still returns Transport closed; tooling is agent-owned. David already opened the browser. Do not ask again or restart Windows control stopped by Escape/interfere with games.
 3. Keep Azure/Oracle hosting deferred; deep post-selected LINQ, unrestricted POCO and migrations tooling remain paused for demo breadth. Full roadmap remains active.
 
 ## Recovery/resources
 
-- Work/build/test only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public. Frozen public release branch1b2626499. Unknown root logs untouched.
+- Work/build/test only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public. Frozen public release branch19ebbfe2c. Unknown root logs untouched.
 - Durable source identities/tokens/save intents/ACKs: LocalState/COSMIC. Fresh completion hashes: HostedQueryAcceptance-<Provider>/cql-http-acceptance.acknowledged.json. Never regenerate owners or replay uncertainty after cleanup.
 - Protected settings snapshots/intents/outcomes: HostedSourceRolloutCurrent. Preserve rejected combined-catalogue and successful partition journals. Raw output only TestResults/HostedCqlIntegrationCurrent, never Docs.
 - No new runtime/environment/container/download in this rollout. Reuse pinned resources. Latest free C:63,512,604,672bytes; no attribution to unmeasured external changes. [Ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
