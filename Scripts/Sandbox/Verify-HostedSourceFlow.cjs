@@ -24,24 +24,27 @@ async function main() {
     setItem(key, value) { entries[key] = value; persist(); },
     removeItem(key) { delete entries[key]; persist(); }
   };
-  const steps = [];
+  const continuation = input.resumeManifest ? require('./hosted-source-continuation.cjs').loadContinuation(input) : null;
+  const steps = continuation ? [...continuation.prior.steps] : [];
   const mongo = new Map();
-  const progress = {};
+  const progress = continuation ? { ...continuation.prior.progress } : {};
   function observe(phase, value) {
     progress[phase] = value;
     fs.writeFileSync(input.report + '.progress.json', JSON.stringify({ progress, steps, browserAcceptance: false }, null, 2));
   }
   async function request(route, body) {
+    require('./hosted-source-continuation.cjs').assertContinuationRoute(continuation, route);
     const response = await fetch(input.base + route, { method: 'POST', redirect: 'error',
       signal: AbortSignal.timeout(45000), headers: { Accept: 'application/json', 'Content-Type': 'application/json',
         Authorization: 'Bearer ' + input.token, 'Idempotency-Key': body?.operationId ?? crypto.randomUUID() },
       body: JSON.stringify(body) });
     const text = await response.text();
     const value = unwrap(text.length ? JSON.parse(text) : null);
-    steps.push({ route, status: response.status, operationId: response.headers.get('X-OASIS-Operation-Id'),
+    steps.push({ route, status: response.status, operationId: response.headers.get('X-OASIS-Operation-Id') ?? value?.operationId ?? null,
       errorCode: value?.errorCode ?? value?.code ?? null });
     if (!response.ok || !value || value.isError) {
       observe('failedHttp', { route, status: response.status, errorCode: value?.errorCode ?? value?.code ?? null,
+        operationId: value?.operationId ?? response.headers.get('X-OASIS-Operation-Id') ?? null,
         retryAfter: response.headers.get('Retry-After') });
       throw Error(route + ' failed: HTTP ' + response.status + '/' + (value?.errorCode ?? value?.code ?? 'error'));
     }
@@ -65,21 +68,31 @@ async function main() {
   if (!plan) throw Error('Configured source does not support the published private-snapshot recipe.');
   const options = { recipe: plan, request, storage, base: input.base.replace(/\/api\/$/, ''),
     isCurrent: () => true, randomUUID: () => crypto.randomUUID() };
-  const prepared = await preparation.prepare(options);
-  observe('preparation', prepared);
   const mappedIds = async () => {
     const mapped = await request('data/query-cql/demo-identities', { provider: input.source.provider, keys: plan.keys });
     return mapped.result.records.map(record => record.id);
   };
-  let ids = plan.selectionKind === 'Id' ? await mappedIds() : null;
-  const five = await request('data/query-cql/federation',
-    plan.selectionKind === 'Id' ? prepared.pairedRequest : input.pairedThree.request);
-  rows(five, 5);
-  observe('five', five);
-  const four = await request('data/query-cql/federation', plan.selectionKind === 'Id'
-    ? preparation.composeIdPair(preparation.recipe(input.source, input.pairedTwo), ids) : input.pairedTwo.request);
-  rows(four, 4);
-  observe('four', four);
+  let prepared, five, four;
+  let ids = continuation ? continuation.ids : null;
+  if (continuation) {
+    // Preserve acknowledged saves and completed query proofs. Only the unfinished
+    // read-only reuse/replica checks run; no original usage operation is replayed.
+    ({ preparation: prepared, five, four } = continuation.prior.progress);
+    observe('settlementContinuation', { originalOperationId: continuation.operationId,
+      originalOperationSettled: true, originalStagesPreserved: true, savesPermitted: false });
+  } else {
+    prepared = await preparation.prepare(options);
+    observe('preparation', prepared);
+    ids = plan.selectionKind === 'Id' ? await mappedIds() : null;
+    five = await request('data/query-cql/federation',
+      plan.selectionKind === 'Id' ? prepared.pairedRequest : input.pairedThree.request);
+    rows(five, 5);
+    observe('five', five);
+    four = await request('data/query-cql/federation', plan.selectionKind === 'Id'
+      ? preparation.composeIdPair(preparation.recipe(input.source, input.pairedTwo), ids) : input.pairedTwo.request);
+    rows(four, 4);
+    observe('four', four);
+  }
   const repeated = await preparation.prepare(options);
   if (repeated.saved !== 0 || repeated.existing !== 2) throw Error('Repeated setup must preserve both private snapshots.');
   observe('repeated', repeated);
@@ -113,9 +126,10 @@ async function main() {
     observe('replicas', replicas);
   }
   const proof = { provider: input.source.provider, prepared, repeated, ids, five, four, replicas, mongoRows: [...mongo.values()], steps,
-    browserAcceptance: false, clientModule: input.preparationModule };
+    browserAcceptance: false, resumedAfterSettledRead: Boolean(continuation),
+    continuationStartStep: continuation ? continuation.prior.steps.length : null, clientModule: input.preparationModule };
   fs.writeFileSync(input.report, JSON.stringify(proof, null, 2), { flag: 'wx' });
   console.log(JSON.stringify({ provider: proof.provider, prepared, repeated, nativeAndMongo: [5, 4],
-    replicaCounts: [2, 2], browserAcceptance: false }));
+    replicaCounts: [2, 2], resumedAfterSettledRead: Boolean(continuation), browserAcceptance: false }));
 }
 main().catch(error => { console.error(error.message); process.exitCode = 1; });
