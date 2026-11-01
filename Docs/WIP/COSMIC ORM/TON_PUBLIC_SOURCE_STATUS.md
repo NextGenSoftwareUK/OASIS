@@ -59,3 +59,21 @@ Core already accepts explicit1..30000ms federation durations; HTTP capture previ
 Original continuation evidence: TestResults/TonPublicSourceCandidateCurrent/ton-mongo-http-prepersistence-continuation.trx, 0passed/1failed, 6652bytes, SHA25668043846418e989590925ceceecaaff0b1580152d934e143a6cf934e003d2e49. Original failure and both save ACKs retained; no hosted acceptance claimed.
 
 Duration/admission controls verified: 8passed/0failed/0skipped (six duration boundaries plus existing two TON admission controls); TestResults/TonPublicSourceCandidateCurrent/duration-admission.trx, 14423bytes, SHA256fd33bcf0be7bfef05eeac2c5f18ed7dd20c94bf1fd309800fa443d85285d312b. Pure publisher controls3/3pass. This does not establish native paired/hosted success.
+
+## Leaf deadline checkpoint
+
+Reviewed read continuation built and validated original DB marker/count, two ACKs, actor/copy/operation IDs, source provenance, versions1/private visibility and identity metadata without saves. It stopped on native3 HTTP504/CQL_QUERY_CANCELLED under the leaf endpoint fixed5s deadline before testing paired budgets. No cleanup; existing DB/intents/ACKs preserved, owned Mongo stopped/27029absent. This is a distinct leaf boundary from the preceding paired3 timeout.
+
+Added CqlV1Request.MaximumDurationMilliseconds (default5000, admitted1..30000), copied/validated before callbacks, consumed by the leaf endpoint cancellation source. TON native and paired presets explicitly request30000. Six leaf boundary/detachment controls plus schema/admission tests are running. This does not yet prove real paired success; original read intent cannot be rerun. Next use a separately reviewed read-only continuation tied to this failed outcome and the same DB/IDs, never Save/reseed. Fresh Developmentb175fe4/Corec9af864 must be integrated before any release.
+
+Read continuation: TestResults/TonPublicSourceCandidateCurrent/ton-mongo-http-read-continuation.trx, 0passed/1failed, 7490bytes, SHA2569ba60c08e7229f65d676bd885a91bcebad7d10c355e9657e4325c670a5cbc96d. Native source activation/query preparation succeeded; no hosted acceptance claimed.
+
+## Local HTTP milestone verified
+
+Native-budget read-only continuation passes 1/1 with original identities: native 3/2, paired 5/4, foreign-private 0/public 3 and 9 receipts. No repeat Save was executed. Original two saves remain acknowledged version1. Success-only marker/count checks and teardown verified DB absent; owned mongod stopped and port27029 absent. Do not replay the cleaned fixture. Neither production billing, replication nor browser acceptance is inferred.
+
+Duration/admission/schema controls pass 15/15 with zero skips; publisher controls pass 3/3. Single and paired TON presets explicitly request30000ms, default remains5000ms. Earlier paired/leaf deadline failures remain retained, not overwritten. Next revise prepare-only protected candidate (retain stale candidate), verify actual new presets, integrate fresh Development b175fe4/Core c9af864 and shipping checks, then scoped hosted rollout. No TON live grant/deploy yet.
+
+- TestResults/TonPublicSourceCandidateCurrent/native-duration-admission.trx: 25574bytes, SHA256e9063eb27327a51c6f60f70a1636fc9f16037b8984edd2cb1a05371819304b23.
+- TestResults/TonPublicSourceCandidateCurrent/ton-mongo-http-native-budget-continuation.trx: 3341bytes, SHA256777e05b8e0f4f545e0d6dde2ebc0470ae8dfe2c5e33963c115479672c6f2fff8.
+- TestResults/TonPublicSourceCandidateCurrent/ton-mongo-native-summary.json: 219bytes, SHA256d2c639fafa1f306fa8269f42e01d1615cb7d3671fdb52ff76d4b64938649e767.
