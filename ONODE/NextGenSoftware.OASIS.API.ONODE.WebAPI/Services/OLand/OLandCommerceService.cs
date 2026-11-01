@@ -48,7 +48,7 @@ public sealed class OLandCommerceService
     private bool NativeEnabled(string provider) => settings.Chains.TryGetValue(provider, out var chain) &&
         chain.NativePaymentEvidenceEnabled && providers().Any(p => p.ProviderType.Value.ToString() == provider && p is IOASISPaymentReceiptProvider) && !string.IsNullOrWhiteSpace(chain.TreasuryAddress) &&
         !string.IsNullOrWhiteSpace(chain.NativeSymbol) && !string.IsNullOrWhiteSpace(chain.NativeAmountUnit) &&
-        chain.NativeDecimals >= 0 && chain.NativeDecimals <= 18 && !string.IsNullOrWhiteSpace(settings.CoinGeckoDemoApiKey);
+        chain.NativeDecimals >= 0 && chain.NativeDecimals <= 18;
 
     public async Task<object> Grid(double latitude, double longitude, int width, CancellationToken token)
     {
