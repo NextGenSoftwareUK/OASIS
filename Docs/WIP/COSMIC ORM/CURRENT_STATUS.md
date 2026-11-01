@@ -10,7 +10,7 @@ All18addedprofiles passed hosted HTTP/client-module acceptance: original17plusBe
 
 Live application: Development **1b2626499f652c6a418d7d0295b8232e1de84814**, Core **08c4977215f55006e6c7b00de62c9a70c1968d9b**. Exact settings rollout **c6fb86d9-d057-4b8d-a5f1-bbb4d0ba9597 SUCCESS**; current variables match the preserved candidate exactly.
 
-Bitcoin release published: parent19ebbfe2c496b6a528b5f5b31e6138c317bae146/Core7317ba1cd4301a1794294b78be685070db45c3e2, both Development remote refs verified. Exact app joba64660e1-9676-405d-beaa-a0b8de327278 queued; do not apply settings until exact SUCCESS. No live Bitcoin claim.
+Bitcoin release published: parent19ebbfe2c496b6a528b5f5b31e6138c317bae146/Core7317ba1cd4301a1794294b78be685070db45c3e2, both Development remote refs verified. Exact app joba64660e1-9676-405d-beaa-a0b8de327278 QUEUED (Railway: Waiting for build slot); do not apply settings until exact SUCCESS. No live Bitcoin claim.
 
 Website main **c932346** serves byte-identical demo HTML (SHA256 d1c96b2a5612cb4fe62eaf446a806f6a66fe4ba7e5b02ff781e6d4845c7fb9c2); 64 earlier client tests pass. Each new profile exposes four server-planned presets, including Mongo pairing.
 
@@ -59,7 +59,7 @@ Berachain passed local and hosted native/C#/CLI/HTTP+Mongo gates. All3settings a
 - Work/build/test only C:/Source/OASIS-cosmic; parent/Core work/cosmic-cql-google-public. Frozen public release branch1b2626499. Unknown root logs untouched.
 - Durable source identities/tokens/save intents/ACKs: LocalState/COSMIC. Fresh completion hashes: HostedQueryAcceptance-<Provider>/cql-http-acceptance.acknowledged.json. Never regenerate owners or replay uncertainty after cleanup.
 - Protected settings snapshots/intents/outcomes: HostedSourceRolloutCurrent. Preserve rejected combined-catalogue and successful partition journals. Raw output only TestResults/HostedCqlIntegrationCurrent, never Docs.
-- No new runtime/environment/container/download in this rollout. Reuse pinned resources. Final free C:82,832,003,072bytes. [Ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+- No new runtime/environment/container/download in this rollout. Reuse pinned resources. Latest free C:63,512,604,672bytes; no attribution to unmeasured external changes. [Ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 - Builds: Invoke-WithProviderBuildLease.ps1, /m:2 /nr:false /p:UseSharedCompilation=false; never nest. Pins: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks. Source packaging: python -B Scripts/validate_all_provider_sdk_publish_manifests.py.
 
 Links: [checklist](CQL_PARITY_CHECKLIST.md), [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [integration](HOSTED_SANDBOX_INTEGRATION_PLAN.md), [backlog](AFTER_DEMO_BACKLOG.md), [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
