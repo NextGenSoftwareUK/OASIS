@@ -44,4 +44,4 @@ The bounded EVM and Bitcoin profiles have hosted HTTP proof within their recorde
 
 [Aptos account guide](../../Devs/APTOS_PUBLIC_ACCOUNT_CQL_GUIDE.md): native CQL/shared-manager/commentedCLI3/2 and hosted API/Mongo/privacy/replicas verified; browser remains open. [Proof](APTOS_PUBLIC_SOURCE_STATUS.md).
 
-[Hedera mirror account guide](../../Devs/HEDERA_PUBLIC_ACCOUNT_CQL_GUIDE.md): native CQL/shared-manager/commentedCLI3/2 and local API/Mongo verified; hosting remains open. [Proof](HEDERA_PUBLIC_SOURCE_STATUS.md).
+[Hedera mirror account guide](../../Devs/HEDERA_PUBLIC_ACCOUNT_CQL_GUIDE.md): native CQL/shared-manager/commentedCLI3/2 and local API/Mongo verified; hosted HTTP is verified; browser verification remains open. [Proof](HEDERA_PUBLIC_SOURCE_STATUS.md).
