@@ -42,6 +42,15 @@ if (args.Length == 2 && args[0] == "--sei-public")
     return 0;
 }
 
+// Query public Sui objects under one GraphQL checkpoint per source query.
+// The existing signed-storage gRPC bridge remains separate and is not invoked.
+if (args.Length == 2 && args[0] == "--sui-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await SuiPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Read bounded Hedera Mainnet mirror account observations through CQL.
 // Native timestamps are retained; no SDK payment or transaction is submitted.
 if (args.Length == 2 && args[0] == "--hedera-public")
