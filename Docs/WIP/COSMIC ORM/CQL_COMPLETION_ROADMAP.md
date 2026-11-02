@@ -1,17 +1,36 @@
 # CQL completion roadmap
 
-Updated 2 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state and the exact next action.
+Updated 2 November 2026. Full programme remains incomplete.
+[CURRENT_STATUS](CURRENT_STATUS.md) owns deployment state and the exact next step.
 
-1. Preserve57scoped hosted HTTP proofs and original cohorts. Latest Bittensor native3/2/Mongo5/4/reuse/privacy/exactSQLiteNeo4j2each/audit/cardbc31379/publicbytes pass at Developmente8d2d75/Core d3f92df. Browser remains separate. Next red Aztec qualification per CURRENT_STATUS. Prior Akash/Eclipse/ENS and other cohorts stay frozen; Nostr/Blockscout unresolved reliability causes remain documented in their source reports.
-2. Keep one filtered native query and one Mongo federated preset per admitted provider, with commented C# examples and sandbox links. Preserve completed privacy, reuse and replica proofs.
-3. Expand remaining red provider scopes with explicit consistency semantics, bounded capability-aware planning, native tests, actual HTTP proof and honest public labels. Rejected RPCs are not implemented capabilities.
-4. Complete browser gates when browser control is available; currently 5 proved/52 open. HTTP and byte matching do not prove interaction.
-5. Preserve MongoDB/SQLite/Neo4j original investor-demo subset and 50/82 green checklist rows each. Work only red cells or reproduced bugs; do not harden green features/federation cursors unnecessarily.
-6. Resume paused deep LINQ terminals after entity-selected stages, reselection/graph composition, EF/NHibernate parity, unrestricted POCO mapping and migrations tooling later. Full declared scope remains incomplete.
-7. Maintain ORM/HyperDrive integration acceptance: authorized replication/recovery, tracked saves and deltas, child queries/depth, ownership, history, migration and placement. Public read-only profiles do not imply owned source writes or distributed snapshots.
+1. Finish ThreeFold's original hosted rollout. Verified code c00da49c1/Core5415961
+   is published; job 5d9b665b-984d-4bcd-bebd-e722ff9a6612 is queued waiting for
+   a build slot. Observe that job, then apply the original three-value candidate
+   once, activate once, verify and independently audit the original hosted cohort.
+   Settings remain unchanged. Do not restart because observation takes time.
+2. Preserve 59 scoped hosted HTTP proofs and 64 local integrated query types.
+   ClickHouse is the latest accepted hosted addition; its sandbox card, guide/C#
+   links and exact public static bytes are verified. Counts are demo scopes,
+   not full provider or ORM certification.
+3. Keep filtered native queries and Mongo federated presets for every admitted
+   provider. Expand remaining red scopes with explicit capabilities/consistency,
+   controlled tests, actual native manager/LINQ and HTTP proof, privacy/replicas,
+   honest labels and usable sandbox/local demo links.
+4. Complete 54 remaining browser gates when browser control is available; five
+   are proved. Static assets and HTTP success do not prove browser interaction.
+5. Preserve the original MongoDB/SQLite/Neo4j investor subset and 50/82 green
+   parity rows each. Work only red cells or reproduced bugs; do not re-harden
+   completed providers or federation cursors.
+6. Resume paused deep selected-stage LINQ, unrestricted POCO mapping and
+   migrations tooling after demo priorities; these remain part of the full goal.
+7. Complete full ORM/HyperDrive V2 acceptance for ownership/conditional writes,
+   children/depth, tracking/deltas/history, recovery, migration and placement.
+   Read-only projections do not establish owned writes or distributed snapshots.
 
-Hosted PostgreSQL, Azure Cosmos and Oracle remain deferred. V2 changes only; legacy gaps documentation-only. Preserve original source catalogues, owners and all acknowledged cohorts.
+Hosted Azure Cosmos, Oracle and PostgreSQL remain deferred. Legacy gaps are
+reported only. Preserve accepted owners/catalogues/intents/ACKs; no cohort replay.
 
-[Strict acceptance](CQL_PARITY_CHECKLIST.md) · [Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) · [Backlog](AFTER_DEMO_BACKLOG.md) · [History](Archive/CQL_COMPLETION_ROADMAP_before_fantom_release_2026-11-01.md).
-
-Bittensor breadth milestone2November: CLI/localHTTP3/2+Mongo5/4/privacy0/3 verified; frozen3value/fourpreset candidate plans with shipping capabilities. Developmente8d2d75/Core d3f92df, code+activationSUCCESS/3settings acknowledged once; original hosted3/2+5/4/reuse/privacy/replicas/audit and cardbc31379pass. Next red Aztec interface qualification; preserve Bittensor cohort. [Evidence](BITTENSOR_PUBLIC_SOURCE_STATUS.md). No deep LINQ/green-provider hardening.
+[Parity checklist](CQL_PARITY_CHECKLIST.md) ·
+[Provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) ·
+[Backlog](AFTER_DEMO_BACKLOG.md) ·
+[Earlier roadmap](Archive/CQL_COMPLETION_ROADMAP_before_hosted_reconciliation_2026-11-02.md).
