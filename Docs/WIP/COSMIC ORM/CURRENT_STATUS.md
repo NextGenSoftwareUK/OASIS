@@ -23,7 +23,7 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 ## Exact next actions
 
 1. Preserve Matrix original source/config/owner/copies/ACKs. No rerun/resave/reapply/redeploy just to reproduce green results. Public site ACK: LocalState/COSMIC/HostedMatrixReleaseCurrent/site-publication.acknowledged.json; raw observation TestResults/MatrixPublicSourceCurrent/public-assets-observation-1.json.
-2. Next inspect StoryProtocolOASIS and current official mainnet RPC/network contract. Qualify one fixed public endpoint before any CQL capability/admission claim. No key/account/source write, paid setup or new environment without need.
+2. Next inspect BlockStackOASIS and the modern Stacks Node RPC account/tip contract. Qualify one fixed public mainnet endpoint before any CQL capability/admission claim. No key/account/source write, paid setup or new environment without need. Story/DATA current Trace discovery returned HTTP403/Cloudflare1010, non-retryable browser-signature denial; original evidence retained in STORY_TRACE_PUBLIC_SOURCE_STATUS.md. No bypass, legacy fix or admission.
 3. Farcaster stays unadmitted: public Pinata Hub failed before HTTP; separate DNS probe confirms name error. Original intent/result/DNS evidence and4offline parser controls preserved in FARCASTER_PUBLIC_SOURCE_STATUS.md. Do not retry or switch to paid Neynar silently.
 4. Update CURRENT_STATUS/full provider report/ledger at the next milestone. Keep hosted48/browser5/open43; public asset proof is not browser interaction.
 
