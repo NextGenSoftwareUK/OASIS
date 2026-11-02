@@ -534,6 +534,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_BITCOIN_PUBLIC_SOURCE_JSON"] is string bitcoinPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.BitcoinPublicHeaderMetadataSource.FromJson(bitcoinPublicSource)));
+            // Native EOSIO/Vaulta account reads stay outside signed storage.
+            if (Configuration["CQL_EOSIO_PUBLIC_SOURCE_JSON"] is string eosioPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EosioPublicAccountMetadataSource.FromJson(eosioPublicSource)));
             // Explicit public Telos EVM reads, outside Antelope/wallet storage.
             if (Configuration["CQL_TELOS_PUBLIC_SOURCE_JSON"] is string telosPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
