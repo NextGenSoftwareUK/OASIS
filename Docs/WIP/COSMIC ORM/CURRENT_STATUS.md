@@ -6,26 +6,26 @@ deep LINQ parity remains paused. Work red scopes only unless a bug is reproduced
 ## Verified scope
 
 - 54 integrated query types:3canonical adapters/47bounded public-source profiles/4local PostgreSQL, Cosmos, Oracle and AWS implementations.
-- 49 scoped hosted functional HTTP proofs; browser5verified/44open. These are not full ORM/native-write/reliability certifications.
+- 50 scoped hosted functional HTTP proofs; browser5verified/45open. These are not full ORM/native-write/reliability certifications.
 - MongoDB/SQLite/Neo4j parity50/82rows each; original investor-demo subset green.
-- Latest hosted addition Stacks: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, exact SQLite/Neo4j2/2. Two original version1 saves/pending0; snapshot reuse bug fixed without extra saves.
+- Latest hosted addition Wormhole: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, exact SQLite/Neo4j2/2. Two original version1 saves/pending0; source/body pins and original cohort frozen.
 - Website maineda15be publishes Stacks/Matrix/prior profiles with pinned setup/C#/HTTP links. Public HTML178107bytes/SHA256ba219e8e890914e0c811cd15de9e435561389a7388b516fe2e93d1de423b04ea and both scripts match exact git blobs. Browser interaction separate. Frontend task21cc5be includes105client controls and an unpublished Wormhole card draft; main stayseda15be.
 - Generic browser copies retain identity/name/description/provenance and native query key, not full native payload. Full safe payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: Wormhole code live, settings activation queued
+## Current phase: Wormhole hosted acceptance complete; card publication next
 
 - ParentDevelopmentd1f42addf0413ddcd381238ccdf17bbfa561a3e2/CoreDevelopmentc551a89ff294e68527f6ff75128d97cff54e6c63 pushed after fetched ancestry checks. Remote refs verified; manifest/seven Dockerfiles/gitlinks validator passes.
-- Code job4da3a095-cdad-4052-850b-baf63020344f SUCCESS. Three settings applied once at matching release, full variables/per-key hashes verified; task branch restored. Single existing-artifact settings jobb29f93f6-cf25-4589-ab12-a0255cf340f9 observed QUEUED at same commit. No hosted cohort created.
+- Code4da3a095/settingsb29f93f6 SUCCESS at exactd1f42addf. Three settings applied once/verified; original hosted cohort passed and independent artifact audit wrote immutable acceptance ACK. No additional saves.
 - Wormhole source35tests, actual HolonManager/deferred-LINQ CLI3/2, Core1/API3/localHTTP1/publisher9/actual prepared presets1/client105 pass. Local HTTP native3/2+Mongo5/4/privacy0/3; two SDK-owned version1 copies/9receipts. Owned fixture DB removed/Mongo stopped.
 - Initial unit consumer compile used stale transitive assets; ordinary cached restore fixed it. Original log retained; no DLL copies/workaround.
 - Original source/owner/body pins/ACKs: LocalState/COSMIC/HostedWormholePublicSourceCurrent. Fixture: WormholeMongoHttpCurrent. Protected three-key reviewed candidate: HostedSourceRolloutCurrent/wormhole-public-* (applied/verified once). Release journals: HostedWormholeReleaseCurrent.
 
 ## Exact next step
 
-1. Poll exact settings jobb29f93f6-cf25-4589-ab12-a0255cf340f9; do not restart/redeploy/re-push to move its queue.
-2. Code-success ACK/settings activation journals are retained in HostedWormholeReleaseCurrent. Do not repeat consumed application/activation. After exact settings SUCCESS retain settings-success ACK.
-3. After exact settings SUCCESS, run one original hosted cohort with Verify-HostedQuerySource.py WormholeOASIS --prepare. Verify native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, exact SQLite/Neo4j2/2 and two version1 ACKs/pending0. No replacement owner or replay on failure.
-4. Only after acceptance/audit publish Wormhole card with pinned guide/C# links and verify public asset bytes. Keep hosted49/browser5/open44 until acceptance passes. Update this file/full report/ledger at that milestone.
+1. Preserve original Wormhole source/owner/config/body pins/cohort/ACKs. Do not replay acceptance/setup/saves or apply/activation.
+2. Publish Wormhole card with guide pinned to this proof-doc commit and C#d1f42addf. Existing task draft21cc5be;105client tests pass. Fetch/preserve concurrent frontend main changes before ordinary push.
+3. Verify public HTML/preparation/playground bytes against exact published git blobs, retain compact observation/site ACK, update reports/ledger. Browser remains open; do not re-request control.
+4. Next select another unimplemented provider scope after card/publication gate; hosted50/browser5/open45. Preserve all completed cohorts.
 
 Observer: python Scripts/Sandbox/Observe-HostedDeployment.py b29f93f6-cf25-4589-ab12-a0255cf340f9 --expected-commit d1f42addf0413ddcd381238ccdf17bbfa561a3e2 --output TestResults/WormholePublicSourceCurrent/settings-deployment.json
 

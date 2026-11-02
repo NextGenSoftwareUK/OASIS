@@ -89,23 +89,24 @@ Source rows are flat public projections with stable owner-scoped OASIS IDs;
 normal provider writes/deletes are refused. No native source mutation or default
 write-provider registration is performed by the example.
 
-## HTTP and live demo gates
+## Hosted HTTP demo verified
 
-Local source35tests and the actual manager/LINQ CLI3/2pass. HTTP compiler,
-query-only admission, local Mongo federation, hosted presets and public card
-are not yet implemented for this profile. Do not infer live support from the
-local walkthrough. Track the exact next gate in the
-[Wormhole status report](../WIP/COSMIC%20ORM/WORMHOLE_PUBLIC_SOURCE_STATUS.md).
+Local source35tests, actual manager/LINQ CLI3/2, Core1/API3/localHTTP1,
+publisher9/prepared1 and105client controls pass. Original hosted cohort verifies
+native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3 and exact
+SQLite/Neo4j replicas2/2. Two private version1 saves remain unchanged, pending0.
+Select WormholeOASIS and its native or Mongo paired preset in the CQL tab.
+The public information card is the next publication step. Browser interaction
+is separate from these HTTP/client-module and replication checks.
 
-Primary contracts: [VAA format/reorg semantics](https://wormhole.com/docs/protocol/infrastructure/vaas/)
-and [public operation API guide](https://wormhole.com/docs/products/messaging/guides/wormholescan-api/).
+See the [release/evidence report](../WIP/COSMIC%20ORM/WORMHOLE_PUBLIC_SOURCE_STATUS.md).
 
 ## Local HTTP integration verified
 
 The shipping compiler/read-profile and query-only admission now pass local HTTP
 native3/2, Mongo federation5/4 and foreign-private0/public3. The four prepared
-hosted presets also plan against shipping capabilities. Hosted settings and live
-card remain pending; this supersedes the earlier implementation-pending note.
+hosted presets also plan against shipping capabilities. Hosted acceptance now passes; the live
+card is being published; this supersedes the earlier implementation-pending note.
 
 Set host-only `CQL_WORMHOLE_PUBLIC_SOURCE_JSON` to the retained source JSON,
 with an explicit independently permitted query-only tariff. This does not grant
