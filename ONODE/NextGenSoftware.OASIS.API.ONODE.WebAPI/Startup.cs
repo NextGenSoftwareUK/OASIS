@@ -534,6 +534,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_BITCOIN_PUBLIC_SOURCE_JSON"] is string bitcoinPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.BitcoinPublicHeaderMetadataSource.FromJson(bitcoinPublicSource)));
+            // Anonymous Matrix aliases are a read-only profile, not a login session.
+            if (Configuration["CQL_MATRIX_PUBLIC_SOURCE_JSON"] is string matrixPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.MatrixOASIS.MatrixPublicRoomMetadataSource.FromJson(matrixPublicSource)));
             // Signed public Nostr events are a separate read-only relay profile.
             if (Configuration["CQL_NOSTR_PUBLIC_SOURCE_JSON"] is string nostrPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(

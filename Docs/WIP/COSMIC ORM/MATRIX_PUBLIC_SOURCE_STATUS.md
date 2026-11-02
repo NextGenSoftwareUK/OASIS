@@ -1,7 +1,7 @@
 # Matrix public room-alias qualification
 
-Updated 2 November 2026. Local bounded CQL source and actual manager/LINQ console verified; hosted
-admission, HTTP/Mongo pairing and browser acceptance remain unimplemented/unverified.
+Updated 2 November 2026. Local source, actual manager/LINQ and native/Mongo HTTP gates verified.
+Hosted settings/deployment, live replication and browser acceptance remain pending.
 
 ## Verified
 
@@ -33,6 +33,24 @@ do not rerun them or remove their guards to obtain a new green result.
 - Test evidence: `TestResults/MatrixPublicSourceCurrent/Offline/matrix-public.trx`,45755bytes/SHA256 `9cf718f90f57316df03714d6ebb3620c10dd0f17d4614c84f6cc2a16af4ff3e7`. Actual console log `console-qualification.log`,1191bytes/SHA256 `b972c58bab7e3e6e219887e9c0267325b3f91701f0a8a719f7d9c841766d6f84`. Raw output remains outside docs.
 - [C# guide, configuration and trust limits](../../Devs/MATRIX_PUBLIC_ROOM_CQL_GUIDE.md), [spaced/commented walkthrough](../../../Examples/CosmicCqlDemo/MatrixPublicWalkthrough.cs). No hosted provider count added.
 
+## HTTP/admission milestone
+
+- Core query-only permission/tariff control1passes; API admission/presets/255-character identity boundary3pass. Matrix native writes remain outside admission.
+- Local shipping HTTP endpoints pass1native fixture test: native3/2, Matrix+Mongo5/4, foreign-private0/public3, two SDK-owned version1 saves and9measured query receipts. The exact owned DB was removed after marker/count checks; owned Mongo stopped and27029absent. Original source/actor/operations/ACKs persist in `LocalState/COSMIC/MatrixMongoHttpCurrent` and `HostedMatrixPublicSourceCurrent`.
+- Local SDK snapshots retain full projected metadata. Their values are compared with the original seed observation; mutable native routing responses are not falsely required to match an earlier snapshot. Browser generic snapshots retain identity/name/description/provenance and the query key, not full native metadata.
+- Initial Core.UnitTests build exposed missing production `CqlNativeFailureDiagnostics` Compile Link after the earlier diagnostics change. Added the actual dependency; corrected Core/API builds pass. Original failed log retained as `Http/core-build.log`, not hidden by a stub or alternate execution path.
+- Publisher9pure tests pass. Protected candidate `LocalState/COSMIC/HostedSourceRolloutCurrent/matrix-public-*` changes exactly3keys, leaves canonical DNA/native write permissions untouched, uses free query-only pricing and4presets. Prepared actual presets pass1shipping native/Mongo planner test; no settings mutation/redeployment yet.
+- Frontend task commit `2ccf6f85ebb2a4908357226d787ba6fed0ac4d86` aligns Matrix255-character key bounds while preserving others. All101client tests pass. It is not yet on website main; no card or browser proof claimed.
+- Core task commit `dd2c32c8925aaf53017f4fedc1d1f11d330a55e3` pushed and verified by `git ls-remote`; parent gitlink/manifest advance together. Development publication follows exact fetched ancestry checks.
+
+| Evidence under `TestResults/MatrixPublicSourceCurrent/` | Count | SHA256 |
+|---|---|---|
+| `Http/core-admission.trx` | 1/1 | `fafbed0b860439fd9b01a2dfe61cee4264cad254ea258e57c0157ce662005902` |
+| `Http/api-admission.trx` | 3/3 | `6772918fe3b5ce37f4962f3d9bf52be6485580f8270f1e3d513af6586591389e` |
+| `mongo-http-native.trx` | 1/1, no skips | `9f6436004a2ddcaefca547c43beb33be6bc5cc6b24ca36d00318aec55fa5c4b4` |
+| `Http/prepared-presets.trx` | 1/1, four presets | `d90c1747bea2a0591d929b8dff31f8529e377c1295d4c1ac8bf03085377ba209` |
+| `prepared-review.json` | four presets, no deployment | `6399989fbd3bb89d967357016d05a393b04ae915bda973da3b438e68ec7f6f33` |
+
 ## Next implementation and limits
 
 The local source implements bounded configured-alias `MatrixRoomAlias`
@@ -41,9 +59,11 @@ capability rejection. It preserves exact server-reported opaque room IDs. Room-a
 resolution is mutable and server-reported: it does not prove message history,
 room state, membership, E2EE content, freshness, common snapshot or independent
 federation consensus. No server address returned by the API should be fetched.
-Next wire explicit HTTP/compiler/host activation and tariff admission, native3/2
-and Mongo5/4 presets, ownership/isolation
-and replication checks before hosted admission/card publication.
+Next publish the verified code/Core pin, observe its exact deployment, apply the
+prepared three-key settings candidate once against that release, then verify
+hosted native3/2, Mongo5/4, copy reuse, privacy and replica matching. Publish the
+sandbox card only with accurate HTTP/browser limits. Do not replay local fixture
+saves or replace source/copy owners.
 
 Legacy `MatrixOASIS` activation requires login and does not supply this anonymous
 bounded source contract; leave legacy unchanged and document its gaps only.

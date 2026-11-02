@@ -28,7 +28,7 @@ public static class CqlHostedDemoIdentities
             ?? throw new ArgumentException("A concrete configured-source profile is required.");
         // Azure dataset blob names can exceed 128 characters. Match the source's
         // declared bound without expanding other providers' identity contracts.
-        var maximumKeyLength = provider == ProviderType.AzureStorageOASIS ? 512 : 128;
+        var maximumKeyLength = provider == ProviderType.AzureStorageOASIS ? 512 : provider == ProviderType.MatrixOASIS ? 255 : 128;
         if (actor == Guid.Empty || request?.Keys == null || request.Keys.Length is < 1 or > 2
             || request.Keys.Any(key => string.IsNullOrEmpty(key) || key.Length > maximumKeyLength || key.Any(c => c < 33 || c > 126))
             || request.Keys.Distinct(StringComparer.Ordinal).Count() != request.Keys.Length)
