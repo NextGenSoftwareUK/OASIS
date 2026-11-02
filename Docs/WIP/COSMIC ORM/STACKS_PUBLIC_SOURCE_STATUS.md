@@ -1,9 +1,9 @@
 # Stacks / BlockStack native qualification
 
 Updated 2 November 2026. Local CQL source and actual manager/LINQ3/2 pass;
-Local HTTP/Mongo/admission and prepared presets pass; hosted publication and
-sandbox proof remain pending.
-Totals now53integrated/48hosted-functional/5browser/43open; Stacks is not hosted-certified yet.
+Local HTTP/Mongo/admission and prepared presets pass; hosted functional HTTP
+acceptance is complete. Website card publication remains next.
+Totals now53integrated/49hosted-functional/5browser/44open; bounded HTTP scope only.
 
 ## Verified native scope
 
@@ -142,3 +142,21 @@ Finish reuse/isolation/exact SQLite+Neo4j comparisons with the original owner.
 Hosted complete count stays48; Stacks remains uncounted until these gates pass.
 Raw evidence: `TestResults/HostedCqlIntegrationCurrent/BlockStackOASIS-*` and
 `TestResults/StacksPublicSourceCurrent/{hosted-acceptance,frontend-reuse-tests}.log`.
+
+## Hosted acceptance complete
+
+Original-cohort schema3 read-only continuation passes. Native3/2, Mongo5/4,
+repeat0new/2existing, foreign-private0/public3, exact SQLite/Neo4j replicas2/2.
+Two original version1 saves remain unchanged; zero additional saves/pending
+intents. Independent artifact audit checks IDs, source owner/keys, provenance,
+versions/visibility and exact replica metadata/name/description. Immutable ACK:
+`LocalState/COSMIC/HostedQueryAcceptance-BlockStackOASIS/cql-http-acceptance.acknowledged.json`.
+Twelve continuation tests pass;104client tests pass. Earlier failure retained.
+No browser interaction, full native-payload copy, Gaia storage, native writes,
+independent consensus or full ORM certification is established.
+
+| Evidence | Bytes | SHA256 |
+|---|---|---|
+| `TestResults\HostedCqlIntegrationCurrent\BlockStackOASIS-native-http.json` | 15207 | `cba4aee6e0e3b129bb627ea26f55cdc0e8918470d7ef42530e741605816c0978` |
+| `TestResults\HostedCqlIntegrationCurrent\BlockStackOASIS-client-http-flow.json` | 39278 | `a1ff06694fa18dcff04bee001af6b7a84fcb977487a0f1da714a9a27180af919` |
+| `TestResults\HostedCqlIntegrationCurrent\BlockStackOASIS-isolation-http.json` | 6099 | `dbf4580b73f1b98f5bb410b24d4fedb61a2b99fb401eb54a47f2774bc41512eb` |
