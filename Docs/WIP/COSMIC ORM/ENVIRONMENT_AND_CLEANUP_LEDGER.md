@@ -4458,3 +4458,9 @@ ClickHouse mergedverification complete:3API+1Coretariff+4placeguards pass;1separ
 ClickHouse once-onlycodepublication dispatched via Developmentpush, exactremotejobaae1a2b0 INITIALIZING. No localprocess/install/DB. Retainedrolloutevidence:
 - C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedClickHouseReleaseCurrent/code-deployment.json:138bytes; originaldeploymentintent/handle, preserve; no credentials logged.
 - C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedClickHouseReleaseCurrent/code-publication.intent.json:369bytes; originaldeploymentintent/handle, preserve; no credentials logged.
+
+2026-11-02 Decentraland sourcequalification research: existing Maps/DecentralandOASIS provider read, official Catalyst API docs/examples fetched via GitHubconnector, repo decentraland/catalyst-api-specs commit4d6397c8bd2dd5c2456ba634c3f49906090af013. Two small public schemaexamples (~3KB) toretain LocalState/COSMIC/DecentralandPublicQualificationCurrent/sdk+SHAmanifest; no node/account/package/environment, nativeendpoint notyetprobed. Exclude contacts/rawgeometry/assets/code from eventualprojection; scripts/assets notexecuted/downloaded. Active ClickHouse codejobaae1a2b0 remains queued, no newdeployment.
+
+Decentraland schema actual retainedfiles:3011bytes plus manifest528bytes. Public source/reusable, no processes/ports. Preserve for qualification; recreatable from exactcommit, no node/assets.
+- C:/Source/OASIS-cosmic/LocalState/COSMIC/DecentralandPublicQualificationCurrent/sdk/openapi__components__examples__content__200-entities-active.json:1409bytes SHA256 252fdeb14894b38011fa7c549387d8b69150bd920b1b1adfc5f5577620103800.
+- C:/Source/OASIS-cosmic/LocalState/COSMIC/DecentralandPublicQualificationCurrent/sdk/openapi__components__examples__global__200-about.json:1602bytes SHA256 94fc2123d97798743211cc6bc6a7531f9ff80c0fa9b308cd0625f344ab0d86bf.
