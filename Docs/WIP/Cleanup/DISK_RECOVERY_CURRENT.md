@@ -57,3 +57,15 @@ David decisions/admin step: [single action list](../Release%20and%20Status/ACTIO
 Source/Git/uncommitted work, LocalState identities/ACKs, TestResults evidence,
 credentials, active Codex runtimes/default Mongo service preserved. Previously
 rejected ChainLink bin/dump deletions not retried. Other checkouts unchanged.
+
+## Read-only duplicate archive check
+
+The main repository pack and the scratch `rw.git` pack named
+`pack-1db87945a993a68ea077a0fb53de88226f89d03d.pack` are byte-identical:
+1,606,261,400 bytes each, SHA256
+`b0e54a0ef4821569553d2d8b7939ba60d07f83cdd3513f8a6afb53ebb3d246b0`.
+Evidence: `TestResults/DiskInventoryCurrent/duplicate-pack-readonly.json`.
+This proves duplicate pack content, not that the scratch repository or its other
+refs/bundles can be discarded. Both retained; original checkout read-only.
+Windows free at this check: 60,860,346,368 bytes. Personal ML retirement question
+sent against the existing David action; no deletion authorized or performed.
