@@ -31,9 +31,15 @@ Code d1fe285f and settings082c1f0d succeeded at parentfcc4f735d/Coreb386875. Nat
 
 Copy scope: private Mongo demo records retain source identity/name/description and mapping/provenance metadata; native balances/block fields remain native. This proves scoped query federation and replication of those demo records, not full source-state migration. Full payload mapping is tracked in AFTER_DEMO_BACKLOG.md.
 
+## Sandbox publication complete
+
+Filecoin hosted HTTP acceptance is complete at parentfcc4f735d1719799dfb3a6fdcd7948ce17020abc/Coreb3868756033b0fb3499cd799b77c331d3a0af9c6, settings082c1f0d SUCCESS. Native3/2, paired5/4, reuse0new/2existing, private0/public3, replicas2/2 and two version1 saves/no pending pass. Website9413da3e0c40cce7780965f7237234297b927e2a publishes Filecoin/Fantom/Azure/TON cards with pinned guides/C# links and explicit identity/name/description copy scope. All94client tests pass. Public HTML162730bytes/SHA2567c575766615bfb18073dbdc76be31fbb7a0a3bd9f168605f01e47745f2802b12 and both scripts exactly match git blobs. Browser interaction remains open.
+
+Public proof TestResults/FilecoinPublicSourceCurrent/public-assets-final-observation.json. Both script version strings remain cql-azure-blob-v1/cql-duration-v2; no JavaScript behavior change. Generic preparation note and Filecoin card explicitly distinguish demo identities/name/description from full native payload migration. Original hosted/native/local cohorts are frozen; do not replay them.
+
 ## Exact next step
 
-Publish the Filecoin sandbox card with pinned guide/C# links, run client publication checks and verify exact public HTML/scripts. Browser interaction remains open. Then implement the already qualified Telos descriptor/native C# scope (TELOS_PUBLIC_SOURCE_STATUS.md), keeping completed Filecoin/native/local cohorts frozen. No Filecoin configuration reapply/redeploy. Hosting deferrals unchanged.
+Implement the already qualified Telos descriptor/native C# scope from TELOS_PUBLIC_SOURCE_STATUS.md. Preserve Filecoin configuration, cohorts and published acceptance; no reapply/redeploy or broader parity claim. Full native payload mapping remains red in AFTER_DEMO_BACKLOG.md. Browser/hosting deferrals unchanged.
 
 ## Evidence and resources
 
