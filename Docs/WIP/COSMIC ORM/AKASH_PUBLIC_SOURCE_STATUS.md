@@ -72,3 +72,24 @@ Evidence TestResults/AkashPublicSourceCurrent/codec-controls.trx, SHA256
 No Akash native call/source owner/config/admission/count increase. Existing
 Eclipse source/candidate/release unchanged. Next after the Eclipse release: exact
 bounded discovery/probe intent and guarded native reader qualification.
+
+## Bounded HTTP reader controls passed
+
+Production AkashPublicProviderReader separates initial discovery from configured
+point reads. Discovery is one GET/2MiB/max1024unique canonical owners, selecting
+three deterministically. Queries never rediscover;1–8explicit owners,256KiB per
+point response,30second method deadline and16JSONdepth. Point selections either
+complete or throw, no partial rows or retries. Conservative process-local1req/s
+admission, not an upstream SLA or distributed rate cap.
+
+Eight controlled tests pass0failed/0skipped: discovery3/point3, request spacing,
+descriptive hostUri never contacted, duplicate/incomplete/invalid discovery,
+final-point HTTP failure, identity mismatch, oversized body and no-dispatch invalid
+or cancelled selection. Test fixture public addresses are synthetic, not wallets
+or funded accounts. Existing codec13controls remain the separate prior proof.
+
+Evidence TestResults/AkashPublicSourceCurrent/reader-controls.trx, SHA256
+00dbd926283cded8eb6e8d8c2e0803d2d584bc81ec444bcd584974cd1a06d19e.
+No native Akash request, discovery intent, source owner, CQL or hosted admission.
+Next explicit native qualification intent remains pending; Eclipse release
+failure diagnostics are current priority.
