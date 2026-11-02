@@ -111,3 +111,7 @@ Safe native failure diagnostics implemented:2fake handshake tests +4API cause/pr
 
 - TestResults/NostrPublicSourceCurrent/handshake-diagnostics.trx: 4235bytes, SHA256 `b6eac67b5bb124a00a33b235986583bc83f67f0d18e9d64db0ad3c19591e18b2`.
 - TestResults/NostrPublicSourceCurrent/api-failure-diagnostics.trx: 8311bytes, SHA256 `8da4c67fdfff6092d6b28d62b146bee1cec719cc2469e4719b5da0c90a62b688`.
+
+## Exact diagnostic release rollout
+
+Diagnostic release210068635b39201f7ec4fff64770c367e5caa76d published/ref-verified on Development, Core84a2151 unchanged, manifest validates. Exact jobcbdad505-a272-494b-8b55-60d2ed62870e QUEUED. No settings redeploy/new saves. Public ACK: LocalState/COSMIC/HostedNostrReleaseCurrent/diagnostics-code-publication.acknowledged.json. Observation: TestResults/NostrPublicSourceCurrent/diagnostics-deployment.json. Wait for exact success before bounded diagnostic; original owner/progress/copies remain frozen. No reliability fix or full hosted acceptance claimed.
