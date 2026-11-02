@@ -20,7 +20,7 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 ## Exact next actions
 
 1. Preserve completed EOSIO/Telos/Filecoin/Fantom cohorts, sources/owners/ACKs. EOSIO card72dee68/pinned links/96client tests and public bytes verified; no browser proof inferred.
-2. Inspect shipping ChainLinkOASIS and primary feed contract/catalogue documentation. Qualify a free, bounded three-feed/two-feed native read contract before implementation; research so far has not qualified contract addresses. No ChainLink CQL/hosted claim yet.
+2. ChainLink official catalogue and native3/2 protocol now qualified:18guarded HTTP200 calls, chain1/genesis, hash-bound description/decimals/round reads; offline ABI/transport check passes. Implement separate read-only ChainLinkPublicFeedMetadataSource next; bounded ChainLinkFeedAddress equality/membership, exact numeric/time fields. See CHAINLINK_PUBLIC_SOURCE_STATUS.md. No ChainLink CQL/hosted claim; original qualification must not be replayed.
 3. After qualification, implement only that red source/controlled tests/native manager+C#3/2, API permission/Mongo/privacy/prepared gates, exact hosted rollout/acceptance/card. Keep green scopes/deep parity frozen absent a reproduced bug.
 
 ## Durable state and rules
