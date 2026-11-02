@@ -12,7 +12,7 @@ deep LINQ parity paused. Work red scopes only unless a bug is reproduced.
 - Website main/task 4530304d85fc14e188b06b79a59f5b87a510073b includes ENS and prior profiles with pinned guide/C# links. All108client tests pass. Public HTML190295bytes/SHA25616293a93bfb1be407b67e29c7ba8e07f029d522826d9acb62a4cd91851f66a7a and both query scripts match exact git blobs. Browser interaction remains separate.
 - Generic private browser copies retain identity/name/description/provenance/native query key, not full native payload. Full safe payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current milestone: Eclipse native qualified; CQL adapter next
+## Current milestone: Eclipse adapter controls pass; C# demo next
 
 - Parent Development a20f35f9a85af3807f42e1273d7cc6e0fabb0934 and Core Development13add812baa3d6ffea4f5cd49018e5e3fb959d4d verified remotely; manifest/seven Dockerfiles/gitlinks pass. Task branch includes later reports/offline audit. No production/master promotion.
 - Exact code job dcf95c97-dd85-4b82-8f36-b65b8a257ef4 SUCCESS; three existing reviewed settings applied once with per-key ACKs/full candidate equality/DNA unchanged. Activation1f852f42-b2db-4be4-b179-36f88db6e16a SUCCESS at the same release; all four discovery presets ready.
@@ -25,7 +25,7 @@ deep LINQ parity paused. Work red scopes only unless a bug is reproduced.
 ## Exact next step
 
 1. Freeze ENS and all earlier completed source owners/configurations/ACKs/cohorts; do not replay qualification/setup/saves/settings/activation for green. No further ENS runtime work absent a reproduced bug.
-2. Continue the next red Eclipse scope in ECLIPSE_PUBLIC_SOURCE_STATUS.md. Native reader12controls and original guarded qualification1pass;2requests,3accounts at finalized slot199439130, reported genesis retained. Process-wide1req/s limiter; native ETH9decimals/exact integers/no account data. Freeze EclipsePublicQualificationCurrent. Next query-only adapter with mandatory genesis pin/source controls, then actual C#3/2. No source owner/admission/card yet; no native replay or new environment. Legacy issues docs-only.
+2. Continue the next red Eclipse scope in ECLIPSE_PUBLIC_SOURCE_STATUS.md. Native reader12controls and original guarded qualification1pass;2requests,3accounts at finalized slot199439130, reported genesis retained. Process-wide1req/s limiter; native ETH9decimals/exact integers/no account data. Freeze EclipsePublicQualificationCurrent. Query-only adapter now passes17controls (mandatory genesis pin, exact metadata/capabilities/config/errors);29combined adapter/reader controls pass. Next actual spaced C# manager/LINQ3/2 with one retained source owner/config, then HTTP/live gates. No source owner/admission/card yet; no native replay or new environment. Legacy issues docs-only.
 3. Only after native qualification: capability/error/precision tests, actual spaced C# manager/LINQ3/2, HTTP/Mongo/privacy, original hosted/replica acceptance, website card and public bytes. Keep one Mongo-paired preset per provider.
 4. Update full provider report/docs/ledger at milestones. Raw output TestResults; durable identities/config/receipts LocalState/COSMIC. Whole ORM/HyperDrive programme remains incomplete.
 
