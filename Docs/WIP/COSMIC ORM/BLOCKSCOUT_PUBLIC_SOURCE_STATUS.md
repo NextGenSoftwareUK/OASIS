@@ -219,3 +219,21 @@ No native writes, independent consensus, full payload copying or full ORM claim.
 | `TestResults\HostedCqlIntegrationCurrent\BlockscoutOASIS-native-http.json` | 15318 | `4a74ac8d3ec4f15a6ecafeb73c322b2270a6ac2cc1758b9ff6ffee3f1ed2d3c8` |
 | `TestResults\HostedCqlIntegrationCurrent\BlockscoutOASIS-client-http-flow.json` | 39982 | `6ac3d0ec2f5c6c6a9e70d77fe5f71b09bb6dfab2eae27e25a1658a15c4d702ef` |
 | `TestResults\HostedCqlIntegrationCurrent\BlockscoutOASIS-isolation-http.json` | 6108 | `5f3b8658f5a166c8636329ff28af751abace3266e06ab63d7560f43f28bc2073` |
+
+
+## Public sandbox publication verified
+
+Website task/main2983b1cceec7aed26b2fb52c1995f3dc136daaae verified remotely.
+Blockscout card includes native/filter/Mongo instructions, exact nullable-balance/
+per-record-block/privacy/trust limits and pinned guide+C#links. HTML parses/IDs
+unique,108client controls retained/no new JS change. Three anonymous public GETs
+match exact git blobs; observation TestResults/BlockscoutPublicSourceCurrent/
+public-assets-observation-1.json, immutable site ACK under HostedBlockscoutReleaseCurrent.
+Original source/cohort/failures/save ACKs frozen; no replay. Hosted53/browser5/open48.
+Browser interaction/full native payload copying/reliability remain unverified.
+
+| Public asset | Bytes | SHA256 |
+|---|---|---|
+| `web4-sandbox.html` | 187960 | `8b151b5cf9d1a454d40bfb22e239c802fdec87265b6712a97b6d263f78a41a53` |
+| `cql-demo-preparation.js` | 10241 | `c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a` |
+| `cql-playground.js` | 21871 | `7cb6210b9adda1e83630fc966926772f8338c43163c24d1abd88c626ad1ad649` |
