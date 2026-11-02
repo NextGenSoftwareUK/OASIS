@@ -67,7 +67,7 @@ def main():
     result = {"rpc": RPC, "qualified": False, "sourceWrites": 0, "blockPolicy": "latest-canonical-at-read" if options.latest_canonical else "finalized", "calls": calls}
     try:
         if rpc("eth_chainId", []) != "0x1e":
-            raise RuntimeError("Endpoint is not Rootstock chain250; never relabel it as Sonic.")
+            raise RuntimeError("Endpoint is not Rootstock mainnet chain30.")
         genesis = rpc("eth_getBlockByNumber", ["0x0", False])
         if genesis.get("hash") != "0xf88529d4ab262c0f4d042e9d8d3f2472848eaafe1a9b7213f57617eb40a9f9e0":
             raise RuntimeError("Previously observed Rootstock genesis differs.")
