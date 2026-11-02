@@ -51,8 +51,8 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
    Candidate prepared without mutation. Upstream preserved; merged guards pass.
    Combined API 11/Core tariff 1/exact garden reward 2 pass, no skips.
    Code published c00da49c1/Core 5415961; exact job
-   5d9b665b-984d-4bcd-bebd-e722ff9a6612 BUILDING; settings unchanged.
-   Next: observe this job to SUCCESS, apply original three values once, activate.
+   Code job 5d9b665b SUCCESS; original three settings applied once/DNA unchanged.
+   Activation a737028a-40d9-489d-a087-53d2f6f955a6 BUILDING; observe, no resubmit.
    Durable `HostedThreeFoldPublicSourceCurrent`/`ThreeFoldPublicQualificationCurrent`.
 
 ## Remaining gates
@@ -96,4 +96,4 @@ See [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) and
 [Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) |
 [Manual](CQL_MANUAL.md) | [Architecture](CQL_ARCHITECTURE.md) |
 [Parity](CQL_PARITY_CHECKLIST.md) | [Backlog](AFTER_DEMO_BACKLOG.md) |
-[David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md)
+[Launcher gap](LOCAL_LAUNCHER_INTEGRATION_GAP.md) | [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md)

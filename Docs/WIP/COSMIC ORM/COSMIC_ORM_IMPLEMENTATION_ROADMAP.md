@@ -5,8 +5,8 @@ Updated 2 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CUR
 1. Complete breadth-first live provider demos: **64 locally integrated query types,
    59 scoped hosted HTTP proofs, 5 browser proofs/54 open**. ClickHouse's original
    hosted audit and card/static assets pass. ThreeFold code is published; its exact
-   job is building after its build-slot wait. Next observe it, then original settings
-   activation/hosted audit/card. Preserve accepted cohorts; no green hardening.
+   code job succeeded and original settings were applied once. Activation a737028a
+   is building; next observe it, then original hosted audit/card. Preserve accepted cohorts; no green hardening.
    CURRENT_STATUS owns exact release state and commands.
 2. Continue explicit filtered source queries and Mongo federation for remaining red providers. Azure Cosmos, Oracle and PostgreSQL hosting are deferred. Public source reads do not establish native writes or full ORM support.
 3. Finish scoped HyperDrive V2 operational acceptance: authorized late-replica baseline/reconciliation, retained obligations and uncertain-commit recovery. Preserve existing six-direction native proofs; broader hosted/operator/transport/scale acceptance remains open.
