@@ -19,6 +19,10 @@ public sealed class PublicBatchReviewFactAttribute : FactAttribute
 public sealed class CqlPreparedPublicBatchTests
 {
     [PublicBatchReviewFact]
+    public async Task ActualZcashCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
     public async Task ActualBittensorCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
@@ -206,6 +210,7 @@ public sealed class CqlPreparedPublicBatchTests
                 var type = Enum.Parse<ProviderType>(profile.Name);
                 ICosmicQueryStorageProvider source = type switch
                 {
+                    ProviderType.ZcashOASIS => Providers.ZcashOASIS.ZcashPublicBlockMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.BittensorOASIS => Providers.BittensorOASIS.BittensorPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.AkashOASIS => Providers.AkashOASIS.AkashPublicProviderMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.EclipseOASIS => Providers.EclipseOASIS.EclipsePublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
