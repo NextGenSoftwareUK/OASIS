@@ -4210,3 +4210,15 @@ Planned shared publisher apply once per key/ACK/skip-deploys, then one explicit
 activation bound to same code and observed complete configuration. Existing dev
 service/image retained, remote size unmeasured; no local build/install/new env
 or account. Accepted cohorts/config owners/ledger rejection targets unchanged.
+Bittensor original3settings applied exactly once, per-key ACKs skip-deploys/
+full candidate observed/DNA unchanged. Exact release checkout restored to task
+branch. settings.ack plus activation.intent/submission.dpapi/deployment.json
+retained in HostedBittensorReleaseCurrent (sizes unmeasured), existing reusable
+delivery image/service only. Single activation549fdb68 BUILDING at samee8d2d75df.
+No host sessions/copies yet. Planned first hosted acceptance after SUCCESS:
+at most2temporary visitor sessions, DPAPI credentials/issuance ACKs under
+LocalState/COSMIC/HostedQueryAcceptance-BittensorOASIS;2normal API private Mongo
+snapshots and SQLite/Neo4j replicas each, size unmeasured, retained acceptance
+evidence. No native writes/wallet/new local service/install. Existing pinned
+Node24.19.0/Python3.12/frontend helper reused; raw results TestResults/HostedCqlIntegrationCurrent.
+Cleanup only after owner/evidence reconciliation, never blanket user data.
