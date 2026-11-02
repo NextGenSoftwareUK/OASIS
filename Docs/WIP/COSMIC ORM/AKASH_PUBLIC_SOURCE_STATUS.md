@@ -93,3 +93,24 @@ Evidence TestResults/AkashPublicSourceCurrent/reader-controls.trx, SHA256
 No native Akash request, discovery intent, source owner, CQL or hosted admission.
 Next explicit native qualification intent remains pending; Eclipse release
 failure diagnostics are current priority.
+
+## Original native qualification failed at bounded discovery
+
+Original exclusive qualification intent persisted before dispatch at
+LocalState/COSMIC/AkashPublicQualificationCurrent/qualification.intent.json.
+One discovery request reached a successful HTTP status, but its body exceeded
+the declared2MiB limit; reader stopped before parsing a complete catalogue or
+dispatching provider point reads. Native test1failed/0passed. No source owner,
+CQL admission, wallet, account, node, data write or provider-hostUri request.
+
+Failure/log/TRX retained in TestResults/AkashPublicSourceCurrent/native-*.
+Native failure JSON SHA256 42bd3545b986815bb203b671233977a61eaa536c6773b141e998ee84119886b6.
+No original intent/result replacement or automatic replay. The full-list discovery
+strategy needs a bounded selection design; do not raise limits blindly or label
+the public catalogue qualified. Existing codec13/reader8controlled proofs remain
+scoped controls, not proof of successful native integration.
+
+Next review documented bounded selection/discovery options and implement the
+correct read strategy with tests before any explicit evidence-bound continuation.
+Eclipse image-build failure still lacks actionable diagnostic evidence; no
+Eclipse settings/activation/cohort/card has been published. Counts59/54 unchanged.

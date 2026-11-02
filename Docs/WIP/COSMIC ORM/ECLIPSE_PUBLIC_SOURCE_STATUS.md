@@ -240,3 +240,9 @@ Next seek specific failure evidence via the same deployment events/build-log API
 (or reproduce an identified packaging invariant against the exact release). No
 speculative shim, source fallback, paid hosting or blind replacement job. Akash
 pure reader controls progressed independently; whole goal remains active.
+
+Exact-release source-closure check also passed: Eclipse/API project references
+and both shipping source files are tracked with exact path case at dbc5c6f75.
+Docker command is unavailable locally; no image reproduction/install was attempted.
+This rules out only that specific missing-source/reference hypothesis, not the
+image-build failure. Report TestResults/EclipsePublicSourceCurrent/exact-release-source-closure.json.
