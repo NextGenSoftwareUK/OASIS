@@ -5,7 +5,7 @@ deep selected-stage LINQ parity paused. Work red scopes or reproduced bugs only.
 
 ## Verified scope
 
-- 61 integrated query types:3canonical,54bounded public/source profiles,4local PostgreSQL/Cosmos/Oracle/AWS implementations.
+- 62 integrated query types:3canonical,55bounded public/source profiles,4local PostgreSQL/Cosmos/Oracle/AWS implementations.
 - 57 scoped hosted functional HTTP proofs/configured tariffs;5browser verified/52open. No full ORM/native-write/reliability certification inferred.
 - MongoDB/SQLite/Neo4j strict parity50/82each; original investor-demo subset green. No global completion percentage inferred.
 - Latest Bittensor passes actual SDK/CLI/nativeHTTP3/2, Mongo5/4, repeat0new2existing, foreign0private3public, exactSQLiteNeo4j2each.2normal API version1saves/pending0; independent offline audit passed. Read-only Finney header metadata, not AI inference/subnet/private-state or independent consensus proof.
@@ -22,7 +22,7 @@ deep selected-stage LINQ parity paused. Work red scopes or reproduced bugs only.
 
 ## Preserved gaps and priorities
 
-- Keep a filtered native query and Mongo-paired preset per admitted provider; continue remaining red provider breadth.61types do not cover every shipping provider project.
+- Keep a filtered native query and Mongo-paired preset per admitted provider; continue remaining red provider breadth.62types do not cover every shipping provider project.
 - Hosted Azure Cosmos/Oracle/PostgreSQL explicitly deferred by David; no re-ask/new paid resource. Public Azure Blob/AWS S3 proofs are separate from owned databases.
 - Browser/OS control remains closed. Solana/remaining52browser gates stay open; HTTP/static bytes are not interaction evidence.
 - Nostr intermittent503/Blockscout earlier timeout causes remain unresolved. Functional source proofs do not certify availability; wider operator/transport/recovery/scale acceptance remains open.

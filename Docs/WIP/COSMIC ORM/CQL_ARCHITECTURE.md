@@ -377,3 +377,7 @@ Nostr read-only CQL source passes32focused CQL/transport controls plus36signatur
 Nostr API/local milestone2November: Core1/API2/localHTTP1/publisher9/prepared1/client1 pass. Actual native3/2, Mongo5/4 and visitor privacy verified; original two saves preserved during read-only correction/continuation, exact owned fixture removed. Three-key candidate/four presets prepared, no hosted settings mutated yet. [Current proof](NOSTR_PUBLIC_SOURCE_STATUS.md).
 
 Bittensor bounded header source uses the same HolonManager/LINQ and WEB4 compiler/read-admission pipeline: configured Finney block-hash eq/IN+paging, guarded RPC/local content-hash checks, explicit node-reported finality policy and read-only tariff. Canonical V2 API saves own private Mongo copies and replication delivery; public source never enters the write registry. [Scope/evidence](BITTENSOR_PUBLIC_SOURCE_STATUS.md).
+
+### Zcash public-source boundary
+
+ZcashPublicBlockMetadataSource is an explicit ICosmicQueryStorageProvider/read activation profile, separate from the legacy wallet provider. A configured height/hash catalogue drives bounded point summaries; genesis/network/units/height/hash validation precedes row publication. It uses shared HolonManager/LINQ planning and capability admission. The HTTP registration, compiler and server read tariff require explicit enrollment; source registration never grants native write routing. [Evidence and hosted gate](ZCASH_PUBLIC_SOURCE_STATUS.md).
