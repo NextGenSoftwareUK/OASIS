@@ -35,3 +35,15 @@ SQL templates fixed/parameterized, bound reads/time/body size, preserve Unicode
 and integer precision, reject native errors/partial pages. Add a separate
 read-only CQL profile only after that source contract passes. Legacy provider
 implementation remains unchanged/docs-only. No CQL/provider count increase.
+
+## Countries source qualified - 2 November 2026
+
+Exactblogs.countries schema: nameString, coordinatesMultiPolygon. New source-specific original3/2queries pass forFrance/Germany/Italy thenFrance/Germany, identical subset projections. Polygon counts21/22/29 remain canonical UInt64decimalstrings; no raw geometry or personal/contentpayload copied.4newcontrolled tests pass, including UInt64max/invalidnumeric/duplicate/oversize/keyset cases. The previous absentStackOverflowtable qualification stays failed and is not replayed. No writes/account/install. Durable countriesintent/report/compressed originals/SHAmanifest retained beside original failures. No CQL/provider count increase yet.
+
+countries-schema.json:374bytes SHA256 `61e838f12ca06ff1d444eee333a46068c009d6d67bb2ff7905cef68b73f6600c`.
+
+countries-1.json:434bytes SHA256 `8e5bd2001beeeaf381110515db57c752849364f8eacc978a38355a8ad3bbd473`.
+
+countries-2.json:382bytes SHA256 `8fd47281ba99e60c6f0d39f02c32c451a34f8072f90e8276366e262a1bd0e613`.
+
+Exact next step: implement explicit read-only ClickHouse country metadata source, configurednameeq/IN+paging using fixed parameterizedSQL and guardedHTTP; reject writes/nativeerrors/incompleteselections before publication. Then manager/CLI/localHTTP+Mongo gates, tariff/hosted integration and sandbox card. Keep legacy ADO/storage paths unchanged; no fullSQLparity claim.
