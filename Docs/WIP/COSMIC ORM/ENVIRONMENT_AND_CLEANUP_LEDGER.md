@@ -4245,3 +4245,36 @@ Card now published, browser remains open. Entire Bittensor source/cohort/
 release intent/ACKs frozen;188generated directories still policy-rejected/
 preserved, no renewed cleanup attempt. Remote visitor copies remain evidence
 with COSMIC owner, size unmeasured, no general user-data deletion.
+
+2026-11-02 Aztec schema path root cause resolved via GitHub connector: v6.0.0
+parent0219f11d8133970df3974fe5ae65e006bf8c193a points labs submodule to
+aztec-labs-eng/aztec-node1b6de149f4fe1cde3c5fb876d3822289f490cd2a.
+Read scoped directory listings/source in memory, no clone/install/tree download.
+Plan cache7pinned TS schema files in LocalState/COSMIC/AztecPublicQualificationCurrent/sdk
+(node-info,aztec-node,block_data,block_response,block_parameter,block_header,
+l1_contract_addresses),<=256KiB each, actual sizes pending. COSMIC-owned reusable
+protocol evidence, no runtime/ports/process, retain through qualification/
+implementation audit; remove only after equivalent hashes/provenance retained.
+Existing Python3.12/stdlib will run bounded qualifier/tests, no dependencies.
+Aztec7pinned schema cache files65498bytes +manifest, two independent Git
+blob hashes matched; manifestSHA256e9f043c8c082b7042cd0d0b499849f25666c33690e3de94e4b42cdd2c61fe4e7.
+6new offline qualifier tests pass. First native qualifier planned <=5anonymous
+POST reads at official https://aztec-mainnet.drpc.org, >=1second spacing,
+256KiB/response,15s socket timeout. Operator public limits documented at
+https://drpc.org/docs/howitworks/ratelimiting (network exceptions possible).
+Pinned identity first then reported-finalized tip and3metadata-only blocks;
+all optional transaction/attestation/L1payload fields explicitly false.
+No account/signer/body/private-note/native-write/node/SDK install or retries.
+Durable qualification.intent/qualification.json in AztecPublicQualificationCurrent;
+raw response files TestResults/AztecPublicSourceCurrent, preserve originals and
+consumed intent across cleanup. COSMIC-owned protocol evidence, sizes pending,
+no port dependencies; cleanup only after retained source/evidence reconciliation.
+Aztec native firstrequest403/Cloudflare1010/712bytes/nonretryable; no remaining
+requests, identity or block accepted, no retry/bypass. Original qualification
+intent+ACK retained; rawdenial rpc-1.json copied to durable state after hash
+verification111c13aaf05cb17552f1fae45b5508dd07b2d9561c7f600d368f566b4a7ba82b.
+Schemas65498bytes/7files plus manifest retained reusable protocol evidence,
+no executable SDK/node install, source owner/db/sessions/hosting changes.
+Latest measured free59,235,729,408bytes; no owned processes/ports. Native
+failure retention and prior cleanup-policy rejection unchanged. Next Zcash
+review uses existing tools/source; no full node/environment planned.
