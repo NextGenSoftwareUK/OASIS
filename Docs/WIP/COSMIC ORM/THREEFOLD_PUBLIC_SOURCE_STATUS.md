@@ -96,3 +96,7 @@ Parent upstream c0edcb0ed merged as cb8ceed1c, Core merged 54159614ebdb879c8636e
 `TestResults\ThreeFoldPublicSourceCurrent\combined-core.trx` SHA256 `cf28248ac0963aa7aec2129d042e6c98d5c51629097c54694d8bfde792dffcb8`; original compressed under `HostedThreeFoldPublicSourceCurrent`.
 
 `TestResults\ThreeFoldPublicSourceCurrent\merged-garden-reward.trx` SHA256 `106d091e149d7996254d213b0962887fcfb0c63a69554bba7e067ba035a7dfd2`; original compressed under `HostedThreeFoldPublicSourceCurrent`.
+
+## Verified code publication
+
+Parent Development/task c00da49c105c3ba4f9e7fa749ac538925b18d818, Core Development/task 54159614ebdb879c8636eed5fae60be97dbbfff3 pushed and remote verified. Complete live settings still exactly match the original candidate baseline. Durable code-publication intent/ACK in LocalState/COSMIC/HostedThreeFoldReleaseCurrent records exact new job 5d9b665b-984d-4bcd-bebd-e722ff9a6612, initially QUEUED. Settings not applied; native hosted cohort not started. Observe this existing job; do not redeploy/restart on timeout. After exact code SUCCESS, apply original three-value candidate once with shared journals, then activate and audit original cohort. Totals unchanged 64 local/59 hosted.
