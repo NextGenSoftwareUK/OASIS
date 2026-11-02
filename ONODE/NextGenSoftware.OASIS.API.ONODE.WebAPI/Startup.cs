@@ -451,6 +451,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddHostedService<Services.HyperDrive.HolonReplicationDeliveryHostedService>();
             Services.OLand.OLandCommerceRegistration.AddOLandCommerce(services, Configuration);
             services.AddSingleton<Services.Places.WorldscapePlaceCatalogue>();
+            services.AddSingleton<Services.Gardens.GardenService>();
+            services.AddHostedService<Services.Gardens.GardenRewardWorker>();
             services.AddSingleton<Services.Subscription.MongoSubscriptionUsageRepository>();
             services.AddSingleton<Services.Subscription.ISubscriptionUsageRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISubscriptionBillingRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());

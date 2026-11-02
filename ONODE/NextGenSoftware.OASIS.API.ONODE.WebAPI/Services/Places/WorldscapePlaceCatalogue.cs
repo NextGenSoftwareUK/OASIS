@@ -16,6 +16,8 @@ public sealed class WorldscapePlace : PlaceVisitBase
 {
     public double DistanceMetres { get; set; }
     public double[][] Boundary { get; set; }
+    public double[][][] OuterBoundaries {get;set;}
+    public double[][][] InnerBoundaries {get;set;}
 }
 public class PlaceVisitBase
 {
@@ -158,6 +160,12 @@ public sealed class WorldscapePlaceCatalogue
     {if(!double.IsFinite(latitude)||!double.IsFinite(longitude)||latitude < -90||latitude>90||longitude < -180||longitude>180)throw new ArgumentException("Valid geographic coordinates are required.");}
     public static double DistanceToPlace(WorldscapePlace place,double latitude,double longitude)
     {
+        if(place.OuterBoundaries?.Length>0)
+        {
+            bool inside=place.OuterBoundaries.Any(r=>Within(r,latitude,longitude))&&!(place.InnerBoundaries?.Any(r=>Within(r,latitude,longitude))??false);
+            if(inside)return 0;
+            return place.OuterBoundaries.Concat(place.InnerBoundaries??Array.Empty<double[][]>()).Min(r=>DistanceToLine(r,latitude,longitude));
+        }
         var ring=place.Boundary;
         if(ring!=null&&ring.Length>=4&&ring[0][0]==ring[^1][0]&&ring[0][1]==ring[^1][1])
         {
@@ -166,7 +174,24 @@ public sealed class WorldscapePlaceCatalogue
                 if((ring[i][0]>latitude)!=(ring[j][0]>latitude)&&longitude<(ring[j][1]-ring[i][1])*(latitude-ring[i][0])/(ring[j][0]-ring[i][0])+ring[i][1])inside=!inside;
             if(inside)return 0;
         }
-        return Distance(latitude,longitude,place.Latitude,place.Longitude);
+        return ring?.Length>=2?DistanceToLine(ring,latitude,longitude):Distance(latitude,longitude,place.Latitude,place.Longitude);
+    }
+    private static bool Within(double[][] ring,double latitude,double longitude)
+    {
+        if(ring.Length<4||ring[0][0]!=ring[^1][0]||ring[0][1]!=ring[^1][1])return false;
+        bool inside=false;for(int i=0,j=ring.Length-1;i<ring.Length;j=i++)
+            if((ring[i][0]>latitude)!=(ring[j][0]>latitude)&&longitude<(ring[j][1]-ring[i][1])*(latitude-ring[i][0])/(ring[j][0]-ring[i][0])+ring[i][1])inside=!inside;
+        return inside;
+    }
+    private static double DistanceToLine(double[][] line,double latitude,double longitude)
+    {
+        double best=double.MaxValue,k=Math.Cos(latitude*Math.PI/180);
+        for(int i=1;i<line.Length;i++){
+            double ax=(line[i-1][1]-longitude)*k,ay=line[i-1][0]-latitude,bx=(line[i][1]-longitude)*k,by=line[i][0]-latitude;
+            double dx=bx-ax,dy=by-ay,length=dx*dx+dy*dy,t=length==0?0:Math.Clamp(-(ax*dx+ay*dy)/length,0,1);
+            best=Math.Min(best,111320*Math.Sqrt(Math.Pow(ax+t*dx,2)+Math.Pow(ay+t*dy,2)));
+        }
+        return best;
     }
     public static double Distance(double a,double b,double c,double d)
     {double R(double x)=>x*Math.PI/180;double x=Math.Pow(Math.Sin(R(c-a)/2),2)+Math.Cos(R(a))*Math.Cos(R(c))*Math.Pow(Math.Sin(R(d-b)/2),2);return 6371000*2*Math.Asin(Math.Sqrt(Math.Clamp(x,0,1)));}
