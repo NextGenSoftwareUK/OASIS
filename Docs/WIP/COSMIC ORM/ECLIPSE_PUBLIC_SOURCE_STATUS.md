@@ -246,3 +246,14 @@ and both shipping source files are tracked with exact path case at dbc5c6f75.
 Docker command is unavailable locally; no image reproduction/install was attempted.
 This rules out only that specific missing-source/reference hypothesis, not the
 image-build failure. Report TestResults/EclipsePublicSourceCurrent/exact-release-source-closure.json.
+
+## Later same-job read-only diagnostic check
+
+At2026-11-02T16:51:38.931622Z the exact original job remained FAILED/stopped,
+with diagnosis null,0build-log records and the same2events. No redeploy, settings
+application, source probe or replacement cohort. Protected response:
+LocalState/COSMIC/HostedEclipseReleaseCurrent/code-failure-later-recheck.dpapi;
+SHA256625d4f5bd34f2f49bf0e0c5c8add4841b0c97f44284a660b3c1e85822c0731ad.
+Compact observation: TestResults/EclipsePublicSourceCurrent/code-failure-later-recheck.json.
+No new compiler/packaging cause established. Repeated empty diagnostics do not
+justify speculative changes or a blind rebuild during disk recovery.
