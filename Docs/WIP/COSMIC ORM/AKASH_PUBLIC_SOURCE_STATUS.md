@@ -1,14 +1,12 @@
-# Akash public source — local HTTP/Mongo verified; hosted next
+# Akash public source — hosted HTTP accepted; sandbox card next
 
-2 November 2026. Native bounded-prefix continuation passed: three sampled
-provider identities and three point records. Query-only adapter controlled cases
-now pass, and actual compiled C#manager/deferred-LINQ3/2passed using one stable
-source owner/config bound to the native ACK. Local HTTP/Mongo3/2+5/4 and
-privacy0/3 now pass with fixture cleanup; hosted/replica/browser remain open;
-no hosted admission/card/count increase. Integrated query types now60. Original whole-body discovery
-failure remains immutable. Eclipse image deployment is failed; ENS remains the
-last successful live release. Earlier sections retain historical review/test
-claims; current evidence and next action are in the final section.
+2 November 2026. Original hosted acceptance passes native3/2, Mongo5/4,
+repeat0new/2existing, foreign0private/3public, exact SQLite/Neo4j2/2 and two
+normal API version1saves/pending0. Independent offline audit ACK frozen.
+Code105329a3f/Coref42dd8c and activation2a5ec8a6SUCCESS;3settings applied once,
+DNA/sourceowner unchanged. Sandbox card is prepared/unpublished; browser and
+reliability remain unverified. Integrated60/hosted55/browser5/open50.
+Earlier sections are historical; latest evidence/next action are at the end.
 
 Existing adapter: Providers/Network/NextGenSoftware.OASIS.API.Providers.AkashOASIS/AkashOASIS.cs.
 It targets api.akash.network Cosmos REST, maps balances to avatars and deployments
@@ -353,3 +351,37 @@ Same exact first code jobc8ebe618-9946-4546-bdf7-3f810039640b for105329a3f is no
 BUILDING, re-observed through the existing observer. No restart/new deployment,
 settings apply, activation or hosted cohort yet. Original queued observation and
 all protected candidate/source ownership records remain unchanged.
+
+## Original hosted functional acceptance passed
+
+Code jobc8ebe618-9946-4546-bdf7-3f810039640bSUCCESS at parent105329a3fc84e8505a6779d3291de806858c23c2/Coref42dd8cbb63573644793656af5de95d3a18a773a.
+Original three settings applied exactly once from guarded exact-release checkout;
+per-key ACKs/full candidate equality/sourceowner/DNA unchanged. One activation
+2a5ec8a6-c82f-471c-bbfa-c655f9fb1628SUCCESS at same code. Protected original
+before/candidate and all release/source records remain frozen.
+
+One original hosted cohort passed native3/2, Mongo5/4, repeat0new/2existing,
+foreign-private0/public3, exact SQLite/Neo4j2/2. Two normal API saves are version1
+with matching operation ACKs/no pending intents. No replacement owner, native
+qualification replay, repeated save or failure continuation. Independent offline
+original-cohort audit passed without additional requests or saves. Freeze
+LocalState/COSMIC/HostedQueryAcceptance-AkashOASIS and source/release ACKs.
+
+Evidence under TestResults/HostedCqlIntegrationCurrent:
+
+- AkashOASIS-native-http.json SHA25602d98951df77835b56068a053c16701ad69950bf20a483ee6fa37970d3b6921d.
+- AkashOASIS-client-http-flow.json SHA25640ad1c3dd2f34530a8a0d8cfcca4e04c8033c82ee5e5df62b5b7fdb16a9f65a5.
+- AkashOASIS-isolation-http.json SHA256e05a1745648c15f6f4fc057828a16ca3924e0014b12ecba25b5d84c94e73edfa.
+- Durable cql-http-acceptance.acknowledged.json SHA256591cd558a71d828cbd63a63c5d7c0442913d0ff85b3f87bb0d6e273d09b14063.
+
+Published client helper c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a
+matches pinned Web4Site4530304git blob; local checkout differs only CRLF, with
+canonical byte equality verified. This was real HTTP/client-module execution,
+not a browser interaction test. Generic private snapshots retain identity/name/
+description/provenance/query key, not all native provider metadata.
+
+Next publish prepared Akash card with pinned guide/C#links and verify public
+bytes. Browser control remains closed; do not claim interaction verification.
+Then explicitly reconcile Eclipse's preserved candidate against the new live
+baseline; retain its original owner/config/qualifications/candidates. Old failed
+Eclipse image cause remains unexplained; new code success is separate evidence.
