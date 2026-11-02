@@ -3460,3 +3460,9 @@ to hosted settings, job, source owners, datasets or services. Reused CLI/Python;
 new compact report/protected receipt only, size small/unmeasured. Disk recovery
 now awaits the already-recorded personal-environment decision/admin compaction;
 no safe additional owned removal established. Builds/downloads remain suspended.
+
+2026-11-02 David resolved personal WSL retention: KEEP BOTH miniforge3 and
+art-ml-models at the exact paths/sizes in DISK_RECOVERY_CURRENT.md. Lifecycle:
+retained personal resources; no deletion/recreation or repeat request authorized.
+Updated existing David action and CURRENT_STATUS. No environment started,
+installation/download/build/test or disk cleanup performed in this turn.
