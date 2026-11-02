@@ -197,3 +197,19 @@ intent/observation retained under LocalState/COSMIC/HostedEclipseReleaseCurrent.
 Observe this same job until terminal; do not redeploy because observation expires.
 No live Eclipse settings applied, hosted cohort or card yet. Existing protected
 candidate/source owner remain unchanged.
+
+## Offline original-cohort audit ready
+
+Scripts/Sandbox/Audit-HostedEclipseAcceptance.py validates original public owner/
+endpoint/genesis/native key, shared finalized slot, ETH9decimal labels/exactUInt64
+text/no account data, source3/2, private version1 snapshots, Mongo5/4, reuse0new/
+2existing, exact SQLite/Neo4j projections, foreign visibility and two matching
+normal API save-operation ACKs/no pending intents. It makes no requests or saves;
+final acceptance ACK is exclusively written/fsynced only after actual proof passes.
+
+Two controlled methods pass including12negative mutation subcases. Fixtures use
+the real configured Eclipse public keys/genesis and canonical privacy wrappers.
+Evidence TestResults/EclipsePublicSourceCurrent/acceptance-audit-controls-final.log.
+This is checker readiness, not hosted acceptance. The same code deployment
+7c15337e-d4b6-438b-945d-d5eab1a946a6 was re-observed QUEUED; source/candidate
+remain unchanged, no hosted cohort/settings application yet.
