@@ -49,7 +49,8 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 - [Zcash details](ZCASH_PUBLIC_SOURCE_STATUS.md): hosted proof/card/browser open.
 - [Ceramic qualification](CERAMIC_PUBLIC_SOURCE_STATUS.md): pinned official
-  client reviewed; current operator access/public StreamIDs not yet verified.
+  client reviewed; original Clay healthGET failed before HTTP (URLError, cause
+  unproven). No retry; current operator access/public StreamIDs unresolved.
 - Preserve denied Lens/Aztec403/1010 outcomes; no bypass/retry. Farcaster free
   access unresolved. Nostr503/Blockscout timeout causes remain unresolved.
 - Hosted Cosmos/Oracle/PostgreSQL deferred by David; no paid hosting/re-asking.
