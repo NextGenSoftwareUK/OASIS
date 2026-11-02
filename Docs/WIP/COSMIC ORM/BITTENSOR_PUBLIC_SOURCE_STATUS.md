@@ -1,8 +1,8 @@
 # Bittensor public chain-header demo scope
 
-Updated 2 November 2026. Native readiness and C# HolonManager/LINQ CQL passed; CLI and local HTTP/Mongo pass. Hosted deployment and sandbox entry remain
-unverified. Totals61integrated query types/56hosted functional proofs/5browser verified;
-the extra integrated type is currently on the task branch, not deployed.
+Updated 2 November 2026. Native readiness and C# HolonManager/LINQ CQL passed; CLI and local HTTP/Mongo pass. Hosted acceptance and sandbox publication now pass within the bounded header
+scope. Totals61integrated query types/57hosted functional proofs/5browser verified;
+52browser gates remain open.
 
 ## Selected interface and scope
 
@@ -166,3 +166,37 @@ HostedBittensorReleaseCurrent; original protected files unchanged.
 Exactly one activation submitted:549fdb68-2f97-4ae2-8cf8-7106efa3e71c, BUILDING
 at samee8d2d75df. Exclusive activation.intent and protected submission receipt
 plus activation.deployment retained. No hosted cohort/session/copies yet.
+
+## First hosted acceptance and publication completed
+
+Original activation549fdb68SUCCESS at exacte8d2d75df; first source discovery
+available/federationAvailable with4presets. Exactly two original temporary
+visitor sessions; original owner reused from discovery preflight. Native3/2,
+Mongo5/4, repeat0new2existing, foreign0private3public and exact SQLite/Neo4j
+2replicas each pass.2normal API version1saves/pending0; independent auditor
+passes. No continuation/resave/replacement owner or native-source write.
+
+Original proof at TestResults/HostedCqlIntegrationCurrent, with compressed
+copies6818bytes and manifest under HostedQueryAcceptance-BittensorOASIS/evidence:
+
+| Artifact | Bytes | SHA256 |
+|---|---:|---|
+| BittensorOASIS-native-http.json | 16890 | 92ee0bf8afd608d6cfff556915cad9ef60cbf1b98128d5433064c5e4c708f3d4 |
+| BittensorOASIS-client-http-flow.json | 43111 | 23e4618d5f20fdef6ba7c260d793654f2e7f1873459f88d818136df97501f907 |
+| BittensorOASIS-isolation-http.json | 6932 | ce320431a119ab10aeed8989bdf9f7ec6bfd5f4ca002b51513a732b876144bd7 |
+| cql-http-acceptance.acknowledged.json | retained durable | 3711a6057bb14de76e9be1b93c38e96334350d8f4fbb1fc1598a86858e22567d |
+
+Website main/taskbc313792dd345107904cfdf7ec2789ba62ccceee publishes the card,
+explicit node-reported/no AI/no full-payload limits and pinnede8d2d75guide/C#links.
+All3publicassets match exact git blobs: HTML196929bytes/SHA256
+dfe8e9bb4fddf2a4d9690ee8b806c647f8a7df26f335cd547470321bc6c9e2d3;
+preparationJS10241bytes/c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a;
+playgroundJS21871bytes/7cb6210b9adda1e83630fc966926772f8338c43163c24d1abd88c626ad1ad649.
+DOM IDs unique; JS unchanged, prior108controls not re-hardened/repeated.
+Browser interaction remains unverified. Raw static observation at
+TestResults/BittensorPublicSourceCurrent/published-site-observation-1.json.
+
+The milestone is frozen; next work is red Aztec source discovery. Earlier
+"next step" sections above record historical stages, not outstanding deployment.
+No remaining Bittensor runtime work absent a reproducible bug. Broader ORM/
+AI/subnet/native-write/finality-proof and browser scopes remain unachieved.

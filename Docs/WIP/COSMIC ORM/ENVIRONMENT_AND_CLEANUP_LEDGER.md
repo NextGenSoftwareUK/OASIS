@@ -4222,3 +4222,26 @@ snapshots and SQLite/Neo4j replicas each, size unmeasured, retained acceptance
 evidence. No native writes/wallet/new local service/install. Existing pinned
 Node24.19.0/Python3.12/frontend helper reused; raw results TestResults/HostedCqlIntegrationCurrent.
 Cleanup only after owner/evidence reconciliation, never blanket user data.
+Bittensor first hosted cohort accepted native3/2+Mongo5/4/reuse0new2existing/
+foreign0private3public/exactSQLiteNeo4j2each. Original2normalAPIversion1saves/
+pending0 verified; independent offline audit passed. No source readiness/local
+cohort replay, replacement owner, native writes or environment changes.
+Owner/foreign DPAPI issuance/session ACKs and2write ACKs retained in
+HostedQueryAcceptance-BittensorOASIS; remote visitor copies/replicas are delivery
+and evidence resources, size unmeasured, owner/evidence-aware retirement only.
+Planned gzip original3accepted proof JSON files under cohort/evidence to survive
+TestResults cleanup; hashes/summary in source report, no raw evidence in docs.
+Website14HTMLline draft to publish after this proof; JS/dependencies unchanged.
+Bittensor website task/mainbc31379published after original hosted audit pass;
+14newHTMLlines/onepending-text replacement, no JS/dependency changes. Planned
+3anonymous static-asset GETs in memory only, <=512KiB each, compare exactGit
+blobs; compact metadata TestResults/BittensorPublicSourceCurrent/published-site-observation-1.json.
+No browser control, visitor/native query/save or install; do not label byte
+verification browser interaction proof. Keep source/pinned guides reusable.
+Bittensor accepted proof compressed6818bytes; public site assets229041bytes
+read into memory/hash only, exact mainbc31379blobs match. HTML196929 and
+JS10241/21871bytes unchanged JSlogic; no native replay/new browser/avatar/save.
+Card now published, browser remains open. Entire Bittensor source/cohort/
+release intent/ACKs frozen;188generated directories still policy-rejected/
+preserved, no renewed cleanup attempt. Remote visitor copies remain evidence
+with COSMIC owner, size unmeasured, no general user-data deletion.
