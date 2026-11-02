@@ -162,4 +162,41 @@ public sealed class ZcashPublicBlockMetadataTests
             Assert.IsTrue(rejected, "Invalid explicit profile must not be silently accepted.");
         }
     }
+    private sealed class MongoQuery : NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicQueryStorageProvider
+    {
+        public ProviderType QueryProviderType => ProviderType.MongoDBOASIS;
+        public CosmicQueryCapabilities QueryCapabilities => CosmicQueryCapabilities.ForStringMetadataKeyLookup(
+            ZcashPublicBlockMetadataSource.AddressMetadata, 64, 8);
+        public int Reads;
+        public Task<NextGenSoftware.OASIS.Common.OASISResult<IReadOnlyList<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>>>
+            ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan, int maximumResults = 100,
+                CancellationToken cancellationToken = default) where T : NextGenSoftware.OASIS.API.Core.Interfaces.IHolon
+        {
+            Reads++;
+            IReadOnlyList<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> rows = new[] {
+                new Holon { Id = Guid.NewGuid(), IsPublic = true, Name = "Controlled Mongo copy",
+                    MetaData = new() { [ZcashPublicBlockMetadataSource.AddressMetadata] = Hashes[0] } } };
+            return Task.FromResult(new NextGenSoftware.OASIS.Common.OASISResult<IReadOnlyList<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>>(rows));
+        }
+    }
+
+    [TestMethod]
+    public async Task SharedFederatedDemoAcceptsZcashNativeMembershipCapabilities()
+    {
+        var transport = new Transport();
+        using var client = new HttpClient(transport);
+        using var source = Source(client);
+        Assert.IsFalse((await source.ActivateQuerySourceAsync(default)).IsError);
+        var dna = new NextGenSoftware.OASIS.API.DNA.OASISDNA {
+            OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS { HyperDriveMode = NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2 } };
+        var registry = new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null, dna);
+        var manager = new NextGenSoftware.OASIS.API.Core.Managers.HolonManager(null, dna, registry);
+        var mongo = new MongoQuery();
+        using var output = new StringWriter();
+        var result = await CosmicCqlDemo.NativeKeySetWalkthrough.RunFederatedAsync(
+            manager, mongo, source, Hashes, Guid.NewGuid(), output);
+        Assert.AreEqual(4, result.Rows.Count);
+        Assert.AreEqual(3, result.Rows.Count(row => row.Selected.Provider == ProviderType.ZcashOASIS));
+        Assert.AreEqual(1, mongo.Reads);
+    }
 }
