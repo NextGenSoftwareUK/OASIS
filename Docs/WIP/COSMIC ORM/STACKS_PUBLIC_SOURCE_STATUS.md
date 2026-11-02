@@ -1,8 +1,9 @@
 # Stacks / BlockStack native qualification
 
 Updated 2 November 2026. Local CQL source and actual manager/LINQ3/2 pass;
-HTTP/Mongo integration, admission, hosted settings and sandbox proof remain pending.
-Totals remain52integrated/48hosted-functional/5browser/43open.
+Local HTTP/Mongo/admission and prepared presets pass; hosted publication and
+sandbox proof remain pending.
+Totals now53integrated/48hosted-functional/5browser/43open; Stacks is not hosted-certified yet.
 
 ## Verified native scope
 
@@ -41,14 +42,30 @@ Original failed build retained; corrected provider and console builds pass.
 - Source `source.json`:220bytes/SHA256 `aa5fe1f4934e1ed9670aee3064527a7becccee2332c3d416615288a93de634d1`.
 - Unit evidence `TestResults/StacksPublicSourceCurrent/Offline/stacks-source.trx`:79052bytes/SHA256 `f7502f6a1b92f3d87000540e1efa37f729abaa1e4c8b72e4d5936df16b654df4`.
 - Actual console log `TestResults/StacksPublicSourceCurrent/console-qualification.log`:1284bytes/SHA256 `e98ae186ca6e596a7360370b9a4bd12a6ec0a4051667dc31916ebedd013b5ec5`.
-- [Configuration/C#/limits guide](../../Devs/STACKS_PUBLIC_PRINCIPAL_CQL_GUIDE.md) and [spaced/commented walkthrough](../../../Examples/CosmicCqlDemo/StacksPublicWalkthrough.cs). No hosted count or HTTP/compiler admission added.
+- [Configuration/C#/limits guide](../../Devs/STACKS_PUBLIC_PRINCIPAL_CQL_GUIDE.md) and [spaced/commented walkthrough](../../../Examples/CosmicCqlDemo/StacksPublicWalkthrough.cs). HTTP/compiler admission subsequently passed its local gate below; no hosted count added.
 
-Next add explicit query-only Core tariff/API compiler/read-profile activation,
-native3/2 and Mongo5/4 presets, local HTTP privacy and replica acceptance before
-hosted configuration/public card work. Native zero state does not prove that a
-principal exists. Native states may change between separate queries; snapshots
-must retain their original observation rather than force fresh responses to
-match an older tip.
+## HTTP/admission milestone
+
+- Core query-only tariff control1, API admission/preset/identity controls3 and publisher9pure tests pass. Native signing/writes remain outside this source admission.
+- Actual local shipping HTTP endpoints pass1native fixture test: native3/2, paired Mongo5/4, foreign-private0/public3, two SDK-owned version1 snapshots and9query receipts. Copies retain original exact amounts/tip metadata; later native observations can have different tips.
+- Owned `cosmic_cql_stacks_http_demo` dropped success-only after exact marker/count checks; owned Mongo stopped/27029absent. Original actor/copy/operation/save/cleanup ACKs retained in `LocalState/COSMIC/StacksMongoHttpCurrent`; native/local source ACKs retained in HostedStacksPublicSourceCurrent. Never resave/reseed this fixture.
+- Prepared protected baseline/candidate `LocalState/COSMIC/HostedSourceRolloutCurrent/stacks-public-*` changes exactly3settings, preserves canonical DNA/native write permissions and uses free query-only pricing. Actual4presets pass1shipping native/Mongo planner test. No configuration apply or deployment yet.
+- Source-specific preparation test confirms exact principals, private Mongo-only copies and repeat0new/2existing. All102client tests pass; frontend task68214963cf076409be03fcf9661d9dbd1ee1c6b8 pushed, no app JS logic changed or public card added.
+- Core task `6aa17e79e12ec3c54fbc3cf9611fdaa8adfe8dbf` pushed and remote ref verified; parent gitlink and Docker manifest advance together before verified integration.
+
+| Evidence under `TestResults/StacksPublicSourceCurrent/` | Count | SHA256 |
+|---|---|---|
+| `Http/core-admission.trx` | 1/1 | `7b90ee539d1f83d3d404d9bd517b6dfed7c1b9a3b6672e67748be23e971dad19` |
+| `Http/api-admission.trx` | 3/3 | `d2648b64b7c0187a202260269bb83ae3b8f02ba453567352bda0ef863f0df5f8` |
+| `mongo-http-native.trx` | 1/1, no skips | `fa8981661e660448af53b48ff5a23e802aca0ac5d581c8c213e8e6277953a1dd` |
+| `Http/prepared-presets.trx` | 1/1, four presets | `4f9d230588222a62a834164769c3818bd43e5b43ccc100e7deedb7aa11544b2f` |
+| `prepared-review.json` | four presets, not deployed | `5f32a9830ad5dfd2663fa8c69f0436832643f11399c3303f41de44f24686071a` |
+
+Next publish verified parent/Core pin after fetch/ancestry/manifest checks,
+observe its exact code job to SUCCESS, apply the protected candidate once against
+that exact release, then verify hosted native3/2, Mongo5/4, repeat/private/replica
+gates before sandbox-card publication. Native zero state does not prove that a
+principal exists; do not claim independent consensus or Gaia storage.
 
 Legacy BlockStack client includes Gaia/user-directory paths and synthetic user
 results; it is not used for this proof and remains unchanged. Document legacy
