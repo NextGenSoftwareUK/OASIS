@@ -157,3 +157,12 @@ card is unpublished until hosted acceptance. JS unchanged, browser stays open.
 Latest observation: the same code job11aa820e-7883-41ab-ae3b-8f2d890c3ff6
 advanced to BUILDING at exacte8d2d75df. No replacement build requested; settings
 and first hosted cohort remain unstarted until SUCCESS.
+
+Code11aa820eSUCCESS. Frozen source/candidate digests and full live baseline
+matched. Original3values applied once on exacte8d2d75df with shared mutation
+owner, skip-deploys/per-key ACKs/full candidate observation and unchanged DNA.
+Task branch restored afterward. settings.intent/settings.ack retained in
+HostedBittensorReleaseCurrent; original protected files unchanged.
+Exactly one activation submitted:549fdb68-2f97-4ae2-8cf8-7106efa3e71c, BUILDING
+at samee8d2d75df. Exclusive activation.intent and protected submission receipt
+plus activation.deployment retained. No hosted cohort/session/copies yet.
