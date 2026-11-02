@@ -290,7 +290,12 @@ Claude installs the 0.7 shared runtime and runs the bridge test; you'll only nee
 
 **iPhone:** needs a Mac (or a device farm). The simulator tests pass in CI.
 
-### 3. Shrink the WSL disk (gets ~10+ GB back)
+### 3. Compact the WSL disk (administrator required; updated 2 November)
+
+**2 November evidence:** cleanup recovered about16.1GB of Windows artifacts; latest free60.9GB. WSL trim/cache cleanup completed and Ubuntu stopped. The98.6GBVHD still holds92.3GBof used filesystem data, so compaction alone offers roughly6GB, not80GB. This agent is not elevated; administrator compaction remains pending. [Measured recovery/retention plan](../Cleanup/DISK_RECOVERY_CURRENT.md).
+
+**Decision pending:** may the personal `/home/dellams/miniforge3` installation (34.5GB) and `/home/dellams/art-ml-models` (2.8GB) be retired? They are outside ORM work and remain preserved. Existing provider containers/volumes/chain ledgers also remain preserved; no blanket prune or dataset reset authorized by their stopped state.
+
 
 In **Ubuntu**:
 ```bash
