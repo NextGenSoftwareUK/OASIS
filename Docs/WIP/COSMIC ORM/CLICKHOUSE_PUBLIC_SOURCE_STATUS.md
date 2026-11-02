@@ -95,3 +95,7 @@ Developmentpublished parent7f477378b02adda621376f88f309c9bf70675fd9/Core0659aa00
 ## Code success and settings activation
 
 Codejobaae1a2b0SUCCESS at7f477378b. Original3settings appliedexactlyonce; per-keyACKs/exactcompletecandidateequality/DNAunchanged verified. Oneactivation78d92d9b-8e3f-4ad2-9be0-25b57bd6563a BUILDING atsamecode. OriginalsettingsACK/activationintent/protectedsubmission/jobtuple retained HostedClickHouseReleaseCurrent. No hostedcohort/session/nativequery/save yet. Followexactactivation, no resubmit/restart. Hostedfunctionalcounts58unchanged.
+
+## Activation superseded by newer Development release
+
+Originalactivation78d92d9b becameREMOVED. InventoryshowsnewerDevelopmentjob22cabb60-492a-432b-8d4b-597a068d621b BUILDING atc0edcb0ed0b81e5d5dd20fc99807163d09833037 (sharedgarden/parkwork). Gitancestry confirmsit includesverifiedClickHouse7f477378b. Complete livevariablesstillmatchoriginalcandidateexactly, all3values/DNAunchanged. Durable superseding-deployment.json retainsidentity/ancestry/settingsproof. Follownewexistingjob toSUCCESS; no restart/redeploy/settingsreapply or nativecohort/session created. No assumptionthat removedjob itselffailedsourceactivation.

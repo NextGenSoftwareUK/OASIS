@@ -4508,3 +4508,5 @@ ThreeFoldadaptercontrols complete33pass, no nativecalls/DB/install. Newsharedwal
 - C:/Source/OASIS-cosmic/Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.UnitTests/obj:1052541bytes, active/reusable. Regenerate cachedboundedbuild/test, ownership/processvalidation before cleanup; preserve policydenied/sharedpaths.
 
 Free C:57390735360bytes. No ownedbuild/test/localDBprocess remains.
+
+ClickHouse activationreconciliation:78d92d9bREMOVED/newexistingjob22cabb60BUILDING atc0edcb0ed, includes7f477378b bygitancestry. No mutation/newdeploymentrequested; existing3settings/wholecandidate unchanged. Durable C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedClickHouseReleaseCurrent/superseding-deployment.json 406bytes, preserve lineage/handle, no secrets. Gitfetch updatedremote refs only/no newworktree/env. No ownedlocalprocess/DB.

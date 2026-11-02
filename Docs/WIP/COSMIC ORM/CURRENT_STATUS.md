@@ -23,17 +23,18 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 ## Active release and exact next step
 
-1. ClickHouse code published to Development parent
+1. Verified ClickHouse code published in parent
    **7f477378b02adda621376f88f309c9bf70675fd9**, Core
    **0659aa00ba26260ec4c06f196df7b60ee6c0df01**; latestGeoNFTfixes preserved.
    Manifest/gitlinks7Dockerfiles pass, remote pushes verified.
-2. Exact code job **aae1a2b0-8eca-43e7-98e8-2bf4a5c9305d SUCCESS**.
-   ClickHouse3settings appliedonce/exactcandidate/per-keyACKs/DNAunchanged.
-   Activation78d92d9b-8e3f-4ad2-9be0-25b57bd6563a BUILDING; observe same job:
+2. Originalcodejobaae1a2b0SUCCESS; activation78d92d9bREMOVED after newer
+   Developmentpush. Settings remain exactcandidate/DNAunchanged; no reapply.
+   Follow supersedingjob **22cabb60-492a-432b-8d4b-597a068d621b BUILDING**
+   atc0edcb0ed0b81e5d5dd20fc99807163d09833037; ancestry includes verified7f477378b.
 
-   `python Scripts/Sandbox/Observe-HostedDeployment.py 78d92d9b-8e3f-4ad2-9be0-25b57bd6563a --expected-commit 7f477378b02adda621376f88f309c9bf70675fd9 --output TestResults/ClickHousePublicSourceCurrent/activation-observation.json`
+   `python Scripts/Sandbox/Observe-HostedDeployment.py 22cabb60-492a-432b-8d4b-597a068d621b --expected-commit c0edcb0ed0b81e5d5dd20fc99807163d09833037 --output TestResults/ClickHousePublicSourceCurrent/superseding-observation.json`
 
-3. After exactactivationSUCCESS, check discovery then run originalClickHouse
+3. After exactsupersedingjobSUCCESS, check discovery then run originalClickHouse
    hostedcohort/audit/card once. No further settings submission. Durable
    `HostedClickHouseReleaseCurrent`/`HostedClickHousePublicSourceCurrent`.
    Independent audit2tests/16faults pass; combined3API+1tariff+4placeguards pass.
