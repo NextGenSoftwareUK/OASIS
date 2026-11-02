@@ -1,5 +1,7 @@
 # CQL developer manual
 
+Stacks local CQL: [configuration, C# examples and exact-tip/precision limits](../../Devs/STACKS_PUBLIC_PRINCIPAL_CQL_GUIDE.md).43source tests and actual HolonManager/LINQ3/2 pass; HTTP/Mongo/host admission remain pending.
+
 Matrix local C# profile: [configuration, filters, runnable example and limits](../../Devs/MATRIX_PUBLIC_ROOM_CQL_GUIDE.md). Local source30tests/manager-LINQ3/2 and HTTP native3/2/Mongo5/4/privacy0/3 pass; hosted native3/2/Mongo5/4/reuse/privacy/replicas pass; cardbd173e5/pinned guide+C#links/101client tests/public bytes verified; browser interaction remains open.
 
 Earlier functional milestone (2 November 2026): Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card published/byte-verified; browser open. Current totals52integrated/48hosted-functional/5browser/43open. [Current status](CURRENT_STATUS.md) owns active work. Older dated checkpoints below are historical.

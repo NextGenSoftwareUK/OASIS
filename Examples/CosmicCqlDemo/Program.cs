@@ -5,6 +5,15 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// Stacks principal observations use one explicit node tip per selection.
+// This never creates wallets, signs transactions or touches Gaia storage.
+if (args.Length == 2 && args[0] == "--stacks-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await StacksPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Matrix resolves only the configured public aliases; no login or room join.
 if (args.Length == 2 && args[0] == "--matrix-public")
 {

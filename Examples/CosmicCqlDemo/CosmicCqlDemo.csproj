@@ -59,4 +59,7 @@
   <ItemGroup>
     <ProjectReference Include="../../Providers/Social/NextGenSoftware.OASIS.API.Providers.MatrixOASIS/NextGenSoftware.OASIS.API.Providers.MatrixOASIS.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BlockStackOASIS/NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.csproj" />
+  </ItemGroup>
 </Project>

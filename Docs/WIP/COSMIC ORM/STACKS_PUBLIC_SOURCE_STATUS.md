@@ -1,7 +1,7 @@
 # Stacks / BlockStack native qualification
 
-Updated 2 November 2026. Native principal-state qualification passes;
-CQL source, HTTP admission, hosted settings and sandbox proof remain pending.
+Updated 2 November 2026. Local CQL source and actual manager/LINQ3/2 pass;
+HTTP/Mongo integration, admission, hosted settings and sandbox proof remain pending.
 Totals remain52integrated/48hosted-functional/5browser/43open.
 
 ## Verified native scope
@@ -12,11 +12,11 @@ Totals remain52integrated/48hosted-functional/5browser/43open.
 - Original node-info response was reused for qualification; no refetch or tip switch. Both exclusive intents are consumed. Preserve original evidence; no repeated native run to obtain a new green checkpoint.
 - Six offline tests cover captured accepted block-ID vector, malformed selectors, wrong network/unsynced status, full uint128/uint64 boundaries, incomplete data and duplicate JSON properties. The fixed expected block-ID vector is independent of the test implementation.
 
-## Required source contract
+## Implemented local source contract
 
-Implement `StacksPublicPrincipalMetadataSource` under existing BlockStackOASIS,
+`StacksPublicPrincipalMetadataSource` is implemented under existing BlockStackOASIS,
 with `StacksPrincipal` equality/membership over one bounded configured catalogue.
-Use shared HolonManager planning/deferred LINQ and complete-selection paging.
+It uses shared HolonManager planning/deferred LINQ and complete-selection paging.
 Each read captures synchronized mainnet info once, derives one valid explicit
 block ID and uses it for every selected principal. Reject invalid selectors
 before I/O: the node can silently select its default for malformed tip strings.
@@ -28,15 +28,31 @@ These are trusted node-reported explicit-tip observations: no independent MARF
 proof, consensus/finality, permanent canonicality, Gaia storage or full ORM
 certification. No proof data or media links are fetched.
 
-For SHA-512/256, inspect/reuse the already cached BouncyCastle package/version
-used by the actual dependency graph. Versions2.5.1/2.6.2/2.7.0 are present;
-do not install a new runtime or implement a truncated-SHA512 substitute.
-Then add appropriate source tests and spaced/commented C#3/2 walkthrough;
-only after that add HTTP/Mongo5/4/privacy/admission/hosted/card gates.
+Actual WEB4 assets resolve BouncyCastle.Cryptography2.7.0, already cached.
+The adapter uses its SHA-512/256 implementation through an explicit compile
+alias because the legacy dependency graph also exposes an older library with
+the same type name. No dependency was removed or crypto substitute added.
+Original failed build retained; corrected provider and console builds pass.
+
+## Local CQL and console evidence
+
+- 43 source tests pass, 0 failed/0 skipped: reference block-ID vector, canonical C32 checksums/mainnet versions, exact amounts, one tip per selection, point/subset/window ordering, malformed/failed last rows before paging, cancellation, unknown keys, unsupported predicates and native writes.
+- Actual `--stacks-public` console through HolonManager/deferred LINQ passes3full/2filtered. One source owner/configuration/intent/ACK is retained under `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedStacksPublicSourceCurrent/`. Do not replace the owner or rerun qualification.
+- Source `source.json`:220bytes/SHA256 `aa5fe1f4934e1ed9670aee3064527a7becccee2332c3d416615288a93de634d1`.
+- Unit evidence `TestResults/StacksPublicSourceCurrent/Offline/stacks-source.trx`:79052bytes/SHA256 `f7502f6a1b92f3d87000540e1efa37f729abaa1e4c8b72e4d5936df16b654df4`.
+- Actual console log `TestResults/StacksPublicSourceCurrent/console-qualification.log`:1284bytes/SHA256 `e98ae186ca6e596a7360370b9a4bd12a6ec0a4051667dc31916ebedd013b5ec5`.
+- [Configuration/C#/limits guide](../../Devs/STACKS_PUBLIC_PRINCIPAL_CQL_GUIDE.md) and [spaced/commented walkthrough](../../../Examples/CosmicCqlDemo/StacksPublicWalkthrough.cs). No hosted count or HTTP/compiler admission added.
+
+Next add explicit query-only Core tariff/API compiler/read-profile activation,
+native3/2 and Mongo5/4 presets, local HTTP privacy and replica acceptance before
+hosted configuration/public card work. Native zero state does not prove that a
+principal exists. Native states may change between separate queries; snapshots
+must retain their original observation rather than force fresh responses to
+match an older tip.
 
 Legacy BlockStack client includes Gaia/user-directory paths and synthetic user
 results; it is not used for this proof and remains unchanged. Document legacy
-gaps only. No source owner or CQL admission has been minted yet.
+gaps only. The source owner is now retained; HTTP/host admission remains pending.
 
 ## Evidence outside docs/git
 
