@@ -1,7 +1,8 @@
 # Akash public source — next interface review
 
 2 November 2026. Native bounded-prefix continuation passed: three sampled
-provider identities and three point records. Not CQL-qualified or hosted yet;
+provider identities and three point records. Query-only adapter controlled cases
+now pass; actual manager/CLI/HTTP/hosted integration remains unverified;
 no source owner/admission/card/count increase. Original whole-body discovery
 failure remains immutable. Eclipse image deployment is failed; ENS remains the
 last successful live release. Earlier sections retain historical review/test
@@ -159,3 +160,43 @@ query-only AkashProviderAddress equality/IN+paging with capability/error tests,
 then actual spaced C#3/2, HTTP/Mongo5/4/privacy and original hosted/replica gates.
 Counts remain59integrated/54hosted. Native metadata proof is not CQL acceptance,
 cloud provisioning, shared finalized snapshot or independent chain consensus.
+
+## Query-only CQL adapter controlled acceptance
+
+`AkashPublicProviderMetadataSource` now implements the shared query/activation
+contracts over the existing key-value provider base. Explicit config contains
+exactly schema1/apiUrl/providerOwners/sourceOwner;1–8unique canonical Bech32
+owners. Unknown/duplicate/credential fields reject; guarded anonymous transport,
+no cookies/API keys/signers or provider-hostUri access.
+
+CQL supports `AkashProviderAddress` equality/IN and captured paging. Every key
+must belong to the configured sample before dispatch, including keys skipped by
+paging. Point failures return an error/no partial rows; Take(0) does not hide a
+native selection failure. Result budgets, cancellation and inactive sources are
+explicit. Save/delete are rejected without native HTTP. Query-profile activation
+is separate from legacy provider transaction/storage activation.
+
+Projection is public identity/name/description, descriptive service URI, online
+flag and indexer-reporting/consensus-not-verified policy. Stable IDs bind source
+owner, Akash provider type, configured API endpoint and native owner address.
+Email/arbitrary attributes/capacity/geolocation are excluded. Name/description
+are projected values, not additional admitted predicates. No compute provision,
+shared finalized snapshot, native writes or full ORM parity claim.
+
+Controlled evidence covers17unique cases: initial run16passed/1fixture failure;
+the point fixture used unsupported captured array indexing instead of a bound
+scalar. Fixed that fixture and ensured the unsupported-name test builds a valid
+query before asserting capability rejection. Affected11query cases then passed;
+the6unchanged config cases passed in the original run. No native replay.
+
+- `TestResults/AkashPublicSourceCurrent/adapter-controls.trx`:
+  SHA25620ce76bb6785a7fd41a528444f98fa050596fdfadce11e3f01a277fc9554b5c7.
+- `TestResults/AkashPublicSourceCurrent/adapter-query-controls-corrected.trx`:
+  SHA256b2f72796e34ef549605b733e82bfc8bbdb93a09eca10f43aefe93e925c3cb74d.
+
+Next bind the original acknowledged sample to one source configuration/owner,
+add the spaced C# manager/deferred-LINQ3/2walkthrough and actual CLI proof, then
+HTTP/Mongo/privacy/hosted/replica/browser gates. No source owner allocated in this
+batch, CQL host admission/card/count increase or Eclipse retry. Legacy untouched.
+59existing build-output directories measured306,306,252logical bytes, reusable
+for remaining Akash gates then disposable after verified teardown. No downloads.
