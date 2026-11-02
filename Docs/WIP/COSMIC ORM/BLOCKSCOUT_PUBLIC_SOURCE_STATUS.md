@@ -188,3 +188,10 @@ attempt or David chore. This does not block CQL work.
 | `TestResults/BlockscoutPublicSourceCurrent/Http/activation-recovery.trx` | 31405 | `f7b196f318b31add0ec9e8e3ef172688101cf5507cb37bd4b46db984c1112ae7` |
 | `TestResults/BlockscoutPublicSourceCurrent/Http/activation-recovery-di.trx` | 3386 | `8a5229f5aef53ef8b91bc001ed158bdf562d07c4afa6e6a36db4c8481167efc0` |
 | `TestResults/BlockscoutPublicSourceCurrent/owned-crash-preserved.json` | 590 | `d98ac65c30bdde3c14f1c4ffa5fc538ad6e8656aadda0e1767582e54ce5c241c` |
+
+Correction21666342fb90599ad74f3d3825acf253d7e5d9d0 pushed to Development;
+Core55de8e9 and all live variables unchanged/equal original reviewed candidate.
+Exact correction job97b13d99-4192-45e8-b45e-47c5411d6bca last observed BUILDING.
+Journal activation-recovery-code-publication.{intent,observed}.json below
+HostedBlockscoutReleaseCurrent; original failed release/cohort preserved.
+Follow same job; no restart/settings reapplication/new owner.
