@@ -21,7 +21,7 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 ## Exact next actions
 
 1. Telos card4ff3661/pinned links/95client tests/public HTML/scripts are verified. Original cohort is frozen; no native/local/hosted replay or settings reapply/redeploy.
-2. Inspect unqualified shipping EOSIOOASIS and current primary network docs; select a free public account-metadata endpoint and prove its native identity/three-record read contract using the existing guarded .NET transport before code. No EOSIO CQL/hosted claim yet. Chainlink feed research remains unqualified and may follow later.
+2. EOSIO/Vaulta native qualification passed seven guarded reads (3/2 account selections); offline parser/error regression passes. Implement its separate read-only CQL source next. No EOSIO CQL/hosted claim yet. See EOSIO_PUBLIC_SOURCE_STATUS.md; original qualification must not be replayed.
 3. Implement only the new provider's red scope after qualification: source/controlled tests/native manager+C#3/2, API/query-only admission/Mongo/privacy, actual prepared presets, exact hosted rollout/acceptance/card. Keep green scopes frozen absent a bug.
 
 ## Durable state and rules
