@@ -27,7 +27,7 @@ Publisher9pure controls and client1preparation/reuse control pass. Client test c
 
 ## Exact next step
 
-Commit verified parent code/docs with Coreb386875 gitlink/manifest; validate manifest after that commit and push task branch. Fetch/integrate Development preserving concurrent changes; verify merged controls before code publication. Then observe exact code deploymentSUCCESS before guarded apply of reviewed3settings, one journalled settings rollout, first hosted native/federation/reuse/privacy/replica cohort and sandbox card. Never apply at a different code SHA or replay either completed native/local fixture. Hosted PostgreSQL/Azure Cosmos/Oracle and browser control remain deferred/closed.
+Parentf93399e3 and Coreb386875 task refs are pushed; manifest/gitlinks validate. Merged current Development42da7fe9; only its David actions document changed, executable source identical to verified batch. Publish current verified parent/Core refs with durable intent; preserve merged owner actions. Then observe exact code deploymentSUCCESS before guarded apply of reviewed3settings, one journalled settings rollout, first hosted native/federation/reuse/privacy/replica cohort and sandbox card. Never apply at a different code SHA or replay either completed native/local fixture. Hosted PostgreSQL/Azure Cosmos/Oracle and browser control remain deferred/closed.
 
 ## Evidence and resources
 
