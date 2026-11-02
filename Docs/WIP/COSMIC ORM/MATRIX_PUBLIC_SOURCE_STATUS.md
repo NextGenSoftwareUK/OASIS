@@ -89,8 +89,9 @@ capability rejection. It preserves exact server-reported opaque room IDs. Room-a
 resolution is mutable and server-reported: it does not prove message history,
 room state, membership, E2EE content, freshness, common snapshot or independent
 federation consensus. No server address returned by the API should be fetched.
-Next inspect the next red provider's official native contract (StoryProtocolOASIS)
-before native qualification. Matrix cohorts/source identities are frozen; do not
+Next red scope is the qualified Stacks principal-state CQL source; see
+STACKS_PUBLIC_SOURCE_STATUS.md. Story/DATA's public Trace denial is preserved
+in STORY_TRACE_PUBLIC_SOURCE_STATUS.md. Matrix cohorts/source identities are frozen; do not
 resave/redeploy for another green run. Browser control remains closed; no new
 browser request or claim. Farcaster's failed public-Hub qualifier stays unadmitted;
 see FARCASTER_PUBLIC_SOURCE_STATUS.md.
