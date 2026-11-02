@@ -52,6 +52,18 @@ The complete runnable setup and result checks are in the walkthrough. Unsupporte
 predicates fail planning; unknown catalogue keys fail before native requests.
 This profile does not scan the chain to implement a filter.
 
+The compiled demo also provides this CLI entry point:
+
+```powershell
+# Reuse your configured three-header catalogue and existing build.
+dotnet ./Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll `
+    --bittensor-public ./LocalState/COSMIC/HostedBittensorPublicSourceCurrent/source.json
+```
+
+The live sandbox CQL tab lists `BittensorOASIS` with native and Mongo-paired
+presets. Hosted query/privacy/replica evidence is recorded in the source report;
+browser interaction is a separate gate.
+
 ## Read results accurately
 
 `Name` and `Description` identify the block. Metadata includes its native hash,
