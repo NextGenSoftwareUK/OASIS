@@ -534,6 +534,11 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_BITCOIN_PUBLIC_SOURCE_JSON"] is string bitcoinPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.BitcoinPublicHeaderMetadataSource.FromJson(bitcoinPublicSource)));
+            // Anonymous Blockscout address observations never enable signed writes.
+            if (Configuration["CQL_BLOCKSCOUT_PUBLIC_SOURCE_JSON"] is string blockscoutPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS.BlockscoutPublicAddressMetadataSource.FromJson(blockscoutPublicSource)));
+
             // Pinned Celestia header reads never enable blob submission or node wallets.
             if (Configuration["CQL_CELESTIA_PUBLIC_SOURCE_JSON"] is string celestiaPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
