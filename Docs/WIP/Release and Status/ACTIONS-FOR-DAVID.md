@@ -294,7 +294,7 @@ Claude installs the 0.7 shared runtime and runs the bridge test; you'll only nee
 
 **2 November evidence:** cleanup recovered about16.1GB of Windows artifacts; latest free60.9GB. WSL trim/cache cleanup completed and Ubuntu stopped. The98.6GBVHD still holds92.3GBof used filesystem data, so compaction alone offers roughly6GB, not80GB. This agent is not elevated; administrator compaction remains pending. [Measured recovery/retention plan](../Cleanup/DISK_RECOVERY_CURRENT.md).
 
-**Decision pending:** may the personal `/home/dellams/miniforge3` installation (34.5GB) and `/home/dellams/art-ml-models` (2.8GB) be retired? They are outside ORM work and remain preserved. Existing provider containers/volumes/chain ledgers also remain preserved; no blanket prune or dataset reset authorized by their stopped state.
+**Decision resolved 2 November 2026: KEEP BOTH.** David explicitly retained `/home/dellams/miniforge3` (34.5GB) and `/home/dellams/art-ml-models` (2.8GB). Exclude both from cleanup; do not ask again unless David changes this decision. Existing provider containers/volumes/chain ledgers also remain preserved; no blanket prune or dataset reset authorized by their stopped state.
 
 
 In **Ubuntu**:
@@ -318,8 +318,8 @@ exit
 ```
 Don't use `wsl --manage ... --set-sparse --allow-unsafe` (WSL warns it can corrupt the disk).
 
-Optional, your call: `miniforge3` (33 GB), ML models (2.6 GB) and two PyTorch wheels (1.6 GB) in WSL aren't from this work.
-Delete them before compacting if you don't need them.
+Personal Miniforge and ML models are retained by David's 2 November decision.
+Other personal ML resources are not authorized for removal.
 
 ### 4. Check Vercel before deleting old branches
 
