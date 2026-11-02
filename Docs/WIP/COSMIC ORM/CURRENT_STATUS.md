@@ -15,12 +15,12 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 
 - BlueSky source37controls/actual CLI3/2, Core1/API2/localHTTP1/publisher9/prepared-planner1/client1 pass. Native3/2, Mongo5/4, foreign0/public3; exact marked local fixture dropped, HTTP/Mongo stopped.
 - Development parent `f36dd0d56ea4b93f06631947f5c267c55e131910` / Core `499e4e0b06104a3845abee243946fd61a27f069f` fast-forward published/ref-verified; manifest validates.
-- Code job `f6c205de-bd4b-4679-bf16-de86690bbdce` BUILDING. Protected three-key candidate/four presets prepared; no BlueSky settings applied or hosted cohort started. Original native/local cohorts frozen; frontend taskecfdd54 has a pending-labelled card and pinned developer links; main remains80633dc, no live BlueSky card. HTTP guide now includes candidate-matched two-profile native/federated JSON examples, checked offline; live enrollment still pending.
+- Code job `f6c205de-bd4b-4679-bf16-de86690bbdce` SUCCESS. Three settings applied once and observed exactly; single journalled settings deployment `6dfdbc6c-8d51-4674-a4e2-32c5777d24aa` issued. No hosted cohort started. Original native/local cohorts frozen; frontend taskecfdd54 has a pending-labelled card and pinned developer links; main remains80633dc, no live BlueSky card. HTTP guide now includes candidate-matched two-profile native/federated JSON examples, checked offline; live enrollment still pending.
 
 ## Exact next actions
 
 1. Preserve completed ChainLink/EOSIO/Telos/Filecoin/Fantom sources/owners/ACKs/cohorts. ChainLink card/pinned links/97tests/public bytes verified; no browser proof inferred.
-2. Observe exact BlueSky jobf6c205de-bd4b-4679-bf16-de86690bbdce atf36dd0d56. Only after SUCCESS check out exact code release for guarded3settings application (no detached commits), apply once, issue one journalled settings deployment, restore task branch, observe exact settings job, then original hosted acceptance/card. See BLUESKY_PUBLIC_SOURCE_STATUS.md and LocalState/COSMIC/HostedBlueSkyReleaseCurrent. No hosted claim/replay/reapply/restart.
+2. Observe exact BlueSky settings job6dfdbc6c-8d51-4674-a4e2-32c5777d24aa atf36dd0d56. Code job SUCCESS; all3settings ACKed and candidate-equal; one redeploy outcome protected. Do not reapply/redeploy. Only after settings SUCCESS run original hosted acceptance, audit proofs, then publish card. See BLUESKY_PUBLIC_SOURCE_STATUS.md and LocalState/COSMIC/HostedBlueSkyReleaseCurrent.
 3. Controlled tests/native manager+C#3/2, API independent read admission/tariff, local Mongo/privacy/prepared gates, exact hosted rollout/original acceptance/card. Keep green scopes/deep parity frozen absent a reproduced bug.
 
 ## Durable state and rules
