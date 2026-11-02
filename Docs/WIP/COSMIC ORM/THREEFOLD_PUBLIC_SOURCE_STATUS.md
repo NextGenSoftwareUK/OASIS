@@ -52,3 +52,17 @@ response-4.json:1232bytes SHA256 `1383da01164b64965420ae659e9f6da4defe6ba6827d96
 response-5.json:2343bytes SHA256 `20d36868bdecdf7a660d5ff6a269ff678fa4eab11780cd053cfb3398f76b410c`.
 
 response-6.json:1231bytes SHA256 `1405466a9b972e966ec6b72e15fc55cef34824975bceaf5f3b61904728415573`.
+
+## Read-only adapter controlled milestone
+
+ThreeFoldPublicNodeMetadataSource builds with33/33adaptercontrols passing (no skips). Fixedmainnetroot, canonicalnonzeroUInt32nodeIDs, metadataeq/IN+paging via boundedpointcomposition, strictnativeidentity/UInt32/geographicprojection,256KiB/15s/one-secondpacing, cancellation/nativeerrors/no partialrows and Save/Delete no-networkrejection. IPs/contacts/resources/provisioning excluded, chainstateverifiedfalse. ExistingMinIO/legacyprovider untouched. No nativeCQL/manager/CLI/HTTP/hostedacceptance or countincrease yet.
+
+Reproduced developerwalkthrough failure: sharedRunAsync rejectedThreeFold because a duplicatedprovider-name switch lacked its metadata key. Originalnewtest failed, then passed after replacing switch with adapter.QueryCapabilities.StringKeySetLookup.MetadataKey. Onegenericstrategy now owns admission/keyselection; no extra nativequeryengine or per-providerdemo registry. Controlled3rows pass throughHolonManager/LINQ; nativeoriginal remains next. Acceptedgreenproviders not replayed.
+
+TestResults\ThreeFoldPublicSourceCurrent\adapter.trx SHA256 `a7ca7c4a484273ec7faa26bae3608c5750d10e67232472141b51a1a63de28881`.
+
+TestResults\ThreeFoldPublicSourceCurrent\demo-red.trx SHA256 `124f005b2779584a4c6552f14f3c5e190164a2735cac28cada32c75ef94d16db`.
+
+TestResults\ThreeFoldPublicSourceCurrent\demo-green.trx SHA256 `4c440712f9d27e8edd1c9f9daa6432472a5afbdef686998cec567b41f667f5b9`.
+
+Next: commentedThreeFoldC#walkthrough/configuration and actualcompilednative3/2 over originalnodeIDs1/2/3; then HTTP/Mongo/tariff/presets/hosted/card. ClickHouseactivation78d92d9b remains first live rollout gate.
