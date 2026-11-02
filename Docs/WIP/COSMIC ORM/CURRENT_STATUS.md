@@ -44,7 +44,9 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
    HTML and both JS assets match exact Git blobs. Browser gate remains closed.
    ClickHouse adapter builds,25controlled tests pass; native countries3/2
    qualified,4probecontrols pass. Actual manager/LINQ/CLI3/2passed; HTTPadmission3API+1Core and
-   publisher10controls pass. Next original localHTTP/Mongo/privacy gate.
+   publisher10controls pass. Original localHTTP3/2+Mongo5/4/privacy0/3passed; fixturecleaned.
+   Hostedcandidate prepared/4actualpresets pass; next auditcontrols and
+   verifiedDevelopmentintegration, code release/activation/hostedacceptance.
    Original absentStackOverflowtable failure retained; no hosted ClickHouse acceptance yet. Do not replay accepted Zcash.
 5. Durable Zcash state: `LocalState/COSMIC/HostedZcashPublicSourceCurrent`,
    `ZcashPublicQualificationCurrent`, `ZcashMongoHttpCurrent` (cleaned),
@@ -54,7 +56,7 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 - [ClickHouse qualification](CLICKHOUSE_PUBLIC_SOURCE_STATUS.md): public read-only
   identity/schema and countries3/2 verified; adapter25controls pass,
-  manager/nativeCQL3/2+HTTPadmissioncontrols pass; localHTTP/hosted remain red. Profile keys printableASCII.
+  manager/nativeCQL3/2+HTTPadmissioncontrols pass; localHTTP3/2+Mongo5/4/privacy pass; hosted remains red. Profile keys printableASCII.
 
 - [Zcash details](ZCASH_PUBLIC_SOURCE_STATUS.md): hosted proof/card/static bytes pass; browser open.
 - [Ceramic qualification](CERAMIC_PUBLIC_SOURCE_STATUS.md): pinned official
