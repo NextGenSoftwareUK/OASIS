@@ -42,3 +42,7 @@ WEB4/local HTTP is qualified. Fetch/integrate current Development (new OLAND che
 [Fantom official RPC endpoints](https://docs.fantom.foundation/build-on-opera/api/public-endpoints), [Sonic Labs23June2026 reversal: Opera stays through at least year-end](https://www.soniclabs.com/blog/the-first-1/), [EIP-1898 canonical hash reads](https://eips.ethereum.org/EIPS/eip-1898). The June announcement supersedes the April shutdown plan; Sonic chain146 must never be substituted for Opera250.
 
 [Programme](CURRENT_STATUS.md) | [Provider matrix](PROVIDER_CQL_AND_SANDBOX_STATUS.md) | [Resources](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+Release preflight: parent e13244820ddcffc27b94326e70ccfef52fb044ab/Core01b754545eea90395778305c70b7f55550bcf65b preserve OLAND quote header changes through both histories;46combined controls pass, native fixture not replayed. Both Development refs remote-verified. Exact app job7b8c95d9-b9dd-47c1-9ea9-5151f40be81b remains QUEUED; no settings applied yet. Original rejected publication intent was fenced before any remote mutation; explicit merged intent/ACK retained.
+
+Exact continuation: CURRENT_STATUS.md contains the immutable-release checkout/guard procedure after the same job succeeds. Later task docs commits must not weaken the exact-HEAD guard. No commits while temporarily detached; restore the existing task branch. No new worktree, job restart or publication replay.
