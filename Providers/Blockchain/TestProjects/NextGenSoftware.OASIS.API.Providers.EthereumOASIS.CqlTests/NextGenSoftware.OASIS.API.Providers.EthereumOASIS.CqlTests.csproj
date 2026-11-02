@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../../Network/NextGenSoftware.OASIS.API.Providers.ENSOASIS/NextGenSoftware.OASIS.API.Providers.ENSOASIS.csproj" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.FantomOASIS/NextGenSoftware.OASIS.API.Providers.FantomOASIS.csproj" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/FantomPublicWalkthrough.cs" Link="PublishedDemo/FantomPublicWalkthrough.cs" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />

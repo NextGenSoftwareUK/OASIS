@@ -69,3 +69,21 @@ cached ABI/Keccak dependency graph. Use it for codec/protocol qualification
 checks; do not create another environment. No native call or installation was
 made during this review. Next: implement bounded DNS/namehash/ABI codec and
 controlled rejection tests, then record the native intent and execute once.
+
+## Codec milestone verified
+
+Production `EnsUniversalResolverCodec.cs` lives in the ENS provider project;
+the reused Ethereum test host references that actual project. Cached
+Nethereum.Util7.0.0 supplies Keccak, avoiding a second hashing implementation.
+The codec deliberately accepts bounded lowercase ASCII labels, encodes DNS and
+namehash, constructs Universal Resolver/addr ABI, and rejects malformed offsets,
+lengths, padding, empty addresses, truncation and trailing bytes.
+
+19 controlled tests passed,0failed/0skipped. Tests include the official DNS
+example, known eth namehash, dynamic-tail layout and invalid-name/ABI cases.
+Evidence: `TestResults/EnsPublicSourceCurrent/codec.trx`, SHA256 `83fc71e2456cfc92c51e2d2eb7978a51ba12bbae0cc82cfcf84b009e25808ac1`.
+Build log is adjacent `codec-build-test.log`; raw output remains outside Docs.
+No native ENS call has run and no source/admission/card is counted.
+
+Next implement the guarded bounded qualification runner using this codec;
+freeze an exclusive three-name intent before its first native request.

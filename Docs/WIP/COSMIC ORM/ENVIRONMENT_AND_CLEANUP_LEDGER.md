@@ -3261,3 +3261,10 @@ Reused existing Web4Site task/main checkout and pinned Node24.19.0, no install/r
 ### ENS protocol review resource reuse - 2 November 2026
 
 Owner: COSMIC/CQL work/cosmic-cql-ton-public. Reused C:/Source/OASIS-cosmic source/docs and existing Ethereum CqlTests project; inspected C:/Users/david/.nuget/packages/nethereum.abi/7.0.0 and nethereum.util/7.0.0 cached identities (inherited/reusable; size unmeasured). No restore, installation, native RPC, new database/process/port or environment created. Official ENS web documentation read through existing browsing tool; no retained downloaded artifact. Retain shared caches; no cleanup authorized by this review. Future raw qualification evidence belongs under this worktree TestResults; durable intent under LocalState/COSMIC, neither created yet.
+
+
+### ENS codec build/test allocation - 2 November 2026
+
+COSMIC session reuses SDK10.0.401 and NuGet Nethereum.Util7.0.0 in C:/Users/david/.nuget/packages. ENS production project now references that cached version; existing Ethereum CqlTests host consumes the actual ENS project. Planned bounded restore/build/test under provider build lease, existing project bin/obj (reusable generated outputs, size unmeasured), logs/TRX C:/Source/OASIS-cosmic/TestResults/EnsPublicSourceCurrent (regenerable). No new service/port/database/runtime. Disk before:48,026,660,864bytes free. Preserve source and shared caches; disposable generated outputs only after confirming no active build and exact ownership. Outcomes appended after execution.
+
+ENS codec outcome: leased dotnet test completed successfully,19passed/0failed/0skipped. Restore/build reused the existing project graph and NuGet cache; no service or native call. Logs/TRX:TestResults/EnsPublicSourceCurrent/codec-build-test.log and codec.trx, reusable exact paths; build process terminal. Generated bin/obj remain shared reusable outputs, size unmeasured; no cleanup attempted.
