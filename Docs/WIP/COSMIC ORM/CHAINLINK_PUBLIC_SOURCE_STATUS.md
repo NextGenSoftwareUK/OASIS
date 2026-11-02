@@ -71,3 +71,8 @@ Native ABI reference: [Chainlink API](https://docs.chain.link/data-feeds/api-ref
 - `TestResults/ChainLinkPublicSourceCurrent/prepared-public-review.json`: 4315bytes; SHA256 `4c6709d283bb8e8f52b815e045ab71bb7e6a77721073af4f49bd1b2ed97b15b9`.
 
 Frontend97/97regression tests pass with the unpublished ChainLink card; guide includes native and paired HTTP examples. No hosted acceptance claimed. `TestResults/ChainLinkPublicSourceCurrent/client-tests.log`: 9350bytes/SHA256 `681e45e40b784ea04c150712d8b360371cdf5d4ba9413b24d8c7ba9b11f5f89b`.
+
+
+## Hosted acceptance completed
+
+Code215b4b51/settings3a00f63f SUCCESS at parent09c66998cb2c204f290d7a85198006e6abd3202f/Core990c1c75afcafdbc0678b6e8131a10b67650f7e3. Exactly3settings applied once, full candidate/per-key digests match, DNA unchanged. Original cohort native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3, matching SQLite/Neo4j replicas2/2 each pass. Both normal private saves version1/no pending intents. Immutable completion ACK LocalState/COSMIC/HostedQueryAcceptance-ChainLinkOASIS/cql-http-acceptance.acknowledged.json freezes this cohort; never replay/resave. Card/public asset publication is the remaining current milestone; browser proof remains open.
