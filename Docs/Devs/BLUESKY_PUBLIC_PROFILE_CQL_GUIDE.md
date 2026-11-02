@@ -52,7 +52,7 @@ Exact DID equality and membership of at most eight configured `did:plc` identifi
 
 ## HTTP filtered queries and Mongo pairing
 
-These requests use the same two-DID selection as the prepared demo presets. Hosted enrollment is still pending; check the current evidence report before presenting this as a live feature. Once enrolled, discovery exposes the native and paired presets for `BlueSkyOASIS`.
+These requests use the same two-DID selection as the prepared demo presets. Hosted HTTP acceptance now passes; the page card publication is pending. Discovery exposes the native and paired presets for `BlueSkyOASIS`.
 
 Use an authenticated OASIS demo session and a fresh `Idempotency-Key` for each HTTP request. Keep the bearer private. No BlueSky credentials are needed.
 
@@ -133,6 +133,6 @@ The configuration requires exact fields, an anonymous HTTPS root, one to eight u
 
 ## Verification and remaining gates
 
-[Controlled tests](../../Providers/Social/TestProjects/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS.UnitTests/BlueSkyPublicProfileMetadataTests.cs) cover the read contract. [Current evidence](../WIP/COSMIC%20ORM/BLUESKY_PUBLIC_SOURCE_STATUS.md) distinguishes native qualification, CQL/manager, API/Mongo, hosted and browser gates. Query-only API admission (CQL_BLUESKY_PUBLIC_SOURCE_JSON), local HTTP native3/2/Mongo5/4/visitor privacy and all4prepared presets now pass. Hosted publication and browser interaction remain pending; local proof does not establish them. Generic browser demo copies currently retain identity/name/description/provenance rather than all native metadata.
+[Controlled tests](../../Providers/Social/TestProjects/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS.UnitTests/BlueSkyPublicProfileMetadataTests.cs) cover the read contract. [Current evidence](../WIP/COSMIC%20ORM/BLUESKY_PUBLIC_SOURCE_STATUS.md) distinguishes native qualification, CQL/manager, API/Mongo, hosted and browser gates. Query-only API admission (CQL_BLUESKY_PUBLIC_SOURCE_JSON), local HTTP native3/2/Mongo5/4/visitor privacy and all4prepared presets now pass. Hosted native3/2/Mongo5/4, repeat0new/2existing, visitor-private0/public3 and matching SQLite/Neo4j replicas2/2 now pass. Both private saves are version1 with no pending intents. Browser interaction remains unverified. Generic browser demo copies currently retain identity/name/description/provenance rather than all native metadata.
 
 Primary references: [API hosts and auth](https://bsky.network/docs/api-directory/), [HTTP reference](https://endpoints.bsky.app/), [public endpoint limits/caching](https://bsky.network/docs/rate-limits/).
