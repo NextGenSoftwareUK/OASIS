@@ -158,3 +158,30 @@ Evidence TestResults/EclipsePublicSourceCurrent (SHA256):
 Next owned local native HTTP/Mongo3/2+5/4/privacy/cleanup; then actual protected
 candidate/four-preset review and original hosted acceptance. Roadmaps/status
 summaries reconciled to59integrated/54hosted; no new live admission/card yet.
+
+## Local HTTP/Mongo and protected candidate passed
+
+Original CqlEclipseMongoNativeTests passed native3/2, Mongo5/4, foreign-private0/
+public3 with two SDK-owned version1 copies and9query receipts. Physical identities,
+source visibility/genesis/currency/decimals and private snapshot metadata checked.
+Controlled bearer/admission is fixture infrastructure, not production billing or
+replication proof. Source config unchanged. Success-only cleanup checked exact
+marker/two-holon count and dropped cosmic_cql_eclipse_http_demo; absence ACK
+preserved, HTTP stopped and owned Mongo stopped/port27029absent. Shared data kept.
+
+Retained fixture: LocalState/COSMIC/EclipseMongoHttpCurrent. Source-bound local
+ACK: HostedEclipsePublicSourceCurrent/web4-local-qualified.acknowledged.json.
+Protected before/candidate: HostedSourceRolloutCurrent/eclipse-public-*-variables.dpapi
+(prepared once). Public review TestResults/EclipsePublicSourceCurrent/prepared-review.json
+and actual-preset-review.json. Exactly3changed values, DNA/all unrelated settings
+unchanged, free read-only tariff. No live mutation during preparation.
+
+One actual-candidate planner test passed all4native/Mongo presets. Publisher9pure
+controls already pass. Evidence under TestResults/EclipsePublicSourceCurrent:
+
+- mongo-http-native.trx: fc6470ea6a5aaba697c2df458d56cebf7a7e599b598d8e09f98d9846c495bf9c
+- prepared-presets.trx: 43aa377d24aa2278fad0f737a593a846836556f8d22306470250f32d088757bb
+
+Next publish verified Core/parent code, observe exact code job, apply existing
+candidate once, then one settings activation and original hosted acceptance.
+No new native fixture/cohort/owner to reproduce green. Counts59integrated/54hosted.
