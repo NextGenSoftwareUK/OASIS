@@ -160,4 +160,7 @@
   <ItemGroup>
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FilecoinOASIS/NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TelosOASIS/NextGenSoftware.OASIS.API.Providers.TelosOASIS.csproj" />
+  </ItemGroup>
 </Project>
