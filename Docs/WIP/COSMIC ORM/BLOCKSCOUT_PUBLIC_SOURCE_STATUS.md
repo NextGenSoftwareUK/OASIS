@@ -1,7 +1,7 @@
 # Blockscout public address CQL — native qualification
 
-2 November 2026. Native reads qualified; CQL/source owner/hosted admission/card
-remain red. Counts unchanged:56integrated/51hosted/5browser46open.
+2 November 2026. Native and local CQL/C# verified; HTTP/hosted/card remain red.
+Counts57integrated/52hosted/5browser47open. Original read timeout cause unresolved.
 
 ## Contract and native evidence
 
@@ -56,3 +56,50 @@ HTTP/Mongo/privacy/replicas and original hosted acceptance before a public card.
 | `TestResults/BlockscoutPublicSourceCurrent/address-0.json` | 1169 | `2283dd252446126841e786cf07185cae34ce8fa9715cfc396a8ba5acf40f6dff` |
 | `TestResults/BlockscoutPublicSourceCurrent/address-1.json` | 1144 | `1971218ecb5f6ee19be260c4ceac7fa7212de7bdef26b2e88925d571ea8f7ac1` |
 | `TestResults/BlockscoutPublicSourceCurrent/address-2.json` | 1283 | `dad217c59852abdbf34cf49376acd83ce1402f61b631b14c808f375072b7fe72` |
+
+
+## Local CQL/C# milestone verified
+
+BlockscoutPublicAddressMetadataSource implements shared CQL/read-only activation
+contracts, key BlockscoutAddress, at most8canonical addresses.42source controls
+pass: equality/membership/paging; exact78-digit balances/uint64update blocks; null
+absence; malformed identity/quantity/name/RPC fields; cancellation/budgets/unknown
+keys/inactive source; write refusal; exclusion of private/watchlist/user/token
+fields; and same-owner cross-explorer ID separation. Complete selection precedes
+paging; late failure yields no partial rows. Legacy adapter unchanged.
+
+Actual spaced/commented C# manager/deferred-LINQ demo returns3full/2filtered.
+One original owner/candidate/published source/intent/ACK retained below
+LocalState/COSMIC/HostedBlockscoutPublicSourceCurrent. Do not recreate the owner
+or replay qualification/completion. Build passes/0errors.
+
+### Preserved failures and explicit completion
+
+Initial console preflight stopped before state/native requests: PowerShell array
+Address method shadowed member-enumerated address. Fixed explicit per-record
+property selection; preflight report retained. Original console then failed
+activation on a15-second HttpClient read timeout while awaiting HTTP response.
+No CQL rows/source writes completed. Native connection guard/refusal and parsing
+were not the observed failure; endpoint/transport cause remains unresolved.
+
+One separate evidence-bound read-only completion reused the exact candidate hash,
+owner,3addresses, endpoint, binary and unchanged timeouts; original failure log
+hash/exit/intent preserved. No source writes, retries loop, new source owner,
+endpoint switch or deadline extension. Completed CLI3/2; immutable ACK explicitly
+marks originalConsoleFailurePreserved/readOnlyCompletion/reliabilityCertifiedfalse.
+Functional success does not certify endpoint reliability.
+
+[Configuration, spaced C# usage and metadata guide](../../Devs/BLOCKSCOUT_PUBLIC_ADDRESS_CQL_GUIDE.md).
+Next HTTP compiler/read activation/query-only admission/presets, local native3/2+
+Mongo5/4/privacy, then original hosted/replica acceptance/card. Hosted stays52.
+
+| Evidence | Bytes | SHA256 |
+|---|---|---|
+| `TestResults/BlockscoutPublicSourceCurrent/source-controls.trx` | 71401 | `77bcc53241ce5e07e33496631e4d7425efce9aa70f99732cff348906e58ee148` |
+| `TestResults/BlockscoutPublicSourceCurrent/console-preflight-initial.json` | 286 | `8a473d0c4d2d5501df83b38ddf0f3bca261c4a62750d9437d5514b2c61585e7c` |
+| `TestResults/BlockscoutPublicSourceCurrent/console-qualification.log` | 4532 | `a34fd2e49ff04aa552a113d18f16a24adf24a91168f432ad223e3ba257246a30` |
+| `TestResults/BlockscoutPublicSourceCurrent/console-readonly-completion.log` | 1552 | `052ef207f618ef8a8f891bcc3d2ea3d9c053ce8a567032d55507de7210bbd676` |
+| `LocalState/COSMIC/HostedBlockscoutPublicSourceCurrent/source.json` | 260 | `203a5934576a702390d8847abd97d59e01f7615b3ebeff4baf3903b3c32e4bf2` |
+| `LocalState/COSMIC/HostedBlockscoutPublicSourceCurrent/native-qualified.acknowledged.json` | 465 | `1c268e60fb982161358345a08c5af122098c6f048169e21f04f649c6617579a4` |
+| `Providers/Network/NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS.dll` | 72704 | `aa14de696c2eaf5f9f63f7baf0192834dedde1f99632511a028aef34bbf7dea9` |
+| `Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll` | 917504 | `1ceaccc1f7c0f4cc018eaaad9235486e6e8b3efdf123c92f2feabf70cce42725` |
