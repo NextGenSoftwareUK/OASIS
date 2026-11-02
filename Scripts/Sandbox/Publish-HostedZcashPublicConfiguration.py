@@ -33,7 +33,9 @@ def candidate(before, source):
             or type(source["schema"]) is not int or source["schema"] != 1
             or source["apiUrl"] != "https://api.zecblock.com/"
             or source["genesisHash"] != "00040fe8ec8471911baa1db1266ea15dd06b4a8a5c453883c000b031973dce08"
-            or source["blocks"] != EXPECTED_BLOCKS or not isinstance(source["sourceOwner"], str)
+            or source["blocks"] != EXPECTED_BLOCKS
+            or any(type(block["height"]) is not int for block in source["blocks"])
+            or not isinstance(source["sourceOwner"], str)
             or uuid.UUID(source["sourceOwner"]).int == 0):
         raise ValueError("The exact qualified anonymous Zcash public block-summary catalogue is required.")
     if KEYS[0] in before:

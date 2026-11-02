@@ -61,6 +61,12 @@ class ZcashConfigurationTests(unittest.TestCase):
                 else: source["schema"] = True
                 with self.assertRaises(ValueError): publisher.candidate(before, source)
 
+    def test_boolean_height_cannot_match_integer_catalogue(self):
+        before, source = self.fixture()
+        source["blocks"][0]["height"] = True
+        with self.assertRaises(ValueError):
+            publisher.candidate(before, source)
+
     def test_existing_enrollment_or_example_is_not_overwritten(self):
         for scenario in ("source", "ordinary", "query-only", "native", "tariff", "example", "shared-example"):
             with self.subTest(scenario=scenario):
