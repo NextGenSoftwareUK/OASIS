@@ -3710,3 +3710,18 @@ Raw proof paths/hashes in AKASH_PUBLIC_SOURCE_STATUS.md, not committed test data
 Latest free62,968,225,792bytes. Frontend HTML card prepared in existing Web4Site,
 only14HTML lines added, pending publication after scoped proof (now passed).
 Guide gains public first-use configuration example; retained source unchanged.
+
+2026-11-02 Akash website publication: existing C:/Source/Web4Site work/cosmic-cql
+and main f828c989628e6d9cb97080e313fb7f976bfc066c remote verified.14HTMLlines only,
+no JS/dependency change/install/build environment. Pinned docs/C#blobs checked;
+public3assets total224,580bytes read into memory for exact git-byte
+verification, no runtime download/cache installed. Individual exact sizes/hashes
+in AKASH_PUBLIC_SOURCE_STATUS.md and TestResults/AkashPublicSourceCurrent/
+published-site-observation-1.json (regenerable compact report). Prior helper
+checkout CRLF discrepancy explained with canonical git equality, no producer
+substitution. No new visitor/queries/saves for site publication; original accepted
+Akash cohort frozen. Browser control remains closed/no browser evidence claimed.
+All local owned processes stopped/.NET outputs cleaned. Remote deployed website/
+API retained as delivery resources; acceptance credentials/copies remain owned
+retained evidence until explicit verified teardown. Next Eclipse baseline
+reconciliation uses original fixtures, no new environment or native qualification.

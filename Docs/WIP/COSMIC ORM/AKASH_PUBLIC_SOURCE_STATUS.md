@@ -1,11 +1,11 @@
-# Akash public source — hosted HTTP accepted; sandbox card next
+# Akash public source — hosted HTTP and sandbox publication accepted
 
 2 November 2026. Original hosted acceptance passes native3/2, Mongo5/4,
 repeat0new/2existing, foreign0private/3public, exact SQLite/Neo4j2/2 and two
 normal API version1saves/pending0. Independent offline audit ACK frozen.
 Code105329a3f/Coref42dd8c and activation2a5ec8a6SUCCESS;3settings applied once,
-DNA/sourceowner unchanged. Sandbox card is prepared/unpublished; browser and
-reliability remain unverified. Integrated60/hosted55/browser5/open50.
+DNA/sourceowner unchanged. Sandbox card published/byte-verified atf828c989; browser and reliability remain
+unverified. Integrated60/hosted55/browser5/open50.
 Earlier sections are historical; latest evidence/next action are at the end.
 
 Existing adapter: Providers/Network/NextGenSoftware.OASIS.API.Providers.AkashOASIS/AkashOASIS.cs.
@@ -385,3 +385,31 @@ bytes. Browser control remains closed; do not claim interaction verification.
 Then explicitly reconcile Eclipse's preserved candidate against the new live
 baseline; retain its original owner/config/qualifications/candidates. Old failed
 Eclipse image cause remains unexplained; new code success is separate evidence.
+
+## Sandbox entry published and exact public bytes verified
+
+Existing Web4Site task/main f828c989628e6d9cb97080e313fb7f976bfc066c published the
+Akash entry; fresh main fetch/merge was already up to date, no concurrent changes
+lost. Card includes live CQL provider/preset instructions, honest indexed-data/
+read-only/snapshot limitations and spaced local C#command. Guide pinned3e3c9ff203937183443c074b429aa547f150078c;
+C#walkthrough pinned105329a3fc84e8505a6779d3291de806858c23c2. Both git blobs checked.
+Only14HTMLlines added; JS/helper modules unchanged, prior108controls remain their
+scoped evidence. Duplicate new DOMIDs/link targets/diff checks pass. No browser
+control resumed; no interaction proof inferred from static validation.
+
+All3public assets byte-match exact git blobs atf828c989:
+
+- web4-sandbox.html192468bytes SHA2569fda8bc40fedd7d9219648856d1c1f1eb92e2bee0ba7e958c5b498d3dcc71f23.
+- cql-demo-preparation.js10241bytes SHA256c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a.
+- cql-playground.js21871bytes SHA2567cb6210b9adda1e83630fc966926772f8338c43163c24d1abd88c626ad1ad649.
+
+Compact observation TestResults/AkashPublicSourceCurrent/published-site-observation-1.json.
+No additional query/cohort/save/native qualification during publication. Freeze
+all accepted Akash code/config/source/cohort/release records. Current programme:
+60integrated,55hosted functional HTTP proofs/configured tariffs,5browser/50open.
+No full EF/NHibernate/ORM/native provisioning/reliability certification.
+
+Next red scope: reconcile preserved Eclipse candidate against live post-Akash
+baseline while preserving original source owner/catalogue/genesis/qualification,
+old candidate/intent/failure. Exact successful105329a3fcode contains its existing
+verified implementation. No old-job retry, owner replacement or stale overwrite.
