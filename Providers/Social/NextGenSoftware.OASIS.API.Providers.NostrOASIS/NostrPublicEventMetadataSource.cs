@@ -132,7 +132,8 @@ public sealed class NostrPublicEventMetadataSource : KeyValueStorageProviderBase
     public void Dispose()
     {
         if (disposed) return;
-        disposed = true; IsProviderActivated = false; 
+        disposed = true;
+        IsProviderActivated = false;
     }
 
     private static OASISResult<IReadOnlyList<IHolon>> Failure(string code, string message, Exception error = null)
