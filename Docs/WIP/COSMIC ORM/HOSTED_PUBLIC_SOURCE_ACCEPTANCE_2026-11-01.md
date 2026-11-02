@@ -1,6 +1,6 @@
 # Hosted public-source acceptance — 1 November 2026
 
-Latest: **38 scoped hosted HTTP providers**, including Arweave. Browser proof remains **5**; **33 open**. Historical counts below retain their original release/cohort.
+Latest: **44 scoped hosted HTTP providers**, including EOSIO/Vaulta. Browser proof remains **5**; **39 open**. EOSIO native3/2, Mongo5/4, repeat0new/2existing, privacy0/3 and matching replicas2/2 pass at parent4d3e0b7cd/Core86e38a3; code68db832f/settings20b3a558 SUCCESS. Cardc90ca72/96client tests/public asset bytes verified. [EOSIO evidence](EOSIO_PUBLIC_SOURCE_STATUS.md). Historical counts below retain their original release/cohort.
 
 
 
