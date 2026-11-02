@@ -67,4 +67,8 @@
   <ItemGroup>
     <Compile Include="../../../../Examples/CosmicCqlDemo/FilecoinPublicWalkthrough.cs" Link="PublishedDemo/FilecoinPublicWalkthrough.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.TelosOASIS/NextGenSoftware.OASIS.API.Providers.TelosOASIS.csproj" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/TelosPublicWalkthrough.cs" Link="PublishedDemo/TelosPublicWalkthrough.cs" />
+  </ItemGroup>
 </Project>
