@@ -2,7 +2,7 @@
 
 This read-only profile queries Fantom Opera, chain250 (`0xfa`). It uses the shared CQL planner, HolonManager and deferred LINQ. No wallet, funding, transaction or native source write is needed.
 
-The local native/manager walkthrough and actual console return three records and a two-record subset. WEB4 HTTP/Mongo, hosted sandbox and browser gates remain pending in [the current report](../WIP/COSMIC%20ORM/FANTOM_PUBLIC_SOURCE_STATUS.md).
+The local native/manager walkthrough and actual console return three records and a two-record subset. Local shipping WEB4 HTTP/Mongo now passes native3/2, paired5/4 and privacy0/3, with exact fixture cleanup. Hosted sandbox and browser gates remain pending in [the current report](../WIP/COSMIC%20ORM/FANTOM_PUBLIC_SOURCE_STATUS.md).
 
 ## What the query guarantees
 
@@ -73,8 +73,35 @@ var result = await query.ToCosmicListAsync(cancellationToken);
 
 Inspect `OASISResult.IsError` before reading `Result` in application code. The reusable walkthrough checks every result. Console output shows each native balance, captured block hash and explicit commitment; it does not print a finalized claim.
 
+## HTTP shape on an explicitly enrolled host
+
+Local verification exercises the shipping `api/data/query-cql` endpoint with this shape. Hosted Fantom must be marked ready before sending it to the public service:
+
+```json
+{
+  "provider": "FantomOASIS",
+  "orderBy": "None",
+  "maximumDurationMilliseconds": 30000,
+  "take": 8,
+  "includeMetadata": true,
+  "filters": [
+    {
+      "metadataPath": ["FantomAccountAddress"],
+      "scalar": "String",
+      "operator": "In",
+      "value": [
+        "0x0000000000000000000000000000000000000001",
+        "0x0000000000000000000000000000000000000002"
+      ]
+    }
+  ]
+}
+```
+
+A Mongo federation names both `MongoDBOASIS` and `FantomOASIS`, uses the same metadata filter as its source, and preserves copies. Its two private Mongo snapshots require the normal owned save/admission path. The local gate verifies five/four physical rows and zero private rows visible to another actor. It does not certify production billing or hosted replication.
+
 ## Remaining demo gates
 
-Fantom is not yet enrolled in the hosted API or its free query tariff. HTTP/Mongo privacy, repeat-safe snapshots and replicas must pass before a live sandbox card is published. This local profile does not certify signed storage, replication from the chain, general ORM parity or Sonic chain146.
+Fantom is not yet enrolled in the hosted API or its free query tariff. Local HTTP/Mongo privacy passes. Hosted admission, repeat-safe snapshots and replica checks must pass before a live sandbox card is published. This local profile does not certify signed storage, replication from the chain, general ORM parity or Sonic chain146.
 
 Primary contracts: [Fantom RPC endpoints](https://docs.fantom.foundation/build-on-opera/api/public-endpoints), [EIP-1898](https://eips.ethereum.org/EIPS/eip-1898), [Sonic Labs June2026 update retaining Opera](https://www.soniclabs.com/blog/the-first-1/).
