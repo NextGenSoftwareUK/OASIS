@@ -67,3 +67,13 @@ ExplicitCQL_CLICKHOUSE_PUBLIC_SOURCE_JSON registration/compiler/independent read
 TestResults\ClickHousePublicSourceCurrent\api-admission.trx SHA256 `9363a515a8a0e669cc1b9a0544d1028f0908d59dd3fc4ae6fe02be224f68b9fd`.
 
 TestResults\ClickHousePublicSourceCurrent\core-tariff.trx SHA256 `3f8c0ecba67b6fe563e4ea1e1bef9a1ebc308c9a52c5145c3b6f16ec3fa26f91`.
+
+## Original local HTTP/Mongo gate and hosted candidate
+
+Shipping endpoints passnative3/2+Mongo5/4, foreignprivate0/public3,2SDKownedversion1saves/9queryreceipts. Exactly1nativetestpassed14s, no skips. HTTPconsumers stopped; exactnonceownedDBcosmic_cql_clickhouse_http_demo removed/absenceverified, ownedMongo stopped/shareddataretained. Sourceconfigunchanged. JournalClickHouseMongoHttpCurrent and source-bound web4localACK/compressedoriginalevidence underHostedClickHousePublicSourceCurrent frozen; no replay.
+
+Hosted protected baseline/candidate prepared:exactly3changedvalues/freequerytariff/4native+Mongopresets/DNAunchanged; no settings/deployment. Actual shippingpreparedpresettest passes1/1 covering4presets. Generic hostedverifier now admitsClickHouse CLIoption. Next independenthostedacceptanceaudit controls, fetch/merge/preserveupstream, verifycombinedcode/manifest, publishDevelopment then exactsourceactivation/hostedcohort. Counts63integrated/58hosted remain.
+
+TestResults\ClickHousePublicSourceCurrent\mongo-http-native.trx SHA256 `74dcb24d59fd5fed8ab823f7d5deb8e62962059899b2800eb586f2197f547c47`.
+
+TestResults\ClickHousePublicSourceCurrent\prepared-presets.trx SHA256 `d1603920c515b3f407f86021e82b355af8ea7913d31de313027c7968abc5dfe3`.
