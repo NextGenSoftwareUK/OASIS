@@ -81,3 +81,9 @@ Azure publication milestone:40scoped hosted HTTP providers,5browser/35open; live
 Wormhole local source: [current source/local HTTP proof and hosting next gate](WORMHOLE_PUBLIC_SOURCE_STATUS.md), [C# configuration and trust guide](../../Devs/WORMHOLE_PUBLIC_OPERATION_CQL_GUIDE.md).
 
 Chainflip local source: [native/CQL proof and HTTP next step](CHAINFLIP_PUBLIC_SOURCE_STATUS.md), [C# configuration/precision/optional-deposit guide](../../Devs/CHAINFLIP_PUBLIC_SWAP_CQL_GUIDE.md).
+
+Akash C# public provider sample:
+[guide](../../Devs/AKASH_PUBLIC_PROVIDER_CQL_GUIDE.md),
+[walkthrough](../../../Examples/CosmicCqlDemo/AkashPublicWalkthrough.cs),
+[actual evidence/current gates](AKASH_PUBLIC_SOURCE_STATUS.md).
+It projects indexed provider metadata; it does not provision compute.

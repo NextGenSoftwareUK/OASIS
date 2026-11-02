@@ -5,6 +5,14 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// Akash reads an acknowledged provider sample; it never provisions compute.
+if (args.Length == 2 && args[0] == "--akash-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await AkashPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Eclipse reads a retained account catalogue without wallets or transactions.
 if (args.Length == 2 && args[0] == "--eclipse-public")
 {
