@@ -31,3 +31,7 @@ identify legitimate anonymous read access and several existing public StreamIDs.
 Qualify bounded stream membership and network/source identity before an adapter.
 Do not create a new node/environment merely to bypass missing access. Zcash's
 existing live deployment/activation remains the immediate priority.
+
+## Pinned client contract review
+
+Official js-ceramic commit4050fc1021e9a682d588fac662d3d7ef6f2eb73e (main observed at qualification) retained3source files/22546bytes plus SHA256 manifest in LocalState/COSMIC/CeramicPublicQualificationCurrent/sdk. HTTP client uses api/v0 and exposes loadStream/multiQuery with StreamID/CommitID references; network enum distinguishes mainnet/testnet-clay/local/inmemory. The client default is localhost:7007, not evidence of a free hosted endpoint. No native stream read performed. Next inspect multiQuery response serialization/state and operator-authorized public endpoint/known existing StreamIDs.
