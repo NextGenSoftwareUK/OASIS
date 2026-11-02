@@ -108,3 +108,9 @@ Developer guide: [Zcash public block CQL](../../Devs/ZCASH_PUBLIC_BLOCK_CQL_GUID
 Protected live baseline/candidate prepared: exactly3changed values, free tariff,4presets, DNA unchanged.9publisher controls pass; actual shipping compiler test passed1/1 for4presets. No settings application/deployment yet. Development advanced to0df90e062/Coree920d14 (Worldscape); merge/preserve before combined verification. Recursive fetch reports unrelated unavailable HoloNET-ORM ref85287e59; inspect deployment relevance.
 
 Evidence TestResults\ZcashPublicSourceCurrent\prepared-presets.trx SHA256 9ca97706f62f34339bd1355c2e5d33c3238929fe20905127e72ea20c53743d04.
+
+Combined Development merge4e1f712c2/Core5b47c0b preserves Worldscape.11API tests (new Worldscape plus Zcash) and1Core tariff pass, no skips. Manifest/gitlinks7Dockerfiles pass. Generic hosted verifier now accepts Zcash; no hosted cohort created yet.
+
+Evidence TestResults\ZcashPublicSourceCurrent\combined-api.trx SHA256 cae75dea4d114f615505e62222962f438b48537966902e27ee279062ae93bc79.
+
+Evidence TestResults\ZcashPublicSourceCurrent\combined-core.trx SHA256 5cc2899e5d0c67be3b391842041c452de39021d734c964fb67ca1aaf1e6a7d2a.
