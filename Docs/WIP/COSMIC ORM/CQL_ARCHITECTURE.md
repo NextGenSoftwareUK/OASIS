@@ -361,3 +361,7 @@ EosioPublicAccountMetadataSource implements the shared capability-aware query an
 ## ChainLink public feed query profile
 
 ChainLinkPublicFeedMetadataSource is a separate anonymous read-only profile in the existing provider project. Shared CQL plans bound exact configured proxy equality/membership, then chain/genesis checks and an RPC-reported finalized block bind all description/decimals/latestRoundData calls by EIP1898 hash. ABI validation preserves exact signed int256 answers/uint80 rounds/uint256 times as strings and publishes no partial page. Explicit CQL_CHAINLINK_PUBLIC_SOURCE_JSON, independent read permission/free tariff and4presets keep signed storage separate. Hosted native3/2/Mongo5/4/reuse/privacy/exact SQLite+Neo4j replicas pass; full browser native-payload mapping and interaction remain separate gaps. No current-price or independent consensus guarantee. [Scope/evidence](CHAINLINK_PUBLIC_SOURCE_STATUS.md).
+
+## Nostr signed public event source - 2 November 2026
+
+Nostr read-only CQL source passes32focused CQL/transport controls plus36signature/schema tests and actual manager/LINQ3/2. Bounded configured immutable event-ID equality/membership only, complete matching EOSE and verified NIP01hash/BIP340signature before paging. Metadata retains exact signed event fields; no native write/search/identity/freshness/completeness claim. API/Mongo/hosted gates pending. Current breadth51integrated/46hosted; [guide](../../Devs/NOSTR_PUBLIC_EVENT_CQL_GUIDE.md), [evidence](NOSTR_PUBLIC_SOURCE_STATUS.md).

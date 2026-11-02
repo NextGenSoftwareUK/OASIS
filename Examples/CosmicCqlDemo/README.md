@@ -956,3 +956,8 @@ Use `--chainlink-public LocalState/COSMIC/HostedChainLinkPublicSourceCurrent/sou
 ### BlueSky public profile demo
 
 Use `--bluesky-public LocalState/COSMIC/HostedBlueSkyPublicSourceCurrent/source.json` with the retained three-DID catalogue. [Commented walkthrough](BlueSkyPublicWalkthrough.cs), [setup/C# guide](../../Docs/Devs/BLUESKY_PUBLIC_PROFILE_CQL_GUIDE.md). Shared HolonManager/LINQ returns3profiles then2, printing public names/handles. Anonymous AppView observations only: no login/PDS session/source mutation/Mongo save or image fetch. API/hosted/browser acceptance remains separate.
+
+
+## Nostr signed public event demo
+
+Use `--nostr-public LocalState/COSMIC/HostedNostrPublicSourceCurrent/source.json` with the built console. The commented NostrPublicWalkthrough.cs selects three retained kind1event IDs, then two, through shared HolonManager/LINQ. Event hashes/signatures are verified; no relay publication/account/private Mongo save. See ../../Docs/Devs/NOSTR_PUBLIC_EVENT_CQL_GUIDE.md for setup, query examples and trust/retention limits. NativeCLI3/2 passes; API/Mongo/hosted gates pending.

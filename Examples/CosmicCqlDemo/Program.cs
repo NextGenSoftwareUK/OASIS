@@ -5,6 +5,15 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// Nostr uses one retained catalogue of immutable, signed public event IDs.
+// No relay publication, login, discovery scan or alternate endpoint is used.
+if (args.Length == 2 && args[0] == "--nostr-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await NostrPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Anonymous BlueSky profiles use captured DIDs from one retained catalogue.
 // No PDS session, app password or source mutation is needed.
 if (args.Length == 2 && args[0] == "--bluesky-public")

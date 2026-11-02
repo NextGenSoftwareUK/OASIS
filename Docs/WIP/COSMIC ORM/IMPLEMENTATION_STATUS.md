@@ -4,12 +4,12 @@ Updated 1 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CUR
 
 | Scope | Verified state | Remaining acceptance |
 |---|---|---|
-| Provider breadth | 50 integrated query types; 46 scoped hosted HTTP proofs | Additional red providers and owned native writes; public projections do not establish full ORM support |
+| Provider breadth | 51 integrated query types; 46 scoped hosted HTTP proofs | Additional red providers and owned native writes; public projections do not establish full ORM support |
 | Browser | 5 provider proofs | 41 browser gates open; HTTP/asset matching is not browser interaction |
 | Latest hosted provider | ChainLink: native3/2, Mongo5/4, reuse/privacy/replicas pass; card80633dc/public bytes and97client tests verified | Browser interaction and full native payload mapping remain open |
 | Fantom | Native/CLI/local/hosted HTTP, Mongo pairing/reuse/privacy/replicas and card/public bytes pass | Browser interaction and broader ORM scope remain open |
 | Three-database query parity | 50/82 checklist rows per database; original investor-demo subset green | Work only red rows; deep LINQ, POCO mapping and migrations tooling paused |
-| Next provider | BlueSky native CQL/37controls/actual CLI3/2 pass | Hosted native/Mongo/privacy/replicas pass; Card/public assets/98client tests verified; inspect next red provider |
+| Next provider | Nostr native CQL/68focused controls/actual CLI3/2 pass | Core/API/local Mongo/privacy/prepared and hosted/card gates next; BlueSky hosted/page milestone complete |
 | HyperDrive V2 | Scoped live three-store routing/failover, six native recovery directions/interleavings and ACK-loss/disconnect proofs retained | Wider operator/transport/scale acceptance and primary-authority cutover |
 | Full ORM | Focused tracking, conditional-write, graph, history and delta evidence exists | Requirement-by-requirement full acceptance audit remains open |
 
