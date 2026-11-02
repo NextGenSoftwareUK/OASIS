@@ -160,3 +160,7 @@ independent consensus or full ORM certification is established.
 | `TestResults\HostedCqlIntegrationCurrent\BlockStackOASIS-native-http.json` | 15207 | `cba4aee6e0e3b129bb627ea26f55cdc0e8918470d7ef42530e741605816c0978` |
 | `TestResults\HostedCqlIntegrationCurrent\BlockStackOASIS-client-http-flow.json` | 39278 | `a1ff06694fa18dcff04bee001af6b7a84fcb977487a0f1da714a9a27180af919` |
 | `TestResults\HostedCqlIntegrationCurrent\BlockStackOASIS-isolation-http.json` | 6099 | `dbf4580b73f1b98f5bb410b24d4fedb61a2b99fb401eb54a47f2774bc41512eb` |
+
+## Website publication verified
+
+Website `eda15be12b66e12ebaf027145ed95b87b8cea498` publishes the Stacks card, pinned guide23e70d10d and C#3768c2050 links.104client tests pass. Public HTML178107bytes/SHA256ba219e8e890914e0c811cd15de9e435561389a7388b516fe2e93d1de423b04ea and both scripts match exact git blobs. Preparation script SHA256c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a. Initial page edit failed before mutation due default text encoding, but the command continued and published draft wording at5782f9c; byte-preserving correctioneda15be is now public-verified. No native or save operations repeated. Raw observation TestResults/StacksPublicSourceCurrent/public-assets-observation-1.json; durable site ACK HostedStacksReleaseCurrent. Browser remains unverified.
