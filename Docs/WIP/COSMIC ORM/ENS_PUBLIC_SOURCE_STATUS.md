@@ -240,3 +240,11 @@ dcf95c97-dd85-4b82-8f36-b65b8a257ef4 is QUEUED at this checkpoint;
 continue observing this same job, never deploy again because observation expires.
 No live ENS settings applied and no hosted cohort created yet. Existing protected
 candidate/source/configuration remains unchanged.
+
+Deployment re-observation: the SAME code job remains QUEUED (specific CLI
+job/commit verified again). No restart, replacement job, settings application or
+hosted session created. A publisher negative-test fixture contained duplicate
+exitCode literals and a misleading inherited policy-test name; corrected to one
+explicit failed-console code and descriptive test name. All9pure tests pass
+again; production publisher/candidate unchanged. Latest observation and corrected
+test log remain TestResults/EnsPublicSourceCurrent.
