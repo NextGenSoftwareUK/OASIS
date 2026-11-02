@@ -1346,3 +1346,8 @@ Read-only bounded native account equality/membership now passes28controlled test
 ## ChainLink public feed profile
 
 Read-only configured AggregatorV3 proxy equality/membership now passes43controlled tests and actual manager/LINQ/CLI3/2. Exact signed answers/decimal scales/uint80 round IDs/timestamps remain strings; every native contract call is hash-bound to an RPC-reported finalized Ethereum block. No source transaction, current-price guarantee or independent consensus proof. [Setup and C# guide](../../Devs/CHAINLINK_PUBLIC_FEED_CQL_GUIDE.md), [scope/evidence](CHAINLINK_PUBLIC_SOURCE_STATUS.md). API/Mongo/hosted HTTP gates now pass (native3/2, pairing5/4, reuse/privacy/replicas); card80633dc/pinned examples/97client tests/public bytes verified. Browser interaction remains open.
+
+
+## BlueSky public profile query profile
+
+Read-only configured DID equality/membership now passes37controlled tests and actual manager/LINQ/CLI3/2. One bounded anonymous AppView batch validates complete identities before publication; optional Unicode text, exact count strings and original RFC3339 timestamps are preserved without invented missing values. No PDS session/source write/image fetch, signed repository or shared snapshot claim. [Setup/C# guide](../../Devs/BLUESKY_PUBLIC_PROFILE_CQL_GUIDE.md), [scope/evidence](BLUESKY_PUBLIC_SOURCE_STATUS.md). API/Mongo/hosted/browser gates remain open.

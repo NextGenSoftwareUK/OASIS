@@ -1,6 +1,6 @@
 # BlueSky public profile source qualification
 
-Updated1November2026. Native AppView protocol qualified only; CQL/API/hosted integration remains unimplemented. Existing49integrated/44hosted counts do not include BlueSky.
+Updated1November2026. Native AppView and local CQL/actual C# CLI verified; API/hosted integration remains unimplemented. Current50integrated types include BlueSky native-only;45hosted proofs do not.
 
 ## Contract and evidence
 
@@ -11,11 +11,17 @@ Updated1November2026. Native AppView protocol qualified only; CQL/API/hosted int
 - Cached public AppView observations only. No signed repository proof, bi-directional DID-document verification, authoritative freshness or common snapshot is claimed. Display names/descriptions can change; do not fetch avatar/banner URLs implicitly.
 - Offline parser/transport check passes: bounded encoded GET, complete returned array without task-output leaks, duplicate identity rejection and HTTP denial without retry. Zero native requests in this check.
 
-## Exact next step after ChainLink rollout
+## Local CQL implementation milestone
 
-Implement a separate read-only BlueSkyPublicProfileMetadataSource in the existing Social provider project, using shared CQL/planner/native mapper and bounded equality/membership on BlueSkyActorDid. Require explicit known DIDs/guarded anonymous HTTPS AppView configuration. Validate exact selected DID set/duplicates/schema/size/cancellation before publishing any rows; no scans or partial results. Preserve profile names/descriptions and exact optional count/time metadata without inventing missing fields. Keep signed PDS storage separate.
+- Separate read-only BlueSkyPublicProfileMetadataSource in the existing Social project, using shared CQL/planner/native mapper. Captured canonical did:plc equality/membership, maximum8configured DIDs/one native batch per query, no discovery/images/PDS sessions/writes.
+- 37controlled tests pass/0failures/0skips: stable output despite reordered AppView array, point/subset/window, missing/duplicate/unexpected identities, exact count above2^53, Unicode, missing optional fields without invented counts/dates, invalid schema/count/time/text bounds, cancellation/budget and no partial publication; authenticated configuration and native saves rejected.
+- Producer and actual console builds pass. Actual C# CLI/manager/LINQ3full/2filtered profiles pass against retained owner/DIDs. Original console intent/outcome retained; no source transaction/session or Mongo save.
+- Optional displayName maps Name when nonblank, otherwise observed handle; original optional metadata remains distinct. Optional biography/count/date fields stay missing when absent. Counts remain exact nonnegative64-bit strings, RFC3339 timestamps retain original text. Production guarded sockets transport disables cookies.
+- [Setup/C# guide](../../Devs/BLUESKY_PUBLIC_PROFILE_CQL_GUIDE.md), [commented walkthrough](../../../Examples/CosmicCqlDemo/BlueSkyPublicWalkthrough.cs). Existing credentialed PDS storage remains unchanged.
 
-Then controlled tests/native manager+C#3/2, independent API read admission/tariff, local Mongo/privacy/prepared presets, exact hosted rollout/original acceptance and card. Do not count native qualification as CQL/hosted support. ChainLink's in-flight settings deployment remains the current priority.
+## Exact next step
+
+Wire explicit query-only API configuration/admission and independent unsigned read permission/free tariff. Prove Core/API admission, local HTTP Mongo5/4/privacy and actual prepared presets, then exact hosted rollout/original acceptance and sandbox card. No BlueSky API/hosted/browser claim yet. Preserve original qualified source owner/DIDs and completed native/console cohorts; no replay. Keep green scopes/deep parity frozen absent a reproduced bug.
 
 ## Durable state and raw output
 
@@ -26,3 +32,11 @@ Original intent/stable source owner/catalogue: `LocalState/COSMIC/HostedBlueSkyP
 - `TestResults/BlueSkyPublicSourceCurrent/1-getProfiles.json`: 4654bytes; SHA256 `3521b839c7b9df3938baa77987e8ec058fdd44221abb6a351ddfff363d8616e0`.
 - `TestResults/BlueSkyPublicSourceCurrent/2-getProfiles.json`: 4654bytes; SHA256 `3521b839c7b9df3938baa77987e8ec058fdd44221abb6a351ddfff363d8616e0`.
 - `TestResults/BlueSkyPublicSourceCurrent/3-getProfiles.json`: 3521bytes; SHA256 `786492f1770f7116435eeb8d2037f77356aa08b608d8d1b79cc7661c54581b3f`.
+
+- `TestResults/BlueSkyPublicSourceCurrent/controls.trx`: 56955bytes; SHA256 `e949d1e79d292bd20297ed942674f879910be16434e13af513a01c50540dc5d5`.
+
+- `TestResults/BlueSkyPublicSourceCurrent/provider-build.log`: 39311bytes; SHA256 `2068b6e3bf02ceb0206fb7523a0943277b19f6014503e3202191e7b8d89a9332`.
+
+- `TestResults/BlueSkyPublicSourceCurrent/demo-build.log`: 10857bytes; SHA256 `ff2f096587d502d77e97d406a2a42b34eea0c778875f734761ced70bf89072f1`.
+
+- `TestResults/BlueSkyPublicSourceCurrent/cql-console.log`: 1134bytes; SHA256 `23978e479eae39642234452fce94fc2d9ed5d764ef16164abfc84cee19726f17`.
