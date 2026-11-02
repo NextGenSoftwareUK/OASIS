@@ -81,7 +81,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             var nfts = loaded.Result.Where(n => requested.Contains(n.Id)).ToList();
             if (nfts.Count != requested.Count)
                 return new() { IsError = true, Message = "One or more GeoNFT placements were not found." };
-            return await NextGenSoftware.OASIS.API.Core.Managers.AvatarManager.Instance
+            return await Program.AvatarManager
                 .GetGeoNFTCollectionStatusesAsync(AvatarId, nfts);
         }
 
