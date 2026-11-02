@@ -2,20 +2,20 @@
 
 Updated 2 November 2026. **API/local qualification verified; not hosted-certified.** Stable source owner/catalogue now retained after explicit actual manager/LINQ qualification; no API/hosted enrollment.
 
-## Current evidence
+## Original discovery evidence (preserved)
 
 - Existing NostrOASIS uses relay WebSockets, but its legacy query returns the first EVENT and does not prove complete bounded selections. Legacy code remains unchanged; gaps are documented only.
 - NIP-01 defines REQ subscriptions, EVENT delivery, EOSE completion and SHA256 event IDs/BIP-340 signatures. A separate read-only demo must honor these contracts, not treat connection success or a first event as a complete result.
 - Added bounded guarded transport: anonymous explicit relay.damus.io only, cookies disabled,20second deadline,64frames/64KiB message/256KiB aggregate,8event cap, strict text/UTF8/envelope/subscription/EOSE. Disposal closes the one-shot socket; no login/publish/alternate relay/retry.
 - Original kind1/limit3 discovery completed:3unique events. Offline canonical NIP-01 hashes and BIP-340 signatures of all3captured events verify. This proves signed event integrity for those public keys, not real-world identity, freshness, relay completeness or persistence.
 - Exact captured3-ID follow-up failed at WebSocket upgrade: native HTTP503 instead of101. Original failure retained. Two-ID query never ran. No silent retry, endpoint switch, partial success or CQL admission.
--9offline tests pass: complete/reordered sets, missing/duplicate/unexpected/subscription/schema/bounds, official BIP-340 public vector0, altered signature/message/ranges/off-curve, canonical Unicode hash and signature failure. Public-input probe verifier only; shipping verifier now separately verified below; CQL integration remains red.
+-9offline tests pass: complete/reordered sets, missing/duplicate/unexpected/subscription/schema/bounds, official BIP-340 public vector0, altered signature/message/ranges/off-curve, canonical Unicode hash and signature failure. Public-input probe verifier only; shipping verifier/CQL/local API now separately verified below; no hosted claim.
 
 ## Exact next work
 
 1. Preserve original intent, discovery frames, signed IDs and503 outcome. Do not rerun original probe or regenerate a source owner.
-2. Bounded CQL projection/32controls and actual native manager/LINQ3/2 are now complete (milestone below), preserving the original503 and captured IDs. Next add independent Core/API read admission, local Mongo/privacy/prepared gates. Never rerun completed qualification or mint another source owner.
-3. Only after native3/2 and controlled gates: actual C# manager/LINQ, API read admission/local Mongo/privacy/prepared presets, exact hosted rollout and original hosted cohort, then page card/public bytes. No native writes or social-network search claim.
+2. Bounded CQL projection/32controls and actual native manager/LINQ3/2 are now complete (milestone below), preserving the original503 and captured IDs. Core/API/local Mongo/privacy/prepared gates now pass; observe exact code deployment below. Never rerun completed qualification or mint another source owner.
+3. Development parent `6ee3ebfcd95f594844f518b95451fb9807f342a5` / Core `84a215184f6c2d8b988d5d45bf133a7a0672a26e` ordinary fast-forward published/ref-verified; dependency manifest validates. Exact code job `79b7be91-ac39-4814-be4f-faa1b75613de` QUEUED. No Nostr hosted settings applied/cohort started. Observe this exact job. Only after SUCCESS check out6ee3ebfcd temporarily, set COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT and apply the existing candidate once; journal one settings redeploy, restore task branch, observe settings SUCCESS, then original hosted acceptance/card. No native writes/social search claim or replays.
 
 ## Evidence and resources
 
@@ -78,3 +78,7 @@ Original HTTP fixture: LocalState/COSMIC/NostrMongoHttpCurrent, original failed 
 - TestResults/NostrPublicSourceCurrent/prepared-planner.trx: 3329bytes, SHA256 `e4428388ca1cf4b4240bd42cc7863d553a232d89c0205007927fb161b529fdb1`.
 - TestResults/NostrPublicSourceCurrent/prepared-public-review.json: 4186bytes, SHA256 `1e03cfe108dc141ac71b7421308598759f8afc31ac664d61a4ef8181b6c90298`.
 - TestResults/NostrPublicSourceCurrent/frontend-preparation-test.log: 217bytes, SHA256 `9bc7cf1e9cdc801c88e58b16e4deea882eb681298f768370b1caaae444c65ca8`.
+
+## Exact Development publication
+
+Development parent `6ee3ebfcd95f594844f518b95451fb9807f342a5` / Core `84a215184f6c2d8b988d5d45bf133a7a0672a26e` ordinary fast-forward published/ref-verified; dependency manifest validates. Exact code job `79b7be91-ac39-4814-be4f-faa1b75613de` QUEUED. No Nostr hosted settings applied/cohort started. Publication ACK LocalState/COSMIC/HostedNostrReleaseCurrent/code-publication.acknowledged.json; raw public observation TestResults/NostrPublicSourceCurrent/code-deployment.json. No production/master promotion, new hosting spend or active Nostr setting.
