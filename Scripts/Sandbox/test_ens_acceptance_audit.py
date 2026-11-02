@@ -33,7 +33,7 @@ class EnsAuditTests(unittest.TestCase):
             "five": federation(rows), "four": federation(rows[:2]),
             "replicas": {p: response(copy.deepcopy(private)) for p in ("SQLLiteDBOASIS", "Neo4jOASIS")},
             "steps": [{"route": "data/save-holon", "status": 200, "operationId": "operation-" + str(i)} for i in range(2)]}
-        isolation = {"avatar": {"id": "foreign"}, "foreignPrivateIds": [], "public": response(rows)}
+        isolation = {"avatar": {"id": "foreign"}, "foreignPrivateIds": {"isError": False, "result": {"count": 0, "rows": []}}, "public": response(rows)}
         acks = [{"id": row["id"], "ownerId": "visitor", "isSaved": True, "isPublic": False,
             "version": 1, "operationId": "operation-" + str(i)} for i, row in enumerate(private)]
         return source, native, flow, isolation, acks, {}
@@ -50,7 +50,7 @@ class EnsAuditTests(unittest.TestCase):
                 if fault == "mixed-block": native["native"][0]["result"]["rows"][0]["metadata"]["EnsBlockHash"] = "other-block"
                 if fault == "replica": flow["replicas"]["Neo4jOASIS"]["result"]["rows"][0]["description"] = "wrong"
                 if fault == "version": flow["mongoRows"][0]["version"] = 2
-                if fault == "private-leak": isolation["foreignPrivateIds"] = [flow["ids"][0]]
+                if fault == "private-leak": isolation["foreignPrivateIds"]["result"] = {"count": 1, "rows": [private_row for private_row in flow["mongoRows"][:1]]}
                 if fault == "operation": acks[0]["operationId"] = "wrong"
                 if fault == "pending": pending["unsettled"] = True
                 if fault == "resave": flow["repeated"]["saved"] = 1

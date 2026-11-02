@@ -1,7 +1,7 @@
 # ENS public CQL source — next interface review
 
-2 November 2026. Native protocol and local CQL console qualified. No hosted admission/card or
-browser proof. Counts58integrated/53hosted. Earlier no-probe statements below are historical.
+2 November 2026. Native protocol and local CQL console qualified. Hosted functional HTTP acceptance passed; card/publication and browser proof
+remain open. Counts58integrated/54hosted. Earlier no-probe statements below are historical.
 
 Existing provider: Providers/Network/NextGenSoftware.OASIS.API.Providers.ENSOASIS/ENSOASIS.cs.
 It reads a hardcoded ENS Subgraph URL, https://api.thegraph.com/subgraphs/name/ensdomains/ens,
@@ -278,3 +278,27 @@ activation.intent.json; raw CLI receipt DPAPI-protected. Exact activation
 LocalState/COSMIC/HostedEnsReleaseCurrent and observe this same job; do not
 reapply settings or restart. No hosted test cohort/card yet. Next success/readiness,
 then original normal-visitor acceptance once and offline audit.
+
+## Hosted functional HTTP acceptance passed
+
+Settings activation1f852f42 SUCCESS at exact a20f35f9a release; all4ENS
+discovery presets available and federation ready. Original normal-visitor cohort
+completed native3/2+Mongo5/4; repeat0new/2existing, foreign-private0/public3;
+exact SQLite/Neo4j2/2 projections. Two normal API private version1 saves with
+matching operation ACKs; no pending intents, no continuations or repeated saves.
+
+Offline audit initially misread foreignPrivateIds as a list; actual API wrapper
+reported isErrorfalse/count0/rows[]. Fixed checker and controlled fixture to use
+the canonical wrapper. Original failure preserved at
+TestResults/EnsPublicSourceCurrent/audit-initial-failure.json. Corrected two test
+methods/9negative subcases pass; offline re-audit passed without native requests
+or saves. This checker failure does not indicate a data-privacy failure.
+
+Frozen original cohort/source/save ACKs/final audit:
+LocalState/COSMIC/HostedQueryAcceptance-ENSOASIS/; source/config unchanged in
+HostedEnsPublicSourceCurrent. Raw native/client-flow/isolation proofs:
+TestResults/HostedCqlIntegrationCurrent/ENSOASIS-*.json. No browser interaction or
+reliability certification; no source writes/ownership/independent consensus claim.
+58integrated/54hosted functional types; browser5verified/49open.
+Next publish the ENS website card with pinned guide/C#links, verify public asset
+bytes, retain browser gate separately, then proceed to next red Eclipse review.
