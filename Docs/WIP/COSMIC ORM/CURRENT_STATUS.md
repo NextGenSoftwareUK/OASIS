@@ -11,16 +11,16 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 - Website72dee68 publishes EOSIO/Telos/Filecoin cards and pinned setup/C#/HTTP links;96client tests pass. Public HTML/scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser Mongo preparation copies identity/name/description/provenance, not all native metadata. Full payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: ChainLink API/local proof and hosted rollout
+## Current phase: ChainLink hosted code rollout
 
-- EOSIO source28controls and actual CLI/manager/LINQ3/2 pass. Core1/API2/localHTTP1/publisher9/prepared-planner1/client1 pass; exact local fixture cleaned/Mongo stopped.
-- Development parent `4d3e0b7cd148bed7ebdf0400ca371867873932c0` / Core `86e38a37ee860785a8273ade3308f6fc1775294d` published/ref-verified; manifest validates. Code68db832f/settings20b3a558 SUCCESS.
-- Exactly3reviewed settings applied once; whole candidate/per-key digests match/DNA unchanged. Hosted original acceptance complete; no reapply/redeploy/replay.
+- ChainLink source43controls/actual CLI3/2, Core1/API2/localHTTP1/publisher10/prepared-planner1/client1 pass. Native3/2, Mongo5/4, foreign0/public3; exact marked local fixture dropped, HTTP/Mongo stopped.
+- Development parent `09c66998cb2c204f290d7a85198006e6abd3202f` / Core `990c1c75afcafdbc0678b6e8131a10b67650f7e3` fast-forward published/ref-verified; manifest validates.
+- Code job `215b4b51-4431-4292-9c12-1063497d5773` BUILDING. Protected three-key candidate/four presets prepared; no ChainLink settings applied or hosted cohort started. Original native/local cohorts frozen.
 
 ## Exact next actions
 
 1. Preserve completed EOSIO/Telos/Filecoin/Fantom cohorts, sources/owners/ACKs. EOSIO card72dee68/pinned links/96client tests and public bytes verified; no browser proof inferred.
-2. ChainLink source43controls/actual CLI3/2 plus Core1/API2/localHTTP1/publisher10/prepared-planner1/client1 pass. Native3/2, Mongo5/4, foreign0/public3; exact owned DB cleaned/Mongo stopped. Core task990c1c7 pushed/ref-verified, manifest paired with parent gitlink. Next: publish verified code, observe exact code job, apply reviewed3settings once, single settings deployment, hosted acceptance/card. See CHAINLINK_PUBLIC_SOURCE_STATUS.md; no hosted claim/replay of completed cohorts.
+2. Observe exact ChainLink job215b4b51-4431-4292-9c12-1063497d5773 at09c66998c. Only after SUCCESS check out exact code release for guarded three-key settings application (no detached commits), apply once, issue one journalled settings deployment, restore task branch, observe exact settings job, then original hosted acceptance/card. See CHAINLINK_PUBLIC_SOURCE_STATUS.md and LocalState/COSMIC/HostedChainLinkReleaseCurrent. No hosted claim; no replay/reapply/restart.
 3. After qualification, implement only that red source/controlled tests/native manager+C#3/2, API permission/Mongo/privacy/prepared gates, exact hosted rollout/acceptance/card. Keep green scopes/deep parity frozen absent a reproduced bug.
 
 ## Durable state and rules
