@@ -15,7 +15,7 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 
 - BlueSky source37controls/actual CLI3/2, Core1/API2/localHTTP1/publisher9/prepared-planner1/client1 pass. Native3/2, Mongo5/4, foreign0/public3; exact marked local fixture dropped, HTTP/Mongo stopped.
 - Development parent `f36dd0d56ea4b93f06631947f5c267c55e131910` / Core `499e4e0b06104a3845abee243946fd61a27f069f` fast-forward published/ref-verified; manifest validates.
-- Code job `f6c205de-bd4b-4679-bf16-de86690bbdce` BUILDING. Protected three-key candidate/four presets prepared; no BlueSky settings applied or hosted cohort started. Original native/local cohorts frozen; frontend test-only taska5343b2 pushed, no card yet. HTTP guide now includes candidate-matched two-profile native/federated JSON examples, checked offline; live enrollment still pending.
+- Code job `f6c205de-bd4b-4679-bf16-de86690bbdce` BUILDING. Protected three-key candidate/four presets prepared; no BlueSky settings applied or hosted cohort started. Original native/local cohorts frozen; frontend taskecfdd54 has a pending-labelled card and pinned developer links; main remains80633dc, no live BlueSky card. HTTP guide now includes candidate-matched two-profile native/federated JSON examples, checked offline; live enrollment still pending.
 
 ## Exact next actions
 
