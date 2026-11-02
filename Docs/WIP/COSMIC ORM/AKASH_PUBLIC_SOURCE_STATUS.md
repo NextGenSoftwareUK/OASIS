@@ -331,3 +331,25 @@ guarded original candidate apply once, restore task branch; then one original
 activation and hosted/private-save/replica acceptance. Reconcile any baseline
 change explicitly. No root cause established for old Eclipse job, which remains
 preserved. Current60local/54hosted/5browser counts unchanged by publication.
+
+## Offline hosted acceptance audit ready; code job BUILDING
+
+Audit-HostedAkashAcceptance.py sends no requests or saves. It checks configured
+public owner/endpoint/native key/policy, bounded descriptive credential-free
+HTTPS service URI, online flag, no unsupported consensus/contact-payload claim,
+3/2native selections, private version1copy identity/provenance/name/description,
+5/4federation,0new/2existing repeat preparation, exact two-copy SQLite/Neo4j
+projections, foreign0private/3public and2matching normal API save-operation ACKs
+with no pending intents. Generic private copies do not contain the full native
+payload; this checker does not certify full migration or independent consensus.
+
+Two controlled methods pass, including12negative mutation cases. Raw log
+TestResults/AkashPublicSourceCurrent/acceptance-audit-controls.log SHA256
+6f9e2677cbce50f67c788322092a1c3b88e22688e45e9864a5c5e5e3909656d5.
+Fixtures are synthetic; no real account, cohort, source reads or ACK created.
+Verify-HostedQuerySource adds explicit Akash choice for the future original gate.
+
+Same exact first code jobc8ebe618-9946-4546-bdf7-3f810039640b for105329a3f is now
+BUILDING, re-observed through the existing observer. No restart/new deployment,
+settings apply, activation or hosted cohort yet. Original queued observation and
+all protected candidate/source ownership records remain unchanged.
