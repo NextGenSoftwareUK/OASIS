@@ -1336,3 +1336,8 @@ Starknet bounded header profile: [setup/commented C# guide](../../Devs/STARKNET_
 Single-provider `/api/data/query-cql` requests also accept `maximumDurationMilliseconds` (default5000, range1..30000). The captured value controls the leaf cancellation deadline. Within federation, the top-level federation duration is the cumulative authority; its nested source duration does not extend it. TON native and paired presets request30000; actual hosted acceptance remains a separate gate.
 
 When demo setup derives a single-provider read from a paired preset, it carries the validated top-level federation duration into that new leaf request before saving snapshots. The original paired request remains unchanged; this does not add retries or extend its global deadline.
+
+
+## EOSIO / Vaulta native account profile
+
+Read-only bounded native account equality/membership now passes28controlled tests and actual manager/LINQ/CLI3/2. [Guide and examples](../../Devs/EOSIO_PUBLIC_ACCOUNT_CQL_GUIDE.md); [scope/evidence](EOSIO_PUBLIC_SOURCE_STATUS.md). API/hosted/Mongo/browser gates remain open. Per-account latest responses do not establish a shared finalized snapshot.

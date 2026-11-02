@@ -1,0 +1,47 @@
+# EOSIO / Vaulta public account CQL
+
+This anonymous read-only profile projects a configured native EOSIO/Vaulta account catalogue into public holons. It is separate from the credentialed EOSIO storage provider and from Vaulta EVM. It cannot sign transactions, save native records or become a write/replication authority.
+
+## Run the C# demo
+
+Reuse the retained public source configuration in this worktree:
+
+```powershell
+dotnet run --project Examples/CosmicCqlDemo --no-build -- --eosio-public LocalState/COSMIC/HostedEosioPublicSourceCurrent/source.json
+```
+
+[Walkthrough](../../Examples/CosmicCqlDemo/EosioPublicWalkthrough.cs) uses [the shared manager/LINQ example](../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs). It activates the explicit source, queries three selected accounts, then two. No source data or Mongo copies are created. Build producer before consumer using the repository build lease and bounded build settings.
+
+## Query explicitly selected accounts
+
+```csharp
+// Select the native account keys; this is not an unrestricted chain scan.
+var accounts = new[] { "eosio", "eosio.token" };
+var scope = CosmicQueryScope.Named(ProviderType.EOSIOOASIS).Result;
+
+var query = CosmicQuery<Holon>.Create(scope)
+    .Where(row => accounts.Contains(
+        CosmicQueryMetadata.Value<string>(row, "EOSIOAccountName")))
+    .Result;
+
+// Supply the activated adapter explicitly. Provider scope does not change
+// the canonical storage provider or HyperDrive's write authority.
+var linq = CosmicLinq.Create(manager, adapter, query, maximumResults: 8).Result;
+var rows = await linq.ToCosmicListAsync(cancellationToken);
+```
+
+Use OASISResult error handling in application code; the abbreviated example focuses on the query. Exact key equality and bounded key membership are admitted; unsupported predicates fail planning. At most eight unique configured names are allowed, each at most thirteen native characters. Selection outside the catalogue is rejected without native I/O. Paging applies only after complete validation; failures never publish partial rows.
+
+## Configuration and semantics
+
+`EosioPublicAccountMetadataSource.FromJson` requires exactly `schema` (1), `apiUrl` (anonymous HTTPS root), `chainId` (native mainnet), `accounts` and nonempty `sourceOwner`. Unknown/duplicate fields and credential fields are rejected. The production factory uses NativeConnectionGuard; injected HttpClient is for controlled transports/tests. Keep sourceOwner stable to preserve projected IDs.
+
+The native chain ID is `aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906`. The qualified public endpoint is `https://vaulta.greymass.com/`. Every query checks native `get_info` identity before reading only its selected `get_account` keys. Responses are bounded to256KiB; cancellation and HTTP/native errors fail the entire result.
+
+Metadata includes `EOSIOAccountName`, `EOSIOChainId`, `EOSIOHeadBlockNum`, `EOSIOCreated` and `EOSIORamQuota`. Numeric values remain exact decimal strings; no floating-point conversion. RAM quota is signed64-bit native data. These are latest state per account response, not a common finalized snapshot or an independently verified consensus result. Do not infer current freshness from the identity response: its reported head can lag the account responses. No token balance is inferred from absent fields.
+
+## Verification and remaining gates
+
+[Controlled tests](../../Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.UnitTests/EosioPublicAccountMetadataTests.cs) cover complete selection, precision, identity, shape/size errors, cancellation, budgets and write rejection. [Current evidence and remaining integration](../WIP/COSMIC%20ORM/EOSIO_PUBLIC_SOURCE_STATUS.md) distinguishes native qualification from manager/CQL, hosted HTTP, Mongo federation and browser proof. Hosted admission and sandbox publication require their own gates; a local console success does not prove them.
+
+Native references: [Vaulta reading state](https://docs.vaulta.com/docs/latest/web-applications/reading-state/), [Chain API](https://docs.eosnetwork.com/apis/spring/latest/chain.api/).
