@@ -153,3 +153,7 @@ Neither tool has started a hosted cohort. No green-provider gate was repeated.
 Website task `a5ae6ae9e46d9f5574a76e4196aab6b42e22330d` adds14spacedHTMLlines
 with explicit hosted-pending text and pinned guide/C#links. Main stays20129f5;
 card is unpublished until hosted acceptance. JS unchanged, browser stays open.
+
+Latest observation: the same code job11aa820e-7883-41ab-ae3b-8f2d890c3ff6
+advanced to BUILDING at exacte8d2d75df. No replacement build requested; settings
+and first hosted cohort remain unstarted until SUCCESS.
