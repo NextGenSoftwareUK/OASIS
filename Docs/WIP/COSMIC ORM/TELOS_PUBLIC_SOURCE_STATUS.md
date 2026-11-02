@@ -29,9 +29,9 @@ Publisher9pure controls and client1preparation/reuse control pass. Website task 
 
 ## Exact next step
 
-Parent Development7c498e0f2e8a97207fb8d511d35cea521e7e240c/CoreDevelopment80b879b0ef289ccfff3b7efefa5a9ff26e6b4135 published and remote-ref verified. No incoming Development changes; verified source preserved. Manifest/gitlinks validate. Exact code job91bf543d-030d-4efe-b2db-31c57aeae139 is BUILDING, confirmed live; observe that same job, never restart or repeat code-publication intent.
+Code91bf543d succeeded at parent7c498e0f2e8a97207fb8d511d35cea521e7e240c/Core80b879b0ef289ccfff3b7efefa5a9ff26e6b4135. Three reviewed settings applied once under exact-release guard; full candidate equality/per-key ACKs verified, DNA/unrelated values unchanged. Existing task branch restored after temporary code checkout. Single journalled settings jobad7aab39-5e83-47f8-b7e9-e03920cb3d2f is BUILDING at the same SHA; observe it, never reapply/redeploy.
 
-After exact/latest codeSUCCESS follow CURRENT_STATUS immutable-release checkout guard, apply reviewed3settings once, verify whole candidate/per-key ACKs, one journalled settings rollout, first hosted visitor/native/federation/reuse/privacy/replica cohort, immutable completionACK and sandbox card/public assets. No live settings applied yet. Counts47integrated/42hosted/browser5/open37; Telos not hosted. Generic browser copies retain identity/name/description/provenance, not full native payload. Never replay original native/local fixture. V2 only; hosting deferrals/browser closure unchanged.
+After settingsSUCCESS: first normal visitor TelosOASIS acceptance cohort, native3/2/paired5/4/reuse/privacy/replicas, inspect2saveACKs/version1/no pending, immutable completionACK, then sandbox card/public assets. See CURRENT_STATUS for exact command. Original native/local fixtures frozen. Counts47integrated/42hosted/browser5/open37; no Telos hosted claim until proof. Generic browser copies retain identity/name/description/provenance, not full native payload. V2 only; hosting deferrals/browser closure unchanged.
 
 ## Evidence and retained state
 
