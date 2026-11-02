@@ -181,4 +181,5 @@
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ChainflipOASIS/NextGenSoftware.OASIS.API.Providers.ChainflipOASIS.csproj" />
   </ItemGroup>
   <ItemGroup><ProjectReference Include="../../Providers/AI/NextGenSoftware.OASIS.API.Providers.BittensorOASIS/NextGenSoftware.OASIS.API.Providers.BittensorOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ZcashOASIS/NextGenSoftware.OASIS.API.Providers.ZcashOASIS.csproj" /></ItemGroup>
 </Project>

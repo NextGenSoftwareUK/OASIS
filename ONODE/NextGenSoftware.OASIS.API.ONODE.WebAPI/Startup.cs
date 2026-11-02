@@ -534,6 +534,11 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_BITCOIN_PUBLIC_SOURCE_JSON"] is string bitcoinPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.BitcoinPublicHeaderMetadataSource.FromJson(bitcoinPublicSource)));
+            // Zcash summaries are an explicit anonymous read profile, never wallet operations.
+            if (Configuration["CQL_ZCASH_PUBLIC_SOURCE_JSON"] is string zcashPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.ZcashOASIS.ZcashPublicBlockMetadataSource.FromJson(zcashPublicSource)));
+
             // Public Finney headers never enable Bittensor signing or AI operations.
             if (Configuration["CQL_BITTENSOR_PUBLIC_SOURCE_JSON"] is string bittensorPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(

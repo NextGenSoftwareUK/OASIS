@@ -84,3 +84,11 @@ Full shared demo cached restore/build passed (2m01s); --zcash-public compiles th
 ## Real manager/LINQ/CLI acceptance — 2 November 2026
 
 Original compiled --zcash-public walkthrough passed3full/2filtered native rows, matching exact preserved heights1/2/3 and hashes. Source configuration uses one persistent projection owner; no account, wallet, transaction or Mongo save. Anonymous HTTPS genesis/mainnet/hash checks execute inside the adapter. Freshness remains indexer-reported unknown; no independent consensus proof. Durable source/consumed intent/ACK/compressed output: LocalState/COSMIC/HostedZcashPublicSourceCurrent. Output SHA256 `49a75c08519986410a0079e0ec96ae3d6300247ae8e1bcc18b7c1478e1d52b9d`. HTTP/API/compiler/tariff/federation/hosted/browser gates remain unverified and counts61/57 unchanged.
+
+## HTTP admission controls — 2 November 2026
+
+Explicit CQL_ZCASH_PUBLIC_SOURCE_JSON registration, compiler provider scope and independent read tariff added.3/3API tests and1/1Core tariff test pass, zero skipped. Four native/Mongo3/2 presets plan; missing permission/tariff and write tariff rejected. No deployment/settings changes or local native HTTP/Mongo cohort yet. Core task1e9b2409897eac62a1dd2eade3840e000e4ef87f pushed and verified remotely.
+
+Evidence `TestResults/ZcashPublicSourceCurrent/api-admission.trx` SHA256 `ab133508c911d65fb94db468dccbce1558546eeb92f55d2eaf0e35df87c0b767`.
+
+Evidence `TestResults/ZcashPublicSourceCurrent/core-tariff.trx` SHA256 `361b2263c745ede8b686bca43f7374d46eb84fd23da0aa66b440e495b2c56615`.
