@@ -53,3 +53,6 @@ Primary references: [Filecoin Ethereum API](https://docs.filecoin.io/reference/j
 - `TestResults/FilecoinPublicSourceCurrent/mongo-http-native.trx`: 3371bytes; SHA256 `0d6339a93b80686dd11ecc72748f2fc92ac3849ad8b52001859b96db58f6a48c`.
 
 - `TestResults/FilecoinPublicSourceCurrent/filecoin-mongo-native-summary.json`: 229bytes; SHA256 `afac311dca2fa600334c7af9c1d9e34b3a734328ca1a8278d9c79ac32ae81c4c`.
+
+
+Prepared-preset shipping gate1November2026: actual public projection of protected candidate profiles/examples passes shipping CQL compiler and exact MongoDBOASIS.CqlCapabilities for all4presets (2leaf/2federation),1test/0skips. Sources remain inactive; no native request/DB/save. `TestResults/FilecoinPublicSourceCurrent/filecoin-prepared-planner.trx`: 3338bytes; SHA256 `323d3f92b0414a77df804518e7eea97e86326e5a00eeee681f6a27fc42b1a2da`. Original code jobd1fe285f is still BUILDING at fcc4f735d; no settings applied/redeployment. Public guide now includes the tested HTTP request/federation route.
