@@ -6,7 +6,7 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 ## Verified coverage
 
-- **62 integrated query types:** 3 canonical, 55 bounded public/source profiles,
+- **63 integrated query types:** 3 canonical, 56 bounded public/source profiles,
   4 local PostgreSQL/Cosmos/Oracle/AWS implementations.
 - **58 hosted functional HTTP proofs**, 5 browser verified, 53 browser gates open.
   These figures do not certify full ORM/native writes/reliability/uptime.
@@ -43,8 +43,8 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
    Zcash card published at website3141cca9491d585ed0b1c8aab7a52c7dd5bbc948;
    HTML and both JS assets match exact Git blobs. Browser gate remains closed.
    ClickHouse adapter builds,25controlled tests pass; native countries3/2
-   qualified,4probecontrols pass. Next actual manager/LINQ/native parameter gate.
-   Original absentStackOverflowtable failure retained; no CQL native acceptance yet. Do not replay accepted Zcash.
+   qualified,4probecontrols pass. Actual compiled manager/LINQ/CLI3/2passed; next HTTP/Mongo gates.
+   Original absentStackOverflowtable failure retained; no hosted ClickHouse acceptance yet. Do not replay accepted Zcash.
 5. Durable Zcash state: `LocalState/COSMIC/HostedZcashPublicSourceCurrent`,
    `ZcashPublicQualificationCurrent`, `ZcashMongoHttpCurrent` (cleaned),
    `HostedZcashReleaseCurrent`. Preserve owners/config/intents/ACKs; no reseeding.
@@ -53,7 +53,7 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 - [ClickHouse qualification](CLICKHOUSE_PUBLIC_SOURCE_STATUS.md): public read-only
   identity/schema and countries3/2 verified; adapter25controls pass,
-  actual manager/nativeCQL/HTTP/hosted remain red. Profile keys printableASCII.
+  actual manager/nativeCQL3/2pass; HTTP/hosted remain red. Profile keys printableASCII.
 
 - [Zcash details](ZCASH_PUBLIC_SOURCE_STATUS.md): hosted proof/card/static bytes pass; browser open.
 - [Ceramic qualification](CERAMIC_PUBLIC_SOURCE_STATUS.md): pinned official

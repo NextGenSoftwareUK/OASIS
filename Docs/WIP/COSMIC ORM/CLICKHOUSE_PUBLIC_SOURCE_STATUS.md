@@ -55,3 +55,7 @@ ClickHousePublicCountryMetadataSource builds using existing cacheddependencies.2
 Initial run22pass/1fail revealed the existing shared key strategy excludes Unicode/spaces. Adapter configuration now enforces that same printableASCII33-126 contract rather than accepting unreachable keys; controlled quote/backslash/injection values remain safely parameterized. Unicode/spaced country keys are explicitly unsupported by this profile, not encoded/rewritten. Original failed TRX retained.
 
 Final evidence TestResults\ClickHousePublicSourceCurrent\adapter-point.trx SHA256 `ac03c1def60e6f3ea8ffbdb5dbe96fccf5ecae33ad5a3c05db23e6aa4d61d040`. Next native compiled manager/LINQ3/2 over original France/Germany/Italy source and exact parameterized HTTP contract, then localHTTP/Mongo/hosted admission.
+
+## Actual compiled manager/LINQ/CLI acceptance
+
+Full shared demo cachedrestore/build passed1m48s. Original --clickhouse-public run passed3full/2filtered countryrecords through HolonManager/deferredLINQ and nativeHTTPtypedStringparameters; originalFrance/Germany/Italy counts21/22/29 matchqualification. No writes/newDB/account. Stable sourceowner/config and source/qualification/binary-bound intent/ACK/compressed output retained HostedClickHousePublicSourceCurrent. Output SHA256 `bdf840e82c4f48b178b3e5bd7033bf72fc9f53cc2a8865fd30f3fa2a508e79a4`. Accepted CLI/source frozen, no replay. Next shippingHTTPregistration/compiler/readtariff/presets and localMongo/privacy gates before hostedpublication. This is63rd locallyintegratedtype; hosted58unchanged.
