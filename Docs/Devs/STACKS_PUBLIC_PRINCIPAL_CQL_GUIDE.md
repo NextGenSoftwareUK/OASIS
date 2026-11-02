@@ -133,10 +133,81 @@ outside this read profile.
 
 ## Demo acceptance
 
-Source controls, actual C# execution, HTTP/Mongo pairing, ownership/privacy,
-replication, hosted admission and browser interaction are separate gates.
+Local source43tests, actual C#3/2, query-only admission controls, native HTTP3/2,
+Mongo5/4, foreign private0/public3 and four prepared presets pass. Two SDK-owned
+version1 snapshots and their original operations are journalled; the owned
+local fixture database was removed after success. Hosted configuration is
+prepared but unapplied. Hosted reuse/replication, card publication and browser
+interaction remain separate gates.
 See the maintained [Stacks status](../WIP/COSMIC%20ORM/STACKS_PUBLIC_SOURCE_STATUS.md)
 for verified scope; local or native evidence alone is not hosted certification.
+
+## HTTP examples
+
+Use normal WEB4 authentication and query admission. The host must explicitly
+configure `CQL_STACKS_PUBLIC_SOURCE_JSON`, query-only permission, a query tariff
+and presets. Query JSON cannot grant those permissions or select a different
+RPC endpoint. Availability must be checked on the particular host.
+
+Send this body to `POST /api/data/query-cql`:
+
+```json
+{
+  "provider": "BlockStackOASIS",
+  "orderBy": "None",
+  "take": 25,
+  "includeMetadata": true,
+  "maximumDurationMilliseconds": 30000,
+  "filters": [{
+    "metadataPath": ["StacksPrincipal"],
+    "scalar": "String",
+    "operator": "In",
+    "value": [
+      "SP000000000000000000002Q6VF78",
+      "SP000000000000000000002Q6VF78.pox-4"
+    ]
+  }]
+}
+```
+
+For `POST /api/data/query-cql/federation`, use a named provider pair:
+
+```json
+{
+  "scope": "Named",
+  "providers": ["MongoDBOASIS", "BlockStackOASIS"],
+  "source": {
+    "orderBy": "None",
+    "take": 25,
+    "includeMetadata": true,
+    "filters": [{
+      "metadataPath": ["StacksPrincipal"],
+      "scalar": "String",
+      "operator": "In",
+      "value": [
+        "SP000000000000000000002Q6VF78",
+        "SP000000000000000000002Q6VF78.pox-4"
+      ]
+    }]
+  },
+  "identityMode": "PreserveCopies",
+  "maximumProviderAttempts": 2,
+  "maximumDurationMilliseconds": 30000,
+  "take": 25
+}
+```
+
+Federation reads existing copies; it does not create Mongo snapshots. With the
+two prepared private snapshots, the full3-principal selection produces5physical
+copies and the filtered2-principal selection produces4. Private copies keep
+their original observation; a new native read can see a different tip.
+
+The local SDK fixture retains all projected metadata. Generic browser demo
+preparation retains identity/name/description/provenance and the principal
+query key, not the full native payload. With metadata encryption enabled,
+hosted enrollment requires `StacksPrincipal` explicitly included in the
+queryable metadata policy. Native signing, transactions and Gaia storage are
+not enabled by query-only admission.
 
 Primary contracts: [node RPC](https://github.com/stacks-network/stacks-core/blob/main/docs/rpc-endpoints.md),
 [tip selector](https://github.com/stacks-network/stacks-core/blob/main/docs/rpc/components/parameters/tip.yaml),

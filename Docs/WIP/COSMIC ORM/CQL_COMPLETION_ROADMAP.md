@@ -2,7 +2,7 @@
 
 Updated 2 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state and the exact next action.
 
-1. Preserve48scoped hosted functional HTTP proofs and original cohorts, including Nostr unresolved-intermittency limit. Matrix hosted native3/2/Mongo5/4/reuse/privacy/replicas and cardbd173e5/101client tests/public bytes pass. Story/DATA public Trace denied/unadmitted; Stacks source43tests/actual CLI3/2 pass, plus6qualifier controls. Next query-only admission and local HTTP/Mongo/privacy before hosted publication. CURRENT_STATUS owns exact evidence; never replay completed saves.
+1. Preserve48scoped hosted functional HTTP proofs and original cohorts, including Nostr unresolved-intermittency limit. Matrix hosted native3/2/Mongo5/4/reuse/privacy/replicas and cardbd173e5/101client tests/public bytes pass. Story/DATA public Trace denied/unadmitted; Stacks source43tests/actual CLI3/2 pass, plus6qualifier controls. Local Core/API/HTTP/publisher/prepared gates pass; next verified code/settings publication then original hosted cohort acceptance. CURRENT_STATUS owns exact evidence; never replay completed saves.
 2. Keep one filtered native query and one Mongo federated preset per admitted provider, with commented C# examples and sandbox links. Preserve completed privacy, reuse and replica proofs.
 3. Expand remaining red provider scopes with explicit consistency semantics, bounded capability-aware planning, native tests, actual HTTP proof and honest public labels. Rejected RPCs are not implemented capabilities.
 4. Complete browser gates when browser control is available; currently 5 proved/43 open. HTTP and byte matching do not prove interaction.
