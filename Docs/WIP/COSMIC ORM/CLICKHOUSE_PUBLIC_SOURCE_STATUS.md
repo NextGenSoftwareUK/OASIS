@@ -111,3 +111,7 @@ ClickHouseOASIS-client-http-flow.json:32819bytes SHA256 `4e6f482a94e114a3d20499f
 ClickHouseOASIS-isolation-http.json:4497bytes SHA256 `f54b343acb7b72821a5b302bfb350d6bc19a416df2c9e7ac48ad6a9e276476a2`; compressedoriginal durable HostedQueryAcceptance-ClickHouseOASIS.
 
 Next publishClickHousecard withpinnedguide/C#links and byteverifyassets; browserinteractionremainsclosed.
+
+## Sandbox card published and static files verified
+
+Website commit `d3dfe48a4d4e4ff0288180303fbbb06ab88eaebb` pushed to task/main, remote tips verified. Public card has four-preset instructions and pinned guide/commented C# links; existing local ClickHouse card preserved. HTML parses with 155 unique IDs (initial check caught duplicate new/local card ID; corrected before publication). All three public GETs returned 200 and exactly match committed Git blobs: HTML 201382 bytes SHA256 `97b17c1e4532a464783989fb198e957c62d460e6059f7abda29f21e51d34209b`; preparation JS 10241 bytes SHA256 `c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a`; playground JS 21871 bytes SHA256 `7cb6210b9adda1e83630fc966926772f8338c43163c24d1abd88c626ad1ad649`. Compact acknowledgement: `LocalState/COSMIC/HostedClickHousePublicSourceCurrent/website-publication.json`; raw static copies: `TestResults/ClickHousePublicSourceCurrent/website`. No native query/save replay. Browser interaction remains unverified. Next: ThreeFold HTTP/Mongo admission.
