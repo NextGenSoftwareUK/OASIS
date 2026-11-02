@@ -107,3 +107,11 @@ and retained deployed-contract WASM. Current
 would remove a live runner input, not just compiler intermediates. Retained;
 no WSL startup or shared cache deletion in this review. Original Solana ledger,
 Sui runtime, Cosmos chain and database folders likewise remain protected.
+
+## David decision — 2 November 2026
+
+David answered **Keep both** for `/home/dellams/miniforge3` (34.5GB) and
+`/home/dellams/art-ml-models` (2.8GB). Both are retained personal resources,
+excluded from cleanup. No deletion performed; no renewed retirement request.
+The earlier pending-decision text above is historical and resolved by this entry.
+Compaction alone still offers only approximately6GB;120GBtarget remains unmet.
