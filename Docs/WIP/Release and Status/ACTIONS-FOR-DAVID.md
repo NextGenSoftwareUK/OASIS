@@ -491,3 +491,15 @@ OLAND clarification,1 November2026: David reported Vercel approval completed; pr
 **Why:** you asked for Embedded packages for every OS and conductor version. Each package holds one OS/CPU and one version, so the count depends on the matrix. Compressed binaries keep each Client package at roughly 25 to 30 MB; the ORM, API and HyperNET variants are thin and depend on the matching Client one.
 **Action:** choose the CPUs: Linux x64 only, or x64 and arm64; macOS Apple Silicon only, or Apple Silicon and Intel (each extra CPU doubles that OS's packages: 16 new packages for one CPU per OS and both versions, 32 for both CPUs); and whether older Holochain versions (0.6.x, 0.5.x) get Embedded packages too.
 **Status:** open, 2 November 2026.
+
+
+### Our World place metadata source preference — 2 November 2026
+Status: awaiting optional preference. Recommended: free-only sources first (OSM, OpenActive, venue-published calendars/structured data; optional Geoapify free quota), with provider labels and missing fields shown honestly. Alternative: allow a separately capped paid review/rating source after evaluating its map-use terms. No account/key/payment action requested yet; public Overpass is currently at capacity, an agent-owned integration/availability finding. Details: [Worldscape implementation status](<../Our World/oland-purchase/places-api-build.log>); source terms: https://www.geoapify.com/pricing/ and https://developers.google.com/maps/documentation/places/web-service/policies . This preference affects enrichment scope, not the authorized Places Visited/history implementation.
+
+2 November2026 update: David chose **Free sources only**. Preference resolved; paid sources remain disabled. No account/key/payment request has been made. Do not re-ask this budget preference.
+
+
+### Our World — existing Geoapify free-project key location
+Status: missing account/configuration information,2 November2026. David approved free sources only. Identify an existing Geoapify free project/secure environment containing its key, or configure GEOAPIFY_API_KEY as a secret on existing Railway development WEB4. No payment card or paid upgrade requested. Why: no Geoapify/Places/Overpass variables were found on that service; the public Overpass source is currently at capacity. Agent continues history/UI/API implementation and owns provider wiring, quota caps and testing. [Secure setup instructions](<../Our World/worldscape-places/free-place-source-setup.md>).
+
+2 November2026 update: David confirmed he has no Geoapify account/key. Do not re-ask where an existing key is stored. A new free account/project is the remaining optional owner setup; adapter and shared free-credit cap are agent work. Keep paid plans disabled. Continue independent Places Visited/history and open-data work.

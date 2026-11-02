@@ -73,6 +73,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             if (ids == null || ids.Length > 500)
                 return new() { IsError = true, Message = "Supply up to 500 GeoNFT IDs." };
+            if (ids.Length == 0) return new() { Result = new() };
             var loaded = await NFTManager.LoadAllWeb4GeoNFTsAsync();
             if (loaded.IsError || loaded.Result == null)
                 return new() { IsError = true, Message = loaded.Message };
