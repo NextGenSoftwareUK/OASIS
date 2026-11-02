@@ -2,7 +2,7 @@
 
 Updated 1 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state and the exact next action.
 
-1. Preserve completed Filecoin/Fantom acceptance/card/public-byte proofs; Telos native/API/Mongo/hosted/card/public-byte gates now pass; EOSIO native source/28controls/CLI3/2 now pass; Core/API/local Mongo/privacy/prepared gates now pass; EOSIO hosted acceptance/card/public bytes now pass. Qualify ChainLink next. Current evidence is44hosted HTTP providers; preserve every completed original cohort and never replay save intents.
+1. Preserve completed Filecoin/Fantom acceptance/card/public-byte proofs; Telos native/API/Mongo/hosted/card/public-byte gates now pass; EOSIO native source/28controls/CLI3/2 now pass; Core/API/local Mongo/privacy/prepared gates now pass; EOSIO hosted acceptance/card/public bytes now pass. ChainLink native CQL/43controls/actual CLI3/2 now pass; complete its red API/Mongo/hosted gates next. Current evidence is44hosted HTTP providers; preserve every completed original cohort and never replay save intents.
 2. Keep one filtered native query and one Mongo federated preset per admitted provider, with commented C# examples and sandbox links. Preserve completed privacy, reuse and replica proofs.
 3. Expand remaining red provider scopes with explicit consistency semantics, bounded capability-aware planning, native tests, actual HTTP proof and honest public labels. Rejected RPCs are not implemented capabilities.
 4. Complete browser gates when browser control is available; currently 5 proved/39 open. HTTP and byte matching do not prove interaction.

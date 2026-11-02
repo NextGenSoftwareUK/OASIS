@@ -946,3 +946,8 @@ passes; hosted reuse/privacy/replicas also pass. Browser interaction remains ope
 ### EOSIO / Vaulta native account demo
 
 Use `--eosio-public LocalState/COSMIC/HostedEosioPublicSourceCurrent/source.json` with the existing three-account catalogue. [Commented walkthrough](EosioPublicWalkthrough.cs) and [guide](../../Docs/Devs/EOSIO_PUBLIC_ACCOUNT_CQL_GUIDE.md) show three-account then two-account LINQ queries through HolonManager. Native reads only: API/Mongo/hosted gates remain separate.
+
+
+### ChainLink public feed demo
+
+Use `--chainlink-public LocalState/COSMIC/HostedChainLinkPublicSourceCurrent/source.json` with the retained three-feed catalogue. [Commented walkthrough](ChainLinkPublicWalkthrough.cs), [setup/C# guide](../../Docs/Devs/CHAINLINK_PUBLIC_FEED_CQL_GUIDE.md). Shared HolonManager/LINQ returns3feeds then2; exact raw answers/scales/round IDs are printed. Anonymous reads only, no wallet/funding/source transaction/Mongo save. API/hosted acceptance remains separate; RPC-reported finality does not guarantee current prices.

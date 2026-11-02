@@ -1,6 +1,6 @@
 # ChainLink public feed source qualification
 
-Updated1November2026. Native protocol qualified; CQL/API/hosted integration remains unimplemented. Existing48integrated/44hosted counts do not include ChainLink.
+Updated1November2026. Native protocol and local CQL/actual C# CLI verified; API/hosted integration remains unimplemented. Current49integrated types include ChainLink native-only;44hosted proofs do not.
 
 ## Verified primary catalogue
 
@@ -21,11 +21,17 @@ The official documentation's [Ethereum network configuration](https://raw.github
 - Offline parser/transport check passes: UInt256 precision/signed -1, canonical dynamic ABI string, invalid padding/offset/UTF8 rejection, one RPC result/no task-output leak and HTTP fail-closed. Zero native calls in offline test.
 - No wallet/node/account/funding/install/source transaction. Legacy provider remains unchanged; six unimplemented throws remain documented, not repaired.
 
+## Local CQL implementation milestone
+
+- Separate ChainLinkPublicFeedMetadataSource in the existing project, using shared CQL interfaces/planning/native mapper; legacy signed storage unchanged. Explicit shared KeyValueStorage project reference, no new package version.
+- 43 controlled tests pass/0failures/0skips. Covers membership/point/window, unknown keys/no native I/O, chain/genesis/header identity, RPC envelope/status/duplicate/size failures, description offset/padding/UTF8/name, scale mismatch, round/time widths, cancellation/budget, failure without partial rows and native save rejection.
+- Exact int256 maximum/minimum and -1, uint80 rounds above2^53 and deprecated answeredInRound0 remain representable. No float conversion or automatic freshness inference.
+- Producer and actual console builds pass. Actual C# CLI/manager/LINQ3full/2filtered feeds pass against retained catalogue. Original cql-console intent/outcome retained; no native source transaction or Mongo save.
+- [Setup/C# guide](../../Devs/CHAINLINK_PUBLIC_FEED_CQL_GUIDE.md), [commented walkthrough](../../../Examples/CosmicCqlDemo/ChainLinkPublicWalkthrough.cs).
+
 ## Exact next step
 
-Implement a separate read-only `ChainLinkPublicFeedMetadataSource` in the existing ChainLink provider project. Use shared CQL interfaces/planning and native mapper, with bounded equality/membership on `ChainLinkFeedAddress`. Preserve raw exact answer/decimals/round/time metadata, explicit feed identities and RPC-reported finality. Validate all selected feeds before publication; fail with OASISResult errors, no partial rows or scans. Keep signed storage separate.
-
-Then controlled tests, native manager/C#3/2, API independent read permission/tariff, local Mongo/privacy/prepared presets, exact hosted rollout and original acceptance/card. No ChainLink CQL/hosted claim until those gates pass. Green providers/deep LINQ parity stay frozen.
+Wire explicit query-only API configuration/admission and independent unsigned read permission/free tariff. Prove Core/API admission, local HTTP Mongo5/4/privacy, actual prepared presets, then exact hosted rollout/original acceptance and sandbox card. No ChainLink API/hosted/browser claim yet. Original native qualification and console cohorts must not be replayed. Keep green scopes/deep LINQ parity frozen absent a reproduced bug.
 
 ## Durable resources and evidence
 
@@ -37,3 +43,11 @@ State: `LocalState/COSMIC/HostedChainLinkPublicSourceCurrent` contains original 
 - `TestResults/ChainLinkPublicSourceCurrent/qualification.json`: 10265bytes; SHA256 `e7e7179a2b8b05d27374e0942eb174131fe490943035471edeacf2fc0ec11d2e`.
 
 Native ABI reference: [Chainlink API](https://docs.chain.link/data-feeds/api-reference). Data is read via proxy AggregatorV3Interface; decimals must be preserved, answeredInRound is deprecated.
+
+- `TestResults/ChainLinkPublicSourceCurrent/controls.trx`: 77588bytes; SHA256 `097b4ae7e961b0904e3f362701d1c7c3c42d84163b80eaf94d590788f9c1dc82`.
+
+- `TestResults/ChainLinkPublicSourceCurrent/provider-build.log`: 19775bytes; SHA256 `cd53e3e36a72a8f4b37719a6b65190a81ccf65df3aa8afca16410564f7630b04`.
+
+- `TestResults/ChainLinkPublicSourceCurrent/demo-build.log`: 10857bytes; SHA256 `0ebd9df8d7e21fa9a4f6b4c2b0d2d5a6a463037a5db819119d0bff8e079f18e6`.
+
+- `TestResults/ChainLinkPublicSourceCurrent/cql-console.log`: 1341bytes; SHA256 `779dce6785c7a0e4bb8d984911ae896ba8f41d4a75625c740a76ddcb00520a61`.
