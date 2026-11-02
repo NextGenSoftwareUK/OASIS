@@ -8,7 +8,7 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 - 44 providers have scoped hosted HTTP proof at their recorded releases. Browser proof: 5; 39 browser gates remain open. These are not full ORM/native-write certifications.
 - MongoDB/SQLite/Neo4j parity: 50/82 checklist rows each; original investor-demo subset green. Work red rows only unless a reproducible bug appears.
 - Latest completed provider: EOSIO/Vaulta native account metadata. Native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3, matching SQLite/Neo4j replicas2/2. Two version1 saves/no pending intents; original cohort frozen by completion ACK.
-- Websitec90ca72 publishes EOSIO/Telos/Filecoin cards and pinned setup/C#/HTTP links;96client tests pass. Public HTML/scripts match exact git blobs. Browser interaction remains separate.
+- Website72dee68 publishes EOSIO/Telos/Filecoin cards and pinned setup/C#/HTTP links;96client tests pass. Public HTML/scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser Mongo preparation copies identity/name/description/provenance, not all native metadata. Full payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
 ## Current phase: next red provider qualification
@@ -19,7 +19,7 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 
 ## Exact next actions
 
-1. Preserve completed EOSIO/Telos/Filecoin/Fantom cohorts, sources/owners/ACKs. EOSIO cardc90ca72/pinned links/96client tests and public bytes verified; no browser proof inferred.
+1. Preserve completed EOSIO/Telos/Filecoin/Fantom cohorts, sources/owners/ACKs. EOSIO card72dee68/pinned links/96client tests and public bytes verified; no browser proof inferred.
 2. Inspect shipping ChainLinkOASIS and primary feed contract/catalogue documentation. Qualify a free, bounded three-feed/two-feed native read contract before implementation; research so far has not qualified contract addresses. No ChainLink CQL/hosted claim yet.
 3. After qualification, implement only that red source/controlled tests/native manager+C#3/2, API permission/Mongo/privacy/prepared gates, exact hosted rollout/acceptance/card. Keep green scopes/deep parity frozen absent a reproduced bug.
 
