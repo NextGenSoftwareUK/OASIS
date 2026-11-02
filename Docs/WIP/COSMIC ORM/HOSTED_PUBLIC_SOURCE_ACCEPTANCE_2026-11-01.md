@@ -1,5 +1,7 @@
 # Hosted public-source acceptance — 1 November 2026
 
+Current milestone (2 November 2026): BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6dfdbc6c SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen. Cached public AppView only; generic copies retain identity/name/description/provenance, not all native metadata. Card publication pending; browser unverified. Current totals50integrated/46hosted/5browser/41open; older dated checkpoints below are historical.
+
 Latest: **45 scoped hosted HTTP providers**, including ChainLink. Browser proof remains **5**; **40 open**. ChainLink native3/2, Mongo5/4, repeat0new/2existing, privacy0/3 and matching replicas2/2 each pass at parent09c66998c/Core990c1c7; code215b4b51/settings3a00f63f SUCCESS. Card80633dc/97client tests/public asset bytes verified. [ChainLink evidence](CHAINLINK_PUBLIC_SOURCE_STATUS.md). Historical counts below retain original releases/cohorts.
 
 

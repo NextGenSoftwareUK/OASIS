@@ -5,23 +5,22 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 ## Verified scope
 
 - 50 integrated query types: 3 canonical adapters, 43 bounded public/source profiles, 4 local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
-- 45 providers have scoped hosted HTTP proof at their recorded releases. Browser proof: 5; 40 browser gates remain open. These are not full ORM/native-write certifications.
+- 46 providers have scoped hosted HTTP proof at their recorded releases. Browser proof: 5; 41 browser gates remain open. These are not full ORM/native-write certifications.
 - MongoDB/SQLite/Neo4j parity: 50/82 checklist rows each; original investor-demo subset green. Work red rows only unless a reproducible bug appears.
 - Latest completed provider: ChainLink public feed observations. Native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen.
 - Website80633dc publishes ChainLink/EOSIO/Telos/Filecoin cards and pinned setup/C#/HTTP links;97client tests pass. Public HTML/scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser Mongo preparation copies identity/name/description/provenance, not all native metadata. Full payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: BlueSky hosted code rollout
+## Current phase: publish verified BlueSky card
 
-- BlueSky source37controls/actual CLI3/2, Core1/API2/localHTTP1/publisher9/prepared-planner1/client1 pass. Native3/2, Mongo5/4, foreign0/public3; exact marked local fixture dropped, HTTP/Mongo stopped.
-- Development parent `f36dd0d56ea4b93f06631947f5c267c55e131910` / Core `499e4e0b06104a3845abee243946fd61a27f069f` fast-forward published/ref-verified; manifest validates.
-- Code job `f6c205de-bd4b-4679-bf16-de86690bbdce` SUCCESS. Three settings applied once and observed exactly; single journalled settings deployment `6dfdbc6c-8d51-4674-a4e2-32c5777d24aa` issued. No hosted cohort started. Original native/local cohorts frozen; frontend taskecfdd54 has a pending-labelled card and pinned developer links; main remains80633dc, no live BlueSky card. HTTP guide now includes candidate-matched two-profile native/federated JSON examples, checked offline; live enrollment still pending.
+- BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6dfdbc6c SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen. Cached public AppView only; generic copies retain identity/name/description/provenance, not all native metadata. Card publication pending; browser unverified.
+- Existing local gates:37source controls, actual CLI3/2, Core1/API2/localHTTP1/publisher9/prepared1/client1. No replays or new cohorts.
 
 ## Exact next actions
 
-1. Preserve completed ChainLink/EOSIO/Telos/Filecoin/Fantom sources/owners/ACKs/cohorts. ChainLink card/pinned links/97tests/public bytes verified; no browser proof inferred.
-2. Observe exact BlueSky settings job6dfdbc6c-8d51-4674-a4e2-32c5777d24aa atf36dd0d56. Code job SUCCESS; all3settings ACKed and candidate-equal; one redeploy outcome protected. Do not reapply/redeploy. Only after settings SUCCESS run original hosted acceptance, audit proofs, then publish card. See BLUESKY_PUBLIC_SOURCE_STATUS.md and LocalState/COSMIC/HostedBlueSkyReleaseCurrent.
-3. Controlled tests/native manager+C#3/2, API independent read admission/tariff, local Mongo/privacy/prepared gates, exact hosted rollout/original acceptance/card. Keep green scopes/deep parity frozen absent a reproduced bug.
+1. Publish frontend task pending cardecfdd54 after changing its acceptance wording and guide link to the verified release. Run the client suite once, fetch/inspect main ancestry, fast-forward main only with scoped tested work.
+2. Verify public HTML and both scripts against exact git blobs; HTTP/asset matching does not prove browser interaction.
+3. Update current provider reports with publication evidence; preserve all completed cohorts. Deep parity remains paused; resume next red breadth scope after this milestone.
 
 ## Durable state and rules
 
