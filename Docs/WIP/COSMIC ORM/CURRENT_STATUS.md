@@ -1,6 +1,6 @@
 # COSMIC ORM / CQL current status
 
-Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first live demos; deep LINQ parity remains paused.
+Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first live demos; deep LINQ parity remains paused.
 
 ## Verified scope
 
@@ -8,19 +8,19 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 - 46 providers have scoped hosted HTTP proof at their recorded releases. Browser proof: 5; 41 browser gates remain open. These are not full ORM/native-write certifications.
 - MongoDB/SQLite/Neo4j parity: 50/82 checklist rows each; original investor-demo subset green. Work red rows only unless a reproducible bug appears.
 - Latest completed provider: ChainLink public feed observations. Native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen.
-- Website80633dc publishes ChainLink/EOSIO/Telos/Filecoin cards and pinned setup/C#/HTTP links;97client tests pass. Public HTML/scripts match exact git blobs. Browser interaction remains separate.
+- Websiteac0ca0c publishes BlueSky/ChainLink/EOSIO/Telos/Filecoin cards and pinned setup/C#/HTTP links;98client tests pass. Public HTML/scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser Mongo preparation copies identity/name/description/provenance, not all native metadata. Full payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: publish verified BlueSky card
+## Current phase: BlueSky breadth milestone complete; next red provider
 
-- BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6dfdbc6c SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen. Cached public AppView only; generic copies retain identity/name/description/provenance, not all native metadata. Card publication pending; browser unverified.
+- BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6dfdbc6c SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen. Cached public AppView only; generic copies retain identity/name/description/provenance, not all native metadata. Card published/byte-verified; browser unverified.
 - Existing local gates:37source controls, actual CLI3/2, Core1/API2/localHTTP1/publisher9/prepared1/client1. No replays or new cohorts.
 
 ## Exact next actions
 
-1. Publish frontend task pending cardecfdd54 after changing its acceptance wording and guide link to the verified release. Run the client suite once, fetch/inspect main ancestry, fast-forward main only with scoped tested work.
-2. Verify public HTML and both scripts against exact git blobs; HTTP/asset matching does not prove browser interaction.
-3. Update current provider reports with publication evidence; preserve all completed cohorts. Deep parity remains paused; resume next red breadth scope after this milestone.
+1. Preserve BlueSky original cohort/ACKs; no reapply/redeploy/resave. Websiteac0ca0c3cffea71aa9b99ca437d2ee46fa20d9c1 publishes BlueSky with pinned guidea10c6661c and C#f36dd0d56 links. All98client tests pass. Public HTML171143bytes/SHA256dfa7084ba40e8fe691eb2fbf7f9c1c4d9cda7dcdcbade32026f6f9d0fd7fceee and both scripts match exact git blobs. Browser interaction remains open.
+2. Inspect the existing Nostr provider and published native read contract for a bounded anonymous profile. Qualify native availability/identity/complete filtered sets before any CQL enrollment; no new account, installation or green-scope hardening.
+3. Keep deferred Azure Cosmos/Oracle/PostgreSQL hosting and closed browser controls deferred; maintain exact evidence and update current status at each milestone.
 
 ## Durable state and rules
 
