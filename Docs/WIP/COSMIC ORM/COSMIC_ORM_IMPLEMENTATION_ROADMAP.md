@@ -1,6 +1,6 @@
 # COSMIC ORM implementation roadmap
 
-Updated 1 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state and the exact next action.
+Updated 2 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state and the exact next action.
 
 1. Complete breadth-first live provider demos: current 51 integrated types, 46 hosted HTTP proofs and 5 browser proofs. Preserve green cohorts. Fantom hosted acceptance/card/public-byte proof are complete; see CURRENT_STATUS for the next red scope.
 2. Continue explicit filtered source queries and Mongo federation for remaining red providers. Azure Cosmos, Oracle and PostgreSQL hosting are deferred. Public source reads do not establish native writes or full ORM support.
