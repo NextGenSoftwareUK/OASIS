@@ -51,3 +51,12 @@ Exact continuation: CURRENT_STATUS.md contains the immutable-release checkout/gu
 Settings rollout milestone 1 November2026: code job7b8c95d9 SUCCESS at e13244820. Three reviewed values applied once, whole candidate and each key digest verified; DNA/unrelated settings unchanged. Single journalled settings job2177dd3d-e0a1-4c7d-a679-3e55b521c6a0 is BUILDING. Earlier pending-code/application paragraphs are superseded. Exact next: observe this same settings job to SUCCESS, then first hosted cohort; no configuration replay. Existing task branch restored after exact-release guard. Hosted count remains40.
 
 Fantom client preparation control passes1/0skips on existing Node24.19.0: two private Mongo saves, unchanged original native filter, provider provenance, no chain-write request, repeated preparation0new/2existing and no pending intent. Website task commit584b146c6d16eb251062fd7e59d88cab321c3f2d pushed/ref-verified; published main remains9694621. Only the new Fantom control ran; completed provider cohorts were not replayed. Settings job2177dd3d remains BUILDING, hosted gate still next.
+
+
+## Hosted acceptance complete — 1 November 2026
+
+Earlier pending application/hosted statements are superseded. Parent e13244820/Core01b7545 and settings job2177dd3d-e0a1-4c7d-a679-3e55b521c6a0 succeeded. Native3/2, Mongo-paired5/4, two normal private saves at version1, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 pass. All native rows retain latest-canonical-at-read metadata and one block hash per selection. No pending preparation intents. Immutable completion ACK under LocalState/COSMIC/HostedQueryAcceptance-FantomOASIS freezes this cohort; do not replay it. Counts45integrated/41hosted/browser5/open36. Browser/card publication proof remains next.
+
+- `TestResults/HostedCqlIntegrationCurrent/FantomOASIS-native-http.json`: 13913bytes; SHA256 `5883cf1a5cc597625c531615ad87d996a9b6ec830a1a44acc6ce7b93b7fbffcf`.
+- `TestResults/HostedCqlIntegrationCurrent/FantomOASIS-client-http-flow.json`: 37376bytes; SHA256 `383ac7fb5a3b34beadbd5f98a66b2756d18558d3cb7ceefca49d2c5cd5d05ca1`.
+- `TestResults/HostedCqlIntegrationCurrent/FantomOASIS-isolation-http.json`: 5313bytes; SHA256 `1569fb02244638926d6721ac5b48e0285fe7b48194f7e2758b29aecbd5cabc56`.
