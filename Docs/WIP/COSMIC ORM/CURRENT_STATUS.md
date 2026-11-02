@@ -41,7 +41,7 @@ deep LINQ parity paused. Work red scopes only unless a bug is reproduced.
 
 ## Working rules and key commands
 
-Work/build/test only C:/Source/OASIS-cosmic/work/cosmic-cql-ton-public; Core work/cosmic-cql-google-public. Frontend C:/Source/Web4Site/work/cosmic-cql. Never edit/build original checkout. Preserve unknown root logs. Reuse environments/caches; no production/master promotion/paid hosting.
+Work/build/test only C:/Source/OASIS-cosmic on branch work/cosmic-cql-ton-public; Core work/cosmic-cql-google-public. Frontend C:/Source/Web4Site/work/cosmic-cql. Never edit/build original checkout. Preserve unknown root logs. Reuse environments/caches; no production/master promotion/paid hosting.
 
 Build under Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 with /m:2 /nr:false /p:UseSharedCompilation=false. Manifest: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks (after commit). Fetch Development before integration; verify submodule pushes with git ls-remote. Named files only, never git add -A. Raw outputs TestResults; identities/config/receipts LocalState/COSMIC. Mixed ledger/README edits byte-preserving, ledger UTF8appends only.
 
