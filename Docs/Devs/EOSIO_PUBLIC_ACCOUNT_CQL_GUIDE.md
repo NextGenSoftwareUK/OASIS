@@ -60,6 +60,56 @@ var rows = await linq.ToCosmicListAsync(cancellationToken);
 
 Use OASISResult error handling in application code; the abbreviated example focuses on the query. Exact key equality and bounded key membership are admitted; unsupported predicates fail planning. At most eight unique configured names are allowed, each at most thirteen native characters. Selection outside the catalogue is rejected without native I/O. Paging applies only after complete validation; failures never publish partial rows.
 
+## HTTP and live CQL tab
+
+The sandbox CQL tab obtains the admitted presets from the API. Choose `EOSIOOASIS`, then a public native preset or its Mongo paired preset. Hosted availability is shown by discovery; consult the linked current evidence before claiming the rollout is complete. Use your authenticated demo session for HTTP requests and a fresh `Idempotency-Key`; never share its bearer token.
+
+Native filtered request to `POST /api/data/query-cql`:
+
+```json
+{
+  "provider": "EOSIOOASIS",
+  "orderBy": "None",
+  "take": 8,
+  "includeMetadata": true,
+  "filters": [
+    {
+      "metadataPath": ["EOSIOAccountName"],
+      "scalar": "String",
+      "operator": "In",
+      "value": ["eosio", "eosio.token"]
+    }
+  ]
+}
+```
+
+For `POST /api/data/query-cql/federation`, select only Mongo and this explicit native source. The CQL tab's preparation action creates two private Mongo copies once and reuses them; native source data stays read-only. An HTTP federation query itself never creates those copies:
+
+```json
+{
+  "scope": "Named",
+  "providers": ["MongoDBOASIS", "EOSIOOASIS"],
+  "identityMode": "PreserveCopies",
+  "maximumProviderAttempts": 2,
+  "take": 8,
+  "source": {
+    "orderBy": "None",
+    "take": 8,
+    "includeMetadata": true,
+    "filters": [
+      {
+        "metadataPath": ["EOSIOAccountName"],
+        "scalar": "String",
+        "operator": "In",
+        "value": ["eosio", "eosio.token"]
+      }
+    ]
+  }
+}
+```
+
+The native response contains two public rows. The paired response contains those two plus your two matching private Mongo copies after preparation; another visitor cannot see your copies. Generic browser preparation retains identity/name/description/provenance, not all native metadata. Source errors fail the paired query rather than silently substituting Mongo results.
+
 ## Configuration and semantics
 
 `EosioPublicAccountMetadataSource.FromJson` requires exactly `schema` (1), `apiUrl` (anonymous HTTPS root), `chainId` (native mainnet), `accounts` and nonempty `sourceOwner`. Unknown/duplicate fields and credential fields are rejected. The production factory uses NativeConnectionGuard; injected HttpClient is for controlled transports/tests. Keep sourceOwner stable to preserve projected IDs.
