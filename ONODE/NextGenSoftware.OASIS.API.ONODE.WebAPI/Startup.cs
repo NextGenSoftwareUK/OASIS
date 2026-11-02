@@ -534,6 +534,11 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_BITCOIN_PUBLIC_SOURCE_JSON"] is string bitcoinPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.BitcoinPublicHeaderMetadataSource.FromJson(bitcoinPublicSource)));
+            // Filecoin native identity and public FEVM reads are a separate
+            // query profile, never wallet storage or default write authority.
+            if (Configuration["CQL_FILECOIN_PUBLIC_SOURCE_JSON"] is string filecoinPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.FilecoinPublicAccountMetadataSource.FromJson(filecoinPublicSource)));
             if (Configuration["CQL_FANTOM_PUBLIC_SOURCE_JSON"] is string fantomPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.FantomOASIS.FantomPublicAccountMetadataSource.FromJson(fantomPublicSource)));

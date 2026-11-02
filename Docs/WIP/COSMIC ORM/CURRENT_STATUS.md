@@ -4,7 +4,7 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 
 ## Verified scope
 
-- 45 integrated query types:3 canonical,38 bounded public/source profiles,4 local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
+- 46 integrated query types:3 canonical,39 bounded public/source profiles,4 local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
 - 41 providers have scoped hosted HTTP proof and deployed query tariffs. Browser proof:5;36browser gates open. Prior release discovery reported40/40ready; Fantom now has its own additional hosted proof. Neither observation is a fresh replay of all provider data proofs. Current provider-by-provider authority: PROVIDER_CQL_AND_SANDBOX_STATUS.md.
 - MongoDB/SQLite/Neo4j parity checklist50/82each; original investor-demo subset green. Work red rows only unless a reproducible bug appears.
 - Earlier completed hosted cohort: AzureStorageOASIS public Blob properties, native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, exact SQLite/Neo4j replicas2/2. Two saves at version1; no pending intents. Completion ACK exists; never replay/resave.
@@ -23,7 +23,7 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 
 ## Next work
 
-1. Fantom hosted acceptance complete at e13244820/Core01b7545, settings2177dd3d SUCCESS. Native3/2, paired5/4, repeat0new/2existing, private0/public3, SQLite/Neo4j replicas2/2; two saves/version1/no pending. Completion ACK freezes original cohort. Cardeef0769/public byte matching and93client tests complete. Filecoin immutable identity/source is implemented;300controls (22Filecoin/278regressions) and real manager/C#3/2 pass. Exact next: poll existing exec session93291 for standalone console build/CLI, then source-bound qualification ACK and API/Mongo gates. Stable source catalogue retained; no HTTP admission yet. Original archive-genesis failure preserved. See FILECOIN_PUBLIC_SOURCE_STATUS.md; preserve deferred hosting/browser decisions. Do not replay acceptance. See FANTOM_PUBLIC_SOURCE_STATUS.md.
+1. Fantom hosted acceptance complete at e13244820/Core01b7545, settings2177dd3d SUCCESS. Native3/2, paired5/4, repeat0new/2existing, private0/public3, SQLite/Neo4j replicas2/2; two saves/version1/no pending. Completion ACK freezes original cohort. Cardeef0769/public byte matching and93client tests complete. Filecoin native/actualCLI3/2 and local HTTP3/2/Mongo5/4/privacy0/3 now pass;300source controls,Core1/API2,publisher9/client1 pass. Original fixture cleaned/services stopped.3setting/free4preset candidate prepared only; Coreb386875 pushed. Exact next: commit/validate/push parent gitlink+manifest, integrate current Development with merged checks, then exact code deployment before guarded settings/hosted acceptance/card. Do not replay native/local cohorts. See FILECOIN_PUBLIC_SOURCE_STATUS.md; preserve deferred hosting/browser decisions. Do not replay acceptance. See FANTOM_PUBLIC_SOURCE_STATUS.md.
 2. PostgreSQL hosting explicitly deferred by David ("Leave hosted PostgreSQL pending"); no owner setup, re-ask or new paid resource. Azure Cosmos and Oracle hosted access also remain deferred.
 3. TRON remains unqualified after native429/diagnostic403; Rootstock finalized-header endpoint rejected400; separate explicit canonical-at-read qualification now rejects the first EIP1898 balance with RPC-32603. No Rootstock source/catalogue or admission created. Preserve both failures; do not blindly rerun them.
 4. Keep full ORM tracking/concurrency/children/history/deltas/migration/placement acceptance and wider HyperDrive recovery work on the roadmap. Deep LINQ, POCO mapping and migrations tooling remain deferred behind demo breadth. V2 implementation only; legacy gaps documentation only.
@@ -32,7 +32,7 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 
 - Code7b8c95d9 and settings2177dd3d succeeded at e13244820; three reviewed settings applied once, candidate equality/per-key ACKs verified. No reapply/redeploy. Existing task branch restored after exact-release guard.
 - Original Fantom hosted cohort has immutable completion ACK, two acknowledged version1 saves and no pending intents. Preserve identities/copies and never rerun it. Source SHA25686b7ba36bc665a74cd77fa0469c6276156c95967a480e9eadbb1aa09389a5550.
-- Websiteeef0769 is published/ref-verified and public bytes match;93tests pass. Fantom guide15fc93ccb/C#e13244820 are pinned. Counts45integrated/41hosted/browser5/open36. Hosting deferrals unchanged.
+- Websiteeef0769 is published/ref-verified and public bytes match;93tests pass. Fantom guide15fc93ccb/C#e13244820 are pinned. Counts46integrated/41hosted/browser5/open36. Hosting deferrals unchanged.
 
 ## Commands and recovery rules
 

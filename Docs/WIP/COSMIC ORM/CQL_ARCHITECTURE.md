@@ -345,4 +345,9 @@ Starknet bounded header profile: [setup/commented C# guide](../../Devs/STARKNET_
 
 AzureStorageOASIS also has an explicitly configured anonymous public Blob-properties representation: HEAD-only SDK reads, bounded AzureBlobKey equality/IN, exact string byte lengths, no canonical storage registration or default-write change. See [profile and limits](AZURE_PUBLIC_BLOB_STATUS.md).
 
-Fantom Opera adds an immutable latest-canonical-at-read EVM descriptor policy: hash-pinned EIP-1898 balances plus a final height/hash fence. The policy is an init property preserving the existing descriptor constructor, and is not a request-controlled fallback. Existing finalized profiles keep their semantics. Local CQL/console proof is separate from pending WEB4/hosted admission; see [Fantom scope](FANTOM_PUBLIC_SOURCE_STATUS.md).
+Fantom Opera adds an immutable latest-canonical-at-read EVM descriptor policy: hash-pinned EIP-1898 balances plus a final height/hash fence. The policy is an init property preserving the existing descriptor constructor, and is not a request-controlled fallback. Existing finalized profiles keep their semantics. Native and hosted HTTP/Mongo/privacy/replica proof now pass; browser interaction is separate. See [Fantom scope](FANTOM_PUBLIC_SOURCE_STATUS.md).
+
+
+## Filecoin native identity in the shared EVM reader
+
+Filecoin selects an immutable native genesis-CID identity policy before any request. It verifies mainnet chain314 and the exact singleton genesis tipset CID/height0 via Filecoin.ChainGetGenesis, then uses the existing finalized/hash-bound balance path. This is a specified representation, not an after-failure alternate genesis method. Existing provider descriptors retain Ethereum block0 hash checks and the original constructor signature. Configuration cannot select the policy or pin. Controlled/native manager and actual CLI3/2 pass; Local WEB4/Mongo/privacy also passes; hosted acceptance remains separate. FilecoinBalanceWei holds FEVM attoFIL decimal strings; no ETH unit or cross-provider currency equivalence. [Source scope](FILECOIN_PUBLIC_SOURCE_STATUS.md).
