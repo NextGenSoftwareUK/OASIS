@@ -185,3 +185,15 @@ controls already pass. Evidence under TestResults/EclipsePublicSourceCurrent:
 Next publish verified Core/parent code, observe exact code job, apply existing
 candidate once, then one settings activation and original hosted acceptance.
 No new native fixture/cohort/owner to reproduce green. Counts59integrated/54hosted.
+
+## Development code publication checkpoint
+
+Parentdbc5c6f75da35c03a482fab58b3c6006ad494df2/Core5375672c1e8e9411f017dc0fc766622fd0c08ecb
+fast-forward pushed to Development after fetching/merging current Development
+(already up to date); both remote SHAs verified. Manifest/sevenDockerfiles/
+gitlinks pass. No production/master promotion. Exact code job
+7c15337e-d4b6-438b-945d-d5eab1a946a6 is QUEUED. Original code publication
+intent/observation retained under LocalState/COSMIC/HostedEclipseReleaseCurrent.
+Observe this same job until terminal; do not redeploy because observation expires.
+No live Eclipse settings applied, hosted cohort or card yet. Existing protected
+candidate/source owner remain unchanged.
