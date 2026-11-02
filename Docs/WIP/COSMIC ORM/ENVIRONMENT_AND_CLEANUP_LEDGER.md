@@ -3312,3 +3312,8 @@ Reuse existing Railway CLI5.62.1/Windows DPAPI/source owner and shared HostedSou
 ENS candidate outcome: DPAPI before/candidate snapshots created once in shared HostedSourceRolloutCurrent; public reviews TestResults/EnsPublicSourceCurrent.9publisher/1actual-preset tests passed; processes terminal. No live settings mutation yet. Planned release journal LocalState/COSMIC/HostedEnsReleaseCurrent preserves code/settings publication intents and observed exact jobs; no new paid resource/environment. Shared runtimes/caches reused.
 
 ENS code publication: existing Development service jobdcf95c97-dd85-4b82-8f36-b65b8a257ef4 QUEUED for parenta20f35f9a85af3807f42e1273d7cc6e0fabb0934. Reuses hosted service; no additional cloud resource or environment. Durable code publication intent/observed journal at HostedEnsReleaseCurrent; compact observation TestResults/EnsPublicSourceCurrent/code-deployment-observation.json. No settings mutation/hosted test identities yet. Preserve exact job identity and existing candidate, do not restart/redeploy.
+
+
+### Eclipse interface review during ENS deployment wait - 2 November 2026
+
+Reused existing Eclipse/Solana source files and official Eclipse web documentation only. No native RPC, download/install/restore/build/environment/account/service/database or source owner created. Public review report Docs/WIP/COSMIC ORM/ECLIPSE_PUBLIC_SOURCE_STATUS.md. Existing resources retained; no cleanup allocation or new process/port. ENS exact jobdcf95c97 now BUILDING; source/candidate unchanged and settings unapplied.
