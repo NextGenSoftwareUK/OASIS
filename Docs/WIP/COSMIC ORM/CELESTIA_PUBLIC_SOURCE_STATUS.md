@@ -136,3 +136,10 @@ original hosted acceptance and only then public card. Hosted count stays51.
 | `TestResults/CelestiaPublicSourceCurrent/Http/prepared-presets.trx` | 3338 | `a365d25b9d072cced303407a6ec05aa80daba68e524d011f1da074fd8493639e` |
 | `TestResults/CelestiaPublicSourceCurrent/prepared-review.json` | 4023 | `83638bddfd5f485622ec9c4e2ce8241ad6a9307d5753e5831c21a2c8a96fa2ca` |
 | `TestResults/CelestiaPublicSourceCurrent/client-all-tests.log` | 10369 | `fd6e9006e1f82528635a8befaac89cc2fe4a32fb6e8ffdcdd0a99de455520d9e` |
+
+Development publication: parent9c0b5c591f6ecc13032d4c2fa51d9c2fc469750b and
+Core7edffc773e76ab565f204ec34e87520e020910e0 remote refs verified after ordinary
+fast-forward pushes. Manifest/gitlinks gate passes. Exact code job
+9af995a6-38c7-4c63-9059-c2bfafe4a90e last observed QUEUED. Three-key candidate
+remains unapplied; follow same job, no restart. Durable release intent/observation
+under LocalState/COSMIC/HostedCelestiaReleaseCurrent.
