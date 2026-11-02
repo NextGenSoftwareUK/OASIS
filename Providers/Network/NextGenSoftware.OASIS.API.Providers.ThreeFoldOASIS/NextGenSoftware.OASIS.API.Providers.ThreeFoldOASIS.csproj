@@ -58,4 +58,5 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup><ProjectReference Include="../../Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" /></ItemGroup>
 </Project>
