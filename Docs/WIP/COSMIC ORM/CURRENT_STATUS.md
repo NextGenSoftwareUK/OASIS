@@ -26,7 +26,7 @@ deep LINQ parity paused. Work red scopes only unless a bug is reproduced.
 ## Exact next step
 
 1. Preserve Blockscout and all prior completed owners/catalogues/ACKs/cohorts. Do not replay qualification/setup/saves/settings/activation merely to reproduce green. No additional Blockscout runtime work absent a reproduced bug; reliability/operator recovery stays explicitly open.
-2. Review next red ENS scope in ENS_PUBLIC_SOURCE_STATUS.md and existing ENSOASIS.cs. Verify current official name normalization/registry/resolver contracts and anonymous mainnet RPC eligibility before any native call. Reuse cached SDK/RPC helpers; record exact bounded three-name qualification intent first. Legacy fixed-subgraph adapter unchanged, gaps docs-only.
+2. ENS protocol review is complete in ENS_PUBLIC_SOURCE_STATUS.md: canonical Universal Resolver, explicit nick.eth/vitalik.eth/ur.integration-tests.eth catalogue, mandatory0x222 sentinel, no direct-registry substitution. Next implement bounded DNS/namehash/ABI codec plus rejection tests in the reused Ethereum test host, then exclusively record and execute the bounded mainnet qualification once. CCIP/Unicode/general ENS remain red; no native call/source/admission yet. Legacy fixed-subgraph adapter unchanged, gaps docs-only.
 3. No new source/owner/admission/card until native qualification, then capability/error/precision tests, actual spaced C# manager/LINQ3/2, HTTP/Mongo/privacy and original hosted/replica acceptance. No paid key/account/new node/runtime or silent offchain/endpoint fallback.
 4. Maintain full provider report/docs/ledger at milestones. Raw outputs only TestResults; durable identities/config/receipts LocalState/COSMIC. Whole ORM/HyperDrive programme incomplete.
 
