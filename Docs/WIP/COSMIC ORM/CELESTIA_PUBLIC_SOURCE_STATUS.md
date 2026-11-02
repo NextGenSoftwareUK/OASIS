@@ -1,8 +1,8 @@
 # Celestia public CQL source — interface review
 
-2 November 2026. Red/unadmitted. No native qualification, CQL implementation,
-source owner, hosted admission, public card or browser proof is established.
-Provider totals do not change.
+2 November 2026. Native read protocol qualified; CQL remains red/unadmitted.
+No CQL source owner, hosted admission, public card or browser proof established.
+Provider totals remain55integrated/51hosted; protocol reads are not CQL acceptance.
 
 ## Current source and contract
 
@@ -40,3 +40,40 @@ A returned extended header does not by itself prove independently verified
 consensus, blob inclusion, availability sampling or successful blob writes. Any
 such guarantees need their own implementation and proving tests. No new runtime,
 download, environment, test data or account was introduced by this review.
+
+
+## Native protocol milestone verified
+
+Canonical guarded .NET transport, no account or node installation: one
+header.NetworkHead and three header.GetByHeight requests all returned200.
+Frozen mainnet heights: 15521793, 15521794, 15521795. Returned chain ID celestia,
+canonical uint64 height, commit-height agreement, bounded reported block/data
+hashes and timestamp validated. One native test passes; five controlled cases
+cover valid input, wrong network, noncanonical/zero height and commit mismatch.
+
+Methods confirmed against [endpoint API GetByHeight](https://www.quicknode.com/docs/celestia/header-getByHeight)
+and [NetworkHead](https://www.quicknode.com/docs/celestia/header-networkHead).
+Reported block identity is structurally checked; header hash/validator signatures
+and data availability have not been independently verified. The exact original
+qualification intent/outcome/selected heights are retained under
+LocalState/COSMIC/CelestiaPublicQualificationCurrent. Do not replay the consumed
+native test or silently choose newer heights. CQL activation/query tests will
+be separate explicitly planned reads over this original catalogue.
+
+Proving test: Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS.UnitTests/CelestiaPublicNativeQualificationTests.cs.
+Next implement a separate bounded read-only CQL header source, with explicit
+configuration/capabilities, complete selection before paging, error propagation,
+controlled tests and a spaced/commented executable C# walkthrough. Legacy blob
+code unchanged; no native writes, federation or hosting claim yet.
+
+| Evidence | Bytes | SHA256 |
+|---|---|---|
+| `LocalState/COSMIC/CelestiaPublicQualificationCurrent/qualification.intent.json` | 282 | `9d02d3f5f211afafcacbb46d0c8ad58d6abd09435c5b967f95dde1d920cb8682` |
+| `LocalState/COSMIC/CelestiaPublicQualificationCurrent/qualification.observed.json` | 782 | `63ae4ef4746247a8ecead84ee7804f095bdfe058825985c2624ef69335ec3c8e` |
+| `LocalState/COSMIC/CelestiaPublicQualificationCurrent/selected-heights.json` | 67 | `e26e34d9b92d7ef5d38719cd98d839b3ed00b05a21a892ddf51d10ab2673db11` |
+| `TestResults/CelestiaPublicSourceCurrent/qualification-contract.trx` | 9251 | `56a53a01b2292044d46d6def31925f77c4a4b98af86aa4dd52b76d6138a43f46` |
+| `TestResults/CelestiaPublicSourceCurrent/native-qualification.trx` | 2790 | `084100fa8d3874c517658f600e50e8c97a2387f44d0ed36aff578920b1621a88` |
+| `TestResults/CelestiaPublicSourceCurrent/rpc-1.json` | 47264 | `f034d54d9306805053618f9ee67d6f943ccdfc68bb01438aa5ea61fbc7110e08` |
+| `TestResults/CelestiaPublicSourceCurrent/rpc-2.json` | 54729 | `dab7b445316d3b8665a7b3e5d456cd9b89e0533219c8ef3cd34116764d2675f4` |
+| `TestResults/CelestiaPublicSourceCurrent/rpc-3.json` | 43465 | `35bd984338b594233637405cde60c2d97471a84eb9a25ef4e0043c99ae97283d` |
+| `TestResults/CelestiaPublicSourceCurrent/rpc-4.json` | 41765 | `5dcbaa0bf1a51fd86e4ec3523460e9e7cfb5aec81adeae771cb04ab8885ca444` |
