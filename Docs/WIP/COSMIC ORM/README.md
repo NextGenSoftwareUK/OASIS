@@ -1,7 +1,8 @@
 # COSMIC ORM / CQL
 
 1. **[Current status — start here after compaction](CURRENT_STATUS.md)**
-- [Blockscout local CQL/C# and next HTTP gates](BLOCKSCOUT_PUBLIC_SOURCE_STATUS.md)
+- [ENS next interface review (unqualified)](ENS_PUBLIC_SOURCE_STATUS.md)
+- [Blockscout completed hosted proof and recovery limits](BLOCKSCOUT_PUBLIC_SOURCE_STATUS.md)
 - [Celestia completed hosted proof and scope](CELESTIA_PUBLIC_SOURCE_STATUS.md)
 - [Farcaster native availability gap (not admitted)](FARCASTER_PUBLIC_SOURCE_STATUS.md)
 - [Chainflip local HTTP/Mongo milestone and hosted gates](CHAINFLIP_PUBLIC_SOURCE_STATUS.md)
