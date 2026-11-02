@@ -12,9 +12,7 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
   These figures do not certify full ORM/native writes/reliability/uptime.
 - MongoDB, SQLite and Neo4j: **50/82 strict parity features each**.
   The original investor-demo subset is green.
-- Bittensor accepted and frozen. Native3/2, Mongo5/4, repeat0new/2existing,
-  foreign0private/3public, exactSQLite/Neo4j2each,2version1saves/pending0.
-  Original cohort frozen; no independent consensus or AI/subnet claim.
+- Bittensor accepted/frozen; detailed original proof in full provider report.
 - Zcash local acceptance:27adapter/config tests; actual manager/LINQ/CLI3/2;
   local HTTP3/2+Mongo5/4, foreign0private/3public,2SDKsaves/9receipts.
   Exact fixture cleaned and owned Mongo stopped. Original source is frozen.
@@ -29,13 +27,14 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
    **7f477378b02adda621376f88f309c9bf70675fd9**, Core
    **0659aa00ba26260ec4c06f196df7b60ee6c0df01**; latestGeoNFTfixes preserved.
    Manifest/gitlinks7Dockerfiles pass, remote pushes verified.
-2. Exact code job **aae1a2b0-8eca-43e7-98e8-2bf4a5c9305d BUILDING**.
-   ClickHouse3settingcandidate is prepared but UNAPPLIED. Observe same job:
+2. Exact code job **aae1a2b0-8eca-43e7-98e8-2bf4a5c9305d SUCCESS**.
+   ClickHouse3settings appliedonce/exactcandidate/per-keyACKs/DNAunchanged.
+   Activation78d92d9b-8e3f-4ad2-9be0-25b57bd6563a BUILDING; observe same job:
 
-   `python Scripts/Sandbox/Observe-HostedDeployment.py aae1a2b0-8eca-43e7-98e8-2bf4a5c9305d --expected-commit 7f477378b02adda621376f88f309c9bf70675fd9 --output TestResults/ClickHousePublicSourceCurrent/code-deployment-observation.json`
+   `python Scripts/Sandbox/Observe-HostedDeployment.py 78d92d9b-8e3f-4ad2-9be0-25b57bd6563a --expected-commit 7f477378b02adda621376f88f309c9bf70675fd9 --output TestResults/ClickHousePublicSourceCurrent/activation-observation.json`
 
-3. After exactSUCCESS, apply originalcandidate only with completebaselineequality,
-   activateonce, then run originalClickHousehostedcohort/audit/card. Durable
+3. After exactactivationSUCCESS, check discovery then run originalClickHouse
+   hostedcohort/audit/card once. No further settings submission. Durable
    `HostedClickHouseReleaseCurrent`/`HostedClickHousePublicSourceCurrent`.
    Independent audit2tests/16faults pass; combined3API+1tariff+4placeguards pass.
    Separate nativeMongo upstream test skipped/unconfigured, not counted as pass.
@@ -50,7 +49,7 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
    publisher10controls pass. Original localHTTP3/2+Mongo5/4/privacy0/3passed; fixturecleaned.
    Hostedcandidate prepared/4actualpresets pass; audit2tests/16faults pass. MergedlatestDevelopment8bfc03c82/Core87a63bb;
    combined3API+1tariff+4placeguards pass,1separatenativeMongo test skipped.
-   Next code release/activation/hostedacceptance; no settings applied.
+   Next code release/activation/hostedacceptance; settings appliedonce, activationBUILDING.
    Original absentStackOverflowtable failure retained; no hosted ClickHouse acceptance yet. Do not replay accepted Zcash.
 5. Durable Zcash state: `LocalState/COSMIC/HostedZcashPublicSourceCurrent`,
    `ZcashPublicQualificationCurrent`, `ZcashMongoHttpCurrent` (cleaned),
