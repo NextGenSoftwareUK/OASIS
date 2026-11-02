@@ -1,7 +1,7 @@
 # Eclipse public source — interface review
 
-2 November 2026. Native protocol qualified; CQL adapter/hosted admission/card
-remain red. No source owner allocated. Earlier no-probe proposals below are
+2 November 2026. Native protocol and actual local CQL console qualified; HTTP/hosted/card
+remain red. One retained source owner/config allocated. Earlier no-probe proposals below are
 historical. ENS scoped hosted milestone is complete; its records stay frozen.
 
 Existing provider: Providers/Network/NextGenSoftware.OASIS.API.Providers.EclipseOASIS/EclipseOASIS.cs.
@@ -108,3 +108,26 @@ SHA256 1a40cf9e8527ab3ad11c4a21a636bd6caab006bc6eaf445925eaa8648387d4c9.
 Next actual spaced C# manager/deferred-LINQ3/2 walkthrough with one retained
 source owner/config; then HTTP/Mongo/privacy/replicas/hosted/card gates. Counts
 remain58integrated/54hosted until actual integration is proved.
+
+## Actual C# console integration passed
+
+`Examples/CosmicCqlDemo/EclipsePublicWalkthrough.cs` and --eclipse-public use the
+production adapter and shared HolonManager/deferred-LINQ walkthrough. Full demo
+build0errors; final consumer-only copy build0errors after making the balance
+explanation readable. One actual frozen-binary invocation passed3full/2filtered
+records, with retained genesis checked on each read and process-wide rate admission.
+No wallet, source writes, Mongo copies or native qualification replay.
+
+Retained source/owner/config/console intent/ACK:
+LocalState/COSMIC/HostedEclipsePublicSourceCurrent. Source SHA256
+`4adf2a556b32499ea45c3577c90c4304546f94a319b4a055882a8947a20afccf`, binary SHA256 `f3e9c61fbaf99f3bc955eef234183957c6fcf73ba24a2eb49ff769fec3a3e15e`.
+Raw console logs and build output summaries: TestResults/EclipsePublicSourceCurrent.
+Do not rerun completed acceptance or replace owner/config to reproduce green.
+[Developer guide](../../Devs/ECLIPSE_PUBLIC_ACCOUNT_CQL_GUIDE.md) explains exact
+query scope, native ETH9decimal precision, rate policy and trust limitations.
+
+59integrated query types now include52bounded public/source profiles; hosted
+remains54/browser5verified49open. Next HTTP compiler/startup registration,
+query-only tariff and API controls, then local native/Mongo/privacy fixture and
+original hosted/save/replica/card acceptance. Deep ORM/consensus/settlement
+verification remains outside this bounded read profile.

@@ -8,6 +8,7 @@
 
   <!-- Reuse the existing WEB4/Core and SQLite implementations; no demo query engine. -->
   <ItemGroup>
+    <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.EclipseOASIS/NextGenSoftware.OASIS.API.Providers.EclipseOASIS.csproj" />
     <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.ENSOASIS/NextGenSoftware.OASIS.API.Providers.ENSOASIS.csproj" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FantomOASIS/NextGenSoftware.OASIS.API.Providers.FantomOASIS.csproj" />
