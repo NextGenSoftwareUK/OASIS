@@ -211,3 +211,20 @@ Next prepare a protected hosted candidate from current live settings, changing
 only ENS source/admission/examples; preserve unrelated and concurrent settings.
 Test that candidate/publisher and actual four presets before any deployment.
 Hosted counts remain53; ENS card/browser still unverified.
+
+## Hosted candidate controls passed
+
+Protected before/candidate snapshots exist once at
+LocalState/COSMIC/HostedSourceRolloutCurrent/ens-public-*-variables.dpapi.
+Publisher9pure tests and actual four-preset planner1test passed0failed. The
+three changed keys are CQL_ENS_PUBLIC_SOURCE_JSON, PREPARED_STORAGE_ADMISSION_JSON
+and CQL_HOSTED_QUERY_EXAMPLES__ENSOASIS. All unrelated variables/DNA preserved;
+zero-cost IPFS tariff cloned only for explicit ENS query permission. Encryption
+requires EnsName explicitly queryable if enabled. No native-write admission.
+
+Public-only review and test output: TestResults/EnsPublicSourceCurrent/
+prepared-review.json, actual-preset-review.json, publisher-controls.log and
+prepared-presets.trx. Protected snapshots must never be printed or committed.
+No live settings changed during preparation. Next publish verified Core/parent
+code, observe that exact code job, then apply the existing candidate once and
+observe one settings activation before original-owner hosted acceptance.
