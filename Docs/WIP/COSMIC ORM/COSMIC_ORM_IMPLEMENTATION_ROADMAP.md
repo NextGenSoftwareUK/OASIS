@@ -11,4 +11,4 @@ Updated 1 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CUR
 
 Only HyperDrive V2 receives implementation changes; document legacy gaps without fixing legacy code. Preserve root-cause-only policy and explicit capability errors. No overall completion percentage follows from focused demos.
 
-[Acceptance checklist](CQL_PARITY_CHECKLIST.md) Â· [Detailed backlog](AFTER_DEMO_BACKLOG.md) Â· [Original requirements/history](Archive/COSMIC_ORM_IMPLEMENTATION_ROADMAP_history_2026-10-27.md) Â· [Prior milestone history](Archive/COSMIC_ORM_IMPLEMENTATION_ROADMAP_before_fantom_release_2026-11-01.md).
+[Acceptance checklist](CQL_PARITY_CHECKLIST.md) · [Detailed backlog](AFTER_DEMO_BACKLOG.md) · [Original requirements/history](Archive/COSMIC_ORM_IMPLEMENTATION_ROADMAP_history_2026-10-27.md) · [Prior milestone history](Archive/COSMIC_ORM_IMPLEMENTATION_ROADMAP_before_fantom_release_2026-11-01.md).

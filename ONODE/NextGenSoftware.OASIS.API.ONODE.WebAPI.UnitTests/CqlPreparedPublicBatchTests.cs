@@ -124,6 +124,10 @@ public sealed class CqlPreparedPublicBatchTests
     public async Task ActualTelosCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [PublicBatchReviewFact]
+    public async Task ActualEosioCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
     private static async Task CheckPreparedBatch(int expected)
     {
         var path = Environment.GetEnvironmentVariable("COSMIC_CQL_PUBLIC_REVIEW")!;
@@ -150,6 +154,7 @@ public sealed class CqlPreparedPublicBatchTests
                 var type = Enum.Parse<ProviderType>(profile.Name);
                 ICosmicQueryStorageProvider source = type switch
                 {
+                    ProviderType.EOSIOOASIS => Providers.EOSIOOASIS.EosioPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.TelosOASIS => Providers.TelosOASIS.TelosPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.FilecoinOASIS => Providers.FilecoinOASIS.FilecoinPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.TONOASIS => Providers.TONOASIS.TonPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),

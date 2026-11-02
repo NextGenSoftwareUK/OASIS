@@ -2,7 +2,7 @@
 
 Updated 1 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state and the exact next action.
 
-1. Preserve completed Filecoin/Fantom acceptance/card/public-byte proofs; Telos native/API/Mongo/hosted/card/public-byte gates now pass; EOSIO native source/28controls/CLI3/2 now pass; implement its red API/Mongo/hosted gates next. Current evidence is43hosted HTTP providers including Fantom; preserve its completed original cohort and never replay save intents.
+1. Preserve completed Filecoin/Fantom acceptance/card/public-byte proofs; Telos native/API/Mongo/hosted/card/public-byte gates now pass; EOSIO native source/28controls/CLI3/2 now pass; Core/API/local Mongo/privacy/prepared gates now pass; publish and verify its red hosted/card gates next. Current evidence is43hosted HTTP providers including Fantom; preserve its completed original cohort and never replay save intents.
 2. Keep one filtered native query and one Mongo federated preset per admitted provider, with commented C# examples and sandbox links. Preserve completed privacy, reuse and replica proofs.
 3. Expand remaining red provider scopes with explicit consistency semantics, bounded capability-aware planning, native tests, actual HTTP proof and honest public labels. Rejected RPCs are not implemented capabilities.
 4. Complete browser gates when browser control is available; currently 5 proved/38 open. HTTP and byte matching do not prove interaction.
@@ -12,4 +12,4 @@ Updated 1 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CUR
 
 Hosted PostgreSQL, Azure Cosmos and Oracle remain deferred. V2 changes only; legacy gaps documentation-only. Preserve original source catalogues, owners and all acknowledged cohorts.
 
-[Strict acceptance](CQL_PARITY_CHECKLIST.md) Â· [Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) Â· [Backlog](AFTER_DEMO_BACKLOG.md) Â· [History](Archive/CQL_COMPLETION_ROADMAP_before_fantom_release_2026-11-01.md).
+[Strict acceptance](CQL_PARITY_CHECKLIST.md) · [Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) · [Backlog](AFTER_DEMO_BACKLOG.md) · [History](Archive/CQL_COMPLETION_ROADMAP_before_fantom_release_2026-11-01.md).
