@@ -108,10 +108,72 @@ the configured alias, not a globally deduplicated room entity.
 
 ## Hosted demo status
 
-Hosted activation/admission, HTTP native3/2, federated Mongo5/4, privacy,
-replication and sandbox-card/browser gates are separate acceptance work. Do not
-infer that they pass from this local source or the anonymous native qualifier.
+Local shipping HTTP endpoints pass native3/2, federated Mongo5/4 and foreign
+avatar private0/public3 checks. Two SDK-owned private version1 copies are
+journalled; the owned disposable fixture database was removed after success.
+The protected hosted candidate has four planner-verified presets, but has not
+been applied. Hosted activation, replication, reuse and sandbox-card/browser
+gates remain separate acceptance work.
 See the maintained [Matrix status](../WIP/COSMIC%20ORM/MATRIX_PUBLIC_SOURCE_STATUS.md).
+
+## HTTP examples
+
+Use normal WEB4 authentication and query admission. A host must explicitly
+configure `CQL_MATRIX_PUBLIC_SOURCE_JSON`, query-only permission, a query tariff
+and examples. Client JSON cannot grant these permissions. Do not treat the
+examples below as proof that Matrix is already available on a particular host.
+
+Send this body to `POST /api/data/query-cql`:
+
+```json
+{
+  "provider": "MatrixOASIS",
+  "orderBy": "None",
+  "take": 25,
+  "includeMetadata": true,
+  "filters": [{
+    "metadataPath": ["MatrixRoomAlias"],
+    "scalar": "String",
+    "operator": "In",
+    "value": ["#matrix:matrix.org", "#synapse:matrix.org"]
+  }]
+}
+```
+
+For `POST /api/data/query-cql/federation`, put that selection without its
+`provider` property into `source`:
+
+```json
+{
+  "scope": "Named",
+  "providers": ["MongoDBOASIS", "MatrixOASIS"],
+  "source": {
+    "orderBy": "None",
+    "take": 25,
+    "includeMetadata": true,
+    "filters": [{
+      "metadataPath": ["MatrixRoomAlias"],
+      "scalar": "String",
+      "operator": "In",
+      "value": ["#matrix:matrix.org", "#synapse:matrix.org"]
+    }]
+  },
+  "identityMode": "PreserveCopies",
+  "maximumProviderAttempts": 2,
+  "maximumDurationMilliseconds": 30000,
+  "take": 25
+}
+```
+
+Federation reads existing records; it does not create Mongo copies. With the
+two prepared private snapshots, the full3-alias selection returns5physical
+copies and the filtered2-alias selection returns4. A different avatar sees the
+public native observations but cannot read those private copies.
+
+The local SDK fixture copies all projected metadata. Generic browser demo
+preparation copies identity/name/description/provenance and the alias query key,
+not the full native payload. When encryption is enabled, hosted enrollment
+requires `MatrixRoomAlias` explicitly listed in its queryable metadata policy.
 
 Official contracts: [alias resolution](https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3directoryroomroomalias)
 and [room ID changes](https://matrix.org/blog/2025/09/17/matrix-v1.16-release/).
