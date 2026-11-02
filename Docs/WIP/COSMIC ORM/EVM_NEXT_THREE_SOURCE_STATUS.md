@@ -143,3 +143,10 @@ TestResults/EvmBreadthReadinessCurrent/berachain-prepared-review.trx passed=1 SH
 TestResults/BerachainPublicSourceCandidateCurrent/berachain-mongo-http.trx passed=1 SHA256 5a8d858656992c145b8e0ba85d05e44d9d443ef0a97e418b4a842f53d78351fa
 
 Berachain hosted completion: exact c6fb86d9 SUCCESS at1b2626499/Core08c4977. Native3/2, Mongo2, paired5/4, repeat0writes, foreign-private0, replicas2/2. `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedQueryAcceptance-BerachainOASIS`: 3081logicalbytes, created1November by hosted gate; durable protected2visitor identities,2remote private Mongo snapshots and save/completion ACKs; no local service/port. Preserve original identity/receipts through reviewed normal demo expiry; never replay after raw evidence cleanup. Raw3reports and run log under TestResults/HostedCqlIntegrationCurrent are regenerable evidence, no raw docs. No source/chain write or installation.
+
+
+## Rootstock explicit canonical-at-read qualification — 1 November 2026
+
+Original finalized-header HTTP400 retained. Separate one-attempt read-only contract at the same official endpoint verified chain30 and the previously observed genesis, then retrieved a canonical latest header. The first EIP1898 balance request (`blockHash` plus `requireCanonical:true`) returned HTTP200 with JSON-RPC-32603/internal server error. Qualification failed; no retry, block-number substitution, source catalogue, CQL admission or hosted claim. This proves rejection of this request, not that every Rootstock node lacks the feature.
+
+Evidence: `TestResults/RootstockPublicSourceCurrent/LatestCanonical/qualification.json`, SHA256 `56a72e332de7a7dc4c2010f33bd14140d5d38586b0ff59655faeb1d9aa268f39`; four bounded raw responses retained beside it. Durable intent `LocalState/COSMIC/HostedRootstockPublicSourceCurrent/latest-canonical-qualification.intent.json` prevents replay. Next: investigate documented native canonical snapshot semantics or another explicitly qualified endpoint before implementing a profile. [Official endpoint/chain reference](https://dev.rootstock.io/dev-tools/wallets/metamask/).
