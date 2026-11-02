@@ -62,3 +62,29 @@ Primary contracts: [VAA format and reorg semantics](https://wormhole.com/docs/pr
 [public API guide](https://wormhole.com/docs/products/messaging/guides/wormholescan-api/).
 The native byte interpretation follows these contracts; none of their setup or
 installation examples were executed. Existing Python/runtime/fixtures reused.
+
+## Native CQL source and actual C# walkthrough complete
+
+`WormholePublicOperationMetadataSource` compiles and35source controls pass,
+zero skips. Covers equality/membership/paging, complete-selection failure before
+empty pages, body pins/framing, exact integers, cancellation, unknown/inactive
+source, budgets, native-write refusal and invalid catalogues. Actual executable
+C# manager/deferred LINQ returns3full/2filtered. All original VAA body pins match;
+no Mongo/account/dispatch/native writes created. One projection owner/config
+retained under `LocalState/COSMIC/HostedWormholePublicSourceCurrent`; exclusive
+console intent consumed. No rerun/new owner to reproduce green.
+
+[Developer guide, spaced C# example and trust limits](../../Devs/WORMHOLE_PUBLIC_OPERATION_CQL_GUIDE.md).
+HTTP/admission/localMongo/hosting/card remain red. Current local query types54
+(3canonical/47bounded public-source/4local owned implementations), hosted49.
+Next implement explicit HTTP compiler/read-profile activation and query-only
+admission/presets, then local native3/2+Mongo5/4/privacy/replicas before hosting.
+Original legacy tracker is unchanged; source writes remain unsupported.
+
+| Artifact | Bytes | SHA256 |
+|---|---|---|
+| `TestResults/WormholePublicSourceCurrent/Offline/wormhole-source.trx` | 54109 | `113b2d31de26bfa292bfaacc528638faaefba2cf9ea69c3d3487121d2a86008e` |
+| `TestResults/WormholePublicSourceCurrent/console-qualification.log` | 1807 | `333e517d53fd629ad151f473497971e44af3fb91a053b09f7262068306c5b03b` |
+| `LocalState\COSMIC\HostedWormholePublicSourceCurrent\source.json` | 550 | `e358155de6cae05f61e7fb8f67d13b198948705961628cf2b149347c4e0db434` |
+| `Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.WormholeOASIS/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.WormholeOASIS.dll` | 44032 | `0e2a6945e8eff8cb3bc86d56435a3c51c5c3e933e9a1726baffa82c02b01154b` |
+| `Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll` | 901632 | `560cfa366ed8725d3c368fee0ed2d720dbe62eb0a8475f90812fa369451cecf4` |

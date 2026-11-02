@@ -73,3 +73,5 @@ Update CURRENT_STATUS.md and the full provider report together with the affected
 Azure publication milestone:40scoped hosted HTTP providers,5browser/35open; live Azure Blob CQL/Mongo/privacy/reuse/replicas and website9694621 byte proof are complete. Current recovery entry remains CURRENT_STATUS.md; [Azure evidence](AZURE_PUBLIC_BLOB_STATUS.md).
 
 - [Fantom native/local CQL status](FANTOM_PUBLIC_SOURCE_STATUS.md): explicit canonical-at-read balances and readable [local guide](../../Devs/FANTOM_PUBLIC_ACCOUNT_CQL_GUIDE.md); hosted enrollment pending.
+
+Wormhole local source: [current native/CQL proof and HTTP next gate](WORMHOLE_PUBLIC_SOURCE_STATUS.md), [C# configuration and trust guide](../../Devs/WORMHOLE_PUBLIC_OPERATION_CQL_GUIDE.md).
