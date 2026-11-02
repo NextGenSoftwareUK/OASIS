@@ -45,7 +45,9 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 5. ThreeFold adapter33controls plus new shared-demo red/green pass. Actual
    compiled manager/LINQ/CLI3/2 passed over originalnodeIDs1/2/3, no provisioning
    or writes. Shared demo reads its native metadata key from capabilities.
-   Next ThreeFoldHTTPadmission/localMongo/hosted gates; acceptedCLI frozen.
+   API admission 3/3, Core tariff 1/1 and original local HTTP/Mongo gate pass.
+   Native 3/2, Mongo 5/4, foreign 0 private/3 public; exact fixture cleaned.
+   Next: prepare/test four hosted presets, preserve upstream, deploy and audit.
    Durable `HostedThreeFoldPublicSourceCurrent`/`ThreeFoldPublicQualificationCurrent`.
 
 ## Remaining gates
@@ -53,7 +55,7 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 - [ClickHouse](CLICKHOUSE_PUBLIC_SOURCE_STATUS.md): hosted proof/audit pass;
   card/static assets pass; browser remains open. Keys printable ASCII without spaces.
 - [ThreeFold](THREEFOLD_PUBLIC_SOURCE_STATUS.md): actualnativeCQL3/2pass;
-  HTTP/Mongo/tariff/hosted/card remain open. No compute provisioning/storageclaim.
+  HTTP/Mongo/tariff pass; hosted presets/activation/audit/card remain open.
 - [Zcash details](ZCASH_PUBLIC_SOURCE_STATUS.md): hosted proof/card/static bytes pass; browser open.
 - [Ceramic qualification](CERAMIC_PUBLIC_SOURCE_STATUS.md): pinned official
   client reviewed; original Clay healthGET failed before HTTP (URLError, cause
@@ -78,7 +80,7 @@ Use build lease with `/m:2 /nr:false /p:UseSharedCompilation=false`.
 Raw output only `TestResults/`; stable identity/proof `LocalState/COSMIC/`.
 Named-file commits only; fetch/preserve upstream before integration.
 
-Disk target120GB unmet; latest measured free58.27GB. Direct Zcash build output
+Disk target120GB unmet; latest measured free57,145,856,000 bytes. Direct Zcash build output
 57,798,520bytes measured. Previously policy-denied188folders/2.155GB and shared
 external outputs preserved; no cleanup retry/bypass. Personal Miniforge/models
 KEEP. No owned local DB/build process remains. Shared provider data preserved.
