@@ -1,4 +1,6 @@
 using System;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -51,9 +53,17 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
 {
     private readonly IReadOnlyDictionary<ProviderType, CqlReadSourceProfile> profiles;
 
+    private readonly ILogger<CqlHostedSourceRegistry> logger;
+
     public CqlHostedSourceRegistry(IEnumerable<CqlReadSourceProfile> profiles = null)
-        => this.profiles = (profiles ?? Array.Empty<CqlReadSourceProfile>())
+        : this(profiles, NullLogger<CqlHostedSourceRegistry>.Instance) { }
+
+    public CqlHostedSourceRegistry(IEnumerable<CqlReadSourceProfile> profiles, ILogger<CqlHostedSourceRegistry> logger)
+    {
+        this.profiles = (profiles ?? Array.Empty<CqlReadSourceProfile>())
             .ToDictionary(profile => profile.Storage.ProviderType.Value);
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
 
     public IOASISStorageProvider Find(ProviderType provider)
         => profiles.TryGetValue(provider, out var profile) ? profile.Storage
@@ -81,9 +91,24 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         // Await the owning provider operation; do not detach it on an observation timeout.
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(30));
-        var activation = await activationProvider.ActivateQuerySourceAsync(deadline.Token);
-        cancellationToken.ThrowIfCancellationRequested();
-        if (activation == null || activation.IsError || !activation.Result || !storage.IsProviderActivated)
-            throw new InvalidOperationException("CQL_SOURCE_ACTIVATION_FAILED", activation?.Exception);
+        var policy = profile?.ActivationPolicy ?? CqlReadSourceActivationPolicy.None;
+        for (int attempt = 1; ; attempt++)
+        {
+            // One shared30s budget includes every health-check attempt and delay.
+            // Each native operation is awaited before any subsequent attempt.
+            deadline.Token.ThrowIfCancellationRequested();
+            var activation = await activationProvider.ActivateQuerySourceAsync(deadline.Token);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (activation != null && !activation.IsError && activation.Result && storage.IsProviderActivated)
+                return;
+            var failure = new InvalidOperationException("CQL_SOURCE_ACTIVATION_FAILED", activation?.Exception);
+            int? status = policy.RetryStatus(activation?.Exception, attempt);
+            if (!status.HasValue || deadline.IsCancellationRequested) throw failure;
+            CqlNativeFailureDiagnostics.Record(logger, provider, true, failure);
+            logger.LogWarning(new EventId(4832, "CqlSourceActivationRetry"),
+                "CQL source activation retry provider={Provider} completedAttempt={Attempt} maximumAttempts={MaximumAttempts} delayMilliseconds={DelayMilliseconds} httpStatus={HttpStatus}",
+                provider, attempt, policy.MaximumAttempts, (int)policy.RetryDelay.TotalMilliseconds, status.Value);
+            await Task.Delay(policy.RetryDelay, deadline.Token);
+        }
     }
 }

@@ -1,5 +1,7 @@
 # CQL architecture
 
+Host-owned read-source activation recovery is explicit per CqlReadSourceProfile. Blockscout opts into at most2awaited health checks, one5s delay, shared30s aggregate deadline, and only typedHTTP500/502/503/504. Other profiles default to1attempt. No user query/write/signing operation, auth/rate-limit error, malformed data or timeout is retried. Failed attempts are logged with safe typed event4831 and recovery event4832; exhausted recovery remains unavailable.
+
 Blockscout uses shared query/read-only activation contracts with bounded configured address lookup and full validation before paging. Exact nullable balances/update heights and a public metadata allowlist avoid fabricated zeroes/private-field leakage. Explorer instance is part of source provenance/projected IDs. [Contract and limits](../../Devs/BLOCKSCOUT_PUBLIC_ADDRESS_CQL_GUIDE.md). Original read timeout preserved; successful read-only completion is functional proof, not reliability certification.
 
 Celestia implements the shared ICosmicQueryStorageProvider/ICosmicReadOnlyQueryActivation contracts as a separate pinned-header read profile. Its explicit height catalogue maps to node-reported block IDs; bounded full selection is validated before paging, with native writes refused. This is not trusted consensus or data-availability verification. [Configuration, capabilities and proof limits](../../Devs/CELESTIA_PUBLIC_HEADER_CQL_GUIDE.md). Hosted HTTP3/2+Mongo5/4/reuse/privacy/exact replicas2/2 verified; card/public bytes6a863c7 verified; browser interaction remains separate.
