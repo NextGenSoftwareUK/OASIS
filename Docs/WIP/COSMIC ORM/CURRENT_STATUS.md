@@ -4,41 +4,43 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 
 ## Verified scope
 
-- 52 integrated query types: 3 canonical adapters, 45 bounded public/source profiles, 4 local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
-- 47 providers have scoped hosted functional HTTP proof at their recorded releases. Browser proof: 5; 42 browser gates remain open. These are not full ORM/native-write certifications.
-- MongoDB/SQLite/Neo4j parity: 50/82 checklist rows each; original investor-demo subset green. Work red rows only unless a reproducible bug appears.
-- Latest functional provider proof: Nostr signed public events (earlier intermittent query errors remain unresolved). Native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen.
-- Website7e2046d publishes Nostr/BlueSky/ChainLink/EOSIO/Telos/Filecoin cards and pinned setup/C#/HTTP links;99client tests pass. Public HTML/scripts match exact git blobs. Browser interaction remains separate.
-- Generic browser Mongo preparation copies identity/name/description/provenance, not all native metadata. Full payload mapping remains red in AFTER_DEMO_BACKLOG.md.
+- 52 integrated query types: 3 canonical adapters,45bounded public/source profiles,4local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
+- 48 scoped hosted functional HTTP proofs at recorded releases. Browser5verified/43open. These are not full ORM/native-write/reliability certifications.
+- MongoDB/SQLite/Neo4j parity50/82rows each; original investor-demo subset green. Work red rows only unless a reproducible bug appears.
+- Latest addition Matrix: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each pass. Two version1 saves/zero pending intents; original cohort frozen.
+- Matrix local source30tests, native qualifier4controls, actual HolonManager/LINQ CLI3/2, Core1/API3/localHTTP1/publisher9/prepared-presets1 pass. Frontend101tests pass.
+- Website main still7e2046d/Nostr at this checkpoint. Matrix pending draft0d8928e and alias-bounds2ccf6f8 are task-only; publish accurate HTTP labels next.
+- Generic browser copies retain identity/name/description/provenance and the native query key, not full native payload. Full safe payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: Matrix local gates verified; code live; settings activation building
+## Current phase: Matrix hosted functional acceptance complete; publish card
 
-- BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6dfdbc6c SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen. Cached public AppView only; generic copies retain identity/name/description/provenance, not all native metadata. Card published/byte-verified; browser unverified.
-- Existing local gates:37source controls, actual CLI3/2, Core1/API2/localHTTP1/publisher9/prepared1/client1. No replays or new cohorts.
+- Parent Development7b45ee85628bd6d1ceeaf769d4c1bcc44ccb465b/Coredd2c32c8925aaf53017f4fedc1d1f11d330a55e3 refs verified; manifest/gitlinks pass.
+- Code jobd398b754-8d88-4837-a934-44e4cd9aad0d SUCCESS. Three settings applied exactly once/verified with no per-key deploys. Settings jobaaff57a2-a6ed-4e0e-939b-712420bd9d4e SUCCESS at the same parent SHA. Task branch restored after matching-release application.
+- Source/owner/config/ACKs: LocalState/COSMIC/HostedMatrixPublicSourceCurrent. Release journals: HostedMatrixReleaseCurrent. Protected settings snapshots/intents/ACKs: HostedSourceRolloutCurrent/matrix-public-*.
+- Original hosted cohort: LocalState/COSMIC/HostedQueryAcceptance-MatrixOASIS. Immutable cql-http-acceptance.acknowledged.json verifies IDs, source owner/keys, copies, provenance, versions, visibility, exact replicas, two operation ACKs and zero pending intents. Do not rerun/resave/replace the owner.
+- Raw proofs: TestResults/HostedCqlIntegrationCurrent/MatrixOASIS-{native-http,client-http-flow,isolation-http}.json; hashes in MATRIX_PUBLIC_SOURCE_STATUS.md. Browser false.
 
 ## Exact next actions
 
-1. Preserve BlueSky original cohort/ACKs; no reapply/redeploy/resave. Websiteac0ca0c3cffea71aa9b99ca437d2ee46fa20d9c1 publishes BlueSky with pinned guidea10c6661c and C#f36dd0d56 links. All98client tests pass. Public HTML171143bytes/SHA256dfa7084ba40e8fe691eb2fbf7f9c1c4d9cda7dcdcbade32026f6f9d0fd7fceee and both scripts match exact git blobs. Browser interaction remains open.
-2. Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card published/byte-verified; browser open. Full functional ACK and separate native-read-completion ACK retained under HostedQueryAcceptance-NostrOASIS. All original source/actor/copy identities frozen; no rerun or resave.
-3. Website7e2046de25a40a84a289a3c73da2bc7e2e25b885 publishes Nostr with pinned guide9961fde00/C#6ee3ebfcd links and explicit unresolved-intermittency/copy-scope limits.99client tests pass. Public HTML173395bytes/SHA256dde3093ce9253829f3355cca80ff7bf0636d7e1a221c8c85ddabbf240c7d9b70 and both scripts match exact git blobs. Browser interaction remains unverified. Matrix local source30tests/CLI3/2, Core query-only admission1/API3/local HTTP1/publisher9/actual prepared presets1 pass. HTTP native3/2, Mongo5/4, foreign-private0/public3; two version1 SDK saves,9query receipts; exact owned DB removed and Mongo stopped. Source/fixture owner/ACKs retained. Prepared three-key candidate applied exactly once and verified; no per-key deploys. Code7b45ee856/Coredd2c32c Development refs and code jobd398b754 SUCCESS verified. Settings activation job aaff57a2-a6ed-4e0e-939b-712420bd9d4e now BUILDING at that same parent SHA. Next poll that exact settings job with Observe-HostedDeployment.py; after SUCCESS run Verify-HostedQuerySource.py MatrixOASIS --prepare once for the original hosted cohort, then preserve owner/ACKs and verify reuse/privacy/replicas before publishing card. No reapply/reprepare/redeploy/new owner. Task branch restored after matching-release application. Frontend bounds2ccf6f8/101tests and pending card0d8928e remain task-only. See MATRIX_PUBLIC_SOURCE_STATUS.md. Hosted remains47; Matrix not yet a live proof. Keep earlier Nostr intermittent failures open; capture any recurrence with deployed safe diagnostics, no speculative fix or green hardening.
+1. Commit/push current Matrix proof/guide docs, then replace pending frontend card text with verified hosted scope and pinned guide/C# links. Preserve browser and generic-copy limits.
+2. Fetch Web4Site origin; preserve concurrent changes. Publish verified task branch to main without force, then compare public HTML/scripts against exact commit bytes. No browser control or new owner request.
+3. Update this status, full provider report and ledger with website commit/public hashes. Keep hosted count48/browser5/open43; card publication is not browser proof.
+4. Next red breadth scope: inspect StoryProtocolOASIS and current official mainnet RPC/network contract; qualify one fixed public endpoint before any capability/admission claim. No key/account/source write or new environment without need. Farcaster stays unadmitted: its public Pinata Hub failed before HTTP and a separate DNS probe returned name error; original evidence preserved.
 
-While Matrix queues: Farcaster anonymous Pinata Hub qualifier failed before HTTP; separate DNS probe confirms name error.4offline parser controls pass, no CQL admission/source owner/account created. Original evidence retained; see FARCASTER_PUBLIC_SOURCE_STATUS.md. Do not retry/switch to paid Neynar silently.
+## Other preserved checkpoints and open issues
 
-## Durable state and rules
+- BlueSky/ChainLink/EOSIO/Telos/Filecoin original sources/cohorts/ACKs are frozen. See dedicated *_PUBLIC_SOURCE_STATUS.md reports; no reapply/redeploy/resave merely for another green run.
+- Nostr functional HTTP/card/public bytes pass, but earlier intermittent query503cause remains unresolved despite8passing diagnostic reads. Deployed safe diagnostics are ready; capture recurrence, no speculative fix or green hardening.
+- Rootstock/TRON failed native qualifications remain preserved/unadmitted. Farcaster qualifier4offline tests are parser controls, not native/CQL proof.
 
-- Work only `C:/Source/OASIS-cosmic` on `work/cosmic-cql-ton-public`; Core branch `work/cosmic-cql-google-public`. Frontend `C:/Source/Web4Site/work/cosmic-cql`. Never edit/build original OASIS checkout.
-- Previous Telos source/ACKs: `LocalState/COSMIC/HostedTelosPublicSourceCurrent`; cleaned local fixture journals: `LocalState/COSMIC/TelosMongoHttpCurrent`; code publication/job ACKs: `LocalState/COSMIC/HostedTelosReleaseCurrent`.
-- EOSIO source/native ACKs: LocalState/COSMIC/HostedEosioPublicSourceCurrent; local journal EosioMongoHttpCurrent; release ACKs HostedEosioReleaseCurrent; frozen hosted cohort HostedQueryAcceptance-EOSIOOASIS. Exact paths/evidence in EOSIO_PUBLIC_SOURCE_STATUS.md.
-- Protected settings snapshots/intents/ACKs: `LocalState/COSMIC/HostedSourceRolloutCurrent/telos-public-*`. Never print their contents or overwrite/replay journals.
-- Raw logs/results: worktree `TestResults/` only. Durable identities/config/receipts stay in LocalState. Ledger: ENVIRONMENT_AND_CLEANUP_LEDGER.md (mixed encoding; append UTF8 bytes). Unknown root `logs` preserved.
-- Build under the existing provider lease with `/m:2 /nr:false /p:UseSharedCompilation=false`. Reuse SDK10.0.401/Node24.19.0/Python3.12/Mongo8.3.11; no new environment planned. No production/master promotion.
-- Completed hosted/native/local cohorts are frozen; never resave acknowledged copies or recreate catalogue owners. Existing native failure diagnostics for TRON/Rootstock are preserved, not blindly retried.
+## Durable rules and remaining full scope
 
-## Deferred and remaining full scope
-
-- Hosted Azure Cosmos, Oracle and PostgreSQL explicitly deferred by David. No setup re-ask or paid account/resource. Public Azure Blob and AWS S3 are already hosted; local/emulator proof is not owned hosted-database proof.
-- Browser/OS control remains closed; no automation/repeat owner request. Solana and other browser gates remain open.
+- Work/build/test only C:/Source/OASIS-cosmic on work/cosmic-cql-ton-public; Core work/cosmic-cql-google-public. Frontend C:/Source/Web4Site/work/cosmic-cql. Never edit/build original OASIS checkout.
+- Raw logs/results belong in worktree TestResults; durable identities/config/receipts in LocalState/COSMIC. Ledger ENVIRONMENT_AND_CLEANUP_LEDGER.md is mixed encoding: append UTF8 bytes only. Preserve unknown root logs.
+- Reuse SDK10.0.401/Node24.19.0/Python3.12/Mongo8.3.11 and existing environments. Build under provider lease with /m:2 /nr:false /p:UseSharedCompilation=false. No production/master promotion or paid hosting.
+- Hosted Azure Cosmos, Oracle and PostgreSQL explicitly deferred by David; no setup re-ask or paid account/resource. Public Azure Blob/AWS S3 are already hosted; local/emulator proof is not owned hosted-database proof.
+- Browser/OS control remains closed; no repeat owner request. Solana and other browser gates remain open.
 - Full tracking/save ownership, atomic concurrency, children/depth/query parameters, rollback/history/deltas, migration/placement and broader HyperDrive operational acceptance remain on the roadmap. No overall completion percentage follows from demos.
 - Deep entity-selected terminals, unrestricted POCO mapping and migrations tooling stay deferred behind demo breadth. V2 implementation only; legacy gaps documentation-only.
 
-[ChainLink proof](CHAINLINK_PUBLIC_SOURCE_STATUS.md) | [EOSIO proof](EOSIO_PUBLIC_SOURCE_STATUS.md) | [Telos proof](TELOS_PUBLIC_SOURCE_STATUS.md) | [Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) | [Manual](CQL_MANUAL.md) | [Architecture](CQL_ARCHITECTURE.md) | [Parity](CQL_PARITY_CHECKLIST.md) | [Backlog](AFTER_DEMO_BACKLOG.md) | [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
+[Matrix proof](MATRIX_PUBLIC_SOURCE_STATUS.md) | [Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) | [Manual](CQL_MANUAL.md) | [Architecture](CQL_ARCHITECTURE.md) | [Parity](CQL_PARITY_CHECKLIST.md) | [Backlog](AFTER_DEMO_BACKLOG.md) | [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).

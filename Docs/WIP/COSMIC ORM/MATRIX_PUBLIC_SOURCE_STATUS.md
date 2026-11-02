@@ -1,8 +1,7 @@
 # Matrix public room-alias qualification
 
-Updated 2 November 2026. Local source, actual manager/LINQ and native/Mongo HTTP gates verified.
-Code deployment and three-key settings application verified; settings activation,
-hosted HTTP/replication and browser acceptance remain pending.
+Updated 2 November 2026. Hosted bounded functional HTTP gates pass.
+Sandbox card publication and browser interaction remain separate gates.
 
 ## Verified
 
@@ -52,41 +51,22 @@ do not rerun them or remove their guards to obtain a new green result.
 | `Http/prepared-presets.trx` | 1/1, four presets | `d90c1747bea2a0591d929b8dff31f8529e377c1295d4c1ac8bf03085377ba209` |
 | `prepared-review.json` | four presets, no deployment | `6399989fbd3bb89d967357016d05a393b04ae915bda973da3b438e68ec7f6f33` |
 
-## Code publication
+## Hosted functional milestone
 
-Parent `7b45ee85628bd6d1ceeaf769d4c1bcc44ccb465b` and Core
-`dd2c32c8925aaf53017f4fedc1d1f11d330a55e3` published to Development;
-remote refs verified, fetched ancestry preserved, manifest/gitlinks validator
-passes. Exact Railway code job `d398b754-8d88-4837-a934-44e4cd9aad0d`
-observed SUCCESS after the original QUEUED/BUILDING states. Matrix is not yet live-certified.
-Durable publication intent/observation: `LocalState/COSMIC/HostedMatrixReleaseCurrent`.
+- Code job `d398b754-8d88-4837-a934-44e4cd9aad0d` and settings job `aaff57a2-a6ed-4e0e-939b-712420bd9d4e` both SUCCESS at parent `7b45ee85628bd6d1ceeaf769d4c1bcc44ccb465b`/Core `dd2c32c8925aaf53017f4fedc1d1f11d330a55e3`. Exactly3settings applied once; canonical DNA preserved. Task branch restored after exact-release application. Release intent/ACKs: `LocalState/COSMIC/HostedMatrixReleaseCurrent`.
+- Actual hosted native3/2, Mongo5/4, repeated preparation0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each pass. Exactly two normal admitted version1 saves, zero pending save intents. Original source owner/config and visitor/copy/operation identities retained. Never rerun the acceptance harness or resave this cohort.
+- Independent artifact audit checks native key sets and source owner, preserved native/Mongo identities, original copy provenance, names/descriptions, exact replica owner/version/visibility/metadata, two save ACKs matching operations and no pending intents. Immutable bounded functional ACK: `LocalState/COSMIC/HostedQueryAcceptance-MatrixOASIS/cql-http-acceptance.acknowledged.json`.
+- Raw evidence stays in `TestResults/HostedCqlIntegrationCurrent/`; no raw outputs committed. Scope is functional HTTP only, not browser interaction or full ORM/native-write/reliability certification. Hosted copies are generic browser-style snapshots, not full native routing metadata.
 
-Settings applied once through the journalled shared publisher: exactly3values
-verified, canonical DNA preserved, no per-key deployments. Exact-release
-checkout completed and task branch restored. One settings activation job
-`aaff57a2-a6ed-4e0e-939b-712420bd9d4e` now observed BUILDING at the same SHA.
-CLI outcome is protected; per-key intent/ACKs and release observations persist.
+| Hosted evidence | Bytes | SHA256 |
+|---|---|---|
+| `MatrixOASIS-native-http.json` | 88365 | `80528928fa0796b062cb7d7b7125e96ed9d96e98b4e6580df579e47a364446dc` |
+| `MatrixOASIS-client-http-flow.json` | 185481 | `890027a11474424193d73e3025bd02f844644eb9a9bec24edde312acb4899967` |
+| `MatrixOASIS-isolation-http.json` | 43237 | `02bc5ea66eb54b86abafe5036ad8e7af6f1d622f406228de81fd551059b7289e` |
 
-Next observation (read-only; repeat this same handle after timeout):
-
-```powershell
-python Scripts/Sandbox/Observe-HostedDeployment.py `
-  aaff57a2-a6ed-4e0e-939b-712420bd9d4e `
-  --expected-commit 7b45ee85628bd6d1ceeaf769d4c1bcc44ccb465b `
-  --output TestResults/MatrixPublicSourceCurrent/settings-deployment.json
-```
-
-Wait for this exact settings job to reach SUCCESS. Do not repeat apply or
-redeploy. Then run `python Scripts/Sandbox/Verify-HostedQuerySource.py MatrixOASIS --prepare`
-once for the original owner/cohort. Preserve any partial intent/ACK/outcome;
-no replacement owner or save replay. Hosted native3/2, paired5/4, reuse0new/2existing,
-foreign-private0/public3 and exact replica matching must pass before the card is
-published. Browser interaction remains a separate open gate.
-
-Website task `0d8928ea8c08f3f55380158db151ac57e557e517` adds an explicitly pending
-Matrix card with local C#/HTTP links. The pinned repository artifacts exist.
-Do not merge/publish this draft to website main before hosted acceptance; update
-its pending text with the actual proof and preserve browser/copy-scope limits.
+Website task draft `0d8928ea8c08f3f55380158db151ac57e557e517` exists; update
+its pending text to this verified HTTP scope before publishing. Preserve the
+browser and generic-copy limitations. Client bounds branch2ccf6f8 passed101tests.
 
 ## Next implementation and limits
 
@@ -96,10 +76,11 @@ capability rejection. It preserves exact server-reported opaque room IDs. Room-a
 resolution is mutable and server-reported: it does not prove message history,
 room state, membership, E2EE content, freshness, common snapshot or independent
 federation consensus. No server address returned by the API should be fetched.
-Next observe the exact settings activation job to SUCCESS, then verify
-hosted native3/2, Mongo5/4, copy reuse, privacy and replica matching. Publish the
-sandbox card only with accurate HTTP/browser limits. Do not replay local fixture
-saves or replace source/copy owners.
+Next publish the accurately labelled sandbox card with pinned setup/C#/HTTP
+links, verify public assets against the exact website commit, then inspect the
+next red provider's official native contract. Browser control remains closed;
+no new browser request or claim. Farcaster's failed public-Hub qualifier stays
+unadmitted; see FARCASTER_PUBLIC_SOURCE_STATUS.md.
 
 Legacy `MatrixOASIS` activation requires login and does not supply this anonymous
 bounded source contract; leave legacy unchanged and document its gaps only.

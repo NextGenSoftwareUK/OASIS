@@ -108,12 +108,15 @@ the configured alias, not a globally deduplicated room entity.
 
 ## Hosted demo status
 
-Local shipping HTTP endpoints pass native3/2, federated Mongo5/4 and foreign
-avatar private0/public3 checks. Two SDK-owned private version1 copies are
-journalled; the owned disposable fixture database was removed after success.
-The protected hosted candidate has four planner-verified presets, but has not
-been applied. Hosted activation, replication, reuse and sandbox-card/browser
-gates remain separate acceptance work.
+Hosted functional HTTP gates pass at parent `7b45ee85628bd6d1ceeaf769d4c1bcc44ccb465b`,
+Core `dd2c32c8925aaf53017f4fedc1d1f11d330a55e3` and settings deployment
+`aaff57a2-a6ed-4e0e-939b-712420bd9d4e`: native3/2, federated Mongo5/4,
+repeat setup0new/2existing, foreign avatar private0/public3 and matching
+SQLite/Neo4j replicas2/2 each. Two version1 private saves and no pending intents
+are retained in the original acceptance cohort. This is bounded functional
+HTTP proof; browser interaction, broader reliability and full ORM certification
+remain separate. The local disposable fixture database was removed after its
+own successful acceptance; hosted acknowledged copies are retained.
 See the maintained [Matrix status](../WIP/COSMIC%20ORM/MATRIX_PUBLIC_SOURCE_STATUS.md).
 
 ## HTTP examples
