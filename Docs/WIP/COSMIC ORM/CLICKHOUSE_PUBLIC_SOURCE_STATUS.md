@@ -99,3 +99,15 @@ Codejobaae1a2b0SUCCESS at7f477378b. Original3settings appliedexactlyonce; per-ke
 ## Activation superseded by newer Development release
 
 Originalactivation78d92d9b becameREMOVED. InventoryshowsnewerDevelopmentjob22cabb60-492a-432b-8d4b-597a068d621b BUILDING atc0edcb0ed0b81e5d5dd20fc99807163d09833037 (sharedgarden/parkwork). Gitancestry confirmsit includesverifiedClickHouse7f477378b. Complete livevariablesstillmatchoriginalcandidateexactly, all3values/DNAunchanged. Durable superseding-deployment.json retainsidentity/ancestry/settingsproof. Follownewexistingjob toSUCCESS; no restart/redeploy/settingsreapply or nativecohort/session created. No assumptionthat removedjob itselffailedsourceactivation.
+
+## Original hosted acceptance independently audited
+
+Supersedingjob22cabb60SUCCESS atc0edcb0ed0b81e5d5dd20fc99807163d09833037 (includesverified7f477378b). Originalsettingsnotreapplied. DiscoverystartedNOT_READY thenavailable4presets; sameoriginalowner reused, no native/private dispatchbeforereadiness. Hostedoriginalnative3/2, Mongo5/4, repeat0new/2existing, foreign0private/3public, exactSQLite/Neo4j2each.2normalAPIversion1saves/pending0; independentofflineaudit passes with no extra reads/saves. No replacementcohort/reseed/continuation. Originalcohort/source/config/operations frozen. Hostedfunctional59; ThreeFoldCLI makesintegrated64. Browser/cardnotyetverified/published forClickHouse. No fullORM/ownedClickHousewrites/availability certification.
+
+ClickHouseOASIS-native-http.json:12183bytes SHA256 `11368e6312f9a4d99fc205cd3b60efdf639c22ee110b7ad943c3e7d1779c0cd7`; compressedoriginal durable HostedQueryAcceptance-ClickHouseOASIS.
+
+ClickHouseOASIS-client-http-flow.json:32819bytes SHA256 `4e6f482a94e114a3d20499f4c3f43048b7e539f25e97f1498f30c70da798450b`; compressedoriginal durable HostedQueryAcceptance-ClickHouseOASIS.
+
+ClickHouseOASIS-isolation-http.json:4497bytes SHA256 `f54b343acb7b72821a5b302bfb350d6bc19a416df2c9e7ac48ad6a9e276476a2`; compressedoriginal durable HostedQueryAcceptance-ClickHouseOASIS.
+
+Next publishClickHousecard withpinnedguide/C#links and byteverifyassets; browserinteractionremainsclosed.

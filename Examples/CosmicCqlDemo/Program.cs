@@ -5,6 +5,14 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// ThreeFold reads the retained public node catalogue without provisioning compute.
+if (args.Length == 2 && args[0] == "--threefold-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await ThreeFoldPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // ClickHouse queries public country summaries with fixed, parameterized SQL.
 if (args.Length == 2 && args[0] == "--clickhouse-public")
 {
