@@ -59,3 +59,11 @@ Final evidence TestResults\ClickHousePublicSourceCurrent\adapter-point.trx SHA25
 ## Actual compiled manager/LINQ/CLI acceptance
 
 Full shared demo cachedrestore/build passed1m48s. Original --clickhouse-public run passed3full/2filtered countryrecords through HolonManager/deferredLINQ and nativeHTTPtypedStringparameters; originalFrance/Germany/Italy counts21/22/29 matchqualification. No writes/newDB/account. Stable sourceowner/config and source/qualification/binary-bound intent/ACK/compressed output retained HostedClickHousePublicSourceCurrent. Output SHA256 `bdf840e82c4f48b178b3e5bd7033bf72fc9f53cc2a8865fd30f3fa2a508e79a4`. Accepted CLI/source frozen, no replay. Next shippingHTTPregistration/compiler/readtariff/presets and localMongo/privacy gates before hostedpublication. This is63rd locallyintegratedtype; hosted58unchanged.
+
+## HTTP admission controls
+
+ExplicitCQL_CLICKHOUSE_PUBLIC_SOURCE_JSON registration/compiler/independent readtariff added.3/3APItests+1/1Coretariff pass, zero skipped;4native/Mongo3/2presets plan, missingpermission/tariff and writetariff refused. Coretask61f1ff288462518abef1208cc62dfb186f93cd1f pushed/remoteverified; parentpin/manifest updated together.10newpurehostedpublisher controls pass; no livebaseline/candidate/settings/deployment yet. Original localHTTP/Mongo/privacy gate remains next and required before publisher preparation.
+
+TestResults\ClickHousePublicSourceCurrent\api-admission.trx SHA256 `9363a515a8a0e669cc1b9a0544d1028f0908d59dd3fc4ae6fe02be224f68b9fd`.
+
+TestResults\ClickHousePublicSourceCurrent\core-tariff.trx SHA256 `3f8c0ecba67b6fe563e4ea1e1bef9a1ebc308c9a52c5145c3b6f16ec3fa26f91`.
