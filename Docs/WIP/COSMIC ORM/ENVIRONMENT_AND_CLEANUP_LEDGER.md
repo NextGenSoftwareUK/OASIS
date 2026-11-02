@@ -3836,3 +3836,23 @@ raw discovery702bytes retained, planned exclusive durable copy discovery.json
 in LensPublicQualificationCurrent to survive cleanup; keep until owner/evidence
 reconciliation. No denial bypass/header rotation/alternate endpoint/account.
 Current free64,202,039,296bytes. SDK+intent+ACK reusable evidence, no service.
+
+2026-11-02 Bittensor source qualification: reuse existing Python3.12/stdlib and
+Polkadot qualifier SCALE/Blake2b codec (no modification of accepted source).
+Select operator-documented anonymous OnFinality HTTPS public Finney endpoint
+https://bittensor-finney.api.onfinality.io/public, documented5RPS; planned
+max5RPCreads spaced>=1s:genesis/finalizedhead/3linkedheaders. Genesis pinned
+to polkadot-js networks registry, not learned from same RPC. No SDK/node/account/
+wallet/new environment/native writes or paid Taostats key. Intent+ACK under
+LocalState/COSMIC/BittensorPublicQualificationCurrent, bounded raw responses
+TestResults/BittensorPublicSourceCurrent. Planned <=5*256KiB; measured pending.
+COSMIC-owned evidence retained through native/CQL audit; cleanup only after
+equivalent durable evidence verified. No ports or background process planned.
+Bittensor outcome:4offline tests pass;5nativeHTTP200reads,3linked content hashes
+verified; no AI/subnet/finality-proof/CQL claims. Planned durable exclusive
+copy5raw replies2169bytes under BittensorPublicQualificationCurrent/native;
+verify against original ACK digests. Retain no replay/reseed. Also cache bounded
+<=64KiB pinned polkadot-js/common9281daa14c2c2a41708c3489de8770a064525577
+genesis.ts to bind independent identity source; no repo clone/install.
+Bittensor retention verified:5raw replies2169bytes, registry7981bytes/SHA256cecf733de00b6f8d681e912cd5a2190026a20943e7cece7086b24450c784ac74.
+Intent/qualification ACK unchanged; no further native reads or new environment.
