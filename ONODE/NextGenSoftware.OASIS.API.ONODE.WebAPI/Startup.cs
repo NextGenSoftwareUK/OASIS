@@ -534,6 +534,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_BITCOIN_PUBLIC_SOURCE_JSON"] is string bitcoinPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.BitcoinPublicHeaderMetadataSource.FromJson(bitcoinPublicSource)));
+            // Anonymous cached AppView profiles stay separate from PDS sessions.
+            if (Configuration["CQL_BLUESKY_PUBLIC_SOURCE_JSON"] is string blueSkyPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS.BlueSkyPublicProfileMetadataSource.FromJson(blueSkyPublicSource)));
             // ChainLink AggregatorV3 reads are a separate unsigned query profile.
             if (Configuration["CQL_CHAINLINK_PUBLIC_SOURCE_JSON"] is string chainLinkPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
