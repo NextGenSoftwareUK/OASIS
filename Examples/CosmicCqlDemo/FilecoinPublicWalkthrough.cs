@@ -66,7 +66,7 @@ public static class FilecoinPublicWalkthrough
 
         await output.WriteLineAsync("Read-only Filecoin demo complete: 3 full / 2 filtered records.");
         await output.WriteLineAsync("No Filecoin transactions or Mongo records were written. This run verifies native reads only. " +
-            "Filecoin HTTP/Mongo federation remains a separate pending gate; " +
+            "HTTP/Mongo federation is verified separately; " +
             "This console run does not execute the hosted HTTP or browser checks.");
 
         return (full.Count, subset.Count);
