@@ -61,11 +61,32 @@ Original failed build retained; corrected provider and console builds pass.
 | `Http/prepared-presets.trx` | 1/1, four presets | `4f9d230588222a62a834164769c3818bd43e5b43ccc100e7deedb7aa11544b2f` |
 | `prepared-review.json` | four presets, not deployed | `5f32a9830ad5dfd2663fa8c69f0436832643f11399c3303f41de44f24686071a` |
 
-Next publish verified parent/Core pin after fetch/ancestry/manifest checks,
-observe its exact code job to SUCCESS, apply the protected candidate once against
-that exact release, then verify hosted native3/2, Mongo5/4, repeat/private/replica
-gates before sandbox-card publication. Native zero state does not prove that a
-principal exists; do not claim independent consensus or Gaia storage.
+## Code publication
+
+Parent `3768c2050ec7b0c60677ae3367bda450440b71ad` and Core
+`6aa17e79e12ec3c54fbc3cf9611fdaa8adfe8dbf` published to Development;
+remote refs verified after fetch/ancestry checks. Manifest/seven Dockerfiles/
+parent gitlinks validator passes. Existing Railway code job
+`8f13e4b3-5113-4b74-a9f8-8ace730b2654` observed QUEUED at that exact parent.
+Publication intent/observation: `LocalState/COSMIC/HostedStacksReleaseCurrent`.
+No hosted source settings applied and no Stacks hosted proof counted.
+
+Next read-only observation; preserve the same job after any timeout:
+
+```powershell
+python Scripts/Sandbox/Observe-HostedDeployment.py `
+  8f13e4b3-5113-4b74-a9f8-8ace730b2654 `
+  --expected-commit 3768c2050ec7b0c60677ae3367bda450440b71ad `
+  --output TestResults/StacksPublicSourceCurrent/code-deployment.json
+```
+
+Wait for exact SUCCESS. The publisher's release gate requires HEAD to match:
+from a clean task branch temporarily check out3768c2050, set the expected full
+SHA, apply the existing protected candidate once with skip-deploys, restore
+work/cosmic-cql-ton-public, and trigger one journalled settings activation.
+Preserve all existing intents/ACKs; do not reprepare, restart or replay saves.
+Then verify hosted native3/2, Mongo5/4, reuse/privacy/replicas before publishing
+the card. Native zero state is not account-existence, consensus or Gaia proof.
 
 Legacy BlockStack client includes Gaia/user-directory paths and synthetic user
 results; it is not used for this proof and remains unchanged. Document legacy
