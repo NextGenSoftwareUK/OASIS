@@ -51,3 +51,24 @@ compute service. Unknown values remain explicit, not zero or inferred availabili
 Next after Eclipse's existing release completes: define exact discovery/probe
 budgets and test identity/response codecs, then freeze the native intent. No
 Akash native request or environment has been created during this review.
+
+## Pure identity/response codec verified during Eclipse wait
+
+Production AkashPublicProviderCodec validates canonical lowercase44character
+akash Bech32 addresses (20bytes/checksum1), exact requested owner, unambiguous
+root fields, bounded credential-free HTTPS service URI as descriptive text,
+nullable display name and explicit online boolean. It copies only four declared
+fields; no contact email, geolocation, arbitrary nested data or capacity/audit
+claims. No request is made to a provider-supplied URI. Capacity measurement
+semantics remain unqualified rather than guessed from numeric JSON.
+
+13controlled tests pass0failed/0skipped using the actual Akash project in the
+reused Ethereum test host. Official example address passes checksum; corrupted
+checksum/prefix/case/width, mismatched owner, duplicates/errors, credentials,
+unsafe URI scheme, bad labels and boolean types reject.
+
+Evidence TestResults/AkashPublicSourceCurrent/codec-controls.trx, SHA256
+65b1bc53672e507045f1f768d5e519b8cd0a99de9e7d6c4cc8460a80f5f0d9cc.
+No Akash native call/source owner/config/admission/count increase. Existing
+Eclipse source/candidate/release unchanged. Next after the Eclipse release: exact
+bounded discovery/probe intent and guarded native reader qualification.

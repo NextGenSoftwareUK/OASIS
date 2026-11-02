@@ -3384,3 +3384,10 @@ Eclipse audit outcome:2controlled test methods pass incl12negative subcases, act
 ### Akash interface review during Eclipse deployment wait - 2 November 2026
 
 Read existing Akash adapter and official Akash documentation through existing browser/search tools only. Report Docs/WIP/COSMIC ORM/AKASH_PUBLIC_SOURCE_STATUS.md. No native request/account/key/wallet/download/install/restore/build/database/node/service/environment created; no cleanup allocation. Existing Eclipse job7c15337e re-observed QUEUED; source/config/candidate untouched. Future qualification requires exclusive bounded intent; no provider hostUri dereference.
+
+
+### Akash pure codec allocation during Eclipse deployment wait - 2 November 2026
+
+Reuse existing Akash provider/Core/Common and Ethereum CqlTests project/SDK10.0.401/NuGet; add actual project reference only, no new package/runtime/environment. Planned leased controlled codec tests, raw logs/TRX TestResults/AkashPublicSourceCurrent, generated existing bin/obj reusable sizes unmeasured. No Akash native request/source owner/account/database/service/node or hosted setting. Existing Eclipse code job/candidate/source untouched. Legacy adapters remain unchanged.
+
+Akash codec outcome: leased build13controlled tests passed0failed/0skipped; raw codec-controls.trx/codec-build-test.log at TestResults/AkashPublicSourceCurrent. Actual Akash project consumed; no extra package/environment/runtime/native request/service/account/owner/database. Build/test process terminal; generated shared bin/obj reusable retained, sizes unmeasured. Eclipse source/candidate not changed; same deployment remains queued at latest observation. No cleanup attempted.
