@@ -1,7 +1,8 @@
 # Matrix public room-alias qualification
 
 Updated 2 November 2026. Local source, actual manager/LINQ and native/Mongo HTTP gates verified.
-Hosted settings/deployment, live replication and browser acceptance remain pending.
+Code deployment and three-key settings application verified; settings activation,
+hosted HTTP/replication and browser acceptance remain pending.
 
 ## Verified
 
@@ -39,7 +40,7 @@ do not rerun them or remove their guards to obtain a new green result.
 - Local shipping HTTP endpoints pass1native fixture test: native3/2, Matrix+Mongo5/4, foreign-private0/public3, two SDK-owned version1 saves and9measured query receipts. The exact owned DB was removed after marker/count checks; owned Mongo stopped and27029absent. Original source/actor/operations/ACKs persist in `LocalState/COSMIC/MatrixMongoHttpCurrent` and `HostedMatrixPublicSourceCurrent`.
 - Local SDK snapshots retain full projected metadata. Their values are compared with the original seed observation; mutable native routing responses are not falsely required to match an earlier snapshot. Browser generic snapshots retain identity/name/description/provenance and the query key, not full native metadata.
 - Initial Core.UnitTests build exposed missing production `CqlNativeFailureDiagnostics` Compile Link after the earlier diagnostics change. Added the actual dependency; corrected Core/API builds pass. Original failed log retained as `Http/core-build.log`, not hidden by a stub or alternate execution path.
-- Publisher9pure tests pass. Protected candidate `LocalState/COSMIC/HostedSourceRolloutCurrent/matrix-public-*` changes exactly3keys, leaves canonical DNA/native write permissions untouched, uses free query-only pricing and4presets. Prepared actual presets pass1shipping native/Mongo planner test; no settings mutation/redeployment yet.
+- Publisher9pure tests pass. Protected candidate `LocalState/COSMIC/HostedSourceRolloutCurrent/matrix-public-*` changes exactly3keys, leaves canonical DNA/native write permissions untouched, uses free query-only pricing and4presets. Prepared actual presets pass1shipping native/Mongo planner test; settings were subsequently applied exactly once after code SUCCESS; see current activation status below.
 - Frontend task commit `2ccf6f85ebb2a4908357226d787ba6fed0ac4d86` aligns Matrix255-character key bounds while preserving others. All101client tests pass. It is not yet on website main; no card or browser proof claimed.
 - Core task commit `dd2c32c8925aaf53017f4fedc1d1f11d330a55e3` pushed and verified by `git ls-remote`; parent gitlink/manifest advance together. Development publication follows exact fetched ancestry checks.
 
@@ -57,24 +58,30 @@ Parent `7b45ee85628bd6d1ceeaf769d4c1bcc44ccb465b` and Core
 `dd2c32c8925aaf53017f4fedc1d1f11d330a55e3` published to Development;
 remote refs verified, fetched ancestry preserved, manifest/gitlinks validator
 passes. Exact Railway code job `d398b754-8d88-4837-a934-44e4cd9aad0d`
-now observed BUILDING after the initial QUEUED observation. Source settings are not applied; Matrix is not live-certified.
+observed SUCCESS after the original QUEUED/BUILDING states. Matrix is not yet live-certified.
 Durable publication intent/observation: `LocalState/COSMIC/HostedMatrixReleaseCurrent`.
+
+Settings applied once through the journalled shared publisher: exactly3values
+verified, canonical DNA preserved, no per-key deployments. Exact-release
+checkout completed and task branch restored. One settings activation job
+`aaff57a2-a6ed-4e0e-939b-712420bd9d4e` now observed BUILDING at the same SHA.
+CLI outcome is protected; per-key intent/ACKs and release observations persist.
 
 Next observation (read-only; repeat this same handle after timeout):
 
 ```powershell
 python Scripts/Sandbox/Observe-HostedDeployment.py `
-  d398b754-8d88-4837-a934-44e4cd9aad0d `
+  aaff57a2-a6ed-4e0e-939b-712420bd9d4e `
   --expected-commit 7b45ee85628bd6d1ceeaf769d4c1bcc44ccb465b `
-  --output TestResults/MatrixPublicSourceCurrent/code-deployment.json
+  --output TestResults/MatrixPublicSourceCurrent/settings-deployment.json
 ```
 
-Wait for exact SUCCESS before the prepared candidate's release gate/apply.
-The publisher requires HEAD to equal the live reviewed SHA. From a clean task
-branch, temporarily check out7b45ee856 without editing/committing/building there,
-set COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT to its full SHA, apply the reviewed
-candidate once, and restore work/cosmic-cql-ton-public afterwards.
-Do not start another build, overwrite prepared baseline or recreate a source.
+Wait for this exact settings job to reach SUCCESS. Do not repeat apply or
+redeploy. Then run `python Scripts/Sandbox/Verify-HostedQuerySource.py MatrixOASIS --prepare`
+once for the original owner/cohort. Preserve any partial intent/ACK/outcome;
+no replacement owner or save replay. Hosted native3/2, paired5/4, reuse0new/2existing,
+foreign-private0/public3 and exact replica matching must pass before the card is
+published. Browser interaction remains a separate open gate.
 
 Website task `0d8928ea8c08f3f55380158db151ac57e557e517` adds an explicitly pending
 Matrix card with local C#/HTTP links. The pinned repository artifacts exist.
@@ -89,8 +96,7 @@ capability rejection. It preserves exact server-reported opaque room IDs. Room-a
 resolution is mutable and server-reported: it does not prove message history,
 room state, membership, E2EE content, freshness, common snapshot or independent
 federation consensus. No server address returned by the API should be fetched.
-Next observe the published exact code job to SUCCESS, then apply the
-prepared three-key settings candidate once against that release, then verify
+Next observe the exact settings activation job to SUCCESS, then verify
 hosted native3/2, Mongo5/4, copy reuse, privacy and replica matching. Publish the
 sandbox card only with accurate HTTP/browser limits. Do not replay local fixture
 saves or replace source/copy owners.
