@@ -67,6 +67,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.BlockscoutOASIS => "BlockscoutAddress",
             ProviderType.ENSOASIS => "EnsName",
             ProviderType.EclipseOASIS => "EclipseAccountAddress",
+            ProviderType.AkashOASIS => "AkashProviderAddress",
             ProviderType.CelestiaOASIS => "CelestiaHeight",
             ProviderType.ChainflipOASIS => "ChainflipSwapId",
             ProviderType.SeiOASIS => "SeiAccountAddress",
