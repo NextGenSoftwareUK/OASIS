@@ -21,11 +21,17 @@ Thin Telos descriptor over unchanged EvmPublicAccountMetadataSource binds Provid
 
 One actual published C# test passes3/2/0skips through HolonManager/LINQ. Actual --telos-public console3/2 also passes. Readable guide: Docs/Devs/TELOS_PUBLIC_ACCOUNT_CQL_GUIDE.md. Source-bound native-qualified ACK freezes the original catalogue. First consumer compile failed before tests because the provider had not been rebuilt; proper provider-before-consumer order fixed it. Original controls-build.log is preserved; corrected controls-fixed-build.log succeeds. No native request ran on the compile failure.
 
+## HTTP and prepared-host milestone
+
+Core1query-admission control, API2permission/preset/discovery controls and local HTTP1native test pass/0skips. Native3/2, Mongo5/4 and foreign-private0/public3 pass, with2SDK-owned saves and9query receipts. Exact marker/nonce-verified fixture database removed, original intent/saveACKs/cleanupACK preserved; owned Mongo stopped/27029absent. No fixture replay. Controlled auth/billing only; this is not hosted/production settlement/replica proof.
+
+Publisher9pure controls and client1preparation/reuse control pass. Website task test9e286e4 pushed; published main remains9413da3. Actual protected candidate exported as public profiles/examples passes all4presets against shipping CQL compiler/Mongo capabilities:1test/0skips, no source activation/network/database. Three-setting/free4preset candidate prepared only; no live settings/deployment mutation. Source-bound native/local ACKs freeze catalogue/proofs. Core80b879b task ref pushed/ref-verified; parent manifest/gitlink advance together.
+
 ## Exact next step
 
-Implement lazy CQL_TELOS_PUBLIC_SOURCE_JSON read-profile registration, independent query-only tariff/permission, four shipping-planned presets and local HTTP/Mongo5/4/privacy0/3 with original operation journals/exact-owned cleanup. Then protected candidate, exact code deployment, guarded single settings rollout, first normal visitor/reuse/replica cohort and sandbox card/public-byte proof. Do not replay native qualification/C# or recreate owner/address data.
+Commit/push verified parent batch and validate manifest/gitlinks. Integrate current Development preserving concurrent work; verify any executable merge changes before publication. Publish exact reviewed code, observeSUCCESS, then guarded3settings once, one journalled activation rollout, first normal visitor/native/federation/reuse/privacy/replica cohort and sandbox card/public-byte proof. Never replay native/local fixtures or recreate owner/address data.
 
-Telos represents public EVM balances, not Antelope accounts/EOSIO storage/native writes or full ORM parity. Counts47integrated/42hosted/browser5/open37. Keep green scopes frozen; V2 implementation only, legacy gaps documented only.
+Counts47integrated/42hosted/browser5/open37; Telos not hosted yet. Generic browser copies retain identity/name/description/provenance, not full native payload. V2 changes only; legacy gaps documentation-only. Azure Cosmos/Oracle/PostgreSQL hosting remains deferred, browser control closed.
 
 ## Evidence and retained state
 
@@ -43,3 +49,13 @@ Telos represents public EVM balances, not Antelope accounts/EOSIO storage/native
 - `TestResults/TelosPublicSourceCurrent/telos-native.trx`: 2843bytes; SHA256 `62b49f2ed2601c5fc3bb860f07af8e1f8676875f2e6aa3e383ec53e06394bac6`.
 
 - `TestResults/TelosPublicSourceCurrent/console-native.log`: 1440bytes; SHA256 `4f4891e85e1923443350181133f30fa1ef86a286558a79b89450801a3bd8b780`.
+
+- `TestResults/TelosPublicSourceCurrent/telos-core-admission.trx`: 3294bytes; SHA256 `f21d5e58aa9ca9cb7c363fdcb02db9f2436be03e721258be53bc837e6c832b44`.
+
+- `TestResults/TelosPublicSourceCurrent/telos-api-admission.trx`: 4938bytes; SHA256 `647539e5f06cb96b3ca1cbce51ccc1b8323f3b5441c320a3fbf6273cddfbb15c`.
+
+- `TestResults/TelosPublicSourceCurrent/mongo-http-native.trx`: 3353bytes; SHA256 `4ad3fde7094af27ec7771aa3fe45690d4fe68e4b9cfcf93810762ef9253c20cb`.
+
+- `TestResults/TelosPublicSourceCurrent/telos-prepared-planner.trx`: 3329bytes; SHA256 `3f4f4ef2acffcec88424f99267acafc3b525cc4e92d44bcd06c739d9b85eb54d`.
+
+- `TestResults/TelosPublicSourceCurrent/telos-mongo-native-summary.json`: 223bytes; SHA256 `ba48f4e7ef966f59e68dd352f8bc764fa008ac654fc4e3a58726d4d328402433`.

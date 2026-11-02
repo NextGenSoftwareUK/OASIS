@@ -5,7 +5,7 @@ HolonManager/CQL/LINQ pipeline. The native C# walkthrough and actual console
 return three configured addresses and a two-address subset. No Telos account,
 wallet, funding, node or source transaction is needed.
 
-Telos HTTP/Mongo, hosted presets and browser acceptance remain pending.
+Local Telos HTTP/Mongo passes native3/2, paired5/4 and visitor privacy0/3. Hosted activation/normal-visitor/replica and browser checks remain pending.
 [Current evidence and next step](../WIP/COSMIC%20ORM/TELOS_PUBLIC_SOURCE_STATUS.md).
 
 ## Create one reusable catalogue
@@ -38,7 +38,7 @@ $source | ConvertTo-Json -Depth 4 | Set-Content $sourcePath -Encoding utf8
 ```
 
 The reader permits one to eight unique lowercase20byte addresses. This walkthrough
-requires three. Balances may be zero; do not fund these fixture addresses.
+requires three. Balances may be zero; these are public read fixtures.
 
 ## Build once and run
 
@@ -62,6 +62,39 @@ The predicate uses `keys.Contains(CosmicQueryMetadata.Value<string>(row,
 "TelosAccountAddress"))`. Scope explicitly names `ProviderType.TelosOASIS`.
 The full and two-key selections return3/2. Unsupported predicates fail explicitly;
 there is no account scan or implicit provider fallback.
+
+## HTTP shape for an explicitly enrolled host
+
+This request uses the same bounded selection as the native walkthrough. Local Telos
+HTTP admission/execution passes; hosted configuration is not active yet.
+Send `POST /api/data/query-cql` with your normal authenticated session:
+
+```json
+{
+  "provider": "TelosOASIS",
+  "orderBy": "None",
+  "take": 25,
+  "includeMetadata": true,
+  "maximumDurationMilliseconds": 30000,
+  "filters": [
+    {
+      "metadataPath": ["TelosAccountAddress"],
+      "scalar": "String",
+      "operator": "In",
+      "value": [
+        "0x0000000000000000000000000000000000000001",
+        "0x0000000000000000000000000000000000000002"
+      ]
+    }
+  ]
+}
+```
+
+A paired request uses `POST /api/data/query-cql/federation`, named providers
+`["MongoDBOASIS", "TelosOASIS"]`, `identityMode: "PreserveCopies"`,
+`maximumProviderAttempts: 2`, and the same selection as `source`. Private Mongo
+demo records retain identity/name/description and mapping metadata; native
+balances/block data remain at the source. Full payload mapping is separate work.
 
 ## Identity, precision and consistency
 
