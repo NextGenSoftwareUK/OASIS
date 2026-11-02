@@ -444,3 +444,6 @@ families, not a claim that either ORM supplies every feature on every backend.
 [DPG]: Evidence/Verification/all-descendant-predicate-native.trx.gz
 
 - 27 October 2026: Q23d entity nested-relationship acceptance promoted on three stores after390nativechecks/3,831Coretests, including independent admission, bounded preallocation, all visited-scope errors and both nesting orientations. Full Q23 stays red: audit of current projection API found selected/projected-source All missing (Q23e). Parent scope retained; no total All/EF parity claim, no green/cursor hardening, full681SDKwalkthroughpending.
+
+
+Provider-breadth milestone1November2026: [EOSIO/Vaulta hosted HTTP proof](EOSIO_PUBLIC_SOURCE_STATUS.md) adds bounded native account equality/membership, Mongo pairing/reuse/privacy and matching SQLite/Neo4j replicas. Total44scoped hosted HTTP providers; browser5/39open. This source-specific acceptance does not change any SQLite/Mongo/Neo4j EF parity cell or resume paused deep terminals.

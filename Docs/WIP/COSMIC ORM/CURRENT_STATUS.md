@@ -5,29 +5,29 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 ## Verified scope
 
 - 48 integrated query types: 3 canonical adapters, 41 bounded public/source profiles, 4 local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
-- 43 providers have scoped hosted HTTP proof at their recorded releases. Browser proof: 5; 38 browser gates remain open. These are not full ORM/native-write certifications.
+- 44 providers have scoped hosted HTTP proof at their recorded releases. Browser proof: 5; 39 browser gates remain open. These are not full ORM/native-write certifications.
 - MongoDB/SQLite/Neo4j parity: 50/82 checklist rows each; original investor-demo subset green. Work red rows only unless a reproducible bug appears.
-- Latest completed hosted provider: Telos. Native 3/2, Mongo pairing 5/4, repeat 0 new/2 existing, foreign-private 0/public 3, SQLite/Neo4j replicas 2/2; two version1 saves, no pending intents. Completion ACK freezes the original cohort.
-- Telos parent7c498e0f/Core80b879b; code91bf543d and settingsad7aab39 succeeded. Filecoin remains frozen at its earlier recorded release. Website4ff3661 publishes Telos/Filecoin cards/guides;95client tests pass; public HTML/scripts match exact git blobs. Browser interaction remains separate.
+- Latest completed provider: EOSIO/Vaulta native account metadata. Native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3, matching SQLite/Neo4j replicas2/2. Two version1 saves/no pending intents; original cohort frozen by completion ACK.
+- Websitec90ca72 publishes EOSIO/Telos/Filecoin cards and pinned setup/C#/HTTP links;96client tests pass. Public HTML/scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser Mongo preparation copies identity/name/description/provenance, not all native metadata. Full payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: EOSIO hosted rollout
+## Current phase: next red provider qualification
 
-- EOSIO native source and actual manager/LINQ/CLI3/2 pass, with28controlled tests. Core1/API2/localHTTP1/publisher9/prepared-planner1/client1 pass. Local pairing5/4 and foreign-private0/public3 verified; exact owned Mongo fixture cleaned and process stopped.
-- Parent Development `4d3e0b7cd148bed7ebdf0400ca371867873932c0` / Core `86e38a37ee860785a8273ade3308f6fc1775294d` published/ref-verified; manifest validates.
-- Code job `68db832f-1742-423d-9362-febcf9620466` SUCCESS. Three reviewed settings applied once; every ACK digest/whole candidate matched, DNA unchanged. Single settings job `20b3a558-1139-429d-aaa3-7a01f1191591` submitted; observe it before hosted acceptance. No EOSIO hosted sessions or saves yet.
-- Applied three-key baseline/candidate, per-key ACKs and single redeploy intent/protected outcome remain retained. No replay of completed native/local cohorts. Frontend96/96regression pass; EOSIO card prepared but unpublished. Guide includes first setup and native/paired HTTP examples.
+- EOSIO source28controls and actual CLI/manager/LINQ3/2 pass. Core1/API2/localHTTP1/publisher9/prepared-planner1/client1 pass; exact local fixture cleaned/Mongo stopped.
+- Development parent `4d3e0b7cd148bed7ebdf0400ca371867873932c0` / Core `86e38a37ee860785a8273ade3308f6fc1775294d` published/ref-verified; manifest validates. Code68db832f/settings20b3a558 SUCCESS.
+- Exactly3reviewed settings applied once; whole candidate/per-key digests match/DNA unchanged. Hosted original acceptance complete; no reapply/redeploy/replay.
 
 ## Exact next actions
 
-1. Telos card4ff3661/pinned links/95client tests/public HTML/scripts are verified. Original cohort is frozen; no native/local/hosted replay or settings reapply/redeploy.
-2. Observe exact settings job20b3a558-1139-429d-aaa3-7a01f1191591 at code4d3e0b7cd. Only after SUCCESS run `python Scripts/Sandbox/Verify-HostedQuerySource.py EOSIOOASIS --prepare` once with pinned Node24.19.0 on PATH, then reconcile receipt/privacy/replicas and publish the card. Never reapply settings/redeploy/replay completed native/local cohorts. Task branch is restored. See EOSIO_PUBLIC_SOURCE_STATUS.md and LocalState/COSMIC/HostedEosioReleaseCurrent. No EOSIO hosted/browser claim yet.
-3. Implement only the new provider's red scope after qualification: source/controlled tests/native manager+C#3/2, API/query-only admission/Mongo/privacy, actual prepared presets, exact hosted rollout/acceptance/card. Keep green scopes frozen absent a bug.
+1. Preserve completed EOSIO/Telos/Filecoin/Fantom cohorts, sources/owners/ACKs. EOSIO cardc90ca72/pinned links/96client tests and public bytes verified; no browser proof inferred.
+2. Inspect shipping ChainLinkOASIS and primary feed contract/catalogue documentation. Qualify a free, bounded three-feed/two-feed native read contract before implementation; research so far has not qualified contract addresses. No ChainLink CQL/hosted claim yet.
+3. After qualification, implement only that red source/controlled tests/native manager+C#3/2, API permission/Mongo/privacy/prepared gates, exact hosted rollout/acceptance/card. Keep green scopes/deep parity frozen absent a reproduced bug.
 
 ## Durable state and rules
 
 - Work only `C:/Source/OASIS-cosmic` on `work/cosmic-cql-ton-public`; Core branch `work/cosmic-cql-google-public`. Frontend `C:/Source/Web4Site/work/cosmic-cql`. Never edit/build original OASIS checkout.
-- Telos source/ACKs: `LocalState/COSMIC/HostedTelosPublicSourceCurrent`; cleaned local fixture journals: `LocalState/COSMIC/TelosMongoHttpCurrent`; code publication/job ACKs: `LocalState/COSMIC/HostedTelosReleaseCurrent`.
+- Previous Telos source/ACKs: `LocalState/COSMIC/HostedTelosPublicSourceCurrent`; cleaned local fixture journals: `LocalState/COSMIC/TelosMongoHttpCurrent`; code publication/job ACKs: `LocalState/COSMIC/HostedTelosReleaseCurrent`.
+- EOSIO source/native ACKs: LocalState/COSMIC/HostedEosioPublicSourceCurrent; local journal EosioMongoHttpCurrent; release ACKs HostedEosioReleaseCurrent; frozen hosted cohort HostedQueryAcceptance-EOSIOOASIS. Exact paths/evidence in EOSIO_PUBLIC_SOURCE_STATUS.md.
 - Protected settings snapshots/intents/ACKs: `LocalState/COSMIC/HostedSourceRolloutCurrent/telos-public-*`. Never print their contents or overwrite/replay journals.
 - Raw logs/results: worktree `TestResults/` only. Durable identities/config/receipts stay in LocalState. Ledger: ENVIRONMENT_AND_CLEANUP_LEDGER.md (mixed encoding; append UTF8 bytes). Unknown root `logs` preserved.
 - Build under the existing provider lease with `/m:2 /nr:false /p:UseSharedCompilation=false`. Reuse SDK10.0.401/Node24.19.0/Python3.12/Mongo8.3.11; no new environment planned. No production/master promotion.
@@ -40,4 +40,4 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 - Full tracking/save ownership, atomic concurrency, children/depth/query parameters, rollback/history/deltas, migration/placement and broader HyperDrive operational acceptance remain on the roadmap. No overall completion percentage follows from demos.
 - Deep entity-selected terminals, unrestricted POCO mapping and migrations tooling stay deferred behind demo breadth. V2 implementation only; legacy gaps documentation-only.
 
-[Telos proof](TELOS_PUBLIC_SOURCE_STATUS.md) | [Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) | [Manual](CQL_MANUAL.md) | [Architecture](CQL_ARCHITECTURE.md) | [Parity](CQL_PARITY_CHECKLIST.md) | [Backlog](AFTER_DEMO_BACKLOG.md) | [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
+[EOSIO proof](EOSIO_PUBLIC_SOURCE_STATUS.md) | [Telos proof](TELOS_PUBLIC_SOURCE_STATUS.md) | [Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) | [Manual](CQL_MANUAL.md) | [Architecture](CQL_ARCHITECTURE.md) | [Parity](CQL_PARITY_CHECKLIST.md) | [Backlog](AFTER_DEMO_BACKLOG.md) | [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
