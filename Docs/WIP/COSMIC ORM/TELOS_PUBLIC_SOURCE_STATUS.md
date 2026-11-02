@@ -27,11 +27,15 @@ Core1query-admission control, API2permission/preset/discovery controls and local
 
 Publisher9pure controls and client1preparation/reuse control pass. Website task test9e286e4 pushed; published main remains9413da3. Actual protected candidate exported as public profiles/examples passes all4presets against shipping CQL compiler/Mongo capabilities:1test/0skips, no source activation/network/database. Three-setting/free4preset candidate prepared only; no live settings/deployment mutation. Source-bound native/local ACKs freeze catalogue/proofs. Core80b879b task ref pushed/ref-verified; parent manifest/gitlink advance together.
 
+## Hosted acceptance complete — 1 November 2026
+
+Code91bf543d and settingsad7aab39 succeeded at parent7c498e0f/Core80b879b. Native3/2, Mongo-paired5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 pass. Two normal private saves/version1; no pending intents. All native rows retain chain40/finalized metadata and one hash per selection. Immutable completion ACK under HostedQueryAcceptance-TelosOASIS freezes this cohort; never replay/resave. Earlier pending-hosting statements are superseded. Counts47integrated/43hosted/browser5/open38.
+
+Mongo demo records retain identity/name/description/provenance, not full native metadata; balances/block data remain native. This proves scoped query federation and replication of the demo records, not full state migration. Finality is RPC-reported, not independent consensus verification.
+
 ## Exact next step
 
-Code91bf543d succeeded at parent7c498e0f2e8a97207fb8d511d35cea521e7e240c/Core80b879b0ef289ccfff3b7efefa5a9ff26e6b4135. Three reviewed settings applied once under exact-release guard; full candidate equality/per-key ACKs verified, DNA/unrelated values unchanged. Existing task branch restored after temporary code checkout. Single journalled settings jobad7aab39-5e83-47f8-b7e9-e03920cb3d2f is BUILDING at the same SHA; observe it, never reapply/redeploy.
-
-After settingsSUCCESS: first normal visitor TelosOASIS acceptance cohort, native3/2/paired5/4/reuse/privacy/replicas, inspect2saveACKs/version1/no pending, immutable completionACK, then sandbox card/public assets. See CURRENT_STATUS for exact command. Original native/local fixtures frozen. Counts47integrated/42hosted/browser5/open37; no Telos hosted claim until proof. Generic browser copies retain identity/name/description/provenance, not full native payload. V2 only; hosting deferrals/browser closure unchanged.
+Publish Telos sandbox card/pinned guide/C# links, run client suite and verify exact public bytes. Browser interaction remains open. Then select the next red shipping-provider native scope; Chainlink feeds have only documentation research, no qualification/implementation. Preserve original source/visitor/receipt journals; no settings reapply/redeploy. Hosting deferrals unchanged.
 
 ## Evidence and retained state
 
@@ -59,3 +63,9 @@ After settingsSUCCESS: first normal visitor TelosOASIS acceptance cohort, native
 - `TestResults/TelosPublicSourceCurrent/telos-prepared-planner.trx`: 3329bytes; SHA256 `3f4f4ef2acffcec88424f99267acafc3b525cc4e92d44bcd06c739d9b85eb54d`.
 
 - `TestResults/TelosPublicSourceCurrent/telos-mongo-native-summary.json`: 223bytes; SHA256 `ba48f4e7ef966f59e68dd352f8bc764fa008ac654fc4e3a58726d4d328402433`.
+
+
+Hosted immutable evidence:
+- `TestResults/HostedCqlIntegrationCurrent/TelosOASIS-native-http.json`: 13583bytes; SHA256 `a47f0078e31730fdaf95fe482c4d9ceddb29a15f18683586f5d1499341051198`.
+- `TestResults/HostedCqlIntegrationCurrent/TelosOASIS-client-http-flow.json`: 36427bytes; SHA256 `9800d69b59187504fb153b95d0c195c4cb8c2197ae1e7c5ee432c55bf2805dd5`.
+- `TestResults/HostedCqlIntegrationCurrent/TelosOASIS-isolation-http.json`: 5116bytes; SHA256 `0a799efbec630fc1d9eeeeb7cdfda112e2b5bd1f953a21712962b98785679124`.

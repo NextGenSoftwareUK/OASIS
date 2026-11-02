@@ -5,7 +5,7 @@ HolonManager/CQL/LINQ pipeline. The native C# walkthrough and actual console
 return three configured addresses and a two-address subset. No Telos account,
 wallet, funding, node or source transaction is needed.
 
-Local Telos HTTP/Mongo passes native3/2, paired5/4 and visitor privacy0/3. Hosted activation/normal-visitor/replica and browser checks remain pending.
+Local Telos HTTP/Mongo passes native3/2, paired5/4 and visitor privacy0/3. Hosted normal-visitor reuse/privacy and SQLite/Neo4j replica checks also pass. Browser interaction remains open.
 [Current evidence and next step](../WIP/COSMIC%20ORM/TELOS_PUBLIC_SOURCE_STATUS.md).
 
 ## Create one reusable catalogue
@@ -65,8 +65,8 @@ there is no account scan or implicit provider fallback.
 
 ## HTTP shape for an explicitly enrolled host
 
-This request uses the same bounded selection as the native walkthrough. Local Telos
-HTTP admission/execution passes; hosted configuration is not active yet.
+This request uses the same bounded selection as the native walkthrough. Local and hosted Telos
+HTTP admission/execution pass. Select TelosOASIS in the sandbox CQL tab for its public or Mongo paired presets.
 Send `POST /api/data/query-cql` with your normal authenticated session:
 
 ```json
