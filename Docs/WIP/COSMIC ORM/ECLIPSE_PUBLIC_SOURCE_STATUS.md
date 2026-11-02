@@ -269,3 +269,33 @@ failure-metadata-shape.json and failure-build-settings.json. No secret values
 printed, new environment, retry or change to the failed job. A future independently
 verified Akash feature publication is a new scoped code release, not a claim to
 have diagnosed or corrected this preserved failure.
+
+## Eclipse baseline continuation prepared and verified
+
+Read-only preflight proves original Eclipse before equals acknowledged Akash
+before, and live equals acknowledged Akash after. Exactly3changed keys are the
+accepted Akash source/examples/admission. New Reconcile-HostedEclipseBaseline.py
+uses existing strict publishers, validates all3original mutation ACK hashes and
+the original accepted Akash cohort/source, and refuses any other drift.
+
+Two controlled methods pass, including14negative mutation cases. Controls cover
+original baseline/candidate divergence, altered Akash candidate, extra/removed/
+DNA/permission live values, either source owner changed, paid tariff, missing/
+wrong-hash/unverified/deployment-triggered acknowledgements. No network or real
+fixture in tests. Existing source/native/console/local controls are not rerun.
+
+Distinct fixed protected prefix eclipse-public-after-akash:
+
+- before-variables.dpapi191254bytes; candidate-variables.dpapi193894bytes.
+- lineage.json940bytes binds four original protected-file hashes and accepted
+  Akash/source hashes. All original before/candidates/owners/qualifications remain.
+- New Eclipse source and four preset strings equal the original tested candidate;
+  only admission is recomposed with accepted Akash retained. DNA/unrelated data
+  unchanged, free tariff. No native request, .NET build, apply or deployment yet.
+
+Raw controls/preflight/public-only review in TestResults/EclipsePublicSourceCurrent:
+reconciliation-controls.log, reconciliation-preflight.json, reconciled-review.json.
+Next guarded exact105329a3fapplication through the existing mutation owner using
+this distinct prefix, after lineage re-verification. Never overwrite/replay the
+old prefix or retry the original failed code job. One subsequent activation and
+one original hosted cohort will have independent durable journals.
