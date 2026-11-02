@@ -57,7 +57,7 @@ Parent `7b45ee85628bd6d1ceeaf769d4c1bcc44ccb465b` and Core
 `dd2c32c8925aaf53017f4fedc1d1f11d330a55e3` published to Development;
 remote refs verified, fetched ancestry preserved, manifest/gitlinks validator
 passes. Exact Railway code job `d398b754-8d88-4837-a934-44e4cd9aad0d`
-observed QUEUED. Source settings are not applied; Matrix is not live-certified.
+now observed BUILDING after the initial QUEUED observation. Source settings are not applied; Matrix is not live-certified.
 Durable publication intent/observation: `LocalState/COSMIC/HostedMatrixReleaseCurrent`.
 
 Next observation (read-only; repeat this same handle after timeout):
@@ -70,7 +70,16 @@ python Scripts/Sandbox/Observe-HostedDeployment.py `
 ```
 
 Wait for exact SUCCESS before the prepared candidate's release gate/apply.
+The publisher requires HEAD to equal the live reviewed SHA. From a clean task
+branch, temporarily check out7b45ee856 without editing/committing/building there,
+set COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT to its full SHA, apply the reviewed
+candidate once, and restore work/cosmic-cql-ton-public afterwards.
 Do not start another build, overwrite prepared baseline or recreate a source.
+
+Website task `0d8928ea8c08f3f55380158db151ac57e557e517` adds an explicitly pending
+Matrix card with local C#/HTTP links. The pinned repository artifacts exist.
+Do not merge/publish this draft to website main before hosted acceptance; update
+its pending text with the actual proof and preserve browser/copy-scope limits.
 
 ## Next implementation and limits
 
