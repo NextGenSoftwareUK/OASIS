@@ -1,7 +1,7 @@
 # Wormhole public operation source qualification
 
-Updated2November2026. Native qualification passes; CQL/HTTP/hosting remain red.
-No integrated or hosted coverage count changes (53/49).
+Updated2November2026. Native/CQL/local and hosted functional HTTP acceptance pass. Website card publication is next.
+Current coverage54integrated/50hosted functional HTTP; browser5verified/45open.
 
 ## Verified native observations
 
@@ -136,3 +136,24 @@ Website task21cc5be prepares the Wormhole card with source/trust limits and pinn
 ## Settings activation checkpoint
 
 Original code4da3a095 SUCCESS atd1f42addf. Three reviewed settings applied once with matching-release gate, per-key hashes/full candidate verified, no per-key deployments. Task branch restored. Single existing-artifact activation b29f93f6-cf25-4589-ab12-a0255cf340f9 observed QUEUED (initially INITIALIZING) at same commit. Preserve consumed apply/activation intents and original source owner/config/body pins. No hosted cohort/coverage increment. Next poll this exact job; no restart/replay. This supersedes earlier unapplied-settings statements.
+
+## Hosted acceptance complete
+
+Exact code4da3a095/settingsb29f93f6 SUCCESS at
+parentd1f42addf0413ddcd381238ccdf17bbfa561a3e2/Corec551a89ff294e68527f6ff75128d97cff54e6c63.
+First original cohort passes native3/2, Mongo5/4, reuse0new/2existing,
+foreign-private0/public3 and exact SQLite/Neo4j replicas2/2. Two original normal
+private version1 saves/zero pending intents; no replay or additional saves.
+Independent artifact audit verifies source owner/keys/body pins, projection IDs,
+private provenance/name/description, versions/visibility, save-operation headers
+and exact replica metadata. Immutable acceptance ACK retained in
+`LocalState/COSMIC/HostedQueryAcceptance-WormholeOASIS`.
+Source/cohort/config/ACKs are frozen. No guardian signature authentication,
+full native-payload browser copying, independent finality, native writes or full
+ORM certification. Website task21cc5be draft awaits publication after this proof.
+
+| Evidence | Bytes | SHA256 |
+|---|---|---|
+| `TestResults\HostedCqlIntegrationCurrent\WormholeOASIS-native-http.json` | 17585 | `0ef2a2a686d4f4ab5f571239c282f30909074cd2044d6e350b4f7dd67bd1485a` |
+| `TestResults\HostedCqlIntegrationCurrent\WormholeOASIS-client-http-flow.json` | 45858 | `dec8b498beffa02b096978304e94138d9d88254d964afd6d74e1853bdc0adf9d` |
+| `TestResults\HostedCqlIntegrationCurrent\WormholeOASIS-isolation-http.json` | 7274 | `e1be6c692b1ecafd2f8e90225c076d62153316948d6aa208e5e1fefe87a92b77` |
