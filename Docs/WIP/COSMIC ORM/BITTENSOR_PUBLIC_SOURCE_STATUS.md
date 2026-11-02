@@ -1,8 +1,8 @@
 # Bittensor public chain-header demo scope
 
-Updated 2 November 2026. Native readiness and C# HolonManager/LINQ CQL passed; local HTTP,
-hosted admission and sandbox entry remain unimplemented/unverified. Totals
-remain60integrated query types/56hosted functional proofs/5browser verified.
+Updated 2 November 2026. Native readiness and C# HolonManager/LINQ CQL passed; CLI and local HTTP/Mongo pass. Hosted deployment and sandbox entry remain
+unverified. Totals61integrated query types/56hosted functional proofs/5browser verified;
+the extra integrated type is currently on the task branch, not deployed.
 
 ## Selected interface and scope
 
@@ -54,7 +54,7 @@ is committed to Docs. Environment/retention recorded in the existing ledger.
 ## Read-only CQL adapter milestone
 
 `BittensorPublicHeaderMetadataSource` implements `BittensorBlockHash` metadata
-equality/IN with bounded paging over1–8configured keys. It checks configured
+equality/IN with bounded paging over1â€“8configured keys. It checks configured
 Finney genesis, SCALE/Blake2b header hashes and RPC-reported canonical finalized
 height membership. Unknown keys fail before network, malformed/partial native
 reads fail the whole result, and Take(0) cannot hide a source failure.
@@ -85,12 +85,45 @@ committed to docs. Reusable cache-only runner:
 `pwsh -NoProfile -File Scripts/Sandbox/Test-BittensorPublicMetadata.ps1`.
 Do not repeat its -Native mode: acceptance intent is consumed.
 
+## CLI / local HTTP integration milestone
+
+Actual `CosmicCqlDemo --bittensor-public <source.json>` returns3/2. Core1/API3
+read-admission tests and9pure publisher tests pass. First actual local HTTP
+cohort returns native3/2, Mongo-paired5/4, foreign-private0/public3. Two original
+SDK-owned version1private copies and9receipts verified; exact owned fixture
+cleaned and Mongo stopped. This is not replication/production-billing acceptance.
+
+Core source commit `d3f92df63ffea195ca83f057246387b03b9f3068` pushed/remote
+verified; parent gitlink and manifest advance together in this batch. Full API
+and actual demo project builds pass. CLI return-type compile mistake corrected
+before its first native run; original failed build log preserved. First HTTP
+discovery skipped before fixture creation due a wrong copied environment key;
+corrected before the first actual native cohort, skipped result retained.
+
+Protected hosted candidate prepared only:3values/four native+Mongo presets,
+DNA unchanged. Actual exported query inputs pass4shipping compiler/capability
+plans in1test. Initial full audit-review input shape was rejected; runner now
+exports the two exact public input fields without altering the full review.
+No native replay, service mutation, activation or deployment occurred.
+
+Durable `local-integration.ack.json` SHA256:
+`1b751fca989d31f6eb779d0c13e33b800c90bf36155b9c48a7c16b4253d12509`;
+accepted original TRX compressed under `HostedBittensorPublicSourceCurrent/evidence/`
+(5509bytes). CLI/config/local qualification ACKs retained beside source.json.
+Protected candidates `HostedSourceRolloutCurrent/bittensor-public-` before193894
+and candidate196982bytes. Raw test counts/hash paths remain outside docs.
+
 ## Exact next step
 
-Add Bittensor to the actual demo CLI and HTTP compiler/source activation,
-read-only tariff/admission and hosted configuration tooling. Verify one
-Mongo-paired local HTTP cohort, then deploy the verified batch and first hosted
-cohort before publishing its sandbox card. Preserve the existing source owner,
-keys and all consumed intents. Current integrated HTTP/live totals unchanged.
-No AI inference/subnet metrics/native storage or independent consensus claims.
-No David action is needed.
+Commit this verified integration batch, validate parent gitlinks/manifest, merge
+verified Core/parent work into Development and observe the exact deployment.
+Only after matching successful code, apply the frozen3value candidate once with
+per-key ACKs and full observed equality, then first hosted native/Mongo/reuse/
+privacy/replica cohort and independent audit. Publish the sandbox card and
+pinned guide/CLI links after that proof. Never replay accepted local/readiness
+cohorts or change source owner/keys for green.
+
+[Developer guide](../../Devs/BITTENSOR_PUBLIC_HEADER_CQL_GUIDE.md). Hosted/browser
+remain open.188completed generated folders/2,154,947,374logical bytes retained:
+automatic approval review rejected cleanup as blocked by policy; no retry or
+bypass. Exact paths/sizes are in the resource ledger. No David action needed.

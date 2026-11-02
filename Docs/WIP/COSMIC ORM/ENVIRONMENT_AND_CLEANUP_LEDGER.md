@@ -3910,3 +3910,255 @@ Exact generated path/size inventory follows (SDK10.0.401, owning COSMIC):
 - `C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\bin`: 8076108bytes; reusable; regenerate bounded cached build; no ports.
 - `C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\obj`: 1453126bytes; reusable; regenerate bounded cached build; no ports.
 Measured total generated logical bytes103359454; raw inventory TestResults/BittensorPublicSourceCurrent/build-output-inventory.json.
+
+2026-11-02 Bittensor CLI/HTTP integration: reused worktree,SDK10.0.401,NuGet
+package cache only. Parent/Core Development fetched; no incoming commits.
+Planned cached restore/build Core.UnitTests/API.UnitTests/CosmicCqlDemo dependency
+graphs with bounded workers and lease; generated bin/obj pending measured sizes,
+COSMIC-owned reusable through HTTP/console milestone then clean after teardown.
+Logs TestResults/BittensorPublicSourceCurrent/*-integration-build.log/TRX.
+Mongo8.3.11 runtime C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe and existing
+LocalState/COSMIC/mongo-data reused; no new installation/data-directory/reset.
+Planned bounded owned fixture cosmic_cql_bittensor_http_demo, exclusive lifecycle
+journal LocalState/COSMIC/BittensorMongoHttpCurrent;2SDKversion1private copies,
+loopbackAPI ephemeral port/Mongo27029. Before native run verify no listener,
+source-bound prior CQL ACK; cleanup exact owned database only after receipts,
+stop owned Mongo finally; unknown/failed outcome preserved. No hosted changes.
+Bittensor first HTTP gate discovery skipped before fixture/native code because
+new test retained wrong legacy environment-key string; exact owning Mongo
+process stopped, no27029listener, fixture.intent absent. Fix key in new test;
+preserve skipped TRX/log under mongo-http-skipped-1, then first actual fixture
+may run with same source/owner. Not a native failure replay or dataset reset.
+CLI actual3/2passed; Core1/API3/publisher9controls passed; CLI compile return
+value corrected before its first native run. Failed build log retained.
+Bittensor integration gates verified Core1/API3/publisher9; actualCLI3/2 and
+localHTTP1passed native3/2+Mongo5/4/privacy0private3public.2SDKprivate saves/
+9receipts; fixture.cleaned.json retained, owned Mongo stopped/no27029listener.
+No replication/production-billing/browser claim from local gate. First skipped
+preexecution artifact preserved; corrected-key actualfixture ran once.
+Planned hosted candidate prepare only using existing RailwayCLI5.62.1/auth/DPAPI:
+LocalState/COSMIC/HostedSourceRolloutCurrent/bittensor-public-before-variables.dpapi
+and bittensor-public-candidate-variables.dpapi; raw review TestResults/BittensorPublicSourceCurrent.
+Size pending, COSMIC-owned retention through first hosted acceptance; no mutation
+or deployment here. Keep secrets protected; remove only after release audit.
+Bittensor exact cleanup graph generated from4project assets manifests; raw
+plan TestResults/DiskInventoryCurrent/bittensor-build-cleanup-plan.json.
+Only resolved worktree bin/obj targets qualify after prepared test completion,
+no active owned compiler/Mongo/API. External sibling library outputs inherited/
+shared, ownership uncertain, explicitly excluded (not new installations):
+- `C:\Source\holochain-client-csharp\NextGenSoftware.Holochain.HoloNET.Client\bin`: size unmeasured; shared/reused dependency, preserve, no cleanup attribution.
+- `C:\Source\holochain-client-csharp\NextGenSoftware.Holochain.HoloNET.Client\obj`: size unmeasured; shared/reused dependency, preserve, no cleanup attribution.
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.CLI.Engine\bin`: size unmeasured; shared/reused dependency, preserve, no cleanup attribution.
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.CLI.Engine\obj`: size unmeasured; shared/reused dependency, preserve, no cleanup attribution.
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.ErrorHandling\bin`: size unmeasured; shared/reused dependency, preserve, no cleanup attribution.
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.ErrorHandling\obj`: size unmeasured; shared/reused dependency, preserve, no cleanup attribution.
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.Logging\bin`: size unmeasured; shared/reused dependency, preserve, no cleanup attribution.
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.Logging\obj`: size unmeasured; shared/reused dependency, preserve, no cleanup attribution.
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.Logging.NLog\bin`: size unmeasured; shared/reused dependency, preserve, no cleanup attribution.
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.Logging.NLog\obj`: size unmeasured; shared/reused dependency, preserve, no cleanup attribution.
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.Utilities\bin`: size unmeasured; shared/reused dependency, preserve, no cleanup attribution.
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.Utilities\obj`: size unmeasured; shared/reused dependency, preserve, no cleanup attribution.
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.WebSocket\bin`: size unmeasured; shared/reused dependency, preserve, no cleanup attribution.
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.WebSocket\obj`: size unmeasured; shared/reused dependency, preserve, no cleanup attribution.
+Planned188worktree outputs/2154947374logical bytes; source/package caches/LocalState/TestResults/secrets excluded.
+Bittensor all local gates terminal/pass: Core1/API3/publisher9/prepared1(actual4presets),
+actual CLI3/2, native HTTP1(3/2+Mongo5/4/privacy0/3). Source/owners/intents fixed.
+Prepared planner initially rejected audit-review extra fields; runner now exports
+only original profiles/examples; full review/failed controlled result preserved.
+Local-integration.ack.json binds accepted TRX counts/hashes/source; compressed
+original TRX in evidence/*.trx.gz retained through release audit.
+Automatic approval review rejected generated-output cleanup as blocked by policy.
+Entire combined command never executed; no removal, no retry/bypass. All188
+reviewed worktree folders remain preserved with2,154,947,374logical bytes;
+external14shared paths also preserved. Not a David chore. Required evidence
+retention was completed separately without any destructive operation. Exact
+retained output paths/sizes follow, no active owned test/DB processes:
+- `C:\Source\OASIS-cosmic\Examples\CosmicCqlDemo\bin`: 340535921bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Examples\CosmicCqlDemo\obj`: 5030994bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\External Libs\net-ipfs-core-0.55.0\src\bin`: 362135bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\External Libs\net-ipfs-core-0.55.0\src\obj`: 537096bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\External Libs\net-ipfs-http-client-master\src\bin`: 771568bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\External Libs\net-ipfs-http-client-master\src\obj`: 592066bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\HoloNET-ORM\bin`: 2156527bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\HoloNET-ORM\obj`: 911653bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.Core\bin`: 7540641bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.Core\obj`: 8689125bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.Core.UnitTests\bin`: 53167196bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.Core.UnitTests\obj`: 7126542bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\bin`: 1359946bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\obj`: 1034611bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.Common\bin`: 998632bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.Common\obj`: 517218bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.Contracts\bin`: 49654bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.Contracts\obj`: 152368bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.HyperDrive.Synchronization\bin`: 1300870bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.HyperDrive.Synchronization\obj`: 1555763bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\bin`: 35605485bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\obj`: 3099560bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.ONET\bin`: 689303bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.ONET\obj`: 231495bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.Core\bin`: 38785115bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.Core\obj`: 7525649bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\bin`: 400667748bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\obj`: 13999604bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests\bin`: 388238345bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests\obj`: 7865332bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\AI\NextGenSoftware.OASIS.API.Providers.BittensorOASIS\bin`: 8198430bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\AI\NextGenSoftware.OASIS.API.Providers.BittensorOASIS\obj`: 958177bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\AI\TestProjects\NextGenSoftware.OASIS.API.Providers.BittensorOASIS.UnitTests\bin`: 47272518bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\AI\TestProjects\NextGenSoftware.OASIS.API.Providers.BittensorOASIS.UnitTests\obj`: 1044596bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AbstractOASIS\bin`: 8689783bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AbstractOASIS\obj`: 914194bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AlgorandOASIS\bin`: 8205019bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AlgorandOASIS\obj`: 965178bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AptosOASIS\bin`: 8289220bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AptosOASIS\obj`: 1226142bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS\bin`: 8978723bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS\obj`: 1330175bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AvalancheOASIS\bin`: 8951894bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AvalancheOASIS\obj`: 1298282bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BaseOASIS\bin`: 8962287bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BaseOASIS\obj`: 1307261bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BerachainOASIS\bin`: 8689782bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BerachainOASIS\obj`: 914259bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BitcoinOASIS\bin`: 8373199bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BitcoinOASIS\obj`: 1153229bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS\bin`: 8410066bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS\obj`: 1218753bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BNBChainOASIS\bin`: 8918535bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BNBChainOASIS\obj`: 1198280bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CardanoOASIS\bin`: 8582577bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CardanoOASIS\obj`: 1170559bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ChainflipOASIS\bin`: 8177996bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ChainflipOASIS\obj`: 906418bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS\bin`: 8339335bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS\obj`: 1163198bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\bin`: 8418328bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\obj`: 1143551bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ElrondOASIS\bin`: 8375565bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ElrondOASIS\obj`: 1172520bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\bin`: 8665592bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\obj`: 1665728bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.EthereumOASIS\bin`: 9101625bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.EthereumOASIS\obj`: 1456886bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.FantomOASIS\bin`: 8869305bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.FantomOASIS\obj`: 1155034bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.FilecoinOASIS\bin`: 8762662bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.FilecoinOASIS\obj`: 1020348bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS\bin`: 8783935bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS\obj`: 1279546bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.LineaOASIS\bin`: 8689226bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.LineaOASIS\obj`: 913370bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.MonadOASIS\bin`: 8689246bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.MonadOASIS\obj`: 913422bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\bin`: 8500879bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\obj`: 1251300bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.OptimismOASIS\bin`: 8876343bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.OptimismOASIS\obj`: 1159132bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS\bin`: 36089684bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS\obj`: 3329102bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.PolygonOASIS\bin`: 8689691bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.PolygonOASIS\obj`: 912558bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.RadixOASIS\bin`: 8448361bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.RadixOASIS\obj`: 1283562bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.RootstockOASIS\bin`: 8687705bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.RootstockOASIS\obj`: 909673bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ScrollOASIS\bin`: 8689233bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ScrollOASIS\obj`: 913459bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SeiOASIS\bin`: 8689240bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SeiOASIS\obj`: 913280bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\bin`: 8622611bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\obj`: 1593815bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.StarknetOASIS\bin`: 8365987bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.StarknetOASIS\obj`: 1117856bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.StellarOASIS\bin`: 8204055bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.StellarOASIS\obj`: 968056bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SuiOASIS\bin`: 8378200bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SuiOASIS\obj`: 1087281bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TelosOASIS\bin`: 9509356bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TelosOASIS\obj`: 1236771bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TONOASIS\bin`: 8729489bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TONOASIS\obj`: 963843bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TRONOASIS\bin`: 8460355bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TRONOASIS\obj`: 1307714bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\bin`: 8653237bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\obj`: 1699687bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.WormholeOASIS\bin`: 8179797bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.WormholeOASIS\obj`: 909188bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.XRPLOASIS\bin`: 8193166bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.XRPLOASIS\obj`: 941140bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS\bin`: 8689749bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS\obj`: 913978bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AWSOASIS\bin`: 8369905bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AWSOASIS\obj`: 868771bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AWSS3OASIS\bin`: 8185842bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AWSS3OASIS\obj`: 883535bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS\bin`: 17490551bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS\obj`: 1182537bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS\bin`: 8275048bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS\obj`: 1066336bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS\bin`: 8336879bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS\obj`: 1139046bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS\bin`: 8347764bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS\obj`: 1192495bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS\bin`: 8137269bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS\obj`: 873236bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS\bin`: 8245239bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS\obj`: 1010599bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.AkashOASIS\bin`: 8202789bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.AkashOASIS\obj`: 964431bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS\bin`: 8187068bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS\obj`: 944362bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.CelestiaOASIS\bin`: 8194422bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.CelestiaOASIS\obj`: 951172bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.EclipseOASIS\bin`: 8207679bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.EclipseOASIS\obj`: 971859bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ENSOASIS\bin`: 8209628bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ENSOASIS\obj`: 975599bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloOASIS\bin`: 10118729bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloOASIS\obj`: 1547300bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.IPFSOASIS\bin`: 9070316bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.IPFSOASIS\obj`: 1192255bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.PinataOASIS\bin`: 7697568bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.PinataOASIS\obj`: 976470bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS\bin`: 7658659bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS\obj`: 919784bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS\bin`: 8308778bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS\obj`: 1111693bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.TelegramOASIS\bin`: 7719584bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.TelegramOASIS\obj`: 1035069bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS\bin`: 7703203bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS\obj`: 838973bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Other\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\bin`: 9617103bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Other\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\obj`: 1079212bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.CrossChain\bin`: 1025118bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.CrossChain\obj`: 485416bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\bin`: 8076116bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\obj`: 1453130bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.S3\bin`: 8131228bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.S3\obj`: 854792bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Social\NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS\bin`: 8224251bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Social\NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS\obj`: 991645bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Social\NextGenSoftware.OASIS.API.Providers.MatrixOASIS\bin`: 8219152bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Social\NextGenSoftware.OASIS.API.Providers.MatrixOASIS\obj`: 983420bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Social\NextGenSoftware.OASIS.API.Providers.NostrOASIS\bin`: 8225085bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Social\NextGenSoftware.OASIS.API.Providers.NostrOASIS\obj`: 991794bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Storage\Neo4j.Driver.OASIS\bin`: 592054bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Storage\Neo4j.Driver.OASIS\obj`: 900239bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.ArweaveOASIS\bin`: 8263105bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.ArweaveOASIS\obj`: 1023143bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS\bin`: 8240221bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS\obj`: 1005051bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.MinIOOASIS\bin`: 7664358bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.MinIOOASIS\obj`: 932511bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.MongoOASIS\bin`: 9345076bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.MongoOASIS\obj`: 2411593bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS\bin`: 9376850bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS\obj`: 1695781bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.OracleDBOASIS\bin`: 8362052bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.OracleDBOASIS\obj`: 1157231bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\bin`: 10130336bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\obj`: 3581164bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\STAR ODK\NextGenSoftware.OASIS.STAR.STARDNA\bin`: 7663030bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+- `C:\Source\OASIS-cosmic\STAR ODK\NextGenSoftware.OASIS.STAR.STARDNA\obj`: 883026bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
+Durable compressed TRX5509bytes; candidate protected files retain original ownership.

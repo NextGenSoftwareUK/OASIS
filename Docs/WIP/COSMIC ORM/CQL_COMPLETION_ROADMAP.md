@@ -13,3 +13,5 @@ Updated 2 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CUR
 Hosted PostgreSQL, Azure Cosmos and Oracle remain deferred. V2 changes only; legacy gaps documentation-only. Preserve original source catalogues, owners and all acknowledged cohorts.
 
 [Strict acceptance](CQL_PARITY_CHECKLIST.md) · [Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) · [Backlog](AFTER_DEMO_BACKLOG.md) · [History](Archive/CQL_COMPLETION_ROADMAP_before_fantom_release_2026-11-01.md).
+
+Bittensor breadth milestone2November: CLI/localHTTP3/2+Mongo5/4/privacy0/3 verified; frozen3value/fourpreset candidate plans with shipping capabilities. Next verified Development code release, guarded settings application, original hosted cohort/audit/card. [Evidence](BITTENSOR_PUBLIC_SOURCE_STATUS.md). No deep LINQ/green-provider hardening.
