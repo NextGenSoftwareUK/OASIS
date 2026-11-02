@@ -1,6 +1,7 @@
 # COSMIC ORM / CQL
 
 1. **[Current status — start here after compaction](CURRENT_STATUS.md)**
+- [Celestia local CQL/C# source and next HTTP gates](CELESTIA_PUBLIC_SOURCE_STATUS.md)
 - [Farcaster native availability gap (not admitted)](FARCASTER_PUBLIC_SOURCE_STATUS.md)
 - [Chainflip local HTTP/Mongo milestone and hosted gates](CHAINFLIP_PUBLIC_SOURCE_STATUS.md)
 - [Matrix completed hosted proof and scope](MATRIX_PUBLIC_SOURCE_STATUS.md)

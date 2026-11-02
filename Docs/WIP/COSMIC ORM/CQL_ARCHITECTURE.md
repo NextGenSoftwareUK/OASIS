@@ -1,5 +1,7 @@
 # CQL architecture
 
+Celestia implements the shared ICosmicQueryStorageProvider/ICosmicReadOnlyQueryActivation contracts as a separate pinned-header read profile. Its explicit height catalogue maps to node-reported block IDs; bounded full selection is validated before paging, with native writes refused. This is not trusted consensus or data-availability verification. [Configuration, capabilities and proof limits](../../Devs/CELESTIA_PUBLIC_HEADER_CQL_GUIDE.md). HTTP/Mongo/hosted gates remain separate.
+
 Current scope (2 November 2026):55integrated query types/50scoped hosted functional HTTP proofs; browser5verified/45open. Matrix uses the shared HolonManager planner/deferred LINQ, explicit read-source activation and query-only tariff/admission boundaries. Alias equality/membership and complete-selection paging do not create a second query engine or grant native writes. [Profile contract](../../Devs/MATRIX_PUBLIC_ROOM_CQL_GUIDE.md), [current state](CURRENT_STATUS.md), [source/HTTP/replication/publication proof](MATRIX_PUBLIC_SOURCE_STATUS.md). Earlier dated checkpoints below remain historical.
 
 ## Historical Azure checkpoint — 1 November 2026
