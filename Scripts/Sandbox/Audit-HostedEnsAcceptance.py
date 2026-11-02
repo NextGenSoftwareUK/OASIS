@@ -58,8 +58,14 @@ def audit(source, native, flow, isolation, acknowledgements, pending):
         require(len(rows) == 2 and {row["id"] for row in rows} == ids, "Replica identity differs.")
         for row in rows:
             require(row == next(value for value in private if value["id"] == row["id"]), "Replica projection differs.")
-    require(isolation["avatar"]["id"] != owner and not isolation["foreignPrivateIds"], "Foreign private visibility failed.")
-    require(len(isolation["public"]["result"]["rows"]) == 3, "Foreign public visibility failed.")
+    denied = isolation["foreignPrivateIds"]
+    require(isolation["avatar"]["id"] != owner and not denied["isError"] and
+            denied["result"]["count"] == 0 and denied["result"]["rows"] == [], "Foreign private visibility failed.")
+    public_response = isolation["public"]
+    public_rows = public_response["result"]["rows"]
+    require(not public_response["isError"] and len(public_rows) == 3 and
+            {row["metadata"]["EnsName"] for row in public_rows} == set(names) and
+            all(row["isPublic"] for row in public_rows), "Foreign public visibility failed.")
     require(len(acknowledgements) == 2 and {ack["id"] for ack in acknowledgements} == ids and not pending, "Unsettled saves.")
     saves = [step for step in flow["steps"] if step["route"] == "data/save-holon"]
     require(len(saves) == 2 and all(step["status"] == 200 for step in saves), "Wrong normal API save sequence.")
