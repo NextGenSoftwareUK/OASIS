@@ -56,6 +56,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.BerachainOASIS => "BerachainAccountAddress",
             ProviderType.FantomOASIS => "FantomAccountAddress",
             ProviderType.FilecoinOASIS => "FilecoinAccountAddress",
+            ProviderType.TelosOASIS => "TelosAccountAddress",
             ProviderType.SeiOASIS => "SeiAccountAddress",
             ProviderType.ZkSyncOASIS => "ZkSyncAccountAddress",
             ProviderType.AbstractOASIS => "AbstractAccountAddress",

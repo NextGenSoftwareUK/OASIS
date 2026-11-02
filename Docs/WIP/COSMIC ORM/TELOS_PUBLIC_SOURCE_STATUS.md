@@ -1,6 +1,6 @@
 # Telos EVM public CQL candidate
 
-1 November 2026. Protocol qualified only. No Telos CQL implementation/admission/hosted claim or count increment. Filecoin hosted acceptance/card/public bytes are complete; Telos descriptor/native C# is next.
+1 November 2026. Native CQL/manager/commented C# and actualCLI3/2 are verified. HTTP admission, Mongo and hosted gates remain open. No hosted claim.
 
 ## Verified native contract
 
@@ -15,11 +15,17 @@ Python urllib received HTTP403/error1010 before chain identity. That does not es
 
 Offline reproduction proved the root cause. The helper now suppresses that void result; its offline regression asserts exactly one string result and one recorded request. An explicit journalled continuation reused the captured chain response and continued with genesis/finalized/balance reads. It did not replay chain identity or overwrite either original failure.
 
-## Exact next step after Filecoin
+## Native CQL and developer demo complete
 
-Add a thin TelosPublicAccountMetadataSource descriptor over the existing EvmPublicAccountMetadataSource: ProviderType.TelosOASIS, chain0x28, the pinned genesis above, root RPC path and TelosAccountAddress key. Existing finalized/hash-bound behavior should require no shared algorithm change. Add Filecoin-style controlled tests, real HolonManager/LINQ3/2, readable C# walkthrough and CLI, then API/admission/local Mongo/privacy and hosted/card gates. Do not replay protocol qualification or recreate the retained catalogue owner.
+Thin Telos descriptor over unchanged EvmPublicAccountMetadataSource binds ProviderType.TelosOASIS, chain0x28, pinned genesis, root path and TelosAccountAddress.18new controlled tests pass/0skips; wrong chain/genesis/header/envelope, partial/overflow data, precision, paging, cancellation, unsupported keys/scans/writes and credential configuration are covered. Existing green source network tests were not rerun; no shared algorithm change.
 
-This will represent public Telos EVM balances, not native Antelope account names, EOSIO contract storage, native writes or full ORM parity. Counts remain46integrated/42hosted/browser5/open37. Keep green scopes frozen; V2 changes only, legacy gaps documentation-only.
+One actual published C# test passes3/2/0skips through HolonManager/LINQ. Actual --telos-public console3/2 also passes. Readable guide: Docs/Devs/TELOS_PUBLIC_ACCOUNT_CQL_GUIDE.md. Source-bound native-qualified ACK freezes the original catalogue. First consumer compile failed before tests because the provider had not been rebuilt; proper provider-before-consumer order fixed it. Original controls-build.log is preserved; corrected controls-fixed-build.log succeeds. No native request ran on the compile failure.
+
+## Exact next step
+
+Implement lazy CQL_TELOS_PUBLIC_SOURCE_JSON read-profile registration, independent query-only tariff/permission, four shipping-planned presets and local HTTP/Mongo5/4/privacy0/3 with original operation journals/exact-owned cleanup. Then protected candidate, exact code deployment, guarded single settings rollout, first normal visitor/reuse/replica cohort and sandbox card/public-byte proof. Do not replay native qualification/C# or recreate owner/address data.
+
+Telos represents public EVM balances, not Antelope accounts/EOSIO storage/native writes or full ORM parity. Counts47integrated/42hosted/browser5/open37. Keep green scopes frozen; V2 implementation only, legacy gaps documented only.
 
 ## Evidence and retained state
 
@@ -31,3 +37,9 @@ This will represent public Telos EVM balances, not native Antelope account names
 - Offline regression: `pwsh -NoProfile -File Scripts/Sandbox/Test-TelosGuardedProbe.ps1` passes1contract. No network/provider activation/DB/source writes.
 
 [Official network and current endpoint](https://docs.telos.net/build/network-info/) · [Legacy endpoint guidance](https://docs.telos.net/evm/smart-contracts/hardhat_sourcify/) · [Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+- `TestResults/TelosPublicSourceCurrent/telos-controls.trx`: 28748bytes; SHA256 `520b37491a6be1aff40b47067924da3fed0d9c44c3155c8d067e87d5a856172f`.
+
+- `TestResults/TelosPublicSourceCurrent/telos-native.trx`: 2843bytes; SHA256 `62b49f2ed2601c5fc3bb860f07af8e1f8676875f2e6aa3e383ec53e06394bac6`.
+
+- `TestResults/TelosPublicSourceCurrent/console-native.log`: 1440bytes; SHA256 `4f4891e85e1923443350181133f30fa1ef86a286558a79b89450801a3bd8b780`.

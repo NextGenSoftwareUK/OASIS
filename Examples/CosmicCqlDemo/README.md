@@ -924,3 +924,20 @@ funding, node or source write. Balances print as exact attoFIL strings. Native
 genesis-CID identity and RPC-v1 finalized hash-bound reads are explicit; this does
 not independently verify consensus/F3 finality. Actual console3/2 passes.
 Local and hosted HTTP/Mongo5/4, visitor privacy0/3, repeat reuse and SQLite/Neo4j replicas pass; browser interaction remains open. The generic Mongo demo records copy identity/name/description, not all native metadata.
+
+
+## Telos EVM: public finalized balances
+
+Follow the [Telos setup guide](../../Docs/Devs/TELOS_PUBLIC_ACCOUNT_CQL_GUIDE.md)
+once, then retain the same public address catalogue.
+
+```powershell
+dotnet ./Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll `
+    --telos-public LocalState/COSMIC/TelosDemo/source.json
+```
+
+[TelosPublicWalkthrough.cs](TelosPublicWalkthrough.cs) uses the shared manager/LINQ
+path for three addresses and a two-address subset. Native C# and actualCLI3/2 pass.
+Balances remain exact native base-unit strings; finality is RPC-reported.
+No account, wallet, funding, node or source write. HTTP/Mongo/hosted/browser gates
+remain open. This EVM profile is separate from native Antelope accounts/storage.
