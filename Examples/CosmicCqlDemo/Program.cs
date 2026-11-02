@@ -5,6 +5,14 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// Zcash queries the explicit height/hash catalogue; no wallet or shielded data.
+if (args.Length == 2 && args[0] == "--zcash-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await ZcashPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Bittensor reads the retained Finney header catalogue; no AI inference or signing.
 if (args.Length == 2 && args[0] == "--bittensor-public")
 {

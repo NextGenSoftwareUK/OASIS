@@ -4316,3 +4316,13 @@ processes exited; no ports/tempDB/native writes. Source evidence retained:
 - `C:\Source\OASIS-cosmic\LocalState\COSMIC\ZcashPublicQualificationCurrent\sdk\openapi-v1.json`: 871601bytes; repo116b8a72, reusable protocol evidence; retain through CQL audit, remove after equivalent hashes/provenance retained.
 No further download/install planned for CQL adapter; reuse cached .NET
 dependencies and bounded leased builds. Prior cleanup-policy targets unchanged.
+
+## 2026-11-02 — Zcash adapter controlled tests
+
+Owner: COSMIC/CQL task. Reuse SDK 10.0.401, USERPROFILE/.nuget/packages and existing OASIS-cosmic worktree/provider project; no installation/download intended. Cached-only restore and bounded leased test build planned. Outputs: C:/Source/OASIS-cosmic/TestResults/ZcashPublicSourceCurrent and referenced project bin/obj (size unmeasured until build). Active dependency: owned dotnet test process only. Retain compact failure/test evidence; generated outputs regenerable with cached restore/test after process exits. Previously policy-rejected cleanup paths remain preserved; no cleanup retry. Free disk before build: 58,791,792,640 bytes.
+
+Zcash controlled run finished:22 passed, no live source/database created. Existing cached restore succeeded; no download/install. TRX 34600 bytes/SHA256 8be1dee42b807217ae7118ea04339b7cb62c1dea896c041378a958547bdc3eb0. Outputs remain reusable; free disk after run 58734551040 bytes. No cleanup of policy-rejected targets attempted.
+
+Zcash follow-up:27/27 adapter/config tests passed. Shared Examples/CosmicCqlDemo cache-only restore/build reuses existing SDK/packages and provider output graph, including shared sibling libraries; no new environment. Logs demo-restore.log/demo-build.log under TestResults/ZcashPublicSourceCurrent. Build outputs bin/obj size pending; retain reusable outputs, shared paths not agent-disposable. No native query or fixture run by these builds.
+
+Shared Zcash demo build finished successfully; no owned build process remains. Free C: 58741809152 bytes. Output graph reused existing provider/shared folders; exact changed-output size not yet measured, retained as reusable build state. No source environment/database created.

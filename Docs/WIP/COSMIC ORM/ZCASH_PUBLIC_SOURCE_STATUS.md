@@ -72,3 +72,11 @@ Add provider tests and actual manager/C#/CLI3/2 before local Mongo/HTTP3/2+5/4,
 then guarded hosted admission/configuration, original cohort/audit and sandbox
 card. Keep existing RPC wallet/bridge code unchanged; it is not this readonly
 profile's acceptance. No full node or account setup is required for the next step.
+
+## Adapter controlled milestone — 2 November 2026
+
+Read-only ZcashPublicBlockMetadataSource builds using cached dependencies. Dedicated MSTest filter passed **22/22**, zero skipped/failed (782 ms). Covers point/IN queries, pagination and budget; genesis/hash/height/network/units/timestamp validation; duplicate and oversized responses; HTTP403/429/500 with no retry; cancellation; zero-limit failure visibility; inactive/unknown keys before network; write rejection without mutation. Native CQL and hosted integration remain unverified. Evidence: `TestResults/ZcashPublicSourceCurrent/adapter.trx`, SHA256 `8be1dee42b807217ae7118ea04339b7cb62c1dea896c041378a958547bdc3eb0`; regenerable controlled tests, not a replay of qualification. Next: configuration controls and HolonManager/CLI demonstration.
+
+Configuration follow-up:27/27 pass (zero skipped), including invalid endpoints, unknown/duplicate fields, negative height and uppercase hash rejection. Evidence TestResults/ZcashPublicSourceCurrent/adapter-config.trx SHA256 76dd4c89a989a9576211f809f4594345387e8925b2bfe7226f71957dd8662655. C# route --zcash-public and shared metadata key mapping added; full demo build running, native execution not yet accepted.
+
+Full shared demo cached restore/build passed (2m01s); --zcash-public compiles through HolonManager/shared LINQ walkthrough. No native execution yet.
