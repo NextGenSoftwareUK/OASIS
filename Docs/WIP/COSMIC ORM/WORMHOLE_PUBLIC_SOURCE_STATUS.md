@@ -157,3 +157,7 @@ ORM certification. Website task21cc5be draft awaits publication after this proof
 | `TestResults\HostedCqlIntegrationCurrent\WormholeOASIS-native-http.json` | 17585 | `0ef2a2a686d4f4ab5f571239c282f30909074cd2044d6e350b4f7dd67bd1485a` |
 | `TestResults\HostedCqlIntegrationCurrent\WormholeOASIS-client-http-flow.json` | 45858 | `dec8b498beffa02b096978304e94138d9d88254d964afd6d74e1853bdc0adf9d` |
 | `TestResults\HostedCqlIntegrationCurrent\WormholeOASIS-isolation-http.json` | 7274 | `e1be6c692b1ecafd2f8e90225c076d62153316948d6aa208e5e1fefe87a92b77` |
+
+## Website publication verified
+
+Website 129c995e706471953eac8a3324eb71acebfd8d9f publishes the Wormhole card with guide413e79ed4 and C#d1f42addf pinned links.105client tests pass. Public HTML180501bytes/SHA25691726f231ab2d8f4c77bb655e1fb6df4263d2cbb02125097ef41593c12b9347c and both scripts match exact git blobs. Raw compact observation TestResults/WormholePublicSourceCurrent/public-assets-observation-1.json; immutable site ACK HostedWormholeReleaseCurrent. Browser interaction remains open. Source/cohort/ACKs frozen; no further hardening absent reproduced bugs. Next red scope: Chainflip public qualification.
