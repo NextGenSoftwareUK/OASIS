@@ -112,3 +112,10 @@ fixture intents must not be replayed. Core task4f9808 is pushed; hosted remains5
 | `TestResults/ChainflipPublicSourceCurrent/Http/prepared-presets.trx` | `f464518aa55c6027c9f3e60abda4ba34fc63caa16f2a08e6b39ab46cc2b9d6ab` |
 | `TestResults/ChainflipPublicSourceCurrent/prepared-review.json` | `e1795bd9953b29209aba63711a067e43f356bc997729229df98680fa1873072a` |
 | `LocalState/COSMIC/ChainflipMongoHttpCurrent/fixture.cleaned.json` | `5f8d2964bde731959e5741e34c07fa80c0385f6071e42083dcb1657d6c12f5fd` |
+
+Development publication: parent c81937d591e91e068a7d6873c89964eca427e757 and
+Core4f9808dea606e68d62257bc189bb08c77520907c remote refs verified after ordinary
+fast-forward pushes. Manifest/gitlinks gate passes. Exact code deployment
+a12e451f-09e1-42c7-be53-23968183facc is QUEUED at latest observation; same job
+retained, no restart/settings mutation. Release intent/observation retained at
+LocalState/COSMIC/HostedChainflipReleaseCurrent. Hosted count remains50.
