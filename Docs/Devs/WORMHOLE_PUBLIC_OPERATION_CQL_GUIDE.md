@@ -96,7 +96,7 @@ publisher9/prepared1 and105client controls pass. Original hosted cohort verifies
 native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3 and exact
 SQLite/Neo4j replicas2/2. Two private version1 saves remain unchanged, pending0.
 Select WormholeOASIS and its native or Mongo paired preset in the CQL tab.
-The public information card is the next publication step. Browser interaction
+The public information card and pinned developer links are published. Browser interaction
 is separate from these HTTP/client-module and replication checks.
 
 See the [release/evidence report](../WIP/COSMIC%20ORM/WORMHOLE_PUBLIC_SOURCE_STATUS.md).
@@ -106,7 +106,7 @@ See the [release/evidence report](../WIP/COSMIC%20ORM/WORMHOLE_PUBLIC_SOURCE_STA
 The shipping compiler/read-profile and query-only admission now pass local HTTP
 native3/2, Mongo federation5/4 and foreign-private0/public3. The four prepared
 hosted presets also plan against shipping capabilities. Hosted acceptance now passes; the live
-card is being published; this supersedes the earlier implementation-pending note.
+card is published; this supersedes the earlier implementation-pending note.
 
 Set host-only `CQL_WORMHOLE_PUBLIC_SOURCE_JSON` to the retained source JSON,
 with an explicit independently permitted query-only tariff. This does not grant

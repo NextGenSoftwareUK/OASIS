@@ -9,10 +9,10 @@ deep LINQ parity remains paused. Work red scopes only unless a bug is reproduced
 - 50 scoped hosted functional HTTP proofs; browser5verified/45open. These are not full ORM/native-write/reliability certifications.
 - MongoDB/SQLite/Neo4j parity50/82rows each; original investor-demo subset green.
 - Latest hosted addition Wormhole: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, exact SQLite/Neo4j2/2. Two original version1 saves/pending0; source/body pins and original cohort frozen.
-- Website maineda15be publishes Stacks/Matrix/prior profiles with pinned setup/C#/HTTP links. Public HTML178107bytes/SHA256ba219e8e890914e0c811cd15de9e435561389a7388b516fe2e93d1de423b04ea and both scripts match exact git blobs. Browser interaction separate. Frontend task21cc5be includes105client controls and an unpublished Wormhole card draft; main stayseda15be.
+- Website main/task129c995 publishes Wormhole/Stacks/Matrix/prior profiles with pinned setup/C#/HTTP links;105client tests pass. Public HTML180501bytes/SHA25691726f231ab2d8f4c77bb655e1fb6df4263d2cbb02125097ef41593c12b9347c and both scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser copies retain identity/name/description/provenance and native query key, not full native payload. Full safe payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: Wormhole hosted acceptance complete; card publication next
+## Current phase: Wormhole public demo complete; Chainflip qualification next
 
 - ParentDevelopmentd1f42addf0413ddcd381238ccdf17bbfa561a3e2/CoreDevelopmentc551a89ff294e68527f6ff75128d97cff54e6c63 pushed after fetched ancestry checks. Remote refs verified; manifest/seven Dockerfiles/gitlinks validator passes.
 - Code4da3a095/settingsb29f93f6 SUCCESS at exactd1f42addf. Three settings applied once/verified; original hosted cohort passed and independent artifact audit wrote immutable acceptance ACK. No additional saves.
@@ -23,11 +23,11 @@ deep LINQ parity remains paused. Work red scopes only unless a bug is reproduced
 ## Exact next step
 
 1. Preserve original Wormhole source/owner/config/body pins/cohort/ACKs. Do not replay acceptance/setup/saves or apply/activation.
-2. Publish Wormhole card with guide pinned to this proof-doc commit and C#d1f42addf. Existing task draft21cc5be;105client tests pass. Fetch/preserve concurrent frontend main changes before ordinary push.
-3. Verify public HTML/preparation/playground bytes against exact published git blobs, retain compact observation/site ACK, update reports/ledger. Browser remains open; do not re-request control.
-4. Next select another unimplemented provider scope after card/publication gate; hosted50/browser5/open45. Preserve all completed cohorts.
+2. Next inspect Chainflip tracker and official public API contract, record a bounded anonymous qualification plan in the resource ledger, then qualify explicit real swap/message records before CQL/source-owner/admission work. No install/runtime/account unless existing resources cannot meet the task.
+3. Keep Wormhole original cohort/source/body pins/acceptance and site ACKs frozen. Do not rerun/resave/reapply merely for another green result. Public asset bytes are not browser verification.
+4. Work only next red provider scopes; maintain full report/docs/ledger at milestones. Hosted50/browser5/open45; whole programme remains incomplete.
 
-Observer: python Scripts/Sandbox/Observe-HostedDeployment.py b29f93f6-cf25-4589-ab12-a0255cf340f9 --expected-commit d1f42addf0413ddcd381238ccdf17bbfa561a3e2 --output TestResults/WormholePublicSourceCurrent/settings-deployment.json
+Next source inspection: Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ChainflipOASIS/ChainflipOASIS.cs. Existing observed deployment IDs remain above; no pending Wormhole job.
 
 ## Preserved checkpoints and remaining scope
 
