@@ -1393,4 +1393,4 @@ Bittensor bounded Finney headers: [guide](../../Devs/BITTENSOR_PUBLIC_HEADER_CQL
 
 ## Zcash public block summaries
 
-Read-only ZcashBlockHash equality/IN and paging are verified through the C# HolonManager/LINQ walkthrough and local HTTP/Mongo federation. Use `--zcash-public <configuration-path>`; see [configuration, code and limits](../../Devs/ZCASH_PUBLIC_BLOCK_CQL_GUIDE.md). Hosted HTTP native/Mongo/privacy/replica acceptance and independent audit now pass. The sandbox card and browser interaction remain separate open gates. No wallet, shielded data, transactions or independent consensus verification.
+Read-only ZcashBlockHash equality/IN and paging are verified through the C# HolonManager/LINQ walkthrough and local HTTP/Mongo federation. Use `--zcash-public <configuration-path>`; see [configuration, code and limits](../../Devs/ZCASH_PUBLIC_BLOCK_CQL_GUIDE.md). Hosted HTTP native/Mongo/privacy/replica acceptance and independent audit now pass. The Zcash sandbox card and static assets are published/verified; browser interaction remains an open gate. No wallet, shielded data, transactions or independent consensus verification.

@@ -40,15 +40,16 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
    Mongo5/4, repeat0new/2existing, foreign0private/3public, exactSQLite/Neo4j2each,
    2normal APIversion1saves/pending0. Cohort frozen; no query/save replay.
    Evidence/ACK: `LocalState/COSMIC/HostedQueryAcceptance-ZcashOASIS`.
-   Next publish Zcash sandbox card with pinned C# and guide links, verify public
-   static bytes. Browser interaction remains unverified/closed.
+   Zcash card published at website3141cca9491d585ed0b1c8aab7a52c7dd5bbc948;
+   HTML and both JS assets match exact Git blobs. Browser gate remains closed.
+   Next continue remaining red provider breadth; do not replay accepted Zcash.
 5. Durable Zcash state: `LocalState/COSMIC/HostedZcashPublicSourceCurrent`,
    `ZcashPublicQualificationCurrent`, `ZcashMongoHttpCurrent` (cleaned),
    `HostedZcashReleaseCurrent`. Preserve owners/config/intents/ACKs; no reseeding.
 
 ## Remaining gates
 
-- [Zcash details](ZCASH_PUBLIC_SOURCE_STATUS.md): hosted proof passed; card/browser open.
+- [Zcash details](ZCASH_PUBLIC_SOURCE_STATUS.md): hosted proof/card/static bytes pass; browser open.
 - [Ceramic qualification](CERAMIC_PUBLIC_SOURCE_STATUS.md): pinned official
   client reviewed; original Clay healthGET failed before HTTP (URLError, cause
   unproven). No retry; current operator access/public StreamIDs unresolved.
@@ -65,7 +66,7 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 Work/build/test only `C:/Source/OASIS-cosmic`, branch `work/cosmic-cql-ton-public`;
 Core `work/cosmic-cql-google-public`; frontend `C:/Source/Web4Site/work/cosmic-cql`.
-Website main/taskbc313792 publishes prior accepted cards; Zcash not published.
+Website main/task3141cca9491d585ed0b1c8aab7a52c7dd5bbc948 includes Zcash card.
 No new worktree/environment. Dev push timing authorized; no production/master.
 
 Use build lease with `/m:2 /nr:false /p:UseSharedCompilation=false`.
