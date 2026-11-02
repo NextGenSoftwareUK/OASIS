@@ -5,14 +5,14 @@ deep LINQ parity paused. Work red scopes only unless a bug is reproduced.
 
 ## Verified scope
 
-- 57 integrated query types:3canonical adapters/50bounded public-source profiles/4local PostgreSQL, Cosmos, Oracle and AWS implementations.
+- 58 integrated query types:3canonical adapters/51bounded public-source profiles/4local PostgreSQL, Cosmos, Oracle and AWS implementations.
 - 53 scoped hosted functional HTTP proofs/configured query tariffs; browser5verified/48open. These are not full ORM/native-write/reliability certifications.
 - MongoDB/SQLite/Neo4j parity50/82rows each; original investor-demo subset green.
 - Latest hosted addition Blockscout: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, exact SQLite/Neo4j2/2. Two original normal API version1 saves/pending0; original owner preserved and independent source/key/nullability/save-operation/replica audit ACK frozen.
 - Website main/task2983b1cceec7aed26b2fb52c1995f3dc136daaae publishes Blockscout and prior profiles with pinned guide/C#links;108client controls pass. Public HTML187960bytes/SHA2568b151b5cf9d1a454d40bfb22e239c802fdec87265b6712a97b6d263f78a41a53 and both scripts match exact git blobs. Browser interaction remains separate.
 - Generic private browser copies retain identity/name/description/provenance/native query key, not full native payload. Full safe payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current milestone: Blockscout hosted demo complete within its declared scope
+## Current milestone: ENS local CQL demo verified; HTTP integration next
 
 - Parent Development21666342fb90599ad74f3d3825acf253d7e5d9d0/Core Development55de8e9f735346aec00ddd0b2cbdfcaadbebbb80 verified remotely; manifest/seven Dockerfiles/gitlinks pass. Task branch contains later docs; no production/master promotion.
 - Original codeeffaffdf/settings948c5921 succeeded at669917da1; source activation returned upstreamHTTP500 and became unavailable. Original cohort stopped before native queries/private saves; one original owner/failure record retained.
@@ -26,7 +26,7 @@ deep LINQ parity paused. Work red scopes only unless a bug is reproduced.
 ## Exact next step
 
 1. Preserve Blockscout and all prior completed owners/catalogues/ACKs/cohorts. Do not replay qualification/setup/saves/settings/activation merely to reproduce green. No additional Blockscout runtime work absent a reproduced bug; reliability/operator recovery stays explicitly open.
-2. ENS protocol review is complete in ENS_PUBLIC_SOURCE_STATUS.md: canonical Universal Resolver, explicit nick.eth/vitalik.eth/ur.integration-tests.eth catalogue, mandatory0x222 sentinel, no direct-registry substitution. Production codec19controls and reader10controls pass. Original guarded three-name native qualification passed once at finalized block0x191baa9; sentinel0x222verified. Preserve EnsPublicQualificationCurrent intent/ACK, no replay. Query-only catalogue adapter now passes17capability/projection/error/configuration controls; next spaced manager/LINQ3/2 walkthrough, then HTTP/Mongo/privacy/replicas and live acceptance. CCIP/Unicode/general ENS remain red; no hosted admission/card yet. Counts unchanged pending integration. Legacy fixed-subgraph adapter unchanged, gaps docs-only.
+2. ENS protocol review is complete in ENS_PUBLIC_SOURCE_STATUS.md: canonical Universal Resolver, explicit nick.eth/vitalik.eth/ur.integration-tests.eth catalogue, mandatory0x222 sentinel, no direct-registry substitution. Production codec19controls and reader10controls pass. Original guarded three-name native qualification passed once at finalized block0x191baa9; sentinel0x222verified. Preserve EnsPublicQualificationCurrent intent/ACK, no replay. Query-only catalogue adapter passes17controls; actual spaced C# manager/LINQ CLI3/2 passed once after0error demo build. Preserve HostedEnsPublicSourceCurrent config/owner/console ACK. Next HTTP compiler/startup registration/query tariff/API controls, then local Mongo/privacy/replicas and original hosted acceptance. CCIP/Unicode/general ENS remain red; no hosted admission/card yet. Integrated58/hosted53; ENS live gates still open. Legacy fixed-subgraph adapter unchanged, gaps docs-only.
 3. No new source/owner/admission/card until native qualification, then capability/error/precision tests, actual spaced C# manager/LINQ3/2, HTTP/Mongo/privacy and original hosted/replica acceptance. No paid key/account/new node/runtime or silent offchain/endpoint fallback.
 4. Maintain full provider report/docs/ledger at milestones. Raw outputs only TestResults; durable identities/config/receipts LocalState/COSMIC. Whole ORM/HyperDrive programme incomplete.
 

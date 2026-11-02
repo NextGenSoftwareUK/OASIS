@@ -984,3 +984,6 @@ Celestia: `--celestia-public <retained-source.json>` runs the spaced/commented `
 
 
 Blockscout: `--blockscout-public <retained-source.json>` runs the spaced/commented `BlockscoutPublicWalkthrough.cs` through HolonManager/deferred LINQ over three original public explorer addresses, then filters to two. Exact nullable native-coin balances/update blocks; no private/watchlist fields/native writes. [Setup/query/metadata guide](../../Docs/Devs/BLOCKSCOUT_PUBLIC_ADDRESS_CQL_GUIDE.md). Source42controls/actual CLI3/2 pass in one original read-only completion; initial15s native timeout retained, reliability unproven. Hosted HTTP3/2+Mongo5/4/reuse/privacy/exact replicas verified; card/public bytes2983b1c verified; browser remains separate.
+
+
+ENS public-name demo: `--ens-public <retained-source.json>` resolves three configured names, then filters to two through HolonManager/deferred LINQ. See [guide](../../Docs/Devs/ENS_PUBLIC_NAME_CQL_GUIDE.md) and [acceptance status](../../Docs/WIP/COSMIC%20ORM/ENS_PUBLIC_SOURCE_STATUS.md). Direct ASCII catalogue only; HTTP/live gates separate.

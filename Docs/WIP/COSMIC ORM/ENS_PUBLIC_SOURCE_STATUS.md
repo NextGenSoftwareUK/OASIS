@@ -1,8 +1,7 @@
 # ENS public CQL source — next interface review
 
-2 November 2026. Native protocol qualified; CQL integration remains red. No
-source owner, CQL source, hosted admission/card or browser proof. Counts
-unchanged57integrated/53hosted. Earlier no-probe statements below are historical.
+2 November 2026. Native protocol and local CQL console qualified. No hosted admission/card or
+browser proof. Counts58integrated/53hosted. Earlier no-probe statements below are historical.
 
 Existing provider: Providers/Network/NextGenSoftware.OASIS.API.Providers.ENSOASIS/ENSOASIS.cs.
 It reads a hardcoded ENS Subgraph URL, https://api.thegraph.com/subgraphs/name/ensdomains/ens,
@@ -139,3 +138,26 @@ No additional native calls or source owner were allocated. Original protocol
 qualification remains frozen. Next: spaced C# HolonManager/deferred-LINQ
 walkthrough3/2, then HTTP/Mongo/privacy/replica and live integration gates.
 Integrated57/hosted53 counts remain unchanged until that integration is proved.
+
+## Actual C# console milestone passed
+
+`Examples/CosmicCqlDemo/EnsPublicWalkthrough.cs` and `--ens-public` now use
+the production ENS adapter and shared manager/deferred-LINQ walkthrough. The
+actual demo project built0errors. One frozen-binary CLI invocation passed3full/
+2filtered records, using the retained three names and one source owner. No
+Mongo copy, wallet, transaction or source write. This is additional console
+acceptance, not a replay of the immutable native protocol qualification.
+
+Retained source/config/console intent/ACK:
+`LocalState/COSMIC/HostedEnsPublicSourceCurrent/`. Source SHA256
+`f16c146823743a77394d54e302b7d54b013c8a78a7779cc16266c76ed0f90455`, binary SHA256 `817309fa8169dce1f84d2907c55def125b377e7df60be4b485af4978d655e4d1`.
+Raw console stdout/stderr/build log: `TestResults/EnsPublicSourceCurrent/`.
+Runner `Scripts/TestHosts/Run-CosmicEnsPublicConsole.py` refuses an existing
+source state and preserves failures rather than replacing identities. Do not
+rerun a completed acceptance invocation to reproduce green.
+
+Developer guide: [ENS public-name CQL](../../Devs/ENS_PUBLIC_NAME_CQL_GUIDE.md).
+58integrated types now include51bounded public/source profiles; hosted remains53
+and browser5verified/48open. Next implement HTTP compiler/startup registration,
+query-only tariff and controlled API tests, then the retained native/Mongo/privacy
+fixture and original hosted/private-copy/replica acceptance before website card.
