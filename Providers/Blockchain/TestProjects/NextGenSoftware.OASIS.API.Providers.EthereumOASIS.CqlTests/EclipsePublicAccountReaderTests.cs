@@ -63,7 +63,7 @@ public class EclipsePublicAccountReaderTests
         Assert.AreEqual(0, handler.Starts.Count);
     }
 
-    private sealed class Native : HttpMessageHandler
+    internal sealed class Native : HttpMessageHandler
     {
         public string Fault = "";
         public List<long> Starts = new();
@@ -80,7 +80,8 @@ public class EclipsePublicAccountReaderTests
                 var config = root.GetProperty("params")[1];
                 Assert.AreEqual("finalized", config.GetProperty("commitment").GetString());
                 Assert.AreEqual(0, config.GetProperty("dataSlice").GetProperty("length").GetInt32());
-                object?[] values = Keys.Select(_ => (object?)new Dictionary<string, object> {
+                var requested = root.GetProperty("params")[0].EnumerateArray().ToArray();
+                object?[] values = requested.Select(_ => (object?)new Dictionary<string, object> {
                     ["data"] = new[] { Fault == "data" ? "AA==" : "", "base64" },
                     ["owner"] = Fault == "owner" ? "bad" : Keys[0], ["executable"] = false,
                     ["lamports"] = ulong.MaxValue, ["rentEpoch"] = ulong.MaxValue, ["space"] = 0 }).ToArray();

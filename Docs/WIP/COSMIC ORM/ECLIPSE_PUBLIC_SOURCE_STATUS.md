@@ -82,3 +82,29 @@ EclipseAccountAddress equality/IN+paging, metadata currency/decimals/context
 provenance and endpoint-specific stable IDs. Then source controls, spaced actual
 C#3/2, HTTP/Mongo/privacy and original hosted/replica/card gates. Counts unchanged
 58integrated/54hosted. Legacy gaps remain documentation-only.
+
+## Query-only adapter controls passed
+
+`EclipsePublicAccountMetadataSource` now implements generic CQL storage/read-only
+activation over the qualified reader. Exact configured EclipseAccountAddress
+equality/IN+paging,1–8keys/max44characters; mandatory canonical genesisHash in
+exact schema1/rpcUrl/addresses/genesisHash/sourceOwner config. Unknown/duplicate
+fields, invalid keys, empty owner and credential URLs fail. Factory uses guarded
+HTTP/cookies disabled. No source owner/config allocated yet.
+
+Projection preserves exact balance/rentEpoch/space/slot integer text, ETH/9decimal
+labels, native owner/executable, finalized commitment and node-reported policy.
+Stable public IDs include owner, endpoint, genesis and address. Every query checks
+the retained genesis pin; selected records validate before paging, including
+Take(0). Unsupported content filters/native writes fail, no partial rows.
+
+29controls pass0failed/0skipped:17adapter/configuration/capability cases plus
+12reader controls rerun after correcting their shared mock to return requested
+cardinality. The first adapter build stopped at a generated namespace typo before
+tests; corrected, original build log preserved. No native qualification replay.
+Evidence TestResults/EclipsePublicSourceCurrent/adapter-and-protocol-controls.trx,
+SHA256 1a40cf9e8527ab3ad11c4a21a636bd6caab006bc6eaf445925eaa8648387d4c9.
+
+Next actual spaced C# manager/deferred-LINQ3/2 walkthrough with one retained
+source owner/config; then HTTP/Mongo/privacy/replicas/hosted/card gates. Counts
+remain58integrated/54hosted until actual integration is proved.
