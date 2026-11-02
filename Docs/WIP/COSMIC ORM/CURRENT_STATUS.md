@@ -15,12 +15,12 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 
 - ChainLink source43controls/actual CLI3/2, Core1/API2/localHTTP1/publisher10/prepared-planner1/client1 pass. Native3/2, Mongo5/4, foreign0/public3; exact marked local fixture dropped, HTTP/Mongo stopped.
 - Development parent `09c66998cb2c204f290d7a85198006e6abd3202f` / Core `990c1c75afcafdbc0678b6e8131a10b67650f7e3` fast-forward published/ref-verified; manifest validates.
-- Code job `215b4b51-4431-4292-9c12-1063497d5773` BUILDING. Protected three-key candidate/four presets prepared; no ChainLink settings applied or hosted cohort started. Frontend97/97tests pass; card drafted but unpublished, guide has native/paired HTTP examples. Original native/local cohorts frozen.
+- Code job `215b4b51-4431-4292-9c12-1063497d5773` SUCCESS. Exactly3reviewed settings applied once; full candidate/per-key digests match, DNA unchanged. Single settings job `3a00f63f-c286-45bc-b0ee-baeccc7e9a02` submitted; no hosted cohort started. Frontend97/97tests pass; card drafted but unpublished, guide has native/paired HTTP examples. Original native/local cohorts frozen.
 
 ## Exact next actions
 
 1. Preserve completed EOSIO/Telos/Filecoin/Fantom cohorts, sources/owners/ACKs. EOSIO card72dee68/pinned links/96client tests and public bytes verified; no browser proof inferred.
-2. Observe exact ChainLink job215b4b51-4431-4292-9c12-1063497d5773 at09c66998c. Only after SUCCESS check out exact code release for guarded three-key settings application (no detached commits), apply once, issue one journalled settings deployment, restore task branch, observe exact settings job, then original hosted acceptance/card. See CHAINLINK_PUBLIC_SOURCE_STATUS.md and LocalState/COSMIC/HostedChainLinkReleaseCurrent. No hosted claim; no replay/reapply/restart.
+2. Observe exact settings job3a00f63f-c286-45bc-b0ee-baeccc7e9a02 at09c66998c. Only after SUCCESS run `python Scripts/Sandbox/Verify-HostedQuerySource.py ChainLinkOASIS --prepare` once with pinned Node24.19.0 on PATH, reconcile privacy/reuse/replicas and publish the card. Never reapply/redeploy/replay completed native/local cohorts. Task branch restored. See CHAINLINK_PUBLIC_SOURCE_STATUS.md and LocalState/COSMIC/HostedChainLinkReleaseCurrent. No ChainLink hosted/browser claim yet.
 3. After qualification, implement only that red source/controlled tests/native manager+C#3/2, API permission/Mongo/privacy/prepared gates, exact hosted rollout/acceptance/card. Keep green scopes/deep parity frozen absent a reproduced bug.
 
 ## Durable state and rules
