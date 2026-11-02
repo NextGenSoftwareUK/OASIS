@@ -4428,3 +4428,9 @@ ClickHouse adapter cachedrestore/build finished,25controls pass. Initial22pass/1
 - C:/Source/OASIS-cosmic/Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.UnitTests/obj:1030710bytes, active/reusable; regenerate via cached bounded build/test after no processes, preserve denied/shared targets.
 
 Free C:57926254592bytes. Raw TRX/logs TestResults/ClickHousePublicSourceCurrent; no raw docs evidence. No owned process remains.
+
+2026-11-02 ClickHouse developer walkthrough build: reuse Examples/CosmicCqlDemo and existing cache/output graph/SDK; add direct existingClickHouseproject reference, no package install/download. Cached-onlyrestore/leasedboundedbuild logs TestResults/ClickHousePublicSourceCurrent/demo-{restore,build}.log. Generated demo bin/obj reused, sizes pending. No source call/fixture until successful build; sourceconfiguration/persistent owner to be created once alongside native acceptance intent.
+
+ClickHouse fullshared demo build succeeded1m48s, cache-only/no install. Original native CLI planned using newpersistent sourceowner/config C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedClickHousePublicSourceCurrent/source.json and exclusive console.intent.json binding qualification/source/binarySHA256. Public3countrycatalogue unchanged; no account/nativewrites/DB. Raw console.log TestResults/ClickHousePublicSourceCurrent. Preserve identity/config/intents/ACKs; never replay accepted original. Dotnet process only duringrun.
+
+ClickHouse original manager/CLI3/2 succeeded; sourcefrozen,0nativewrites/noDB/process. Durable HostedClickHousePublicSourceCurrent aggregate 1499bytes (config/intent/ACK/compressedoriginal). Console raw886bytes TestResults/ClickHousePublicSourceCurrent/console.log. Free C:57916690432bytes. Shared demo outputgraph reused/retained; no deniedcleanupattempt.

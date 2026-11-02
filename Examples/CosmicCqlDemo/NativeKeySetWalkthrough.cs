@@ -37,6 +37,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.PolkadotOASIS => "PolkadotBlockHash",
             ProviderType.BittensorOASIS => "BittensorBlockHash",
             ProviderType.ZcashOASIS => "ZcashBlockHash",
+            ProviderType.ClickHouseOASIS => "ClickHouseCountryName",
             ProviderType.BitcoinOASIS => "BitcoinBlockHash",
             ProviderType.XRPLOASIS => "XRPLLedgerHash",
             ProviderType.StellarOASIS => "StellarLedgerSequence",
