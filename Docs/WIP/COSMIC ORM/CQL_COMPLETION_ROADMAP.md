@@ -3,11 +3,11 @@
 Updated 2 November 2026. Full programme remains incomplete.
 [CURRENT_STATUS](CURRENT_STATUS.md) owns deployment state and the exact next step.
 
-1. Finish ThreeFold's original hosted rollout. Verified code c00da49c1/Core5415961
-   is published; job 5d9b665b-984d-4bcd-bebd-e722ff9a6612 is now building after
-   its build-slot wait. Observe that job, then apply the original three-value candidate
-   once, activate once, verify and independently audit the original hosted cohort.
-   Settings remain unchanged. Do not restart because observation takes time.
+1. Finish ThreeFold's original hosted rollout. Code job 5d9b665b succeeded at
+   c00da49c1/Core5415961. Original three settings were acknowledged once and DNA
+   is unchanged. Activation a737028a-40d9-489d-a087-53d2f6f955a6 is building.
+   Observe that exact activation, then verify/audit the original hosted cohort.
+   Do not reapply settings or request another deployment on observation timeout.
 2. Preserve 59 scoped hosted HTTP proofs and 64 local integrated query types.
    ClickHouse is the latest accepted hosted addition; its sandbox card, guide/C#
    links and exact public static bytes are verified. Counts are demo scopes,

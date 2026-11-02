@@ -53,3 +53,7 @@ Retain original profile/config/cohort when recovering. Validate sustained live
 read availability separately: Blockscout earlier15s timeout and Nostr intermittent
 503causes remain unresolved. Do not harden completed provider query cells merely
 to reproduce green. [Current Blockscout evidence](BLOCKSCOUT_PUBLIC_SOURCE_STATUS.md).
+
+## Reproduced local launcher blocker — recover before further breadth
+
+Published website commands reference 35 launchers absent from the current branch; retained source exists at sandbox-integration pin 237403a75b6983e013141cf7ba44bf66858abafd. Recover scoped provider/demo source dependencies, beginning with DuckDB, preserve current changes, verify controlled builds and command paths. Do not replay original accepted native cohorts or create replacement environments. This is a current demo-link bug, not deferred parity work. [Exact report](LOCAL_LAUNCHER_INTEGRATION_GAP.md).
