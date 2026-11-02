@@ -409,3 +409,14 @@ Release37a530a87/Core5fd361d job3da7f986 SUCCESS; tested codeb158bda61 unchanged
 ## Azure Blob addition (1 November)
 
 Hosted count40 now includes anonymous AzureStorageOASIS properties atbccef53d6/Cored133cc2/settings8e382a80 SUCCESS. Native3/2, Mongo5/4, reuse0/2, privacy0/3 and exact SQLite/Neo replicas2/2 pass; both private saves version1, no pending intents, immutable completion ACK retained. Website9694621 and both scripts byte-verified,92client tests pass; browser proof not inferred. This is not hosted Cosmos DB. Detailed hashes and original cohort in [Azure status](AZURE_PUBLIC_BLOB_STATUS.md).
+
+
+## Additional Fantom acceptance
+
+Fantom is hosted-qualified at parent e13244820ddcffc27b94326e70ccfef52fb044ab / Core01b754545eea90395778305c70b7f55550bcf65b. Code7b8c95d9 and settings2177dd3d succeeded. Native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, replicas2/2 and two version1 saves/no pending pass. Websiteeef076957b6826cea54eff8c3b3a4151c0803a05 publishes the Fantom card and pinned local-guide/C# links;93client tests pass. Public HTML160633bytes/SHA256823e2a2400c40d5902bd2789e1c020fbfa63d42c6949ecad0befa3c5061cd121 and both scripts exactly match git blobs. Browser interaction remains open.
+
+Immutable completion ACK: LocalState/COSMIC/HostedQueryAcceptance-FantomOASIS/cql-http-acceptance.acknowledged.json. SourceSHA25686b7ba36bc665a74cd77fa0469c6276156c95967a480e9eadbb1aa09389a5550. Original identities/saveACKs preserved; never replay.
+
+- `TestResults/HostedCqlIntegrationCurrent/FantomOASIS-native-http.json`: 13913bytes; SHA256 `5883cf1a5cc597625c531615ad87d996a9b6ec830a1a44acc6ce7b93b7fbffcf`.
+- `TestResults/HostedCqlIntegrationCurrent/FantomOASIS-client-http-flow.json`: 37376bytes; SHA256 `383ac7fb5a3b34beadbd5f98a66b2756d18558d3cb7ceefca49d2c5cd5d05ca1`.
+- `TestResults/HostedCqlIntegrationCurrent/FantomOASIS-isolation-http.json`: 5313bytes; SHA256 `1569fb02244638926d6721ac5b48e0285fe7b48194f7e2758b29aecbd5cabc56`.

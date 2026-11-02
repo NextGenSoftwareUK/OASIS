@@ -2,9 +2,9 @@
 
 ## Current verified milestone — 1 November 2026
 
-**41 providers have scoped hosted HTTP evidence; 5 have browser evidence and 36 browser gates remain open.** Azure Blob passes native3/2, Mongo-paired5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2. Two private saves acknowledged at version1; completion ACK prevents replay. Azure is anonymous public Blob properties, not hosted Cosmos DB or owned Azure writes.
+**41 providers have scoped hosted HTTP evidence; 5 have browser evidence and 36 browser gates remain open.**
 
-Latest hosted acceptance: parent bccef53d6dbe0ec75028220b34eb0d3f2b0f4db8 / Core d133cc20c29441158da0e590d7f3c85b351dd826. Code job e6a98438-bf39-444e-89eb-5367322525bc and single settings job8e382a80-86ec-4d1d-8709-ca459f9e9781 succeeded. Exactly3settings applied once with per-key ACKs and complete candidate equality; canonical DNA/unrelated settings preserved. Original Azure cohort completion ACK retained; never replay it. Website969462188cd122f3dd0a2523b782e6f3ea2deefa publishes the Azure card with guide781bed195/C#bccef53d6 links. Public HTML158677bytes/SHA256f0ff7eccd617edcb3a754ce82a8b09184ce3a666ccf57aa84328ba07025c2106 and both script bytes match exact git blobs;92client tests pass. Browser interaction and real-expiry gates remain separate.
+Fantom is hosted-qualified at parent e13244820ddcffc27b94326e70ccfef52fb044ab / Core01b754545eea90395778305c70b7f55550bcf65b. Code7b8c95d9 and settings2177dd3d succeeded. Native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, replicas2/2 and two version1 saves/no pending pass. Websiteeef076957b6826cea54eff8c3b3a4151c0803a05 publishes the Fantom card and pinned local-guide/C# links;93client tests pass. Public HTML160633bytes/SHA256823e2a2400c40d5902bd2789e1c020fbfa63d42c6949ecad0befa3c5061cd121 and both scripts exactly match git blobs. Browser interaction remains open.
 
 There are **45 currently integrated query types**: 3 canonical adapters, 38 bounded public/source profiles and 4 local PostgreSQL/Azure/Oracle/AWS implementations. PostgreSQL content and AWS DynamoDB Local identity queries pass native and local Mongo/HTTP checks; hosted PostgreSQL/owned AWS remain open. Azure Blob public properties pass SDK, manager/LINQ, local and hosted HTTP/Mongo checks. Hosted41/tariffs41/browser5/open36. Preserved broad-branch prototypes are not silently counted as current hosted coverage. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
@@ -16,11 +16,11 @@ Session lifecycle HTTP proof and updated website publication are verified; brows
 ## Read this first
 
 - Repository inventory: **229 shipping provider projects**, including alternate implementations; **173 storage/specialized-storage**, **56 non-storage**. These are projects, not 229 equivalent databases or certified CQL adapters.
-- CQL programme: **45 currently integrated query-provider types**, including hosted-verified TON and Azure Blob: 3 deeper canonical adapters, 38 bounded source profiles and 4 separately scoped local PostgreSQL/Azure/Oracle/AWS implementations. Deployed query-tariff catalogue has41types; independent permission and native capabilities still govern access. TRON candidate is not admitted/certified.
+- CQL programme: **45 currently integrated query-provider types**, including hosted-verified TON, Azure Blob and Fantom: 3 deeper canonical adapters, 38 bounded source profiles and 4 separately scoped local PostgreSQL/Azure/Oracle/AWS implementations. Deployed query-tariff catalogue has41types; independent permission and native capabilities still govern access. TRON candidate is not admitted/certified.
 - Hosted HTTP evidence covers **41** providers: earlier8 plus33additions including TON/Azure Blob/Fantom, each at its recorded release. Browser proof remains **5**; **36** are open.
 - Each addition passed native3/2, private Mongo preparation, paired5/4, repeat reuse, visitor isolation and matching SQLite/Neo4j replicas. Added profiles expose **132 presets** (33partitions ×4). [Proof](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
 - Elrond application **801795a64/Coref41b2a1**, app19f65f59 and settings18c4f04e SUCCESS; hosted acceptance passes. Original cohorts/earlier release-specific proofs preserved, no green saves replayed.
-- Byte-verified website main **9694621** includes verified Azure Blob/TON/Arweave/Cardano/Starknet/Radix/Elrond/Sui/Hedera, first-setup guides and C# links. Browser interaction remains separately open.
+- Byte-verified website main **eef0769** includes verified Fantom/Azure Blob/TON/Arweave/Cardano/Starknet/Radix/Elrond/Sui/Hedera, first-setup guides and C# links. Browser interaction remains separately open.
 - Azure Cosmos hosted free account and Oracle hosted connection are deferred by David; existing local/emulator evidence does not prove cloud hosting.
 
 ## What each CQL level means

@@ -2,7 +2,7 @@
 
 Updated 1 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state and the exact next action.
 
-1. Publish the Fantom card and verify public bytes. Current evidence is41hosted HTTP providers including Fantom; preserve its completed original cohort and never replay save intents.
+1. Preserve completed Fantom acceptance/card/public-byte proof; select the next red provider breadth scope. Current evidence is41hosted HTTP providers including Fantom; preserve its completed original cohort and never replay save intents.
 2. Keep one filtered native query and one Mongo federated preset per admitted provider, with commented C# examples and sandbox links. Preserve completed privacy, reuse and replica proofs.
 3. Expand remaining red provider scopes with explicit consistency semantics, bounded capability-aware planning, native tests, actual HTTP proof and honest public labels. Rejected RPCs are not implemented capabilities.
 4. Complete browser gates when browser control is available; currently 5 proved/35 open. HTTP and byte matching do not prove interaction.
