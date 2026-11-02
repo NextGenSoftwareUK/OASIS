@@ -4450,3 +4450,7 @@ ClickHouse preparedcandidate/planninggate complete1test/4presets, no live mutati
 - C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedSourceRolloutCurrent/clickhouse-public-candidate-variables.dpapi:202246bytes; DPAPI baseline/candidate, preserve for once-onlyrollout/reconciliation, no secrets logged.
 
 Publicreview/inputs/TRX/logs remain TestResults/ClickHousePublicSourceCurrent. No ownedlocalservice/process/DB remains; no newinstall/download. Free C:57686716416bytes.
+
+2026-11-02 ClickHouse mergedrelease verification: reusedtaskworktree/Corebranch, merged upstream8bfc03c82/Core87a63bb preserving GeoNFT/place-rewardfixes. CombinedCore0659aa00/parent237d90dfa; manifest7Dockerfilespass. ExistingAPI/Core/cacheSDKoutputgraph rebuilt underlease boundedworkers; logs/TRX TestResults/ClickHousePublicSourceCurrent/combined-*; no nativefixture replay/newenv/install. Independenthostedaudit2tests/16negativecasespass offline, sourceScripts/Sandbox/Audit-HostedClickHouseAcceptance.py. Rawsizespending.
+
+ClickHouse mergedverification complete:3API+1Coretariff+4placeguards pass;1separatenativeMongo skipped/unconfigured. Initialpartialclassfiltermis-scope corrected with exactmethodfilter/no rebuild/no nativefixture. Existing SDK/outputgraph reused, no nativeDB/install. Free C:57441628160bytes. No localownedprocess remains. Planned once-only Developmentcodepublication evidence LocalState/COSMIC/HostedClickHouseReleaseCurrent, no hostingpurchase; live3settings remain unapplied.

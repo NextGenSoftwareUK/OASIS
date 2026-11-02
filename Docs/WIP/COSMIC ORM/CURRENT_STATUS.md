@@ -45,8 +45,9 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
    ClickHouse adapter builds,25controlled tests pass; native countries3/2
    qualified,4probecontrols pass. Actual manager/LINQ/CLI3/2passed; HTTPadmission3API+1Core and
    publisher10controls pass. Original localHTTP3/2+Mongo5/4/privacy0/3passed; fixturecleaned.
-   Hostedcandidate prepared/4actualpresets pass; next auditcontrols and
-   verifiedDevelopmentintegration, code release/activation/hostedacceptance.
+   Hostedcandidate prepared/4actualpresets pass; audit2tests/16faults pass. MergedlatestDevelopment8bfc03c82/Core87a63bb;
+   combined3API+1tariff+4placeguards pass,1separatenativeMongo test skipped.
+   Next code release/activation/hostedacceptance; no settings applied.
    Original absentStackOverflowtable failure retained; no hosted ClickHouse acceptance yet. Do not replay accepted Zcash.
 5. Durable Zcash state: `LocalState/COSMIC/HostedZcashPublicSourceCurrent`,
    `ZcashPublicQualificationCurrent`, `ZcashMongoHttpCurrent` (cleaned),
