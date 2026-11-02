@@ -97,5 +97,6 @@ Hosted functional HTTP acceptance now also passes: native3/2, Mongo pairing5/4,
 repeat setup0new/2existing, visitor privacy0private/3public and exact two-copy
 SQLite/Neo4j replication. The original two normal API saves are version1 with
 settled operation ACKs. This does not certify reliability or browser interaction.
-Select ENSOASIS and one of its four presets in the live CQL tab after website
-publication; the status report records the publication gate separately.
+The ENS card is published at [the live demo](https://web4.oasisomniverse.one/web4-sandbox.html).
+Select ENSOASIS in the CQL tab and choose one of its four native/Mongo presets.
+Public page/script bytes are verified; actual browser interaction remains open.
