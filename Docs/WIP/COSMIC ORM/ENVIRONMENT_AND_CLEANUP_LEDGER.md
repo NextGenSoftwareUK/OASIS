@@ -4344,3 +4344,8 @@ Reuse C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe v8.3.11, C:/Source/OASI
 Zcash local HTTP original run passed26s; exact DB cosmic_cql_zcash_http_demo verified absent and nonce-bound cleanup ACK retained; owned mongod stopped/no27029listener. Shared mongo-data retained reusable (aggregate size not measured in this run); no runtime install. HostedZcashPublicSourceCurrent durable proof now 4129bytes. TestResults raw compact log/TRX regenerability constrained by original fixture: preserve compressed original proof/identities, never recreate accepted fixture. Free C:58493140992bytes. No unrelated or denied cleanup attempted.
 
 2026-11-02 Zcash hosted candidate: reuse pinned existing Railway CLI and DPAPI publisher. Read-only live settings snapshot and candidate planned in LocalState/COSMIC/HostedSourceRolloutCurrent/zcash-public-{before,candidate}-variables.dpapi; protected configuration, preserve for exact rollout/reconciliation. Public review TestResults/ZcashPublicSourceCurrent/prepared-review.json. No new install/service/deployment; sizes pending.9pure publisher tests pass before preparation.
+
+Zcash hosted candidate/prepared controls complete, no live mutation. Exact protected files:
+- C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedSourceRolloutCurrent/zcash-public-before-variables.dpapi:197030bytes; retain DPAPI rollout baseline/candidate, no secret contents logged.
+- C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedSourceRolloutCurrent/zcash-public-candidate-variables.dpapi:200054bytes; retain DPAPI rollout baseline/candidate, no secret contents logged.
+Review/inputs/TRX/logs TestResults/ZcashPublicSourceCurrent; reused output graph, no native calls/new install/DB. No owned active process.
