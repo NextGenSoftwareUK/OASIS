@@ -5,6 +5,15 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// ChainLink feed reads are anonymous and use one retained public catalogue.
+// The demo queries proxy contracts; it does not sign or submit transactions.
+if (args.Length == 2 && args[0] == "--chainlink-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await ChainLinkPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Native EOSIO/Vaulta accounts use the retained public source catalogue.
 // This read-only walkthrough does not require a wallet or create test accounts.
 if (args.Length == 2 && args[0] == "--eosio-public")

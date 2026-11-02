@@ -58,6 +58,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.FilecoinOASIS => "FilecoinAccountAddress",
             ProviderType.TelosOASIS => "TelosAccountAddress",
             ProviderType.EOSIOOASIS => "EOSIOAccountName",
+            ProviderType.ChainLinkOASIS => "ChainLinkFeedAddress",
             ProviderType.SeiOASIS => "SeiAccountAddress",
             ProviderType.ZkSyncOASIS => "ZkSyncAccountAddress",
             ProviderType.AbstractOASIS => "AbstractAccountAddress",
