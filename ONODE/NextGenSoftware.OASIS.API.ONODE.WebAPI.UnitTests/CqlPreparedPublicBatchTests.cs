@@ -153,6 +153,10 @@ public sealed class CqlPreparedPublicBatchTests
         => await CheckPreparedBatch(1);
 
     [PublicBatchReviewFact]
+    public async Task ActualBlockscoutCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
     public async Task ActualCelestiaCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
@@ -186,6 +190,7 @@ public sealed class CqlPreparedPublicBatchTests
                 var type = Enum.Parse<ProviderType>(profile.Name);
                 ICosmicQueryStorageProvider source = type switch
                 {
+                    ProviderType.BlockscoutOASIS => Providers.BlockscoutOASIS.BlockscoutPublicAddressMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.CelestiaOASIS => Providers.CelestiaOASIS.CelestiaPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.ChainflipOASIS => Providers.ChainflipOASIS.ChainflipPublicSwapMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.WormholeOASIS => Providers.WormholeOASIS.WormholePublicOperationMetadataSource.FromJson(profile.Value.GetRawText()),
