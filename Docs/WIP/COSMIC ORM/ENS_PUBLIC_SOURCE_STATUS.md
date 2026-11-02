@@ -184,3 +184,30 @@ Evidence under TestResults/EnsPublicSourceCurrent (SHA256):
 Next: owned local HTTP/Mongo fixture3/2+5/4, privacy and cleanup proof;
 then reviewed hosting configuration/publication and original hosted acceptance.
 No live ENS admission/card, source writes or new hosting resources yet.
+
+## Local native HTTP/Mongo acceptance passed
+
+One original `CqlEnsMongoNativeTests` fixture passed with real ENS RPC/Mongo
+through shipping CQL endpoints over loopback HTTP. Native3/2; federation5/4;
+foreign-private0/public3. Every selected physical identity, source/provenance,
+visibility and private-copy version1 was checked, not only counts. Two SDK-owned
+private Mongo saves/9query receipts; no production billing or replication claim.
+
+Evidence: `TestResults/EnsPublicSourceCurrent/mongo-http-native.trx`, SHA256
+`31f64094873231150880d789921ea519efd4332f17cffae1659cc1ef23290efc`.
+Summary/log/service output stays beside it. Durable original fixture identity,
+save ACKs and cleanup: `LocalState/COSMIC/EnsMongoHttpCurrent/`. Existing source
+config SHA256 `f16c146823743a77394d54e302b7d54b013c8a78a7779cc16266c76ed0f90455` unchanged;
+`HostedEnsPublicSourceCurrent/web4-local-qualified.acknowledged.json` frozen.
+
+Success-only cleanup validated the exact fixture marker and two-record count,
+stopped HTTP consumers, dropped only `cosmic_cql_ens_http_demo`, confirmed its
+absence, and stopped the owned Mongo process. Port27029has0listeners. Existing
+shared mongo-data/runtime retained. Do not replay the fixture or recreate its
+owner/config/ACKs. Controlled bearer/admission is test infrastructure; live signup,
+normal API saves and exact SQLite/Neo4j replicas need separate hosted acceptance.
+
+Next prepare a protected hosted candidate from current live settings, changing
+only ENS source/admission/examples; preserve unrelated and concurrent settings.
+Test that candidate/publisher and actual four presets before any deployment.
+Hosted counts remain53; ENS card/browser still unverified.

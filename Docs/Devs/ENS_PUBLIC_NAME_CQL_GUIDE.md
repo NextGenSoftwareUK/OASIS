@@ -82,8 +82,10 @@ The profile checks chain1 and proxy code. This is not an independent Ethereum
 consensus verification. The official `ur.integration-tests.eth` sentinel must
 resolve to `0x2222222222222222222222222222222222222222` when selected.
 
-HTTP/Mongo federation, private-copy isolation, replication and the live website
-have separate acceptance gates. Consult the maintained
+Local HTTP/Mongo federation passed3/2native and5/4paired records; the foreign
+avatar saw0private/3public. The owned test database was cleaned. This controlled
+fixture does not prove live signup/billing or replication. Hosted/private-copy
+reuse/replica checks and the live website have separate acceptance gates. Consult the maintained
 [ENS status](../WIP/COSMIC%20ORM/ENS_PUBLIC_SOURCE_STATUS.md) for actual evidence;
 this guide alone does not claim those gates have passed.
 
