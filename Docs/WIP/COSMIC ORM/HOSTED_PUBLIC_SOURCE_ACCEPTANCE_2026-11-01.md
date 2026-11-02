@@ -420,3 +420,12 @@ Immutable completion ACK: LocalState/COSMIC/HostedQueryAcceptance-FantomOASIS/cq
 - `TestResults/HostedCqlIntegrationCurrent/FantomOASIS-native-http.json`: 13913bytes; SHA256 `5883cf1a5cc597625c531615ad87d996a9b6ec830a1a44acc6ce7b93b7fbffcf`.
 - `TestResults/HostedCqlIntegrationCurrent/FantomOASIS-client-http-flow.json`: 37376bytes; SHA256 `383ac7fb5a3b34beadbd5f98a66b2756d18558d3cb7ceefca49d2c5cd5d05ca1`.
 - `TestResults/HostedCqlIntegrationCurrent/FantomOASIS-isolation-http.json`: 5313bytes; SHA256 `1569fb02244638926d6721ac5b48e0285fe7b48194f7e2758b29aecbd5cabc56`.
+
+
+## Additional Filecoin acceptance
+
+Parentfcc4f735d/Coreb386875, exact settings082c1f0d SUCCESS. Native3/2, Mongo-paired5/4, repeat0new/2existing, private0/public3, SQLite/Neo4j replicas2/2 and2saves/version1/no pending pass. Native RPC-v1 finalized EC observations, not independent F3 proof. Mongo demo records retain identity/name/description/provenance, not full native metadata. Immutable completion ACK HostedQueryAcceptance-FilecoinOASIS; never replay. Counts46integrated/42hosted/browser5/open37.
+
+- `TestResults/HostedCqlIntegrationCurrent/FilecoinOASIS-native-http.json`: 13754bytes; SHA256 `33cf1ed8a4022a3977e8e8db5e9969da238566ea09189c9630b7fd10c294b7a9`.
+- `TestResults/HostedCqlIntegrationCurrent/FilecoinOASIS-client-http-flow.json`: 36934bytes; SHA256 `17720236fb18e73d15ec5b343d0a6b4a90f5f2eefedbbb8d187d17a07a6807c8`.
+- `TestResults/HostedCqlIntegrationCurrent/FilecoinOASIS-isolation-http.json`: 5212bytes; SHA256 `e336263f393a69489e9c2ccefced858d88fff2bf21943273deee77a7083d4d01`.

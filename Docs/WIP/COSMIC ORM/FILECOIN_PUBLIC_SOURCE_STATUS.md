@@ -25,11 +25,15 @@ Core1admission and API2controls pass/0skips; API producer build passes. Initial 
 
 Publisher9pure controls and client1preparation/reuse control pass. Client test commitc291373 is pushed; live website remains eef0769. Protected source/admission/examples candidate contains3settings and4presets, prepared only. No service mutation/deployment. Source-bound native/local qualification ACKs bind this candidate. Coreb386875 task branch pushed/ref-verified; parent gitlink/manifest updated together. Integrated types46; hosted HTTP41/browser5/open36. No Filecoin hosted claim.
 
+## Hosted acceptance complete — 1 November 2026
+
+Code d1fe285f and settings082c1f0d succeeded at parentfcc4f735d/Coreb386875. Native3/2, Mongo-paired5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 pass. Two normal private saves at version1; no pending intents. All native rows retain finalized/chain314 metadata and one block hash per selection. Immutable completion ACK under LocalState/COSMIC/HostedQueryAcceptance-FilecoinOASIS freezes the original cohort; never replay/resave it. Counts46integrated/42hosted/browser5/open37. Earlier pending-hosting statements are superseded.
+
+Copy scope: private Mongo demo records retain source identity/name/description and mapping/provenance metadata; native balances/block fields remain native. This proves scoped query federation and replication of those demo records, not full source-state migration. Full payload mapping is tracked in AFTER_DEMO_BACKLOG.md.
+
 ## Exact next step
 
-Parentfcc4f735d1719799dfb3a6fdcd7948ce17020abc/Coreb3868756033b0fb3499cd799b77c331d3a0af9c6 remote refs verified. Code jobd1fe285f SUCCESS. Exactly3reviewed settings applied once under immutable-release guard; complete candidate equality/per-key ACKs verified. DNA/unrelated values unchanged. Single journalled settings job082c1f0d-311b-459b-a6b8-04fb14028ada nowBUILDING at the samefcc4f735d. Existing task branch restored after guarded exact-release checkout; no new worktree.
-
-Observe that same settings job toSUCCESS; never reapply/redeploy. Then first `Verify-HostedQuerySource.py FilecoinOASIS --prepare` with pinnedNode PATH: native/federation/reuse/privacy/replica cohort, inspect2saveACKs/version1/no pending and write immutable completionACK, then sandbox card/public assets. Do not count Filecoin as hosted yet:46integrated/41hosted/browser5/open36. Original native/local cohorts remain frozen. PostgreSQL/Azure Cosmos/Oracle hosting and browser control remain deferred/closed.
+Publish the Filecoin sandbox card with pinned guide/C# links, run client publication checks and verify exact public HTML/scripts. Browser interaction remains open. Then implement the already qualified Telos descriptor/native C# scope (TELOS_PUBLIC_SOURCE_STATUS.md), keeping completed Filecoin/native/local cohorts frozen. No Filecoin configuration reapply/redeploy. Hosting deferrals unchanged.
 
 ## Evidence and resources
 
@@ -58,3 +62,9 @@ Primary references: [Filecoin Ethereum API](https://docs.filecoin.io/reference/j
 Prepared-preset shipping gate1November2026: actual public projection of protected candidate profiles/examples passes shipping CQL compiler and exact MongoDBOASIS.CqlCapabilities for all4presets (2leaf/2federation),1test/0skips. Sources remain inactive; no native request/DB/save. `TestResults/FilecoinPublicSourceCurrent/filecoin-prepared-planner.trx`: 3338bytes; SHA256 `323d3f92b0414a77df804518e7eea97e86326e5a00eeee681f6a27fc42b1a2da`. Original code jobd1fe285f is still BUILDING at fcc4f735d; no settings applied/redeployment. Public guide now includes the tested HTTP request/federation route.
 
 Code application milestone supersedes earlier pending-code/settings statements. Protected state remains LocalState/COSMIC/HostedSourceRolloutCurrent/filecoin-public-*; releaseACKs HostedFilecoinReleaseCurrent. No visitor acceptance cohort created yet.
+
+
+Hosted immutable evidence:
+- `TestResults/HostedCqlIntegrationCurrent/FilecoinOASIS-native-http.json`: 13754bytes; SHA256 `33cf1ed8a4022a3977e8e8db5e9969da238566ea09189c9630b7fd10c294b7a9`.
+- `TestResults/HostedCqlIntegrationCurrent/FilecoinOASIS-client-http-flow.json`: 36934bytes; SHA256 `17720236fb18e73d15ec5b343d0a6b4a90f5f2eefedbbb8d187d17a07a6807c8`.
+- `TestResults/HostedCqlIntegrationCurrent/FilecoinOASIS-isolation-http.json`: 5212bytes; SHA256 `e336263f393a69489e9c2ccefced858d88fff2bf21943273deee77a7083d4d01`.

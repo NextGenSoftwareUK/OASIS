@@ -2,7 +2,7 @@
 
 This read-only profile uses Filecoin mainnet chain314 and the shared HolonManager/CQL/LINQ pipeline. It reads FEVM balances for an explicit public address catalogue. No wallet, gas, signing key, source transaction or local node is needed.
 
-The published C# walkthrough returns three records and a real two-address subset. Local Filecoin HTTP/Mongo also passes native3/2, paired5/4 and visitor privacy0/3. Hosted rollout and browser acceptance remain pending; see [current evidence](../WIP/COSMIC%20ORM/FILECOIN_PUBLIC_SOURCE_STATUS.md).
+The published C# walkthrough returns three records and a real two-address subset. Local Filecoin HTTP/Mongo also passes native3/2, paired5/4 and visitor privacy0/3. Hosted HTTP also passes reuse, privacy and two SQLite/two Neo4j replicas. Browser interaction remains open; see [current evidence](../WIP/COSMIC%20ORM/FILECOIN_PUBLIC_SOURCE_STATUS.md).
 
 ## Create one reusable catalogue
 
@@ -67,9 +67,7 @@ The executable walkthrough checks OASISResult errors; apply that same error hand
 
 ## HTTP request on an enrolled host
 
-Local shipping HTTP tests pass this same two-address filter. Hosted Filecoin
-configuration is still pending; the API must have an explicitly admitted Filecoin
-read profile and independent read tariff before accepting it.
+Local shipping HTTP tests pass this same two-address filter. The hosted API now has an explicitly admitted Filecoin read profile and independent free read tariff. Select FilecoinOASIS in the sandbox CQL tab for its public or Mongo paired presets.
 
 Send `POST /api/data/query-cql` with your normal authenticated session:
 
@@ -97,10 +95,11 @@ Send `POST /api/data/query-cql` with your normal authenticated session:
 For Mongo pairing, send `POST /api/data/query-cql/federation` with named providers
 `["MongoDBOASIS", "FilecoinOASIS"]`, `identityMode: "PreserveCopies"`,
 `maximumProviderAttempts: 2`, and the same selection as `source`. Two private
-Mongo snapshots use normal owned saves, not Filecoin writes. The local gate
+Mongo demo records use normal owned saves, not Filecoin writes. They retain source
+identity, name and description with mapping/provenance metadata. Native balances
+and block metadata are read from Filecoin; these are not full native-state copies. The local gate
 returns five physical rows for three source addresses and four for the two-address
-subset, with zero private rows visible to another actor. Hosted replica and
-normal-visitor checks remain separate.
+subset, with zero private rows visible to another actor. Hosted normal-visitor reuse/privacy and matching SQLite/Neo4j replicas also pass. Browser interaction remains separate.
 
 ## Identity, precision and consistency
 

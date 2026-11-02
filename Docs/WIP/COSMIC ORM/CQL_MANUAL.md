@@ -68,7 +68,7 @@ sorts or terminals are rejected rather than evaluated over an implicit scan.
 | AWS S3 object metadata | S3ObjectKey | [S3](../../Devs/AWS_S3_PUBLIC_CQL_GUIDE.md) |
 | Solana account metadata | SolanaAccountAddress | [Solana](../../Devs/SOLANA_PUBLIC_ACCOUNT_CQL_GUIDE.md) |
 | Fantom Opera public balances (hosted HTTP; browser pending) | FantomAccountAddress | [Fantom](../../Devs/FANTOM_PUBLIC_ACCOUNT_CQL_GUIDE.md) |
-| Filecoin FEVM public balances (native C#/CLI/local HTTP; hosted pending) | FilecoinAccountAddress | [Filecoin](../../Devs/FILECOIN_PUBLIC_ACCOUNT_CQL_GUIDE.md) |
+| Filecoin FEVM public balances (hosted HTTP; browser pending) | FilecoinAccountAddress | [Filecoin](../../Devs/FILECOIN_PUBLIC_ACCOUNT_CQL_GUIDE.md) |
 | Azure public Blob properties | AzureBlobKey | [Azure Blob](../../Devs/AZURE_PUBLIC_BLOB_CQL_GUIDE.md) |
 | Google Cloud object metadata | GCSObjectKey | [Google](../../Devs/GOOGLE_PUBLIC_METADATA_CQL_GUIDE.md) |
 | Ethereum balance state | EthereumAccountAddress | [Ethereum](../../Devs/ETHEREUM_PUBLIC_METADATA_CQL_GUIDE.md) |
