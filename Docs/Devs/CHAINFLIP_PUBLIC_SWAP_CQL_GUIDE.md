@@ -104,6 +104,9 @@ HTTP compiler/query-only admission and four prepared presets pass. Local HTTP
 returns3/2, Mongo federation5/4 and privacy0/3 with nine receipts. The original
 two version1 copies were reused in an explicit read-only completion after the
 fixture was corrected to the presets' 30-second budget; no saves were replayed.
-Hosting and the public card remain separate pending gates. [Current proof and next step](../WIP/COSMIC%20ORM/CHAINFLIP_PUBLIC_SOURCE_STATUS.md).
+Hosted HTTP now passes native3/2, Mongo5/4, repeat setup with zero new copies,
+visitor privacy and exact SQLite/Neo4j replicas2/2 each. Two normal API version1
+saves are acknowledged, pending intents zero. Code/settings deployment is
+c81937d59; the public card and browser interaction remain separate gates. [Current proof and next step](../WIP/COSMIC%20ORM/CHAINFLIP_PUBLIC_SOURCE_STATUS.md).
 
 Primary contract: [official swap route](https://github.com/chainflip-io/chainflip-sdk-monorepo/blob/main/packages/swap/src/routes/v2/swap.ts).
