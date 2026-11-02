@@ -22,7 +22,7 @@ Updated 1 November 2026. Native qualification and local CQL/actual C# CLI verifi
 
 These are latest native state per account, not a shared finalized snapshot. Identity responses reported head528551466 while account responses reported528551467/468. No common-block freshness guarantee. Native EOSIO/Vaulta is separate from Vaulta EVM17777. Legacy storage gaps remain documented, not modified.
 
-Next: publish the verified Core/parent code batch to Development, observe its exact deployment, apply the reviewed three-key configuration once, observe that deployment, then run the original hosted acceptance cohort and publish its sandbox card. No EOSIO hosted or browser claim yet.
+Next: observe code job `68db832f-1742-423d-9362-febcf9620466` for Development `4d3e0b7cd148bed7ebdf0400ca371867873932c0` / Core `86e38a37ee860785a8273ade3308f6fc1775294d`. It is QUEUED at the last authoritative observation. Only after SUCCESS, check out that exact release for the guarded three-key application (no detached commits), apply once, observe the single settings deployment, restore the task branch, then run original hosted acceptance and publish its sandbox card. No EOSIO hosted or browser claim yet.
 
 ## API / local HTTP milestone
 
@@ -31,7 +31,7 @@ Next: publish the verified Core/parent code batch to Development, observe its ex
 - Exact owned database `cosmic_cql_eosio_http_demo` dropped after marker/count/identity checks, HTTP consumers stopped, owned Mongo stopped/27029 absent. Original journal and save acknowledgements retained under `LocalState/COSMIC/EosioMongoHttpCurrent`; do not rerun/reseed.
 - Publisher9pure tests pass; candidate changes only source, explicit read admission/tariff and four examples. Original source-bound native/local ACKs retained. Protected baseline/candidate `LocalState/COSMIC/HostedSourceRolloutCurrent/eosio-public-*`; no settings applied yet.
 - Actual candidate planner1 passes for all4presets against shipping source/Mongo capabilities. Frontend EOSIO preparation test1 passes: two private Mongo identity/name/description/provenance copies, repeat0new/2existing, no native write. Full native metadata mapping remains a separate red backlog item.
-- Core task commit `86e38a37ee860785a8273ade3308f6fc1775294d` pushed and remote-ref verified; parent gitlink/manifest updated together. No Development deployment claimed yet.
+- Core task commit `86e38a37ee860785a8273ade3308f6fc1775294d` pushed and remote-ref verified; parent gitlink/manifest updated together. Both Development refs now fast-forward published and verified; code deployment is queued, not verified live.
 
 
 ## Evidence
@@ -64,3 +64,5 @@ Primary references: [Vaulta reading state](https://docs.vaulta.com/docs/latest/w
 Final API producer rebuild passes; final admission2/2 pass after preserving original UTF8 text outside intended EOSIO additions.
 
 - `TestResults/EosioPublicSourceCurrent/api-final-admission.trx`: 4938bytes; SHA256 `9f6cdca9e8de5c6cacd6ffe39c89319f40753fbb230df6c1bbfc40bb305def99`.
+
+Code publication ACK: `LocalState/COSMIC/HostedEosioReleaseCurrent/code-publication.acknowledged.json`; observation `TestResults/EosioPublicSourceCurrent/code-deployment.json`. Follow the same job; no restart/new deployment while queued. Frontend test-only task9cca7a9 is pushed; existing live card remains unchanged.
