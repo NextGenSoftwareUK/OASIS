@@ -3439,3 +3439,12 @@ entries and may double-count hard links; not exact allocated-disk accounting.
 Results/script: TestResults/DiskInventoryCurrent/full-drive-metadata.json and
 scan-drive.py; compact summary in Cleanup/DISK_RECOVERY_CURRENT.md.
 Free60,153,503,744bytes. Personal ML decision still pending; no repeated ask.
+
+2026-11-02 read-only retention review: existing Cosmos contract target is a
+Providers-owned reusable Rust1.99.0 build cache and current runner WASM input,
+per build-cosmos-contract.sh / Run-ReusableCosmosV2Tests.ps1 and archived
+HyperDrive-Providers/Archive/WORKSPACE_CLEANUP_LEDGER.md. Prior measured1.58GB;
+no new measurement/startup/download/build or removal. Preserve whole cache
+until its owner separates disposable compiler intermediates from required WASM.
+Corrected stale Akash report lead: original native probe failed, Eclipse image
+failed, ENS last successful live release; no runtime acceptance claims changed.

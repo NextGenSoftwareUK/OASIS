@@ -95,3 +95,15 @@ not historical growth or which session introduced it. Games/installations are
 not agent-owned temporary artifacts; no uninstall or deletion performed.
 Windows free at scan completion:60,153,503,744bytes (60.2GB).
 No additional bytes reclaimed by this read-only scan.120GBtarget remains open.
+
+## Shared Cosmos build cache — retention confirmed
+
+`/var/tmp/oasis-cosmos-contract-target` is not an unclaimed temp folder.
+The Providers archive documents the reusable locked/offline Rust1.99.0 cache
+and retained deployed-contract WASM. Current
+`Scripts/TestHosts/Run-ReusableCosmosV2Tests.ps1` reads the WASM directly from
+`wasm32-unknown-unknown/release/oasis_cosmos_storage.wasm`, and
+`build-cosmos-contract.sh` uses this exact target. Removing the whole folder
+would remove a live runner input, not just compiler intermediates. Retained;
+no WSL startup or shared cache deletion in this review. Original Solana ledger,
+Sui runtime, Cosmos chain and database folders likewise remain protected.
