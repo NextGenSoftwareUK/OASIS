@@ -248,3 +248,18 @@ exitCode literals and a misleading inherited policy-test name; corrected to one
 explicit failed-console code and descriptive test name. All9pure tests pass
 again; production publisher/candidate unchanged. Latest observation and corrected
 test log remain TestResults/EnsPublicSourceCurrent.
+
+## Offline hosted audit ready while the exact build runs
+
+Scripts/Sandbox/Audit-HostedEnsAcceptance.py audits original source/owner/native
+3/2, one block per query, sentinel, private version1 snapshots, federation5/4,
+repeat0new/2existing, exact SQLite/Neo4j projections, privacy and two normal API
+save-operation ACKs with no pending intents. It reads local captured evidence
+only and exclusively writes the final acceptance ACK after all checks pass;
+never sends network requests, creates an avatar or saves a holon.
+
+Two controlled test methods pass, including nine rejected mutation subcases
+(sentinel/ownership/blocks/replica/version/privacy/operation/pending/resave).
+Evidence TestResults/EnsPublicSourceCurrent/acceptance-audit-controls.log.
+No claim of live acceptance until the actual retained cohort passes.
+The same dcf95c97 code deployment remains BUILDING at this checkpoint.
