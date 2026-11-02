@@ -66,3 +66,7 @@ Final API producer rebuild passes; final admission2/2 pass after preserving orig
 - `TestResults/EosioPublicSourceCurrent/api-final-admission.trx`: 4938bytes; SHA256 `9f6cdca9e8de5c6cacd6ffe39c89319f40753fbb230df6c1bbfc40bb305def99`.
 
 Code publication ACK: `LocalState/COSMIC/HostedEosioReleaseCurrent/code-publication.acknowledged.json`; observation `TestResults/EosioPublicSourceCurrent/code-deployment.json`. Follow the same job; no restart/new deployment while queued. Frontend test-only task9cca7a9 is pushed; existing live card remains unchanged.
+
+Frontend regression96/96 pass with the unpublished EOSIO card and its native/private-Mongo preparation test. Guide includes first setup plus native and paired HTTP payloads. Settings job20b3a558 remains BUILDING at its last authoritative observation; no hosted cohort has started.
+
+- `TestResults/EosioPublicSourceCurrent/client-tests.log`: 9254bytes; SHA256 `7f3a00deee4b85d42c5332206981f6dec42064820965064bb7eb8c9fa073893f`.
