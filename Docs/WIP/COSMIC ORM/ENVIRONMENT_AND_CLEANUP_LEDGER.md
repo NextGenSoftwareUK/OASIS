@@ -4485,3 +4485,12 @@ ThreeFoldschemas retained3files 92929bytes +manifest648bytes. No nativeendpointc
 - C:/Source/OASIS-cosmic/LocalState/COSMIC/ThreeFoldPublicQualificationCurrent/sdk/grid-proxy__docs__swagger.json:82733bytes SHA256 81eda890ea9060791a752780f3af40bf9272c16d769d38f6a63116b1d87e3198.
 - C:/Source/OASIS-cosmic/LocalState/COSMIC/ThreeFoldPublicQualificationCurrent/sdk/grid-proxy__internal__explorer__models.go:1720bytes SHA256 360042f039344b9f2aaa180db82996dbb62ea938ca14b981c67c8677a6206de2.
 - C:/Source/OASIS-cosmic/LocalState/COSMIC/ThreeFoldPublicQualificationCurrent/sdk/grid-proxy__pkg__types__nodes.go:8476bytes SHA256 abe44b697c50ddceee3d4c5fa77a56b7ea9ce04c005f1036bf78e5cd39c93361.
+
+2026-11-02 ClickHouse once-onlysettingsactivation:3exactvaluesapplied/per-keyACK/wholecandidateequality/DNAunchanged, no install/newhosting. ExistingCLI/DPAPIpublisher reused. Oneactivation78d92d9bBUILDING. Durableexactresources:
+- C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedClickHouseReleaseCurrent/activation.deployment.json:134bytes; preserve originalrolloutintent/proof/handle, protectedsubmission/no secrets logged.
+- C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedClickHouseReleaseCurrent/activation.intent.json:1138bytes; preserve originalrolloutintent/proof/handle, protectedsubmission/no secrets logged.
+- C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedClickHouseReleaseCurrent/activation.submission.dpapi:262bytes; preserve originalrolloutintent/proof/handle, protectedsubmission/no secrets logged.
+- C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedClickHouseReleaseCurrent/code-deployment.json:138bytes; preserve originalrolloutintent/proof/handle, protectedsubmission/no secrets logged.
+- C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedClickHouseReleaseCurrent/code-publication.intent.json:369bytes; preserve originalrolloutintent/proof/handle, protectedsubmission/no secrets logged.
+- C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedClickHouseReleaseCurrent/settings.ack.json:531bytes; preserve originalrolloutintent/proof/handle, protectedsubmission/no secrets logged.
+No hostedsourcefixture/session/privatecopy created yet; no localprocess/DB.

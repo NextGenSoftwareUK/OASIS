@@ -91,3 +91,7 @@ TestResults\ClickHousePublicSourceCurrent\merged-place-guards.trx SHA256 `9e44b9
 Next publish exactmergedcode once, observeitsjob, apply original3settingcandidate only afterSUCCESS/fullbaselineequality, activateonce, then original hostedcohort/audit/card.
 
 Developmentpublished parent7f477378b02adda621376f88f309c9bf70675fd9/Core0659aa00ba26260ec4c06f196df7b60ee6c0df01 (ls-remoteverified), after preservedupstreammerge. Exactcodejobaae1a2b0-8eca-43e7-98e8-2bf4a5c9305d INITIALIZING. Originalcodepublicationintent/jobtuple retained HostedClickHouseReleaseCurrent. No3settingsapplied; followexactjob, no duplicatebuild/restart on observationtimeout.
+
+## Code success and settings activation
+
+Codejobaae1a2b0SUCCESS at7f477378b. Original3settings appliedexactlyonce; per-keyACKs/exactcompletecandidateequality/DNAunchanged verified. Oneactivation78d92d9b-8e3f-4ad2-9be0-25b57bd6563a BUILDING atsamecode. OriginalsettingsACK/activationintent/protectedsubmission/jobtuple retained HostedClickHouseReleaseCurrent. No hostedcohort/session/nativequery/save yet. Followexactactivation, no resubmit/restart. Hostedfunctionalcounts58unchanged.
