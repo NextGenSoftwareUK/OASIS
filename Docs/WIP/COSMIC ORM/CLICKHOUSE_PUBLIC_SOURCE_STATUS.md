@@ -47,3 +47,11 @@ countries-1.json:434bytes SHA256 `8e5bd2001beeeaf381110515db57c752849364f8eacc97
 countries-2.json:382bytes SHA256 `8fd47281ba99e60c6f0d39f02c32c451a34f8072f90e8276366e262a1bd0e613`.
 
 Exact next step: implement explicit read-only ClickHouse country metadata source, configurednameeq/IN+paging using fixed parameterizedSQL and guardedHTTP; reject writes/nativeerrors/incompleteselections before publication. Then manager/CLI/localHTTP+Mongo gates, tariff/hosted integration and sandbox card. Keep legacy ADO/storage paths unchanged; no fullSQLparity claim.
+
+## Read-only CQL adapter controlled milestone
+
+ClickHousePublicCountryMetadataSource builds using existing cacheddependencies.25/25new controlled tests pass, zero skipped. Supports ClickHouseCountryName equality/IN+paging, result budgets, fixed typedStringparameter SQL, schema/readonlyuser checks, complete-keyset validation, canonical UInt64polygoncounts, malformed/oversize/nativeHTTPerrors/exceptionheaders, cancellation and explicit no-write boundary. Native parameter values never enter SQL text. No native CQL/manager/CLI/HTTP/hosted proof yet; counts unchanged.
+
+Initial run22pass/1fail revealed the existing shared key strategy excludes Unicode/spaces. Adapter configuration now enforces that same printableASCII33-126 contract rather than accepting unreachable keys; controlled quote/backslash/injection values remain safely parameterized. Unicode/spaced country keys are explicitly unsupported by this profile, not encoded/rewritten. Original failed TRX retained.
+
+Final evidence TestResults\ClickHousePublicSourceCurrent\adapter-point.trx SHA256 `ac03c1def60e6f3ea8ffbdb5dbe96fccf5ecae33ad5a3c05db23e6aa4d61d040`. Next native compiled manager/LINQ3/2 over original France/Germany/Italy source and exact parameterized HTTP contract, then localHTTP/Mongo/hosted admission.
