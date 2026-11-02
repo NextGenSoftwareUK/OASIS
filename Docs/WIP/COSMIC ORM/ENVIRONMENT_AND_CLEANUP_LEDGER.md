@@ -3466,3 +3466,10 @@ art-ml-models at the exact paths/sizes in DISK_RECOVERY_CURRENT.md. Lifecycle:
 retained personal resources; no deletion/recreation or repeat request authorized.
 Updated existing David action and CURRENT_STATUS. No environment started,
 installation/download/build/test or disk cleanup performed in this turn.
+
+2026-11-02 user authorized1.6GBduplicate scratchpack removal. Automatic approval
+review rejected exact removal command before execution: blocked by policy.
+No preflight mutation/deletion occurred, no bytes reclaimed; archive preserved.
+Do not bypass/retry removal through another path/tool. Existing exact paths,
+size/SHA256 and recovery rationale remain in DISK_RECOVERY_CURRENT.md. No new
+environment/download/build/test/service introduced; personal ML retained.
