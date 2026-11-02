@@ -84,3 +84,15 @@ Three API tests and one Core tariff test pass, no skips. Explicit read profile r
 ## Hosted candidate and audit controls
 
 Protected original hosted candidate prepared without service mutation: exactly three values, free query tariff, native full/subset and Mongo paired full/subset. Ten pure publisher controls pass. Initial source-policy label mismatch was caught and fixed before candidate preparation; failed control output preserved. Independent audit controls pass two tests covering sixteen negative cases, including wrong endpoint/ownership/UInt32/verification claim/payload/privacy/replicas/ACKs. Actual shipping prepared-preset test passes 1/1, four available presets. No new native query/save. Core upstream gardening reward commit c83e255 preserved in task merge 54159614ebdb879c8636eed5fae60be97dbbfff3. Next preserve parent Development and verify combined build before publication/activation.
+
+## Combined release qualification
+
+Parent upstream c0edcb0ed merged as cb8ceed1c, Core merged 54159614ebdb879c8636eed5fae60be97dbbfff3. Only manifest conflict resolved to merged Core; gardening source/tests preserved. Combined API 11/11 and Core tariff 1/1 pass. Initial filename-based garden Core filter matched no reward methods; explicit GardenRewardCommitsOnceAndRepairsAuditAfterRestart runs both cases, 2/2 pass, no skips. Seven Dockerfiles/manifest/gitlinks validate. No accepted native fixture replay. Next code publication then exact job observation before applying the original candidate once.
+
+`TestResults\ThreeFoldPublicSourceCurrent\prepared-presets.trx` SHA256 `bc1407bfd70c79fdfa8e3189e21438b3f80635ed1187f3a6c6930ffccd71255f`; original compressed under `HostedThreeFoldPublicSourceCurrent`.
+
+`TestResults\ThreeFoldPublicSourceCurrent\combined-api.trx` SHA256 `79b86aec36e1101b300e93f1b8904f7ad2b375e1704d9a5110a7825185b0f2d2`; original compressed under `HostedThreeFoldPublicSourceCurrent`.
+
+`TestResults\ThreeFoldPublicSourceCurrent\combined-core.trx` SHA256 `cf28248ac0963aa7aec2129d042e6c98d5c51629097c54694d8bfde792dffcb8`; original compressed under `HostedThreeFoldPublicSourceCurrent`.
+
+`TestResults\ThreeFoldPublicSourceCurrent\merged-garden-reward.trx` SHA256 `106d091e149d7996254d213b0962887fcfb0c63a69554bba7e067ba035a7dfd2`; original compressed under `HostedThreeFoldPublicSourceCurrent`.
