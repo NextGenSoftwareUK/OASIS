@@ -213,3 +213,30 @@ Evidence TestResults/EclipsePublicSourceCurrent/acceptance-audit-controls-final.
 This is checker readiness, not hosted acceptance. The same code deployment
 7c15337e-d4b6-438b-945d-d5eab1a946a6 was re-observed QUEUED; source/candidate
 remain unchanged, no hosted cohort/settings application yet.
+
+## Exact code deployment FAILED — settings never applied
+
+Original job7c15337e-d4b6-438b-945d-d5eab1a946a6 is terminal FAILED/stopped
+at2026-11-02T16:02:42.571Z. Live Eclipse settings were never applied; no activation,
+new hosted cohort or card. Existing protected candidate/source owner unchanged.
+Do not restart/redeploy or change code without diagnosing the failed invariant.
+
+CLI filtered/unfiltered build-log reads returned0bytes. Direct authenticated
+Railway API buildLogs over an explicit window also returned0records. Deployment
+diagnosis is null. Actual deployment events show SNAPSHOT_CODE completed and
+BUILD_IMAGE failed with only the generic image-build error; no compiler/package
+error or infrastructure cause established. This is a diagnostic evidence gap,
+not proof that source code or Railway infrastructure caused the failure.
+
+Protected raw metadata/events/log observations: LocalState/COSMIC/
+HostedEclipseReleaseCurrent/code-failure-*.dpapi. Safe compact reports:
+TestResults/EclipsePublicSourceCurrent/code-failure-summary.json,
+code-failure-api-log-summary.json and code-failure-events-summary.json. Existing
+Railway CLI api capability used with existing authentication; no credential
+values printed, no signup/new CLI/environment. Public status page was reviewed
+but supplied no correlated build incident; do not attribute this failure to it.
+
+Next seek specific failure evidence via the same deployment events/build-log API
+(or reproduce an identified packaging invariant against the exact release). No
+speculative shim, source fallback, paid hosting or blind replacement job. Akash
+pure reader controls progressed independently; whole goal remains active.
