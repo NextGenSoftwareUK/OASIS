@@ -3,7 +3,8 @@
 This read-only Celestia profile exposes an explicit mainnet extended-header
 catalogue through COSMIC ORM. It does not submit blobs or use the legacy node
 wallet configuration. Local source tests and the executable C# walkthrough pass;
-HTTP/Mongo enrollment and the live sandbox card have separate pending gates.
+Local HTTP native3/2+Mongo5/4/privacy0/3 and query-only admission pass;
+hosted enrollment and the live sandbox card have separate pending gates.
 
 ## Run the existing C# demo
 
