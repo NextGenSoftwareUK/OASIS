@@ -8,10 +8,10 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 - 43 providers have scoped hosted HTTP proof at their recorded releases. Browser proof: 5; 38 browser gates remain open. These are not full ORM/native-write certifications.
 - MongoDB/SQLite/Neo4j parity: 50/82 checklist rows each; original investor-demo subset green. Work red rows only unless a reproducible bug appears.
 - Latest completed hosted provider: Telos. Native 3/2, Mongo pairing 5/4, repeat 0 new/2 existing, foreign-private 0/public 3, SQLite/Neo4j replicas 2/2; two version1 saves, no pending intents. Completion ACK freezes the original cohort.
-- Telos parent7c498e0f/Core80b879b; code91bf543d and settingsad7aab39 succeeded. Filecoin remains frozen at its earlier recorded release. Website 9413da3 publishes its card/guides; 94 client tests pass; public HTML/scripts match git blobs. Browser interaction remains separate.
+- Telos parent7c498e0f/Core80b879b; code91bf543d and settingsad7aab39 succeeded. Filecoin remains frozen at its earlier recorded release. Website4ff3661 publishes Telos/Filecoin cards/guides;95client tests pass; public HTML/scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser Mongo preparation copies identity/name/description/provenance, not all native metadata. Full payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: Telos sandbox publication
+## Current phase: next provider qualification
 
 - Telos native manager/C#/actual CLI3/2 and18controls pass. Core1/API2/localHTTP1/publisher9/client1/actual prepared planner1 pass; exact local fixture cleaned and Mongo stopped.
 - Parent Development `7c498e0f2e8a97207fb8d511d35cea521e7e240c` and Core Development `80b879b0ef289ccfff3b7efefa5a9ff26e6b4135` refs verified; manifest validates. Code91bf543d and settingsad7aab39 SUCCESS.
@@ -20,8 +20,9 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 
 ## Exact next actions
 
-1. Publish Telos card/pinned setup guide/C# links on existing Web4Site branch, run client suite, compare public HTML/scripts to exact git blobs. Browser interaction is separate.
-2. Then select the next red shipping-provider scope. Chainlink feeds are researched only, not qualified or implemented. Keep completed cohorts/source owners intact; no native/hosted replay.
+1. Telos card4ff3661/pinned links/95client tests/public HTML/scripts are verified. Original cohort is frozen; no native/local/hosted replay or settings reapply/redeploy.
+2. Inspect unqualified shipping EOSIOOASIS and current primary network docs; select a free public account-metadata endpoint and prove its native identity/three-record read contract using the existing guarded .NET transport before code. No EOSIO CQL/hosted claim yet. Chainlink feed research remains unqualified and may follow later.
+3. Implement only the new provider's red scope after qualification: source/controlled tests/native manager+C#3/2, API/query-only admission/Mongo/privacy, actual prepared presets, exact hosted rollout/acceptance/card. Keep green scopes frozen absent a bug.
 
 ## Durable state and rules
 
