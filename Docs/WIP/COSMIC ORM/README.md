@@ -74,4 +74,4 @@ Azure publication milestone:40scoped hosted HTTP providers,5browser/35open; live
 
 - [Fantom native/local CQL status](FANTOM_PUBLIC_SOURCE_STATUS.md): explicit canonical-at-read balances and readable [local guide](../../Devs/FANTOM_PUBLIC_ACCOUNT_CQL_GUIDE.md); hosted enrollment pending.
 
-Wormhole local source: [current native/CQL proof and HTTP next gate](WORMHOLE_PUBLIC_SOURCE_STATUS.md), [C# configuration and trust guide](../../Devs/WORMHOLE_PUBLIC_OPERATION_CQL_GUIDE.md).
+Wormhole local source: [current source/local HTTP proof and hosting next gate](WORMHOLE_PUBLIC_SOURCE_STATUS.md), [C# configuration and trust guide](../../Devs/WORMHOLE_PUBLIC_OPERATION_CQL_GUIDE.md).
