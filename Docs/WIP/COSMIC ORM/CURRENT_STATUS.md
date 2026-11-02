@@ -11,7 +11,7 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 - Websiteac0ca0c publishes BlueSky/ChainLink/EOSIO/Telos/Filecoin cards and pinned setup/C#/HTTP links;98client tests pass. Public HTML/scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser Mongo preparation copies identity/name/description/provenance, not all native metadata. Full payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: Nostr verified code publication
+## Current phase: Nostr settings rollout
 
 - BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6dfdbc6c SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen. Cached public AppView only; generic copies retain identity/name/description/provenance, not all native metadata. Card published/byte-verified; browser unverified.
 - Existing local gates:37source controls, actual CLI3/2, Core1/API2/localHTTP1/publisher9/prepared1/client1. No replays or new cohorts.
@@ -19,8 +19,8 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 ## Exact next actions
 
 1. Preserve BlueSky original cohort/ACKs; no reapply/redeploy/resave. Websiteac0ca0c3cffea71aa9b99ca437d2ee46fa20d9c1 publishes BlueSky with pinned guidea10c6661c and C#f36dd0d56 links. All98client tests pass. Public HTML171143bytes/SHA256dfa7084ba40e8fe691eb2fbf7f9c1c4d9cda7dcdcbade32026f6f9d0fd7fceee and both scripts match exact git blobs. Browser interaction remains open.
-2. Development parent `6ee3ebfcd95f594844f518b95451fb9807f342a5` / Core `84a215184f6c2d8b988d5d45bf133a7a0672a26e` ordinary fast-forward published/ref-verified; dependency manifest validates. Exact code job `79b7be91-ac39-4814-be4f-faa1b75613de` BUILDING. No Nostr hosted settings applied/cohort started. Frontend task2ffca06 has pending card/pinned links; mainac0ca0c unchanged. Protected3settings/four presets prepared once; Core1/API2/localHTTP continuation1/publisher9/prepared1/client1 pass. Native3/2/Mongo5/4/foreign0/public3; original two version1 saves reused,0additional saves, marked fixture removed and Mongo stopped. Observe exact code job first. Only after SUCCESS check out exact code release for guarded3settings application, issue one journalled settings deployment, restore task branch, then hosted acceptance/card. No reapply/redeploy/replay; see NOSTR_PUBLIC_SOURCE_STATUS.md.
-3. Keep deferred Azure Cosmos/Oracle/PostgreSQL hosting and closed browser controls deferred; maintain exact evidence and update current status at each milestone.
+2. Code job79b7be91-ac39-4814-be4f-faa1b75613de SUCCESS at6ee3ebfcd95f594844f518b95451fb9807f342a5/Core84a2151. Three Nostr settings applied once and per-key ACKed; whole candidate equality verified. One journalled settings deployment21ee8d23-edce-4723-82ac-1839cd17c975 BUILDING. No hosted cohort started. Observe that exact settings job/commit; no reapply/redeploy. Original source/local fixtures frozen; frontend pending card2ffca06 remains task-only. See NOSTR_PUBLIC_SOURCE_STATUS.md.
+3. Only after settings SUCCESS: record bounded hosted resource plan, run original Verify-HostedQuerySource.py NostrOASIS --prepare once using pinned Node24.19.0, audit/freeze proofs, then publish card/public assets. No new owner/replayed saves; preserve all unknown outcomes.
 
 ## Durable state and rules
 
