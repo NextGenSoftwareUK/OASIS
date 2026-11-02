@@ -1,6 +1,6 @@
 # Hosted public-source acceptance — 1 November 2026
 
-Latest functional checkpoint2November: Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card publication pending; browser open. Counts47hosted-functional/5browser/42open; older release checkpoints retained below.
+Latest functional checkpoint2November: Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card published/byte-verified; browser open. Counts47hosted-functional/5browser/42open; older release checkpoints retained below.
 
 Current milestone (2 November 2026): BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6dfdbc6c SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen. Cached public AppView only; generic copies retain identity/name/description/provenance, not all native metadata. Card published/byte-verified; browser unverified. Current totals50integrated/46hosted/5browser/41open; older dated checkpoints below are historical.
 
@@ -452,3 +452,7 @@ Telos sandbox publication complete: Telos hosted HTTP acceptance is complete at 
 ## BlueSky page publication - 2 November 2026
 
 Websiteac0ca0c3cffea71aa9b99ca437d2ee46fa20d9c1 publishes BlueSky with pinned guidea10c6661c and C#f36dd0d56 links. All98client tests pass. Public HTML171143bytes/SHA256dfa7084ba40e8fe691eb2fbf7f9c1c4d9cda7dcdcbade32026f6f9d0fd7fceee and both scripts match exact git blobs. Browser interaction remains open. Raw public observation: TestResults/BlueSkyPublicSourceCurrent/public-assets-observation.json; tests frontend-tests.log. HTTP/asset checks are separate from browser interaction.
+
+## Nostr page publication - 2 November 2026
+
+Website7e2046de25a40a84a289a3c73da2bc7e2e25b885 publishes Nostr with pinned guide9961fde00/C#6ee3ebfcd links and explicit unresolved-intermittency/copy-scope limits.99client tests pass. Public HTML173395bytes/SHA256dde3093ce9253829f3355cca80ff7bf0636d7e1a221c8c85ddabbf240c7d9b70 and both scripts match exact git blobs. Browser interaction remains unverified. Raw public proof TestResults/NostrPublicSourceCurrent/public-assets-observation.json; tests frontend-tests.log. Functional HTTP proof does not resolve earlier errors or establish browser interaction/full ORM.

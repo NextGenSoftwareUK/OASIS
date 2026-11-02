@@ -2,7 +2,7 @@
 
 This read-only adapter queries a small retained catalogue of immutable Nostr kind-1 event IDs. It verifies each event's canonical NIP-01 SHA256 hash and BIP-340 signature before returning a holon. No Nostr login, signing key, relay publication or account discovery is needed.
 
-Local native CQL and the actual C# walkthrough pass three-event and two-event selections. API read admission/local HTTP native3/2/Mongo5/4/visitor privacy and all four prepared presets now pass. Hosted functional3/2/Mongo5/4, repeat0new/2existing, visitor0/3 and matching SQLite/Neo4j replicas2/2 now pass for the original cohort. Page publication/browser remain pending; earlier intermittent read errors are unresolved. Check the [current evidence](../WIP/COSMIC%20ORM/NOSTR_PUBLIC_SOURCE_STATUS.md) before presenting a hosted demo.
+Local native CQL and the actual C# walkthrough pass three-event and two-event selections. API read admission/local HTTP native3/2/Mongo5/4/visitor privacy and all four prepared presets now pass. Hosted functional3/2/Mongo5/4, repeat0new/2existing, visitor0/3 and matching SQLite/Neo4j replicas2/2 now pass for the original cohort. Page publication/public bytes are verified; browser interaction remains pending; earlier intermittent read errors are unresolved. Check the [current evidence](../WIP/COSMIC%20ORM/NOSTR_PUBLIC_SOURCE_STATUS.md) before presenting a hosted demo.
 
 ## Retain a catalogue
 
@@ -147,6 +147,6 @@ Each query uses one anonymous guarded WSS connection and one bounded REQ subscri
 
 Primary contracts: [NIP-01](https://github.com/nostr-protocol/nips/blob/master/01.md), [BIP-340](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki). Exact local/native/hosted gates and retained failure evidence are recorded in the linked status report.
 
-Hosted checkpoint (2 November): native3/2, Mongo5/4 and matching SQLite/Neo4j replicas2/2 passed for the original visitor, and the original cohort later completed repeated-preparation/privacy through an explicit read-only continuation. The earlier intermittent query failure remains an unresolved reliability issue. The live page card remains unpublished. See the current evidence before using this as a hosted demo. No complete hosted reliability claim.
+Hosted checkpoint (2 November): native3/2, Mongo5/4 and matching SQLite/Neo4j replicas2/2 passed for the original visitor, and the original cohort later completed repeated-preparation/privacy through an explicit read-only continuation. The earlier intermittent query failure remains an unresolved reliability issue. The live page card is published with this limitation stated. See the current evidence before using this as a hosted demo. No complete hosted reliability claim.
 
 Operator diagnostics: event4831 records known failure category, activation/query phase, transport stage and typed HTTP status/WebSocket error when available. Raw exception text, native URLs, headers, tokens and payloads are excluded. Public errors remain generic. Diagnostic deployment/live-cause verification is tracked in the current evidence; instrumentation alone does not resolve the intermittent read.
