@@ -537,7 +537,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             // Anonymous Blockscout address observations never enable signed writes.
             if (Configuration["CQL_BLOCKSCOUT_PUBLIC_SOURCE_JSON"] is string blockscoutPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS.BlockscoutPublicAddressMetadataSource.FromJson(blockscoutPublicSource)));
+                    NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS.BlockscoutPublicAddressMetadataSource.FromJson(blockscoutPublicSource),
+                    Services.Cql.CqlReadSourceActivationPolicy.TransientServerErrorOnce));
 
             // Pinned Celestia header reads never enable blob submission or node wallets.
             if (Configuration["CQL_CELESTIA_PUBLIC_SOURCE_JSON"] is string celestiaPublicSource)
