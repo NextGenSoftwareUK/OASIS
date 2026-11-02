@@ -21,7 +21,7 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 
 1. Preserve completed EOSIO/Telos/Filecoin/Fantom cohorts, sources/owners/ACKs. EOSIO card72dee68/pinned links/96client tests and public bytes verified; no browser proof inferred.
 2. Observe exact settings job3a00f63f-c286-45bc-b0ee-baeccc7e9a02 at09c66998c. Only after SUCCESS run `python Scripts/Sandbox/Verify-HostedQuerySource.py ChainLinkOASIS --prepare` once with pinned Node24.19.0 on PATH, reconcile privacy/reuse/replicas and publish the card. Never reapply/redeploy/replay completed native/local cohorts. Task branch restored. See CHAINLINK_PUBLIC_SOURCE_STATUS.md and LocalState/COSMIC/HostedChainLinkReleaseCurrent. No ChainLink hosted/browser claim yet.
-3. After qualification, implement only that red source/controlled tests/native manager+C#3/2, API permission/Mongo/privacy/prepared gates, exact hosted rollout/acceptance/card. Keep green scopes/deep parity frozen absent a reproduced bug.
+3. BlueSky public AppView native3/2 protocol now qualified (3guarded GETs), offline parser/status check passes; no CQL/hosted claim. After ChainLink acceptance/card, implement its separate read-only BlueSkyActorDid source and red tests/API/Mongo/hosted gates. See BLUESKY_PUBLIC_SOURCE_STATUS.md; preserve original qualifier/owner, do not replay. Keep green scopes/deep parity frozen.
 
 ## Durable state and rules
 
