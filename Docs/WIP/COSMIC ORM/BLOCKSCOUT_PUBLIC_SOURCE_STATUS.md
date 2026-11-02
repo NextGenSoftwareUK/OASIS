@@ -195,3 +195,27 @@ Exact correction job97b13d99-4192-45e8-b45e-47c5411d6bca last observed BUILDING.
 Journal activation-recovery-code-publication.{intent,observed}.json below
 HostedBlockscoutReleaseCurrent; original failed release/cohort preserved.
 Follow same job; no restart/settings reapplication/new owner.
+
+
+## Hosted functional HTTP acceptance complete
+
+Corrected code21666342f/job97b13d99 SUCCESS, Core55de8e9 and all settings unchanged.
+Original owner discovery ready/four presets; explicit --resume-unstarted-native
+continued the same zero-save cohort, not a replacement avatar. Native3/2, Mongo5/4,
+reuse0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j2/2 pass.
+Only two original normal API version1 saves/operation ACKs, pending0. Independent
+source-owner/key/nullability/field-allowlist/privacy/save-operation/exact-replica
+audit wrote immutable acceptance ACK under HostedQueryAcceptance-BlockscoutOASIS.
+Original startup500/console timeout/source config/owner/failure evidence preserved.
+
+Recovery policy has18controlled/profile passes plus final production-DI1/1.
+Corrected boot had no matching retry event in bounded operator observation;
+live readiness is not live induced-failure recovery or reliability proof.
+Hosted functional53/query tariffs53, browser5verified/48open. Public card next.
+No native writes, independent consensus, full payload copying or full ORM claim.
+
+| Evidence | Bytes | SHA256 |
+|---|---|---|
+| `TestResults\HostedCqlIntegrationCurrent\BlockscoutOASIS-native-http.json` | 15318 | `4a74ac8d3ec4f15a6ecafeb73c322b2270a6ac2cc1758b9ff6ffee3f1ed2d3c8` |
+| `TestResults\HostedCqlIntegrationCurrent\BlockscoutOASIS-client-http-flow.json` | 39982 | `6ac3d0ec2f5c6c6a9e70d77fe5f71b09bb6dfab2eae27e25a1658a15c4d702ef` |
+| `TestResults\HostedCqlIntegrationCurrent\BlockscoutOASIS-isolation-http.json` | 6108 | `5f3b8658f5a166c8636329ff28af751abace3266e06ab63d7560f43f28bc2073` |
