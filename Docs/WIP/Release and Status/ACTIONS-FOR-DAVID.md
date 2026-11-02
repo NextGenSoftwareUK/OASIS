@@ -503,3 +503,7 @@ Status: awaiting optional preference. Recommended: free-only sources first (OSM,
 Status: missing account/configuration information,2 November2026. David approved free sources only. Identify an existing Geoapify free project/secure environment containing its key, or configure GEOAPIFY_API_KEY as a secret on existing Railway development WEB4. No payment card or paid upgrade requested. Why: no Geoapify/Places/Overpass variables were found on that service; the public Overpass source is currently at capacity. Agent continues history/UI/API implementation and owns provider wiring, quota caps and testing. [Secure setup instructions](<../Our World/worldscape-places/free-place-source-setup.md>).
 
 2 November2026 update: David confirmed he has no Geoapify account/key. Do not re-ask where an existing key is stored. A new free account/project is the remaining optional owner setup; adapter and shared free-credit cap are agent work. Keep paid plans disabled. Continue independent Places Visited/history and open-data work.
+
+
+2 November2026 update: David configured GEOAPIFY_API_KEY on Railway development WEB4. Verified key presence without logging its value. Owner account/key setup complete; API deployment and hosted source/quota checks remain agent-owned. Do not ask David to configure the key again.
+

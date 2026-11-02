@@ -17,38 +17,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Places;
 public sealed class GeoapifyPlaceSource
 {
     private readonly string key;
-    private readonly IMongoCollection<BsonDocument> budget;
-    private readonly string account;
+    private readonly MongoPlaceCreditBudget budget;
     private static readonly HttpClient Http = new() { Timeout=TimeSpan.FromSeconds(20) };
     public GeoapifyPlaceSource(IConfiguration configuration)
     {
         key=configuration["GEOAPIFY_API_KEY"];
         if(string.IsNullOrWhiteSpace(key))throw new InvalidOperationException("Geoapify's free-project key is not configured.");
-        account="our-world-places"; // Stable across key rotation and API replicas.
-        budget=new MongoClient(SubscriptionMongoConfiguration.ConnectionString(configuration)).GetDatabase("oasis_places")
-            .GetCollection<BsonDocument>("provider_daily_budget").WithWriteConcern(WriteConcern.WMajority);
-    }
-    private async Task Reserve(int credits,CancellationToken token)
-    {
-        string id="geoapify:"+account+":"+DateTime.UtcNow.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture);
-        var identity=Builders<BsonDocument>.Filter.Eq("_id",id);
-        try
-        {
-            await budget.UpdateOneAsync(identity,Builders<BsonDocument>.Update.SetOnInsert("used",0),new UpdateOptions{IsUpsert=true},token);
-        }
-        catch(MongoWriteException ex)when(ex.WriteError.Category==ServerErrorCategory.DuplicateKey) { /* Another replica created today's same counter. */ }
-        var result=await budget.FindOneAndUpdateAsync(identity & Builders<BsonDocument>.Filter.Lte("used",1000-credits),
-            Builders<BsonDocument>.Update.Inc("used",credits).Set("updatedUtc",DateTime.UtcNow),
-            new FindOneAndUpdateOptions<BsonDocument>{ReturnDocument=ReturnDocument.After},token);
-        if(result==null)throw new InvalidOperationException("The app's free daily place-data allowance has been reached. No paid requests will be made.");
+        budget=new MongoPlaceCreditBudget(new MongoClient(SubscriptionMongoConfiguration.ConnectionString(configuration)).GetDatabase("oasis_places")
+            .GetCollection<BsonDocument>("provider_daily_budget"));
     }
     public async Task<WorldscapePlace[]> Search(string category,double latitude,double longitude,CancellationToken token)
     {
         // <=100 results costs at most5 credits. The majority-acknowledged shared counter
         // reserves those credits before I/O, including failures, across every API replica.
         const int limit=100;
-        await Reserve(5,token);
         var (categories,name,conditions)=Parameters(category);
+        await budget.Reserve(5,token);
         string body=JsonSerializer.Serialize(new {categories=categories.Split(','),name,conditions=conditions==null?null:new[]{conditions},limit,
             filter=new {type="circle",lon=longitude,lat=latitude,radius=5000},bias=new {type="proximity",lon=longitude,lat=latitude}},new JsonSerializerOptions {DefaultIgnoreCondition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull});
         using var request=new HttpRequestMessage(HttpMethod.Post,"https://api.geoapify.com/v2/places");
