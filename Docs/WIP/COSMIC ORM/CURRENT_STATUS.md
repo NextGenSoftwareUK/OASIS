@@ -12,7 +12,7 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 - Website main/taskbd173e546a095c0ae6f9a23d20db69bb6de76bda publishes Matrix/Nostr and setup/C#/HTTP links. Public HTML175616bytes/SHA256b18edd89557ae17dd261d8fded04b12f7eec9ca6da2a8cc52ab7d73c2a7383a8 and both scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser copies retain identity/name/description/provenance and the native query key, not full native payload. Full safe payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: Matrix functional demo/card complete; next red breadth scope
+## Current phase: Stacks local CQL verified; HTTP/Mongo integration next
 
 - Parent Development7b45ee85628bd6d1ceeaf769d4c1bcc44ccb465b/Coredd2c32c8925aaf53017f4fedc1d1f11d330a55e3 refs verified; manifest/gitlinks pass.
 - Code jobd398b754-8d88-4837-a934-44e4cd9aad0d SUCCESS. Three settings applied exactly once/verified with no per-key deploys. Settings jobaaff57a2-a6ed-4e0e-939b-712420bd9d4e SUCCESS at the same parent SHA. Task branch restored after matching-release application.
@@ -23,7 +23,7 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 ## Exact next actions
 
 1. Preserve Matrix original source/config/owner/copies/ACKs. No rerun/resave/reapply/redeploy just to reproduce green results. Public site ACK: LocalState/COSMIC/HostedMatrixReleaseCurrent/site-publication.acknowledged.json; raw observation TestResults/MatrixPublicSourceCurrent/public-assets-observation-1.json.
-2. Implement StacksPublicPrincipalMetadataSource in existing BlockStackOASIS using shared capability-aware CQL. Native qualification passes network1/synced info plus3explicit-tip principal reads;6offline controls pass. Exact next: inspect existing resolved BouncyCastle version (cache2.5.1/2.6.2/2.7.0 available), reuse SHA-512/256 for reference block-ID derivation; add source tests and commented CLI3/2 before HTTP/Mongo/hosted admission. Preserve captured tip/proof; no native probe rerun or source owner minted yet. See STACKS_PUBLIC_SOURCE_STATUS.md. Story/DATA Trace stays unadmitted after non-retryable HTTP403/Cloudflare1010; no bypass or legacy fix. Original evidence in STORY_TRACE_PUBLIC_SOURCE_STATUS.md.
+2. StacksPublicPrincipalMetadataSource now passes43scoped source tests and actual HolonManager/LINQ CLI3full/2filtered;6native-qualifier controls preserved. Existing resolved BouncyCastle2.7.0 reused with explicit assembly alias; no crypto substitute or new runtime. Source/owner/intent/ACK: LocalState/COSMIC/HostedStacksPublicSourceCurrent (sourceSHAaa5fe1f4934e1ed9670aee3064527a7becccee2332c3d416615288a93de634d1). Exact next: add query-only Core tariff/API compiler/host activation and4native/Mongo presets, then local HTTP native3/2+Mongo5/4/privacy before hosted publication. See STACKS_PUBLIC_SOURCE_STATUS.md. Do not rerun native/console qualification or replace owner. Story/DATA Trace remains denied/unadmitted; no bypass or legacy fixes.
 3. Farcaster stays unadmitted: public Pinata Hub failed before HTTP; separate DNS probe confirms name error. Original intent/result/DNS evidence and4offline parser controls preserved in FARCASTER_PUBLIC_SOURCE_STATUS.md. Do not retry or switch to paid Neynar silently.
 4. Update CURRENT_STATUS/full provider report/ledger at the next milestone. Keep hosted48/browser5/open43; public asset proof is not browser interaction.
 

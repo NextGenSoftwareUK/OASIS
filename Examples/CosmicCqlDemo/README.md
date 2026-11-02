@@ -969,3 +969,8 @@ Nostr hosted functional update (2 November 2026): native3/2, Mongo5/4, repeat0ne
 ## Matrix public room aliases (local C#)
 
 The spaced/commented `MatrixPublicWalkthrough.cs` uses HolonManager/deferred LINQ for three configured aliases, then a two-alias membership predicate. Run the existing built demo with `--matrix-public LocalState/COSMIC/HostedMatrixPublicSourceCurrent/source.json`. Reuse the retained source owner/configuration. No login, room join, source write or Mongo copy is performed. [Setup and limits](../../Docs/Devs/MATRIX_PUBLIC_ROOM_CQL_GUIDE.md). Local source30tests and actual3/2 console pass; HTTP/Mongo/hosted/browser gates remain separate and pending.
+
+
+## Stacks public principal state (local C#)
+
+`StacksPublicWalkthrough.cs` uses the shared HolonManager/deferred LINQ for three configured principals, then a two-key membership selection. Run the existing built demo with `--stacks-public LocalState/COSMIC/HostedStacksPublicSourceCurrent/source.json`. Retain the same source owner/configuration. Each selection uses one derived explicit node tip; separate queries can see different tips. No signing, transaction, source write or Mongo copy occurs. [Setup, C# and trust/precision limits](../../Docs/Devs/STACKS_PUBLIC_PRINCIPAL_CQL_GUIDE.md).43source tests and actual3/2 console pass; HTTP/Mongo/host/browser gates remain separate and pending.
