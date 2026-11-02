@@ -53,7 +53,7 @@ Exact address equality and membership of at most eight configured keys are suppo
 
 ## HTTP and the live CQL tab
 
-Choose `ChainLinkOASIS` in the sandbox CQL tab once discovery reports it available. Use an authenticated demo session and a fresh `Idempotency-Key` for HTTP requests; never share its bearer. Hosted rollout status is recorded in the linked evidence report.
+Choose `ChainLinkOASIS` in the sandbox CQL tab; discovery reports source availability. Use an authenticated demo session and a fresh `Idempotency-Key` for HTTP requests; never share its bearer. Hosted rollout status is recorded in the linked evidence report.
 
 Native filtered request to `POST /api/data/query-cql`:
 
@@ -119,6 +119,6 @@ A finalized observation can contain an old feed update. Expose timestamps and ev
 
 ## Verification and remaining gates
 
-[Controlled tests](../../Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.UnitTests/ChainLinkPublicFeedMetadataTests.cs) cover these contracts. [Current evidence](../WIP/COSMIC%20ORM/CHAINLINK_PUBLIC_SOURCE_STATUS.md) separates native qualification, CQL/manager, API/Mongo, hosted and browser gates. Query-only API admission (`CQL_CHAINLINK_PUBLIC_SOURCE_JSON`), local HTTP native3/2/Mongo5/4/visitor privacy and all four prepared presets now pass. Hosted publication and browser interaction remain pending; local proof does not establish them. Generic browser demo copies currently retain identity/name/description/provenance rather than all native metadata.
+[Controlled tests](../../Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.UnitTests/ChainLinkPublicFeedMetadataTests.cs) cover these contracts. [Current evidence](../WIP/COSMIC%20ORM/CHAINLINK_PUBLIC_SOURCE_STATUS.md) separates native qualification, CQL/manager, API/Mongo, hosted and browser gates. Query-only API admission (`CQL_CHAINLINK_PUBLIC_SOURCE_JSON`), local HTTP native3/2/Mongo5/4/visitor privacy and all four prepared presets now pass. Hosted HTTP acceptance now passes: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and matching replicas2/2 each on SQLite/Neo4j. Both normal private saves are version1 with no pending preparation intents. The card is being published with pinned examples. Browser interaction remains unverified; HTTP/public asset matching does not establish it. Generic browser demo copies currently retain identity/name/description/provenance rather than all native metadata.
 
 Primary sources: [Chainlink AggregatorV3 reference](https://docs.chain.link/data-feeds/api-reference), [official Ethereum catalogue configuration](https://raw.githubusercontent.com/smartcontractkit/documentation/main/src/features/data/chains.ts), [reference catalogue](https://reference-data-directory.vercel.app/feeds-mainnet.json).
