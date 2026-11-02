@@ -116,3 +116,5 @@ Evidence TestResults\ZcashPublicSourceCurrent\combined-api.trx SHA256 cae75dea4d
 Evidence TestResults\ZcashPublicSourceCurrent\combined-core.trx SHA256 5cc2899e5d0c67be3b391842041c452de39021d734c964fb67ca1aaf1e6a7d2a.
 
 Development publication: parent9e98a4278c91a9d01caaabdfbed447d38120a6f2/Core5b47c0b60b027092e51e486050b898ba147a4194 pushed and ls-remote verified. Code job624285a4-15a7-419d-8dad-e8d8daf90bc8 observed QUEUED. Original intent/job tuple retained HostedZcashReleaseCurrent. Follow same job; no restart/new build or source settings before exact SUCCESS.
+
+Independent hosted audit implemented with2controlled tests/16negative scenarios passing (no network). Verifies native ownership/source/hash/height/genesis/UInt32timestamp/freshness/proof claims, selected keysets, private owner/version,5/4federation, exactSQLite/Neo4j replicas, foreign0/3visibility,2acknowledged normal saves/repeat0new/pending0. Original code deployment624285a4 remains authoritatively QUEUED; do not infer failure or start another job. No hosted Zcash cohort/settings yet.
