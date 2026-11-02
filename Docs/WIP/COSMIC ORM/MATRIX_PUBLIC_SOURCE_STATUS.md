@@ -51,6 +51,27 @@ do not rerun them or remove their guards to obtain a new green result.
 | `Http/prepared-presets.trx` | 1/1, four presets | `d90c1747bea2a0591d929b8dff31f8529e377c1295d4c1ac8bf03085377ba209` |
 | `prepared-review.json` | four presets, no deployment | `6399989fbd3bb89d967357016d05a393b04ae915bda973da3b438e68ec7f6f33` |
 
+## Code publication
+
+Parent `7b45ee85628bd6d1ceeaf769d4c1bcc44ccb465b` and Core
+`dd2c32c8925aaf53017f4fedc1d1f11d330a55e3` published to Development;
+remote refs verified, fetched ancestry preserved, manifest/gitlinks validator
+passes. Exact Railway code job `d398b754-8d88-4837-a934-44e4cd9aad0d`
+observed QUEUED. Source settings are not applied; Matrix is not live-certified.
+Durable publication intent/observation: `LocalState/COSMIC/HostedMatrixReleaseCurrent`.
+
+Next observation (read-only; repeat this same handle after timeout):
+
+```powershell
+python Scripts/Sandbox/Observe-HostedDeployment.py `
+  d398b754-8d88-4837-a934-44e4cd9aad0d `
+  --expected-commit 7b45ee85628bd6d1ceeaf769d4c1bcc44ccb465b `
+  --output TestResults/MatrixPublicSourceCurrent/code-deployment.json
+```
+
+Wait for exact SUCCESS before the prepared candidate's release gate/apply.
+Do not start another build, overwrite prepared baseline or recreate a source.
+
 ## Next implementation and limits
 
 The local source implements bounded configured-alias `MatrixRoomAlias`
@@ -59,7 +80,7 @@ capability rejection. It preserves exact server-reported opaque room IDs. Room-a
 resolution is mutable and server-reported: it does not prove message history,
 room state, membership, E2EE content, freshness, common snapshot or independent
 federation consensus. No server address returned by the API should be fetched.
-Next publish the verified code/Core pin, observe its exact deployment, apply the
+Next observe the published exact code job to SUCCESS, then apply the
 prepared three-key settings candidate once against that release, then verify
 hosted native3/2, Mongo5/4, copy reuse, privacy and replica matching. Publish the
 sandbox card only with accurate HTTP/browser limits. Do not replay local fixture
