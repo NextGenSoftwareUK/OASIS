@@ -15,7 +15,7 @@ Updated 1 November 2026. Scoped hosted HTTP acceptance complete; browser interac
 - Development parent `4d3e0b7cd148bed7ebdf0400ca371867873932c0` / Core `86e38a37ee860785a8273ade3308f6fc1775294d` pushed/ref-verified; manifest validates. Code job `68db832f-1742-423d-9362-febcf9620466` SUCCESS.
 - Exactly3settings applied once: source, independent read permission/free tariff,4presets. Full candidate/per-key digests match; unrelated DNA unchanged. Single settings job `20b3a558-1139-429d-aaa3-7a01f1191591` SUCCESS. No reapply/redeploy.
 - Original hosted cohort: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3, exact matching replicas2/2 each on SQLite/Neo4j.2normal private saves/version1, no pending preparation intents. Original immutable completion ACK freezes this cohort; no replay/resave/new visitor for the completed gate.
-- Website main/task `c90ca72469fd7c7ab2a1165941a9351e455b6b28` published/ref-verified.96client tests pass. Public HTML166985B/SHA256 `9229e54887e4a290a4012d7a28f376bc08fdf4b68337c72b7d9b7be0f488abaf`; HTML and both unchanged JS assets match exact git blobs. This is HTTP/asset proof, not browser interaction.
+- Website main/task `72dee689bb0df5eb7c27ff0c429a04f88d7756e4` published/ref-verified.96client tests pass. Public HTML166985B/SHA256 `fd9bdb5915f65fd8c12d295c859312f21916b6d99a5bb27e07539146ce9c4149`; HTML and both unchanged JS assets match exact git blobs. This is HTTP/asset proof, not browser interaction.
 - [Setup/C#/HTTP guide](../../Devs/EOSIO_PUBLIC_ACCOUNT_CQL_GUIDE.md), [commented walkthrough](../../../Examples/CosmicCqlDemo/EosioPublicWalkthrough.cs). Four native/Mongo presets available through discovery and the sandbox CQL tab.
 
 ## Limits and remaining work
