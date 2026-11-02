@@ -1,8 +1,11 @@
 # Akash public source — next interface review
 
-2 November 2026. Red/unqualified. No native probe, source owner, CQL adapter,
-query admission, hosted card or count increase. Eclipse remains the active
-release; this review uses its verified deployment wait without altering it.
+2 November 2026. Red/unqualified. The original native probe failed at the
+2MiB discovery response budget; its intent/failure are preserved. No source
+owner, CQL adapter, query admission, hosted card or count increase. Eclipse
+image deployment failed; ENS remains the last successful live release. Disk
+recovery is current priority, with builds suspended. Sections below retain
+the earlier review and controlled-test history; they are not current native proof.
 
 Existing adapter: Providers/Network/NextGenSoftware.OASIS.API.Providers.AkashOASIS/AkashOASIS.cs.
 It targets api.akash.network Cosmos REST, maps balances to avatars and deployments
