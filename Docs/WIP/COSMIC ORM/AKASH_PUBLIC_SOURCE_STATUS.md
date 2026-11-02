@@ -1,11 +1,11 @@
 # Akash public source — next interface review
 
-2 November 2026. Red/unqualified. The original native probe failed at the
-2MiB discovery response budget; its intent/failure are preserved. No source
-owner, CQL adapter, query admission, hosted card or count increase. Eclipse
-image deployment failed; ENS remains the last successful live release. Disk
-recovery is current priority, with builds suspended. Sections below retain
-the earlier review and controlled-test history; they are not current native proof.
+2 November 2026. Native bounded-prefix continuation passed: three sampled
+provider identities and three point records. Not CQL-qualified or hosted yet;
+no source owner/admission/card/count increase. Original whole-body discovery
+failure remains immutable. Eclipse image deployment is failed; ENS remains the
+last successful live release. Earlier sections retain historical review/test
+claims; current evidence and next action are in the final section.
 
 Existing adapter: Providers/Network/NextGenSoftware.OASIS.API.Providers.AkashOASIS/AkashOASIS.cs.
 It targets api.akash.network Cosmos REST, maps balances to avatars and deployments
@@ -117,3 +117,45 @@ Next review documented bounded selection/discovery options and implement the
 correct read strategy with tests before any explicit evidence-bound continuation.
 Eclipse image-build failure still lacks actionable diagnostic evidence; no
 Eclipse settings/activation/cohort/card has been published. Counts59/54 unchanged.
+
+
+## Bounded-prefix root cause fixed and native continuation verified
+
+The invariant is bounded discovery of three configured sample identities, not
+validation/download of the entire public network catalogue. The old reader
+buffered the whole array before choosing three owners; real catalogue size
+exceeded its budget. Discovery now incrementally parses exactly the first three
+complete objects, rejects invalid/duplicate owners or fields in that selected
+prefix, sorts only that sample, and disposes the remaining HTTP response.
+The unconsumed tail is neither downloaded in full nor certified. This is not a
+complete network listing or a globally smallest-three selection.
+
+Limits remain2MiB total bytes read,256KiB buffered record,16JSONdepth and30s
+method deadline; point reads remain1–8configured owners/256KiB per response.
+One guarded transport/rate gate serves both operations; no retry, endpoint
+substitution, wallet, source-owner allocation or hostUri request.
+
+17 reader controls pass0failed/0skipped. Nine added cases cover1/7/4096byte
+chunks, a catalogue tail exceeding the old body limit, response disposal,
+wrong root/missing owner/duplicate field, oversized record, total-byte exhaustion
+and truncated selected data. Existing point/error/no-dispatch cases also pass.
+Evidence `TestResults/AkashPublicSourceCurrent/streaming-reader-controls.trx`,
+SHA25641847bf7932ec51f5be0b574052167da862f2c5523cc9380ebba1c77d0b2fac0.
+
+One distinct guarded native continuation passed1test: selected3identities and
+read3matching records, no writes. Explicit continuation intent links hashes of
+the original failed intent/failure; both original bytes were checked unchanged.
+Durable `LocalState/COSMIC/AkashPublicQualificationCurrent/` now contains
+`bounded-prefix-continuation.intent.json`, its acknowledged JSON and preserved
+`original-discovery-failure.json`. Continuation intent SHA256
+b246f74cb8c1a89ecbfa5c4a26c733bd1bb6ac77660030e6b97f6a4e88712576.
+Original `qualification.intent.json` remains unchanged/unacknowledged; never
+rerun either native gate to obtain another green result.
+Native evidence `TestResults/AkashPublicSourceCurrent/bounded-prefix-native.trx`,
+SHA256f3584b317754ce59b26e3c2510beabc8ef398161a0d96eb0d1835fcfcb980ab3.
+
+Next: bind the acknowledged sample to one source configuration/owner; implement
+query-only AkashProviderAddress equality/IN+paging with capability/error tests,
+then actual spaced C#3/2, HTTP/Mongo5/4/privacy and original hosted/replica gates.
+Counts remain59integrated/54hosted. Native metadata proof is not CQL acceptance,
+cloud provisioning, shared finalized snapshot or independent chain consensus.
