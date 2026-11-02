@@ -2,7 +2,7 @@
 
 Updated 1 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state and the exact next action.
 
-1. Preserve45completed scoped hosted HTTP proofs and original cohorts; ChainLink acceptance/card/public bytes are green. Implement the qualified BlueSky public profile CQL source next. CURRENT_STATUS owns exact release evidence; never replay completed saves.
+1. Preserve45completed scoped hosted HTTP proofs and original cohorts; ChainLink acceptance/card/public bytes are green. BlueSky source/37controls/actual CLI3/2 now pass; complete its red API/Mongo/hosted gates next. CURRENT_STATUS owns exact release evidence; never replay completed saves.
 2. Keep one filtered native query and one Mongo federated preset per admitted provider, with commented C# examples and sandbox links. Preserve completed privacy, reuse and replica proofs.
 3. Expand remaining red provider scopes with explicit consistency semantics, bounded capability-aware planning, native tests, actual HTTP proof and honest public labels. Rejected RPCs are not implemented capabilities.
 4. Complete browser gates when browser control is available; currently 5 proved/40 open. HTTP and byte matching do not prove interaction.

@@ -951,3 +951,8 @@ Use `--eosio-public LocalState/COSMIC/HostedEosioPublicSourceCurrent/source.json
 ### ChainLink public feed demo
 
 Use `--chainlink-public LocalState/COSMIC/HostedChainLinkPublicSourceCurrent/source.json` with the retained three-feed catalogue. [Commented walkthrough](ChainLinkPublicWalkthrough.cs), [setup/C# guide](../../Docs/Devs/CHAINLINK_PUBLIC_FEED_CQL_GUIDE.md). Shared HolonManager/LINQ returns3feeds then2; exact raw answers/scales/round IDs are printed. Anonymous reads only, no wallet/funding/source transaction/Mongo save. API/hosted acceptance remains separate; RPC-reported finality does not guarantee current prices.
+
+
+### BlueSky public profile demo
+
+Use `--bluesky-public LocalState/COSMIC/HostedBlueSkyPublicSourceCurrent/source.json` with the retained three-DID catalogue. [Commented walkthrough](BlueSkyPublicWalkthrough.cs), [setup/C# guide](../../Docs/Devs/BLUESKY_PUBLIC_PROFILE_CQL_GUIDE.md). Shared HolonManager/LINQ returns3profiles then2, printing public names/handles. Anonymous AppView observations only: no login/PDS session/source mutation/Mongo save or image fetch. API/hosted/browser acceptance remains separate.

@@ -59,6 +59,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.TelosOASIS => "TelosAccountAddress",
             ProviderType.EOSIOOASIS => "EOSIOAccountName",
             ProviderType.ChainLinkOASIS => "ChainLinkFeedAddress",
+            ProviderType.BlueSkyOASIS => "BlueSkyActorDid",
             ProviderType.SeiOASIS => "SeiAccountAddress",
             ProviderType.ZkSyncOASIS => "ZkSyncAccountAddress",
             ProviderType.AbstractOASIS => "AbstractAccountAddress",

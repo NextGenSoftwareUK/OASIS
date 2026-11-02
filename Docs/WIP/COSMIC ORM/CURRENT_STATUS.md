@@ -4,23 +4,23 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 
 ## Verified scope
 
-- 49 integrated query types: 3 canonical adapters, 42 bounded public/source profiles, 4 local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
+- 50 integrated query types: 3 canonical adapters, 43 bounded public/source profiles, 4 local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
 - 45 providers have scoped hosted HTTP proof at their recorded releases. Browser proof: 5; 40 browser gates remain open. These are not full ORM/native-write certifications.
 - MongoDB/SQLite/Neo4j parity: 50/82 checklist rows each; original investor-demo subset green. Work red rows only unless a reproducible bug appears.
 - Latest completed provider: ChainLink public feed observations. Native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen.
 - Website80633dc publishes ChainLink/EOSIO/Telos/Filecoin cards and pinned setup/C#/HTTP links;97client tests pass. Public HTML/scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser Mongo preparation copies identity/name/description/provenance, not all native metadata. Full payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: BlueSky source implementation next
+## Current phase: BlueSky API/local integration next
 
 - ChainLink source43controls/actual CLI3/2 and Core1/API2/localHTTP1/publisher10/prepared-planner1/client1 pass. Exact marked local DB dropped, HTTP/Mongo stopped.
 - Development parent09c66998cb2c204f290d7a85198006e6abd3202f/Core990c1c75afcafdbc0678b6e8131a10b67650f7e3 published/ref-verified; manifest validates. Code215b4b51/settings3a00f63f SUCCESS; exactly3settings applied once/full candidate/per-key digests match/DNA unchanged.
-- Hosted original acceptance and website80633dc/public bytes complete; no reapply/redeploy/replay. BlueSky native3/2 qualification (3guarded anonymous GETs) and offline parser/status check pass; no BlueSky CQL/hosted claim.
+- Hosted original acceptance and website80633dc/public bytes complete; no reapply/redeploy/replay. BlueSky native3/2,37controlled CQL tests and actual CLI/manager/LINQ3/2 pass; no API/hosted claim.
 
 ## Exact next actions
 
 1. Preserve completed ChainLink/EOSIO/Telos/Filecoin/Fantom sources/owners/ACKs/cohorts. ChainLink card/pinned links/97tests/public bytes verified; no browser proof inferred.
-2. Implement separate read-only BlueSkyPublicProfileMetadataSource in existing Social provider project: explicit captured DID catalogue, bounded BlueSkyActorDid equality/membership, exact complete DID selection/metadata validation. No signed PDS session/write or avatar/banner fetch. See BLUESKY_PUBLIC_SOURCE_STATUS.md; original qualifier/owner must not be replayed/regenerated.
+2. BlueSky read-only source/37controls/actual CLI3/2 pass, with explicit captured DIDs and optional-field handling. Next: query-only API config/permission/tariff, Core/API tests, local Mongo/privacy/prepared gates, then hosted rollout/card. See BLUESKY_PUBLIC_SOURCE_STATUS.md; preserve owner and completed native/console cohorts, no replay.
 3. Controlled tests/native manager+C#3/2, API independent read admission/tariff, local Mongo/privacy/prepared gates, exact hosted rollout/original acceptance/card. Keep green scopes/deep parity frozen absent a reproduced bug.
 
 ## Durable state and rules
