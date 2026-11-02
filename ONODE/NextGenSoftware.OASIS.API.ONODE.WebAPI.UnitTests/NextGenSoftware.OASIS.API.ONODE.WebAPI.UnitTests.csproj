@@ -31,4 +31,7 @@
     <Content Include="../../Scripts/Sandbox/cql-activitypub-federation-examples.json" Link="cql-activitypub-federation-examples.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FilecoinOASIS/NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.csproj" />
+  </ItemGroup>
 </Project>

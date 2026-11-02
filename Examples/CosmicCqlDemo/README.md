@@ -906,3 +906,21 @@ dotnet ./Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll `
 selection over three addresses, then two. It prints exact balances and explicitly
 labels the canonical-at-read block. It performs no native writes. HTTP/Mongo,
 hosted sandbox and browser qualification remain separate, pending gates.
+
+
+## Filecoin FEVM: public balances through native genesis identity
+
+Follow the [Filecoin setup guide](../../Docs/Devs/FILECOIN_PUBLIC_ACCOUNT_CQL_GUIDE.md)
+once, build, and retain the same public catalogue between runs.
+
+```powershell
+dotnet ./Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll `
+    --filecoin-public LocalState/COSMIC/FilecoinDemo/source.json
+```
+
+[FilecoinPublicWalkthrough.cs](FilecoinPublicWalkthrough.cs) uses HolonManager and
+LINQ/CQL to return three configured addresses and a two-address subset. No wallet,
+funding, node or source write. Balances print as exact attoFIL strings. Native
+genesis-CID identity and RPC-v1 finalized hash-bound reads are explicit; this does
+not independently verify consensus/F3 finality. Actual console3/2 passes.
+Local HTTP/Mongo federation5/4 and visitor privacy0/3 pass; hosted/browser acceptance remain pending.

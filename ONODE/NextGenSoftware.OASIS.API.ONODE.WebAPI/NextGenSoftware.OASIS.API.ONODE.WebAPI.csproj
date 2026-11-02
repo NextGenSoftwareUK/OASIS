@@ -157,4 +157,7 @@
   <ItemGroup><ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CardanoOASIS/NextGenSoftware.OASIS.API.Providers.CardanoOASIS.csproj" /></ItemGroup>
   <ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.csproj" /></ItemGroup>
   <ItemGroup><ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TONOASIS/NextGenSoftware.OASIS.API.Providers.TONOASIS.csproj" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FilecoinOASIS/NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.csproj" />
+  </ItemGroup>
 </Project>
