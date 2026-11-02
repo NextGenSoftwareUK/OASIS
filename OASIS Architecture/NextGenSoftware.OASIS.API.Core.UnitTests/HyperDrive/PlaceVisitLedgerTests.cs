@@ -34,6 +34,9 @@ public sealed partial class HyperDriveProviderExecutionTests
         }
         var dna=CreateDna(HyperDriveModes.V2);var providers=new ProviderManager(null,dna){IsAutoFailOverEnabled=false,IsAutoLoadBalanceEnabled=false,IsAutoReplicationEnabled=false};providers.RegisterProvider(provider.Object);
         var manager=new KarmaManager(provider.Object,dna,providers);var avatar=Guid.NewGuid();var firstId=Guid.NewGuid();
+        IAvatarDetail profile=new AvatarDetail{Id=avatar};
+        provider.Setup(p=>p.LoadAvatarDetailAsync(avatar,0)).ReturnsAsync(()=>new OASISResult<IAvatarDetail>(profile));
+        provider.Setup(p=>p.SaveAvatarDetailAsync(It.IsAny<IAvatarDetail>())).ReturnsAsync((IAvatarDetail row)=>{profile=row;return new OASISResult<IAvatarDetail>(row){IsSaved=true,SavedCount=1};});
         var place=new PlaceVisitRecord{PlaceId="osm:node:123",Name="Owned Yoga Venue",Category="Yoga",Latitude=21,Longitude=-86};
         var first=await manager.ObservePlaceVisitAsync(avatar,place,true,firstId);
         if(failSave){Assert.True(first.IsError);Assert.Empty(stored);Assert.True((await manager.GetPlaceVisitsAsync(avatar)).IsError);return;}
@@ -46,6 +49,8 @@ public sealed partial class HyperDriveProviderExecutionTests
         await restarted.ObservePlaceVisitAsync(avatar,place,false,departure); // replaying an old departure cannot end a new visit.
         Assert.Single((await restarted.GetActivePlaceVisitsAsync(avatar)).Result);
         Assert.Equal(150,(await restarted.GetKarmaAsync(avatar)).Result);
+        Assert.Equal(150,profile.Karma);Assert.Equal(2,profile.KarmaAkashicRecords.Count);
+        Assert.Contains(profile.KarmaAkashicRecords,a=>a.Karma==100);Assert.Contains(profile.KarmaAkashicRecords,a=>a.Karma==50);
         var history=(await restarted.GetPlaceVisitsAsync(avatar)).Result;Assert.Equal(2,history.Count);
         Assert.All(history,v=>{Assert.Equal("Our World",v.OApp);Assert.Equal(place.PlaceId,v.PlaceId);Assert.Equal(DateTimeKind.Utc,v.VisitedUtc.Kind);});
         var karma=(await restarted.GetKarmaHistoryAsync(avatar)).Result;Assert.Equal(2,karma.Count);Assert.All(karma,t=>Assert.Contains("Owned Yoga Venue",t.Description));
