@@ -113,3 +113,7 @@ Primary references: [node RPC contract](https://github.com/stacks-network/stacks
 [tip parameter](https://github.com/stacks-network/stacks-core/blob/main/docs/rpc/components/parameters/tip.yaml),
 [block-ID derivation](https://github.com/stacks-network/stacks-core/blob/main/stacks-common/src/types/chainstate.rs),
 [mainnet service](https://www.hiro.so/stacks-api).
+
+## Hosted activation checkpoint
+
+Code job `8f13e4b3-5113-4b74-a9f8-8ace730b2654` succeeded at the exact reviewed parent. Three settings applied once, per-key hashes/full variables verified, no per-key deployment. Task branch restored. Single existing-artifact activation `d6bb89ee-7a2a-4cfd-b382-d0f0af6bdfe0` is BUILDING at the same commit. Journals/protected CLI output remain under `LocalState/COSMIC/HostedStacksReleaseCurrent`; do not replay application or activation. Hosted acceptance/count remains pending. This supersedes the earlier unapplied-settings checkpoint.
