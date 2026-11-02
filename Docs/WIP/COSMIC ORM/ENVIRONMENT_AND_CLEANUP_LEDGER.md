@@ -3725,3 +3725,25 @@ All local owned processes stopped/.NET outputs cleaned. Remote deployed website/
 API retained as delivery resources; acceptance credentials/copies remain owned
 retained evidence until explicit verified teardown. Next Eclipse baseline
 reconciliation uses original fixtures, no new environment or native qualification.
+2026-11-02 Eclipse baseline reconciliation planned: read-only preflight confirms
+original Eclipse before==acknowledged Akash before and live==acknowledged Akash
+after; exactly3changed key names, no values printed. Reuse original source owners,
+console/local/native proofs and protected old candidates; never overwrite them.
+New pure composition/lineage guard in Scripts/Sandbox, Python3.12/unittest reused;
+no .NET build/new runtime/native requests. Before any apply, require only
+acknowledged Akash changes, exact original Eclipse source/presets, free tariff,
+no unrelated drift. Planned distinct fixed protected prefix eclipse-public-after-akash
+under existing HostedSourceRolloutCurrent; size unmeasured until prepare. Retain
+lineage/before/candidate until completed deployment reconciliation. Raw control/
+public review TestResults/EclipsePublicSourceCurrent; no raw docs evidence.
+
+2026-11-02 Eclipse reconciliation prepared/verified after2methods14negative cases
+pass. New fixed eclipse-public-after-akash protected before191254bytes/candidate
+193894bytes/lineage940bytes active under existing HostedSourceRolloutCurrent;
+original4protected inputs and source owners/ACKs preserved. Actual live baseline
+matches acknowledged Akash after; exactly3acknowledged changes. No native calls,
+.NET rebuild/install/download/new environment, mutation or deployment. New
+Python/cache/raw compact control output regenerable; lineage/config receipts
+retain until terminal reconciliation. Original tested source/presets unchanged,
+no green-source hardening. Next first guarded Eclipse settings application on
+successful105329a3fcode, no new code build needed. Existing local outputs cleaned.
