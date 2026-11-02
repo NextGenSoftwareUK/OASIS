@@ -125,8 +125,10 @@ public static class NativeKeySetWalkthrough
     {
         if (mongo.QueryProviderType != ProviderType.MongoDBOASIS)
             throw new ArgumentException("The first target must be the explicitly configured Mongo provider.", nameof(mongo));
-        if (protocol.QueryProviderType is not (ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS or ProviderType.ActivityPubOASIS or ProviderType.SolanaOASIS or ProviderType.GoogleCloudOASIS or ProviderType.AzureStorageOASIS))
-            throw new ArgumentException("Select IPFS, SOLID, Mastodon or public Solana/Google metadata as the second target.", nameof(protocol));
+        // Native membership capabilities are the enrollment contract. A historical
+        // provider-name list must not reject later adapters before planning.
+        if (protocol.QueryProviderType == mongo.QueryProviderType)
+            throw new ArgumentException("Select a distinct second provider.", nameof(protocol));
         var descriptor = protocol.QueryCapabilities.StringKeySetLookup
             ?? throw new ArgumentException("Enroll native membership on the protocol target before planning.", nameof(protocol));
         var keys = nativeKeys.ToArray();
