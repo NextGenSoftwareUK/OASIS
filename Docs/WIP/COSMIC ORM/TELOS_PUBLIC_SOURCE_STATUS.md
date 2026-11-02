@@ -29,7 +29,7 @@ Publisher9pure controls and client1preparation/reuse control pass. Website task 
 
 ## Exact next step
 
-Parent Development7c498e0f2e8a97207fb8d511d35cea521e7e240c/CoreDevelopment80b879b0ef289ccfff3b7efefa5a9ff26e6b4135 published and remote-ref verified. No incoming Development changes; verified source preserved. Manifest/gitlinks validate. Exact code job91bf543d-030d-4efe-b2db-31c57aeae139 is QUEUED, confirmed live; observe that same job, never restart or repeat code-publication intent.
+Parent Development7c498e0f2e8a97207fb8d511d35cea521e7e240c/CoreDevelopment80b879b0ef289ccfff3b7efefa5a9ff26e6b4135 published and remote-ref verified. No incoming Development changes; verified source preserved. Manifest/gitlinks validate. Exact code job91bf543d-030d-4efe-b2db-31c57aeae139 is BUILDING, confirmed live; observe that same job, never restart or repeat code-publication intent.
 
 After exact/latest codeSUCCESS follow CURRENT_STATUS immutable-release checkout guard, apply reviewed3settings once, verify whole candidate/per-key ACKs, one journalled settings rollout, first hosted visitor/native/federation/reuse/privacy/replica cohort, immutable completionACK and sandbox card/public assets. No live settings applied yet. Counts47integrated/42hosted/browser5/open37; Telos not hosted. Generic browser copies retain identity/name/description/provenance, not full native payload. Never replay original native/local fixture. V2 only; hosting deferrals/browser closure unchanged.
 
