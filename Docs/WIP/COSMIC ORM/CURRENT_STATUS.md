@@ -4,7 +4,7 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 
 ## Verified scope
 
-- 48 integrated query types: 3 canonical adapters, 41 bounded public/source profiles, 4 local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
+- 49 integrated query types: 3 canonical adapters, 42 bounded public/source profiles, 4 local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
 - 44 providers have scoped hosted HTTP proof at their recorded releases. Browser proof: 5; 39 browser gates remain open. These are not full ORM/native-write certifications.
 - MongoDB/SQLite/Neo4j parity: 50/82 checklist rows each; original investor-demo subset green. Work red rows only unless a reproducible bug appears.
 - Latest completed provider: EOSIO/Vaulta native account metadata. Native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3, matching SQLite/Neo4j replicas2/2. Two version1 saves/no pending intents; original cohort frozen by completion ACK.
@@ -20,7 +20,7 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 ## Exact next actions
 
 1. Preserve completed EOSIO/Telos/Filecoin/Fantom cohorts, sources/owners/ACKs. EOSIO card72dee68/pinned links/96client tests and public bytes verified; no browser proof inferred.
-2. ChainLink official catalogue and native3/2 protocol now qualified:18guarded HTTP200 calls, chain1/genesis, hash-bound description/decimals/round reads; offline ABI/transport check passes. Implement separate read-only ChainLinkPublicFeedMetadataSource next; bounded ChainLinkFeedAddress equality/membership, exact numeric/time fields. See CHAINLINK_PUBLIC_SOURCE_STATUS.md. No ChainLink CQL/hosted claim; original qualification must not be replayed.
+2. ChainLink native protocol3/2,43controlled CQL tests and actual manager/LINQ/CLI3/2 now pass. Read-only source/explicit feed descriptors and commented demo/guide implemented. Next: query-only API config/permission/tariff, Core/API tests, local Mongo/privacy/prepared gates, then hosted rollout/card. See CHAINLINK_PUBLIC_SOURCE_STATUS.md; no API/hosted claim and no replay of completed native/console cohorts.
 3. After qualification, implement only that red source/controlled tests/native manager+C#3/2, API permission/Mongo/privacy/prepared gates, exact hosted rollout/acceptance/card. Keep green scopes/deep parity frozen absent a reproduced bug.
 
 ## Durable state and rules

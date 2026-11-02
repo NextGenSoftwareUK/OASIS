@@ -1341,3 +1341,8 @@ When demo setup derives a single-provider read from a paired preset, it carries 
 ## EOSIO / Vaulta native account profile
 
 Read-only bounded native account equality/membership now passes28controlled tests and actual manager/LINQ/CLI3/2. [Guide and examples](../../Devs/EOSIO_PUBLIC_ACCOUNT_CQL_GUIDE.md); [scope/evidence](EOSIO_PUBLIC_SOURCE_STATUS.md). API/Mongo/hosted HTTP gates now pass (native3/2, paired5/4, repeat/privacy/replicas); card72dee68 is published with96client tests/public bytes verified. Browser interaction remains open. Per-account latest responses do not establish a shared finalized snapshot.
+
+
+## ChainLink public feed profile
+
+Read-only configured AggregatorV3 proxy equality/membership now passes43controlled tests and actual manager/LINQ/CLI3/2. Exact signed answers/decimal scales/uint80 round IDs/timestamps remain strings; every native contract call is hash-bound to an RPC-reported finalized Ethereum block. No source transaction, current-price guarantee or independent consensus proof. [Setup and C# guide](../../Devs/CHAINLINK_PUBLIC_FEED_CQL_GUIDE.md), [scope/evidence](CHAINLINK_PUBLIC_SOURCE_STATUS.md). API/Mongo/hosted/browser gates remain open.
