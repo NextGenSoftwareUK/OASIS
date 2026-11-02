@@ -67,7 +67,7 @@ Parent `3768c2050ec7b0c60677ae3367bda450440b71ad` and Core
 `6aa17e79e12ec3c54fbc3cf9611fdaa8adfe8dbf` published to Development;
 remote refs verified after fetch/ancestry checks. Manifest/seven Dockerfiles/
 parent gitlinks validator passes. Existing Railway code job
-`8f13e4b3-5113-4b74-a9f8-8ace730b2654` observed QUEUED at that exact parent.
+`8f13e4b3-5113-4b74-a9f8-8ace730b2654` observed BUILDING at that exact parent; the same job is being observed without restart.
 Publication intent/observation: `LocalState/COSMIC/HostedStacksReleaseCurrent`.
 No hosted source settings applied and no Stacks hosted proof counted.
 
@@ -90,7 +90,7 @@ the card. Native zero state is not account-existence, consensus or Gaia proof.
 
 Legacy BlockStack client includes Gaia/user-directory paths and synthetic user
 results; it is not used for this proof and remains unchanged. Document legacy
-gaps only. The source owner is now retained; HTTP/host admission remains pending.
+gaps only. The source owner is retained. Local HTTP/admission checks pass as recorded above; hosted activation and acceptance remain pending.
 
 ## Evidence outside docs/git
 
