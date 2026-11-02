@@ -1,8 +1,8 @@
 # Eclipse public source — interface review
 
-2 November 2026. Red/unqualified; no native requests, source owner, CQL adapter,
-hosted admission or card. ENS remains the active release; this review used its
-verified deployment wait and does not change that release or its candidate.
+2 November 2026. Native protocol qualified; CQL adapter/hosted admission/card
+remain red. No source owner allocated. Earlier no-probe proposals below are
+historical. ENS scoped hosted milestone is complete; its records stay frozen.
 
 Existing provider: Providers/Network/NextGenSoftware.OASIS.API.Providers.EclipseOASIS/EclipseOASIS.cs.
 Its legacy adapter uses Solana-style RPC but has no generic CQL implementation.
@@ -47,3 +47,38 @@ public flat holons with endpoint/network/context/currency provenance, then C#3/2
 HTTP/Mongo5/4/privacy and original hosted/replica acceptance. Native transactions,
 account-data download, history scans, Ethereum settlement/Celestia availability
 verification and full ORM remain separate red scopes. No counts changed.
+
+## Native qualification passed — original bounded intent
+
+Production `EclipsePublicAccountReader` uses cached Solnet.Wallet6.1.0 for
+canonical32byte base58 identity. Twelve controlled tests passed0failed/0skipped:
+exact UInt64 values, shared finalized context, payload exclusion, absent/incomplete
+records, invalid owner/genesis/envelopes, duplicate fields, overflow/fractions,
+invalid catalogue/cancellation and measured request spacing. Calls serialize
+through a process-wide semaphore at no more than1request/second, with cancellation
+and a30second aggregate deadline. This is not a distributed multi-host rate cap.
+
+One native test passed with two guarded JSON-RPC requests to the documented
+free endpoint: getGenesisHash, then getMultipleAccounts for system program, clock
+sysvar and rent sysvar. Explicit finalized commitment/base64/dataSlice(0,0),
+15second client timeout,256KiB/response and512KiB/aggregate bounds. Three
+non-null records shared slot `199439130`. Returned genesis
+`EAQLJCV2mh23BsK2P9oYpV5CHVLDNHTxYss3URrNmg3s` is an endpoint-reported identity
+now retained for future source pinning; not independent network/consensus proof.
+
+Balances remain exact native integer text (ETH,9decimals), not SOL/18decimalwei.
+RentEpoch UInt64Max retained exactly. Account data was empty as requested;
+no wallet, transactions, source writes, source owner, node or database created.
+Original keys/order/intent and ACK: LocalState/COSMIC/EclipsePublicQualificationCurrent.
+Preserve; do not replay the qualifier or replace the intent for green.
+
+Raw logs/TRX/native projection: TestResults/EclipsePublicSourceCurrent.
+Protocol TRX SHA256 `e6b3f3fe157eaa17d674f16a3ff92c06ff9b3d6e0b69748bc089fc189dbe025f`;
+native TRX SHA256 `3c4636d321d168f33321accfce3237b4b8750eb0d2ecfede9d7e4c1cd4fced1d`.
+Existing Solana/ENS implementations/catalogues/ownership unchanged.
+
+Next query-only adapter: mandatory retained genesis pin, explicit configured
+EclipseAccountAddress equality/IN+paging, metadata currency/decimals/context
+provenance and endpoint-specific stable IDs. Then source controls, spaced actual
+C#3/2, HTTP/Mongo/privacy and original hosted/replica/card gates. Counts unchanged
+58integrated/54hosted. Legacy gaps remain documentation-only.
