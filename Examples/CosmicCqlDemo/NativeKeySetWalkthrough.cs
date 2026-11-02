@@ -36,6 +36,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.CosmosBlockChainOASIS => "CosmosValidatorAddress",
             ProviderType.PolkadotOASIS => "PolkadotBlockHash",
             ProviderType.BittensorOASIS => "BittensorBlockHash",
+            ProviderType.ZcashOASIS => "ZcashBlockHash",
             ProviderType.BitcoinOASIS => "BitcoinBlockHash",
             ProviderType.XRPLOASIS => "XRPLLedgerHash",
             ProviderType.StellarOASIS => "StellarLedgerSequence",
