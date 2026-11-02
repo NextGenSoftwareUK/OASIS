@@ -5,6 +5,15 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// Anonymous BlueSky profiles use captured DIDs from one retained catalogue.
+// No PDS session, app password or source mutation is needed.
+if (args.Length == 2 && args[0] == "--bluesky-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+    await BlueSkyPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // ChainLink feed reads are anonymous and use one retained public catalogue.
 // The demo queries proxy contracts; it does not sign or submit transactions.
 if (args.Length == 2 && args[0] == "--chainlink-public")
