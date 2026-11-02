@@ -5,28 +5,23 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 ## Verified scope
 
 - 47 integrated query types: 3 canonical adapters, 40 bounded public/source profiles, 4 local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
-- 42 providers have scoped hosted HTTP proof at their recorded releases. Browser proof: 5; 37 browser gates remain open. These are not full ORM/native-write certifications.
+- 43 providers have scoped hosted HTTP proof at their recorded releases. Browser proof: 5; 38 browser gates remain open. These are not full ORM/native-write certifications.
 - MongoDB/SQLite/Neo4j parity: 50/82 checklist rows each; original investor-demo subset green. Work red rows only unless a reproducible bug appears.
-- Latest completed hosted provider: Filecoin. Native 3/2, Mongo pairing 5/4, repeat 0 new/2 existing, foreign-private 0/public 3, SQLite/Neo4j replicas 2/2; two version1 saves, no pending intents. Completion ACK freezes the original cohort.
-- Filecoin parent fcc4f735d/Core b386875; code d1fe285f and settings 082c1f0d succeeded. Website 9413da3 publishes its card/guides; 94 client tests pass; public HTML/scripts match git blobs. Browser interaction remains separate.
+- Latest completed hosted provider: Telos. Native 3/2, Mongo pairing 5/4, repeat 0 new/2 existing, foreign-private 0/public 3, SQLite/Neo4j replicas 2/2; two version1 saves, no pending intents. Completion ACK freezes the original cohort.
+- Telos parent7c498e0f/Core80b879b; code91bf543d and settingsad7aab39 succeeded. Filecoin remains frozen at its earlier recorded release. Website 9413da3 publishes its card/guides; 94 client tests pass; public HTML/scripts match git blobs. Browser interaction remains separate.
 - Generic browser Mongo preparation copies identity/name/description/provenance, not all native metadata. Full payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: Telos activation
+## Current phase: Telos sandbox publication
 
-- Telos native manager/C#/actual CLI: 3/2; 18 new controlled tests pass. Shared reader algorithm unchanged. Original catalogue and native ACK retained; no replay.
-- Core admission1/API controls2/local HTTP1/publisher9/client1/actual prepared-planner1 pass. Native 3/2, Mongo5/4, privacy0/3, two SDK saves and nine query receipts. Exact marked fixture cleaned; Mongo stopped/27029 absent.
-- Three reviewed settings applied once; whole candidate equality/all three per-key ACK hashes verified. Free four-preset profile; DNA/unrelated values unchanged.
-- Parent Development `7c498e0f2e8a97207fb8d511d35cea521e7e240c` and Core Development `80b879b0ef289ccfff3b7efefa5a9ff26e6b4135` pushed/remote-ref verified. Manifest/gitlinks validate; no incoming executable changes.
-- Code job `91bf543d-030d-4efe-b2db-31c57aeae139` succeeded. Single journalled settings job `ad7aab39-5e83-47f8-b7e9-e03920cb3d2f` is BUILDING at the same code SHA. Never reapply settings/redeploy. Telos is not yet counted as hosted.
+- Telos native manager/C#/actual CLI3/2 and18controls pass. Core1/API2/localHTTP1/publisher9/client1/actual prepared planner1 pass; exact local fixture cleaned and Mongo stopped.
+- Parent Development `7c498e0f2e8a97207fb8d511d35cea521e7e240c` and Core Development `80b879b0ef289ccfff3b7efefa5a9ff26e6b4135` refs verified; manifest validates. Code91bf543d and settingsad7aab39 SUCCESS.
+- Three reviewed settings applied once; full candidate/per-key ACKs match. No reapply/redeploy.
+- Hosted native3/2, Mongo5/4, repeat0new/2existing, private0/public3 and replicas2/2 pass. Two version1 saves/no pending; immutable completion ACK freezes original Telos cohort.
 
 ## Exact next actions
 
-1. Observe the same settings job:
-   `python Scripts/Sandbox/Observe-HostedDeployment.py ad7aab39-5e83-47f8-b7e9-e03920cb3d2f --expected-commit 7c498e0f2e8a97207fb8d511d35cea521e7e240c --output TestResults/TelosPublicSourceCurrent/settings-deployment.json`
-2. After SUCCESS, retain settings-deployment ACK and run first `python Scripts/Sandbox/Verify-HostedQuerySource.py TelosOASIS --prepare` with existing pinned Node on PATH. At most two journalled visitors/two normal private saves; inspect native3/2, paired5/4, reuse0/2, privacy0/3, replicas2/2, two version1 ACKs/no pending. Write immutable completion ACK only after proof.
-3. Publish the Telos card/pinned guide/C# links, run client checks and compare public bytes. HTTP/asset matching is not browser interaction. Then select the next red shipping-provider scope; Chainlink feeds are researched only, not qualified or implemented.
-
-Code application recovery: exact-release detached checkout was used for guarded3settings, then existing task branch restored. Code-deployment ACK, all per-key ACKs and protected settings-rollout intent/outcome exist. Do not detach/reapply or repeat either publication/rollout intent. Observe only the returned settings job above; a timeout is not failure. No new worktree/guard bypass/restart.
+1. Publish Telos card/pinned setup guide/C# links on existing Web4Site branch, run client suite, compare public HTML/scripts to exact git blobs. Browser interaction is separate.
+2. Then select the next red shipping-provider scope. Chainlink feeds are researched only, not qualified or implemented. Keep completed cohorts/source owners intact; no native/hosted replay.
 
 ## Durable state and rules
 
