@@ -99,3 +99,32 @@ local walkthrough. Track the exact next gate in the
 
 Primary contracts: [VAA format/reorg semantics](https://wormhole.com/docs/protocol/infrastructure/vaas/)
 and [public operation API guide](https://wormhole.com/docs/products/messaging/guides/wormholescan-api/).
+
+## Local HTTP integration verified
+
+The shipping compiler/read-profile and query-only admission now pass local HTTP
+native3/2, Mongo federation5/4 and foreign-private0/public3. The four prepared
+hosted presets also plan against shipping capabilities. Hosted settings and live
+card remain pending; this supersedes the earlier implementation-pending note.
+
+Set host-only `CQL_WORMHOLE_PUBLIC_SOURCE_JSON` to the retained source JSON,
+with an explicit independently permitted query-only tariff. This does not grant
+source writes or enable cross-chain dispatch. The hosted publisher checks free
+pricing and, when encryption is enabled, an explicit queryable-key policy for
+`WormholeOperationId`; it does not alter encryption or DNA settings.
+
+POST `/api/data/query-cql` using provider `WormholeOASIS`, `orderBy: "None"`,
+`includeMetadata: true`, a bounded take and a filter with
+`metadataPath: ["WormholeOperationId"]`, `scalar: "String"`, `operator: "In"`,
+and a value array of retained catalogue keys. For federation, POST
+`/api/data/query-cql/federation` with scope `Named`, providers
+`["MongoDBOASIS", "WormholeOASIS"]`, that filter in `source`,
+`identityMode: "PreserveCopies"`, `maximumProviderAttempts: 2` and a bounded
+take/duration. The four prepared examples provide native three/two selections
+and corresponding Mongo pairs. Authentication and provider permissions still apply.
+
+Local SDK fixtures copy the projected native metadata. Generic browser copies
+currently retain identity/name/description/provenance and the operation query key,
+not the full native payload. Browser interaction and live replication are separate
+acceptance gates. Existing private version1 demo snapshots keep their first
+observation; repeat setup never silently updates them.

@@ -88,3 +88,41 @@ Original legacy tracker is unchanged; source writes remain unsupported.
 | `LocalState\COSMIC\HostedWormholePublicSourceCurrent\source.json` | 550 | `e358155de6cae05f61e7fb8f67d13b198948705961628cf2b149347c4e0db434` |
 | `Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.WormholeOASIS/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.WormholeOASIS.dll` | 44032 | `0e2a6945e8eff8cb3bc86d56435a3c51c5c3e933e9a1726baffa82c02b01154b` |
 | `Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll` | 901632 | `560cfa366ed8725d3c368fee0ed2d720dbe62eb0a8475f90812fa369451cecf4` |
+
+## HTTP/admission/local Mongo milestone complete
+
+Core1/API3controlled tests, production WEB4 build, local native HTTP1,
+publisher9pure tests, actual prepared-presets1test and105client tests pass.
+Local HTTP native3/2, Mongo5/4, foreign-private0/public3; nine query receipts.
+Two SDK-owned version1 Mongo copies retain the full projected metadata and pins.
+This is not production signup/billing or live replication certification.
+Original fixture retained at `LocalState/COSMIC/WormholeMongoHttpCurrent`;
+exact marker-verified DB cosmic_cql_wormhole_http_demo removed, owned Mongo
+process stopped, port27029absent. Existing data directory/runtime preserved.
+Source-bound local qualification ACK is in HostedWormholePublicSourceCurrent.
+
+First controlled API consumer build failed on stale pre-Wormhole transitive
+assets after --no-restore. Ordinary cached restore fixed the dependency graph;
+original compile log retained. No DLL copying or duplicate reference workaround.
+Production WEB4 build itself passed. Native fixture ran once after this fix.
+
+Protected three-key hosted candidate `HostedSourceRolloutCurrent/wormhole-public-*`
+is prepared, not applied. It preserves DNA/native-write settings and adds one
+free independent query-only tariff/permission plus four planned native/Mongo
+presets. Native identities and body fingerprints remain unchanged. Core task
+c551a89ff294e68527f6ff75128d97cff54e6c63 is pushed/remote-verified; parent
+manifest/gitlink advance together. Frontend taska4e61cf adds105thclient test;
+public page/card is not yet changed for Wormhole.
+
+Next publish the verified code batch; observe its exact SUCCESS before applying
+reviewed source/settings once and one existing-artifact activation. Then run one
+original hosted cohort, verify native/filter/federation/reuse/privacy/replicas,
+and publish the card. Hosted count remains49; no Wormhole hosted claim yet.
+
+| Evidence | Bytes | SHA256 |
+|---|---|---|
+| `Http/core-admission.trx` | 3327 | `2b17e826c16578c1c96146f9f076ce47585421f8595c27db916369e2a86fbaad` |
+| `Http/api-admission.trx` | 6604 | `dcde9b4877fc457d9afdee8ec93160e580f9446c6cfa8ebe6b97f74b31b0d1f0` |
+| `mongo-http-native.trx` | 3371 | `bf070055470213c3edefa1a18b456d4907fdae2e6e44c38557393e8e6d744957` |
+| `Http/prepared-presets.trx` | 3338 | `28ba4041d59547e3f5daddb3ffdcd14855d5696a7181104d610b9d90cd722c98` |
+| `prepared-review.json` | 4854 | `f93131bd4d0a3904814e4c0e0a4dd039cdbd5de9f4a83332715c2b22407597d6` |

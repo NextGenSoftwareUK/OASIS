@@ -148,6 +148,10 @@ public sealed class CqlPreparedPublicBatchTests
     public async Task ActualStacksCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    [PublicBatchReviewFact]
+    public async Task ActualWormholeCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
     private static async Task CheckPreparedBatch(int expected)
     {
         var path = Environment.GetEnvironmentVariable("COSMIC_CQL_PUBLIC_REVIEW")!;
@@ -174,6 +178,7 @@ public sealed class CqlPreparedPublicBatchTests
                 var type = Enum.Parse<ProviderType>(profile.Name);
                 ICosmicQueryStorageProvider source = type switch
                 {
+                    ProviderType.WormholeOASIS => Providers.WormholeOASIS.WormholePublicOperationMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.BlockStackOASIS => Providers.BlockStackOASIS.StacksPublicPrincipalMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.MatrixOASIS => Providers.MatrixOASIS.MatrixPublicRoomMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.NostrOASIS => Providers.NostrOASIS.NostrPublicEventMetadataSource.FromJson(profile.Value.GetRawText()),
