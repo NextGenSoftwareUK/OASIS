@@ -15,3 +15,5 @@ Hosted PostgreSQL, Azure Cosmos and Oracle remain deferred. V2 changes only; leg
 [Strict acceptance](CQL_PARITY_CHECKLIST.md) · [Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) · [Backlog](AFTER_DEMO_BACKLOG.md) · [History](Archive/CQL_COMPLETION_ROADMAP_before_fantom_release_2026-11-01.md).
 
 Nostr native milestone2November: separate signed-event CQL source32controls/verifier36controls/actualCLI3/2 pass, original503 preserved. Core/API/local Mongo/privacy/prepared gates pass; exact code deployment79b7be91 QUEUED, hosted/card gates remain red; exact next actions in CURRENT_STATUS.
+
+Nostr hosted checkpoint: code/settings SUCCESS, original owner3/2+5/4 and read-only replicas2/2 pass; repeat native query503 remains. Freeze two version1 saves, diagnose sanitized .NET cause, finish original cohort read-only; no new owner/resaves. Full hosted count stays46.
