@@ -147,3 +147,21 @@ snapshotting or full ORM certification.
 | `TestResults\HostedCqlIntegrationCurrent\ChainflipOASIS-native-http.json` | 15733 | `379e661677cf849c39d9aa1f4c811ed920d2276e141545ffcc3897dac6014531` |
 | `TestResults\HostedCqlIntegrationCurrent\ChainflipOASIS-client-http-flow.json` | 40037 | `b2910728e7b7ec9dc3c6d3da06b6b3a30dafc0d5841d0a872b42e5bc33d04ca4` |
 | `TestResults\HostedCqlIntegrationCurrent\ChainflipOASIS-isolation-http.json` | 6608 | `999d01c4cc47b4caab88633aee3b23a22e33a379ace4b6a5f1f4bf1393e8b7f8` |
+
+
+## Public sandbox publication complete
+
+Website task/main bbb9aee07a6dc65ff67b163e9a9fe4c62ec18b23 verified remotely.
+Chainflip card includes three/two native and Mongo presets instructions, clear
+indexer/precision/optional-deposit/refund limits, and pinned guide+C#links.
+HTML parser/unique IDs check passes; frontend106controls retained, no JS change.
+Three public anonymous asset GETs match exact committed git blobs. Evidence:
+TestResults/ChainflipPublicSourceCurrent/public-assets-observation-1.json;
+immutable site ACK under HostedChainflipReleaseCurrent. Browser interaction
+remains open; original cohort/config/owners/save ACKs remain frozen.
+
+| Public asset | Bytes | SHA256 |
+|---|---|---|
+| `web4-sandbox.html` | 182914 | `bb0edff202f1b25d46ed5412f0953b0134387ee9bbcc9192a89368261e4aaad8` |
+| `cql-demo-preparation.js` | 10241 | `c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a` |
+| `cql-playground.js` | 21871 | `7cb6210b9adda1e83630fc966926772f8338c43163c24d1abd88c626ad1ad649` |
