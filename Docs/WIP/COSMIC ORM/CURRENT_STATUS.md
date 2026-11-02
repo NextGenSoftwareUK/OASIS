@@ -3,47 +3,39 @@
 Updated 2 November 2026. Goal active/incomplete. Breadth-first live demos;
 deep selected-stage LINQ parity paused. Work red scopes or reproduced bugs only.
 
-## Verified current scope
+## Verified scope
 
-- 61 integrated query types: 3 canonical, 54 bounded public/source profiles, 4 local PostgreSQL/Cosmos/Oracle/AWS implementations.
-- 56 scoped hosted functional HTTP proofs/configured tariffs. Browser5verified/51open. These are not full ORM/native-write/reliability certificates.
-- MongoDB/SQLite/Neo4j strict parity50/82each; original investor-demo subset green. No overall completion percentage inferred.
-- Prior Akash passes native3/2, Mongo5/4, repeat0new/2existing, foreign0private/3public, exact SQLite/Neo4j2/2. Two original normal API version1saves/pending0; independent offline audit ACK frozen.
-- Akash code105329a3fc84e8505a6779d3291de806858c23c2/Coref42dd8cbb63573644793656af5de95d3a18a773a and activation2a5ec8a6-c82f-471c-bbfa-c655f9fb1628SUCCESS. Three settings applied once/full candidate equality/DNA unchanged. Prior code jobc8ebe618SUCCESS; old Eclipse failure was not diagnosed or rerun.
-- Website main/task20129f567a6ba1e4ce32f600e37c42ca13b8d97b includes Eclipse/Akash/ENS and prior profiles; pinned guides/C#links checked. Public HTML194727bytes/SHA256e40b4bd696619ce3a0da51973162996420f13ad8792d5fd0c452ecf26d8743f0 and both JSfiles match exact git blobs. JS unchanged from prior108passing controls. Browser interaction remains unverified.
-- Generic private browser snapshots retain identity/name/description/provenance/query key, not full native payload. Full safe payload mapping remains red in AFTER_DEMO_BACKLOG.md.
+- 61 integrated query types:3canonical,54bounded public/source profiles,4local PostgreSQL/Cosmos/Oracle/AWS implementations.
+- 57 scoped hosted functional HTTP proofs/configured tariffs;5browser verified/52open. No full ORM/native-write/reliability certification inferred.
+- MongoDB/SQLite/Neo4j strict parity50/82each; original investor-demo subset green. No global completion percentage inferred.
+- Latest Bittensor passes actual SDK/CLI/nativeHTTP3/2, Mongo5/4, repeat0new2existing, foreign0private3public, exactSQLiteNeo4j2each.2normal API version1saves/pending0; independent offline audit passed. Read-only Finney header metadata, not AI inference/subnet/private-state or independent consensus proof.
+- Parent Development e8d2d75df48a5caa6b6a849201c34494928b8462/Core d3f92df63ffea195ca83f057246387b03b9f3068. Original code11aa820e-7883-41ab-ae3b-8f2d890c3ff6 and one activation549fdb68-2f97-4ae2-8cf8-7106efa3e71c SUCCESS at same code.3settings applied once/per-key ACK/full candidate equality/DNA unchanged. No active deployment job remains for this milestone.
+- Website main/task bc313792dd345107904cfdf7ec2789ba62ccceee publishes Bittensor/Eclipse/Akash/prior cards. Public HTML196929bytes/SHA256dfe8e9bb4fddf2a4d9690ee8b806c647f8a7df26f335cd547470321bc6c9e2d3 and both JSfiles match exact git blobs. JS unchanged from prior108controls; no green hardening/retest. Browser interaction remains unverified.
+- Generic private browser copies retain identity/name/description/provenance/query key, not full native payload; full safe payload mapping stays red in AFTER_DEMO_BACKLOG.md.
 
-## Exact next step: remaining red provider review
+## Exact next step
 
-1. Freeze all accepted cohorts/source owners/configurations/ACKs. Akash state under LocalState/COSMIC: AkashPublicQualificationCurrent, HostedAkashPublicSourceCurrent, AkashMongoHttpCurrent, HostedQueryAcceptance-AkashOASIS, HostedAkashReleaseCurrent. No qualification/setup/saves/settings replay for green.
-2. Latest Eclipse native3/2+Mongo5/4/reuse0new2existing/privacy0private3public/exactSQLiteNeo4j2each pass. Two normal API version1saves/pending0; independent audit ACK frozen. Activationfcaa8d3a-7964-46f7-9964-82696ee9f8d1SUCCESS at105329a3f. Existing source/genesis/owner/original candidates and Akash unchanged.
-3. Eclipse fixed reconciliation prefix HostedSourceRolloutCurrent/eclipse-public-after-akash binds4original file hashes/accepted Akash proof.2pure methods/14negative cases pass;3settings applied once with per-key ACK/full observed candidate match. Preserve all originals and separate reconciliation/release intents. Old code job7c15337e failure remains unexplained, not retried. Successful later105329a3fcontains Eclipse.
-4. Eclipse state: EclipsePublicQualificationCurrent, HostedEclipsePublicSourceCurrent, EclipseMongoHttpCurrent, HostedQueryAcceptance-EclipseOASIS, HostedEclipseReleaseCurrent. Original local fixture cleaned, processes stopped. No further Eclipse runtime work absent a reproduced bug.
-5. Website main/task20129f567a6ba1e4ce32f600e37c42ca13b8d97b includes Eclipse/Akash. Guide8395e0a66/C#105329a3fpins checked; public HTML194727bytes/SHA256e40b4bd696619ce3a0da51973162996420f13ad8792d5fd0c452ecf26d8743f0 and both JSfiles match exact git blobs. JS unchanged; browser remains unverified. [Eclipse detail](ECLIPSE_PUBLIC_SOURCE_STATUS.md), [Akash detail](AKASH_PUBLIC_SOURCE_STATUS.md).
-6. Bittensor code11aa820eSUCCESS at Development e8d2d75df/Core d3f92df. Original source/candidate/baseline matched; exact release checked out for shared publisher,3values applied once/per-key ACK/full observed equality/DNA unchanged, task branch restored. Settings ACK and exclusive activation intent retained. One activation549fdb68-2f97-4ae2-8cf8-7106efa3e71c is BUILDING at samee8d2d75df. Next observe that activation; only after SUCCESS start first Bittensor cohort (none exists yet), native3/2/Mongo5/4/reuse/privacy/replicas and offline audit, then publish held website carda5ae6ae. Preserve all originals; no resubmit/reseed. [Evidence](BITTENSOR_PUBLIC_SOURCE_STATUS.md).
-7. Keep full provider report/manual/roadmaps/ledger current. Raw logs/results TestResults; durable identities/config/ACKs LocalState/COSMIC. No .NET rebuild or new environment for documentation/primary-interface review.
+1. Freeze all accepted Bittensor source/owner/keys/config/candidates/intents/ACKs/cohort. LocalState/COSMIC: BittensorPublicQualificationCurrent, HostedBittensorPublicSourceCurrent, BittensorMongoHttpCurrent(cleaned), HostedBittensorReleaseCurrent, HostedQueryAcceptance-BittensorOASIS. No readiness/SDK/CLI/HTTP/settings/save replay for green. [Bittensor detail](BITTENSOR_PUBLIC_SOURCE_STATUS.md).
+2. Continue next red provider Aztec: read AZTEC_PUBLIC_SOURCE_STATUS.md. Official docs list mainnet v6.0.0/publicRPC; git ls-remote resolved tag v6.0.0 to0219f11d8133970df3974fe5ae65e006bf8c193a. SDK schema paths tried were unavailable/contents404; no native probe or source/cache install yet. Inspect correct pinned NodeInfo/BlockData serialization and public access limits before bounded exclusive first qualification. Do not clone/install a node/SDK or guess/fallback old methods. Legacy unchanged.
+3. Keep previous accepted sources/cohorts frozen. Akash/Eclipse/ENS/prior proofs remain in their source reports. Farcaster lacks verified suitable free access; original failure durable. Lens first403/Cloudflare1010 explicitly nonretryable; preserve denial, no bypass. All other preserved failed gates remain red.
+4. Keep full provider report/manual/roadmaps/resource ledger current. Raw logs/results TestResults; durable identities/config/ACKs/compressed original proof LocalState/COSMIC. No .NET rebuild merely to recreate green evidence.
 
 ## Preserved gaps and priorities
 
-- Keep one filtered native query and a Mongo-paired preset per admitted provider. Continue remaining red provider breadth after Eclipse; no claim that61types cover every shipping provider project.
-- Hosted Azure Cosmos/Oracle/PostgreSQL explicitly deferred by David; no re-ask/new paid resource. Public Azure Blob/AWS S3 proofs are separate from owned hosted databases.
-- Browser/OS control remains closed. Solana and remaining browser gates stay open; HTTP/public bytes are not interaction evidence.
-- Nostr intermittent503 and earlier Blockscout15s timeout causes remain unresolved. Functional source proofs do not certify availability; broader operator/transport/recovery/scale acceptance remains open.
-- Rootstock/TRON/Radix/Starknet and other preserved failed gates are not silently admitted. Follow individual status reports; no endpoint bypass/reseed/new owner for green.
-- ORM/save ownership/concurrency, children/depth/query parameters, rollback/history/deltas, migration/placement/authority cutover and broader HyperDrive acceptance still require the roadmap's exact evidence. Deep selected terminals, unrestricted POCO mapping and tooling remain deferred. V2 implementation only; legacy gaps docs-only.
+- Keep a filtered native query and Mongo-paired preset per admitted provider; continue remaining red provider breadth.61types do not cover every shipping provider project.
+- Hosted Azure Cosmos/Oracle/PostgreSQL explicitly deferred by David; no re-ask/new paid resource. Public Azure Blob/AWS S3 proofs are separate from owned databases.
+- Browser/OS control remains closed. Solana/remaining52browser gates stay open; HTTP/static bytes are not interaction evidence.
+- Nostr intermittent503/Blockscout earlier timeout causes remain unresolved. Functional source proofs do not certify availability; wider operator/transport/recovery/scale acceptance remains open.
+- Full save ownership/concurrency, children/depth/query parameters, rollback/history/deltas, migration/placement/authority cutover and wider HyperDrive acceptance still need exact roadmap evidence. Deep selected terminals/unrestricted POCO/tooling deferred. V2 code only; legacy gaps docs-only.
 
-## Disk/resource rules
+## Disk and working rules
 
-[Disk recovery](../Cleanup/DISK_RECOVERY_CURRENT.md):120GBtarget unmet. Removed16.1GBinitial Windows artifacts, then305,589,142 and2,154,485,642bytes of regenerated owned outputs; these are logical totals, not unique physical recovery. Latest measured free62,915,301,376bytes. No local test service running. Bittensor generated188worktree bin/obj folders/2,154,947,374logical bytes. Cleanup rejected by automatic policy; all preserved/no bypass, exact paths/sizes in ledger. External14shared-library paths also preserved. Source/packages/LocalState/required secrets/evidence retained.
+[Disk recovery](../Cleanup/DISK_RECOVERY_CURRENT.md):120GBtarget unmet. Latest measured free62,915,301,376bytes. Bittensor188reviewed generated folders/2,154,947,374logical bytes remain preserved after automatic cleanup-policy rejection; no retry/bypass. External14shared-library paths preserved. No owned local test/DB service remains. Exact paths/sizes/lifecycles in ENVIRONMENT_AND_CLEANUP_LEDGER.md.
 
-David explicitly kept /home/dellams/miniforge3 and art-ml-models; exclude both and do not re-ask. Existing WSLprovider data/runtimes preserved; admin compaction pending, not80GBrecovery. Earlier rejected ChainLink bin/dump/duplicate Git-pack removals remain preserved; do not bypass policy. Unknown root logs untouched. Track every resource/lifecycle in ENVIRONMENT_AND_CLEANUP_LEDGER.md; retire verified owned disposables after gates finish.
+Personal miniforge3/art-ml-models explicitly KEEP. Existing WSL/provider data/runtimes preserved; admin compaction pending, not80GBrecovery. Earlier rejected ChainLink bin/dump/duplicate Git-pack targets and unknown root logs untouched. No blanket caches/volumes/user-data deletion.
 
-## Working rules and commands
+Work/build/test only C:/Source/OASIS-cosmic/work/cosmic-cql-ton-public; Core work/cosmic-cql-google-public. Frontend existing C:/Source/Web4Site/work/cosmic-cql. No new worktree/environment. Dev push timing exception authorized; no production/master or paid hosting.
 
-Work/build/test only C:/Source/OASIS-cosmic on work/cosmic-cql-ton-public; Core work/cosmic-cql-google-public. Frontend C:/Source/Web4Site/work/cosmic-cql. Never edit/build original checkout or allocate duplicate environments. Existing dev push timing exception authorized for live verification; no production/master promotion/paid hosting.
-
-Observe original activation: `python Scripts/Sandbox/Observe-HostedDeployment.py 549fdb68-2f97-4ae2-8cf8-7106efa3e71c --expected-commit e8d2d75df48a5caa6b6a849201c34494928b8462 --output TestResults/BittensorPublicSourceCurrent/activation-deployment-observed.json`.
-
-Build lease: Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 with /m:2 /nr:false /p:UseSharedCompilation=false. Reuse cached SDK/packages; do not rebuild merely to recreate green evidence. Manifest: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks after commit. Fetch Development before integration; verify component pushes with git ls-remote. Named files only, never git add -A. Mixed ledgers/README edits byte-preserving; ledger UTF8appends only.
+Build lease Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 with /m:2 /nr:false /p:UseSharedCompilation=false. Reuse caches. Manifest python Scripts/validate_railway_dependency_manifest.py --require-gitlinks after commit. Fetch before integration; verify submodule pushes via git ls-remote. Named files only, never git add -A. Mixed ledgers/README byte-preserving; UTF8appends only.
 
 [Full report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) | [Manual](CQL_MANUAL.md) | [Architecture](CQL_ARCHITECTURE.md) | [Parity](CQL_PARITY_CHECKLIST.md) | [Backlog](AFTER_DEMO_BACKLOG.md) | [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).

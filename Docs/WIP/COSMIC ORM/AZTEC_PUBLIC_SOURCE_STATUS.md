@@ -40,3 +40,10 @@ proof verification, private-state querying, finalized settlement or storage
 writes from node-reported metadata. No SDK/node/account/key, database, dataset,
 fixture, source owner, hosted settings or browser card was created.
 No David action or new environment is needed for this discovery.
+
+The upstream v6.0.0tag resolved to `0219f11d8133970df3974fe5ae65e006bf8c193a`.
+Guessed NodeInfo/BlockData paths were unavailable via the documentation tool;
+a bounded GitHub contents request for the interfaces directory returned404.
+No SDK tree/file was cached or installed, and no native RPC ran. Inspect the
+correct pinned source layout before implementation; do not infer an unavailable
+chain from a source-path lookup failure. Bittensor hosted milestone is now green.
