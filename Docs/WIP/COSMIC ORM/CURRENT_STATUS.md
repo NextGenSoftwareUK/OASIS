@@ -33,7 +33,7 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
    Originalcandidate/per-keyACKs/DNAunchanged. No reapplication/redeployment.
 3. ClickHouse originalhostedcohort and independentaudit PASS: native3/2,
    Mongo5/4, repeat0new/2existing, foreign0private/3public,2normalversion1saves,
-   pending0/exactSQLiteNeo4j2each. Freezeacceptedcohort; nextpublishcard/assets.
+   pending0/exactSQLiteNeo4j2each. Accepted cohort frozen; card/static assets published and byte-verified.
    Durable `HostedClickHouseReleaseCurrent`, `HostedClickHousePublicSourceCurrent`,
    `HostedQueryAcceptance-ClickHouseOASIS`. No acceptedgate replay.
 4. Original Zcash hosted acceptance and independent audit PASS: native3/2,
@@ -51,7 +51,7 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 ## Remaining gates
 
 - [ClickHouse](CLICKHOUSE_PUBLIC_SOURCE_STATUS.md): hosted proof/audit pass;
-  card/static assets and browser remain open. Keys printableASCII withoutspaces.
+  card/static assets pass; browser remains open. Keys printable ASCII without spaces.
 - [ThreeFold](THREEFOLD_PUBLIC_SOURCE_STATUS.md): actualnativeCQL3/2pass;
   HTTP/Mongo/tariff/hosted/card remain open. No compute provisioning/storageclaim.
 - [Zcash details](ZCASH_PUBLIC_SOURCE_STATUS.md): hosted proof/card/static bytes pass; browser open.
@@ -71,7 +71,7 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 Work/build/test only `C:/Source/OASIS-cosmic`, branch `work/cosmic-cql-ton-public`;
 Core `work/cosmic-cql-google-public`; frontend `C:/Source/Web4Site/work/cosmic-cql`.
-Website main/task3141cca9491d585ed0b1c8aab7a52c7dd5bbc948 includes Zcash card.
+Website main/task d3dfe48a4d4e4ff0288180303fbbb06ab88eaebb includes ClickHouse and Zcash cards.
 No new worktree/environment. Dev push timing authorized; no production/master.
 
 Use build lease with `/m:2 /nr:false /p:UseSharedCompilation=false`.
