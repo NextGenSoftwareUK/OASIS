@@ -14,7 +14,7 @@ Updated 2 November 2026. **Scoped hosted functional HTTP gates verified; reliabi
 ## Exact next work (current)
 
 1. Preserve original intent, discovery frames, signed IDs and503 outcome. Do not rerun original probe or regenerate a source owner.
-2. Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card publication pending; browser open.
+2. Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card published/byte-verified; browser open.
 3. Publish honest card/current guide and verify public bytes; preserve scoped completion ACK/all original failure evidence. No claims that earlier error cause is fixed or that native writes/full ORM are certified.
 
 ## Evidence and resources
@@ -128,7 +128,7 @@ Initial runner guard rejected the raw-config shape assumption before any diagnos
 
 ## Original cohort functional acceptance complete
 
-Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card publication pending; browser open.
+Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card published/byte-verified; browser open.
 
 Continuation schema2 is separate from schema1 settled-read recovery: strict original failure CQL_QUERY_FAILED, owner/progress/native/diagnostic hashes, two save ACKs and empty pending journal, query/identity-only routes and no new/edited save intents.10continuation controls pass including existing settled contracts and new rejection cases; execution intent is single-use. Actual original source/actor/copies reused, original3/2+5/4 preserved, repeat0new/2existing and privacy0/3/fresh matching replicas2/2 verified. No original request operation replay or false settlement claim.
 
@@ -137,3 +137,7 @@ Completion ACK explicitly sets reliabilityRootCauseResolved=false, certification
 - TestResults/HostedCqlIntegrationCurrent/NostrOASIS-native-http.json: 16874bytes, SHA256 `34f19c88ae6a2459e6a25a4e63f80040337d6e0b43aa53526a53103b6f67ae4e`.
 - TestResults/HostedCqlIntegrationCurrent/NostrOASIS-client-http-flow.json: 42676bytes, SHA256 `2594aff0c7809bde35f55996b5fc066e67a2545872b656d7c077480ade8fcc87`.
 - TestResults/HostedCqlIntegrationCurrent/NostrOASIS-isolation-http.json: 7574bytes, SHA256 `ad3e5cd305e914b482b73f3edf1bc9c2a1dbb23ade79be0931f1ee561fcca214`.
+
+## Nostr page publication - 2 November 2026
+
+Website7e2046de25a40a84a289a3c73da2bc7e2e25b885 publishes Nostr with pinned guide9961fde00/C#6ee3ebfcd links and explicit unresolved-intermittency/copy-scope limits.99client tests pass. Public HTML173395bytes/SHA256dde3093ce9253829f3355cca80ff7bf0636d7e1a221c8c85ddabbf240c7d9b70 and both scripts match exact git blobs. Browser interaction remains unverified. Raw public proof TestResults/NostrPublicSourceCurrent/public-assets-observation.json; tests frontend-tests.log. Functional HTTP proof does not resolve earlier errors or establish browser interaction/full ORM.

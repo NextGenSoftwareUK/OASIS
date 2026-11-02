@@ -961,3 +961,6 @@ Use `--bluesky-public LocalState/COSMIC/HostedBlueSkyPublicSourceCurrent/source.
 ## Nostr signed public event demo
 
 Use `--nostr-public LocalState/COSMIC/HostedNostrPublicSourceCurrent/source.json` with the built console. The commented NostrPublicWalkthrough.cs selects three retained kind1event IDs, then two, through shared HolonManager/LINQ. Event hashes/signatures are verified; no relay publication/account/private Mongo save. See ../../Docs/Devs/NOSTR_PUBLIC_EVENT_CQL_GUIDE.md for setup, query examples and trust/retention limits. NativeCLI3/2 passes; API/Mongo/hosted gates pending.
+
+
+Nostr hosted functional update (2 November 2026): native3/2, Mongo5/4, repeat0new/2existing, privacy0/3 and SQLLite/Neo4j replicas2/2 pass with original two saves preserved. Live card includes pinned C#/HTTP setup links;99client tests/public bytes verified. Earlier intermittent native-query error cause remains unresolved; no reliability or browser-interaction certification. See ../../Docs/WIP/COSMIC ORM/NOSTR_PUBLIC_SOURCE_STATUS.md.
