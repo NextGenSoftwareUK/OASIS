@@ -51,6 +51,62 @@ var rows = await query.ToCosmicListAsync(cancellationToken);
 
 Exact address equality and membership of at most eight configured keys are supported. Unsupported predicates fail planning. Unknown keys are rejected before native I/O. Paging happens after every selected row is validated; source failures never return partial rows.
 
+## HTTP and the live CQL tab
+
+Choose `ChainLinkOASIS` in the sandbox CQL tab once discovery reports it available. Use an authenticated demo session and a fresh `Idempotency-Key` for HTTP requests; never share its bearer. Hosted rollout status is recorded in the linked evidence report.
+
+Native filtered request to `POST /api/data/query-cql`:
+
+```json
+{
+  "provider": "ChainLinkOASIS",
+  "orderBy": "None",
+  "take": 8,
+  "includeMetadata": true,
+  "filters": [
+    {
+      "metadataPath": ["ChainLinkFeedAddress"],
+      "scalar": "String",
+      "operator": "In",
+      "value": [
+        "0x5f4ec3df9cbd43714fe2740f5e3616155c5b8419",
+        "0xf4030086522a5beea4988f8ca5b36dbc97bee88c"
+      ]
+    }
+  ]
+}
+```
+
+A paired request to `POST /api/data/query-cql/federation` scopes both providers explicitly. The query itself creates no copies. Use the CQL tab's preparation action once to save two private Mongo identity/name/description/provenance copies, then reuse them:
+
+```json
+{
+  "scope": "Named",
+  "providers": ["MongoDBOASIS", "ChainLinkOASIS"],
+  "identityMode": "PreserveCopies",
+  "maximumProviderAttempts": 2,
+  "take": 8,
+  "source": {
+    "orderBy": "None",
+    "take": 8,
+    "includeMetadata": true,
+    "filters": [
+      {
+        "metadataPath": ["ChainLinkFeedAddress"],
+        "scalar": "String",
+        "operator": "In",
+        "value": [
+          "0x5f4ec3df9cbd43714fe2740f5e3616155c5b8419",
+          "0xf4030086522a5beea4988f8ca5b36dbc97bee88c"
+        ]
+      }
+    ]
+  }
+}
+```
+
+The native response contains two public observations. After preparation, pairing returns those two plus your two matching private Mongo copies. Other visitors cannot see your copies. The copies do not contain the full native feed payload. A native error fails the paired query; it does not silently substitute Mongo results.
+
 ## Data and consistency
 
 Every query checks chain1 and the pinned Ethereum genesis, resolves an RPC-reported `finalized` block, and binds all description/decimals/latestRoundData calls to that hash with EIP1898 `requireCanonical:true`. Contract descriptions and scales must match the explicit catalogue. Each query resolves its own block; no cross-query/provider snapshot or independent consensus proof is claimed.

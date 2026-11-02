@@ -69,3 +69,5 @@ Native ABI reference: [Chainlink API](https://docs.chain.link/data-feeds/api-ref
 - `TestResults/ChainLinkPublicSourceCurrent/chainlink-mongo-native-summary.json`: 231bytes; SHA256 `e8c9287829e7bf39f858b1378c6e701b2f027ce5b146b26feca3faeaa335ef5f`.
 
 - `TestResults/ChainLinkPublicSourceCurrent/prepared-public-review.json`: 4315bytes; SHA256 `4c6709d283bb8e8f52b815e045ab71bb7e6a77721073af4f49bd1b2ed97b15b9`.
+
+Frontend97/97regression tests pass with the unpublished ChainLink card; guide includes native and paired HTTP examples. No hosted acceptance claimed. `TestResults/ChainLinkPublicSourceCurrent/client-tests.log`: 9350bytes/SHA256 `681e45e40b784ea04c150712d8b360371cdf5d4ba9413b24d8c7ba9b11f5f89b`.
