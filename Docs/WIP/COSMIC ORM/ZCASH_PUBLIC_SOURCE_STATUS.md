@@ -80,3 +80,7 @@ Read-only ZcashPublicBlockMetadataSource builds using cached dependencies. Dedic
 Configuration follow-up:27/27 pass (zero skipped), including invalid endpoints, unknown/duplicate fields, negative height and uppercase hash rejection. Evidence TestResults/ZcashPublicSourceCurrent/adapter-config.trx SHA256 76dd4c89a989a9576211f809f4594345387e8925b2bfe7226f71957dd8662655. C# route --zcash-public and shared metadata key mapping added; full demo build running, native execution not yet accepted.
 
 Full shared demo cached restore/build passed (2m01s); --zcash-public compiles through HolonManager/shared LINQ walkthrough. No native execution yet.
+
+## Real manager/LINQ/CLI acceptance — 2 November 2026
+
+Original compiled --zcash-public walkthrough passed3full/2filtered native rows, matching exact preserved heights1/2/3 and hashes. Source configuration uses one persistent projection owner; no account, wallet, transaction or Mongo save. Anonymous HTTPS genesis/mainnet/hash checks execute inside the adapter. Freshness remains indexer-reported unknown; no independent consensus proof. Durable source/consumed intent/ACK/compressed output: LocalState/COSMIC/HostedZcashPublicSourceCurrent. Output SHA256 `49a75c08519986410a0079e0ec96ae3d6300247ae8e1bcc18b7c1478e1d52b9d`. HTTP/API/compiler/tariff/federation/hosted/browser gates remain unverified and counts61/57 unchanged.
