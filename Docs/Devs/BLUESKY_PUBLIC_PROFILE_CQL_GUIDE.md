@@ -62,6 +62,6 @@ The configuration requires exact fields, an anonymous HTTPS root, one to eight u
 
 ## Verification and remaining gates
 
-[Controlled tests](../../Providers/Social/TestProjects/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS.UnitTests/BlueSkyPublicProfileMetadataTests.cs) cover the read contract. [Current evidence](../WIP/COSMIC%20ORM/BLUESKY_PUBLIC_SOURCE_STATUS.md) distinguishes native qualification, CQL/manager, API/Mongo, hosted and browser gates. API admission, Mongo pairing and hosted publication remain pending. Generic browser demo copies currently retain identity/name/description/provenance rather than all native metadata.
+[Controlled tests](../../Providers/Social/TestProjects/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS.UnitTests/BlueSkyPublicProfileMetadataTests.cs) cover the read contract. [Current evidence](../WIP/COSMIC%20ORM/BLUESKY_PUBLIC_SOURCE_STATUS.md) distinguishes native qualification, CQL/manager, API/Mongo, hosted and browser gates. Query-only API admission (CQL_BLUESKY_PUBLIC_SOURCE_JSON), local HTTP native3/2/Mongo5/4/visitor privacy and all4prepared presets now pass. Hosted publication and browser interaction remain pending; local proof does not establish them. Generic browser demo copies currently retain identity/name/description/provenance rather than all native metadata.
 
 Primary references: [API hosts and auth](https://bsky.network/docs/api-directory/), [HTTP reference](https://endpoints.bsky.app/), [public endpoint limits/caching](https://bsky.network/docs/rate-limits/).

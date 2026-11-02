@@ -11,7 +11,7 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 - Website80633dc publishes ChainLink/EOSIO/Telos/Filecoin cards and pinned setup/C#/HTTP links;97client tests pass. Public HTML/scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser Mongo preparation copies identity/name/description/provenance, not all native metadata. Full payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: BlueSky API/local integration next
+## Current phase: BlueSky API/local proof and hosted rollout
 
 - ChainLink source43controls/actual CLI3/2 and Core1/API2/localHTTP1/publisher10/prepared-planner1/client1 pass. Exact marked local DB dropped, HTTP/Mongo stopped.
 - Development parent09c66998cb2c204f290d7a85198006e6abd3202f/Core990c1c75afcafdbc0678b6e8131a10b67650f7e3 published/ref-verified; manifest validates. Code215b4b51/settings3a00f63f SUCCESS; exactly3settings applied once/full candidate/per-key digests match/DNA unchanged.
@@ -20,7 +20,7 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 ## Exact next actions
 
 1. Preserve completed ChainLink/EOSIO/Telos/Filecoin/Fantom sources/owners/ACKs/cohorts. ChainLink card/pinned links/97tests/public bytes verified; no browser proof inferred.
-2. BlueSky read-only source/37controls/actual CLI3/2 pass, with explicit captured DIDs and optional-field handling. Next: query-only API config/permission/tariff, Core/API tests, local Mongo/privacy/prepared gates, then hosted rollout/card. See BLUESKY_PUBLIC_SOURCE_STATUS.md; preserve owner and completed native/console cohorts, no replay.
+2. BlueSky source37controls/actual CLI3/2 and Core1/API2/localHTTP1/publisher9/prepared-planner1/client1 pass. Native3/2, Mongo5/4, foreign0/public3; exact owned DB cleaned/Mongo stopped. Core task499e4e0 pushed/ref-verified, manifest paired. Next: publish verified code, observe exact code job, reviewed3settings once, single settings job, hosted acceptance/card. See BLUESKY_PUBLIC_SOURCE_STATUS.md; no hosted claim/replay of completed cohorts.
 3. Controlled tests/native manager+C#3/2, API independent read admission/tariff, local Mongo/privacy/prepared gates, exact hosted rollout/original acceptance/card. Keep green scopes/deep parity frozen absent a reproduced bug.
 
 ## Durable state and rules
