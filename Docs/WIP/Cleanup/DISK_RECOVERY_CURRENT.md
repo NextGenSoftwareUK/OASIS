@@ -69,3 +69,29 @@ This proves duplicate pack content, not that the scratch repository or its other
 refs/bundles can be discarded. Both retained; original checkout read-only.
 Windows free at this check: 60,860,346,368 bytes. Personal ML retirement question
 sent against the existing David action; no deletion authorized or performed.
+
+## Wider drive inventory — measured, not deletion candidates
+
+A read-only metadata scan visited 1,511,239 files in 57.3 seconds, skipped
+280 reparse points and encountered 583 inaccessible entries. Enumeration finished;
+these exclusions, hard links and logical-versus-allocated size mean this is not
+an exact accounting of every occupied disk sector. No file contents inspected.
+Evidence: `TestResults/DiskInventoryCurrent/full-drive-metadata.json`.
+
+| Windows path | Logical GB | Status |
+|---|---:|---|
+| C:/Program Files (x86)/Diablo IV |172.20| User-installed game; untouched |
+| C:/Program Files (x86)/Steam |159.74| User-installed games/client; untouched |
+| C:/Program Files (x86)/World of Warcraft |135.29| User-installed game; untouched |
+| C:/Program Files (x86)/StarCraft II |27.05| User-installed game; untouched |
+| C:/Program Files/Unity |28.64| Installed editors; retained |
+| C:/ProgramData/Microsoft/VisualStudio/Packages |7.00| Managed installer cache; retained, no manual purge |
+| C:/ProgramData/NVIDIA Corporation/NVIDIA App/UpdateFramework |4.88| Managed application data; retained |
+
+Top-level logical sizes: Program Files (x86)516.17GB; Users179.74GB;
+Program Files60.48GB; Source53.01GB; Windows42.70GB; ProgramData17.51GB.
+Do not add nested rows to parent totals. These measurements establish occupancy,
+not historical growth or which session introduced it. Games/installations are
+not agent-owned temporary artifacts; no uninstall or deletion performed.
+Windows free at scan completion:60,153,503,744bytes (60.2GB).
+No additional bytes reclaimed by this read-only scan.120GBtarget remains open.
