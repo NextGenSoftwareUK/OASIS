@@ -1,6 +1,6 @@
 # Bittensor public chain-header demo scope
 
-Updated 2 November 2026. Native readiness passed; CQL adapter, local C#/HTTP,
+Updated 2 November 2026. Native readiness and C# HolonManager/LINQ CQL passed; local HTTP,
 hosted admission and sandbox entry remain unimplemented/unverified. Totals
 remain60integrated query types/56hosted functional proofs/5browser verified.
 
@@ -51,16 +51,46 @@ Do not delete intent or run this as a fresh qualification to recreate green.
 Per-response SHA256 values are retained in the qualification ACK. No raw evidence
 is committed to Docs. Environment/retention recorded in the existing ledger.
 
+## Read-only CQL adapter milestone
+
+`BittensorPublicHeaderMetadataSource` implements `BittensorBlockHash` metadata
+equality/IN with bounded paging over1–8configured keys. It checks configured
+Finney genesis, SCALE/Blake2b header hashes and RPC-reported canonical finalized
+height membership. Unknown keys fail before network, malformed/partial native
+reads fail the whole result, and Take(0) cannot hide a source failure.
+
+Guarded factory transport,256KiB/response,15s linked per-request deadline,
+cancellation and a shared one-request-per-second gate bound public RPC use.
+Stable IDs bind projection owner/Bittensor provider/genesis/native block hash.
+Public Name/Description and whitelisted header metadata include an explicit
+node-reported policy and `BittensorConsensusVerified=false`. Holon Save/Delete
+are rejected at the boundary without native requests or input mutation.
+
+23controlled adapter cases pass, including four independent SCALE width
+vectors, tampering/network/canonical-history/envelope/size errors, paging,
+unknown keys, cancellation before/during reads, endpoint validation and writes.
+1first native CQL test passes in24seconds: actual developer walkthrough
+`Examples/CosmicCqlDemo/BittensorPublicWalkthrough.cs`, linked into the provider
+test host, returns3then2via shared HolonManager/LINQ. This is not merely a
+qualifier or mocked transport. Source keys are exactly the original readiness
+three; one persistent projection namespace is retained. No readiness replay.
+
+Retained `LocalState/COSMIC/HostedBittensorPublicSourceCurrent/source.json`,
+exclusive `native-cql.intent.json` and `native-cql.ack.json` bind original source
+and first CQL test. ACK SHA256:
+`2b95078006005145625dc20c425aa04f9865d38f82e8c0b87f16e89d33d5bc11`.
+Raw TRX/logs: `TestResults/BittensorPublicSourceCurrent/adapter.trx` (23pass),
+`native-cql.trx` (1pass). Per-file hashes are retained in ACK; no raw evidence
+committed to docs. Reusable cache-only runner:
+`pwsh -NoProfile -File Scripts/Sandbox/Test-BittensorPublicMetadata.ps1`.
+Do not repeat its -Native mode: acceptance intent is consumed.
+
 ## Exact next step
 
-Implement read-only `BittensorBlockHash` metadata equality/IN and bounded paging
-for1–8configured header keys under ProviderType.BittensorOASIS. Use native
-connection guards, cancellation, response budgets and operator rate control.
-Verify genesis, content hashes and canonical reported-finalized membership;
-refuse unknown keys before network and return no partial rows on failure.
-Stable IDs must bind source owner/provider/genesis/native key. Whitelist only
-header metadata with honest node-reported finality labels; Save/Delete refused.
-Reuse the Substrate protocol design without coercing Bittensor rows into
-Polkadot identities or changing accepted Polkadot evidence. Add adapter controls
-before real CQL3/2read and Mongo-paired local/hosted cohorts; keep one preset
-per provider and clear local-demo links. No David action is needed.
+Add Bittensor to the actual demo CLI and HTTP compiler/source activation,
+read-only tariff/admission and hosted configuration tooling. Verify one
+Mongo-paired local HTTP cohort, then deploy the verified batch and first hosted
+cohort before publishing its sandbox card. Preserve the existing source owner,
+keys and all consumed intents. Current integrated HTTP/live totals unchanged.
+No AI inference/subnet metrics/native storage or independent consensus claims.
+No David action is needed.
