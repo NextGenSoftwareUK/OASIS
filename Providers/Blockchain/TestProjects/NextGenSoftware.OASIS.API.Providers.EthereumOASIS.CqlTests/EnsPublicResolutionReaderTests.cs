@@ -99,7 +99,7 @@ public class EnsPublicResolutionReaderTests
         }
     }
 
-    private sealed class RpcHandler : HttpMessageHandler
+    internal sealed class RpcHandler : HttpMessageHandler
     {
         public string Fault = "";
         public int Calls;
