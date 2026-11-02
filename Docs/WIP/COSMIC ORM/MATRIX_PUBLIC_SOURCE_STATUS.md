@@ -1,7 +1,7 @@
 # Matrix public room-alias qualification
 
-Updated 2 November 2026. Native qualification only; CQL, hosted admission,
-Mongo pairing and browser acceptance remain unimplemented/unverified.
+Updated 2 November 2026. Local bounded CQL source and actual manager/LINQ console verified; hosted
+admission, HTTP/Mongo pairing and browser acceptance remain unimplemented/unverified.
 
 ## Verified
 
@@ -25,15 +25,24 @@ Raw public evidence stays in `C:/Source/OASIS-cosmic/TestResults/MatrixPublicSou
 The qualifier uses exclusive intent/outcome files. Both attempts are consumed;
 do not rerun them or remove their guards to obtain a new green result.
 
+## Local CQL milestone
+
+- `MatrixPublicRoomMetadataSource` supports configured `MatrixRoomAlias` equality/membership and complete-selection paging.30scoped .NET tests pass (0failed/0skipped), including missing/failing last row before empty-page publication, oversized/duplicate responses, cancellation, unknown keys and unsupported predicates/native writes before I/O.
+- Existing Matrix UnitTests project reused; no new environment. Provider and full console builds pass (0errors; existing nullable/documentation warnings remain).
+- Actual `--matrix-public` walkthrough uses HolonManager/deferred LINQ:3full/2filtered records pass. Source owner/configuration/intent/ACK retained under `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedMatrixPublicSourceCurrent/`;173-byte `source.json` SHA256 `41fe7c2f61ac5a7286bb5444f1d437403e3379787b66f4b15856ea3fc6dba2e8`. Do not replace owner or replay qualification.
+- Test evidence: `TestResults/MatrixPublicSourceCurrent/Offline/matrix-public.trx`,45755bytes/SHA256 `9cf718f90f57316df03714d6ebb3620c10dd0f17d4614c84f6cc2a16af4ff3e7`. Actual console log `console-qualification.log`,1191bytes/SHA256 `b972c58bab7e3e6e219887e9c0267325b3f91701f0a8a719f7d9c841766d6f84`. Raw output remains outside docs.
+- [C# guide, configuration and trust limits](../../Devs/MATRIX_PUBLIC_ROOM_CQL_GUIDE.md), [spaced/commented walkthrough](../../../Examples/CosmicCqlDemo/MatrixPublicWalkthrough.cs). No hosted provider count added.
+
 ## Next implementation and limits
 
-Implement a bounded configured-alias read-only source with `MatrixRoomAlias`
+The local source implements bounded configured-alias `MatrixRoomAlias`
 equality/membership, complete selection before paging and explicit unsupported
-capability rejection. Preserve exact server-reported opaque room IDs. Room-alias
+capability rejection. It preserves exact server-reported opaque room IDs. Room-alias
 resolution is mutable and server-reported: it does not prove message history,
 room state, membership, E2EE content, freshness, common snapshot or independent
 federation consensus. No server address returned by the API should be fetched.
-Then add C#/HTTP examples, native3/2 and Mongo5/4 presets, ownership/isolation
+Next wire explicit HTTP/compiler/host activation and tariff admission, native3/2
+and Mongo5/4 presets, ownership/isolation
 and replication checks before hosted admission/card publication.
 
 Legacy `MatrixOASIS` activation requires login and does not supply this anonymous

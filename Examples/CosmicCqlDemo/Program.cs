@@ -5,6 +5,14 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// Matrix resolves only the configured public aliases; no login or room join.
+if (args.Length == 2 && args[0] == "--matrix-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await MatrixPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Nostr uses one retained catalogue of immutable, signed public event IDs.
 // No relay publication, login, discovery scan or alternate endpoint is used.
 if (args.Length == 2 && args[0] == "--nostr-public")
