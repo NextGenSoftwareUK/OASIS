@@ -114,3 +114,28 @@ Next implement the query-only ENS catalogue adapter and its capability/projectio
 tests, then the spaced manager/LINQ3/2 walkthrough. Hosted enrolment, Mongo
 private-copy/privacy/replica acceptance and website card remain unimplemented.
 Native qualification alone does not increase the integrated/hosted counts.
+
+## CQL adapter milestone verified
+
+`EnsPublicNameMetadataSource` now implements the generic CQL storage and
+read-only activation contracts over the production resolver reader.17controlled
+tests pass/0failed/0skipped. Explicit `EnsName` equality/IN,1–8configured names
+and captured offset/limit are supported. Unknown catalogue keys, inactive or
+cancelled reads, over-budget pages, malformed/failed native reads, unsupported
+content filters and native writes fail with real errors. Selected records are
+fully validated before paging, including Take(0); no partial rows on failure.
+
+Projected public holons retain configured owner, endpoint-specific stable IDs,
+native name key, resolved ETH address, individual resolver, Universal Resolver,
+shared query block hash/number, response hash and explicit node-reported policy.
+No account ownership, consensus verification or unrestricted ENS support claimed.
+Exact host JSON fields: schema1/rpcUrl/names/sourceOwner; duplicates, unknown
+fields, unsupported names, empty owner and credential-bearing URLs rejected.
+The factory uses the existing guarded HTTP transport with cookies disabled.
+
+Evidence `TestResults/EnsPublicSourceCurrent/adapter-controls.trx`, SHA256
+`9e57056303eadd77aef966373b93f6708ae3172f0460b136fe8a5763b0de2626`; adjacent adapter-build-test.log.
+No additional native calls or source owner were allocated. Original protocol
+qualification remains frozen. Next: spaced C# HolonManager/deferred-LINQ
+walkthrough3/2, then HTTP/Mongo/privacy/replica and live integration gates.
+Integrated57/hosted53 counts remain unchanged until that integration is proved.
