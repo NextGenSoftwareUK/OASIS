@@ -3448,3 +3448,15 @@ no new measurement/startup/download/build or removal. Preserve whole cache
 until its owner separates disposable compiler intermediates from required WASM.
 Corrected stale Akash report lead: original native probe failed, Eclipse image
 failed, ENS last successful live release; no runtime acceptance claims changed.
+2026-11-02 Eclipse diagnostics recheck planned: reuse existing Railway CLI5.62.1
+and its protected sign-in for read-only exact failed job inspection. No builds,
+redeploy/settings/native probes/services/downloads. Protect raw API response in
+LocalState/COSMIC/HostedEclipseReleaseCurrent; compact counts/hashes in
+TestResults/EclipsePublicSourceCurrent. Preserve original observations.
+
+2026-11-02 diagnostic recheck completed: failed/stopped/diagnosis null/0logs/2events;
+raw protected receipt and SHA256 in ECLIPSE_PUBLIC_SOURCE_STATUS.md. No changes
+to hosted settings, job, source owners, datasets or services. Reused CLI/Python;
+new compact report/protected receipt only, size small/unmeasured. Disk recovery
+now awaits the already-recorded personal-environment decision/admin compaction;
+no safe additional owned removal established. Builds/downloads remain suspended.
