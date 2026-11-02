@@ -1,6 +1,7 @@
 # COSMIC ORM / CQL
 
 1. **[Current status — start here after compaction](CURRENT_STATUS.md)**
+- [Farcaster native availability gap (not admitted)](FARCASTER_PUBLIC_SOURCE_STATUS.md)
 - [Matrix local CQL source and next hosted gates](MATRIX_PUBLIC_SOURCE_STATUS.md)
 - [Hosted acceptance and latest provider additions](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md)
 - [Full provider/CQL/live-demo status — all229provider projects](PROVIDER_CQL_AND_SANDBOX_STATUS.md)
