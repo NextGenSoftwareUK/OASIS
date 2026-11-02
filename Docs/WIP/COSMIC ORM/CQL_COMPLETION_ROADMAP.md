@@ -2,7 +2,7 @@
 
 Updated 2 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state and the exact next action.
 
-1. Preserve54scoped hosted HTTP proofs and original cohorts. Latest ENS native3/2/Mongo5/4/reuse/privacy/replicas/card/public bytes4530304pass;108client controls pass, browser remains separate. Eclipse local C#3/2/source controls pass and its HTTP/live gates are the current red work. Preserve prior Blockscout/Celestia/Chainflip/Wormhole/Stacks and earlier cohorts; Nostr/Blockscout reliability causes remain explicitly unresolved. CURRENT_STATUS owns exact next work.
+1. Preserve54scoped hosted HTTP proofs and original cohorts. Latest ENS native3/2/Mongo5/4/reuse/privacy/replicas/card/public bytes4530304pass;108client controls pass, browser remains separate. Akash actual C#manager/LINQ3/2 now passes; HTTP/Mongo and live gates are current red work. Eclipse local HTTP/Mongo passes but hosted image deployment failed with no actionable diagnostic; no settings applied. Preserve prior Blockscout/Celestia/Chainflip/Wormhole/Stacks and earlier cohorts; Nostr/Blockscout reliability causes remain explicitly unresolved. CURRENT_STATUS owns exact next work.
 2. Keep one filtered native query and one Mongo federated preset per admitted provider, with commented C# examples and sandbox links. Preserve completed privacy, reuse and replica proofs.
 3. Expand remaining red provider scopes with explicit consistency semantics, bounded capability-aware planning, native tests, actual HTTP proof and honest public labels. Rejected RPCs are not implemented capabilities.
 4. Complete browser gates when browser control is available; currently 5 proved/49 open. HTTP and byte matching do not prove interaction.

@@ -1,9 +1,10 @@
-# Akash public source — next interface review
+# Akash public source — C# demo verified; HTTP/Mongo next
 
 2 November 2026. Native bounded-prefix continuation passed: three sampled
 provider identities and three point records. Query-only adapter controlled cases
-now pass; actual manager/CLI/HTTP/hosted integration remains unverified;
-no source owner/admission/card/count increase. Original whole-body discovery
+now pass, and actual compiled C#manager/deferred-LINQ3/2passed using one stable
+source owner/config bound to the native ACK. HTTP/Mongo/hosted remain open;
+no hosted admission/card/count increase. Integrated query types now60. Original whole-body discovery
 failure remains immutable. Eclipse image deployment is failed; ENS remains the
 last successful live release. Earlier sections retain historical review/test
 claims; current evidence and next action are in the final section.
@@ -200,3 +201,32 @@ HTTP/Mongo/privacy/hosted/replica/browser gates. No source owner allocated in th
 batch, CQL host admission/card/count increase or Eclipse retry. Legacy untouched.
 59existing build-output directories measured306,306,252logical bytes, reusable
 for remaining Akash gates then disposable after verified teardown. No downloads.
+
+## Actual published C# console3/2 passed
+
+One stable source owner/config was bound to the native continuation ACK; no
+rediscovery or replacement native identity. `AkashPublicWalkthrough` is routed
+by actual Program.cs `--akash-public`, uses the shared NativeKeySetWalkthrough,
+HolonManager and deferred LINQ, and returned3full/2filtered public providers.
+Actual demo build0errors; pre-existing warnings remain. Cached restore only,
+no new downloads/environments. Console gate passed once without writes, compute
+provisioning, wallets, Mongo copies or provider-hostUri requests.
+
+Durable `LocalState/COSMIC/HostedAkashPublicSourceCurrent/` retains source.json,
+native-binding.json and original console.intent/acknowledged.json. Freeze these;
+never recreate source owner or replay acceptance for green. SourceSHA256
+02f8dbf26d700cba6bd4feefa851eb876cca3ffad81aa72d87e3ef1187418cab;
+native continuation ACKSHA256
+0e42330d3796b2a224ee09ae322a9aba856140f8c631d2011a0f8391424e6774.
+Console intentSHA256e15f11635733ac4ab92b2360434c5f42239899cc5696a7388ff17e9b4b4bafa4;
+actual assemblySHA25642a945ab8087c95c0b4a44fd33e66a158520398d5c86eaf647f45610eb98317d.
+Raw console output TestResults/AkashPublicSourceCurrent/console-actual.stdout.log,
+SHA2563e37d84c3ac5f1627cb60596ed1842f9ed8e15129503730ecdc01dd56bd1d4b0.
+Guide: [developer walkthrough](../../Devs/AKASH_PUBLIC_PROVIDER_CQL_GUIDE.md).
+
+Counts now60locally integrated query types (3canonical/53bounded profiles/4local),
+54scoped hosted HTTP proofs,5browser/49open. Akash has no host tariff/admission,
+local HTTP/Mongo acceptance or website card yet. Next register the explicit
+query-only HTTP profile, guard/read-only billing capabilities and actual local
+Mongo paired/privacy proof; then hosted/private-save/replica/card gates.
+Eclipse failure remains unaltered; no speculative deployment or settings apply.

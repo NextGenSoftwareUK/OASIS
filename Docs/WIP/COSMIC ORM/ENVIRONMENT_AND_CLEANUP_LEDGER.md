@@ -3530,3 +3530,27 @@ outputs at provider milestone/verified teardown; never remove source or secrets.
 Latest free70,725,627,904bytes; concurrent changes not attributed. No new source
 owner/config/database/container/runtime. Next actual C#demo binding uses retained
 native continuation ACK, not rediscovery. All durable original receipts preserved.
+2026-11-02 Akash C#demo planned: reuse verified native continuation ACK, exact
+three owner addresses/anonymous endpoint, allocate one stable projection-owner
+GUID/config in LocalState/COSMIC/HostedAkashPublicSourceCurrent with binding to
+native ACK hash. No chain wallet/account/provider environment allocated. Reuse
+existing demo project/dependencies/cache; leased cached-only restore/build with
+/m:2 /nr:false /p:UseSharedCompilation=false. Existing bin/obj active/reusable
+until remaining Akash gates; retire at milestone. Raw outputs TestResults/
+AkashPublicSourceCurrent. Actual console gate gets exclusive intent before
+HTTP;3activation+3full+2subset point reads, maximum90seconds, no rediscovery,
+writes/native probe replay/provider-hostUri requests. Preserve partial/failure
+state without replay. No new installation/download; free before70,714,880,000bytes.
+
+2026-11-02 Akash actual C#demo complete: cached-only restore93projects (32already
+up to date), build0errors/existing warnings; no download/install/new environment.
+Original console3/2 passed using source/native-ACK binding, immutable exclusive
+intent/ACK; preserve LocalState/COSMIC/HostedAkashPublicSourceCurrent and native
+AkashPublicQualificationCurrent. Exact source/assembly/output/intent hashes in
+AKASH_PUBLIC_SOURCE_STATUS.md. No rediscovery/writes/new chain accounts/DBs.
+Current173reviewed build-output directories1,218,159,811logical bytes (existing
+planned bin/obj paths; previous rejected ChainLink test output excluded), reused
+for next Akash HTTP/hosted gates, remove after verified teardown. Not a permanent
+installation; raw logs TestResults/AkashPublicSourceCurrent regenerable, native
+cohort must not be replayed. Latest free69,273,403,392bytes; changes outside this
+batch not attributed. Personal ML remains retained, rejected removals not retried.

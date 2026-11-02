@@ -990,3 +990,13 @@ ENS public-name demo: `--ens-public <retained-source.json>` resolves three confi
 
 
 Eclipse account demo: `--eclipse-public <retained-source.json>` reads three configured mainnet accounts, then filters to two through HolonManager/deferred LINQ. [Guide](../../Docs/Devs/ECLIPSE_PUBLIC_ACCOUNT_CQL_GUIDE.md), [actual acceptance](../../Docs/WIP/COSMIC%20ORM/ECLIPSE_PUBLIC_SOURCE_STATUS.md). Genesis pin, exact ETH units with9decimals, metadata-only reads and process-wide rate admission; HTTP/live gates separate.
+
+### Akash public provider metadata (C#)
+
+The [Akash walkthrough](AkashPublicWalkthrough.cs) reads the retained three-provider
+sample and filters it to two through HolonManager/deferred LINQ. See the
+[guide](../../Docs/Devs/AKASH_PUBLIC_PROVIDER_CQL_GUIDE.md) for configuration,
+query shape, limits and the difference between indexed metadata and provisioning.
+Use `--akash-public LocalState/COSMIC/HostedAkashPublicSourceCurrent/source.json`
+after building this project. Native acceptance gates are immutable; do not replay
+setup/qualification to obtain green evidence. HTTP/Mongo/hosted gates are separate.

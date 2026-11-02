@@ -1382,7 +1382,9 @@ Nostr API/local milestone2November: Core1/API2/localHTTP1/publisher9/prepared1/c
 Website7e2046de25a40a84a289a3c73da2bc7e2e25b885 publishes Nostr with pinned guide9961fde00/C#6ee3ebfcd links and explicit unresolved-intermittency/copy-scope limits.99client tests pass. Public HTML173395bytes/SHA256dde3093ce9253829f3355cca80ff7bf0636d7e1a221c8c85ddabbf240c7d9b70 and both scripts match exact git blobs. Browser interaction remains unverified. Raw public proof TestResults/NostrPublicSourceCurrent/public-assets-observation.json; tests frontend-tests.log. Functional HTTP proof does not resolve earlier errors or establish browser interaction/full ORM.
 
 
-ENS bounded direct-name profile: [developer guide](../../Devs/ENS_PUBLIC_NAME_CQL_GUIDE.md), [actual acceptance](ENS_PUBLIC_SOURCE_STATUS.md). Supports configured EnsName equality/membership and paging; actual C#3/2 verified. Hosted/Mongo gates remain open.
+ENS bounded direct-name profile: [developer guide](../../Devs/ENS_PUBLIC_NAME_CQL_GUIDE.md), [actual acceptance](ENS_PUBLIC_SOURCE_STATUS.md). Supports configured EnsName equality/membership and paging; actual C#3/2 and hosted/Mongo/replica functional gates verified. Browser remains separate.
 
 
-Eclipse bounded account profile: [guide](../../Devs/ECLIPSE_PUBLIC_ACCOUNT_CQL_GUIDE.md), [acceptance](ECLIPSE_PUBLIC_SOURCE_STATUS.md). Configured EclipseAccountAddress equality/IN+paging; actual C#3/2 verified. Balances are exact ETH units with9decimals; genesis retained, account data excluded. HTTP/Mongo/hosted gates pending.
+Eclipse bounded account profile: [guide](../../Devs/ECLIPSE_PUBLIC_ACCOUNT_CQL_GUIDE.md), [acceptance](ECLIPSE_PUBLIC_SOURCE_STATUS.md). Configured EclipseAccountAddress equality/IN+paging; actual C#3/2 verified. Balances are exact ETH units with9decimals; genesis retained, account data excluded. Local HTTP/Mongo passes; hosted image deployment failed/settings unapplied.
+
+Akash configured provider profile: [guide](../../Devs/AKASH_PUBLIC_PROVIDER_CQL_GUIDE.md), [acceptance](AKASH_PUBLIC_SOURCE_STATUS.md). AkashProviderAddress equality/IN+paging; actual compiled C#manager/deferred-LINQ3/2 passes. Indexed public provider metadata only; no provisioning, consensus or uptime guarantee. HTTP/Mongo/hosted/browser gates remain open.
