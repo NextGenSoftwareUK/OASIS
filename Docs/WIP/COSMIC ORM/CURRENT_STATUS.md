@@ -62,6 +62,7 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 - [ThreeFold](THREEFOLD_PUBLIC_SOURCE_STATUS.md): actualnativeCQL3/2pass;
   HTTP/Mongo/tariff/preset controls pass; activation/hosted audit/card open.
 - [Zcash details](ZCASH_PUBLIC_SOURCE_STATUS.md): hosted proof/card/static bytes pass; browser open.
+- [Tableland](TABLELAND_PUBLIC_SOURCE_STATUS.md): original version GET 302, no JSON/query.
 - [Ceramic qualification](CERAMIC_PUBLIC_SOURCE_STATUS.md): pinned official
   client reviewed; original Clay healthGET failed before HTTP (URLError, cause
   unproven). No retry; current operator access/public StreamIDs unresolved.
