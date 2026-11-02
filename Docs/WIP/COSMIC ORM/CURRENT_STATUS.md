@@ -4,14 +4,14 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 
 ## Verified scope
 
-- 50 integrated query types: 3 canonical adapters, 43 bounded public/source profiles, 4 local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
+- 51 integrated query types: 3 canonical adapters, 44 bounded public/source profiles, 4 local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
 - 46 providers have scoped hosted HTTP proof at their recorded releases. Browser proof: 5; 41 browser gates remain open. These are not full ORM/native-write certifications.
 - MongoDB/SQLite/Neo4j parity: 50/82 checklist rows each; original investor-demo subset green. Work red rows only unless a reproducible bug appears.
 - Latest completed provider: BlueSky cached public profile observations. Native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen.
 - Websiteac0ca0c publishes BlueSky/ChainLink/EOSIO/Telos/Filecoin cards and pinned setup/C#/HTTP links;98client tests pass. Public HTML/scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser Mongo preparation copies identity/name/description/provenance, not all native metadata. Full payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: Nostr bounded signed-event qualification
+## Current phase: Nostr API and local Mongo admission
 
 - BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6dfdbc6c SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen. Cached public AppView only; generic copies retain identity/name/description/provenance, not all native metadata. Card published/byte-verified; browser unverified.
 - Existing local gates:37source controls, actual CLI3/2, Core1/API2/localHTTP1/publisher9/prepared1/client1. No replays or new cohorts.
@@ -19,7 +19,7 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 ## Exact next actions
 
 1. Preserve BlueSky original cohort/ACKs; no reapply/redeploy/resave. Websiteac0ca0c3cffea71aa9b99ca437d2ee46fa20d9c1 publishes BlueSky with pinned guidea10c6661c and C#f36dd0d56 links. All98client tests pass. Public HTML171143bytes/SHA256dfa7084ba40e8fe691eb2fbf7f9c1c4d9cda7dcdcbade32026f6f9d0fd7fceee and both scripts match exact git blobs. Browser interaction remains open.
-2. Nostr discovery3 events and all3canonical hashes/BIP340signatures verify;9offline controls pass. Exact3-ID follow-up failed native HTTP503 at WebSocket upgrade; subset2 not run, no owner/CQL admission. Preserve original failure and captured IDs. Shipping event verifier36tests/all19official vectors pass; next implement controlled bounded CQL event source using that verifier. Native/API/hosted gates stay red. See NOSTR_PUBLIC_SOURCE_STATUS.md.
+2. Nostr separate read-only CQL source now passes32controls plus36verifier tests. Explicit actual manager/LINQ qualification passed3/2 on same original captured IDs/relay; earlier503 retained. Stable source/owner and native ACK exist; never rerun qualification. Next add independent Core query permission/free tariff, API lazy source/compiler admission, local HTTP Mongo/privacy and four prepared presets. Then exact hosted rollout/original cohort/card. See NOSTR_PUBLIC_SOURCE_STATUS.md.
 3. Keep deferred Azure Cosmos/Oracle/PostgreSQL hosting and closed browser controls deferred; maintain exact evidence and update current status at each milestone.
 
 ## Durable state and rules
