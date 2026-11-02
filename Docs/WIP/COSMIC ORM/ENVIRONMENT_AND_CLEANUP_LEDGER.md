@@ -3655,3 +3655,13 @@ TestResults/AkashPublicSourceCurrent. No local build/download/new environment,
 new hosting allocation or production/master promotion. Existing31WSLcontainers/
 personal ML/rejected archives untouched. Follow-up status committed to task branch
 only to avoid another Railway build solely for queued-job documentation.
+
+2026-11-02 while exact first Akash code job observedBUILDING: reused Python3.12
+unittest and existing source scripts for offline acceptance checker;2methods/
+12negative cases pass. No downloads, installations, native/source reads, wallets,
+accounts/cohort creation or saves. Small Python __pycache__/raw controlled log
+under Scripts/Sandbox and TestResults/AkashPublicSourceCurrent regenerable;
+source checker/tests/runner choice are maintained code, not cleanup targets.
+Exact log hash recorded in AKASH_PUBLIC_SOURCE_STATUS.md. All completed native
+fixtures/receipt owners unchanged; all .NET outputs remain cleaned. Same live
+job observed, never restarted on timeout. Settings/activation remain unapplied.
