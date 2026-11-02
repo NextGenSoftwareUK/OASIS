@@ -120,3 +120,11 @@ Development publication: parent9e98a4278c91a9d01caaabdfbed447d38120a6f2/Core5b47
 Independent hosted audit implemented with2controlled tests/16negative scenarios passing (no network). Verifies native ownership/source/hash/height/genesis/UInt32timestamp/freshness/proof claims, selected keysets, private owner/version,5/4federation, exactSQLite/Neo4j replicas, foreign0/3visibility,2acknowledged normal saves/repeat0new/pending0. Original code deployment624285a4 remains authoritatively QUEUED; do not infer failure or start another job. No hosted Zcash cohort/settings yet.
 
 Reporting reconciliation: Zcash counts as the62nd locally integrated query type (55bounded profiles+3canonical+4local cloud/database implementations). Hosted functional/tariff counts remain57; browser5/52open. Earlier61/57 was the pre-Zcash integrated total, not a claim that local acceptance was absent. Source code remains in queued deployment; no settings activation.
+
+## Shared C# federation demo regression
+
+Reproduced actual failure: NativeKeySetWalkthrough.RunFederatedAsync rejected Zcash before planning because its historical six-provider list was stale. Removed provider-name admission in favor of distinct providers and the existing required native-membership capability/planner. Same controlled test now passes4physical rows (3Zcash+1controlled Mongo), exactly1Mongo query. No live accepted cohort replay. Original red/green logs/TRX retained under TestResults/ZcashPublicSourceCurrent. This is a reproduced demo fix, not green-provider hardening.
+
+TestResults\ZcashPublicSourceCurrent\federated-demo-red.trx SHA256 1154ac40007e9b1826ddaa6a6e429b635b89b0b96e35bfca08a1e9f5b9d72756.
+
+TestResults\ZcashPublicSourceCurrent\federated-demo-green.trx SHA256 dc2c9ded850a50a32e38b01b07d6b5336de087eeea54228873c4e8baaa0853bd.
