@@ -1400,3 +1400,7 @@ Read-only ZcashBlockHash equality/IN and paging are verified through the C# Holo
 ClickHouseCountryName equality/IN+paging over the configured publiccountries source now passes actualC#/CLI/localHTTP and hostednative3/2+Mongo5/4/privacy/replica gates. See [guide](../../Devs/CLICKHOUSE_PUBLIC_COUNTRY_CQL_GUIDE.md). Sandboxcardpublication/browserinteraction remain separate. Countrykeys currently follow printableASCII33-126/no-space nativekeystrategy; arbitrarySQL/ownedClickHousewrites are not enrolled.
 
 ThreeFoldNodeId equality/IN+paging uses bounded mainnetGridProxy pointreads over configured nonzeroUInt32IDs. Actual --threefold-public C#manager/LINQ3/2passed; [sourceevidence](THREEFOLD_PUBLIC_SOURCE_STATUS.md). HTTP/Mongo/hosted enrollment remains open. No contract, VM, account, provisioning or nativewrite occurs. Geographicmetadata is operator-reported, not independently verified chainstate or nodeavailability. The shared NativeKeySetWalkthrough gets its metadata key from the adapter capability, rather than a duplicate provider registry.
+
+### ThreeFold developer setup
+
+See [ThreeFold public node guide](../../Devs/THREEFOLD_PUBLIC_NODE_CQL_GUIDE.md) for configuration, spaced C# examples and exact read-only limits. The original local three/two-record manager/LINQ run passes; hosted admission and Mongo pairing remain separate acceptance gates.
