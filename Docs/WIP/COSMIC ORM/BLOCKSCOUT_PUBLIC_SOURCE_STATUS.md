@@ -139,3 +139,10 @@ fast-forward pushes. Manifest/gitlinks gate passes. Exact code job
 effaffdf-9626-4301-8a9f-efeda25ed97d last observed BUILDING; follow same job,
 no restart. Candidate remains unapplied. Durable release intent/observation below
 LocalState/COSMIC/HostedBlockscoutReleaseCurrent; hosted stays52.
+
+Codeeffaffdf SUCCESS at exact669917da1. Applied three reviewed values once
+with skip-deploys, full candidate/per-key hashes observed exactly. Activation
+948c5921-e8cd-42d4-9349-4c5284a3672c last verified BUILDING at same commit.
+Follow existing job; no reapply/redeploy/reprepare. Original hosted cohort has
+not started; durable release/application ACKs and intents retained under
+HostedBlockscoutReleaseCurrent/HostedSourceRolloutCurrent.
