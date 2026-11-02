@@ -2234,3 +2234,747 @@
 2026-11-02T18:20:32.2150547Z cleanup script PID55056: PLANNED target=C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.Contracts\bin; bytes=24371; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
 
 2026-11-02T18:20:32.2208584Z cleanup script PID55056: REMOVED C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.Contracts\bin; bytes=24371; locked/in-use items left=0.
+
+2026-11-02T18:55:04.7913547Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\bin; bytes=400544560; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:05.0482064Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\bin; bytes=400544560; locked/in-use items left=0.
+
+2026-11-02T18:55:05.5568127Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests\bin; bytes=388067173; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:05.8206886Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests\bin; bytes=388067173; locked/in-use items left=0.
+
+2026-11-02T18:55:06.2202615Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Examples\CosmicCqlDemo\bin; bytes=340408381; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:06.4324236Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Examples\CosmicCqlDemo\bin; bytes=340408381; locked/in-use items left=0.
+
+2026-11-02T18:55:06.6608714Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.CqlTests\bin; bytes=55423547; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:06.7541374Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.CqlTests\bin; bytes=55423547; locked/in-use items left=0.
+
+2026-11-02T18:55:07.0129623Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.Core.UnitTests\bin; bytes=53166420; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:07.1215231Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.Core.UnitTests\bin; bytes=53166420; locked/in-use items left=0.
+
+2026-11-02T18:55:07.3067434Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.Core\bin; bytes=38785011; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:07.3644377Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.Core\bin; bytes=38785011; locked/in-use items left=0.
+
+2026-11-02T18:55:07.5217176Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS\bin; bytes=36089576; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:07.5869581Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS\bin; bytes=36089576; locked/in-use items left=0.
+
+2026-11-02T18:55:07.7261839Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\bin; bytes=35605381; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:07.7780426Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\bin; bytes=35605381; locked/in-use items left=0.
+
+2026-11-02T18:55:07.9215045Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS\bin; bytes=17490539; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:07.9366268Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS\bin; bytes=17490539; locked/in-use items left=0.
+
+2026-11-02T18:55:08.0305942Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.Core\bin; bytes=7540633; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:08.0430756Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.Core\bin; bytes=7540633; locked/in-use items left=0.
+
+2026-11-02T18:55:08.1501429Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\obj; bytes=13910233; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:08.1827230Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\obj; bytes=13910233; locked/in-use items left=0; 1 secret files kept.
+
+2026-11-02T18:55:08.2666135Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.Core\obj; bytes=8689125; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:08.2769899Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.Core\obj; bytes=8689125; locked/in-use items left=0.
+
+2026-11-02T18:55:08.3674145Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\bin; bytes=10130320; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:08.3826918Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\bin; bytes=10130320; locked/in-use items left=0.
+
+2026-11-02T18:55:08.4942000Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloOASIS\bin; bytes=10118721; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:08.5128591Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloOASIS\bin; bytes=10118721; locked/in-use items left=0.
+
+2026-11-02T18:55:08.6064880Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Other\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\bin; bytes=9617083; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:08.6205593Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Other\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\bin; bytes=9617083; locked/in-use items left=0.
+
+2026-11-02T18:55:08.7216264Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TelosOASIS\bin; bytes=9509340; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:08.7374533Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TelosOASIS\bin; bytes=9509340; locked/in-use items left=0.
+
+2026-11-02T18:55:08.8313871Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS\bin; bytes=9376834; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:08.8461633Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS\bin; bytes=9376834; locked/in-use items left=0.
+
+2026-11-02T18:55:08.9366387Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.MongoOASIS\bin; bytes=9345064; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:08.9495933Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.MongoOASIS\bin; bytes=9345064; locked/in-use items left=0.
+
+2026-11-02T18:55:09.1053251Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.EthereumOASIS\bin; bytes=9101609; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:09.1192793Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.EthereumOASIS\bin; bytes=9101609; locked/in-use items left=0.
+
+2026-11-02T18:55:09.2096307Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.IPFSOASIS\bin; bytes=9070304; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:09.2249271Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.IPFSOASIS\bin; bytes=9070304; locked/in-use items left=0.
+
+2026-11-02T18:55:09.3161411Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS\bin; bytes=8978703; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:09.3324628Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS\bin; bytes=8978703; locked/in-use items left=0.
+
+2026-11-02T18:55:09.4221155Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BaseOASIS\bin; bytes=8962271; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:09.4412029Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BaseOASIS\bin; bytes=8962271; locked/in-use items left=0.
+
+2026-11-02T18:55:09.5476178Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AvalancheOASIS\bin; bytes=8951878; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:09.5684316Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AvalancheOASIS\bin; bytes=8951878; locked/in-use items left=0.
+
+2026-11-02T18:55:09.6769409Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BNBChainOASIS\bin; bytes=8918515; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:09.6922207Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BNBChainOASIS\bin; bytes=8918515; locked/in-use items left=0.
+
+2026-11-02T18:55:09.7810009Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.OptimismOASIS\bin; bytes=8876323; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:09.7956838Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.OptimismOASIS\bin; bytes=8876323; locked/in-use items left=0.
+
+2026-11-02T18:55:09.8863519Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.FantomOASIS\bin; bytes=8869289; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:09.9041332Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.FantomOASIS\bin; bytes=8869289; locked/in-use items left=0.
+
+2026-11-02T18:55:10.0163601Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS\bin; bytes=8783919; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:10.0351432Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS\bin; bytes=8783919; locked/in-use items left=0.
+
+2026-11-02T18:55:10.1236698Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.FilecoinOASIS\bin; bytes=8762642; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:10.1397950Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.FilecoinOASIS\bin; bytes=8762642; locked/in-use items left=0.
+
+2026-11-02T18:55:10.2813860Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TONOASIS\bin; bytes=8729473; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:10.2950254Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TONOASIS\bin; bytes=8729473; locked/in-use items left=0.
+
+2026-11-02T18:55:10.3821167Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BerachainOASIS\bin; bytes=8689762; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:10.4022280Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BerachainOASIS\bin; bytes=8689762; locked/in-use items left=0.
+
+2026-11-02T18:55:10.4912675Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AbstractOASIS\bin; bytes=8689763; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:10.5052950Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AbstractOASIS\bin; bytes=8689763; locked/in-use items left=0.
+
+2026-11-02T18:55:10.5973055Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS\bin; bytes=8689733; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:10.6103608Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS\bin; bytes=8689733; locked/in-use items left=0.
+
+2026-11-02T18:55:10.7073088Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.PolygonOASIS\bin; bytes=8689675; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:10.7227060Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.PolygonOASIS\bin; bytes=8689675; locked/in-use items left=0.
+
+2026-11-02T18:55:10.8135841Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.MonadOASIS\bin; bytes=8689230; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:10.8282499Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.MonadOASIS\bin; bytes=8689230; locked/in-use items left=0.
+
+2026-11-02T18:55:10.9224346Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SeiOASIS\bin; bytes=8689224; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:10.9371936Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SeiOASIS\bin; bytes=8689224; locked/in-use items left=0.
+
+2026-11-02T18:55:11.0267690Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ScrollOASIS\bin; bytes=8689217; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:11.0411469Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ScrollOASIS\bin; bytes=8689217; locked/in-use items left=0.
+
+2026-11-02T18:55:11.1424251Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.LineaOASIS\bin; bytes=8689210; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:11.1620079Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.LineaOASIS\bin; bytes=8689210; locked/in-use items left=0.
+
+2026-11-02T18:55:11.2632522Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.RootstockOASIS\bin; bytes=8687689; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:11.2781789Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.RootstockOASIS\bin; bytes=8687689; locked/in-use items left=0.
+
+2026-11-02T18:55:11.4281610Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\bin; bytes=8665580; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:11.4453613Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\bin; bytes=8665580; locked/in-use items left=0.
+
+2026-11-02T18:55:11.5351059Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\bin; bytes=8653221; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:11.5487008Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\bin; bytes=8653221; locked/in-use items left=0.
+
+2026-11-02T18:55:11.6419485Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\bin; bytes=8622599; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:11.6559382Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\bin; bytes=8622599; locked/in-use items left=0.
+
+2026-11-02T18:55:11.7475674Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CardanoOASIS\bin; bytes=8582565; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:11.7608224Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CardanoOASIS\bin; bytes=8582565; locked/in-use items left=0.
+
+2026-11-02T18:55:11.8552350Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\bin; bytes=8500863; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:11.8713368Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\bin; bytes=8500863; locked/in-use items left=0.
+
+2026-11-02T18:55:11.9643023Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TRONOASIS\bin; bytes=8460343; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:11.9797459Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TRONOASIS\bin; bytes=8460343; locked/in-use items left=0.
+
+2026-11-02T18:55:12.0728910Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.RadixOASIS\bin; bytes=8448349; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:12.0893648Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.RadixOASIS\bin; bytes=8448349; locked/in-use items left=0.
+
+2026-11-02T18:55:12.1822270Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\bin; bytes=8418312; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:12.1969690Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\bin; bytes=8418312; locked/in-use items left=0.
+
+2026-11-02T18:55:12.2855875Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS\bin; bytes=8410050; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:12.2982666Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS\bin; bytes=8410050; locked/in-use items left=0.
+
+2026-11-02T18:55:12.3896165Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SuiOASIS\bin; bytes=8378188; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:12.4049208Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SuiOASIS\bin; bytes=8378188; locked/in-use items left=0.
+
+2026-11-02T18:55:12.4947158Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ElrondOASIS\bin; bytes=8375549; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:12.5071916Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ElrondOASIS\bin; bytes=8375549; locked/in-use items left=0.
+
+2026-11-02T18:55:12.6511836Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BitcoinOASIS\bin; bytes=8373187; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:12.6641691Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BitcoinOASIS\bin; bytes=8373187; locked/in-use items left=0.
+
+2026-11-02T18:55:12.7531686Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AWSOASIS\bin; bytes=8369889; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:12.7667199Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AWSOASIS\bin; bytes=8369889; locked/in-use items left=0.
+
+2026-11-02T18:55:12.8606127Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.StarknetOASIS\bin; bytes=8365975; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:12.8753169Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.StarknetOASIS\bin; bytes=8365975; locked/in-use items left=0.
+
+2026-11-02T18:55:12.9623950Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.OracleDBOASIS\bin; bytes=8362036; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:12.9749799Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.OracleDBOASIS\bin; bytes=8362036; locked/in-use items left=0.
+
+2026-11-02T18:55:13.0643315Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS\bin; bytes=8347752; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:13.0772396Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS\bin; bytes=8347752; locked/in-use items left=0.
+
+2026-11-02T18:55:13.1701332Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS\bin; bytes=8339319; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:13.1833580Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS\bin; bytes=8339319; locked/in-use items left=0.
+
+2026-11-02T18:55:13.2786374Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS\bin; bytes=8336863; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:13.2937888Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS\bin; bytes=8336863; locked/in-use items left=0.
+
+2026-11-02T18:55:13.3864380Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS\bin; bytes=8308762; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:13.3995627Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS\bin; bytes=8308762; locked/in-use items left=0.
+
+2026-11-02T18:55:13.4880316Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AptosOASIS\bin; bytes=8289204; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:13.5013252Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AptosOASIS\bin; bytes=8289204; locked/in-use items left=0.
+
+2026-11-02T18:55:13.5896093Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS\bin; bytes=8275036; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:13.6028602Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS\bin; bytes=8275036; locked/in-use items left=0.
+
+2026-11-02T18:55:13.7432509Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.ArweaveOASIS\bin; bytes=8263089; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:13.7579782Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.ArweaveOASIS\bin; bytes=8263089; locked/in-use items left=0.
+
+2026-11-02T18:55:13.8468917Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS\bin; bytes=8245223; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:13.8595975Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS\bin; bytes=8245223; locked/in-use items left=0.
+
+2026-11-02T18:55:13.9477472Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS\bin; bytes=8240205; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:13.9606004Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS\bin; bytes=8240205; locked/in-use items left=0.
+
+2026-11-02T18:55:14.0554379Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Social\NextGenSoftware.OASIS.API.Providers.NostrOASIS\bin; bytes=8225073; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:14.0692541Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Social\NextGenSoftware.OASIS.API.Providers.NostrOASIS\bin; bytes=8225073; locked/in-use items left=0.
+
+2026-11-02T18:55:14.1584466Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Social\NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS\bin; bytes=8224235; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:14.1710675Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Social\NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS\bin; bytes=8224235; locked/in-use items left=0.
+
+2026-11-02T18:55:14.2616504Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Social\NextGenSoftware.OASIS.API.Providers.MatrixOASIS\bin; bytes=8219140; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:14.2741262Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Social\NextGenSoftware.OASIS.API.Providers.MatrixOASIS\bin; bytes=8219140; locked/in-use items left=0.
+
+2026-11-02T18:55:14.3611949Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ENSOASIS\bin; bytes=8209616; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:14.3734567Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ENSOASIS\bin; bytes=8209616; locked/in-use items left=0.
+
+2026-11-02T18:55:14.4612995Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.EclipseOASIS\bin; bytes=8207663; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:14.4745559Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.EclipseOASIS\bin; bytes=8207663; locked/in-use items left=0.
+
+2026-11-02T18:55:14.5633284Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AlgorandOASIS\bin; bytes=8205003; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:14.5794123Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AlgorandOASIS\bin; bytes=8205003; locked/in-use items left=0.
+
+2026-11-02T18:55:14.6816281Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.StellarOASIS\bin; bytes=8204035; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:14.6955221Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.StellarOASIS\bin; bytes=8204035; locked/in-use items left=0.
+
+2026-11-02T18:55:14.7820424Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.CelestiaOASIS\bin; bytes=8194410; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:14.7943689Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.CelestiaOASIS\bin; bytes=8194410; locked/in-use items left=0.
+
+2026-11-02T18:55:14.9314624Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.XRPLOASIS\bin; bytes=8193158; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:14.9451137Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.XRPLOASIS\bin; bytes=8193158; locked/in-use items left=0.
+
+2026-11-02T18:55:15.0336263Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS\bin; bytes=8187056; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:15.0465001Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS\bin; bytes=8187056; locked/in-use items left=0.
+
+2026-11-02T18:55:15.1373496Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AWSS3OASIS\bin; bytes=8185826; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:15.1506958Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AWSS3OASIS\bin; bytes=8185826; locked/in-use items left=0.
+
+2026-11-02T18:55:15.2417773Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.WormholeOASIS\bin; bytes=8179785; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:15.2559036Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.WormholeOASIS\bin; bytes=8179785; locked/in-use items left=0.
+
+2026-11-02T18:55:15.3468862Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ChainflipOASIS\bin; bytes=8177984; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:15.3623505Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ChainflipOASIS\bin; bytes=8177984; locked/in-use items left=0.
+
+2026-11-02T18:55:15.4508223Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS\bin; bytes=8137253; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:15.4632156Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS\bin; bytes=8137253; locked/in-use items left=0.
+
+2026-11-02T18:55:15.5540433Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.S3\bin; bytes=8131212; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:15.5664811Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.S3\bin; bytes=8131212; locked/in-use items left=0.
+
+2026-11-02T18:55:15.6521809Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\bin; bytes=8076104; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:15.6649816Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\bin; bytes=8076104; locked/in-use items left=0.
+
+2026-11-02T18:55:15.7479350Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests\obj; bytes=7789585; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:15.7580255Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests\obj; bytes=7789585; locked/in-use items left=0.
+
+2026-11-02T18:55:15.8451517Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.TelegramOASIS\bin; bytes=7719576; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:15.8577010Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.TelegramOASIS\bin; bytes=7719576; locked/in-use items left=0.
+
+2026-11-02T18:55:15.9967912Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS\bin; bytes=7703195; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:16.0097222Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS\bin; bytes=7703195; locked/in-use items left=0.
+
+2026-11-02T18:55:16.0981904Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.PinataOASIS\bin; bytes=7697560; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:16.1118598Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.PinataOASIS\bin; bytes=7697560; locked/in-use items left=0.
+
+2026-11-02T18:55:16.2032425Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.MinIOOASIS\bin; bytes=7664350; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:16.2158216Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.MinIOOASIS\bin; bytes=7664350; locked/in-use items left=0.
+
+2026-11-02T18:55:16.3061942Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\STAR ODK\NextGenSoftware.OASIS.STAR.STARDNA\bin; bytes=7663022; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:16.3210947Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\STAR ODK\NextGenSoftware.OASIS.STAR.STARDNA\bin; bytes=7663022; locked/in-use items left=0.
+
+2026-11-02T18:55:16.4064942Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS\bin; bytes=7658647; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:16.4191429Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS\bin; bytes=7658647; locked/in-use items left=0.
+
+2026-11-02T18:55:16.5040482Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.AkashOASIS\bin; bytes=8202773; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:16.5164005Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.AkashOASIS\bin; bytes=8202773; locked/in-use items left=0.
+
+2026-11-02T18:55:16.5967107Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.Core\obj; bytes=7525649; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:16.6075445Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\ONODE\NextGenSoftware.OASIS.API.ONODE.Core\obj; bytes=7525649; locked/in-use items left=0.
+
+2026-11-02T18:55:16.6897306Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.Core.UnitTests\obj; bytes=7125778; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:16.6997702Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.Core.UnitTests\obj; bytes=7125778; locked/in-use items left=0.
+
+2026-11-02T18:55:16.7817010Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Examples\CosmicCqlDemo\obj; bytes=4997678; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:16.7926897Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Examples\CosmicCqlDemo\obj; bytes=4997678; locked/in-use items left=0.
+
+2026-11-02T18:55:16.8752145Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\obj; bytes=3581160; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:16.8859320Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\obj; bytes=3581160; locked/in-use items left=0.
+
+2026-11-02T18:55:16.9691893Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS\obj; bytes=3329098; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:16.9811752Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS\obj; bytes=3329098; locked/in-use items left=0.
+
+2026-11-02T18:55:17.1126887Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\obj; bytes=3099556; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:17.1237514Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\obj; bytes=3099556; locked/in-use items left=0.
+
+2026-11-02T18:55:17.2057422Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\bin; bytes=1359942; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:17.2149801Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\bin; bytes=1359942; locked/in-use items left=0.
+
+2026-11-02T18:55:17.3022760Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.MongoOASIS\obj; bytes=2411593; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:17.3121618Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.MongoOASIS\obj; bytes=2411593; locked/in-use items left=0.
+
+2026-11-02T18:55:17.3988615Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.CqlTests\obj; bytes=2211892; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:17.4102215Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.CqlTests\obj; bytes=2211892; locked/in-use items left=0.
+
+2026-11-02T18:55:17.4859077Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\HoloNET-ORM\bin; bytes=2156527; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:17.4933488Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\HoloNET-ORM\bin; bytes=2156527; locked/in-use items left=0.
+
+2026-11-02T18:55:17.5740600Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.Common\bin; bytes=998632; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:17.5807296Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.Common\bin; bytes=998632; locked/in-use items left=0.
+
+2026-11-02T18:55:17.6750423Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\obj; bytes=1699683; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:17.6866464Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\obj; bytes=1699683; locked/in-use items left=0.
+
+2026-11-02T18:55:17.7729229Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS\obj; bytes=1695777; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:17.7826463Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS\obj; bytes=1695777; locked/in-use items left=0.
+
+2026-11-02T18:55:17.8670785Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\obj; bytes=1665728; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:17.8775369Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\obj; bytes=1665728; locked/in-use items left=0.
+
+2026-11-02T18:55:17.9605519Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\obj; bytes=1593815; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:17.9706120Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\obj; bytes=1593815; locked/in-use items left=0.
+
+2026-11-02T18:55:18.1135080Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.HyperDrive.Synchronization\obj; bytes=1555755; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:18.1259604Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.HyperDrive.Synchronization\obj; bytes=1555755; locked/in-use items left=0.
+
+2026-11-02T18:55:18.2104839Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloOASIS\obj; bytes=1547300; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:18.2262048Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloOASIS\obj; bytes=1547300; locked/in-use items left=0.
+
+2026-11-02T18:55:18.3121639Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.EthereumOASIS\obj; bytes=1456886; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:18.3241574Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.EthereumOASIS\obj; bytes=1456886; locked/in-use items left=0.
+
+2026-11-02T18:55:18.4072085Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\obj; bytes=1453126; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:18.4181877Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\obj; bytes=1453126; locked/in-use items left=0.
+
+2026-11-02T18:55:18.5010833Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\obj; bytes=1034607; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:18.5117398Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\obj; bytes=1034607; locked/in-use items left=0.
+
+2026-11-02T18:55:18.5924383Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.ONET\bin; bytes=689295; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:18.5984173Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.ONET\bin; bytes=689295; locked/in-use items left=0.
+
+2026-11-02T18:55:18.6838279Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS\obj; bytes=1330171; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:18.6939330Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS\obj; bytes=1330171; locked/in-use items left=0.
+
+2026-11-02T18:55:18.7772324Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TRONOASIS\obj; bytes=1307714; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:18.7879651Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TRONOASIS\obj; bytes=1307714; locked/in-use items left=0.
+
+2026-11-02T18:55:18.8724130Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BaseOASIS\obj; bytes=1307261; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:18.8824242Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BaseOASIS\obj; bytes=1307261; locked/in-use items left=0.
+
+2026-11-02T18:55:18.9617217Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.HyperDrive.Synchronization\bin; bytes=1300858; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:18.9689773Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.HyperDrive.Synchronization\bin; bytes=1300858; locked/in-use items left=0.
+
+2026-11-02T18:55:19.0532539Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AvalancheOASIS\obj; bytes=1298282; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:19.0646142Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AvalancheOASIS\obj; bytes=1298282; locked/in-use items left=0.
+
+2026-11-02T18:55:19.1966873Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.RadixOASIS\obj; bytes=1283562; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:19.2074008Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.RadixOASIS\obj; bytes=1283562; locked/in-use items left=0.
+
+2026-11-02T18:55:19.2933048Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS\obj; bytes=1279542; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:19.3037650Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS\obj; bytes=1279542; locked/in-use items left=0.
+
+2026-11-02T18:55:19.3887328Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\obj; bytes=1251296; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:19.3993914Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\obj; bytes=1251296; locked/in-use items left=0.
+
+2026-11-02T18:55:19.4818507Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TelosOASIS\obj; bytes=1236771; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:19.4923981Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TelosOASIS\obj; bytes=1236771; locked/in-use items left=0.
+
+2026-11-02T18:55:19.5741968Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AptosOASIS\obj; bytes=1226138; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:19.5852981Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AptosOASIS\obj; bytes=1226138; locked/in-use items left=0.
+
+2026-11-02T18:55:19.6683116Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS\obj; bytes=1218749; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:19.6789145Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS\obj; bytes=1218749; locked/in-use items left=0.
+
+2026-11-02T18:55:19.7632599Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BNBChainOASIS\obj; bytes=1198276; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:19.7746521Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BNBChainOASIS\obj; bytes=1198276; locked/in-use items left=0.
+
+2026-11-02T18:55:19.8589540Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.IPFSOASIS\obj; bytes=1192255; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:19.8696153Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.IPFSOASIS\obj; bytes=1192255; locked/in-use items left=0.
+
+2026-11-02T18:55:19.9509728Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS\obj; bytes=1192495; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:19.9611357Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS\obj; bytes=1192495; locked/in-use items left=0.
+
+2026-11-02T18:55:20.0441663Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\External Libs\net-ipfs-http-client-master\src\bin; bytes=771568; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:20.0496182Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\External Libs\net-ipfs-http-client-master\src\bin; bytes=771568; locked/in-use items left=0.
+
+2026-11-02T18:55:20.1844122Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS\obj; bytes=1182537; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:20.1942841Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS\obj; bytes=1182537; locked/in-use items left=0.
+
+2026-11-02T18:55:20.2782446Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ElrondOASIS\obj; bytes=1172516; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:20.2895092Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ElrondOASIS\obj; bytes=1172516; locked/in-use items left=0.
+
+2026-11-02T18:55:20.3737579Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CardanoOASIS\obj; bytes=1170559; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:20.3842764Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CardanoOASIS\obj; bytes=1170559; locked/in-use items left=0.
+
+2026-11-02T18:55:20.4714767Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS\obj; bytes=1163194; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:20.4813838Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS\obj; bytes=1163194; locked/in-use items left=0.
+
+2026-11-02T18:55:20.5659824Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.OptimismOASIS\obj; bytes=1159128; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:20.5762873Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.OptimismOASIS\obj; bytes=1159128; locked/in-use items left=0.
+
+2026-11-02T18:55:20.6609433Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.OracleDBOASIS\obj; bytes=1157227; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:20.6723212Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.OracleDBOASIS\obj; bytes=1157227; locked/in-use items left=0.
+
+2026-11-02T18:55:20.7583582Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.FantomOASIS\obj; bytes=1155034; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:20.7689459Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.FantomOASIS\obj; bytes=1155034; locked/in-use items left=0.
+
+2026-11-02T18:55:20.8534076Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BitcoinOASIS\obj; bytes=1153229; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:20.8643808Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BitcoinOASIS\obj; bytes=1153229; locked/in-use items left=0.
+
+2026-11-02T18:55:20.9482500Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\obj; bytes=1143547; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:20.9591843Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\obj; bytes=1143547; locked/in-use items left=0.
+
+2026-11-02T18:55:21.0450472Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS\obj; bytes=1139042; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:21.0559690Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS\obj; bytes=1139042; locked/in-use items left=0.
+
+2026-11-02T18:55:21.1430527Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.StarknetOASIS\obj; bytes=1117856; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:21.1530735Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.StarknetOASIS\obj; bytes=1117856; locked/in-use items left=0.
+
+2026-11-02T18:55:21.2858114Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS\obj; bytes=1111689; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:21.2954373Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS\obj; bytes=1111689; locked/in-use items left=0.
+
+2026-11-02T18:55:21.3818557Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SuiOASIS\obj; bytes=1087281; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:21.3913690Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SuiOASIS\obj; bytes=1087281; locked/in-use items left=0.
+
+2026-11-02T18:55:21.4766653Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Other\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\obj; bytes=1079208; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:21.4857064Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Other\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\obj; bytes=1079208; locked/in-use items left=0.
+
+2026-11-02T18:55:21.5714178Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS\obj; bytes=1066336; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:21.5820598Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS\obj; bytes=1066336; locked/in-use items left=0.
+
+2026-11-02T18:55:21.6771646Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\External Libs\net-ipfs-http-client-master\src\obj; bytes=592066; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:21.6875409Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\External Libs\net-ipfs-http-client-master\src\obj; bytes=592066; locked/in-use items left=0.
+
+2026-11-02T18:55:21.7732623Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.TelegramOASIS\obj; bytes=1035069; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:21.7828551Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.TelegramOASIS\obj; bytes=1035069; locked/in-use items left=0.
+
+2026-11-02T18:55:21.8678865Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.CrossChain\bin; bytes=1025118; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:21.8759614Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.CrossChain\bin; bytes=1025118; locked/in-use items left=0.
+
+2026-11-02T18:55:21.9600085Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.ArweaveOASIS\obj; bytes=1023139; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:21.9693265Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.ArweaveOASIS\obj; bytes=1023139; locked/in-use items left=0.
+
+2026-11-02T18:55:22.0532414Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.FilecoinOASIS\obj; bytes=1020344; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:22.0648871Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.FilecoinOASIS\obj; bytes=1020344; locked/in-use items left=0.
+
+2026-11-02T18:55:22.1559460Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS\obj; bytes=1010595; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:22.1660182Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS\obj; bytes=1010595; locked/in-use items left=0.
+
+2026-11-02T18:55:22.2994909Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS\obj; bytes=1005047; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:22.3104801Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS\obj; bytes=1005047; locked/in-use items left=0.
+
+2026-11-02T18:55:22.3939236Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Social\NextGenSoftware.OASIS.API.Providers.NostrOASIS\obj; bytes=991794; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:22.4035033Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Social\NextGenSoftware.OASIS.API.Providers.NostrOASIS\obj; bytes=991794; locked/in-use items left=0.
+
+2026-11-02T18:55:22.4868963Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Social\NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS\obj; bytes=991641; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:22.4969954Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Social\NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS\obj; bytes=991641; locked/in-use items left=0.
+
+2026-11-02T18:55:22.5833370Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Social\NextGenSoftware.OASIS.API.Providers.MatrixOASIS\obj; bytes=983420; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:22.5931976Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Social\NextGenSoftware.OASIS.API.Providers.MatrixOASIS\obj; bytes=983420; locked/in-use items left=0.
+
+2026-11-02T18:55:22.6761165Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.PinataOASIS\obj; bytes=976470; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:22.6859240Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.PinataOASIS\obj; bytes=976470; locked/in-use items left=0.
+
+2026-11-02T18:55:22.7691447Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ENSOASIS\obj; bytes=975599; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:22.7798468Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ENSOASIS\obj; bytes=975599; locked/in-use items left=0.
+
+2026-11-02T18:55:22.8626077Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.EclipseOASIS\obj; bytes=971855; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:22.8735224Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.EclipseOASIS\obj; bytes=971855; locked/in-use items left=0.
+
+2026-11-02T18:55:22.9583502Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.StellarOASIS\obj; bytes=968048; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:22.9692136Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.StellarOASIS\obj; bytes=968048; locked/in-use items left=0.
+
+2026-11-02T18:55:23.0517717Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AlgorandOASIS\obj; bytes=965174; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:23.0620067Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AlgorandOASIS\obj; bytes=965174; locked/in-use items left=0.
+
+2026-11-02T18:55:23.1447763Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TONOASIS\obj; bytes=963843; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:23.1549095Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TONOASIS\obj; bytes=963843; locked/in-use items left=0.
+
+2026-11-02T18:55:23.2417544Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\External Libs\net-ipfs-core-0.55.0\src\obj; bytes=537096; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:23.2529682Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\External Libs\net-ipfs-core-0.55.0\src\obj; bytes=537096; locked/in-use items left=0.
+
+2026-11-02T18:55:23.3865267Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.CelestiaOASIS\obj; bytes=951172; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:23.3962184Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.CelestiaOASIS\obj; bytes=951172; locked/in-use items left=0.
+
+2026-11-02T18:55:23.4789379Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS\obj; bytes=944362; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:23.4886067Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS\obj; bytes=944362; locked/in-use items left=0.
+
+2026-11-02T18:55:23.5708817Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.XRPLOASIS\obj; bytes=941144; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:23.5813611Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.XRPLOASIS\obj; bytes=941144; locked/in-use items left=0.
+
+2026-11-02T18:55:23.6699884Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.MinIOOASIS\obj; bytes=932511; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:23.6812447Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Storage\NextGenSoftware.OASIS.API.Providers.MinIOOASIS\obj; bytes=932511; locked/in-use items left=0.
+
+2026-11-02T18:55:23.7659790Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS\obj; bytes=919780; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:23.7762379Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS\obj; bytes=919780; locked/in-use items left=0.
+
+2026-11-02T18:55:23.8588244Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BerachainOASIS\obj; bytes=914255; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:23.8695674Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BerachainOASIS\obj; bytes=914255; locked/in-use items left=0.
+
+2026-11-02T18:55:23.9541043Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AbstractOASIS\obj; bytes=914190; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:23.9654622Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AbstractOASIS\obj; bytes=914190; locked/in-use items left=0.
+
+2026-11-02T18:55:24.0482199Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS\obj; bytes=913978; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:24.0592828Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS\obj; bytes=913978; locked/in-use items left=0.
+
+2026-11-02T18:55:24.1441023Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ScrollOASIS\obj; bytes=913459; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:24.1550170Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ScrollOASIS\obj; bytes=913459; locked/in-use items left=0.
+
+2026-11-02T18:55:24.2393749Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.MonadOASIS\obj; bytes=913422; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:24.2506160Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.MonadOASIS\obj; bytes=913422; locked/in-use items left=0.
+
+2026-11-02T18:55:24.3824609Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.LineaOASIS\obj; bytes=913370; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:24.3924750Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.LineaOASIS\obj; bytes=913370; locked/in-use items left=0.
+
+2026-11-02T18:55:24.4768764Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SeiOASIS\obj; bytes=913280; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:24.4873079Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SeiOASIS\obj; bytes=913280; locked/in-use items left=0.
+
+2026-11-02T18:55:24.5706794Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.PolygonOASIS\obj; bytes=912558; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:24.5807089Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.PolygonOASIS\obj; bytes=912558; locked/in-use items left=0.
+
+2026-11-02T18:55:24.6586248Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\HoloNET-ORM\obj; bytes=911653; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:24.6675694Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\HoloNET-ORM\obj; bytes=911653; locked/in-use items left=0.
+
+2026-11-02T18:55:24.7503788Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.RootstockOASIS\obj; bytes=909673; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:24.7606305Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.RootstockOASIS\obj; bytes=909673; locked/in-use items left=0.
+
+2026-11-02T18:55:24.8475501Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.WormholeOASIS\obj; bytes=909188; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:24.8582940Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.WormholeOASIS\obj; bytes=909188; locked/in-use items left=0.
+
+2026-11-02T18:55:24.9439434Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ChainflipOASIS\obj; bytes=906418; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:24.9550573Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ChainflipOASIS\obj; bytes=906418; locked/in-use items left=0.
+
+2026-11-02T18:55:25.0390424Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.AkashOASIS\obj; bytes=964427; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:25.0501264Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.AkashOASIS\obj; bytes=964427; locked/in-use items left=0.
+
+2026-11-02T18:55:25.1351495Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Storage\Neo4j.Driver.OASIS\obj; bytes=900239; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:25.1460411Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Storage\Neo4j.Driver.OASIS\obj; bytes=900239; locked/in-use items left=0.
+
+2026-11-02T18:55:25.2302579Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AWSS3OASIS\obj; bytes=883535; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:25.2417462Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AWSS3OASIS\obj; bytes=883535; locked/in-use items left=0.
+
+2026-11-02T18:55:25.3249686Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\STAR ODK\NextGenSoftware.OASIS.STAR.STARDNA\obj; bytes=883026; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:25.3358152Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\STAR ODK\NextGenSoftware.OASIS.STAR.STARDNA\obj; bytes=883026; locked/in-use items left=0.
+
+2026-11-02T18:55:25.4708586Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS\obj; bytes=873232; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:25.4812024Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS\obj; bytes=873232; locked/in-use items left=0.
+
+2026-11-02T18:55:25.5739263Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AWSOASIS\obj; bytes=868771; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:25.5857064Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AWSOASIS\obj; bytes=868771; locked/in-use items left=0.
+
+2026-11-02T18:55:25.6718409Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.S3\obj; bytes=854788; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:25.6817215Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.S3\obj; bytes=854788; locked/in-use items left=0.
+
+2026-11-02T18:55:25.7661998Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS\obj; bytes=838973; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:25.7770678Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Network\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS\obj; bytes=838973; locked/in-use items left=0.
+
+2026-11-02T18:55:25.8569378Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\External Libs\net-ipfs-core-0.55.0\src\bin; bytes=362135; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:25.8636568Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\External Libs\net-ipfs-core-0.55.0\src\bin; bytes=362135; locked/in-use items left=0.
+
+2026-11-02T18:55:25.9419519Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Storage\Neo4j.Driver.OASIS\bin; bytes=592054; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:25.9471008Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Storage\Neo4j.Driver.OASIS\bin; bytes=592054; locked/in-use items left=0.
+
+2026-11-02T18:55:26.0306830Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.Common\obj; bytes=517218; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:26.0404226Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.Common\obj; bytes=517218; locked/in-use items left=0.
+
+2026-11-02T18:55:26.1257557Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.CrossChain\obj; bytes=485416; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:26.1362643Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.CrossChain\obj; bytes=485416; locked/in-use items left=0.
+
+2026-11-02T18:55:26.2217377Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.ONET\obj; bytes=231495; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:26.2319676Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.ONET\obj; bytes=231495; locked/in-use items left=0.
+
+2026-11-02T18:55:26.3206945Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.Contracts\obj; bytes=152364; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:26.3332772Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.Contracts\obj; bytes=152364; locked/in-use items left=0.
+
+2026-11-02T18:55:26.4616696Z cleanup script PID67104: PLANNED target=C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.Contracts\bin; bytes=49650; reason=Untracked generated output; regenerate using the existing source, SDK and original build command; regenerate via original tool.
+
+2026-11-02T18:55:26.4687821Z cleanup script PID67104: REMOVED C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.Contracts\bin; bytes=49650; locked/in-use items left=0.
