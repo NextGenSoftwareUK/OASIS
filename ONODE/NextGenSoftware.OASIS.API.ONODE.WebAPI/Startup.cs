@@ -534,6 +534,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_BITCOIN_PUBLIC_SOURCE_JSON"] is string bitcoinPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.BitcoinPublicHeaderMetadataSource.FromJson(bitcoinPublicSource)));
+            // Wormhole indexed messages are read-only, separate from cross-chain dispatch.
+            if (Configuration["CQL_WORMHOLE_PUBLIC_SOURCE_JSON"] is string wormholePublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.WormholeOASIS.WormholePublicOperationMetadataSource.FromJson(wormholePublicSource)));
             // Public Stacks principal reads are separate from Gaia/wallet storage.
             if (Configuration["CQL_STACKS_PUBLIC_SOURCE_JSON"] is string stacksPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
