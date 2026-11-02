@@ -65,6 +65,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.BlockStackOASIS => "StacksPrincipal",
             ProviderType.WormholeOASIS => "WormholeOperationId",
             ProviderType.BlockscoutOASIS => "BlockscoutAddress",
+            ProviderType.ENSOASIS => "EnsName",
             ProviderType.CelestiaOASIS => "CelestiaHeight",
             ProviderType.ChainflipOASIS => "ChainflipSwapId",
             ProviderType.SeiOASIS => "SeiAccountAddress",
