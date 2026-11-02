@@ -3814,3 +3814,25 @@ Outcome:3durable copies verified byte-identical,469bytes; originals untouched.
 Lens discovery reused web tools/source checkout only; no SDK clone/install/native request.
 Official SDK account actions read in memory (size unmeasured); no port/process.
 GitHub directory429 preserved as documentation-tool limit, not native failure.
+
+2026-11-02 Lens interface qualification preparation: reuse Python3.12/stdlib;
+no SDK clone/install/restore. Official SDK main342abd5efb3b12d306c89101a00e60f722df7f33
+selected with git ls-remote. Cache <=2MiB/file official schema.graphql and env
+index.ts under LocalState/COSMIC/LensPublicQualificationCurrent/sdk; planned
+size unmeasured, no ports/processes. COSMIC-owned reusable schema evidence;
+retain pinned hashes until audit, remove only when equivalent provenance is
+retained. First native qualification will use separate exclusive intent and
+TestResults/LensPublicSourceCurrent raw output, durable intent/ACK here.
+Lens pinned schema cache created201295+1266bytes plus manifest, digests in sdk/manifest.json.
+7new offline qualification controls passed; Python __pycache__ reused (size unmeasured),
+no dependencies or .NET outputs. Next first Lens native qualification <=3anonymous
+GraphQL POST reads, firstpageTEN then exact3/2bulk,1MiB/response,15s socket
+read timeout and elapsed-budget validation. No wallet/native writes/retries or
+metadata URL traversal. Exclusive durable intent before network; accepted/failure
+ACK retained in LocalState, raw response TestResults/LensPublicSourceCurrent.
+Lens native outcome: firstrequest403/Cloudflare1010 browser_signature_banned,
+nonretryable; stopped before bulk requests, no admission/native writes. Original
+raw discovery702bytes retained, planned exclusive durable copy discovery.json
+in LensPublicQualificationCurrent to survive cleanup; keep until owner/evidence
+reconciliation. No denial bypass/header rotation/alternate endpoint/account.
+Current free64,202,039,296bytes. SDK+intent+ACK reusable evidence, no service.
