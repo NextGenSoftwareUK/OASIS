@@ -129,13 +129,12 @@ class EnsConfigurationTests(unittest.TestCase):
                     patch.object(publisher.Path, "read_text", side_effect=[json.dumps(native), json.dumps(local)]):
                 with self.assertRaises(RuntimeError): publisher.qualified_source()
 
-    def test_native_policy_cannot_be_relabelled(self):
+    def test_failed_console_cannot_qualify_source(self):
         _, source = self.fixture()
         raw = json.dumps(source).encode()
-        native = {"schema": 1, "exitCode": 0,
+        native = {"schema": 1, "exitCode": 1,
             "sourceSha256": hashlib.sha256(raw).hexdigest(),
-            "nativeCounts": [3, 2], "full": 3, "subset": 2,
-            "exitCode": 1}
+            "full": 3, "subset": 2}
         with patch.object(publisher.Path, "read_bytes", return_value=raw), \
                 patch.object(publisher.Path, "read_text", side_effect=[json.dumps(native), "{}"]):
             with self.assertRaises(RuntimeError): publisher.qualified_source()
