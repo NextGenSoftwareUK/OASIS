@@ -16,4 +16,7 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.NostrOASIS\NextGenSoftware.OASIS.API.Providers.NostrOASIS.csproj" />
     <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="TestData\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

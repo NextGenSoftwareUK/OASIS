@@ -19,7 +19,7 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 ## Exact next actions
 
 1. Preserve BlueSky original cohort/ACKs; no reapply/redeploy/resave. Websiteac0ca0c3cffea71aa9b99ca437d2ee46fa20d9c1 publishes BlueSky with pinned guidea10c6661c and C#f36dd0d56 links. All98client tests pass. Public HTML171143bytes/SHA256dfa7084ba40e8fe691eb2fbf7f9c1c4d9cda7dcdcbade32026f6f9d0fd7fceee and both scripts match exact git blobs. Browser interaction remains open.
-2. Nostr discovery3 events and all3canonical hashes/BIP340signatures verify;9offline controls pass. Exact3-ID follow-up failed native HTTP503 at WebSocket upgrade; subset2 not run, no owner/CQL admission. Preserve original failure and captured IDs. Next implement controlled bounded event source/shipping crypto boundary; keep native/API/hosted gates red. See NOSTR_PUBLIC_SOURCE_STATUS.md.
+2. Nostr discovery3 events and all3canonical hashes/BIP340signatures verify;9offline controls pass. Exact3-ID follow-up failed native HTTP503 at WebSocket upgrade; subset2 not run, no owner/CQL admission. Preserve original failure and captured IDs. Shipping event verifier36tests/all19official vectors pass; next implement controlled bounded CQL event source using that verifier. Native/API/hosted gates stay red. See NOSTR_PUBLIC_SOURCE_STATUS.md.
 3. Keep deferred Azure Cosmos/Oracle/PostgreSQL hosting and closed browser controls deferred; maintain exact evidence and update current status at each milestone.
 
 ## Durable state and rules
