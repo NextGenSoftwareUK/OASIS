@@ -102,3 +102,9 @@ Actual loopback shipping CQL endpoints pass native3/2 and Mongo-paired5/4. Forei
 `TestResults/ZcashPublicSourceCurrent/zcash-mongo-native-summary.json`: 223bytes SHA256 `4a6cf2a3701d1983cb46cfe9ec96c65212c36ec53fe28d9f7a64ff8c816bf0d2`.
 
 Developer guide: [Zcash public block CQL](../../Devs/ZCASH_PUBLIC_BLOCK_CQL_GUIDE.md). Next: hosted candidate, publisher controls, code release and exact hosted acceptance before browser card.
+
+## Hosted candidate milestone - 2 November 2026
+
+Protected live baseline/candidate prepared: exactly3changed values, free tariff,4presets, DNA unchanged.9publisher controls pass; actual shipping compiler test passed1/1 for4presets. No settings application/deployment yet. Development advanced to0df90e062/Coree920d14 (Worldscape); merge/preserve before combined verification. Recursive fetch reports unrelated unavailable HoloNET-ORM ref85287e59; inspect deployment relevance.
+
+Evidence TestResults\ZcashPublicSourceCurrent\prepared-presets.trx SHA256 9ca97706f62f34339bd1355c2e5d33c3238929fe20905127e72ea20c53743d04.
