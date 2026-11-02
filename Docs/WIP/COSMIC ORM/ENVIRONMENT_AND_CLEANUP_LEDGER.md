@@ -3856,3 +3856,57 @@ verify against original ACK digests. Retain no replay/reseed. Also cache bounded
 genesis.ts to bind independent identity source; no repo clone/install.
 Bittensor retention verified:5raw replies2169bytes, registry7981bytes/SHA256cecf733de00b6f8d681e912cd5a2190026a20943e7cece7086b24450c784ac74.
 Intent/qualification ACK unchanged; no further native reads or new environment.
+
+2026-11-02 Bittensor CQL adapter build: reuse SDK10.0.401 and existing
+C:/Users/david/.nuget/packages (BouncyCastle.Cryptography2.7.0/MSTest3.1.1/
+TestSDK17.8.0 verified/inherited). Restore from existing package cache only;
+no new feed/download/environment. New provider-specific test host under
+Providers/AI/TestProjects/NextGenSoftware.OASIS.API.Providers.BittensorOASIS.UnitTests.
+Generated bin/obj for that host/provider/Core/Common/Shared and referenced
+projects are COSMIC-owned disposable outputs (sizes pending), no service/ports.
+Use build lease and /m:2 /nr:false /p:UseSharedCompilation=false. Raw TRX/logs
+TestResults/BittensorPublicSourceCurrent; preserve compact hashes/counts in docs,
+clean reviewed outputs after testing/process teardown; regenerate from source
+and reused cache. Free before64,199,548,928bytes; originals/LocalState retained.
+Bittensor adapter23controlled cases pass after read-only boundary/cancellation
+checks, source/walkthrough compiled with reused12project dependency graph.
+First real CQL acceptance planned: LocalState/COSMIC/HostedBittensorPublicSourceCurrent
+source.json with original3readiness hashes and one persistent projection owner;
+no native owner/account created. Exclusive native-cql.intent.json binds source
+SHA before activation. Approximately25RPCread methods/1persecond for activation
+plus HolonManager3/2selection; no original readiness replay/native writes.
+Native TRX/log TestResults/BittensorPublicSourceCurrent. Durable config/intent
+retained through local/hosted demo gates; size pending. No DB/service/ports.
+Bittensor native SDK CQL3/2passed through HolonManager/LINQ,1native test/24seconds;
+23adapter controls pass, retained native-cql.ack.json binds config/intent/TRX hashes.
+No native writes or new process/service. Initial failed shell invocation parsed
+incorrectly before restore; fixed by reusable file-based runner, no dependency
+change or runtime installation. Existing native readiness unchanged.
+Build outputs retained/reusable for next local HTTP/CLI batch, not completed
+disposables yet; cleanup after that gate/verified teardown, not another environment.
+Exact generated path/size inventory follows (SDK10.0.401, owning COSMIC):
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.CLI.Engine\bin`: 5365116bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.CLI.Engine\obj`: 1040335bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.ErrorHandling\bin`: 110254bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.ErrorHandling\obj`: 397529bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.Logging\bin`: 5579158bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.Logging\obj`: 939441bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.Utilities\bin`: 290502bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\NextGenSoftware-Libraries\NextGenSoftware.Utilities\obj`: 687168bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.Core\bin`: 7540637bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.Core\obj`: 8689125bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\bin`: 1359946bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\obj`: 1034611bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.Common\bin`: 998632bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.Common\obj`: 517218bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.Contracts\bin`: 24371bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.Contracts\obj`: 119867bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.HyperDrive.Synchronization\bin`: 697005bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\OASIS-cosmic\OASIS Architecture\NextGenSoftware.OASIS.HyperDrive.Synchronization\obj`: 965600bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\OASIS-cosmic\Providers\AI\NextGenSoftware.OASIS.API.Providers.BittensorOASIS\bin`: 8198418bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\OASIS-cosmic\Providers\AI\NextGenSoftware.OASIS.API.Providers.BittensorOASIS\obj`: 958173bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\OASIS-cosmic\Providers\AI\TestProjects\NextGenSoftware.OASIS.API.Providers.BittensorOASIS.UnitTests\bin`: 47272518bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\OASIS-cosmic\Providers\AI\TestProjects\NextGenSoftware.OASIS.API.Providers.BittensorOASIS.UnitTests\obj`: 1044596bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\bin`: 8076108bytes; reusable; regenerate bounded cached build; no ports.
+- `C:\Source\OASIS-cosmic\Providers\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\obj`: 1453126bytes; reusable; regenerate bounded cached build; no ports.
+Measured total generated logical bytes103359454; raw inventory TestResults/BittensorPublicSourceCurrent/build-output-inventory.json.
