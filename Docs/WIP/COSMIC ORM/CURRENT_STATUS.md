@@ -9,7 +9,7 @@ deep LINQ parity remains paused. Work red scopes only unless a bug is reproduced
 - 49 scoped hosted functional HTTP proofs; browser5verified/44open. These are not full ORM/native-write/reliability certifications.
 - MongoDB/SQLite/Neo4j parity50/82rows each; original investor-demo subset green.
 - Latest hosted addition Stacks: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, exact SQLite/Neo4j2/2. Two original version1 saves/pending0; snapshot reuse bug fixed without extra saves.
-- Website maineda15be publishes Stacks/Matrix/prior profiles with pinned setup/C#/HTTP links. Public HTML178107bytes/SHA256ba219e8e890914e0c811cd15de9e435561389a7388b516fe2e93d1de423b04ea and both scripts match exact git blobs. Browser interaction separate. Frontend taska4e61cf adds105thclient control, no new Wormhole card yet.
+- Website maineda15be publishes Stacks/Matrix/prior profiles with pinned setup/C#/HTTP links. Public HTML178107bytes/SHA256ba219e8e890914e0c811cd15de9e435561389a7388b516fe2e93d1de423b04ea and both scripts match exact git blobs. Browser interaction separate. Frontend task21cc5be includes105client controls and an unpublished Wormhole card draft; main stayseda15be.
 - Generic browser copies retain identity/name/description/provenance and native query key, not full native payload. Full safe payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
 ## Current phase: Wormhole verified code published, exact deployment building

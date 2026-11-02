@@ -1,6 +1,6 @@
 # CQL developer manual
 
-Wormhole local CQL: [configuration, spaced C# walkthrough and pinned-VAA trust limits](../../Devs/WORMHOLE_PUBLIC_OPERATION_CQL_GUIDE.md).35source tests/actual manager-LINQ CLI3/2 pass; HTTP/Mongo/hosting/card gates remain pending. No guardian signature authentication or native writes.
+Wormhole local CQL: [configuration, spaced C# walkthrough and pinned-VAA trust limits](../../Devs/WORMHOLE_PUBLIC_OPERATION_CQL_GUIDE.md).35source tests/actual manager-LINQ CLI3/2 pass; Core1/API3/localHTTP1/publisher9/prepared1/client105 pass. Local native3/2+Mongo5/4/privacy0/3; exact code deployment4da3a095 is building. Hosted settings/card gates remain pending. No guardian signature authentication or native writes.
 
 
 Stacks local CQL: [configuration, C# examples and exact-tip/precision limits](../../Devs/STACKS_PUBLIC_PRINCIPAL_CQL_GUIDE.md).43source tests and actual HolonManager/LINQ3/2 pass; local HTTP native3/2/Mongo5/4/privacy0/3 and admission/publisher/prepared gates pass. Hosted native3/2/Mongo5/4/reuse/privacy/replicas pass; websiteeda15be/public assets verified,104client+12continuation tests pass. Browser interaction remains open.
