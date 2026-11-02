@@ -2,7 +2,7 @@
 
 This read-only profile uses Filecoin mainnet chain314 and the shared HolonManager/CQL/LINQ pipeline. It reads FEVM balances for an explicit public address catalogue. No wallet, gas, signing key, source transaction or local node is needed.
 
-The published C# walkthrough returns three records and a real two-address subset. Filecoin HTTP/Mongo, hosted presets and browser acceptance are still pending; see [current evidence](../WIP/COSMIC%20ORM/FILECOIN_PUBLIC_SOURCE_STATUS.md).
+The published C# walkthrough returns three records and a real two-address subset. Local Filecoin HTTP/Mongo also passes native3/2, paired5/4 and visitor privacy0/3. Hosted rollout and browser acceptance remain pending; see [current evidence](../WIP/COSMIC%20ORM/FILECOIN_PUBLIC_SOURCE_STATUS.md).
 
 ## Create one reusable catalogue
 
