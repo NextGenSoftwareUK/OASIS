@@ -263,3 +263,18 @@ Two controlled test methods pass, including nine rejected mutation subcases
 Evidence TestResults/EnsPublicSourceCurrent/acceptance-audit-controls.log.
 No claim of live acceptance until the actual retained cohort passes.
 The same dcf95c97 code deployment remains BUILDING at this checkpoint.
+
+## Code success and settings activation
+
+Exact codedcf95c97 SUCCESS at a20f35f9a85af3807f42e1273d7cc6e0fabb0934.
+Code success ACK retained. Checked out that exact deployed revision for publisher
+application, then restored the task branch. The existing protected candidate was
+applied once: all3per-key hashes/ACKs and complete variable dictionary match;
+DNA/unrelated settings unchanged. No extra resource or paid hosting.
+
+One redeploy of the same existing artifact was requested after exclusive
+activation.intent.json; raw CLI receipt DPAPI-protected. Exact activation
+1f852f42-b2db-4be4-b179-36f88db6e16a is BUILDING. Preserve journal
+LocalState/COSMIC/HostedEnsReleaseCurrent and observe this same job; do not
+reapply settings or restart. No hosted test cohort/card yet. Next success/readiness,
+then original normal-visitor acceptance once and offline audit.
