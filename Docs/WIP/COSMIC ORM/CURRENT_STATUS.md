@@ -12,22 +12,22 @@ deep LINQ parity remains paused. Work red scopes only unless a bug is reproduced
 - Website maineda15be publishes Stacks/Matrix/prior profiles with pinned setup/C#/HTTP links. Public HTML178107bytes/SHA256ba219e8e890914e0c811cd15de9e435561389a7388b516fe2e93d1de423b04ea and both scripts match exact git blobs. Browser interaction separate. Frontend task21cc5be includes105client controls and an unpublished Wormhole card draft; main stayseda15be.
 - Generic browser copies retain identity/name/description/provenance and native query key, not full native payload. Full safe payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: Wormhole verified code published, exact deployment building
+## Current phase: Wormhole code live, settings activation queued
 
 - ParentDevelopmentd1f42addf0413ddcd381238ccdf17bbfa561a3e2/CoreDevelopmentc551a89ff294e68527f6ff75128d97cff54e6c63 pushed after fetched ancestry checks. Remote refs verified; manifest/seven Dockerfiles/gitlinks validator passes.
-- Exact Railway code job4da3a095-cdad-4052-850b-baf63020344f observed BUILDING at that parent. No source settings applied/no hosted cohort created.
+- Code job4da3a095-cdad-4052-850b-baf63020344f SUCCESS. Three settings applied once at matching release, full variables/per-key hashes verified; task branch restored. Single existing-artifact settings jobb29f93f6-cf25-4589-ab12-a0255cf340f9 observed QUEUED at same commit. No hosted cohort created.
 - Wormhole source35tests, actual HolonManager/deferred-LINQ CLI3/2, Core1/API3/localHTTP1/publisher9/actual prepared presets1/client105 pass. Local HTTP native3/2+Mongo5/4/privacy0/3; two SDK-owned version1 copies/9receipts. Owned fixture DB removed/Mongo stopped.
 - Initial unit consumer compile used stale transitive assets; ordinary cached restore fixed it. Original log retained; no DLL copies/workaround.
-- Original source/owner/body pins/ACKs: LocalState/COSMIC/HostedWormholePublicSourceCurrent. Fixture: WormholeMongoHttpCurrent. Protected three-key reviewed candidate: HostedSourceRolloutCurrent/wormhole-public-* (prepared/unapplied). Release journals: HostedWormholeReleaseCurrent.
+- Original source/owner/body pins/ACKs: LocalState/COSMIC/HostedWormholePublicSourceCurrent. Fixture: WormholeMongoHttpCurrent. Protected three-key reviewed candidate: HostedSourceRolloutCurrent/wormhole-public-* (applied/verified once). Release journals: HostedWormholeReleaseCurrent.
 
 ## Exact next step
 
-1. Poll the same code job; do not restart/redeploy/re-push to move its queue.
-2. After exact SUCCESS, retain code-success ACK. Temporarily check out exactd1f42addf for matching-release gate, apply the existing three-key candidate once, restore work/cosmic-cql-ton-public, then one journalled existing-artifact settings activation. Preserve all concurrent settings; no reprepare/reapply.
+1. Poll exact settings jobb29f93f6-cf25-4589-ab12-a0255cf340f9; do not restart/redeploy/re-push to move its queue.
+2. Code-success ACK/settings activation journals are retained in HostedWormholeReleaseCurrent. Do not repeat consumed application/activation. After exact settings SUCCESS retain settings-success ACK.
 3. After exact settings SUCCESS, run one original hosted cohort with Verify-HostedQuerySource.py WormholeOASIS --prepare. Verify native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, exact SQLite/Neo4j2/2 and two version1 ACKs/pending0. No replacement owner or replay on failure.
 4. Only after acceptance/audit publish Wormhole card with pinned guide/C# links and verify public asset bytes. Keep hosted49/browser5/open44 until acceptance passes. Update this file/full report/ledger at that milestone.
 
-Observer: python Scripts/Sandbox/Observe-HostedDeployment.py 4da3a095-cdad-4052-850b-baf63020344f --expected-commit d1f42addf0413ddcd381238ccdf17bbfa561a3e2 --output TestResults/WormholePublicSourceCurrent/code-deployment.json
+Observer: python Scripts/Sandbox/Observe-HostedDeployment.py b29f93f6-cf25-4589-ab12-a0255cf340f9 --expected-commit d1f42addf0413ddcd381238ccdf17bbfa561a3e2 --output TestResults/WormholePublicSourceCurrent/settings-deployment.json
 
 ## Preserved checkpoints and remaining scope
 
