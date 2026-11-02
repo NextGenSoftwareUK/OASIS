@@ -52,7 +52,7 @@ Exact DID equality and membership of at most eight configured `did:plc` identifi
 
 ## HTTP filtered queries and Mongo pairing
 
-These requests use the same two-DID selection as the prepared demo presets. Hosted HTTP acceptance now passes; the page card publication is pending. Discovery exposes the native and paired presets for `BlueSkyOASIS`.
+These requests use the same two-DID selection as the prepared demo presets. Hosted HTTP acceptance now passes; the page card is published and its public bytes verified. Discovery exposes the native and paired presets for `BlueSkyOASIS`.
 
 Use an authenticated OASIS demo session and a fresh `Idempotency-Key` for each HTTP request. Keep the bearer private. No BlueSky credentials are needed.
 

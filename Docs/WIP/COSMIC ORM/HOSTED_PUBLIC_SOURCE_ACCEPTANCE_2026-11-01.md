@@ -1,6 +1,6 @@
 # Hosted public-source acceptance — 1 November 2026
 
-Current milestone (2 November 2026): BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6dfdbc6c SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen. Cached public AppView only; generic copies retain identity/name/description/provenance, not all native metadata. Card publication pending; browser unverified. Current totals50integrated/46hosted/5browser/41open; older dated checkpoints below are historical.
+Current milestone (2 November 2026): BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6dfdbc6c SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen. Cached public AppView only; generic copies retain identity/name/description/provenance, not all native metadata. Card published/byte-verified; browser unverified. Current totals50integrated/46hosted/5browser/41open; older dated checkpoints below are historical.
 
 Latest: **45 scoped hosted HTTP providers**, including ChainLink. Browser proof remains **5**; **40 open**. ChainLink native3/2, Mongo5/4, repeat0new/2existing, privacy0/3 and matching replicas2/2 each pass at parent09c66998c/Core990c1c7; code215b4b51/settings3a00f63f SUCCESS. Card80633dc/97client tests/public asset bytes verified. [ChainLink evidence](CHAINLINK_PUBLIC_SOURCE_STATUS.md). Historical counts below retain original releases/cohorts.
 
@@ -446,3 +446,7 @@ Parent7c498e0f/Core80b879b, settingsad7aab39 SUCCESS. Native3/2, paired5/4, repe
 
 
 Telos sandbox publication complete: Telos hosted HTTP acceptance is complete at parent7c498e0f2e8a97207fb8d511d35cea521e7e240c/Core80b879b0ef289ccfff3b7efefa5a9ff26e6b4135, settingsad7aab39 SUCCESS. Native3/2, paired5/4, reuse0new/2existing, private0/public3, replicas2/2 and two version1 saves/no pending pass. Website4ff3661c4ead0fc0b8df62c0be69cf17f5bf1685 publishes the Telos/Filecoin cards and pinned guides/C# links. All95client tests pass. Public HTML164814bytes/SHA2564853a50e7c7ef72aa63044d53d7c672c04b5723676a61dcc2e88f38749c545b0 and both scripts match exact git blobs. Browser interaction remains open; generic private demo records copy identity/name/description/provenance, not all native metadata. Raw public proof TestResults/TelosPublicSourceCurrent/public-assets-observation.json. No browser interaction inference.
+
+## BlueSky page publication - 2 November 2026
+
+Websiteac0ca0c3cffea71aa9b99ca437d2ee46fa20d9c1 publishes BlueSky with pinned guidea10c6661c and C#f36dd0d56 links. All98client tests pass. Public HTML171143bytes/SHA256dfa7084ba40e8fe691eb2fbf7f9c1c4d9cda7dcdcbade32026f6f9d0fd7fceee and both scripts match exact git blobs. Browser interaction remains open. Raw public observation: TestResults/BlueSkyPublicSourceCurrent/public-assets-observation.json; tests frontend-tests.log. HTTP/asset checks are separate from browser interaction.

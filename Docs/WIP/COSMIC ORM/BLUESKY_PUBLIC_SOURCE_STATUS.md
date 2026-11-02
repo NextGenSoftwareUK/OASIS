@@ -1,6 +1,6 @@
 # BlueSky public profile source qualification
 
-Updated1November2026. Native AppView and local CQL/actual C# CLI verified; API admission/local HTTP federation verified; hosted HTTP acceptance now passes; card publication pending. Current50integrated types include BlueSky native-only;46hosted proofs now include BlueSky.
+Updated1November2026. Native AppView and local CQL/actual C# CLI verified; API admission/local HTTP federation verified; hosted HTTP acceptance now passes; card published/byte-verified. Current50integrated types include BlueSky native-only;46hosted proofs now include BlueSky.
 
 ## Contract and evidence
 
@@ -61,10 +61,14 @@ Original intent/stable source owner/catalogue: `LocalState/COSMIC/HostedBlueSkyP
 
 ## Original hosted HTTP acceptance complete
 
-BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6dfdbc6c SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen. Cached public AppView only; generic copies retain identity/name/description/provenance, not all native metadata. Card publication pending; browser unverified.
+BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6dfdbc6c SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen. Cached public AppView only; generic copies retain identity/name/description/provenance, not all native metadata. Card published/byte-verified; browser unverified.
 
 Completion ACK: LocalState/COSMIC/HostedQueryAcceptance-BlueSkyOASIS/cql-http-acceptance.acknowledged.json. Native DID sets, public policy, exact private identities/owner/version and replica fields independently audited. No replay allowed. Raw evidence under TestResults/HostedCqlIntegrationCurrent:
 
 - BlueSkyOASIS-native-http.json: 14472bytes, SHA256 `8f2e57bd5f81d221989d7a869b76076fb71de16ef2e77b918b3271f4045f1bca`.
 - BlueSkyOASIS-client-http-flow.json: 38461bytes, SHA256 `0441e4d4e215e7bf729f88f5905fbca039126aeee05fca07dade3c2d2bfcebd5`.
 - BlueSkyOASIS-isolation-http.json: 5660bytes, SHA256 `ed04d4bfd4f843e76e8d7351a786b7427f00ff70988ab9a2caf3fadad4da16e5`.
+
+## BlueSky page publication - 2 November 2026
+
+Websiteac0ca0c3cffea71aa9b99ca437d2ee46fa20d9c1 publishes BlueSky with pinned guidea10c6661c and C#f36dd0d56 links. All98client tests pass. Public HTML171143bytes/SHA256dfa7084ba40e8fe691eb2fbf7f9c1c4d9cda7dcdcbade32026f6f9d0fd7fceee and both scripts match exact git blobs. Browser interaction remains open. Raw public observation: TestResults/BlueSkyPublicSourceCurrent/public-assets-observation.json; tests frontend-tests.log. HTTP/asset checks are separate from browser interaction.
