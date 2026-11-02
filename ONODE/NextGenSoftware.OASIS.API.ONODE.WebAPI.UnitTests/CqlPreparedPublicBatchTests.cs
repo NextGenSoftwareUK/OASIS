@@ -153,6 +153,10 @@ public sealed class CqlPreparedPublicBatchTests
         => await CheckPreparedBatch(1);
 
     [PublicBatchReviewFact]
+    public async Task ActualAkashCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
     public async Task ActualEclipseCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
@@ -198,6 +202,7 @@ public sealed class CqlPreparedPublicBatchTests
                 var type = Enum.Parse<ProviderType>(profile.Name);
                 ICosmicQueryStorageProvider source = type switch
                 {
+                    ProviderType.AkashOASIS => Providers.AkashOASIS.AkashPublicProviderMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.EclipseOASIS => Providers.EclipseOASIS.EclipsePublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.ENSOASIS => Providers.ENSOASIS.EnsPublicNameMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.BlockscoutOASIS => Providers.BlockscoutOASIS.BlockscoutPublicAddressMetadataSource.FromJson(profile.Value.GetRawText()),

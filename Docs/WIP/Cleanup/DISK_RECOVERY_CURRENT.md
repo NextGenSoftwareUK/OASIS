@@ -152,3 +152,16 @@ scope; original observation preserved, reconciled total comes from59actual
 per-target removal records. No extra deletion run to repair telemetry.
 Free before65,685,192,704bytes/after65,894,416,384bytes; logical removal and
 physical free change differ. Concurrent free-space changes are not attributed.
+
+## Completed Akash preparation build cleanup — 2 November
+
+After9pure publisher controls and the actual4preset-planning test passed,
+removed2,154,485,642logical bytes from186reviewed bin/obj targets in the assigned
+worktree. Per-target ledger CLEANUP_LEDGER.md; raw log/result under
+TestResults/DiskInventoryCurrent/akash-prepared-build-cleanup*. Known secret files
+retained; source/packages/runtimes/LocalState/required evidence untouched.
+Free61,041,795,072before/63,212,961,792after; not an attribution of all disk changes.
+Protected prepared hosted baseline/candidate remain pending deployment, not
+removable installation archives.120GBtarget remains unmet. Personal ML kept;
+previous rejected removals not retried. Outputs regenerate with cached SDK and
+packages; do not replay native qualification/acceptance to recreate evidence.

@@ -274,3 +274,39 @@ hosted configuration change, native qualification replay or website card yet.
 Next audited hosted publisher/candidate and actual preset checks; verify exact
 code release before any configuration apply/hosted cohorts. Earlier Eclipse
 image failure still lacks a specific cause; do not blindly replace its job.
+
+## Hosted candidate prepared and actual presets verified
+
+Scripts/Sandbox/Publish-HostedAkashPublicConfiguration.py reuses the shared
+protected mutation owner.9pure controls pass: exact sample/schema, independent
+permission/free tariff, no enrollment/example replacement, no paid reads,
+explicit sandbox, unchanged DNA/other settings, required queryable-key policy
+for encrypted copies, source-bound console/local proofs and exact-release guard.
+No service variables changed or deployment triggered by preparation.
+
+Protected original before188,598bytes/candidate191,254bytes retained under
+HostedSourceRolloutCurrent/akash-public-*-variables.dpapi. Exactly3candidate
+values: source JSON, read-only admission/free tariff and4partitioned examples.
+Legacy provider/DNA/unrelated configuration unchanged. One test over the actual
+public-only candidate export plans all4presets with shipping native/Mongo
+capabilities, without source activation or network requests.
+
+Evidence TestResults/AkashPublicSourceCurrent/publisher-controls.log
+SHA2562bc3ffc897ba7ebf81fb120305cf13b7f717fdc3fdad17fea445f823af224957;
+prepared-presets.trx SHA25653860528fd91bc35fa7eb8eef3846b9f9731907fe2716a24d46534a723c21956.
+Public reviews prepared-review.json/actual-preset-review.json are raw regenerable
+outputs, not committed evidence. Protected originals/source owners remain frozen.
+
+Next one code-only Development publication of the newly verified Akash feature,
+with its own exclusive release intent and exact-job observation. This is the
+first Akash code publication; earlier failed Eclipse job remains terminal and
+unexplained, with no speculative packaging correction. Apply no source settings
+until the exact new release succeeds, then use the original owner/cohort gates.
+Shared baselines for separately prepared Eclipse/Akash candidates require explicit
+reconciliation if either changes; never overwrite or blindly replay them.
+
+After tests/services stopped,186reviewed generated-output targets cleaned under
+lease:2,154,485,642logical bytes removed, secrets retained. No SDK/packages/source,
+LocalState/config/ACKs or test evidence removed. Free61,041,795,072before /
+63,212,961,792after; concurrent allocation means delta differs from logical bytes.
+No .NET rebuild/native replay merely to restore green receipts.
