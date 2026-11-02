@@ -35,3 +35,7 @@ existing live deployment/activation remains the immediate priority.
 ## Pinned client contract review
 
 Official js-ceramic commit4050fc1021e9a682d588fac662d3d7ef6f2eb73e (main observed at qualification) retained3source files/22546bytes plus SHA256 manifest in LocalState/COSMIC/CeramicPublicQualificationCurrent/sdk. HTTP client uses api/v0 and exposes loadStream/multiQuery with StreamID/CommitID references; network enum distinguishes mainnet/testnet-clay/local/inmemory. The client default is localhost:7007, not evidence of a free hosted endpoint. No native stream read performed. Next inspect multiQuery response serialization/state and operator-authorized public endpoint/known existing StreamIDs.
+
+## Original existing-endpoint check
+
+One anonymous GET to the existing official-tutorial Clay endpoint /api/v0/node/healthcheck failed with urllib URLError before any HTTP response was captured. Specific underlying cause was not retained, so DNS/TLS/connectivity attribution is unproven. The chain query was not sent. Original exclusive intent/report retained CeramicPublicQualificationCurrent/endpoint-readiness.*. No retry/alternate transport/header/endpoint, stream, DID or write. This is a failed historical testnet access check, not a Ceramic protocol/CQL failure or global service outage. Current legitimate access and public StreamIDs remain unresolved.
