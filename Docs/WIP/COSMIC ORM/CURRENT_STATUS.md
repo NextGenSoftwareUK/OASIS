@@ -42,8 +42,8 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
    Evidence/ACK: `LocalState/COSMIC/HostedQueryAcceptance-ZcashOASIS`.
    Zcash card published at website3141cca9491d585ed0b1c8aab7a52c7dd5bbc948;
    HTML and both JS assets match exact Git blobs. Browser gate remains closed.
-   Next ClickHouse public-source schema/3then2qualification; preserve original
-   absentStackOverflowtable failure. Do not replay accepted Zcash.
+   Next implement ClickHouse read-only country CQL adapter: native countries3/2
+   qualified,4newcontrols pass; original absentStackOverflowtable failure retained. Do not replay accepted Zcash.
 5. Durable Zcash state: `LocalState/COSMIC/HostedZcashPublicSourceCurrent`,
    `ZcashPublicQualificationCurrent`, `ZcashMongoHttpCurrent` (cleaned),
    `HostedZcashReleaseCurrent`. Preserve owners/config/intents/ACKs; no reseeding.
@@ -51,7 +51,7 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 ## Remaining gates
 
 - [ClickHouse qualification](CLICKHOUSE_PUBLIC_SOURCE_STATUS.md): public read-only
-  identity verified; bounded catalogue found blogs.countries, exact schema next.
+  identity/schema and real countries3/2 verified; adapter/manager/HTTP remain red.
 
 - [Zcash details](ZCASH_PUBLIC_SOURCE_STATUS.md): hosted proof/card/static bytes pass; browser open.
 - [Ceramic qualification](CERAMIC_PUBLIC_SOURCE_STATUS.md): pinned official
