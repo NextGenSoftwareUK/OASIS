@@ -5,7 +5,8 @@ catalogue through COSMIC ORM. It does not submit blobs or use the legacy node
 wallet configuration. Local source tests and the executable C# walkthrough pass;
 Local HTTP native3/2+Mongo5/4/privacy0/3 and query-only admission pass;
 hosted native3/2+Mongo5/4/reuse/privacy/exact replicas2/2 now pass.
-The live sandbox card and browser interaction have separate pending gates.
+The sandbox card is published with pinned setup and C# links. Browser
+interaction remains a separate open gate.
 
 ## Run the existing C# demo
 

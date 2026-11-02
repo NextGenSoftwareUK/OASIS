@@ -172,3 +172,20 @@ writes, complete ORM support or universal HyperDrive reliability proof.
 | `TestResults\HostedCqlIntegrationCurrent\CelestiaOASIS-native-http.json` | 14713 | `b98a54a8b161342d465e3d2c0bbe676539a235caf8a2e5ac01f9233ac1bbcf11` |
 | `TestResults\HostedCqlIntegrationCurrent\CelestiaOASIS-client-http-flow.json` | 38406 | `fc4ce45717556a9f4d543c8918ca7c92c902248d0ee0a45091d4d6b766d074e5` |
 | `TestResults\HostedCqlIntegrationCurrent\CelestiaOASIS-isolation-http.json` | 5985 | `a855616d42e24fa195d5857266cfb73b06181adcc834ef827d011e925ca8361f` |
+
+
+## Public sandbox publication verified
+
+Website task/main6a863c74a804a832a9f42088f9055c750f6d7d8f verified remotely.
+Celestia card has native/filter/Mongo instructions, precise proof limits and
+pinned guide/C#links. HTML parses/IDs unique;107client controls pass, no new JS
+change. Three anonymous public GETs match exact git blobs. Observation:
+TestResults/CelestiaPublicSourceCurrent/public-assets-observation-1.json; immutable
+site ACK under HostedCelestiaReleaseCurrent. Browser interaction remains open;
+original source/catalogue/cohort/save ACKs frozen. Hosted52/browser5/open47.
+
+| Public asset | Bytes | SHA256 |
+|---|---|---|
+| `web4-sandbox.html` | 185401 | `300ae8ead82af8ff5dddc775fdcd1fcaae5f14d3a9b74a55ea274d15bf065ba5` |
+| `cql-demo-preparation.js` | 10241 | `c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a` |
+| `cql-playground.js` | 21871 | `7cb6210b9adda1e83630fc966926772f8338c43163c24d1abd88c626ad1ad649` |
