@@ -974,3 +974,5 @@ The spaced/commented `MatrixPublicWalkthrough.cs` uses HolonManager/deferred LIN
 ## Stacks public principal state (local C#)
 
 `StacksPublicWalkthrough.cs` uses the shared HolonManager/deferred LINQ for three configured principals, then a two-key membership selection. Run the existing built demo with `--stacks-public LocalState/COSMIC/HostedStacksPublicSourceCurrent/source.json`. Retain the same source owner/configuration. Each selection uses one derived explicit node tip; separate queries can see different tips. No signing, transaction, source write or Mongo copy occurs. [Setup, C# and trust/precision limits](../../Docs/Devs/STACKS_PUBLIC_PRINCIPAL_CQL_GUIDE.md).43source tests and actual3/2 console pass; HTTP/Mongo/host/browser gates remain separate and pending.
+
+Wormhole: `--wormhole-public <retained-source.json>` runs the commented `WormholePublicWalkthrough.cs` over three configured message tuples and their pinned VAA body fingerprints, then filters to two. See [configuration and scope](../../Docs/Devs/WORMHOLE_PUBLIC_OPERATION_CQL_GUIDE.md). Local CLI verified; HTTP/Mongo/hosting separate and pending. No cross-chain dispatch/signature trust claim.

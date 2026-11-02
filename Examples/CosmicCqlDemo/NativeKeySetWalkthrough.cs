@@ -63,6 +63,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.NostrOASIS => "NostrEventId",
             ProviderType.MatrixOASIS => "MatrixRoomAlias",
             ProviderType.BlockStackOASIS => "StacksPrincipal",
+            ProviderType.WormholeOASIS => "WormholeOperationId",
             ProviderType.SeiOASIS => "SeiAccountAddress",
             ProviderType.ZkSyncOASIS => "ZkSyncAccountAddress",
             ProviderType.AbstractOASIS => "AbstractAccountAddress",
