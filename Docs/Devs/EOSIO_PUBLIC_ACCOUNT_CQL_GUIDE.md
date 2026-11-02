@@ -2,6 +2,34 @@
 
 This anonymous read-only profile projects a configured native EOSIO/Vaulta account catalogue into public holons. It is separate from the credentialed EOSIO storage provider and from Vaulta EVM. It cannot sign transactions, save native records or become a write/replication authority.
 
+## First setup on another developer machine
+
+No EOSIO account, wallet, funding or local chain node is required. Reuse a suitable existing checkout and .NET10 installation. Create one retained anonymous catalogue; keep its owner stable and never overwrite an existing configuration:
+
+```powershell
+$cataloguePath = Join-Path $PWD 'LocalState/COSMIC/HostedEosioPublicSourceCurrent/source.json'
+New-Item -ItemType Directory -Force -Path (Split-Path $cataloguePath) | Out-Null
+
+$catalogue = @{
+    schema = 1
+    apiUrl = 'https://vaulta.greymass.com/'
+    chainId = 'aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906'
+    accounts = @('eosio', 'eosio.token', 'eosio.msig')
+    sourceOwner = [Guid]::NewGuid().ToString('D')
+} | ConvertTo-Json
+
+# CreateNew refuses replacement, preserving projected identities across runs.
+$stream = [IO.File]::Open($cataloguePath, [IO.FileMode]::CreateNew)
+try {
+    $stream.Write([Text.Encoding]::UTF8.GetBytes($catalogue))
+    $stream.Flush($true)
+} finally {
+    $stream.Dispose()
+}
+```
+
+This creates local public configuration only; it does not create blockchain accounts or save holons. The normal application may query this catalogue repeatedly. The agent qualification/acceptance runners have stricter journal rules to preserve their original test cohorts.
+
 ## Run the C# demo
 
 Reuse the retained public source configuration in this worktree:

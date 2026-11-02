@@ -22,7 +22,7 @@ Updated 1 November 2026. Native qualification and local CQL/actual C# CLI verifi
 
 These are latest native state per account, not a shared finalized snapshot. Identity responses reported head528551466 while account responses reported528551467/468. No common-block freshness guarantee. Native EOSIO/Vaulta is separate from Vaulta EVM17777. Legacy storage gaps remain documented, not modified.
 
-Next: observe code job `68db832f-1742-423d-9362-febcf9620466` for Development `4d3e0b7cd148bed7ebdf0400ca371867873932c0` / Core `86e38a37ee860785a8273ade3308f6fc1775294d`. It is QUEUED at the last authoritative observation. Only after SUCCESS, check out that exact release for the guarded three-key application (no detached commits), apply once, observe the single settings deployment, restore the task branch, then run original hosted acceptance and publish its sandbox card. No EOSIO hosted or browser claim yet.
+Next: observe code job `68db832f-1742-423d-9362-febcf9620466` for Development `4d3e0b7cd148bed7ebdf0400ca371867873932c0` / Core `86e38a37ee860785a8273ade3308f6fc1775294d`. It is BUILDING at the last authoritative observation. Only after SUCCESS, check out that exact release for the guarded three-key application (no detached commits), apply once, observe the single settings deployment, restore the task branch, then run original hosted acceptance and publish its sandbox card. No EOSIO hosted or browser claim yet.
 
 ## API / local HTTP milestone
 
