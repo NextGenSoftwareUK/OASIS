@@ -107,3 +107,32 @@ consensus/DA-sampling claim. Source56integrated/49public profiles; hosted stays5
 | `LocalState/COSMIC/HostedCelestiaPublicSourceCurrent/source.json` | 398 | `d30c915410b522ad352a8540a25d82013ebae050caa1edb4a77ba3b5017d830c` |
 | `Providers/Network/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS.dll` | 79872 | `c9b8828b1ba9dd05c6cc95c83fd0780017e2fd19447b09fc79ce30e294aec0cf` |
 | `Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll` | 911872 | `081a0b13f9d678edf37b1181bac7a7b8faad5866eb1223b17cdb21ef0cf9648a` |
+
+
+## Local HTTP/Mongo milestone verified
+
+Shipping WEB4 build0errors. Core query-only tariff1/API admission3/publisher9/
+actual prepared presets1/client107 controls pass. Local native HTTP1test passes:
+3/2source rows,5/4Mongo pairs, foreign-private0/public3,9query receipts. Two
+SDK-owned version1 private copies seeded through HolonManager; controlled bearer/
+billing fixtures are not production billing or replication certification.
+Exact owned DB removed after marker/count checks, Mongo stopped and27029absent.
+Original fixture intent/save ACKs/cleanup retained at LocalState/COSMIC/CelestiaMongoHttpCurrent.
+No replay/resave/owner/pin replacement.
+
+Core task7edffc773e76ab565f204ec34e87520e020910e0 pushed/remote verified; parent
+gitlink and deployment manifest advanced together. Three-key candidate prepared
+once under HostedSourceRolloutCurrent/celestia-public-*; full review and four
+presets retained below. No live settings applied/deployment requested yet. Next
+commit/integrate exact batch, observe code SUCCESS, then apply/activate once,
+original hosted acceptance and only then public card. Hosted count stays51.
+
+| Evidence | Bytes | SHA256 |
+|---|---|---|
+| `TestResults/CelestiaPublicSourceCurrent/mongo-http-native.trx` | 3371 | `f688214277985d89d3e0d6b34282a399ca097bae40570bec73066a22b7273834` |
+| `TestResults/CelestiaPublicSourceCurrent/celestia-mongo-native-summary.json` | 229 | `10d5efd2067ab828b805e773c2c266a94de1302f07a2c70523e4fbb172adfc84` |
+| `TestResults/CelestiaPublicSourceCurrent/Http/core-tariff.trx` | 3315 | `b518105159834f98e9a866521a339d44b39c37c12c763016fd7ad8f14446dad6` |
+| `TestResults/CelestiaPublicSourceCurrent/Http/api-admission.trx` | 6604 | `5d8e75ffb93535a5d05483d7aa6550d98f67970dc02c700736d5b1345ddc01fb` |
+| `TestResults/CelestiaPublicSourceCurrent/Http/prepared-presets.trx` | 3338 | `a365d25b9d072cced303407a6ec05aa80daba68e524d011f1da074fd8493639e` |
+| `TestResults/CelestiaPublicSourceCurrent/prepared-review.json` | 4023 | `83638bddfd5f485622ec9c4e2ce8241ad6a9307d5753e5831c21a2c8a96fa2ca` |
+| `TestResults/CelestiaPublicSourceCurrent/client-all-tests.log` | 10369 | `fd6e9006e1f82528635a8befaac89cc2fe4a32fb6e8ffdcdd0a99de455520d9e` |
