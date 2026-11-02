@@ -4187,3 +4187,6 @@ passed offline; Python/runtime/cache reused, no processes/ports.
 Existing Web4Site taska5ae6ae14HTMLlines prepared/pushed, main20129f5unchanged.
 Source checkout reusable, no JS/dependency download/install; publish only after
 first hosted proof.188generated folders remain policy-rejected/preserved.
+Bittensor same remote code job advanced QUEUED->BUILDING; existing delivery
+infrastructure active, remote image size unmeasured. No local resource changes
+or replacement job/settings/cohort. Continue observing exact original handle.
