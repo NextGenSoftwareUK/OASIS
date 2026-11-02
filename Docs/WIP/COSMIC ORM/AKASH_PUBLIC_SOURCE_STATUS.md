@@ -310,3 +310,24 @@ lease:2,154,485,642logical bytes removed, secrets retained. No SDK/packages/sour
 LocalState/config/ACKs or test evidence removed. Free61,041,795,072before /
 63,212,961,792after; concurrent allocation means delta differs from logical bytes.
 No .NET rebuild/native replay merely to restore green receipts.
+
+## First Akash Development code publication observed
+
+After fresh fetch/ancestor checks, Coref42dd8cbb63573644793656af5de95d3a18a773a
+and parent105329a3fc84e8505a6779d3291de806858c23c2 normal fast-forward pushed to
+Development; both exact ls-remote SHAs verified. No branch switches, force push,
+production/master promotion or hosted settings mutation. Manifest/sevenDockerfiles/
+gitlinks validated before publication. This is a first release of tested Akash
+functionality, not a speculative correction/restart of the old Eclipse failure.
+
+Exact new code jobc8ebe618-9946-4546-bdf7-3f810039640b observedQUEUED for105329a3f.
+Durable HostedAkashReleaseCurrent/code-publication.intent.json, observed JSON and
+metadata.dpapi1398bytes retained. Compact report TestResults/AkashPublicSourceCurrent/
+code-deployment-observation.json. Observe the same handle to terminal; no new
+submission because observation expires. Keep all settings/cohorts unapplied.
+
+Only after exact codeSUCCESS: clean checkout of105329a3f, expected-release env,
+guarded original candidate apply once, restore task branch; then one original
+activation and hosted/private-save/replica acceptance. Reconcile any baseline
+change explicitly. No root cause established for old Eclipse job, which remains
+preserved. Current60local/54hosted/5browser counts unchanged by publication.

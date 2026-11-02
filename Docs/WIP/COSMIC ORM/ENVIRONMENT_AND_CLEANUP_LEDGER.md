@@ -3632,3 +3632,26 @@ or bypass of denied ChainLink/dump/archive targets. Build outputs lifecycle remo
 rebuild from existing SDK/packages only when new work needs them, never rerun
 completed native gates. Next first code-only Akash release publication, authorized
 standing dev cadence exception; preserve previous failed Eclipse job/diagnostics.
+
+2026-11-02 first Akash code-only Development publication planned: exact parent
+105329a3fc84e8505a6779d3291de806858c23c2/Coref42dd8cbb63573644793656af5de95d3a18a773a;
+Core1/API3/nativeHTTP1/publisher9/actualpresets1 plus earlier source/C#proofs pass.
+Manifest/sevenDockerfiles/gitlinks validate. Fresh fetch/ancestor checks show no
+concurrent Development changes. Push normal fast-forward Core then parent,
+verify ls-remote, no force/branch switch/new worktree. One new-feature batch,
+not retrying original failed Eclipse job or claiming its cause fixed. Source
+settings remain unapplied until exact release succeeds. Existing Git/Railway
+runtimes/auth reused; no install/download/local build or hosting allocation.
+Durable original publication intent HostedAkashReleaseCurrent, protected job
+metadata/compact observations there and TestResults/AkashPublicSourceCurrent.
+
+2026-11-02 first Akash code publication completed: exact Coref42dd8cbb63573644793656af5de95d3a18a773a
+and parent105329a3fc84e8505a6779d3291de806858c23c2 fast-forward published to
+Development and ls-remote verified. Exact jobc8ebe618-9946-4546-bdf7-3f810039640b
+observedQUEUED, no settings/activation/hosted cohort/native fixture replay.
+HostedAkashReleaseCurrent publication intent/observation and protected metadata
+1398bytes active/preserved until terminal reconciliation. Raw compact observation
+TestResults/AkashPublicSourceCurrent. No local build/download/new environment,
+new hosting allocation or production/master promotion. Existing31WSLcontainers/
+personal ML/rejected archives untouched. Follow-up status committed to task branch
+only to avoid another Railway build solely for queued-job documentation.
