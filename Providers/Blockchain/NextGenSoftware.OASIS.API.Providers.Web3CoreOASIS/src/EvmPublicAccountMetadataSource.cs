@@ -34,12 +34,15 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
     // This is an immutable provider descriptor, never a request option or a
     // fallback after an unsupported finalized read. Existing profiles keep their policy.
     protected enum ReadBlockPolicy { Finalized, LatestCanonicalAtRead }
+    protected enum GenesisIdentityKind { EthereumBlockHash, FilecoinTipsetCid }
     protected sealed record Network(PType Provider, string Name, string ChainId, string GenesisHash,
         string AddressMetadata, string RpcPath = "/",
         BlockHashWireFormat BlockHashes = BlockHashWireFormat.CanonicalLowercase)
     {
         // Preserve the existing constructor contract for compiled provider plugins.
         public ReadBlockPolicy ReadPolicy { get; init; } = ReadBlockPolicy.Finalized;
+        public GenesisIdentityKind GenesisIdentity { get; init; } = GenesisIdentityKind.EthereumBlockHash;
+        public string NativeGenesisCid { get; init; }
     }
     private readonly AccountsBackend accounts;
     private bool disposed;
@@ -263,10 +266,29 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
             // alone is insufficient to distinguish a misconfigured chain.
             var identity = await RpcAsync("eth_chainId", Array.Empty<object>(), token);
             if (identity.GetString() != chainId) throw new InvalidDataException("Native chain ID differs.");
-            var genesis = await RpcAsync("eth_getBlockByNumber", new object[] { "0x0", false }, token);
-            if (Hash(genesis.GetProperty("hash"), Identity.BlockHashes) != Identity.GenesisHash ||
-                genesis.GetProperty("number").GetString() != "0x0")
-                throw new InvalidDataException("Native EVM genesis differs.");
+            // Identity is selected by the immutable provider descriptor. Never
+            // switch methods after a failed genesis request or trust chain ID alone.
+            switch (Identity.GenesisIdentity)
+            {
+                case GenesisIdentityKind.EthereumBlockHash:
+                    var genesis = await RpcAsync("eth_getBlockByNumber", new object[] { "0x0", false }, token);
+                    if (Hash(genesis.GetProperty("hash"), Identity.BlockHashes) != Identity.GenesisHash ||
+                        genesis.GetProperty("number").GetString() != "0x0")
+                        throw new InvalidDataException("Native EVM genesis differs.");
+                    break;
+                case GenesisIdentityKind.FilecoinTipsetCid:
+                    var tipset = await RpcAsync("Filecoin.ChainGetGenesis", Array.Empty<object>(), token);
+                    if (tipset.GetProperty("Height").GetInt64() != 0 ||
+                        tipset.GetProperty("Cids").GetArrayLength() != 1)
+                        throw new InvalidDataException("Native Filecoin genesis tipset differs.");
+                    var cid = tipset.GetProperty("Cids")[0];
+                    if (cid.EnumerateObject().Count() != 1 ||
+                        cid.GetProperty("/").GetString() != Identity.NativeGenesisCid)
+                        throw new InvalidDataException("Native Filecoin genesis CID differs.");
+                    break;
+                default:
+                    throw new InvalidDataException("Unknown native genesis identity policy.");
+            }
             var tag = Identity.ReadPolicy switch {
                 ReadBlockPolicy.Finalized => "finalized",
                 ReadBlockPolicy.LatestCanonicalAtRead => "latest",

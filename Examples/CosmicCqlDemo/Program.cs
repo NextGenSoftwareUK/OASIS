@@ -5,6 +5,15 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// Explicit public FEVM balance profile. Reuse one retained catalogue;
+// no wallet, chain transaction or source fixture is created by the demo.
+if (args.Length == 2 && args[0] == "--filecoin-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await FilecoinPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Explicit read-only Base source; reuse its retained stable catalogue.
 // Explicit anonymous Optimism read profile; no wallet or fixture creation.
 if (args.Length == 2 && args[0] == "--linea-public")
