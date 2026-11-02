@@ -3372,3 +3372,10 @@ Eclipse local HTTP outcome:1native test passed;3/2native+5/4paired/private0/publ
 Eclipse candidate outcome: existing protected before/candidate snapshots created once,3changed keys/DNA unchanged. Actual4preset planner1test passed, no live mutation. Native fixture and planner handles terminal; Mongo stopped/27029absent. Free disk47,570,071,552bytes after. Planned durable release journal LocalState/COSMIC/HostedEclipseReleaseCurrent tracks exact code/settings jobs, no new cloud resource/environment. Preserve original source/owner/ACKs; no native replay.
 
 Eclipse code publication: exact Development job7c15337e-d4b6-438b-945d-d5eab1a946a6 QUEUED for parentdbc5c6f75da35c03a482fab58b3c6006ad494df2/Core5375672c1e8e9411f017dc0fc766622fd0c08ecb, remote SHAs verified. Existing hosted service reused; no new resource/environment or hosting spend. Durable code intent/observed journal HostedEclipseReleaseCurrent, no settings/cohort yet. Preserve existing candidate/config/owner; only observe same job, do not replay native fixture or redeploy.
+
+
+### Eclipse offline acceptance audit allocation - 2 November 2026
+
+Existing Python3.12/source proof shapes reused; new audit/test files Scripts/Sandbox/Audit-HostedEclipseAcceptance.py and test_eclipse_acceptance_audit.py. Planned controlled log TestResults/EclipsePublicSourceCurrent/acceptance-audit-controls.log, no network/save/session/database/install/build/environment. Future final ACK only after original hosted cohort at LocalState/COSMIC/HostedQueryAcceptance-EclipseOASIS; not created yet. Existing queued deployment/source/candidate immutable.
+
+Eclipse audit outcome:2controlled test methods pass incl12negative subcases, actual key/genesis fixtures, exact API wrapper shapes. Final log TestResults/EclipsePublicSourceCurrent/acceptance-audit-controls-final.log; first provisional fixture log also retained. Python process terminal; no network/database/account/service or environment created. Final actual cohort ACK not created until live evidence exists. Same queued code job re-observed, no restart/settings mutation/native replay.
