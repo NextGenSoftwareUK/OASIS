@@ -61,3 +61,29 @@ Official sources: [Snapchain UserData API](https://snapchain.farcaster.xyz/refer
 [Pinata's public-Hub announcement](https://pinata.cloud/blog/why-we-are-all-in-on-farcaster/).
 The older announcement establishes the operator's published service intent;
 the captured native/DNS observations determine availability for this attempt.
+
+## Current access review (2 November 2026)
+
+The [official getting-started guide](https://snapchain.farcaster.xyz/getting-started)
+requires16GB RAM/4cores/2TB free storage for self-hosting and recommends a managed
+service for quick setup. No node was installed or snapshot downloaded. The
+[account-profile guide](https://docs.farcaster.xyz/developers/guides/querying/fetch-profile)
+requires read access to a Snapchain instance; its localhost example does not
+establish an available anonymous hosted service. No suitable free Farcaster
+endpoint was verified by this review; this is not proof that none exists.
+
+The [operator's Hypersnap network page](https://hypersnap.org/network) advertises
+a public Farcaster-compatible API, but [its own overview](https://hypersnap.org/)
+identifies Hypersnap as a separate evolution of the network. Compatibility is
+insufficient evidence to label its data canonical Farcaster/Snapchain. Its
+third-party Pinata status also cannot replace our original DNS observation.
+No Hypersnap/native request or alternate-endpoint continuation was made.
+
+Original3files/469bytes were hash-checked against the table above, then copied
+exclusively to `LocalState/COSMIC/FarcasterPublicQualificationCurrent/` with the
+same filenames/hashes. This preserves the consumed intent across TestResults
+cleanup; original files remain untouched. Never regenerate that intent.
+
+Farcaster remains red pending a legitimate selected free interface and explicit
+lineage-bound qualification. Continue Lens public-account interface review,
+not paid setup, a2TB node or a compatibility-only admission. No David action.
