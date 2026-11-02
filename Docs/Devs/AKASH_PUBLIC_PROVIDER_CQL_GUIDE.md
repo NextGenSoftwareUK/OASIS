@@ -42,6 +42,24 @@ unknown fields and duplicate fields are rejected.
 Activation checks every configured provider through bounded point reads. Query
 execution uses only configured keys; it never rediscovers the network catalogue.
 
+For a first local demo, save this JSON to the configuration path used above and
+replace the GUID placeholder once. Generate a GUID with `New-Guid` in PowerShell,
+then keep it stable across runs so public provider records retain their OASIS IDs.
+An existing demo configuration should keep its current GUID and sample.
+
+```json
+{
+  "schema": 1,
+  "apiUrl": "https://console-api.akash.network/",
+  "providerOwners": [
+    "akash10cl5rm0cqnpj45knzakpa4cnvn5amzwp4lhcal",
+    "akash1ccktptfkvdc67msasmesuy5m7gpc76z75kukpz",
+    "akash1f6gmtjpx4r8qda9nxjwq26fp5mcjyqmaq5m6j7"
+  ],
+  "sourceOwner": "<your stable nonempty GUID>"
+}
+```
+
 ## Query shape
 
 The walkthrough calls `NativeKeySetWalkthrough`, which follows this pattern.
@@ -114,3 +132,11 @@ the marked test database after verification. Core1/API3admission controls pass.
 The local test uses controlled bearer/billing infrastructure, not production
 signup/billing or replication. Hosted enrollment/replica/browser gates remain open. See [current Akash evidence](../WIP/COSMIC%20ORM/AKASH_PUBLIC_SOURCE_STATUS.md)
 for what has actually passed; this guide does not certify those later stages.
+
+
+Hosted functional HTTP checks also pass: three/two native rows, five/four with
+Mongo, no new saves on repeat preparation, visitor isolation and two matching
+replicas each in SQLite and Neo4j. The original two normal API saves remain at
+version one with settled operation acknowledgements. This establishes the scoped
+read/snapshot/federation demo, not full ORM parity or a production availability
+guarantee. Browser interaction remains a separate unverified gate.
