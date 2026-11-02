@@ -1,6 +1,6 @@
-# Eclipse public source — hosted HTTP accepted; sandbox card next
+# Eclipse public source — hosted HTTP and sandbox publication accepted
 
-Updated2November2026. Separate baseline reconciliation preserved original source/owner/genesis/candidates.3settings applied once; activationfcaa8d3aSUCCESS at105329a3f. First original hosted3/2+5/4/reuse/privacy/exact replicas and independent audit pass;2normal API version1saves/pending0. Card/browser open. Earlier sections are historical; latest proof is at the end.
+Updated2November2026. Separate baseline reconciliation preserved original source/owner/genesis/candidates.3settings applied once; activationfcaa8d3aSUCCESS at105329a3f. First original hosted3/2+5/4/reuse/privacy/exact replicas and independent audit pass;2normal API version1saves/pending0. Card/public bytes20129f5verified; browser open. Earlier sections are historical; latest proof is at the end.
 
 
 2 November 2026. Native protocol and actual local CQL console qualified; HTTP/hosted/card
@@ -355,3 +355,30 @@ Private snapshots retain identity/name/description/provenance/key, not native
 balance/slot payload. No full migration, reliability or browser certification.
 Next publish held Eclipse sandbox entry with pinned guide/C#links and exact public
 bytes. Programme60integrated/56hosted/5browser/51open; no EF/ORM completion claim.
+
+## Eclipse sandbox entry published/public bytes verified
+
+Existing frontend task/main20129f567a6ba1e4ce32f600e37c42ca13b8d97b published after
+hosted acceptance. Fresh main fetch/merge already up to date; no concurrent work
+lost.14HTMLlines only, no JS/dependency/environment change. Card labels scoped
+native3/2+Mongo5/4/reuse/privacy/exact replicas and browser-open status honestly;
+local spaced C#command, ETH9decimals and RPC-reported finality/account-data limits
+included. Guide pin8395e0a66819e0de76a3f317d8385ea82bbc11cd and C#pin105329a3f
+checked against actual Git blobs. Duplicate new DOMIDs/diff/link checks pass.
+
+All3public assets byte-match exact git blobs:
+
+- web4-sandbox.html194727bytes SHA256e40b4bd696619ce3a0da51973162996420f13ad8792d5fd0c452ecf26d8743f0.
+- cql-demo-preparation.js10241bytes SHA256c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a.
+- cql-playground.js21871bytes SHA2567cb6210b9adda1e83630fc966926772f8338c43163c24d1abd88c626ad1ad649.
+
+Raw compact observation TestResults/EclipsePublicSourceCurrent/published-site-observation-1.json.
+Public retrieval/HTML validation is not browser interaction proof. JS unchanged;
+no need to replay green native gates or browser cohorts. Freeze all completed
+Eclipse code/source/owner/candidate/lineage/cohort/release records.
+
+Programme60integrated/56scopedhosted/5browser/51open, no full ORM/EF/reliability
+claim. Next remaining red provider review: official free/public Farcaster/Snapchain
+interface availability, preserving consumed Pinata failure and requiring a linked
+explicit continuation before any new native attempt/admission. No paid setup,
+legacy changes, new environment or blind endpoint bypass.
