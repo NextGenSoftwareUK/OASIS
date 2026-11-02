@@ -1,6 +1,6 @@
 # Telos EVM public CQL candidate
 
-1 November 2026. Protocol qualified only. No Telos CQL implementation/admission/hosted claim or count increment. Filecoin hosted acceptance remains the immediate priority.
+1 November 2026. Protocol qualified only. No Telos CQL implementation/admission/hosted claim or count increment. Filecoin hosted acceptance/card/public bytes are complete; Telos descriptor/native C# is next.
 
 ## Verified native contract
 
