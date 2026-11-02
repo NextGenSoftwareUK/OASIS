@@ -5,6 +5,14 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// Blockscout reads an explicit public explorer catalogue without API keys.
+if (args.Length == 2 && args[0] == "--blockscout-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await BlockscoutPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Celestia uses retained mainnet heights and pinned reported header IDs.
 if (args.Length == 2 && args[0] == "--celestia-public")
 {

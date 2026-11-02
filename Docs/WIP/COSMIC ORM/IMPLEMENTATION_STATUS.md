@@ -4,7 +4,7 @@ Updated 2 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CUR
 
 | Scope | Verified state | Remaining acceptance |
 |---|---|---|
-| Provider breadth | 56 integrated query types; 52 scoped hosted functional HTTP proofs | Additional red providers and owned native writes; public projections do not establish full ORM support |
+| Provider breadth | 57 integrated query types; 52 scoped hosted functional HTTP proofs | Additional red providers and owned native writes; public projections do not establish full ORM support |
 | Browser | 5 provider proofs | 47 browser gates open; HTTP/asset matching is not browser interaction |
 | Nostr reliability limit | Nostr: native3/2, Mongo5/4, repeat/privacy/replicas pass; original cohort0extra saves, card7e2046d/99tests/public bytes verified | Earlier intermittent503cause remains unresolved despite eight passing diagnostic reads; browser interaction and full native payload mapping remain open |
 | Fantom | Native/CLI/local/hosted HTTP, Mongo pairing/reuse/privacy/replicas and card/public bytes pass | Browser interaction and broader ORM scope remain open |

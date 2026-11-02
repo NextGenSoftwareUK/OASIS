@@ -5,7 +5,7 @@ deep LINQ parity paused. Work red scopes only unless a bug is reproduced.
 
 ## Verified scope
 
-- 56 integrated query types:3canonical adapters/49bounded public-source profiles/4local PostgreSQL, Cosmos, Oracle and AWS implementations.
+- 57 integrated query types:3canonical adapters/50bounded public-source profiles/4local PostgreSQL, Cosmos, Oracle and AWS implementations.
 - 52 scoped hosted functional HTTP proofs/query tariffs; browser5verified/47open. These are not full ORM/native-write/reliability certifications.
 - MongoDB/SQLite/Neo4j parity50/82rows each; original investor-demo subset green.
 - Latest hosted addition Celestia: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, exact SQLite/Neo4j2/2. Two original normal API version1 saves/pending0. Independent original-header/source-owner/key/operation/replica audit ACK frozen.
@@ -25,8 +25,8 @@ deep LINQ parity paused. Work red scopes only unless a bug is reproduced.
 ## Exact next step
 
 1. Preserve Celestia and all prior completed owners/catalogues/ACKs/cohorts. Do not replay qualification/setup/saves/settings/activation merely for another green result.
-2. Implement next red Blockscout CQL source from BLOCKSCOUT_PUBLIC_SOURCE_STATUS.md. Native protocol already qualified:3anonymous guarded GETs200,6controls/1native test pass. Original3addresses/intent/outcome retained under BlockscoutPublicQualificationCurrent; no CQL source owner/admission/card yet, do not replay native qualification.
-3. Add bounded address equality/membership/paging with exact nullable balances and per-record indexed update blocks. Exclude private/watchlist/tag fields. Require controlled tests, actual spaced/commented manager/LINQ C# walkthrough, HTTP/Mongo/privacy and original hosted/replica acceptance before a public card. Legacy adapter unchanged.
+2. Blockscout local CQL source42controls passes; actual manager/deferred-LINQ C# demo3/2 passes in one explicit read-only completion. Original console15s native-read timeout and preflight field-selection failure retained; reliability cause remains unresolved. Original owner/config/intent/ACK below HostedBlockscoutPublicSourceCurrent; native3addresses/proof below BlockscoutPublicQualificationCurrent. Do not replay/replace either catalogue/owner. Next HTTP compiler/read-source activation/query-only admission/four presets and local native3/2+Mongo5/4/privacy before hosting/card. See BLOCKSCOUT_PUBLIC_SOURCE_STATUS.md.
+3. New Blockscout source supports bounded address equality/membership/paging, exact nullable balances and per-record update blocks; private/watchlist/tag/token payloads excluded. Endpoint-specific provenance prevents same-owner/address aliasing across explorers. No native writes, independent consensus or shared finalized snapshot. Source transport/timeout unchanged; legacy adapter unchanged. Do not claim reliability from the successful completion.
 4. Record every introduced/reused resource in the existing ledger, raw outputs only TestResults. Continue full report/docs at milestones. Deep parity remains paused; full ORM/HyperDrive programme incomplete.
 
 ## Preserved checkpoints and remaining scope
