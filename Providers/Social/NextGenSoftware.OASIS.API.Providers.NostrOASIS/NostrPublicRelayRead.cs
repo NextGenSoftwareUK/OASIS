@@ -21,8 +21,28 @@ internal static class NostrPublicRelayRead
         handler.UseCookies = false;
         using var invoker = new HttpMessageInvoker(handler, true);
         using var socket = new ClientWebSocket();
-        await socket.ConnectAsync(relay, invoker, deadline.Token);
-        return await ReadConnectedAsync(socket, ids, "cosmic-" + Guid.NewGuid().ToString("N"), deadline.Token);
+        await ConnectAsync(socket, invoker, relay, deadline.Token);
+        try { return await ReadConnectedAsync(socket, ids, "cosmic-" + Guid.NewGuid().ToString("N"), deadline.Token); }
+        catch (Exception error) when (error is not OperationCanceledException)
+        {
+            error.Data["COSMIC.NativeStage"] = "subscription";
+            throw;
+        }
+    }
+
+    internal static async Task ConnectAsync(ClientWebSocket socket, HttpMessageInvoker invoker, Uri relay, CancellationToken token)
+    {
+        socket.Options.CollectHttpResponseDetails = true;
+        try { await socket.ConnectAsync(relay, invoker, token); }
+        catch (Exception cause) when (cause is WebSocketException or HttpRequestException)
+        {
+            // Preserve the real cause and typed HTTP status. Never parse or log
+            // credential-bearing exception messages or response headers.
+            System.Net.HttpStatusCode? status = (int)socket.HttpStatusCode is >= 100 and <= 599 ? socket.HttpStatusCode : null;
+            var error = new HttpRequestException("Native WebSocket handshake failed.", cause, status);
+            error.Data["COSMIC.NativeStage"] = "connect";
+            throw error;
+        }
     }
 
     internal static async Task<IReadOnlyList<string>> ReadConnectedAsync(WebSocket socket, IReadOnlyList<string> ids,

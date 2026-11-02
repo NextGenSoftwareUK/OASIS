@@ -104,3 +104,10 @@ Harness root fix: query-only raw status/body/operation captured before interpret
 - TestResults/HostedCqlIntegrationCurrent/NostrOASIS-partial-replica-summary.json: 534bytes, SHA256 `61111c1594071eceffc8a69749053a08bf5d7283e4fdac66bcbaa0e3ca4142c5`.
 - TestResults/NostrPublicSourceCurrent/hosted-egress.json: 164bytes, SHA256 `e349b9df3129b41bf60819313362c046a2d3529c19ddef2bb310c6bef2a83fa5`.
 - TestResults/NostrPublicSourceCurrent/hosted-failure-log-summary.json: 367bytes, SHA256 `a80dfdf612b2729de3298a562336d9250a378b93db9b30f9624f0d769dfa0f75`.
+
+## Safe failure diagnostics implemented; live cause still pending
+
+Safe native failure diagnostics implemented:2fake handshake tests +4API cause/privacy tests pass/0skips; producer/consumer builds pass. Failed handshake retains typed HTTP status/original cause, activation wrapper preserves cause, leaf query/activation operators log only known category/stage/status/WebSocket enum (event4831), no raw exception/messages/URLs/tokens/headers. No retry, deadline, source-selection or public error-body change. Actual read failure remains unexplained; this is instrumentation, not a reliability fix. Original3/2,5/4 and2replicas/store proofs/two version1 saves remain frozen. Next exact code rollout, then bounded same-owner native diagnostic to obtain actual cause; do not rerun completed setup or writes.
+
+- TestResults/NostrPublicSourceCurrent/handshake-diagnostics.trx: 4235bytes, SHA256 `b6eac67b5bb124a00a33b235986583bc83f67f0d18e9d64db0ad3c19591e18b2`.
+- TestResults/NostrPublicSourceCurrent/api-failure-diagnostics.trx: 8311bytes, SHA256 `8da4c67fdfff6092d6b28d62b146bee1cec719cc2469e4719b5da0c90a62b688`.

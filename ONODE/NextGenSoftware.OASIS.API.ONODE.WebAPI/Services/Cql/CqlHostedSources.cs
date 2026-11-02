@@ -64,8 +64,7 @@ public sealed class CqlHostedSources : BackgroundService
             {
                 failures[provider] = "CQL_SOURCE_UNAVAILABLE";
                 // Do not put native connection strings/tokens into public discovery or logs.
-                logger.LogWarning("CQL read source {Provider} activation failed ({FailureType}); it remains unavailable.",
-                    provider, cause.GetType().Name);
+                CqlNativeFailureDiagnostics.Record(logger, provider, true, cause);
             }
             // Optional source failure is explicit in discovery; never select another provider.
         }

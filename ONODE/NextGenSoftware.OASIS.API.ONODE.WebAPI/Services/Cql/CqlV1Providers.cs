@@ -84,6 +84,6 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         var activation = await activationProvider.ActivateQuerySourceAsync(deadline.Token);
         cancellationToken.ThrowIfCancellationRequested();
         if (activation == null || activation.IsError || !activation.Result || !storage.IsProviderActivated)
-            throw new InvalidOperationException("CQL_SOURCE_ACTIVATION_FAILED");
+            throw new InvalidOperationException("CQL_SOURCE_ACTIVATION_FAILED", activation?.Exception);
     }
 }

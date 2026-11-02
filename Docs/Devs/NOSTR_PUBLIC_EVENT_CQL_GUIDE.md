@@ -148,3 +148,5 @@ Each query uses one anonymous guarded WSS connection and one bounded REQ subscri
 Primary contracts: [NIP-01](https://github.com/nostr-protocol/nips/blob/master/01.md), [BIP-340](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki). Exact local/native/hosted gates and retained failure evidence are recorded in the linked status report.
 
 Hosted checkpoint (2 November): native3/2, Mongo5/4 and matching SQLite/Neo4j replicas2/2 passed for the original visitor, but an intermittent native query failure blocks repeated-preparation/privacy acceptance. The live page card remains unpublished. See the current evidence before using this as a hosted demo. No complete hosted reliability claim.
+
+Operator diagnostics: event4831 records known failure category, activation/query phase, transport stage and typed HTTP status/WebSocket error when available. Raw exception text, native URLs, headers, tokens and payloads are excluded. Public errors remain generic. Diagnostic deployment/live-cause verification is tracked in the current evidence; instrumentation alone does not resolve the intermittent read.
