@@ -22,66 +22,11 @@ public static class NativeKeySetWalkthrough
         TextWriter output,
         CancellationToken cancellationToken = default)
     {
-        var metadataKey = adapter.QueryProviderType switch
-        {
-            ProviderType.IPFSOASIS => "IPFSRecordCid",
-            ProviderType.SOLIDOASIS => "SolidRecordId",
-            ProviderType.ActivityPubOASIS => "MastodonStatusId",
-            ProviderType.SolanaOASIS => "SolanaAccountAddress",
-            ProviderType.GoogleCloudOASIS => "GCSObjectKey",
-            ProviderType.AzureStorageOASIS => "AzureBlobKey",
-            ProviderType.EthereumOASIS => "EthereumAccountAddress",
-            ProviderType.PolygonOASIS => "PolygonAccountAddress",
-            ProviderType.ArbitrumOASIS => "ArbitrumAccountAddress",
-            ProviderType.CosmosBlockChainOASIS => "CosmosValidatorAddress",
-            ProviderType.PolkadotOASIS => "PolkadotBlockHash",
-            ProviderType.BittensorOASIS => "BittensorBlockHash",
-            ProviderType.ZcashOASIS => "ZcashBlockHash",
-            ProviderType.ClickHouseOASIS => "ClickHouseCountryName",
-            ProviderType.BitcoinOASIS => "BitcoinBlockHash",
-            ProviderType.XRPLOASIS => "XRPLLedgerHash",
-            ProviderType.StellarOASIS => "StellarLedgerSequence",
-            ProviderType.AlgorandOASIS => "AlgorandAddress",
-            ProviderType.AptosOASIS => "AptosAccountAddress",
-            ProviderType.HashgraphOASIS => "HederaAccountId",
-            ProviderType.SuiOASIS => "SuiObjectId",
-            ProviderType.TRONOASIS => "TronBlockHeight",
-            ProviderType.ElrondOASIS => "ElrondAccountAddress",
-            ProviderType.RadixOASIS => "RadixResourceAddress",
-            ProviderType.StarknetOASIS => "StarknetBlockHash",
-            ProviderType.TONOASIS => "TonBlockRootHash",
-            ProviderType.ArweaveOASIS => "ArweaveBlockHash",
-            ProviderType.CardanoOASIS => "CardanoBlockHash",
-            ProviderType.NEAROASIS => "NearAccountId",
-            ProviderType.BaseOASIS => "BaseAccountAddress",
-            ProviderType.OptimismOASIS => "OptimismAccountAddress",
-            ProviderType.MonadOASIS => "MonadAccountAddress",
-            ProviderType.BerachainOASIS => "BerachainAccountAddress",
-            ProviderType.FantomOASIS => "FantomAccountAddress",
-            ProviderType.FilecoinOASIS => "FilecoinAccountAddress",
-            ProviderType.TelosOASIS => "TelosAccountAddress",
-            ProviderType.EOSIOOASIS => "EOSIOAccountName",
-            ProviderType.ChainLinkOASIS => "ChainLinkFeedAddress",
-            ProviderType.BlueSkyOASIS => "BlueSkyActorDid",
-            ProviderType.NostrOASIS => "NostrEventId",
-            ProviderType.MatrixOASIS => "MatrixRoomAlias",
-            ProviderType.BlockStackOASIS => "StacksPrincipal",
-            ProviderType.WormholeOASIS => "WormholeOperationId",
-            ProviderType.BlockscoutOASIS => "BlockscoutAddress",
-            ProviderType.ENSOASIS => "EnsName",
-            ProviderType.EclipseOASIS => "EclipseAccountAddress",
-            ProviderType.AkashOASIS => "AkashProviderAddress",
-            ProviderType.CelestiaOASIS => "CelestiaHeight",
-            ProviderType.ChainflipOASIS => "ChainflipSwapId",
-            ProviderType.SeiOASIS => "SeiAccountAddress",
-            ProviderType.ZkSyncOASIS => "ZkSyncAccountAddress",
-            ProviderType.AbstractOASIS => "AbstractAccountAddress",
-            ProviderType.LineaOASIS => "LineaAccountAddress",
-            ProviderType.ScrollOASIS => "ScrollAccountAddress",
-            ProviderType.AvalancheOASIS => "AvalancheAccountAddress",
-            ProviderType.BNBChainOASIS => "BNBChainAccountAddress",
-            _ => throw new ArgumentException("Select an enrolled protocol key-set adapter.", nameof(adapter))
-        };
+        // The provider's enrolled strategy owns its native metadata key. New
+        // adapters must not need a second provider-name registry in this demo.
+        var descriptor = adapter.QueryCapabilities.StringKeySetLookup
+            ?? throw new ArgumentException("Enroll native membership before running this walkthrough.", nameof(adapter));
+        var metadataKey = descriptor.MetadataKey;
 
         // 1. Freeze the chosen source keys. These are native CIDs/resource GUIDs/status
         // IDs, not interchangeable OASIS projection IDs. No discovery scan is implied.
