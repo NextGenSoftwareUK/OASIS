@@ -45,9 +45,14 @@ def validate_request(native, source):
     if [len(row['result']['rows']) for row in native['native']] != [3, 2]:
         raise ValueError('Original complete native proof required.')
     request = next(row['request'] for row in native['source']['examples'] if row['id'] == 'public-subset')
-    expected = [{'metadataPath': ['NostrEventId'], 'scalar': 'String', 'operator': 'In', 'value': source['eventIds'][:2]}]
-    if (set(request) != {'provider', 'filters', 'orderBy', 'take', 'maximumDurationMilliseconds', 'includeMetadata'}
+    # Discovery publishes the shipping DTO, including explicit null/empty defaults.
+    expected = [{'field': None, 'metadataPath': ['NostrEventId'], 'scalar': 'String', 'operator': 'In', 'value': source['eventIds'][:2]}]
+    if (set(request) != {'provider', 'filters', 'anyOf', 'anyChildren', 'anyDescendants', 'orderBy',
+                        'descending', 'skip', 'take', 'maximumDurationMilliseconds', 'includeMetadata', 'graph'}
             or request.get('provider') != 'NostrOASIS' or request.get('filters') != expected
+            or any(request[name] != [] for name in ['anyOf', 'anyChildren', 'anyDescendants'])
+            or request['descending'] is not False or type(request['skip']) is not int or request['skip'] != 0
+            or request['graph'] is not None
             or request.get('orderBy') != 'None' or request.get('take') != 25
             or request.get('maximumDurationMilliseconds') != 30000 or request.get('includeMetadata') is not True):
         raise ValueError('Exact original bounded public two-ID request required.')
