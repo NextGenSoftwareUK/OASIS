@@ -1,6 +1,6 @@
 # BlueSky public profile source qualification
 
-Updated1November2026. Native AppView and local CQL/actual C# CLI verified; API admission/local HTTP federation verified; hosted rollout remains pending. Current50integrated types include BlueSky native-only;45hosted proofs do not.
+Updated1November2026. Native AppView and local CQL/actual C# CLI verified; API admission/local HTTP federation verified; hosted HTTP acceptance now passes; card publication pending. Current50integrated types include BlueSky native-only;46hosted proofs now include BlueSky.
 
 ## Contract and evidence
 
@@ -58,3 +58,13 @@ Original intent/stable source owner/catalogue: `LocalState/COSMIC/HostedBlueSkyP
 - `TestResults/BlueSkyPublicSourceCurrent/bluesky-mongo-native-summary.json`: 227bytes; SHA256 `5e7288ba0945652d254d073ada94e1962e75168cf5e8ce205b0be79e3a375365`.
 
 - `TestResults/BlueSkyPublicSourceCurrent/prepared-public-review.json`: 3828bytes; SHA256 `54954703dd506ce8a6cb1c1167e1ca7f5a2270c381233e6de4f86b2775fb80b4`.
+
+## Original hosted HTTP acceptance complete
+
+BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6dfdbc6c SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen. Cached public AppView only; generic copies retain identity/name/description/provenance, not all native metadata. Card publication pending; browser unverified.
+
+Completion ACK: LocalState/COSMIC/HostedQueryAcceptance-BlueSkyOASIS/cql-http-acceptance.acknowledged.json. Native DID sets, public policy, exact private identities/owner/version and replica fields independently audited. No replay allowed. Raw evidence under TestResults/HostedCqlIntegrationCurrent:
+
+- BlueSkyOASIS-native-http.json: 14472bytes, SHA256 `8f2e57bd5f81d221989d7a869b76076fb71de16ef2e77b918b3271f4045f1bca`.
+- BlueSkyOASIS-client-http-flow.json: 38461bytes, SHA256 `0441e4d4e215e7bf729f88f5905fbca039126aeee05fca07dade3c2d2bfcebd5`.
+- BlueSkyOASIS-isolation-http.json: 5660bytes, SHA256 `ed04d4bfd4f843e76e8d7351a786b7427f00ff70988ab9a2caf3fadad4da16e5`.
