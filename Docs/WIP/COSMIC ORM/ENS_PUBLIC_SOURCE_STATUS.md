@@ -1,7 +1,8 @@
 # ENS public CQL source — next interface review
 
-2 November 2026. Red/unqualified. No native probe, source owner, CQL source,
-hosted admission/card or browser proof. Counts unchanged57integrated/53hosted.
+2 November 2026. Native protocol qualified; CQL integration remains red. No
+source owner, CQL source, hosted admission/card or browser proof. Counts
+unchanged57integrated/53hosted. Earlier no-probe statements below are historical.
 
 Existing provider: Providers/Network/NextGenSoftware.OASIS.API.Providers.ENSOASIS/ENSOASIS.cs.
 It reads a hardcoded ENS Subgraph URL, https://api.thegraph.com/subgraphs/name/ensdomains/ens,
@@ -87,3 +88,29 @@ No native ENS call has run and no source/admission/card is counted.
 
 Next implement the guarded bounded qualification runner using this codec;
 freeze an exclusive three-name intent before its first native request.
+
+## Native protocol qualification passed — original intent, no replay
+
+The production `EnsPublicResolutionReader` is consumed by the actual existing
+Ethereum test host.10controlled protocol tests passed/0failed/0skipped:
+canonical block selectors, wrong chain/block/code/sentinel, RPC envelope/errors,
+oversized bodies and invalid catalogues.19codec tests passed at prior milestone.
+
+One guarded native test passed with the original three names; six JSON-RPC
+reads, no transactions, gateways, endpoint changes or retries. It checked chain1,
+finalized block and proxy code, then resolved all names at the same EIP-1898
+canonical block hash `0x9e3f030475ded631905d3511551fab452473203e7a5c19aa761b95762caa3443`
+(number `0x191baa9`). The official integration sentinel returned
+the required0x222 address. These are endpoint-reported finalized observations,
+not an independent consensus or ownership verification.
+
+Durable intent and ACK: `LocalState/COSMIC/EnsPublicQualificationCurrent/`
+(`qualification.intent.json`, `qualification.acknowledged.json`). ACK SHA256
+`6e158defa01ba4a81c07f272f2bc4bb33fb650306a43c76ef2835ab571a77631`. Preserve; never replay the
+native test or replace the intent to reproduce green. Raw native observations,
+logs and TRX remain in `TestResults/EnsPublicSourceCurrent/`.
+
+Next implement the query-only ENS catalogue adapter and its capability/projection
+tests, then the spaced manager/LINQ3/2 walkthrough. Hosted enrolment, Mongo
+private-copy/privacy/replica acceptance and website card remain unimplemented.
+Native qualification alone does not increase the integrated/hosted counts.
