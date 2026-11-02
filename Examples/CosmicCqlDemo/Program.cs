@@ -5,6 +5,15 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// Wormhole reads configured message tuples bound to original VAA bodies.
+// It never signs or dispatches cross-chain messages.
+if (args.Length == 2 && args[0] == "--wormhole-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await WormholePublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Stacks principal observations use one explicit node tip per selection.
 // This never creates wallets, signs transactions or touches Gaia storage.
 if (args.Length == 2 && args[0] == "--stacks-public")

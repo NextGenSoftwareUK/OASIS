@@ -1,6 +1,6 @@
 # CQL architecture
 
-Current scope (2 November 2026):53integrated query types/49scoped hosted functional HTTP proofs; browser5verified/44open. Matrix uses the shared HolonManager planner/deferred LINQ, explicit read-source activation and query-only tariff/admission boundaries. Alias equality/membership and complete-selection paging do not create a second query engine or grant native writes. [Profile contract](../../Devs/MATRIX_PUBLIC_ROOM_CQL_GUIDE.md), [current state](CURRENT_STATUS.md), [source/HTTP/replication/publication proof](MATRIX_PUBLIC_SOURCE_STATUS.md). Earlier dated checkpoints below remain historical.
+Current scope (2 November 2026):54integrated query types/49scoped hosted functional HTTP proofs; browser5verified/44open. Matrix uses the shared HolonManager planner/deferred LINQ, explicit read-source activation and query-only tariff/admission boundaries. Alias equality/membership and complete-selection paging do not create a second query engine or grant native writes. [Profile contract](../../Devs/MATRIX_PUBLIC_ROOM_CQL_GUIDE.md), [current state](CURRENT_STATUS.md), [source/HTTP/replication/publication proof](MATRIX_PUBLIC_SOURCE_STATUS.md). Earlier dated checkpoints below remain historical.
 
 ## Historical Azure checkpoint — 1 November 2026
 
