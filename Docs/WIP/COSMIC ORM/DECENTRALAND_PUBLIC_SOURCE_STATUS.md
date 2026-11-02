@@ -39,3 +39,7 @@ CID integrity, freshness or consensus claim without independent verification.
 
 No native endpoint request, identity fixture, CQL grant, install, account, node or
 paid resource has been created. ClickHouse hosted rollout remains first priority.
+
+## Original endpoint access gate - 2 November 2026
+
+Fiveofflinecontrols pass. FirstanonymousGET https://peer.decentraland.org/about returnedHTTP403/17bytes; SHA2562938e9f1284180959e33ab1718d0793a72ff6e4cdb8108c34dcd14e69446de5c. Mainnetidentity/notready not verified; bothscenePOSTs were notsent. Nativewrites0/assetsdownloaded0. Originalintent/report/compresseddenial/manifest durable DecentralandPublicQualificationCurrent; raw TestResults/DecentralandPublicSourceCurrent/response-1.json. No retry/alternateheaders/transport/host/proxy, account/node/install or CQLgrant. HTTP403alone does not prove allCatalysts unavailable; legitimate permitted access remains a source-specific external gap. No user action requested while other breadth work remains.
