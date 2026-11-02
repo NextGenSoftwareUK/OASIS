@@ -1,4 +1,7 @@
-# Eclipse public source — interface review
+# Eclipse public source — hosted HTTP accepted; sandbox card next
+
+Updated2November2026. Separate baseline reconciliation preserved original source/owner/genesis/candidates.3settings applied once; activationfcaa8d3aSUCCESS at105329a3f. First original hosted3/2+5/4/reuse/privacy/exact replicas and independent audit pass;2normal API version1saves/pending0. Card/browser open. Earlier sections are historical; latest proof is at the end.
+
 
 2 November 2026. Native protocol and actual local CQL console qualified; HTTP/hosted/card
 remain red. One retained source owner/config allocated. Earlier no-probe proposals below are
@@ -322,3 +325,33 @@ No original Eclipse hosted cohort yet. Only after activationSUCCESS run the
 normal visitor/native/Mongo/reuse/privacy/replica gate once. Prepared frontend
 Eclipse card is unpublished until those checks pass; no browser proof claimed.
 Current55hosted functional proofs;56stored query tariffs pending activation.
+
+## Original Eclipse hosted functional acceptance passed
+
+After bound-input/lineage checks, the separate eclipse-public-after-akash prefix
+applied3settings once through the shared mutation owner at guarded105329a3f.
+Old source/owner/genesis/candidates/qualification and accepted Akash unchanged.
+One activationfcaa8d3a-7964-46f7-9964-82696ee9f8d1SUCCESS on existing105329a3fcode;
+no code push, local build, installation, native qualification replay or new env.
+
+First original hosted cohort passes native3/2, preserve-copy Mongo5/4,
+repeat0new/2existing, foreign0private/3public, exact SQLite/Neo4j2each. Two normal
+API version1private saves, matching operation ACKs/no pending intents. No source
+owner replacement, extra save, retry or partial-failure continuation. Independent
+offline audit passed with no additional requests/saves. Freeze
+HostedQueryAcceptance-EclipseOASIS and HostedEclipseReleaseCurrent/source ACKs.
+
+Raw evidence TestResults/HostedCqlIntegrationCurrent:
+
+- EclipseOASIS-native-http.json SHA256ca08735c00dbd445306c0958a8360e1a23b05d32ee0fe89c894d57cb82cd8bba.
+- EclipseOASIS-client-http-flow.json SHA256994e71b92eca3ceaf8d207e0b29fef94b5bfcc0688e62f267b758eb183024f57.
+- EclipseOASIS-isolation-http.json SHA2561577d0fd3565158c6db88ac7c95116001f57f424f7b9e87c4f964f91308a2405.
+- Durable cql-http-acceptance.acknowledged.json SHA25615dacf03792ddf318bf5a6955172351ea7ff94dc3e30710dd93087b4e529edd9.
+- Retained source SHA2564adf2a556b32499ea45c3577c90c4304546f94a319b4a055882a8947a20afccf.
+
+The original failed code job remains unexplained/preserved; this is acceptance
+on a later independently successful release, not a diagnosis of that old failure.
+Private snapshots retain identity/name/description/provenance/key, not native
+balance/slot payload. No full migration, reliability or browser certification.
+Next publish held Eclipse sandbox entry with pinned guide/C#links and exact public
+bytes. Programme60integrated/56hosted/5browser/51open; no EF/ORM completion claim.

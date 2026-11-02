@@ -97,3 +97,13 @@ does not establish those later gates.
 References: [RPC limits](https://docs.eclipse.xyz/developers/rpc-and-block-explorers),
 [Eclipse currency differences](https://docs.eclipse.xyz/developers/differences-between-eclipse-and-solana.md),
 [account RPC shape](https://solana.com/docs/rpc/http/getmultipleaccounts).
+
+
+Hosted functional HTTP acceptance now passes: three/two native records,
+five/four with Mongo, no new saves on repeat preparation, visitor isolation and
+two matching replicas each in SQLite and Neo4j. The original two normal API
+private-copy saves remain at version one with settled operation acknowledgements.
+Private browser snapshots retain identity/name/description/provenance/query key,
+not full native account state. This is scoped functional evidence, not a
+production uptime or independent-consensus guarantee. Browser interaction remains
+unverified.

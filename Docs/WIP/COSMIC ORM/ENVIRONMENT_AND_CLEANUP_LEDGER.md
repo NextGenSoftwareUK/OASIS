@@ -3762,3 +3762,27 @@ Frontend Eclipse card prepared in existing Web4Site14HTMLlines, held unpublished
 Raw logs and compact observations TestResults/EclipsePublicSourceCurrent; retain
 config/ACK/lineage until activation and first acceptance verified, then reconcile
 resource inventory. Personal ML and rejected cleanup targets unchanged.
+
+2026-11-02 Eclipse activationfcaa8d3aSUCCESS at105329a3f, source config/old
+candidate/lineage/owner unchanged, no source qualification replay. First hosted
+Eclipse cohort absent before gate. Planned <=2temporary visitor sessions with
+DPAPI bearer/cookie state under HostedQueryAcceptance-EclipseOASIS,2journalled
+normal API private snapshots/replicas; retain originals and uncertain outcomes,
+never replace owners/resave for green. Existing Python3.12/Node24.19.0 and
+published canonical client helper reused (no downloads/install/new environment).
+Raw reports TestResults/HostedCqlIntegrationCurrent/EclipseOASIS-*; source/native
+receipts retained. Remote API/Mongo/SQLite/Neo4j data are delivery resources and
+owned acceptance evidence, size unmeasured; cleanup only after verified owner/
+evidence reconciliation. No paid cloud account, native transaction or wallet.
+
+2026-11-02 first original Eclipse hosted cohort accepted: native3/2/Mongo5/4/
+reuse0new2existing/privacy0private3public/exactSQLiteNeo4j2each.2normal API
+version1saves/pending0 and independent audit pass. Original sourceowner/genesis/
+configuration/candidate/qualification/Akash cohort unchanged. No native
+qualification replay, localbuild/install/download/new environment. Remote
+accepted visitor sessions and logical snapshots retained evidence (size
+unmeasured; require owner/evidence-aware retirement, no blanket user-data delete).
+DPAPI credentials/ACKs HostedQueryAcceptance-EclipseOASIS; release receipts in
+HostedEclipseReleaseCurrent; raw proof hashes in ECLIPSE_PUBLIC_SOURCE_STATUS.md.
+Latest free64,208,293,888bytes; local generated .NET outputs remain cleaned.
+Prepared frontend Eclipse entry remains unpublished until this proof (now passed).
