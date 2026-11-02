@@ -3747,3 +3747,18 @@ Python/cache/raw compact control output regenerable; lineage/config receipts
 retain until terminal reconciliation. Original tested source/presets unchanged,
 no green-source hardening. Next first guarded Eclipse settings application on
 successful105329a3fcode, no new code build needed. Existing local outputs cleaned.
+
+2026-11-02 Eclipse first settings application completed: new reconciled prefix
+3values once/per-key ACKs/full candidate observed. Clean exact105329a3fcheckout
+and expected-release guard, then restored task branch. Original protected input
+hashes/sourceowner/config/accepted Akash unchanged. New after-akash-settings
+intent/ACK binds files; one activationintent/CLIreceipt/observedmetadata under
+HostedEclipseReleaseCurrent. Exact activationfcaa8d3a-7964-46f7-9964-82696ee9f8d1
+BUILDING at105329a3f, no new code publication/retry of old failed job. No local
+.NET build/download/install/new environment/native query or hosted cohort yet.
+Existing production/dev service is retained delivery infrastructure, size/digest
+unmeasured; keep live service, do not confuse cloud image with local disk use.
+Frontend Eclipse card prepared in existing Web4Site14HTMLlines, held unpublished.
+Raw logs and compact observations TestResults/EclipsePublicSourceCurrent; retain
+config/ACK/lineage until activation and first acceptance verified, then reconcile
+resource inventory. Personal ML and rejected cleanup targets unchanged.
