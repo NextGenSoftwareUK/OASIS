@@ -4359,3 +4359,21 @@ Combined11API+1Core complete; no native replay/database/environment added. Free 
 2026-11-02 reproduced-demo regression gate planned: link shared NativeKeySetWalkthrough source into existing Zcash MSTest project, no new dependency/environment. Controlled transport/Mongo adapter, no native calls/DB. Bounded leased logs/TRX TestResults/ZcashPublicSourceCurrent/federated-demo-{red,green}.*; existing SDK/output graph reused. Sizes pending, preserve failure evidence; no cleanup of denied paths.
 
 Shared-demo regression completed: original red/green preserved,1controlled federation test passes. No source calls/install/database/process remains. Existing Zcash test bin/obj updated; size not measured, reusable. No cleanup of denied/shared targets.
+
+## 2026-11-02 Zcash measured resource reconciliation
+
+No removal/install/download. Direct Zcash output/state only, not complete machine-wide attribution. Exact snapshot TestResults/ZcashPublicSourceCurrent/resource-sizes.json. No owned local process; remote release624285a4 remains BUILDING.
+
+| Exact resource | Logical bytes | Retention |
+|---|---:|---|
+| C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ZcashOASIS\bin | 8347458 | active/reusable |
+| C:\Source\OASIS-cosmic\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ZcashOASIS\obj | 1142806 | active/reusable |
+| C:\Source\OASIS-cosmic\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.ZcashOASIS.UnitTests\bin | 47244322 | active/reusable |
+| C:\Source\OASIS-cosmic\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.ZcashOASIS.UnitTests\obj | 1063934 | active/reusable |
+| C:\Source\OASIS-cosmic\LocalState\COSMIC\HostedZcashPublicSourceCurrent | 4129 | preserve original acceptance identity/proof |
+| C:\Source\OASIS-cosmic\LocalState\COSMIC\ZcashPublicQualificationCurrent | 1027083 | preserve original acceptance identity/proof |
+| C:\Source\OASIS-cosmic\LocalState\COSMIC\ZcashMongoHttpCurrent | 905 | preserve original acceptance identity/proof |
+| C:\Source\OASIS-cosmic\LocalState\COSMIC\HostedZcashReleaseCurrent | 432 | preserve original acceptance identity/proof |
+| C:\Source\OASIS-cosmic\TestResults\ZcashPublicSourceCurrent | 3770132 | raw compact results; durable compressed originals retained |
+
+Free C:58267164672bytes. SDK10.0.401 and cached dependencies unchanged/reused. Source/state contain persistent IDs and consumed intents/ACKs: preserve, never reconstruct acceptance by replay. TestResults originals can be archived only with required hashes/compressed proof retained. Build outputs regenerate via cached bounded test/build; previously denied paths remain preserved, no removal bypass.
