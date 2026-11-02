@@ -119,3 +119,48 @@ test('explicit continuation permits only query and pure identity routes', () => 
 test('manifest outside the original cohort is rejected before file access', () => {
   assert.throws(() => loadContinuation({ state: '/original', resumeManifest: '/different/manifest.json' }), /original cohort/);
 });
+
+
+function snapshotFixture() {
+  const f = fixture();
+  f.input.resumeKind = 'snapshot_observation_change';
+  f.input.preparationModuleSha256 = 'a'.repeat(64);
+  Object.assign(f.manifest, { schema: 3, failureKind: 'snapshot_observation_change', failedOperationId: null });
+  const prior = f.evidence['initial-flow.progress.json'];
+  delete prior.progress.failedHttp; prior.steps = [{ status: 200 }];
+  for (const name of ['five', 'four']) {
+    const selections = prior.progress[name].result.rows.map(row => row.selected);
+    const sources = selections.filter(row => row.provider === f.manifest.provider);
+    selections.filter(row => row.provider === 'MongoDBOASIS').forEach((row, index) => {
+      Object.assign(row.row, { version: 1, name: 'principal' + index, description: 'old height',
+        metadata: { 'COSMIC.Demo.SourceHolonId': sources[index].row.id } });
+      Object.assign(sources[index].row, { name: 'principal' + index, description: 'new height' });
+    });
+  }
+  delete f.evidence['original-settlement-state.json']; delete f.evidence['failure-log-observation.json'];
+  f.evidence['snapshot-reuse-failure.json'] = { kind: 'snapshot_observation_change', ownerId: f.input.ownerId,
+    error: 'An existing record differs from the demo. It has been left untouched.',
+    additionalSaves: 0, correctedModuleSha256: f.input.preparationModuleSha256 };
+  return f;
+}
+
+test('changing-observation recovery preserves original stages and forbids every mutation', () => {
+  const f = snapshotFixture(), result = f.check();
+  assert.equal(result.kind, 'snapshot_observation_change');
+  assert.equal(result.operationId, null);
+  assert.deepEqual(result.ids, f.manifest.savedCopyIds);
+  assert.throws(() => assertContinuationRoute(result, 'data/save-holon'), /cannot send/);
+});
+
+test('observation continuation requires the exact corrected module, original source link and initial snapshots', () => {
+  for (const change of [f => f.input.preparationModuleSha256 = 'b'.repeat(64),
+    f => f.manifest.failedOperationId = id(90), f => f.manifest.schema = 2,
+    f => f.evidence['snapshot-reuse-failure.json'].ownerId = id(88),
+    f => f.evidence['initial-flow.progress.json'].steps[0].status = 503,
+    f => f.evidence['initial-flow.progress.json'].progress.five.result.rows[3].selected.row.version = 2,
+    f => f.evidence['initial-flow.progress.json'].progress.five.result.rows[3].selected.row.description = 'new height',
+    f => f.evidence['initial-flow.progress.json'].progress.five.result.rows[3].selected.row.metadata = {}]) {
+    const f = snapshotFixture(); change(f); assert.throws(() => f.check(), /Continuation rejected/);
+  }
+  assert.throws(() => snapshotFixture().check({ unknown: 'save' }), /unreconciled/);
+});

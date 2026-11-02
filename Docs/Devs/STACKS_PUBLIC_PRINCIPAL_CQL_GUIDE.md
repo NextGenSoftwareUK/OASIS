@@ -213,3 +213,16 @@ Primary contracts: [node RPC](https://github.com/stacks-network/stacks-core/blob
 [tip selector](https://github.com/stacks-network/stacks-core/blob/main/docs/rpc/components/parameters/tip.yaml),
 [block-ID derivation](https://github.com/stacks-network/stacks-core/blob/main/stacks-common/src/types/chainstate.rs),
 [C32 addressing](https://docs.stacks.co/more-guides/c32check).
+
+## Hosted demo and snapshot semantics
+
+The configured hosted profile passes native3/2 selections, Mongo federation5/4,
+repeat setup with0new/2existing snapshots, foreign-private0/public3 and exact
+SQLite/Neo4j replicas2/2. See the linked status report for release/evidence.
+
+Private demo snapshots retain their first observed name/description and native
+key/provenance. Repeat setup reuses an owned private version1 copy even if a
+new native query sees a newer block. It never updates that snapshot implicitly.
+Later saved edits or changed provenance/visibility fail reuse. Generic browser
+copies do not yet retain the full native payload; local C# examples do.
+HTTP/client-module verification does not establish browser interaction.
