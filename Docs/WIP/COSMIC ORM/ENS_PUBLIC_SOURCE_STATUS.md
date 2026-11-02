@@ -302,3 +302,17 @@ reliability certification; no source writes/ownership/independent consensus clai
 58integrated/54hosted functional types; browser5verified/49open.
 Next publish the ENS website card with pinned guide/C#links, verify public asset
 bytes, retain browser gate separately, then proceed to next red Eclipse review.
+
+## Website publication verified
+
+Website main/task4530304d85fc14e188b06b79a59f5b87a510073b published the
+ENS card with pinned guide0fcd053fe and C# releasea20f35f9a links, clear local
+launcher and explicit direct-ASCII/trust/private-copy payload limits. HTML parsed
+and all IDs unique;90query/preparation+18session/API controls pass108total.
+Three public anonymousGETs matched exact committed blobs: HTML190295bytes,
+SHA25616293a93bfb1be407b67e29c7ba8e07f029d522826d9acb62a4cd91851f66a7a;
+preparation10241bytes and playground21871bytes unchanged and matched.
+Evidence TestResults/EnsPublicSourceCurrent/public-assets-observation-1.json;
+site ACK retained under HostedEnsReleaseCurrent. Browser interaction remains
+unverified. ENS scoped functional milestone complete; no reliability/full ORM
+claim. Next red source review: ECLIPSE_PUBLIC_SOURCE_STATUS.md.
