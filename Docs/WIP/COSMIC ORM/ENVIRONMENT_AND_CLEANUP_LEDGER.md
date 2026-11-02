@@ -4326,3 +4326,9 @@ Zcash controlled run finished:22 passed, no live source/database created. Existi
 Zcash follow-up:27/27 adapter/config tests passed. Shared Examples/CosmicCqlDemo cache-only restore/build reuses existing SDK/packages and provider output graph, including shared sibling libraries; no new environment. Logs demo-restore.log/demo-build.log under TestResults/ZcashPublicSourceCurrent. Build outputs bin/obj size pending; retain reusable outputs, shared paths not agent-disposable. No native query or fixture run by these builds.
 
 Shared Zcash demo build finished successfully; no owned build process remains. Free C: 58741809152 bytes. Output graph reused existing provider/shared folders; exact changed-output size not yet measured, retained as reusable build state. No source environment/database created.
+
+## 2026-11-02 — Zcash original manager/CLI acceptance
+
+Created C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedZcashPublicSourceCurrent/source.json and console.intent.json, stable anonymous source owner and original qualification height/hash catalogue; files small, exact aggregate size pending. Purpose: first real HolonManager/LINQ3/2, read-only public HTTPS; no install/account/node/database. Intent binds compiled binary/source/qualification SHA256. Output TestResults/ZcashPublicSourceCurrent/console.log. Active dotnet CLI only during run. Preserve source identity, intent and eventual ACK permanently; logs disposable after compact acceptance proof retention. No qualification replay or save.
+
+Zcash original manager/CLI run finished successfully3/2, no process remains. Durable HostedZcashPublicSourceCurrent total 1986 bytes, including source/intent/ACK/compressed 1394-byte output. Keep stable owner/configuration/ACK; do not regenerate accepted cohort. Native writes0, no database/container/download.
