@@ -8,11 +8,11 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 - **62 integrated query types:** 3 canonical, 55 bounded public/source profiles,
   4 local PostgreSQL/Cosmos/Oracle/AWS implementations.
-- **57 hosted functional HTTP proofs**, 5 browser verified, 52 browser gates open.
+- **58 hosted functional HTTP proofs**, 5 browser verified, 53 browser gates open.
   These figures do not certify full ORM/native writes/reliability/uptime.
 - MongoDB, SQLite and Neo4j: **50/82 strict parity features each**.
   The original investor-demo subset is green.
-- Latest hosted addition: Bittensor. Native3/2, Mongo5/4, repeat0new/2existing,
+- Bittensor accepted and frozen. Native3/2, Mongo5/4, repeat0new/2existing,
   foreign0private/3public, exactSQLite/Neo4j2each,2version1saves/pending0.
   Original cohort frozen; no independent consensus or AI/subnet claim.
 - Zcash local acceptance:27adapter/config tests; actual manager/LINQ/CLI3/2;
@@ -31,23 +31,24 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 2. Zcash code job **624285a4-15a7-419d-8dad-e8d8daf90bc8 SUCCESS**.
    Three settings applied once, exact full candidate/per-key ACKs verified,
    node DNA unchanged. No additional settings submission permitted.
-3. Single activation **66d2ccea-7d77-4f76-816a-12ed810fe6ed BUILDING**
+3. Single activation **66d2ccea-7d77-4f76-816a-12ed810fe6ed SUCCESS**
    at the same code. Observe this job, never start another on a polling timeout:
 
    `python Scripts/Sandbox/Observe-HostedDeployment.py 66d2ccea-7d77-4f76-816a-12ed810fe6ed --expected-commit 9e98a4278c91a9d01caaabdfbed447d38120a6f2 --output TestResults/ZcashPublicSourceCurrent/activation-observation.json`
 
-4. After exact SUCCESS: check discovery, run original Zcash hosted native/Mongo
-   cohort once, audit privacy/replicas/save ACKs, retain compact original proof,
-   then publish the sandbox card with C# and guide links. No cohort exists yet.
-   Runner: `python Scripts/Sandbox/Verify-HostedQuerySource.py ZcashOASIS --prepare`
-   requires existing pinned Node24 on PATH. Audit: `Audit-HostedZcashAcceptance.py`.
+4. Original Zcash hosted acceptance and independent audit PASS: native3/2,
+   Mongo5/4, repeat0new/2existing, foreign0private/3public, exactSQLite/Neo4j2each,
+   2normal APIversion1saves/pending0. Cohort frozen; no query/save replay.
+   Evidence/ACK: `LocalState/COSMIC/HostedQueryAcceptance-ZcashOASIS`.
+   Next publish Zcash sandbox card with pinned C# and guide links, verify public
+   static bytes. Browser interaction remains unverified/closed.
 5. Durable Zcash state: `LocalState/COSMIC/HostedZcashPublicSourceCurrent`,
    `ZcashPublicQualificationCurrent`, `ZcashMongoHttpCurrent` (cleaned),
    `HostedZcashReleaseCurrent`. Preserve owners/config/intents/ACKs; no reseeding.
 
 ## Remaining gates
 
-- [Zcash details](ZCASH_PUBLIC_SOURCE_STATUS.md): hosted proof/card/browser open.
+- [Zcash details](ZCASH_PUBLIC_SOURCE_STATUS.md): hosted proof passed; card/browser open.
 - [Ceramic qualification](CERAMIC_PUBLIC_SOURCE_STATUS.md): pinned official
   client reviewed; original Clay healthGET failed before HTTP (URLError, cause
   unproven). No retry; current operator access/public StreamIDs unresolved.

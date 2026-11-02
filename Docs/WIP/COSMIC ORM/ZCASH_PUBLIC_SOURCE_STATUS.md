@@ -134,3 +134,13 @@ TestResults\ZcashPublicSourceCurrent\federated-demo-green.trx SHA256 dc2c9ded850
 Code job624285a4 SUCCESS at9e98a4278. Prepared source/read admission/examples3values applied exactly once through publisher, per-key ACKs/exact complete candidate equality/DNA unchanged. Settings ACK/activation intent/protected submission/job tuple retained HostedZcashReleaseCurrent. One activation66d2ccea-7d77-4f76-816a-12ed810fe6ed BUILDING, same exact code. Do not resubmit or create cohort before SUCCESS. Hosted functional counts remain57; Zcash not yet accepted.
 
 Reproduced publisher bug: Python boolTrue compared equal to configured integerheight1; original regression failed before fix. Added explicit integer-type validation,10publisher tests now pass. Protected original applied candidate revalidated equal after fix; no configuration change, reapplication or deployment. Red evidence TestResults/ZcashPublicSourceCurrent/publisher-boolean-red.log. Activation66d2ccea remains BUILDING, hosted cohort not started.
+
+## Hosted acceptance complete - 2 November 2026
+
+Activation66d2cceaSUCCESS at9e98a4278. Source transitioned fromstartupNOT_READY toavailable4presets; reused original session, no native/private dispatch before readiness. Original hosted run and independent audit pass: native3/2, Mongo5/4, repeat0new/2existing, foreign0private/3public, exactSQLite/Neo4j2each.2normal APIversion1saves acknowledged/pending0. No continuation/reseed/replacement owner. Cohort/source/config/intents/ACKs frozen. Functional source proof, not fullORM/nativewalletwrite/reliability/browser certification. Counts62integrated/58hosted/5browser/53open. Next sandbox card/publicasset verification.
+
+ZcashOASIS-native-http.json:14515bytes SHA256 `1cde3624b4e259b3df6fdd3ca01a2580706d22bd90f3b7e0a6f4ab742e519bb8`; compressed original retained HostedQueryAcceptance-ZcashOASIS.
+
+ZcashOASIS-client-http-flow.json:38239bytes SHA256 `67eeae24490e719f1292f5c2ce41aab68416017117fdaa88ed114a5e4d0c647a`; compressed original retained HostedQueryAcceptance-ZcashOASIS.
+
+ZcashOASIS-isolation-http.json:5581bytes SHA256 `eeb9e894732b3b3ce222a54a0f26ae8e22c7c213104cfef762316dc5be1716b5`; compressed original retained HostedQueryAcceptance-ZcashOASIS.
