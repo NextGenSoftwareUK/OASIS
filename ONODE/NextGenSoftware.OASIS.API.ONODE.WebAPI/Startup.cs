@@ -534,6 +534,11 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_BITCOIN_PUBLIC_SOURCE_JSON"] is string bitcoinPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.BitcoinPublicHeaderMetadataSource.FromJson(bitcoinPublicSource)));
+            // Public Finney headers never enable Bittensor signing or AI operations.
+            if (Configuration["CQL_BITTENSOR_PUBLIC_SOURCE_JSON"] is string bittensorPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.BittensorOASIS.BittensorPublicHeaderMetadataSource.FromJson(bittensorPublicSource)));
+
             // Public Akash indexer reads do not enable compute provisioning or writes.
             if (Configuration["CQL_AKASH_PUBLIC_SOURCE_JSON"] is string akashPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(

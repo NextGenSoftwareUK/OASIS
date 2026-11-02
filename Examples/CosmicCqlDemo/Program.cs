@@ -5,6 +5,14 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// Bittensor reads the retained Finney header catalogue; no AI inference or signing.
+if (args.Length == 2 && args[0] == "--bittensor-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await BittensorPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Akash reads an acknowledged provider sample; it never provisions compute.
 if (args.Length == 2 && args[0] == "--akash-public")
 {
