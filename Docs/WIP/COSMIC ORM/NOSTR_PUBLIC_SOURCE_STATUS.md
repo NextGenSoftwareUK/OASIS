@@ -82,3 +82,5 @@ Original HTTP fixture: LocalState/COSMIC/NostrMongoHttpCurrent, original failed 
 ## Exact Development publication
 
 Development parent `6ee3ebfcd95f594844f518b95451fb9807f342a5` / Core `84a215184f6c2d8b988d5d45bf133a7a0672a26e` ordinary fast-forward published/ref-verified; dependency manifest validates. Exact code job `79b7be91-ac39-4814-be4f-faa1b75613de` QUEUED. No Nostr hosted settings applied/cohort started. Publication ACK LocalState/COSMIC/HostedNostrReleaseCurrent/code-publication.acknowledged.json; raw public observation TestResults/NostrPublicSourceCurrent/code-deployment.json. No production/master promotion, new hosting spend or active Nostr setting.
+
+Pending card/pinned setup/C#/HTTP links prepared and pushed on frontend task2ffca0642b1a23f7170f41d7bc9e5d1a27e5f0c6 only. Mainac0ca0c remains unchanged. Static card/links parsed offline; no hosted/browser claim or public publication.
