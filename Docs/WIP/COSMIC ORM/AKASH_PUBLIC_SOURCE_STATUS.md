@@ -1,9 +1,10 @@
-# Akash public source — C# demo verified; HTTP/Mongo next
+# Akash public source — local HTTP/Mongo verified; hosted next
 
 2 November 2026. Native bounded-prefix continuation passed: three sampled
 provider identities and three point records. Query-only adapter controlled cases
 now pass, and actual compiled C#manager/deferred-LINQ3/2passed using one stable
-source owner/config bound to the native ACK. HTTP/Mongo/hosted remain open;
+source owner/config bound to the native ACK. Local HTTP/Mongo3/2+5/4 and
+privacy0/3 now pass with fixture cleanup; hosted/replica/browser remain open;
 no hosted admission/card/count increase. Integrated query types now60. Original whole-body discovery
 failure remains immutable. Eclipse image deployment is failed; ENS remains the
 last successful live release. Earlier sections retain historical review/test
@@ -230,3 +231,46 @@ local HTTP/Mongo acceptance or website card yet. Next register the explicit
 query-only HTTP profile, guard/read-only billing capabilities and actual local
 Mongo paired/privacy proof; then hosted/private-save/replica/card gates.
 Eclipse failure remains unaltered; no speculative deployment or settings apply.
+
+## HTTP admission and actual local Mongo federation passed
+
+Core query-tariff support now admits Akash only with independent server
+permission and a captured read tariff. It cannot price SaveHolon/provisioning.
+HTTP compiler supports the named query profile and the shared metadata lookup
+shape; Startup enrolls it only through CQL_AKASH_PUBLIC_SOURCE_JSON. Legacy
+provider activation/write behavior is unchanged. New direct project reference
+makes shipping source closure explicit.
+
+One Core tariff control and3APIadmission controls pass. Four configured presets
+(native3/native2/Mongo-paired3/Mongo-paired2) plan successfully; missing independent
+permission/tariff and write pricing reject. Without Mongo enrollment, native
+examples remain available and paired examples are explicitly unavailable.
+
+One original native HTTP test passed through actual loopback CQL endpoints:
+native3/2, preserve-copy Mongo federation5/4, foreign private0/public3. Every row
+checks server-derived ID/key/provider/visibility and allowlisted policy metadata;
+private copies retain exact native allowlisted metadata and version1ownership.
+Two actual SDK conditional-create saves and9query usage receipts. Controlled
+bearer/authority harness: not production signup/billing/replication/browser proof.
+
+Exact fixed DBcosmic_cql_akash_http_demo contained only2Holons and matching
+CosmicOwnedFixture owner/nonce; dropped after success and absence checked.
+Owned Mongo8.3.11process stopped; listener27029verified absent. Existing runtime,
+replica data/config and original source were reused, never reset/reseeded.
+Durable AkashMongoHttpCurrent intent/two-save ACKs/fixture.cleaned.json and
+HostedAkashPublicSourceCurrent/web4-local-qualified.acknowledged.json are frozen.
+Do not replay the completed fixture or replace its owner to produce green.
+
+Evidence under TestResults/AkashPublicSourceCurrent:
+
+- core-tariff-controls.trx SHA25632e862be806d424ae6d7ea1046740693ae05e864a54d5d4707bbf8855c563284.
+- api-admission-controls.trx SHA256bd3be96d36fbd03748cfa89cf6b9027630af6e9d3cb47d655fe99e28ed28c2ea.
+- mongo-http-native.trx SHA256af76c5ee17cb4b6c822f9a3ad30f0f6b0f272a112f31172c82a2cda153322d5c.
+- akash-mongo-native-summary.json reports3/5/2/4/0/3counts,2SDKsaves/9receipts.
+
+Core task commitf42dd8cbb63573644793656af5de95d3a18a773a pushed/ls-remote verified;
+parent gitlink/manifest move together. No Development/production publication,
+hosted configuration change, native qualification replay or website card yet.
+Next audited hosted publisher/candidate and actual preset checks; verify exact
+code release before any configuration apply/hosted cohorts. Earlier Eclipse
+image failure still lacks a specific cause; do not blindly replace its job.

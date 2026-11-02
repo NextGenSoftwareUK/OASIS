@@ -107,6 +107,10 @@ process gate permits at most one request start per second; it is not an upstream
 SLA or a distributed rate limiter. There are no automatic retries.
 
 The actual compiled C#console has passed three-full/two-filtered execution
-through HolonManager and deferred LINQ. HTTP/Mongo federation, hosted enrollment
-and browser interaction have separate gates. See [current Akash evidence](../WIP/COSMIC%20ORM/AKASH_PUBLIC_SOURCE_STATUS.md)
+through HolonManager and deferred LINQ. Controlled local HTTP/Mongo federation
+also passed3/2native and5/4paired records. A foreign actor saw0private copies
+and3public source rows; two SDK-owned version1private copies were removed with
+the marked test database after verification. Core1/API3admission controls pass.
+The local test uses controlled bearer/billing infrastructure, not production
+signup/billing or replication. Hosted enrollment/replica/browser gates remain open. See [current Akash evidence](../WIP/COSMIC%20ORM/AKASH_PUBLIC_SOURCE_STATUS.md)
 for what has actually passed; this guide does not certify those later stages.
