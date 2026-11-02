@@ -2,7 +2,7 @@
 
 This read-only adapter queries a small retained catalogue of immutable Nostr kind-1 event IDs. It verifies each event's canonical NIP-01 SHA256 hash and BIP-340 signature before returning a holon. No Nostr login, signing key, relay publication or account discovery is needed.
 
-Local native CQL and the actual C# walkthrough pass three-event and two-event selections. API admission, Mongo preparation, hosted publication and browser interaction remain separate pending gates. Check the [current evidence](../WIP/COSMIC%20ORM/NOSTR_PUBLIC_SOURCE_STATUS.md) before presenting a hosted demo.
+Local native CQL and the actual C# walkthrough pass three-event and two-event selections. API read admission/local HTTP native3/2/Mongo5/4/visitor privacy and all four prepared presets now pass. Hosted publication and browser interaction remain pending. Check the [current evidence](../WIP/COSMIC%20ORM/NOSTR_PUBLIC_SOURCE_STATUS.md) before presenting a hosted demo.
 
 ## Retain a catalogue
 
@@ -65,6 +65,71 @@ var rows = await query.ToCosmicListAsync(cancellationToken);
 ```
 
 Exact event-ID equality and membership of up to eight configured lowercase 64-character IDs are supported. Unknown IDs fail before native I/O; unsupported name/text predicates or ordering fail planning. Offset/limit applies only after the complete selected native set has been validated. A bad or missing event fails the query, including an otherwise empty output page.
+
+## HTTP request shapes (hosted enrollment pending)
+
+After explicit API admission, use an authenticated OASIS demo session and a fresh `Idempotency-Key` for each request. Keep the bearer private. No Nostr credentials are needed.
+
+Send this two-event selection to `POST /api/data/query-cql`:
+
+```json
+{
+  "provider": "NostrOASIS",
+  "maximumDurationMilliseconds": 30000,
+  "orderBy": "None",
+  "take": 25,
+  "includeMetadata": true,
+  "filters": [
+    {
+      "metadataPath": [
+        "NostrEventId"
+      ],
+      "scalar": "String",
+      "operator": "In",
+      "value": [
+        "919bebed5ec73504f67cc516a58bf5ae6285d63323f086becd0c3ac6f5f80602",
+        "27a99026c487b5d756157901ca41b2d093d3a2d63a27112fe5a874c4c9f123e3"
+      ]
+    }
+  ]
+}
+```
+
+For `POST /api/data/query-cql/federation`, name both providers explicitly:
+
+```json
+{
+  "scope": "Named",
+  "providers": [
+    "MongoDBOASIS",
+    "NostrOASIS"
+  ],
+  "source": {
+    "orderBy": "None",
+    "take": 25,
+    "includeMetadata": true,
+    "filters": [
+      {
+        "metadataPath": [
+          "NostrEventId"
+        ],
+        "scalar": "String",
+        "operator": "In",
+        "value": [
+          "919bebed5ec73504f67cc516a58bf5ae6285d63323f086becd0c3ac6f5f80602",
+          "27a99026c487b5d756157901ca41b2d093d3a2d63a27112fe5a874c4c9f123e3"
+        ]
+      }
+    ]
+  },
+  "identityMode": "PreserveCopies",
+  "maximumProviderAttempts": 2,
+  "maximumDurationMilliseconds": 30000,
+  "take": 25
+}
+```
+
+A query creates no copies. Once the hosted preparation gate is verified, prepare two private Mongo identity/name/description/provenance copies once and reuse them. `PreserveCopies` then returns the two public events plus your two private copies; the three-event preset returns five rows. Other visitors cannot see your private copies. Generic browser copies do not retain the full native signed-event metadata. Neither pairing nor a valid native signature establishes a common snapshot, fresh content or an OASIS identity.
 
 ## Data and trust
 

@@ -365,3 +365,5 @@ ChainLinkPublicFeedMetadataSource is a separate anonymous read-only profile in t
 ## Nostr signed public event source - 2 November 2026
 
 Nostr read-only CQL source passes32focused CQL/transport controls plus36signature/schema tests and actual manager/LINQ3/2. Bounded configured immutable event-ID equality/membership only, complete matching EOSE and verified NIP01hash/BIP340signature before paging. Metadata retains exact signed event fields; no native write/search/identity/freshness/completeness claim. API/Mongo/hosted gates pending. Current breadth51integrated/46hosted; [guide](../../Devs/NOSTR_PUBLIC_EVENT_CQL_GUIDE.md), [evidence](NOSTR_PUBLIC_SOURCE_STATUS.md).
+
+Nostr API/local milestone2November: Core1/API2/localHTTP1/publisher9/prepared1/client1 pass. Actual native3/2, Mongo5/4 and visitor privacy verified; original two saves preserved during read-only correction/continuation, exact owned fixture removed. Three-key candidate/four presets prepared, no hosted settings mutated yet. [Current proof](NOSTR_PUBLIC_SOURCE_STATUS.md).

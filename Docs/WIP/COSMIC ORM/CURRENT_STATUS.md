@@ -11,7 +11,7 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 - Websiteac0ca0c publishes BlueSky/ChainLink/EOSIO/Telos/Filecoin cards and pinned setup/C#/HTTP links;98client tests pass. Public HTML/scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser Mongo preparation copies identity/name/description/provenance, not all native metadata. Full payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: Nostr API and local Mongo admission
+## Current phase: Nostr verified code publication
 
 - BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6dfdbc6c SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen. Cached public AppView only; generic copies retain identity/name/description/provenance, not all native metadata. Card published/byte-verified; browser unverified.
 - Existing local gates:37source controls, actual CLI3/2, Core1/API2/localHTTP1/publisher9/prepared1/client1. No replays or new cohorts.
@@ -19,7 +19,7 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 ## Exact next actions
 
 1. Preserve BlueSky original cohort/ACKs; no reapply/redeploy/resave. Websiteac0ca0c3cffea71aa9b99ca437d2ee46fa20d9c1 publishes BlueSky with pinned guidea10c6661c and C#f36dd0d56 links. All98client tests pass. Public HTML171143bytes/SHA256dfa7084ba40e8fe691eb2fbf7f9c1c4d9cda7dcdcbade32026f6f9d0fd7fceee and both scripts match exact git blobs. Browser interaction remains open.
-2. Nostr separate read-only CQL source now passes32controls plus36verifier tests. Explicit actual manager/LINQ qualification passed3/2 on same original captured IDs/relay; earlier503 retained. Stable source/owner and native ACK exist; never rerun qualification. Next add independent Core query permission/free tariff, API lazy source/compiler admission, local HTTP Mongo/privacy and four prepared presets. Then exact hosted rollout/original cohort/card. See NOSTR_PUBLIC_SOURCE_STATUS.md.
+2. Nostr Core1/API2/localHTTP continuation1/publisher9/prepared-planner1/client preparation1 pass. Native3/2, Mongo5/4, foreign-private0/public3; original two version1 saves reused with0additional saves. Exact marked DB removed after consumers stopped, owned Mongo stopped/27029 absent. Original failed test (wrong BlueSky policy/handle assertion) retained; correction compares actual Nostr policy and signed metadata, original identity/owner/operation ACKs preserved. Core84a215184f6c2d8b988d5d45bf133a7a0672a26e task pushed/ref-verified; gitlink/manifest paired. Protected3settings/four presets prepared once, no hosted changes. Next commit/push tested parent batch, fetch/inspect Development/Core ancestry, publish scoped code and observe exact deployment before any settings application. Native/local/source cohorts frozen; do not replay.
 3. Keep deferred Azure Cosmos/Oracle/PostgreSQL hosting and closed browser controls deferred; maintain exact evidence and update current status at each milestone.
 
 ## Durable state and rules
