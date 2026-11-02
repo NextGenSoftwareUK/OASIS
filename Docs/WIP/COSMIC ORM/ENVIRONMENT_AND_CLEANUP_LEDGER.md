@@ -3799,3 +3799,18 @@ SDK/packages/personal ML/rejected cleanup targets unchanged. Remote API/site/
 visitor copies retained delivery/evidence, sizes unmeasured and cleanup owner
 COSMIC at verified final teardown. Next read-only Farcaster primary-interface
 review uses existing tools; no new environment/downloaded runtime planned.
+
+2026-11-02 Farcaster access review/retention: existing Python3.12 and web tools
+reused; no SDK restore, installation, node, container, database, build or native
+probe. Planned durable copy LocalState/COSMIC/FarcasterPublicQualificationCurrent
+of exactly3original TestResults/FarcasterPublicSourceCurrent files,469bytes;
+verify documented SHA256 before exclusive creation, no overwrite/recreated intent.
+COSMIC owns retention; preserve while unresolved and through final audit.
+Cleanup only after equivalent retained evidence/lineage is verified; originals
+remain untouched. No ports/processes/secrets. Web documentation memory only,
+size unmeasured. Official Snapchain node needs2TB; none allocated.
+Current C free64,203,730,944bytes; personalML/rejected targets unchanged.
+Outcome:3durable copies verified byte-identical,469bytes; originals untouched.
+Lens discovery reused web tools/source checkout only; no SDK clone/install/native request.
+Official SDK account actions read in memory (size unmeasured); no port/process.
+GitHub directory429 preserved as documentation-tool limit, not native failure.
