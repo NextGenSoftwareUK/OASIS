@@ -4,7 +4,7 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 
 ## Verified scope
 
-- 47 integrated query types: 3 canonical adapters, 40 bounded public/source profiles, 4 local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
+- 48 integrated query types: 3 canonical adapters, 41 bounded public/source profiles, 4 local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
 - 43 providers have scoped hosted HTTP proof at their recorded releases. Browser proof: 5; 38 browser gates remain open. These are not full ORM/native-write certifications.
 - MongoDB/SQLite/Neo4j parity: 50/82 checklist rows each; original investor-demo subset green. Work red rows only unless a reproducible bug appears.
 - Latest completed hosted provider: Telos. Native 3/2, Mongo pairing 5/4, repeat 0 new/2 existing, foreign-private 0/public 3, SQLite/Neo4j replicas 2/2; two version1 saves, no pending intents. Completion ACK freezes the original cohort.
@@ -21,7 +21,7 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 ## Exact next actions
 
 1. Telos card4ff3661/pinned links/95client tests/public HTML/scripts are verified. Original cohort is frozen; no native/local/hosted replay or settings reapply/redeploy.
-2. EOSIO/Vaulta native qualification passed seven guarded reads (3/2 account selections); offline parser/error regression passes. Implement its separate read-only CQL source next. No EOSIO CQL/hosted claim yet. See EOSIO_PUBLIC_SOURCE_STATUS.md; original qualification must not be replayed.
+2. EOSIO native read-only CQL source,28controls and actual CLI/manager/LINQ3/2 pass; commented demo/guide added. Next: query-only API registration/admission tests, then local Mongo/privacy/prepared gates and hosted acceptance/card. No EOSIO hosted/browser claim. See EOSIO_PUBLIC_SOURCE_STATUS.md; completed native cohorts must not be replayed.
 3. Implement only the new provider's red scope after qualification: source/controlled tests/native manager+C#3/2, API/query-only admission/Mongo/privacy, actual prepared presets, exact hosted rollout/acceptance/card. Keep green scopes frozen absent a bug.
 
 ## Durable state and rules
