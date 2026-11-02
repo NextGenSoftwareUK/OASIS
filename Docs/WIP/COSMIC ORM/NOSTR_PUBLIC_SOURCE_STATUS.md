@@ -1,6 +1,6 @@
 # Nostr public event qualification
 
-Updated 2 November 2026. **Not CQL-admitted or hosted-certified.** No source owner/catalogue has been created.
+Updated 2 November 2026. **Not API-admitted or hosted-certified.** Stable source owner/catalogue now retained after explicit actual manager/LINQ qualification; no API/hosted enrollment.
 
 ## Current evidence
 
@@ -14,7 +14,7 @@ Updated 2 November 2026. **Not CQL-admitted or hosted-certified.** No source own
 ## Exact next work
 
 1. Preserve original intent, discovery frames, signed IDs and503 outcome. Do not rerun original probe or regenerate a source owner.
-2. Implement a bounded read-only CQL event projection with controlled complete3/2sets and shared capability planning, using the verified shipping signature boundary below. Keep native admission red until exact same captured IDs can be read completely; a future explicit bounded qualification continuation must preserve the original failure and avoid discovery/new owners.
+2. Bounded CQL projection/32controls and actual native manager/LINQ3/2 are now complete (milestone below), preserving the original503 and captured IDs. Next add independent Core/API read admission, local Mongo/privacy/prepared gates. Never rerun completed qualification or mint another source owner.
 3. Only after native3/2 and controlled gates: actual C# manager/LINQ, API read admission/local Mongo/privacy/prepared presets, exact hosted rollout and original hosted cohort, then page card/public bytes. No native writes or social-network search claim.
 
 ## Evidence and resources
@@ -45,3 +45,19 @@ Official vectors fetched once (6,892bytes, SHA25634c9d1d9c3a88d524bc80778540dc43
 - TestResults/NostrPublicSourceCurrent/event-verification-provider-build.log: 82bytes, SHA256 `d7192a60ac7df17c3cc5e38b162cf0162473313cf75e032c468dff234ee538b6`.
 - TestResults/NostrPublicSourceCurrent/event-verification-test-build.log: 82bytes, SHA256 `86db372993c50acf22c2788bfd68847ff54e10ad3fc65776638e53c9b5e514e6`.
 - TestResults/NostrPublicSourceCurrent/event-verification-tests.log: 546bytes, SHA256 `0815d32f736f64620286b0ec778bc61ac29dc088686b88f66319ef55bc9ed444`.
+
+## Read-only CQL and actual native console milestone
+
+32new controlled tests pass/0failures/0skips for complete/reordered3/2sets, point/window, unknown keys without I/O, cancellation/inactive/budget errors, missing/duplicate/unexpected/tampered events (including empty output page), unsupported queries, no saves/deletes, exact configuration and fragmented socket/EOSE/frame/message/aggregate/event/UTF8 bounds. Uses the separately verified signed-event boundary (36tests/all19official vectors); no legacy code changed.
+
+One explicitly journalled actual console qualification reused the original captured IDs on the same relay; no discovery, alternate endpoint or automatic retry. Activation and actual manager/LINQ3full/2filtered passed; earlier503 outcome preserved. Stable candidate/owner/source and native-qualified ACK retained under LocalState/COSMIC/HostedNostrPublicSourceCurrent. Never rerun Qualify-CosmicNostrPublicConsole.ps1 or regenerate owner/catalogue. No source publication, account, keys, Mongo saves, API/hosted/browser claim.
+
+New source NostrPublicEventMetadataSource and guarded NostrPublicRelayRead use bounded event-ID equality/membership, complete signed selection before paging and explicit read-only errors. Metadata preserves event ID/public key/time/kind/content/tags/signature/policy; native signatures prove key-bound integrity, not identity/freshness/relay completeness. [Setup and commented C# guide](../../Devs/NOSTR_PUBLIC_EVENT_CQL_GUIDE.md). Next: Core/API independent read admission/local HTTP+Mongo/privacy/prepared gates, then hosted acceptance/card.
+
+- TestResults/NostrPublicSourceCurrent/cql-controls.trx: 49358bytes, SHA256 `bf624558f4053bf0a9d92661279136e871b83389e8836ddad26e32e790bcb2d2`.
+- TestResults/NostrPublicSourceCurrent/cql-controls.log: 540bytes, SHA256 `1102d4b73769ea5a5147a838263045fce2af4929e6242ba63f16e925c62a878f`.
+- TestResults/NostrPublicSourceCurrent/cql-provider-build.log: 82bytes, SHA256 `4d8824e4844fe5dc915e0629abdd0729cd92038104c04644c8b43ebe3bb0dac1`.
+- TestResults/NostrPublicSourceCurrent/cql-tests-build.log: 82bytes, SHA256 `3fe950a3cea737d0628f0d4c3f06539084ebae680c583442e5691e273fc57f6a`.
+- TestResults/NostrPublicSourceCurrent/console-build.log: 83bytes, SHA256 `5670f4f8791fef9688ee8413f2d2c83b347c7a4435877f39763757aef9f5c408`.
+- TestResults/NostrPublicSourceCurrent/console-qualification.log: 1712bytes, SHA256 `ab79b5088c335f14764db1bae6b35a987a25810806b99de684c1b4f2a7f5e3c6`.
+- Retained source.json: 314bytes, SHA256 `f24add2d4caab44b961903e3ecac140002b2393c4b010b48d192f950c83683fd`.

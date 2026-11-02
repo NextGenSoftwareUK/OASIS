@@ -13,3 +13,5 @@ Updated 1 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CUR
 Hosted PostgreSQL, Azure Cosmos and Oracle remain deferred. V2 changes only; legacy gaps documentation-only. Preserve original source catalogues, owners and all acknowledged cohorts.
 
 [Strict acceptance](CQL_PARITY_CHECKLIST.md) · [Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) · [Backlog](AFTER_DEMO_BACKLOG.md) · [History](Archive/CQL_COMPLETION_ROADMAP_before_fantom_release_2026-11-01.md).
+
+Nostr native milestone2November: separate signed-event CQL source32controls/verifier36controls/actualCLI3/2 pass, original503 preserved. API/Mongo/hosted gates remain red; exact next actions in CURRENT_STATUS.
