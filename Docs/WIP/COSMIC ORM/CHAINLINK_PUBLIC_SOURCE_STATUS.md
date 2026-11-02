@@ -1,6 +1,6 @@
 # ChainLink public feed source qualification
 
-Updated1November2026. Native protocol and local CQL/actual C# CLI verified; API/hosted integration remains unimplemented. Current49integrated types include ChainLink native-only;44hosted proofs do not.
+Updated1November2026. Native protocol and local CQL/actual C# CLI verified; API admission/local HTTP federation verified; hosted rollout remains pending. Current49integrated types include ChainLink native-only;44hosted proofs do not.
 
 ## Verified primary catalogue
 
@@ -31,7 +31,11 @@ The official documentation's [Ethereum network configuration](https://raw.github
 
 ## Exact next step
 
-Wire explicit query-only API configuration/admission and independent unsigned read permission/free tariff. Prove Core/API admission, local HTTP Mongo5/4/privacy, actual prepared presets, then exact hosted rollout/original acceptance and sandbox card. No ChainLink API/hosted/browser claim yet. Original native qualification and console cohorts must not be replayed. Keep green scopes/deep LINQ parity frozen absent a reproduced bug.
+Core permission1/API admission2/local HTTP1/publisher10/prepared-planner1/client preparation1 now pass. Native3/2, Mongo5/4, foreign-private0/public3,2SDK version1 saves/9query receipts verified. Exact owned marked database cosmic_cql_chainlink_http_demo dropped after HTTP consumers stopped; Mongo stopped/27029 absent. Original fixture journal retained, no reseed/replay.
+
+Lazy `CQL_CHAINLINK_PUBLIC_SOURCE_JSON` registration, independent unsigned read permission/free tariff and four presets are implemented; no signed write grant/default routing change. Protected baseline/candidate under `LocalState/COSMIC/HostedSourceRolloutCurrent/chainlink-public-*`; exactly3values differ, DNA unchanged, no settings applied yet. Source-bound native/local ACKs are durable. Core task990c1c75afcafdbc0678b6e8131a10b67650f7e3 pushed/ref-verified; parent gitlink/manifest updated together.
+
+Next: publish verified code to Development, observe exact code deployment, then apply reviewed settings once and issue one journalled settings deployment. Only after SUCCESS run original hosted acceptance/card. No ChainLink hosted/browser claim yet. Preserve completed native/local cohorts. Frontend preparation test taskdb58432 is pushed, no card/publication yet.
 
 ## Durable resources and evidence
 
@@ -51,3 +55,15 @@ Native ABI reference: [Chainlink API](https://docs.chain.link/data-feeds/api-ref
 - `TestResults/ChainLinkPublicSourceCurrent/demo-build.log`: 10857bytes; SHA256 `0ebd9df8d7e21fa9a4f6b4c2b0d2d5a6a463037a5db819119d0bff8e079f18e6`.
 
 - `TestResults/ChainLinkPublicSourceCurrent/cql-console.log`: 1341bytes; SHA256 `779dce6785c7a0e4bb8d984911ae896ba8f41d4a75625c740a76ddcb00520a61`.
+
+- `TestResults/ChainLinkPublicSourceCurrent/core-admission.trx`: 3318bytes; SHA256 `50a05f2208b734540b9919598462d50205b19d311a5a7dc1474c53d7a8cf6e70`.
+
+- `TestResults/ChainLinkPublicSourceCurrent/api-admission.trx`: 4965bytes; SHA256 `7d058bea03c1ca9fc0dd6923b29f5d8b0721d1c2186004c7dcbd6d245f3ced19`.
+
+- `TestResults/ChainLinkPublicSourceCurrent/mongo-http-native.trx`: 3377bytes; SHA256 `c58f32561351fbb09b77a79e032e74a03e6e413b479cbb61775d583982831194`.
+
+- `TestResults/ChainLinkPublicSourceCurrent/prepared-planner.trx`: 3341bytes; SHA256 `1379e9565e6d3fea724074d66e02ad39385f731d6edb10fef6cc0c65b0548512`.
+
+- `TestResults/ChainLinkPublicSourceCurrent/chainlink-mongo-native-summary.json`: 231bytes; SHA256 `e8c9287829e7bf39f858b1378c6e701b2f027ce5b146b26feca3faeaa335ef5f`.
+
+- `TestResults/ChainLinkPublicSourceCurrent/prepared-public-review.json`: 4315bytes; SHA256 `4c6709d283bb8e8f52b815e045ab71bb7e6a77721073af4f49bd1b2ed97b15b9`.
