@@ -37,7 +37,24 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
-def call(route, token=None, body=None, method="POST", operation=None, *, cookie_header=None, capture_auth=None):
+def capture_query_response(path, route, operation, status, raw):
+    """Preserve query outcomes before JSON/error interpretation; never auth bodies."""
+    path = Path(path).resolve()
+    if route != "data/query-cql" or not path.is_relative_to((ROOT / "TestResults").resolve()):
+        raise ValueError("Query-only evidence must stay in this worktree's TestResults.")
+    write_new(path, (json.dumps({"route": route, "operationId": operation, "status": status,
+        "bodyBase64": base64.b64encode(raw).decode(), "bodyTruncated": len(raw) > 2 * 1024 * 1024}, indent=2) + "\n").encode())
+
+
+def call(route, token=None, body=None, method="POST", operation=None, *, cookie_header=None, capture_auth=None, evidence_path=None):
+    if evidence_path is not None and route != "data/query-cql":
+        raise ValueError("Only query response evidence may be captured here.")
+    if evidence_path is not None:
+        target = Path(evidence_path).resolve()
+        if not target.is_relative_to((ROOT / "TestResults").resolve()):
+            raise ValueError("Query evidence must stay in this worktree's TestResults.")
+        if target.exists():
+            raise FileExistsError("Original query outcome exists; reconcile before another dispatch.")
     headers = {"Accept": "application/json", "Origin": BROWSER_ORIGIN, "Idempotency-Key": operation or str(uuid.uuid4())}
     if token:
         headers["Authorization"] = "Bearer " + token
@@ -55,6 +72,8 @@ def call(route, token=None, body=None, method="POST", operation=None, *, cookie_
         raw = response.read(2 * 1024 * 1024 + 1)
         if capture_auth is not None:
             capture_auth(response.status, raw, response.headers.get_all("Set-Cookie") or [])
+        if evidence_path is not None:
+            capture_query_response(evidence_path, route, headers["Idempotency-Key"], response.status, raw)
         if len(raw) > 2 * 1024 * 1024:
             raise RuntimeError("HTTP proof exceeds its response budget.")
         if (response.headers.get("Access-Control-Allow-Origin") != BROWSER_ORIGIN
@@ -119,6 +138,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("provider", choices=["NostrOASIS", "BlueSkyOASIS", "ChainLinkOASIS", "EOSIOOASIS", "TelosOASIS", "FilecoinOASIS", "FantomOASIS", "AzureStorageOASIS", "SOLIDOASIS", "AWSS3OASIS", "SolanaOASIS", "GoogleCloudOASIS", "EthereumOASIS", "PolygonOASIS", "ArbitrumOASIS", "CosmosBlockChainOASIS", "PolkadotOASIS", "NEAROASIS", "BaseOASIS", "AvalancheOASIS", "BNBChainOASIS", "OptimismOASIS", "LineaOASIS", "ScrollOASIS", "ZkSyncOASIS", "AbstractOASIS", "MonadOASIS", "SeiOASIS", "BerachainOASIS", "BitcoinOASIS", "XRPLOASIS", "StellarOASIS", "AlgorandOASIS", "AptosOASIS", "HashgraphOASIS", "SuiOASIS", "ElrondOASIS", "RadixOASIS", "StarknetOASIS", "CardanoOASIS", "ArweaveOASIS", "TONOASIS"])
     parser.add_argument("--prepare", action="store_true")
+    parser.add_argument("--resume-unstarted-native", action="store_true",
+                        help="One explicit same-owner continuation before any client preparation/save; original failure must be recorded.")
     parser.add_argument("--cohort", choices=["current", "fixed-client", "post-startup-fix"], default="current",
                         help="An explicitly planned fresh test identity after retaining a failed/expired cohort; never automatic.")
     parser.add_argument("--continue-settled-read", action="store_true",
@@ -126,6 +147,8 @@ def main():
     options = parser.parse_args()
     if options.continue_settled_read and not options.prepare:
         parser.error("--continue-settled-read requires --prepare for the original client-flow gate")
+    if options.resume_unstarted_native and (not options.prepare or options.continue_settled_read):
+        parser.error("Unstarted-native continuation requires --prepare and cannot resume settled writes.")
     suffix = options.provider + ("" if options.cohort == "current" else "-" + options.cohort)
     if options.prepare:
         frontend = ROOT.parent / "Web4Site"
@@ -140,7 +163,20 @@ def main():
         raise RuntimeError("Original partial client flow exists; reconcile explicitly before another execution.")
     state.mkdir(exist_ok=True)
     results = ROOT / "TestResults/HostedCqlIntegrationCurrent"
-    avatar, token = session(state, "owner", allow_create=not options.continue_settled_read)
+    if options.resume_unstarted_native:
+        if (not (state / "owner.acknowledged.json").is_file()
+                or not (state / "native-failure.observed.json").is_file()
+                or any((state / name).exists() for name in ("foreign.acknowledged.json", "preparation-intents.json", "save-acknowledgements.jsonl"))
+                or (results / (suffix + "-native-http.json")).exists()):
+            raise RuntimeError("Original failed native-only cohort required; never replace or resave it.")
+        failure = json.loads((state / "native-failure.observed.json").read_text(encoding="utf-8"))
+        owner = json.loads((state / "owner.acknowledged.json").read_text(encoding="utf-8"))
+        if failure.get("ownerId") != owner.get("id") or failure.get("privateSavesStarted") is not False:
+            raise RuntimeError("Original owner/no-save failure proof differs.")
+        write_new(state / "native-read-continuation.intent.json", (json.dumps({
+            "ownerId": owner["id"], "provider": options.provider, "operation": "explicit original native-only continuation",
+            "replacementOwner": False, "replayAllowed": False}) + "\n").encode())
+    avatar, token = session(state, "owner", allow_create=not (options.continue_settled_read or options.resume_unstarted_native))
     discovery = call("data/query-cql/providers?examplesVersion=2", token, method="GET")
     source = next(row for row in discovery["result"] if row["provider"] == options.provider)
     if not source["available"] or not source["federationAvailable"]:
@@ -154,7 +190,10 @@ def main():
         if [len(row["result"]["rows"]) for row in original["native"]] != [3, 2]:
             raise RuntimeError("Original native selection proof differs.")
     else:
-        native = [call("data/query-cql", token, row["request"]) for row in leaf]
+        native = []
+        for row in leaf:
+            evidence = results / (suffix + "-" + row["id"] + "-native-observation.json")
+            native.append(call("data/query-cql", token, row["request"], evidence_path=evidence))
         for response, count in zip(native, (3, 2)):
             if len(response["result"]["rows"]) != count:
                 raise RuntimeError("Native source selection count differs.")
