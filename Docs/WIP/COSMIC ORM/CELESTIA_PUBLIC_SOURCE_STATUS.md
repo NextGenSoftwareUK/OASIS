@@ -1,8 +1,8 @@
 # Celestia public CQL source — interface review
 
-2 November 2026. Native read protocol qualified; CQL remains red/unadmitted.
-No CQL source owner, hosted admission, public card or browser proof established.
-Provider totals remain55integrated/51hosted; protocol reads are not CQL acceptance.
+2 November 2026. Native protocol and local CQL/CLI qualified; hosting remains red/unadmitted.
+One local source owner/config retained; no hosted admission/card/browser proof.
+Provider totals now56integrated/51hosted after source36controls/actual CLI3/2.
 
 ## Current source and contract
 
@@ -77,3 +77,33 @@ code unchanged; no native writes, federation or hosting claim yet.
 | `TestResults/CelestiaPublicSourceCurrent/rpc-2.json` | 54729 | `dab7b445316d3b8665a7b3e5d456cd9b89e0533219c8ef3cd34116764d2675f4` |
 | `TestResults/CelestiaPublicSourceCurrent/rpc-3.json` | 43465 | `35bd984338b594233637405cde60c2d97471a84eb9a25ef4e0043c99ae97283d` |
 | `TestResults/CelestiaPublicSourceCurrent/rpc-4.json` | 41765 | `5dcbaa0bf1a51fd86e4ec3523460e9e7cfb5aec81adeae771cb04ab8885ca444` |
+
+
+## Local CQL/C# milestone verified
+
+CelestiaPublicHeaderMetadataSource implements shared CQL/read-only activation
+contracts over an explicit height-to-reported-block-ID catalogue.36controlled
+cases pass: equality/membership/paging, uint64max precision, malformed/wrong-network/
+wrong-height/pin/RPC/duplicate/oversized responses, cancellation, budgets, unknown
+keys/inactive source, invalid config and native-write refusal. Complete selection
+precedes paging, with no partial results after late failure.
+
+Actual spaced/commented C# walkthrough returns3full/2filtered through HolonManager
+and deferred LINQ. Original source/config/pins/owner/intent/ACK retained under
+LocalState/COSMIC/HostedCelestiaPublicSourceCurrent. Never replace the owner/pins
+or replay the consumed console qualification. Build initially found a wrong
+launcher return statement; corrected to the program integer exit contract, initial
+log retained. Corrected build passes/0errors; no legacy code changes.
+
+Next HTTP compiler/explicit read activation/query-only admission/four prepared
+presets and local native3/2+Mongo5/4/privacy. No hosted/CQL write/independent
+consensus/DA-sampling claim. Source56integrated/49public profiles; hosted stays51.
+[Configuration, C# usage and metadata guide](../../Devs/CELESTIA_PUBLIC_HEADER_CQL_GUIDE.md).
+
+| Artifact | Bytes | SHA256 |
+|---|---|---|
+| `TestResults/CelestiaPublicSourceCurrent/source-controls.trx` | 56682 | `679b2767f2852049c6b92926d844fe6f8bb18b4fd70477480c91ed1099dcfb9f` |
+| `TestResults/CelestiaPublicSourceCurrent/console-qualification.log` | 1579 | `a8805aad0989f76a821df12806e96eb57897346799edad6812ad25f5f715b97d` |
+| `LocalState/COSMIC/HostedCelestiaPublicSourceCurrent/source.json` | 398 | `d30c915410b522ad352a8540a25d82013ebae050caa1edb4a77ba3b5017d830c` |
+| `Providers/Network/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS.dll` | 79872 | `c9b8828b1ba9dd05c6cc95c83fd0780017e2fd19447b09fc79ce30e294aec0cf` |
+| `Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll` | 911872 | `081a0b13f9d678edf37b1181bac7a7b8faad5866eb1223b17cdb21ef0cf9648a` |

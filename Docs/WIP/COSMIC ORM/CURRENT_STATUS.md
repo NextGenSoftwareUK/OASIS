@@ -5,7 +5,7 @@ deep LINQ parity paused. Work red scopes only unless a bug is reproduced.
 
 ## Verified scope
 
-- 55 integrated query types: 3 canonical adapters, 48 bounded public-source profiles, 4 local PostgreSQL/Cosmos/Oracle/AWS implementations.
+- 56 integrated query types: 3 canonical adapters, 49 bounded public-source profiles, 4 local PostgreSQL/Cosmos/Oracle/AWS implementations.
 - 51 scoped hosted functional HTTP proofs/query tariffs; browser5verified/46open. These are not full ORM/native-write/reliability certifications.
 - MongoDB/SQLite/Neo4j parity50/82 rows each; original investor-demo subset green.
 - Latest hosted addition Chainflip: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, exact SQLite/Neo4j2/2. Two original normal API version1 saves/pending0. Independent source/owner/key/operation/replica audit ACK frozen.
@@ -24,7 +24,7 @@ deep LINQ parity paused. Work red scopes only unless a bug is reproduced.
 ## Exact next step
 
 1. Preserve Chainflip and all prior completed owners/catalogues/ACKs/cohorts. Do not replay qualification/setup/saves, settings or activation merely for another green result.
-2. Celestia native protocol qualification passed: guarded .NET head plus exact heights15521793/15521794/15521795, fourHTTP200; five contract controls/one native test pass. Consumed original intent/observed/raw evidence retained, no replay. Next implement separate bounded read-only header CQL source and controlled tests, then spaced executable C# demo. See CELESTIA_PUBLIC_SOURCE_STATUS.md; admission/card remain red until CQL/C#/HTTP/Mongo/privacy/replica gates pass. Legacy blob adapter unchanged.
+2. Celestia native protocol qualification passed: guarded .NET head plus exact heights15521793/15521794/15521795, fourHTTP200; five contract controls/one native test pass. Consumed original intent/observed/raw evidence retained, no replay. Separate pinned read-only CQL source now passes36controls; actual spaced/commented manager/deferred-LINQ CLI3/2 passes. One original source owner/config/header pins/console intent/ACK retained under HostedCelestiaPublicSourceCurrent. Next HTTP compiler/explicit read activation/query-only admission/four presets, then local native3/2+Mongo5/4/privacy before hosted enrollment/card. See CELESTIA_PUBLIC_SOURCE_STATUS.md; admission/card remain red until CQL/C#/HTTP/Mongo/privacy/replica gates pass. Legacy blob adapter unchanged.
 3. Read official current RPC documentation before choosing a method; use shipping guarded transport, no paid keys/new node/runtime/automatic endpoint switch. Retain raw evidence only in TestResults and durable intent/config under LocalState/COSMIC.
 4. Continue full provider report/docs/ledger at each milestone. Deep parity remains paused; whole ORM/HyperDrive programme incomplete.
 
