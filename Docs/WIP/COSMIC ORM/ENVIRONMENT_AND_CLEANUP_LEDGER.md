@@ -4377,3 +4377,5 @@ No removal/install/download. Direct Zcash output/state only, not complete machin
 | C:\Source\OASIS-cosmic\TestResults\ZcashPublicSourceCurrent | 3770132 | raw compact results; durable compressed originals retained |
 
 Free C:58267164672bytes. SDK10.0.401 and cached dependencies unchanged/reused. Source/state contain persistent IDs and consumed intents/ACKs: preserve, never reconstruct acceptance by replay. TestResults originals can be archived only with required hashes/compressed proof retained. Build outputs regenerate via cached bounded test/build; previously denied paths remain preserved, no removal bypass.
+
+2026-11-02 Ceramic source reconnaissance: read existing provider source and official documentation via web; no downloads retained/install/clone/runtime/node/DID/data created. Maintained report CERAMIC_PUBLIC_SOURCE_STATUS.md, no raw evidence in docs. Official legacy HTTP docs404 is documentation-only; native endpoint not probed. Zcash job624285a4 remains BUILDING, no new deployment.
