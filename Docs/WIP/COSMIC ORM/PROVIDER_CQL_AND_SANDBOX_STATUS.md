@@ -371,3 +371,5 @@ Nostr hosted checkpoint2November (not added to46complete proofs): Nostr code79b7
 ## Nostr page publication - 2 November 2026
 
 Website7e2046de25a40a84a289a3c73da2bc7e2e25b885 publishes Nostr with pinned guide9961fde00/C#6ee3ebfcd links and explicit unresolved-intermittency/copy-scope limits.99client tests pass. Public HTML173395bytes/SHA256dde3093ce9253829f3355cca80ff7bf0636d7e1a221c8c85ddabbf240c7d9b70 and both scripts match exact git blobs. Browser interaction remains unverified. Raw public proof TestResults/NostrPublicSourceCurrent/public-assets-observation.json; tests frontend-tests.log. Functional HTTP proof does not resolve earlier errors or establish browser interaction/full ORM.
+
+Stacks live activation succeeded; native3/2+Mongo5/4pass, two original version1 saves/pending0. Reuse exposed moving block-height descriptions; frontend5782f9c fixes initial-snapshot identity with104tests. Original cohort retained, read-only completion/privacy/replicas pending; no hosted-count increment. [Root cause and next](STACKS_PUBLIC_SOURCE_STATUS.md#live-snapshot-reuse-defect-and-root-fix).

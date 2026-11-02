@@ -117,3 +117,28 @@ Primary references: [node RPC contract](https://github.com/stacks-network/stacks
 ## Hosted activation checkpoint
 
 Code job `8f13e4b3-5113-4b74-a9f8-8ace730b2654` succeeded at the exact reviewed parent. Three settings applied once, per-key hashes/full variables verified, no per-key deployment. Task branch restored. Single existing-artifact activation `d6bb89ee-7a2a-4cfd-b382-d0f0af6bdfe0` is BUILDING at the same commit. Journals/protected CLI output remain under `LocalState/COSMIC/HostedStacksReleaseCurrent`; do not replay application or activation. Hosted acceptance/count remains pending. This supersedes the earlier unapplied-settings checkpoint.
+
+## Live snapshot-reuse defect and root fix
+
+Activation d6bb89ee-7a2a-4cfd-b382-d0f0af6bdfe0 SUCCESS at3768c2050.
+First original cohort `LocalState/COSMIC/HostedQueryAcceptance-BlockStackOASIS`
+passes native3/2 and Mongo federation5/4. Two private version1 saves are ACKed;
+pending journal is empty. Reuse stops before replicas/privacy: the generic
+client compared initial snapshot descriptions with a newer live block height.
+Both original paired snapshots have matching source IDs/names/version1 but
+changed public descriptions. Original progress/log/ACKs remain preserved; no
+replacement owner or replay.
+
+Frontend task5782f9c fixes the invariant: an initial private snapshot is identified
+by mapped ID, owner, version1 and exact key/dataset/source provenance. Its name
+and description preserve the first observation. A newer native observation must
+not rewrite it; later saved edits (version2+) and identity/provenance/visibility
+mismatches still fail closed.104client controls pass, including changing source
+observations and edited/provenance failures. Not yet published to website main.
+
+Next: add explicit evidence-bound read-only continuation for this failure kind,
+validate original2ACKs/empty journal/progress hashes and forbid saves/intents.
+Finish reuse/isolation/exact SQLite+Neo4j comparisons with the original owner.
+Hosted complete count stays48; Stacks remains uncounted until these gates pass.
+Raw evidence: `TestResults/HostedCqlIntegrationCurrent/BlockStackOASIS-*` and
+`TestResults/StacksPublicSourceCurrent/{hosted-acceptance,frontend-reuse-tests}.log`.

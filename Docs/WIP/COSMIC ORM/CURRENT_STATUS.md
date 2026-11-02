@@ -12,7 +12,7 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 - Website main/taskbd173e546a095c0ae6f9a23d20db69bb6de76bda publishes Matrix/Nostr and setup/C#/HTTP links. Public HTML175616bytes/SHA256b18edd89557ae17dd261d8fded04b12f7eec9ca6da2a8cc52ab7d73c2a7383a8 and both scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser copies retain identity/name/description/provenance and the native query key, not full native payload. Full safe payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: Stacks settings activation building
+## Current phase: Stacks live snapshot-reuse bug fixed; read-only completion next
 
 - Matrix acceptance release was parent7b45ee85628bd6d1ceeaf769d4c1bcc44ccb465b/Coredd2c32c8925aaf53017f4fedc1d1f11d330a55e3; its original source/cohort/receipts remain frozen.
 - Code jobd398b754-8d88-4837-a934-44e4cd9aad0d SUCCESS. Three settings applied exactly once/verified with no per-key deploys. Settings jobaaff57a2-a6ed-4e0e-939b-712420bd9d4e SUCCESS at the same parent SHA. Task branch restored after matching-release application.
