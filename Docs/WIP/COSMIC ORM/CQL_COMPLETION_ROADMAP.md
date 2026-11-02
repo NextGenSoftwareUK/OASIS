@@ -4,8 +4,8 @@ Updated 2 November 2026. Full programme remains incomplete.
 [CURRENT_STATUS](CURRENT_STATUS.md) owns deployment state and the exact next step.
 
 1. Finish ThreeFold's original hosted rollout. Verified code c00da49c1/Core5415961
-   is published; job 5d9b665b-984d-4bcd-bebd-e722ff9a6612 is queued waiting for
-   a build slot. Observe that job, then apply the original three-value candidate
+   is published; job 5d9b665b-984d-4bcd-bebd-e722ff9a6612 is now building after
+   its build-slot wait. Observe that job, then apply the original three-value candidate
    once, activate once, verify and independently audit the original hosted cohort.
    Settings remain unchanged. Do not restart because observation takes time.
 2. Preserve 59 scoped hosted HTTP proofs and 64 local integrated query types.
