@@ -150,3 +150,25 @@ fa9ccb7b-3384-4c77-80f1-309e07fab649 last verified BUILDING at same commit.
 Follow this existing job; no reapply/redeploy/reprepare. Original hosted cohort
 has not started. Durable success/application/activation ACKs and intents retained
 under HostedCelestiaReleaseCurrent/HostedSourceRolloutCurrent.
+
+
+## Hosted HTTP acceptance complete
+
+Exact code9af995a6/settingsfa9ccb7b SUCCESS at parent9c0b5c591/Core7edffc7.
+Three settings applied once with exact full candidate/per-key hashes observed.
+Original hosted cohort native3/2+Mongo5/4, reuse0new/2existing, foreign-private0/
+public3 and exact SQLite/Neo4j2/2 pass. Two original normal API version1 saves/
+matching operation ACKs, pending0. Independent audit checks original header
+block/data/previous hashes, timestamp/square width, source owner/keys/provenance,
+private-copy identities/visibility/content and exact replica metadata. Immutable
+acceptance ACK retained under HostedQueryAcceptance-CelestiaOASIS; no replay.
+
+Hosted functional proofs/query tariffs52; browser5verified/47open. Public card
+next. Not independent consensus, DA sampling, full payload copying, native blob
+writes, complete ORM support or universal HyperDrive reliability proof.
+
+| Evidence | Bytes | SHA256 |
+|---|---|---|
+| `TestResults\HostedCqlIntegrationCurrent\CelestiaOASIS-native-http.json` | 14713 | `b98a54a8b161342d465e3d2c0bbe676539a235caf8a2e5ac01f9233ac1bbcf11` |
+| `TestResults\HostedCqlIntegrationCurrent\CelestiaOASIS-client-http-flow.json` | 38406 | `fc4ce45717556a9f4d543c8918ca7c92c902248d0ee0a45091d4d6b766d074e5` |
+| `TestResults\HostedCqlIntegrationCurrent\CelestiaOASIS-isolation-http.json` | 5985 | `a855616d42e24fa195d5857266cfb73b06181adcc834ef827d011e925ca8361f` |
