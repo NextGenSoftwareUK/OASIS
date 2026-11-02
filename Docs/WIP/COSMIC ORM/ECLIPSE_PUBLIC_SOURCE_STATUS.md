@@ -131,3 +131,30 @@ remains54/browser5verified49open. Next HTTP compiler/startup registration,
 query-only tariff and API controls, then local native/Mongo/privacy fixture and
 original hosted/save/replica/card acceptance. Deep ORM/consensus/settlement
 verification remains outside this bounded read profile.
+
+## HTTP admission controls passed
+
+Explicit CQL_ECLIPSE_PUBLIC_SOURCE_JSON startup profile/project reference and both
+HTTP compiler source lists now include Eclipse. Core query-only tariff permission
+added; signed/native writes still rejected. Core task SHA 5375672c1e8e9411f017dc0fc766622fd0c08ecb pushed and
+ls-remote verified. Parent manifest/gitlink advance together; Development/live
+settings remain unchanged.
+
+Core1/API3targeted tests pass0failed/0skipped; WEB4 compiled. Four native3/2
+and Mongo paired presets plan using shipping capabilities, independent permission/
+tariff required; missing Mongo explicitly disables pairs. Existing128character
+demo-copy key boundary retained; Eclipse keys max44fit.
+
+Publisher9pure controls pass including exact retained genesis rejection,
+zero-cost admission, unchanged DNA/other settings and matching local proof
+requirements. No actual hosted candidate prepared yet: local HTTP/Mongo proof
+is required first. These scripts create no resource during pure tests.
+
+Evidence TestResults/EclipsePublicSourceCurrent (SHA256):
+
+- http-admission-core.trx: 62c10844615d7a9aa744ebabcc3c22bcff989ddc60738378c1597943416734fb
+- http-admission-api.trx: 7d11ab3c1e337efd456dd65f37980f008fc4ce3c17c4bd04dff866a1c004f799
+
+Next owned local native HTTP/Mongo3/2+5/4/privacy/cleanup; then actual protected
+candidate/four-preset review and original hosted acceptance. Roadmaps/status
+summaries reconciled to59integrated/54hosted; no new live admission/card yet.
