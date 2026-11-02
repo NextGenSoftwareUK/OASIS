@@ -16,7 +16,7 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 - EOSIO native source and actual manager/LINQ/CLI3/2 pass, with28controlled tests. Core1/API2/localHTTP1/publisher9/prepared-planner1/client1 pass. Local pairing5/4 and foreign-private0/public3 verified; exact owned Mongo fixture cleaned and process stopped.
 - Parent Development `4d3e0b7cd148bed7ebdf0400ca371867873932c0` / Core `86e38a37ee860785a8273ade3308f6fc1775294d` published/ref-verified; manifest validates.
 - Code job `68db832f-1742-423d-9362-febcf9620466` SUCCESS. Three reviewed settings applied once; every ACK digest/whole candidate matched, DNA unchanged. Single settings job `20b3a558-1139-429d-aaa3-7a01f1191591` submitted; observe it before hosted acceptance. No EOSIO hosted sessions or saves yet.
-- Applied three-key baseline/candidate, per-key ACKs and single redeploy intent/protected outcome remain retained. No replay of completed native/local cohorts. Frontend test-only branch9cca7a9 is pushed; card not published.
+- Applied three-key baseline/candidate, per-key ACKs and single redeploy intent/protected outcome remain retained. No replay of completed native/local cohorts. Frontend96/96regression pass; EOSIO card prepared but unpublished. Guide includes first setup and native/paired HTTP examples.
 
 ## Exact next actions
 
