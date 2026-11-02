@@ -1,6 +1,6 @@
 # Nostr public event qualification
 
-Updated 2 November 2026. **Not API-admitted or hosted-certified.** Stable source owner/catalogue now retained after explicit actual manager/LINQ qualification; no API/hosted enrollment.
+Updated 2 November 2026. **API/local qualification verified; not hosted-certified.** Stable source owner/catalogue now retained after explicit actual manager/LINQ qualification; no API/hosted enrollment.
 
 ## Current evidence
 
@@ -61,3 +61,20 @@ New source NostrPublicEventMetadataSource and guarded NostrPublicRelayRead use b
 - TestResults/NostrPublicSourceCurrent/console-build.log: 83bytes, SHA256 `5670f4f8791fef9688ee8413f2d2c83b347c7a4435877f39763757aef9f5c408`.
 - TestResults/NostrPublicSourceCurrent/console-qualification.log: 1712bytes, SHA256 `ab79b5088c335f14764db1bae6b35a987a25810806b99de684c1b4f2a7f5e3c6`.
 - Retained source.json: 314bytes, SHA256 `f24add2d4caab44b961903e3ecac140002b2393c4b010b48d192f950c83683fd`.
+
+## API/local HTTP and prepared rollout milestone
+
+Nostr Core1/API2/localHTTP continuation1/publisher9/prepared-planner1/client preparation1 pass. Native3/2, Mongo5/4, foreign-private0/public3; original two version1 saves reused with0additional saves. Exact marked DB removed after consumers stopped, owned Mongo stopped/27029 absent. Original failed test (wrong BlueSky policy/handle assertion) retained; correction compares actual Nostr policy and signed metadata, original identity/owner/operation ACKs preserved.
+
+Lazy CQL_NOSTR_PUBLIC_SOURCE_JSON registration, explicit query-only compiler/tariff admission, four public/Mongo presets and encryption query-key guard are implemented. Coretask84a2151 pushed/ref-verified; parent gitlink/manifest matched. Protected baseline/candidate under LocalState/COSMIC/HostedSourceRolloutCurrent/nostr-public-*. Exactly3values differ, canonical DNA/unrelated values unchanged; no settings applied. Source-bound web4-local-qualified ACK durable; client test-only branch2a92a34 pushed (main unchanged). Actual prepared export plans against shipping native/Mongo capabilities without network/activation. Guide HTTP JSON matches candidate exactly. Next publish verified code, then guarded settings/live acceptance/card.
+
+Original HTTP fixture: LocalState/COSMIC/NostrMongoHttpCurrent, original failed TRX retained plus explicit read-continuation.intent.json binding source/fixture/failure hashes. No original saves/operations replayed; no replacement actor/source owner. Local SDK fixture clones native metadata; generic browser preparation still copies only identity/name/description/provenance. Production auth/billing/replication/browser gates remain separate.
+
+- TestResults/NostrPublicSourceCurrent/core-admission.trx: 3294bytes, SHA256 `9c0b13fd23e8af242c6943ad3a86723b67cc975bdebf9dd49aa66f1267782739`.
+- TestResults/NostrPublicSourceCurrent/api-admission.trx: 4962bytes, SHA256 `8f58bb356b38366701ef19ff5bf5e9d98655d2ab07ea99054ef1d1baa5307a79`.
+- TestResults/NostrPublicSourceCurrent/mongo-http-native.trx: 7156bytes, SHA256 `9408bc54da2018a14c42f097db3027c6192570f691a769ba8ba721a85aadac5a`.
+- TestResults/NostrPublicSourceCurrent/mongo-http-continuation.trx: 3353bytes, SHA256 `5bff7a92244beb16b0fd81d846ef748d83257a4038fd946d2f475d5421d1455a`.
+- TestResults/NostrPublicSourceCurrent/nostr-mongo-native-summary.json: 271bytes, SHA256 `bb98770d2b363e05b6542cdba373de47235e7ff01252368c93b61ad5cb3198e1`.
+- TestResults/NostrPublicSourceCurrent/prepared-planner.trx: 3329bytes, SHA256 `e4428388ca1cf4b4240bd42cc7863d553a232d89c0205007927fb161b529fdb1`.
+- TestResults/NostrPublicSourceCurrent/prepared-public-review.json: 4186bytes, SHA256 `1e03cfe108dc141ac71b7421308598759f8afc31ac664d61a4ef8181b6c90298`.
+- TestResults/NostrPublicSourceCurrent/frontend-preparation-test.log: 217bytes, SHA256 `9bc7cf1e9cdc801c88e58b16e4deea882eb681298f768370b1caaae444c65ca8`.
