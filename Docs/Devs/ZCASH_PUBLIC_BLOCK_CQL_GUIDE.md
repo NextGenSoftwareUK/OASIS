@@ -62,8 +62,10 @@ Equihash, proof of work, consensus or finality; ZcashProofVerified remains false
 
 The server profile uses CQL_ZCASH_PUBLIC_SOURCE_JSON and requires independent
 query permission and read tariff. It never enables wallet/provider write routing.
-Native and Mongo-paired three/two presets are covered by planning tests. Live
-hosted deployment and browser acceptance are separate gates: consult
+Native and Mongo-paired three/two presets are covered by planning tests. Hosted native3/2, Mongo5/4, repeat preparation/privacy and exact SQLite/Neo4j
+replicas have passed the original cohort audit. The Zcash card is published in the
+CQL sandbox; select ZcashOASIS and a native or Mongo paired preset. Browser
+interaction and availability certification remain separate gates: consult
 `Docs/WIP/COSMIC ORM/ZCASH_PUBLIC_SOURCE_STATUS.md` for current evidence.
 
 Run offline adapter controls with `Scripts/Sandbox/Test-ZcashPublicMetadata.ps1`.

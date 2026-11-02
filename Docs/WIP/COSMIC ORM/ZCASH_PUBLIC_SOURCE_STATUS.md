@@ -144,3 +144,7 @@ ZcashOASIS-native-http.json:14515bytes SHA256 `1cde3624b4e259b3df6fdd3ca01a25807
 ZcashOASIS-client-http-flow.json:38239bytes SHA256 `67eeae24490e719f1292f5c2ce41aab68416017117fdaa88ed114a5e4d0c647a`; compressed original retained HostedQueryAcceptance-ZcashOASIS.
 
 ZcashOASIS-isolation-http.json:5581bytes SHA256 `eeb9e894732b3b3ce222a54a0f26ae8e22c7c213104cfef762316dc5be1716b5`; compressed original retained HostedQueryAcceptance-ZcashOASIS.
+
+## Sandbox card publication
+
+Website main/task3141cca9491d585ed0b1c8aab7a52c7dd5bbc948 publishes cql-zcash-catalogue with native/Mongo preset directions, spaced local command and pinned guide/C# links. HTML parser/uniqueDOMID checks pass. Public HTML199130bytes SHA256583e921e1fa2901a6737e63c7c8ba095235bd84d73e2336f6d411e81d8e6dd8c and both unchanged JS assets match exact Git blobs. No JS changes/repeated green tests/browser interaction. Publication ACK retained HostedZcashPublicSourceCurrent. Hosted cohort remains frozen. Browser/reliability/fullORM gates remain open.
