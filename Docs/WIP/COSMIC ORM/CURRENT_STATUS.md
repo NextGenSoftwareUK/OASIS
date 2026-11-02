@@ -1,41 +1,83 @@
 # COSMIC ORM / CQL current status
 
-Updated 2 November 2026. Goal active/incomplete. Breadth-first live demos;
-deep selected-stage LINQ parity paused. Work red scopes or reproduced bugs only.
+Updated 2 November 2026. Goal active and incomplete.
+Priority: breadth-first live demos. Deep selected-stage LINQ parity is paused.
+Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
-## Verified scope
+## Verified coverage
 
-- 62 integrated query types:3canonical,55bounded public/source profiles,4local PostgreSQL/Cosmos/Oracle/AWS implementations.
-- 57 scoped hosted functional HTTP proofs/configured tariffs;5browser verified/52open. No full ORM/native-write/reliability certification inferred.
-- MongoDB/SQLite/Neo4j strict parity50/82each; original investor-demo subset green. No global completion percentage inferred.
-- Latest Bittensor passes actual SDK/CLI/nativeHTTP3/2, Mongo5/4, repeat0new2existing, foreign0private3public, exactSQLiteNeo4j2each.2normal API version1saves/pending0; independent offline audit passed. Read-only Finney header metadata, not AI inference/subnet/private-state or independent consensus proof.
-- Parent Development e8d2d75df48a5caa6b6a849201c34494928b8462/Core d3f92df63ffea195ca83f057246387b03b9f3068. Original code11aa820e-7883-41ab-ae3b-8f2d890c3ff6 and one activation549fdb68-2f97-4ae2-8cf8-7106efa3e71c SUCCESS at same code.3settings applied once/per-key ACK/full candidate equality/DNA unchanged. No active deployment job remains for this milestone.
-- Website main/task bc313792dd345107904cfdf7ec2789ba62ccceee publishes Bittensor/Eclipse/Akash/prior cards. Public HTML196929bytes/SHA256dfe8e9bb4fddf2a4d9690ee8b806c647f8a7df26f335cd547470321bc6c9e2d3 and both JSfiles match exact git blobs. JS unchanged from prior108controls; no green hardening/retest. Browser interaction remains unverified.
-- Generic private browser copies retain identity/name/description/provenance/query key, not full native payload; full safe payload mapping stays red in AFTER_DEMO_BACKLOG.md.
+- **62 integrated query types:** 3 canonical, 55 bounded public/source profiles,
+  4 local PostgreSQL/Cosmos/Oracle/AWS implementations.
+- **57 hosted functional HTTP proofs**, 5 browser verified, 52 browser gates open.
+  These figures do not certify full ORM/native writes/reliability/uptime.
+- MongoDB, SQLite and Neo4j: **50/82 strict parity features each**.
+  The original investor-demo subset is green.
+- Latest hosted addition: Bittensor. Native3/2, Mongo5/4, repeat0new/2existing,
+  foreign0private/3public, exactSQLite/Neo4j2each,2version1saves/pending0.
+  Original cohort frozen; no independent consensus or AI/subnet claim.
+- Zcash local acceptance:27adapter/config tests; actual manager/LINQ/CLI3/2;
+  local HTTP3/2+Mongo5/4, foreign0private/3public,2SDKsaves/9receipts.
+  Exact fixture cleaned and owned Mongo stopped. Original source is frozen.
+- Zcash HTTP admission3API+1Core, prepared4presets and10publisher controls pass.
+  Combined Worldscape/Zcash merge11API+1Core passes. Independent hosted audit
+  controls pass2tests/16faults. Shared C# federation whitelist bug reproduced
+  and fixed with a controlled red/green test; no live replay.
 
-## Exact next step
+## Active release and exact next step
 
-1. Freeze all accepted Bittensor source/owner/keys/config/candidates/intents/ACKs/cohort. LocalState/COSMIC: BittensorPublicQualificationCurrent, HostedBittensorPublicSourceCurrent, BittensorMongoHttpCurrent(cleaned), HostedBittensorReleaseCurrent, HostedQueryAcceptance-BittensorOASIS. No readiness/SDK/CLI/HTTP/settings/save replay for green. [Bittensor detail](BITTENSOR_PUBLIC_SOURCE_STATUS.md).
-2. Zcash first public v1summary qualification passes:3HTTP200GETs verify mainnet/genesis, heights1-3 and1-2/same records, freshness explicitly unknown.7offline controls/PS syntax pass. Operator repo116b8a72pinned;5schema/source files1,019,086bytes retained, no install/node. Intent/ACK/raw3480bytes durable in ZcashPublicQualificationCurrent; do not replay. [Detail](ZCASH_PUBLIC_SOURCE_STATUS.md). Zcash adapter now builds:27/27 controlled/configuration tests pass for eq/IN/paging, identity/network/units validation, UInt32 timestamps, errors/no partial results/cancellation/read-only writes. Shared C# walkthrough wired and full demo build passed. Original actual manager/LINQ/CLI3/2 passed; source-bound intent/ACK/log retained in HostedZcashPublicSourceCurrent. HTTP compiler/registry/read-only tariff integration passes3API+1Core tests;4native/Mongo presets plan. Original real local HTTP passed native3/2, federation5/4, foreign0private3public,2SDK-owned saves/9receipts; exactfixture cleaned/ownedMongo stopped. Hosted candidate prepared:9publisher controls and actual4preset compiler gate pass. No settings mutation. Merged latest Development/Core Worldscape; combined11API+1Core tests pass. Core5b47c0b pushed/verified; manifest7Dockerfiles passes. Development parent9e98a4278/Core5b47c0b pushed/remote verified. Exact code deployment624285a4-15a7-419d-8dad-e8d8daf90bc8 BUILDING. Code job SUCCESS.3settings applied once/per-key ACK/exact candidate equality/DNA unchanged. Single activation66d2ccea-7d77-4f76-816a-12ed810fe6ed BUILDING at same code. Independent audit2tests/16faults passes; sharedC# whitelist regression fixed/red-green. Next observe same activation toSUCCESS, then original hosted cohort/audit/card. Missing fetched HoloNET-ORM ref differs from unchanged deployed pin. Aztec initial403/1010 denial remains preserved/unadmitted, no bypass.
-3. Keep previous accepted sources/cohorts frozen. Akash/Eclipse/ENS/prior proofs remain in their source reports. Farcaster lacks verified suitable free access; original failure durable. Lens first403/Cloudflare1010 explicitly nonretryable; preserve denial, no bypass. All other preserved failed gates remain red.
-4. Keep full provider report/manual/roadmaps/resource ledger current. Raw logs/results TestResults; durable identities/config/ACKs/compressed original proof LocalState/COSMIC. No .NET rebuild merely to recreate green evidence.
+1. Development parent **9e98a4278c91a9d01caaabdfbed447d38120a6f2**;
+   Core **5b47c0b60b027092e51e486050b898ba147a4194**. Worldscape preserved.
+   Manifest/gitlinks and7Dockerfiles pass; remote component pushes verified.
+2. Zcash code job **624285a4-15a7-419d-8dad-e8d8daf90bc8 SUCCESS**.
+   Three settings applied once, exact full candidate/per-key ACKs verified,
+   node DNA unchanged. No additional settings submission permitted.
+3. Single activation **66d2ccea-7d77-4f76-816a-12ed810fe6ed BUILDING**
+   at the same code. Observe this job, never start another on a polling timeout:
 
-## Preserved gaps and priorities
+   `python Scripts/Sandbox/Observe-HostedDeployment.py 66d2ccea-7d77-4f76-816a-12ed810fe6ed --expected-commit 9e98a4278c91a9d01caaabdfbed447d38120a6f2 --output TestResults/ZcashPublicSourceCurrent/activation-observation.json`
 
-- Keep a filtered native query and Mongo-paired preset per admitted provider; continue remaining red provider breadth.62types do not cover every shipping provider project.
-- Hosted Azure Cosmos/Oracle/PostgreSQL explicitly deferred by David; no re-ask/new paid resource. Public Azure Blob/AWS S3 proofs are separate from owned databases.
-- Browser/OS control remains closed. Solana/remaining52browser gates stay open; HTTP/static bytes are not interaction evidence.
-- Nostr intermittent503/Blockscout earlier timeout causes remain unresolved. Functional source proofs do not certify availability; wider operator/transport/recovery/scale acceptance remains open.
-- Full save ownership/concurrency, children/depth/query parameters, rollback/history/deltas, migration/placement/authority cutover and wider HyperDrive acceptance still need exact roadmap evidence. Deep selected terminals/unrestricted POCO/tooling deferred. V2 code only; legacy gaps docs-only.
+4. After exact SUCCESS: check discovery, run original Zcash hosted native/Mongo
+   cohort once, audit privacy/replicas/save ACKs, retain compact original proof,
+   then publish the sandbox card with C# and guide links. No cohort exists yet.
+   Runner: `python Scripts/Sandbox/Verify-HostedQuerySource.py ZcashOASIS --prepare`
+   requires existing pinned Node24 on PATH. Audit: `Audit-HostedZcashAcceptance.py`.
+5. Durable Zcash state: `LocalState/COSMIC/HostedZcashPublicSourceCurrent`,
+   `ZcashPublicQualificationCurrent`, `ZcashMongoHttpCurrent` (cleaned),
+   `HostedZcashReleaseCurrent`. Preserve owners/config/intents/ACKs; no reseeding.
 
-## Disk and working rules
+## Remaining gates
 
-[Disk recovery](../Cleanup/DISK_RECOVERY_CURRENT.md):120GBtarget unmet. Latest measured free59,235,729,408bytes. Bittensor188reviewed generated folders/2,154,947,374logical bytes remain preserved after automatic cleanup-policy rejection; no retry/bypass. External14shared-library paths preserved. No owned local test/DB service remains. Exact paths/sizes/lifecycles in ENVIRONMENT_AND_CLEANUP_LEDGER.md.
+- [Zcash details](ZCASH_PUBLIC_SOURCE_STATUS.md): hosted proof/card/browser open.
+- [Ceramic qualification](CERAMIC_PUBLIC_SOURCE_STATUS.md): pinned official
+  client reviewed; current operator access/public StreamIDs not yet verified.
+- Preserve denied Lens/Aztec403/1010 outcomes; no bypass/retry. Farcaster free
+  access unresolved. Nostr503/Blockscout timeout causes remain unresolved.
+- Hosted Cosmos/Oracle/PostgreSQL deferred by David; no paid hosting/re-asking.
+- Browser/OS control remains closed. HTTP/static assets are not browser proof.
+- Generic private browser copies omit full native payload; backlog remains red.
+- Full ownership/concurrency/children/history/deltas/migration/placement and
+  wider HyperDrive acceptance remain subject to exact roadmap evidence.
+  Legacy gaps docs-only; implementation work V2 only.
 
-Personal miniforge3/art-ml-models explicitly KEEP. Existing WSL/provider data/runtimes preserved; admin compaction pending, not80GBrecovery. Earlier rejected ChainLink bin/dump/duplicate Git-pack targets and unknown root logs untouched. No blanket caches/volumes/user-data deletion.
+## Workspace and resources
 
-Work/build/test only C:/Source/OASIS-cosmic/work/cosmic-cql-ton-public; Core work/cosmic-cql-google-public. Frontend existing C:/Source/Web4Site/work/cosmic-cql. No new worktree/environment. Dev push timing exception authorized; no production/master or paid hosting.
+Work/build/test only `C:/Source/OASIS-cosmic`, branch `work/cosmic-cql-ton-public`;
+Core `work/cosmic-cql-google-public`; frontend `C:/Source/Web4Site/work/cosmic-cql`.
+Website main/taskbc313792 publishes prior accepted cards; Zcash not published.
+No new worktree/environment. Dev push timing authorized; no production/master.
 
-Build lease Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 with /m:2 /nr:false /p:UseSharedCompilation=false. Reuse caches. Manifest python Scripts/validate_railway_dependency_manifest.py --require-gitlinks after commit. Fetch before integration; verify submodule pushes via git ls-remote. Named files only, never git add -A. Mixed ledgers/README byte-preserving; UTF8appends only.
+Use build lease with `/m:2 /nr:false /p:UseSharedCompilation=false`.
+Raw output only `TestResults/`; stable identity/proof `LocalState/COSMIC/`.
+Named-file commits only; fetch/preserve upstream before integration.
 
-[Full report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) | [Manual](CQL_MANUAL.md) | [Architecture](CQL_ARCHITECTURE.md) | [Parity](CQL_PARITY_CHECKLIST.md) | [Backlog](AFTER_DEMO_BACKLOG.md) | [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
+Disk target120GB unmet; latest measured free58.27GB. Direct Zcash build output
+57,798,520bytes measured. Previously policy-denied188folders/2.155GB and shared
+external outputs preserved; no cleanup retry/bypass. Personal Miniforge/models
+KEEP. No owned local DB/build process remains. Shared provider data preserved.
+See [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) and
+[disk recovery](../Cleanup/DISK_RECOVERY_CURRENT.md). Unknown root logs untouched.
+
+[Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) |
+[Manual](CQL_MANUAL.md) | [Architecture](CQL_ARCHITECTURE.md) |
+[Parity](CQL_PARITY_CHECKLIST.md) | [Backlog](AFTER_DEMO_BACKLOG.md) |
+[David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md)
