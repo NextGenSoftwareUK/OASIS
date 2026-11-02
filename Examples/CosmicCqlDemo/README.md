@@ -923,4 +923,4 @@ LINQ/CQL to return three configured addresses and a two-address subset. No walle
 funding, node or source write. Balances print as exact attoFIL strings. Native
 genesis-CID identity and RPC-v1 finalized hash-bound reads are explicit; this does
 not independently verify consensus/F3 finality. Actual console3/2 passes.
-Local HTTP/Mongo federation5/4 and visitor privacy0/3 pass; hosted/browser acceptance remain pending.
+Local and hosted HTTP/Mongo5/4, visitor privacy0/3, repeat reuse and SQLite/Neo4j replicas pass; browser interaction remains open. The generic Mongo demo records copy identity/name/description, not all native metadata.
