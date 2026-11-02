@@ -31,3 +31,7 @@ new service, account or installation. No native call or CQL grant yet.
 The existing PGWire storage provider is separate and remains unchanged; public
 SQL query acceptance would not certify owned holon writes or full ORM parity.
 ClickHouse rollout remains immediate priority.
+
+## Original native gate - 2 November 2026
+
+Fiveofflinecontrols pass. FirstGET to canonical/api/v1/sql/execute forSELECTbuild() returnedHTTP403/705bytes, SHA256dec3d13427dff18664fcc42853ae2464fd0ee60f769615fd356edd610ef33367. Explicit browser-signature denial present. Remaining3/2symbolqueries notsent. No nativebuild/record/CQLacceptance. Exclusiveintent/report/compresseddenial/SHAmanifest durable QuestDbPublicQualificationCurrent; raw TestResults/QuestDbPublicSourceCurrent/response-1.json. No retry/alternateheaders/transport/route/proxy or account/runtime install. Legitimate permitted access is unresolved; do not relabel generatedrows/otherdatabase/publicAPI as QuestDBproof. Other breadth work remains, no owneraction requested.
