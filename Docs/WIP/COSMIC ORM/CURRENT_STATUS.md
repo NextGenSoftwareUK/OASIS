@@ -42,23 +42,18 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
    Evidence/ACK: `LocalState/COSMIC/HostedQueryAcceptance-ZcashOASIS`.
    Zcash card published at website3141cca9491d585ed0b1c8aab7a52c7dd5bbc948;
    HTML and both JS assets match exact Git blobs. Browser gate remains closed.
-   ClickHouse adapter builds,25controlled tests pass; native countries3/2
-   qualified,4probecontrols pass. Actual manager/LINQ/CLI3/2passed; HTTPadmission3API+1Core and
-   publisher10controls pass. Original localHTTP3/2+Mongo5/4/privacy0/3passed; fixturecleaned.
-   Hostedcandidate prepared/4actualpresets pass; audit2tests/16faults pass. MergedlatestDevelopment8bfc03c82/Core87a63bb;
-   combined3API+1tariff+4placeguards pass,1separatenativeMongo test skipped.
-   Next code release/activation/hostedacceptance; settings appliedonce, activationBUILDING.
-   Original absentStackOverflowtable failure retained; no hosted ClickHouse acceptance yet. Do not replay accepted Zcash.
-5. Durable Zcash state: `LocalState/COSMIC/HostedZcashPublicSourceCurrent`,
-   `ZcashPublicQualificationCurrent`, `ZcashMongoHttpCurrent` (cleaned),
-   `HostedZcashReleaseCurrent`. Preserve owners/config/intents/ACKs; no reseeding.
+5. ThreeFold adapter33controls plus new shared-demo red/green pass. Actual
+   compiled manager/LINQ/CLI3/2 passed over originalnodeIDs1/2/3, no provisioning
+   or writes. Shared demo reads its native metadata key from capabilities.
+   Next ThreeFoldHTTPadmission/localMongo/hosted gates; acceptedCLI frozen.
+   Durable `HostedThreeFoldPublicSourceCurrent`/`ThreeFoldPublicQualificationCurrent`.
 
 ## Remaining gates
 
-- [ClickHouse qualification](CLICKHOUSE_PUBLIC_SOURCE_STATUS.md): public read-only
-  identity/schema and countries3/2 verified; adapter25controls pass,
-  manager/nativeCQL3/2+HTTPadmissioncontrols pass; localHTTP3/2+Mongo5/4/privacy pass; hosted remains red. Profile keys printableASCII.
-
+- [ClickHouse](CLICKHOUSE_PUBLIC_SOURCE_STATUS.md): hosted proof/audit pass;
+  card/static assets and browser remain open. Keys printableASCII withoutspaces.
+- [ThreeFold](THREEFOLD_PUBLIC_SOURCE_STATUS.md): actualnativeCQL3/2pass;
+  HTTP/Mongo/tariff/hosted/card remain open. No compute provisioning/storageclaim.
 - [Zcash details](ZCASH_PUBLIC_SOURCE_STATUS.md): hosted proof/card/static bytes pass; browser open.
 - [Ceramic qualification](CERAMIC_PUBLIC_SOURCE_STATUS.md): pinned official
   client reviewed; original Clay healthGET failed before HTTP (URLError, cause

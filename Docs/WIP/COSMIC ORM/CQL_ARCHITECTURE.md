@@ -381,3 +381,7 @@ Bittensor bounded header source uses the same HolonManager/LINQ and WEB4 compile
 ### Zcash public-source boundary
 
 ZcashPublicBlockMetadataSource is an explicit ICosmicQueryStorageProvider/read activation profile, separate from the legacy wallet provider. A configured height/hash catalogue drives bounded point summaries; genesis/network/units/height/hash validation precedes row publication. It uses shared HolonManager/LINQ planning and capability admission. The HTTP registration, compiler and server read tariff require explicit enrollment; source registration never grants native write routing. [Evidence and hosted gate](ZCASH_PUBLIC_SOURCE_STATUS.md).
+
+### Public analytical and grid node profiles
+
+ClickHousePublicCountryMetadataSource executes fixed typed-parameterSQL against the qualified publiccountries table; ThreeFoldPublicNodeMetadataSource composes a bounded set of explicit nativepointreads. Both share HolonManager/LINQ admission, canonical publicholon mapping, access/page handling and explicitread-onlymutation boundary. Source projectionowner/key/namespace are durable; no ownedprovider write route is inferred. ThreeFold remains separate from its canonical MinIO-backed provider implementation. Shared developer walkthroughs resolve the native metadata key from StringKeySetLookup.MetadataKey. Server providerpermission/tariff enrollment remains independent and explicit.
