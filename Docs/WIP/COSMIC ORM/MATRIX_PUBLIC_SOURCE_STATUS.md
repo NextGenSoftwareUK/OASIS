@@ -1,7 +1,7 @@
 # Matrix public room-alias qualification
 
 Updated 2 November 2026. Hosted bounded functional HTTP gates pass.
-Sandbox card publication and browser interaction remain separate gates.
+Sandbox card/public bytes verified; browser interaction remains open.
 
 ## Verified
 
@@ -64,9 +64,22 @@ do not rerun them or remove their guards to obtain a new green result.
 | `MatrixOASIS-client-http-flow.json` | 185481 | `890027a11474424193d73e3025bd02f844644eb9a9bec24edde312acb4899967` |
 | `MatrixOASIS-isolation-http.json` | 43237 | `02bc5ea66eb54b86abafe5036ad8e7af6f1d622f406228de81fd551059b7289e` |
 
-Website task draft `0d8928ea8c08f3f55380158db151ac57e557e517` exists; update
-its pending text to this verified HTTP scope before publishing. Preserve the
-browser and generic-copy limitations. Client bounds branch2ccf6f8 passed101tests.
+## Sandbox publication
+
+Website task/main `bd173e546a095c0ae6f9a23d20db69bb6de76bda` publishes the
+Matrix card with correct hosted HTTP scope, pinned guide650de5757 and C#7b45ee856
+links, source trust/generic-copy limits and spaced local command. Source modules
+passed101client tests. Public HTML and scripts exactly match git blobs:
+
+| Asset | Bytes | SHA256 |
+|---|---|---|
+| `web4-sandbox.html` | 175616 | `b18edd89557ae17dd261d8fded04b12f7eec9ca6da2a8cc52ab7d73c2a7383a8` |
+| `cql-demo-preparation.js` | 10114 | `d5b9f10a3bea0c8ce91cad5e959ebe1e1996b838e74ec2f19abbeb02a2bdb82d` |
+| `cql-playground.js` | 21871 | `7cb6210b9adda1e83630fc966926772f8338c43163c24d1abd88c626ad1ad649` |
+
+Public observation: `TestResults/MatrixPublicSourceCurrent/public-assets-observation-1.json`.
+Immutable site ACK: `LocalState/COSMIC/HostedMatrixReleaseCurrent/site-publication.acknowledged.json`.
+No browser/OS control used; interaction gate remains open.
 
 ## Next implementation and limits
 
@@ -76,11 +89,11 @@ capability rejection. It preserves exact server-reported opaque room IDs. Room-a
 resolution is mutable and server-reported: it does not prove message history,
 room state, membership, E2EE content, freshness, common snapshot or independent
 federation consensus. No server address returned by the API should be fetched.
-Next publish the accurately labelled sandbox card with pinned setup/C#/HTTP
-links, verify public assets against the exact website commit, then inspect the
-next red provider's official native contract. Browser control remains closed;
-no new browser request or claim. Farcaster's failed public-Hub qualifier stays
-unadmitted; see FARCASTER_PUBLIC_SOURCE_STATUS.md.
+Next inspect the next red provider's official native contract (StoryProtocolOASIS)
+before native qualification. Matrix cohorts/source identities are frozen; do not
+resave/redeploy for another green run. Browser control remains closed; no new
+browser request or claim. Farcaster's failed public-Hub qualifier stays unadmitted;
+see FARCASTER_PUBLIC_SOURCE_STATUS.md.
 
 Legacy `MatrixOASIS` activation requires login and does not supply this anonymous
 bounded source contract; leave legacy unchanged and document its gaps only.

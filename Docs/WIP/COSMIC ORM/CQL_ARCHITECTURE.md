@@ -1,6 +1,8 @@
 # CQL architecture
 
-## Current verified milestone — 1 November 2026
+Current scope (2 November 2026):52integrated query types/48scoped hosted functional HTTP proofs; browser5verified/43open. Matrix uses the shared HolonManager planner/deferred LINQ, explicit read-source activation and query-only tariff/admission boundaries. Alias equality/membership and complete-selection paging do not create a second query engine or grant native writes. [Profile contract](../../Devs/MATRIX_PUBLIC_ROOM_CQL_GUIDE.md), [current state](CURRENT_STATUS.md), [source/HTTP/replication/publication proof](MATRIX_PUBLIC_SOURCE_STATUS.md). Earlier dated checkpoints below remain historical.
+
+## Historical Azure checkpoint — 1 November 2026
 
 **40 providers have scoped hosted HTTP evidence; 5 have browser evidence and 35 browser gates remain open.** Azure Blob passes native3/2, Mongo-paired5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2. Two private saves acknowledged at version1; completion ACK prevents replay. Azure is anonymous public Blob properties, not hosted Cosmos DB or owned Azure writes.
 
