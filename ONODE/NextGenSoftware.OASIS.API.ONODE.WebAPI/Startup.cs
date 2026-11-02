@@ -535,6 +535,11 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_BITCOIN_PUBLIC_SOURCE_JSON"] is string bitcoinPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.BitcoinPublicHeaderMetadataSource.FromJson(bitcoinPublicSource)));
+            // Public country SQL reads never enroll owned ClickHouse table writes.
+            if (Configuration["CQL_CLICKHOUSE_PUBLIC_SOURCE_JSON"] is string clickHousePublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.ClickHousePublicCountryMetadataSource.FromJson(clickHousePublicSource)));
+
             // Zcash summaries are an explicit anonymous read profile, never wallet operations.
             if (Configuration["CQL_ZCASH_PUBLIC_SOURCE_JSON"] is string zcashPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
