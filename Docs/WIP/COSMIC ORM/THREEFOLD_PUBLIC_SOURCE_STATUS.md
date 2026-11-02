@@ -34,3 +34,21 @@ claiming independent TFChain state proof or node uptime/availability guarantees.
 No native endpoint request, environment, node, account, contract, deployment,
 funding or installation has been created. Controlled tests precede the native
 capture. ClickHouse's existing code deployment remains the immediate priority.
+
+## Original native qualification passed - 2 November 2026
+
+4offlinecontrols/PowerShellsyntax pass. Original.NETHttpClient(defaultheaders)6GETs allHTTP200: bounded3nodediscovery, exact3pointreads, exact2subset. StableNodeID/FarmID/GridVersion/country/city projections matchdiscovery/subset. NodeIDs 1,2,3. No IP/contact/resource-pricepayload projected, no compute/storagecontract/writes/install/account. Operator mainnetproxy provenance only; independentchainstate proof remainsfalse, no uptime/health/reliability claim.
+
+Originalintent/discoveredkeys/report/compressed6rawresponses+SHAmanifest retained ThreeFoldPublicQualificationCurrent; raw TestResults/ThreeFoldPublicSourceCurrent. Acceptedqualification frozen/no replay. NativeCQL/ORM/manager/CLI/HTTP/Mongo/hosted remain unverified; no providercount increase. Next separate read-only GridProxy node metadata source, configured UInt32nodeIDeq/IN using boundednativepointcomposition, preciseidentity/complete-selection/error/cancellation/read-onlytests.
+
+response-1.json:4769bytes SHA256 `5f5fae1ff5e7f6d5cf61abda290152e6aa99ed3457700f8c476d16a911b57361`.
+
+response-2.json:2343bytes SHA256 `20d36868bdecdf7a660d5ff6a269ff678fa4eab11780cd053cfb3398f76b410c`.
+
+response-3.json:1231bytes SHA256 `1405466a9b972e966ec6b72e15fc55cef34824975bceaf5f3b61904728415573`.
+
+response-4.json:1232bytes SHA256 `1383da01164b64965420ae659e9f6da4defe6ba6827d96842bbbdeae463df4a3`.
+
+response-5.json:2343bytes SHA256 `20d36868bdecdf7a660d5ff6a269ff678fa4eab11780cd053cfb3398f76b410c`.
+
+response-6.json:1231bytes SHA256 `1405466a9b972e966ec6b72e15fc55cef34824975bceaf5f3b61904728415573`.
