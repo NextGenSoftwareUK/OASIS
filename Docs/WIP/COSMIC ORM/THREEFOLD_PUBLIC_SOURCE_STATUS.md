@@ -80,3 +80,7 @@ Three API tests and one Core tariff test pass, no skips. Explicit read profile r
 `TestResults\ThreeFoldPublicSourceCurrent\admission-core.trx` SHA256 `74074df7447b9440e00a68660e4c22bb7ede3fb96b5fe147d9ae4a818bf7065c`; compressed original retained at `LocalState\COSMIC\HostedThreeFoldPublicSourceCurrent\admission-core.trx.gz`.
 
 `TestResults\ThreeFoldPublicSourceCurrent\mongo-http-native.trx` SHA256 `1919bfd91cd8076b5327ac971c2062ed3b90033a16bc6cc4338b5be6edcb5385`; compressed original retained at `LocalState\COSMIC\HostedThreeFoldPublicSourceCurrent\mongo-http-native.trx.gz`.
+
+## Hosted candidate and audit controls
+
+Protected original hosted candidate prepared without service mutation: exactly three values, free query tariff, native full/subset and Mongo paired full/subset. Ten pure publisher controls pass. Initial source-policy label mismatch was caught and fixed before candidate preparation; failed control output preserved. Independent audit controls pass two tests covering sixteen negative cases, including wrong endpoint/ownership/UInt32/verification claim/payload/privacy/replicas/ACKs. Actual shipping prepared-preset test passes 1/1, four available presets. No new native query/save. Core upstream gardening reward commit c83e255 preserved in task merge 54159614ebdb879c8636eed5fae60be97dbbfff3. Next preserve parent Development and verify combined build before publication/activation.
