@@ -14,7 +14,7 @@ deep LINQ parity remains paused. Work red scopes only unless a bug is reproduced
 
 ## Current phase: Chainflip local HTTP/Mongo verified; hosted publication next
 
-- ParentDevelopmentd1f42addf0413ddcd381238ccdf17bbfa561a3e2/CoreDevelopmentc551a89ff294e68527f6ff75128d97cff54e6c63 pushed after fetched ancestry checks. Remote refs verified; manifest/seven Dockerfiles/gitlinks validator passes.
+- ParentDevelopmentc81937d591e91e068a7d6873c89964eca427e757/CoreDevelopment4f9808dea606e68d62257bc189bb08c77520907c pushed after fetched ancestry checks. Remote refs verified; manifest/seven Dockerfiles/gitlinks validator passes.
 - Code4da3a095/settingsb29f93f6 SUCCESS at exactd1f42addf. Three settings applied once/verified; original hosted cohort passed and independent artifact audit wrote immutable acceptance ACK. No additional saves.
 - Wormhole source35tests, actual HolonManager/deferred-LINQ CLI3/2, Core1/API3/localHTTP1/publisher9/actual prepared presets1/client105 pass. Local HTTP native3/2+Mongo5/4/privacy0/3; two SDK-owned version1 copies/9receipts. Owned fixture DB removed/Mongo stopped.
 - Initial unit consumer compile used stale transitive assets; ordinary cached restore fixed it. Original log retained; no DLL copies/workaround.
@@ -27,7 +27,7 @@ deep LINQ parity remains paused. Work red scopes only unless a bug is reproduced
 3. Keep Wormhole original cohort/source/body pins/acceptance and site ACKs frozen. Do not rerun/resave/reapply merely for another green result. Public asset bytes are not browser verification.
 4. Work only next red provider scopes; maintain full report/docs/ledger at milestones. Hosted50/browser5/open45; whole programme remains incomplete.
 
-Next operation: publish the verified Chainflip HTTP batch and Core/gitlink/manifest together; observe exact deployment before applying the existing reviewed candidate. No local qualification/fixture replay. Build under lease with bounded workers.
+Next operation: observe existing Chainflip code deployment a12e451f-09e1-42c7-be53-23968183facc (last verified QUEUED) at exact c81937d59. After SUCCESS, apply the existing reviewed candidate once and activate that artifact once; then original hosted acceptance. Do not request another code deployment. No local qualification/fixture replay. Build under lease with bounded workers.
 
 ## Preserved checkpoints and remaining scope
 
