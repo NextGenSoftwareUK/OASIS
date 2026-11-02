@@ -9,7 +9,7 @@ Updated 1 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CUR
 | Latest hosted provider | EOSIO: native3/2, Mongo5/4, reuse/privacy/replicas pass; card72dee68/public bytes and96client tests verified | Browser interaction and full native payload mapping remain open |
 | Fantom | Native/CLI/local/hosted HTTP, Mongo pairing/reuse/privacy/replicas and card/public bytes pass | Browser interaction and broader ORM scope remain open |
 | Three-database query parity | 50/82 checklist rows per database; original investor-demo subset green | Work only red rows; deep LINQ, POCO mapping and migrations tooling paused |
-| Next provider | ChainLink source unqualified | Primary catalogue/contracts and native3/2 protocol proof before implementation |
+| Next provider | ChainLink primary catalogue/native18reads3/2 qualified | Implement separate read-only CQL source/controlled tests/native manager next |
 | HyperDrive V2 | Scoped live three-store routing/failover, six native recovery directions/interleavings and ACK-loss/disconnect proofs retained | Wider operator/transport/scale acceptance and primary-authority cutover |
 | Full ORM | Focused tracking, conditional-write, graph, history and delta evidence exists | Requirement-by-requirement full acceptance audit remains open |
 
