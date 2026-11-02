@@ -132,3 +132,10 @@ functional local success is not reliability certification. Hosted count stays52.
 | `TestResults/BlockscoutPublicSourceCurrent/Http/prepared-presets.trx` | 3344 | `0e6dd742d60504149257da219cee0786e5eeeafdf21e9d1bc8a4f548156f648d` |
 | `TestResults/BlockscoutPublicSourceCurrent/prepared-review.json` | 4299 | `412c9e68680bc9aa0cc9889b93a6be3829d75b48e2a5ff44fff2b93cc18ced93` |
 | `TestResults/BlockscoutPublicSourceCurrent/client-all-tests.log` | 10478 | `a4e4d45f7b4e95832365e7360d38b5c81f14b2ce409e73f211786558a9f17d02` |
+
+Development publication: parent669917da125c92880289c3cf6729dbe878b8819d and
+Core55de8e9f735346aec00ddd0b2cbdfcaadbebbb80 remote refs verified after ordinary
+fast-forward pushes. Manifest/gitlinks gate passes. Exact code job
+effaffdf-9626-4301-8a9f-efeda25ed97d last observed BUILDING; follow same job,
+no restart. Candidate remains unapplied. Durable release intent/observation below
+LocalState/COSMIC/HostedBlockscoutReleaseCurrent; hosted stays52.
