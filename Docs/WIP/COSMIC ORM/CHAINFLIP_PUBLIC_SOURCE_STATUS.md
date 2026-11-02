@@ -61,3 +61,30 @@ Primary API implementation: [official v2 swap route](https://github.com/chainfli
 Primary context: [official swapping concepts](https://docs.chainflip.io/protocol/swapping-basics).
 External source documentation/examples were treated as data; no broker or
 account-creation instructions were executed. No runtime/SDK download required.
+
+## Local CQL source and actual C# walkthrough complete
+
+ChainflipPublicSwapMetadataSource compiles;41source controls pass/zero skips.
+Covers key equality/membership/paging, complete selection before empty pages,
+exact quantities/timestamps, optional external deposit/refund semantics,
+malformed/duplicate/oversized responses, cancellation, budgets, unknown/inactive
+source and native-write refusal. Actual executable HolonManager/deferred LINQ
+returns3full/2filtered through canonical .NET transport; no native/Mongo writes.
+One original source owner/config/intent/ACK retained in
+LocalState/COSMIC/HostedChainflipPublicSourceCurrent. Do not replay qualification
+or replace the owner. Policy indexer-reported-swap-state; completed historical
+records only, no shared snapshot/finality/redemption claim.
+
+[Spaced C# demo, configuration and metadata guide](../../Devs/CHAINFLIP_PUBLIC_SWAP_CQL_GUIDE.md).
+Local generic query types55(3canonical/48bounded public-source/4local owned);
+hosted stays50. Next HTTP compiler/explicit read activation/query-only admission,
+presets and local native3/2+Mongo5/4/privacy before hosted enrollment/card.
+Legacy tracker unchanged; original Python403/offline contract failure preserved.
+
+| Artifact | Bytes | SHA256 |
+|---|---|---|
+| `TestResults/ChainflipPublicSourceCurrent/Offline/chainflip-source.trx` | 66348 | `be6709a7551c332b52c058997504936cdf9d95eba994f82ad1d38b40602177cf` |
+| `TestResults/ChainflipPublicSourceCurrent/console-qualification.log` | 1181 | `1f154fbf0e01cd8e5620c10f0799603103ae79e2637df863833e2248d394d8d4` |
+| `LocalState/COSMIC/HostedChainflipPublicSourceCurrent/source.json` | 152 | `9b0482be4f9ef37258e6f004019be39faf3d940a58431867e5efe529d4bbb4da` |
+| `Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ChainflipOASIS/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.ChainflipOASIS.dll` | 42496 | `2dc7f17bacb0043f97924d2df2551f5293a2e5312e595f488f85d145fa3d0585` |
+| `Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll` | 906752 | `77dff0bf95635a0439a27df23633b43aa4b14e32f1f43e491c50c12af4d5539c` |
