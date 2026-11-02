@@ -27,9 +27,9 @@ Publisher9pure controls and client1preparation/reuse control pass. Client test c
 
 ## Exact next step
 
-Parent Developmentfcc4f735d1719799dfb3a6fdcd7948ce17020abc/CoreDevelopmentb3868756033b0fb3499cd799b77c331d3a0af9c6 published and remote-ref verified. Current upstream David actions doc preserved; no executable difference beyond verified batch. Manifest/gitlinks validate. Exact code jobd1fe285f-8ccc-445f-a121-80eb76d0222a is BUILDING. Observe that same job, never restart or repeat original code-publication intent.
+Parentfcc4f735d1719799dfb3a6fdcd7948ce17020abc/Coreb3868756033b0fb3499cd799b77c331d3a0af9c6 remote refs verified. Code jobd1fe285f SUCCESS. Exactly3reviewed settings applied once under immutable-release guard; complete candidate equality/per-key ACKs verified. DNA/unrelated values unchanged. Single journalled settings job082c1f0d-311b-459b-a6b8-04fb14028ada nowBUILDING at the samefcc4f735d. Existing task branch restored after guarded exact-release checkout; no new worktree.
 
-After exact/latest codeSUCCESS use CURRENT_STATUS immutable-release guard procedure, then apply reviewed3settings once, verify whole candidate/per-key ACKs, request one journalled settings rollout, observe same resulting job and run first hosted native/federation/reuse/privacy/replica cohort. Only then count Filecoin as hosted and publish its sandbox card. No settings applied yet;46integrated/41hosted/browser5/open36. Never replay completed native/local fixture. PostgreSQL/Azure Cosmos/Oracle hosting and browser control remain deferred/closed.
+Observe that same settings job toSUCCESS; never reapply/redeploy. Then first `Verify-HostedQuerySource.py FilecoinOASIS --prepare` with pinnedNode PATH: native/federation/reuse/privacy/replica cohort, inspect2saveACKs/version1/no pending and write immutable completionACK, then sandbox card/public assets. Do not count Filecoin as hosted yet:46integrated/41hosted/browser5/open36. Original native/local cohorts remain frozen. PostgreSQL/Azure Cosmos/Oracle hosting and browser control remain deferred/closed.
 
 ## Evidence and resources
 
@@ -56,3 +56,5 @@ Primary references: [Filecoin Ethereum API](https://docs.filecoin.io/reference/j
 
 
 Prepared-preset shipping gate1November2026: actual public projection of protected candidate profiles/examples passes shipping CQL compiler and exact MongoDBOASIS.CqlCapabilities for all4presets (2leaf/2federation),1test/0skips. Sources remain inactive; no native request/DB/save. `TestResults/FilecoinPublicSourceCurrent/filecoin-prepared-planner.trx`: 3338bytes; SHA256 `323d3f92b0414a77df804518e7eea97e86326e5a00eeee681f6a27fc42b1a2da`. Original code jobd1fe285f is still BUILDING at fcc4f735d; no settings applied/redeployment. Public guide now includes the tested HTTP request/federation route.
+
+Code application milestone supersedes earlier pending-code/settings statements. Protected state remains LocalState/COSMIC/HostedSourceRolloutCurrent/filecoin-public-*; releaseACKs HostedFilecoinReleaseCurrent. No visitor acceptance cohort created yet.
