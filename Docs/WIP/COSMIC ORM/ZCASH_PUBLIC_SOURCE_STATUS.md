@@ -132,3 +132,5 @@ TestResults\ZcashPublicSourceCurrent\federated-demo-green.trx SHA256 dc2c9ded850
 ## Hosted settings activation
 
 Code job624285a4 SUCCESS at9e98a4278. Prepared source/read admission/examples3values applied exactly once through publisher, per-key ACKs/exact complete candidate equality/DNA unchanged. Settings ACK/activation intent/protected submission/job tuple retained HostedZcashReleaseCurrent. One activation66d2ccea-7d77-4f76-816a-12ed810fe6ed BUILDING, same exact code. Do not resubmit or create cohort before SUCCESS. Hosted functional counts remain57; Zcash not yet accepted.
+
+Reproduced publisher bug: Python boolTrue compared equal to configured integerheight1; original regression failed before fix. Added explicit integer-type validation,10publisher tests now pass. Protected original applied candidate revalidated equal after fix; no configuration change, reapplication or deployment. Red evidence TestResults/ZcashPublicSourceCurrent/publisher-boolean-red.log. Activation66d2ccea remains BUILDING, hosted cohort not started.
