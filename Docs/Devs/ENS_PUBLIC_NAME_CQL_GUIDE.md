@@ -92,3 +92,10 @@ this guide alone does not claim those gates have passed.
 Protocol references: [Universal Resolver](https://docs.ens.domains/resolvers/universal/),
 [ENSv2 readiness](https://docs.ens.domains/web/ensv2-readiness/),
 [normalization](https://docs.ens.domains/ensip/15/).
+
+Hosted functional HTTP acceptance now also passes: native3/2, Mongo pairing5/4,
+repeat setup0new/2existing, visitor privacy0private/3public and exact two-copy
+SQLite/Neo4j replication. The original two normal API saves are version1 with
+settled operation ACKs. This does not certify reliability or browser interaction.
+Select ENSOASIS and one of its four presets in the live CQL tab after website
+publication; the status report records the publication gate separately.
