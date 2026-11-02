@@ -15,13 +15,13 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 
 - EOSIO native source and actual manager/LINQ/CLI3/2 pass, with28controlled tests. Core1/API2/localHTTP1/publisher9/prepared-planner1/client1 pass. Local pairing5/4 and foreign-private0/public3 verified; exact owned Mongo fixture cleaned and process stopped.
 - Parent Development `4d3e0b7cd148bed7ebdf0400ca371867873932c0` / Core `86e38a37ee860785a8273ade3308f6fc1775294d` published/ref-verified; manifest validates.
-- Code job `68db832f-1742-423d-9362-febcf9620466` is BUILDING. Latest12-line build sample1917B has a publish marker/no compiler error marker; that is not deployment success. No EOSIO settings applied, hosted sessions or saves yet.
-- Prepared three-key baseline/candidate and four presets remain retained. No replay of completed native/local cohorts. Frontend test-only branch9cca7a9 is pushed; card not published.
+- Code job `68db832f-1742-423d-9362-febcf9620466` SUCCESS. Three reviewed settings applied once; every ACK digest/whole candidate matched, DNA unchanged. Single settings job `20b3a558-1139-429d-aaa3-7a01f1191591` submitted; observe it before hosted acceptance. No EOSIO hosted sessions or saves yet.
+- Applied three-key baseline/candidate, per-key ACKs and single redeploy intent/protected outcome remain retained. No replay of completed native/local cohorts. Frontend test-only branch9cca7a9 is pushed; card not published.
 
 ## Exact next actions
 
 1. Telos card4ff3661/pinned links/95client tests/public HTML/scripts are verified. Original cohort is frozen; no native/local/hosted replay or settings reapply/redeploy.
-2. Observe that exact code job. Only after SUCCESS check out exact code release4d3e0b7cd for guarded settings application (no detached commits), apply reviewed settings once, issue one journalled settings deployment, restore task branch and verify hosted acceptance/card. See EOSIO_PUBLIC_SOURCE_STATUS.md and LocalState/COSMIC/HostedEosioReleaseCurrent. No EOSIO hosted/browser claim yet.
+2. Observe exact settings job20b3a558-1139-429d-aaa3-7a01f1191591 at code4d3e0b7cd. Only after SUCCESS run `python Scripts/Sandbox/Verify-HostedQuerySource.py EOSIOOASIS --prepare` once with pinned Node24.19.0 on PATH, then reconcile receipt/privacy/replicas and publish the card. Never reapply settings/redeploy/replay completed native/local cohorts. Task branch is restored. See EOSIO_PUBLIC_SOURCE_STATUS.md and LocalState/COSMIC/HostedEosioReleaseCurrent. No EOSIO hosted/browser claim yet.
 3. Implement only the new provider's red scope after qualification: source/controlled tests/native manager+C#3/2, API/query-only admission/Mongo/privacy, actual prepared presets, exact hosted rollout/acceptance/card. Keep green scopes frozen absent a bug.
 
 ## Durable state and rules
