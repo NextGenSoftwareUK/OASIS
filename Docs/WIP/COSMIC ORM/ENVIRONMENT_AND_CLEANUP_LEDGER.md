@@ -4190,3 +4190,10 @@ first hosted proof.188generated folders remain policy-rejected/preserved.
 Bittensor same remote code job advanced QUEUED->BUILDING; existing delivery
 infrastructure active, remote image size unmeasured. No local resource changes
 or replacement job/settings/cohort. Continue observing exact original handle.
+
+2026-11-02 Aztec primary-documentation discovery while Bittensor remote build
+active: reused web tools/source checkout, documents read in memory (size
+unmeasured). No runtime/SDK clone/install/dependency restore/native RPC/
+source owner/account/config/data/fixture/container/node/build output. Existing
+legacy source read only. Record AZTEC_PUBLIC_SOURCE_STATUS.md, Bittensor
+acceptance still priority. All prior retained/rejected resources unchanged.
