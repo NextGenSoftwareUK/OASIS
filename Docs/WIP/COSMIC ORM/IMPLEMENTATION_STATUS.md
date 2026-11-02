@@ -4,12 +4,12 @@ Updated 2 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CUR
 
 | Scope | Verified state | Remaining acceptance |
 |---|---|---|
-| Provider breadth | 51 integrated query types; 46 scoped hosted HTTP proofs | Additional red providers and owned native writes; public projections do not establish full ORM support |
-| Browser | 5 provider proofs | 41 browser gates open; HTTP/asset matching is not browser interaction |
-| Latest hosted provider | BlueSky: native3/2, Mongo5/4, reuse/privacy/replicas pass; cardac0ca0c/public bytes and98client tests verified | Browser interaction and full native payload mapping remain open |
+| Provider breadth | 51 integrated query types; 47 scoped hosted functional HTTP proofs | Additional red providers and owned native writes; public projections do not establish full ORM support |
+| Browser | 5 provider proofs | 42 browser gates open; HTTP/asset matching is not browser interaction |
+| Latest hosted provider | Nostr: native3/2, Mongo5/4, repeat/privacy/replicas pass; original cohort0extra saves, card pending | Browser interaction and full native payload mapping remain open |
 | Fantom | Native/CLI/local/hosted HTTP, Mongo pairing/reuse/privacy/replicas and card/public bytes pass | Browser interaction and broader ORM scope remain open |
 | Three-database query parity | 50/82 checklist rows per database; original investor-demo subset green | Work only red rows; deep LINQ, POCO mapping and migrations tooling paused |
-| Next provider | Nostr native CQL/68focused controls/actual CLI3/2 pass | Core/API/local HTTP/Mongo/privacy/prepared pass; Code/settings SUCCESS; native3/2/Mongo5/4/replicas2/2 partial proof; 8diagnostic reads pass without reproducing earlier503; original repeat/privacy/card completion still pending, reliability cause unresolved |
+| Next provider | Nostr native CQL/68focused controls/actual CLI3/2 pass | Core/API/local HTTP/Mongo/privacy/prepared pass; Code/settings SUCCESS; native3/2/Mongo5/4/replicas2/2 partial proof; Functional repeat/privacy/replicas complete; card/public bytes next. Earlier intermittent503cause unresolved despite8passing diagnostic reads |
 | HyperDrive V2 | Scoped live three-store routing/failover, six native recovery directions/interleavings and ACK-loss/disconnect proofs retained | Wider operator/transport/scale acceptance and primary-authority cutover |
 | Full ORM | Focused tracking, conditional-write, graph, history and delta evidence exists | Requirement-by-requirement full acceptance audit remains open |
 

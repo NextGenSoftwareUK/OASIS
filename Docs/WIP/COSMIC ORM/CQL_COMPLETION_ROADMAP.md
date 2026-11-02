@@ -2,10 +2,10 @@
 
 Updated 2 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state and the exact next action.
 
-1. Preserve46completed scoped hosted HTTP proofs and original cohorts; ChainLink acceptance/card/public bytes are green. BlueSky source/37controls/actual CLI3/2 now pass; hosted native/Mongo/privacy/replicas pass; card/98tests/public assets verified; inspect next red provider. CURRENT_STATUS owns exact release evidence; never replay completed saves.
+1. Preserve47scoped functional scoped hosted HTTP proofs and original cohorts; ChainLink acceptance/card/public bytes are green. BlueSky source/37controls/actual CLI3/2 now pass; hosted native/Mongo/privacy/replicas pass; card/98tests/public assets verified; inspect next red provider. CURRENT_STATUS owns exact release evidence; never replay completed saves.
 2. Keep one filtered native query and one Mongo federated preset per admitted provider, with commented C# examples and sandbox links. Preserve completed privacy, reuse and replica proofs.
 3. Expand remaining red provider scopes with explicit consistency semantics, bounded capability-aware planning, native tests, actual HTTP proof and honest public labels. Rejected RPCs are not implemented capabilities.
-4. Complete browser gates when browser control is available; currently 5 proved/41 open. HTTP and byte matching do not prove interaction.
+4. Complete browser gates when browser control is available; currently 5 proved/42 open. HTTP and byte matching do not prove interaction.
 5. Preserve MongoDB/SQLite/Neo4j original investor-demo subset and 50/82 green checklist rows each. Work only red cells or reproduced bugs; do not harden green features/federation cursors unnecessarily.
 6. Resume paused deep LINQ terminals after entity-selected stages, reselection/graph composition, EF/NHibernate parity, unrestricted POCO mapping and migrations tooling later. Full declared scope remains incomplete.
 7. Maintain ORM/HyperDrive integration acceptance: authorized replication/recovery, tracked saves and deltas, child queries/depth, ownership, history, migration and placement. Public read-only profiles do not imply owned source writes or distributed snapshots.
@@ -17,3 +17,5 @@ Hosted PostgreSQL, Azure Cosmos and Oracle remain deferred. V2 changes only; leg
 Nostr native milestone2November: separate signed-event CQL source32controls/verifier36controls/actualCLI3/2 pass, original503 preserved. Core/API/local Mongo/privacy/prepared gates pass; exact code deployment79b7be91 QUEUED, hosted/card gates remain red; exact next actions in CURRENT_STATUS.
 
 Nostr hosted checkpoint: code/settings SUCCESS, original owner3/2+5/4 and read-only replicas2/2 pass; repeat native query503 remains. Freeze two version1 saves, diagnose sanitized .NET cause, finish original cohort read-only; no new owner/resaves. Full hosted count stays46.
+
+Nostr functional gate complete2November:3/2+5/4+reuse/privacy/replicas2/2, original cohort read-only continuation0extra saves. Earlier intermittent read cause stays open; card/public-byte publication next. Full roadmap unchanged.

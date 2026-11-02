@@ -4,6 +4,8 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const names = ['initial-flow.progress.json', 'original-native-http.json',
   'original-settlement-state.json', 'failure-log-observation.json'];
+const nativeNames = ['initial-flow.progress.json', 'original-native-http.json',
+  'native-diagnostic.json', 'native-diagnostic.intent.json'];
 const guid = value => typeof value === 'string' && /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/.test(value);
 const same = (left, right) => JSON.stringify([...left].sort()) === JSON.stringify([...right].sort());
 function requireCondition(value, message) { if (!value) throw Error('Continuation rejected: ' + message); }
@@ -11,15 +13,18 @@ function requireCondition(value, message) { if (!value) throw Error('Continuatio
 // Recovery is an explicit evidence-backed state transition, never a retry of
 // preparation or the failed usage operation. This function performs no I/O.
 function validateContinuation(input, manifest, raw, acknowledgements, pending) {
-  requireCondition(manifest.schema === 1 && manifest.completed === false && manifest.writesPermitted === false,
+  const nativeMode = input.resumeKind === 'native_read_failure';
+  requireCondition(input.resumeKind == null || nativeMode, 'unknown continuation kind');
+  const evidenceNames = nativeMode ? nativeNames : names;
+  requireCondition(manifest.schema === (nativeMode ? 2 : 1) && manifest.completed === false && manifest.writesPermitted === false,
     'a pending read-only continuation is required');
   requireCondition(manifest.provider === input.source.provider && manifest.ownerId === input.ownerId &&
     guid(manifest.ownerId) && guid(manifest.failedOperationId), 'source/owner identity differs');
   requireCondition(Array.isArray(manifest.savedCopyIds) && manifest.savedCopyIds.length === 2 &&
     manifest.savedCopyIds.every(guid) && new Set(manifest.savedCopyIds).size === 2, 'two original copy identities required');
   const evidence = {};
-  requireCondition(Object.keys(manifest.evidence ?? {}).length === names.length, 'exact evidence set required');
-  for (const name of names) {
+  requireCondition(Object.keys(manifest.evidence ?? {}).length === evidenceNames.length, 'exact evidence set required');
+  for (const name of evidenceNames) {
     const bytes = raw[name];
     const expected = manifest.evidence[name];
     requireCondition(Buffer.isBuffer(bytes) && bytes.length > 0 && bytes.length <= 131072 &&
@@ -34,24 +39,39 @@ function validateContinuation(input, manifest, raw, acknowledgements, pending) {
       row.isPublic === false && row.version === 1 && guid(row.id) && guid(row.requestKey)) &&
     new Set(acknowledgements.map(row => row.requestKey)).size === 2 &&
     same(acknowledgements.map(row => row.id), manifest.savedCopyIds), 'original private save acknowledgements differ');
-  const prior = evidence[names[0]];
+  const prior = evidence[evidenceNames[0]];
   const progress = prior.progress;
   requireCondition(progress?.preparation?.saved === 2 && progress.preparation.existing === 0 &&
     Array.isArray(progress.preparation.keys) &&
     same(progress.preparation.keys, acknowledgements.map(row => row.requestKey)) &&
     !progress.repeated && !progress.replicas, 'original completed stages differ');
-  requireCondition(progress.failedHttp?.route === 'data/query-cql' && progress.failedHttp.status === 503 &&
-    progress.failedHttp.errorCode === 'SETTLEMENT_PENDING' && Array.isArray(prior.steps) &&
-    prior.steps.at(-1)?.status === 503 && prior.steps.at(-1)?.errorCode === 'SETTLEMENT_PENDING' &&
-    prior.steps.slice(0, -1).every(step => step.status === 200), 'failure is not the qualified settled read');
-  const settled = evidence[names[2]];
-  requireCondition(settled.operationId === manifest.failedOperationId && settled.state === 'settled' &&
-    settled.observedOutcome === 'succeeded' && settled.endpoint === 'POST /api/data/query-cql' &&
-    settled.receiptCount === 1 && typeof settled.settledAtUtc === 'string', 'original operation is not settled');
-  const logs = evidence[names[3]];
-  requireCondition(Array.isArray(logs) && logs.some(row => row.operations?.includes(manifest.failedOperationId)),
-    'server failure identity is not linked to the settled operation');
-  const native = evidence[names[1]];
+  if (nativeMode) {
+    requireCondition(manifest.provider === 'NostrOASIS' && manifest.failureKind === 'native_read_failure' &&
+      progress.failedHttp?.route === 'data/query-cql' && progress.failedHttp.status === 503 &&
+      progress.failedHttp.errorCode === 'CQL_QUERY_FAILED' && progress.failedHttp.operationId === manifest.failedOperationId &&
+      Array.isArray(prior.steps) && prior.steps.at(-1)?.status === 503 &&
+      prior.steps.at(-1)?.errorCode === 'CQL_QUERY_FAILED' && prior.steps.at(-1)?.operationId === manifest.failedOperationId &&
+      prior.steps.slice(0, -1).every(step => step.status === 200), 'original native read failure differs');
+    const diagnostic = evidence[nativeNames[2]], intent = evidence[nativeNames[3]];
+    requireCondition(diagnostic.schema === 1 && diagnostic.additionalSaves === 0 && diagnostic.ownerUnchanged === true &&
+      diagnostic.observations?.length === 8 && diagnostic.observations.every(row => row.status === 200 && row.rows === 2) &&
+      diagnostic.deploymentId === intent.deploymentId && intent.ownerId === manifest.ownerId && intent.additionalSaves === 0 &&
+      intent.maximumCalls === 8 && intent.replayAllowed === false && intent.sourceSha256 === manifest.sourceSha256 &&
+      /^[0-9a-f]{64}$/.test(manifest.sourceSha256), 'bounded same-owner no-write diagnostic proof differs');
+  } else {
+    requireCondition(progress.failedHttp?.route === 'data/query-cql' && progress.failedHttp.status === 503 &&
+      progress.failedHttp.errorCode === 'SETTLEMENT_PENDING' && Array.isArray(prior.steps) &&
+      prior.steps.at(-1)?.status === 503 && prior.steps.at(-1)?.errorCode === 'SETTLEMENT_PENDING' &&
+      prior.steps.slice(0, -1).every(step => step.status === 200), 'failure is not the qualified settled read');
+    const settled = evidence[names[2]];
+    requireCondition(settled.operationId === manifest.failedOperationId && settled.state === 'settled' &&
+      settled.observedOutcome === 'succeeded' && settled.endpoint === 'POST /api/data/query-cql' &&
+      settled.receiptCount === 1 && typeof settled.settledAtUtc === 'string', 'original operation is not settled');
+    const logs = evidence[names[3]];
+    requireCondition(Array.isArray(logs) && logs.some(row => row.operations?.includes(manifest.failedOperationId)),
+      'server failure identity is not linked to the settled operation');
+  }
+  const native = evidence[evidenceNames[1]];
   requireCondition(native.avatar?.id === input.ownerId && native.source?.provider === manifest.provider &&
     native.native?.length === 2, 'original native proof identity differs');
   for (const [index, count] of [[0, 3], [1, 2]]) {
@@ -66,7 +86,8 @@ function validateContinuation(input, manifest, raw, acknowledgements, pending) {
       publicRows.length === count && publicRows.every(row => row.isPublic === true) &&
       same(publicRows.map(row => row.id), selectedNative.map(row => row.id)), 'original copy provenance differs');
   }
-  return { prior, ids: [...manifest.savedCopyIds], operationId: manifest.failedOperationId };
+  return { prior, ids: [...manifest.savedCopyIds], operationId: manifest.failedOperationId,
+    kind: nativeMode ? 'native_read_failure' : 'settled_read' };
 }
 
 function assertContinuationRoute(continuation, route) {
@@ -75,10 +96,12 @@ function assertContinuationRoute(continuation, route) {
 }
 
 function loadContinuation(input) {
-  const expected = path.resolve(input.state, 'settlement-continuation/continuation-source.json');
+  const nativeMode = input.resumeKind === 'native_read_failure';
+  const evidenceNames = nativeMode ? nativeNames : names;
+  const expected = path.resolve(input.state, nativeMode ? 'native-read-completion/continuation-source.json' : 'settlement-continuation/continuation-source.json');
   requireCondition(path.resolve(input.resumeManifest) === expected, 'manifest must belong to the original cohort');
   const manifest = JSON.parse(fs.readFileSync(expected, 'utf8'));
-  const raw = Object.fromEntries(names.map(name => [name, fs.readFileSync(path.join(path.dirname(expected), name))]));
+  const raw = Object.fromEntries(evidenceNames.map(name => [name, fs.readFileSync(path.join(path.dirname(expected), name))]));
   const acknowledgements = fs.readFileSync(path.join(input.state, 'save-acknowledgements.jsonl'), 'utf8')
     .trim().split(/\r?\n/).map(row => JSON.parse(row));
   const pending = JSON.parse(fs.readFileSync(path.join(input.state, 'preparation-intents.json'), 'utf8'));
