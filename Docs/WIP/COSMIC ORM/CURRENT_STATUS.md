@@ -24,7 +24,7 @@ deep LINQ parity paused. Work red scopes only unless a bug is reproduced.
 ## Exact next step
 
 1. Preserve Chainflip and all prior completed owners/catalogues/ACKs/cohorts. Do not replay qualification/setup/saves, settings or activation merely for another green result.
-2. Qualify next red Celestia scope from CELESTIA_PUBLIC_SOURCE_STATUS.md: documented current anonymous mainnet extended-header reads, three explicit heights then filtered pair. Verify method/network/header identity/bounds first; record intent before native requests. No admission/card until native/CQL/C#/HTTP/Mongo/privacy/replica gates pass. Legacy blob adapter unchanged.
+2. Celestia native protocol qualification passed: guarded .NET head plus exact heights15521793/15521794/15521795, fourHTTP200; five contract controls/one native test pass. Consumed original intent/observed/raw evidence retained, no replay. Next implement separate bounded read-only header CQL source and controlled tests, then spaced executable C# demo. See CELESTIA_PUBLIC_SOURCE_STATUS.md; admission/card remain red until CQL/C#/HTTP/Mongo/privacy/replica gates pass. Legacy blob adapter unchanged.
 3. Read official current RPC documentation before choosing a method; use shipping guarded transport, no paid keys/new node/runtime/automatic endpoint switch. Retain raw evidence only in TestResults and durable intent/config under LocalState/COSMIC.
 4. Continue full provider report/docs/ledger at each milestone. Deep parity remains paused; whole ORM/HyperDrive programme incomplete.
 
