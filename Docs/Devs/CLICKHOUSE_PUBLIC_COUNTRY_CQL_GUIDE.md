@@ -85,7 +85,8 @@ limits and one-request/second pacing. There is no implicit retry. Save/delete
 return `CQL_READ_ONLY_SOURCE` before network activity or input mutation.
 
 The original native source qualification and compiled manager/LINQ/CLI3/2run
-passed. HTTP/Mongo, server tariff/admission and hosted sandbox gates remain
+passed. Local HTTP/Mongo3/2+5/4/privacy checks and server tariff/admission controls
+now pass; four hosted presets plan. Hosted activation/browser gates remain
 separate: see `Docs/WIP/COSMIC ORM/CLICKHOUSE_PUBLIC_SOURCE_STATUS.md`.
 Preserve original source owners/intents/ACKs; do not replay completed fixtures.
 
