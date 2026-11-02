@@ -11,11 +11,11 @@ Updated 2 November 2026. **API/local qualification verified; not hosted-certifie
 - Exact captured3-ID follow-up failed at WebSocket upgrade: native HTTP503 instead of101. Original failure retained. Two-ID query never ran. No silent retry, endpoint switch, partial success or CQL admission.
 -9offline tests pass: complete/reordered sets, missing/duplicate/unexpected/subscription/schema/bounds, official BIP-340 public vector0, altered signature/message/ranges/off-curve, canonical Unicode hash and signature failure. Public-input probe verifier only; shipping verifier/CQL/local API now separately verified below; no hosted claim.
 
-## Exact next work
+## Exact next work (current)
 
 1. Preserve original intent, discovery frames, signed IDs and503 outcome. Do not rerun original probe or regenerate a source owner.
-2. Bounded CQL projection/32controls and actual native manager/LINQ3/2 are now complete (milestone below), preserving the original503 and captured IDs. Core/API/local Mongo/privacy/prepared gates now pass; observe exact code deployment below. Never rerun completed qualification or mint another source owner.
-3. Code job79b7be91-ac39-4814-be4f-faa1b75613de SUCCESS at6ee3ebfcd95f594844f518b95451fb9807f342a5/Core84a2151. Three Nostr settings applied once and per-key ACKed; whole candidate equality verified. One journalled settings deployment21ee8d23-edce-4723-82ac-1839cd17c975 BUILDING. No hosted cohort started. Observe exact settings job before original hosted acceptance/card. Do not reapply settings, request another deployment or replay any original native/local cohort.
+2. Nostr code79b7be91/settings21ee8d23 SUCCESS at6ee3ebfcd/Core84a2151. Original owner native3/2 and Mongo5/4 pass; two normal private version1 saves ACKed, pending0. Independent read-only audit confirms matching Mongo/SQLite/Neo4j2records each with exact owner/version/metadata;0additional saves. Native read intermittently fails503/CQL_QUERY_FAILED during repeat preparation; foreign privacy/reuse/full hosted acceptance remain red. No replacement owner, source switch or resave; card task-only2ffca06/mainac0ca0c unchanged.
+3. Add sanitized operator diagnostics for native query errors (exception type/transport stage/status only, never credential-bearing messages/URLs). Current HTTP endpoint discards result.Exception and deployed logs contain no native cause. Diagnose/fix the actual intermittent fault, then explicit read-only continuation of original cohort; never repeat preparation/saves or mint another owner. Original native-read continuation already consumed.
 
 ## Evidence and resources
 
@@ -88,3 +88,19 @@ Pending card/pinned setup/C#/HTTP links prepared and pushed on frontend task2ffc
 ## Settings applied once; exact rollout
 
 Code job79b7be91-ac39-4814-be4f-faa1b75613de SUCCESS at6ee3ebfcd95f594844f518b95451fb9807f342a5/Core84a2151. Three Nostr settings applied once and per-key ACKed; whole candidate equality verified. One journalled settings deployment21ee8d23-edce-4723-82ac-1839cd17c975 BUILDING. No hosted cohort started. Temporarily checked out exact code for guarded apply, restored task branch. Per-key intents/ACKs and exclusive nostr-public-redeploy.intent.json/protected .outcome.dpapi retained under LocalState/COSMIC/HostedSourceRolloutCurrent; public settings ACK under HostedNostrReleaseCurrent. No hosted/browser claim. After settings SUCCESS, journal at most2temporary visitors/2normal private saves before original hosted acceptance.
+
+## Hosted partial proof and unresolved repeat read
+
+Nostr code79b7be91/settings21ee8d23 SUCCESS at6ee3ebfcd/Core84a2151. Original owner native3/2 and Mongo5/4 pass; two normal private version1 saves ACKed, pending0. Independent read-only audit confirms matching Mongo/SQLite/Neo4j2records each with exact owner/version/metadata;0additional saves. Native read intermittently fails503/CQL_QUERY_FAILED during repeat preparation; foreign privacy/reuse/full hosted acceptance remain red. No replacement owner, source switch or resave; card task-only2ffca06/mainac0ca0c unchanged.
+
+First native-only API503response was not retained by the harness; this missing evidence is explicitly recorded in native-failure.observed.json. No claim that its exact native cause is established. Deployed Node24.19.0 read-only SSH probe returned3EVENT+EOSE on same relay/original IDs. One explicit same-owner native-only continuation then passed native3/2, prepared2normal private copies and passed federation5/4. The repeat preparation's next native read failed503/CQL_QUERY_FAILED (operation32b7b40a-6014-014f-979f-4fb9065c5e6e); no pending save intent and no uncertain private write. Full hosted acceptance remains incomplete.
+
+Independent read-only Mongo/SQLite/Neo4j audit confirms2matching version1 private records each, original owner and all compared metadata, without additional saves. Durable partial-replicas.observed.json records incomplete status. Preserve progress/save ACKs/native proof; no automatic rerun/continuation. Next diagnose actual .NET failure with sanitized operator evidence; no relay fallback/timeout increase.
+
+Harness root fix: query-only raw status/body/operation captured before interpretation; no auth body/outside-TestResults/overwrite,4offline tests pass including HTTP503capture before raise/no retry. Original failure stays marked missing, not fabricated. --resume-unstarted-native requires same owner/proven no-save failure and exclusive intent; now consumed and ineligible after saves.
+
+- TestResults/HostedCqlIntegrationCurrent/NostrOASIS-native-http.json: 16874bytes, SHA256 `34f19c88ae6a2459e6a25a4e63f80040337d6e0b43aa53526a53103b6f67ae4e`.
+- TestResults/HostedCqlIntegrationCurrent/NostrOASIS-client-http-flow.json.progress.json: 35505bytes, SHA256 `fc5a48c2be7d1f852be75bc39c9d414061225475cb599ac7a8d02452fe188ae9`.
+- TestResults/HostedCqlIntegrationCurrent/NostrOASIS-partial-replica-summary.json: 534bytes, SHA256 `61111c1594071eceffc8a69749053a08bf5d7283e4fdac66bcbaa0e3ca4142c5`.
+- TestResults/NostrPublicSourceCurrent/hosted-egress.json: 164bytes, SHA256 `e349b9df3129b41bf60819313362c046a2d3529c19ddef2bb310c6bef2a83fa5`.
+- TestResults/NostrPublicSourceCurrent/hosted-failure-log-summary.json: 367bytes, SHA256 `a80dfdf612b2729de3298a562336d9250a378b93db9b30f9624f0d769dfa0f75`.
