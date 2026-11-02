@@ -161,3 +161,26 @@ Developer guide: [ENS public-name CQL](../../Devs/ENS_PUBLIC_NAME_CQL_GUIDE.md).
 and browser5verified/48open. Next implement HTTP compiler/startup registration,
 query-only tariff and controlled API tests, then the retained native/Mongo/privacy
 fixture and original hosted/private-copy/replica acceptance before website card.
+
+## HTTP admission controls passed
+
+WEB4 now explicitly registers CQL_ENS_PUBLIC_SOURCE_JSON as a query-only read
+profile; both HTTP compiler provider lists include ENS. No retry policy is
+added to this source. Core tariff permission includes ENS reads, not writes.
+Core task SHA 13add812baa3d6ffea4f5cd49018e5e3fb959d4d is pushed and verified with ls-remote. Parent manifest
+and gitlink advance together; Development/live settings remain unchanged.
+
+Core1/API3 targeted tests passed0failed/0skipped; WEB4 compiled successfully.
+API controls prove 3/2 native and paired presets plan, independent permission/
+tariff is required, and unavailable Mongo leaves pairs explicitly unavailable.
+The existing128character demo-copy key boundary is preserved (all demo names
+fit); provider lookup accepts bounded names up to253characters.
+
+Evidence under TestResults/EnsPublicSourceCurrent (SHA256):
+
+- http-admission-core.trx: 359324a9888873eb16bb2450b2968a8b01c09feb2499efb0f54827a647079212
+- http-admission-api.trx: e542ee2a37f66ac70421c3d04d150e16ff3c5d7e5833e95f26db83d7808b32f5
+
+Next: owned local HTTP/Mongo fixture3/2+5/4, privacy and cleanup proof;
+then reviewed hosting configuration/publication and original hosted acceptance.
+No live ENS admission/card, source writes or new hosting resources yet.

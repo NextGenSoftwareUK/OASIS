@@ -3289,3 +3289,10 @@ ENS adapter outcome: bounded leased test run terminal;17passed/0failed/0skipped.
 Reuses Examples/CosmicCqlDemo project, SDK10.0.401/NuGet caches and current provider outputs under build lease. New source config/owner intended only after existing native qualification ACK verified, fixed LocalState/COSMIC/HostedEnsPublicSourceCurrent; retain identity/config and console intent/ACK, never regenerate for green. Raw build/console logs TestResults/EnsPublicSourceCurrent. No downloads/new runtime/node/database/service/port. Existing completed EnsPublicQualificationCurrent remains immutable and is not replayed. Build output bin/obj reusable, measured size pending; no cleanup while builds active.
 
 ENS console outcome: demo build0errors, process terminal; one actual frozen-binary CLI passed3/2. Retained HostedEnsPublicSourceCurrent/source.json and console.intent/acknowledged.json (owner/config immutable; not disposable). Raw stdout/stderr/build logs remain fixed TestResults/EnsPublicSourceCurrent. No new runtime/service/port/database/wallet or downloads. Free disk48,017,399,808bytes before console; generated shared outputs remain reusable, no cleanup attempted.
+
+
+### ENS HTTP admission build allocation - 2 November 2026
+
+Reuses Core/WEB4/Core.UnitTests/WebAPI.UnitTests output graph, SDK10.0.401/NuGet and assigned Core branch; no new public API, runtime or environment. Planned leased targeted Core tariff1/API3 tests plus WEB4 compile. Logs/TRX TestResults/EnsPublicSourceCurrent/http-admission-*. No source/hosting settings mutation/native replay/Mongo process/database in this controlled step. Shared bin/obj retained reusable, size unmeasured; owner COSMIC session. Exact current source owner/config/ACK preserved.
+
+ENS admission outcome: leased Core1/API3tests passed0failed/0skipped and WEB4 compiled. All test/build handles terminal. TestResults/EnsPublicSourceCurrent measured3,399,230bytes across15files during build (partial measurement, final size may differ); disk47,780,524,032bytes free during build. No native read/service/database/hosting-setting change. Shared build outputs retained reusable; cleanup not attempted.
