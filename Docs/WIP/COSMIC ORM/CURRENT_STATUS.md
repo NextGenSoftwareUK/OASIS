@@ -29,7 +29,7 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
    **7f477378b02adda621376f88f309c9bf70675fd9**, Core
    **0659aa00ba26260ec4c06f196df7b60ee6c0df01**; latestGeoNFTfixes preserved.
    Manifest/gitlinks7Dockerfiles pass, remote pushes verified.
-2. Exact code job **aae1a2b0-8eca-43e7-98e8-2bf4a5c9305d INITIALIZING**.
+2. Exact code job **aae1a2b0-8eca-43e7-98e8-2bf4a5c9305d BUILDING**.
    ClickHouse3settingcandidate is prepared but UNAPPLIED. Observe same job:
 
    `python Scripts/Sandbox/Observe-HostedDeployment.py aae1a2b0-8eca-43e7-98e8-2bf4a5c9305d --expected-commit 7f477378b02adda621376f88f309c9bf70675fd9 --output TestResults/ClickHousePublicSourceCurrent/code-deployment-observation.json`
