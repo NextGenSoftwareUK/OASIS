@@ -9,7 +9,7 @@ Updated 2 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CUR
 | Latest hosted provider | BlueSky: native3/2, Mongo5/4, reuse/privacy/replicas pass; cardac0ca0c/public bytes and98client tests verified | Browser interaction and full native payload mapping remain open |
 | Fantom | Native/CLI/local/hosted HTTP, Mongo pairing/reuse/privacy/replicas and card/public bytes pass | Browser interaction and broader ORM scope remain open |
 | Three-database query parity | 50/82 checklist rows per database; original investor-demo subset green | Work only red rows; deep LINQ, POCO mapping and migrations tooling paused |
-| Next provider | Nostr native CQL/68focused controls/actual CLI3/2 pass | Core/API/local HTTP/Mongo/privacy/prepared pass; code6ee3ebfcd/Core84a2151 published, job79b7be91 BUILDING; settings/hosted/card gates next |
+| Next provider | Nostr native CQL/68focused controls/actual CLI3/2 pass | Core/API/local HTTP/Mongo/privacy/prepared pass; Code79b7be91 SUCCESS;3settings ACKed once; settings job21ee8d23 BUILDING; hosted/card gates next |
 | HyperDrive V2 | Scoped live three-store routing/failover, six native recovery directions/interleavings and ACK-loss/disconnect proofs retained | Wider operator/transport/scale acceptance and primary-authority cutover |
 | Full ORM | Focused tracking, conditional-write, graph, history and delta evidence exists | Requirement-by-requirement full acceptance audit remains open |
 

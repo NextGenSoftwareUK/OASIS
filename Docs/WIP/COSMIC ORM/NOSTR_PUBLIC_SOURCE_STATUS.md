@@ -15,7 +15,7 @@ Updated 2 November 2026. **API/local qualification verified; not hosted-certifie
 
 1. Preserve original intent, discovery frames, signed IDs and503 outcome. Do not rerun original probe or regenerate a source owner.
 2. Bounded CQL projection/32controls and actual native manager/LINQ3/2 are now complete (milestone below), preserving the original503 and captured IDs. Core/API/local Mongo/privacy/prepared gates now pass; observe exact code deployment below. Never rerun completed qualification or mint another source owner.
-3. Development parent `6ee3ebfcd95f594844f518b95451fb9807f342a5` / Core `84a215184f6c2d8b988d5d45bf133a7a0672a26e` ordinary fast-forward published/ref-verified; dependency manifest validates. Exact code job `79b7be91-ac39-4814-be4f-faa1b75613de` BUILDING. No Nostr hosted settings applied/cohort started. Observe this exact job. Only after SUCCESS check out6ee3ebfcd temporarily, set COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT and apply the existing candidate once; journal one settings redeploy, restore task branch, observe settings SUCCESS, then original hosted acceptance/card. No native writes/social search claim or replays.
+3. Code job79b7be91-ac39-4814-be4f-faa1b75613de SUCCESS at6ee3ebfcd95f594844f518b95451fb9807f342a5/Core84a2151. Three Nostr settings applied once and per-key ACKed; whole candidate equality verified. One journalled settings deployment21ee8d23-edce-4723-82ac-1839cd17c975 BUILDING. No hosted cohort started. Observe exact settings job before original hosted acceptance/card. Do not reapply settings, request another deployment or replay any original native/local cohort.
 
 ## Evidence and resources
 
@@ -81,6 +81,10 @@ Original HTTP fixture: LocalState/COSMIC/NostrMongoHttpCurrent, original failed 
 
 ## Exact Development publication
 
-Development parent `6ee3ebfcd95f594844f518b95451fb9807f342a5` / Core `84a215184f6c2d8b988d5d45bf133a7a0672a26e` ordinary fast-forward published/ref-verified; dependency manifest validates. Exact code job `79b7be91-ac39-4814-be4f-faa1b75613de` BUILDING. No Nostr hosted settings applied/cohort started. Publication ACK LocalState/COSMIC/HostedNostrReleaseCurrent/code-publication.acknowledged.json; raw public observation TestResults/NostrPublicSourceCurrent/code-deployment.json. No production/master promotion, new hosting spend or active Nostr setting.
+Development parent `6ee3ebfcd95f594844f518b95451fb9807f342a5` / Core `84a215184f6c2d8b988d5d45bf133a7a0672a26e` ordinary fast-forward published/ref-verified; dependency manifest validates. Exact code job `79b7be91-ac39-4814-be4f-faa1b75613de` SUCCESS. No Nostr hosted settings applied/cohort started. Publication ACK LocalState/COSMIC/HostedNostrReleaseCurrent/code-publication.acknowledged.json; raw public observation TestResults/NostrPublicSourceCurrent/code-deployment.json. No production/master promotion, new hosting spend or active Nostr setting.
 
 Pending card/pinned setup/C#/HTTP links prepared and pushed on frontend task2ffca0642b1a23f7170f41d7bc9e5d1a27e5f0c6 only. Mainac0ca0c remains unchanged. Static card/links parsed offline; no hosted/browser claim or public publication.
+
+## Settings applied once; exact rollout
+
+Code job79b7be91-ac39-4814-be4f-faa1b75613de SUCCESS at6ee3ebfcd95f594844f518b95451fb9807f342a5/Core84a2151. Three Nostr settings applied once and per-key ACKed; whole candidate equality verified. One journalled settings deployment21ee8d23-edce-4723-82ac-1839cd17c975 BUILDING. No hosted cohort started. Temporarily checked out exact code for guarded apply, restored task branch. Per-key intents/ACKs and exclusive nostr-public-redeploy.intent.json/protected .outcome.dpapi retained under LocalState/COSMIC/HostedSourceRolloutCurrent; public settings ACK under HostedNostrReleaseCurrent. No hosted/browser claim. After settings SUCCESS, journal at most2temporary visitors/2normal private saves before original hosted acceptance.
