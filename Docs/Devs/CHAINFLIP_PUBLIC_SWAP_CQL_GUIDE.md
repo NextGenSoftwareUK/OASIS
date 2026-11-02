@@ -100,7 +100,10 @@ writes/deletes are refused.
 qualification used the shipping .NET provider; an earlier Python403and the
 original optional-deposit assumption failure remain recorded. Do not re-run
 consumed qualification intents or replace the projection owner to get green.
-HTTP compiler/admission, Mongo pairing, hosting and the public card are separate
-pending gates. [Current proof and next step](../WIP/COSMIC%20ORM/CHAINFLIP_PUBLIC_SOURCE_STATUS.md).
+HTTP compiler/query-only admission and four prepared presets pass. Local HTTP
+returns3/2, Mongo federation5/4 and privacy0/3 with nine receipts. The original
+two version1 copies were reused in an explicit read-only completion after the
+fixture was corrected to the presets' 30-second budget; no saves were replayed.
+Hosting and the public card remain separate pending gates. [Current proof and next step](../WIP/COSMIC%20ORM/CHAINFLIP_PUBLIC_SOURCE_STATUS.md).
 
 Primary contract: [official swap route](https://github.com/chainflip-io/chainflip-sdk-monorepo/blob/main/packages/swap/src/routes/v2/swap.ts).
