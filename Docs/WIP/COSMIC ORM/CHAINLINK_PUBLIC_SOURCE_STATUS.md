@@ -35,7 +35,9 @@ Core permission1/API admission2/local HTTP1/publisher10/prepared-planner1/client
 
 Lazy `CQL_CHAINLINK_PUBLIC_SOURCE_JSON` registration, independent unsigned read permission/free tariff and four presets are implemented; no signed write grant/default routing change. Protected baseline/candidate under `LocalState/COSMIC/HostedSourceRolloutCurrent/chainlink-public-*`; exactly3values differ, DNA unchanged, no settings applied yet. Source-bound native/local ACKs are durable. Core task990c1c75afcafdbc0678b6e8131a10b67650f7e3 pushed/ref-verified; parent gitlink/manifest updated together.
 
-Next: publish verified code to Development, observe exact code deployment, then apply reviewed settings once and issue one journalled settings deployment. Only after SUCCESS run original hosted acceptance/card. No ChainLink hosted/browser claim yet. Preserve completed native/local cohorts. Frontend preparation test taskdb58432 is pushed, no card/publication yet.
+Development parent09c66998cb2c204f290d7a85198006e6abd3202f/Core990c1c75afcafdbc0678b6e8131a10b67650f7e3 now fast-forward published/ref-verified; manifest validates. Code job215b4b51-4431-4292-9c12-1063497d5773 BUILDING. Public publication ACK LocalState/COSMIC/HostedChainLinkReleaseCurrent/code-publication.acknowledged.json, observation TestResults/ChainLinkPublicSourceCurrent/code-deployment.json.
+
+Next: observe that exact code deployment. Only after SUCCESS check out the exact code release for guarded settings application (no detached commits), apply reviewed settings once, issue one journalled settings deployment and restore task branch. Only after SUCCESS run original hosted acceptance/card. No ChainLink hosted/browser claim yet. Preserve completed native/local cohorts. Frontend preparation test taskdb58432 is pushed, no card/publication yet.
 
 ## Durable resources and evidence
 
