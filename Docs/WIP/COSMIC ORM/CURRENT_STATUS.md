@@ -47,7 +47,10 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
    or writes. Shared demo reads its native metadata key from capabilities.
    API admission 3/3, Core tariff 1/1 and original local HTTP/Mongo gate pass.
    Native 3/2, Mongo 5/4, foreign 0 private/3 public; exact fixture cleaned.
-   Next: prepare/test four hosted presets, preserve upstream, deploy and audit.
+   Four hosted presets pass; 10 publisher controls and audit 2/16 faults pass.
+   Candidate prepared without mutation. Upstream preserved; merged guards pass.
+   Combined API 11/Core tariff 1/exact garden reward 2 pass, no skips.
+   Next: publish code, observe exact job, then original settings activation.
    Durable `HostedThreeFoldPublicSourceCurrent`/`ThreeFoldPublicQualificationCurrent`.
 
 ## Remaining gates
@@ -55,7 +58,7 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 - [ClickHouse](CLICKHOUSE_PUBLIC_SOURCE_STATUS.md): hosted proof/audit pass;
   card/static assets pass; browser remains open. Keys printable ASCII without spaces.
 - [ThreeFold](THREEFOLD_PUBLIC_SOURCE_STATUS.md): actualnativeCQL3/2pass;
-  HTTP/Mongo/tariff pass; hosted presets/activation/audit/card remain open.
+  HTTP/Mongo/tariff/preset controls pass; activation/hosted audit/card open.
 - [Zcash details](ZCASH_PUBLIC_SOURCE_STATUS.md): hosted proof/card/static bytes pass; browser open.
 - [Ceramic qualification](CERAMIC_PUBLIC_SOURCE_STATUS.md): pinned official
   client reviewed; original Clay healthGET failed before HTTP (URLError, cause
