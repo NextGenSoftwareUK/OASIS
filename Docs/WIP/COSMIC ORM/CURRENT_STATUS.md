@@ -11,17 +11,17 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 - Telos parent7c498e0f/Core80b879b; code91bf543d and settingsad7aab39 succeeded. Filecoin remains frozen at its earlier recorded release. Website4ff3661 publishes Telos/Filecoin cards/guides;95client tests pass; public HTML/scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser Mongo preparation copies identity/name/description/provenance, not all native metadata. Full payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: EOSIO API/local proof and hosted rollout
+## Current phase: EOSIO hosted rollout
 
-- Telos native manager/C#/actual CLI3/2 and18controls pass. Core1/API2/localHTTP1/publisher9/client1/actual prepared planner1 pass; exact local fixture cleaned and Mongo stopped.
-- Parent Development `7c498e0f2e8a97207fb8d511d35cea521e7e240c` and Core Development `80b879b0ef289ccfff3b7efefa5a9ff26e6b4135` refs verified; manifest validates. Code91bf543d and settingsad7aab39 SUCCESS.
-- Three reviewed settings applied once; full candidate/per-key ACKs match. No reapply/redeploy.
-- Hosted native3/2, Mongo5/4, repeat0new/2existing, private0/public3 and replicas2/2 pass. Two version1 saves/no pending; immutable completion ACK freezes original Telos cohort.
+- EOSIO native source and actual manager/LINQ/CLI3/2 pass, with28controlled tests. Core1/API2/localHTTP1/publisher9/prepared-planner1/client1 pass. Local pairing5/4 and foreign-private0/public3 verified; exact owned Mongo fixture cleaned and process stopped.
+- Parent Development `4d3e0b7cd148bed7ebdf0400ca371867873932c0` / Core `86e38a37ee860785a8273ade3308f6fc1775294d` published/ref-verified; manifest validates.
+- Code job `68db832f-1742-423d-9362-febcf9620466` is BUILDING. Latest12-line build sample1917B has a publish marker/no compiler error marker; that is not deployment success. No EOSIO settings applied, hosted sessions or saves yet.
+- Prepared three-key baseline/candidate and four presets remain retained. No replay of completed native/local cohorts. Frontend test-only branch9cca7a9 is pushed; card not published.
 
 ## Exact next actions
 
 1. Telos card4ff3661/pinned links/95client tests/public HTML/scripts are verified. Original cohort is frozen; no native/local/hosted replay or settings reapply/redeploy.
-2. EOSIO native read-only CQL source,28controls and actual CLI/manager/LINQ3/2 pass; commented demo/guide added. Core1/API2/localHTTP1/publisher9/prepared-planner1/client1 pass; native3/2, pairing5/4, foreign0/public3. Exact local fixture cleaned/Mongo stopped. Parent Development4d3e0b7cd/Core86e38a3 pushed/ref-verified, manifest passes. Code job68db832f-1742-423d-9362-febcf9620466 BUILDING; publication ACK LocalState/COSMIC/HostedEosioReleaseCurrent. Next: observe that exact job; only after SUCCESS check out exact code release for guarded settings application (no detached commits), apply reviewed settings once and restore task branch, hosted acceptance/card. No EOSIO hosted/browser claim. See EOSIO_PUBLIC_SOURCE_STATUS.md; completed native cohorts must not be replayed.
+2. Observe that exact code job. Only after SUCCESS check out exact code release4d3e0b7cd for guarded settings application (no detached commits), apply reviewed settings once, issue one journalled settings deployment, restore task branch and verify hosted acceptance/card. See EOSIO_PUBLIC_SOURCE_STATUS.md and LocalState/COSMIC/HostedEosioReleaseCurrent. No EOSIO hosted/browser claim yet.
 3. Implement only the new provider's red scope after qualification: source/controlled tests/native manager+C#3/2, API/query-only admission/Mongo/privacy, actual prepared presets, exact hosted rollout/acceptance/card. Keep green scopes frozen absent a bug.
 
 ## Durable state and rules
