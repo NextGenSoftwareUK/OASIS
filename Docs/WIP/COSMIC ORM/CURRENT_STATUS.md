@@ -11,16 +11,16 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 - Website80633dc publishes ChainLink/EOSIO/Telos/Filecoin cards and pinned setup/C#/HTTP links;97client tests pass. Public HTML/scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser Mongo preparation copies identity/name/description/provenance, not all native metadata. Full payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: BlueSky API/local proof and hosted rollout
+## Current phase: BlueSky hosted code rollout
 
-- ChainLink source43controls/actual CLI3/2 and Core1/API2/localHTTP1/publisher10/prepared-planner1/client1 pass. Exact marked local DB dropped, HTTP/Mongo stopped.
-- Development parent09c66998cb2c204f290d7a85198006e6abd3202f/Core990c1c75afcafdbc0678b6e8131a10b67650f7e3 published/ref-verified; manifest validates. Code215b4b51/settings3a00f63f SUCCESS; exactly3settings applied once/full candidate/per-key digests match/DNA unchanged.
-- Hosted original acceptance and website80633dc/public bytes complete; no reapply/redeploy/replay. BlueSky native3/2,37controlled CQL tests and actual CLI/manager/LINQ3/2 pass; no API/hosted claim.
+- BlueSky source37controls/actual CLI3/2, Core1/API2/localHTTP1/publisher9/prepared-planner1/client1 pass. Native3/2, Mongo5/4, foreign0/public3; exact marked local fixture dropped, HTTP/Mongo stopped.
+- Development parent `f36dd0d56ea4b93f06631947f5c267c55e131910` / Core `499e4e0b06104a3845abee243946fd61a27f069f` fast-forward published/ref-verified; manifest validates.
+- Code job `f6c205de-bd4b-4679-bf16-de86690bbdce` QUEUED. Protected three-key candidate/four presets prepared; no BlueSky settings applied or hosted cohort started. Original native/local cohorts frozen; frontend test-only taska5343b2 pushed, no card yet.
 
 ## Exact next actions
 
 1. Preserve completed ChainLink/EOSIO/Telos/Filecoin/Fantom sources/owners/ACKs/cohorts. ChainLink card/pinned links/97tests/public bytes verified; no browser proof inferred.
-2. BlueSky source37controls/actual CLI3/2 and Core1/API2/localHTTP1/publisher9/prepared-planner1/client1 pass. Native3/2, Mongo5/4, foreign0/public3; exact owned DB cleaned/Mongo stopped. Core task499e4e0 pushed/ref-verified, manifest paired. Next: publish verified code, observe exact code job, reviewed3settings once, single settings job, hosted acceptance/card. See BLUESKY_PUBLIC_SOURCE_STATUS.md; no hosted claim/replay of completed cohorts.
+2. Observe exact BlueSky jobf6c205de-bd4b-4679-bf16-de86690bbdce atf36dd0d56. Only after SUCCESS check out exact code release for guarded3settings application (no detached commits), apply once, issue one journalled settings deployment, restore task branch, observe exact settings job, then original hosted acceptance/card. See BLUESKY_PUBLIC_SOURCE_STATUS.md and LocalState/COSMIC/HostedBlueSkyReleaseCurrent. No hosted claim/replay/reapply/restart.
 3. Controlled tests/native manager+C#3/2, API independent read admission/tariff, local Mongo/privacy/prepared gates, exact hosted rollout/original acceptance/card. Keep green scopes/deep parity frozen absent a reproduced bug.
 
 ## Durable state and rules
