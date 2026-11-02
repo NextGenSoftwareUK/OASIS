@@ -146,3 +146,45 @@ with skip-deploys, full candidate/per-key hashes observed exactly. Activation
 Follow existing job; no reapply/redeploy/reprepare. Original hosted cohort has
 not started; durable release/application ACKs and intents retained under
 HostedBlockscoutReleaseCurrent/HostedSourceRolloutCurrent.
+
+
+## Hosted startup failure and tested root correction
+
+Original code/settings deployments succeeded, but optional source activation
+returned upstream HTTP500. Safe event4831: activation/unclassified/other-http/500.
+Discovery explicitly reports CQL_SOURCE_UNAVAILABLE. Original acceptance stopped
+before native queries/private saves; one original owner session retained.
+No card/hosted proof, source owner/config unchanged; no restart to get green.
+Durable original native-failure.observed.json ties owner/source/failure/diagnostic
+hashes and zero-save proof; do not replace the owner.
+
+Root gap: one failed startup health read permanently latched the source unavailable.
+Added explicit per-profile activation policy; only Blockscout opts in. At most
+2awaited attempts/one5s delay inside the same30s deadline, typedHTTP500/502/503/504
+only. Other profiles remain1attempt. No normal-query/write/signing/auth/rate-limit/
+malformed-response/timeout retries; no endpoint switch. Failed attempts stay
+observable through safe event4831 plus typed recovery event4832. Exhaustion stays
+unavailable, stop cancellation prevents the next native operation.
+
+18recovery/profile checks pass; final DI-backed recovery case rerun1/1 proves
+actual registry construction/logging and delayed readiness. Initial new test
+logger-class naming compile failure corrected; original log retained. No native
+fixture replay. Next publish correction with existing settings unchanged, observe
+exact new code SUCCESS, then same-owner discovery readiness and one explicit
+--resume-unstarted-native continuation only if ready. Never reapply settings or
+resubmit the original failed deployment. Hosted52/configured tariffs53.
+
+Owned3,304,884byte OS crash dump dotnet.exe.6604.dmp was identified by the
+original .NET Runtime stack/time; cleanup was rejected by automatic approval
+review (blocked by policy). Dump preserved/inventoried; no alternate deletion
+attempt or David chore. This does not block CQL work.
+
+| Evidence | Bytes | SHA256 |
+|---|---|---|
+| `TestResults/BlockscoutPublicSourceCurrent/hosted-acceptance.log` | 422 | `5e2c905b6dcacbcce01524254c54b797a1488d3a80e5dc7340e178979c3d7c5f` |
+| `TestResults/BlockscoutPublicSourceCurrent/discovery-after-unready.json` | 265 | `74a3dc2d18399021bf94f11e57c4771a0398296c09c2ff0e0c297e26e1a48e60` |
+| `TestResults/BlockscoutPublicSourceCurrent/hosted-activation-diagnostic.json` | 485 | `9e25fb8c801e457c461c138a1d25a6c834c676121179e4d42b9e3829c2bb35f5` |
+| `LocalState/COSMIC/HostedQueryAcceptance-BlockscoutOASIS/native-failure.observed.json` | 733 | `fecdc22e8a43681b1efa8141ffb6b5e624320fe7d912c3b7e4b5c9419682ca29` |
+| `TestResults/BlockscoutPublicSourceCurrent/Http/activation-recovery.trx` | 31405 | `f7b196f318b31add0ec9e8e3ef172688101cf5507cb37bd4b46db984c1112ae7` |
+| `TestResults/BlockscoutPublicSourceCurrent/Http/activation-recovery-di.trx` | 3386 | `8a5229f5aef53ef8b91bc001ed158bdf562d07c4afa6e6a36db4c8481167efc0` |
+| `TestResults/BlockscoutPublicSourceCurrent/owned-crash-preserved.json` | 590 | `d98ac65c30bdde3c14f1c4ffa5fc538ad6e8656aadda0e1767582e54ce5c241c` |

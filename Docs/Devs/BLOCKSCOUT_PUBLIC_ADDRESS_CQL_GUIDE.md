@@ -88,6 +88,17 @@ cancellation is observed. The original qualification and source-owner creation
 are consumed operations: retain their config/ACKs and do not replay them merely
 to get another green report.
 
+## Host activation recovery
+
+The host binds an explicit read-only activation policy to this profile: at most
+two awaited health checks, one five-second delay, within the existing30-second
+aggregate activation deadline. Only typedHTTP500/502/503/504 errors qualify.
+This never retries normal queries, writes, timeouts, authentication/rate-limit
+failures or malformed responses, and never changes the configured endpoint.
+Exhaustion stays unavailable; typed safe recovery events remain observable.
+Other profiles retain their default single-attempt policy. The four-field source
+JSON schema is unchanged. Functional recovery is not endpoint reliability proof.
+
 ## Metadata and consistency
 
 | Key | Meaning |
