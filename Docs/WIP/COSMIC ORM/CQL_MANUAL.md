@@ -1,6 +1,8 @@
 # CQL developer manual
 
-Chainflip local CQL: [configuration, spaced C# demo and optional-deposit/precision semantics](../../Devs/CHAINFLIP_PUBLIC_SWAP_CQL_GUIDE.md).41source controls/actual manager-LINQ CLI3/2 pass; HTTP/Mongo/hosting remain pending.
+Celestia local CQL: [configuration, spaced C# walkthrough and pinned-header limits](../../Devs/CELESTIA_PUBLIC_HEADER_CQL_GUIDE.md).36source controls/actual manager-LINQ CLI3/2 pass. Height equality/membership/paging; exact integers, no independent consensus/DA sampling/native writes. HTTP/Mongo/hosting remain pending.
+
+Chainflip local CQL: [configuration, spaced C# demo and optional-deposit/precision semantics](../../Devs/CHAINFLIP_PUBLIC_SWAP_CQL_GUIDE.md).41source controls/actual manager-LINQ CLI3/2 pass; hosted native3/2+Mongo5/4/reuse/privacy/exact replicas2/2 and public card/bytes verified. Browser interaction remains open.
 
 Wormhole local CQL: [configuration, spaced C# walkthrough and pinned-VAA trust limits](../../Devs/WORMHOLE_PUBLIC_OPERATION_CQL_GUIDE.md).35source tests/actual manager-LINQ CLI3/2 pass; Core1/API3/localHTTP1/publisher9/prepared1/client105 pass. Local native3/2+Mongo5/4/privacy0/3; code/settings and original hosted native3/2+Mongo5/4/reuse/privacy/replicas pass; card129c995/public bytes verified. Browser interaction remains open. No guardian signature authentication or native writes.
 

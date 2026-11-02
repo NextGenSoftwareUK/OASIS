@@ -5,6 +5,14 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// Celestia uses retained mainnet heights and pinned reported header IDs.
+if (args.Length == 2 && args[0] == "--celestia-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await CelestiaPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Chainflip reads only configured historical swaps; no quote or swap dispatch.
 if (args.Length == 2 && args[0] == "--chainflip-public")
 {
