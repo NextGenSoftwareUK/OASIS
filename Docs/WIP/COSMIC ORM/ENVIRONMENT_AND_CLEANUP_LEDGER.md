@@ -3473,3 +3473,37 @@ No preflight mutation/deletion occurred, no bytes reclaimed; archive preserved.
 Do not bypass/retry removal through another path/tool. Existing exact paths,
 size/SHA256 and recovery rationale remain in DISK_RECOVERY_CURRENT.md. No new
 environment/download/build/test/service introduced; personal ML retained.
+2026-11-02 goal resumed: existing SDK10.0.401/package caches/test host reused for
+Akash discovery root-cause fix. Free74,721,579,008bytes before work (changed
+externally; no attribution). No downloads/new environment/native replay. Planned
+bounded leased controlled-test build in assigned worktree only; logs/TRX under
+TestResults/AkashPublicSourceCurrent. Retain compact reports, clean only owned
+regenerable build outputs after verification. Personal ML and rejected archives
+remain untouched. Disk120GBtarget separate/incomplete; no blanket cleanup.
+2026-11-02 Akash bounded-prefix continuation planned: existing anonymous guarded
+HTTP endpoint https://console-api.akash.network/, maximum4GETs/45seconds total,
+15seconds client, process1req/s;2MiBdiscovery/256KiBbuffer/256KiBpoint. Reuse same
+failed qualification directory, link exact original intent/failure hashes and
+preserve them; exclusive separate continuation intent/ACK/failure, never replay.
+No owner allocation/wallet/funding/native writes/hostUri requests/downloads.
+Actual source remains unqualified until this distinct gate succeeds. Raw logs/TRX
+TestResults/AkashPublicSourceCurrent; durable receipt LocalState/COSMIC/
+AkashPublicQualificationCurrent. Sizes small/unmeasured; retain original failures.
+
+2026-11-02 Akash outcome: cached restore only/no download;17reader controls and
+1distinct native continuation pass. Native3selected identities/3point records,
+no writes/new owner/environment. Preserve original intent/failure and freeze
+bounded-prefix-continuation intent/ACK under existing LocalState directory.
+Proof hashes/paths in AKASH_PUBLIC_SOURCE_STATUS.md; native evidence never replayed.
+After tests stopped, leased cleanup reviewed59existing original planned bin/obj
+paths in assigned worktree (excluded previous denied ChainLink path), removed
+305,589,142logical bytes per59per-target removal rows; required secrets retained.
+Free65,685,192,704before/65,894,416,384after. Wrapper-local counters were shadowed;
+initial JSON preserved, reconciled report uses actual per-target log. No silent
+success inferred from0counter. Cleanup artifacts in TestResults/DiskInventoryCurrent;
+regenerate outputs using existing SDK/packages, never re-run original native gates.
+David reiterated final retirement of task-introduced resources: reconcile every
+known path and owner, clean disposable datasets/builds/downloads/task-only runtimes
+once no remaining gate/shared dependency needs them; list retained/transferred
+resources explicitly. Historical uncertain provenance remains marked, personal
+ML and rejected archive removals excluded. No new installation this batch.
