@@ -5,6 +5,15 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// Native EOSIO/Vaulta accounts use the retained public source catalogue.
+// This read-only walkthrough does not require a wallet or create test accounts.
+if (args.Length == 2 && args[0] == "--eosio-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await EosioPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Public Telos EVM balances use one retained address catalogue.
 // This read profile creates no wallet, node or source transaction.
 if (args.Length == 2 && args[0] == "--telos-public")

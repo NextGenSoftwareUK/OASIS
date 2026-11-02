@@ -941,3 +941,8 @@ path for three addresses and a two-address subset. Native C# and actualCLI3/2 pa
 Balances remain exact native base-unit strings; finality is RPC-reported.
 No account, wallet, funding, node or source write. Local HTTP/Mongo5/4/privacy0/3
 passes; hosted reuse/privacy/replicas also pass. Browser interaction remains open. This EVM profile is separate from native Antelope accounts/storage.
+
+
+### EOSIO / Vaulta native account demo
+
+Use `--eosio-public LocalState/COSMIC/HostedEosioPublicSourceCurrent/source.json` with the existing three-account catalogue. [Commented walkthrough](EosioPublicWalkthrough.cs) and [guide](../../Docs/Devs/EOSIO_PUBLIC_ACCOUNT_CQL_GUIDE.md) show three-account then two-account LINQ queries through HolonManager. Native reads only: API/Mongo/hosted gates remain separate.
