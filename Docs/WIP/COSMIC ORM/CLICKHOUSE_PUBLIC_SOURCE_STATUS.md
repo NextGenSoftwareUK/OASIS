@@ -89,3 +89,5 @@ TestResults\ClickHousePublicSourceCurrent\combined-core.trx SHA256 `201024fb5b0a
 TestResults\ClickHousePublicSourceCurrent\merged-place-guards.trx SHA256 `9e44b9340b7547f4fb6a255af77015ab64cfe85f08a54b3480b090da55780945`.
 
 Next publish exactmergedcode once, observeitsjob, apply original3settingcandidate only afterSUCCESS/fullbaselineequality, activateonce, then original hostedcohort/audit/card.
+
+Developmentpublished parent7f477378b02adda621376f88f309c9bf70675fd9/Core0659aa00ba26260ec4c06f196df7b60ee6c0df01 (ls-remoteverified), after preservedupstreammerge. Exactcodejobaae1a2b0-8eca-43e7-98e8-2bf4a5c9305d INITIALIZING. Originalcodepublicationintent/jobtuple retained HostedClickHouseReleaseCurrent. No3settingsapplied; followexactjob, no duplicatebuild/restart on observationtimeout.

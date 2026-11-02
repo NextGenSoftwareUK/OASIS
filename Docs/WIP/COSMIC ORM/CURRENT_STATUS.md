@@ -25,17 +25,20 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 ## Active release and exact next step
 
-1. Development parent **9e98a4278c91a9d01caaabdfbed447d38120a6f2**;
-   Core **5b47c0b60b027092e51e486050b898ba147a4194**. Worldscape preserved.
-   Manifest/gitlinks and7Dockerfiles pass; remote component pushes verified.
-2. Zcash code job **624285a4-15a7-419d-8dad-e8d8daf90bc8 SUCCESS**.
-   Three settings applied once, exact full candidate/per-key ACKs verified,
-   node DNA unchanged. No additional settings submission permitted.
-3. Single activation **66d2ccea-7d77-4f76-816a-12ed810fe6ed SUCCESS**
-   at the same code. Observe this job, never start another on a polling timeout:
+1. ClickHouse code published to Development parent
+   **7f477378b02adda621376f88f309c9bf70675fd9**, Core
+   **0659aa00ba26260ec4c06f196df7b60ee6c0df01**; latestGeoNFTfixes preserved.
+   Manifest/gitlinks7Dockerfiles pass, remote pushes verified.
+2. Exact code job **aae1a2b0-8eca-43e7-98e8-2bf4a5c9305d INITIALIZING**.
+   ClickHouse3settingcandidate is prepared but UNAPPLIED. Observe same job:
 
-   `python Scripts/Sandbox/Observe-HostedDeployment.py 66d2ccea-7d77-4f76-816a-12ed810fe6ed --expected-commit 9e98a4278c91a9d01caaabdfbed447d38120a6f2 --output TestResults/ZcashPublicSourceCurrent/activation-observation.json`
+   `python Scripts/Sandbox/Observe-HostedDeployment.py aae1a2b0-8eca-43e7-98e8-2bf4a5c9305d --expected-commit 7f477378b02adda621376f88f309c9bf70675fd9 --output TestResults/ClickHousePublicSourceCurrent/code-deployment-observation.json`
 
+3. After exactSUCCESS, apply originalcandidate only with completebaselineequality,
+   activateonce, then run originalClickHousehostedcohort/audit/card. Durable
+   `HostedClickHouseReleaseCurrent`/`HostedClickHousePublicSourceCurrent`.
+   Independent audit2tests/16faults pass; combined3API+1tariff+4placeguards pass.
+   Separate nativeMongo upstream test skipped/unconfigured, not counted as pass.
 4. Original Zcash hosted acceptance and independent audit PASS: native3/2,
    Mongo5/4, repeat0new/2existing, foreign0private/3public, exactSQLite/Neo4j2each,
    2normal APIversion1saves/pending0. Cohort frozen; no query/save replay.
