@@ -128,3 +128,28 @@ cohorts or change source owner/keys for green.
 remain open.188completed generated folders/2,154,947,374logical bytes retained:
 automatic approval review rejected cleanup as blocked by policy; no retry or
 bypass. Exact paths/sizes are in the resource ledger. No David action needed.
+
+## Development publication and current verified wait
+
+Parent Development `e8d2d75df48a5caa6b6a849201c34494928b8462` and Core
+Development `d3f92df63ffea195ca83f057246387b03b9f3068` advanced by verified
+fast-forward pushes; remote hashes and dependency manifest/gitlinks checked.
+No force push, branch switch, production promotion or source/owner change.
+
+Exactly one matching code job `11aa820e-7883-41ab-ae3b-8f2d890c3ff6` observed
+QUEUED with explicit `Waiting for build slot` reason. This is an active job,
+not a terminal build failure. Keep observing that ID; do not submit another.
+Exclusive code.intent.json binds expected code/Core/source/candidate/prior jobs
+in `LocalState/COSMIC/HostedBittensorReleaseCurrent/`; protected pre-publication
+inventory and code.deployment.json retained. Raw compact status/reason under
+`TestResults/BittensorPublicSourceCurrent/`. No hosted settings applied yet.
+
+New independent offline auditor `Audit-HostedBittensorAcceptance.py` has2passing
+methods/12negative cases covering source/owner/height/hash/policy/consensus/
+excluded payload/replica/private visibility/operation/pending/resave errors.
+`Verify-HostedQuerySource.py` now accepts Bittensor; argument validation passes.
+Neither tool has started a hosted cohort. No green-provider gate was repeated.
+
+Website task `a5ae6ae9e46d9f5574a76e4196aab6b42e22330d` adds14spacedHTMLlines
+with explicit hosted-pending text and pinned guide/C#links. Main stays20129f5;
+card is unpublished until hosted acceptance. JS unchanged, browser stays open.
