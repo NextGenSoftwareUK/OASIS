@@ -115,3 +115,20 @@ David answered **Keep both** for `/home/dellams/miniforge3` (34.5GB) and
 excluded from cleanup. No deletion performed; no renewed retirement request.
 The earlier pending-decision text above is historical and resolved by this entry.
 Compaction alone still offers only approximately6GB;120GBtarget remains unmet.
+
+## Authorized duplicate removal — rejected, file preserved
+
+On2November David explicitly asked to remove the1.6GB duplicate scratch Git
+archive. Automatic approval review rejected the exact bounded removal command
+before execution: `blocked by policy`. No preflight/removal ran and no space was
+reclaimed. Do not retry through another shell/tool or bypass the rejection.
+The retained original and duplicate identities are recorded above. This is an
+agent/tool limitation, not a request for David to repair the environment.
+
+Provider environment retirement: approximately32GBcontainer storage plus9GB
+WSLvar/tmp includes reusable runtimes and unique fixture/chain/database state.
+These are occupancy estimates, not historical growth attribution or current-use
+proof for every environment. Most owned disposable resources can be retired after
+their acceptance gates finish and original data/identities/evidence are preserved
+or explicitly retired. Do not blanket-delete stopped containers/ledgers. Personal
+Miniforge/models remain excluded by David's KEEP BOTH decision.
