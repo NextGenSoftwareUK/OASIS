@@ -534,6 +534,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_BITCOIN_PUBLIC_SOURCE_JSON"] is string bitcoinPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.BitcoinPublicHeaderMetadataSource.FromJson(bitcoinPublicSource)));
+            // Public Stacks principal reads are separate from Gaia/wallet storage.
+            if (Configuration["CQL_STACKS_PUBLIC_SOURCE_JSON"] is string stacksPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.StacksPublicPrincipalMetadataSource.FromJson(stacksPublicSource)));
             // Anonymous Matrix aliases are a read-only profile, not a login session.
             if (Configuration["CQL_MATRIX_PUBLIC_SOURCE_JSON"] is string matrixPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(

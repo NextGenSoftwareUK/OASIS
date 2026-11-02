@@ -4,7 +4,7 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 
 ## Verified scope
 
-- 52 integrated query types: 3 canonical adapters,45bounded public/source profiles,4local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
+- 53 integrated query types: 3 canonical adapters,46bounded public/source profiles,4local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
 - 48 scoped hosted functional HTTP proofs at recorded releases. Browser5verified/43open. These are not full ORM/native-write/reliability certifications.
 - MongoDB/SQLite/Neo4j parity50/82rows each; original investor-demo subset green. Work red rows only unless a reproducible bug appears.
 - Latest addition Matrix: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each pass. Two version1 saves/zero pending intents; original cohort frozen.
@@ -12,7 +12,7 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 - Website main/taskbd173e546a095c0ae6f9a23d20db69bb6de76bda publishes Matrix/Nostr and setup/C#/HTTP links. Public HTML175616bytes/SHA256b18edd89557ae17dd261d8fded04b12f7eec9ca6da2a8cc52ab7d73c2a7383a8 and both scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser copies retain identity/name/description/provenance and the native query key, not full native payload. Full safe payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: Stacks local CQL verified; HTTP/Mongo integration next
+## Current phase: Stacks local HTTP/admission verified; publish code next
 
 - Parent Development7b45ee85628bd6d1ceeaf769d4c1bcc44ccb465b/Coredd2c32c8925aaf53017f4fedc1d1f11d330a55e3 refs verified; manifest/gitlinks pass.
 - Code jobd398b754-8d88-4837-a934-44e4cd9aad0d SUCCESS. Three settings applied exactly once/verified with no per-key deploys. Settings jobaaff57a2-a6ed-4e0e-939b-712420bd9d4e SUCCESS at the same parent SHA. Task branch restored after matching-release application.
@@ -23,7 +23,7 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 ## Exact next actions
 
 1. Preserve Matrix original source/config/owner/copies/ACKs. No rerun/resave/reapply/redeploy just to reproduce green results. Public site ACK: LocalState/COSMIC/HostedMatrixReleaseCurrent/site-publication.acknowledged.json; raw observation TestResults/MatrixPublicSourceCurrent/public-assets-observation-1.json.
-2. StacksPublicPrincipalMetadataSource now passes43scoped source tests and actual HolonManager/LINQ CLI3full/2filtered;6native-qualifier controls preserved. Existing resolved BouncyCastle2.7.0 reused with explicit assembly alias; no crypto substitute or new runtime. Source/owner/intent/ACK: LocalState/COSMIC/HostedStacksPublicSourceCurrent (sourceSHAaa5fe1f4934e1ed9670aee3064527a7becccee2332c3d416615288a93de634d1). Exact next: add query-only Core tariff/API compiler/host activation and4native/Mongo presets, then local HTTP native3/2+Mongo5/4/privacy before hosted publication. See STACKS_PUBLIC_SOURCE_STATUS.md. Do not rerun native/console qualification or replace owner. Story/DATA Trace remains denied/unadmitted; no bypass or legacy fixes.
+2. Stacks source43tests/actual CLI3/2; Core1/API3/localHTTP1/publisher9/actual prepared presets1 pass. HTTP native3/2, Mongo5/4, foreign-private0/public3; two version1 SDK snapshots/9receipts, owned DB removed/Mongo stopped. Source/owner/ACKs retained under HostedStacksPublicSourceCurrent; fixture StacksMongoHttpCurrent. Protected three-key candidate stacks-public-* prepared/not applied. Frontend102tests/task6821496 passes. Exact next: commit/push verified parent+Core6aa17e7 pin, validate manifest/gitlinks, fetch/verify Development ancestry, publish scoped code, observe exact job, then apply once against that release and verify hosted original cohort. See STACKS_PUBLIC_SOURCE_STATUS.md. No native/console/fixture replay or new owner.
 3. Farcaster stays unadmitted: public Pinata Hub failed before HTTP; separate DNS probe confirms name error. Original intent/result/DNS evidence and4offline parser controls preserved in FARCASTER_PUBLIC_SOURCE_STATUS.md. Do not retry or switch to paid Neynar silently.
 4. Update CURRENT_STATUS/full provider report/ledger at the next milestone. Keep hosted48/browser5/open43; public asset proof is not browser interaction.
 
