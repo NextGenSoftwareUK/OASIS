@@ -92,3 +92,13 @@ Explicit CQL_ZCASH_PUBLIC_SOURCE_JSON registration, compiler provider scope and 
 Evidence `TestResults/ZcashPublicSourceCurrent/api-admission.trx` SHA256 `ab133508c911d65fb94db468dccbce1558546eeb92f55d2eaf0e35df87c0b767`.
 
 Evidence `TestResults/ZcashPublicSourceCurrent/core-tariff.trx` SHA256 `361b2263c745ede8b686bca43f7374d46eb84fd23da0aa66b440e495b2c56615`.
+
+## Original local HTTP/Mongo acceptance — 2 November 2026
+
+Actual loopback shipping CQL endpoints pass native3/2 and Mongo-paired5/4. Foreign avatar sees0private copies and3public native records. Two SDK-owned version1 saves and9query receipts verified; this does not certify production billing or HyperDrive replication. One native test passed in26s, zero skips. Exact ownership-marked cosmic_cql_zcash_http_demo database removed after consumers stopped; fixture.cleaned.json retained and owned Mongo process stopped. Original source unchanged. Durable web4-local-qualified.acknowledged.json and compressed evidence manifest in HostedZcashPublicSourceCurrent; fixture journal in ZcashMongoHttpCurrent. No replay/reseed permitted. Hosted counts remain61/57.
+
+`TestResults/ZcashPublicSourceCurrent/mongo-http-native.trx`: 3353bytes SHA256 `81c28f2ac496d887196c83928114b5d990712bc7605b4ad99eacfecfba291fc2`.
+
+`TestResults/ZcashPublicSourceCurrent/zcash-mongo-native-summary.json`: 223bytes SHA256 `4a6cf2a3701d1983cb46cfe9ec96c65212c36ec53fe28d9f7a64ff8c816bf0d2`.
+
+Developer guide: [Zcash public block CQL](../../Devs/ZCASH_PUBLIC_BLOCK_CQL_GUIDE.md). Next: hosted candidate, publisher controls, code release and exact hosted acceptance before browser card.
