@@ -415,17 +415,10 @@ block-explorer API key were committed. I removed them from every file on 16 Octo
 revoke/regenerate the block-explorer API key at the provider. Optionally purge history. Never paste the new values into chat.
 **Status:** open, 31 October 2026.
 
-### E3. Decide where the HoloNET sandbox service runs
-
-**Context:** HoloNET sandbox, `holochain-client-csharp/sandbox/` ([README](https://github.com/holochain-open-dev/holochain-client-csharp/blob/main/sandbox/README.md)).
-**Why:** the sandbox page (sandbox.holonet.oasisomniverse.one, static, on Vercel) calls a small service that runs HoloNET against a
-Holochain conductor. The service and the page are built and tested locally (store, shared board and the API/Client/ORM/HyperNET demos
-all pass against a real conductor), but nothing hosts the service yet, so the page currently shows that the backend can't be reached.
-A conductor cannot run on Vercel; it needs a machine, which is a hosting decision and a monthly cost.
-**Action:** choose where it runs (for example a small Windows or Linux VM, or a Railway service with a Dockerfile) and approve the spend, then give
-`api.sandbox.holonet.oasisomniverse.one` a DNS record pointing at it (NameSilo). Claude can write the deployment files and run the checks;
-it cannot create the paid hosting or the DNS record.
-**Status:** open, 1 November 2026. Nothing is requested until you choose; the page works as a local demo meanwhile.
+### E3. HoloNET sandbox runs on the dev WEB4 API (decided 1 November 2026) - needs HoloOASIS working in dev
+**Context:** sandbox.holonet.oasisomniverse.one should work like the web4 and web6 sandboxes: a Vercel page in front of https://dev.api.web4.oasisomniverse.one (throwaway avatar per visitor, `OASIS.Sandbox.Enabled`). The separate HoloNET sandbox service is no longer needed in production.
+**Why:** the WEB4 API image (`Docker/Dockerfile.web4`) has no Holochain conductor, so the HoloOASIS provider (`ws://localhost:8888`) has nothing to connect to in dev or live. See E5.
+**Action:** none for this entry beyond E5. **Status:** decided 1 November 2026; the DNS record for the sandbox host is still in E1.
 
 ### E4. Create a new NuGet API key for HoloNET 4.6.0 (the old one has expired)
 
@@ -481,3 +474,15 @@ David checklist or turn code/test/automation fixes into owner setup tasks.
 
 
 OLAND clarification,1 November2026: David reported Vercel approval completed; private connector reads still returned403, but access is no longer required for OLAND. OLAND land pricing already exists in the API. Wallet conversion uses explicit public market quotes; no CoinGecko key setup action is required for OLAND development checkout. Preserve any separate credential actions for provider billing.
+
+### E5. HoloOASIS in the WEB4 API: use HoloNET's auto-downloaded conductor (dev first, then live)
+**Context:** WEB4 API on Railway (`Docker/Dockerfile.web4`, `Docker/entrypoint.onode.sh`, `Docker/oasis-dependency-versions.env`); HoloNET `main` (commit 4daa7437 or later).
+**Why:** HoloNET now downloads and starts the official Holochain conductor itself on Linux (`HoloNETDNA.AutoDownloadConductor`, proven on Ubuntu, macOS and Windows runners), so the image needs no Holochain binary. The WEB4 image builds HoloNET from a pinned commit, which predates this.
+**Action:** (1) approve moving the HoloNET pin in `oasis-dependency-versions.env` to that commit (GPT owns the global release, so this goes through GPT); (2) in the Railway dev service make sure the HoloOASIS section of `OASIS_DNA_JSON` uses the local node with auto-start on; optionally mount a persistent volume for the conductor cache; (3) after dev is verified, approve live. Never paste secrets into chat.
+**Status:** open, 2 November 2026. **Details:** `docs/conductor.md` in the HoloNET repo.
+
+### E6. Decide the offline (Embedded) package matrix for Linux and macOS
+**Context:** HoloNET packages (`packages.json`). Embedded packages carry the conductor inside them for offline use; today they are Windows-only (Holochain 0.7.1 and 0.7.0).
+**Why:** you asked for Embedded packages for every OS and conductor version. Each package holds one OS/CPU and one version, so the count depends on the matrix. Compressed binaries keep each Client package at roughly 25 to 30 MB; the ORM, API and HyperNET variants are thin and depend on the matching Client one.
+**Action:** choose the CPUs: Linux x64 only, or x64 and arm64; macOS Apple Silicon only, or Apple Silicon and Intel (each extra CPU doubles that OS's packages: 16 new packages for one CPU per OS and both versions, 32 for both CPUs); and whether older Holochain versions (0.6.x, 0.5.x) get Embedded packages too.
+**Status:** open, 2 November 2026.
