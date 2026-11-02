@@ -128,3 +128,7 @@ Reproduced actual failure: NativeKeySetWalkthrough.RunFederatedAsync rejected Zc
 TestResults\ZcashPublicSourceCurrent\federated-demo-red.trx SHA256 1154ac40007e9b1826ddaa6a6e429b635b89b0b96e35bfca08a1e9f5b9d72756.
 
 TestResults\ZcashPublicSourceCurrent\federated-demo-green.trx SHA256 dc2c9ded850a50a32e38b01b07d6b5336de087eeea54228873c4e8baaa0853bd.
+
+## Hosted settings activation
+
+Code job624285a4 SUCCESS at9e98a4278. Prepared source/read admission/examples3values applied exactly once through publisher, per-key ACKs/exact complete candidate equality/DNA unchanged. Settings ACK/activation intent/protected submission/job tuple retained HostedZcashReleaseCurrent. One activation66d2ccea-7d77-4f76-816a-12ed810fe6ed BUILDING, same exact code. Do not resubmit or create cohort before SUCCESS. Hosted functional counts remain57; Zcash not yet accepted.
