@@ -1,6 +1,6 @@
 # CQL developer manual
 
-Current functional milestone (2 November 2026): Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card publication pending; browser open. Totals51integrated/47hosted-functional/5browser/42open. [Current status](CURRENT_STATUS.md) owns active work. Older dated checkpoints below are historical.
+Current functional milestone (2 November 2026): Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card published/byte-verified; browser open. Totals51integrated/47hosted-functional/5browser/42open. [Current status](CURRENT_STATUS.md) owns active work. Older dated checkpoints below are historical.
 
 ## Historical Azure checkpoint — 1 November 2026
 
@@ -1363,3 +1363,7 @@ Websiteac0ca0c3cffea71aa9b99ca437d2ee46fa20d9c1 publishes BlueSky with pinned gu
 Nostr read-only CQL source passes32focused CQL/transport controls plus36signature/schema tests and actual manager/LINQ3/2. Bounded configured immutable event-ID equality/membership only, complete matching EOSE and verified NIP01hash/BIP340signature before paging. Metadata retains exact signed event fields; no native write/search/identity/freshness/completeness claim. API/Mongo/hosted gates pending. Current breadth51integrated/46hosted; [guide](../../Devs/NOSTR_PUBLIC_EVENT_CQL_GUIDE.md), [evidence](NOSTR_PUBLIC_SOURCE_STATUS.md).
 
 Nostr API/local milestone2November: Core1/API2/localHTTP1/publisher9/prepared1/client1 pass. Actual native3/2, Mongo5/4 and visitor privacy verified; original two saves preserved during read-only correction/continuation, exact owned fixture removed. Three-key candidate/four presets prepared, no hosted settings mutated yet. [Current proof](NOSTR_PUBLIC_SOURCE_STATUS.md).
+
+## Nostr page publication - 2 November 2026
+
+Website7e2046de25a40a84a289a3c73da2bc7e2e25b885 publishes Nostr with pinned guide9961fde00/C#6ee3ebfcd links and explicit unresolved-intermittency/copy-scope limits.99client tests pass. Public HTML173395bytes/SHA256dde3093ce9253829f3355cca80ff7bf0636d7e1a221c8c85ddabbf240c7d9b70 and both scripts match exact git blobs. Browser interaction remains unverified. Raw public proof TestResults/NostrPublicSourceCurrent/public-assets-observation.json; tests frontend-tests.log. Functional HTTP proof does not resolve earlier errors or establish browser interaction/full ORM.
