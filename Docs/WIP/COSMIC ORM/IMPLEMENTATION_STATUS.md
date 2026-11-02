@@ -10,7 +10,7 @@ Updated 2 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CUR
 | Fantom | Native/CLI/local/hosted HTTP, Mongo pairing/reuse/privacy/replicas and card/public bytes pass | Browser interaction and broader ORM scope remain open |
 | Three-database query parity | 50/82 checklist rows per database; original investor-demo subset green | Work only red rows; deep LINQ, POCO mapping and migrations tooling paused |
 | Latest addition | Matrix hosted native3/2, Mongo5/4, reuse0new/2existing, privacy0/3, replicas2/2 each pass; two version1 saves/no pending | Cardbd173e5/101client tests/public bytes verified; browser interaction remains open; original cohort frozen |
-| Next provider | Stacks source43/CLI3/2/Core1/API3/HTTP1/publisher9/prepared1/client102 pass | Local native3/2/Mongo5/4/privacy0/3 pass; verified code/settings publication and hosted reuse/replica/card gates next |
+| Next provider | Stacks source43/CLI3/2/Core1/API3/HTTP1/publisher9/prepared1/client102 pass | Local native3/2/Mongo5/4/privacy0/3 pass; Code3768c2050 published; job8f13e4b3 QUEUED. Settings unapplied; hosted reuse/replica/card gates next |
 | HyperDrive V2 | Scoped live three-store routing/failover, six native recovery directions/interleavings and ACK-loss/disconnect proofs retained | Wider operator/transport/scale acceptance and primary-authority cutover |
 | Full ORM | Focused tracking, conditional-write, graph, history and delta evidence exists | Requirement-by-requirement full acceptance audit remains open |
 
