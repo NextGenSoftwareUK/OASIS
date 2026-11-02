@@ -4162,3 +4162,8 @@ retained output paths/sizes follow, no active owned test/DB processes:
 - `C:\Source\OASIS-cosmic\STAR ODK\NextGenSoftware.OASIS.STAR.STARDNA\bin`: 7663030bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
 - `C:\Source\OASIS-cosmic\STAR ODK\NextGenSoftware.OASIS.STAR.STARDNA\obj`: 883026bytes; cleanup-policy-rejected/preserved; regenerate bounded cached build after an authorized future cleanup.
 Durable compressed TRX5509bytes; candidate protected files retain original ownership.
+Bittensor local integration parentdee15ae9f/Core d3f92df pushed/remote verified;
+manifest/seven Dockerfiles/gitlinks pass. No Development or hosted change yet.
+Protected before193894bytes/candidate196982bytes retained; compressed accepted
+TRX5509bytes plus local-integration ACK. All188reviewed build folders retained
+after policy rejection, no alternate removal attempted; no local Mongo/API.

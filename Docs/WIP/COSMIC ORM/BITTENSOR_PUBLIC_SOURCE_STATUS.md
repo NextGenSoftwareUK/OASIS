@@ -115,7 +115,8 @@ and candidate196982bytes. Raw test counts/hash paths remain outside docs.
 
 ## Exact next step
 
-Commit this verified integration batch, validate parent gitlinks/manifest, merge
+Parent `dee15ae9fb58006c85c51b87927ab71f075c40d5` is committed/pushed and
+remote-verified; dependency manifest/seven Dockerfiles/gitlinks pass. Next merge
 verified Core/parent work into Development and observe the exact deployment.
 Only after matching successful code, apply the frozen3value candidate once with
 per-key ACKs and full observed equality, then first hosted native/Mongo/reuse/
