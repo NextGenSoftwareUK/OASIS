@@ -126,3 +126,7 @@ and publish the card. Hosted count remains49; no Wormhole hosted claim yet.
 | `mongo-http-native.trx` | 3371 | `bf070055470213c3edefa1a18b456d4907fdae2e6e44c38557393e8e6d744957` |
 | `Http/prepared-presets.trx` | 3338 | `28ba4041d59547e3f5daddb3ffdcd14855d5696a7181104d610b9d90cd722c98` |
 | `prepared-review.json` | 4854 | `f93131bd4d0a3904814e4c0e0a4dd039cdbd5de9f4a83332715c2b22407597d6` |
+
+## Verified code publication checkpoint
+
+ParentDevelopmentd1f42addf0413ddcd381238ccdf17bbfa561a3e2/CoreDevelopmentc551a89ff294e68527f6ff75128d97cff54e6c63 published and remote refs verified after fetched ancestry checks. Manifest/seven Dockerfiles/gitlinks validator passes. Exact Railway code job4da3a095-cdad-4052-850b-baf63020344f observed BUILDING at that parent. Prepared source settings remain unapplied; no hosted cohort or coverage grant. Publication journals HostedWormholeReleaseCurrent. Poll that exact job; after SUCCESS use matching-release gate before applying the existing candidate once. No restart/reprepare.
