@@ -1,0 +1,64 @@
+# Wormhole public operation source qualification
+
+Updated2November2026. Native qualification passes; CQL/HTTP/hosting remain red.
+No integrated or hosted coverage count changes (53/49).
+
+## Verified native observations
+
+One anonymous bounded `GET https://api.wormholescan.io/api/v1/operations?pageSize=3`
+returned200with three distinct canonical emitter-chain/address/sequence tuples.
+The captured catalogue was reused for one exact operation GET per tuple; all
+three returned200and matched the original VAA body SHA256 fingerprints.
+No account, wallet, native write, dispatch, source owner or admission was created.
+Exclusive catalogue and point-read intents are consumed; do not rerun them.
+
+VAA version1/header/signature framing/body tuple checks pass. Guardian-set
+index matches the API envelope, indices are strictly increasing, duplicate
+indexer observations are rejected, and sequence remains an exact uint64 string.
+Body timestamp/nonce/consistency and payload size are parsed from native bytes.
+Eight offline controls include malformed/truncated frames and integer limits.
+This is structural binding and an indexer observation, not guardian signature,
+trusted guardian-set, destination redemption or independent finality verification.
+SHA256 is a retained content fingerprint, not the protocol signing digest.
+
+## Exact next step
+
+Implement a separate read-only `WormholePublicOperationMetadataSource` under
+existing WormholeOASIS and the shared HolonManager/CQL path. Use
+`WormholeOperationId` equality/membership over at most8configured tuples;
+complete selection before paging, with explicit unsupported-query errors.
+Configure each tuple with its original VAA body SHA256, so a reorg/body change
+fails rather than silently replacing the acknowledged message. Preserve uint64
+sequence/uint32 fields as strings. Bound responses, JSON, durations and catalogue;
+no native-write capabilities. Create and retain one projection owner only when
+implementation needs it. Existing cross-chain tracker remains unchanged.
+
+Then add meaningful source tests, commented C#/CLI3/2, local HTTP/Mongo5/4,
+privacy/reuse/replica checks, explicit query-only hosting/presets, and public card
+with pinned setup/C#/HTTP links. Hosted permissions are not native capability
+proof. Generic browser copies currently retain keys/name/description/provenance,
+not the complete native payload. Browser interaction remains a separate gate.
+
+Legacy tracker fixtures include a placeholder VAA `AQ==`; they only exercise
+tracker mapping and cannot prove binary VAA correctness. Documented only.
+
+## Evidence outside docs/git
+
+`C:/Source/OASIS-cosmic/TestResults/WormholePublicSourceCurrent`:
+
+| Artifact | Bytes | SHA256 |
+|---|---|---|
+| `point-0.json` | 2601 | `ba08a875c715e03f61302fcd1daf693a959eb8db40571949a6d755403ef8a4ff` |
+| `point-1.json` | 3063 | `a4e156aef6143f6213e7a04193df9045d3f5506ba77a97e36aaed55ffa193a27` |
+| `point-2.json` | 2601 | `29c8a0482a41729fa1958052607febe1bdbd31abfec8b0fe778956e02e53e376` |
+| `point-qualification.json` | 2722 | `a2df8d9a28810f9fdbfcdd1d22030d8aeedb878ca66a1120ed9589fde1fe5a0e` |
+| `point-reads.intent.json` | 281 | `0a47b054b7584e5367074c790d9ed4f7dfe5b1d812cd96427fec4c59d196409a` |
+| `probe-tests.log` | 111 | `9f19866c8af7bd0425354480972b9749c259e92bd47393c4d7e76dcf44f46db3` |
+| `qualification.intent.json` | 139 | `b9cf1158e5dbb77b3021fd90c65cbb252ae22f5639bbc7ad0fad99bcb3356c19` |
+| `qualification.json` | 1027 | `20ceb4c0b3fab1d7e69fbb6380a0aab7e1d6eb0fd301b21eb6ba47eb2f356772` |
+| `response.json` | 8284 | `f3a740e0bb10e8f500c8769e2b96132b6fa6417b2c6f14c3b458b6d5f7d941cd` |
+
+Primary contracts: [VAA format and reorg semantics](https://wormhole.com/docs/protocol/infrastructure/vaas/),
+[public API guide](https://wormhole.com/docs/products/messaging/guides/wormholescan-api/).
+The native byte interpretation follows these contracts; none of their setup or
+installation examples were executed. Existing Python/runtime/fixtures reused.
