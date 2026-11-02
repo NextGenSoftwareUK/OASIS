@@ -6,6 +6,7 @@ const names = ['initial-flow.progress.json', 'original-native-http.json',
   'original-settlement-state.json', 'failure-log-observation.json'];
 const nativeNames = ['initial-flow.progress.json', 'original-native-http.json',
   'native-diagnostic.json', 'native-diagnostic.intent.json'];
+const snapshotNames = ['initial-flow.progress.json', 'original-native-http.json', 'snapshot-reuse-failure.json'];
 const guid = value => typeof value === 'string' && /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/.test(value);
 const same = (left, right) => JSON.stringify([...left].sort()) === JSON.stringify([...right].sort());
 function requireCondition(value, message) { if (!value) throw Error('Continuation rejected: ' + message); }
@@ -14,12 +15,13 @@ function requireCondition(value, message) { if (!value) throw Error('Continuatio
 // preparation or the failed usage operation. This function performs no I/O.
 function validateContinuation(input, manifest, raw, acknowledgements, pending) {
   const nativeMode = input.resumeKind === 'native_read_failure';
-  requireCondition(input.resumeKind == null || nativeMode, 'unknown continuation kind');
-  const evidenceNames = nativeMode ? nativeNames : names;
-  requireCondition(manifest.schema === (nativeMode ? 2 : 1) && manifest.completed === false && manifest.writesPermitted === false,
+  const snapshotMode = input.resumeKind === 'snapshot_observation_change';
+  requireCondition(input.resumeKind == null || nativeMode || snapshotMode, 'unknown continuation kind');
+  const evidenceNames = snapshotMode ? snapshotNames : nativeMode ? nativeNames : names;
+  requireCondition(manifest.schema === (snapshotMode ? 3 : nativeMode ? 2 : 1) && manifest.completed === false && manifest.writesPermitted === false,
     'a pending read-only continuation is required');
   requireCondition(manifest.provider === input.source.provider && manifest.ownerId === input.ownerId &&
-    guid(manifest.ownerId) && guid(manifest.failedOperationId), 'source/owner identity differs');
+    guid(manifest.ownerId) && (snapshotMode ? manifest.failedOperationId === null : guid(manifest.failedOperationId)), 'source/owner identity differs');
   requireCondition(Array.isArray(manifest.savedCopyIds) && manifest.savedCopyIds.length === 2 &&
     manifest.savedCopyIds.every(guid) && new Set(manifest.savedCopyIds).size === 2, 'two original copy identities required');
   const evidence = {};
@@ -45,7 +47,23 @@ function validateContinuation(input, manifest, raw, acknowledgements, pending) {
     Array.isArray(progress.preparation.keys) &&
     same(progress.preparation.keys, acknowledgements.map(row => row.requestKey)) &&
     !progress.repeated && !progress.replicas, 'original completed stages differ');
-  if (nativeMode) {
+  if (snapshotMode) {
+    const failure = evidence[snapshotNames[2]];
+    requireCondition(manifest.failureKind === 'snapshot_observation_change' &&
+      failure.kind === manifest.failureKind && failure.ownerId === input.ownerId &&
+      failure.error === 'An existing record differs from the demo. It has been left untouched.' &&
+      failure.additionalSaves === 0 && /^[0-9a-f]{64}$/.test(failure.correctedModuleSha256) &&
+      failure.correctedModuleSha256 === input.preparationModuleSha256 &&
+      !progress.failedHttp && Array.isArray(prior.steps) && prior.steps.length > 0 &&
+      prior.steps.every(step => step.status === 200), 'original local reuse failure or corrected module differs');
+    const selections = progress.five?.result?.rows?.map(row => row.selected) ?? [];
+    const copies = selections.filter(row => row.provider === 'MongoDBOASIS').map(row => row.row);
+    const sources = selections.filter(row => row.provider === manifest.provider).map(row => row.row);
+    requireCondition(copies.length === 2 && copies.every(copy => {
+      const source = sources.find(row => row.id === copy.metadata?.['COSMIC.Demo.SourceHolonId']);
+      return source && copy.version === 1 && source.name === copy.name && source.description !== copy.description;
+    }), 'changed live observation is not linked to original snapshots');
+  } else if (nativeMode) {
     requireCondition(manifest.provider === 'NostrOASIS' && manifest.failureKind === 'native_read_failure' &&
       progress.failedHttp?.route === 'data/query-cql' && progress.failedHttp.status === 503 &&
       progress.failedHttp.errorCode === 'CQL_QUERY_FAILED' && progress.failedHttp.operationId === manifest.failedOperationId &&
@@ -87,7 +105,7 @@ function validateContinuation(input, manifest, raw, acknowledgements, pending) {
       same(publicRows.map(row => row.id), selectedNative.map(row => row.id)), 'original copy provenance differs');
   }
   return { prior, ids: [...manifest.savedCopyIds], operationId: manifest.failedOperationId,
-    kind: nativeMode ? 'native_read_failure' : 'settled_read' };
+    kind: snapshotMode ? 'snapshot_observation_change' : nativeMode ? 'native_read_failure' : 'settled_read' };
 }
 
 function assertContinuationRoute(continuation, route) {
@@ -97,14 +115,15 @@ function assertContinuationRoute(continuation, route) {
 
 function loadContinuation(input) {
   const nativeMode = input.resumeKind === 'native_read_failure';
-  const evidenceNames = nativeMode ? nativeNames : names;
-  const expected = path.resolve(input.state, nativeMode ? 'native-read-completion/continuation-source.json' : 'settlement-continuation/continuation-source.json');
+  const snapshotMode = input.resumeKind === 'snapshot_observation_change';
+  const evidenceNames = snapshotMode ? snapshotNames : nativeMode ? nativeNames : names;
+  const expected = path.resolve(input.state, snapshotMode ? 'snapshot-reuse-completion/continuation-source.json' : nativeMode ? 'native-read-completion/continuation-source.json' : 'settlement-continuation/continuation-source.json');
   requireCondition(path.resolve(input.resumeManifest) === expected, 'manifest must belong to the original cohort');
   const manifest = JSON.parse(fs.readFileSync(expected, 'utf8'));
   const raw = Object.fromEntries(evidenceNames.map(name => [name, fs.readFileSync(path.join(path.dirname(expected), name))]));
   const acknowledgements = fs.readFileSync(path.join(input.state, 'save-acknowledgements.jsonl'), 'utf8')
     .trim().split(/\r?\n/).map(row => JSON.parse(row));
   const pending = JSON.parse(fs.readFileSync(path.join(input.state, 'preparation-intents.json'), 'utf8'));
-  return validateContinuation(input, manifest, raw, acknowledgements, pending);
+  return validateContinuation({ ...input, preparationModuleSha256: snapshotMode ? crypto.createHash('sha256').update(fs.readFileSync(input.preparationModule)).digest('hex') : null }, manifest, raw, acknowledgements, pending);
 }
 module.exports = { validateContinuation, loadContinuation, assertContinuationRoute };

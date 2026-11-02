@@ -146,10 +146,12 @@ def main():
                         help="Explicitly finish the original qualified cohort; preserve prior proofs and forbid saves.")
     parser.add_argument("--continue-native-read-failure", action="store_true",
                         help="Explicit original-cohort completion after a preserved native read failure; saves remain forbidden.")
+    parser.add_argument("--continue-snapshot-observation-change", action="store_true",
+                        help="Finish original acknowledged snapshots after a proved changing-observation reuse defect; no writes.")
     options = parser.parse_args()
-    continuing = options.continue_settled_read or options.continue_native_read_failure
-    continuation_folder = "native-read-completion" if options.continue_native_read_failure else "settlement-continuation"
-    if options.continue_settled_read and options.continue_native_read_failure:
+    continuing = options.continue_settled_read or options.continue_native_read_failure or options.continue_snapshot_observation_change
+    continuation_folder = "snapshot-reuse-completion" if options.continue_snapshot_observation_change else "native-read-completion" if options.continue_native_read_failure else "settlement-continuation"
+    if sum((options.continue_settled_read, options.continue_native_read_failure, options.continue_snapshot_observation_change)) > 1:
         parser.error("Choose one explicit continuation kind.")
     if continuing and not options.prepare:
         parser.error("--continue-settled-read requires --prepare for the original client-flow gate")
@@ -163,9 +165,9 @@ def main():
     state = ROOT / "LocalState/COSMIC" / ("HostedQueryAcceptance-" + suffix)
     if continuing and not (state / continuation_folder / "continuation-source.json").is_file():
         raise RuntimeError("Original durable continuation manifest required; no session or replacement created.")
-    if options.continue_native_read_failure:
+    if options.continue_native_read_failure or options.continue_snapshot_observation_change:
         manifest = json.loads((state / continuation_folder / "continuation-source.json").read_text(encoding="utf-8"))
-        if (manifest.get("schema") != 2 or manifest.get("failureKind") != "native_read_failure"
+        if (manifest.get("schema") != (3 if options.continue_snapshot_observation_change else 2) or manifest.get("failureKind") != ("snapshot_observation_change" if options.continue_snapshot_observation_change else "native_read_failure")
                 or manifest.get("provider") != options.provider or manifest.get("writesPermitted") is not False):
             raise RuntimeError("Exact read-only native-failure continuation required.")
         write_new(state / continuation_folder / "execution.intent.json", (json.dumps({
@@ -225,6 +227,8 @@ def main():
             payload["resumeManifest"] = str(state / continuation_folder / "continuation-source.json")
             if options.continue_native_read_failure:
                 payload["resumeKind"] = "native_read_failure"
+            elif options.continue_snapshot_observation_change:
+                payload["resumeKind"] = "snapshot_observation_change"
         elif Path(str(report) + ".progress.json").exists():
             raise RuntimeError("An original partial flow exists; reconcile explicitly instead of rerunning preparation.")
         run = subprocess.run(["node", str(ROOT / "Scripts/Sandbox/Verify-HostedSourceFlow.cjs")],

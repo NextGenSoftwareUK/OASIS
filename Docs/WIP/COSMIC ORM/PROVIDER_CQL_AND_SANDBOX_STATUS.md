@@ -8,7 +8,7 @@ BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6d
 
 ## Current functional milestone — 2 November 2026
 
-**48 providers have scoped hosted HTTP evidence; 5 have browser evidence and 43 browser gates remain open.**
+**49 providers have scoped hosted HTTP evidence; 5 have browser evidence and 44 browser gates remain open.**
 
 Telos hosted HTTP acceptance is complete at parent7c498e0f2e8a97207fb8d511d35cea521e7e240c/Core80b879b0ef289ccfff3b7efefa5a9ff26e6b4135, settingsad7aab39 SUCCESS. Native3/2, paired5/4, reuse0new/2existing, private0/public3, replicas2/2 and two version1 saves/no pending pass. Website4ff3661c4ead0fc0b8df62c0be69cf17f5bf1685 publishes the Telos/Filecoin cards and pinned guides/C# links. All95client tests pass. Public HTML164814bytes/SHA2564853a50e7c7ef72aa63044d53d7c672c04b5723676a61dcc2e88f38749c545b0 and both scripts match exact git blobs. Browser interaction remains open; generic private demo records copy identity/name/description/provenance, not all native metadata.
 
@@ -16,7 +16,7 @@ ChainLink hosted acceptance is complete at parent09c66998c/Core990c1c7, code215b
 
 EOSIO hosted acceptance is complete at parent4d3e0b7cd/Core86e38a3, code68db832f/settings20b3a558 SUCCESS. Native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3 and matching replicas2/2 each pass; two version1 saves/no pending. Website72dee68/pinned setup/C#/HTTP links and96client tests pass; public HTML/scripts match exact git blobs. Original cohort frozen. Per-account latest native state, not a shared finalized snapshot. [Evidence](EOSIO_PUBLIC_SOURCE_STATUS.md).
 
-There are **53 currently integrated query types**: 3 canonical adapters, 46 bounded public/source profiles and 4 local PostgreSQL/Azure/Oracle/AWS implementations. PostgreSQL content and AWS DynamoDB Local identity queries pass native and local Mongo/HTTP checks; hosted PostgreSQL/owned AWS remain open. Azure Blob public properties pass SDK, manager/LINQ, local and hosted HTTP/Mongo checks. Hosted48/tariffs48/browser5/open43. Preserved broad-branch prototypes are not silently counted as current hosted coverage. Full ORM/EF parity/HyperDrive certification remains incomplete.
+There are **53 currently integrated query types**: 3 canonical adapters, 46 bounded public/source profiles and 4 local PostgreSQL/Azure/Oracle/AWS implementations. PostgreSQL content and AWS DynamoDB Local identity queries pass native and local Mongo/HTTP checks; hosted PostgreSQL/owned AWS remain open. Azure Blob public properties pass SDK, manager/LINQ, local and hosted HTTP/Mongo checks. Hosted49/tariffs49/browser5/open44. Preserved broad-branch prototypes are not silently counted as current hosted coverage. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
 
 Provider inventory snapshot: 1 November 2026; hosted functional checkpoint updated2November2026. This is a report, not a claim of full production readiness.
@@ -26,7 +26,7 @@ Session lifecycle HTTP proof and updated website publication are verified; brows
 ## Read this first
 
 - Repository inventory: **229 shipping provider projects**, including alternate implementations; **173 storage/specialized-storage**, **56 non-storage**. These are projects, not 229 equivalent databases or certified CQL adapters.
-- CQL programme: **53 currently integrated query-provider types**, including hosted-verified TON, Azure Blob and Fantom: 3 deeper canonical adapters, 46 bounded source profiles and 4 separately scoped local PostgreSQL/Azure/Oracle/AWS implementations. Deployed query-tariff catalogue has48types; independent permission and native capabilities still govern access. TRON candidate is not admitted/certified.
+- CQL programme: **53 currently integrated query-provider types**, including hosted-verified TON, Azure Blob and Fantom: 3 deeper canonical adapters, 46 bounded source profiles and 4 separately scoped local PostgreSQL/Azure/Oracle/AWS implementations. Deployed query-tariff catalogue has49types; independent permission and native capabilities still govern access. TRON candidate is not admitted/certified.
 - Hosted HTTP evidence covers **47** providers: earlier8 plus39additions including TON/Azure Blob/Fantom/Filecoin/Telos/EOSIO/ChainLink/BlueSky/Nostr, each at its recorded release. Browser proof remains **5**; **42** are open.
 - Each addition passed native3/2, private Mongo preparation, paired5/4, repeat reuse, visitor isolation and matching SQLite/Neo4j replicas. Generic source-key preparation copies identity/name/description and mapped provenance, not the full native payload; full migration remains open. Bounded profiles expose **176 presets** (39partitions ×4 plus5shared profiles ×4), measured from the applied protected candidate; canonical presets are separate. [Proof](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md).
 - Elrond application **801795a64/Coref41b2a1**, app19f65f59 and settings18c4f04e SUCCESS; hosted acceptance passes. Original cohorts/earlier release-specific proofs preserved, no green saves replayed.
