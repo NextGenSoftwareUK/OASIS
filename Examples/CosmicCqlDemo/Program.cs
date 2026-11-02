@@ -5,6 +5,14 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// Eclipse reads a retained account catalogue without wallets or transactions.
+if (args.Length == 2 && args[0] == "--eclipse-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await EclipsePublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // ENS resolves a retained three-name catalogue through the Universal Resolver.
 if (args.Length == 2 && args[0] == "--ens-public")
 {

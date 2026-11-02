@@ -987,3 +987,6 @@ Blockscout: `--blockscout-public <retained-source.json>` runs the spaced/comment
 
 
 ENS public-name demo: `--ens-public <retained-source.json>` resolves three configured names, then filters to two through HolonManager/deferred LINQ. See [guide](../../Docs/Devs/ENS_PUBLIC_NAME_CQL_GUIDE.md) and [acceptance status](../../Docs/WIP/COSMIC%20ORM/ENS_PUBLIC_SOURCE_STATUS.md). Direct ASCII catalogue only; HTTP/live gates separate.
+
+
+Eclipse account demo: `--eclipse-public <retained-source.json>` reads three configured mainnet accounts, then filters to two through HolonManager/deferred LINQ. [Guide](../../Docs/Devs/ECLIPSE_PUBLIC_ACCOUNT_CQL_GUIDE.md), [actual acceptance](../../Docs/WIP/COSMIC%20ORM/ECLIPSE_PUBLIC_SOURCE_STATUS.md). Genesis pin, exact ETH units with9decimals, metadata-only reads and process-wide rate admission; HTTP/live gates separate.

@@ -1383,3 +1383,6 @@ Website7e2046de25a40a84a289a3c73da2bc7e2e25b885 publishes Nostr with pinned guid
 
 
 ENS bounded direct-name profile: [developer guide](../../Devs/ENS_PUBLIC_NAME_CQL_GUIDE.md), [actual acceptance](ENS_PUBLIC_SOURCE_STATUS.md). Supports configured EnsName equality/membership and paging; actual C#3/2 verified. Hosted/Mongo gates remain open.
+
+
+Eclipse bounded account profile: [guide](../../Devs/ECLIPSE_PUBLIC_ACCOUNT_CQL_GUIDE.md), [acceptance](ECLIPSE_PUBLIC_SOURCE_STATUS.md). Configured EclipseAccountAddress equality/IN+paging; actual C#3/2 verified. Balances are exact ETH units with9decimals; genesis retained, account data excluded. HTTP/Mongo/hosted gates pending.
