@@ -49,3 +49,5 @@ Exact continuation: CURRENT_STATUS.md contains the immutable-release checkout/gu
 
 
 Settings rollout milestone 1 November2026: code job7b8c95d9 SUCCESS at e13244820. Three reviewed values applied once, whole candidate and each key digest verified; DNA/unrelated settings unchanged. Single journalled settings job2177dd3d-e0a1-4c7d-a679-3e55b521c6a0 is BUILDING. Earlier pending-code/application paragraphs are superseded. Exact next: observe this same settings job to SUCCESS, then first hosted cohort; no configuration replay. Existing task branch restored after exact-release guard. Hosted count remains40.
+
+Fantom client preparation control passes1/0skips on existing Node24.19.0: two private Mongo saves, unchanged original native filter, provider provenance, no chain-write request, repeated preparation0new/2existing and no pending intent. Website task commit584b146c6d16eb251062fd7e59d88cab321c3f2d pushed/ref-verified; published main remains9694621. Only the new Fantom control ran; completed provider cohorts were not replayed. Settings job2177dd3d remains BUILDING, hosted gate still next.
