@@ -299,3 +299,26 @@ Next guarded exact105329a3fapplication through the existing mutation owner using
 this distinct prefix, after lineage re-verification. Never overwrite/replay the
 old prefix or retry the original failed code job. One subsequent activation and
 one original hosted cohort will have independent durable journals.
+
+## First Eclipse settings applied; one activation observed
+
+Reconciliation controls2methods/14negative cases passed; log SHA256
+d876ba5c350b616c0f9b2059b6145ecb04fe15d921230c0a4fa56b64afedd0e8.
+New fixed prefix/source/lineage reverified before first apply. Clean exact code
+checkout105329a3f/expected-release guard used; task branch restored afterward.
+Shared mutation owner applied3values once, each original per-key ACK observed,
+and final candidate equality verified. All4old protected input hashes and source
+hash remain unchanged; Akash and unrelated settings retained. No native source
+write, new owner, code publication or local rebuild.
+
+HostedEclipseReleaseCurrent/after-akash-settings.intent/acknowledged.json binds
+new protected input hashes and original lineage. One after-akash-activation.intent
+and protected CLI receipt; exact activationfcaa8d3a-7964-46f7-9964-82696ee9f8d1
+observedBUILDING for105329a3fc84e8505a6779d3291de806858c23c2. Observe the same job,
+never resubmit because of a timeout. Compact latest observation:
+TestResults/EclipsePublicSourceCurrent/after-akash-activation-observation.json.
+
+No original Eclipse hosted cohort yet. Only after activationSUCCESS run the
+normal visitor/native/Mongo/reuse/privacy/replica gate once. Prepared frontend
+Eclipse card is unpublished until those checks pass; no browser proof claimed.
+Current55hosted functional proofs;56stored query tariffs pending activation.
