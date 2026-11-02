@@ -119,3 +119,31 @@ fast-forward pushes. Manifest/gitlinks gate passes. Exact code deployment
 a12e451f-09e1-42c7-be53-23968183facc is QUEUED at latest observation; same job
 retained, no restart/settings mutation. Release intent/observation retained at
 LocalState/COSMIC/HostedChainflipReleaseCurrent. Hosted count remains50.
+
+
+## Hosted HTTP acceptance complete — 2 November 2026
+
+Exact code a12e451f-09e1-42c7-be53-23968183facc and settings
+d1bc3a0c-0fbe-477f-9ad5-741ea8b92431 SUCCESS at parentc81937d59/Core4f9808.
+Three reviewed values applied once, full candidate/per-key hashes observed.
+Original hosted cohort passes native3/2, Mongo5/4, reuse0new/2existing,
+foreign-private0/public3 and exact SQLite/Neo4j2/2. Two normal API version1
+saves/operations/ACKs, pending0. Independent source-owner/key/provenance/visibility/
+version/operation/replica audit produced immutable acceptance ACK at
+LocalState/COSMIC/HostedQueryAcceptance-ChainflipOASIS. Do not replay.
+
+Initial audit assertions incorrectly equated public-source provenance with the
+explicit demo-copy provenance, then assumed the dataset literal. Actual client
+contract uses cosmic-cql-demo and COSMIC.CQL.Demo.v1 respectively. Corrected
+the audit expectations against the shipping client, without changing application
+code, source records or saved snapshots. Final artifact audit passes.
+
+Hosted functional proofs51/query tariffs51; browser5verified/46open.
+Public card next. Not native swap writes, independent finality, complete payload
+snapshotting or full ORM certification.
+
+| Evidence | Bytes | SHA256 |
+|---|---|---|
+| `TestResults\HostedCqlIntegrationCurrent\ChainflipOASIS-native-http.json` | 15733 | `379e661677cf849c39d9aa1f4c811ed920d2276e141545ffcc3897dac6014531` |
+| `TestResults\HostedCqlIntegrationCurrent\ChainflipOASIS-client-http-flow.json` | 40037 | `b2910728e7b7ec9dc3c6d3da06b6b3a30dafc0d5841d0a872b42e5bc33d04ca4` |
+| `TestResults\HostedCqlIntegrationCurrent\ChainflipOASIS-isolation-http.json` | 6608 | `999d01c4cc47b4caab88633aee3b23a22e33a379ace4b6a5f1f4bf1393e8b7f8` |
