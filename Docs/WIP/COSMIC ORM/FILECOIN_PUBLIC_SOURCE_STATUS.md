@@ -27,7 +27,9 @@ Publisher9pure controls and client1preparation/reuse control pass. Client test c
 
 ## Exact next step
 
-Parentf93399e3 and Coreb386875 task refs are pushed; manifest/gitlinks validate. Merged current Development42da7fe9; only its David actions document changed, executable source identical to verified batch. Publish current verified parent/Core refs with durable intent; preserve merged owner actions. Then observe exact code deploymentSUCCESS before guarded apply of reviewed3settings, one journalled settings rollout, first hosted native/federation/reuse/privacy/replica cohort and sandbox card. Never apply at a different code SHA or replay either completed native/local fixture. Hosted PostgreSQL/Azure Cosmos/Oracle and browser control remain deferred/closed.
+Parent Developmentfcc4f735d1719799dfb3a6fdcd7948ce17020abc/CoreDevelopmentb3868756033b0fb3499cd799b77c331d3a0af9c6 published and remote-ref verified. Current upstream David actions doc preserved; no executable difference beyond verified batch. Manifest/gitlinks validate. Exact code jobd1fe285f-8ccc-445f-a121-80eb76d0222a is BUILDING. Observe that same job, never restart or repeat original code-publication intent.
+
+After exact/latest codeSUCCESS use CURRENT_STATUS immutable-release guard procedure, then apply reviewed3settings once, verify whole candidate/per-key ACKs, request one journalled settings rollout, observe same resulting job and run first hosted native/federation/reuse/privacy/replica cohort. Only then count Filecoin as hosted and publish its sandbox card. No settings applied yet;46integrated/41hosted/browser5/open36. Never replay completed native/local fixture. PostgreSQL/Azure Cosmos/Oracle hosting and browser control remain deferred/closed.
 
 ## Evidence and resources
 
