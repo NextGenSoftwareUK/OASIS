@@ -1,46 +1,47 @@
 # COSMIC ORM / CQL current status
 
-Updated2November2026. Goal active/incomplete. Priority: breadth-first live demos;
-deep LINQ parity remains paused. Work red scopes only unless a bug is reproduced.
+Updated 2 November 2026. Goal active/incomplete. Breadth-first live demos;
+deep LINQ parity paused. Work red scopes only unless a bug is reproduced.
 
 ## Verified scope
 
-- 55 integrated query types:3canonical adapters/48bounded public-source profiles/4local PostgreSQL, Cosmos, Oracle and AWS implementations.
-- 51 scoped hosted functional HTTP proofs; browser5verified/46open. These are not full ORM/native-write/reliability certifications.
-- MongoDB/SQLite/Neo4j parity50/82rows each; original investor-demo subset green.
-- Latest hosted addition Wormhole: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, exact SQLite/Neo4j2/2. Two original version1 saves/pending0; source/body pins and original cohort frozen.
-- Website main/task129c995 publishes Wormhole/Stacks/Matrix/prior profiles with pinned setup/C#/HTTP links;106client tests pass on task branch; deployed website remains unchanged. Public HTML180501bytes/SHA25691726f231ab2d8f4c77bb655e1fb6df4263d2cbb02125097ef41593c12b9347c and both scripts match exact git blobs. Browser interaction remains separate.
-- Generic browser copies retain identity/name/description/provenance and native query key, not full native payload. Full safe payload mapping remains red in AFTER_DEMO_BACKLOG.md.
+- 55 integrated query types: 3 canonical adapters, 48 bounded public-source profiles, 4 local PostgreSQL/Cosmos/Oracle/AWS implementations.
+- 51 scoped hosted functional HTTP proofs/query tariffs; browser5verified/46open. These are not full ORM/native-write/reliability certifications.
+- MongoDB/SQLite/Neo4j parity50/82 rows each; original investor-demo subset green.
+- Latest hosted addition Chainflip: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, exact SQLite/Neo4j2/2. Two original normal API version1 saves/pending0. Independent source/owner/key/operation/replica audit ACK frozen.
+- Website main/taskbbb9aee07a6dc65ff67b163e9a9fe4c62ec18b23 publishes Chainflip and prior profiles with pinned guide/C#/HTTP links;106client controls pass. Public HTML182914bytes/SHA256bb0edff202f1b25d46ed5412f0953b0134387ee9bbcc9192a89368261e4aaad8 and both scripts match exact git blobs. Browser interaction remains separate.
+- Generic browser copies retain identity/name/description/provenance/native query key, not full native payload. Full safe payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: Chainflip hosted HTTP verified; public card next
+## Current milestone: Chainflip hosted demo complete within its declared scope
 
-- ParentDevelopmentc81937d591e91e068a7d6873c89964eca427e757/CoreDevelopment4f9808dea606e68d62257bc189bb08c77520907c pushed after fetched ancestry checks. Remote refs verified; manifest/seven Dockerfiles/gitlinks validator passes.
-- Code4da3a095/settingsb29f93f6 SUCCESS at exactd1f42addf. Three settings applied once/verified; original hosted cohort passed and independent artifact audit wrote immutable acceptance ACK. No additional saves.
-- Wormhole source35tests, actual HolonManager/deferred-LINQ CLI3/2, Core1/API3/localHTTP1/publisher9/actual prepared presets1/client105 pass. Local HTTP native3/2+Mongo5/4/privacy0/3; two SDK-owned version1 copies/9receipts. Owned fixture DB removed/Mongo stopped.
-- Initial unit consumer compile used stale transitive assets; ordinary cached restore fixed it. Original log retained; no DLL copies/workaround.
-- Original source/owner/body pins/ACKs: LocalState/COSMIC/HostedWormholePublicSourceCurrent. Fixture: WormholeMongoHttpCurrent. Protected three-key reviewed candidate: HostedSourceRolloutCurrent/wormhole-public-* (applied/verified once). Release journals: HostedWormholeReleaseCurrent.
+- Parent Developmentc81937d591e91e068a7d6873c89964eca427e757/Core Development4f9808dea606e68d62257bc189bb08c77520907c pushed after fetched ancestry checks; remote pins and manifest/seven Dockerfiles/gitlinks verified.
+- Codea12e451f-09e1-42c7-be53-23968183facc/settingsd1bc3a0c-0fbe-477f-9ad5-741ea8b92431 SUCCESS at exactc81937d59. Three settings applied once and full candidate/per-key hashes observed. No replay/reapplication.
+- Chainflip source41, native SDK1, pure parser9, evidence-root1, Core1, API3, fixture continuation9, publisher9, actual prepared presets1 tests pass; actual manager/deferred-LINQ CLI3/2 and local HTTP3/2+Mongo5/4/privacy0/3 pass. Production WEB4 build passes.
+- Original local fixture hit omitted5s budget; corrected fixture to presets' explicit30s, then original read-only completion passed with zero repeated saves/nine receipts. Owned fixture DB removed/Mongo stopped. Native Python403/optional-deposit assumption failures retained.
+- Original source/owner/config: LocalState/COSMIC/HostedChainflipPublicSourceCurrent. Local fixture: ChainflipMongoHttpCurrent. Hosted cohort: HostedQueryAcceptance-ChainflipOASIS. Release ACKs: HostedChainflipReleaseCurrent. Reviewed candidate: HostedSourceRolloutCurrent/chainflip-public-* (applied once). All preserved.
+- Public source is completed historical indexer-reported swap observations. Exact amount strings/optional deposits/refunds; no swaps, quotes, wallets, native writes, shared snapshot or independent finality proof.
 
 ## Exact next step
 
-1. Preserve original Wormhole source/owner/config/body pins/cohort/ACKs. Do not replay acceptance/setup/saves or apply/activation.
-2. Chainflip source41tests/actual HolonManager-deferred-LINQ CLI3/2 pass. One source owner/config/intent/ACK retained under HostedChainflipPublicSourceCurrent; IDs500000/500001/500002. Native SDK1/pure9/evidence-root1 also pass; Python403/initial optional-deposit assumption failure retained. HTTP compiler/read-source activation/query-only admission/presets now pass: native3/2+Mongo5/4/privacy0/3, nine receipts. Original two version1 saves preserved; explicit read-only completion made zero saves after correcting this fixture to the presets' 30-second budget. Owned DB removed/Mongo stopped. Core4f9808 task pushed; protected three-key candidate prepared once. Code/settings SUCCESS; original hosted native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3 and exact replicas2/2 each pass. Two normal version1 save ACKs/pending0; independent source/owner/key/operation audit ACK retained. Public card next. No native qualification replay or owner replacement. See CHAINFLIP_PUBLIC_SOURCE_STATUS.md.
-3. Keep Wormhole original cohort/source/body pins/acceptance and site ACKs frozen. Do not rerun/resave/reapply merely for another green result. Public asset bytes are not browser verification.
-4. Work only next red provider scopes; maintain full report/docs/ledger at milestones. Hosted51/browser5/open46; whole programme remains incomplete.
-
-Next operation: publish Chainflip sandbox card with pinned guide/C# links, then verify public HTML and both client modules against exact git blobs. Existing code a12e451f and settings d1bc3a0c succeeded at c81937d59. Original cohort/owner/config/save ACKs and independent acceptance ACK frozen; no replay, resave or reapplication.
+1. Preserve Chainflip and all prior completed owners/catalogues/ACKs/cohorts. Do not replay qualification/setup/saves, settings or activation merely for another green result.
+2. Qualify next red Celestia scope from CELESTIA_PUBLIC_SOURCE_STATUS.md: documented current anonymous mainnet extended-header reads, three explicit heights then filtered pair. Verify method/network/header identity/bounds first; record intent before native requests. No admission/card until native/CQL/C#/HTTP/Mongo/privacy/replica gates pass. Legacy blob adapter unchanged.
+3. Read official current RPC documentation before choosing a method; use shipping guarded transport, no paid keys/new node/runtime/automatic endpoint switch. Retain raw evidence only in TestResults and durable intent/config under LocalState/COSMIC.
+4. Continue full provider report/docs/ledger at each milestone. Deep parity remains paused; whole ORM/HyperDrive programme incomplete.
 
 ## Preserved checkpoints and remaining scope
 
-- Stacks/Matrix/BlueSky/ChainLink/EOSIO/Telos/Filecoin and all completed sources/cohorts/ACKs stay frozen; no rerun/resave/reapply merely to reproduce green.
-- Nostr functional HTTP/publication passes, but earlier intermittent query503cause remains unresolved despite8passing diagnostic reads. Capture recurrence with deployed safe diagnostics; no speculative fix or green hardening.
-- Axelar/Story Trace anonymous qualification403/Cloudflare1010; Farcaster endpoint DNS name error; Rootstock/TRON failed native gates preserved/unadmitted. No bypass/retry or paid setup to get green. These do not block other provider work.
+- Wormhole/Stacks/Matrix/BlueSky/ChainLink/EOSIO/Telos/Filecoin and earlier cohorts/config/ACKs remain frozen. Stacks snapshot-reuse root fix preserves original version1 copies while allowing changing public observations; no extra saves.
+- Nostr functional HTTP/publication passes; earlier intermittent503cause unresolved despite8passing diagnostic reads. Capture recurrence with safe deployed diagnostics, no speculative fix/green hardening.
+- Axelar/Story Trace anonymous Python qualification403/Cloudflare1010; Farcaster DNS error; Rootstock/TRON failed native gates preserved/unadmitted. No bypass/replay/paid setup. A Python403 alone does not establish shipping .NET transport failure.
 - Hosted Azure Cosmos, Oracle and PostgreSQL explicitly deferred by David; no re-ask/new paid resource. Public Azure Blob/AWS S3 are hosted; local owned-database proof is separate.
-- Browser/OS control stays closed; Solana and remaining browser gates remain open.
-- Full tracking/save ownership, atomic concurrency, children/depth/query parameters, rollback/history/deltas, migration/placement and broader HyperDrive operational acceptance remain on the roadmap. No overall completion percentage follows from demos.
-- Deep entity-selected terminals, unrestricted POCO mapping and migrations tooling deferred behind demo breadth. V2 implementation only; legacy gaps docs-only.
+- Browser/OS control stays closed; Solana and remaining browser gates open.
+- Full tracking/save ownership, atomic concurrency, children/depth/query parameters, rollback/history/deltas, migration/placement, primary-authority cutover and wider HyperDrive operator/transport/scale acceptance remain on the roadmap.
+- Deep entity-selected terminals, unrestricted POCO mapping and migrations tooling deferred behind demo breadth. V2 implementation only; legacy gaps docs-only. No overall completion percentage follows from demos.
 
-## Working rules
+## Working rules and key commands
 
-Work/build/test only C:/Source/OASIS-cosmic on work/cosmic-cql-ton-public; Corework/cosmic-cql-google-public. Frontend C:/Source/Web4Site/work/cosmic-cql. Never edit/build original checkout. Raw outputs in TestResults; identities/config/receipts in LocalState/COSMIC. Ledger and README mixed encodings: byte-preserving edits/UTF8appends only. Preserve unknown root logs. Reuse environments/caches; build under lease/m2/nrfalse/UseSharedCompilationfalse. No production/master promotion or paid hosting.
+Work/build/test only C:/Source/OASIS-cosmic on work/cosmic-cql-ton-public; Core work/cosmic-cql-google-public. Frontend C:/Source/Web4Site/work/cosmic-cql. Never edit/build original checkout. Preserve unknown root logs. Reuse environments/caches; no production/master promotion/paid hosting.
 
-[Wormhole proof](WORMHOLE_PUBLIC_SOURCE_STATUS.md) | [Full report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) | [Manual](CQL_MANUAL.md) | [Architecture](CQL_ARCHITECTURE.md) | [Parity](CQL_PARITY_CHECKLIST.md) | [Backlog](AFTER_DEMO_BACKLOG.md) | [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
+Build under Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 with /m:2 /nr:false /p:UseSharedCompilation=false. Manifest: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks (after commit). Fetch Development before integration; verify submodule pushes with git ls-remote. Named files only, never git add -A. Raw output TestResults; identities/config/receipts LocalState/COSMIC. Mixed ledger/README edits byte-preserving, ledger UTF8appends only.
+
+[Chainflip proof](CHAINFLIP_PUBLIC_SOURCE_STATUS.md) | [Next red scope](CELESTIA_PUBLIC_SOURCE_STATUS.md) | [Full report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) | [Manual](CQL_MANUAL.md) | [Architecture](CQL_ARCHITECTURE.md) | [Parity](CQL_PARITY_CHECKLIST.md) | [Backlog](AFTER_DEMO_BACKLOG.md) | [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
