@@ -1,6 +1,6 @@
 # CQL developer manual
 
-Current milestone (2 November 2026): BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6dfdbc6c SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen. Cached public AppView only; generic copies retain identity/name/description/provenance, not all native metadata. Card publication pending; browser unverified. Current totals50integrated/46hosted/5browser/41open; older dated checkpoints below are historical.
+Current milestone (2 November 2026): BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6dfdbc6c SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen. Cached public AppView only; generic copies retain identity/name/description/provenance, not all native metadata. Card published/byte-verified; browser unverified. Current totals50integrated/46hosted/5browser/41open; older dated checkpoints below are historical.
 
 ## Current verified milestone — 1 November 2026
 
@@ -1353,3 +1353,7 @@ Read-only configured AggregatorV3 proxy equality/membership now passes43controll
 ## BlueSky public profile query profile
 
 Read-only configured DID equality/membership now passes37controlled tests and actual manager/LINQ/CLI3/2. One bounded anonymous AppView batch validates complete identities before publication; optional Unicode text, exact count strings and original RFC3339 timestamps are preserved without invented missing values. No PDS session/source write/image fetch, signed repository or shared snapshot claim. [Setup/C# guide](../../Devs/BLUESKY_PUBLIC_PROFILE_CQL_GUIDE.md), [scope/evidence](BLUESKY_PUBLIC_SOURCE_STATUS.md). API admission/local HTTP Mongo/privacy/prepared gates now pass. Hosted rollout and browser gates remain open.
+
+## BlueSky page publication - 2 November 2026
+
+Websiteac0ca0c3cffea71aa9b99ca437d2ee46fa20d9c1 publishes BlueSky with pinned guidea10c6661c and C#f36dd0d56 links. All98client tests pass. Public HTML171143bytes/SHA256dfa7084ba40e8fe691eb2fbf7f9c1c4d9cda7dcdcbade32026f6f9d0fd7fceee and both scripts match exact git blobs. Browser interaction remains open. Raw public observation: TestResults/BlueSkyPublicSourceCurrent/public-assets-observation.json; tests frontend-tests.log. HTTP/asset checks are separate from browser interaction.
