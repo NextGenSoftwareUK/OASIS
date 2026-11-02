@@ -5,13 +5,13 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 ## Verified scope
 
 - 51 integrated query types: 3 canonical adapters, 44 bounded public/source profiles, 4 local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
-- 46 providers have scoped hosted HTTP proof at their recorded releases. Browser proof: 5; 41 browser gates remain open. These are not full ORM/native-write certifications.
+- 47 providers have scoped hosted functional HTTP proof at their recorded releases. Browser proof: 5; 42 browser gates remain open. These are not full ORM/native-write certifications.
 - MongoDB/SQLite/Neo4j parity: 50/82 checklist rows each; original investor-demo subset green. Work red rows only unless a reproducible bug appears.
-- Latest completed provider: BlueSky cached public profile observations. Native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen.
+- Latest functional provider proof: Nostr signed public events (earlier intermittent query errors remain unresolved). Native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen.
 - Websiteac0ca0c publishes BlueSky/ChainLink/EOSIO/Telos/Filecoin cards and pinned setup/C#/HTTP links;98client tests pass. Public HTML/scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser Mongo preparation copies identity/name/description/provenance, not all native metadata. Full payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: complete original Nostr cohort read-only
+## Current phase: publish Nostr functional demo; reliability issue open
 
 - BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6dfdbc6c SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen. Cached public AppView only; generic copies retain identity/name/description/provenance, not all native metadata. Card published/byte-verified; browser unverified.
 - Existing local gates:37source controls, actual CLI3/2, Core1/API2/localHTTP1/publisher9/prepared1/client1. No replays or new cohorts.
@@ -19,8 +19,8 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 ## Exact next actions
 
 1. Preserve BlueSky original cohort/ACKs; no reapply/redeploy/resave. Websiteac0ca0c3cffea71aa9b99ca437d2ee46fa20d9c1 publishes BlueSky with pinned guidea10c6661c and C#f36dd0d56 links. All98client tests pass. Public HTML171143bytes/SHA256dfa7084ba40e8fe691eb2fbf7f9c1c4d9cda7dcdcbade32026f6f9d0fd7fceee and both scripts match exact git blobs. Browser interaction remains open.
-2. Nostr code79b7be91/settings21ee8d23 SUCCESS at6ee3ebfcd/Core84a2151. Original owner native3/2 and Mongo5/4 pass; two normal private version1 saves ACKed, pending0. Independent read-only audit confirms matching Mongo/SQLite/Neo4j2records each with exact owner/version/metadata;0additional saves. Native read intermittently fails503/CQL_QUERY_FAILED during repeat preparation; foreign privacy/reuse/full hosted acceptance remain red. No replacement owner, source switch or resave; card task-only2ffca06/mainac0ca0c unchanged. Original progress, two save ACKs and partial replica observation retained under HostedQueryAcceptance-NostrOASIS. Never rerun --prepare/resume-unstarted-native, settings or any acknowledged save.
-3. Diagnostic releasecbdad505 SUCCESS at210068635. One original-owner bounded diagnostic completed8/8two-ID native reads200,0additional saves, no failure event observed. Earlier intermittent errors remain unexplained; instrumentation is not a reliability fix. Diagnostic intent consumed, no rerun. Next extend the existing explicit continuation validator with a separate native-read-failure mode (do not relabel CQL_QUERY_FAILED as SETTLEMENT_PENDING). Bind original3/2+5/4 progress, two ACKs/no pending intents and diagnostic hashes; block all save/delete/intent creation. Finish only repeat setup/replica/privacy checks for same cohort, preserving original failures. If a read fails again capture typed operator cause. Card stays task-only until acceptance.
+2. Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card publication pending; browser open. Full functional ACK and separate native-read-completion ACK retained under HostedQueryAcceptance-NostrOASIS. All original source/actor/copy identities frozen; no rerun or resave.
+3. Publish pending Nostr card with explicit relay/error and copy-scope limits; pin current guide, run client suite once, verify public HTML/scripts against git blobs. Keep intermittent error/root-cause work open; do not invent a fix from successful reads. Only after this milestone select next red breadth scope.
 
 ## Durable state and rules
 

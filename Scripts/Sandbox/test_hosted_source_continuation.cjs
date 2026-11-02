@@ -40,6 +40,45 @@ test('qualified settled read preserves original stages and identities without ch
   assert.deepEqual(f.check().ids, f.manifest.savedCopyIds);
   assert.equal(JSON.stringify(f.evidence), before);
 });
+
+function nativeFixture() {
+  const f = fixture();
+  f.input.resumeKind = 'native_read_failure'; f.input.source.provider = 'NostrOASIS';
+  Object.assign(f.manifest, { schema: 2, provider: 'NostrOASIS', failureKind: 'native_read_failure', sourceSha256: 'a'.repeat(64) });
+  f.evidence['original-native-http.json'].source.provider = 'NostrOASIS';
+  const progress = f.evidence['initial-flow.progress.json'];
+  Object.assign(progress.progress.failedHttp, { errorCode: 'CQL_QUERY_FAILED', operationId: f.manifest.failedOperationId });
+  Object.assign(progress.steps.at(-1), { errorCode: 'CQL_QUERY_FAILED', operationId: f.manifest.failedOperationId });
+  for (const key of ['five', 'four'])
+    for (const row of progress.progress[key].result.rows)
+      if (row.selected.provider === 'RadixOASIS') row.selected.provider = 'NostrOASIS';
+  delete f.evidence['original-settlement-state.json']; delete f.evidence['failure-log-observation.json'];
+  f.evidence['native-diagnostic.json'] = { schema: 1, additionalSaves: 0, ownerUnchanged: true, deploymentId: id(99),
+    observations: Array.from({ length: 8 }, () => ({ status: 200, rows: 2 })) };
+  f.evidence['native-diagnostic.intent.json'] = { deploymentId: id(99), ownerId: f.manifest.ownerId,
+    additionalSaves: 0, maximumCalls: 8, replayAllowed: false, sourceSha256: f.manifest.sourceSha256 };
+  return f;
+}
+
+test('explicit native failure preserves original stages without claiming settlement or writes', () => {
+  const f = nativeFixture(), before = JSON.stringify(f.evidence);
+  const result = f.check();
+  assert.equal(result.kind, 'native_read_failure');
+  assert.deepEqual(result.ids, f.manifest.savedCopyIds);
+  assert.equal(JSON.stringify(f.evidence), before);
+  assert.throws(() => assertContinuationRoute(result, 'data/save-holon'), /cannot send/);
+});
+
+test('native recovery cannot relax settled recovery or change owner/source/diagnostic proof', () => {
+  for (const change of [f => delete f.input.resumeKind, f => f.manifest.schema = 1,
+    f => f.evidence['native-diagnostic.intent.json'].ownerId = id(88),
+    f => f.evidence['native-diagnostic.intent.json'].sourceSha256 = 'b'.repeat(64),
+    f => f.evidence['native-diagnostic.json'].observations.pop(),
+    f => f.evidence['native-diagnostic.json'].observations[0].status = 503,
+    f => f.evidence['initial-flow.progress.json'].progress.failedHttp.operationId = id(88)]) {
+    const f = nativeFixture(); change(f); assert.throws(() => f.check(), /Continuation rejected/);
+  }
+});
 test('changed evidence bytes fail before any HTTP or storage action', () => {
   const f = fixture(), raw = f.encode(); raw['initial-flow.progress.json'][0] ^= 1;
   assert.throws(() => validateContinuation(f.input, f.manifest, raw, f.acknowledgements, {}), /hash differs/);

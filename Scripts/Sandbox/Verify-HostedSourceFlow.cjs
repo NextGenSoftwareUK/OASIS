@@ -21,8 +21,8 @@ async function main() {
     get length() { return Object.keys(entries).length; },
     key: index => Object.keys(entries)[index] ?? null,
     getItem: key => entries[key] ?? null,
-    setItem(key, value) { entries[key] = value; persist(); },
-    removeItem(key) { delete entries[key]; persist(); }
+    setItem(key, value) { if (continuation?.kind === 'native_read_failure') throw Error('Read-only native continuation cannot create a save intent.'); entries[key] = value; persist(); },
+    removeItem(key) { if (continuation?.kind === 'native_read_failure') throw Error('Read-only native continuation cannot edit a save intent.'); delete entries[key]; persist(); }
   };
   const continuation = input.resumeManifest ? require('./hosted-source-continuation.cjs').loadContinuation(input) : null;
   const steps = continuation ? [...continuation.prior.steps] : [];
@@ -78,8 +78,9 @@ async function main() {
     // Preserve acknowledged saves and completed query proofs. Only the unfinished
     // read-only reuse/replica checks run; no original usage operation is replayed.
     ({ preparation: prepared, five, four } = continuation.prior.progress);
-    observe('settlementContinuation', { originalOperationId: continuation.operationId,
-      originalOperationSettled: true, originalStagesPreserved: true, savesPermitted: false });
+    observe(continuation.kind === 'native_read_failure' ? 'nativeReadContinuation' : 'settlementContinuation', {
+      originalOperationId: continuation.operationId, originalStagesPreserved: true, savesPermitted: false,
+      ...(continuation.kind === 'native_read_failure' ? { originalFailurePreserved: true } : { originalOperationSettled: true }) });
   } else {
     prepared = await preparation.prepare(options);
     observe('preparation', prepared);
@@ -126,10 +127,10 @@ async function main() {
     observe('replicas', replicas);
   }
   const proof = { provider: input.source.provider, prepared, repeated, ids, five, four, replicas, mongoRows: [...mongo.values()], steps,
-    browserAcceptance: false, resumedAfterSettledRead: Boolean(continuation),
+    browserAcceptance: false, resumedAfterSettledRead: continuation?.kind === 'settled_read', resumedAfterNativeReadFailure: continuation?.kind === 'native_read_failure',
     continuationStartStep: continuation ? continuation.prior.steps.length : null, clientModule: input.preparationModule };
   fs.writeFileSync(input.report, JSON.stringify(proof, null, 2), { flag: 'wx' });
   console.log(JSON.stringify({ provider: proof.provider, prepared, repeated, nativeAndMongo: [5, 4],
-    replicaCounts: [2, 2], resumedAfterSettledRead: Boolean(continuation), browserAcceptance: false }));
+    replicaCounts: [2, 2], resumedAfterSettledRead: continuation?.kind === 'settled_read', resumedAfterNativeReadFailure: continuation?.kind === 'native_read_failure', browserAcceptance: false }));
 }
 main().catch(error => { console.error(error.message); process.exitCode = 1; });
