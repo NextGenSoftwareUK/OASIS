@@ -6,9 +6,9 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 ## Verified coverage
 
-- **63 integrated query types:** 3 canonical, 56 bounded public/source profiles,
+- **64 integrated query types:** 3 canonical, 57 bounded public/source profiles,
   4 local PostgreSQL/Cosmos/Oracle/AWS implementations.
-- **58 hosted functional HTTP proofs**, 5 browser verified, 53 browser gates open.
+- **59 hosted functional HTTP proofs**, 5 browser verified, 54 browser gates open.
   These figures do not certify full ORM/native writes/reliability/uptime.
 - MongoDB, SQLite and Neo4j: **50/82 strict parity features each**.
   The original investor-demo subset is green.
@@ -27,18 +27,15 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
    **7f477378b02adda621376f88f309c9bf70675fd9**, Core
    **0659aa00ba26260ec4c06f196df7b60ee6c0df01**; latestGeoNFTfixes preserved.
    Manifest/gitlinks7Dockerfiles pass, remote pushes verified.
-2. Originalcodejobaae1a2b0SUCCESS; activation78d92d9bREMOVED after newer
-   Developmentpush. Settings remain exactcandidate/DNAunchanged; no reapply.
-   Follow supersedingjob **22cabb60-492a-432b-8d4b-597a068d621b BUILDING**
-   atc0edcb0ed0b81e5d5dd20fc99807163d09833037; ancestry includes verified7f477378b.
-
-   `python Scripts/Sandbox/Observe-HostedDeployment.py 22cabb60-492a-432b-8d4b-597a068d621b --expected-commit c0edcb0ed0b81e5d5dd20fc99807163d09833037 --output TestResults/ClickHousePublicSourceCurrent/superseding-observation.json`
-
-3. After exactsupersedingjobSUCCESS, check discovery then run originalClickHouse
-   hostedcohort/audit/card once. No further settings submission. Durable
-   `HostedClickHouseReleaseCurrent`/`HostedClickHousePublicSourceCurrent`.
-   Independent audit2tests/16faults pass; combined3API+1tariff+4placeguards pass.
-   Separate nativeMongo upstream test skipped/unconfigured, not counted as pass.
+2. ClickHouse settings appliedonce, originalactivation superseded by newerjob
+   **22cabb60-492a-432b-8d4b-597a068d621b SUCCESS**, code
+   **c0edcb0ed0b81e5d5dd20fc99807163d09833037**, includesverified7f477378b.
+   Originalcandidate/per-keyACKs/DNAunchanged. No reapplication/redeployment.
+3. ClickHouse originalhostedcohort and independentaudit PASS: native3/2,
+   Mongo5/4, repeat0new/2existing, foreign0private/3public,2normalversion1saves,
+   pending0/exactSQLiteNeo4j2each. Freezeacceptedcohort; nextpublishcard/assets.
+   Durable `HostedClickHouseReleaseCurrent`, `HostedClickHousePublicSourceCurrent`,
+   `HostedQueryAcceptance-ClickHouseOASIS`. No acceptedgate replay.
 4. Original Zcash hosted acceptance and independent audit PASS: native3/2,
    Mongo5/4, repeat0new/2existing, foreign0private/3public, exactSQLite/Neo4j2each,
    2normal APIversion1saves/pending0. Cohort frozen; no query/save replay.

@@ -66,3 +66,7 @@ TestResults\ThreeFoldPublicSourceCurrent\demo-red.trx SHA256 `124f005b2779584a4c
 TestResults\ThreeFoldPublicSourceCurrent\demo-green.trx SHA256 `4c440712f9d27e8edd1c9f9daa6432472a5afbdef686998cec567b41f667f5b9`.
 
 Next: commentedThreeFoldC#walkthrough/configuration and actualcompilednative3/2 over originalnodeIDs1/2/3; then HTTP/Mongo/tariff/presets/hosted/card. ClickHouseactivation78d92d9b remains first live rollout gate.
+
+## Actual compiled manager/LINQ/CLI proof
+
+SharedC#demo fullcachedbuildpassed1m46s. Original --threefold-public run passed3full/2filterednodes throughHolonManager/deferredLINQ/nativepointcomposition over originalIDs1/2/3. No listing/discoveryreplay/provisioning/contracts/nativewrites/Mongosaves. Stableprojectionowner/config and qualification/source/binary-boundintent/ACK/compressedoutput retained HostedThreeFoldPublicSourceCurrent; outputSHA256 `48c283263bde4a3cc1bd8d37b64e81edaf1020b1ec5cad84652dddcc52d56740`. This is64thlocallyintegratedquerytype; hostedfunctional58untilClickHouseaudit. HTTP/Mongo/readtariff/presets/hosted remainnext. Acceptedsource/CLI frozen, do not replay.
