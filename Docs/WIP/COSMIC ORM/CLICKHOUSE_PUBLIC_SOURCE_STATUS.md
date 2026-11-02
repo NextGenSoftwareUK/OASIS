@@ -77,3 +77,15 @@ Hosted protected baseline/candidate prepared:exactly3changedvalues/freequerytari
 TestResults\ClickHousePublicSourceCurrent\mongo-http-native.trx SHA256 `74dcb24d59fd5fed8ab823f7d5deb8e62962059899b2800eb586f2197f547c47`.
 
 TestResults\ClickHousePublicSourceCurrent\prepared-presets.trx SHA256 `d1603920c515b3f407f86021e82b355af8ea7913d31de313027c7968abc5dfe3`.
+
+## Merged release qualification
+
+Fetched/merged latestDevelopment8bfc03c82/Core87a63bb, preserving GeoNFT/accountauthority/place-reward fixes. CombinedCore0659aa00ba26260ec4c06f196df7b60ee6c0df01, parent237d90dfa; manifest7Dockerfiles/gitlinks pass.3ClickHouseAPI+1Coretariff+4actualGeoNFT/place-rewardmethods pass. One separateWorldscapeNativeCreditBudget Mongo test skipped because its explicitnativeURI is absent; not counted as pass. Initial filename/classfilters missed partial-class methods; final exactmethodfilter ran4cases successfully, alloriginaloutputs preserved. Independenthostedaudit2tests/16negativecases pass withoutnetwork. No acceptednativefixture replay.
+
+TestResults\ClickHousePublicSourceCurrent\combined-api.trx SHA256 `a78956f2096dc27c0f6a6d47ee4d9f002cae71487004548bb478f2e895b7fa50`.
+
+TestResults\ClickHousePublicSourceCurrent\combined-core.trx SHA256 `201024fb5b0ad2e17bbb7e0267a2cca731e4d04ca5c630ef7f9b033e67bd792b`.
+
+TestResults\ClickHousePublicSourceCurrent\merged-place-guards.trx SHA256 `9e44b9340b7547f4fb6a255af77015ab64cfe85f08a54b3480b090da55780945`.
+
+Next publish exactmergedcode once, observeitsjob, apply original3settingcandidate only afterSUCCESS/fullbaselineequality, activateonce, then original hostedcohort/audit/card.
