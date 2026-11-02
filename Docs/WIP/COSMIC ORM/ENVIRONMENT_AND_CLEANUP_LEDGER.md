@@ -3665,3 +3665,48 @@ source checker/tests/runner choice are maintained code, not cleanup targets.
 Exact log hash recorded in AKASH_PUBLIC_SOURCE_STATUS.md. All completed native
 fixtures/receipt owners unchanged; all .NET outputs remain cleaned. Same live
 job observed, never restarted on timeout. Settings/activation remain unapplied.
+
+2026-11-02 Akash exact code jobc8ebe618SUCCESS at105329a3f/Coref42dd8c.
+Guarded source settings applied once from clean checkout105329a3f/expected-release
+env, then restored task branch. Three per-key ACKs and full observed candidate
+match; DNA/unrelated settings/sourceowner unchanged, no new hosting/spend.
+One activation intent/submission, raw CLI receipt protected, exact activation
+2a5ec8a6-c82f-471c-bbfa-c655f9fb1628SUCCESS at same release. Retain
+HostedAkashReleaseCurrent and HostedSourceRolloutCurrent original records.
+Existing SDK/local build outputs remain cleaned. Build tail80lines45,937bytes
+protected; summary path TestResults/AkashPublicSourceCurrent/code-build-tail-*.json.
+One transient status read failed; next same-handle observation succeeded; no
+restart. Remote existing Railway service5123199a-43c4-4439-9921-e10e2aec7841
+image/runtime managed by platform at exact source SHA; size/digest unmeasured,
+retain deployed service (delivery runtime, not disposable local environment).
+
+First Akash hosted cohort planned: existing Python/Node24.19.0 runtimes and
+published client module at Web4Site4530304; public10,241byte helper read into
+memory/hash only, no installed download. PublicSHA c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a
+matches exact git blob; local CRLF checkout canonicalizes to same bytes. Raw
+false byte-match report preserved alongside canonical explanation, no runtime
+module substitution. Existing frontend helper unchanged. New unpublished Akash
+HTML entry prepared in existing C:/Source/Web4Site/work/cosmic-cql, held pending
+hosted acceptance; no new frontend worktree/environment/download.
+
+Original HostedQueryAcceptance-AkashOASIS absent before gate. Create at most
+2temporary demo visitor sessions; DPAPI bearer/cookies in this exact state path,
+2journalled normal API private saves expected, no native source writes. Preserve
+cohort/sourceowner and all uncertain outcomes, never recreate/retry for green.
+Live Mongo/SQLite/Neo4j copies are retained acceptance evidence/visitor data,
+size initially unmeasured; retire only after verified ownership/evidence review.
+Raw reports TestResults/HostedCqlIntegrationCurrent/AkashOASIS-*; no paid provider
+account/wallet/cloud allocation. Resource owner COSMIC CQL hosted acceptance.
+
+2026-11-02 original Akash hosted cohort accepted: native3/2/Mongo5/4/reuse0new2existing/
+privacy0private3public/exactSQLiteNeo4j2each;2normal API version1saves/pending0,
+independent offline audit passes. No replacement user/sourceowner/continuation/
+extra saves. Keep original HostedQueryAcceptance-AkashOASIS identities/DPAPI
+sessions/save ACKs/audit ACK. Remote test visitor records/copies retained for
+acceptance evidence; sizes unmeasured, require owner/evidence-aware retirement
+at final cleanup, never blanket-delete live visitor data. No local install,
+downloaded runtime/environment or .NET build; outputs remain cleaned.
+Raw proof paths/hashes in AKASH_PUBLIC_SOURCE_STATUS.md, not committed test data.
+Latest free62,968,225,792bytes. Frontend HTML card prepared in existing Web4Site,
+only14HTML lines added, pending publication after scoped proof (now passed).
+Guide gains public first-use configuration example; retained source unchanged.
