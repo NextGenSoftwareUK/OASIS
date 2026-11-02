@@ -22,13 +22,15 @@ class NostrDiagnosticTests(unittest.TestCase):
 
     def test_only_the_original_bounded_native_request_is_selected(self):
         keys = ['a' * 64, 'b' * 64, 'c' * 64]
-        request = {'provider': 'NostrOASIS', 'filters': [{'metadataPath': ['NostrEventId'], 'scalar': 'String',
+        request = {'provider': 'NostrOASIS', 'filters': [{'field': None, 'metadataPath': ['NostrEventId'], 'scalar': 'String',
             'operator': 'In', 'value': keys[:2]}], 'orderBy': 'None', 'take': 25,
-            'maximumDurationMilliseconds': 30000, 'includeMetadata': True}
+            'maximumDurationMilliseconds': 30000, 'includeMetadata': True,
+            'anyOf': [], 'anyChildren': [], 'anyDescendants': [], 'descending': False, 'skip': 0, 'graph': None}
         native = {'native': [{'result': {'rows': [1, 2, 3]}}, {'result': {'rows': [1, 2]}}],
                   'source': {'examples': [{'id': 'public-subset', 'request': request}]}}
         self.assertEqual(diagnostic.validate_request(native, {'eventIds': keys}), request)
-        for field, value in [('provider', 'MongoDBOASIS'), ('take', 10000), ('maximumDurationMilliseconds', 300000)]:
+        for field, value in [('provider', 'MongoDBOASIS'), ('take', 10000), ('maximumDurationMilliseconds', 300000),
+                             ('anyOf', [['extra']]), ('graph', {'depth': 1})]:
             changed = copy.deepcopy(native); changed['source']['examples'][0]['request'][field] = value
             with self.subTest(field=field), self.assertRaises(ValueError):
                 diagnostic.validate_request(changed, {'eventIds': keys})

@@ -114,6 +114,14 @@ Safe native failure diagnostics implemented:2fake handshake tests +4API cause/pr
 
 ## Exact diagnostic release rollout
 
-Diagnostic release210068635b39201f7ec4fff64770c367e5caa76d published/ref-verified on Development, Core84a2151 unchanged, manifest validates. Exact jobcbdad505-a272-494b-8b55-60d2ed62870e BUILDING. No settings redeploy/new saves. Public ACK: LocalState/COSMIC/HostedNostrReleaseCurrent/diagnostics-code-publication.acknowledged.json. Observation: TestResults/NostrPublicSourceCurrent/diagnostics-deployment.json. Wait for exact success before bounded diagnostic; original owner/progress/copies remain frozen. No reliability fix or full hosted acceptance claimed.
+Diagnostic release210068635b39201f7ec4fff64770c367e5caa76d published/ref-verified on Development, Core84a2151 unchanged, manifest validates. Exact jobcbdad505-a272-494b-8b55-60d2ed62870e SUCCESS. No settings redeploy/new saves. Public ACK: LocalState/COSMIC/HostedNostrReleaseCurrent/diagnostics-code-publication.acknowledged.json. Observation: TestResults/NostrPublicSourceCurrent/diagnostics-deployment.json. Wait for exact success before bounded diagnostic; original owner/progress/copies remain frozen. No reliability fix or full hosted acceptance claimed.
 
 Bounded runner ready: Scripts/Sandbox/Diagnose-HostedNostrReads.py requires exact successful diagnostic release, unchanged qualified source/owner, original3/2+5/4 progress/two save ACKs/no pending saves. One exclusive intent, maximum8native read-only calls, stop at first failure, raw outcomes captured before interpretation. Only whitelisted operator fields leave raw log memory.3pure controls pass for selection/bounds/redaction; no live diagnostic dispatched while code BUILDING. Never run preparation/resaves or replace actor.
+
+## Bounded diagnostic completed without reproduced failure
+
+Diagnostic releasecbdad505 SUCCESS at210068635. One original-owner bounded diagnostic completed8/8two-ID native reads200,0additional saves, no failure event observed. Earlier intermittent errors remain unexplained; instrumentation is not a reliability fix. Diagnostic intent consumed, no rerun. Existing original3/2+5/4, two version1 saves and matching replicas/store proofs remain frozen. No complete acceptance ACK/card yet. Next explicit native-read-failure continuation for unfinished repeat/privacy checks; keep settlement recovery strict and separate. Any new failure must stop/capture cause, no blind retry or replacement actor.
+
+Initial runner guard rejected the raw-config shape assumption before any diagnostic intent/request; corrected it to the actual shipping discovery DTO (explicit null/empty fields) with3passing pure controls. No alternate parser or request semantics: exact original bounded native subset only. Actual run then completed exactly8normal read-only requests; original failed usage operation not replayed.
+
+- TestResults/NostrPublicSourceCurrent/bounded-native-diagnostic.json: 847bytes, SHA256 `3347c967065d0673169855d68f9b64473b319ea09c58da529e34a19e00a0b97f`. Individual diagnostic-read-1..8.json outcomes retained in same folder; durable intent/observed in HostedQueryAcceptance-NostrOASIS.
