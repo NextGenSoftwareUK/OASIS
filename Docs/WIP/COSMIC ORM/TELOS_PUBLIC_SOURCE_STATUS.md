@@ -33,9 +33,15 @@ Code91bf543d and settingsad7aab39 succeeded at parent7c498e0f/Core80b879b. Nativ
 
 Mongo demo records retain identity/name/description/provenance, not full native metadata; balances/block data remain native. This proves scoped query federation and replication of the demo records, not full state migration. Finality is RPC-reported, not independent consensus verification.
 
+## Sandbox publication complete
+
+Telos hosted HTTP acceptance is complete at parent7c498e0f2e8a97207fb8d511d35cea521e7e240c/Core80b879b0ef289ccfff3b7efefa5a9ff26e6b4135, settingsad7aab39 SUCCESS. Native3/2, paired5/4, reuse0new/2existing, private0/public3, replicas2/2 and two version1 saves/no pending pass. Website4ff3661c4ead0fc0b8df62c0be69cf17f5bf1685 publishes the Telos/Filecoin cards and pinned guides/C# links. All95client tests pass. Public HTML164814bytes/SHA2564853a50e7c7ef72aa63044d53d7c672c04b5723676a61dcc2e88f38749c545b0 and both scripts match exact git blobs. Browser interaction remains open; generic private demo records copy identity/name/description/provenance, not all native metadata.
+
+Public proof: TestResults/TelosPublicSourceCurrent/public-assets-observation.json. Script versions remain cql-azure-blob-v1/cql-duration-v2; no JavaScript behavior change. Guide9b59ca337 and C#7c498e0f are pinned. This is HTTP/asset evidence, not browser interaction. Original source/visitor/receipt journals remain frozen; no reapply/redeploy.
+
 ## Exact next step
 
-Publish Telos sandbox card/pinned guide/C# links, run client suite and verify exact public bytes. Browser interaction remains open. Then select the next red shipping-provider native scope; Chainlink feeds have only documentation research, no qualification/implementation. Preserve original source/visitor/receipt journals; no settings reapply/redeploy. Hosting deferrals unchanged.
+Qualify the next red shipping-provider scope, starting with EOSIOOASIS public account metadata/primary network docs. No EOSIO source/CQL/hosting qualification yet. Chainlink feeds remain research-only. Full metadata payload mapping and broader ORM/HyperDrive acceptance remain red; hosting/browser deferrals unchanged.
 
 ## Evidence and retained state
 
