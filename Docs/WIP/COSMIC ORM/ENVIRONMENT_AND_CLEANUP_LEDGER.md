@@ -3424,3 +3424,18 @@ No source/archive removal; scratch repository recovery purpose still unverified.
 Compact raw hash evidence in TestResults/DiskInventoryCurrent/duplicate-pack-readonly.json
 (regenerable by hashing the recorded paths); no installation/download/service.
 Free60,860,346,368bytes. David personal-ML decision pending; preserved resources.
+2026-11-02 COSMIC disk recovery: planned read-only C:/ metadata inventory using
+existing Python3.12; no downloads/services. Script/results under
+C:/Source/OASIS-cosmic/TestResults/DiskInventoryCurrent (regenerable/disposable).
+Enumerate file sizes only, skip all reparse points and inaccessible entries;
+retain all source, user data, environments and caches. Logical counts are not
+allocated-byte accounting and may count hard-linked files more than once.
+
+2026-11-02 full-drive metadata inventory completed:1,511,239files/57.3seconds,
+583access errors/280reparse skips. No downloads/installations/deletions/services.
+Measured installed games roughly500GB, Unity28.64GB, VS installer cache7GB;
+all retained, provenance not inferred. Full-drive logical totals exclude skipped
+entries and may double-count hard links; not exact allocated-disk accounting.
+Results/script: TestResults/DiskInventoryCurrent/full-drive-metadata.json and
+scan-drive.py; compact summary in Cleanup/DISK_RECOVERY_CURRENT.md.
+Free60,153,503,744bytes. Personal ML decision still pending; no repeated ask.
