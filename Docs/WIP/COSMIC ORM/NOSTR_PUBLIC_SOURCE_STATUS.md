@@ -1,6 +1,6 @@
 # Nostr public event qualification
 
-Updated 2 November 2026. **API/local qualification verified; not hosted-certified.** Stable source owner/catalogue now retained after explicit actual manager/LINQ qualification; no API/hosted enrollment.
+Updated 2 November 2026. **Scoped hosted functional HTTP gates verified; reliability root cause/browser remain open.** Stable source owner/catalogue now retained after explicit actual manager/LINQ qualification; no API/hosted enrollment.
 
 ## Original discovery evidence (preserved)
 
@@ -14,8 +14,8 @@ Updated 2 November 2026. **API/local qualification verified; not hosted-certifie
 ## Exact next work (current)
 
 1. Preserve original intent, discovery frames, signed IDs and503 outcome. Do not rerun original probe or regenerate a source owner.
-2. Nostr code79b7be91/settings21ee8d23 SUCCESS at6ee3ebfcd/Core84a2151. Original owner native3/2 and Mongo5/4 pass; two normal private version1 saves ACKed, pending0. Independent read-only audit confirms matching Mongo/SQLite/Neo4j2records each with exact owner/version/metadata;0additional saves. Native read intermittently fails503/CQL_QUERY_FAILED during repeat preparation; foreign privacy/reuse/full hosted acceptance remain red. No replacement owner, source switch or resave; card task-only2ffca06/mainac0ca0c unchanged.
-3. Add sanitized operator diagnostics for native query errors (exception type/transport stage/status only, never credential-bearing messages/URLs). Current HTTP endpoint discards result.Exception and deployed logs contain no native cause. Diagnose/fix the actual intermittent fault, then explicit read-only continuation of original cohort; never repeat preparation/saves or mint another owner. Original native-read continuation already consumed.
+2. Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card publication pending; browser open.
+3. Publish honest card/current guide and verify public bytes; preserve scoped completion ACK/all original failure evidence. No claims that earlier error cause is fixed or that native writes/full ORM are certified.
 
 ## Evidence and resources
 
@@ -125,3 +125,15 @@ Diagnostic releasecbdad505 SUCCESS at210068635. One original-owner bounded diagn
 Initial runner guard rejected the raw-config shape assumption before any diagnostic intent/request; corrected it to the actual shipping discovery DTO (explicit null/empty fields) with3passing pure controls. No alternate parser or request semantics: exact original bounded native subset only. Actual run then completed exactly8normal read-only requests; original failed usage operation not replayed.
 
 - TestResults/NostrPublicSourceCurrent/bounded-native-diagnostic.json: 847bytes, SHA256 `3347c967065d0673169855d68f9b64473b319ea09c58da529e34a19e00a0b97f`. Individual diagnostic-read-1..8.json outcomes retained in same folder; durable intent/observed in HostedQueryAcceptance-NostrOASIS.
+
+## Original cohort functional acceptance complete
+
+Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card publication pending; browser open.
+
+Continuation schema2 is separate from schema1 settled-read recovery: strict original failure CQL_QUERY_FAILED, owner/progress/native/diagnostic hashes, two save ACKs and empty pending journal, query/identity-only routes and no new/edited save intents.10continuation controls pass including existing settled contracts and new rejection cases; execution intent is single-use. Actual original source/actor/copies reused, original3/2+5/4 preserved, repeat0new/2existing and privacy0/3/fresh matching replicas2/2 verified. No original request operation replay or false settlement claim.
+
+Completion ACK explicitly sets reliabilityRootCauseResolved=false, certificationScope=bounded hosted functional HTTP gates only, browserAcceptance=false. Source-native metadata is signed/verified; generic Mongo browser copies retain identity/name/description/provenance, not full signed-event metadata. No native publication or account.
+
+- TestResults/HostedCqlIntegrationCurrent/NostrOASIS-native-http.json: 16874bytes, SHA256 `34f19c88ae6a2459e6a25a4e63f80040337d6e0b43aa53526a53103b6f67ae4e`.
+- TestResults/HostedCqlIntegrationCurrent/NostrOASIS-client-http-flow.json: 42676bytes, SHA256 `2594aff0c7809bde35f55996b5fc066e67a2545872b656d7c077480ade8fcc87`.
+- TestResults/HostedCqlIntegrationCurrent/NostrOASIS-isolation-http.json: 7574bytes, SHA256 `ad3e5cd305e914b482b73f3edf1bc9c2a1dbb23ade79be0931f1ee561fcca214`.

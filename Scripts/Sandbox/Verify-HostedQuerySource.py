@@ -144,10 +144,16 @@ def main():
                         help="An explicitly planned fresh test identity after retaining a failed/expired cohort; never automatic.")
     parser.add_argument("--continue-settled-read", action="store_true",
                         help="Explicitly finish the original qualified cohort; preserve prior proofs and forbid saves.")
+    parser.add_argument("--continue-native-read-failure", action="store_true",
+                        help="Explicit original-cohort completion after a preserved native read failure; saves remain forbidden.")
     options = parser.parse_args()
-    if options.continue_settled_read and not options.prepare:
+    continuing = options.continue_settled_read or options.continue_native_read_failure
+    continuation_folder = "native-read-completion" if options.continue_native_read_failure else "settlement-continuation"
+    if options.continue_settled_read and options.continue_native_read_failure:
+        parser.error("Choose one explicit continuation kind.")
+    if continuing and not options.prepare:
         parser.error("--continue-settled-read requires --prepare for the original client-flow gate")
-    if options.resume_unstarted_native and (not options.prepare or options.continue_settled_read):
+    if options.resume_unstarted_native and (not options.prepare or continuing):
         parser.error("Unstarted-native continuation requires --prepare and cannot resume settled writes.")
     suffix = options.provider + ("" if options.cohort == "current" else "-" + options.cohort)
     if options.prepare:
@@ -155,11 +161,19 @@ def main():
         if not all((frontend / name).is_file() for name in ("cql-demo-preparation.js", "cql-playground.js")):
             raise RuntimeError("Existing published frontend modules are required before creating any test session.")
     state = ROOT / "LocalState/COSMIC" / ("HostedQueryAcceptance-" + suffix)
-    if options.continue_settled_read and not (state / "settlement-continuation/continuation-source.json").is_file():
+    if continuing and not (state / continuation_folder / "continuation-source.json").is_file():
         raise RuntimeError("Original durable continuation manifest required; no session or replacement created.")
+    if options.continue_native_read_failure:
+        manifest = json.loads((state / continuation_folder / "continuation-source.json").read_text(encoding="utf-8"))
+        if (manifest.get("schema") != 2 or manifest.get("failureKind") != "native_read_failure"
+                or manifest.get("provider") != options.provider or manifest.get("writesPermitted") is not False):
+            raise RuntimeError("Exact read-only native-failure continuation required.")
+        write_new(state / continuation_folder / "execution.intent.json", (json.dumps({
+            "ownerId": manifest["ownerId"], "failedOperationId": manifest["failedOperationId"],
+            "additionalSaves": 0, "replayAllowed": False}) + "\n").encode())
     if (state / "cql-http-acceptance.acknowledged.json").exists():
         raise RuntimeError("This cohort already completed acceptance; retain its acknowledged outcome.")
-    if not options.continue_settled_read and (ROOT / "TestResults/HostedCqlIntegrationCurrent" / (suffix + "-client-http-flow.json.progress.json")).exists():
+    if not continuing and (ROOT / "TestResults/HostedCqlIntegrationCurrent" / (suffix + "-client-http-flow.json.progress.json")).exists():
         raise RuntimeError("Original partial client flow exists; reconcile explicitly before another execution.")
     state.mkdir(exist_ok=True)
     results = ROOT / "TestResults/HostedCqlIntegrationCurrent"
@@ -176,15 +190,15 @@ def main():
         write_new(state / "native-read-continuation.intent.json", (json.dumps({
             "ownerId": owner["id"], "provider": options.provider, "operation": "explicit original native-only continuation",
             "replacementOwner": False, "replayAllowed": False}) + "\n").encode())
-    avatar, token = session(state, "owner", allow_create=not (options.continue_settled_read or options.resume_unstarted_native))
+    avatar, token = session(state, "owner", allow_create=not (continuing or options.resume_unstarted_native))
     discovery = call("data/query-cql/providers?examplesVersion=2", token, method="GET")
     source = next(row for row in discovery["result"] if row["provider"] == options.provider)
     if not source["available"] or not source["federationAvailable"]:
         raise RuntimeError("Hosted native source is not ready; no private snapshot was created.")
     examples = source["examples"]
     leaf = [next(row for row in examples if row["id"] == key) for key in ("public-records", "public-subset")]
-    if options.continue_settled_read:
-        original = json.loads((state / "settlement-continuation/original-native-http.json").read_text(encoding="utf-8-sig"))
+    if continuing:
+        original = json.loads((state / continuation_folder / "original-native-http.json").read_text(encoding="utf-8-sig"))
         if original["avatar"]["id"] != avatar["id"] or original["source"]["provider"] != options.provider:
             raise RuntimeError("Original native proof belongs to a different cohort.")
         if [len(row["result"]["rows"]) for row in original["native"]] != [3, 2]:
@@ -207,8 +221,10 @@ def main():
                    "preparationModule": str(ROOT.parent / "Web4Site/cql-demo-preparation.js"),
                    "pairedThree": next(row for row in examples if row["id"] == "mongo-public-records"),
                    "pairedTwo": next(row for row in examples if row["id"] == "mongo-public-subset")}
-        if options.continue_settled_read:
-            payload["resumeManifest"] = str(state / "settlement-continuation/continuation-source.json")
+        if continuing:
+            payload["resumeManifest"] = str(state / continuation_folder / "continuation-source.json")
+            if options.continue_native_read_failure:
+                payload["resumeKind"] = "native_read_failure"
         elif Path(str(report) + ".progress.json").exists():
             raise RuntimeError("An original partial flow exists; reconcile explicitly instead of rerunning preparation.")
         run = subprocess.run(["node", str(ROOT / "Scripts/Sandbox/Verify-HostedSourceFlow.cjs")],
@@ -225,7 +241,7 @@ def main():
             raise RuntimeError("Independent visitor visibility differs.")
         verification.write(results / (suffix + "-isolation-http.json"),
                            {"avatar": foreign, "public": public, "foreignPrivateIds": private, "browserAcceptance": False})
-    print(json.dumps({"provider": options.provider, "nativeRows": [3, 2], "nativeProofReused": options.continue_settled_read, "browserAcceptance": False}))
+    print(json.dumps({"provider": options.provider, "nativeRows": [3, 2], "nativeProofReused": continuing, "browserAcceptance": False}))
 
 
 if __name__ == "__main__":
