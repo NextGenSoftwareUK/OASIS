@@ -940,4 +940,4 @@ dotnet ./Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll `
 path for three addresses and a two-address subset. Native C# and actualCLI3/2 pass.
 Balances remain exact native base-unit strings; finality is RPC-reported.
 No account, wallet, funding, node or source write. Local HTTP/Mongo5/4/privacy0/3
-passes; hosted/browser gates remain open. This EVM profile is separate from native Antelope accounts/storage.
+passes; hosted reuse/privacy/replicas also pass. Browser interaction remains open. This EVM profile is separate from native Antelope accounts/storage.

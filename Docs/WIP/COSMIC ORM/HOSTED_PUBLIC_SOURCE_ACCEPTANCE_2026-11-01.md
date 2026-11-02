@@ -432,3 +432,12 @@ Parentfcc4f735d/Coreb386875, exact settings082c1f0d SUCCESS. Native3/2, Mongo-pa
 
 
 Filecoin sandbox publication complete: Filecoin hosted HTTP acceptance is complete at parentfcc4f735d1719799dfb3a6fdcd7948ce17020abc/Coreb3868756033b0fb3499cd799b77c331d3a0af9c6, settings082c1f0d SUCCESS. Native3/2, paired5/4, reuse0new/2existing, private0/public3, replicas2/2 and two version1 saves/no pending pass. Website9413da3e0c40cce7780965f7237234297b927e2a publishes Filecoin/Fantom/Azure/TON cards with pinned guides/C# links and explicit identity/name/description copy scope. All94client tests pass. Public HTML162730bytes/SHA2567c575766615bfb18073dbdc76be31fbb7a0a3bd9f168605f01e47745f2802b12 and both scripts exactly match git blobs. Browser interaction remains open. Raw public proof TestResults/FilecoinPublicSourceCurrent/public-assets-final-observation.json. HTTP/asset evidence is not browser interaction.
+
+
+## Additional Telos acceptance
+
+Parent7c498e0f/Core80b879b, settingsad7aab39 SUCCESS. Native3/2, paired5/4, repeat0new/2existing, private0/public3, SQLite/Neo4j replicas2/2;2saves/version1/no pending. RPC-reported finality, not independent consensus. Generic Mongo demo records copy identity/name/description/provenance, not full native metadata. Original cohort completion ACK HostedQueryAcceptance-TelosOASIS forbids replay. Counts47integrated/43hosted/browser5/open38.
+
+- `TestResults/HostedCqlIntegrationCurrent/TelosOASIS-native-http.json`: 13583bytes; SHA256 `a47f0078e31730fdaf95fe482c4d9ceddb29a15f18683586f5d1499341051198`.
+- `TestResults/HostedCqlIntegrationCurrent/TelosOASIS-client-http-flow.json`: 36427bytes; SHA256 `9800d69b59187504fb153b95d0c195c4cb8c2197ae1e7c5ee432c55bf2805dd5`.
+- `TestResults/HostedCqlIntegrationCurrent/TelosOASIS-isolation-http.json`: 5116bytes; SHA256 `0a799efbec630fc1d9eeeeb7cdfda112e2b5bd1f953a21712962b98785679124`.
