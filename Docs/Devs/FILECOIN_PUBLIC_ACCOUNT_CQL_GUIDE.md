@@ -65,6 +65,43 @@ var rows = (await query.ToCosmicListAsync(cancellationToken)).Result;
 
 The executable walkthrough checks OASISResult errors; apply that same error handling when integrating the shorter extract above.
 
+## HTTP request on an enrolled host
+
+Local shipping HTTP tests pass this same two-address filter. Hosted Filecoin
+configuration is still pending; the API must have an explicitly admitted Filecoin
+read profile and independent read tariff before accepting it.
+
+Send `POST /api/data/query-cql` with your normal authenticated session:
+
+```json
+{
+  "provider": "FilecoinOASIS",
+  "orderBy": "None",
+  "take": 25,
+  "includeMetadata": true,
+  "maximumDurationMilliseconds": 30000,
+  "filters": [
+    {
+      "metadataPath": ["FilecoinAccountAddress"],
+      "scalar": "String",
+      "operator": "In",
+      "value": [
+        "0x0000000000000000000000000000000000000001",
+        "0x0000000000000000000000000000000000000002"
+      ]
+    }
+  ]
+}
+```
+
+For Mongo pairing, send `POST /api/data/query-cql/federation` with named providers
+`["MongoDBOASIS", "FilecoinOASIS"]`, `identityMode: "PreserveCopies"`,
+`maximumProviderAttempts: 2`, and the same selection as `source`. Two private
+Mongo snapshots use normal owned saves, not Filecoin writes. The local gate
+returns five physical rows for three source addresses and four for the two-address
+subset, with zero private rows visible to another actor. Hosted replica and
+normal-visitor checks remain separate.
+
 ## Identity, precision and consistency
 
 Every read verifies chain314 and the exact native genesis tipset CID at height0. Filecoin identity uses `Filecoin.ChainGetGenesis` directly. It never tries that method as a fallback after an Ethereum genesis request fails. Existing EVM profiles retain their original genesis-hash contract.

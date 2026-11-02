@@ -116,6 +116,10 @@ public sealed class CqlPreparedPublicBatchTests
             Assert.Equal(30000, example.GetProperty("request").GetProperty("maximumDurationMilliseconds").GetInt32());
     }
 
+    [PublicBatchReviewFact]
+    public async Task ActualFilecoinCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
     private static async Task CheckPreparedBatch(int expected)
     {
         var path = Environment.GetEnvironmentVariable("COSMIC_CQL_PUBLIC_REVIEW")!;
@@ -142,6 +146,7 @@ public sealed class CqlPreparedPublicBatchTests
                 var type = Enum.Parse<ProviderType>(profile.Name);
                 ICosmicQueryStorageProvider source = type switch
                 {
+                    ProviderType.FilecoinOASIS => Providers.FilecoinOASIS.FilecoinPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.TONOASIS => Providers.TONOASIS.TonPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.ArweaveOASIS => Providers.ArweaveOASIS.ArweavePublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.CardanoOASIS => Providers.CardanoOASIS.CardanoPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
