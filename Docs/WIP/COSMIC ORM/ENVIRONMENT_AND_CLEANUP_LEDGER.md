@@ -3507,3 +3507,26 @@ known path and owner, clean disposable datasets/builds/downloads/task-only runti
 once no remaining gate/shared dependency needs them; list retained/transferred
 resources explicitly. Historical uncertain provenance remains marked, personal
 ML and rejected archive removals excluded. No new installation this batch.
+2026-11-02 Akash CQL adapter planned: reuse existing KeyValueStorage shared base,
+SDK10.0.401, existing cached dependencies and Ethereum CQL test host. New project
+reference is existing local Shared.KeyValueStorage, not installation/download.
+Cached-only restore/leased bounded build; output paths existing project bin/obj,
+raw logs/TRX TestResults/AkashPublicSourceCurrent. Outputs active for remaining
+Akash demo gates; retire after those gates, avoid reinstall/rebuild environments.
+No native requests/source owners/configs/DBs this controlled-test batch. Free
+before72,532,422,656bytes; concurrent changes not attributed. Personal ML retained.
+
+2026-11-02 Akash adapter verification complete. Initial17cases:16pass/1point
+fixture fails during query construction (captured array indexing unsupported).
+Fixture corrected to bind scalar owner; unsupported-name test now validates
+query construction before checking capability rejection. Corrected11affected
+query cases pass;6unchanged configuration cases pass in original result. Original
+failure evidence retained, no native call/replay. Proof hashes/status doc linked.
+New local Shared.KeyValueStorage project reference reuses existing dependency;
+cached-only restore succeeded, no download/install. Current59existing bin/obj
+folders306,306,252logical bytes (from prior reviewed task paths) retained for
+remaining Akash demo gates to avoid repeated environment/build setup. Dispose
+outputs at provider milestone/verified teardown; never remove source or secrets.
+Latest free70,725,627,904bytes; concurrent changes not attributed. No new source
+owner/config/database/container/runtime. Next actual C#demo binding uses retained
+native continuation ACK, not rediscovery. All durable original receipts preserved.
