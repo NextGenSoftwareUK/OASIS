@@ -4349,3 +4349,7 @@ Zcash hosted candidate/prepared controls complete, no live mutation. Exact prote
 - C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedSourceRolloutCurrent/zcash-public-before-variables.dpapi:197030bytes; retain DPAPI rollout baseline/candidate, no secret contents logged.
 - C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedSourceRolloutCurrent/zcash-public-candidate-variables.dpapi:200054bytes; retain DPAPI rollout baseline/candidate, no secret contents logged.
 Review/inputs/TRX/logs TestResults/ZcashPublicSourceCurrent; reused output graph, no native calls/new install/DB. No owned active process.
+
+2026-11-02 combined Development verification: merge reused task worktree/Core branch, no clone/environment/install. Core5b47c0b merge preserves upstream e920d14; parent4e1f712c2 preserves0df90e062. Existing cached API/Core test graph rebuilt under lease; bounded logs/TRX TestResults/ZcashPublicSourceCurrent/combined-*. No native acceptance replay/DB. Retain generated outputs reusable; sizes unmeasured. HoloNET-ORM missing fetched remote ref differs from unchanged deployed307b0a53 pin; manifest7Dockerfiles/gitlinks passes.
+
+Combined11API+1Core complete; no native replay/database/environment added. Free C:58271547392bytes; generated graph retained reusable, no cleanup retry. Development code publication planned as one scoped merged batch; deployment intent/observations LocalState/COSMIC/HostedZcashReleaseCurrent, raw observer output TestResults/ZcashPublicSourceCurrent. Reuse existing Railway CLI, no hosting purchase.
