@@ -15,18 +15,18 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 
 - Telos native manager/C#/actual CLI: 3/2; 18 new controlled tests pass. Shared reader algorithm unchanged. Original catalogue and native ACK retained; no replay.
 - Core admission1/API controls2/local HTTP1/publisher9/client1/actual prepared-planner1 pass. Native 3/2, Mongo5/4, privacy0/3, two SDK saves and nine query receipts. Exact marked fixture cleaned; Mongo stopped/27029 absent.
-- Three-setting/free four-preset candidate prepared; no Telos live settings applied yet.
+- Three reviewed settings applied once; whole candidate equality/all three per-key ACK hashes verified. Free four-preset profile; DNA/unrelated values unchanged.
 - Parent Development `7c498e0f2e8a97207fb8d511d35cea521e7e240c` and Core Development `80b879b0ef289ccfff3b7efefa5a9ff26e6b4135` pushed/remote-ref verified. Manifest/gitlinks validate; no incoming executable changes.
-- Exact code job `91bf543d-030d-4efe-b2db-31c57aeae139` is BUILDING. Never restart it or repeat publication intent. Telos is not yet counted as hosted.
+- Code job `91bf543d-030d-4efe-b2db-31c57aeae139` succeeded. Single journalled settings job `ad7aab39-5e83-47f8-b7e9-e03920cb3d2f` is BUILDING at the same code SHA. Never reapply settings/redeploy. Telos is not yet counted as hosted.
 
 ## Exact next actions
 
-1. Observe that same job:
-   `python Scripts/Sandbox/Observe-HostedDeployment.py 91bf543d-030d-4efe-b2db-31c57aeae139 --expected-commit 7c498e0f2e8a97207fb8d511d35cea521e7e240c --output TestResults/TelosPublicSourceCurrent/code-deployment.json`
-2. After exact/latest release SUCCESS, apply guard requires HEAD at that immutable code SHA. With tracked work clean, temporarily detach to it if later task docs exist, set `COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT` identically, then run `python Scripts/Sandbox/Publish-HostedTelosPublicConfiguration.py apply` once. No detached commits; restore existing task branch. No guard bypass/new worktree.
-3. Verify whole candidate equality and all three per-key ACKs before one journalled settings redeploy. Preserve protected outcome; observe the returned job, never resubmit on timeout/unknown outcome.
-4. After settings SUCCESS, run first `python Scripts/Sandbox/Verify-HostedQuerySource.py TelosOASIS --prepare` with existing pinned Node on PATH. At most two journalled visitors/two normal private saves; inspect native3/2, paired5/4, reuse0/2, privacy0/3, replicas2/2, two version1 ACKs/no pending. Write immutable completion ACK only after proof.
-5. Publish the Telos card/pinned guide/C# links, run client checks and compare public bytes. HTTP/asset matching is not browser interaction. Then select the next red shipping-provider scope; Chainlink feeds are researched only, not qualified or implemented.
+1. Observe the same settings job:
+   `python Scripts/Sandbox/Observe-HostedDeployment.py ad7aab39-5e83-47f8-b7e9-e03920cb3d2f --expected-commit 7c498e0f2e8a97207fb8d511d35cea521e7e240c --output TestResults/TelosPublicSourceCurrent/settings-deployment.json`
+2. After SUCCESS, retain settings-deployment ACK and run first `python Scripts/Sandbox/Verify-HostedQuerySource.py TelosOASIS --prepare` with existing pinned Node on PATH. At most two journalled visitors/two normal private saves; inspect native3/2, paired5/4, reuse0/2, privacy0/3, replicas2/2, two version1 ACKs/no pending. Write immutable completion ACK only after proof.
+3. Publish the Telos card/pinned guide/C# links, run client checks and compare public bytes. HTTP/asset matching is not browser interaction. Then select the next red shipping-provider scope; Chainlink feeds are researched only, not qualified or implemented.
+
+Code application recovery: exact-release detached checkout was used for guarded3settings, then existing task branch restored. Code-deployment ACK, all per-key ACKs and protected settings-rollout intent/outcome exist. Do not detach/reapply or repeat either publication/rollout intent. Observe only the returned settings job above; a timeout is not failure. No new worktree/guard bypass/restart.
 
 ## Durable state and rules
 
