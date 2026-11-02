@@ -3554,3 +3554,45 @@ for next Akash HTTP/hosted gates, remove after verified teardown. Not a permanen
 installation; raw logs TestResults/AkashPublicSourceCurrent regenerable, native
 cohort must not be replayed. Latest free69,273,403,392bytes; changes outside this
 batch not attributed. Personal ML remains retained, rejected removals not retried.
+2026-11-02 Akash HTTP admission controls planned: fetched parent/CoreDevelopment
+without submodule recursion; parent17ahead/0behind, Core0/0. No drift to merge.
+Reuse existing Core/Web4UnitTests hosts, cached packages/SDK10.0.401; one Core
+query-only tariff admission entry, HTTP compiler allowlists and explicit source
+registration. No Core/Shared public method/interface change or agent coordination
+needed. Leased bounded cached-only restores/builds; no downloads/installations.
+Raw logs/TRX TestResults/AkashPublicSourceCurrent. Current bin/obj reused until
+Akash HTTP/hosted gates finish, then retire with per-target ledger. No native
+queries/fixtures/DBs/owners/config changes/hosted settings or deploy this batch.
+2026-11-02 Akash local HTTP/Mongo native gate planned after Core1/API3controls
+passed. Reuse MongoDB8.3.11 at C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe
+and retained C:/Source/OASIS-cosmic/LocalState/COSMIC/mongo-data, replica
+ oasisRecoveryRs/127.0.0.1:27029; existing runtime/data sizes unmeasured. Never
+reset/reinitialize/adopt another process. Owned PID/listener must stop afterward.
+One new fixed disposable DB cosmic_cql_akash_http_demo, marker owner
+cosmic-cql-akash-http-v1 and nonce, two SDK-owned private version1copies with
+conditional creation operation IDs; drop exact DB only after all gates and
+marker/count checks succeed. Preserve DB/journals on failure/unknown outcome.
+Retained native source config/owner reused; no rediscovery or qualification
+replay. Fixed loopback HTTP ephemeral port, controlled bearer/billing harness;
+not production signup/billing or replication proof. Intent/ACKs
+LocalState/COSMIC/AkashMongoHttpCurrent; raw logs/TRX TestResults/
+AkashPublicSourceCurrent. No downloads/installations/new environment. Existing
+API consumer outputs reused with bounded leased incremental build.
+
+2026-11-02 Akash HTTP native gate completed1pass; Core1/API3controls pass. Actual
+native3/2+Mongo5/4/privacy0private/3public,2SDKversion1privatecopies/9receipts.
+FixedDB cosmic_cql_akash_http_demo removed only after marker owner/nonce and
+2Holon count verification; test confirmed DBabsent. Owned MongoPID stopped and
+27029listener absent; default Mongo service untouched. No source/config/native
+identity change, fixture reset, downloads or new environment. Preserve
+AkashMongoHttpCurrent fixture intent/save ACKs/cleaned ACK and source-bound
+HostedAkashPublicSourceCurrent web4-local qualification. Raw proof hashes in
+AKASH_PUBLIC_SOURCE_STATUS.md. Dataset lifecycle:created-owned then removed;
+existing Mongo runtime/replica data:retained reusable, size still unmeasured.
+Current186reviewed output dirs2,154,543,627logical bytes, active for hosted Akash
+candidate/preset checks then cleanup. Latest free61,045,055,488bytes. Pagefile
+still12,884,901,888bytes;0dotnet/MSBuild/testhost/VBCSCompiler processes remain.
+Do not attribute all concurrent free-space changes to measured build outputs.
+Coref42dd8c task push verified; parent manifest/gitlink advanced together; no
+Development deploy, hosting spend or source-owner replacement. Personal ML and
+previously rejected archive removals remain preserved.
