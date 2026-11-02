@@ -103,3 +103,32 @@ Mongo5/4/privacy, then original hosted/replica acceptance/card. Hosted stays52.
 | `LocalState/COSMIC/HostedBlockscoutPublicSourceCurrent/native-qualified.acknowledged.json` | 465 | `1c268e60fb982161358345a08c5af122098c6f048169e21f04f649c6617579a4` |
 | `Providers/Network/NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS.dll` | 72704 | `aa14de696c2eaf5f9f63f7baf0192834dedde1f99632511a028aef34bbf7dea9` |
 | `Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll` | 917504 | `1ceaccc1f7c0f4cc018eaaad9235486e6e8b3efdf123c92f2feabf70cce42725` |
+
+
+## Local HTTP/Mongo milestone verified
+
+WEB4 build0errors, Core1/API3/publisher9/actual prepared presets1/client108
+controls pass. Local nativeHTTP1test passes: native3/2, Mongo5/4, foreign-private0/
+public3,9query receipts. Two SDK-owned version1 copies seeded through manager;
+controlled bearer/billing fixtures are not production billing or replication proof.
+Exact owned DB removed after marker/count verification, owned Mongo stopped and
+27029absent. Original fixture intent/save ACKs/cleanup below
+LocalState/COSMIC/BlockscoutMongoHttpCurrent retained; no replay/resave.
+
+Core task55de8e9f735346aec00ddd0b2cbdfcaadbebbb80 pushed/remote verified;
+parent gitlink/manifest advanced together. Protected three-key candidate prepared
+once below HostedSourceRolloutCurrent/blockscout-public-*; four presets reviewed
+and planned with shipping capabilities. No live application/deployment yet. Next
+commit/integrate tested batch, exact code SUCCESS, one application/activation,
+original hosted cohort and card. Original console timeout cause still unresolved;
+functional local success is not reliability certification. Hosted count stays52.
+
+| Evidence | Bytes | SHA256 |
+|---|---|---|
+| `TestResults/BlockscoutPublicSourceCurrent/mongo-http-native.trx` | 3383 | `e3a13b0c23e362dc7fb9307680464f19ca213e1b26090a8648a49bb2cb885481` |
+| `TestResults/BlockscoutPublicSourceCurrent/blockscout-mongo-native-summary.json` | 233 | `4a0321d03db212c8c213fa861e231bfce2c41a39ed2799855251c602f899c321` |
+| `TestResults/BlockscoutPublicSourceCurrent/Http/core-tariff.trx` | 3348 | `178d525d7543b39d857aaf4693cbb1ec116b61b855c020ea092986dac2d66e4c` |
+| `TestResults/BlockscoutPublicSourceCurrent/Http/api-admission.trx` | 6655 | `b08cbf5362ca3ba04a80228da44694ccffcf2d0853549606a74bce9fa9ddb3d6` |
+| `TestResults/BlockscoutPublicSourceCurrent/Http/prepared-presets.trx` | 3344 | `0e6dd742d60504149257da219cee0786e5eeeafdf21e9d1bc8a4f548156f648d` |
+| `TestResults/BlockscoutPublicSourceCurrent/prepared-review.json` | 4299 | `412c9e68680bc9aa0cc9889b93a6be3829d75b48e2a5ff44fff2b93cc18ced93` |
+| `TestResults/BlockscoutPublicSourceCurrent/client-all-tests.log` | 10478 | `a4e4d45f7b4e95832365e7360d38b5c81f14b2ce409e73f211786558a9f17d02` |
