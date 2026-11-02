@@ -9,10 +9,10 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 - MongoDB/SQLite/Neo4j parity50/82rows each; original investor-demo subset green. Work red rows only unless a reproducible bug appears.
 - Latest addition Matrix: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each pass. Two version1 saves/zero pending intents; original cohort frozen.
 - Matrix local source30tests, native qualifier4controls, actual HolonManager/LINQ CLI3/2, Core1/API3/localHTTP1/publisher9/prepared-presets1 pass. Frontend101tests pass.
-- Website main still7e2046d/Nostr at this checkpoint. Matrix pending draft0d8928e and alias-bounds2ccf6f8 are task-only; publish accurate HTTP labels next.
+- Website main/taskbd173e546a095c0ae6f9a23d20db69bb6de76bda publishes Matrix/Nostr and setup/C#/HTTP links. Public HTML175616bytes/SHA256b18edd89557ae17dd261d8fded04b12f7eec9ca6da2a8cc52ab7d73c2a7383a8 and both scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser copies retain identity/name/description/provenance and the native query key, not full native payload. Full safe payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: Matrix hosted functional acceptance complete; publish card
+## Current phase: Matrix functional demo/card complete; next red breadth scope
 
 - Parent Development7b45ee85628bd6d1ceeaf769d4c1bcc44ccb465b/Coredd2c32c8925aaf53017f4fedc1d1f11d330a55e3 refs verified; manifest/gitlinks pass.
 - Code jobd398b754-8d88-4837-a934-44e4cd9aad0d SUCCESS. Three settings applied exactly once/verified with no per-key deploys. Settings jobaaff57a2-a6ed-4e0e-939b-712420bd9d4e SUCCESS at the same parent SHA. Task branch restored after matching-release application.
@@ -22,10 +22,10 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 
 ## Exact next actions
 
-1. Commit/push current Matrix proof/guide docs, then replace pending frontend card text with verified hosted scope and pinned guide/C# links. Preserve browser and generic-copy limits.
-2. Fetch Web4Site origin; preserve concurrent changes. Publish verified task branch to main without force, then compare public HTML/scripts against exact commit bytes. No browser control or new owner request.
-3. Update this status, full provider report and ledger with website commit/public hashes. Keep hosted count48/browser5/open43; card publication is not browser proof.
-4. Next red breadth scope: inspect StoryProtocolOASIS and current official mainnet RPC/network contract; qualify one fixed public endpoint before any capability/admission claim. No key/account/source write or new environment without need. Farcaster stays unadmitted: its public Pinata Hub failed before HTTP and a separate DNS probe returned name error; original evidence preserved.
+1. Preserve Matrix original source/config/owner/copies/ACKs. No rerun/resave/reapply/redeploy just to reproduce green results. Public site ACK: LocalState/COSMIC/HostedMatrixReleaseCurrent/site-publication.acknowledged.json; raw observation TestResults/MatrixPublicSourceCurrent/public-assets-observation-1.json.
+2. Next inspect StoryProtocolOASIS and current official mainnet RPC/network contract. Qualify one fixed public endpoint before any CQL capability/admission claim. No key/account/source write, paid setup or new environment without need.
+3. Farcaster stays unadmitted: public Pinata Hub failed before HTTP; separate DNS probe confirms name error. Original intent/result/DNS evidence and4offline parser controls preserved in FARCASTER_PUBLIC_SOURCE_STATUS.md. Do not retry or switch to paid Neynar silently.
+4. Update CURRENT_STATUS/full provider report/ledger at the next milestone. Keep hosted48/browser5/open43; public asset proof is not browser interaction.
 
 ## Other preserved checkpoints and open issues
 
