@@ -75,6 +75,7 @@ public static partial class CqlV1Endpoint
             var result = await manager.ExecuteQueryAsync(plan.Result, new[] { adapter }, maximumResults: request.Take, cancellationToken: deadline.Token);
             if (result.IsError)
             {
+                CqlNativeFailureDiagnostics.Query(http, selected, result.Exception);
                 return QueryFailure(http, result.ErrorCode);
             }
 

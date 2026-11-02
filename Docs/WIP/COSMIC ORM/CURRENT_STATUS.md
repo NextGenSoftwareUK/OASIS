@@ -11,7 +11,7 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 - Websiteac0ca0c publishes BlueSky/ChainLink/EOSIO/Telos/Filecoin cards and pinned setup/C#/HTTP links;98client tests pass. Public HTML/scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser Mongo preparation copies identity/name/description/provenance, not all native metadata. Full payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: diagnose Nostr intermittent hosted read failure
+## Current phase: publish safe Nostr failure diagnostics
 
 - BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6dfdbc6c SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen. Cached public AppView only; generic copies retain identity/name/description/provenance, not all native metadata. Card published/byte-verified; browser unverified.
 - Existing local gates:37source controls, actual CLI3/2, Core1/API2/localHTTP1/publisher9/prepared1/client1. No replays or new cohorts.
@@ -20,7 +20,7 @@ Updated 2 November 2026. Goal active and incomplete. Priority: breadth-first liv
 
 1. Preserve BlueSky original cohort/ACKs; no reapply/redeploy/resave. Websiteac0ca0c3cffea71aa9b99ca437d2ee46fa20d9c1 publishes BlueSky with pinned guidea10c6661c and C#f36dd0d56 links. All98client tests pass. Public HTML171143bytes/SHA256dfa7084ba40e8fe691eb2fbf7f9c1c4d9cda7dcdcbade32026f6f9d0fd7fceee and both scripts match exact git blobs. Browser interaction remains open.
 2. Nostr code79b7be91/settings21ee8d23 SUCCESS at6ee3ebfcd/Core84a2151. Original owner native3/2 and Mongo5/4 pass; two normal private version1 saves ACKed, pending0. Independent read-only audit confirms matching Mongo/SQLite/Neo4j2records each with exact owner/version/metadata;0additional saves. Native read intermittently fails503/CQL_QUERY_FAILED during repeat preparation; foreign privacy/reuse/full hosted acceptance remain red. No replacement owner, source switch or resave; card task-only2ffca06/mainac0ca0c unchanged. Original progress, two save ACKs and partial replica observation retained under HostedQueryAcceptance-NostrOASIS. Never rerun --prepare/resume-unstarted-native, settings or any acknowledged save.
-3. Next add sanitized operator failure diagnostics (exception type/WebSocket stage/HTTP status, no messages/URLs/tokens), reproduce the native failure and fix the actual cause. Then explicitly finish the original cohort through read-only continuation, preserving completed3/2+5/4/replica proofs. No fresh cohort/green hardening. See NOSTR_PUBLIC_SOURCE_STATUS.md.
+3. Safe native failure diagnostics implemented:2fake handshake tests +4API cause/privacy tests pass/0skips; producer/consumer builds pass. Failed handshake retains typed HTTP status/original cause, activation wrapper preserves cause, leaf query/activation operators log only known category/stage/status/WebSocket enum (event4831), no raw exception/messages/URLs/tokens/headers. No retry, deadline, source-selection or public error-body change. Next publish this verified batch after fetch/ancestry/manifest checks, observe exact code SUCCESS, then journal a bounded same-owner read-only diagnostic (stop at first failure, at most8calls), capture safe operator event. Identify/fix actual cause before original-cohort read-only continuation. No resave/fresh owner.
 
 ## Durable state and rules
 
