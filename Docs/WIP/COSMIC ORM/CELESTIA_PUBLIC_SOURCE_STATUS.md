@@ -143,3 +143,10 @@ fast-forward pushes. Manifest/gitlinks gate passes. Exact code job
 9af995a6-38c7-4c63-9059-c2bfafe4a90e last observed QUEUED. Three-key candidate
 remains unapplied; follow same job, no restart. Durable release intent/observation
 under LocalState/COSMIC/HostedCelestiaReleaseCurrent.
+
+Code9af995a6 SUCCESS at exact9c0b5c591. Applied three reviewed values once
+with skip-deploys; full candidate and each key hash observed exactly. Activation
+fa9ccb7b-3384-4c77-80f1-309e07fab649 last verified BUILDING at same commit.
+Follow this existing job; no reapply/redeploy/reprepare. Original hosted cohort
+has not started. Durable success/application/activation ACKs and intents retained
+under HostedCelestiaReleaseCurrent/HostedSourceRolloutCurrent.
