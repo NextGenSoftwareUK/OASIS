@@ -15,7 +15,7 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 
 - ChainLink source43controls/actual CLI3/2, Core1/API2/localHTTP1/publisher10/prepared-planner1/client1 pass. Native3/2, Mongo5/4, foreign0/public3; exact marked local fixture dropped, HTTP/Mongo stopped.
 - Development parent `09c66998cb2c204f290d7a85198006e6abd3202f` / Core `990c1c75afcafdbc0678b6e8131a10b67650f7e3` fast-forward published/ref-verified; manifest validates.
-- Code job `215b4b51-4431-4292-9c12-1063497d5773` BUILDING. Protected three-key candidate/four presets prepared; no ChainLink settings applied or hosted cohort started. Original native/local cohorts frozen.
+- Code job `215b4b51-4431-4292-9c12-1063497d5773` BUILDING. Protected three-key candidate/four presets prepared; no ChainLink settings applied or hosted cohort started. Frontend97/97tests pass; card drafted but unpublished, guide has native/paired HTTP examples. Original native/local cohorts frozen.
 
 ## Exact next actions
 
