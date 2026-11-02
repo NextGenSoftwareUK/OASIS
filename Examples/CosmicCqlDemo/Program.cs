@@ -5,6 +5,14 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// ClickHouse queries public country summaries with fixed, parameterized SQL.
+if (args.Length == 2 && args[0] == "--clickhouse-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await ClickHousePublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Zcash queries the explicit height/hash catalogue; no wallet or shielded data.
 if (args.Length == 2 && args[0] == "--zcash-public")
 {
