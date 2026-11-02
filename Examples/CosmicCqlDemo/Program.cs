@@ -5,6 +5,15 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// Public Telos EVM balances use one retained address catalogue.
+// This read profile creates no wallet, node or source transaction.
+if (args.Length == 2 && args[0] == "--telos-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await TelosPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Explicit public FEVM balance profile. Reuse one retained catalogue;
 // no wallet, chain transaction or source fixture is created by the demo.
 if (args.Length == 2 && args[0] == "--filecoin-public")
