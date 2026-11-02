@@ -3379,3 +3379,8 @@ Eclipse code publication: exact Development job7c15337e-d4b6-438b-945d-d5eab1a94
 Existing Python3.12/source proof shapes reused; new audit/test files Scripts/Sandbox/Audit-HostedEclipseAcceptance.py and test_eclipse_acceptance_audit.py. Planned controlled log TestResults/EclipsePublicSourceCurrent/acceptance-audit-controls.log, no network/save/session/database/install/build/environment. Future final ACK only after original hosted cohort at LocalState/COSMIC/HostedQueryAcceptance-EclipseOASIS; not created yet. Existing queued deployment/source/candidate immutable.
 
 Eclipse audit outcome:2controlled test methods pass incl12negative subcases, actual key/genesis fixtures, exact API wrapper shapes. Final log TestResults/EclipsePublicSourceCurrent/acceptance-audit-controls-final.log; first provisional fixture log also retained. Python process terminal; no network/database/account/service or environment created. Final actual cohort ACK not created until live evidence exists. Same queued code job re-observed, no restart/settings mutation/native replay.
+
+
+### Akash interface review during Eclipse deployment wait - 2 November 2026
+
+Read existing Akash adapter and official Akash documentation through existing browser/search tools only. Report Docs/WIP/COSMIC ORM/AKASH_PUBLIC_SOURCE_STATUS.md. No native request/account/key/wallet/download/install/restore/build/database/node/service/environment created; no cleanup allocation. Existing Eclipse job7c15337e re-observed QUEUED; source/config/candidate untouched. Future qualification requires exclusive bounded intent; no provider hostUri dereference.
