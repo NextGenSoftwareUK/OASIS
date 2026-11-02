@@ -11,7 +11,7 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 - Website72dee68 publishes EOSIO/Telos/Filecoin cards and pinned setup/C#/HTTP links;96client tests pass. Public HTML/scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser Mongo preparation copies identity/name/description/provenance, not all native metadata. Full payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: next red provider qualification
+## Current phase: ChainLink API/local proof and hosted rollout
 
 - EOSIO source28controls and actual CLI/manager/LINQ3/2 pass. Core1/API2/localHTTP1/publisher9/prepared-planner1/client1 pass; exact local fixture cleaned/Mongo stopped.
 - Development parent `4d3e0b7cd148bed7ebdf0400ca371867873932c0` / Core `86e38a37ee860785a8273ade3308f6fc1775294d` published/ref-verified; manifest validates. Code68db832f/settings20b3a558 SUCCESS.
@@ -20,7 +20,7 @@ Updated 1 November 2026. Goal active and incomplete. Priority: breadth-first liv
 ## Exact next actions
 
 1. Preserve completed EOSIO/Telos/Filecoin/Fantom cohorts, sources/owners/ACKs. EOSIO card72dee68/pinned links/96client tests and public bytes verified; no browser proof inferred.
-2. ChainLink native protocol3/2,43controlled CQL tests and actual manager/LINQ/CLI3/2 now pass. Read-only source/explicit feed descriptors and commented demo/guide implemented. Next: query-only API config/permission/tariff, Core/API tests, local Mongo/privacy/prepared gates, then hosted rollout/card. See CHAINLINK_PUBLIC_SOURCE_STATUS.md; no API/hosted claim and no replay of completed native/console cohorts.
+2. ChainLink source43controls/actual CLI3/2 plus Core1/API2/localHTTP1/publisher10/prepared-planner1/client1 pass. Native3/2, Mongo5/4, foreign0/public3; exact owned DB cleaned/Mongo stopped. Core task990c1c7 pushed/ref-verified, manifest paired with parent gitlink. Next: publish verified code, observe exact code job, apply reviewed3settings once, single settings deployment, hosted acceptance/card. See CHAINLINK_PUBLIC_SOURCE_STATUS.md; no hosted claim/replay of completed cohorts.
 3. After qualification, implement only that red source/controlled tests/native manager+C#3/2, API permission/Mongo/privacy/prepared gates, exact hosted rollout/acceptance/card. Keep green scopes/deep parity frozen absent a reproduced bug.
 
 ## Durable state and rules
