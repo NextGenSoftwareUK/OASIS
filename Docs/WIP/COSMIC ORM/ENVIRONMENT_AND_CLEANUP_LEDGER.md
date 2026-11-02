@@ -4197,3 +4197,16 @@ unmeasured). No runtime/SDK clone/install/dependency restore/native RPC/
 source owner/account/config/data/fixture/container/node/build output. Existing
 legacy source read only. Record AZTEC_PUBLIC_SOURCE_STATUS.md, Bittensor
 acceptance still priority. All prior retained/rejected resources unchanged.
+Bittensor same BUILDING deployment read-only build-tail observation planned:
+existing CLI, <=30log rows, protected raw code-build-tail-1.dpapi in release
+state, compact summary TestResults/BittensorPublicSourceCurrent. No new build,
+restart, dependency restore or installation. Retain through release audit; size pending.
+Bittensor original code job11aa820eSUCCESS at exacte8d2d75df; bounded build
+tail observed30rows/13227rawbytes (DPAPI retained)/no compiler-error codes and
+image export; original code intent unchanged. Full live configuration equals
+frozen before snapshot; source/candidate digests match code.intent.
+Settings.intent.json binds original3keys/candidate/source/code before mutation.
+Planned shared publisher apply once per key/ACK/skip-deploys, then one explicit
+activation bound to same code and observed complete configuration. Existing dev
+service/image retained, remote size unmeasured; no local build/install/new env
+or account. Accepted cohorts/config owners/ledger rejection targets unchanged.
