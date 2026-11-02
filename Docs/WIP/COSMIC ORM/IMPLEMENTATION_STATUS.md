@@ -4,12 +4,12 @@ Updated 1 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CUR
 
 | Scope | Verified state | Remaining acceptance |
 |---|---|---|
-| Provider breadth | 49 integrated query types; 44 scoped hosted HTTP proofs | Additional red providers and owned native writes; public projections do not establish full ORM support |
-| Browser | 5 provider proofs | 39 browser gates open; HTTP/asset matching is not browser interaction |
-| Latest hosted provider | EOSIO: native3/2, Mongo5/4, reuse/privacy/replicas pass; card72dee68/public bytes and96client tests verified | Browser interaction and full native payload mapping remain open |
+| Provider breadth | 49 integrated query types; 45 scoped hosted HTTP proofs | Additional red providers and owned native writes; public projections do not establish full ORM support |
+| Browser | 5 provider proofs | 40 browser gates open; HTTP/asset matching is not browser interaction |
+| Latest hosted provider | ChainLink: native3/2, Mongo5/4, reuse/privacy/replicas pass; card80633dc/public bytes and97client tests verified | Browser interaction and full native payload mapping remain open |
 | Fantom | Native/CLI/local/hosted HTTP, Mongo pairing/reuse/privacy/replicas and card/public bytes pass | Browser interaction and broader ORM scope remain open |
 | Three-database query parity | 50/82 checklist rows per database; original investor-demo subset green | Work only red rows; deep LINQ, POCO mapping and migrations tooling paused |
-| Next provider | ChainLink native CQL/43controls/actual CLI3/2 pass | Core/API/local Mongo/privacy/prepared gates pass; publish code/settings then hosted/card gates next |
+| Next provider | BlueSky native3/2 protocol qualified | Separate read-only DID CQL source and red integration gates next |
 | HyperDrive V2 | Scoped live three-store routing/failover, six native recovery directions/interleavings and ACK-loss/disconnect proofs retained | Wider operator/transport/scale acceptance and primary-authority cutover |
 | Full ORM | Focused tracking, conditional-write, graph, history and delta evidence exists | Requirement-by-requirement full acceptance audit remains open |
 

@@ -447,3 +447,6 @@ families, not a claim that either ORM supplies every feature on every backend.
 
 
 Provider-breadth milestone1November2026: [EOSIO/Vaulta hosted HTTP proof](EOSIO_PUBLIC_SOURCE_STATUS.md) adds bounded native account equality/membership, Mongo pairing/reuse/privacy and matching SQLite/Neo4j replicas. Total44scoped hosted HTTP providers; browser5/39open. This source-specific acceptance does not change any SQLite/Mongo/Neo4j EF parity cell or resume paused deep terminals.
+
+
+Provider-breadth milestone1November2026: [ChainLink hosted proof](CHAINLINK_PUBLIC_SOURCE_STATUS.md) adds exact feed proxy equality/membership with signed answer/scale/round metadata, native3/2, Mongo5/4/reuse/privacy and matching SQLite/Neo4j replicas. Total45scoped hosted HTTP providers, browser5/40open. No three-database EF parity cells changed; paused deep terminals remain paused.
