@@ -2,7 +2,7 @@
 
 Updated 1 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state and the exact next action.
 
-1. Complete breadth-first live provider demos: current 45 integrated types, 40 hosted HTTP proofs and 5 browser proofs. Preserve green cohorts. Fantom is the current pending release; follow its exact guarded rollout in CURRENT_STATUS.
+1. Complete breadth-first live provider demos: current 45 integrated types, 41 hosted HTTP proofs and 5 browser proofs. Preserve green cohorts. Fantom hosted acceptance is complete; card/public-byte proof is next in CURRENT_STATUS.
 2. Continue explicit filtered source queries and Mongo federation for remaining red providers. Azure Cosmos, Oracle and PostgreSQL hosting are deferred. Public source reads do not establish native writes or full ORM support.
 3. Finish scoped HyperDrive V2 operational acceptance: authorized late-replica baseline/reconciliation, retained obligations and uncertain-commit recovery. Preserve existing six-direction native proofs; broader hosted/operator/transport/scale acceptance remains open.
 4. Reconcile original ORM requirements against provider-specific evidence: change tracking, save-state ownership, atomic cross-client conditional writes, child load/save/query parameters and depth, rollback, version/history, per-save deltas, migration and placement.

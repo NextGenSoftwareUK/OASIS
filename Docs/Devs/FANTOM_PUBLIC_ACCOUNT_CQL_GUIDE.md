@@ -2,7 +2,7 @@
 
 This read-only profile queries Fantom Opera, chain250 (`0xfa`). It uses the shared CQL planner, HolonManager and deferred LINQ. No wallet, funding, transaction or native source write is needed.
 
-The local native/manager walkthrough and actual console return three records and a two-record subset. Local shipping WEB4 HTTP/Mongo now passes native3/2, paired5/4 and privacy0/3, with exact fixture cleanup. Hosted sandbox and browser gates remain pending in [the current report](../WIP/COSMIC%20ORM/FANTOM_PUBLIC_SOURCE_STATUS.md).
+The local native/manager walkthrough and actual console return three records and a two-record subset. Local shipping WEB4 HTTP/Mongo now passes native3/2, paired5/4 and privacy0/3, with exact fixture cleanup. Hosted HTTP also passes native 3/2, Mongo pairing 5/4, repeat reuse, visitor isolation and SQLite/Neo4j replicas. Browser interaction remains open; see [the current report](../WIP/COSMIC%20ORM/FANTOM_PUBLIC_SOURCE_STATUS.md).
 
 ## What the query guarantees
 
@@ -98,10 +98,12 @@ Local verification exercises the shipping `api/data/query-cql` endpoint with thi
 }
 ```
 
-A Mongo federation names both `MongoDBOASIS` and `FantomOASIS`, uses the same metadata filter as its source, and preserves copies. Its two private Mongo snapshots require the normal owned save/admission path. The local gate verifies five/four physical rows and zero private rows visible to another actor. It does not certify production billing or hosted replication.
+A Mongo federation names both `MongoDBOASIS` and `FantomOASIS`, uses the same metadata filter as its source, and preserves copies. Its two private Mongo snapshots require the normal owned save/admission path. Local and hosted HTTP gates verify five/four physical rows and zero private rows visible to another actor. Hosted snapshots also replicate to SQLite and Neo4j with both IDs and version1 preserved. These snapshots use normal WEB4 saves; they do not write to Fantom or replicate chain transactions.
 
-## Remaining demo gates
+## Hosted demo and remaining scope
 
-Fantom is not yet enrolled in the hosted API or its free query tariff. Local HTTP/Mongo privacy passes. Hosted admission, repeat-safe snapshots and replica checks must pass before a live sandbox card is published. This local profile does not certify signed storage, replication from the chain, general ORM parity or Sonic chain146.
+Select `FantomOASIS` in the [sandbox CQL tab](https://web4.oasisomniverse.one/web4-sandbox.html). Choose a public-record preset for three addresses or its two-address subset. Choose the Mongo paired preset and prepare two private snapshots once; repeated preparation reuses them. Native counts are 3/2 and paired counts are 5/4. No wallet, gas or account setup is required.
+
+Hosted HTTP admission, repeat-safe snapshots, visitor privacy and two SQLite/two Neo4j replicas are verified. Browser interaction remains unverified. This profile does not certify signed storage, replication from the chain, general ORM parity or Sonic chain146.
 
 Primary contracts: [Fantom RPC endpoints](https://docs.fantom.foundation/build-on-opera/api/public-endpoints), [EIP-1898](https://eips.ethereum.org/EIPS/eip-1898), [Sonic Labs June2026 update retaining Opera](https://www.soniclabs.com/blog/the-first-1/).

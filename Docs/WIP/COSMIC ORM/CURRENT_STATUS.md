@@ -5,7 +5,7 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 ## Verified scope
 
 - 45 integrated query types:3 canonical,38 bounded public/source profiles,4 local PostgreSQL/Azure Cosmos/Oracle/AWS implementations.
-- 40 providers have scoped hosted HTTP proof and deployed query tariffs. Browser proof:5;35browser gates open. Read-only discovery now reports40/40providers ready at the current release; this is readiness, not a fresh replay of all provider data proofs. Current provider-by-provider authority: PROVIDER_CQL_AND_SANDBOX_STATUS.md.
+- 41 providers have scoped hosted HTTP proof and deployed query tariffs. Browser proof:5;36browser gates open. Read-only discovery now reports40/40providers ready at the current release; this is readiness, not a fresh replay of all provider data proofs. Current provider-by-provider authority: PROVIDER_CQL_AND_SANDBOX_STATUS.md.
 - MongoDB/SQLite/Neo4j parity checklist50/82each; original investor-demo subset green. Work red rows only unless a reproducible bug appears.
 - Latest completed hosted cohort: AzureStorageOASIS public Blob properties, native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, exact SQLite/Neo4j replicas2/2. Two saves at version1; no pending intents. Completion ACK exists; never replay/resave.
 - Azure native/local:24source controls,43API controls,6publisher controls, SDK/manager/actual console3/2 and local HTTP/Mongo/privacy pass. No account, source write or object-body download. This is not hosted Cosmos DB.
@@ -23,16 +23,16 @@ Updated 1 November 2026. Goal active; full roadmap incomplete. Priority: breadth
 
 ## Next work
 
-1. Fantom native/manager/actual CLI3/2 now pass;278controls include21Fantom and preserved constructor contract. Explicit immutable latest-canonical-at-read, not finalized. WEB4/local HTTP now pass40controls and native3/2/Mongo5/4/privacy0/3; exact local cleanup done.8publisher controls and1Fantom client preparation/reuse control pass,3-key/free4preset candidate prepared. Merged OLAND quote updates preserved,46combined controls pass. Parent Development e13244820/Core01b7545 published/remote-verified; code job7b8c95d9-b9dd-47c1-9ea9-5151f40be81b SUCCESS. Exactly3settings applied once; whole candidate/per-key ACKs match. Single settings job2177dd3d-e0a1-4c7d-a679-3e55b521c6a0 BUILDING. Exact next: observe that same settings job to SUCCESS, then first hosted proof/card. Fantom is configured but not yet hosted-qualified; see FANTOM_PUBLIC_SOURCE_STATUS.md. Native-qualified ACK freezes source owner/addresses.
+1. Fantom hosted acceptance complete at e13244820/Core01b7545, settings2177dd3d SUCCESS. Native3/2, paired5/4, repeat0new/2existing, private0/public3, SQLite/Neo4j replicas2/2; two saves/version1/no pending. Completion ACK freezes original cohort. Exact next: publish spaced Fantom card with pinned guide/C# links, run client publication checks and verify public bytes. Do not replay acceptance. See FANTOM_PUBLIC_SOURCE_STATUS.md.
 2. PostgreSQL hosting explicitly deferred by David ("Leave hosted PostgreSQL pending"); no owner setup, re-ask or new paid resource. Azure Cosmos and Oracle hosted access also remain deferred.
 3. TRON remains unqualified after native429/diagnostic403; Rootstock finalized-header endpoint rejected400; separate explicit canonical-at-read qualification now rejects the first EIP1898 balance with RPC-32603. No Rootstock source/catalogue or admission created. Preserve both failures; do not blindly rerun them.
 4. Keep full ORM tracking/concurrency/children/history/deltas/migration/placement acceptance and wider HyperDrive recovery work on the roadmap. Deep LINQ, POCO mapping and migrations tooling remain deferred behind demo breadth. V2 implementation only; legacy gaps documentation only.
 
 ## Guarded release handoff
 
-- Code job7b8c95d9-b9dd-47c1-9ea9-5151f40be81b succeeded at e13244820ddcffc27b94326e70ccfef52fb044ab. Immutable code-deployment ACK exists. Exact-release detached checkout was used only for guarded settings, then work/cosmic-cql-ton-public restored.
-- Exactly3settings applied once; complete candidate equality and all per-key ACK hashes verified. Single journalled redeploy returned settings job2177dd3d-e0a1-4c7d-a679-3e55b521c6a0, currently BUILDING. Observe this same job at e13244820; never reapply settings or repeat rollout intent. Protected outcome and settings-rollout ACK retained under HostedSourceRolloutCurrent/HostedFantomReleaseCurrent.
-- After SUCCESS: first `python Scripts/Sandbox/Verify-HostedQuerySource.py FantomOASIS --prepare` with existing pinned Node on PATH, then inspect native3/2/Mongo5/4/reuse/privacy/replicas and2saveACKs/version1/no pending. Write immutable completion ACK only after proof, then card/public asset proof. Counts remain45integrated/40hosted until acceptance. Hosting deferrals unchanged.
+- Code7b8c95d9 and settings2177dd3d succeeded at e13244820; three reviewed settings applied once, candidate equality/per-key ACKs verified. No reapply/redeploy. Existing task branch restored after exact-release guard.
+- Original Fantom hosted cohort has immutable completion ACK, two acknowledged version1 saves and no pending intents. Preserve identities/copies and never rerun it. Source SHA25686b7ba36bc665a74cd77fa0469c6276156c95967a480e9eadbb1aa09389a5550.
+- Frontend Fantom control584b146 passes. Card/public bytes are next; published website remains9694621 until verified publication. Counts45integrated/41hosted/browser5/open36. Hosting deferrals unchanged.
 
 ## Commands and recovery rules
 
