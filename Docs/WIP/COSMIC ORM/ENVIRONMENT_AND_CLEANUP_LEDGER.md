@@ -3786,3 +3786,16 @@ DPAPI credentials/ACKs HostedQueryAcceptance-EclipseOASIS; release receipts in
 HostedEclipseReleaseCurrent; raw proof hashes in ECLIPSE_PUBLIC_SOURCE_STATUS.md.
 Latest free64,208,293,888bytes; local generated .NET outputs remain cleaned.
 Prepared frontend Eclipse entry remains unpublished until this proof (now passed).
+
+2026-11-02 Eclipse website publication: existing Web4Site task/main20129f567a6ba1e4ce32f600e37c42ca13b8d97b
+remote verified;14HTMLlines only/no JS/dependencies/installation/build env. Pinned
+guide/C#blobs checked,3publicassets226,839bytes retrieved into memory/hash only;
+exact sizes/hashes in ECLIPSE_PUBLIC_SOURCE_STATUS.md and raw compact
+TestResults/EclipsePublicSourceCurrent/published-site-observation-1.json.
+No native requests/new visitor/saves for site publication. Original Eclipse/Akash
+cohorts and all source/candidate/lineage/release ACKs frozen. Browser control
+remains closed, no interaction proof. No local processes/build outputs remain;
+SDK/packages/personal ML/rejected cleanup targets unchanged. Remote API/site/
+visitor copies retained delivery/evidence, sizes unmeasured and cleanup owner
+COSMIC at verified final teardown. Next read-only Farcaster primary-interface
+review uses existing tools; no new environment/downloaded runtime planned.
