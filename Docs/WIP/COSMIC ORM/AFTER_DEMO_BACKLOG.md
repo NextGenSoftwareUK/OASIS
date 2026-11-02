@@ -40,3 +40,16 @@ Session lifecycle HTTP correction and frontend publication completed at d9332469
 Verified1November2026 against Filecoin hosted proof: generic cql-demo-preparation.js copies source identity/name/description and mapped provenance fields into private Mongo records; FilecoinBalanceWei, FilecoinBlockHash and other native metadata remain only in native rows. Existing key-membership/federation/privacy/replica proofs remain valid within that scope; do not claim full state migration. Before full migration demos, define safe domain-payload projection distinct from reserved owner/revision/encryption/provider state, preserve exact native scalar types/observation time, and test metadata round-trip/querying. Define explicit conditional, journalled schema upgrades for existing owned copies; never silently rewrite acknowledged cohorts, clone credentials/system ownership, or backfill other avatars. This is a remaining full-goal requirement, not completed by the MVP. Evidence: TestResults/HostedCqlIntegrationCurrent/FilecoinOASIS-{native-http,client-http-flow}.json; scope recorded in immutable completion ACK.
 
 Native diagnostic update2November: the Nostr reproduced leaf-query failure now drives shared safe diagnostics work. Activation wrappers preserve original cause; activation and leaf-query logs whitelist categories/stages/typed status only. Sixfocused tests pass; code rollout/live verification pending. Earlier XRPL operator gap is not declared fully resolved until deployed evidence proves it. See NOSTR_PUBLIC_SOURCE_STATUS.md.
+
+
+## Read-source operational recovery after bounded startup exhaustion
+
+Blockscout startup upstreamHTTP500 exposed the one-shot activation latch. An
+explicit per-profile two-attempt/5s-backoff/shared30s startup policy is tested;
+it is not complete operator recovery. Later implement authorized serialized
+reactivation after exhaustion with clear readiness/state ownership, cancellation
+and safe evidence; no hidden fallback, normal-query retries or signing/writes.
+Retain original profile/config/cohort when recovering. Validate sustained live
+read availability separately: Blockscout earlier15s timeout and Nostr intermittent
+503causes remain unresolved. Do not harden completed provider query cells merely
+to reproduce green. [Current Blockscout evidence](BLOCKSCOUT_PUBLIC_SOURCE_STATUS.md).
