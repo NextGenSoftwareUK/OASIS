@@ -87,8 +87,9 @@ return `CQL_READ_ONLY_SOURCE` before network activity or input mutation.
 The original native source qualification and compiled manager/LINQ/CLI3/2run
 passed. Local HTTP/Mongo3/2+5/4/privacy checks and server tariff/admission controls
 now pass. Original hostednative3/2, Mongo5/4, repeatpreparation/privacy and
-exactSQLite/Neo4jreplicas also pass the independent audit. Sandboxcard publication
-and browser interaction remain separate: see `Docs/WIP/COSMIC ORM/CLICKHOUSE_PUBLIC_SOURCE_STATUS.md`.
+exact SQLite/Neo4j replicas also pass the independent audit. The sandbox card
+and its live static files are published and verified. Browser interaction remains
+unverified: see `Docs/WIP/COSMIC ORM/CLICKHOUSE_PUBLIC_SOURCE_STATUS.md`.
 Preserve original source owners/intents/ACKs; do not replay completed fixtures.
 
 [Official free playground and quotas](https://github.com/ClickHouse/clickhouse-docs/blob/89036285e33b88b424ebc397cce3cb70e9c2b5a9/docs/getting-started/playground.md)

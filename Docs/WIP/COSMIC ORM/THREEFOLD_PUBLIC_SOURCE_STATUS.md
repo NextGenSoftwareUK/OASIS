@@ -70,3 +70,13 @@ Next: commentedThreeFoldC#walkthrough/configuration and actualcompilednative3/2 
 ## Actual compiled manager/LINQ/CLI proof
 
 SharedC#demo fullcachedbuildpassed1m46s. Original --threefold-public run passed3full/2filterednodes throughHolonManager/deferredLINQ/nativepointcomposition over originalIDs1/2/3. No listing/discoveryreplay/provisioning/contracts/nativewrites/Mongosaves. Stableprojectionowner/config and qualification/source/binary-boundintent/ACK/compressedoutput retained HostedThreeFoldPublicSourceCurrent; outputSHA256 `48c283263bde4a3cc1bd8d37b64e81edaf1020b1ec5cad84652dddcc52d56740`. This is64thlocallyintegratedquerytype; hostedfunctional58untilClickHouseaudit. HTTP/Mongo/readtariff/presets/hosted remainnext. Acceptedsource/CLI frozen, do not replay.
+
+## Explicit HTTP admission and original local Mongo proof
+
+Three API tests and one Core tariff test pass, no skips. Explicit read profile registration uses CQL_THREEFOLD_PUBLIC_SOURCE_JSON; compiler and tariff enrollment remain independent of native write permissions. Four native/Mongo examples plan using shipping capabilities. Original local HTTP test passed in 19 seconds: native 3/2, Mongo-paired 5/4, foreign 0 private/3 public, two SDK version-1 saves and query receipts. Canonical UInt32 projection and chain-state-unverified provenance checked. Exact nonce-owned cosmic_cql_threefold_http_demo removed/absence acknowledged; HTTP consumers and owned Mongo stopped. Existing shared data retained. Original cohort/config and source-bound ACK frozen; do not replay. Core task commit 409a4445f5c2c23b83eb68ed90283c4c0824df0d pushed/remote verified; parent manifest advances with gitlink. No hosted publication/certification yet; totals remain 64 local/59 hosted. Next prepare/test hosted four-preset candidate, preserve newer Development/Core before integration, then original hosted acceptance and card.
+
+`TestResults\ThreeFoldPublicSourceCurrent\admission-api.trx` SHA256 `e3d36069e0adab175308e16db482dedd02f27a287e0ff4bd6fa0a12787542ef7`; compressed original retained at `LocalState\COSMIC\HostedThreeFoldPublicSourceCurrent\admission-api.trx.gz`.
+
+`TestResults\ThreeFoldPublicSourceCurrent\admission-core.trx` SHA256 `74074df7447b9440e00a68660e4c22bb7ede3fb96b5fe147d9ae4a818bf7065c`; compressed original retained at `LocalState\COSMIC\HostedThreeFoldPublicSourceCurrent\admission-core.trx.gz`.
+
+`TestResults\ThreeFoldPublicSourceCurrent\mongo-http-native.trx` SHA256 `1919bfd91cd8076b5327ac971c2062ed3b90033a16bc6cc4338b5be6edcb5385`; compressed original retained at `LocalState\COSMIC\HostedThreeFoldPublicSourceCurrent\mongo-http-native.trx.gz`.
