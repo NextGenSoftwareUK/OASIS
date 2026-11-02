@@ -132,3 +132,23 @@ proof for every environment. Most owned disposable resources can be retired afte
 their acceptance gates finish and original data/identities/evidence are preserved
 or explicitly retired. Do not blanket-delete stopped containers/ledgers. Personal
 Miniforge/models remain excluded by David's KEEP BOTH decision.
+
+## Current test batch cleanup and end-of-task retirement requirement
+
+David reiterated that task-introduced environments/downloads must be cleaned up
+after their work finishes. This includes task-only runtimes/installations once
+no remaining acceptance gate or other owner needs them, not just bin/obj. At
+handoff reconcile exact paths/ownership with this report and the resource ledger;
+remove verified disposable resources, explicitly list retained/transferred ones
+and why. Personal ML remains excluded; no blanket database/history deletion.
+
+After Akash17controlled/1native continuation tests, removed305,589,142logical
+bytes across59reviewed generated-output targets in the assigned worktree under
+the build lease. Secrets were retained; no source/config/ACK/data/runtime removed.
+Per-target log SHA256b375a8ad59ed02d2497e51b0e8843eac1b210990c8088c93f71dab0ac5be77cd.
+Raw log/result `TestResults/DiskInventoryCurrent/akash-streaming-build-cleanup*`;
+per-target ledger CLEANUP_LEDGER.md. Wrapper counters initially reported0due to
+scope; original observation preserved, reconciled total comes from59actual
+per-target removal records. No extra deletion run to repair telemetry.
+Free before65,685,192,704bytes/after65,894,416,384bytes; logical removal and
+physical free change differ. Concurrent free-space changes are not attributed.

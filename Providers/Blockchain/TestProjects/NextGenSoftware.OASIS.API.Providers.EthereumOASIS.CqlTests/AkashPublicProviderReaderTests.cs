@@ -13,6 +13,92 @@ public class AkashPublicProviderReaderTests
     private static readonly string[] Owners = { "akash1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq7cdc78",
         "akash1lllllllllllllllllllllllllllllllljfvhed", "akash1u5cdg7k3gl43mukca4aeultuz8x2j68mgwn28e" };
 
+    [DataTestMethod]
+    [DataRow(1)]
+    [DataRow(7)]
+    [DataRow(4096)]
+    public async Task DiscoveryStopsAtThreeCompleteRecordsWithoutReadingCatalogueTail(int chunkSize)
+    {
+        // More than the old whole-body budget follows these three records. It is
+        // not part of the selected sample and must not be downloaded or certified.
+        var prefix = "[" + string.Join(",", Owners.Select(owner =>
+            JsonSerializer.Serialize(new { owner, name = "Café ☕" }))) + ",";
+        using var body = new ObservedStream(prefix + new string(' ', 2097153), chunkSize);
+        using var handler = new StreamResponse(body);
+        using var client = new HttpClient(handler);
+
+        var keys = await new AkashPublicProviderReader(client, new Uri("https://example.invalid/"))
+            .DiscoverThreeAsync(default);
+
+        CollectionAssert.AreEqual(Owners.Order(StringComparer.Ordinal).ToArray(), keys.ToArray());
+        Assert.AreEqual(1, handler.Requests);
+        Assert.IsTrue(body.BytesRead <= Encoding.UTF8.GetByteCount(prefix) + 4096);
+        Assert.IsTrue(body.Disposed, "The unused HTTP response stream must be closed.");
+    }
+
+    [DataTestMethod]
+    [DataRow("wrong-root")]
+    [DataRow("missing-owner")]
+    [DataRow("duplicate-field")]
+    [DataRow("oversized-record")]
+    [DataRow("total-budget")]
+    [DataRow("truncated")]
+    public async Task StreamingDiscoveryRejectsInvalidOrUnboundedSelectedPrefix(string fault)
+    {
+        var json = fault switch
+        {
+            "wrong-root" => "{}",
+            "missing-owner" => "[{}]",
+            "duplicate-field" => "[{\"owner\":\"" + Owners[0] + "\",\"owner\":\"" + Owners[1] + "\"}]",
+            "oversized-record" => "[{\"owner\":\"" + Owners[0] + "\",\"label\":\"" + new string('x', 262145) + "\"}]",
+            "total-budget" => "[" + new string(' ', 2097153),
+            _ => "[{\"owner\":\"" + Owners[0]
+        };
+        using var body = new ObservedStream(json, 4096);
+        using var handler = new StreamResponse(body);
+        using var client = new HttpClient(handler);
+        try
+        {
+            await new AkashPublicProviderReader(client, new Uri("https://example.invalid/"))
+                .DiscoverThreeAsync(default);
+            Assert.Fail("Invalid discovery prefix accepted.");
+        }
+        catch (Exception error) when (error is InvalidDataException or JsonException) { }
+
+        Assert.AreEqual(1, handler.Requests, "No retries or point reads after discovery failure.");
+        Assert.IsTrue(body.BytesRead <= 2097152);
+        Assert.IsTrue(body.Disposed);
+    }
+
+    private sealed class StreamResponse(Stream body) : HttpMessageHandler
+    {
+        public int Requests;
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            Requests++;
+            Assert.AreEqual("https://example.invalid/v1/providers", request.RequestUri!.AbsoluteUri);
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(body) });
+        }
+    }
+
+    private sealed class ObservedStream(string text, int chunkSize) : MemoryStream(Encoding.UTF8.GetBytes(text))
+    {
+        public long BytesRead;
+        public bool Disposed;
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            var count = await base.ReadAsync(buffer[..Math.Min(chunkSize, buffer.Length)], cancellationToken);
+            BytesRead += count;
+            return count;
+        }
+        protected override void Dispose(bool disposing)
+        {
+            Disposed = true;
+            base.Dispose(disposing);
+        }
+    }
+
     [TestMethod]
     public async Task DiscoveryFreezesThreeUniqueOwnersAndPointReadsOnlyTheirMetadata()
     {
