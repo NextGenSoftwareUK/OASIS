@@ -61,6 +61,7 @@ public static class NativeKeySetWalkthrough
             ProviderType.ChainLinkOASIS => "ChainLinkFeedAddress",
             ProviderType.BlueSkyOASIS => "BlueSkyActorDid",
             ProviderType.NostrOASIS => "NostrEventId",
+            ProviderType.MatrixOASIS => "MatrixRoomAlias",
             ProviderType.SeiOASIS => "SeiAccountAddress",
             ProviderType.ZkSyncOASIS => "ZkSyncAccountAddress",
             ProviderType.AbstractOASIS => "AbstractAccountAddress",

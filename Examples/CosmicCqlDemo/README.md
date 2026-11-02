@@ -964,3 +964,8 @@ Use `--nostr-public LocalState/COSMIC/HostedNostrPublicSourceCurrent/source.json
 
 
 Nostr hosted functional update (2 November 2026): native3/2, Mongo5/4, repeat0new/2existing, privacy0/3 and SQLLite/Neo4j replicas2/2 pass with original two saves preserved. Live card includes pinned C#/HTTP setup links;99client tests/public bytes verified. Earlier intermittent native-query error cause remains unresolved; no reliability or browser-interaction certification. See ../../Docs/WIP/COSMIC ORM/NOSTR_PUBLIC_SOURCE_STATUS.md.
+
+
+## Matrix public room aliases (local C#)
+
+The spaced/commented `MatrixPublicWalkthrough.cs` uses HolonManager/deferred LINQ for three configured aliases, then a two-alias membership predicate. Run the existing built demo with `--matrix-public LocalState/COSMIC/HostedMatrixPublicSourceCurrent/source.json`. Reuse the retained source owner/configuration. No login, room join, source write or Mongo copy is performed. [Setup and limits](../../Docs/Devs/MATRIX_PUBLIC_ROOM_CQL_GUIDE.md). Local source30tests and actual3/2 console pass; HTTP/Mongo/hosted/browser gates remain separate and pending.
