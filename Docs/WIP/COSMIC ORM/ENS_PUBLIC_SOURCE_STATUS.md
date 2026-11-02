@@ -228,3 +228,15 @@ prepared-presets.trx. Protected snapshots must never be printed or committed.
 No live settings changed during preparation. Next publish verified Core/parent
 code, observe that exact code job, then apply the existing candidate once and
 observe one settings activation before original-owner hosted acceptance.
+
+## Development code publication checkpoint
+
+Parent a20f35f9a85af3807f42e1273d7cc6e0fabb0934 and Core
+13add812baa3d6ffea4f5cd49018e5e3fb959d4d fast-forwarded to Development,
+verified using ls-remote. Manifest/seven Dockerfiles/gitlinks pass. No master
+promotion. Original publication intent/observation retained at
+LocalState/COSMIC/HostedEnsReleaseCurrent. Exact code job
+dcf95c97-dd85-4b82-8f36-b65b8a257ef4 is QUEUED at this checkpoint;
+continue observing this same job, never deploy again because observation expires.
+No live ENS settings applied and no hosted cohort created yet. Existing protected
+candidate/source/configuration remains unchanged.
