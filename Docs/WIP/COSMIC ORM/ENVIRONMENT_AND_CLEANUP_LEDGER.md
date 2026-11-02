@@ -4278,3 +4278,41 @@ no executable SDK/node install, source owner/db/sessions/hosting changes.
 Latest measured free59,235,729,408bytes; no owned processes/ports. Native
 failure retention and prior cleanup-policy rejection unchanged. Next Zcash
 review uses existing tools/source; no full node/environment planned.
+
+2026-11-02 Zcash discovery reused provider source/GitHub connector/web tools.
+Operator ZecBlock documents public v1 mainnet/account-free reads; old
+ZcashBlockExplorer shutdown documented, not selected. Pin Kenbak/zecblock
+116b8a72f4d0aac6bafeecac34422246a75cc8ed; same OpenAPI content verified at
+exact commit. Read operator route/adapter/SQL projection and Zcash genesis
+assertion from upstream source in memory. No native request/account/node/
+environment yet. Planned reusable schema cache in LocalState/COSMIC/
+ZcashPublicQualificationCurrent/sdk: OpenAPI871329bytes plus4source files
+(blocks/build-route/mining-software/manifest), total sizes pending. These are
+source evidence, not executable installation; retain pins/hashes through audit,
+cleanup after equivalent provenance retained. Reuse Python3.12/PS7/.NET HttpClient
+for new qualification, no restore or SDK install. No ports/process dependencies.
+Zcash pinned source evidence5files/1019086bytes plus manifest retained; no installation.
+7new offline validation controls and PowerShell syntax check pass. First
+native qualification uses existing PS7/.NET HttpClient, no custom User-Agent,
+no auth/token or redirects;3fixed GETs at api.zecblock.com/v1/blocks for
+heights0/genesis,1-3,1-2. >=1s spacing,15s linked timeout,256KiB/response.
+Exclusive durable qualification.intent/qualification.json; raw reports
+TestResults/ZcashPublicSourceCurrent. No previously denied Zcash request exists;
+any denial stops this source without retries/client/header/endpoint rotation.
+No native writes/shielded-wallet queries/private notes, full node or tempDB.
+COSMIC-owned evidence retained through qualification/audit; preserve raw
+outcome before cleanup and never recreate consumed intent. Sizes pending.
+Zcash first native3GETs allHTTP200; genesis verified, metadata3/2withsame
+records; declared freshness unknown preserved, no PoW/availability/private-wallet
+claim. Original report unchanged; offline comparison binds subset and first
+selection, qualification.acknowledged.json binds report/manifest digests.
+Raw3responses3480bytes copied exclusively to durable native/ with matching
+SHA256 from report; no replay or new owner/session/config. PS/.NET/Python reused
+processes exited; no ports/tempDB/native writes. Source evidence retained:
+- `C:\Source\OASIS-cosmic\LocalState\COSMIC\ZcashPublicQualificationCurrent\sdk\blocks.js`: 39142bytes; repo116b8a72, reusable protocol evidence; retain through CQL audit, remove after equivalent hashes/provenance retained.
+- `C:\Source\OASIS-cosmic\LocalState\COSMIC\ZcashPublicQualificationCurrent\sdk\build-route.js`: 14697bytes; repo116b8a72, reusable protocol evidence; retain through CQL audit, remove after equivalent hashes/provenance retained.
+- `C:\Source\OASIS-cosmic\LocalState\COSMIC\ZcashPublicQualificationCurrent\sdk\manifest.js`: 78664bytes; repo116b8a72, reusable protocol evidence; retain through CQL audit, remove after equivalent hashes/provenance retained.
+- `C:\Source\OASIS-cosmic\LocalState\COSMIC\ZcashPublicQualificationCurrent\sdk\mining-software.js`: 14982bytes; repo116b8a72, reusable protocol evidence; retain through CQL audit, remove after equivalent hashes/provenance retained.
+- `C:\Source\OASIS-cosmic\LocalState\COSMIC\ZcashPublicQualificationCurrent\sdk\openapi-v1.json`: 871601bytes; repo116b8a72, reusable protocol evidence; retain through CQL audit, remove after equivalent hashes/provenance retained.
+No further download/install planned for CQL adapter; reuse cached .NET
+dependencies and bounded leased builds. Prior cleanup-policy targets unchanged.
