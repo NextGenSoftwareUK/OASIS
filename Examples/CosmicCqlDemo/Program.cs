@@ -5,6 +5,14 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// Chainflip reads only configured historical swaps; no quote or swap dispatch.
+if (args.Length == 2 && args[0] == "--chainflip-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await ChainflipPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // Wormhole reads configured message tuples bound to original VAA bodies.
 // It never signs or dispatches cross-chain messages.
 if (args.Length == 2 && args[0] == "--wormhole-public")

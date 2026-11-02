@@ -5,14 +5,14 @@ deep LINQ parity remains paused. Work red scopes only unless a bug is reproduced
 
 ## Verified scope
 
-- 54 integrated query types:3canonical adapters/47bounded public-source profiles/4local PostgreSQL, Cosmos, Oracle and AWS implementations.
+- 55 integrated query types:3canonical adapters/48bounded public-source profiles/4local PostgreSQL, Cosmos, Oracle and AWS implementations.
 - 50 scoped hosted functional HTTP proofs; browser5verified/45open. These are not full ORM/native-write/reliability certifications.
 - MongoDB/SQLite/Neo4j parity50/82rows each; original investor-demo subset green.
 - Latest hosted addition Wormhole: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, exact SQLite/Neo4j2/2. Two original version1 saves/pending0; source/body pins and original cohort frozen.
 - Website main/task129c995 publishes Wormhole/Stacks/Matrix/prior profiles with pinned setup/C#/HTTP links;105client tests pass. Public HTML180501bytes/SHA25691726f231ab2d8f4c77bb655e1fb6df4263d2cbb02125097ef41593c12b9347c and both scripts match exact git blobs. Browser interaction remains separate.
 - Generic browser copies retain identity/name/description/provenance and native query key, not full native payload. Full safe payload mapping remains red in AFTER_DEMO_BACKLOG.md.
 
-## Current phase: Chainflip canonical native qualification complete; CQL source next
+## Current phase: Chainflip local CQL/CLI verified; HTTP and Mongo pairing next
 
 - ParentDevelopmentd1f42addf0413ddcd381238ccdf17bbfa561a3e2/CoreDevelopmentc551a89ff294e68527f6ff75128d97cff54e6c63 pushed after fetched ancestry checks. Remote refs verified; manifest/seven Dockerfiles/gitlinks validator passes.
 - Code4da3a095/settingsb29f93f6 SUCCESS at exactd1f42addf. Three settings applied once/verified; original hosted cohort passed and independent artifact audit wrote immutable acceptance ACK. No additional saves.
@@ -23,11 +23,11 @@ deep LINQ parity remains paused. Work red scopes only unless a bug is reproduced
 ## Exact next step
 
 1. Preserve original Wormhole source/owner/config/body pins/cohort/ACKs. Do not replay acceptance/setup/saves or apply/activation.
-2. Chainflip actual shipping .NET SDK returns200for explicit IDs500000/500001/500002; native1+pure9+evidence-root1 tests pass. Python403 and original optional-deposit assumption failure preserved. Next implement bounded ChainflipPublicSwapMetadataSource/ChainflipSwapId over these original IDs, with explicit absent deposit and exact amount semantics; no new native qualification/owner replacement. See CHAINFLIP_PUBLIC_SOURCE_STATUS.md.
+2. Chainflip source41tests/actual HolonManager-deferred-LINQ CLI3/2 pass. One source owner/config/intent/ACK retained under HostedChainflipPublicSourceCurrent; IDs500000/500001/500002. Native SDK1/pure9/evidence-root1 also pass; Python403/initial optional-deposit assumption failure retained. Next HTTP compiler/read-source activation/query-only admission/presets, then local native3/2+Mongo5/4/privacy. No native qualification replay or owner replacement. See CHAINFLIP_PUBLIC_SOURCE_STATUS.md.
 3. Keep Wormhole original cohort/source/body pins/acceptance and site ACKs frozen. Do not rerun/resave/reapply merely for another green result. Public asset bytes are not browser verification.
 4. Work only next red provider scopes; maintain full report/docs/ledger at milestones. Hosted50/browser5/open45; whole programme remains incomplete.
 
-Next code: Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ChainflipOASIS/ChainflipPublicSwapMetadataSource.cs (new). Reuse canonical NativeConnectionGuard and existing shared query patterns; raw original responses in TestResults/ChainflipPublicSourceCurrent/sdk-swap-ID.json.
+Next code: ONODE/.../Services/Cql/CqlV1Compiler.cs + Startup explicit read profile + Core query-only tariff list; source ChainflipPublicSwapMetadataSource is verified locally. Build under lease with bounded workers.
 
 ## Preserved checkpoints and remaining scope
 

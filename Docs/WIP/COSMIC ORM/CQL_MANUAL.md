@@ -1,5 +1,7 @@
 # CQL developer manual
 
+Chainflip local CQL: [configuration, spaced C# demo and optional-deposit/precision semantics](../../Devs/CHAINFLIP_PUBLIC_SWAP_CQL_GUIDE.md).41source controls/actual manager-LINQ CLI3/2 pass; HTTP/Mongo/hosting remain pending.
+
 Wormhole local CQL: [configuration, spaced C# walkthrough and pinned-VAA trust limits](../../Devs/WORMHOLE_PUBLIC_OPERATION_CQL_GUIDE.md).35source tests/actual manager-LINQ CLI3/2 pass; Core1/API3/localHTTP1/publisher9/prepared1/client105 pass. Local native3/2+Mongo5/4/privacy0/3; code/settings and original hosted native3/2+Mongo5/4/reuse/privacy/replicas pass; card129c995/public bytes verified. Browser interaction remains open. No guardian signature authentication or native writes.
 
 
@@ -7,7 +9,7 @@ Stacks local CQL: [configuration, C# examples and exact-tip/precision limits](..
 
 Matrix local C# profile: [configuration, filters, runnable example and limits](../../Devs/MATRIX_PUBLIC_ROOM_CQL_GUIDE.md). Local source30tests/manager-LINQ3/2 and HTTP native3/2/Mongo5/4/privacy0/3 pass; hosted native3/2/Mongo5/4/reuse/privacy/replicas pass; cardbd173e5/pinned guide+C#links/101client tests/public bytes verified; browser interaction remains open.
 
-Earlier functional milestone (2 November 2026): Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card published/byte-verified; browser open. Current totals54integrated/50hosted-functional/5browser/45open. [Current status](CURRENT_STATUS.md) owns active work. Older dated checkpoints below are historical.
+Earlier functional milestone (2 November 2026): Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card published/byte-verified; browser open. Current totals55integrated/50hosted-functional/5browser/45open. [Current status](CURRENT_STATUS.md) owns active work. Older dated checkpoints below are historical.
 
 ## Historical Azure checkpoint — 1 November 2026
 
