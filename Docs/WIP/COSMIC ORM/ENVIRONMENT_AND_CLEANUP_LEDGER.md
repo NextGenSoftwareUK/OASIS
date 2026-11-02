@@ -3596,3 +3596,39 @@ Do not attribute all concurrent free-space changes to measured build outputs.
 Coref42dd8c task push verified; parent manifest/gitlink advanced together; no
 Development deploy, hosting spend or source-owner replacement. Personal ML and
 previously rejected archive removals remain preserved.
+2026-11-02 Akash hosted preparation planned after9pure publisher controls pass.
+Reuse existing Python3.12/RailwayCLI5.62.1sign-in; read current dev variables only,
+protect before/candidate DPAPI files under LocalState/COSMIC/HostedSourceRolloutCurrent/
+akash-public-*. No apply/settings mutation/deploy/native queries. Exactly3values
+allowed in candidate: explicit Akash source, read-only permission/free tariff,
+4native/Mongo public example presets; DNA/legacy/all unrelated settings unchanged.
+Existing sourceowner/native/console/localHTTP ACKs frozen, no fixture replay.
+Public-only review/preset export/logs TestResults/AkashPublicSourceCurrent;
+Python __pycache__ under Scripts/Sandbox regenerable. No installs/downloads/new
+environment. Protect baseline/candidate and retain until deployment reconciled.
+2026-11-02 Akash prepared-preset control1pass/all4actual presets;9publisher
+controls pass. Protected before188,598bytes/candidate191,254bytes in existing
+HostedSourceRolloutCurrent; no apply/deploy/settings change. Own .NET outputs
+now disposable after test/native teardown; planned removal of existing reviewed
+bin/obj targets only, previous denied ChainLink target excluded. Preserve source,
+all LocalState/native receipts, raw reports, packages/runtimes and personal ML.
+Read-only existing Railway diagnostic schema inspected via existing CLI; raw
+schema/metadata shape/build-settings summaries TestResults/EclipsePublicSourceCurrent.
+Saved failed-job metadata confirms DOCKERFILE/Docker/Dockerfile.web4/rootnull at
+exact original SHA, not a root cause. No snapshot-variable values fetched, secret
+values printed, deployment retry or new installation. Small regenerated Python
+scripts/reports under TestResults; retain compact summaries, no independent env.
+
+2026-11-02 Akash preparation milestone verified:9publisher controls and1actual
+4preset planning test pass, protected before188,598/candidate191,254bytes active/
+preserved pending exact release and reconciliation. No service settings/deploy/
+cloud spend. Raw hashes/status in AKASH_PUBLIC_SOURCE_STATUS.md. After all owned
+services/tests stopped,186existing reviewed bin/obj paths cleaned under lease,
+2,154,485,642logical bytes removed per186actual log rows; secrets/source/packages/
+LocalState/ACKs/raw native evidence retained. Free61,041,795,072before /
+63,212,961,792after. Log/result TestResults/DiskInventoryCurrent/akash-prepared-build-cleanup*;
+per-target cleanup ledger tracks exact paths. No removal from original checkout
+or bypass of denied ChainLink/dump/archive targets. Build outputs lifecycle removed;
+rebuild from existing SDK/packages only when new work needs them, never rerun
+completed native gates. Next first code-only Akash release publication, authorized
+standing dev cadence exception; preserve previous failed Eclipse job/diagnostics.

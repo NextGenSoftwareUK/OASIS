@@ -257,3 +257,15 @@ SHA256625d4f5bd34f2f49bf0e0c5c8add4841b0c97f44284a660b3c1e85822c0731ad.
 Compact observation: TestResults/EclipsePublicSourceCurrent/code-failure-later-recheck.json.
 No new compiler/packaging cause established. Repeated empty diagnostics do not
 justify speculative changes or a blind rebuild during disk recovery.
+
+2November further read-only diagnostics: actual Railway schema exposes no
+separate public build-detail query beyond the existing buildLogs/events path.
+DeploymentSnapshot contains variable values, so none were requested. Saved
+protected metadata inspected only for configuration shape and known build fields:
+DOCKERFILE builder, Docker/Dockerfile.web4, null rootDirectory, exactdbc5c6f75SHA.
+This rules out that configured-builder/path mismatch, not the failed image cause.
+Safe reports TestResults/EclipsePublicSourceCurrent/diagnostic-*-schema.json,
+failure-metadata-shape.json and failure-build-settings.json. No secret values
+printed, new environment, retry or change to the failed job. A future independently
+verified Akash feature publication is a new scoped code release, not a claim to
+have diagnosed or corrected this preserved failure.
