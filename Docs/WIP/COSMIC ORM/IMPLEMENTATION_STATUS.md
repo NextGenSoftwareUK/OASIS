@@ -6,9 +6,10 @@ Updated 1 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CUR
 |---|---|---|
 | Provider breadth | 46 integrated query types; 42 scoped hosted HTTP proofs | Additional red providers and owned native writes; public projections do not establish full ORM support |
 | Browser | 5 provider proofs | 37 browser gates open; HTTP/asset matching is not browser interaction |
-| Latest hosted provider | Azure Blob properties: native 3/2, Mongo pairing 5/4, reuse 0 new/2 existing, foreign-private 0/public 3, SQLite/Neo4j replicas 2/2 | Separate hosted Azure Cosmos remains deferred |
-| Fantom | 278 source controls, 40 API controls, native/CLI 3/2, local HTTP/Mongo/privacy, 8 publisher controls; merged 46-control batch passed | Hosted native3/2, Mongo5/4, reuse/privacy and replicas2/2 pass; card/public-byte proof and93client tests complete |
+| Latest hosted provider | Filecoin: native3/2, Mongo5/4, reuse0new/2existing, privacy0/3, replicas2/2; card9413da3/public bytes and94client tests verified | Browser interaction and full native payload migration remain open |
+| Fantom | Native/CLI/local/hosted HTTP, Mongo pairing/reuse/privacy/replicas and card/public bytes pass | Browser interaction and broader ORM scope remain open |
 | Three-database query parity | 50/82 checklist rows per database; original investor-demo subset green | Work only red rows; deep LINQ, POCO mapping and migrations tooling paused |
+| Next provider | Telos shipping transport/native genesis/finalized/hash-bound protocol qualified; source catalogue retained | Implement descriptor/new controlled cases, native manager/C#3/2, then API/Mongo/hosted gates |
 | HyperDrive V2 | Scoped live three-store routing/failover, six native recovery directions/interleavings and ACK-loss/disconnect proofs retained | Wider operator/transport/scale acceptance and primary-authority cutover |
 | Full ORM | Focused tracking, conditional-write, graph, history and delta evidence exists | Requirement-by-requirement full acceptance audit remains open |
 
