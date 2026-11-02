@@ -88,3 +88,27 @@ Legacy tracker unchanged; original Python403/offline contract failure preserved.
 | `LocalState/COSMIC/HostedChainflipPublicSourceCurrent/source.json` | 152 | `9b0482be4f9ef37258e6f004019be39faf3d940a58431867e5efe529d4bbb4da` |
 | `Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ChainflipOASIS/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.ChainflipOASIS.dll` | 42496 | `2dc7f17bacb0043f97924d2df2551f5293a2e5312e595f488f85d145fa3d0585` |
 | `Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll` | 906752 | `77dff0bf95635a0439a27df23633b43aa4b14e32f1f43e491c50c12af4d5539c` |
+
+
+## HTTP/Mongo milestone — 2 November 2026
+
+Production WEB4 build passes. Core query tariff1, hosted admission3, explicit
+original-fixture validation9, publisher9 and actual prepared presets1 tests pass;
+frontend106 controls pass on its task branch. Prepared three-key candidate is
+retained once, not applied. No hosting/native-write claim yet.
+
+Original native HTTP3 passed but federation hit the omitted five-second request
+budget. Presets already specify30seconds; corrected only this red fixture.
+Original failure and two version1 save ACKs are preserved. One explicit,
+journal-bound read-only completion passes native3/2, Mongo5/4, privacy0/3 and
+nine query receipts with zero additional SDK saves. It validates the original
+actors, keys, copies, operations, marker and ACKs; no reseeding or owner replacement.
+Owned fixture database was verified removed and Mongo stopped. Both consumed
+fixture intents must not be replayed. Core task4f9808 is pushed; hosted remains50.
+
+| Evidence (worktree-relative) | SHA256 |
+|---|---|
+| `TestResults/ChainflipPublicSourceCurrent/chainflip-mongo-native-summary.json` | `6be1b2d56f34e559c23c5e582da85826c679580bf1db279cff4520c105acd5d3` |
+| `TestResults/ChainflipPublicSourceCurrent/Http/prepared-presets.trx` | `f464518aa55c6027c9f3e60abda4ba34fc63caa16f2a08e6b39ab46cc2b9d6ab` |
+| `TestResults/ChainflipPublicSourceCurrent/prepared-review.json` | `e1795bd9953b29209aba63711a067e43f356bc997729229df98680fa1873072a` |
+| `LocalState/COSMIC/ChainflipMongoHttpCurrent/fixture.cleaned.json` | `5f8d2964bde731959e5741e34c07fa80c0385f6071e42083dcb1657d6c12f5fd` |
