@@ -16,7 +16,7 @@ deep selected-stage LINQ parity paused. Work red scopes or reproduced bugs only.
 ## Exact next step
 
 1. Freeze all accepted Bittensor source/owner/keys/config/candidates/intents/ACKs/cohort. LocalState/COSMIC: BittensorPublicQualificationCurrent, HostedBittensorPublicSourceCurrent, BittensorMongoHttpCurrent(cleaned), HostedBittensorReleaseCurrent, HostedQueryAcceptance-BittensorOASIS. No readiness/SDK/CLI/HTTP/settings/save replay for green. [Bittensor detail](BITTENSOR_PUBLIC_SOURCE_STATUS.md).
-2. Continue next red provider Aztec: read AZTEC_PUBLIC_SOURCE_STATUS.md. Official docs list mainnet v6.0.0/publicRPC; git ls-remote resolved tag v6.0.0 to0219f11d8133970df3974fe5ae65e006bf8c193a. SDK schema paths tried were unavailable/contents404; no native probe or source/cache install yet. Inspect correct pinned NodeInfo/BlockData serialization and public access limits before bounded exclusive first qualification. Do not clone/install a node/SDK or guess/fallback old methods. Legacy unchanged.
+2. Aztec pinned v6schema layout resolved through parent0219f11d/labs submodule aztec-labs-eng/aztec-node1b6de149.7schema files/65498bytes retained, no SDK install.6offline controls pass; first NodeInfo request403/Cloudflare1010 explicitly nonretryable, no identity/block rows accepted and no bypass. Original intent/ACK/712byte denial durable in AztecPublicQualificationCurrent. [Detail](AZTEC_PUBLIC_SOURCE_STATUS.md). Next review Zcash's official/free public metadata-read options and existing provider before bounded first qualification; no full-node/new environment allocation.
 3. Keep previous accepted sources/cohorts frozen. Akash/Eclipse/ENS/prior proofs remain in their source reports. Farcaster lacks verified suitable free access; original failure durable. Lens first403/Cloudflare1010 explicitly nonretryable; preserve denial, no bypass. All other preserved failed gates remain red.
 4. Keep full provider report/manual/roadmaps/resource ledger current. Raw logs/results TestResults; durable identities/config/ACKs/compressed original proof LocalState/COSMIC. No .NET rebuild merely to recreate green evidence.
 
@@ -30,7 +30,7 @@ deep selected-stage LINQ parity paused. Work red scopes or reproduced bugs only.
 
 ## Disk and working rules
 
-[Disk recovery](../Cleanup/DISK_RECOVERY_CURRENT.md):120GBtarget unmet. Latest measured free62,915,301,376bytes. Bittensor188reviewed generated folders/2,154,947,374logical bytes remain preserved after automatic cleanup-policy rejection; no retry/bypass. External14shared-library paths preserved. No owned local test/DB service remains. Exact paths/sizes/lifecycles in ENVIRONMENT_AND_CLEANUP_LEDGER.md.
+[Disk recovery](../Cleanup/DISK_RECOVERY_CURRENT.md):120GBtarget unmet. Latest measured free59,235,729,408bytes. Bittensor188reviewed generated folders/2,154,947,374logical bytes remain preserved after automatic cleanup-policy rejection; no retry/bypass. External14shared-library paths preserved. No owned local test/DB service remains. Exact paths/sizes/lifecycles in ENVIRONMENT_AND_CLEANUP_LEDGER.md.
 
 Personal miniforge3/art-ml-models explicitly KEEP. Existing WSL/provider data/runtimes preserved; admin compaction pending, not80GBrecovery. Earlier rejected ChainLink bin/dump/duplicate Git-pack targets and unknown root logs untouched. No blanket caches/volumes/user-data deletion.
 
