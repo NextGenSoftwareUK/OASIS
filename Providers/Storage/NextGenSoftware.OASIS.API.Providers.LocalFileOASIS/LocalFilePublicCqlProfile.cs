@@ -1,5 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
+using System.Collections.ObjectModel;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -19,6 +21,9 @@ public sealed class LocalFilePublicCqlProfile : LocalFileOASIS,
     private readonly string holons;
     private readonly Guid sourceOwner;
     private readonly IReadOnlyDictionary<Guid, string> records;
+    public string SourceDirectory { get; }
+    public Guid SourceOwner => sourceOwner;
+    public IReadOnlyDictionary<Guid, string> RecordHashes => records;
 
     public LocalFilePublicCqlProfile(string directory, Guid sourceOwner,
         IReadOnlyDictionary<Guid, string> recordHashes) : base(storageDirectory: RequireDirectory(directory))
@@ -28,8 +33,53 @@ public sealed class LocalFilePublicCqlProfile : LocalFileOASIS,
                 || pair.Value.Length != 64 || pair.Value.Any(c => !Uri.IsHexDigit(c))))
             throw new ArgumentException("Explicit owner and bounded canonical-ID/hash catalogue required.");
         this.sourceOwner = sourceOwner;
-        records = recordHashes.ToDictionary(pair => pair.Key, pair => pair.Value.ToLowerInvariant());
-        holons = Path.Combine(Path.GetFullPath(directory), "Holons");
+        records = new ReadOnlyDictionary<Guid, string>(recordHashes.ToDictionary(pair => pair.Key, pair => pair.Value.ToLowerInvariant()));
+        SourceDirectory = Path.GetFullPath(directory);
+        holons = Path.Combine(SourceDirectory, "Holons");
+    }
+
+    /// <summary>Metadata-only host configuration. Parsing never touches source files.</summary>
+    public static LocalFilePublicCqlProfile FromJson(string json)
+    {
+        if (json == null || Encoding.UTF8.GetByteCount(json) > 32768)
+            throw new ArgumentException("Bounded public LocalFile configuration required.");
+        using var document = JsonDocument.Parse(json, new JsonDocumentOptions { MaxDepth = 4 });
+        var root = document.RootElement;
+        Fields(root, "schema", "directory", "sourceOwner", "records");
+        if (root.GetProperty("schema").ValueKind != JsonValueKind.Number
+            || !root.GetProperty("schema").TryGetInt32(out var schema) || schema != 1
+            || root.GetProperty("directory").ValueKind != JsonValueKind.String
+            || !GuidValue(root.GetProperty("sourceOwner"), out var owner)
+            || root.GetProperty("records").ValueKind != JsonValueKind.Array
+            || root.GetProperty("records").GetArrayLength() is < 1 or > 100)
+            throw new ArgumentException("Exact public LocalFile schema1 required.");
+        var hashes = new Dictionary<Guid, string>();
+        foreach (var record in root.GetProperty("records").EnumerateArray())
+        {
+            Fields(record, "id", "sha256");
+            if (!GuidValue(record.GetProperty("id"), out var id)
+                || record.GetProperty("sha256").ValueKind != JsonValueKind.String
+                || !hashes.TryAdd(id, record.GetProperty("sha256").GetString()!))
+                throw new ArgumentException("Unique canonical source records required.");
+        }
+        return new(root.GetProperty("directory").GetString()!, owner, hashes);
+    }
+
+    private static bool GuidValue(JsonElement value, out Guid id)
+    {
+        id = Guid.Empty;
+        return value.ValueKind == JsonValueKind.String
+            && Guid.TryParseExact(value.GetString(), "D", out id) && id != Guid.Empty;
+    }
+
+    private static void Fields(JsonElement value, params string[] expected)
+    {
+        if (value.ValueKind != JsonValueKind.Object)
+            throw new ArgumentException("Source configuration objects required.");
+        var names = value.EnumerateObject().Select(property => property.Name).ToArray();
+        if (names.Length != expected.Length || names.Distinct(StringComparer.Ordinal).Count() != names.Length
+            || names.Any(name => !expected.Contains(name, StringComparer.Ordinal)))
+            throw new ArgumentException("Exact unique configuration fields required;unknown credentials/options rejected.");
     }
 
     private static string RequireDirectory(string directory)

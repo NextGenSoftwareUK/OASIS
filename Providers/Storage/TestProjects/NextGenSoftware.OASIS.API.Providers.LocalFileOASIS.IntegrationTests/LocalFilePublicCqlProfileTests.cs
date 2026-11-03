@@ -1,4 +1,6 @@
 using System.Security.Cryptography;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -67,6 +69,51 @@ public class LocalFilePublicCqlProfileTests
             new[] { new CosmicQueryTarget(ProviderType.LocalFileOASIS, adapter.QueryCapabilities) });
         Assert.IsFalse(plan.IsError, plan.Message);
         return adapter.ExecuteCosmicQueryAsync(plan.Result);
+    }
+
+    private static string Configuration(Fixture fixture) => JsonSerializer.Serialize(new {
+        schema = 1, directory = fixture.Root, sourceOwner = fixture.Owner,
+        records = fixture.Hashes.Select(pair => new { id = pair.Key, sha256 = pair.Value }).ToArray() });
+
+    [TestMethod]
+    public void HostConfigurationParsingDoesNotCreateOrActivateMissingNativeSource()
+    {
+        using var fixture = new Fixture();
+        var json = JsonNode.Parse(Configuration(fixture))!;
+        var absent = Path.Combine(fixture.Root, "not-created");
+        json["directory"] = absent;
+        using var source = LocalFilePublicCqlProfile.FromJson(json.ToJsonString());
+        Assert.AreEqual(absent, source.SourceDirectory);
+        Assert.AreEqual(fixture.Owner, source.SourceOwner);
+        Assert.AreEqual(3, source.RecordHashes.Count);
+        Assert.IsFalse(source.IsProviderActivated);
+        Assert.IsFalse(Directory.Exists(absent));
+    }
+
+    [DataTestMethod]
+    [DataRow("unknown")]
+    [DataRow("version")]
+    [DataRow("duplicate-id")]
+    [DataRow("duplicate-field")]
+    [DataRow("relative-directory")]
+    [DataRow("empty-owner")]
+    [DataRow("hash")]
+    public void HostConfigurationRejectsUnknownCredentialsAndAmbiguousSourceIdentity(string mode)
+    {
+        using var fixture = new Fixture();
+        var original = Configuration(fixture);
+        var json = JsonNode.Parse(original)!;
+        switch (mode)
+        {
+            case "unknown": json["password"] = "not-a-real-password"; break;
+            case "version": json["schema"] = 2; break;
+            case "duplicate-id": json["records"]!.AsArray().Add(json["records"]![0]!.DeepClone()); break;
+            case "relative-directory": json["directory"] = "relative-source"; break;
+            case "empty-owner": json["sourceOwner"] = Guid.Empty; break;
+            case "hash": json["records"]![0]!["sha256"] = "bad-hash"; break;
+        }
+        var text = mode == "duplicate-field" ? original.Replace("\"schema\":1,", "\"schema\":1,\"schema\":1,") : json.ToJsonString();
+        Assert.ThrowsException<ArgumentException>(() => LocalFilePublicCqlProfile.FromJson(text));
     }
 
     [TestMethod]

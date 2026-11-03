@@ -26,6 +26,28 @@ remain unchanged/documented. New filesystem tests belong to the existing
 integration project;its cached dependencies compile. Initial NETSDK1004 and both
 compile-error logs/hashes preserved in the proof manifest,not relabelled green.
 
+### Explicit hosted configuration
+
+CQL_LOCALFILE_PUBLIC_SOURCE_JSON now registers the separate query profile through
+Startup/LocalFileCqlRegistration. Schema1 requires exactly `schema`,`directory`,
+`sourceOwner`,`records`;each record has exactly `id`,`sha256`. Directory must be
+absolute;IDs are nonempty unique GUIDs;hashes are64hex digits. Maximum100records
+and32768configuration bytes. No credentials,unknown fields or duplicate keys.
+Parsing captures metadata only;it never creates directories or activates storage.
+
+Public read grant,query tariff,presets and data provisioning remain separate
+explicit deployment configuration. LocalFile is admitted for bounded unsorted
+row/federation queries,not automatically into canonical three-store composition.
+Existing browser preparation already supports GUID recipes and avatar-mapped
+snapshot IDs;no frontend algorithm duplication is needed.
+
+16profile/configuration/native-filesystem cases and30API/discovery/schema cases
+pass,0failed/skipped. Original TRX/source hashes:
+LocalState/COSMIC/HostedLocalFileSourceCurrent/host-registration-evidence.json.
+Next implement the explicit public teaching-data bootstrap and verify hosted
+native3/2,Mongo5/4,privacy/replicas and card. No deployment/configuration change
+or hosted LocalFile acceptance yet;counts stay96local/60historical hosted proofs.
+
 ## Demo
 
 ```powershell

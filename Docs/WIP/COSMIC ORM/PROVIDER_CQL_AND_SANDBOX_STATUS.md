@@ -2,7 +2,7 @@
 
 **Current launcher coverage:** All37published launcher paths now exist; the original audit found35missing. Source/build/controlled recovery does not prove all services/configurations/native executions ready. [Exact scope and recovery](LOCAL_LAUNCHER_INTEGRATION_GAP.md).
 
-**LocalFile next hosted scope,3November:** Separate public CQL profile/readonly activation added;8actual new-filesystem cases pass without touching retained cohorts. Hosted registration/bootstrap/HTTP/Mongo/replica/card gates remain open;no coverage count increase. Legacy template unit compile gaps documented unchanged. [Scope/evidence](LOCALFILE_CQL_MVP.md#hosted-public-profile-preparation3november2026).
+**LocalFile next hosted scope,3November:** Separate public CQL profile/readonly activation and explicit hosted metadata configuration added;16filesystem/configuration+30API/discovery/schema cases pass without touching retained cohorts. Bootstrap/deployment/HTTP/Mongo/replica/card gates remain open;no coverage count increase. Legacy template unit compile gaps documented unchanged. [Scope/evidence](LOCALFILE_CQL_MVP.md#hosted-public-profile-preparation3november2026).
 
 **Current outage correction,3November:** Development b718f2879/job33c9ef7d-b8b3-4403-9109-32ce47c4d7a8 SUCCESS. Explicit Wizard-only failed-source recovery;27controlled/controller/discovery/schema tests pass. Live anonymous401/ordinary-demo-user403,health and Mongo/SQLite/Neo4j/ThreeFold readiness pass. **Current59/60ready,Nostr unavailable at generation1.** Host/generation fences and bounded receipts;no normal-query retries. Successful operator recovery remains pending existing Wizard-session availability;do not claim upstream restored. [Contract/evidence](CQL_SOURCE_RECOVERY.md).
 
