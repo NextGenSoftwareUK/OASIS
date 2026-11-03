@@ -5,9 +5,9 @@ commit d3dfe48a4d4e4ff0288180303fbbb06ab88eaebb. This is a source-integration
 problem, not evidence that the original native runs failed or should be replayed.
 
 The original audit found 35 absent paths among 37 distinct PowerShell launchers.
-DuckDB, LocalFile, Redis and SQLServer are now recovered; 31 remain absent from the current checkout. DuckDB implementation commit f1aeb0cb5 is not an ancestor of
+DuckDB, LocalFile, Redis, SQLServer and four Redis-family demos are now recovered; 27 remain absent from the current checkout. DuckDB implementation commit f1aeb0cb5 is not an ancestor of
 current HEAD and survives on the earlier sandbox-integration branch. Counts of
-68 current integrated query types/59 hosted proofs do not count the remaining missing
+72 current integrated query types/59 hosted proofs do not count the remaining missing
 local launchers as additional hosted capabilities.
 
 Recovery source: `origin/work/cosmic-cql-sandbox-integration` at `237403a75b6983e013141cf7ba44bf66858abafd`.
@@ -68,7 +68,7 @@ is 65 after restoring this historical provider; hosted count remains 59.
 
 Named source/launcher restored without changing the provider base. Seven controlled
 cases, producer/consumer builds and syntax pass. Original source/seed untouched;
-no native replay. Local count 66, hosted 59; 31 advertised launchers remain absent.
+no native replay. Local count 66, hosted 59; 27 advertised launchers remain absent.
 
 ## Redis / SQL Server recovery milestone
 
@@ -86,3 +86,14 @@ source batch (1/1 pass), guarding WEB4 startup after Shared extension restoratio
 Raw TestResults/LauncherRecoveryCurrent/shipping-schema.trx SHA256 `827417ccb1a7ff28c8498d86c3a9eadb8c1076f98d33a47bc5c22fae79dc7533`; compressed original/manifest retained at LocalState/COSMIC/LauncherRecoveryCurrent. No native service/fixture replay. Next publish verified batch to Development, then continue31missing launchers.
 
 Verified four-provider batch integrated/pushed to Development59ddcca91881102eb441c8b25e439c1914864ce0, remote tips/manifest checked. Exact existing job2d4fa248-74a7-4b26-bf66-3a991f0cab04 QUEUED; no settings changes/native replay. Durable publication intent/ACK HostedLauncherRecoveryReleaseCurrent. Observe same job, no redeploy on timeout; continue31remaining launcher/source gaps.
+
+## Redis-family recovery milestone
+
+KeyDB/ValKey/Dragonfly/Garnet CQL/provider/test/PowerShell/Python closures restored.
+Eight CQL cases each, all producer/consumer builds and syntax pass. Missing
+cross-project Mongo test-support link reproduced and replaced by one shared
+source at Providers/Shared/TestSupport; helper behavior unchanged, never executed.
+Garnet test-only hardcoded Linux root reproduced as outside Windows TestResults,
+then derived from its script path; six fake-process lifecycle cases pass and owned
+tiny fixture is gone. No native service/fixture replay. Task-only batch, local72/
+hosted60;27advertised launchers still missing.
