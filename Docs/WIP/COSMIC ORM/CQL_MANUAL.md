@@ -1460,3 +1460,7 @@ queries, historical native proof; current hosted/runtime acceptance unverified.
 [Litestream local walkthrough](LITESTREAM_CQL_MVP.md) source is restored with
 14 controlled checks and current native-consumer compilation. It queries local
 SQLite by bounded GUIDs; sidecar replication is a separate acceptance scope.
+
+[Owned ClickHouse walkthrough](CLICKHOUSE_CQL_MVP.md) source is restored with
+29 controlled checks and current native-consumer build. This bounded GUID/FINAL
+query is separate from the accepted public-country adapter. Runtime is unverified.

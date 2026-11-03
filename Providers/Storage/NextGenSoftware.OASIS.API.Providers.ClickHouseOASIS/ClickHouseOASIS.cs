@@ -35,11 +35,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
     ///   connectionString — ClickHouse ADO.NET connection string, e.g.
     ///                      "Host=localhost;Port=8123;Database=oasis;Username=default;Password="
     /// </summary>
-    public class ClickHouseOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class ClickHouseOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         /// <summary>
-        /// When true this provider stores a new record per save and links to the previous
-        /// version (blockchain-style) instead of updating in place.
+        /// Reserved history mode. Holon writes and CQL reject true until implemented.
         /// </summary>
         public bool IsVersionControlEnabled { get; set; }
 
@@ -81,6 +80,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
+            IsProviderActivated = false;
             try
             {
                 await ExecuteAsync("CREATE DATABASE IF NOT EXISTS oasis");
@@ -354,12 +354,23 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                var json = Ser(holon);
-                var isDeleted = holon.DeletedDate != DateTime.MinValue ? 1 : 0;
-                var parentId = holon.ParentHolonId == Guid.Empty ? Guid.Empty.ToString() : holon.ParentHolonId.ToString();
-                await ExecuteAsync($"INSERT INTO oasis.holons (id, parent_holon_id, holon_type, is_deleted, data_json) VALUES ('{holon.Id}', '{parentId}', '{Esc(holon.HolonType.ToString())}', {isDeleted}, '{Esc(json)}')");
-                result.Result = holon; result.IsError = false; result.Message = $"ClickHouseOASIS: Holon '{holon.Name}' saved.";
+                if (IsVersionControlEnabled) throw new NotSupportedException("ClickHouse historical writes are not implemented.");
+                if (holon == null) throw new ArgumentNullException(nameof(holon));
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var keys = holon.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.ClickHouseOASIS] = id.ToString("D");
+                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
+                payload["Id"] = id;
+                payload["ProviderUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                await PersistHolonAsync(id, holon.ParentHolonId, holon.HolonType.ToString(), holon.IsDeleted, payload.ToJsonString(_jsonOpts));
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ClickHouseOASIS] = id.ToString("D");
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: Error saving holon: {ex.Message}"); }
             return result;
@@ -369,9 +380,26 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>(); var saved = new List<IHolon>();
-            foreach (var h in holons) { var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (!r.IsError && r.Result != null) saved.Add(r.Result); }
-            result.Result = saved; result.IsError = false; result.Message = $"ClickHouseOASIS: Saved {saved.Count} holons."; return result;
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var saved = new List<IHolon>();
+            var errors = new List<string>();
+            foreach (var holon in holons)
+            {
+                var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (write.IsError)
+                {
+                    errors.Add(write.Message);
+                    if (!continueOnError) break;
+                }
+                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+            }
+            result.Result = saved;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0;
+            result.SavedCount = saved.Count;
+            result.Message = string.Join("; ", errors);
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
