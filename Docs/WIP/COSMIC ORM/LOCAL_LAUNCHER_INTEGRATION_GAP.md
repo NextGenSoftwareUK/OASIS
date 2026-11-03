@@ -171,3 +171,5 @@ Chroma/Weaviate/Couchbase/PocketBase total165controls; shipping check is next.
 Chroma50/Weaviate38/Couchbase31/PocketBase46 total165controlled cases, all
 producer/consumer/syntax checks and shipping API/schema guard1/1pass, no skips.
 No native/accepted fixture replay. TRX SHA256 `8622a10ce699bd38a25c22f3dfb6f84abd36eee8fbd095675d25364fbb252666`; compressed original/manifest LocalState/COSMIC/LauncherRecoveryCurrent. Ready for one Development code batch, settings unchanged.
+
+Third recovery batch integrated/pushed Development5f4b52ae7f9569276df59b843c43a1b250cfe71b, remote tips and manifest/sevenDockerfiles/gitlinks checked. Exact code jobfc345507-9114-44ef-9e93-bb49b99309c8 QUEUED; no settings/native replay. Durable intent/ACK HostedLauncherRecoveryThirdReleaseCurrent. Follow same job, continue19remaining launcher/source gaps.
