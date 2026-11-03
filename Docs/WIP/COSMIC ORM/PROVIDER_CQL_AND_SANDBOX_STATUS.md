@@ -450,3 +450,5 @@ unchanged. Existing SDK/compiler reused;no native fixture opened or hosted
 proof. Local95/hosted60; TON_CQL_MVP.md owns current adapted-source limits.
 
 TON explicit local TVM native gate1/1passes:encrypted save/load/reopen/query3/2/0/budgets/cancellation/read-only/key/ownership checks. Owned disposable fixture removed; original retained cohort unopened. Public TON/retained-source Mongo/hosted/browser not proved. Fifth Development5507b0aa0 job6c53b53c SUCCESS, health/discovery ready (zero native queries/saves). Counts unchanged.
+
+Oracle local Mongo/content launcher source recovered;actual native/federated consumer build and runner mode checks pass. Newer activation/schema cancellation untouched. No native/hosted/browser proof added;hosting remains deferred. ORACLE_LOCAL_LAUNCHER_RECOVERY.md.
