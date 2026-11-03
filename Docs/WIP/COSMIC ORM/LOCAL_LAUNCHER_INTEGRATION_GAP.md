@@ -236,3 +236,11 @@ retained helper gains explicit data-directory argument required by original
 launcher, existing default retained. Original Azurite/config/data untouched.
 Local86/hosted60;13published launcher paths remain missing. Durable original
 TRX/hash manifest LocalState/COSMIC/LauncherRecoveryCurrent/azure-blob-recovery-evidence.json.
+
+## Owned Firestore recovery milestone
+
+7compiler/admission/cancellation controls and producer/native-consumer compile/PS
+syntax pass. Existing public Google source/README/unit walkthrough links kept.
+No original emulator/export/credential/Mongo fixture opened. Local87/hosted60;
+12published launcher paths remain missing. Original TRX/hash manifest:
+LocalState/COSMIC/LauncherRecoveryCurrent/firestore-recovery-evidence.json.
