@@ -1416,3 +1416,7 @@ See [ThreeFold public node guide](../../Devs/THREEFOLD_PUBLIC_NODE_CQL_GUIDE.md)
 ### Recovered Redis and SQL Server demos
 
 [Redis](REDIS_CQL_MVP.md) and [SQL Server](SQLSERVER_CQL_MVP.md) launchers and CQL source are restored. Current controlled tests (8/17), producer/consumer compilation and syntax pass. Their retained native/browser evidence was not replayed; recovery does not certify hosted deployment or expand EF parity.
+
+### Recovered Redis-family launchers
+
+[KeyDB](KEYDB_CQL_MVP.md), [ValKey](VALKEY_CQL_MVP.md), [Dragonfly](DRAGONFLY_CQL_MVP.md) and [Garnet](GARNET_CQL_MVP.md) retain their separate storage authorities over the shared encrypted Redis executor. Current controlled cases/builds/syntax pass; original native/browser runs were not replayed. No hosted deployment or full parity is inferred.
