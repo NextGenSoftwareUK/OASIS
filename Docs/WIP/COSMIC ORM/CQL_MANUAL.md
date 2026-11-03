@@ -1404,3 +1404,7 @@ ThreeFoldNodeId equality/IN+paging uses bounded mainnetGridProxy pointreads over
 ### ThreeFold developer setup
 
 See [ThreeFold public node guide](../../Devs/THREEFOLD_PUBLIC_NODE_CQL_GUIDE.md) for configuration, spaced C# examples and exact read-only limits. The original local three/two-record manager/LINQ run passes; hosted admission and Mongo pairing remain separate acceptance gates.
+
+### Recovered local DuckDB walkthrough
+
+[DuckDB local demo](DUCKDB_CQL_MVP.md) and its published PowerShell launcher are restored from retained source. The current provider/CQL controls (14) and consumer build pass. It supports bounded GUID identity selection; it does not add hosted DuckDB, arbitrary metadata queries or new native acceptance. Original source/seed/ACKs are retained; source recovery did not replay the accepted native fixture.
