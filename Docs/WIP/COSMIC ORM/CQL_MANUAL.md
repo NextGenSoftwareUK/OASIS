@@ -1480,3 +1480,5 @@ document-key reads; current emulator/hosted availability remains unverified.
 [Firebase walkthrough](FIREBASE_CQL_MVP.md) source restored with34controlled
 checks/current native-consumer builds. Bounded identity REST queries; current
 emulator/hosted availability remains unverified.
+
+Web3Core V2 now accepts bounded authorized GUID equality/membership, boolean composition and paging through its canonical read/decryption path. No metadata/name/graph predicates. Keys observe independent moments; cancellation stops publication but cannot abort an existing SDK RPC.10controlled tests, no native/hosted proof. See [implementation and limits](EVM_V2_CQL_RECOVERY_GAP.md).

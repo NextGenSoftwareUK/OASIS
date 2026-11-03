@@ -404,3 +404,5 @@ EVM owned-holon V2 gap: current Ethereum/Arbitrum shipping factories select
 Web3Core facades, while retained Ethereum owned demo uses legacy ABI. Shared V2
 base lacks owned CQL; public account source proofs do not cover this. See
 [EVM review](EVM_V2_CQL_RECOVERY_GAP.md). No legacy implementation changes.
+
+Update: shared Web3Core V2 bounded owned-holon CQL is implemented with10controlled tests and shipping Arbitrum facade exposure. Previous lack-of-interface finding is resolved in task source; native RPC/decryption and hosted acceptance remain unverified. Aggregate counts unchanged; EVM_V2_CQL_RECOVERY_GAP.md owns exact next work.
