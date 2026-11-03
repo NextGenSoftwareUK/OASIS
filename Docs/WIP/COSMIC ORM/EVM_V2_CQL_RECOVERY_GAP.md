@@ -64,3 +64,20 @@ consumer wiring, then compile/restore the launcher. Native and hosted gates stay
 red. Existing aggregate coverage stays local88/hosted60 and missing launchers11.
 
 Original TRX SHA256 `0ea77249a11ec79fbd3de2ba7bfd990e6a1a0412c9f45fe13951c4a3ddf2e3d3`; durable manifest `LocalState/COSMIC/LauncherRecoveryCurrent/web3-v2-owned-cql-evidence.json`.
+
+## Production decoding boundary milestone
+
+Six additional cases use the actual shipping Arbitrum V2 factory, production
+Nethereum ABI decoding, authenticated encrypted records and canonical load/graph
+projection. Only IClient transport responses are substituted in process using the
+existing ReadRpc test helper; no external RPC/server/native chain is involved.
+Valid records, tampered ciphertext, identity/context mismatch, transport errors,
+explicit absent tuple and deleted records pass. Failures publish no partial rows.
+The temporary synthetic encryption key is restored/zeroed in finally.
+
+Original TRX SHA256 `0fb1b817ce6b5400fe5f6eff11ec3720c983f6405a8790964d2ac881908d3265`; retained manifest
+`LocalState/COSMIC/LauncherRecoveryCurrent/web3-v2-owned-cql-rpc-boundary-evidence.json`.
+Current total16 controlled owned-CQL cases across two test classes. This resolves
+the controlled decoding test step above, not live chain acceptance. Next wire
+V2 teaching/native consumers and restore a correctly labelled launcher. Coverage
+counts unchanged; no legacy code modifications or native fixture replay.
