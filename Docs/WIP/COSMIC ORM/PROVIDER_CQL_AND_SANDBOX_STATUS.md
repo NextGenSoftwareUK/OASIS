@@ -441,3 +441,5 @@ native-consumer builds/syntax pass. Strict canonical SDK vector/Boolean decoding
 and save acknowledgement restored;public-account source retained. Original
 native environment unopened;local94/hosted60, owned hosting/runtime unverified.
 APTOS_CQL_MVP.md.
+
+Shared V2 owned EVM query capabilities now require positive configured chain identity (authenticated decryption prerequisite):regression before1fail/after17pass. TON legacy wrapper has no native TVM claim; separate native local-source recovery pending, public-header profile preserved. See TON_LOCAL_TVM_RECOVERY_GAP.md. Counts unchanged.
