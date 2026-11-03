@@ -51,6 +51,11 @@ already run on loopback27029/oasisRecoveryRs; the named database must exist.
 MongoIds must select real authorized copies of the chain IDs. The reader checks
 both full/subset row counts. No synthetic Mongo records are created or removed.
 Local UI ports: Ethereum5097, Polygon5098, Arbitrum5099. Stop preserves records.
+The page describes configured catalogue counts, not guaranteed live row counts;
+missing/deleted records remain absent. Shutdown stops the reader and preserves
+externally managed services. Three in-process page-render regressions pass for
+one/two/three Mongo copies, including a subset with zero Mongo copies. Evidence:
+LocalState/COSMIC/LauncherRecoveryCurrent/preserved-page-regression-evidence.json.
 
 The original result is preserved under TestResults/EvmV2ConfiguredCurrent/<Provider>;
 existing reports reject another dispatch until explicit reconciliation. Zero
