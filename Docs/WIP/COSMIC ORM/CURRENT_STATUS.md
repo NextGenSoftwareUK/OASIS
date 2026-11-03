@@ -55,6 +55,7 @@ Configured V2 Ethereum/Polygon/Arbitrum reader+Mongo/HTTP consumer restored;
 7factory/configuration controls pass. Needs explicit compatible existing source.
 Source recovery live;27controlled/API/schema cases pass;secure sign-in helper ready.
 See CQL_SOURCE_RECOVERY.md. Website commands remain to correct.
+Next independent scope:separate Ethereum V2 fixture;shipping artifact/ABI/cache pass.
 Automatic review rejected the combined website-edit/consumer-build operation;
 it did not execute. Website commands remain open. A separate reproduced page
 bug is fixed/tested below;no new native/browser proof or denied-operation retry.

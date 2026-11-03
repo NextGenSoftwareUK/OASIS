@@ -65,3 +65,20 @@ consumer and HTTP host compile; configured native/Mongo/browser gates remain ope
 
 All37published launcher paths now exist; this file audit does not prove services,
 configuration or native/hosted readiness. Profile totals remain96local/60hosted.
+
+## Ethereum compatible-source preparation,3November2026
+
+Retained Polygon seed already uses Web3Core;preserve it without replacing or
+replaying its accepted cohort. Retained Ethereum seed uses the incompatible
+legacy ABI. A separate Ethereum V2 contract/identity journal is needed rather
+than relabelling the old fixture or weakening V2 decryption context.
+
+The shipping Web3Core contract compiles using retained solc0.8.26;all18source/
+import hashes and the embedded production SDK ABI match. Deployment bytecode
+16149bytes/runtime15493bytes. Matching-cache reuse also verified. Helper:
+Scripts/TestHosts/compile-cosmic-evm-v2.cjs. Regenerable artifact:
+TestResults/EvmV2ConfiguredCurrent/Web3CoreOASIS.json. Required source/hash proof:
+LocalState/COSMIC/LauncherRecoveryCurrent/ethereum-v2-artifact-preparation.json.
+No node/key/RPC/deployment/save operation performed. Next:separately journal and
+deploy the new Ethereum V2 namespace on the existing retained local chain,then
+seed once and verify the configured reader. Native Ethereum remains unverified.
