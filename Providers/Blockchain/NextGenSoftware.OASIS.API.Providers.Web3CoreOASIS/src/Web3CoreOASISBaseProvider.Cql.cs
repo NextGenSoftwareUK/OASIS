@@ -16,7 +16,13 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 public partial class Web3CoreOASISBaseProvider : ICosmicQueryStorageProvider
 {
     public ProviderType QueryProviderType => ProviderType.Value;
-    public CosmicQueryCapabilities QueryCapabilities => BoundedIdentityCqlCompiler.Capabilities;
+    private static readonly CosmicQueryCapabilities MissingChainQueryCapabilities = new(
+        CosmicQueryFeatures.None, Array.Empty<CosmicQueryFieldCapability>());
+
+    // The chain identity is part of the authenticated private-record context.
+    // An unconfigured facade cannot advertise a query it can never decrypt.
+    public CosmicQueryCapabilities QueryCapabilities => _expectedChainId.HasValue && _expectedChainId.Value > 0
+        ? BoundedIdentityCqlCompiler.Capabilities : MissingChainQueryCapabilities;
 
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100,

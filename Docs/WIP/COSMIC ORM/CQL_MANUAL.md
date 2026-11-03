@@ -1512,3 +1512,5 @@ queries; current owned native/hosted availability unverified.
 [Owned Aptos walkthrough](APTOS_CQL_MVP.md) source restored with ten controlled
 checks/current native-consumer compilation. Bounded canonical GUID Move views;
 current owned native/hosted availability unverified.
+
+Owned Web3Core V2 CQL requires an explicit positive chain identity; otherwise planning rejects it before native dispatch.17controlled tests pass. Native TON TVM must use its explicit local-source profile, not the legacy EVM wrapper; see TON_LOCAL_TVM_RECOVERY_GAP.md.
