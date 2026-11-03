@@ -1464,3 +1464,7 @@ SQLite by bounded GUIDs; sidecar replication is a separate acceptance scope.
 [Owned ClickHouse walkthrough](CLICKHOUSE_CQL_MVP.md) source is restored with
 29 controlled checks and current native-consumer build. This bounded GUID/FINAL
 query is separate from the accepted public-country adapter. Runtime is unverified.
+
+[Owned AWS S3 walkthrough](AWS_S3_CQL_MVP.md) restores bounded encrypted object-key
+reads with seven compiler/admission/cancellation checks and current consumer
+compilation. Separate from public S3 metadata; owned runtime remains unverified.
