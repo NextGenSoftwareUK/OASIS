@@ -76,6 +76,42 @@ public class ConfiguredEvmV2ReadTests
     private static EvmV2ReadSource Source(string provider) => new(provider, "http://127.0.0.1:18547",
         31338, "0x" + new string('1', 40), Guid.NewGuid(), Enumerable.Range(0, 3).Select(_ => Guid.NewGuid()).ToArray());
 
+    [DataTestMethod]
+    [DataRow(1, 0)]
+    [DataRow(2, 2)]
+    [DataRow(3, 2)]
+    public async Task PreservedRecordPageUsesActualCataloguesAndNeverPromisesCleanup(int mongoCount, int subsetCount)
+    {
+        var source = Source("Ethereum");
+        var chain = source.Create();
+        var mongo = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(
+            "mongodb://127.0.0.1:27029", "unused_render_test");
+        var mongoIds = mongoCount == 1 ? source.Ids.Skip(2).ToArray() : source.Ids.Take(mongoCount).ToArray();
+
+        // Render only the GET endpoint in memory. No host starts, no provider
+        // activates, and no database or chain query/cleanup can run here.
+        await using var app = IdentityFederationApiHost.Build(null!, mongo, chain,
+            source.Actor, source.Ids, mongoIds, source.Ids, preserveExistingRecords: true);
+        var routes = (Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)app;
+        var endpoint = routes.DataSources.SelectMany(data => data.Endpoints)
+            .OfType<Microsoft.AspNetCore.Routing.RouteEndpoint>()
+            .Single(route => route.RoutePattern.RawText == "/");
+        var context = new Microsoft.AspNetCore.Http.DefaultHttpContext { RequestServices = app.Services };
+        using var body = new MemoryStream();
+        context.Response.Body = body;
+        await endpoint.RequestDelegate!(context);
+        var page = System.Text.Encoding.UTF8.GetString(body.ToArray());
+
+        StringAssert.Contains(page, $"Catalogued full selection: Ethereum 3 + Mongo {mongoCount} copies.");
+        StringAssert.Contains(page, $"Catalogued subset: Ethereum 2 + Mongo {subsetCount} copies.");
+        StringAssert.Contains(page, "Missing or deleted records remain absent.");
+        StringAssert.Contains(page, "Reader stopping; existing records and externally managed services are preserved.");
+        Assert.IsFalse(page.Contains("fixture cleanup", StringComparison.Ordinal));
+        Assert.IsFalse(page.Contains("= 5 physical rows", StringComparison.Ordinal));
+        Assert.IsFalse(chain.IsProviderActivated);
+        Assert.IsFalse(mongo.IsProviderActivated);
+    }
+
     [TestMethod]
     public async Task ExplicitConfiguredV2SourceRunsReadOnlyTeachingConsumer()
     {
