@@ -1488,3 +1488,5 @@ Web3Core V2 owned queries additionally pass six production ABI/decryption tests 
 [Owned EVM V2 C# walkthrough](../../../Examples/CosmicCqlDemo/EvmV2OwnedWalkthrough.cs) demonstrates explicit authority/catalogue, HolonManager/LINQ full3/subset2 and Mongo federation method. [Usage](EVM_V2_CQL_RECOVERY_GAP.md). Controlled SDK proof only; native launcher/chain acceptance open.
 
 `Scripts/TestHosts/Run-CosmicEvmV2OwnedRead.ps1` is the explicit read-only retained Arbitrum V2 consumer. Requires existing compatible loopback node/seed and original key already configured in process environment; never paste keys into docs/arguments. Consumer compiles; native acceptance pending. See EVM_V2_CQL_RECOVERY_GAP.md.
+
+Owned Arbitrum V2 read-only walkthrough now has native3/2proof over retained encrypted records, plus16controlled cases. Original node/seed/key reused, seed unchanged, no writes requested, clean exit0. Mongo-paired native/hosted owned gates remain open; do not replay completed standalone gate. See EVM_V2_CQL_RECOVERY_GAP.md.
