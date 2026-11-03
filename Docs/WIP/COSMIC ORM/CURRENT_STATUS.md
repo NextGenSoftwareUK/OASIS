@@ -65,6 +65,9 @@ zero behind. Manifest/seven Dockerfiles/gitlinks validate. No deployment started
 Automatic review rejected the combined website-edit/consumer-build operation;
 it did not execute. Website commands and final changed-consumer compile remain
 open. Do not infer a new native/browser proof or retry the denied operation.
+Independent sixth-batch shipping API/provider build and GraphQL schema guard
+pass1/1,no skips. Original hash/counts:LocalState/COSMIC/LauncherRecoveryCurrent/
+sixth-batch-shipping-schema-evidence.json. Final configured consumer gate remains open.
 See TON_LOCAL_TVM_RECOVERY_GAP.md;public-header source preserved.
 
 ## Constraints / wider unfinished work
