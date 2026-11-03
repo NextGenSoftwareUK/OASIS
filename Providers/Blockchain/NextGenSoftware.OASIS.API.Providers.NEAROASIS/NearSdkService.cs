@@ -44,8 +44,8 @@ internal sealed partial class NearSdkService
         using var _ = await InvokeAsync("probe");
     }
 
-    public async Task<string> GetAsync(string key)
-        => (await ReadSnapshotAsync(key)).Plaintext;
+    public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
+        => (await ReadSnapshotAsync(key, cancellationToken)).Plaintext;
 
     internal sealed class StoredSnapshot
     {
@@ -59,11 +59,11 @@ internal sealed partial class NearSdkService
 
     // Preserve the SAME observed encrypted bytes for conditional writes and the decoded record for staging.
     // Re-encrypting the old plaintext would produce a different nonce and cannot be used as a CAS condition.
-    public async Task<StoredSnapshot> ReadSnapshotAsync(string key)
+    public async Task<StoredSnapshot> ReadSnapshotAsync(string key, CancellationToken cancellationToken = default)
     {
         using var codec=OpenStorageCodec();
         var context=StorageContext(key);
-        using var response = await InvokeAsync("get", new { key });
+        using var response = await InvokeAsync("get", new { key }, cancellationToken);
         if(response.RootElement.ValueKind==JsonValueKind.Null)return new StoredSnapshot(this,key,null,null);
         if(response.RootElement.ValueKind!=JsonValueKind.String)throw new InvalidDataException("Native NEAR record must be ciphertext or absent.");
         var ciphertext=response.RootElement.GetString();
