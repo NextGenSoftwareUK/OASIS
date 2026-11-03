@@ -408,3 +408,5 @@ base lacks owned CQL; public account source proofs do not cover this. See
 Update: shared Web3Core V2 bounded owned-holon CQL is implemented with10controlled tests and shipping Arbitrum facade exposure. Previous lack-of-interface finding is resolved in task source; native RPC/decryption and hosted acceptance remain unverified. Aggregate counts unchanged; EVM_V2_CQL_RECOVERY_GAP.md owns exact next work.
 
 Web3Core V2 owned CQL now has16controlled cases:10orchestration/factory plus6production ABI/decryption cases using in-process SDK transport responses. This is stronger than overriding loads, but is not a real-chain/hosted proof. Next V2 teaching/native consumers; counts unchanged.
+
+V2 owned EVM C# consumer proves manager/LINQ3/2 with controlled SDK transport; Mongo preset compiles. No live-chain/Mongo/hosted proof added. Counts unchanged; EVM_V2_CQL_RECOVERY_GAP.md.

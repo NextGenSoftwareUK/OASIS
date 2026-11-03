@@ -81,3 +81,43 @@ Current total16 controlled owned-CQL cases across two test classes. This resolve
 the controlled decoding test step above, not live chain acceptance. Next wire
 V2 teaching/native consumers and restore a correctly labelled launcher. Coverage
 counts unchanged; no legacy code modifications or native fixture replay.
+
+## V2 C# teaching consumer
+
+[Spaced/commented source](../../../Examples/CosmicCqlDemo/EvmV2OwnedWalkthrough.cs)
+accepts an activated Web3Core V2 facade, existing HolonManager, trusted three-ID
+catalogue, actor and output. It cannot accept legacy Ethereum. It deploys/seeds
+nothing, queries all three through CosmicLinq/HolonManager, then uses Contains
+to select two. RunWithMongoAsync reuses the existing federation preset and
+separate trusted policies.
+
+```csharp
+// Application supplies activated V2 facade/manager and policy-approved IDs.
+var counts = await EvmV2OwnedWalkthrough.RunAsync(
+    manager,
+    activatedV2Provider,
+    authorizedChainIds,
+    actorId,
+    Console.Out,
+    cancellationToken);
+
+var combined = await EvmV2OwnedWalkthrough.RunWithMongoAsync(
+    manager,
+    activatedMongo,
+    activatedV2Provider,
+    selectedIds,
+    authorizedMongoIds,
+    authorizedChainIds,
+    actorId,
+    Console.Out,
+    cancellationToken);
+```
+
+Six boundary tests pass with the positive case executing this exact teaching
+source, production manager/LINQ and V2 ABI/crypto:full3/subset2. The Mongo method
+compiles, but was not executed against Mongo. This is a reusable C# consumer,
+not a completed CLI launcher or real-chain proof. Next reconcile a compatible
+retained Web3Core deployment/config, wire native V2 launcher and verify. Never
+reuse the old legacy Ethereum seed as Web3Core. Coverage counts unchanged.
+
+Original TRX SHA256 `437ff00da50acf79942838e151b2c820aaf78a5c115f612e4ee6fb6423824916`; retained manifest `LocalState/COSMIC/LauncherRecoveryCurrent/web3-v2-owned-cql-walkthrough-evidence.json`.
