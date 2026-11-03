@@ -118,3 +118,13 @@ Original owner reused after ready discovery. Native3/2, Mongo5/4, repeat0new/2ex
 `ThreeFoldOASIS-client-http-flow.json`: 33085 bytes SHA256 `baa40f71a302ca2ad6a0eae12b75a6d521ad143bfc9ed9eba7b898040fdaa218`; compressed original under `HostedQueryAcceptance-ThreeFoldOASIS`.
 
 `ThreeFoldOASIS-isolation-http.json`: 4670 bytes SHA256 `f36181095d8309eed418dca2381497244a6e4bd8cba069e96efca35d24a3d2bc`; compressed original under `HostedQueryAcceptance-ThreeFoldOASIS`.
+
+## Sandbox card and public assets verified
+
+Website task/main2170b672851e7b302b3f0f582f7a938667d1ad89 pushed/remote verified. HTML parses with157uniqueIDs; card exposes live four-preset instructions and pinned guide/commented C#links. Initial public GET served old ClickHouse-eraHTML; original mismatch preserved. Second ordinary GET matches new HTML, both unchanged JS already match. No cache bypass/republication/native query/save replay. Compact verified ACK HostedThreeFoldPublicSourceCurrent/website-publication-verified.json; initial mismatch and second observation retained separately. Browser interaction remains unverified. Next recover33missinglocal launchers from retained branch.
+
+`web4-sandbox.html`: 203638 bytes SHA256 `3049d46e0f8a24238acafae491adfb510822cc701c42f6e1bdb541615a84a290`, HTTP200/exactGitblob match.
+
+`cql-demo-preparation.js`: 10241 bytes SHA256 `c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a`, HTTP200/exactGitblob match.
+
+`cql-playground.js`: 21871 bytes SHA256 `7cb6210b9adda1e83630fc966926772f8338c43163c24d1abd88c626ad1ad649`, HTTP200/exactGitblob match.

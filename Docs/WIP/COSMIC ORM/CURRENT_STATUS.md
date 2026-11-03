@@ -27,9 +27,11 @@ Original hosted native 3/2, Mongo 5/4, repeat 0 new/2 existing, foreign 0 privat
 3 public and exact SQLite/Neo4j 2 each pass. Two ordinary version-1 private saves,
 no pending intents. Independent offline audit passes; cohort is now frozen.
 
-**Next: publish ThreeFold's sandbox card with pinned guide/C# links, verify the
-public HTML and two scripts against exact Git blobs, then continue recovering
-missing launchers.** Browser interaction remains closed/unverified.
+ThreeFold card published at website **2170b67**; all 157 HTML IDs unique.
+Public HTML/two scripts match exact committed blobs. Initial old HTML observation
+is preserved separately; no republish was needed. Browser remains unverified.
+**Next: recover the remaining 33 advertised local launchers and scoped source
+closures from retained Git, preserving current changes and accepted fixtures.**
 
 Do not rerun the hosted verifier, native walkthrough, settings apply or activation.
 Durable evidence: `HostedQueryAcceptance-ThreeFoldOASIS` (three compressed original
@@ -57,7 +59,7 @@ scoped dependencies, not the entire old branch. [DuckDB](DUCKDB_CQL_MVP.md).
 
 Work only `C:/Source/OASIS-cosmic` / `work/cosmic-cql-ton-public`; Core branch
 `work/cosmic-cql-google-public`; website `C:/Source/Web4Site` / `work/cosmic-cql`.
-Website main/task d3dfe48 includes ClickHouse/Zcash. No new environment/worktree.
+Website main/task 2170b67 includes ThreeFold/ClickHouse/Zcash. No new environment/worktree.
 Use one build lease and `/m:2 /nr:false /p:UseSharedCompilation=false`.
 Raw outputs only `TestResults/`; durable identities/proof `LocalState/COSMIC/`.
 Named-file commits; fetch/preserve upstream; no production/master promotion.
