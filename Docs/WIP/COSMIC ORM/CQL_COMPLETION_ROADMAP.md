@@ -3,12 +3,12 @@
 Updated 2 November 2026. Full programme remains incomplete.
 [CURRENT_STATUS](CURRENT_STATUS.md) owns deployment state and the exact next step.
 
-1. Finish ThreeFold's original hosted rollout. Code job 5d9b665b succeeded at
-   c00da49c1/Core5415961. Original three settings were acknowledged once and DNA
-   is unchanged. Activation a737028a-40d9-489d-a087-53d2f6f955a6 succeeded.
-   Observe that exact activation, then verify/audit the original hosted cohort.
-   Do not reapply settings or request another deployment on observation timeout.
-2. Preserve 59 scoped hosted HTTP proofs and 66 local integrated query types.
+1. Publish ThreeFold's sandbox card and pinned guide/C# links, then byte-verify
+   the public HTML/scripts. Its code and activation succeeded at c00da49c1;
+   original native 3/2, Mongo 5/4, reuse/privacy/exact replicas and independent
+   audit pass. Original two version-1 saves/no pending; cohort frozen. Do not
+   rerun native/hosted acceptance, settings application or activation.
+2. Preserve 60 scoped hosted HTTP proofs and 66 local integrated query types.
    ClickHouse is the latest accepted hosted addition; its sandbox card, guide/C#
    links and exact public static bytes are verified. Counts are demo scopes,
    not full provider or ORM certification.
@@ -16,7 +16,7 @@ Updated 2 November 2026. Full programme remains incomplete.
    provider. Expand remaining red scopes with explicit capabilities/consistency,
    controlled tests, actual native manager/LINQ and HTTP proof, privacy/replicas,
    honest labels and usable sandbox/local demo links.
-4. Complete 54 remaining browser gates when browser control is available; five
+4. Complete 55 remaining browser gates when browser control is available; five
    are proved. Static assets and HTTP success do not prove browser interaction.
 5. Preserve the original MongoDB/SQLite/Neo4j investor subset and 50/82 green
    parity rows each. Work only red cells or reproduced bugs; do not re-harden

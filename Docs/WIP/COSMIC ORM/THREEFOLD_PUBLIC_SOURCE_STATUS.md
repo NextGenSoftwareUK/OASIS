@@ -108,3 +108,13 @@ Exact code job 5d9b665b-984d-4bcd-bebd-e722ff9a6612 reports BUILDING after the e
 Code job 5d9b665b SUCCESS at c00da49c105c3ba4f9e7fa749ac538925b18d818. Original three settings applied exactly once through shared per-key intent/ACK journals, complete candidate equality and unchanged DNA verified. Exact release was selected only for gated application, then task branch restored without detached commits. One activation a737028a-40d9-489d-a087-53d2f6f955a6 BUILDING at the same code. Durable settings ACK/activation intent/protected CLI submission/job identity under HostedThreeFoldReleaseCurrent. No hosted cohort/native queries/private saves yet. Observe exact activation to terminal outcome, no reapplication/restart on timeout.
 
 Activation a737028a SUCCESS at original c00da49c1. Provider discovery available/federationAvailable with four presets, no error. Original journalled owner created once and reused by the hosted verifier; original hosted cohort running. Preserve all native/save/operation outcomes, no replay/replacement owner.
+
+## Original hosted acceptance and independent audit pass
+
+Original owner reused after ready discovery. Native3/2, Mongo5/4, repeat0new/2existing, foreign0private/3public, exactSQLite/Neo4j2each all pass. Two ordinary API version1 private saves, no pending intents. Independent audit passed without new reads/saves. Original source/config/owners/operations/cohort frozen; do not replay or reapply settings/activation. Hosted60/local66 after historical DuckDB/LocalFile source recovery. No compute/native writes/fullORM/independent-chain/uptime certification. Next publish pinned card/guide/C#links and byteverify assets; browser remains open.
+
+`ThreeFoldOASIS-native-http.json`: 12404 bytes SHA256 `d841cf3b3b3589610fd57eb56893aa2dc28de8139b5c7a140cb0ec89e1f2f00f`; compressed original under `HostedQueryAcceptance-ThreeFoldOASIS`.
+
+`ThreeFoldOASIS-client-http-flow.json`: 33085 bytes SHA256 `baa40f71a302ca2ad6a0eae12b75a6d521ad143bfc9ed9eba7b898040fdaa218`; compressed original under `HostedQueryAcceptance-ThreeFoldOASIS`.
+
+`ThreeFoldOASIS-isolation-http.json`: 4670 bytes SHA256 `f36181095d8309eed418dca2381497244a6e4bd8cba069e96efca35d24a3d2bc`; compressed original under `HostedQueryAcceptance-ThreeFoldOASIS`.

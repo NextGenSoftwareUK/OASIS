@@ -85,8 +85,20 @@ original compiled native three/two-record run pass. HTTP admission (three tests)
 Core read tariffs (one test) and the original local HTTP/Mongo gate also pass:
 three/two native rows, five/four paired rows and foreign-visitor isolation. The
 exact owned fixture was removed and the owned Mongo process stopped. Hosted
-presets, activation and sandbox acceptance remain separate unfinished gates.
+presets and activation now pass. The original hosted native three/two-record
+queries, Mongo five/four-record federation, repeat preparation without extra
+saves, foreign-visitor isolation and matching SQLite/Neo4j replicas pass the
+independent audit. The sandbox card is being published; browser interaction
+remains unverified.
 Do not interpret the local walkthrough as hosted or browser verification.
 
 Current evidence and remaining gates are maintained in
 `Docs/WIP/COSMIC ORM/THREEFOLD_PUBLIC_SOURCE_STATUS.md`.
+
+## Hosted sandbox
+
+In the CQL tab select `ThreeFoldOASIS`, then choose a public full/subset preset or
+its Mongo-paired equivalent. Preparation creates two private snapshots through
+the ordinary API; repeated setup reuses them. Browser copies preserve identity,
+name, description, provenance and the query key, not the complete native payload.
+This demonstrates public Grid Proxy reads, not compute or MinIO writes.
