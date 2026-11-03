@@ -55,8 +55,10 @@ New task-only KeyDB/ValKey/Dragonfly/Garnet batch:32 CQL +6 lifecycle controls,
 consumer builds and syntax pass; no native replay. Memcached15/Upstash17 controls
 and producer/consumer/syntax pass; CouchDB41 cases/build/syntax also pass.
 Qdrant38 cases/producer/consumer/syntax pass. Eight further provider recoveries
-149 controlled cases plus shipping API/schema guard pass. Ready for verified
-Development batch; settings stay unchanged, no native fixture replay. **23 missing launchers remain**. Recover
+149 controlled cases plus shipping API/schema guard pass. Integrated/pushed Dev
+**fc437e31a99320c623388776b6a054b3dc1181c9**; exact new code job
+**c11ccee5-8330-4a1c-bb31-f66777b0c49a QUEUED**. Observe that job without
+redeploy; settings unchanged and no native fixture replay. **23 missing launchers remain**. Recover
 scoped dependencies, not the entire old branch. [DuckDB](DUCKDB_CQL_MVP.md).
 
 ## Remaining gates and constraints
