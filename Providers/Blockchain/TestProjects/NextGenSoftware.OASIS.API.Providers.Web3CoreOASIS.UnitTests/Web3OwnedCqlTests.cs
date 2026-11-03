@@ -10,6 +10,17 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests;
 [TestClass]
 public class Web3OwnedCqlTests
 {
+    [TestMethod]
+    public void MissingPrivateChainIdentityRejectsQueryAtPlanning()
+    {
+        var provider = new Web3CoreOASISBaseProvider("http://synthetic.invalid", "synthetic", "synthetic")
+            { ProviderType = new(ProviderType.EthereumOASIS) };
+        var result = CosmicQueryPlanner.Plan(Query(), provider.QueryProviderType,
+            new[] { new CosmicQueryTarget(provider.QueryProviderType, provider.QueryCapabilities) });
+        Assert.IsTrue(result.IsError, "Private reads require the chain identity used by authenticated decryption.");
+        Assert.IsFalse(provider.IsProviderActivated);
+    }
+
     private static readonly Guid One = Guid.Parse("00000000-0000-0000-0000-000000000001");
     private static readonly Guid Two = Guid.Parse("00000000-0000-0000-0000-000000000002");
     private static readonly Guid Three = Guid.Parse("00000000-0000-0000-0000-000000000003");

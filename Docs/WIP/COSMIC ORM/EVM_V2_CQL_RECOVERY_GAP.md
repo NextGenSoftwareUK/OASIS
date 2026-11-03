@@ -191,3 +191,5 @@ arbitrum-v2-mongo-reconcile.trx.gz and arbitrum-v2-mongo-reconcile-evidence.json
 preserve cleanup/regression proof. ArbitrumV2MongoCurrent retains intent/ACKs/
 cleaned receipt. This is local native query evidence, not hosted acceptance.
 Next shipping verification/Development batch; do not replay completed queries.
+
+V2 chain-identity prerequisite regression:before1fail,after17owned-CQL controlled cases pass. QueryCapabilities now rejects unconfigured/nonpositive chain identity before RPC, matching private crypto context invariant. Native accepted cohort not replayed. Original proof web3-v2-chain-admission-evidence.json. Found while reviewing legacy TON wrapper; no legacy changes.

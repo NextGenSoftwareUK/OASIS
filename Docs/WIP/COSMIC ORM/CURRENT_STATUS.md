@@ -20,7 +20,7 @@ shared Web3Core V2 owned CQL: 16 controlled cases;launcher audit: 3 Python cases
 Provider/native-consumer builds/syntax pass; API/schema shipping check1/1passed.
 Shipping original proof/hash:LauncherRecoveryCurrent/fifth-batch-shipping-schema-evidence.json.
 Published Development5507b0aa0. Core5415961/settings unchanged.
-Exact job6c53b53c-491d-45c4-9446-a006af5d1206 QUEUED.
+Exact job6c53b53c-491d-45c4-9446-a006af5d1206 BUILDING.
 Release journal LocalState/COSMIC/HostedLauncherRecoveryFifthReleaseCurrent.
 
 Next:observe this exact job against5507b0aa0ae660cb28e213e6e22b5ee69c05910d.
@@ -49,6 +49,11 @@ restore legacy Ethereum demos as V2 proof. No new environment needed.
 
 NEAR(8),Cosmos blockchain(7),Polkadot(7),Sui(7),Aptos(10) recovery checks/builds pass;public profiles kept,
 original native environment untouched. Task branch only;not hosted acceptance.
+
+TON review found EVM private-query admission without required chain identity.
+Regression reproduced;shared V2 fix17controlled cases pass, no native replay.
+Next explicit native local TVM recovery;legacy wrapper unchanged.
+See TON_LOCAL_TVM_RECOVERY_GAP.md;public-header source preserved.
 
 ## Constraints / wider unfinished work
 
