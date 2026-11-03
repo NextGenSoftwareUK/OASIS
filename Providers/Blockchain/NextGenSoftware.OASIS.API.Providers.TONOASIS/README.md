@@ -1,8 +1,9 @@
 # Current native-source distinction
 
 TonLocalTvmStorageSource is an explicit local TVM/emulator source with encrypted
-canonical storage and bounded CQL. Four admission controls/current builds pass;
-adapted native/hosted execution remains unverified. See
+canonical storage and bounded CQL. Four admission controls/current builds and a native local TVM test pass
+(encrypted reopen, queries3/2/0 and ownership/budget checks). Public-network,
+adapted retained-source/Mongo and hosted execution remain unverified. See
 [scope and commands](../../../Docs/WIP/COSMIC%20ORM/TON_CQL_MVP.md).
 
 The existing TONOASIS EVM wrapper remains legacy and is not native TON TVM.

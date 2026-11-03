@@ -448,3 +448,5 @@ TON local TVM source recovered explicitly as TonLocalTvmStorageSource;4controlle
 admission cases/builds/syntax pass. Legacy EVM wrapper/public header source
 unchanged. Existing SDK/compiler reused;no native fixture opened or hosted
 proof. Local95/hosted60; TON_CQL_MVP.md owns current adapted-source limits.
+
+TON explicit local TVM native gate1/1passes:encrypted save/load/reopen/query3/2/0/budgets/cancellation/read-only/key/ownership checks. Owned disposable fixture removed; original retained cohort unopened. Public TON/retained-source Mongo/hosted/browser not proved. Fifth Development5507b0aa0 job6c53b53c SUCCESS, health/discovery ready (zero native queries/saves). Counts unchanged.
