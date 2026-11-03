@@ -27,8 +27,9 @@ Exact successful release observation (no further polling required):
 python Scripts/Sandbox/Observe-HostedDeployment.py c11ccee5-8330-4a1c-bb31-f66777b0c49a --expected-commit fc437e31a99320c623388776b6a054b3dc1181c9 --output TestResults/LauncherRecoveryCurrent/second-code-deployment.json
 ```
 
-Next: shipping API build/schema check for Chroma/Weaviate/Couchbase/PocketBase
-(165 controlled cases/builds/syntax pass), then a verified integration batch.
+Third recovery batch: Chroma/Weaviate/Couchbase/PocketBase165controls, all
+producer/consumer/syntax checks and shipping API/schema guard pass.
+Next: publish verified Development batch, observe exact job; no settings changes.
 Chroma50/Weaviate38/Couchbase31/PocketBase46 controls/builds/syntax pass; setup source
 was parsed, never executed. Do not start/reseed original native environments.
 [Chroma](CHROMA_CQL_MVP.md) / [Weaviate](WEAVIATE_CQL_MVP.md).
@@ -41,7 +42,7 @@ now restored; **19 published launcher paths remain missing**.
 First4provider batch46controls/schema, Dev59ddcca91/job2d4fa248 SUCCESS; health and
 Mongo/SQLite/Neo4j/ThreeFold discovery ready with0nativequeries/0saves.
 Second8provider batch149controls/schema is the active release above.
-Chroma/Weaviate/Couchbase/PocketBase remain task-only pending shipping check.
+Chroma/Weaviate/Couchbase/PocketBase ready for verified Development integration.
 
 ## Accepted hosted cohorts — frozen
 
