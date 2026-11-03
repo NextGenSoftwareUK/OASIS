@@ -82,3 +82,16 @@ LocalState/COSMIC/LauncherRecoveryCurrent/ethereum-v2-artifact-preparation.json.
 No node/key/RPC/deployment/save operation performed. Next:separately journal and
 deploy the new Ethereum V2 namespace on the existing retained local chain,then
 seed once and verify the configured reader. Native Ethereum remains unverified.
+
+One-shot deployment helper deploy-cosmic-ethereum-v2.cjs now signs the local
+chain-bound creation offline and durably records nonce/hash/expected address
+before its only broadcast.6controlled cases pass:success,ACKloss,receipttimeout,
+wrongruntime,wrongchain andpendingnonce. No signedrawbytes/key in journals.
+Original state prevents resubmission after failure/unknown outcome. Evidence:
+LocalState/COSMIC/LauncherRecoveryCurrent/ethereum-v2-deployment-controls-evidence.json.
+
+Automatic review rejected the actual combined retained-node-start/deployment
+command before execution,without a specific reason. No setup/deployment intent,
+listener or newcontract exists. Do not retry/split/rewrite the denied operation
+to bypass review. Native setup,seed,CQL/Mongo/HTTP acceptance remain open;this is
+an agent tooling gate,not an account/funding task for David.
