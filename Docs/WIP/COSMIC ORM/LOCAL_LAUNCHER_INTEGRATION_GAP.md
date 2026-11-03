@@ -285,3 +285,11 @@ New explicit retained Arbitrum V2 read-only launcher/native consumer compile and
 Native retained Arbitrum V2 new read-only gate1/1passes through shipping facade and manager/LINQ3/2. Seed unchanged, zero writes requested, original node exited0/portclosed. Restored node helper refuses replacement ledger. Local89/hosted60;11old published launcher paths remain missing. Original TRX/source-hash manifest LauncherRecoveryCurrent/arbitrum-v2-owned-cql-native-read-evidence.json. Next Mongo federation, not replay.
 
 Paired V2 native full5/subset4query assertions passed before cleanup exposed Mongo missing-root IsError=false bug. Common read boundary fixed. Original overall failed TRX preserved; separate native reconciliation1/1passed sync+async absent checks and exact fixture cleanup, no query/reseed replay. See EVM_V2_CQL_RECOVERY_GAP.md. Counts unchanged.
+
+## Fifth scoped batch shipping verification
+
+Owned S3/Blob/Firestore/Firebase62controlled cases;Web3V2owned16controlled cases;
+Python launcher audit3cases;provider/native-consumer builds/syntax pass. Native
+standalone3/2gate passes;original paired5/4assertions passed then cleanup failed,
+separate native reconciliation passes. Original failure retained. Shipping schema
+1/1passes, zero skips. Original TRX SHA256 `773ac9920ae1f36eba5e802891348e63d0105f4512cde38450e2a2da07f42799`; retained original/manifest LauncherRecoveryCurrent/fifth-batch-shipping-schema-evidence.json. No accepted cohort replay/settings changes.
