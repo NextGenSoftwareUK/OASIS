@@ -5,9 +5,9 @@ commit d3dfe48a4d4e4ff0288180303fbbb06ab88eaebb. This is a source-integration
 problem, not evidence that the original native runs failed or should be replayed.
 
 The original audit found 35 absent paths among 37 distinct PowerShell launchers.
-DuckDB, LocalFile, Redis, SQLServer four Redis-family demos, Memcached, Upstash, CouchDB, Qdrant and Chroma are now recovered; 22 remain absent from the current checkout. DuckDB implementation commit f1aeb0cb5 is not an ancestor of
+DuckDB, LocalFile, Redis, SQLServer four Redis-family demos, Memcached, Upstash, CouchDB, Qdrant, Chroma and Weaviate are now recovered; 21 remain absent from the current checkout. DuckDB implementation commit f1aeb0cb5 is not an ancestor of
 current HEAD and survives on the earlier sandbox-integration branch. Counts of
-77 current integrated query types/59 hosted proofs do not count the remaining missing
+78 current integrated query types/59 hosted proofs do not count the remaining missing
 local launchers as additional hosted capabilities.
 
 Recovery source: `origin/work/cosmic-cql-sandbox-integration` at `237403a75b6983e013141cf7ba44bf66858abafd`.
@@ -68,7 +68,7 @@ is 65 after restoring this historical provider; hosted count remains 59.
 
 Named source/launcher restored without changing the provider base. Seven controlled
 cases, producer/consumer builds and syntax pass. Original source/seed untouched;
-no native replay. Local count 66, hosted 59; 22 advertised launchers remain absent.
+no native replay. Local count 66, hosted 59; 21 advertised launchers remain absent.
 
 ## Redis / SQL Server recovery milestone
 
@@ -139,3 +139,13 @@ cases, producer/consumer builds and syntax pass. Setup parsed only, no original
 runtime/tenant/database/credential/fixture opened. Shared Mongo helper compile-only.
 Task-only source recovery, no new native/browser certification. Local77/hosted60;
 22published launcher paths remain absent.
+
+## Weaviate recovery / second deployment readiness
+
+Weaviate named closure restored with cached SDK1.2.0;38controlled cases, builds
+and syntax pass, setup parsed only. Explicit gRPC CQL client required; no native
+fixture replay or hosted inference. Second Dev jobc11ccee5 SUCCESS atfc437e31a;
+public health/original-owner Mongo/SQLite/Neo4j/ThreeFold discovery ready with
+0nativequeries/0private saves. Metadata-only receipt:
+HostedLauncherRecoverySecondReleaseCurrent/readiness-observed.json. Local78/
+hosted60;21published launcher paths remain absent. Chroma/Weaviate task-only.

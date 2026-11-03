@@ -6,8 +6,8 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 ## Verified coverage
 
-- **77 local integrated query types:** 3 canonical, 57 public/source profiles,
-  17 other local integrations, including 13 recovered historical demos. Source
+- **78 local integrated query types:** 3 canonical, 57 public/source profiles,
+  18 other local integrations, including 14 recovered historical demos. Source
   recovery does not constitute a fresh native acceptance or runtime-availability run.
 - **60 scoped hosted HTTP proofs; 5 browser proofs / 55 browser gates open.**
   These counts do not certify full ORM, native writes, reliability or uptime.
@@ -17,29 +17,31 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 Eight-provider recovery batch published to Development
 **fc437e31a99320c623388776b6a054b3dc1181c9**, Core **5415961**.
-Exact code job **c11ccee5-8330-4a1c-bb31-f66777b0c49a QUEUED**.
+Exact code job **c11ccee5-8330-4a1c-bb31-f66777b0c49a SUCCESS**.
 149 controlled cases, all producer/consumer builds/syntax and shipping schema pass.
-No settings changes or accepted native/hosted cohort replay. Observe same job:
+No settings changes or accepted native/hosted cohort replay. Public health and
+Mongo/SQLite/Neo4j/ThreeFold discovery ready,0nativequeries/0private saves.
+Exact successful release observation (no further polling required):
 
 ```powershell
 python Scripts/Sandbox/Observe-HostedDeployment.py c11ccee5-8330-4a1c-bb31-f66777b0c49a --expected-commit fc437e31a99320c623388776b6a054b3dc1181c9 --output TestResults/LauncherRecoveryCurrent/second-code-deployment.json
 ```
 
-Next source task: review/restore Weaviate's complete named launcher dependency
+Next source task: review/restore Couchbase's complete named launcher dependency
 closure from retained pin237403a75, then controlled tests/build/syntax only.
-Latest Chroma task-only recovery passes50controls plus builds/syntax; setup source
+Chroma50/Weaviate38 task-only controls plus builds/syntax pass; setup source
 was parsed, never executed. Do not start/reseed original native environments.
-[Chroma details](CHROMA_CQL_MVP.md).
+[Chroma](CHROMA_CQL_MVP.md) / [Weaviate](WEAVIATE_CQL_MVP.md).
 
 ## Reproduced launcher bug and completed recovery
 
 [Launcher gap](LOCAL_LAUNCHER_INTEGRATION_GAP.md): initial35/37missing paths all
-survive at retained sandbox-integration pin237403a75. Thirteen provider closures
-now restored; **22 published launcher paths remain missing**.
+survive at retained sandbox-integration pin237403a75. Fourteen provider closures
+now restored; **21 published launcher paths remain missing**.
 First4provider batch46controls/schema, Dev59ddcca91/job2d4fa248 SUCCESS; health and
 Mongo/SQLite/Neo4j/ThreeFold discovery ready with0nativequeries/0saves.
 Second8provider batch149controls/schema is the active release above.
-New Chroma recovery remains task-only pending a later verified integration batch.
+Chroma and Weaviate remain task-only pending a later verified integration batch.
 
 ## Accepted hosted cohorts — frozen
 
@@ -69,7 +71,7 @@ Use one build lease and `/m:2 /nr:false /p:UseSharedCompilation=false`.
 Raw output `TestResults/`; durable identities/proof `LocalState/COSMIC/`.
 Named-file commits; fetch/preserve upstream; no production/master promotion.
 
-Disk target120GB unmet; latest free 54,106,689,536bytes. Preserve shared data,
+Disk target120GB unmet; latest free 53,752,037,376bytes. Preserve shared data,
 denied cleanup targets, unknown root logs and personal Miniforge/models.
 [Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) owns retained resources.
 

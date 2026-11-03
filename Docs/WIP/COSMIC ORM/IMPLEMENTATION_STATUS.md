@@ -5,7 +5,7 @@ Updated 2 November 2026. Full programme remains incomplete.
 
 | Scope | Verified | Still open |
 |---|---|---|
-| Provider breadth | 77 integrated query types: 3 canonical, 57 public/source profiles and 17 local cloud/SQL/embedded/filesystem implementations | 60 scoped hosted functional HTTP proofs; local integration does not establish hosted availability or full ORM support |
+| Provider breadth | 78 integrated query types: 3 canonical, 57 public/source profiles and 18 local cloud/SQL/embedded/filesystem implementations | 60 scoped hosted functional HTTP proofs; local integration does not establish hosted availability or full ORM support |
 | ClickHouse | Native 3/2, Mongo 5/4, repeat reuse, privacy, two exact SQLite/Neo4j replicas each and independent hosted audit pass; card/static assets d3dfe48 verified | Browser interaction, owned database writes and broader parity |
 | ThreeFold | 33 adapter controls, shared regression, actual manager/LINQ/CLI 3/2; API 3, tariff 1, local HTTP/Mongo 3/2+5/4/privacy; four presets and rollout/audit controls pass | Code c00da49c1/Core5415961 published; code job 5d9b665b SUCCESS, three settings acknowledged once/DNA unchanged. Activation a737028a-40d9-489d-a087-53d2f6f955a6 SUCCESS; hosted 3/2+Mongo5/4/reuse/privacy/replicas and independent audit pass; card/static files2170b67 pass; browser pending |
 | Browser | 5 provider proofs | 55 open; HTTP/static-byte matching is not interaction proof; browser control remains closed |
