@@ -1520,3 +1520,5 @@ options, separate from legacy EVM/public header sources. Four admission controls
 and current native-consumer build pass;adapted native execution/hosting unverified.
 
 Explicit TonLocalTvmStorageSource now passes local TVM execution:encrypted records survive independent worker reopen;bounded queries return3/2/0;budget/cancellation/read-only/key/ownership checks pass. This is local TVM only;public TON and adapted retained-source/Mongo/hosted gates remain open. See TON_CQL_MVP.md.
+
+[Oracle local paired/content launchers](ORACLE_LOCAL_LAUNCHER_RECOVERY.md) are restored and compile. They use the existing provider/compiler and Mongo teaching presets. Retained native services/config required;current native/hosted availability was not re-tested.
