@@ -323,3 +323,10 @@ Current public header source/provider project/bridge packaging untouched.
 Original Substrate node/key/ledger/SDK fixture unopened. Local92/hosted60;
 8published launcher paths remain missing. Original TRX/hash manifest:
 LauncherRecoveryCurrent/polkadot-recovery-evidence.json.
+
+## Sui recovery milestone
+
+Seven controlled cases/provider+native-consumer builds/PS syntax pass;public
+object source/SDK bridge unchanged. Existing helper closure matches retained
+pin;native network/key/ledger/fixture untouched. Local93/hosted60;7published
+launcher paths missing. Original TRX/hash LauncherRecoveryCurrent/sui-recovery-evidence.json.
