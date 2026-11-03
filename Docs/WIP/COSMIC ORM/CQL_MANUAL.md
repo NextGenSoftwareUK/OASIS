@@ -1484,3 +1484,5 @@ emulator/hosted availability remains unverified.
 Web3Core V2 now accepts bounded authorized GUID equality/membership, boolean composition and paging through its canonical read/decryption path. No metadata/name/graph predicates. Keys observe independent moments; cancellation stops publication but cannot abort an existing SDK RPC.10controlled tests, no native/hosted proof. See [implementation and limits](EVM_V2_CQL_RECOVERY_GAP.md).
 
 Web3Core V2 owned queries additionally pass six production ABI/decryption tests through the shipping Arbitrum facade using controlled in-process RPC responses. They do not establish live-chain availability. See EVM_V2_CQL_RECOVERY_GAP.md for the16-case scope and remaining demo wiring.
+
+[Owned EVM V2 C# walkthrough](../../../Examples/CosmicCqlDemo/EvmV2OwnedWalkthrough.cs) demonstrates explicit authority/catalogue, HolonManager/LINQ full3/subset2 and Mongo federation method. [Usage](EVM_V2_CQL_RECOVERY_GAP.md). Controlled SDK proof only; native launcher/chain acceptance open.

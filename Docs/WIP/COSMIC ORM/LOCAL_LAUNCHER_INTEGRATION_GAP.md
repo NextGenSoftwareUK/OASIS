@@ -277,3 +277,5 @@ No source/runtime/native fixture changes; coverage and missing-link count unchan
 Shared Web3Core V2 now implements bounded authorized owned identity CQL through canonical loads.10controlled tests/provider+consumer build pass; actual Arbitrum V2 factory exposes contract. Real RPC/decryption/native/hosted gates and EVM launcher remain open;11missing, coverage unchanged. See EVM_V2_CQL_RECOVERY_GAP.md.
 
 Six Web3OwnedCqlRpcTests pass through actual shipping Arbitrum V2 facade, production ABI/decryption and canonical loads with existing in-process ReadRpc transport. No external RPC/chain fixture; teaching/native consumer wiring is next. Owned CQL controlled total16; coverage/local launcher counts unchanged.
+
+V2 teaching source EvmV2OwnedWalkthrough now compiles/runs through HolonManager+LINQ/SDK/ABI/crypto with controlled transport:full3/subset2. Six boundary cases pass; Mongo helper compiles but native Mongo/chain not run. Native launcher still red; reconcile compatible retained Web3Core deployment next. Fourth job206de884 observed DEPLOYING.

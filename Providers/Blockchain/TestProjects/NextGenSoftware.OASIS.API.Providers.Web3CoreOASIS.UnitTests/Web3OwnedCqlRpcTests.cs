@@ -86,6 +86,21 @@ public class Web3OwnedCqlRpcTests
                 var expected = mode == "valid" ? ids : new[] { ids[0], ids[2] };
                 CollectionAssert.AreEqual(expected, result.Result.Select(x => x.Id).ToArray());
                 Assert.IsTrue(result.Result.All(x => !x.Children.Any()));
+                if (mode == "valid")
+                {
+                    // Compile and execute the published teaching consumer with
+                    // actual HolonManager/LINQ and this same V2 SDK/crypto path.
+                    var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
+                        { HyperDriveMode = HyperDriveModes.V2 } };
+                    var registry = new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null, dna);
+                    var manager = new NextGenSoftware.OASIS.API.Core.Managers.HolonManager(null, dna, registry);
+                    using var output = new StringWriter();
+                    var observed = await CosmicCqlDemo.EvmV2OwnedWalkthrough.RunAsync(
+                        manager, provider, ids, Guid.NewGuid(), output);
+                    Assert.AreEqual(3, observed.Full);
+                    Assert.AreEqual(2, observed.Subset);
+                    StringAssert.Contains(output.ToString(), "Web3Core V2");
+                }
             }
             Assert.IsTrue(rpc.Calls > 0);
         }
