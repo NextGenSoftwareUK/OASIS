@@ -3,7 +3,7 @@
 Updated 2 November 2026. Full programme remains incomplete.
 [CURRENT_STATUS](CURRENT_STATUS.md) owns deployment state and the exact next step.
 
-1. Recover the remaining 4 published local launcher paths and their reviewed
+1. Recover the remaining 3 published local launcher paths and their reviewed
    source dependencies from retained sandbox-integration pin 237403a75. DuckDB
    and LocalFile are restored with controlled tests/builds, no native replay.
    ThreeFold's hosted audit and card/static assets now pass at website2170b67;
