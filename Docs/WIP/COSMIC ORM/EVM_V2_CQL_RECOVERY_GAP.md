@@ -141,3 +141,25 @@ Next agent work: inspect/reuse the original node runtime/ledger/key ownership,
 then run this new read-only gate. No David action or hosting spend is needed.
 The original legacy Ethereum seed remains unchanged. Published missing-launcher
 count stays11 because this new explicit V2 reader is not yet the old website link.
+
+## Native V2 owned-holon gate passed
+
+2 November2026: explicit new read-only gate1/1passed, zero failures/skips.
+Reused Ganache7.9.2/Node24.19.0 and original shared chain31338/loopback18547,
+Arbitrum V2 seed3IDs/contract and protected original storage key. No new node
+installation/environment/key/contract/data was created. The shared environment
+lock and exact process/listener ownership were verified. Existing node helper
+was restored with a guard refusing to create an absent/replacement ledger.
+
+Shipping Arbitrum V2 factory/canonical ABI/decryption and the exact published
+HolonManager/LINQ walkthrough returned3then2. Original seed bytes unchanged;
+no native writes requested. Owned node accepted stdin stop and exited0; port
+no longer listening. No legacy/native accepted verifier was rerun.
+
+This proves scoped existing-data Arbitrum V2 reads, not Ethereum V2 native
+acceptance, Mongo federation, hosted availability, snapshot/finality or full ORM.
+Original compressed TRX/source hashes/summary retained under
+LocalState/COSMIC/LauncherRecoveryCurrent/arbitrum-v2-owned-cql-native-read-evidence.json.
+Next new gate: Mongo-paired V2 query, preserving accepted cohorts. Do not rerun
+the completed standalone3/2 gate. Coverage now local89/hosted60;11published
+launcher paths still missing because website links have not changed.

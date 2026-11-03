@@ -412,3 +412,5 @@ Web3Core V2 owned CQL now has16controlled cases:10orchestration/factory plus6pro
 V2 owned EVM C# consumer proves manager/LINQ3/2 with controlled SDK transport; Mongo preset compiles. No live-chain/Mongo/hosted proof added. Counts unchanged; EVM_V2_CQL_RECOVERY_GAP.md.
 
 Fourth recovery Development2ae3e658f job206de884 SUCCESS; health and Mongo/SQLite/Neo4j/ThreeFold discovery/federation ready, zero native queries/saves. V2 Arbitrum retained-record native reader compiles, not executed; no coverage promotion.
+
+Arbitrum owned V2 native read acceptance now passes1/1:original encrypted3/2 through shipping facade+HolonManager/LINQ, seed unchanged, no writes requested, node exited0. This adds one scoped local query representation (local89/hosted60), not all V2 EVM native certification. Mongo federation/hosted V2 owned gates open; legacy unchanged.
