@@ -31,3 +31,13 @@ This fixes the V2 admission boundary; the legacy TON wrapper remains unchanged.
 Original before/after TRX and hash manifest:
 LocalState/COSMIC/LauncherRecoveryCurrent/web3-v2-chain-admission-evidence.json.
 Coverage remains local94/hosted60 and5missing published launcher paths.
+
+## Explicit native-source recovery milestone
+
+TonLocalTvmStorageSource now owns native local TVM storage/CQL and lifecycle.
+TonSandboxStorageOptions/worker/backend require an exact admitted local source;
+private storage encrypts canonical records and rejects inactive access. Legacy
+TONOASIS.cs/DNA/public header sources untouched. Four controlled cases pass,
+provider/native+federated consumers compile and PS/JS syntax pass. Existing SDK/
+compiler install reused. Next native contract compilation/disposable fixture
+acceptance;not yet performed, no hosted promotion. See TON_CQL_MVP.md.
