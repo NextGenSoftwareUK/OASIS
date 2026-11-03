@@ -315,3 +315,11 @@ validator source and bridge kept; helper dependencies exist/match retained pin.
 No original container/node/key/ledger/contract/Mongo opened. Local91/hosted60;
 9published launcher paths missing. Original TRX/hash manifest:
 LauncherRecoveryCurrent/cosmos-blockchain-recovery-evidence.json.
+
+## Polkadot recovery milestone
+
+Seven controlled cases/provider+native-consumer builds/PS+Bash syntax pass.
+Current public header source/provider project/bridge packaging untouched.
+Original Substrate node/key/ledger/SDK fixture unopened. Local92/hosted60;
+8published launcher paths remain missing. Original TRX/hash manifest:
+LauncherRecoveryCurrent/polkadot-recovery-evidence.json.

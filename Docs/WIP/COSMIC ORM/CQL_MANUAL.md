@@ -1500,3 +1500,7 @@ reads; current native/hosted availability remains unverified.
 [Owned Cosmos blockchain walkthrough](COSMOS_BLOCKCHAIN_CQL_MVP.md) source
 restored with seven controlled checks and native-consumer compilation. Bounded
 encrypted canonical GUID keys; current owned native/hosted acceptance unverified.
+
+[Owned Polkadot walkthrough](POLKADOT_CQL_MVP.md) source restored with seven
+controlled checks/current native-consumer compilation. Bounded encrypted GUID
+key reads; current owned native/hosted availability remains unverified.
