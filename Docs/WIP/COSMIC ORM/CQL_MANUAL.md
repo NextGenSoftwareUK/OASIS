@@ -1492,3 +1492,7 @@ Web3Core V2 owned queries additionally pass six production ABI/decryption tests 
 Owned Arbitrum V2 read-only walkthrough now has native3/2proof over retained encrypted records, plus16controlled cases. Original node/seed/key reused, seed unchanged, no writes requested, clean exit0. Mongo-paired native/hosted owned gates remain open; do not replay completed standalone gate. See EVM_V2_CQL_RECOVERY_GAP.md.
 
 Owned V2 Arbitrum Mongo preset executed native5/4query assertions successfully. Cleanup found Mongo absent root returned success flags; common boundary fixed and separate native reconciliation proves corrected sync/async missing reads and cleanup. Original failed overall run is retained; see EVM_V2_CQL_RECOVERY_GAP.md.
+
+[Owned NEAR walkthrough](NEAR_CQL_MVP.md) source is restored with eight controlled
+checks including SDK-worker cancellation. Bounded encrypted canonical GUID key
+reads; current native/hosted availability remains unverified.

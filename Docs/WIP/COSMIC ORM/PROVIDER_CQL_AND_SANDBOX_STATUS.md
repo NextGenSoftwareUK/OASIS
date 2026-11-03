@@ -2,7 +2,7 @@
 
 **Reproduced local-link gap:** Original audit found 35/37 missing launcher paths; DuckDB, LocalFile, Redis, SQLServer four Redis-family demos, Memcached, Upstash, CouchDB, Qdrant, Chroma, Weaviate, Couchbase and PocketBase are restored and 19 remain absent; all 35 survive at the retained sandbox-integration branch pin. This does not add hosted capabilities or invalidate original native observations. [Exact scope and recovery](LOCAL_LAUNCHER_INTEGRATION_GAP.md).
 
-Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card published/byte-verified; browser open. Current totals89integrated/60hosted-functional/5browser/55open; no global production-parity claim.
+Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card published/byte-verified; browser open. Current totals90integrated/60hosted-functional/5browser/55open; no global production-parity claim.
 
 Matrix hosted functional HTTP gates pass at parent7b45ee856/Coredd2c32c, settingsaaff57a2 SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; source/cohort frozen. Websitebd173e5/101client tests/pinned guide+C#links/public bytes verified; browser open. [Evidence](MATRIX_PUBLIC_SOURCE_STATUS.md).
 
@@ -416,3 +416,8 @@ Fourth recovery Development2ae3e658f job206de884 SUCCESS; health and Mongo/SQLit
 Arbitrum owned V2 native read acceptance now passes1/1:original encrypted3/2 through shipping facade+HolonManager/LINQ, seed unchanged, no writes requested, node exited0. This adds one scoped local query representation (local89/hosted60), not all V2 EVM native certification. Mongo federation/hosted V2 owned gates open; legacy unchanged.
 
 Owned Arbitrum V2+Mongo native full5/subset4query assertions passed, original test failed cleanup due Mongo missing-root flags. Root fixed; separate native reconciliation1/1proves sync+async absence/fixture cleanup. Original failed run retained, not converted to pass. Local89/hosted60; hosted gate unchanged.
+
+NEAR owned source/launcher restored:8controlled cases including owned-worker
+cancellation, provider/native-consumer compilation and PS/Bash/fixture syntax
+pass. Current public-account adapter preserved; native environment untouched.
+Local90/hosted60;current owned runtime/hosted acceptance unverified. NEAR_CQL_MVP.md.
