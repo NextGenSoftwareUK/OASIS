@@ -20,12 +20,11 @@ shared Web3Core V2 owned CQL: 16 controlled cases;launcher audit: 3 Python cases
 Provider/native-consumer builds/syntax pass; API/schema shipping check1/1passed.
 Shipping original proof/hash:LauncherRecoveryCurrent/fifth-batch-shipping-schema-evidence.json.
 Published Development5507b0aa0. Core5415961/settings unchanged.
-Exact job6c53b53c-491d-45c4-9446-a006af5d1206 BUILDING.
+Exact job6c53b53c-491d-45c4-9446-a006af5d1206 SUCCESS;health/discovery ready.
 Release journal LocalState/COSMIC/HostedLauncherRecoveryFifthReleaseCurrent.
 
-Next:observe this exact job against5507b0aa0ae660cb28e213e6e22b5ee69c05910d.
-After SUCCESS,health/provider-discovery only;no accepted native cohort replay.
-Continue remaining4launcher/source gaps while the existing job runs.
+Fifth release health + Mongo/SQLite/Neo4j/ThreeFold discovery/federation pass;
+zero native queries/private saves. Continue remaining4launcher/source gaps.
 
 Last published fourth batch Development2ae3e658f/job206de884 SUCCESS;health and
 Mongo/SQLite/Neo4j/ThreeFold discovery/federation ready,zero native queries/saves.
@@ -53,7 +52,9 @@ original native environment untouched. Task branch only;not hosted acceptance.
 TON review found EVM private-query admission without required chain identity.
 Regression reproduced;shared V2 fix17controlled cases pass, no native replay.
 Explicit TonLocalTvmStorageSource recovered;4controls/builds/syntax pass.
-Next retained compiler/disposable native fixture acceptance;legacy untouched.
+Native local TVM1/1passes encrypted reopen/query3/2/0 and budgets/ownership.
+Owned disposable fixture removed;original source untouched. Legacy unchanged.
+Next remaining Oracle/protocol/TRON/Ethereum launcher breadth, no TVM replay.
 See TON_LOCAL_TVM_RECOVERY_GAP.md;public-header source preserved.
 
 ## Constraints / wider unfinished work

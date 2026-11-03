@@ -348,3 +348,5 @@ and public-header source kept. Four controls/provider+native-consumer compilatio
 and PS/JS syntax pass. Existing SDK/compiler reused;current native execution
 unverified. Local95/hosted60;4published launcher paths remain missing. Original
 TRX/hash manifest LauncherRecoveryCurrent/ton-local-recovery-evidence.json.
+
+Explicit adapted local TON TVM native gate1/1passes3/2/0queries/encrypted reopen/budgets/ownership; owned disposable fixture removed. Original retained cohort unopened. Native evidence LauncherRecoveryCurrent/ton-local-recovery-native-evidence.json. Remaining4published launcher gaps unchanged. Fifth release SUCCESS/readiness passed, original report HostedLauncherRecoveryFifthReleaseCurrent/readiness-observed.json.
