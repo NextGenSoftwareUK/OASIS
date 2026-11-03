@@ -5,10 +5,10 @@ Updated 2 November 2026. Full programme remains incomplete.
 
 1. Finish ThreeFold's original hosted rollout. Code job 5d9b665b succeeded at
    c00da49c1/Core5415961. Original three settings were acknowledged once and DNA
-   is unchanged. Activation a737028a-40d9-489d-a087-53d2f6f955a6 is building.
+   is unchanged. Activation a737028a-40d9-489d-a087-53d2f6f955a6 succeeded.
    Observe that exact activation, then verify/audit the original hosted cohort.
    Do not reapply settings or request another deployment on observation timeout.
-2. Preserve 59 scoped hosted HTTP proofs and 65 local integrated query types.
+2. Preserve 59 scoped hosted HTTP proofs and 66 local integrated query types.
    ClickHouse is the latest accepted hosted addition; its sandbox card, guide/C#
    links and exact public static bytes are verified. Counts are demo scopes,
    not full provider or ORM certification.

@@ -6,9 +6,9 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 ## Verified coverage
 
-- **65 local integrated query types:** 3 canonical, 57 public/source profiles,
-  5 local PostgreSQL/Cosmos/Oracle/AWS/DuckDB implementations. DuckDB is recovered
-  historical integration, not a new native acceptance run.
+- **66 local integrated query types:** 3 canonical, 57 public/source profiles,
+  6 local PostgreSQL/Cosmos/Oracle/AWS/DuckDB/LocalFile implementations. The last
+  two are recovered historical integrations, not new native acceptance runs.
 - **59 scoped hosted HTTP proofs; 5 browser proofs / 54 browser gates open.**
   These counts do not certify full ORM, native writes, reliability or uptime.
 - MongoDB/SQLite/Neo4j: **50/82 strict parity rows each**; investor subset green.
@@ -25,18 +25,18 @@ ThreeFold code job **5d9b665b-984d-4bcd-bebd-e722ff9a6612 SUCCESS**, parent
 Original three settings applied once, per-key ACKs/full candidate equality and
 DNA unchanged verified. Do not apply them again.
 
-Activation **a737028a-40d9-489d-a087-53d2f6f955a6 BUILDING** at that code.
+Activation **a737028a-40d9-489d-a087-53d2f6f955a6 SUCCESS** at that code.
 Observe this existing job; no restart/redeployment on observation timeout:
 
 ```powershell
 python Scripts/Sandbox/Observe-HostedDeployment.py a737028a-40d9-489d-a087-53d2f6f955a6 --expected-commit c00da49c105c3ba4f9e7fa749ac538925b18d818 --output TestResults/ThreeFoldPublicSourceCurrent/activation-deployment.json
 ```
 
-After SUCCESS, verify discovery before the original hosted cohort:
+Discovery available/federated with four presets; original hosted cohort running:
 `python Scripts/Sandbox/Verify-HostedQuerySource.py ThreeFoldOASIS --prepare`
 using existing pinned Node24 on PATH. Then run the independent offline audit,
-retain compressed originals/hashes, and publish/byte-verify its card. No hosted
-ThreeFold avatar/query/save cohort has started yet. Do not replay accepted CLI.
+retain compressed originals/hashes, and publish/byte-verify its card. Original hosted
+ThreeFold cohort is in progress; preserve original journals. Do not replay CLI.
 
 ThreeFold proofs: adapter 33, shared regression, compiled manager/LINQ/CLI 3/2,
 API 3/Core tariff 1/local HTTP 1 (native 3/2, Mongo 5/4, privacy 0/3), four presets,
@@ -49,7 +49,7 @@ Durable journals: `HostedThreeFoldReleaseCurrent`, `HostedThreeFoldPublicSourceC
 [Launcher integration gap](LOCAL_LAUNCHER_INTEGRATION_GAP.md): original 35/37 paths
 absent; all survive at retained sandbox-integration pin 237403a75. DuckDB named
 source/launcher recovered: 14 controls, consumer build and syntax pass; original
-DB/seed/ACKs untouched, no native replay. **34 missing launchers remain**. Recover
+DB/seed/ACKs untouched, no native replay. LocalFile also restored: 7 controls/build/syntax pass. **33 missing launchers remain**. Recover
 scoped dependencies, not the entire old branch. [DuckDB](DUCKDB_CQL_MVP.md).
 
 ## Remaining gates and constraints
@@ -69,7 +69,7 @@ Use one build lease and `/m:2 /nr:false /p:UseSharedCompilation=false`.
 Raw outputs only `TestResults/`; durable identities/proof `LocalState/COSMIC/`.
 Named-file commits; fetch/preserve upstream; no production/master promotion.
 
-Disk target 120GB unmet; latest free **56,564,555,776 bytes**. Preserve shared data,
+Disk target 120GB unmet; latest free **55,957,082,112 bytes**. Preserve shared data,
 previously denied cleanup targets, unknown root logs and personal Miniforge/models.
 [Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) owns exact retained resources.
 

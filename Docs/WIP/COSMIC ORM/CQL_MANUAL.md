@@ -1408,3 +1408,7 @@ See [ThreeFold public node guide](../../Devs/THREEFOLD_PUBLIC_NODE_CQL_GUIDE.md)
 ### Recovered local DuckDB walkthrough
 
 [DuckDB local demo](DUCKDB_CQL_MVP.md) and its published PowerShell launcher are restored from retained source. The current provider/CQL controls (14) and consumer build pass. It supports bounded GUID identity selection; it does not add hosted DuckDB, arbitrary metadata queries or new native acceptance. Original source/seed/ACKs are retained; source recovery did not replay the accepted native fixture.
+
+### Recovered local filesystem demo
+
+[LocalFile + Mongo](LOCALFILE_CQL_MVP.md) restores its launcher and bounded GUID queries. Seven current controlled cases and producer/consumer compilation pass. Historical native/browser proof is preserved, not replayed; hosted LocalFile is unverified.

@@ -5,9 +5,9 @@ commit d3dfe48a4d4e4ff0288180303fbbb06ab88eaebb. This is a source-integration
 problem, not evidence that the original native runs failed or should be replayed.
 
 The original audit found 35 absent paths among 37 distinct PowerShell launchers.
-DuckDB is now recovered; 34 remain absent from the current checkout. DuckDB implementation commit f1aeb0cb5 is not an ancestor of
+DuckDB and LocalFile are now recovered; 33 remain absent from the current checkout. DuckDB implementation commit f1aeb0cb5 is not an ancestor of
 current HEAD and survives on the earlier sandbox-integration branch. Counts of
-65 current integrated query types/59 hosted proofs do not count the remaining missing
+66 current integrated query types/59 hosted proofs do not count the remaining missing
 local launchers as additional hosted capabilities.
 
 Recovery source: `origin/work/cosmic-cql-sandbox-integration` at `237403a75b6983e013141cf7ba44bf66858abafd`.
@@ -63,3 +63,9 @@ Named original CQL/provider/unit/integration/launcher sources restored. Nine CQL
 controls and five identity tests pass, consumer build and PowerShell syntax pass.
 No original native cohort or database was replayed. The local integration count
 is 65 after restoring this historical provider; hosted count remains 59.
+
+## LocalFile recovery milestone
+
+Named source/launcher restored without changing the provider base. Seven controlled
+cases, producer/consumer builds and syntax pass. Original source/seed untouched;
+no native replay. Local count 66, hosted 59; 33 advertised launchers remain absent.
