@@ -122,3 +122,10 @@ cases, producer/consumer builds and syntax pass. Setup source parsed only, no
 provisioning/native I/O; shared Mongo fixture support compile-only. Payloads use
 placeholder vectors, not meaningful semantic search. Local76/hosted60;23missing
 launcher paths. Eight further provider recoveries await shipping validation/Dev.
+
+## Second recovery batch shipping guard
+
+Eight providers: KeyDB/ValKey/Dragonfly/Garnet, Memcached, Upstash, CouchDB and
+Qdrant.149controlled cases (including6fake-process lifecycle cases) and all
+consumer/syntax checks pass. Current shipping API rebuild/schema guard1/1pass,
+no skips/native fixture replay. TRX SHA256 `9790e606144bed0476b7fc167f46976968200430a40f1feafef6ac5e6eb4da32`; compressed original/manifest under LocalState/COSMIC/LauncherRecoveryCurrent. Next one verified Development code batch, no settings changes.
