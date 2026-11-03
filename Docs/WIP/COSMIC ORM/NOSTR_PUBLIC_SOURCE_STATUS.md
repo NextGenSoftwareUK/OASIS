@@ -141,3 +141,7 @@ Completion ACK explicitly sets reliabilityRootCauseResolved=false, certification
 ## Nostr page publication - 2 November 2026
 
 Website7e2046de25a40a84a289a3c73da2bc7e2e25b885 publishes Nostr with pinned guide9961fde00/C#6ee3ebfcd links and explicit unresolved-intermittency/copy-scope limits.99client tests pass. Public HTML173395bytes/SHA256dde3093ce9253829f3355cca80ff7bf0636d7e1a221c8c85ddabbf240c7d9b70 and both scripts match exact git blobs. Browser interaction remains unverified. Raw public proof TestResults/NostrPublicSourceCurrent/public-assets-observation.json; tests frontend-tests.log. Functional HTTP proof does not resolve earlier errors or establish browser interaction/full ORM.
+
+
+## 2 November 2026 - current activation outage after sixth recovery release
+Development d167dff13/exact job0096f2e4-f831-4dcd-9cd8-b1d7613781aa SUCCESS,health healthy. Discovery59/60available;Nostr CQL_SOURCE_UNAVAILABLE. Typed operator activation diagnostic:connect,other/http/websocket,HTTP503,NotAWebSocket. Original functional cohort remains preserved;it is not current readiness or reliability proof. No native queries/private saves/new avatar/relay substitution/restart. Explicit serialized operator recovery is next;one-shot failure latch must not require whole-host restart or hidden normal-query retries. Original safe evidence:LocalState/COSMIC/HostedLauncherRecoverySixthReleaseCurrent/native-startup-diagnostics.json and startup-readiness-completed.json.
