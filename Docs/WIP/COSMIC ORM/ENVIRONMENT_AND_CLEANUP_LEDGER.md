@@ -4757,3 +4757,14 @@ Original LocalState/COSMIC/AzureBlobCql data/identity and Azurite3.37.0 unopened
 ### 2 November 2026 — owned Azure Blob recovery outcome
 14controlled cases pass, producer/native-consumer compilation/PS syntax pass. Short-lived controlled loopback stubs ended with tests; no original Azurite/native fixture opened.
 LocalState/COSMIC/LauncherRecoveryCurrent/azure-blob-recovery-controlled.trx.gz 2985bytes and azure-blob-recovery-evidence.json created, retain. TestResults/AzureBlobCqlCurrent logs/TRX and bin/obj reusable/regenerable by cached restore/build, sizes unmeasured; exact validated cleanup only. No new runtime/download/environment. Free after 52649443328bytes.
+
+
+### 2 November 2026 — owned Firestore source recovery
+Owner COSMIC/CQL; named source237403a75 only; public Google metadata source/README/unit walkthrough links unchanged. Existing Google SDK/.NET/NuGet cache reused, no install/download/environment.
+TestResults/FirestoreCqlCurrent regenerable logs/TRX and provider/integration bin/obj reused, sizes unmeasured active/reusable; regenerate cached restore/build after exact validated cleanup.
+Original LocalState/COSMIC/FirestoreCql export/identities and emulator1.22.0 untouched, no credentials/emulator/Mongo/native service opened. PS syntax only. Required original compressed proof/hash LocalState/COSMIC/LauncherRecoveryCurrent retained. Free before 52648828928bytes.
+
+
+### 2 November 2026 — owned Firestore recovery outcome
+7controlled cases pass, producer/native-consumer build/PS syntax pass; no original emulator/export/key/Mongo opened.
+LocalState/COSMIC/LauncherRecoveryCurrent/firestore-recovery-controlled.trx.gz 1957bytes and firestore-recovery-evidence.json created; required retained original proof. TestResults/FirestoreCqlCurrent logs/TRX/bin/obj reusable/regenerable by cached restore/build, sizes unmeasured; exact validated cleanup only. No new environment/install/download/service. Free after 52314308608bytes.
