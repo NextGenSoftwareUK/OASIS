@@ -60,11 +60,11 @@ Next update website commands,then shipping check/integrate verified recovery bat
 Integration preflight: remote Development is still5507b0aa0;task is13commits ahead,
 zero behind. Manifest/seven Dockerfiles/gitlinks validate. No deployment started.
 Automatic review rejected the combined website-edit/consumer-build operation;
-it did not execute. Website commands and final changed-consumer compile remain
-open. Do not infer a new native/browser proof or retry the denied operation.
+it did not execute. Website commands remain open. A separate reproduced page
+bug is fixed/tested below;no new native/browser proof or denied-operation retry.
 Independent sixth-batch shipping API/provider build and GraphQL schema guard
 pass1/1,no skips. Original hash/counts:LocalState/COSMIC/LauncherRecoveryCurrent/
-sixth-batch-shipping-schema-evidence.json. Final configured consumer gate remains open.
+sixth-batch-shipping-schema-evidence.json. Consumer now compiles;3page regressions pass.
 
 ## Constraints / wider unfinished work
 

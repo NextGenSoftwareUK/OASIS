@@ -54,9 +54,22 @@ public static class IdentityFederationApiHost
         var page = Page.Replace("OracleDBOASIS", secondary.QueryProviderType.ToString(), StringComparison.Ordinal)
             .Replace("Oracle", IdentityFederationWalkthrough.DisplayName(secondary), StringComparison.Ordinal);
         if (preserveExistingRecords)
+        {
+            // Existing sources need not contain the old synthetic two-copy Mongo
+            // fixture. Describe the trusted catalogue, not invented query results:
+            // moving reads can still find missing or deleted records.
+            var display = IdentityFederationWalkthrough.DisplayName(secondary);
+            var subset = ids.Take(2).ToArray();
             page = page.Replace("Stop demo and clean fixtures", "Stop demo (keep existing records)", StringComparison.Ordinal)
                 .Replace("Read synthetic holons from two native databases through HolonManager.",
-                    "Read existing authorized records through HolonManager; this demo does not create or delete them.", StringComparison.Ordinal);
+                    "Read existing authorized records through HolonManager; this demo does not create or delete them.", StringComparison.Ordinal)
+                .Replace($"All records: {display} 3 + Mongo 2 = 5 physical rows.",
+                    $"Catalogued full selection: {display} {secondaryIds.Intersect(ids).Count()} + Mongo {mongoIds.Intersect(ids).Count()} copies.", StringComparison.Ordinal)
+                .Replace($"Subset: {display} 2 + Mongo 2 = 4 physical rows.",
+                    $"Catalogued subset: {display} {secondaryIds.Intersect(subset).Count()} + Mongo {mongoIds.Intersect(subset).Count()} copies. Missing or deleted records remain absent.", StringComparison.Ordinal)
+                .Replace("Demo stopping; the runner verifies fixture cleanup.",
+                    "Reader stopping; existing records and externally managed services are preserved.", StringComparison.Ordinal);
+        }
         if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.AWSOASIS)
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
                 "Read synthetic holons from MongoDB and DynamoDB Local through HolonManager.", StringComparison.Ordinal)
