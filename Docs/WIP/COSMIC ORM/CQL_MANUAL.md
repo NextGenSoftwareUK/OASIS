@@ -1440,3 +1440,7 @@ See [ThreeFold public node guide](../../Devs/THREEFOLD_PUBLIC_NODE_CQL_GUIDE.md)
 ### Recovered Weaviate record demo
 
 [Weaviate](WEAVIATE_CQL_MVP.md) restores bounded GUID CQL over an explicitly supplied gRPC query client, alongside REST payload storage. Cached SDK1.2.0,38controlled cases, builds and syntax pass. REST activation alone is not query readiness; no GraphQL fallback, native fixture replay or hosted/semantic-search certification is implied.
+
+### Recovered Couchbase record demo
+
+[Couchbase](COUCHBASE_CQL_MVP.md) restores bounded GUID record queries and its launcher/setup source using cached SDK3.7.1. Thirty-one controlled cases, producer/consumer builds and syntax pass. CAS values remain exact acknowledgement strings; conditional writes, hosted availability and fresh native acceptance are not inferred.
