@@ -6,8 +6,8 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 ## Verified coverage
 
-- **74 local integrated query types:** 3 canonical, 57 public/source profiles,
-  14 local cloud/database/filesystem integrations, including ten recovered local
+- **75 local integrated query types:** 3 canonical, 57 public/source profiles,
+  15 local cloud/database/filesystem integrations, including eleven recovered local
   demos. Recovery reuses historical acceptance; it is not a new native run.
 - **60 scoped hosted HTTP proofs; 5 browser proofs / 55 browser gates open.**
   These counts do not certify full ORM, native writes, reliability or uptime.
@@ -30,7 +30,7 @@ no pending intents. Independent offline audit passes; cohort is now frozen.
 ThreeFold card published at website **2170b67**; all 157 HTML IDs unique.
 Public HTML/two scripts match exact committed blobs. Initial old HTML observation
 is preserved separately; no republish was needed. Browser remains unverified.
-**Next: recover the remaining 25 advertised local launchers and scoped source
+**Next: recover the remaining 24 advertised local launchers and scoped source
 closures from retained Git, preserving current changes and accepted fixtures.**
 
 Do not rerun the hosted verifier, native walkthrough, settings apply or activation.
@@ -48,11 +48,13 @@ DB/seed/ACKs untouched, no native replay. LocalFile also restored: 7 controls/bu
 producer/consumer builds and syntax pass, no native replay. Four-provider batch
 46 controlled cases + shipping GraphQL schema guard pass; integrated into Dev
 **59ddcca91881102eb441c8b25e439c1914864ce0**. Existing code job
-**2d4fa248-74a7-4b26-bf66-3a991f0cab04 BUILDING**; observe without redeploy.
+**2d4fa248-74a7-4b26-bf66-3a991f0cab04 SUCCESS**; observe without redeploy.
+Health and Mongo/SQLite/Neo4j/ThreeFold discovery ready,0native queries/0saves.
 Settings unchanged; accepted native/hosted cohorts remain frozen.
 New task-only KeyDB/ValKey/Dragonfly/Garnet batch:32 CQL +6 lifecycle controls,
 consumer builds and syntax pass; no native replay. Memcached15/Upstash17 controls
-and producer/consumer/syntax pass; those sources are also restored on task branch. **25 missing launchers remain**. Recover
+and producer/consumer/syntax pass; CouchDB41 cases/build/syntax also pass.
+These seven further provider recoveries remain task-only, pending integration. **24 missing launchers remain**. Recover
 scoped dependencies, not the entire old branch. [DuckDB](DUCKDB_CQL_MVP.md).
 
 ## Remaining gates and constraints
@@ -72,7 +74,7 @@ Use one build lease and `/m:2 /nr:false /p:UseSharedCompilation=false`.
 Raw outputs only `TestResults/`; durable identities/proof `LocalState/COSMIC/`.
 Named-file commits; fetch/preserve upstream; no production/master promotion.
 
-Disk target 120GB unmet; latest free **54,817,755,136 bytes**. Preserve shared data,
+Disk target 120GB unmet; latest free **54,474,653,696 bytes**. Preserve shared data,
 previously denied cleanup targets, unknown root logs and personal Miniforge/models.
 [Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) owns exact retained resources.
 
