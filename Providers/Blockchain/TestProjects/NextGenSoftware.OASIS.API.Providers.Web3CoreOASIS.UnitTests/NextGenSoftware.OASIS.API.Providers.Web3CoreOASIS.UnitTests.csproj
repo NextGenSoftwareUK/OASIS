@@ -9,6 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="../../../../Examples/CosmicCqlDemo/EvmV2OwnedWalkthrough.cs" Link="Demo/EvmV2OwnedWalkthrough.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs" Link="Demo/IdentityFederationWalkthrough.cs" />
     <Compile Remove="EvmStorageConformanceTests.cs" />
     <Compile Include="EvmStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <Compile Remove="EvmFamilyFactoryTests.cs" />

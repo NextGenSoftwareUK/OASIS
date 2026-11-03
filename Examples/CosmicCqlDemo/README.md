@@ -1000,3 +1000,8 @@ query shape, limits and the difference between indexed metadata and provisioning
 Use `--akash-public LocalState/COSMIC/HostedAkashPublicSourceCurrent/source.json`
 after building this project. Native acceptance gates are immutable; do not replay
 setup/qualification to obtain green evidence. HTTP/Mongo/hosted gates are separate.
+
+
+### Owned EVM V2 C# walkthrough
+
+`EvmV2OwnedWalkthrough.cs` accepts an already activated V2 facade and trusted existing IDs. It demonstrates HolonManager/LINQ full and two-ID queries, plus the Mongo federation preset. It deploys/seeds nothing. Controlled SDK tests prove full3/subset2; live-chain/Mongo acceptance and CLI launcher remain pending. Usage: `../../Docs/WIP/COSMIC ORM/EVM_V2_CQL_RECOVERY_GAP.md`.

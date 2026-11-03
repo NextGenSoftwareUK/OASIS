@@ -18,7 +18,7 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 Fourth recovery batch InfluxDB/Supabase/Litestream/owned ClickHouse:113 controlled
 cases and shipping schema1/1 pass; all producer/native-consumer builds/syntax pass.
 Published Development2ae3e658f, settings unchanged, Core5415961 unchanged.
-Exact code job206de884-49c8-4a6b-988f-8077c3751f5b BUILDING.
+Exact code job206de884-49c8-4a6b-988f-8077c3751f5b DEPLOYING.
 Durable release record `LocalState/COSMIC/HostedLauncherRecoveryFourthReleaseCurrent`.
 Observe this exact job against commit2ae3e658f22a636752d5ff6d216e85b754fdd841;
 then health/provider-discovery only, zero native queries/private saves.
@@ -31,8 +31,10 @@ Run `python -B Scripts/Sandbox/Audit-LocalDemoLaunchers.py --html C:/Source/Web4
 Shared Web3Core V2 owned CQL implemented;10controlled cases and provider/unit
 builds pass, including shipping Arbitrum V2 facade exposure. No real-chain proof.
 Six additional controlled RPC/ABI/decryption cases pass through shipping
-Arbitrum V2 facade; no external RPC/chain acceptance. Next: V2 teaching/native
-consumer wiring before restoring EVM launcher. See EVM_V2_CQL_RECOVERY_GAP.md.
+Arbitrum V2 facade; no external RPC/chain acceptance. Published C# walkthrough
+proves manager/LINQ3/2 with controlled SDK; Mongo preset compiles. Next reconcile
+compatible retained Web3Core deployment/config and wire native V2 launcher.
+Never reuse legacy seed as Web3Core. See EVM_V2_CQL_RECOVERY_GAP.md.
 
 
 ## Reproduced launcher bug and completed recovery
