@@ -15,24 +15,20 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 ## Active release and exact next action
 
-Eight-provider recovery batch published to Development
-**fc437e31a99320c623388776b6a054b3dc1181c9**, Core **5415961**.
-Exact code job **c11ccee5-8330-4a1c-bb31-f66777b0c49a SUCCESS**.
-149 controlled cases, all producer/consumer builds/syntax and shipping schema pass.
-No settings changes or accepted native/hosted cohort replay. Public health and
-Mongo/SQLite/Neo4j/ThreeFold discovery ready,0nativequeries/0private saves.
-Exact successful release observation (no further polling required):
+Third recovery batch Chroma/Weaviate/Couchbase/PocketBase published Development
+**5f4b52ae7f9569276df59b843c43a1b250cfe71b**, Core **5415961**.
+Exact code job **fc345507-9114-44ef-9e93-bb49b99309c8 QUEUED**.
+165 controlled cases, all producer/consumer builds/syntax and shipping schema pass.
+No settings changes or accepted native/hosted cohort replay. Observe same job:
 
 ```powershell
-python Scripts/Sandbox/Observe-HostedDeployment.py c11ccee5-8330-4a1c-bb31-f66777b0c49a --expected-commit fc437e31a99320c623388776b6a054b3dc1181c9 --output TestResults/LauncherRecoveryCurrent/second-code-deployment.json
+python Scripts/Sandbox/Observe-HostedDeployment.py fc345507-9114-44ef-9e93-bb49b99309c8 --expected-commit 5f4b52ae7f9569276df59b843c43a1b250cfe71b --output TestResults/LauncherRecoveryCurrent/third-code-deployment.json
 ```
 
-Third recovery batch: Chroma/Weaviate/Couchbase/PocketBase165controls, all
-producer/consumer/syntax checks and shipping API/schema guard pass.
-Next: publish verified Development batch, observe exact job; no settings changes.
-Chroma50/Weaviate38/Couchbase31/PocketBase46 controls/builds/syntax pass; setup source
-was parsed, never executed. Do not start/reseed original native environments.
-[Chroma](CHROMA_CQL_MVP.md) / [Weaviate](WEAVIATE_CQL_MVP.md).
+Next source task: review/restore InfluxDB's full named launcher/source closure
+from retained pin237403a75, controlled tests/build/syntax only. Do not start or
+reseed accepted native environments. Chroma/Weaviate/Couchbase/PocketBase source
+recoveries are now integrated; runtime/hosted acceptance is not implied.
 
 ## Reproduced launcher bug and completed recovery
 
@@ -41,8 +37,9 @@ survive at retained sandbox-integration pin237403a75. Sixteen provider closures
 now restored; **19 published launcher paths remain missing**.
 First4provider batch46controls/schema, Dev59ddcca91/job2d4fa248 SUCCESS; health and
 Mongo/SQLite/Neo4j/ThreeFold discovery ready with0nativequeries/0saves.
-Second8provider batch149controls/schema is the active release above.
-Chroma/Weaviate/Couchbase/PocketBase ready for verified Development integration.
+Second8provider Devfc437e31a/jobc11ccee5 SUCCESS, health/discovery ready,0native
+queries/0saves. Third4provider batch165controls/schema is the active release above.
+Chroma/Weaviate/Couchbase/PocketBase integrated at5f4b52ae7; job remains queued.
 
 ## Accepted hosted cohorts — frozen
 
