@@ -1508,3 +1508,7 @@ key reads; current owned native/hosted availability remains unverified.
 [Owned Sui walkthrough](SUI_CQL_MVP.md) source restored with seven controlled
 checks/current native-consumer builds. Bounded encrypted canonical GUID-key
 queries; current owned native/hosted availability unverified.
+
+[Owned Aptos walkthrough](APTOS_CQL_MVP.md) source restored with ten controlled
+checks/current native-consumer compilation. Bounded canonical GUID Move views;
+current owned native/hosted availability unverified.
