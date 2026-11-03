@@ -5,9 +5,9 @@ commit d3dfe48a4d4e4ff0288180303fbbb06ab88eaebb. This is a source-integration
 problem, not evidence that the original native runs failed or should be replayed.
 
 The original audit found 35 absent paths among 37 distinct PowerShell launchers.
-DuckDB and LocalFile are now recovered; 33 remain absent from the current checkout. DuckDB implementation commit f1aeb0cb5 is not an ancestor of
+DuckDB, LocalFile, Redis and SQLServer are now recovered; 31 remain absent from the current checkout. DuckDB implementation commit f1aeb0cb5 is not an ancestor of
 current HEAD and survives on the earlier sandbox-integration branch. Counts of
-66 current integrated query types/59 hosted proofs do not count the remaining missing
+68 current integrated query types/59 hosted proofs do not count the remaining missing
 local launchers as additional hosted capabilities.
 
 Recovery source: `origin/work/cosmic-cql-sandbox-integration` at `237403a75b6983e013141cf7ba44bf66858abafd`.
@@ -68,4 +68,12 @@ is 65 after restoring this historical provider; hosted count remains 59.
 
 Named source/launcher restored without changing the provider base. Seven controlled
 cases, producer/consumer builds and syntax pass. Original source/seed untouched;
-no native replay. Local count 66, hosted 59; 33 advertised launchers remain absent.
+no native replay. Local count 66, hosted 59; 31 advertised launchers remain absent.
+
+## Redis / SQL Server recovery milestone
+
+Named source/launchers recovered; Redis8 and SQLServer17 controls pass, both
+producer/consumer builds and syntax pass. Missing Shared protected RecordKey
+extension reproduced by failed Redis compile and restored as one visibility
+change; canonical persistence key remains the single source. No native service
+or fixture replay. Local total68/hosted60;31launchers remain missing.
