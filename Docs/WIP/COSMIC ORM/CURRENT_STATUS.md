@@ -56,7 +56,9 @@ Configured V2 Ethereum/Polygon/Arbitrum reader+Mongo/HTTP consumer restored;
 Source recovery live;27controlled/API/schema cases pass;secure sign-in helper ready.
 See CQL_SOURCE_RECOVERY.md. Website commands remain to correct.
 Ethereum V2 artifact/ABI/cache+6deploymentcontrols pass;native operation review-blocked.
-LocalFile bootstrap16profile+41API/schema pass;next sourcebundle/rollout/live gates.
+LocalFile16profile+41API pass;source export/retained parser1+1,rollout controls5 pass.
+Next:fix reproduced bootstrap sandbox-setting mismatch (DNA true,extra flag absent);
+preparation stopped before protected candidate/config mutation. Hosted proof remains open.
 Automatic review rejected the combined website-edit/consumer-build operation;
 it did not execute. Website commands remain open. A separate reproduced page
 bug is fixed/tested below;no new native/browser proof or denied-operation retry.

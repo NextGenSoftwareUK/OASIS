@@ -157,3 +157,25 @@ Independent browser full5/subset4 verified; localfile-mongo-subset-current.png r
 Public section16/expanded command/fixed5110link verified: Web4Site main7bcfd230486837f97dde185406d92a407039c4f7, Production7452447621success. Screenshot localfile-catalogue-public.png SHA2563CB7A2E4759378F52E3E4B57D85228BE1685EFD56FDD2F7B8EB0E838A47209F1. HTML-only addition; hosted selector remains three databases. Backend changes remain task-branch only, no Railway deployment.
 
 After-demo gaps remain plaintext/encryption, metadata/content queries, child semantics, conditional writes, broader HyperDrive and full parity. This bounded profile does not turn those gates green.
+
+
+## Hosted public source qualification — 3 November 2026
+
+A separately declared, retained public teaching dataset was exported once under
+`LocalState/COSMIC/HostedLocalFilePublicDatasetCurrent`. Actual LocalFile/HolonManager/
+LINQ export test passed 1/1: full3/subset2 and unchanged source bytes. The shipping
+bootstrap parser independently admitted the retained bundle (1/1), without activation
+or a repeated source query. Qualification hashes and original TRX paths are in
+`LocalState/COSMIC/HostedLocalFileSourceCurrent/source-qualified.json`.
+
+Five pure publisher tests pass: exact five-value scope, bounded four presets, free
+query-only admission, no writable routing changes, existing-data preservation,
+corrupt bundle rejection and deployed-release-before-mutation gate. These are
+configuration controls, not hosted CQL proof.
+
+Real read-only preparation stopped: DNA `OASIS.Sandbox.Enabled` is true but
+`OASIS_SANDBOX` is absent. The new registration currently requires that separate
+flag, contrary to the canonical DNA-backed `SandboxOptions` setting. Fix the new
+registration/publisher at this boundary and add a regression before rollout.
+No protected candidate, hosted configuration change, bootstrap or deployment was
+performed by this preparation. Existing accepted sources were not replayed.
