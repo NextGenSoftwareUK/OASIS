@@ -129,3 +129,5 @@ Eight providers: KeyDB/ValKey/Dragonfly/Garnet, Memcached, Upstash, CouchDB and
 Qdrant.149controlled cases (including6fake-process lifecycle cases) and all
 consumer/syntax checks pass. Current shipping API rebuild/schema guard1/1pass,
 no skips/native fixture replay. TRX SHA256 `9790e606144bed0476b7fc167f46976968200430a40f1feafef6ac5e6eb4da32`; compressed original/manifest under LocalState/COSMIC/LauncherRecoveryCurrent. Next one verified Development code batch, no settings changes.
+
+Second recovery batch published/pushed Developmentfc437e31a99320c623388776b6a054b3dc1181c9; remote tips and seven Dockerfile/manifest/gitlinks validated. Exact new code jobc11ccee5-8330-4a1c-bb31-f66777b0c49a QUEUED, no settings changes/native replay. Intent/ACK HostedLauncherRecoverySecondReleaseCurrent. Observe same job; continue23remaining source/launcher gaps.
