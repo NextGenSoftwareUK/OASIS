@@ -35,8 +35,11 @@ Arbitrum V2 facade; no external RPC/chain acceptance. Published C# walkthrough
 proves manager/LINQ3/2 with controlled SDK; Mongo preset compiles. New native Arbitrum V2 read gate1/1passed:retained encrypted records3/2 through
 shipping facade + manager/LINQ; seed unchanged, no writes requested, node exited0.
 Original proof LauncherRecoveryCurrent/arbitrum-v2-owned-cql-native-read-evidence.json.
-Next: Mongo-paired native V2 query, then scoped shipping verification/Development
-batch for owned S3/Blob/Firestore/Firebase and V2 query support. No native replay.
+Paired V2 native queries5/4passed; original run then failed cleanup on Mongo
+RecordNotFound with IsError=false. Common read boundary fixed; separate native
+reconciliation1/1passes sync+async absent reads, original two-copy fixture cleaned.
+Original failed proof retained; no query/reseed replay. Next scoped shipping
+verification/Development batch including the reproduced Mongo fix.
 
 
 ## Reproduced launcher bug and completed recovery
