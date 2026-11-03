@@ -6,8 +6,8 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 ## Verified coverage
 
-- **80 local integrated query types:** 3 canonical, 57 public/source profiles,
-  20 other local integrations, including 16 recovered historical demos. Source
+- **81 local integrated query types:** 3 canonical, 57 public/source profiles,
+  21 other local integrations, including 17 recovered historical demos. Source
   recovery does not constitute a fresh native acceptance or runtime-availability run.
 - **60 scoped hosted HTTP proofs; 5 browser proofs / 55 browser gates open.**
   These counts do not certify full ORM, native writes, reliability or uptime.
@@ -17,7 +17,7 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 Third recovery batch Chroma/Weaviate/Couchbase/PocketBase published Development
 **5f4b52ae7f9569276df59b843c43a1b250cfe71b**, Core **5415961**.
-Exact code job **fc345507-9114-44ef-9e93-bb49b99309c8 QUEUED**.
+Exact code job **fc345507-9114-44ef-9e93-bb49b99309c8 BUILDING**.
 165 controlled cases, all producer/consumer builds/syntax and shipping schema pass.
 No settings changes or accepted native/hosted cohort replay. Observe same job:
 
@@ -25,21 +25,20 @@ No settings changes or accepted native/hosted cohort replay. Observe same job:
 python Scripts/Sandbox/Observe-HostedDeployment.py fc345507-9114-44ef-9e93-bb49b99309c8 --expected-commit 5f4b52ae7f9569276df59b843c43a1b250cfe71b --output TestResults/LauncherRecoveryCurrent/third-code-deployment.json
 ```
 
-Next source task: review/restore InfluxDB's full named launcher/source closure
-from retained pin237403a75, controlled tests/build/syntax only. Do not start or
-reseed accepted native environments. Chroma/Weaviate/Couchbase/PocketBase source
-recoveries are now integrated; runtime/hosted acceptance is not implied.
+InfluxDB recovery: 34 controlled tests and provider/native-consumer builds pass;
+no native fixture replay. Next review Supabase launcher/source closure from
+retained pin237403a75, preserving current provider changes.
 
 ## Reproduced launcher bug and completed recovery
 
 [Launcher gap](LOCAL_LAUNCHER_INTEGRATION_GAP.md): initial35/37missing paths all
-survive at retained sandbox-integration pin237403a75. Sixteen provider closures
-now restored; **19 published launcher paths remain missing**.
+survive at retained sandbox-integration pin237403a75. Seventeen provider closures
+now restored; **18 published launcher paths remain missing**.
 First4provider batch46controls/schema, Dev59ddcca91/job2d4fa248 SUCCESS; health and
 Mongo/SQLite/Neo4j/ThreeFold discovery ready with0nativequeries/0saves.
 Second8provider Devfc437e31a/jobc11ccee5 SUCCESS, health/discovery ready,0native
 queries/0saves. Third4provider batch165controls/schema is the active release above.
-Chroma/Weaviate/Couchbase/PocketBase integrated at5f4b52ae7; job remains queued.
+Chroma/Weaviate/Couchbase/PocketBase integrated at5f4b52ae7; job is building.
 
 ## Accepted hosted cohorts — frozen
 
