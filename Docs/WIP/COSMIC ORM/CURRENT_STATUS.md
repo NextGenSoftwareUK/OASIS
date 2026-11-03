@@ -60,6 +60,11 @@ TRON declared-source7controls/builds/syntax pass;old uncertain outcome untouched
 Configured V2 Ethereum/Polygon/Arbitrum reader+Mongo/HTTP consumer restored;
 7factory/configuration controls pass. Needs explicit compatible existing source.
 Next update website commands,then shipping check/integrate verified recovery batch.
+Integration preflight: remote Development is still5507b0aa0;task is13commits ahead,
+zero behind. Manifest/seven Dockerfiles/gitlinks validate. No deployment started.
+Automatic review rejected the combined website-edit/consumer-build operation;
+it did not execute. Website commands and final changed-consumer compile remain
+open. Do not infer a new native/browser proof or retry the denied operation.
 See TON_LOCAL_TVM_RECOVERY_GAP.md;public-header source preserved.
 
 ## Constraints / wider unfinished work
