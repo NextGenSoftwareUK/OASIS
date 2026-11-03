@@ -1,91 +1,79 @@
 # COSMIC ORM / CQL current status
 
 Updated 2 November 2026. Goal active and incomplete.
-Priority: breadth-first usable sandbox demos; deep selected-stage LINQ is paused.
-Work only red scopes or reproduced bugs; preserve accepted cohorts.
+Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
+Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
-## Verified coverage
+## Verified scope
 
-- **89 local integrated query types:** 3 canonical, 57 public/source profiles,
-  29 other local integrations, including 24 recovered historical demos. Source
-  recovery does not constitute a fresh native acceptance or runtime-availability run.
+- **89 local query types/profiles:**3 canonical, 57 public/source, 29 other local;
+  includes 24 recovered historical demos. Not 89 fully implemented providers.
 - **60 scoped hosted HTTP proofs; 5 browser proofs / 55 browser gates open.**
-  These counts do not certify full ORM, native writes, reliability or uptime.
-- MongoDB/SQLite/Neo4j: **50/82 strict parity rows each**; investor subset green.
+- MongoDB/SQLite/Neo4j strict parity **50/82 each**; investor subset green.
+- Published launcher audit:37 links / 26 present / **11 missing**; 3 audit tests pass.
+- Public ThreeFold/ClickHouse/Zcash cohorts are accepted and frozen.
 
-## Active release and exact next action
+## Current batch / exact next step
 
-Fourth recovery batch InfluxDB/Supabase/Litestream/owned ClickHouse:113 controlled
-cases and shipping schema1/1 pass; all producer/native-consumer builds/syntax pass.
-Published Development2ae3e658f, settings unchanged, Core5415961 unchanged.
-Exact code job206de884-49c8-4a6b-988f-8077c3751f5b SUCCESS.
-Durable release record `LocalState/COSMIC/HostedLauncherRecoveryFourthReleaseCurrent`.
-Observe this exact job against commit2ae3e658f22a636752d5ff6d216e85b754fdd841;
-health/provider-discovery passed, zero native queries/private saves.
-Third recovery Development5f4b52ae7/jobfc345507 SUCCESS; health and Mongo/SQLite/
-Neo4j/ThreeFold discovery/federation ready, zero native queries/private saves.
-Owned S3(7), Azure Blob(14), Firestore(7), Firebase(34) recoveries/builds pass;
-public adapter preserved, no original bucket/fixture opened.
-Launcher audit guard:3tests pass;37published/26present/11missing confirmed.
-Run `python -B Scripts/Sandbox/Audit-LocalDemoLaunchers.py --html C:/Source/Web4Site/web4-sandbox.html --output TestResults/LauncherRecoveryCurrent/local-launcher-audit.json`; exit1 means gaps.
-Shared Web3Core V2 owned CQL implemented;10controlled cases and provider/unit
-builds pass, including shipping Arbitrum V2 facade exposure. No real-chain proof.
-Six additional controlled RPC/ABI/decryption cases pass through shipping
-Arbitrum V2 facade; no external RPC/chain acceptance. Published C# walkthrough
-proves manager/LINQ3/2 with controlled SDK; Mongo preset compiles. New native Arbitrum V2 read gate1/1passed:retained encrypted records3/2 through
-shipping facade + manager/LINQ; seed unchanged, no writes requested, node exited0.
-Original proof LauncherRecoveryCurrent/arbitrum-v2-owned-cql-native-read-evidence.json.
-Paired V2 native queries5/4passed; original run then failed cleanup on Mongo
-RecordNotFound with IsError=false. Common read boundary fixed; separate native
-reconciliation1/1passes sync+async absent reads, original two-copy fixture cleaned.
-Original failed proof retained; no query/reseed replay. Next scoped shipping
-verification/Development batch including the reproduced Mongo fix.
+Fifth scoped batch:owned S3/Blob/Firestore/Firebase recoveries: 62 controlled cases;
+shared Web3Core V2 owned CQL: 16 controlled cases;launcher audit: 3 Python cases.
+Provider/native-consumer builds/syntax pass; API/schema shipping check1/1passed.
+Shipping original proof/hash:LauncherRecoveryCurrent/fifth-batch-shipping-schema-evidence.json.
+Ready for Development publication. Core5415961/settings unchanged.
+Release journal LocalState/COSMIC/HostedLauncherRecoveryFifthReleaseCurrent.
 
+After success:preserve original shipping TRX/hash, commit named docs, fetch and
+verify Development ancestry/gitlinks, publish one scoped batch. Identify one
+new deployment by exact commit and observe that same job; never resubmit.
+After SUCCESS, health/provider-discovery only;no accepted native cohort replay.
 
-## Reproduced launcher bug and completed recovery
+Last published fourth batch Development2ae3e658f/job206de884 SUCCESS;health and
+Mongo/SQLite/Neo4j/ThreeFold discovery/federation ready,zero native queries/saves.
 
-[Launcher gap](LOCAL_LAUNCHER_INTEGRATION_GAP.md): initial35/37missing paths all
-survive at retained sandbox-integration pin237403a75. Twenty-four provider closures
-now restored; **11 published launcher paths remain missing**.
-First4provider batch46controls/schema, Dev59ddcca91/job2d4fa248 SUCCESS; health and
-Mongo/SQLite/Neo4j/ThreeFold discovery ready with0nativequeries/0saves.
-Second8provider Devfc437e31a/jobc11ccee5 SUCCESS, health/discovery ready,0native
-queries/0saves. Third4provider batch165controls/schema passed and deployed successfully.
-Chroma/Weaviate/Couchbase/PocketBase integrated at5f4b52ae7; job succeeded; health/discovery ready.
+## V2 owned EVM proof and discovered Mongo bug
 
-## Accepted hosted cohorts — frozen
+Shipping Arbitrum V2 facade + canonical SDK/ABI/decryption + published manager/
+LINQ walkthrough pass native3/2 over retained encrypted records. Original seed
+unchanged;zero chain writes requested. Owned node exited0.
 
-ThreeFold code/activation SUCCESS atc00da49c1/Core5415961. Original three settings
-applied once; full candidate/per-key ACKs and unchanged DNA verified. Original
-native3/2, Mongo5/4, repeat0new/2existing, privacy0private/3public, exactSQLite/Neo4j
-2each and independent audit pass; two ordinary version1private saves/no pending.
-Card/static assets website2170b67verified. ClickHouse/Zcash also accepted.
-Do not rerun accepted verifiers, native walkthroughs, settings apply or activation.
-Durable ThreeFold evidence: `HostedQueryAcceptance-ThreeFoldOASIS`,
-`HostedThreeFoldReleaseCurrent`, `HostedThreeFoldPublicSourceCurrent` and
-`ThreeFoldPublicQualificationCurrent`. [Details](THREEFOLD_PUBLIC_SOURCE_STATUS.md).
+New native Mongo-paired queries 5/4 passed;original overall run FAILED during
+cleanup because Mongo absent-root returned RecordNotFound but IsError=false.
+Common read boundary fixed. Separate native reconciliation 1/1 passes sync+async
+absence for both IDs;exact original temporary fixture removed, no query replay.
+Original failed TRX and reconciliation proof preserved, never relabelled green.
+[EVM proof/limits](EVM_V2_CQL_RECOVERY_GAP.md). Hosted owned-EVM gate remains open.
 
-## Remaining constraints
+Next source/demos:remaining11published launcher paths;preserve current public
+adapters, use actual V2 factories and compatible retained contracts. Do not
+restore legacy Ethereum demos as V2 proof. No new environment needed.
 
-- Hosted Azure Cosmos/Oracle/PostgreSQL deferred by David; no account/spend re-asks.
-- Browser/OS control closed; HTTP/static assets are not interaction proof.
-- Preserve Tableland302/Ceramic pre-HTTP/denied Lens/Aztec and other failure outcomes.
-- Full native browser payload copies, ORM/children/depth/history/deltas,
-  migration/placement and wider HyperDrive acceptance remain open.
-- V2 implementation only; legacy gaps documentation-only. Green scopes frozen.
+## Constraints / wider unfinished work
 
-Work only `C:/Source/OASIS-cosmic` / `work/cosmic-cql-ton-public`; Core
-`work/cosmic-cql-google-public`; website `C:/Source/Web4Site` / `work/cosmic-cql`.
-Website main/task2170b67 includes ThreeFold/ClickHouse/Zcash. No new environment.
-Use one build lease and `/m:2 /nr:false /p:UseSharedCompilation=false`.
-Raw output `TestResults/`; durable identities/proof `LocalState/COSMIC/`.
-Named-file commits; fetch/preserve upstream; no production/master promotion.
+- Hosted Azure Cosmos/Oracle/PostgreSQL deferred by David;no account/spend re-asks.
+- Browser/OS control closed;HTTP/static matching is not interaction proof.
+- Preserve denied/failed public-source outcomes and original accepted cohorts.
+- ORM children/depth/history/deltas,cutover/migration/placement and wider hosted/
+  operator/transport/scale HyperDrive acceptance remain open;no uptime guarantee.
+- Native browser snapshots do not yet copy arbitrary complete source payloads.
 
-Disk target120GB unmet; latest free 53,520,859,136bytes. Preserve shared data,
-denied cleanup targets, unknown root logs and personal Miniforge/models.
-[Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) owns retained resources.
+Work only C:/Source/OASIS-cosmic;task branch work/cosmic-cql-ton-public;
+Core work/cosmic-cql-google-public;website C:/Source/Web4Site/work/cosmic-cql.
+Use one build lease;/m:2 /nr:false /p:UseSharedCompilation=false.
+Raw logs TestResults/;original identities/proof LocalState/COSMIC/;named-file commits.
+No production/master promotion;preserve unknown root logs and shared/denied cleanup.
+Disk120GB target unmet;[resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) owns resources.
 
-[Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) |
-[Manual](CQL_MANUAL.md) | [Architecture](CQL_ARCHITECTURE.md) |
-[Parity](CQL_PARITY_CHECKLIST.md) | [Backlog](AFTER_DEMO_BACKLOG.md) |
+## Entry points / commands
+
+[Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) | [Manual](CQL_MANUAL.md) |
+[Architecture](CQL_ARCHITECTURE.md) | [Parity](CQL_PARITY_CHECKLIST.md) |
+[Launcher gaps](LOCAL_LAUNCHER_INTEGRATION_GAP.md) | [Backlog](AFTER_DEMO_BACKLOG.md) |
 [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md)
+
+```powershell
+python Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+python -B Scripts/Sandbox/Audit-LocalDemoLaunchers.py --html C:/Source/Web4Site/web4-sandbox.html --output TestResults/LauncherRecoveryCurrent/local-launcher-audit.json
+```
+
+Audit exit1 currently means11missing paths, not native execution. Never rerun
+accepted native standalone3/2 or paired queries just to rebuild evidence.
