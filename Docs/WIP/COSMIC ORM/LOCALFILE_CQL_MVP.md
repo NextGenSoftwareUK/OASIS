@@ -48,6 +48,36 @@ Next implement the explicit public teaching-data bootstrap and verify hosted
 native3/2,Mongo5/4,privacy/replicas and card. No deployment/configuration change
 or hosted LocalFile acceptance yet;counts stay96local/60historical hosted proofs.
 
+### Write-once public teaching-data bootstrap
+
+CQL_LOCALFILE_PUBLIC_BOOTSTRAP_JSON is optional and requires an explicit source
+profile plus OASIS_SANDBOX=true. Schema1 contains exactly `schema`,`records`;
+each record contains `id`,`sha256`,`contentBase64`. The complete bundle must match
+the declared source IDs/hashes,strict UTF8 and live public flat rows belonging
+to the source owner. Unknown/duplicate fields,private/foreign/deleted/child rows
+and corrupt content are rejected before dataset creation. Bundle budget128KiB,
+individual decoded record32KiB. No account/key/new service is required.
+
+The source parent/volume must already exist. One exclusive sibling bootstrap
+lease owns creation. New source stores a durable intent before record files and
+ACK after all writes;each write is create-only and flushed. A pre-existing source
+without both matching receipts is not adopted,replayed or overwritten. Verified
+ACK reuse compares exact bounded bytes and performs no dataset writes. Altered
+or partial state requires explicit reconciliation;no automatic repair/fallback.
+This is not a multi-file database transaction or a general migration tool.
+
+Bootstrap starts before hosted source activation. Read grants,tariffs and presets
+remain independent explicit host configuration. DI owns profile disposal;host
+container disposal deactivates the profile. Target later uses the existing/data
+volume,not another server/environment. Existing LocalFile writer is unchanged.
+
+16profile tests and41API/bootstrap/discovery/schema checks pass,0failed/skipped.
+New synthetic filesystem cases removed;initial compile diagnostic preserved.
+Proof:LocalState/COSMIC/HostedLocalFileSourceCurrent/bootstrap-evidence.json.
+Next generate the declared source bundle,prepare protected hosted configuration,
+qualify the combined release,then verify native3/2,Mongo5/4,privacy/replicas/card.
+No live deployment/config/data/count change has occurred in this step.
+
 ## Demo
 
 ```powershell

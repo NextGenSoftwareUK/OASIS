@@ -34,7 +34,7 @@ public sealed class LocalFilePublicCqlProfile : LocalFileOASIS,
             throw new ArgumentException("Explicit owner and bounded canonical-ID/hash catalogue required.");
         this.sourceOwner = sourceOwner;
         records = new ReadOnlyDictionary<Guid, string>(recordHashes.ToDictionary(pair => pair.Key, pair => pair.Value.ToLowerInvariant()));
-        SourceDirectory = Path.GetFullPath(directory);
+        SourceDirectory = Path.TrimEndingDirectorySeparator(Path.GetFullPath(directory));
         holons = Path.Combine(SourceDirectory, "Holons");
     }
 
