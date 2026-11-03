@@ -1528,3 +1528,5 @@ Explicit TonLocalTvmStorageSource now passes local TVM execution:encrypted recor
 [TRON declared local source](TRON_CQL_MVP.md) is restored with seven controlled
 checks/native-consumer builds. This separate demo is not reconciliation of older
 uncertain writes. Current native/hosted availability remains unverified.
+
+[Configured local EVM V2 reader](EVM_V2_CONFIGURED_LOCAL_DEMO.md) supports Ethereum/Polygon/Arbitrum through actual shipping factories,existing-authorized-record filters and Mongo/browser preset. Seven controls/consumer compilation pass;explicit compatible configuration and existing records required. New configured native gates open.

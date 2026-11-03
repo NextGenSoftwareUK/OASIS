@@ -9,14 +9,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationApiHost.cs" Link="Demo/IdentityFederationApiHost.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/EvmV2OwnedWalkthrough.cs" Link="Demo/EvmV2OwnedWalkthrough.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs" Link="Demo/IdentityFederationWalkthrough.cs" />
     <Compile Remove="EvmStorageConformanceTests.cs" />
     <Compile Include="EvmStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <Compile Remove="EvmFamilyFactoryTests.cs" />
     <Compile Include="EvmFamilyFactoryTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
-    <Compile Include="../../../../OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/EthereumProviderFactory.cs" Link="Production/EthereumProviderFactory.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
-    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.EthereumOASIS/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <Compile Include="../../../../OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/EthereumProviderFactory.cs" Link="Production/EthereumProviderFactory.cs" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.EthereumOASIS/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj" />
     <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
   </ItemGroup>
   <ItemGroup>

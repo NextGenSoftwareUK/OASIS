@@ -459,3 +459,5 @@ TRON separate declared-source query/launcher recovered:7controlled tests,provide
 native-consumer builds and syntax pass. No native container/mining/ledger/key
 operation;historical uncertain transaction outcome unresolved and preserved.
 Current declared-source runtime/hosted unverified. Local96/hosted60;TRON_CQL_MVP.md.
+
+All37published launcher paths now exist. Configured EVM V2 reader uses shipping factories with explicit compatible source,7controlled cases/consumer build pass. Native configured source/Mongo/browser acceptance unverified;file presence is not runtime readiness. Totals96local/60hosted unchanged. EVM_V2_CONFIGURED_LOCAL_DEMO.md.
