@@ -4674,3 +4674,15 @@ PocketBase recovery outcome46/46controlled cases/builds/syntax pass, no original
 Third recovery shipping validation1/1pass after full cached API consumer rebuild, no native requests/skips. Compressed original third-batch-shipping-schema.trx.gz/hash manifest retained LocalState/COSMIC/LauncherRecoveryCurrent. Planned publication journal LocalState/COSMIC/HostedLauncherRecoveryThirdReleaseCurrent records intent/exact job for existing WEB4 Development service; no new service/account/config/spend. Free bytes 53521403904. No owned build/test process remains.
 
 Third recovery code published Development5f4b52ae7f9569276df59b843c43a1b250cfe71b; existing WEB4 service jobfc345507-9114-44ef-9e93-bb49b99309c8 QUEUED. Intent/ACK HostedLauncherRecoveryThirdReleaseCurrent retained. No new service/account/config/spend or native fixture replay; provider-managed artifact size unmeasured, normal superseding release lifecycle. No duplicate deployment request.
+
+## 2 November 2026 — InfluxDB source/launcher recovery
+
+Recover reviewed named provider/CQL/write-hook/tests/PS/Python/setup/docs from retained Git pin237403a75. Reuse cached InfluxDB.Client5.1.0, SDK10.0.401/Python/dependencies; no download/install. Original /var/tmp/oasis-influxdb-cql service/bucket/points/token/CA remain unopened/unverified. Controlled query tables/write hooks/Flux literal tests only; no original native fixture/provisioning. Setup AST-only, shared Mongo helper compile-only. Existing InfluxDB bin/obj reused, growth unmeasured; raw evidence TestResults/InfluxDbCqlCurrent/recovery-*; compact proof LocalState/COSMIC/LauncherRecoveryCurrent. Free bytes before53521506304. No account/new environment/spend.
+
+
+### 2 November 2026 — InfluxDB recovery outcome
+Owner COSMIC/CQL; existing cached InfluxDB.Client5.1.0 reused, no download/install/new environment.
+TestResults/InfluxDbCqlCurrent reused for regenerable build logs/TRX; 34 controls passed, producer/consumer builds passed.
+LocalState/COSMIC/LauncherRecoveryCurrent/influxdb-recovery-controlled.trx.gz and influxdb-recovery-evidence.json created; retain original proof/hash manifest. Sizes 5823 compressed bytes; generated build output size unmeasured. No native process/port dependency started.
+Provider/test bin/obj active/reusable; clean only after exact ownership/use validation, regenerate via cached restore/build. Original /var/tmp/oasis-influxdb-cql remains unopened/preserved.
+Free disk after 53381767168 bytes; shared free-space movement is not attributed to this build.

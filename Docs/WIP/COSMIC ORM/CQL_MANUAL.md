@@ -1448,3 +1448,7 @@ See [ThreeFold public node guide](../../Devs/THREEFOLD_PUBLIC_NODE_CQL_GUIDE.md)
 ### Recovered PocketBase demo
 
 [PocketBase](POCKETBASE_CQL_MVP.md) restores bounded logical-GUID queries and its launcher. Forty-six controlled cases, producer/consumer builds and syntax pass. Unknown write outcomes preserve proposed identity for explicit reconciliation; native fixtures were not replayed and hosted/conditional-write support is not inferred.
+
+InfluxDB 2.x local demo source is restored with 34 controlled checks and current
+consumer compilation. See [InfluxDB walkthrough](INFLUXDB_CQL_MVP.md) for bounded
+Flux GUID queries and historical native proof; hosted availability is unverified.
