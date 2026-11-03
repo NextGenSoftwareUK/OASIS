@@ -15,20 +15,16 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 ## Active release and exact next action
 
-Third recovery batch Chroma/Weaviate/Couchbase/PocketBase published Development
-**5f4b52ae7f9569276df59b843c43a1b250cfe71b**, Core **5415961**.
-Exact code job **fc345507-9114-44ef-9e93-bb49b99309c8 SUCCESS**.
-165 controlled cases, all producer/consumer builds/syntax and shipping schema pass.
-No settings changes or accepted native/hosted cohort replay. Observe same job:
-
-```powershell
-python Scripts/Sandbox/Observe-HostedDeployment.py fc345507-9114-44ef-9e93-bb49b99309c8 --expected-commit 5f4b52ae7f9569276df59b843c43a1b250cfe71b --output TestResults/LauncherRecoveryCurrent/third-code-deployment.json
-```
-
-InfluxDB34, Supabase36, Litestream14 and owned ClickHouse29 controlled tests/builds/syntax pass; task branch only,
-no native fixture replay. Third release health and Mongo/SQLite/Neo4j/ThreeFold
-discovery pass with zero native queries/saves. Next review remaining chain/cloud launcher source
-closures at retained pin237403a75; preserve current provider changes.
+Fourth recovery batch InfluxDB/Supabase/Litestream/owned ClickHouse:113 controlled
+cases and shipping schema1/1 pass; all producer/native-consumer builds/syntax pass.
+Ready for one Development publication, settings unchanged, Core5415961 unchanged.
+Durable release record `LocalState/COSMIC/HostedLauncherRecoveryFourthReleaseCurrent`.
+After push, identify the exact new job by commit and observe it without resubmission;
+then health/provider-discovery only, zero native queries/private saves.
+Third recovery Development5f4b52ae7/jobfc345507 SUCCESS; health and Mongo/SQLite/
+Neo4j/ThreeFold discovery/federation ready, zero native queries/private saves.
+Next source work: remaining15 chain/cloud launcher closures from retained
+pin237403a75, preserving current public adapters and accepted native cohorts.
 
 ## Reproduced launcher bug and completed recovery
 
@@ -38,7 +34,7 @@ now restored; **15 published launcher paths remain missing**.
 First4provider batch46controls/schema, Dev59ddcca91/job2d4fa248 SUCCESS; health and
 Mongo/SQLite/Neo4j/ThreeFold discovery ready with0nativequeries/0saves.
 Second8provider Devfc437e31a/jobc11ccee5 SUCCESS, health/discovery ready,0native
-queries/0saves. Third4provider batch165controls/schema is the active release above.
+queries/0saves. Third4provider batch165controls/schema passed and deployed successfully.
 Chroma/Weaviate/Couchbase/PocketBase integrated at5f4b52ae7; job succeeded; health/discovery ready.
 
 ## Accepted hosted cohorts — frozen
