@@ -1420,3 +1420,7 @@ See [ThreeFold public node guide](../../Devs/THREEFOLD_PUBLIC_NODE_CQL_GUIDE.md)
 ### Recovered Redis-family launchers
 
 [KeyDB](KEYDB_CQL_MVP.md), [ValKey](VALKEY_CQL_MVP.md), [Dragonfly](DRAGONFLY_CQL_MVP.md) and [Garnet](GARNET_CQL_MVP.md) retain their separate storage authorities over the shared encrypted Redis executor. Current controlled cases/builds/syntax pass; original native/browser runs were not replayed. No hosted deployment or full parity is inferred.
+
+### Recovered Memcached and Upstash demos
+
+[Memcached](MEMCACHED_CQL_MVP.md) and [Upstash](UPSTASH_CQL_MVP.md) launchers/source are restored. Controlled tests (15/17), producer/consumer builds and syntax pass. Original native/browser proofs remain historical; volatile-cache durability and hosted account availability are separate concerns, not inferred from source recovery.

@@ -4618,3 +4618,11 @@ Redis-family recovery outcome:32CQL cases/all producer-consumer builds/PS and Py
 - ValKey recovery-controlled.trx SHA256 `f730a8640fcd4010a17c8d2479ca84794ef74cda28d0663bf06b3e38560f6763`.
 - Dragonfly recovery-controlled.trx SHA256 `d5090251f6d59fbfe08de042b07bf8241fdefb242f69689f846455dc5cf04d5b`.
 - Garnet recovery-controlled.trx SHA256 `d54d9f0ad564a5eb4c45089e89791e3ffea2cbad235a5cbcb008d2bce873513b`.
+
+## 2 November 2026 — Memcached / Upstash launcher recovery
+
+Recover named source/CQL/tests/launchers/docs from retained Git pin237403a75, preserving current unrelated changes. Reuse SDK10.0.401/Python/NuGet Enyim and existing Upstash HTTP dependencies; no download/install/account/config read. Original /var/tmp/oasis-memcached-cql and LocalState/COSMIC/UpstashCql plus protected resource directory remain unopened/unverified. Controlled tests only: Memcached negative calls require closed127.0.0.1:1; Upstash command-outcome tests own short-lived loopback ephemeral HTTP listeners (port unmeasured, unit-owned, no public network, synthetic token). All close with test process. No original native service/fixture. Cached producer/unit/consumer outputs reused; size initially unmeasured. Raw logs/TRX TestResults/{Memcached,Upstash}CqlCurrent/recovery-*; compact proof retained LocalState/COSMIC/LauncherRecoveryCurrent. Free disk before55039881216bytes.
+
+Memcached/Upstash recovery outcome:15/17 controlled cases and producer/consumer builds/syntax pass. Loopback test stubs ended with the test hosts; no native fixture/account/config opened. Compressed originals/compact SHA manifest at LocalState/COSMIC/LauncherRecoveryCurrent/memcached-upstash-recovery-evidence.json; raw recovery logs/TRX remain TestResults. No install/download/environment or source reset. Free bytes 54817751040. Generated/reused output growth unmeasured; original runtimes/source and prior failures retained.
+- Memcached recovery-controlled.trx SHA256 `9bc743a97aa4c43c4360cb679402728125789749db97afe85427eb667aa11af9`.
+- Upstash recovery-controlled.trx SHA256 `789d2ea88934af45736ae658e106cc0458543a407d693fd5f32ae9b57622143d`.
