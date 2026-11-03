@@ -1432,3 +1432,7 @@ See [ThreeFold public node guide](../../Devs/THREEFOLD_PUBLIC_NODE_CQL_GUIDE.md)
 ### Recovered Qdrant record demo
 
 [Qdrant](QDRANT_CQL_MVP.md) restores bounded GUID holon queries and its launcher/setup source. Thirty-eight controlled cases, producer/consumer builds and syntax pass. The setup was not executed and the original native fixture was not replayed. Placeholder vectors do not demonstrate semantic similarity search or hosted Qdrant acceptance.
+
+### Recovered Chroma record demo
+
+[Chroma](CHROMA_CQL_MVP.md) restores tenant/database-scoped bounded GUID record queries and its launcher/setup source. Fifty controlled cases, producer/consumer builds and syntax pass. Setup/native fixtures were not executed; hosted availability, history and semantic similarity search are not inferred.
