@@ -4717,3 +4717,15 @@ Litestream cached restore failed NU1101: Microsoft.Data.Sqlite10.0.12 absent. Ve
 14controlled tests passed, provider/native-consumer builds/syntax passed. No new environment/install/download/service.
 LocalState/COSMIC/LauncherRecoveryCurrent/litestream-recovery-controlled.trx.gz 2924bytes and litestream-recovery-evidence.json created; retain original proof/hash.
 TestResults/LitestreamCqlCurrent logs/TRX and bin/obj sizes unmeasured, reusable/regenerable by cached restore/build; exact validated cleanup only after owned operations stop. No original DB/sidecar/replica opened. Free after 52860006400bytes; shared disk drift not attributed.
+
+
+### 2 November 2026 — owned ClickHouse source recovery
+Owner COSMIC/CQL; named historical source237403a75 restored, preserve current public-country adapter/project references untouched. No download/install/new environment.
+Reuse .NET/NuGet cache and provider/unit/integration bin/obj; outputs unmeasured active/reusable, validated cleanup only, regenerate cached restore/build.
+TestResults/ClickHouseCqlCurrent for regenerable logs/TRX; LocalState/COSMIC/LauncherRecoveryCurrent for required original compressed proof/hash summary. No original ClickHouse/Mongo service/config/data/fixture opened, setup syntax only, no service/port dependency started. Free before 52859056128bytes.
+
+
+### 2 November 2026 — owned ClickHouse recovery outcome
+29controlled cases pass, provider/native-consumer builds/syntax pass. Public-country adapter untouched; no native/accepted fixture replay.
+LocalState/COSMIC/LauncherRecoveryCurrent/clickhouse-recovery-controlled.trx.gz 4910bytes and clickhouse-recovery-evidence.json created, retain original evidence/hash.
+TestResults/ClickHouseCqlCurrent reusable logs/TRX and associated bin/obj sizes unmeasured, regenerate cached restore/build after exact validated cleanup. No new runtime/install/download/environment/service. Free after 52805328896bytes.

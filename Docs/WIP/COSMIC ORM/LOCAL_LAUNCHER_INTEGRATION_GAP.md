@@ -202,3 +202,11 @@ exact retained cached Core10.0.9/bundle2.1.11 references restored, no download.
 No SQLite/sidecar/replica/native fixture opened. Local83/hosted60;16published
 launcher paths remain absent. Durable original evidence/hash manifest:
 LocalState/COSMIC/LauncherRecoveryCurrent/litestream-recovery-evidence.json.
+
+## Owned ClickHouse recovery milestone
+
+29relevant controlled cases, provider/native-consumer builds and PS/Python syntax
+pass. Preserve current public-country adapter/project dependencies. No owned
+service/credential/fixture opened, no green public-profile tests/native replay.
+Local84/hosted60;15published launcher paths remain missing (37distinct paths).
+Original TRX/hash manifest LocalState/COSMIC/LauncherRecoveryCurrent/clickhouse-recovery-evidence.json.
