@@ -3,7 +3,9 @@
 Updated 2 November 2026. Full programme remains incomplete.
 [CURRENT_STATUS](CURRENT_STATUS.md) owns deployment state and the exact next step.
 
-1. Recover the published launcher runtime/configuration gaps and their reviewed
+1. Verify/deploy explicit source recovery for the reproduced Nostr startup503;
+   [27controlled/API/schema cases pass](CQL_SOURCE_RECOVERY.md),live gate remains.
+   Recover the published launcher runtime/configuration gaps and their reviewed
    source dependencies from retained sandbox-integration pin 237403a75. DuckDB
    and LocalFile are restored with controlled tests/builds, no native replay.
    ThreeFold's hosted audit and card/static assets now pass at website2170b67;

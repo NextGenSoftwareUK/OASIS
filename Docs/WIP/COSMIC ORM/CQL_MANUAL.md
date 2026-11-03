@@ -1530,3 +1530,8 @@ checks/native-consumer builds. This separate demo is not reconciliation of older
 uncertain writes. Current native/hosted availability remains unverified.
 
 [Configured local EVM V2 reader](EVM_V2_CONFIGURED_LOCAL_DEMO.md) supports Ethereum/Polygon/Arbitrum through actual shipping factories,existing-authorized-record filters and Mongo/browser preset. Seven controls/consumer compilation pass;explicit compatible configuration and existing records required. New configured native gates open.
+
+
+## Recovering an unavailable hosted source
+
+Normal users cannot activate shared sources. Operators use the explicit Wizard-only source recovery route with the current discovery host instance/generation and a preserved operation ID. Startup failure recovery does not replay CQL queries or saved demo copies. Controlled proof27/27;live operator proof pending. See [operator contract and example](CQL_SOURCE_RECOVERY.md).
