@@ -399,3 +399,8 @@ See FIRESTORE_CQL_MVP.md.
 Firebase owned source/launcher restored:34controlled tests and current native/
 federated consumer builds pass; original emulator/export untouched. Current
 hosted/runtime unverified. See FIREBASE_CQL_MVP.md.
+
+EVM owned-holon V2 gap: current Ethereum/Arbitrum shipping factories select
+Web3Core facades, while retained Ethereum owned demo uses legacy ABI. Shared V2
+base lacks owned CQL; public account source proofs do not cover this. See
+[EVM review](EVM_V2_CQL_RECOVERY_GAP.md). No legacy implementation changes.

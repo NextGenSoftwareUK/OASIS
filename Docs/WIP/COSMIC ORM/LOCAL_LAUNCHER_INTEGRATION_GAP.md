@@ -265,3 +265,11 @@ returns expected exit1. No launcher/native/provider operation executes.
 Evidence TestResults/LauncherRecoveryCurrent/local-launcher-audit.json; regenerate
 with command in CURRENT_STATUS. Retained EVM launcher includes Ethereum/Polygon/
 Arbitrum teaching paths; review shipping factories and test closure before restore.
+
+## EVM shipping-path mismatch
+
+Retained Ethereum native/federated default constructs legacy EthereumOASIS;
+shipping V2 factory selects EthereumOASIS_Web3Core, whose shared base lacks owned
+CQL. Do not restore historical legacy code as V2 acceptance. Implement shared V2
+query boundary first; see [review and exact next steps](EVM_V2_CQL_RECOVERY_GAP.md).
+No source/runtime/native fixture changes; coverage and missing-link count unchanged.
