@@ -77,3 +77,10 @@ producer/consumer builds and syntax pass. Missing Shared protected RecordKey
 extension reproduced by failed Redis compile and restored as one visibility
 change; canonical persistence key remains the single source. No native service
 or fixture replay. Local total68/hosted60;31launchers remain missing.
+
+## Four-provider shipping integration guard
+
+DuckDB14 + LocalFile7 + Redis8 + SQLServer17 = 46 controlled cases pass; all
+consumer builds/syntax pass. Shipping GraphQL schema builds against the recovered
+source batch (1/1 pass), guarding WEB4 startup after Shared extension restoration.
+Raw TestResults/LauncherRecoveryCurrent/shipping-schema.trx SHA256 `827417ccb1a7ff28c8498d86c3a9eadb8c1076f98d33a47bc5c22fae79dc7533`; compressed original/manifest retained at LocalState/COSMIC/LauncherRecoveryCurrent. No native service/fixture replay. Next publish verified batch to Development, then continue31missing launchers.
