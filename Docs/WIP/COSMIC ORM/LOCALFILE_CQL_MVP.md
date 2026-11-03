@@ -2,6 +2,30 @@
 
 Updated 2 November 2026. Named source/launcher restored from retained pin 237403a75. Seven controlled tests, producer/consumer compilation and launcher syntax pass. No native fixture/source/seed replay. Acceptance below is historical, not a newly repeated run. Hosted LocalFile remains unverified.
 
+## Hosted public-profile preparation,3November2026
+
+New LocalFilePublicCqlProfile adds explicit public-catalogue query enrollment and
+read-only activation without changing the ordinary writer. Activation requires
+existing bounded canonical GUID files,matching startup hashes/public owner and
+strict UTF8. Query dispatch reuses the actual LocalFile decoder/stream budget;
+it rejects unlisted identities and later private/foreign response rows without
+publishing partial results. Files are plaintext,not encrypted or snapshot-pinned.
+Register this representation only in the CQL query-source registry,not as writable
+authority. Native/storage signing and broader LocalFile ORM remain separate.
+
+8new actual-filesystem cases pass,0failed/skipped;3/2selection,catalogue isolation,
+public/owner/hash admission,cancellation,missing-source handling and later privacy
+changes. Newly owned synthetic cases removed;original retained cohort untouched.
+Proof:LocalState/COSMIC/HostedLocalFileSourceCurrent/public-profile-evidence.json.
+Next:host configuration/explicit synthetic-public bootstrap,SDK/HTTP/Mongo5/4,
+privacy/replica proof and sandbox card. No hosted registration or count increase yet.
+
+Legacy unit-project gaps found while adding tests:CS0411 compares ProviderType to
+its enum wrapper;CS1061 calls nonexistent GetProviderVersion. These template tests
+remain unchanged/documented. New filesystem tests belong to the existing
+integration project;its cached dependencies compile. Initial NETSDK1004 and both
+compile-error logs/hashes preserved in the proof manifest,not relabelled green.
+
 ## Demo
 
 ```powershell
