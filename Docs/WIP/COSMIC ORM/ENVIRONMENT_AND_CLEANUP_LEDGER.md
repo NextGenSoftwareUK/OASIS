@@ -4702,3 +4702,18 @@ TestResults/SupabaseCqlCurrent logs/TRX and associated bin/obj reused; sizes unm
 Existing Railway jobfc345507 SUCCESS; original owner session reused for health/provider metadata only, zero native queries/private saves.
 LocalState/COSMIC/HostedLauncherRecoveryThirdReleaseCurrent/readiness-observed.json created, retain. No new avatar/runtime/environment/download.
 Free after 53035749376bytes; no attribution of shared disk movement.
+
+
+### 2 November 2026 — Litestream source recovery
+Owner COSMIC/CQL; named retained source237403a75 only, existing .NET/NuGet cache reused; preserve current Microsoft.Data.Sqlite10.0.12 rather than historical downgrade. No install/download/new environment.
+TestResults/LitestreamCqlCurrent reusable regenerable logs/TRX; provider/unit/integration bin/obj reused, sizes unmeasured. No original SQLite DB/Litestream sidecar/replica/Mongo data opened. Launcher syntax only.
+Existing canonical Providers/Shared/TestSupport/LinuxMongoDemoEnvironmentTests.cs linked once, no duplicate helper.
+Retain original compressed proof/hash summary LocalState/COSMIC/LauncherRecoveryCurrent; outputs active/reusable until validated cleanup, regenerate cached restore/build. No service/port dependency started. Free before 53034704896bytes.
+
+Litestream cached restore failed NU1101: Microsoft.Data.Sqlite10.0.12 absent. Verified existing C:/Users/david/.nuget/packages/microsoft.data.sqlite.core/10.0.9 and sqlitepclraw.bundle_e_sqlite3/2.1.11; restore exact retained demo package references instead. Supersedes intended dependency preservation above; no download. Cache sizes unmeasured/shared/reusable, preserve.
+
+
+### 2 November 2026 — Litestream recovery outcome
+14controlled tests passed, provider/native-consumer builds/syntax passed. No new environment/install/download/service.
+LocalState/COSMIC/LauncherRecoveryCurrent/litestream-recovery-controlled.trx.gz 2924bytes and litestream-recovery-evidence.json created; retain original proof/hash.
+TestResults/LitestreamCqlCurrent logs/TRX and bin/obj sizes unmeasured, reusable/regenerable by cached restore/build; exact validated cleanup only after owned operations stop. No original DB/sidecar/replica opened. Free after 52860006400bytes; shared disk drift not attributed.

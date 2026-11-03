@@ -6,8 +6,8 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 ## Verified coverage
 
-- **82 local integrated query types:** 3 canonical, 57 public/source profiles,
-  22 other local integrations, including 18 recovered historical demos. Source
+- **83 local integrated query types:** 3 canonical, 57 public/source profiles,
+  23 other local integrations, including 19 recovered historical demos. Source
   recovery does not constitute a fresh native acceptance or runtime-availability run.
 - **60 scoped hosted HTTP proofs; 5 browser proofs / 55 browser gates open.**
   These counts do not certify full ORM, native writes, reliability or uptime.
@@ -25,16 +25,16 @@ No settings changes or accepted native/hosted cohort replay. Observe same job:
 python Scripts/Sandbox/Observe-HostedDeployment.py fc345507-9114-44ef-9e93-bb49b99309c8 --expected-commit 5f4b52ae7f9569276df59b843c43a1b250cfe71b --output TestResults/LauncherRecoveryCurrent/third-code-deployment.json
 ```
 
-InfluxDB34 and Supabase36 controlled tests/builds/syntax pass; task branch only,
+InfluxDB34, Supabase36 and Litestream14 controlled tests/builds/syntax pass; task branch only,
 no native fixture replay. Third release health and Mongo/SQLite/Neo4j/ThreeFold
-discovery pass with zero native queries/saves. Next review Litestream source
-closure at retained pin237403a75; preserve current provider changes.
+discovery pass with zero native queries/saves. Next review remaining chain/cloud launcher source
+closures at retained pin237403a75; preserve current provider changes.
 
 ## Reproduced launcher bug and completed recovery
 
 [Launcher gap](LOCAL_LAUNCHER_INTEGRATION_GAP.md): initial35/37missing paths all
-survive at retained sandbox-integration pin237403a75. Eighteen provider closures
-now restored; **17 published launcher paths remain missing**.
+survive at retained sandbox-integration pin237403a75. Nineteen provider closures
+now restored; **16 published launcher paths remain missing**.
 First4provider batch46controls/schema, Dev59ddcca91/job2d4fa248 SUCCESS; health and
 Mongo/SQLite/Neo4j/ThreeFold discovery ready with0nativequeries/0saves.
 Second8provider Devfc437e31a/jobc11ccee5 SUCCESS, health/discovery ready,0native
