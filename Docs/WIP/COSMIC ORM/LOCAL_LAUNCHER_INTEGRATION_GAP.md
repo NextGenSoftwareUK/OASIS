@@ -340,3 +340,11 @@ Local94/hosted60;5published launcher paths missing (two Aptos paths recovered).
 Original TRX/hash LauncherRecoveryCurrent/aptos-recovery-evidence.json.
 
 TON retained implementation is local native TVM, not current legacy EVM wrapper. Review TON_LOCAL_TVM_RECOVERY_GAP.md for explicit local-source recovery plan; no blind replacement. Adjacent shared V2 missing-chain admission bug reproduced/fixed,17controlled tests pass;no native replay. Counts unchanged. Fifth exact deployment now BUILDING.
+
+## Explicit TON local TVM source recovery
+
+Local native source recovered under TonLocalTvmStorageSource;legacy EVM wrapper
+and public-header source kept. Four controls/provider+native-consumer compilation
+and PS/JS syntax pass. Existing SDK/compiler reused;current native execution
+unverified. Local95/hosted60;4published launcher paths remain missing. Original
+TRX/hash manifest LauncherRecoveryCurrent/ton-local-recovery-evidence.json.

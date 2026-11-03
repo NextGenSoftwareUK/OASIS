@@ -1514,3 +1514,7 @@ checks/current native-consumer compilation. Bounded canonical GUID Move views;
 current owned native/hosted availability unverified.
 
 Owned Web3Core V2 CQL requires an explicit positive chain identity; otherwise planning rejects it before native dispatch.17controlled tests pass. Native TON TVM must use its explicit local-source profile, not the legacy EVM wrapper; see TON_LOCAL_TVM_RECOVERY_GAP.md.
+
+[TON local TVM source](TON_CQL_MVP.md) uses explicit TonLocalTvmStorageSource
+options, separate from legacy EVM/public header sources. Four admission controls
+and current native-consumer build pass;adapted native execution/hosting unverified.
