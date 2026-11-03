@@ -244,3 +244,12 @@ syntax pass. Existing public Google source/README/unit walkthrough links kept.
 No original emulator/export/credential/Mongo fixture opened. Local87/hosted60;
 12published launcher paths remain missing. Original TRX/hash manifest:
 LocalState/COSMIC/LauncherRecoveryCurrent/firestore-recovery-evidence.json.
+
+## Firebase recovery milestone
+
+34controlled cases/provider/native-consumer builds/PS+Python syntax pass.
+Canonical save projection/acknowledgement and proposed identity reconciliation
+restored; no original emulator/export/config/fixture replay. Local88/hosted60;
+11published launcher paths remain missing. Durable original TRX/hash manifest:
+LocalState/COSMIC/LauncherRecoveryCurrent/firebase-recovery-evidence.json.
+Fourth batch exact job206de884 is BUILDING, same commit2ae3e658f, no resubmission.

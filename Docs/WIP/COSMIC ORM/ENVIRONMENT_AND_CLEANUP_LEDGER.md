@@ -4768,3 +4768,13 @@ Original LocalState/COSMIC/FirestoreCql export/identities and emulator1.22.0 unt
 ### 2 November 2026 — owned Firestore recovery outcome
 7controlled cases pass, producer/native-consumer build/PS syntax pass; no original emulator/export/key/Mongo opened.
 LocalState/COSMIC/LauncherRecoveryCurrent/firestore-recovery-controlled.trx.gz 1957bytes and firestore-recovery-evidence.json created; required retained original proof. TestResults/FirestoreCqlCurrent logs/TRX/bin/obj reusable/regenerable by cached restore/build, sizes unmeasured; exact validated cleanup only. No new environment/install/download/service. Free after 52314308608bytes.
+
+
+### 2 November 2026 — Firebase source recovery
+Owner COSMIC/CQL; named source237403a75 only, existing .NET/NuGet cache reused; no install/download/environment. TestResults/FirebaseCqlCurrent regenerable logs/TRX and provider/unit/integration bin/obj reusable, sizes unmeasured; validated cleanup then cached restore/build recreates.
+Original LocalState/COSMIC/FirebaseCql emulator export/identity/config and Mongo untouched; runner/setup syntax only, no native service or port started. Required original compressed proof/hash LocalState/COSMIC/LauncherRecoveryCurrent retained. Free before 52336676864bytes.
+
+
+### 2 November 2026 — Firebase recovery outcome
+34controlled cases pass, producer/native-consumer builds/PS+Python syntax pass. Original emulator/export/key/Mongo untouched.
+LocalState/COSMIC/LauncherRecoveryCurrent/firebase-recovery-controlled.trx.gz 5523bytes and firebase-recovery-evidence.json created, retain. TestResults/FirebaseCqlCurrent logs/TRX and bin/obj reusable/regenerable cached restore/build, sizes unmeasured; exact validated cleanup only. No download/install/environment/service. Free after 52227420160bytes.
