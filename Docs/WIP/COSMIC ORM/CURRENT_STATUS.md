@@ -15,16 +15,12 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
 ## Current batch / exact next step
 
-Fifth scoped batch:owned S3/Blob/Firestore/Firebase recoveries: 62 controlled cases;
-shared Web3Core V2 owned CQL: 16 controlled cases;launcher audit: 3 Python cases.
-Provider/native-consumer builds/syntax pass; API/schema shipping check1/1passed.
-Shipping original proof/hash:LauncherRecoveryCurrent/fifth-batch-shipping-schema-evidence.json.
-Published Development5507b0aa0. Core5415961/settings unchanged.
-Exact job6c53b53c-491d-45c4-9446-a006af5d1206 SUCCESS;health/discovery ready.
-Release journal LocalState/COSMIC/HostedLauncherRecoveryFifthReleaseCurrent.
-
-Fifth release health + Mongo/SQLite/Neo4j/ThreeFold discovery/federation pass;
-zero native queries/private saves. Published launcher file audit is now green;runtime/configuration gates remain.
+Sixth scoped recovery batch published Development d167dff13;Core5415961 and
+hosted settings unchanged. Exact job0096f2e4-f831-4dcd-9cd8-b1d7613781aa BUILDING.
+Observe this job;after SUCCESS check health/discovery only,no accepted query replay.
+Journal LocalState/COSMIC/HostedLauncherRecoverySixthReleaseCurrent.
+Previous fifth release5507b0aa0 passed health/four-provider discovery/federation.
+Published launcher file audit is green;runtime/configuration gates remain.
 
 ## V2 owned EVM proof and discovered Mongo bug
 
@@ -44,7 +40,7 @@ adapters, use actual V2 factories and compatible retained contracts. Do not
 restore legacy Ethereum demos as V2 proof. No new environment needed.
 
 NEAR(8),Cosmos blockchain(7),Polkadot(7),Sui(7),Aptos(10) recovery checks/builds pass;public profiles kept,
-original native environment untouched. Task branch only;not hosted acceptance.
+original native environment untouched. Published code;not hosted native acceptance.
 
 TON review found EVM private-query admission without required chain identity.
 Regression reproduced;shared V2 fix17controlled cases pass, no native replay.
@@ -56,9 +52,7 @@ Protocol wrapper/keyset closure restored;3consumer builds+AST checks pass.
 TRON declared-source7controls/builds/syntax pass;old uncertain outcome untouched.
 Configured V2 Ethereum/Polygon/Arbitrum reader+Mongo/HTTP consumer restored;
 7factory/configuration controls pass. Needs explicit compatible existing source.
-Next update website commands,then shipping check/integrate verified recovery batch.
-Integration preflight: remote Development is still5507b0aa0;task is13commits ahead,
-zero behind. Manifest/seven Dockerfiles/gitlinks validate. No deployment started.
+Website commands remain to correct. Manifest/seven Dockerfiles/gitlinks validate.
 Automatic review rejected the combined website-edit/consumer-build operation;
 it did not execute. Website commands remain open. A separate reproduced page
 bug is fixed/tested below;no new native/browser proof or denied-operation retry.
