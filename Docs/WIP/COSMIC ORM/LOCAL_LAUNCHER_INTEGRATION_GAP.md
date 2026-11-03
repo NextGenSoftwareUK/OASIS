@@ -307,3 +307,11 @@ removed after verified worker exit. Reflective callsites updated only for change
 internal token signatures. Public profile/bridge/config kept, original native
 node/ledger/key untouched. Local90/hosted60;10published launcher paths missing.
 Original proof/hash manifest LauncherRecoveryCurrent/near-recovery-evidence.json.
+
+## Cosmos blockchain recovery milestone
+
+Seven controlled cases/provider+native-consumer builds/PS syntax pass. Public
+validator source and bridge kept; helper dependencies exist/match retained pin.
+No original container/node/key/ledger/contract/Mongo opened. Local91/hosted60;
+9published launcher paths missing. Original TRX/hash manifest:
+LauncherRecoveryCurrent/cosmos-blockchain-recovery-evidence.json.

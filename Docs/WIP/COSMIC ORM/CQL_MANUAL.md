@@ -1496,3 +1496,7 @@ Owned V2 Arbitrum Mongo preset executed native5/4query assertions successfully. 
 [Owned NEAR walkthrough](NEAR_CQL_MVP.md) source is restored with eight controlled
 checks including SDK-worker cancellation. Bounded encrypted canonical GUID key
 reads; current native/hosted availability remains unverified.
+
+[Owned Cosmos blockchain walkthrough](COSMOS_BLOCKCHAIN_CQL_MVP.md) source
+restored with seven controlled checks and native-consumer compilation. Bounded
+encrypted canonical GUID keys; current owned native/hosted acceptance unverified.
