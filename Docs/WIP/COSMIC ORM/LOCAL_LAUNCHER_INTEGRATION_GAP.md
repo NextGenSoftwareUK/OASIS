@@ -4,10 +4,10 @@ Updated 2 November 2026. Reproduced against the current task checkout and websit
 commit d3dfe48a4d4e4ff0288180303fbbb06ab88eaebb. This is a source-integration
 problem, not evidence that the original native runs failed or should be replayed.
 
-The page references 37 distinct PowerShell launcher paths; 35 are absent from the
-current checkout. DuckDB implementation commit f1aeb0cb5 is not an ancestor of
+The original audit found 35 absent paths among 37 distinct PowerShell launchers.
+DuckDB is now recovered; 34 remain absent from the current checkout. DuckDB implementation commit f1aeb0cb5 is not an ancestor of
 current HEAD and survives on the earlier sandbox-integration branch. Counts of
-64 current integrated query types/59 hosted proofs do not count these missing
+65 current integrated query types/59 hosted proofs do not count the remaining missing
 local launchers as additional hosted capabilities.
 
 Recovery source: `origin/work/cosmic-cql-sandbox-integration` at `237403a75b6983e013141cf7ba44bf66858abafd`.
@@ -19,7 +19,7 @@ changes and original source identities/ACKs. Then repair the other advertised
 launcher paths. Audit reported file presence only; a recoverable file is not yet
 validated against the current Core or its complete dependency closure.
 
-| Missing published launcher | Present at retained branch pin |
+| Originally missing published launcher | Present at retained branch pin |
 |---|---|
 | `Scripts/TestHosts/Run-CosmicAptosCqlNative.ps1` | Yes |
 | `Scripts/TestHosts/Run-CosmicAzureBlobCqlNative.ps1` | Yes |
@@ -56,3 +56,10 @@ validated against the current Core or its complete dependency closure.
 | `Scripts/TestHosts/Run-ReusableOracleMongoTests.ps1` | Yes |
 | `Scripts/TestHosts/Run-ReusableProtocolMongoTests.ps1` | Yes |
 | `Scripts/TestHosts/Start-CosmicAptosCqlNode.ps1` | Yes |
+
+## DuckDB recovery milestone
+
+Named original CQL/provider/unit/integration/launcher sources restored. Nine CQL
+controls and five identity tests pass, consumer build and PowerShell syntax pass.
+No original native cohort or database was replayed. The local integration count
+is 65 after restoring this historical provider; hosted count remains 59.
