@@ -65,7 +65,7 @@ public partial class MongoDBOASIS
                 root=row==null || version!=0 && row.Version!=version ? null:DataHelper.ConvertMongoEntityToOASISHolon(row,children);
                 records=root==null ? new List<IHolon>():new List<IHolon> {root};
             }
-            if(root==null) return new OASISResult<IHolon> {ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="Holon not found."};
+            if(root==null) return new OASISResult<IHolon> {IsError=true,ErrorCount=1,ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="Holon not found."};
             var project=HolonGraphProjection.Create(records,children,recursive,depth,0,fromProvider,
                 row=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(row)));
             result.Result=project(root);result.IsLoaded=true;result.LoadedCount=1;

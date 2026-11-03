@@ -1490,3 +1490,5 @@ Web3Core V2 owned queries additionally pass six production ABI/decryption tests 
 `Scripts/TestHosts/Run-CosmicEvmV2OwnedRead.ps1` is the explicit read-only retained Arbitrum V2 consumer. Requires existing compatible loopback node/seed and original key already configured in process environment; never paste keys into docs/arguments. Consumer compiles; native acceptance pending. See EVM_V2_CQL_RECOVERY_GAP.md.
 
 Owned Arbitrum V2 read-only walkthrough now has native3/2proof over retained encrypted records, plus16controlled cases. Original node/seed/key reused, seed unchanged, no writes requested, clean exit0. Mongo-paired native/hosted owned gates remain open; do not replay completed standalone gate. See EVM_V2_CQL_RECOVERY_GAP.md.
+
+Owned V2 Arbitrum Mongo preset executed native5/4query assertions successfully. Cleanup found Mongo absent root returned success flags; common boundary fixed and separate native reconciliation proves corrected sync/async missing reads and cleanup. Original failed overall run is retained; see EVM_V2_CQL_RECOVERY_GAP.md.

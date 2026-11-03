@@ -163,3 +163,31 @@ LocalState/COSMIC/LauncherRecoveryCurrent/arbitrum-v2-owned-cql-native-read-evid
 Next new gate: Mongo-paired V2 query, preserving accepted cohorts. Do not rerun
 the completed standalone3/2 gate. Coverage now local89/hosted60;11published
 launcher paths still missing because website links have not changed.
+
+## Native Mongo-paired query and reproduced Mongo defect
+
+New paired scope reused original V2 chain and the historical dedicated Mongo
+test database cosmic_cql_mongo_arbitrum_demo. It preflighted every existing
+collection empty, journalled two temporary copies, and used the exact published
+RunWithMongoAsync preset. Full5/source3+Mongo2 and selected4 assertions passed.
+The original test then failed during cleanup: after first acknowledged deletion,
+Mongo LoadHolon returned RecordNotFound but IsError=false. The original overall
+TRX remains FAILED and is retained, never relabelled as a passing run.
+
+Root cause: MongoDBOASIS.HolonRead.cs common missing-root branch omitted IsError.
+It now returns IsError=true/ErrorCount1, preserving RecordNotFound/null/unloaded.
+This changes both sync and async graph-root reads, including historical absence.
+
+A separate explicit native reconciliation test passed1/1 without rerunning the
+queries or reseeding. It verified original intent/save ACKs, accepted only exact
+missing records or the exact actor/name-owned copy, removed the remaining copy,
+and proved both sync/async missing reads for both IDs. Cleaned receipt retained.
+Node exited0; both owned Mongo runs stopped by Windows process termination
+(recorded as such, not graceful shutdown). No chain writes were requested.
+
+Proof: LauncherRecoveryCurrent/arbitrum-v2-mongo-original-failure.trx.gz and
+arbitrum-v2-mongo-original-failure.json preserve original failure;
+arbitrum-v2-mongo-reconcile.trx.gz and arbitrum-v2-mongo-reconcile-evidence.json
+preserve cleanup/regression proof. ArbitrumV2MongoCurrent retains intent/ACKs/
+cleaned receipt. This is local native query evidence, not hosted acceptance.
+Next shipping verification/Development batch; do not replay completed queries.
