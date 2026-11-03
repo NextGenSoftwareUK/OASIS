@@ -55,7 +55,8 @@ New task-only KeyDB/ValKey/Dragonfly/Garnet batch:32 CQL +6 lifecycle controls,
 consumer builds and syntax pass; no native replay. Memcached15/Upstash17 controls
 and producer/consumer/syntax pass; CouchDB41 cases/build/syntax also pass.
 Qdrant38 cases/producer/consumer/syntax pass. Eight further provider recoveries
-remain task-only; validate shipping API build/schema before next integration. **23 missing launchers remain**. Recover
+149 controlled cases plus shipping API/schema guard pass. Ready for verified
+Development batch; settings stay unchanged, no native fixture replay. **23 missing launchers remain**. Recover
 scoped dependencies, not the entire old branch. [DuckDB](DUCKDB_CQL_MVP.md).
 
 ## Remaining gates and constraints
