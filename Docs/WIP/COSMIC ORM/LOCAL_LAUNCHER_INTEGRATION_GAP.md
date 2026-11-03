@@ -192,3 +192,13 @@ TRX/hash manifest: LocalState/COSMIC/LauncherRecoveryCurrent/supabase-recovery-e
 Third recovery Development5f4b52ae7 jobfc345507 SUCCESS; healthy and four provider
 discovery/federation entries ready, zero native queries/saves. Original readiness
 report: HostedLauncherRecoveryThirdReleaseCurrent/readiness-observed.json.
+
+## Litestream recovery milestone
+
+Named compiler/adapter/test/launcher closure restored;14controlled tests and
+producer/native-consumer builds/syntax pass. Existing canonical Mongo helper
+linked once. Restore initially NU1101 for absent SQLite10.0.12 meta-package;
+exact retained cached Core10.0.9/bundle2.1.11 references restored, no download.
+No SQLite/sidecar/replica/native fixture opened. Local83/hosted60;16published
+launcher paths remain absent. Durable original evidence/hash manifest:
+LocalState/COSMIC/LauncherRecoveryCurrent/litestream-recovery-evidence.json.
