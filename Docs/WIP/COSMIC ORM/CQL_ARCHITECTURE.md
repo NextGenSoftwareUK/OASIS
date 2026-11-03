@@ -385,3 +385,8 @@ ZcashPublicBlockMetadataSource is an explicit ICosmicQueryStorageProvider/read a
 ### Public analytical and grid node profiles
 
 ClickHousePublicCountryMetadataSource executes fixed typed-parameterSQL against the qualified publiccountries table; ThreeFoldPublicNodeMetadataSource composes a bounded set of explicit nativepointreads. Both share HolonManager/LINQ admission, canonical publicholon mapping, access/page handling and explicitread-onlymutation boundary. Source projectionowner/key/namespace are durable; no ownedprovider write route is inferred. ThreeFold remains separate from its canonical MinIO-backed provider implementation. Shared developer walkthroughs resolve the native metadata key from StringKeySetLookup.MetadataKey. Server providerpermission/tariff enrollment remains independent and explicit.
+
+
+## Explicit activation recovery
+
+The host owns one activation gate per enrolled read-only source,shared by startup and explicit Wizard recovery. Discovery exposes process identity/generation;requests from another host or stale generations cannot start activation. One bounded immutable receipt per source prevents duplicate completed requests from reactivating;receipts are historical,in-memory,not business outbox history. Pending/cancelled/failed attempts remain unavailable;native ownership is awaited even if cancellation is ignored. Query/discovery paths never trigger recovery.27controller/discovery/schema tests pass;hosted gate remains open. See [contract](CQL_SOURCE_RECOVERY.md).

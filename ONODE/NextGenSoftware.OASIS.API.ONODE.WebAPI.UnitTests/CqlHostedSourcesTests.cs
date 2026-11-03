@@ -13,7 +13,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
-public class CqlHostedSourcesTests
+public partial class CqlHostedSourcesTests
 {
     public interface QueryStorage : IOASISStorageProvider, ICosmicQueryStorageProvider { }
     public class Adapter : DispatchProxy
@@ -40,6 +40,7 @@ public class CqlHostedSourcesTests
         public readonly TaskCompletionSource Finished = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource? Release;
         public bool Fail;
+        public bool IgnoreCancellation;
         public IOASISStorageProvider Find(ProviderType type) => Providers.GetValueOrDefault(type);
         public QueryStorage Add(ProviderType type, bool active)
         {
@@ -54,7 +55,11 @@ public class CqlHostedSourcesTests
             Activations.Add(type); Attempted.TrySetResult();
             try
             {
-                if (Release != null) await Release.Task.WaitAsync(cancellationToken);
+                if (Release != null)
+                {
+                    if (IgnoreCancellation) await Release.Task;
+                    else await Release.Task.WaitAsync(cancellationToken);
+                }
                 if (Fail) throw new InvalidOperationException("private-native-token-must-not-leak");
                 ((Adapter)(object)Providers[type]).Active = true;
             }

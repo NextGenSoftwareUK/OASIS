@@ -52,7 +52,8 @@ Protocol wrapper/keyset closure restored;3consumer builds+AST checks pass.
 TRON declared-source7controls/builds/syntax pass;old uncertain outcome untouched.
 Configured V2 Ethereum/Polygon/Arbitrum reader+Mongo/HTTP consumer restored;
 7factory/configuration controls pass. Needs explicit compatible existing source.
-Next:explicit serialized Nostr source recovery;website commands remain to correct.
+Source recovery implemented;27controlled/API/schema cases pass;live gate next.
+See CQL_SOURCE_RECOVERY.md. Website commands remain to correct.
 Automatic review rejected the combined website-edit/consumer-build operation;
 it did not execute. Website commands remain open. A separate reproduced page
 bug is fixed/tested below;no new native/browser proof or denied-operation retry.
