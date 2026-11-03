@@ -36,6 +36,7 @@ public partial class NEAROASIS
     }
 
     private static string HistoryPrefix(string key) => $"history:{key}:";
+    private static string HolonRecordKey(Guid id) => $"holon:{id:D}";
 
     // Mutates only the caller's already-detached proposed snapshot. No SDK/native writes occur here.
     private static async Task<KeyValuePair<string,string>?> StageObservedRecordVersionAsync<T>(T proposed,NearSdkService.StoredSnapshot observed,bool history,
@@ -205,7 +206,7 @@ public partial class NEAROASIS
         try
         {
             if (!await EnsureSdkActiveAsync(result)) return result;
-            var holon = await ReadStoredVersionAsync<Holon>($"holon:{id:D}", id, version);
+            var holon = await ReadStoredVersionAsync<Holon>(HolonRecordKey(id), id, version);
             if (holon == null)
                 return new OASISResult<IHolon>(null) { Message = $"Holon {id} was not found on NEAR." };
             if (holon?.IsDeleted == true)
@@ -228,7 +229,7 @@ public partial class NEAROASIS
             var snapshot = PrepareRecordSnapshot<Holon>(publication.Proposal);
             if (!await EnsureSdkActiveAsync(result)) return result;
             publication.ValidateUnchanged();
-            var tx=await WriteObservedRecordAsync($"holon:{snapshot.Id:D}",snapshot,history,plannedHolon);
+            var tx=await WriteObservedRecordAsync(HolonRecordKey(snapshot.Id),snapshot,history,plannedHolon);
             recordAcknowledgement?.Invoke(tx);
             PublishRecordStamp(holon,snapshot,publication.ValidateUnchanged,tx);
             if(holon is Holon source)source.ChildRoleManifestJson=snapshot.ChildRoleManifestJson;

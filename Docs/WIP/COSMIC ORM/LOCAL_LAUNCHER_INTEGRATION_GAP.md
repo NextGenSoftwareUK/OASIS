@@ -298,3 +298,12 @@ Fifth scoped batch published Development5507b0aa0ae660cb28e213e6e22b5ee69c05910d
 remote task/Development tips and manifest/gitlinks verified. Exact new code
 job6c53b53c-491d-45c4-9446-a006af5d1206 QUEUED. Original intent/ACK retained
 HostedLauncherRecoveryFifthReleaseCurrent; settings unchanged. Observe same job.
+
+## NEAR recovery milestone
+
+Named canonical key/compiler/adapter/SDK token forwarding/native-test/launcher
+closure restored. Eight controlled cases/builds/syntax pass; worker PID marker
+removed after verified worker exit. Reflective callsites updated only for changed
+internal token signatures. Public profile/bridge/config kept, original native
+node/ledger/key untouched. Local90/hosted60;10published launcher paths missing.
+Original proof/hash manifest LauncherRecoveryCurrent/near-recovery-evidence.json.
