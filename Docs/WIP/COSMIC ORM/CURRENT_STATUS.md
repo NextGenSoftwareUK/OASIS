@@ -16,8 +16,8 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 ## Current batch / exact next step
 
 Sixth scoped recovery batch published Development d167dff13;Core5415961 and
-hosted settings unchanged. Exact job0096f2e4-f831-4dcd-9cd8-b1d7613781aa BUILDING.
-Observe this job;after SUCCESS check health/discovery only,no accepted query replay.
+hosted settings unchanged. Exact job0096f2e4-f831-4dcd-9cd8-b1d7613781aa SUCCESS.
+Health/four-provider readiness pass;59/60ready,Nostr activation failed HTTP503.
 Journal LocalState/COSMIC/HostedLauncherRecoverySixthReleaseCurrent.
 Previous fifth release5507b0aa0 passed health/four-provider discovery/federation.
 Published launcher file audit is green;runtime/configuration gates remain.
@@ -52,7 +52,7 @@ Protocol wrapper/keyset closure restored;3consumer builds+AST checks pass.
 TRON declared-source7controls/builds/syntax pass;old uncertain outcome untouched.
 Configured V2 Ethereum/Polygon/Arbitrum reader+Mongo/HTTP consumer restored;
 7factory/configuration controls pass. Needs explicit compatible existing source.
-Website commands remain to correct. Manifest/seven Dockerfiles/gitlinks validate.
+Next:explicit serialized Nostr source recovery;website commands remain to correct.
 Automatic review rejected the combined website-edit/consumer-build operation;
 it did not execute. Website commands remain open. A separate reproduced page
 bug is fixed/tested below;no new native/browser proof or denied-operation retry.
