@@ -6,8 +6,8 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 ## Verified coverage
 
-- **88 local integrated query types:** 3 canonical, 57 public/source profiles,
-  28 other local integrations, including 24 recovered historical demos. Source
+- **89 local integrated query types:** 3 canonical, 57 public/source profiles,
+  29 other local integrations, including 24 recovered historical demos. Source
   recovery does not constitute a fresh native acceptance or runtime-availability run.
 - **60 scoped hosted HTTP proofs; 5 browser proofs / 55 browser gates open.**
   These counts do not certify full ORM, native writes, reliability or uptime.
@@ -32,10 +32,11 @@ Shared Web3Core V2 owned CQL implemented;10controlled cases and provider/unit
 builds pass, including shipping Arbitrum V2 facade exposure. No real-chain proof.
 Six additional controlled RPC/ABI/decryption cases pass through shipping
 Arbitrum V2 facade; no external RPC/chain acceptance. Published C# walkthrough
-proves manager/LINQ3/2 with controlled SDK; Mongo preset compiles. Read-only native consumer/launcher compiled and syntax checked. Retained
-Arbitrum seed uses V2 factory; native run still pending. Next inspect/reuse its
-original node/key under existing ownership, then explicit native read3/2.
-Never reuse legacy seed as Web3Core. See EVM_V2_CQL_RECOVERY_GAP.md.
+proves manager/LINQ3/2 with controlled SDK; Mongo preset compiles. New native Arbitrum V2 read gate1/1passed:retained encrypted records3/2 through
+shipping facade + manager/LINQ; seed unchanged, no writes requested, node exited0.
+Original proof LauncherRecoveryCurrent/arbitrum-v2-owned-cql-native-read-evidence.json.
+Next: Mongo-paired native V2 query, then scoped shipping verification/Development
+batch for owned S3/Blob/Firestore/Firebase and V2 query support. No native replay.
 
 
 ## Reproduced launcher bug and completed recovery
