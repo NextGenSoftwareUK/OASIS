@@ -1522,3 +1522,5 @@ and current native-consumer build pass;adapted native execution/hosting unverifi
 Explicit TonLocalTvmStorageSource now passes local TVM execution:encrypted records survive independent worker reopen;bounded queries return3/2/0;budget/cancellation/read-only/key/ownership checks pass. This is local TVM only;public TON and adapted retained-source/Mongo/hosted gates remain open. See TON_CQL_MVP.md.
 
 [Oracle local paired/content launchers](ORACLE_LOCAL_LAUNCHER_RECOVERY.md) are restored and compile. They use the existing provider/compiler and Mongo teaching presets. Retained native services/config required;current native/hosted availability was not re-tested.
+
+[Protocol paired local launchers](PROTOCOL_LOCAL_LAUNCHER_RECOVERY.md) now include selected-record/filter/subset teaching consumers for IPFS/SOLID/ActivityPub with Mongo presets. All three compile;runner modes validated. Current native/hosted availability was not re-tested.

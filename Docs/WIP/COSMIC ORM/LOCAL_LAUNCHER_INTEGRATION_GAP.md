@@ -352,3 +352,5 @@ TRX/hash manifest LauncherRecoveryCurrent/ton-local-recovery-evidence.json.
 Explicit adapted local TON TVM native gate1/1passes3/2/0queries/encrypted reopen/budgets/ownership; owned disposable fixture removed. Original retained cohort unopened. Native evidence LauncherRecoveryCurrent/ton-local-recovery-native-evidence.json. Remaining4published launcher gaps unchanged. Fifth release SUCCESS/readiness passed, original report HostedLauncherRecoveryFifthReleaseCurrent/readiness-observed.json.
 
 Oracle local paired/content/reconciliation native consumer closure and launcher restored;two PS syntax/inner-mode AST checks and consumer build pass. Newer query activation/schema code preserved;no green/native replay. Query counts95/60unchanged;3published launcher gaps remain. ORACLE_LOCAL_LAUNCHER_RECOVERY.md.
+
+Protocol paired wrapper/keyset closure restored;three PS syntax/inner-mode AST checks and IPFS/SOLID/ActivityPub native/federated consumer builds pass. SOLID caller adapted to current settings field;shipping factory/API/provider sources kept. No native/cohort replay.95local/60hosted unchanged;2published launcher gaps remain. PROTOCOL_LOCAL_LAUNCHER_RECOVERY.md.

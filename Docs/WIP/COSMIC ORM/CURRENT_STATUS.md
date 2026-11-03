@@ -10,7 +10,7 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
   includes 30 recovered historical demos. Not 95 fully implemented providers.
 - **60 scoped hosted HTTP proofs; 5 browser proofs / 55 browser gates open.**
 - MongoDB/SQLite/Neo4j strict parity **50/82 each**; investor subset green.
-- Published launcher audit:37 links / 34 present / **3 missing**; 3 audit tests pass.
+- Published launcher audit:37 links / 35 present / **2 missing**; 3 audit tests pass.
 - Public ThreeFold/ClickHouse/Zcash cohorts are accepted and frozen.
 
 ## Current batch / exact next step
@@ -24,7 +24,7 @@ Exact job6c53b53c-491d-45c4-9446-a006af5d1206 SUCCESS;health/discovery ready.
 Release journal LocalState/COSMIC/HostedLauncherRecoveryFifthReleaseCurrent.
 
 Fifth release health + Mongo/SQLite/Neo4j/ThreeFold discovery/federation pass;
-zero native queries/private saves. Continue remaining3launcher/source gaps.
+zero native queries/private saves. Continue remaining2launcher/source gaps.
 
 Last published fourth batch Development2ae3e658f/job206de884 SUCCESS;health and
 Mongo/SQLite/Neo4j/ThreeFold discovery/federation ready,zero native queries/saves.
@@ -42,7 +42,7 @@ absence for both IDs;exact original temporary fixture removed, no query replay.
 Original failed TRX and reconciliation proof preserved, never relabelled green.
 [EVM proof/limits](EVM_V2_CQL_RECOVERY_GAP.md). Hosted owned-EVM gate remains open.
 
-Next source/demos:remaining3published launcher paths;preserve current public
+Next source/demos:remaining2published launcher paths;preserve current public
 adapters, use actual V2 factories and compatible retained contracts. Do not
 restore legacy Ethereum demos as V2 proof. No new environment needed.
 
@@ -55,7 +55,8 @@ Explicit TonLocalTvmStorageSource recovered;4controls/builds/syntax pass.
 Native local TVM1/1passes encrypted reopen/query3/2/0 and budgets/ownership.
 Owned disposable fixture removed;original source untouched. Legacy unchanged.
 Oracle local paired/content launcher/consumer restored;build+AST checks pass.
-Next protocol/TRON/Ethereum launcher breadth, no native replay.
+Protocol wrapper/keyset closure restored;3consumer builds+AST checks pass.
+Next TRON/Ethereum launcher breadth, no accepted native replay.
 See TON_LOCAL_TVM_RECOVERY_GAP.md;public-header source preserved.
 
 ## Constraints / wider unfinished work
@@ -86,5 +87,5 @@ python Scripts/validate_railway_dependency_manifest.py --require-gitlinks
 python -B Scripts/Sandbox/Audit-LocalDemoLaunchers.py --html C:/Source/Web4Site/web4-sandbox.html --output TestResults/LauncherRecoveryCurrent/local-launcher-audit.json
 ```
 
-Audit exit1 currently means3missing paths, not native execution. Never rerun
+Audit exit1 currently means2missing paths, not native execution. Never rerun
 accepted native standalone3/2 or paired queries just to rebuild evidence.
