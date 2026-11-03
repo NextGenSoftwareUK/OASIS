@@ -128,3 +128,24 @@ This closes the local-TVM ID-query/federation demo gate, not signed public TON a
 Full goal remains open. See [current status](CURRENT_STATUS.md), [after-demo backlog](AFTER_DEMO_BACKLOG.md) and [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 
 Environment-free unit run:13passed and2explicit opt-in tests skipped (native acceptance and manual fixture maintenance), evidence ton-environment-free.trx SHA25640108F405DD44A855008D5869AA6E5932089AAA2377DD2579C5C2F20509D439E. This is CI/metadata coverage only. The configured actual-native14-test profile above executed with zero skips; skipped tests are not counted as native proof.
+
+## Adapted local TVM native gate passed - 2 November 2026
+
+Retained compiler/tooling compiled the unchanged Tact contract; no downloads.
+The new explicitly named source passes1/1native test, zero failures/skips:
+encrypted save/load, independent worker reopen, exact3/2/0queries, result budgets,
+caller cancellation, read-only rejection, wrong-key verification and source-lock
+ownership. These are genuine local TVM executions, not public-network reads.
+Four owned operations (create+three saves) were acknowledged; reads/rejection
+checks preserved source hash/operation count. The test validated exact source/
+operation ownership and removed only its disposable TestResults fixture; absence
+confirmed afterward. Original LocalState/TonCql cohort/key/seed was not opened.
+
+Native contract code hash `16bb222acfe6e01c5fc05f5eef6c2fe114c53b2b4bda50b28db6009e644cd741`.
+Original TRX SHA256 `d147d615e5d3d7da88723e0ed2405780894356f75003d860f56af9d746f82ca5`; retained original/manifest:
+LocalState/COSMIC/LauncherRecoveryCurrent/ton-local-recovery-native-evidence.json.
+
+Current adapted source is locally verified; retained-source/Mongo/HTTP/browser
+acceptance remains open. Do not replay this accepted disposable fixture gate.
+Next remaining launcher breadth (Oracle/protocol/TRON/Ethereum) and source/Mongo
+admission as needed, preserving legacy/public distinctions and original cohorts.

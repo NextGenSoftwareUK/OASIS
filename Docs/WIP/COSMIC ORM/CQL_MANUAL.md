@@ -1518,3 +1518,5 @@ Owned Web3Core V2 CQL requires an explicit positive chain identity; otherwise pl
 [TON local TVM source](TON_CQL_MVP.md) uses explicit TonLocalTvmStorageSource
 options, separate from legacy EVM/public header sources. Four admission controls
 and current native-consumer build pass;adapted native execution/hosting unverified.
+
+Explicit TonLocalTvmStorageSource now passes local TVM execution:encrypted records survive independent worker reopen;bounded queries return3/2/0;budget/cancellation/read-only/key/ownership checks pass. This is local TVM only;public TON and adapted retained-source/Mongo/hosted gates remain open. See TON_CQL_MVP.md.
