@@ -4686,3 +4686,19 @@ TestResults/InfluxDbCqlCurrent reused for regenerable build logs/TRX; 34 control
 LocalState/COSMIC/LauncherRecoveryCurrent/influxdb-recovery-controlled.trx.gz and influxdb-recovery-evidence.json created; retain original proof/hash manifest. Sizes 5823 compressed bytes; generated build output size unmeasured. No native process/port dependency started.
 Provider/test bin/obj active/reusable; clean only after exact ownership/use validation, regenerate via cached restore/build. Original /var/tmp/oasis-influxdb-cql remains unopened/preserved.
 Free disk after 53381767168 bytes; shared free-space movement is not attributed to this build.
+
+
+### 2 November 2026 — Supabase named source recovery
+Owner COSMIC/CQL; restore named source only from retained pin237403a75, no new environment/install/download.
+Existing .NET/NuGet cache reused; TestResults/SupabaseCqlCurrent for regenerable restore/build/controlled logs/TRX; provider/unit/integration bin/obj reused and unmeasured, active/reusable pending validated teardown.
+Original /var/tmp/oasis-supabase-cql and oasis-postgres container/volume/PostgREST16.5 untouched; launcher syntax only, no native replay or credential access. No service/port dependency started.
+LocalState/COSMIC/LauncherRecoveryCurrent will retain original compressed controlled proof/hash summary; preserve. Cached restore/build regenerates disposable outputs. Free before 53380071424 bytes.
+
+
+### 2 November 2026 — Supabase recovery and third release outcome
+36 controlled cases passed, provider/native-consumer builds passed; cached dependencies only.
+LocalState/COSMIC/LauncherRecoveryCurrent/supabase-recovery-controlled.trx.gz 6085bytes and supabase-recovery-evidence.json retain original proof; no native fixture opened.
+TestResults/SupabaseCqlCurrent logs/TRX and associated bin/obj reused; sizes unmeasured, regenerate cached restore/build after validated cleanup.
+Existing Railway jobfc345507 SUCCESS; original owner session reused for health/provider metadata only, zero native queries/private saves.
+LocalState/COSMIC/HostedLauncherRecoveryThirdReleaseCurrent/readiness-observed.json created, retain. No new avatar/runtime/environment/download.
+Free after 53035749376bytes; no attribution of shared disk movement.
