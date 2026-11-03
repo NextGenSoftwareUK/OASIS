@@ -2,6 +2,8 @@
 
 Implemented and controlled-tested, 2 November 2026. This addresses a reproduced
 demo outage. Hosted operator recovery is not yet verified.
+Code b718f2879 published to Development;exact deployment
+33c9ef7d-b8b3-4403-9109-32ce47c4d7a8 QUEUED. Follow this job without redeploy.
 
 The sixth release is healthy, but Nostr activation failed at connect with
 HTTP503/NotAWebSocket. The startup failure latch previously required a whole-host

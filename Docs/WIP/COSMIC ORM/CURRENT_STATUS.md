@@ -15,10 +15,11 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
 ## Current batch / exact next step
 
-Sixth scoped recovery batch published Development d167dff13;Core5415961 and
-hosted settings unchanged. Exact job0096f2e4-f831-4dcd-9cd8-b1d7613781aa SUCCESS.
-Health/four-provider readiness pass;59/60ready,Nostr activation failed HTTP503.
-Journal LocalState/COSMIC/HostedLauncherRecoverySixthReleaseCurrent.
+Source-recovery fix published Development b718f2879;Core5415961/settings unchanged.
+Exact job33c9ef7d-b8b3-4403-9109-32ce47c4d7a8 QUEUED;observe without redeploy.
+After SUCCESS check health/discovery and live authorization;operator recovery open.
+Journal LocalState/COSMIC/HostedSourceRecoveryReleaseCurrent.
+Prior d167dff13 healthy/four-provider-ready;59/60ready,Nostr activation HTTP503.
 Previous fifth release5507b0aa0 passed health/four-provider discovery/federation.
 Published launcher file audit is green;runtime/configuration gates remain.
 
@@ -52,7 +53,7 @@ Protocol wrapper/keyset closure restored;3consumer builds+AST checks pass.
 TRON declared-source7controls/builds/syntax pass;old uncertain outcome untouched.
 Configured V2 Ethereum/Polygon/Arbitrum reader+Mongo/HTTP consumer restored;
 7factory/configuration controls pass. Needs explicit compatible existing source.
-Source recovery implemented;27controlled/API/schema cases pass;live gate next.
+Source recovery implemented;27controlled/API/schema cases pass;rollout pending.
 See CQL_SOURCE_RECOVERY.md. Website commands remain to correct.
 Automatic review rejected the combined website-edit/consumer-build operation;
 it did not execute. Website commands remain open. A separate reproduced page

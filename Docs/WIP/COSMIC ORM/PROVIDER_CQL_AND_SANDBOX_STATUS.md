@@ -2,7 +2,7 @@
 
 **Current launcher coverage:** All37published launcher paths now exist; the original audit found35missing. Source/build/controlled recovery does not prove all services/configurations/native executions ready. [Exact scope and recovery](LOCAL_LAUNCHER_INTEGRATION_GAP.md).
 
-**Next outage correction:** Explicit Wizard-only failed-source recovery implemented;27controlled/controller/discovery/schema tests pass. Same source,serialized attempts,host/generation fences and bounded receipts;no normal-query retries or whole-host restart. Not deployed/live-verified. [Contract/evidence](CQL_SOURCE_RECOVERY.md).
+**Current outage correction:** Explicit Wizard-only failed-source recovery implemented;27controlled/controller/discovery/schema tests pass. Development b718f2879/job33c9ef7d-b8b3-4403-9109-32ce47c4d7a8 QUEUED. Same source,serialized attempts,host/generation fences and bounded receipts;no normal-query retries or whole-host restart. Live operator proof open. [Contract/evidence](CQL_SOURCE_RECOVERY.md).
 
 **Sixth recovery release:** Development d167dff13/exact Railway job0096f2e4-f831-4dcd-9cd8-b1d7613781aa SUCCESS. Shipping API/schema1/1 and changed-consumer page3/3 pass; settings/Core unchanged. Healthy;Mongo/SQLite/Neo4j/ThreeFold discovery/federation ready. First ThreeFold startup-pending observation retained separately. **59/60profiles currently available;Nostr activation failed at connect with HTTP503/NotAWebSocket.** Its earlier functional proof remains historical;current availability is red. Native acceptance counts do not increase. Website configured-EVM instructions remain pending after automatic review rejected that edit operation. [Live release state](CURRENT_STATUS.md).
 
