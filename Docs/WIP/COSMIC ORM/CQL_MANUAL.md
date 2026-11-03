@@ -1444,3 +1444,7 @@ See [ThreeFold public node guide](../../Devs/THREEFOLD_PUBLIC_NODE_CQL_GUIDE.md)
 ### Recovered Couchbase record demo
 
 [Couchbase](COUCHBASE_CQL_MVP.md) restores bounded GUID record queries and its launcher/setup source using cached SDK3.7.1. Thirty-one controlled cases, producer/consumer builds and syntax pass. CAS values remain exact acknowledgement strings; conditional writes, hosted availability and fresh native acceptance are not inferred.
+
+### Recovered PocketBase demo
+
+[PocketBase](POCKETBASE_CQL_MVP.md) restores bounded logical-GUID queries and its launcher. Forty-six controlled cases, producer/consumer builds and syntax pass. Unknown write outcomes preserve proposed identity for explicit reconciliation; native fixtures were not replayed and hosted/conditional-write support is not inferred.
