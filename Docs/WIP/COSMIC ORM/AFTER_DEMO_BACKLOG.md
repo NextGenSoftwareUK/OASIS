@@ -57,3 +57,11 @@ to reproduce green. [Current Blockscout evidence](BLOCKSCOUT_PUBLIC_SOURCE_STATU
 ## Reproduced local launcher blocker — recover before further breadth
 
 Published website commands reference 35 launchers absent from the current branch; retained source exists at sandbox-integration pin 237403a75b6983e013141cf7ba44bf66858abafd. Recover scoped provider/demo source dependencies, beginning with DuckDB, preserve current changes, verify controlled builds and command paths. Do not replay original accepted native cohorts or create replacement environments. This is a current demo-link bug, not deferred parity work. [Exact report](LOCAL_LAUNCHER_INTEGRATION_GAP.md).
+
+2November update:all37launcher files now exist;runtime/configuration gates remain.
+Sixth release d167dff13 succeeds;59/60profiles ready,Nostr activation connect
+HTTP503/NotAWebSocket. Explicit serialized source recovery is now a current demo
+blocker rather than later operational polish. Do not replay its acknowledged
+cohort,substitute a relay,silently retry normal queries or restart the whole host.
+Safe diagnostics/original pending and completed startup observations retained in
+LocalState/COSMIC/HostedLauncherRecoverySixthReleaseCurrent.
