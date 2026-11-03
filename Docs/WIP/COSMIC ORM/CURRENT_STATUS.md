@@ -18,10 +18,10 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 Fourth recovery batch InfluxDB/Supabase/Litestream/owned ClickHouse:113 controlled
 cases and shipping schema1/1 pass; all producer/native-consumer builds/syntax pass.
 Published Development2ae3e658f, settings unchanged, Core5415961 unchanged.
-Exact code job206de884-49c8-4a6b-988f-8077c3751f5b DEPLOYING.
+Exact code job206de884-49c8-4a6b-988f-8077c3751f5b SUCCESS.
 Durable release record `LocalState/COSMIC/HostedLauncherRecoveryFourthReleaseCurrent`.
 Observe this exact job against commit2ae3e658f22a636752d5ff6d216e85b754fdd841;
-then health/provider-discovery only, zero native queries/private saves.
+health/provider-discovery passed, zero native queries/private saves.
 Third recovery Development5f4b52ae7/jobfc345507 SUCCESS; health and Mongo/SQLite/
 Neo4j/ThreeFold discovery/federation ready, zero native queries/private saves.
 Owned S3(7), Azure Blob(14), Firestore(7), Firebase(34) recoveries/builds pass;
@@ -32,8 +32,9 @@ Shared Web3Core V2 owned CQL implemented;10controlled cases and provider/unit
 builds pass, including shipping Arbitrum V2 facade exposure. No real-chain proof.
 Six additional controlled RPC/ABI/decryption cases pass through shipping
 Arbitrum V2 facade; no external RPC/chain acceptance. Published C# walkthrough
-proves manager/LINQ3/2 with controlled SDK; Mongo preset compiles. Next reconcile
-compatible retained Web3Core deployment/config and wire native V2 launcher.
+proves manager/LINQ3/2 with controlled SDK; Mongo preset compiles. Read-only native consumer/launcher compiled and syntax checked. Retained
+Arbitrum seed uses V2 factory; native run still pending. Next inspect/reuse its
+original node/key under existing ownership, then explicit native read3/2.
 Never reuse legacy seed as Web3Core. See EVM_V2_CQL_RECOVERY_GAP.md.
 
 

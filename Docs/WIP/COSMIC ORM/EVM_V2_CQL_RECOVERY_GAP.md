@@ -121,3 +121,23 @@ retained Web3Core deployment/config, wire native V2 launcher and verify. Never
 reuse the old legacy Ethereum seed as Web3Core. Coverage counts unchanged.
 
 Original TRX SHA256 `437ff00da50acf79942838e151b2c820aaf78a5c115f612e4ee6fb6423824916`; retained manifest `LocalState/COSMIC/LauncherRecoveryCurrent/web3-v2-owned-cql-walkthrough-evidence.json`.
+
+## Explicit retained V2 native reader
+
+`Scripts/TestHosts/Run-CosmicEvmV2OwnedRead.ps1` and
+`Web3OwnedCqlNativeReadTests` compile/syntax pass. They read the existing
+LocalState/COSMIC/EvmCql/Arbitrum/demo-seed.json (three IDs/actor/contract),
+construct the shipping Arbitrum V2 facade and execute the exact C# manager/LINQ
+walkthrough. Retained source shows this seed was written via the V2 factory;
+compatibility of the current running deployment remains a native gate.
+
+The launcher requires the original compatible node already running at
+loopback18547/chain31338 and its original V2 decryption key in the process
+environment. It starts no services, creates no key/seed, deploys no contract
+and sends no transaction. Original report presence/pending setup rejects replay;
+exactly1passed/0skips is required. Compile-only is not native acceptance.
+
+Next agent work: inspect/reuse the original node runtime/ledger/key ownership,
+then run this new read-only gate. No David action or hosting spend is needed.
+The original legacy Ethereum seed remains unchanged. Published missing-launcher
+count stays11 because this new explicit V2 reader is not yet the old website link.

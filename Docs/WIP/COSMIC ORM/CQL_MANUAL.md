@@ -1486,3 +1486,5 @@ Web3Core V2 now accepts bounded authorized GUID equality/membership, boolean com
 Web3Core V2 owned queries additionally pass six production ABI/decryption tests through the shipping Arbitrum facade using controlled in-process RPC responses. They do not establish live-chain availability. See EVM_V2_CQL_RECOVERY_GAP.md for the16-case scope and remaining demo wiring.
 
 [Owned EVM V2 C# walkthrough](../../../Examples/CosmicCqlDemo/EvmV2OwnedWalkthrough.cs) demonstrates explicit authority/catalogue, HolonManager/LINQ full3/subset2 and Mongo federation method. [Usage](EVM_V2_CQL_RECOVERY_GAP.md). Controlled SDK proof only; native launcher/chain acceptance open.
+
+`Scripts/TestHosts/Run-CosmicEvmV2OwnedRead.ps1` is the explicit read-only retained Arbitrum V2 consumer. Requires existing compatible loopback node/seed and original key already configured in process environment; never paste keys into docs/arguments. Consumer compiles; native acceptance pending. See EVM_V2_CQL_RECOVERY_GAP.md.
