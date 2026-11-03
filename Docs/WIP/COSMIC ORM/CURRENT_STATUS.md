@@ -30,8 +30,9 @@ Launcher audit guard:3tests pass;37published/26present/11missing confirmed.
 Run `python -B Scripts/Sandbox/Audit-LocalDemoLaunchers.py --html C:/Source/Web4Site/web4-sandbox.html --output TestResults/LauncherRecoveryCurrent/local-launcher-audit.json`; exit1 means gaps.
 Shared Web3Core V2 owned CQL implemented;10controlled cases and provider/unit
 builds pass, including shipping Arbitrum V2 facade exposure. No real-chain proof.
-Next: actual RPC/decryption boundary tests and V2 teaching consumer wiring before
-restoring EVM launcher. See EVM_V2_CQL_RECOVERY_GAP.md. Legacy code unchanged.
+Six additional controlled RPC/ABI/decryption cases pass through shipping
+Arbitrum V2 facade; no external RPC/chain acceptance. Next: V2 teaching/native
+consumer wiring before restoring EVM launcher. See EVM_V2_CQL_RECOVERY_GAP.md.
 
 
 ## Reproduced launcher bug and completed recovery
