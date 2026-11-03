@@ -362,3 +362,5 @@ Exact owned mining helper restored (syntax only);native recovery helper reused.
 Current SDK/provider code kept;old uncertain outcome untouched. No container/
 mining/key/ledger/contract replay. Local96/hosted60;one published launcher path
 remains missing (Ethereum). Original proof/hash LauncherRecoveryCurrent/tron-recovery-evidence.json.
+
+Last missing Ethereum launcher replaced by explicit configured V2 reader using shipping Ethereum/Polygon/Arbitrum factories. Seven controlled config/factory cases pass;native/Mongo/HTTP consumer compiles. No legacy seed adoption or configured native execution. File audit37/37present/0missing;configuration/runtime/hosted gates remain open. EVM_V2_CONFIGURED_LOCAL_DEMO.md.

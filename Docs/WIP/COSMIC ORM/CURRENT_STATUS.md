@@ -10,7 +10,7 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
   includes 31 recovered historical demos. Not 96 fully implemented providers.
 - **60 scoped hosted HTTP proofs; 5 browser proofs / 55 browser gates open.**
 - MongoDB/SQLite/Neo4j strict parity **50/82 each**; investor subset green.
-- Published launcher audit:37 links / 36 present / **1 missing**; 3 audit tests pass.
+- Published launcher audit:37 links / 37 present / **0 missing**; 3 audit tests pass.
 - Public ThreeFold/ClickHouse/Zcash cohorts are accepted and frozen.
 
 ## Current batch / exact next step
@@ -24,7 +24,7 @@ Exact job6c53b53c-491d-45c4-9446-a006af5d1206 SUCCESS;health/discovery ready.
 Release journal LocalState/COSMIC/HostedLauncherRecoveryFifthReleaseCurrent.
 
 Fifth release health + Mongo/SQLite/Neo4j/ThreeFold discovery/federation pass;
-zero native queries/private saves. Continue remaining1launcher/source gaps.
+zero native queries/private saves. Published launcher file audit is now green;runtime/configuration gates remain.
 
 Last published fourth batch Development2ae3e658f/job206de884 SUCCESS;health and
 Mongo/SQLite/Neo4j/ThreeFold discovery/federation ready,zero native queries/saves.
@@ -42,7 +42,7 @@ absence for both IDs;exact original temporary fixture removed, no query replay.
 Original failed TRX and reconciliation proof preserved, never relabelled green.
 [EVM proof/limits](EVM_V2_CQL_RECOVERY_GAP.md). Hosted owned-EVM gate remains open.
 
-Next source/demos:remaining1published launcher paths;preserve current public
+Next source/demos:remaining runtime/configuration gates;preserve current public
 adapters, use actual V2 factories and compatible retained contracts. Do not
 restore legacy Ethereum demos as V2 proof. No new environment needed.
 
@@ -57,7 +57,9 @@ Owned disposable fixture removed;original source untouched. Legacy unchanged.
 Oracle local paired/content launcher/consumer restored;build+AST checks pass.
 Protocol wrapper/keyset closure restored;3consumer builds+AST checks pass.
 TRON declared-source7controls/builds/syntax pass;old uncertain outcome untouched.
-Next Ethereum V2 launcher closure, no accepted native replay.
+Configured V2 Ethereum/Polygon/Arbitrum reader+Mongo/HTTP consumer restored;
+7factory/configuration controls pass. Needs explicit compatible existing source.
+Next update website commands,then shipping check/integrate verified recovery batch.
 See TON_LOCAL_TVM_RECOVERY_GAP.md;public-header source preserved.
 
 ## Constraints / wider unfinished work
@@ -88,5 +90,5 @@ python Scripts/validate_railway_dependency_manifest.py --require-gitlinks
 python -B Scripts/Sandbox/Audit-LocalDemoLaunchers.py --html C:/Source/Web4Site/web4-sandbox.html --output TestResults/LauncherRecoveryCurrent/local-launcher-audit.json
 ```
 
-Audit exit1 currently means1missing path, not native execution. Never rerun
+Audit now exits0:37files present, not native execution. Never rerun
 accepted native standalone3/2 or paired queries just to rebuild evidence.

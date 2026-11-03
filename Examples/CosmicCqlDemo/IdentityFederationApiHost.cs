@@ -29,7 +29,8 @@ public static class IdentityFederationApiHost
         IEnumerable<Guid> readableMongoIds,
         IEnumerable<Guid> readableSecondaryIds,
         string address = "http://127.0.0.1:5090",
-        IReadOnlyDictionary<string, CosmicQuery<Holon>> contentPresets = null)
+        IReadOnlyDictionary<string, CosmicQuery<Holon>> contentPresets = null,
+        bool preserveExistingRecords = false)
     {
         var uri = new Uri(address);
         if (uri.Scheme != "http" || uri.Host != "127.0.0.1")
@@ -52,6 +53,10 @@ public static class IdentityFederationApiHost
 
         var page = Page.Replace("OracleDBOASIS", secondary.QueryProviderType.ToString(), StringComparison.Ordinal)
             .Replace("Oracle", IdentityFederationWalkthrough.DisplayName(secondary), StringComparison.Ordinal);
+        if (preserveExistingRecords)
+            page = page.Replace("Stop demo and clean fixtures", "Stop demo (keep existing records)", StringComparison.Ordinal)
+                .Replace("Read synthetic holons from two native databases through HolonManager.",
+                    "Read existing authorized records through HolonManager; this demo does not create or delete them.", StringComparison.Ordinal);
         if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.AWSOASIS)
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
                 "Read synthetic holons from MongoDB and DynamoDB Local through HolonManager.", StringComparison.Ordinal)
