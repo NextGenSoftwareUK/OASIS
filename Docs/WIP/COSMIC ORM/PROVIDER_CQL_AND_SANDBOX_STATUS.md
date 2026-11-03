@@ -2,7 +2,7 @@
 
 **Reproduced local-link gap:** Original audit found 35/37 missing launcher paths; DuckDB, LocalFile, Redis, SQLServer four Redis-family demos, Memcached, Upstash, CouchDB, Qdrant, Chroma, Weaviate, Couchbase and PocketBase are restored and 19 remain absent; all 35 survive at the retained sandbox-integration branch pin. This does not add hosted capabilities or invalidate original native observations. [Exact scope and recovery](LOCAL_LAUNCHER_INTEGRATION_GAP.md).
 
-Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card published/byte-verified; browser open. Current totals95integrated/60hosted-functional/5browser/55open; no global production-parity claim.
+Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card published/byte-verified; browser open. Current totals96integrated/60hosted-functional/5browser/55open; no global production-parity claim.
 
 Matrix hosted functional HTTP gates pass at parent7b45ee856/Coredd2c32c, settingsaaff57a2 SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; source/cohort frozen. Websitebd173e5/101client tests/pinned guide+C#links/public bytes verified; browser open. [Evidence](MATRIX_PUBLIC_SOURCE_STATUS.md).
 
@@ -454,3 +454,8 @@ TON explicit local TVM native gate1/1passes:encrypted save/load/reopen/query3/2/
 Oracle local Mongo/content launcher source recovered;actual native/federated consumer build and runner mode checks pass. Newer activation/schema cancellation untouched. No native/hosted/browser proof added;hosting remains deferred. ORACLE_LOCAL_LAUNCHER_RECOVERY.md.
 
 IPFS/SOLID/ActivityPub local paired wrapper/keyset consumer source recovered;all three consumer builds/runner syntax pass. Native environments not opened, no new hosted/browser proof. SOLID uses current shipping settings field. PROTOCOL_LOCAL_LAUNCHER_RECOVERY.md.
+
+TRON separate declared-source query/launcher recovered:7controlled tests,provider/
+native-consumer builds and syntax pass. No native container/mining/ledger/key
+operation;historical uncertain transaction outcome unresolved and preserved.
+Current declared-source runtime/hosted unverified. Local96/hosted60;TRON_CQL_MVP.md.

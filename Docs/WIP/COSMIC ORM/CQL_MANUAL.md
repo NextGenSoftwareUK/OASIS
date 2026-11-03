@@ -1524,3 +1524,7 @@ Explicit TonLocalTvmStorageSource now passes local TVM execution:encrypted recor
 [Oracle local paired/content launchers](ORACLE_LOCAL_LAUNCHER_RECOVERY.md) are restored and compile. They use the existing provider/compiler and Mongo teaching presets. Retained native services/config required;current native/hosted availability was not re-tested.
 
 [Protocol paired local launchers](PROTOCOL_LOCAL_LAUNCHER_RECOVERY.md) now include selected-record/filter/subset teaching consumers for IPFS/SOLID/ActivityPub with Mongo presets. All three compile;runner modes validated. Current native/hosted availability was not re-tested.
+
+[TRON declared local source](TRON_CQL_MVP.md) is restored with seven controlled
+checks/native-consumer builds. This separate demo is not reconciliation of older
+uncertain writes. Current native/hosted availability remains unverified.

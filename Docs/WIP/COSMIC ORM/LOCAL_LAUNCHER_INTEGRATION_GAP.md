@@ -354,3 +354,11 @@ Explicit adapted local TON TVM native gate1/1passes3/2/0queries/encrypted reopen
 Oracle local paired/content/reconciliation native consumer closure and launcher restored;two PS syntax/inner-mode AST checks and consumer build pass. Newer query activation/schema code preserved;no green/native replay. Query counts95/60unchanged;3published launcher gaps remain. ORACLE_LOCAL_LAUNCHER_RECOVERY.md.
 
 Protocol paired wrapper/keyset closure restored;three PS syntax/inner-mode AST checks and IPFS/SOLID/ActivityPub native/federated consumer builds pass. SOLID caller adapted to current settings field;shipping factory/API/provider sources kept. No native/cohort replay.95local/60hosted unchanged;2published launcher gaps remain. PROTOCOL_LOCAL_LAUNCHER_RECOVERY.md.
+
+## TRON declared-source recovery milestone
+
+Seven controlled cases/provider+native-consumer builds/PS+JS+Bash syntax pass.
+Exact owned mining helper restored (syntax only);native recovery helper reused.
+Current SDK/provider code kept;old uncertain outcome untouched. No container/
+mining/key/ledger/contract replay. Local96/hosted60;one published launcher path
+remains missing (Ethereum). Original proof/hash LauncherRecoveryCurrent/tron-recovery-evidence.json.
