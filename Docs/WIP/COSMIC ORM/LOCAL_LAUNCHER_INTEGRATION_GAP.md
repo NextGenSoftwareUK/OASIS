@@ -330,3 +330,11 @@ Seven controlled cases/provider+native-consumer builds/PS syntax pass;public
 object source/SDK bridge unchanged. Existing helper closure matches retained
 pin;native network/key/ledger/fixture untouched. Local93/hosted60;7published
 launcher paths missing. Original TRX/hash LauncherRecoveryCurrent/sui-recovery-evidence.json.
+
+## Aptos recovery milestone
+
+Ten controlled cases/provider+native-consumer builds/two PS syntax checks pass.
+Strict SDK payload/presence decoding and acknowledged-save state restored;
+public account source/project preserved. Original node/key/ledger/fixture unopened.
+Local94/hosted60;5published launcher paths missing (two Aptos paths recovered).
+Original TRX/hash LauncherRecoveryCurrent/aptos-recovery-evidence.json.
