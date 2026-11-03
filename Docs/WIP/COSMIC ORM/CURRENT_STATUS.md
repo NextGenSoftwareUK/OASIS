@@ -45,7 +45,8 @@ responses/SHA manifest and acceptance ACK), `HostedThreeFoldReleaseCurrent`,
 absent; all survive at retained sandbox-integration pin 237403a75. DuckDB named
 source/launcher recovered: 14 controls, consumer build and syntax pass; original
 DB/seed/ACKs untouched, no native replay. LocalFile also restored: 7 controls/build/syntax pass. Redis 8/SQLServer 17 pass;
-producer/consumer builds and syntax pass, no native replay. **31 missing launchers remain**. Recover
+producer/consumer builds and syntax pass, no native replay. Four-provider batch
+46 controlled cases + shipping GraphQL schema guard pass; ready for Dev integration. **31 missing launchers remain**. Recover
 scoped dependencies, not the entire old branch. [DuckDB](DUCKDB_CQL_MVP.md).
 
 ## Remaining gates and constraints
