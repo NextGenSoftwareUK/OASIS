@@ -26,9 +26,6 @@ Release journal LocalState/COSMIC/HostedLauncherRecoveryFifthReleaseCurrent.
 Fifth release health + Mongo/SQLite/Neo4j/ThreeFold discovery/federation pass;
 zero native queries/private saves. Published launcher file audit is now green;runtime/configuration gates remain.
 
-Last published fourth batch Development2ae3e658f/job206de884 SUCCESS;health and
-Mongo/SQLite/Neo4j/ThreeFold discovery/federation ready,zero native queries/saves.
-
 ## V2 owned EVM proof and discovered Mongo bug
 
 Shipping Arbitrum V2 facade + canonical SDK/ABI/decryption + published manager/
@@ -68,7 +65,6 @@ open. Do not infer a new native/browser proof or retry the denied operation.
 Independent sixth-batch shipping API/provider build and GraphQL schema guard
 pass1/1,no skips. Original hash/counts:LocalState/COSMIC/LauncherRecoveryCurrent/
 sixth-batch-shipping-schema-evidence.json. Final configured consumer gate remains open.
-See TON_LOCAL_TVM_RECOVERY_GAP.md;public-header source preserved.
 
 ## Constraints / wider unfinished work
 
