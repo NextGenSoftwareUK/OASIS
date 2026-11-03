@@ -1412,3 +1412,7 @@ See [ThreeFold public node guide](../../Devs/THREEFOLD_PUBLIC_NODE_CQL_GUIDE.md)
 ### Recovered local filesystem demo
 
 [LocalFile + Mongo](LOCALFILE_CQL_MVP.md) restores its launcher and bounded GUID queries. Seven current controlled cases and producer/consumer compilation pass. Historical native/browser proof is preserved, not replayed; hosted LocalFile is unverified.
+
+### Recovered Redis and SQL Server demos
+
+[Redis](REDIS_CQL_MVP.md) and [SQL Server](SQLSERVER_CQL_MVP.md) launchers and CQL source are restored. Current controlled tests (8/17), producer/consumer compilation and syntax pass. Their retained native/browser evidence was not replayed; recovery does not certify hosted deployment or expand EF parity.

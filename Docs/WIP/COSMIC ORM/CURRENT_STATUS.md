@@ -6,9 +6,9 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 ## Verified coverage
 
-- **66 local integrated query types:** 3 canonical, 57 public/source profiles,
-  6 local PostgreSQL/Cosmos/Oracle/AWS/DuckDB/LocalFile implementations. The last
-  two are recovered historical integrations, not new native acceptance runs.
+- **68 local integrated query types:** 3 canonical, 57 public/source profiles,
+  8 local PostgreSQL/Cosmos/Oracle/AWS/DuckDB/LocalFile/Redis/SQLServer integrations.
+  The last four are historical recoveries, not new native acceptance runs.
 - **60 scoped hosted HTTP proofs; 5 browser proofs / 55 browser gates open.**
   These counts do not certify full ORM, native writes, reliability or uptime.
 - MongoDB/SQLite/Neo4j: **50/82 strict parity rows each**; investor subset green.
@@ -30,7 +30,7 @@ no pending intents. Independent offline audit passes; cohort is now frozen.
 ThreeFold card published at website **2170b67**; all 157 HTML IDs unique.
 Public HTML/two scripts match exact committed blobs. Initial old HTML observation
 is preserved separately; no republish was needed. Browser remains unverified.
-**Next: recover the remaining 33 advertised local launchers and scoped source
+**Next: recover the remaining 31 advertised local launchers and scoped source
 closures from retained Git, preserving current changes and accepted fixtures.**
 
 Do not rerun the hosted verifier, native walkthrough, settings apply or activation.
@@ -44,7 +44,8 @@ responses/SHA manifest and acceptance ACK), `HostedThreeFoldReleaseCurrent`,
 [Launcher integration gap](LOCAL_LAUNCHER_INTEGRATION_GAP.md): original 35/37 paths
 absent; all survive at retained sandbox-integration pin 237403a75. DuckDB named
 source/launcher recovered: 14 controls, consumer build and syntax pass; original
-DB/seed/ACKs untouched, no native replay. LocalFile also restored: 7 controls/build/syntax pass. **33 missing launchers remain**. Recover
+DB/seed/ACKs untouched, no native replay. LocalFile also restored: 7 controls/build/syntax pass. Redis 8/SQLServer 17 pass;
+producer/consumer builds and syntax pass, no native replay. **31 missing launchers remain**. Recover
 scoped dependencies, not the entire old branch. [DuckDB](DUCKDB_CQL_MVP.md).
 
 ## Remaining gates and constraints
@@ -64,7 +65,7 @@ Use one build lease and `/m:2 /nr:false /p:UseSharedCompilation=false`.
 Raw outputs only `TestResults/`; durable identities/proof `LocalState/COSMIC/`.
 Named-file commits; fetch/preserve upstream; no production/master promotion.
 
-Disk target 120GB unmet; latest free **55,957,082,112 bytes**. Preserve shared data,
+Disk target 120GB unmet; latest free **55,726,833,664 bytes**. Preserve shared data,
 previously denied cleanup targets, unknown root logs and personal Miniforge/models.
 [Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) owns exact retained resources.
 
