@@ -1,99 +1,79 @@
 # COSMIC ORM / CQL current status
 
 Updated 2 November 2026. Goal active and incomplete.
-Priority: breadth-first live demos. Deep selected-stage LINQ parity is paused.
+Priority: breadth-first usable sandbox demos; deep selected-stage LINQ is paused.
 Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 ## Verified coverage
 
-- **64 integrated query types:** 3 canonical, 57 bounded public/source profiles,
-  4 local PostgreSQL/Cosmos/Oracle/AWS implementations.
-- **59 hosted functional HTTP proofs**, 5 browser verified, 54 browser gates open.
-  These figures do not certify full ORM/native writes/reliability/uptime.
-- MongoDB, SQLite and Neo4j: **50/82 strict parity features each**.
-  The original investor-demo subset is green.
-- Bittensor accepted/frozen; detailed original proof in full provider report.
-- Zcash local acceptance:27adapter/config tests; actual manager/LINQ/CLI3/2;
-  local HTTP3/2+Mongo5/4, foreign0private/3public,2SDKsaves/9receipts.
-  Exact fixture cleaned and owned Mongo stopped. Original source is frozen.
-- Zcash HTTP admission3API+1Core, prepared4presets and10publisher controls pass.
-  Combined Worldscape/Zcash merge11API+1Core passes. Independent hosted audit
-  controls pass2tests/16faults. Shared C# federation whitelist bug reproduced
-  and fixed with a controlled red/green test; no live replay.
+- **65 local integrated query types:** 3 canonical, 57 public/source profiles,
+  5 local PostgreSQL/Cosmos/Oracle/AWS/DuckDB implementations. DuckDB is recovered
+  historical integration, not a new native acceptance run.
+- **59 scoped hosted HTTP proofs; 5 browser proofs / 54 browser gates open.**
+  These counts do not certify full ORM, native writes, reliability or uptime.
+- MongoDB/SQLite/Neo4j: **50/82 strict parity rows each**; investor subset green.
+- ClickHouse and Zcash original hosted 3/2, Mongo 5/4, repeat reuse, privacy,
+  ordinary private saves and exact SQLite/Neo4j replicas pass independent audits.
+  Cards/static files pass; browser interaction remains unverified.
+- [ClickHouse evidence](CLICKHOUSE_PUBLIC_SOURCE_STATUS.md),
+  [Zcash evidence](ZCASH_PUBLIC_SOURCE_STATUS.md); accepted cohorts frozen.
 
-## Active release and exact next step
+## Exact active release and next step
 
-1. Verified ClickHouse code published in parent
-   **7f477378b02adda621376f88f309c9bf70675fd9**, Core
-   **0659aa00ba26260ec4c06f196df7b60ee6c0df01**; latestGeoNFTfixes preserved.
-   Manifest/gitlinks7Dockerfiles pass, remote pushes verified.
-2. ClickHouse settings appliedonce, originalactivation superseded by newerjob
-   **22cabb60-492a-432b-8d4b-597a068d621b SUCCESS**, code
-   **c0edcb0ed0b81e5d5dd20fc99807163d09833037**, includesverified7f477378b.
-   Originalcandidate/per-keyACKs/DNAunchanged. No reapplication/redeployment.
-3. ClickHouse originalhostedcohort and independentaudit PASS: native3/2,
-   Mongo5/4, repeat0new/2existing, foreign0private/3public,2normalversion1saves,
-   pending0/exactSQLiteNeo4j2each. Accepted cohort frozen; card/static assets published and byte-verified.
-   Durable `HostedClickHouseReleaseCurrent`, `HostedClickHousePublicSourceCurrent`,
-   `HostedQueryAcceptance-ClickHouseOASIS`. No acceptedgate replay.
-4. Original Zcash hosted acceptance and independent audit PASS: native3/2,
-   Mongo5/4, repeat0new/2existing, foreign0private/3public, exactSQLite/Neo4j2each,
-   2normal APIversion1saves/pending0. Cohort frozen; no query/save replay.
-   Evidence/ACK: `LocalState/COSMIC/HostedQueryAcceptance-ZcashOASIS`.
-   Zcash card published at website3141cca9491d585ed0b1c8aab7a52c7dd5bbc948;
-   HTML and both JS assets match exact Git blobs. Browser gate remains closed.
-5. ThreeFold adapter33controls plus new shared-demo red/green pass. Actual
-   compiled manager/LINQ/CLI3/2 passed over originalnodeIDs1/2/3, no provisioning
-   or writes. Shared demo reads its native metadata key from capabilities.
-   API admission 3/3, Core tariff 1/1 and original local HTTP/Mongo gate pass.
-   Native 3/2, Mongo 5/4, foreign 0 private/3 public; exact fixture cleaned.
-   Four hosted presets pass; 10 publisher controls and audit 2/16 faults pass.
-   Candidate prepared without mutation. Upstream preserved; merged guards pass.
-   Combined API 11/Core tariff 1/exact garden reward 2 pass, no skips.
-   Code published c00da49c1/Core 5415961; exact job
-   Code job 5d9b665b SUCCESS; original three settings applied once/DNA unchanged.
-   Activation a737028a-40d9-489d-a087-53d2f6f955a6 BUILDING; observe, no resubmit.
-   Durable `HostedThreeFoldPublicSourceCurrent`/`ThreeFoldPublicQualificationCurrent`.
+ThreeFold code job **5d9b665b-984d-4bcd-bebd-e722ff9a6612 SUCCESS**, parent
+**c00da49c105c3ba4f9e7fa749ac538925b18d818**, Core **5415961**.
+Original three settings applied once, per-key ACKs/full candidate equality and
+DNA unchanged verified. Do not apply them again.
 
-## Remaining gates
+Activation **a737028a-40d9-489d-a087-53d2f6f955a6 BUILDING** at that code.
+Observe this existing job; no restart/redeployment on observation timeout:
 
-- [ClickHouse](CLICKHOUSE_PUBLIC_SOURCE_STATUS.md): hosted proof/audit pass;
-  card/static assets pass; browser remains open. Keys printable ASCII without spaces.
-- [ThreeFold](THREEFOLD_PUBLIC_SOURCE_STATUS.md): actualnativeCQL3/2pass;
-  HTTP/Mongo/tariff/preset controls pass; activation/hosted audit/card open.
-- [Zcash details](ZCASH_PUBLIC_SOURCE_STATUS.md): hosted proof/card/static bytes pass; browser open.
-- [Tableland](TABLELAND_PUBLIC_SOURCE_STATUS.md): original version GET 302, no JSON/query.
-- [Ceramic qualification](CERAMIC_PUBLIC_SOURCE_STATUS.md): pinned official
-  client reviewed; original Clay healthGET failed before HTTP (URLError, cause
-  unproven). No retry; current operator access/public StreamIDs unresolved.
-- Preserve denied Lens/Aztec403/1010 outcomes; no bypass/retry. Farcaster free
-  access unresolved. Nostr503/Blockscout timeout causes remain unresolved.
-- Hosted Cosmos/Oracle/PostgreSQL deferred by David; no paid hosting/re-asking.
-- Browser/OS control remains closed. HTTP/static assets are not browser proof.
-- Generic private browser copies omit full native payload; backlog remains red.
-- Full ownership/concurrency/children/history/deltas/migration/placement and
-  wider HyperDrive acceptance remain subject to exact roadmap evidence.
-  Legacy gaps docs-only; implementation work V2 only.
+```powershell
+python Scripts/Sandbox/Observe-HostedDeployment.py a737028a-40d9-489d-a087-53d2f6f955a6 --expected-commit c00da49c105c3ba4f9e7fa749ac538925b18d818 --output TestResults/ThreeFoldPublicSourceCurrent/activation-deployment.json
+```
 
-## Workspace and resources
+After SUCCESS, verify discovery before the original hosted cohort:
+`python Scripts/Sandbox/Verify-HostedQuerySource.py ThreeFoldOASIS --prepare`
+using existing pinned Node24 on PATH. Then run the independent offline audit,
+retain compressed originals/hashes, and publish/byte-verify its card. No hosted
+ThreeFold avatar/query/save cohort has started yet. Do not replay accepted CLI.
 
-Work/build/test only `C:/Source/OASIS-cosmic`, branch `work/cosmic-cql-ton-public`;
-Core `work/cosmic-cql-google-public`; frontend `C:/Source/Web4Site/work/cosmic-cql`.
-Website main/task d3dfe48a4d4e4ff0288180303fbbb06ab88eaebb includes ClickHouse and Zcash cards.
-No new worktree/environment. Dev push timing authorized; no production/master.
+ThreeFold proofs: adapter 33, shared regression, compiled manager/LINQ/CLI 3/2,
+API 3/Core tariff 1/local HTTP 1 (native 3/2, Mongo 5/4, privacy 0/3), four presets,
+10 publisher controls, audit 2 tests/16 faults; merged API 11/tariff 1/reward 2.
+Durable journals: `HostedThreeFoldReleaseCurrent`, `HostedThreeFoldPublicSourceCurrent`,
+`ThreeFoldPublicQualificationCurrent`. [Details](THREEFOLD_PUBLIC_SOURCE_STATUS.md).
 
-Use build lease with `/m:2 /nr:false /p:UseSharedCompilation=false`.
-Raw output only `TestResults/`; stable identity/proof `LocalState/COSMIC/`.
-Named-file commits only; fetch/preserve upstream before integration.
+## Reproduced demo-link bug / parallel source recovery
 
-Disk target120GB unmet; latest measured free57,145,856,000 bytes. Direct Zcash build output
-57,798,520bytes measured. Previously policy-denied188folders/2.155GB and shared
-external outputs preserved; no cleanup retry/bypass. Personal Miniforge/models
-KEEP. No owned local DB/build process remains. Shared provider data preserved.
-See [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) and
-[disk recovery](../Cleanup/DISK_RECOVERY_CURRENT.md). Unknown root logs untouched.
+[Launcher integration gap](LOCAL_LAUNCHER_INTEGRATION_GAP.md): original 35/37 paths
+absent; all survive at retained sandbox-integration pin 237403a75. DuckDB named
+source/launcher recovered: 14 controls, consumer build and syntax pass; original
+DB/seed/ACKs untouched, no native replay. **34 missing launchers remain**. Recover
+scoped dependencies, not the entire old branch. [DuckDB](DUCKDB_CQL_MVP.md).
+
+## Remaining gates and constraints
+
+- Tableland original version GET 302/no JSON; Ceramic failed before HTTP.
+  Preserve denied Lens/Aztec and other original failures; no bypass/retry.
+- Hosted Azure Cosmos/Oracle/PostgreSQL deferred by David; no account/spend re-asks.
+- Browser/OS control closed; HTTP/static assets are not interaction proof.
+- Full native payload browser copies, broad ORM/children/depth/history/deltas,
+  migration/placement and wider HyperDrive acceptance remain open.
+- V2 implementation only; legacy gaps documentation-only. Green scopes frozen.
+
+Work only `C:/Source/OASIS-cosmic` / `work/cosmic-cql-ton-public`; Core branch
+`work/cosmic-cql-google-public`; website `C:/Source/Web4Site` / `work/cosmic-cql`.
+Website main/task d3dfe48 includes ClickHouse/Zcash. No new environment/worktree.
+Use one build lease and `/m:2 /nr:false /p:UseSharedCompilation=false`.
+Raw outputs only `TestResults/`; durable identities/proof `LocalState/COSMIC/`.
+Named-file commits; fetch/preserve upstream; no production/master promotion.
+
+Disk target 120GB unmet; latest free **56,564,555,776 bytes**. Preserve shared data,
+previously denied cleanup targets, unknown root logs and personal Miniforge/models.
+[Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) owns exact retained resources.
 
 [Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) |
 [Manual](CQL_MANUAL.md) | [Architecture](CQL_ARCHITECTURE.md) |
 [Parity](CQL_PARITY_CHECKLIST.md) | [Backlog](AFTER_DEMO_BACKLOG.md) |
-[Launcher gap](LOCAL_LAUNCHER_INTEGRATION_GAP.md) | [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md)
+[David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md)

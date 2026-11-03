@@ -2,7 +2,7 @@
 
 Updated 2 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state and the exact next action.
 
-1. Complete breadth-first live provider demos: **64 locally integrated query types,
+1. Complete breadth-first live provider demos: **65 locally integrated query types,
    59 scoped hosted HTTP proofs, 5 browser proofs/54 open**. ClickHouse's original
    hosted audit and card/static assets pass. ThreeFold code is published; its exact
    code job succeeded and original settings were applied once. Activation a737028a
