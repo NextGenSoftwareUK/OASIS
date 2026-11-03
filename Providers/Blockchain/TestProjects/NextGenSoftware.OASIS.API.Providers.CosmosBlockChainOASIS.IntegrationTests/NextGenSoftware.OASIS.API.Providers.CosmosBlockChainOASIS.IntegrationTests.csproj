@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs" Link="Demo/IdentityFederationWalkthrough.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationApiHost.cs" Link="Demo/IdentityFederationApiHost.cs" />
+    <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
     <Compile Include="..\..\..\Shared\TestSupport\CoreStorageConformance.cs" Link="Shared\CoreStorageConformance.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <Compile Remove="CosmosCoreStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' != 'true'" />
   </ItemGroup>
