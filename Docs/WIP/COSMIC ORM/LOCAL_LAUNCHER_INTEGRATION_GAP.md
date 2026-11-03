@@ -181,3 +181,14 @@ retained pin237403a75. 34 controlled tests, provider/native-consumer builds and
 PS/Python syntax pass. No service/config/credential/data opened or native replay.
 Local81/hosted60;18 published launcher paths remain absent. Original evidence
 and SHA256 manifest: LocalState/COSMIC/LauncherRecoveryCurrent/influxdb-recovery-evidence.json.
+
+## Supabase recovery milestone
+
+36 controlled tests, provider/native-consumer compilation and PS/Python syntax
+pass. Reviewed named closure restores native GUID filtering, exact range checks
+and canonical write acknowledgement. No original service/data/credential opened.
+Local82/hosted60;17 published launcher paths remain absent. Durable original
+TRX/hash manifest: LocalState/COSMIC/LauncherRecoveryCurrent/supabase-recovery-evidence.json.
+Third recovery Development5f4b52ae7 jobfc345507 SUCCESS; healthy and four provider
+discovery/federation entries ready, zero native queries/saves. Original readiness
+report: HostedLauncherRecoveryThirdReleaseCurrent/readiness-observed.json.

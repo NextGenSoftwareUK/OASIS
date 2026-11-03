@@ -1452,3 +1452,7 @@ See [ThreeFold public node guide](../../Devs/THREEFOLD_PUBLIC_NODE_CQL_GUIDE.md)
 InfluxDB 2.x local demo source is restored with 34 controlled checks and current
 consumer compilation. See [InfluxDB walkthrough](INFLUXDB_CQL_MVP.md) for bounded
 Flux GUID queries and historical native proof; hosted availability is unverified.
+
+Supabase local source is restored with 36 controlled checks and current consumer
+compilation. [Walkthrough and scope](SUPABASE_CQL_MVP.md): bounded PostgREST GUID
+queries, historical native proof; current hosted/runtime acceptance unverified.
