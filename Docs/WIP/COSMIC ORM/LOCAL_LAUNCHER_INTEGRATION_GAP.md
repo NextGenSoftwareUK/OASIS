@@ -253,3 +253,15 @@ restored; no original emulator/export/config/fixture replay. Local88/hosted60;
 11published launcher paths remain missing. Durable original TRX/hash manifest:
 LocalState/COSMIC/LauncherRecoveryCurrent/firebase-recovery-evidence.json.
 Fourth batch exact job206de884 is BUILDING, same commit2ae3e658f, no resubmission.
+
+## Repeatable published-link guard
+
+Scripts/Sandbox/Audit-LocalDemoLaunchers.py checks the existing website HTML
+against a selected checkout, deduplicates launcher paths and fails on missing
+files. Directory names cannot satisfy a link; resolved paths must stay inside
+the checkout. Output must remain under its TestResults; zero discovered links
+is an error. Three fixture tests pass; actual report37published/26present/11missing
+returns expected exit1. No launcher/native/provider operation executes.
+Evidence TestResults/LauncherRecoveryCurrent/local-launcher-audit.json; regenerate
+with command in CURRENT_STATUS. Retained EVM launcher includes Ethereum/Polygon/
+Arbitrum teaching paths; review shipping factories and test closure before restore.
