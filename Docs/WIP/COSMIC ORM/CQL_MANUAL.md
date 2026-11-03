@@ -1476,3 +1476,7 @@ Canonical bounded GUID GETs; current Azurite/hosted Azure acceptance unverified.
 [Owned Firestore walkthrough](FIRESTORE_CQL_MVP.md) source restored with seven
 compiler/admission/cancellation checks and native-consumer compilation. Bounded
 document-key reads; current emulator/hosted availability remains unverified.
+
+[Firebase walkthrough](FIREBASE_CQL_MVP.md) source restored with34controlled
+checks/current native-consumer builds. Bounded identity REST queries; current
+emulator/hosted availability remains unverified.
