@@ -5,9 +5,9 @@ commit d3dfe48a4d4e4ff0288180303fbbb06ab88eaebb. This is a source-integration
 problem, not evidence that the original native runs failed or should be replayed.
 
 The original audit found 35 absent paths among 37 distinct PowerShell launchers.
-DuckDB, LocalFile, Redis, SQLServer four Redis-family demos, Memcached and Upstash are now recovered; 25 remain absent from the current checkout. DuckDB implementation commit f1aeb0cb5 is not an ancestor of
+DuckDB, LocalFile, Redis, SQLServer four Redis-family demos, Memcached, Upstash and CouchDB are now recovered; 24 remain absent from the current checkout. DuckDB implementation commit f1aeb0cb5 is not an ancestor of
 current HEAD and survives on the earlier sandbox-integration branch. Counts of
-74 current integrated query types/59 hosted proofs do not count the remaining missing
+75 current integrated query types/59 hosted proofs do not count the remaining missing
 local launchers as additional hosted capabilities.
 
 Recovery source: `origin/work/cosmic-cql-sandbox-integration` at `237403a75b6983e013141cf7ba44bf66858abafd`.
@@ -68,7 +68,7 @@ is 65 after restoring this historical provider; hosted count remains 59.
 
 Named source/launcher restored without changing the provider base. Seven controlled
 cases, producer/consumer builds and syntax pass. Original source/seed untouched;
-no native replay. Local count 66, hosted 59; 25 advertised launchers remain absent.
+no native replay. Local count 66, hosted 59; 24 advertised launchers remain absent.
 
 ## Redis / SQL Server recovery milestone
 
@@ -105,3 +105,12 @@ controlled cases, producer/consumer builds and syntax pass. Memcached shares the
 recovered Mongo test-support helper. Closed-port failure and temporary HTTP stub
 cases do not adopt native environments. No original service/credential/fixture
 opened or replayed; task-only batch. Local74/hosted60;25launchers remain absent.
+
+## CouchDB recovery / earlier deployment readiness
+
+CouchDB named source/launcher restored;41in-memory-handler controls, producer/
+consumer build and syntax pass, no native replay. Earlier four-provider Dev job
+2d4fa248 SUCCESS at59ddcca91; public health and original-owner discovery for
+Mongo/SQLite/Neo4j/ThreeFold ready,0nativequeries/0saves. Compact readiness proof
+HostedLauncherRecoveryReleaseCurrent/readiness-observed.json. Local75/hosted60;
+24launchers remain absent. Seven more recovered providers remain task-only.

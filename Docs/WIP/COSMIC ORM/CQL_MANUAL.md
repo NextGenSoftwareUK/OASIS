@@ -1424,3 +1424,7 @@ See [ThreeFold public node guide](../../Devs/THREEFOLD_PUBLIC_NODE_CQL_GUIDE.md)
 ### Recovered Memcached and Upstash demos
 
 [Memcached](MEMCACHED_CQL_MVP.md) and [Upstash](UPSTASH_CQL_MVP.md) launchers/source are restored. Controlled tests (15/17), producer/consumer builds and syntax pass. Original native/browser proofs remain historical; volatile-cache durability and hosted account availability are separate concerns, not inferred from source recovery.
+
+### Recovered CouchDB demo
+
+[CouchDB](COUCHDB_CQL_MVP.md) source/launcher recovery passes41controlled query/error/save-publication cases plus producer/consumer builds and syntax. Original native/browser proof was not replayed; owned concurrency, broader ORM semantics and hosted deployment remain separately unverified.
