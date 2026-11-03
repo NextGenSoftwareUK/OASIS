@@ -1472,3 +1472,7 @@ compilation. Separate from public S3 metadata; owned runtime remains unverified.
 [Owned Azure Blob walkthrough](AZURE_BLOB_CQL_MVP.md) source restored with
 14compiler/official-SDK loopback controls and native-consumer compilation.
 Canonical bounded GUID GETs; current Azurite/hosted Azure acceptance unverified.
+
+[Owned Firestore walkthrough](FIRESTORE_CQL_MVP.md) source restored with seven
+compiler/admission/cancellation checks and native-consumer compilation. Bounded
+document-key reads; current emulator/hosted availability remains unverified.
