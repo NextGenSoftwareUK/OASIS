@@ -2,7 +2,7 @@
 
 **Reproduced local-link gap:** Original audit found 35/37 missing launcher paths; DuckDB, LocalFile, Redis, SQLServer four Redis-family demos, Memcached, Upstash, CouchDB, Qdrant, Chroma, Weaviate, Couchbase and PocketBase are restored and 19 remain absent; all 35 survive at the retained sandbox-integration branch pin. This does not add hosted capabilities or invalidate original native observations. [Exact scope and recovery](LOCAL_LAUNCHER_INTEGRATION_GAP.md).
 
-Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card published/byte-verified; browser open. Current totals83integrated/60hosted-functional/5browser/55open; no global production-parity claim.
+Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card published/byte-verified; browser open. Current totals84integrated/60hosted-functional/5browser/55open; no global production-parity claim.
 
 Matrix hosted functional HTTP gates pass at parent7b45ee856/Coredd2c32c, settingsaaff57a2 SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; source/cohort frozen. Websitebd173e5/101client tests/pinned guide+C#links/public bytes verified; browser open. [Evidence](MATRIX_PUBLIC_SOURCE_STATUS.md).
 
@@ -377,3 +377,7 @@ Website7e2046de25a40a84a289a3c73da2bc7e2e25b885 publishes Nostr with pinned guid
 Stacks live activation succeeded; native3/2+Mongo5/4pass, two original version1 saves/pending0. Reuse exposed moving block-height descriptions; frontend5782f9c fixes initial-snapshot identity with104tests. Original cohort retained, read-only completion/privacy/replicas pending; no hosted-count increment. [Root cause and next](STACKS_PUBLIC_SOURCE_STATUS.md#live-snapshot-reuse-defect-and-root-fix).
 
 Wormhole API/local milestone: Core1/API3/localHTTP1/publisher9/actual preset1/client105 pass, native3/2+Mongo5/4/private0/public3, two SDK-owned version1 copies/9receipts, exact fixture removed/process stopped. Hosted candidate prepared/unapplied; no hosted-count increase. [Evidence/next](WORMHOLE_PUBLIC_SOURCE_STATUS.md#httpadmissionlocal-mongo-milestone-complete).
+
+Owned ClickHouse local source/launcher recovered separately from its accepted
+public-country hosted adapter:29controlled tests/current consumer build pass;
+current owned runtime/hosted acceptance unverified. See CLICKHOUSE_CQL_MVP.md.
