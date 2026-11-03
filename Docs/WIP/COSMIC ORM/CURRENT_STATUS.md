@@ -9,7 +9,7 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 - **66 local integrated query types:** 3 canonical, 57 public/source profiles,
   6 local PostgreSQL/Cosmos/Oracle/AWS/DuckDB/LocalFile implementations. The last
   two are recovered historical integrations, not new native acceptance runs.
-- **59 scoped hosted HTTP proofs; 5 browser proofs / 54 browser gates open.**
+- **60 scoped hosted HTTP proofs; 5 browser proofs / 55 browser gates open.**
   These counts do not certify full ORM, native writes, reliability or uptime.
 - MongoDB/SQLite/Neo4j: **50/82 strict parity rows each**; investor subset green.
 - ClickHouse and Zcash original hosted 3/2, Mongo 5/4, repeat reuse, privacy,
@@ -20,29 +20,22 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 ## Exact active release and next step
 
-ThreeFold code job **5d9b665b-984d-4bcd-bebd-e722ff9a6612 SUCCESS**, parent
+ThreeFold code job 5d9b665b and activation a737028a both SUCCESS at parent
 **c00da49c105c3ba4f9e7fa749ac538925b18d818**, Core **5415961**.
-Original three settings applied once, per-key ACKs/full candidate equality and
-DNA unchanged verified. Do not apply them again.
+Original three settings applied once; full candidate/per-key ACKs/DNA unchanged.
+Original hosted native 3/2, Mongo 5/4, repeat 0 new/2 existing, foreign 0 private/
+3 public and exact SQLite/Neo4j 2 each pass. Two ordinary version-1 private saves,
+no pending intents. Independent offline audit passes; cohort is now frozen.
 
-Activation **a737028a-40d9-489d-a087-53d2f6f955a6 SUCCESS** at that code.
-Observe this existing job; no restart/redeployment on observation timeout:
+**Next: publish ThreeFold's sandbox card with pinned guide/C# links, verify the
+public HTML and two scripts against exact Git blobs, then continue recovering
+missing launchers.** Browser interaction remains closed/unverified.
 
-```powershell
-python Scripts/Sandbox/Observe-HostedDeployment.py a737028a-40d9-489d-a087-53d2f6f955a6 --expected-commit c00da49c105c3ba4f9e7fa749ac538925b18d818 --output TestResults/ThreeFoldPublicSourceCurrent/activation-deployment.json
-```
-
-Discovery available/federated with four presets; original hosted cohort running:
-`python Scripts/Sandbox/Verify-HostedQuerySource.py ThreeFoldOASIS --prepare`
-using existing pinned Node24 on PATH. Then run the independent offline audit,
-retain compressed originals/hashes, and publish/byte-verify its card. Original hosted
-ThreeFold cohort is in progress; preserve original journals. Do not replay CLI.
-
-ThreeFold proofs: adapter 33, shared regression, compiled manager/LINQ/CLI 3/2,
-API 3/Core tariff 1/local HTTP 1 (native 3/2, Mongo 5/4, privacy 0/3), four presets,
-10 publisher controls, audit 2 tests/16 faults; merged API 11/tariff 1/reward 2.
-Durable journals: `HostedThreeFoldReleaseCurrent`, `HostedThreeFoldPublicSourceCurrent`,
-`ThreeFoldPublicQualificationCurrent`. [Details](THREEFOLD_PUBLIC_SOURCE_STATUS.md).
+Do not rerun the hosted verifier, native walkthrough, settings apply or activation.
+Durable evidence: `HostedQueryAcceptance-ThreeFoldOASIS` (three compressed original
+responses/SHA manifest and acceptance ACK), `HostedThreeFoldReleaseCurrent`,
+`HostedThreeFoldPublicSourceCurrent` and `ThreeFoldPublicQualificationCurrent`.
+[Details](THREEFOLD_PUBLIC_SOURCE_STATUS.md).
 
 ## Reproduced demo-link bug / parallel source recovery
 
