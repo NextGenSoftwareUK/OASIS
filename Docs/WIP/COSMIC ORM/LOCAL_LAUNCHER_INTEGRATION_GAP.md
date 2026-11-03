@@ -279,3 +279,5 @@ Shared Web3Core V2 now implements bounded authorized owned identity CQL through 
 Six Web3OwnedCqlRpcTests pass through actual shipping Arbitrum V2 facade, production ABI/decryption and canonical loads with existing in-process ReadRpc transport. No external RPC/chain fixture; teaching/native consumer wiring is next. Owned CQL controlled total16; coverage/local launcher counts unchanged.
 
 V2 teaching source EvmV2OwnedWalkthrough now compiles/runs through HolonManager+LINQ/SDK/ABI/crypto with controlled transport:full3/subset2. Six boundary cases pass; Mongo helper compiles but native Mongo/chain not run. Native launcher still red; reconcile compatible retained Web3Core deployment next. Fourth job206de884 observed DEPLOYING.
+
+New explicit retained Arbitrum V2 read-only launcher/native consumer compile and syntax pass; no chain service or key touched. Native3/2 remains pending. Fourth recovery job206de884 SUCCESS, health/discovery/federation ready for Mongo/SQLite/Neo4j/ThreeFold;zero native queries/private saves. Original readiness report HostedLauncherRecoveryFourthReleaseCurrent/readiness-observed.json.
