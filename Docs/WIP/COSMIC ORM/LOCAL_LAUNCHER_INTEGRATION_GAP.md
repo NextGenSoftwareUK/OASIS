@@ -227,3 +227,12 @@ Named compiler/encrypted-backend adapter/native test/launcher closure restored.
 compilation/syntax pass. Public source unchanged; no bucket/key/MinIO/Mongo
 fixture opened. Local85/hosted60;14published launcher paths remain missing.
 Original TRX/hash manifest LocalState/COSMIC/LauncherRecoveryCurrent/aws-s3-recovery-evidence.json.
+
+## Owned Azure Blob recovery milestone
+
+14controlled compiler/official-SDK loopback cases pass, provider/native-consumer
+compile and PS syntax pass. Current public source/compile links preserved;
+retained helper gains explicit data-directory argument required by original
+launcher, existing default retained. Original Azurite/config/data untouched.
+Local86/hosted60;13published launcher paths remain missing. Durable original
+TRX/hash manifest LocalState/COSMIC/LauncherRecoveryCurrent/azure-blob-recovery-evidence.json.

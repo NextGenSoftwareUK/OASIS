@@ -2,7 +2,7 @@
 
 **Reproduced local-link gap:** Original audit found 35/37 missing launcher paths; DuckDB, LocalFile, Redis, SQLServer four Redis-family demos, Memcached, Upstash, CouchDB, Qdrant, Chroma, Weaviate, Couchbase and PocketBase are restored and 19 remain absent; all 35 survive at the retained sandbox-integration branch pin. This does not add hosted capabilities or invalidate original native observations. [Exact scope and recovery](LOCAL_LAUNCHER_INTEGRATION_GAP.md).
 
-Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card published/byte-verified; browser open. Current totals85integrated/60hosted-functional/5browser/55open; no global production-parity claim.
+Nostr bounded hosted functional HTTP gates pass: native3/2, Mongo5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Original two version1 saves/no pending intents; schema2 read-only continuation added0saves and preserves original failures. Diagnostic8/8reads passed; earlier intermittent query503cause remains unresolved. This is functional proof, not reliability/full ORM certification. Card published/byte-verified; browser open. Current totals86integrated/60hosted-functional/5browser/55open; no global production-parity claim.
 
 Matrix hosted functional HTTP gates pass at parent7b45ee856/Coredd2c32c, settingsaaff57a2 SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; source/cohort frozen. Websitebd173e5/101client tests/pinned guide+C#links/public bytes verified; browser open. [Evidence](MATRIX_PUBLIC_SOURCE_STATUS.md).
 
@@ -385,3 +385,8 @@ current owned runtime/hosted acceptance unverified. See CLICKHOUSE_CQL_MVP.md.
 Owned AWS S3 source/launcher restored separately from accepted public S3 dataset:
 7compiler/admission/cancellation controls and current native-consumer compilation
 pass. Current owned bucket/runtime/hosted acceptance unverified. See AWS_S3_CQL_MVP.md.
+
+Owned Azure Blob source/launcher recovered separately from public Blob metadata:
+14controlled compiler/SDK loopback cases and current native-consumer compilation
+pass. Original Azurite fixture unopened; current hosted Azure availability unverified.
+See AZURE_BLOB_CQL_MVP.md.

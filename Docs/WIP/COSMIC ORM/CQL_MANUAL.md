@@ -1468,3 +1468,7 @@ query is separate from the accepted public-country adapter. Runtime is unverifie
 [Owned AWS S3 walkthrough](AWS_S3_CQL_MVP.md) restores bounded encrypted object-key
 reads with seven compiler/admission/cancellation checks and current consumer
 compilation. Separate from public S3 metadata; owned runtime remains unverified.
+
+[Owned Azure Blob walkthrough](AZURE_BLOB_CQL_MVP.md) source restored with
+14compiler/official-SDK loopback controls and native-consumer compilation.
+Canonical bounded GUID GETs; current Azurite/hosted Azure acceptance unverified.

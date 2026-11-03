@@ -6,8 +6,8 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 ## Verified coverage
 
-- **85 local integrated query types:** 3 canonical, 57 public/source profiles,
-  25 other local integrations, including 21 recovered historical demos. Source
+- **86 local integrated query types:** 3 canonical, 57 public/source profiles,
+  26 other local integrations, including 22 recovered historical demos. Source
   recovery does not constitute a fresh native acceptance or runtime-availability run.
 - **60 scoped hosted HTTP proofs; 5 browser proofs / 55 browser gates open.**
   These counts do not certify full ORM, native writes, reliability or uptime.
@@ -24,16 +24,16 @@ Observe this exact job against commit2ae3e658f22a636752d5ff6d216e85b754fdd841;
 then health/provider-discovery only, zero native queries/private saves.
 Third recovery Development5f4b52ae7/jobfc345507 SUCCESS; health and Mongo/SQLite/
 Neo4j/ThreeFold discovery/federation ready, zero native queries/private saves.
-Owned AWS S3 task recovery:7controls/provider+native-consumer build pass;
+Owned AWS S3(7controls) and Azure Blob(14controls) task recoveries/builds pass;
 public adapter preserved, no original bucket/fixture opened.
-Next source work: remaining14 chain/cloud launcher closures from retained
+Next source work: remaining13 chain/cloud launcher closures from retained
 pin237403a75, preserving current public adapters and accepted native cohorts.
 
 ## Reproduced launcher bug and completed recovery
 
 [Launcher gap](LOCAL_LAUNCHER_INTEGRATION_GAP.md): initial35/37missing paths all
-survive at retained sandbox-integration pin237403a75. Twenty-one provider closures
-now restored; **14 published launcher paths remain missing**.
+survive at retained sandbox-integration pin237403a75. Twenty-two provider closures
+now restored; **13 published launcher paths remain missing**.
 First4provider batch46controls/schema, Dev59ddcca91/job2d4fa248 SUCCESS; health and
 Mongo/SQLite/Neo4j/ThreeFold discovery ready with0nativequeries/0saves.
 Second8provider Devfc437e31a/jobc11ccee5 SUCCESS, health/discovery ready,0native
