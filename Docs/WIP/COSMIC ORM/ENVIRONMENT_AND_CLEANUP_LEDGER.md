@@ -4784,3 +4784,9 @@ LocalState/COSMIC/LauncherRecoveryCurrent/firebase-recovery-controlled.trx.gz 55
 Owner COSMIC/CQL; existing Python3.12 reused, no dependency/install/download/environment. New source Scripts/Sandbox/Audit-LocalDemoLaunchers.py and test source; TestResults/LauncherRecoveryCurrent/local-launcher-audit.json regenerable compact inventory, size unmeasured. Tests use automatically removed tiny TemporaryDirectory fixtures, no services/ports/native DB. Required code/test retained; regenerate inventory with existing website HTML/worktree. Python -B prevents cache.
 
 Launcher audit outcome:3tests pass, tiny TemporaryDirectory fixtures removed automatically. Exact TestResults/LauncherRecoveryCurrent/local-launcher-audit.json 763bytes, regenerable,37links/11missing. No native/service/process started. Free after 52226064384bytes.
+
+
+### 2 November 2026 - shared Web3Core V2 owned CQL
+Owner COSMIC/CQL; existing shared provider/unit projects .NET/NuGet cache/bin/obj reused, no download/install/environment. TestResults/Web3CoreCqlCurrent regenerable logs/TRX, sizes unmeasured, exact validated cleanup then cached restore/build. New source and controlled tests retained. No original chain/RPC/contract/key/ledger/native fixture used; synthetic overridden canonical reads only. Free before 52221825024bytes.
+
+Shared V2 owned CQL outcome:10controlled tests pass; provider/unit builds pass. No RPC/network/native fixture/decryption key used. LocalState/COSMIC/LauncherRecoveryCurrent/web3-v2-owned-cql-controlled.trx.gz and web3-v2-owned-cql-evidence.json created, required original proof retained; sizes unmeasured. Existing TestResults/Web3CoreCqlCurrent logs/TRX/bin/obj reused/regenerable after validated cleanup. Free after 52124540928bytes.
