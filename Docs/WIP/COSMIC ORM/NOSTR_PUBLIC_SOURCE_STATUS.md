@@ -145,3 +145,8 @@ Website7e2046de25a40a84a289a3c73da2bc7e2e25b885 publishes Nostr with pinned guid
 
 ## 2 November 2026 - current activation outage after sixth recovery release
 Development d167dff13/exact job0096f2e4-f831-4dcd-9cd8-b1d7613781aa SUCCESS,health healthy. Discovery59/60available;Nostr CQL_SOURCE_UNAVAILABLE. Typed operator activation diagnostic:connect,other/http/websocket,HTTP503,NotAWebSocket. Original functional cohort remains preserved;it is not current readiness or reliability proof. No native queries/private saves/new avatar/relay substitution/restart. Explicit serialized operator recovery is next;one-shot failure latch must not require whole-host restart or hidden normal-query retries. Original safe evidence:LocalState/COSMIC/HostedLauncherRecoverySixthReleaseCurrent/native-startup-diagnostics.json and startup-readiness-completed.json.
+
+
+## Controlled activation-latch correction
+
+Explicit source recovery implemented at the host lifecycle boundary,same source/profile retained.27API/controller/discovery/GraphQL tests pass,including non-cooperative cancellation ownership and host/generation/operation fences. No hosted activation/read/query/save/restart performed in this change;current live Nostr outage remains red. See [recovery contract](CQL_SOURCE_RECOVERY.md).
