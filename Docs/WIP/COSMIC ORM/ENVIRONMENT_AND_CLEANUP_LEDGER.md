@@ -4746,3 +4746,14 @@ Original LocalState/COSMIC/S3Cql identities/key/MinIO store/Mongo data unopened,
 ### 2 November 2026 — owned AWS S3 recovery outcome
 7controlled compiler/admission/cancellation cases pass, provider/native-consumer compilation and launcher syntax pass; no original native/key/container/bucket opened.
 LocalState/COSMIC/LauncherRecoveryCurrent/aws-s3-recovery-controlled.trx.gz 1953bytes and aws-s3-recovery-evidence.json created; retain proof. TestResults/AwsS3CqlCurrent logs/TRX and bin/obj reusable/regenerable, sizes unmeasured; exact validated cleanup only. No download/install/environment/service. Free after 52745625600bytes.
+
+
+### 2 November 2026 — owned Azure Blob source recovery
+Owner COSMIC/CQL; named source237403a75, existing public Blob adapter/project links preserved. Existing .NET/Azure SDK/NuGet cache reused, no download/install/environment.
+TestResults/AzureBlobCqlCurrent regenerable logs/TRX and provider/integration bin/obj reusable, sizes unmeasured; validated cleanup only, regenerate cached restore/build. Controlled SDK cases own short-lived loopback stubs; no external Azure account.
+Original LocalState/COSMIC/AzureBlobCql data/identity and Azurite3.37.0 unopened, helper/launcher syntax only; no original service started. Required compressed proof/hash LocalState/COSMIC/LauncherRecoveryCurrent retained. Free before 52745261056bytes.
+
+
+### 2 November 2026 — owned Azure Blob recovery outcome
+14controlled cases pass, producer/native-consumer compilation/PS syntax pass. Short-lived controlled loopback stubs ended with tests; no original Azurite/native fixture opened.
+LocalState/COSMIC/LauncherRecoveryCurrent/azure-blob-recovery-controlled.trx.gz 2985bytes and azure-blob-recovery-evidence.json created, retain. TestResults/AzureBlobCqlCurrent logs/TRX and bin/obj reusable/regenerable by cached restore/build, sizes unmeasured; exact validated cleanup only. No new runtime/download/environment. Free after 52649443328bytes.

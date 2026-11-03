@@ -30,9 +30,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
     /// </summary>
     public partial class AzureStorageOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IProviderTransportFailureClassifier
     {
-        // These storage APIs pass no caller token to Azure, so TaskCanceledException
+        // The legacy storage APIs pass no caller token to Azure, so TaskCanceledException
         // returned by their SDK call belongs to the SDK's transport deadline.
-        // If caller-token support is introduced, this boundary must carry that context.
+        // CQL carries explicit caller cancellation separately from SDK transport deadlines.
         public bool IsProviderTransportFailure(Exception failure)=>failure is TaskCanceledException;
         private readonly BlobServiceClient _serviceClient;
         private readonly string _holonContainer;
@@ -86,8 +86,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
         private static string HolonKey(IHolon holon)
         {
             var customKey = (holon as Holon)?.CustomKey;
-            return !string.IsNullOrEmpty(customKey) ? customKey : holon.Id.ToString();
+            return !string.IsNullOrEmpty(customKey) ? customKey : CanonicalHolonKey(holon.Id);
         }
+
+        private static string CanonicalHolonKey(Guid id) => id.ToString("D");
 
         private static async Task<string> ReadBlobAsync(BlobClient blob)
         {
@@ -241,7 +243,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => await ReadCanonicalHolonAsync(id.ToString(), loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version,id);
+            => await ReadCanonicalHolonAsync(CanonicalHolonKey(id), loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version,id);
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
