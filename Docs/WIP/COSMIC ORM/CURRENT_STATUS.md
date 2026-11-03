@@ -6,11 +6,11 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
 ## Verified scope
 
-- **93 local query types/profiles:**3 canonical, 57 public/source, 33 other local;
-  includes 28 recovered historical demos. Not 93 fully implemented providers.
+- **94 local query types/profiles:**3 canonical, 57 public/source, 34 other local;
+  includes 29 recovered historical demos. Not 94 fully implemented providers.
 - **60 scoped hosted HTTP proofs; 5 browser proofs / 55 browser gates open.**
 - MongoDB/SQLite/Neo4j strict parity **50/82 each**; investor subset green.
-- Published launcher audit:37 links / 30 present / **7 missing**; 3 audit tests pass.
+- Published launcher audit:37 links / 32 present / **5 missing**; 3 audit tests pass.
 - Public ThreeFold/ClickHouse/Zcash cohorts are accepted and frozen.
 
 ## Current batch / exact next step
@@ -25,7 +25,7 @@ Release journal LocalState/COSMIC/HostedLauncherRecoveryFifthReleaseCurrent.
 
 Next:observe this exact job against5507b0aa0ae660cb28e213e6e22b5ee69c05910d.
 After SUCCESS,health/provider-discovery only;no accepted native cohort replay.
-Continue remaining7launcher/source gaps while the existing job runs.
+Continue remaining5launcher/source gaps while the existing job runs.
 
 Last published fourth batch Development2ae3e658f/job206de884 SUCCESS;health and
 Mongo/SQLite/Neo4j/ThreeFold discovery/federation ready,zero native queries/saves.
@@ -43,11 +43,11 @@ absence for both IDs;exact original temporary fixture removed, no query replay.
 Original failed TRX and reconciliation proof preserved, never relabelled green.
 [EVM proof/limits](EVM_V2_CQL_RECOVERY_GAP.md). Hosted owned-EVM gate remains open.
 
-Next source/demos:remaining7published launcher paths;preserve current public
+Next source/demos:remaining5published launcher paths;preserve current public
 adapters, use actual V2 factories and compatible retained contracts. Do not
 restore legacy Ethereum demos as V2 proof. No new environment needed.
 
-NEAR(8),Cosmos blockchain(7),Polkadot(7),Sui(7) recovery checks/builds pass;public profiles kept,
+NEAR(8),Cosmos blockchain(7),Polkadot(7),Sui(7),Aptos(10) recovery checks/builds pass;public profiles kept,
 original native environment untouched. Task branch only;not hosted acceptance.
 
 ## Constraints / wider unfinished work
@@ -78,5 +78,5 @@ python Scripts/validate_railway_dependency_manifest.py --require-gitlinks
 python -B Scripts/Sandbox/Audit-LocalDemoLaunchers.py --html C:/Source/Web4Site/web4-sandbox.html --output TestResults/LauncherRecoveryCurrent/local-launcher-audit.json
 ```
 
-Audit exit1 currently means7missing paths, not native execution. Never rerun
+Audit exit1 currently means5missing paths, not native execution. Never rerun
 accepted native standalone3/2 or paired queries just to rebuild evidence.
