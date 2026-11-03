@@ -21,7 +21,7 @@ public class DuckDbMongoCqlNativeTests
     [TestMethod]
     public async Task NativeDuckDbMongoFederationRunsSdkAndHttpWithProviderProvenance()
     {
-        
+
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         const string database = "cosmic_cql_mongo_duckdb_demo";
         Assert.AreEqual(mongoUri, Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
