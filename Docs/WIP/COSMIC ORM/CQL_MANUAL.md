@@ -1436,3 +1436,7 @@ See [ThreeFold public node guide](../../Devs/THREEFOLD_PUBLIC_NODE_CQL_GUIDE.md)
 ### Recovered Chroma record demo
 
 [Chroma](CHROMA_CQL_MVP.md) restores tenant/database-scoped bounded GUID record queries and its launcher/setup source. Fifty controlled cases, producer/consumer builds and syntax pass. Setup/native fixtures were not executed; hosted availability, history and semantic similarity search are not inferred.
+
+### Recovered Weaviate record demo
+
+[Weaviate](WEAVIATE_CQL_MVP.md) restores bounded GUID CQL over an explicitly supplied gRPC query client, alongside REST payload storage. Cached SDK1.2.0,38controlled cases, builds and syntax pass. REST activation alone is not query readiness; no GraphQL fallback, native fixture replay or hosted/semantic-search certification is implied.
