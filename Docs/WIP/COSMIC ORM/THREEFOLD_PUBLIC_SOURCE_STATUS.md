@@ -106,3 +106,5 @@ Exact code job 5d9b665b-984d-4bcd-bebd-e722ff9a6612 reports BUILDING after the e
 ## Original settings application and activation
 
 Code job 5d9b665b SUCCESS at c00da49c105c3ba4f9e7fa749ac538925b18d818. Original three settings applied exactly once through shared per-key intent/ACK journals, complete candidate equality and unchanged DNA verified. Exact release was selected only for gated application, then task branch restored without detached commits. One activation a737028a-40d9-489d-a087-53d2f6f955a6 BUILDING at the same code. Durable settings ACK/activation intent/protected CLI submission/job identity under HostedThreeFoldReleaseCurrent. No hosted cohort/native queries/private saves yet. Observe exact activation to terminal outcome, no reapplication/restart on timeout.
+
+Activation a737028a SUCCESS at original c00da49c1. Provider discovery available/federationAvailable with four presets, no error. Original journalled owner created once and reused by the hosted verifier; original hosted cohort running. Preserve all native/save/operation outcomes, no replay/replacement owner.
