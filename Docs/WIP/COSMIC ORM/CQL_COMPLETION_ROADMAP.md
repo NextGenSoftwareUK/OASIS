@@ -3,11 +3,11 @@
 Updated 2 November 2026. Full programme remains incomplete.
 [CURRENT_STATUS](CURRENT_STATUS.md) owns deployment state and the exact next step.
 
-1. Publish ThreeFold's sandbox card and pinned guide/C# links, then byte-verify
-   the public HTML/scripts. Its code and activation succeeded at c00da49c1;
-   original native 3/2, Mongo 5/4, reuse/privacy/exact replicas and independent
-   audit pass. Original two version-1 saves/no pending; cohort frozen. Do not
-   rerun native/hosted acceptance, settings application or activation.
+1. Recover the remaining 33 published local launcher paths and their reviewed
+   source dependencies from retained sandbox-integration pin 237403a75. DuckDB
+   and LocalFile are restored with controlled tests/builds, no native replay.
+   ThreeFold's hosted audit and card/static assets now pass at website2170b67;
+   preserve its original cohort/settings/ACKs. Do not replay accepted gates.
 2. Preserve 60 scoped hosted HTTP proofs and 66 local integrated query types.
    ClickHouse is the latest accepted hosted addition; its sandbox card, guide/C#
    links and exact public static bytes are verified. Counts are demo scopes,

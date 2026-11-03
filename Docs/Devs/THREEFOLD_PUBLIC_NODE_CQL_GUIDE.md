@@ -88,7 +88,8 @@ exact owned fixture was removed and the owned Mongo process stopped. Hosted
 presets and activation now pass. The original hosted native three/two-record
 queries, Mongo five/four-record federation, repeat preparation without extra
 saves, foreign-visitor isolation and matching SQLite/Neo4j replicas pass the
-independent audit. The sandbox card is being published; browser interaction
+independent audit. The sandbox card is published and its public HTML/scripts match committed
+artifacts; browser interaction
 remains unverified.
 Do not interpret the local walkthrough as hosted or browser verification.
 
