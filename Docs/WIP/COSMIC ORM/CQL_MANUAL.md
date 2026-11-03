@@ -1456,3 +1456,7 @@ Flux GUID queries and historical native proof; hosted availability is unverified
 Supabase local source is restored with 36 controlled checks and current consumer
 compilation. [Walkthrough and scope](SUPABASE_CQL_MVP.md): bounded PostgREST GUID
 queries, historical native proof; current hosted/runtime acceptance unverified.
+
+[Litestream local walkthrough](LITESTREAM_CQL_MVP.md) source is restored with
+14 controlled checks and current native-consumer compilation. It queries local
+SQLite by bounded GUIDs; sidecar replication is a separate acceptance scope.
