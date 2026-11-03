@@ -17,9 +17,10 @@ Work only red scopes or reproduced bugs; preserve accepted cohorts.
 
 Fourth recovery batch InfluxDB/Supabase/Litestream/owned ClickHouse:113 controlled
 cases and shipping schema1/1 pass; all producer/native-consumer builds/syntax pass.
-Ready for one Development publication, settings unchanged, Core5415961 unchanged.
+Published Development2ae3e658f, settings unchanged, Core5415961 unchanged.
+Exact code job206de884-49c8-4a6b-988f-8077c3751f5b QUEUED.
 Durable release record `LocalState/COSMIC/HostedLauncherRecoveryFourthReleaseCurrent`.
-After push, identify the exact new job by commit and observe it without resubmission;
+Observe this exact job against commit2ae3e658f22a636752d5ff6d216e85b754fdd841;
 then health/provider-discovery only, zero native queries/private saves.
 Third recovery Development5f4b52ae7/jobfc345507 SUCCESS; health and Mongo/SQLite/
 Neo4j/ThreeFold discovery/federation ready, zero native queries/private saves.
