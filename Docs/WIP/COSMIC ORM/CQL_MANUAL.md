@@ -1428,3 +1428,7 @@ See [ThreeFold public node guide](../../Devs/THREEFOLD_PUBLIC_NODE_CQL_GUIDE.md)
 ### Recovered CouchDB demo
 
 [CouchDB](COUCHDB_CQL_MVP.md) source/launcher recovery passes41controlled query/error/save-publication cases plus producer/consumer builds and syntax. Original native/browser proof was not replayed; owned concurrency, broader ORM semantics and hosted deployment remain separately unverified.
+
+### Recovered Qdrant record demo
+
+[Qdrant](QDRANT_CQL_MVP.md) restores bounded GUID holon queries and its launcher/setup source. Thirty-eight controlled cases, producer/consumer builds and syntax pass. The setup was not executed and the original native fixture was not replayed. Placeholder vectors do not demonstrate semantic similarity search or hosted Qdrant acceptance.
