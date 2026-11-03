@@ -4735,3 +4735,14 @@ TestResults/ClickHouseCqlCurrent reusable logs/TRX and associated bin/obj sizes 
 Owner COSMIC/CQL; reuse existing API unit project/runtime/NuGet cache/bin/obj, no install/download/environment. TestResults/LauncherRecoveryCurrent/fourth-batch-shipping-schema logs/TRX regenerable; outputs sizes unmeasured, no native fixtures/services started. Preserve compressed original proof/manifest LocalState/COSMIC/LauncherRecoveryCurrent. Free before 52805099520bytes.
 
 Fourth recovery shipping outcome:1/1schema pass, zero skips. LocalState/COSMIC/LauncherRecoveryCurrent/fourth-batch-shipping-schema.trx.gz and fourth-batch-shipping-schema-evidence.json required retained proof, size unmeasured. HostedLauncherRecoveryFourthReleaseCurrent/prepublication-inventory.json created for same-job tracking; no deployment yet. Generated API/bin/obj/logs reusable, sizes unmeasured. Free after 52797997056bytes; no new environment/download/native service.
+
+
+### 2 November 2026 — owned AWS S3 source recovery
+Owner COSMIC/CQL; explicit named historical source237403a75 only, current public S3 adapter/README/project source preserved. No install/download/new environment.
+Reuse cached AWS SDK/.NET and provider/unit bin/obj; sizes unmeasured active/reusable, regenerate cached restore/build after validated cleanup. TestResults/AwsS3CqlCurrent for regenerable logs/TRX.
+Original LocalState/COSMIC/S3Cql identities/key/MinIO store/Mongo data unopened, launcher syntax only; no native service/port started. LocalState/COSMIC/LauncherRecoveryCurrent retains required original compressed proof/hash. Free before 52797140992bytes.
+
+
+### 2 November 2026 — owned AWS S3 recovery outcome
+7controlled compiler/admission/cancellation cases pass, provider/native-consumer compilation and launcher syntax pass; no original native/key/container/bucket opened.
+LocalState/COSMIC/LauncherRecoveryCurrent/aws-s3-recovery-controlled.trx.gz 1953bytes and aws-s3-recovery-evidence.json created; retain proof. TestResults/AwsS3CqlCurrent logs/TRX and bin/obj reusable/regenerable, sizes unmeasured; exact validated cleanup only. No download/install/environment/service. Free after 52745625600bytes.
