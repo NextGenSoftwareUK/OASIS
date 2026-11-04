@@ -524,3 +524,14 @@ Status: missing account/configuration information,2 November2026. David approved
   transfer limited to those paths. The agent will validate the bundle and
   reconcile the hosted gate before changing Development.
 - Context: [LocalFile hosted qualification](../COSMIC%20ORM/LOCALFILE_CQL_MVP.md#hosted-public-source-qualification--3-november-2026).
+
+## Railway access for Development WEB4 rollout from this laptop
+
+- Status 2026-11-04: the installed Railway CLI returned Unauthorized on the
+  read-only account check. The LocalFile publisher needs authenticated access
+  to read the current Development WEB4 settings and verify the exact release.
+- When the retained LocalFile bundle is recovered, sign in privately with
+  `railway login` on this laptop using the existing account with Development
+  WEB4 project access. Tell the agent when sign-in completes. Keep tokens and
+  credentials out of chat and Git.
+- [LocalFile qualification and rollout](../COSMIC%20ORM/LOCALFILE_CQL_MVP.md).
