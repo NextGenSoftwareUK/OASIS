@@ -57,8 +57,8 @@ def candidate(before, source, bootstrap):
             raise ValueError("Bootstrap bytes differ.")
         seen.add(row["id"])
     dna = json.loads(before["OASIS_DNA_JSON"])
-    if dna["OASIS"]["Sandbox"]["Enabled"] is not True or before.get("OASIS_SANDBOX", "").lower() != "true":
-        raise ValueError("Existing explicit sandbox mode required;no flag/DNA change permitted.")
+    if dna["OASIS"]["Sandbox"]["Enabled"] is not True:
+        raise ValueError("Existing sandbox mode must be enabled in DNA.")
     provider = "LocalFileOASIS"
     if any(key in before for key in (KEYS[0], KEYS[1], KEYS[4])):
         raise ValueError("Existing LocalFile source/bootstrap/presets require reconciliation.")

@@ -179,3 +179,17 @@ flag, contrary to the canonical DNA-backed `SandboxOptions` setting. Fix the new
 registration/publisher at this boundary and add a regression before rollout.
 No protected candidate, hosted configuration change, bootstrap or deployment was
 performed by this preparation. Existing accepted sources were not replayed.
+
+## Laptop recovery — 4 November 2026
+
+Resumed the original task branch in C:/Source/OASIS2. WEB4 registration now
+uses the same DNA-backed SandboxOptions.Enabled as the host. Publisher preflight
+requires DNA sandbox mode, and all five publisher tests pass with the redundant
+environment flag absent. WEB4 bootstrap and registration tests still need a
+completed build against the pinned dependencies.
+
+The original hosted-source qualification receipt is absent at its expected
+LocalState path in this checkout. Recover the original source configuration,
+bundle, export acknowledgment and qualification receipt together, then check their
+hashes through the publisher before preparing a candidate. No hosted mutation
+was performed from this checkout.

@@ -11,7 +11,7 @@ public static class LocalFileCqlRegistration
     public const string ConfigurationKey = "CQL_LOCALFILE_PUBLIC_SOURCE_JSON";
     public const string BootstrapConfigurationKey = "CQL_LOCALFILE_PUBLIC_BOOTSTRAP_JSON";
 
-    public static void AddConfigured(IServiceCollection services, IConfiguration configuration)
+    public static void AddConfigured(IServiceCollection services, IConfiguration configuration, bool sandboxEnabled)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
@@ -26,7 +26,7 @@ public static class LocalFileCqlRegistration
         LocalFilePublicBootstrap bootstrap = null;
         if (bundle != null)
         {
-            if (!bool.TryParse(configuration["OASIS_SANDBOX"], out var sandbox) || !sandbox)
+            if (!sandboxEnabled)
                 throw new ArgumentException("Public teaching-data bootstrap requires explicit sandbox mode.");
             bootstrap = LocalFilePublicBootstrap.FromJson(source, bundle);
         }

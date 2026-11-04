@@ -154,18 +154,15 @@ public class LocalFileBootstrapTests
         Assert.False(System.IO.File.Exists(fixture.LockPath));
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("false")]
-    public void BootstrapRequiresExplicitSandboxModeBeforeAnyRegistration(string? enabled)
+    [Fact]
+    public void BootstrapRequiresSandboxModeBeforeAnyRegistration()
     {
         using var fixture = new Fixture();
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> {
             [LocalFileCqlRegistration.ConfigurationKey] = fixture.SourceJson,
-            [LocalFileCqlRegistration.BootstrapConfigurationKey] = fixture.Bundle,
-            ["OASIS_SANDBOX"] = enabled }).Build();
+            [LocalFileCqlRegistration.BootstrapConfigurationKey] = fixture.Bundle }).Build();
         var services = new ServiceCollection();
-        Assert.Throws<ArgumentException>(() => LocalFileCqlRegistration.AddConfigured(services, configuration));
+        Assert.Throws<ArgumentException>(() => LocalFileCqlRegistration.AddConfigured(services, configuration, sandboxEnabled: false));
         Assert.Empty(services);
         Assert.False(Directory.Exists(fixture.DirectoryPath));
     }
@@ -176,10 +173,9 @@ public class LocalFileBootstrapTests
         using var fixture = new Fixture();
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> {
             [LocalFileCqlRegistration.ConfigurationKey] = fixture.SourceJson,
-            [LocalFileCqlRegistration.BootstrapConfigurationKey] = fixture.Bundle,
-            ["OASIS_SANDBOX"] = "true" }).Build();
+            [LocalFileCqlRegistration.BootstrapConfigurationKey] = fixture.Bundle }).Build();
         var services = new ServiceCollection();
-        LocalFileCqlRegistration.AddConfigured(services, configuration);
+        LocalFileCqlRegistration.AddConfigured(services, configuration, sandboxEnabled: true);
         using var provider = services.BuildServiceProvider();
         var profile = Assert.IsType<LocalFilePublicCqlProfile>(Assert.Single(provider.GetServices<CqlReadSourceProfile>()).Storage);
         Assert.False(profile.IsProviderActivated);

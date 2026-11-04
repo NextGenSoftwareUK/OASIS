@@ -25,7 +25,7 @@ class LocalFileConfigurationTests(unittest.TestCase):
         source = {"schema": 1, "directory": "/data/cql-local-file-demo",
                   "sourceOwner": str(publisher.uuid.UUID(int=99)), "records": records}
         bootstrap = {"schema": 1, "records": payloads}
-        before = {"OASIS_SANDBOX": "true", "OASIS_DNA_JSON": '{"OASIS":{"Sandbox":{"Enabled":true}}}',
+        before = {"OASIS_DNA_JSON": '{"OASIS":{"Sandbox":{"Enabled":true}}}',
                   "PREPARED_STORAGE_ADMISSION_JSON": json.dumps({"queryOnlyProviders": ["IPFSOASIS"],
                       "ordinaryProviders": ["MongoDBOASIS"], "nativeProviders": [],
                       "queryTariffs": [{"provider": "IPFSOASIS", "costUsd": 0}],
@@ -67,13 +67,12 @@ class LocalFileConfigurationTests(unittest.TestCase):
             with self.assertRaises(ValueError): publisher.candidate(before, source, bundle)
 
     def test_no_paid_or_non_sandbox_or_different_directory_configuration(self):
-        for scenario in ("paid", "flag", "dna", "directory", "credential"):
+        for scenario in ("paid", "dna", "directory", "credential"):
             before, source, bundle = self.fixture()
             if scenario == "paid":
                 admission = json.loads(before[publisher.KEYS[2]])
                 admission["queryTariffs"][0]["costUsd"] = 0.01
                 before[publisher.KEYS[2]] = json.dumps(admission)
-            elif scenario == "flag": before["OASIS_SANDBOX"] = "false"
             elif scenario == "dna": before["OASIS_DNA_JSON"] = '{"OASIS":{"Sandbox":{"Enabled":false}}}'
             elif scenario == "directory": source["directory"] = "/data/unrelated"
             else: source["credential"] = "forbidden"

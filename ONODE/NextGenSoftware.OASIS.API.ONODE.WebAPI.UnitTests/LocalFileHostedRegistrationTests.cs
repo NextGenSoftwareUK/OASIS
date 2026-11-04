@@ -21,7 +21,7 @@ public class LocalFileHostedRegistrationTests
     public void MissingConfigurationDoesNotRegisterOrCreateAReadSource()
     {
         var services = new ServiceCollection();
-        LocalFileCqlRegistration.AddConfigured(services, new ConfigurationBuilder().Build());
+        LocalFileCqlRegistration.AddConfigured(services, new ConfigurationBuilder().Build(), sandboxEnabled: false);
         Assert.DoesNotContain(services, descriptor => descriptor.ServiceType == typeof(CqlReadSourceProfile));
     }
 
@@ -31,7 +31,7 @@ public class LocalFileHostedRegistrationTests
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> {
             [LocalFileCqlRegistration.ConfigurationKey] = SourceJson() }).Build();
-        LocalFileCqlRegistration.AddConfigured(services, configuration);
+        LocalFileCqlRegistration.AddConfigured(services, configuration, sandboxEnabled: false);
         using var provider = services.BuildServiceProvider();
         var registration = Assert.Single(provider.GetServices<CqlReadSourceProfile>());
         var source = Assert.IsType<LocalFilePublicCqlProfile>(registration.Storage);
