@@ -37,3 +37,17 @@ class HyperlaneConfigurationTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "local proof missing"):
                 publisher.prepare()
             variables.assert_not_called()
+
+    def test_apply_refuses_mutation_until_reviewed_release_is_live(self):
+        before, after = {}, {"reviewed": "candidate"}
+        with patch.object(publisher.configuration, "protected_read", side_effect=[before, after]), \
+             patch.object(publisher, "qualified_source", return_value={}), \
+             patch.object(publisher, "candidate", return_value=after), \
+             patch.object(publisher, "module") as release, \
+             patch.object(publisher.configuration, "apply_values") as apply_values:
+            gate = release.return_value.require_matching_release
+            gate.side_effect = RuntimeError("expected release is not live")
+            with self.assertRaisesRegex(RuntimeError, "expected release is not live"):
+                publisher.apply()
+            gate.assert_called_once_with(publisher.configuration)
+            apply_values.assert_not_called()
