@@ -64,3 +64,14 @@ with zero additional saves. Exact fixture database cleanup verified. Original
 failed reports retained. Final TRX SHA256 257B6A7187172CBCDE886F7727CF3DF30DBD6BA7FDCB05C24F809589256672A6.
 The source-bound local receipt now permits protected candidate preparation
 after Railway sign-in. Hosted settings, deployment and visitor proof remain open.
+
+## Development batch preflight
+
+On 4 November, GitHub confirmed Core `89d39f6c2` on
+`work/cosmic-hyperlane-admission` and parent `4f8118437` on
+`work/cosmic-cql-ton-public`. Development `b718f2879` is an ancestor of
+the verified task head and has no Development-only commits in this snapshot.
+Recheck ancestry at publication time. Railway still returns Unauthorized,
+and both retained LocalFile qualification directories are absent here.
+The existing owner actions cover these inputs. Keep the qualified Hyperlane
+batch on the task branch until the hosted rollout can be prepared and observed.
