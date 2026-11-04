@@ -306,3 +306,7 @@ Fhenix preset verification reuses the shared outputs and records
 TestResults/ProviderBuildCurrent/cosmic-fhenix-preset.log and
 TestResults/FhenixPublicSourceCurrent/federation-preset-resume.log.
 Retain the original two save receipts and exact fixture until cleanup.
+
+Fhenix Ethereum endpoint verification uses the same fixture, with
+TestResults/ProviderBuildCurrent/cosmic-fhenix-drpc.log and
+TestResults/FhenixPublicSourceCurrent/federation-drpc-resume.log.

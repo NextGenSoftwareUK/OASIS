@@ -47,3 +47,10 @@ that default. The harness now sends the reviewed 30-second demo budget for
 Fhenix and keeps the reader's 15-second bound. The exact two acknowledged
 copies are retained for validated resume. Local federation and cleanup
 remain open until the updated run completes.
+
+The 30-second preset run rebuilt successfully but stopped during the
+preceding native CQL read. A direct follow-up isolated an Ethereum
+PublicNode finalized-block timeout while both testnet RPCs answered.
+Ethereum dRPC reported chain ID 1 and returned the expected Task Manager
+at canonical finalized block 0x191f837. The adapter now uses that
+qualified Ethereum endpoint. The resumed WEB4 gate still needs to pass.
