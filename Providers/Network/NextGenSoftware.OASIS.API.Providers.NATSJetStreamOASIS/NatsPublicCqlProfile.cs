@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using NATS.Client.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.Common;
@@ -20,7 +21,10 @@ public sealed class NatsPublicCqlProfile : NATSJetStreamOASIS, ICosmicReadOnlyQu
     private bool disposed;
 
     public NatsPublicCqlProfile(string url, string bucket, Guid owner, IEnumerable<Guid> ids)
-        : base(url, bucket, readOnly: true)
+        : this(url, bucket, owner, ids, null) { }
+
+    private NatsPublicCqlProfile(string url, string bucket, Guid owner, IEnumerable<Guid> ids, NatsAuthOpts? auth)
+        : base(url, bucket, readOnly: true, auth)
     {
         var selected = ids.Take(101).ToArray();
         catalogue = new(selected);
@@ -30,7 +34,7 @@ public sealed class NatsPublicCqlProfile : NATSJetStreamOASIS, ICosmicReadOnlyQu
         this.owner = owner;
     }
 
-    public static NatsPublicCqlProfile FromJson(string json)
+    public static NatsPublicCqlProfile FromJson(string json, string? username = null, string? password = null)
     {
         if (Encoding.UTF8.GetByteCount(json) > 8192)
             throw new ArgumentException("Bounded NATS profile configuration required.", nameof(json));
@@ -53,7 +57,11 @@ public sealed class NatsPublicCqlProfile : NATSJetStreamOASIS, ICosmicReadOnlyQu
             bucket.Any(character => !char.IsAsciiLetterOrDigit(character) && character is not ('_' or '-')))
             throw new ArgumentException("An explicit NATS key-value bucket is required.", nameof(json));
         var ids = root.GetProperty("ids").EnumerateArray().Take(101).Select(item => item.GetGuid()).ToArray();
-        return new NatsPublicCqlProfile(endpoint, bucket, root.GetProperty("sourceOwner").GetGuid(), ids);
+        if ((username == null) != (password == null) ||
+            username != null && (string.IsNullOrWhiteSpace(username) || string.IsNullOrEmpty(password)))
+            throw new ArgumentException("NATS source credentials require both a username and password.");
+        var auth = username == null ? null : new NatsAuthOpts { Username = username, Password = password };
+        return new NatsPublicCqlProfile(endpoint, bucket, root.GetProperty("sourceOwner").GetGuid(), ids, auth);
     }
 
     public override Task<OASISResult<bool>> ActivateProviderAsync() => ActivateQuerySourceAsync();

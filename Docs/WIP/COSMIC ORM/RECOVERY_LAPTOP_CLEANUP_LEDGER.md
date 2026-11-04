@@ -522,3 +522,6 @@ TestResults/ProviderBuildCurrent/cosmic-nats-http-exact.log and
 cosmic-nats-http-native.log. Retain NatsPublicSourceCurrent summary and
 NatsMongoHttpCurrent cleanup receipt. Both owned listeners stopped and
 the Mongo fixture was dropped. The original NATS records were retained.
+
+NATS credential configuration build reused SDK probe and shared outputs.
+Receipt: TestResults/NatsRecoveryLaptopCurrent/auth-build.log. No server started.

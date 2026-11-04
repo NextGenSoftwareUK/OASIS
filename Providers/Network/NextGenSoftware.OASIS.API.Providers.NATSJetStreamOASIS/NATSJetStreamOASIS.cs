@@ -21,8 +21,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
         public NATSJetStreamOASIS(string natsUrl = "nats://localhost:4222", string bucket = "oasis")
             : this(natsUrl, bucket, readOnly: false) { }
 
-        protected NATSJetStreamOASIS(string natsUrl, string bucket, bool readOnly)
-            : base(new NatsKvBackend(natsUrl, bucket, readOnly))
+        protected NATSJetStreamOASIS(string natsUrl, string bucket, bool readOnly, NatsAuthOpts auth = null)
+            : base(new NatsKvBackend(natsUrl, bucket, readOnly, auth))
         {
             ProviderName = "NATSJetStreamOASIS";
             ProviderDescription = "NATS JetStream provider: OASIS avatars and holons in a JetStream key-value bucket.";
@@ -43,17 +43,19 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
         private readonly string _url;
         private readonly string _bucket;
         private readonly bool _readOnly;
+        private readonly NatsAuthOpts _auth;
         private readonly SemaphoreSlim _connectLock = new(1, 1);
         private NatsConnection _connection;
         private INatsKVStore _store;
 
-        public NatsKvBackend(string url, string bucket, bool readOnly)
+        public NatsKvBackend(string url, string bucket, bool readOnly, NatsAuthOpts auth = null)
         {
             if (string.IsNullOrWhiteSpace(url)) throw new ArgumentException("A NATS server URL is required.", nameof(url));
             if (string.IsNullOrWhiteSpace(bucket)) throw new ArgumentException("A key-value bucket name is required.", nameof(bucket));
             _url = url;
             _bucket = bucket;
             _readOnly = readOnly;
+            _auth = auth ?? new NatsAuthOpts();
         }
 
         private async Task<INatsKVStore> StoreAsync(CancellationToken ct)
@@ -63,7 +65,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
             try
             {
                 if (_store != null) return _store;
-                _connection = new NatsConnection(new NatsOpts { Url = _url });
+                _connection = new NatsConnection(new NatsOpts { Url = _url, AuthOpts = _auth });
                 await _connection.ConnectAsync();
                 var context = _connection.CreateKeyValueStoreContext();
                 _store = _readOnly ? await context.GetStoreAsync(_bucket, ct)

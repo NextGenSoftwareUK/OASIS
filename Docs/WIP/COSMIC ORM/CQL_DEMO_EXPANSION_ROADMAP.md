@@ -298,8 +298,7 @@ The retained local JetStream cohort passed native CQL 3/2 and WEB4 HTTP
 federation 5/4 against Core 47c3a84. A second user saw zero private copies
 and three public rows. Hosted enrollment requires a qualified TLS endpoint
 and existing read-only bucket with the exact owner and three enrolled IDs.
-The current profile configuration accepts no credential fields. Qualify a
-least-privilege connection for the target service before enrollment.
+Keep credentials separate from the public profile JSON. WEB4 accepts a paired username/password through the private CQL_NATS_PUBLIC_SOURCE_USERNAME and CQL_NATS_PUBLIC_SOURCE_PASSWORD settings. Qualify that account against the exact bucket and its read-only permissions before enrollment.
 
 Use the same IDs for the source and server-side public catalogue. Review the
 explicit query-only tariff and four presets before running the shared hosted
