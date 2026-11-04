@@ -472,3 +472,8 @@ D1 WEB4 HTTP proof reused Miniflare and MongoDB. Exact build/test receipts:
 TestResults/ProviderBuildCurrent/cosmic-d1-http-exact.log and cosmic-d1-http-native.log.
 Retain D1PublicSourceCurrent summary and D1MongoHttpCurrent cleanup receipt.
 The owned Mongo database was dropped, port 27029 closed, and the Worker exited.
+
+D1 hosted probe HTTP contract passed against the existing loopback Worker:
+full BTC/ETH/SOL, subset BTC/ETH, duplicate 400 and POST 405. The direct
+probe function was used for loopback testing, so no hosted qualification
+intent or receipt was created. The Worker exited after stdin closed.
