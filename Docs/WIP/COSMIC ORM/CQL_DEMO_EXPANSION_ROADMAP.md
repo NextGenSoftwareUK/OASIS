@@ -265,3 +265,18 @@ Starknet bounded header profile: [setup/commented C# guide](../../Devs/STARKNET_
 [Arweave native CQL and commented shared-manager demo](../../Devs/ARWEAVE_PUBLIC_HEADER_CQL_GUIDE.md):33controls/real3/2/actualCLI3/2 plus hosted3/2/Mongo5/4/reuse/privacy/replicas2/2 pass. Browser open. [Evidence and exact historical scope](ARWEAVE_PUBLIC_SOURCE_STATUS.md).
 
 [TON native CQL setup and commented C# candidate](../../Devs/TON_PUBLIC_HEADER_CQL_GUIDE.md):Native32decoder/13query/3error controls, realCQL3/2 and manager/CLI3/2 pass on the qualified recent dataset. API/hosted gates next; [evidence and next root-cause step](TON_PUBLIC_SOURCE_STATUS.md).
+
+## Recovery laptop rollout queue — 4 November 2026
+
+Authenticated Development WEB4 v2 catalogue discovery returned 60 profiles.
+Of these, 59 reported both native and federation availability. Nostr reported
+neither. This is discovery evidence for the existing catalogue.
+
+LocalFile and the locally qualified Hyperlane, LayerZero V2, Stargate,
+deBridge, Synapse, Connext, Miden, Espresso, EigenLayer, Fhenix, Axelar and
+Ritual profiles were absent. LocalFile goes first using the
+[qualified candidate and retained bundle](LOCALFILE_CQL_MVP.md). Review
+the remaining local profiles in scoped Development batches after that gate.
+For each profile, confirm the deployed commit, review the query-only settings,
+then verify hosted native queries, Mongo federation, reuse, privacy and exact
+replicas before publishing its demo. Record browser acceptance separately.
