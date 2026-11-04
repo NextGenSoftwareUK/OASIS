@@ -28,6 +28,8 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
 using ClickHouseSource = NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.ClickHousePublicCountryMetadataSource;
+using NatsSource = NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.NATSJetStreamOASIS;
+using NatsProfile = NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.NatsPublicCqlProfile;
 using D1Source = NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS.D1WorkerSymbolQuerySource;
 using QuestDbSource = NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.QuestDbSymbolQuerySource;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
@@ -59,6 +61,15 @@ public sealed class D1MongoNativeFactAttribute : FactAttribute
     {
         if (Environment.GetEnvironmentVariable("COSMIC_D1_HTTP_NATIVE") != "owned-local-27029")
             Skip = "Requires the isolated D1 Worker and Mongo native fixtures.";
+    }
+}
+
+public sealed class NatsMongoNativeFactAttribute : FactAttribute
+{
+    public NatsMongoNativeFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("COSMIC_NATS_HTTP_NATIVE") != "owned-local-27029")
+            Skip = "Requires the retained isolated NATS and Mongo native fixtures.";
     }
 }
 
@@ -98,12 +109,20 @@ public sealed class CqlClickHouseMongoNativeTests
         await RunNativeFederationAsync(ProviderType.CloudflareD1OASIS);
     }
 
+    [NatsMongoNativeFact]
+    public async Task NativeNatsRecordsAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
+    {
+        await RunNativeFederationAsync(ProviderType.NATSJetStreamOASIS);
+    }
+
     private static async Task RunNativeFederationAsync(ProviderType sourceType)
     {
+        bool nats = sourceType == ProviderType.NATSJetStreamOASIS;
         bool clickHouse = sourceType == ProviderType.ClickHouseOASIS;
         var providerName = sourceType.ToString();
         var (metadataKey, slug, fixture) = sourceType switch
         {
+            ProviderType.NATSJetStreamOASIS => ("Id", "nats", "Nats"),
             ProviderType.CloudflareD1OASIS => (D1Source.SymbolMetadata, "d1", "D1"),
             ProviderType.QuestDBOASIS => (QuestDbSource.SymbolMetadata, "questdb", "QuestDb"),
             _ => (ClickHouseSource.AddressMetadata, "clickhouse", "ClickHouse")
@@ -128,6 +147,25 @@ public sealed class CqlClickHouseMongoNativeTests
         using var config = configJson == null ? null : JsonDocument.Parse(configJson);
         var allowed = !clickHouse ? new[] { "BTC-USDT", "ETH-USDT", "SOL-USDT" }
             : config!.RootElement.GetProperty("countries").EnumerateArray().Select(country => country.GetString()!).ToArray();
+        const string natsUrl = "nats://127.0.0.1:24222";
+        const string natsBucket = "cosmic_recovery_fixture";
+        Guid natsOwner = default;
+        if (nats)
+        {
+            var fixtureProvider = new NatsSource(natsUrl, natsBucket);
+            try
+            {
+                Assert.False((await fixtureProvider.ActivateProviderAsync()).IsError);
+                var retained = await fixtureProvider.LoadAllHolonsAsync(loadChildren: false);
+                Assert.False(retained.IsError, retained.Message);
+                var originals = retained.Result.OrderBy(row => row.Name, StringComparer.Ordinal).ToArray();
+                Assert.Equal(allowed, originals.Select(row => row.Name));
+                natsOwner = Assert.Single(originals.Select(row => row.CreatedByAvatarId).Distinct());
+                allowed = originals.Select(row => row.Id.ToString("D")).ToArray();
+            }
+            finally { await fixtureProvider.DeActivateProviderAsync(); }
+        }
+        var natsIds = nats ? allowed.Select(Guid.Parse).ToArray() : Array.Empty<Guid>();
         Assert.Equal(3, allowed.Length);
         var actor = Guid.NewGuid();
         var foreignActor = Guid.NewGuid();
@@ -148,6 +186,7 @@ public sealed class CqlClickHouseMongoNativeTests
         using var nativeHttp = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
         using IDisposable disposableSource = sourceType switch
         {
+            ProviderType.NATSJetStreamOASIS => new NatsProfile(natsUrl, natsBucket, natsOwner, natsIds),
             ProviderType.CloudflareD1OASIS => new D1Source(nativeHttp, new Uri(
                 Environment.GetEnvironmentVariable("OASIS_D1_SYMBOL_TEST_ENDPOINT") ??
                     throw new InvalidOperationException("D1 fixture endpoint required.")), actor, allowed),
@@ -158,9 +197,12 @@ public sealed class CqlClickHouseMongoNativeTests
         var clickhouseSource = (IOASISStorageProvider)disposableSource;
         var querySource = (ICosmicQueryStorageProvider)disposableSource;
         Assert.False((await ((ICosmicReadOnlyQueryActivation)disposableSource).ActivateQuerySourceAsync(default)).IsError);
-        var nativeQuery = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(sourceType).Result)
-            .WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result)
-            .Where(row => allowed.Contains(CosmicQueryMetadata.Value<string>(row, metadataKey)));
+        var scope = CosmicQueryScope.Named(sourceType).Result;
+        var nativeQuery = nats
+            ? CosmicQuery<Holon>.Create(scope).WithReadAccess(
+                CosmicQueryReadAccess.AuthoritativeRecords(actor, sourceType, natsIds).Result).Where(row => natsIds.Contains(row.Id))
+            : CosmicQuery<Holon>.Create(scope).WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result)
+                .Where(row => allowed.Contains(CosmicQueryMetadata.Value<string>(row, metadataKey)));
         Assert.False(nativeQuery.IsError, nativeQuery.ErrorCode);
         var plan = CosmicQueryPlanner.Plan(nativeQuery.Result, sourceType,
             new[] { new CosmicQueryTarget(sourceType, querySource.QueryCapabilities) });
@@ -184,7 +226,7 @@ public sealed class CqlClickHouseMongoNativeTests
         for (var index = 0; index < identities.Records.Count; index++)
         {
             var identity = identities.Records[index];
-            var original = source.Result.Single(row => (string)row.MetaData[metadataKey] == identity.NativeKey);
+            var original = source.Result.Single(row => (nats ? row.Id.ToString("D") : (string)row.MetaData[metadataKey]) == identity.NativeKey);
             var metadata = original.MetaData.ToDictionary(pair => pair.Key, pair => pair.Value);
             foreach (var pair in identity.Metadata) metadata[pair.Key] = pair.Value;
             metadata["COSMIC.Demo.Dataset"] = "COSMIC.CQL.Demo.v1";
@@ -268,8 +310,13 @@ public sealed class CqlClickHouseMongoNativeTests
             var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
             using var http = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(40) };
             var counts = new Dictionary<string, int>();
+            object Filter(IEnumerable<string> selected, bool paired = false)
+                => nats
+                    ? new { field = "Id", scalar = "Guid", @operator = "In",
+                        value = selected.Select(Guid.Parse).Concat(paired ? copies : Array.Empty<Guid>()).ToArray() }
+                    : new { metadataPath = new[] { metadataKey }, scalar = "String", @operator = "In", value = selected.ToArray() };
             object Selection(IEnumerable<string> selected) => new { orderBy = "None", take = 8, includeMetadata = true,
-                filters = new[] { new { metadataPath = new[] { metadataKey }, scalar = "String", @operator = "In", value = selected.ToArray() } } };
+                filters = new[] { Filter(selected, paired: true) } };
             async Task Check(string name, string token, string route, object request, int expected)
             {
                 http.DefaultRequestHeaders.Authorization = new("Bearer", token);
@@ -295,7 +342,9 @@ public sealed class CqlClickHouseMongoNativeTests
                     if (paired) Assert.Equal(isMongo ? "MongoDBOASIS" : providerName, selected.GetProperty("provider").GetString());
                     Assert.Equal(!isMongo, row.GetProperty("isPublic").GetBoolean());
                     var observedMetadata = row.GetProperty("metadata");
-                    var nativeKey = observedMetadata.GetProperty(metadataKey).GetString()!;
+                    var nativeKey = nats
+                        ? (isMongo ? observedMetadata.GetProperty("COSMIC.Demo.SourceHolonId").GetString()! : id.ToString("D"))
+                        : observedMetadata.GetProperty(metadataKey).GetString()!;
                     Assert.Contains(nativeKey, allowed);
                     if (clickHouse)
                     {
@@ -311,8 +360,7 @@ public sealed class CqlClickHouseMongoNativeTests
                         Assert.Equal(ownerToken, token);
                         Assert.Equal(actor, row.GetProperty("createdByAvatarId").GetGuid());
                         Assert.Equal(1, row.GetProperty("version").GetInt32());
-                        var original = source.Result.Single(value => value.MetaData[metadataKey].ToString() ==
-                            row.GetProperty("metadata").GetProperty(metadataKey).GetString());
+                        var original = source.Result.Single(value => (nats ? value.Id.ToString("D") : value.MetaData[metadataKey].ToString()) == nativeKey);
                         foreach (var field in original.MetaData.Keys.Where(key => key.StartsWith(fixture, StringComparison.Ordinal)))
                             Assert.Equal(original.MetaData[field].ToString(), row.GetProperty("metadata").GetProperty(field).GetString());
                     }
@@ -323,7 +371,7 @@ public sealed class CqlClickHouseMongoNativeTests
                 var selected = allowed.Take(count).ToArray();
                 await Check(slug + "-" + count, ownerToken, "/api/data/query-cql", new { provider = providerName, maximumDurationMilliseconds = 30000,
                     orderBy = "None", take = 8, includeMetadata = true,
-                    filters = new[] { new { metadataPath = new[] { metadataKey }, scalar = "String", @operator = "In", value = selected } } }, count);
+                    filters = new[] { Filter(selected) } }, count);
                 await Check("paired-" + count, ownerToken, "/api/data/query-cql/federation", new { scope = "Named", maximumDurationMilliseconds = 30000,
                     providers = new[] { "MongoDBOASIS", providerName }, source = Selection(selected),
                     identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8 }, count + 2);

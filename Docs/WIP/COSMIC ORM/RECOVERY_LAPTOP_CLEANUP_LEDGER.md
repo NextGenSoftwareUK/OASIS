@@ -515,3 +515,10 @@ NATS/D1 exact WEB4 admission reused shared bin/obj. Original failure:
 TestResults/ProviderBuildCurrent/cosmic-nats-web4-admission.log. The
 authoritative-catalogue rerun cosmic-nats-web4-catalogue.log passed 2/2.
 Prior Core checkout restored. No fixture service started.
+
+NATS/Mongo WEB4 HTTP reused both retained environments. Local runner
+is RecoveryLaptopNats2152/run-web4-http.ps1. Exact build/test logs:
+TestResults/ProviderBuildCurrent/cosmic-nats-http-exact.log and
+cosmic-nats-http-native.log. Retain NatsPublicSourceCurrent summary and
+NatsMongoHttpCurrent cleanup receipt. Both owned listeners stopped and
+the Mongo fixture was dropped. The original NATS records were retained.
