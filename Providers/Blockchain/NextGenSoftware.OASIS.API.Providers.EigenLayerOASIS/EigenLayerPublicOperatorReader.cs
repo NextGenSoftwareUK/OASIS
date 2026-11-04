@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-using System.Net.Http.Json;
+using System.Text;
 using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using System.Text.Json;
 using System.Threading;
@@ -37,15 +37,16 @@ internal sealed class EigenLayerPublicOperatorReader : IDisposable
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(45));
         var token = deadline.Token;
-        var id = 0;
         var aggregate = 0;
 
         async Task<JsonElement> Rpc(string method, object[] parameters)
         {
-            var current = ++id;
+            const int requestId = 1;
             using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint)
             {
-                Content = JsonContent.Create(new { jsonrpc = "2.0", id = current, method, @params = parameters })
+                Content = new StringContent(
+                    JsonSerializer.Serialize(new { jsonrpc = "2.0", id = requestId, method, @params = parameters }),
+                    Encoding.UTF8, "application/json")
             };
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
             response.EnsureSuccessStatusCode();
@@ -65,7 +66,7 @@ internal sealed class EigenLayerPublicOperatorReader : IDisposable
             var fields = new HashSet<string>(StringComparer.Ordinal);
             foreach (var field in root.EnumerateObject())
                 if (!fields.Add(field.Name)) throw new InvalidDataException("Duplicate RPC envelope field.");
-            if (root.GetProperty("jsonrpc").GetString() != "2.0" || root.GetProperty("id").GetInt32() != current)
+            if (root.GetProperty("jsonrpc").GetString() != "2.0" || root.GetProperty("id").GetInt32() != requestId)
                 throw new InvalidDataException("EigenLayer RPC envelope mismatch.");
             if (root.TryGetProperty("error", out _))
                 throw new InvalidDataException("EigenLayer RPC returned an error.");

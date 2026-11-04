@@ -155,9 +155,7 @@ public sealed class EigenLayerPublicOperatorSource : KeyValueStorageProviderBase
 
         public async Task<IReadOnlyList<IHolon>> ReadAsync(IReadOnlyList<string> keys, CancellationToken token)
         {
-            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
-            deadline.CancelAfter(TimeSpan.FromSeconds(15));
-            var snapshot = await client.ReadAsync(keys, deadline.Token);
+            var snapshot = await client.ReadAsync(keys, token);
             var rows = new List<IHolon>(keys.Count);
             foreach (var observation in snapshot.Records)
             {
@@ -182,7 +180,7 @@ public sealed class EigenLayerPublicOperatorSource : KeyValueStorageProviderBase
                 row.ProviderUniqueStorageKey[PType.EigenLayerOASIS] = id;
                 rows.Add(row);
             }
-            deadline.Token.ThrowIfCancellationRequested();
+            token.ThrowIfCancellationRequested();
             return rows.AsReadOnly();
         }
 
