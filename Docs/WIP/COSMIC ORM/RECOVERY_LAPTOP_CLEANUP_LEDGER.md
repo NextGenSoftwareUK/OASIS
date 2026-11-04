@@ -208,3 +208,25 @@ Grpc.Net.Client 2.67.0 and Grpc.Tools 2.67.0. The lease protects shared
 Core/Common outputs. The Miden provider bin/obj and
 TestResults/ProviderBuildCurrent/cosmic-miden-build.log are generated outputs.
 Retain for the upcoming CQL admission batch and clean after dependent work ends.
+
+Miden admission reuses the existing WEB4 and WEB4 unit-test bin/obj outputs.
+The leased build writes TestResults/ProviderBuildCurrent/cosmic-miden-admission.log.
+Retain this log through local verification and clean owned outputs when the
+provider batch has no remaining consumers.
+
+Miden local HTTP verification input is the 85-byte ignored
+LocalState/COSMIC/MidenPublicQualificationCurrent/source.json. It contains
+only the public heights and an isolated fixture owner ID. Retain until the
+Miden local HTTP gate finishes.
+
+Miden WEB4 admission planning passed. The first local federation test failed
+after acknowledging two owned saves. The replica process stopped. Preserve
+LocalState/COSMIC/MidenMongoHttpCurrent and the exact owned database
+cosmic_cql_miden_http_demo for the harness's validated resume path.
+TestResults/ProviderBuildCurrent/cosmic-miden-federation.log records the run.
+
+Miden federation resumed and passed after provisioning the report directory.
+The test dropped its exact fixture database and port 27029 is closed.
+Retain the compact TestResults/MidenPublicSourceCurrent report and
+LocalState/COSMIC/MidenMongoHttpCurrent cleanup receipt. The resume logs
+in TestResults/ProviderBuildCurrent are disposable after evidence review.

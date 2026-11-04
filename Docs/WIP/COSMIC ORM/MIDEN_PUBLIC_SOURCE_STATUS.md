@@ -44,3 +44,13 @@ block 1 identity check. The adapter projects public holons using stable IDs
 and admits exact height equality and bounded membership. Compiler and WEB4
 registration, native CQL execution tests, federation and hosted acceptance
 remain open. Build outputs reuse the existing recovery ledger paths.
+
+WEB4 compiler and query-only admission pass all four presets. Local WEB4
+HTTP against real Miden testnet and the reused Mongo replica passed native
+3/2 and federated 5/4, with zero foreign private rows, three public rows
+visible to the foreign actor, and nine usage receipts. Two SDK writes were
+acknowledged in the first run. The resume validated those exact writes
+before querying and cleaning the owned database. The first report failed
+because its output directory had not been provisioned. After provisioning
+it, the same fixture passed and the replica was stopped. Hosted acceptance
+remains pending.

@@ -611,6 +611,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_CONNEXT_PUBLIC_SOURCE_JSON"] is string connextPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextPublicOriginMetadataSource.FromJson(connextPublicSource)));
+            // Miden testnet block headers are enrolled only as an explicit read source.
+            if (Configuration["CQL_MIDEN_PUBLIC_SOURCE_JSON"] is string midenPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.MidenOASIS.MidenPublicBlockHeaderSource.FromJson(midenPublicSource)));
             // Wormhole indexed messages are read-only, separate from cross-chain dispatch.
             if (Configuration["CQL_WORMHOLE_PUBLIC_SOURCE_JSON"] is string wormholePublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(

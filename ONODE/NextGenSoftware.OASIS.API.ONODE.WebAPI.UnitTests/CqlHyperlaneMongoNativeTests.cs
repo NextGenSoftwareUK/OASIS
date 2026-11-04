@@ -28,6 +28,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
 using ConnextSource = NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextPublicOriginMetadataSource;
+using MidenSource = NextGenSoftware.OASIS.API.Providers.MidenOASIS.MidenPublicBlockHeaderSource;
 using SynapseSource = NextGenSoftware.OASIS.API.Providers.SynapseOASIS.SynapsePublicTransactionMetadataSource;
 using DeBridgeSource = NextGenSoftware.OASIS.API.Providers.deBridgeOASIS.DeBridgePublicOrderMetadataSource;
 using StargateSource = NextGenSoftware.OASIS.API.Providers.StargateOASIS.StargatePublicMessageMetadataSource;
@@ -92,6 +93,15 @@ public sealed class ConnextMongoNativeFactAttribute : FactAttribute
     {
         if (Environment.GetEnvironmentVariable("COSMIC_CONNEXT_HTTP_NATIVE") != "owned-local-27029")
             Skip = "Explicit Connext/Mongo native gate.";
+    }
+}
+
+public sealed class MidenMongoNativeFactAttribute : FactAttribute
+{
+    public MidenMongoNativeFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("COSMIC_MIDEN_HTTP_NATIVE") != "owned-local-27029")
+            Skip = "Explicit Miden/Mongo native gate.";
     }
 }
 
@@ -163,6 +173,16 @@ public sealed class CqlHyperlaneMongoNativeTests
             }, false, "ethereum-indexed-origin-event",
             config => config.GetProperty("events").EnumerateArray()
                 .Select(row => row.GetProperty("transferId").GetString()!).ToArray());
+
+    [MidenMongoNativeFact]
+    public Task NativeMidenHeadersAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
+        => VerifyAsync(ProviderType.MidenOASIS, "Miden", "miden",
+            MidenSource.HeightMetadata, MidenSource.FromJson,
+            new[] { "MidenTimestampUnix" },
+            (native, metadata, _) => Assert.Equal((string)native.MetaData["MidenPreviousCommitment"],
+                metadata.GetProperty("MidenPreviousCommitment").GetString()),
+            Environment.GetEnvironmentVariable("COSMIC_MIDEN_HTTP_RESUME") == "1", "miden-testnet-public-headers",
+            config => config.GetProperty("heights").EnumerateArray().Select(height => height.GetRawText()).ToArray());
 
     private static void VerifyScanMetadata(IHolon native, JsonElement metadata, bool isMongo)
     {
