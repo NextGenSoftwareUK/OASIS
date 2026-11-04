@@ -166,3 +166,8 @@ exited. Reused the existing SDK, NuGet cache and shared outputs.
 
 Retain the bounded discovery and exact-key responses. No runtime or service installed.
 - TestResults/LayerZeroV2PublicSourceCurrent : 20199 bytes
+
+LayerZero local HTTP reused MongoDB 8.2 and the stopped replica store. The
+isolated fixture database was removed and port 27029 is closed. Retain the
+qualification and HTTP reports for rollout.
+- TestResults/LayerZeroV2PublicSourceCurrent : 4741146 bytes

@@ -27,6 +27,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
+using LayerZeroSource = NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS.LayerZeroPublicMessageMetadataSource;
 using HyperlaneSource = NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS.HyperlanePublicMessageMetadataSource;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 using IoFile = System.IO.File;
@@ -45,38 +46,72 @@ public sealed class HyperlaneMongoNativeFactAttribute : FactAttribute
 /// <summary>Real native reads through shipping CQL endpoints over loopback HTTP.
 /// SDK-owned writes seed private Mongo copies. Controlled bearer/admission is
 /// test infrastructure, not production signup/billing or replication proof.</summary>
+public sealed class LayerZeroMongoNativeFactAttribute : FactAttribute
+{
+    public LayerZeroMongoNativeFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("COSMIC_LAYERZERO_HTTP_NATIVE") != "owned-local-27029")
+            Skip = "Explicit LayerZero/Mongo native gate.";
+    }
+}
+
 public sealed class CqlHyperlaneMongoNativeTests
 {
-    private const string Database = "cosmic_cql_hyperlane_http_demo";
-    private const string Owner = "cosmic-cql-hyperlane-http-v1";
-    private static readonly ProviderType[] Types = { ProviderType.MongoDBOASIS, ProviderType.HyperlaneOASIS };
-    private sealed class Sources(IOASISStorageProvider mongo, IOASISStorageProvider hyperlaneSource,
+    private sealed class Sources(IOASISStorageProvider mongo, IOASISStorageProvider publicSource, ProviderType publicProvider,
         OASISDNA dna, ProviderManager registry) : ICqlV1Providers
     {
         public IOASISStorageProvider Resolve(ProviderType? requested) => requested switch {
             null or ProviderType.MongoDBOASIS => mongo,
-            ProviderType.HyperlaneOASIS => hyperlaneSource,
+            var provider when provider == publicProvider => publicSource,
             _ => throw new InvalidOperationException("Only the two explicitly enrolled native fixture providers are available.") };
         public HolonManager CreateManager(IOASISStorageProvider provider) => new(null, dna, registry);
     }
 
     [HyperlaneMongoNativeFact]
-    public async Task NativeHyperlaneMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
+    public Task NativeHyperlaneMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
+        => VerifyAsync(ProviderType.HyperlaneOASIS, "Hyperlane", "hyperlane",
+            HyperlaneSource.MessageIdMetadata, HyperlaneSource.FromJson,
+            new[] { "HyperlaneOriginDomainId", "HyperlaneDestinationDomainId" },
+            (native, metadata, _) => Assert.Equal((bool)native.MetaData["HyperlaneIsDelivered"],
+                metadata.GetProperty("HyperlaneIsDelivered").GetBoolean()),
+            Environment.GetEnvironmentVariable("COSMIC_HYPERLANE_HTTP_CONTINUATION") == "original-read-only",
+            "explorer-reported-delivery-state");
+
+    [LayerZeroMongoNativeFact]
+    public Task NativeLayerZeroMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
+        => VerifyAsync(ProviderType.LayerZeroV2OASIS, "LayerZeroV2", "layerzero",
+            LayerZeroSource.MessageIdMetadata, LayerZeroSource.FromJson,
+            new[] { "LayerZeroSourceEndpoint", "LayerZeroDestinationEndpoint" },
+            (native, metadata, isMongo) =>
+            {
+                Assert.Equal((string)native.MetaData["LayerZeroNonce"], metadata.GetProperty("LayerZeroNonce").GetString());
+                var status = metadata.GetProperty("LayerZeroScanStatus").GetString();
+                Assert.False(string.IsNullOrWhiteSpace(status));
+                if (isMongo) Assert.Equal((string)native.MetaData["LayerZeroScanStatus"], status);
+            }, false, "scan-reported-message-status");
+
+    private static async Task VerifyAsync<TSource>(ProviderType publicProvider, string directoryPrefix, string fixture,
+        string metadataKey, Func<string, TSource> createSource, string[] endpointFields,
+        Action<IHolon, JsonElement, bool> verifyMetadata, bool continuing, string policy)
+        where TSource : IOASISStorageProvider, ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
     {
+        var Database = $"cosmic_cql_{fixture}_http_demo";
+        var Owner = $"cosmic-cql-{fixture}-http-v1";
+        var Types = new[] { ProviderType.MongoDBOASIS, publicProvider };
+        var providerName = publicProvider.ToString();
         var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
-        Assert.True(Directory.Exists(Path.Combine(root, "LocalState/COSMIC/HyperlanePublicQualificationCurrent")));
+        Assert.True(Directory.Exists(Path.Combine(root, $"LocalState/COSMIC/{directoryPrefix}PublicQualificationCurrent")));
         const string mongoConnection = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs";
         var mongoUrl = new MongoUrl(mongoConnection);
         Assert.Equal("127.0.0.1", Assert.Single(mongoUrl.Servers).Host);
         Assert.Equal(27029, Assert.Single(mongoUrl.Servers).Port);
         Assert.Equal("oasisRecoveryRs", mongoUrl.ReplicaSetName);
-        var state = Path.Combine(root, "LocalState/COSMIC/HyperlaneMongoHttpCurrent");
+        var state = Path.Combine(root, $"LocalState/COSMIC/{directoryPrefix}MongoHttpCurrent");
         Directory.CreateDirectory(state);
         var intent = Path.Combine(state, "fixture.intent.json");
-        bool continuing = Environment.GetEnvironmentVariable("COSMIC_HYPERLANE_HTTP_CONTINUATION") == "original-read-only";
         if (!continuing) Assert.Empty(Directory.EnumerateFiles(state));
         else Assert.False(IoFile.Exists(Path.Combine(state, "fixture.cleaned.json")));
-        var configPath = Path.Combine(root, "LocalState/COSMIC/HyperlanePublicQualificationCurrent/source.json");
+        var configPath = Path.Combine(root, $"LocalState/COSMIC/{directoryPrefix}PublicQualificationCurrent/source.json");
         var configJson = await IoFile.ReadAllTextAsync(configPath);
         using var config = JsonDocument.Parse(configJson);
         var allowed = config.RootElement.GetProperty("messageIds").EnumerateArray().Select(key => key.GetString()!).ToArray();
@@ -93,7 +128,7 @@ public sealed class CqlHyperlaneMongoNativeTests
         var foreignActor = prior?.GetProperty("foreignActor").GetGuid() ?? Guid.NewGuid();
         var nonce = prior?.GetProperty("nonce").GetString() ?? Guid.NewGuid().ToString("D");
         var identities = CqlHostedDemoIdentities.Create(new CqlDemoIdentityRequest {
-            Provider = "HyperlaneOASIS", Keys = allowed.Take(2).ToArray() }, actor);
+            Provider = providerName, Keys = allowed.Take(2).ToArray() }, actor);
         var copies = identities.Records.Select(record => record.Id).ToArray();
         var operations = prior?.GetProperty("operations").EnumerateArray().Select(value => value.GetGuid()).ToArray()
             ?? new[] { Guid.NewGuid(), Guid.NewGuid() };
@@ -123,16 +158,16 @@ public sealed class CqlHyperlaneMongoNativeTests
             file.Flush(true);
         }
 
-        using var hyperlaneSource = HyperlaneSource.FromJson(configJson);
-        Assert.False((await hyperlaneSource.ActivateQuerySourceAsync(default)).IsError);
-        var nativeQuery = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.HyperlaneOASIS).Result)
+        using var publicSource = createSource(configJson);
+        Assert.False((await publicSource.ActivateQuerySourceAsync(default)).IsError);
+        var nativeQuery = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(publicProvider).Result)
             .WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result)
-            .Where(row => allowed.Contains(CosmicQueryMetadata.Value<string>(row, HyperlaneSource.MessageIdMetadata)));
+            .Where(row => allowed.Contains(CosmicQueryMetadata.Value<string>(row, metadataKey)));
         Assert.False(nativeQuery.IsError, nativeQuery.ErrorCode);
-        var plan = CosmicQueryPlanner.Plan(nativeQuery.Result, ProviderType.HyperlaneOASIS,
-            new[] { new CosmicQueryTarget(ProviderType.HyperlaneOASIS, hyperlaneSource.QueryCapabilities) });
+        var plan = CosmicQueryPlanner.Plan(nativeQuery.Result, publicProvider,
+            new[] { new CosmicQueryTarget(publicProvider, publicSource.QueryCapabilities) });
         Assert.False(plan.IsError, plan.ErrorCode);
-        var source = await hyperlaneSource.ExecuteCosmicQueryAsync(plan.Result);
+        var source = await publicSource.ExecuteCosmicQueryAsync(plan.Result);
         Assert.False(source.IsError, source.ErrorCode);
         Assert.Equal(3, source.Result.Count);
 
@@ -153,12 +188,12 @@ public sealed class CqlHyperlaneMongoNativeTests
         var registry = new ProviderManager(null, dna) {
             IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false };
         registry.RegisterProvider(mongo);
-        var providers = new Sources(mongo, hyperlaneSource, dna, registry);
+        var providers = new Sources(mongo, publicSource, publicProvider, dna, registry);
         var manager = providers.CreateManager(mongo);
         for (var index = 0; !continuing && index < identities.Records.Count; index++)
         {
             var identity = identities.Records[index];
-            var original = source.Result.Single(row => (string)row.MetaData[HyperlaneSource.MessageIdMetadata] == identity.NativeKey);
+            var original = source.Result.Single(row => (string)row.MetaData[metadataKey] == identity.NativeKey);
             var metadata = original.MetaData.ToDictionary(pair => pair.Key, pair => pair.Value);
             foreach (var pair in identity.Metadata) metadata[pair.Key] = pair.Value;
             metadata["COSMIC.Demo.Dataset"] = "COSMIC.CQL.Demo.v1";
@@ -178,7 +213,7 @@ public sealed class CqlHyperlaneMongoNativeTests
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { Args = Array.Empty<string>(), ContentRootPath = root });
         builder.Configuration.Sources.Clear();
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> {
-            [CqlPublicReadCatalogue.ConfigurationKey] = JsonSerializer.Serialize(new Dictionary<string, Guid[]> { ["HyperlaneOASIS"] = source.Result.Select(row => row.Id).ToArray() }) });
+            [CqlPublicReadCatalogue.ConfigurationKey] = JsonSerializer.Serialize(new Dictionary<string, Guid[]> { [providerName] = source.Result.Select(row => row.Id).ToArray() }) });
         builder.Logging.ClearProviders(); builder.WebHost.UseUrls("http://127.0.0.1:0");
         builder.Services.AddControllers();
         builder.Services.AddConfiguredCqlReadAccessPolicy(builder.Configuration);
@@ -228,9 +263,9 @@ public sealed class CqlHyperlaneMongoNativeTests
         async Task Execute(HttpContext http, bool federation)
         {
             var handle = (UsageExecutionHandle)http.Items[Web4UsageMeasurement.ExecutionKey]!;
-            var admission = new PreparedStorageExecution(handle, "native-hyperlane-query", new Dictionary<ProviderType, string>(),
+            var admission = new PreparedStorageExecution(handle, $"native-{fixture}-query", new Dictionary<ProviderType, string>(),
                 Types, Types.Select(type => new StorageQueryTariff(type, 0, "native-test")),
-                null!, false, null!, new[] { ProviderType.HyperlaneOASIS });
+                null!, false, null!, new[] { publicProvider });
             IActionResult action;
             if (federation)
             {
@@ -253,7 +288,7 @@ public sealed class CqlHyperlaneMongoNativeTests
             using var http = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(20) };
             var counts = new Dictionary<string, int>();
             object Selection(IEnumerable<string> selected) => new { orderBy = "None", take = 8, includeMetadata = true,
-                filters = new[] { new { metadataPath = new[] { HyperlaneSource.MessageIdMetadata }, scalar = "String", @operator = "In", value = selected.ToArray() } } };
+                filters = new[] { new { metadataPath = new[] { metadataKey }, scalar = "String", @operator = "In", value = selected.ToArray() } } };
             async Task Check(string name, string token, string route, object request, int expected)
             {
                 http.DefaultRequestHeaders.Authorization = new("Bearer", token);
@@ -277,16 +312,15 @@ public sealed class CqlHyperlaneMongoNativeTests
                     Assert.True(selectedIds.Add(id), "Each preserved physical copy must be unique.");
                     var isMongo = copies.Contains(id);
                     Assert.True(isMongo || source.Result.Any(original => original.Id == id));
-                    if (paired) Assert.Equal(isMongo ? "MongoDBOASIS" : "HyperlaneOASIS", selected.GetProperty("provider").GetString());
+                    if (paired) Assert.Equal(isMongo ? "MongoDBOASIS" : providerName, selected.GetProperty("provider").GetString());
                     Assert.Equal(!isMongo, row.GetProperty("isPublic").GetBoolean());
                     var metadata = row.GetProperty("metadata");
-                    var nativeKey = metadata.GetProperty(HyperlaneSource.MessageIdMetadata).GetString()!;
+                    var nativeKey = metadata.GetProperty(metadataKey).GetString()!;
                     var nativeRow = source.Result.Single(value =>
-                        (string)value.MetaData[HyperlaneSource.MessageIdMetadata] == nativeKey);
-                    foreach (var field in new[] { "HyperlaneOriginDomainId", "HyperlaneDestinationDomainId" })
+                        (string)value.MetaData[metadataKey] == nativeKey);
+                    foreach (var field in endpointFields)
                         Assert.Equal((long)nativeRow.MetaData[field], metadata.GetProperty(field).GetInt64());
-                    Assert.Equal((bool)nativeRow.MetaData["HyperlaneIsDelivered"],
-                        metadata.GetProperty("HyperlaneIsDelivered").GetBoolean());
+                    verifyMetadata(nativeRow, metadata, isMongo);
                     if (isMongo)
                     {
                         Assert.Equal(ownerToken, token);
@@ -298,25 +332,25 @@ public sealed class CqlHyperlaneMongoNativeTests
             foreach (var count in new[] { 3, 2 })
             {
                 var selected = allowed.Take(count).ToArray();
-                await Check("hyperlane-" + count, ownerToken, "/api/data/query-cql", new { provider = "HyperlaneOASIS",
+                await Check(fixture + "-" + count, ownerToken, "/api/data/query-cql", new { provider = providerName,
                     orderBy = "None", take = 8, includeMetadata = true,
-                    filters = new[] { new { metadataPath = new[] { HyperlaneSource.MessageIdMetadata }, scalar = "String", @operator = "In", value = selected } } }, count);
+                    filters = new[] { new { metadataPath = new[] { metadataKey }, scalar = "String", @operator = "In", value = selected } } }, count);
                 await Check("paired-" + count, ownerToken, "/api/data/query-cql/federation", new { scope = "Named",
-                    providers = new[] { "MongoDBOASIS", "HyperlaneOASIS" }, source = Selection(selected),
+                    providers = new[] { "MongoDBOASIS", providerName }, source = Selection(selected),
                     identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8 }, count + 2);
             }
             await Check("foreign-private", foreignToken, "/api/data/query-cql", new { provider = "MongoDBOASIS",
                 orderBy = "Id", take = 8, filters = new[] { new { field = "Id", scalar = "Guid", @operator = "In", value = copies } } }, 0);
             await Check("foreign-public-pair", foreignToken, "/api/data/query-cql/federation", new { scope = "Named",
-                providers = new[] { "MongoDBOASIS", "HyperlaneOASIS" }, source = Selection(allowed),
+                providers = new[] { "MongoDBOASIS", providerName }, source = Selection(allowed),
                 identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8 }, 3);
             Assert.Equal(configJson, await IoFile.ReadAllTextAsync(configPath));
             Assert.Equal(9, receipts.Count);
-            await IoFile.WriteAllTextAsync(Path.Combine(root, "TestResults/HyperlanePublicSourceCurrent/hyperlane-mongo-native-summary.json"),
+            await IoFile.WriteAllTextAsync(Path.Combine(root, $"TestResults/{directoryPrefix}PublicSourceCurrent/{fixture}-mongo-native-summary.json"),
                 JsonSerializer.Serialize(new { counts, sdkOwnedSaves = continuing ? 0 : 2,
                     receiptCount = receipts.Count, productionBilling = false, replicationAcceptance = false, browserAcceptance = false }));
         }
-        finally { await app.StopAsync(); await hyperlaneSource.DeActivateProviderAsync(); }
+        finally { await app.StopAsync(); await publicSource.DeActivateProviderAsync(); }
         // Success-only cleanup, after HTTP consumers stop and exact ownership
         // checks. Failed/uncertain writes retain the original DB and intent.
         Assert.Equal(2, await native.GetCollection<BsonDocument>("Holon").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
@@ -331,7 +365,7 @@ public sealed class CqlHyperlaneMongoNativeTests
         await using var qualified = new FileStream(Path.Combine(Path.GetDirectoryName(configPath)!,
             "web4-local-qualified.acknowledged.json"), FileMode.CreateNew);
         await JsonSerializer.SerializeAsync(qualified, new { schema = 1, web4LocalQualified = true, sourceSha256,
-            policy = "explorer-reported-delivery-state", nativeCounts = new[] { 3, 2 }, federationCounts = new[] { 5, 4 },
+            policy, nativeCounts = new[] { 3, 2 }, federationCounts = new[] { 5, 4 },
             foreignPrivate = 0, foreignPublic = 3, savedPrivateCopies = 2, fixtureCleaned = true });
         qualified.Flush(true);
     }

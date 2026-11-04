@@ -37,3 +37,13 @@ were tested together, so neither is established as the individual cause of
 the original 403. The endpoint, guard and catalogue stayed the same.
 Identified-client TRX SHA256 5F4B4A8562A07E53E1FB67D64823ACB26D089D07C1AFB195D70BB162CF98693D.
 Next: explicit WEB4 registration, tariff and paired presets, then local HTTP federation.
+
+## Local WEB4/Mongo acceptance
+
+WEB4 admission and all four preset plans pass. Real local HTTP then passed
+native 3/2, paired 5/4, foreign-private 0/public 3 and nine metering receipts.
+Two owned private snapshots were saved in the isolated fixture, which was
+removed after exact identity and count checks. The owned replica stopped.
+Native Scan status may change; snapshots retain the status captured at save.
+Hosted enrollment, replication and browser acceptance remain open.
+Local HTTP TRX SHA256 802C5196CB767440896387F4445F43BCD69960BD6C873C0CC7ECC94BBD48DBF8.
