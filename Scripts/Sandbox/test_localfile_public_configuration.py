@@ -96,6 +96,27 @@ class LocalFileConfigurationTests(unittest.TestCase):
             self.assertEqual(publisher.KEYS, json.loads(review.read_bytes())["changedKeys"])
             mutation.assert_not_called()
 
+    def test_prepare_reconciles_a_matching_partial_snapshot(self):
+        before, source, bundle = self.fixture()
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / "rollout"
+            state.mkdir()
+            original = state / (publisher.PREFIX + "-before-variables.dpapi")
+            original.write_bytes(b"original sealed baseline")
+            with patch.object(publisher, "ROOT", root), \
+                 patch.object(publisher.configuration, "STATE", state), \
+                 patch.object(publisher, "qualified_source", return_value=(source, bundle)), \
+                 patch.object(publisher.configuration, "variables", return_value=before), \
+                 patch.object(publisher.configuration, "protected_read", return_value=before) as read, \
+                 patch.object(publisher.configuration.verification, "protected_token", return_value=b"sealed"):
+                publisher.prepare()
+                self.assertEqual(b"original sealed baseline", original.read_bytes())
+                self.assertEqual(2, len(list(state.glob("*.dpapi"))))
+                read.return_value = {}
+                with self.assertRaisesRegex(RuntimeError, "preparation differs"):
+                    publisher.prepare()
+
     def test_apply_cannot_mutate_before_exact_release_gate(self):
         before, source, bundle = self.fixture()
         after = publisher.candidate(before, source, bundle)
