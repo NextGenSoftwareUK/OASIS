@@ -288,3 +288,9 @@ and test bin/obj outputs and writes
 TestResults/ProviderBuildCurrent/cosmic-fhenix-eigenlayer-admission.log.
 After admission, the two federation tests use the existing port 27029
 replica sequentially. Each owns a separate fixture database and report.
+
+The sequential JSON-RPC request ID rebuild writes
+TestResults/ProviderBuildCurrent/cosmic-fhenix-eigenlayer-request-id.log.
+The preactivation-request-id logs and fixture intents are archived under
+each provider's existing report directory. Retain until both fixture
+databases are verified absent after the successful tests.
