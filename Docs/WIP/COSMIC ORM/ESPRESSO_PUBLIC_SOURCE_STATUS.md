@@ -24,3 +24,8 @@ the response to 16 KiB and the request to 12 seconds, checks the requested
 height and the returned chain ID, and pins block 1's reported L1 hash as a
 source identity anchor. Source activation should request block 1 even when
 the configured catalogue excludes it.
+
+The read-only adapter built and activated live with heights 2 and 3,
+requiring the separate block 1 identity check. It projects stable public
+holons with exact height equality or bounded membership. WEB4 admission,
+end-to-end CQL execution and federation remain pending.
