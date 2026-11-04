@@ -599,6 +599,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_STARGATE_PUBLIC_SOURCE_JSON"] is string stargatePublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.StargateOASIS.StargatePublicMessageMetadataSource.FromJson(stargatePublicSource)));
+            // deBridge indexed order metadata is enrolled only as an explicit read source.
+            if (Configuration["CQL_DEBRIDGE_PUBLIC_SOURCE_JSON"] is string deBridgePublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.deBridgeOASIS.DeBridgePublicOrderMetadataSource.FromJson(deBridgePublicSource)));
             // Wormhole indexed messages are read-only, separate from cross-chain dispatch.
             if (Configuration["CQL_WORMHOLE_PUBLIC_SOURCE_JSON"] is string wormholePublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(

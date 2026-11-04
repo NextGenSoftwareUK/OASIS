@@ -182,6 +182,7 @@
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS/NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS/NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.StargateOASIS/NextGenSoftware.OASIS.API.Providers.StargateOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.deBridgeOASIS/NextGenSoftware.OASIS.API.Providers.deBridgeOASIS.csproj" />
   </ItemGroup>
   <ItemGroup><ProjectReference Include="../../Providers/AI/NextGenSoftware.OASIS.API.Providers.BittensorOASIS/NextGenSoftware.OASIS.API.Providers.BittensorOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ZcashOASIS/NextGenSoftware.OASIS.API.Providers.ZcashOASIS.csproj" /></ItemGroup>

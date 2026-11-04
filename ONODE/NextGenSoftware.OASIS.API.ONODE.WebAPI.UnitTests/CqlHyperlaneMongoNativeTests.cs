@@ -27,6 +27,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
+using DeBridgeSource = NextGenSoftware.OASIS.API.Providers.deBridgeOASIS.DeBridgePublicOrderMetadataSource;
 using StargateSource = NextGenSoftware.OASIS.API.Providers.StargateOASIS.StargatePublicMessageMetadataSource;
 using LayerZeroSource = NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS.LayerZeroPublicMessageMetadataSource;
 using HyperlaneSource = NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS.HyperlanePublicMessageMetadataSource;
@@ -65,6 +66,15 @@ public sealed class StargateMongoNativeFactAttribute : FactAttribute
     }
 }
 
+public sealed class DeBridgeMongoNativeFactAttribute : FactAttribute
+{
+    public DeBridgeMongoNativeFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("COSMIC_DEBRIDGE_HTTP_NATIVE") != "owned-local-27029")
+            Skip = "Explicit deBridge/Mongo native gate.";
+    }
+}
+
 public sealed class CqlHyperlaneMongoNativeTests
 {
     private sealed class Sources(IOASISStorageProvider mongo, IOASISStorageProvider publicSource, ProviderType publicProvider,
@@ -100,6 +110,19 @@ public sealed class CqlHyperlaneMongoNativeTests
             StargateSource.MessageIdMetadata, StargateSource.FromJson,
             new[] { "LayerZeroSourceEndpoint", "LayerZeroDestinationEndpoint" },
             VerifyScanMetadata, false, "scan-reported-stargate-token-messaging");
+
+    [DeBridgeMongoNativeFact]
+    public Task NativeDeBridgeMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
+        => VerifyAsync(ProviderType.deBridgeOASIS, "DeBridge", "debridge",
+            DeBridgeSource.OrderIdMetadata, DeBridgeSource.FromJson, Array.Empty<string>(),
+            (native, metadata, isMongo) =>
+            {
+                foreach (var field in new[] { "DeBridgeSourceChain", "DeBridgeDestinationChain", "DeBridgeGiveAmount" })
+                    Assert.Equal((string)native.MetaData[field], metadata.GetProperty(field).GetString());
+                var state = metadata.GetProperty("DeBridgeOrderState").GetString();
+                Assert.False(string.IsNullOrWhiteSpace(state));
+                if (isMongo) Assert.Equal((string)native.MetaData["DeBridgeOrderState"], state);
+            }, false, "dln-indexed-order-state");
 
     private static void VerifyScanMetadata(IHolon native, JsonElement metadata, bool isMongo)
     {
