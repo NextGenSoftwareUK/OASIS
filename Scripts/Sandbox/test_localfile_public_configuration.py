@@ -109,5 +109,32 @@ class LocalFileConfigurationTests(unittest.TestCase):
             mutation.assert_not_called()
 
 
+    def test_qualification_rejects_modified_retained_bundle(self):
+        _, source, bundle = self.fixture()
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            dataset = root / "LocalState/COSMIC/HostedLocalFilePublicDatasetCurrent"
+            evidence = root / "LocalState/COSMIC/HostedLocalFileSourceCurrent"
+            dataset.mkdir(parents=True)
+            evidence.mkdir(parents=True)
+            raw = json.dumps(source).encode()
+            payload = json.dumps(bundle).encode()
+            hashes = {
+                "sourceConfigSha256": publisher.hashlib.sha256(raw).hexdigest(),
+                "bootstrapSha256": publisher.hashlib.sha256(payload).hexdigest(),
+            }
+            (dataset / "source-config.json").write_bytes(raw)
+            bootstrap = dataset / "bootstrap.json"
+            bootstrap.write_bytes(payload)
+            (dataset / "export.acknowledged.json").write_text(json.dumps(
+                dict(hashes, sdkFull=3, sdkSubset=2, nativeSourceUnchanged=True)))
+            (evidence / "source-qualified.json").write_text(json.dumps(
+                dict(hashes, sdkCounts=[3, 2], shippingBootstrapAdmitted=True)))
+            with patch.object(publisher, "ROOT", root):
+                self.assertEqual((source, bundle), publisher.qualified_source())
+                bootstrap.write_bytes(payload + b" ")
+                with self.assertRaisesRegex(RuntimeError, "source-bound"):
+                    publisher.qualified_source()
+
 if __name__ == "__main__":
     unittest.main()
