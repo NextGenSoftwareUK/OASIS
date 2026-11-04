@@ -73,3 +73,13 @@ returned. Keep both observations and seek a supported Tableland query gateway.
 Evidence under TestResults/TablelandRecoveryLaptopCurrent/bound-query.*.
 
 [Operator parameter contract](https://blog.textile.io/weeknotes-base-sepolia).
+
+The validator repository still links to the operator gateway documentation,
+but that documentation also redirects to the Textile homepage. The validator,
+SDK and docs repositories are not marked archived by GitHub. No operator
+announcement of a successor public endpoint or a network shutdown was found.
+Treat this as a public gateway access gap. The validator repository documents
+a separately operated native validator, which would require its own RPC access
+and resources before it could qualify as a demo source.
+
+[Validator operator documentation](https://github.com/tablelandnetwork/go-tableland#running-a-validator).
