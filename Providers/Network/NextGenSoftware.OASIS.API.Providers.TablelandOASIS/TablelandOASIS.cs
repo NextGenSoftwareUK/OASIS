@@ -28,14 +28,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TablelandOASIS
     public class TablelandOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
     {
         private readonly HttpClient _httpClient;
-        private bool _isActivated;
 
         private static bool IsTableName(string? name)
             => name != null && Regex.IsMatch(name, @"\A[A-Za-z_][A-Za-z0-9_]*\z");
 
         public TablelandOASIS(string apiBase = "https://tableland.network")
         {
-            _httpClient = new HttpClient { BaseAddress = new Uri(apiBase) };
+            _httpClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { BaseAddress = new Uri(apiBase) };
             _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
             ProviderName = "TablelandOASIS";
             ProviderDescription = "Tableland SQL-on-Chain Data Layer Provider";
@@ -50,15 +49,20 @@ namespace NextGenSoftware.OASIS.API.Providers.TablelandOASIS
             var result = new OASISResult<bool>();
             try
             {
-                var response = await _httpClient.GetAsync("/api/v1/health");
-                if (response.IsSuccessStatusCode) { _isActivated = true; result.Result = true; result.Message = "TablelandOASIS activated."; }
+                using var response = await _httpClient.GetAsync("/api/v1/health");
+                IsProviderActivated = response.IsSuccessStatusCode;
+                if (IsProviderActivated) { result.Result = true; result.Message = "TablelandOASIS activated."; }
                 else OASISErrorHandling.HandleError(ref result, $"TablelandOASIS: Health check failed ({response.StatusCode}).");
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+            catch (Exception ex) { IsProviderActivated = false; result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
         }
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { _isActivated = false; return new OASISResult<bool>(true); }
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool>(true));
+        }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)

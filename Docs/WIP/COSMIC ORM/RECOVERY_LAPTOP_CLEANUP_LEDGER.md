@@ -359,3 +359,7 @@ The live catalogue check renewed the existing visitor session in
 LocalState/COSMIC/HostedDemoRehearsalDiscovery. Preserve the protected
 visitor session and matching visitor-refresh journal with that cohort.
 No runtime or database files were generated.
+
+Tableland unit build reused the installed SDK and shared build lease.
+Generated outputs are the Tableland provider and Tableland unit test bin/obj
+plus shared dependency bin/obj. Receipt: TestResults/ProviderBuildCurrent/cosmic-tableland-unit.log.

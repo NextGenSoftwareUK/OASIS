@@ -83,3 +83,7 @@ a separately operated native validator, which would require its own RPC access
 and resources before it could qualify as a demo source.
 
 [Validator operator documentation](https://github.com/tablelandnetwork/go-tableland#running-a-validator).
+
+The adapter now surfaces gateway redirects as HTTP failures and uses the
+shared OASIS activation state. The existing metadata unit suite passed 5/5.
+Native gateway and CQL acceptance are still open.
