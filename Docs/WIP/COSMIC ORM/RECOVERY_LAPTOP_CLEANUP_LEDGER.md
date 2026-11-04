@@ -525,3 +525,7 @@ the Mongo fixture was dropped. The original NATS records were retained.
 
 NATS credential configuration build reused SDK probe and shared outputs.
 Receipt: TestResults/NatsRecoveryLaptopCurrent/auth-build.log. No server started.
+
+NATS sdk-probe validate-config passed: anonymous and complete credentials
+accepted, username-only/password-only/empty pair refused, no network activation.
+Reused existing outputs. Build receipt: TestResults/NatsRecoveryLaptopCurrent/auth-config-build.log.
