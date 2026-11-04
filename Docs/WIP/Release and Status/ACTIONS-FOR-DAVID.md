@@ -511,26 +511,19 @@ Status: missing account/configuration information,2 November2026. David approved
 
 ## COSMIC CQL LocalFile qualification files from the newer laptop
 
-- Status 2026-11-04: awaiting recovery from the original laptop or its backup. The
-  files were not found under C:/Source on the current laptop. The original export
-  used randomly assigned IDs and the publisher validates hashes against the
-  acknowledgment and qualification receipt, so rerunning the export cannot
-  recover the same source.
-- If the old checkout is accessible, copy
-  `LocalState/COSMIC/HostedLocalFilePublicDatasetCurrent` and
-  `LocalState/COSMIC/HostedLocalFileSourceCurrent/source-qualified.json` from
-  C:/Source/OASIS-cosmic to the corresponding LocalState paths under
-  C:/Source/OASIS2, or tell the COSMIC agent where the backup is. Keep this
-  transfer limited to those paths. The agent will validate the bundle and
-  reconcile the hosted gate before changing Development.
-- Context: [LocalFile hosted qualification](../COSMIC%20ORM/LOCALFILE_CQL_MVP.md#hosted-public-source-qualification--3-november-2026).
+- Resolved 2026-11-04. David authorized recreation. A separate public teaching
+  cohort was created and qualified on this laptop. SDK export and WEB4 bootstrap
+  parser each passed one test. The publisher accepted the replacement bundle
+  and both source hashes. Recovery of the original files is no longer needed
+  for the demo. The earlier cohort was not overwritten.
+- [Replacement qualification and rollout](../COSMIC%20ORM/LOCALFILE_CQL_MVP.md).
 
 ## Railway access for Development WEB4 rollout from this laptop
 
 - Status 2026-11-04: the installed Railway CLI returned Unauthorized on the
   read-only account check. The LocalFile publisher needs authenticated access
   to read the current Development WEB4 settings and verify the exact release.
-- When the retained LocalFile bundle is recovered, sign in privately with
+- The replacement LocalFile bundle is qualified. Sign in privately with
   `railway login` on this laptop using the existing account with Development
   WEB4 project access. Tell the agent when sign-in completes. Keep tokens and
   credentials out of chat and Git.

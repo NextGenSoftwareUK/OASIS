@@ -152,3 +152,12 @@ for the published client modules. No new checkout or runtime was created.
 - TestResults/HostedLocalFileSourceCurrent/localfile-tariff.trx : 3288 bytes
 - ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/bin : 390245776 bytes
 - ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/obj : 8332482 bytes
+
+## Replacement LocalFile source and Tableland build
+
+Keep the new source, receipts and test reports for rollout. Build processes
+exited. Reused the existing SDK, NuGet cache and shared outputs.
+- LocalState/COSMIC/HostedLocalFilePublicDatasetCurrent : 15746 bytes
+- LocalState/COSMIC/HostedLocalFileSourceCurrent : 502 bytes
+- TestResults/HostedLocalFileSourceCurrent : 3403735 bytes
+- TestResults/TablelandRecoveryLaptopCurrent : 3986 bytes

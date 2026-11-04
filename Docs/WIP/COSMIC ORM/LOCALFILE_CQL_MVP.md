@@ -221,3 +221,13 @@ with a fresh provider-scoped journal. Check native 3/2, paired 5/4, repeat
 reuse, foreign-private 0/public 3 and both exact replicas before publishing
 the card. Preserve partial journals and reconcile any uncertain mutation
 before continuing. No hosted acceptance or deployment from this checkpoint.
+
+## Recovery laptop replacement source — 4 November 2026
+
+David authorized recreation. The one-shot SDK export created a separate
+public teaching cohort with new IDs and passed 1/1 (full 3, subset 2, unchanged
+native bytes). The shipping bootstrap parser passed 1/1 against the exact
+replacement bytes. The source-bound receipt records both TRX hashes and the
+publisher accepted the replacement. Retain replacement-export.trx and
+replacement-bootstrap.trx under TestResults/HostedLocalFileSourceCurrent.
+Railway still requires private sign-in before preparing the hosted candidate.
