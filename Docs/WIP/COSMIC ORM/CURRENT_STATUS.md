@@ -24,7 +24,11 @@ at TestResults/HostedDemoRehearsal/ipfs-http-flow.json. Separate rehearsal sessi
 prior cohorts preserved. A second visitor saw3 public rows and0 of the private
 Mongo snapshots by exact ID. Isolation summary SHA256
 64AEEB6D8B1427DD178A9F95F698185998C78D38D8319653DB96DA6AB1904F90.
-LocalFile deployment still requires retained qualification.
+LocalFile canonical sandbox-mode fix passes 16 native profile, 13 WEB4 and
+5 publisher tests. Retained source parser check awaits the original bundle.
+Restore the four files listed by publisher preflight, verify hashes and parser
+admission, prepare the five settings, then qualify the exact Development
+deployment before applying and rehearsing native, Mongo and replica reads.
 
 Source-recovery fix published Development b718f2879;Core5415961/settings unchanged.
 Exact job33c9ef7d-b8b3-4403-9109-32ce47c4d7a8 SUCCESS;healthy/four-provider-ready.
