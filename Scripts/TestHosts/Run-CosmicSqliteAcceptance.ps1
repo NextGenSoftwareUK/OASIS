@@ -30,8 +30,7 @@ try {
     foreach ($root in $roots) {
         $projects = @(Get-ChildItem -LiteralPath (Join-Path $taskRoot $root) -File -Filter '*.csproj')
         if ($projects.Count -ne 1) { throw "One existing project is required at $root" }
-        $buildReferences = ($root -eq $roots[0]).ToString().ToLowerInvariant()
-        & dotnet build $projects[0].FullName --no-restore --no-incremental /p:BuildProjectReferences=$buildReferences /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+        & dotnet build $projects[0].FullName --no-restore --no-incremental /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if ($LASTEXITCODE) { throw "Producer/consumer build failed at $root" }
     }
     $identities = @()
