@@ -502,3 +502,8 @@ NATS native CQL 3/2 reused the original synthetic sdk-fixture without
 reseeding. Receipts cql-build.log and cql-native.log in
 TestResults/NatsRecoveryLaptopCurrent, plus cql-server.log in the runtime root.
 The owned server stopped after the test. Keep the existing fixture for WEB4.
+
+NATS read-only profile reused the retained sdk-fixture and SDK probe outputs.
+profile-build.log and profile-native.log under TestResults/NatsRecoveryLaptopCurrent
+record missing-bucket rejection, save rejection and exact 3/2 results.
+The owned server stopped; profile-server.log remains with the runtime.

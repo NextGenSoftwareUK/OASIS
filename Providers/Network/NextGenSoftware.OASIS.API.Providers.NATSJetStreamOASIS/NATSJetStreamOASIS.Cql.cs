@@ -19,7 +19,7 @@ public partial class NATSJetStreamOASIS : ICosmicQueryStorageProvider
     public ProviderType QueryProviderType => Core.Enums.ProviderType.NATSJetStreamOASIS;
     public CosmicQueryCapabilities QueryCapabilities => BoundedIdentityCqlCompiler.Capabilities;
 
-    public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
+    public virtual async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100,
         CancellationToken cancellationToken = default) where T : IHolon
     {
