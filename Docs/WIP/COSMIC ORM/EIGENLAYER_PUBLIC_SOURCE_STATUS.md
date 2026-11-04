@@ -29,3 +29,9 @@ The compiled guarded reader passed a live smoke at the same canonical block.
 All three catalogue addresses returned true. The zero address returned false,
 exercising both canonical ABI boolean values. The provider build had zero
 errors. The smoke reused the existing binaries and created no output files.
+
+The bounded read-only CQL source built and activated all three configured
+operators against Ethereum mainnet. It projects stable public holon IDs,
+registration flags and the shared finalized block provenance. WEB4 admission
+and end-to-end query and federation tests remain open. Existing build paths
+were reused.
