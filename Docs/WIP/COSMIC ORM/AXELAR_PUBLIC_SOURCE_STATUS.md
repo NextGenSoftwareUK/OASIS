@@ -65,3 +65,8 @@ The compiled guarded LCD client built with zero errors and reproduced all
 three block IDs and exact source timestamp strings. It pins the endpoint,
 checks the chain ID and exact height, and bounds each response to 256 KiB
 and 12 seconds. The client smoke reused the existing binaries.
+
+The bounded read-only CQL adapter built and activated all three qualified
+heights live. It projects stable public holon IDs and exposes the exact
+source timestamp, chain ID and block hash. Compiler and WEB4 registration,
+end-to-end CQL execution and federation still need verification.
