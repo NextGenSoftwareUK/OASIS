@@ -16,10 +16,9 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 STATE = ROOT / "LocalState/COSMIC/HostedSourceRolloutCurrent"
 SOURCE = ROOT / "LocalState/COSMIC/HostedSolidSourceCurrent"
-DEFAULT_CLI = (Path.home() / "AppData/Local/Microsoft/WinGet/Packages/"
+CLI = (Path.home() / "AppData/Local/Microsoft/WinGet/Packages/"
        "OpenJS.NodeJS.LTS_Microsoft.Winget.Source_8wekyb3d8bbwe/"
        "node-v24.19.0-win-x64/node_modules/@railway/cli/bin/railway.exe")
-CLI = Path(os.environ.get("OASIS_RAILWAY_CLI", str(DEFAULT_CLI)))
 COMMON = ["-p", "712f50f6-3b7b-46d4-b229-44b49922f16b", "-e", "dev",
           "-s", "5123199a-43c4-4439-9921-e10e2aec7841"]
 KEYS = ["OASIS_DNA_JSON", "PREPARED_STORAGE_ADMISSION_JSON", "CQL_HOSTED_QUERY_EXAMPLES_JSON",
