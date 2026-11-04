@@ -70,3 +70,8 @@ queries. Neither the parent-pinned Core d6ae5e7 nor the shared checkout
 read list on the COSMIC Core branch, rerun the focused test against the
 selected Core, and advance the parent gitlink and Railway manifest together.
 The WEB4 registration remains local and uncommitted pending that result.
+
+Core task commit 58c7cc9e7e4bd65c2bb8d8336b4af364b03c9370 adds QuestDB to
+the canonical unsigned read list. It was created with an isolated Git index
+while preserving the shared detached checkout at 5415961. Admission must be
+verified with the Core task commit before the parent pin is advanced.
