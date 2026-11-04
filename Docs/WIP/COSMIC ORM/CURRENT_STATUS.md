@@ -75,7 +75,7 @@ LocalFile sandbox-setting mismatch fixed and verified on the recovery laptop.
 The earlier export/parser proof remains historical. Restoring the exact retained
 bundle and signing in to Railway are required before hosted preparation.
 Independent breadth work: [Hyperlane](HYPERLANE_PUBLIC_SOURCE_STATUS.md) now
-passes native 3/2 and WEB4 builds; preset planning and hosted acceptance remain open.
+passes native 3/2, four preset plans and local WEB4 HTTP federation/privacy. The task branch and Core pin are published. Hosted preparation and visitor acceptance remain open.
 Automatic review rejected the combined website-edit/consumer-build operation;
 it did not execute. Website commands remain open. A separate reproduced page
 bug is fixed/tested below;no new native/browser proof or denied-operation retry.
@@ -92,12 +92,11 @@ sixth-batch-shipping-schema-evidence.json. Consumer now compiles;3page regressio
   operator/transport/scale HyperDrive acceptance remain open;no uptime guarantee.
 - Native browser snapshots do not yet copy arbitrary complete source payloads.
 
-Work only C:/Source/OASIS-cosmic;task branch work/cosmic-cql-ton-public;
-Core work/cosmic-cql-google-public;website C:/Source/Web4Site/work/cosmic-cql.
+Recovery laptop checkout C:/Source/OASIS2; task branch work/cosmic-cql-ton-public. The original checkout was C:/Source/OASIS-cosmic.
 Use one build lease;/m:2 /nr:false /p:UseSharedCompilation=false.
 Raw logs TestResults/;original identities/proof LocalState/COSMIC/;named-file commits.
 No production/master promotion;preserve unknown root logs and shared/denied cleanup.
-Disk120GB target unmet;[resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) owns resources.
+Use the [recovery laptop cleanup ledger](RECOVERY_LAPTOP_CLEANUP_LEDGER.md) for this machine. The [original ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) records the other laptop.
 
 ## Entry points / commands
 
