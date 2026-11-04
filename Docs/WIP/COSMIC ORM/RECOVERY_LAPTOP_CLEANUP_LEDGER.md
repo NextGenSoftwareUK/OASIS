@@ -440,3 +440,8 @@ returned 400 and POST returned 405. Runtime disposed its in-memory database.
 An untracked root .wrangler/cache was observed before this run and left in
 place because ownership was not established. This run used the D1 runtime
 folder as its working directory.
+
+The reproducible D1 HTTP probe now lives at Scripts/Sandbox/Test-D1WorkerSymbolFixture.cjs.
+Pass LocalState/COSMIC/RecoveryLaptopD1 as its sole argument using Node 24.
+The checked-in probe reproduced 3/2, duplicate 400 and POST 405 using the
+same runtime. No new runtime or persistent database was created.
