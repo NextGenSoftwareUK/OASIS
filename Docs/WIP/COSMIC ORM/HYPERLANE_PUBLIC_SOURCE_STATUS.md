@@ -23,3 +23,13 @@ Next qualify known IDs using the documented exact-key operation with a separate
 recorded intent. Preserve the original failed discovery. Require matching IDs
 and exact three/two coverage before implementing the provider profile. No account,
 write, package, runtime, tariff or hosted setting was created.
+
+## Exact message IDs qualified
+
+A separate lineage-bound discovery selected at most three IDs without sorting
+or filtering the whole index. Three distinct 32-byte IDs returned. Exact-key
+membership requests for all three and the first two returned exactly the
+requested sets, both HTTP 200. This qualifies indexed source access only.
+The first timeout remains recorded. Raw evidence and intent hashes are retained
+under LocalState/COSMIC/HyperlanePublicQualificationCurrent.
+Next implement the bounded read-only provider profile against this catalogue.
