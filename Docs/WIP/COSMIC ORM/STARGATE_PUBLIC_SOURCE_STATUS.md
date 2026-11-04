@@ -24,3 +24,12 @@ endpoint are rejected before mapping. The first build failed on an enum
 name collision, corrected with an explicit alias. Five LayerZero controlled
 checks also passed after the shared profile change. WEB4 admission is next.
 Stargate native TRX SHA256 16ACFAB425DCB66926712B3157F7C50E913AA20A4257DB723F53F75520553C87.
+
+## WEB4 local HTTP verified
+
+Opt-in admission and four preset plans passed. The isolated WEB4 HTTP run
+returned native 3/2, paired 5/4, foreign-private 0/public 3 and nine metering
+receipts. The fixture database was removed and the reused replica stopped.
+The hosted publisher accepted the source-bound native and local HTTP receipts.
+Local HTTP TRX SHA256 4BFC742B896794E502A44F4A5EA908D4B52BB171823CD3F82A3F88E82B55EF64.
+Hosted settings, replicas and browser acceptance remain open.

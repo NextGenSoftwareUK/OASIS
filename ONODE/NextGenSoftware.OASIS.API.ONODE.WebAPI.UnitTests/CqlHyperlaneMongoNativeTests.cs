@@ -27,6 +27,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
+using StargateSource = NextGenSoftware.OASIS.API.Providers.StargateOASIS.StargatePublicMessageMetadataSource;
 using LayerZeroSource = NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS.LayerZeroPublicMessageMetadataSource;
 using HyperlaneSource = NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS.HyperlanePublicMessageMetadataSource;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
@@ -52,6 +53,15 @@ public sealed class LayerZeroMongoNativeFactAttribute : FactAttribute
     {
         if (Environment.GetEnvironmentVariable("COSMIC_LAYERZERO_HTTP_NATIVE") != "owned-local-27029")
             Skip = "Explicit LayerZero/Mongo native gate.";
+    }
+}
+
+public sealed class StargateMongoNativeFactAttribute : FactAttribute
+{
+    public StargateMongoNativeFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("COSMIC_STARGATE_HTTP_NATIVE") != "owned-local-27029")
+            Skip = "Explicit Stargate/Mongo native gate.";
     }
 }
 
@@ -82,13 +92,22 @@ public sealed class CqlHyperlaneMongoNativeTests
         => VerifyAsync(ProviderType.LayerZeroV2OASIS, "LayerZeroV2", "layerzero",
             LayerZeroSource.MessageIdMetadata, LayerZeroSource.FromJson,
             new[] { "LayerZeroSourceEndpoint", "LayerZeroDestinationEndpoint" },
-            (native, metadata, isMongo) =>
-            {
-                Assert.Equal((string)native.MetaData["LayerZeroNonce"], metadata.GetProperty("LayerZeroNonce").GetString());
-                var status = metadata.GetProperty("LayerZeroScanStatus").GetString();
-                Assert.False(string.IsNullOrWhiteSpace(status));
-                if (isMongo) Assert.Equal((string)native.MetaData["LayerZeroScanStatus"], status);
-            }, false, "scan-reported-message-status");
+            VerifyScanMetadata, false, "scan-reported-message-status");
+
+    [StargateMongoNativeFact]
+    public Task NativeStargateMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
+        => VerifyAsync(ProviderType.StargateOASIS, "Stargate", "stargate",
+            StargateSource.MessageIdMetadata, StargateSource.FromJson,
+            new[] { "LayerZeroSourceEndpoint", "LayerZeroDestinationEndpoint" },
+            VerifyScanMetadata, false, "scan-reported-stargate-token-messaging");
+
+    private static void VerifyScanMetadata(IHolon native, JsonElement metadata, bool isMongo)
+    {
+        Assert.Equal((string)native.MetaData["LayerZeroNonce"], metadata.GetProperty("LayerZeroNonce").GetString());
+        var status = metadata.GetProperty("LayerZeroScanStatus").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(status));
+        if (isMongo) Assert.Equal((string)native.MetaData["LayerZeroScanStatus"], status);
+    }
 
     private static async Task VerifyAsync<TSource>(ProviderType publicProvider, string directoryPrefix, string fixture,
         string metadataKey, Func<string, TSource> createSource, string[] endpointFields,
