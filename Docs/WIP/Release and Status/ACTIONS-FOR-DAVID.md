@@ -508,3 +508,19 @@ Status: missing account/configuration information,2 November2026. David approved
 
 2 November2026 update: David configured GEOAPIFY_API_KEY on Railway development WEB4. Verified key presence without logging its value. Owner account/key setup complete; API deployment and hosted source/quota checks remain agent-owned. Do not ask David to configure the key again.
 
+
+## COSMIC CQL LocalFile qualification files from the newer laptop
+
+- Status 2026-11-04: awaiting recovery from the original laptop or its backup. The
+  files were not found under C:/Source on the current laptop. The original export
+  used randomly assigned IDs and the publisher validates hashes against the
+  acknowledgment and qualification receipt, so rerunning the export cannot
+  recover the same source.
+- If the old checkout is accessible, copy
+  `LocalState/COSMIC/HostedLocalFilePublicDatasetCurrent` and
+  `LocalState/COSMIC/HostedLocalFileSourceCurrent/source-qualified.json` from
+  C:/Source/OASIS-cosmic to the corresponding LocalState paths under
+  C:/Source/OASIS2, or tell the COSMIC agent where the backup is. Keep this
+  transfer limited to those paths. The agent will validate the bundle and
+  reconcile the hosted gate before changing Development.
+- Context: [LocalFile hosted qualification](../COSMIC%20ORM/LOCALFILE_CQL_MVP.md#hosted-public-source-qualification--3-november-2026).
