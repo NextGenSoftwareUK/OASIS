@@ -185,8 +185,9 @@ performed by this preparation. Existing accepted sources were not replayed.
 Resumed the original task branch in C:/Source/OASIS2. WEB4 registration now
 uses the same DNA-backed SandboxOptions.Enabled as the host. Publisher preflight
 requires DNA sandbox mode, and all five publisher tests pass with the redundant
-environment flag absent. WEB4 bootstrap and registration tests still need a
-completed build against the pinned dependencies.
+environment flag absent. WEB4 bootstrap and registration tests passed 13/13 against the rebuilt API.
+The wider LocalFile filter had the same 13 passes and one gated skip for the
+missing retained export. Evidence: TestResults/HostedLocalFileSourceCurrent/localfile-laptop.trx.
 
 The original hosted-source qualification receipt is absent at its expected
 LocalState path in this checkout. Recover the original source configuration,
