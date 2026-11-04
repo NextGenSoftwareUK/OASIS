@@ -273,3 +273,8 @@ the first failure log. The deadline rebuild uses
 TestResults/ProviderBuildCurrent/cosmic-eigenlayer-deadline.log and the
 same shared binaries. Keep diagnostic artifacts until the federation gate
 passes and confirms exact database cleanup.
+
+Fhenix local qualification has an ignored 103-byte fixture at
+LocalState/COSMIC/FhenixPublicQualificationCurrent/source.json and an empty
+TestResults/FhenixPublicSourceCurrent report directory. The fixture contains
+only the three qualified public chain IDs and a test owner ID.
