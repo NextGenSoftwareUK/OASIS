@@ -171,3 +171,6 @@ LayerZero local HTTP reused MongoDB 8.2 and the stopped replica store. The
 isolated fixture database was removed and port 27029 is closed. Retain the
 qualification and HTTP reports for rollout.
 - TestResults/LayerZeroV2PublicSourceCurrent : 4741146 bytes
+
+Stargate bounded Scan reads reused the existing HTTP client tooling.
+- TestResults/StargatePublicSourceCurrent : 24763 bytes
