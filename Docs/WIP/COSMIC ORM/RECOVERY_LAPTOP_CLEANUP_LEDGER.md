@@ -411,3 +411,10 @@ QuestDB fixture directory and owned PID files removed.
 QuestDB hosted configuration checks reused the existing provider and integration
 bin/obj. TestResults/ProviderBuildCurrent/cosmic-questdb-config.log records
 2/2 passed. No fixture was started.
+
+Archived five verbose QuestDB build logs in place as .log.gz after verifying
+byte-for-byte decompression. The earlier .log paths for client, exact-core,
+http-build, http-exact and web4 now have a .gz suffix. The manifest
+TestResults/ProviderBuildCurrent/cosmic-questdb-log-archive.json records sizes
+and original SHA256 hashes. Reduced 7,046,996 bytes to 297,857 bytes before
+manifest overhead. Compact native test receipts remain uncompressed.
