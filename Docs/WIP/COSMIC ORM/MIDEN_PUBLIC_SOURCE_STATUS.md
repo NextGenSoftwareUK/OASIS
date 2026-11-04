@@ -54,3 +54,11 @@ before querying and cleaning the owned database. The first report failed
 because its output directory had not been provisioned. After provisioning
 it, the same fixture passed and the replica was stopped. Hosted acceptance
 remains pending.
+
+The guarded Miden publisher validates the source digest and the local
+HTTP/privacy and cleanup receipt before accessing Railway. Its configuration
+tests verify the three allowed settings, four presets, preservation of write
+admission, and refusal to mutate before the expected release is live.
+Run Scripts/Sandbox/Publish-HostedMidenPublicConfiguration.py to prepare a
+protected review only after LocalFile hosted acceptance. Apply requires a
+matching deployment and the same reviewed source. Hosted verification is open.
