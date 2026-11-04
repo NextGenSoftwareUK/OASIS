@@ -27,14 +27,17 @@ internal sealed class QuestDbSymbolRestClient(HttpClient http, Uri executeUri)
     public async Task<IReadOnlyList<string>> ReadSymbolsAsync(IReadOnlyList<string> keys, CancellationToken cancellationToken)
     {
         ValidateKeys(keys);
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(TimeSpan.FromSeconds(15));
+        var token = deadline.Token;
         var literals = string.Join(", ", keys.Select(key => $"'{key}'"));
         var sql = $"select symbol from cql_demo_symbols where symbol in ({literals}) order by symbol";
         var uri = new UriBuilder(executeUri) { Query = "query=" + Uri.EscapeDataString(sql) }.Uri;
-        using var response = await http.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        using var response = await http.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, token);
         response.EnsureSuccessStatusCode();
-        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        await using var stream = await response.Content.ReadAsStreamAsync(token);
         var buffer = new byte[MaximumBodyBytes + 1];
-        var size = await stream.ReadAtLeastAsync(buffer, buffer.Length, false, cancellationToken);
+        var size = await stream.ReadAtLeastAsync(buffer, buffer.Length, false, token);
         if (size > MaximumBodyBytes)
             throw new InvalidDataException("QuestDB response exceeded the symbol query budget.");
 

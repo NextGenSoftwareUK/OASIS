@@ -52,3 +52,8 @@ Local bounded CQL symbol adapter passed 1/1 against QuestDB 10.1.0 with
 zero skips, asserting exact 3/2 provider keys via the shared query planner.
 The adapter is separate from owned storage. WEB4 registration, HTTP/Mongo
 federation, public gateway qualification and hosted acceptance remain open.
+
+WEB4 enrollment requires a separate host-managed read-only storage profile
+with explicit activation and disposal. The current planner adapter is not
+eligible for that registry until it implements this contract. The native
+REST client now applies a single 15-second deadline to headers and body reads.
