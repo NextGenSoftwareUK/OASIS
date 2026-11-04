@@ -42,3 +42,15 @@ execution over the preserved Explorer catalogue passed one test with exact
 WEB4 builds with explicit query-source registration. Next verify the HTTP
 presets and Mongo federation/privacy, then prepare guarded hosted admission.
 No deployment or hosted coverage increment.
+
+## WEB4 preset and rollout controls
+
+All four presets plan against shipping native and Mongo capabilities in one
+passing test. TRX SHA256 FF040A9DA82CB8C46E2D64A627DD6BB89A01B540D11ABE27D3B93A0F1107C2C1. The published client derives
+the exact two-message preparation request. Two offline rollout checks pass.
+The source-bound native receipt is retained. Local HTTP acceptance requires
+an owned loopback Mongo replica set. This laptop has MongoDB 8.2 installed
+and an unrelated service on 27017. The former laptop's 8.3.11 binary and
+replica store are absent. Use a separately owned reusable local test store
+with explicit identity and keep the existing service outside the test.
+No WEB4 configuration or deployment has changed.
