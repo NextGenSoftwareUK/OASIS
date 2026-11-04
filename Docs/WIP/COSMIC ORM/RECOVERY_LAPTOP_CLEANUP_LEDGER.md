@@ -294,3 +294,10 @@ TestResults/ProviderBuildCurrent/cosmic-fhenix-eigenlayer-request-id.log.
 The preactivation-request-id logs and fixture intents are archived under
 each provider's existing report directory. Retain until both fixture
 databases are verified absent after the successful tests.
+
+EigenLayer local federation passed, dropped its owned fixture and stopped
+the replica. Fhenix acknowledged two saves before the HTTP deadline and
+retains the exact cosmic_cql_fhenix_http_demo database and fixture intent.
+The concurrent-read build and resume write cosmic-fhenix-concurrent.log
+under ProviderBuildCurrent and federation-resume.log under
+TestResults/FhenixPublicSourceCurrent. Keep until cleanup is confirmed.
