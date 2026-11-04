@@ -344,3 +344,9 @@ cosmic_cql_ritual_http_demo.
 Ritual federation passed, removed its owned Mongo fixture database and
 closed port 27029. Retain the compact RitualPublicSourceCurrent summary
 and RitualMongoHttpCurrent cleanup receipt.
+
+Turso pipeline regression tests reused the existing .NET SDK and NuGet cache.
+Generated outputs are the Turso provider and Turso unit test project bin/obj
+directories plus shared dependency bin/obj. The compact run receipt is
+TestResults/ProviderBuildCurrent/cosmic-turso-pipeline.log (4 passed).
+No database, service process, download or runtime install was created.

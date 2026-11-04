@@ -41,4 +41,7 @@
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.TursoOASIS.UnitTests" />
+  </ItemGroup>
 </Project>

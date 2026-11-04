@@ -44,9 +44,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
         };
 
         public TursoOASIS(string url, string authToken)
+            : this(url, authToken, new HttpClientHandler())
+        {
+        }
+
+        internal TursoOASIS(string url, string authToken, HttpMessageHandler handler)
         {
             _pipelineUrl = url.TrimEnd('/') + "/v2/pipeline";
-            _http = new HttpClient();
+            _http = new HttpClient(handler);
             _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {authToken}");
             ProviderName = "TursoOASIS";
             ProviderDescription = "Turso (libSQL) provider via libSQL HTTP pipeline API";
@@ -80,12 +85,18 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                     new PipelineStmt { Type = "close" }
                 }
             };
-            var content = new StringContent(JsonSerializer.Serialize(payload, _jsonOpts), Encoding.UTF8, "application/json");
-            var response = await _http.PostAsync(_pipelineUrl, content);
+            using var content = new StringContent(JsonSerializer.Serialize(payload, _jsonOpts), Encoding.UTF8, "application/json");
+            using var response = await _http.PostAsync(_pipelineUrl, content);
             var json = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode) throw new Exception($"TursoOASIS HTTP {(int)response.StatusCode}: {json}");
             var pr = JsonSerializer.Deserialize<PipelineResponse>(json, _jsonOpts);
-            return pr?.Results?.FirstOrDefault()?.Response?.Result;
+            if (pr?.Results is not { Count: 2 } results)
+                throw new InvalidOperationException("Turso returned an invalid execute/close pipeline envelope.");
+            if (results[0] is not { Type: "ok", Response: { Type: "execute", Result: { } result } })
+                throw new InvalidOperationException("Turso did not acknowledge the SQL statement.");
+            if (results[1] is not { Type: "ok", Response.Type: "close" })
+                throw new InvalidOperationException("Turso did not acknowledge closing the SQL stream.");
+            return result;
         }
 
         private async Task ExecAsync(string sql, List<LibSqlArg>? args = null) => await ExecuteSqlAsync(sql, args);
