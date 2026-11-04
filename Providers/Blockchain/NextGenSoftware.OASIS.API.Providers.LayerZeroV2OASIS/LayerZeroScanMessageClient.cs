@@ -14,7 +14,7 @@ public sealed class LayerZeroScanMessageClient(HttpClient client)
     private const int MaximumResponseBytes = 256 * 1024;
     private static readonly Regex MessageGuid = new(@"\A0x[0-9a-f]{64}\z", RegexOptions.CultureInvariant);
 
-    public sealed record Observation(string Guid, uint SourceEndpoint, uint DestinationEndpoint, ulong Nonce, string Status);
+    public sealed record Observation(string Guid, uint SourceEndpoint, uint DestinationEndpoint, ulong Nonce, string Status, string DestinationAddress);
 
     public async Task<Observation> ReadAsync(string guid, CancellationToken cancellationToken)
     {
@@ -62,6 +62,9 @@ public sealed class LayerZeroScanMessageClient(HttpClient client)
         if (source == 0 || destination == 0 || status == null || status.Length is < 1 or > 64
             || !Regex.IsMatch(status, @"\A[A-Z][A-Z0-9_]*\z", RegexOptions.CultureInvariant))
             throw new InvalidDataException("LayerZero Scan returned invalid message metadata.");
-        return new(guid, source, destination, nonce, status);
+        var address = pathway.TryGetProperty("receiver", out var receiver) &&
+            receiver.ValueKind == JsonValueKind.Object && receiver.TryGetProperty("address", out var destinationAddress) &&
+            destinationAddress.ValueKind == JsonValueKind.String ? destinationAddress.GetString() : null;
+        return new(guid, source, destination, nonce, status, address);
     }
 }

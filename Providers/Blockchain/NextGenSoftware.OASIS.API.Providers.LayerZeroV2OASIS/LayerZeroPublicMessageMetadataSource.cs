@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS;
 /// <summary>
 /// Anonymous indexed message metadata over a bounded LayerZero ID catalogue.
 /// </summary>
-public sealed class LayerZeroPublicMessageMetadataSource : KeyValueStorageProviderBase,
+public class LayerZeroPublicMessageMetadataSource : KeyValueStorageProviderBase,
     ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
 {
     public const string MessageIdMetadata = "LayerZeroMessageId";
@@ -31,24 +31,34 @@ public sealed class LayerZeroPublicMessageMetadataSource : KeyValueStorageProvid
 
     public LayerZeroPublicMessageMetadataSource(HttpClient client,
         IEnumerable<string> messageIds, Guid sourceOwner, bool ownsClient = false)
-        : this(new MessagesBackend(client, messageIds, sourceOwner, ownsClient)) { }
+        : this(client, messageIds, sourceOwner, ownsClient, PType.LayerZeroV2OASIS,
+            MessageIdMetadata, "layerzero-scan-messages", null) { }
+
+    protected LayerZeroPublicMessageMetadataSource(HttpClient client, IEnumerable<string> messageIds,
+        Guid sourceOwner, bool ownsClient, PType provider, string metadataKey, string sourceName,
+        Action<LayerZeroScanMessageClient.Observation> validate)
+        : this(new MessagesBackend(client, messageIds, sourceOwner, ownsClient, provider,
+            metadataKey, sourceName, validate)) { }
 
     private LayerZeroPublicMessageMetadataSource(MessagesBackend backend) : base(backend, backend.Prefix)
     {
         messages = backend;
-        ProviderName = PType.LayerZeroV2OASIS.ToString();
+        ProviderName = backend.Provider.ToString();
         ProviderDescription = "Anonymous LayerZero Scan message observations";
-        ProviderType = new EnumValue<PType>(PType.LayerZeroV2OASIS);
+        ProviderType = new EnumValue<PType>(backend.Provider);
         ProviderCategory = new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-        QueryCapabilities = CosmicQueryCapabilities.ForStringMetadataKeyLookup(MessageIdMetadata, 66, 8);
+        QueryCapabilities = CosmicQueryCapabilities.ForStringMetadataKeyLookup(backend.MetadataKey, 66, 8);
     }
 
-    public PType QueryProviderType => PType.LayerZeroV2OASIS;
+    public PType QueryProviderType => messages.Provider;
     public CosmicQueryCapabilities QueryCapabilities { get; }
 
     /// <summary>Separate host query-profile configuration, never the existing
     /// cross-chain tracker settings. Reject unknown fields rather than ignore keys.</summary>
     public static LayerZeroPublicMessageMetadataSource FromJson(string json)
+        => ReadConfiguration(json, (client, keys, owner) => new LayerZeroPublicMessageMetadataSource(client, keys, owner, true));
+
+    protected static T ReadConfiguration<T>(string json, Func<HttpClient, IEnumerable<string>, Guid, T> create)
     {
         if (json == null || Encoding.UTF8.GetByteCount(json) > 8192)
             throw new ArgumentException("Bounded explicit LayerZero public source required.");
@@ -67,9 +77,8 @@ public sealed class LayerZeroPublicMessageMetadataSource : KeyValueStorageProvid
         var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(15) };
         try
         {
-            return new LayerZeroPublicMessageMetadataSource(client,
-                root.GetProperty("messageIds").EnumerateArray().Select(value => value.GetString()),
-                root.GetProperty("sourceOwner").GetGuid(), true);
+            return create(client, root.GetProperty("messageIds").EnumerateArray().Select(value => value.GetString()),
+                root.GetProperty("sourceOwner").GetGuid());
         }
         catch { client.Dispose(); throw; }
     }
@@ -159,16 +168,20 @@ public sealed class LayerZeroPublicMessageMetadataSource : KeyValueStorageProvid
 
     private sealed class MessagesBackend : IKeyValueBackend, IDisposable
     {
-        private const string SourceName = "layerzero-scan-messages";
+        private readonly string sourceName;
+        private readonly Action<LayerZeroScanMessageClient.Observation> validate;
+        public PType Provider { get; }
+        public string MetadataKey { get; }
         private readonly HttpClient client;
         private readonly LayerZeroScanMessageClient scan;
         private readonly Guid owner;
         private readonly bool ownsClient;
         private readonly Dictionary<string, string> records;
         public IReadOnlyList<string> MessageIds { get; }
-        public string Prefix => "layerzero-public-metadata/";
+        public string Prefix => Provider == PType.LayerZeroV2OASIS ? "layerzero-public-metadata/" : sourceName + "/";
 
-        public MessagesBackend(HttpClient client, IEnumerable<string> messageIds, Guid owner, bool ownsClient)
+        public MessagesBackend(HttpClient client, IEnumerable<string> messageIds, Guid owner, bool ownsClient,
+            PType provider, string metadataKey, string sourceName, Action<LayerZeroScanMessageClient.Observation> validate)
         {
             ArgumentNullException.ThrowIfNull(client);
             ArgumentNullException.ThrowIfNull(messageIds);
@@ -183,9 +196,13 @@ public sealed class LayerZeroPublicMessageMetadataSource : KeyValueStorageProvid
             scan = new LayerZeroScanMessageClient(client);
             this.owner = owner;
             this.ownsClient = ownsClient;
+            Provider = provider;
+            MetadataKey = metadataKey;
+            this.sourceName = sourceName;
+            this.validate = validate;
             MessageIds = Array.AsReadOnly(keys);
             records = keys.ToDictionary(key => Prefix + "holon/" +
-                NativeRecordHolonMapper.StableHolonId(owner, PType.LayerZeroV2OASIS, SourceName, key).ToString("N"), key => key);
+                NativeRecordHolonMapper.StableHolonId(owner, Provider, sourceName, key).ToString("N"), key => key);
         }
 
         public async Task<IReadOnlyList<IHolon>> ReadAsync(IReadOnlyList<string> keys, CancellationToken token)
@@ -196,9 +213,10 @@ public sealed class LayerZeroPublicMessageMetadataSource : KeyValueStorageProvid
             foreach (var key in keys)
             {
                 var observation = await scan.ReadAsync(key, deadline.Token);
+                validate?.Invoke(observation);
                 var fields = new Dictionary<string, object>
                 {
-                    [MessageIdMetadata] = observation.Guid,
+                    [MetadataKey] = observation.Guid,
                     ["LayerZeroSourceEndpoint"] = (long)observation.SourceEndpoint,
                     ["LayerZeroDestinationEndpoint"] = (long)observation.DestinationEndpoint,
                     ["LayerZeroNonce"] = observation.Nonce.ToString(System.Globalization.CultureInfo.InvariantCulture),
@@ -207,14 +225,14 @@ public sealed class LayerZeroPublicMessageMetadataSource : KeyValueStorageProvid
                     ["description"] = "LayerZero Scan indexed message metadata"
                 };
                 var mapped = NativeRecordHolonMapper.CreateHolon(owner, PType.LayerZeroV2OASIS,
-                    new NativeRecord(SourceName, key, fields), NativeDataMapping.ForSource(SourceName));
+                    new NativeRecord(sourceName, key, fields), NativeDataMapping.ForSource(sourceName));
                 if (mapped.IsError) throw new InvalidDataException(mapped.ErrorCode);
                 var row = mapped.Result;
                 row.CreatedByAvatarId = owner;
                 row.IsPublic = true;
                 row.IsActive = true;
                 row.Children = Array.Empty<IHolon>();
-                row.ProviderUniqueStorageKey[PType.LayerZeroV2OASIS] = key;
+                row.ProviderUniqueStorageKey[Provider] = key;
                 rows.Add(row);
             }
             deadline.Token.ThrowIfCancellationRequested();
