@@ -29,3 +29,10 @@ The read-only adapter built and activated live with heights 2 and 3,
 requiring the separate block 1 identity check. It projects stable public
 holons with exact height equality or bounded membership. WEB4 admission,
 end-to-end CQL execution and federation remain pending.
+
+The parent WEB4 registration, compiler and admission/federation tests are
+prepared. Before running them, coordinate the shared Core checkout: the
+parent pins 2acffcb0, while the shared checkout is detached at 54159614.
+Add EspressoSystemsOASIS to the query-only execution allowlist on the task
+Core branch when the checkout is available, then run the leased build and
+the owned Mongo gate. The local catalogue and report directory are ready.

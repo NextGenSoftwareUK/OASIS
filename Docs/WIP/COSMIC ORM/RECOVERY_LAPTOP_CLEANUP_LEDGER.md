@@ -235,3 +235,8 @@ Espresso guarded client build uses the existing .NET runtime and shared lease.
 Generated outputs are the EspressoSystemsOASIS provider bin/obj and
 TestResults/ProviderBuildCurrent/cosmic-espresso-build.log. Reuse for CQL
 adapter verification and remove owned outputs when their consumers finish.
+
+Espresso local federation uses the ignored 85-byte
+LocalState/COSMIC/EspressoPublicQualificationCurrent/source.json and the
+TestResults/EspressoPublicSourceCurrent report directory. The fixture is
+prepared and the test has not run. No Mongo database or process was created.
