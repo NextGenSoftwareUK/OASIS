@@ -33,3 +33,9 @@ CQL integration and live WEB4 acceptance are pending.
 
 [Official SDK lookup](https://github.com/FhenixProtocol/cofhesdk/blob/master/packages/sdk/core/taskManager.ts) ·
 [SDK contract constants](https://github.com/FhenixProtocol/cofhesdk/blob/master/packages/sdk/core/consts.ts)
+
+The compiled guarded reader and read-only CQL source built with zero errors.
+The source activated all three configured networks live using the exact local
+fixture. It exposes chain ID, Task Manager address and finalized block
+provenance. WEB4 registration, native CQL and local/hosted federation remain
+open. The guarded publisher configuration passed its three tests.
