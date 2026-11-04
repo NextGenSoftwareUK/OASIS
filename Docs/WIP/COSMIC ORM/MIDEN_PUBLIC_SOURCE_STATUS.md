@@ -31,3 +31,9 @@ The client now pins the official HTTPS testnet endpoint and uses the shared
 native connection guard, with proxies and cookies disabled. The guarded build
 passed and the live three-header smoke passed again, including the block 1
 genesis comparison. The build reused the recovery ledger paths.
+
+The typed client enforces the pinned genesis reference on every block 1
+read. The guarded provider build passed and live heights 1, 2, and 3 passed.
+Controlled typed inputs verified rejection of a wrong height, missing header,
+and mismatched genesis commitment. Source activation still needs to request
+block 1 even when it is outside the configured query catalogue.
