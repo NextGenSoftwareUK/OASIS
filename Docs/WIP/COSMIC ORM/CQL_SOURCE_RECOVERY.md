@@ -1,7 +1,10 @@
 # Explicit CQL read-source recovery
 
-Implemented and controlled-tested, 2 November 2026. This addresses a reproduced
+Implemented and controlled-tested, updated3November2026. This addresses a reproduced
 demo outage. Hosted operator recovery is not yet verified.
+Code b718f2879 published to Development;exact deployment
+33c9ef7d-b8b3-4403-9109-32ce47c4d7a8 SUCCESS. Healthy;four-provider readiness passes.
+Current59/60ready,Nostr unavailable;no successful operator recovery claimed.
 
 The sixth release is healthy, but Nostr activation failed at connect with
 HTTP503/NotAWebSocket. The startup failure latch previously required a whole-host
@@ -66,8 +69,18 @@ Normal queries and discovery never initiate recovery or native retries.
   TRX/source hashes/counts:LocalState/COSMIC/HostedSourceRecoveryCurrent/
   source-recovery-final-evidence.json. Initial test-only CS0029 name collision and
   original failed compile log preserved separately;no native operation occurred.
-- Live route authorization and operator-owned recovery: pending. A controlled
-  provider is not proof that the upstream relay has recovered.
+- Live route denial passes:anonymous401 and original ordinary demo-owner403.
+  Invalid host identity prevents activation even if authorization is faulty.
+  Original intent/ACKs and response hashes are retained in
+  LocalState/COSMIC/HostedSourceRecoveryReleaseCurrent/authorization-verified.json;
+  readiness-observed.json proves generation/host metadata and current59/60ready.
+- Privileged operator-owned recovery:pending existing Wizard-session availability,
+  recorded in [David's single list](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
+  No account promotion or test-admin identity creation. A controlled provider
+  is not proof that the upstream relay has recovered.
+- Local sign-in helper:4offline checks pass for sealed session output,server-role
+  validation,unknown-attempt fencing and missing secure refresh cookie. These
+  use synthetic credentials and a test protection stub;actual sign-in pending.
 - Original acknowledged Nostr query/save cohort remains frozen. No browser,
   uptime, all-provider health or full ORM certification follows from recovery.
 
@@ -80,3 +93,26 @@ This repairs recovery after recorded activation failure. A runtime query failure
 does not automatically change the activation generation or initiate recovery;
 continuous source-health management and runtime-query outage transitions remain
 separate work. Operator receipts are not a durable business-operation outbox.
+
+## Secure local sign-in
+
+David offered an existing Wizard account. No password or token is needed in chat.
+Run this yourself in an interactive Windows terminal:
+
+```powershell
+cd C:\Source\OASIS2
+python Scripts/Sandbox/Prepare-CqlRecoveryOperatorSession.py
+```
+
+Enter your existing **development** Wizard username and password at the prompts.
+The password is hidden and never written to arguments/request journals. The
+normal HTTPS sign-in response/session is Windows-DPAPI protected in the ignored
+LocalState/COSMIC/HostedSourceRecoveryOperatorCurrent folder. Keep that folder
+private. No account is created or promoted. The server role check uses an
+invalid host identity and cannot activate the source. On success tell the agent
+“operator sign-in complete”;do not send the token/password/files.
+
+If it reports incomplete,do not repeatedly rerun or delete the original state;
+tell the agent to reconcile. After verification the agent must revoke the owned
+session and reconcile cleanup before removing protected credentials. No original
+demo account/copy or other signed-in session is to be removed.

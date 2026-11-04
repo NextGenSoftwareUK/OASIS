@@ -134,8 +134,8 @@ logs/TRX/compiled artifacts stay in TestResults/source build output; no raw docs
 ## Paired SDK/HTTP/browser proof and demo
 
 ```powershell
-Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Sui -Federated
-Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Sui -Federated -VerifyOnly
+Scripts/TestHosts/Run-CosmicSuiCqlNative.ps1 -Federated -Serve
+Scripts/TestHosts/Run-CosmicSuiCqlNative.ps1 -Federated
 ```
 
 The runner owns reuse-only startup/shutdown of the existing chain and exact Mongo

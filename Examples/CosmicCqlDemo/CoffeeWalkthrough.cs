@@ -268,20 +268,12 @@ public static class CoffeeWalkthrough
 
         await output.WriteLineAsync("6. Second client Save(): " + conflict.ErrorCode + "; winner preserved, stale edits remain local.");
 
-        // EXAMPLE 7 - capability validation happens before native execution.
-        // This adapter does not support exact decimal metadata filtering; the planner
-        // reports that limitation instead of evaluating the predicate in memory.
-        var unsupported = Value(Query().Where(c => CosmicQueryMetadata.Value<decimal>(c,
-            "unsupportedDecimal") > 1m));
-        var rejected = CosmicQueryPlanner.Plan(unsupported,
-            provider,
-            new[] { new CosmicQueryTarget(provider,
-            adapter.QueryCapabilities) });
-
-        Check(rejected.IsError && rejected.ErrorCode == "CQL_CAPABILITY_UNSUPPORTED",
-            "Unsupported scalar semantics must reject at planning.");
-
-        await output.WriteLineAsync("7. Unsupported decimal filter: rejected at planning before native query execution.");
+        // EXAMPLE 7 - native decimal metadata comparisons support exact ordering.
+        // These seed records omit the key, so none satisfy the comparison.
+        var decimalRows = await Read(Value(Query().Where(c => CosmicQueryMetadata.Value<decimal>(c,
+            "optionalDecimal") > 1m)), manager, adapter);
+        Check(decimalRows.Count == 0, "Missing decimal metadata must not match an ordered comparison.");
+        await output.WriteLineAsync("7. Native decimal metadata filter: no rows match the missing key.");
 
         return new("passed",
             provider.ToString(),

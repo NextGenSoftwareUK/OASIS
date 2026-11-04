@@ -1,5 +1,13 @@
 # Return after the MVP demo
 
+## Virtual Holons and hybrid import
+
+Use the [Virtual Holons import proposal](OASIS_Virtual_Holons_Import_Proposal.docx) for the follow-on design. Start with one read-only provider
+collection. Verify stable identity, tenant isolation, bounded native
+execution, provenance, and zero per-row persistence. Prove federation
+with materialized Holons, then verify explicit snapshot saves separately
+from cache expiry, invalidation, erasure, and storage accounting.
+
 Updated 31 October 2026. These remain part of the full goal; they are deferred, not complete.
 
 Priority now: reproducible demo blockers, actual hosted breadth/presets and scoped HyperDrive gates. Do not redo green scopes or expand parity depth ahead of the demo.

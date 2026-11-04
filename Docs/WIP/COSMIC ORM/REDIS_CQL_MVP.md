@@ -73,8 +73,8 @@ Report `TestResults/RedisCqlCurrent/redis-cql-controls.trx`, SHA256
 ## Native/restart/paired proof and commands
 
 ```powershell
-Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Redis -Federated
-Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Redis -Federated -VerifyOnly
+Scripts/TestHosts/Run-CosmicRedisCqlNative.ps1 -Federated -Serve
+Scripts/TestHosts/Run-CosmicRedisCqlNative.ps1 -Federated
 ```
 
 Browser localhost5111. One HolonManager query reads encrypted Redis3+Mongo2=5
