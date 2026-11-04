@@ -395,3 +395,15 @@ TestResults/ProviderBuildCurrent/cosmic-questdb-admission.log.
 Exact-Core QuestDB admission reused shared outputs and wrote
 TestResults/ProviderBuildCurrent/cosmic-questdb-exact-core.log (1/1 passed).
 The previous Core checkout was restored. No test database was created.
+
+QuestDB/Mongo HTTP harness compile reuses the WEB4 unit test bin/obj and
+TestResults/ProviderBuildCurrent/cosmic-questdb-http-build.log. The initial
+compile uses the shared Core checkout and cannot certify QuestDB admission.
+Run the native fixture under the exact task Core pin before recording proof.
+
+QuestDB/Mongo HTTP proof reused the pinned runtimes and shared WEB4 outputs.
+The exact build and test logs are cosmic-questdb-http-exact.log and
+cosmic-questdb-http-native.log in TestResults/ProviderBuildCurrent. Retain the
+QuestDbPublicSourceCurrent summary and QuestDbMongoHttpCurrent cleanup receipt.
+The owned Mongo fixture database was dropped, both ports closed and the
+QuestDB fixture directory and owned PID files removed.

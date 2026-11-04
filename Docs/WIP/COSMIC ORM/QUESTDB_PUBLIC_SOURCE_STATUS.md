@@ -81,3 +81,8 @@ QuestDB native and QuestDB/Mongo presets planned, and the zero-price tariff
 was accepted only for the explicit query-only enrollment. The shared Core
 checkout was restored to 5415961. Local HTTP execution and hosted acceptance
 remain open.
+
+Exact Core 58c7cc9 local loopback HTTP federation passed 1/1: native 3/2,
+paired 5/4, foreign private 0 and foreign public 3. Two SDK-owned Mongo saves
+and nine controlled receipts verified. The test injects the local source and
+does not establish hosted endpoint, replication or browser acceptance.

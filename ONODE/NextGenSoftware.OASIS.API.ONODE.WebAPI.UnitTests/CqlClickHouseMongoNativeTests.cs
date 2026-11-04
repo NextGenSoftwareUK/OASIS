@@ -28,6 +28,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
 using ClickHouseSource = NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.ClickHousePublicCountryMetadataSource;
+using QuestDbSource = NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.QuestDbSymbolQuerySource;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 using IoFile = System.IO.File;
 
@@ -42,20 +43,29 @@ public sealed class ClickHouseMongoNativeFactAttribute : FactAttribute
     }
 }
 
+public sealed class QuestDbMongoNativeFactAttribute : FactAttribute
+{
+    public QuestDbMongoNativeFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("COSMIC_QUESTDB_HTTP_NATIVE") != "owned-local-27029")
+            Skip = "Requires the isolated QuestDB and Mongo native fixtures.";
+    }
+}
+
 /// <summary>Real native reads through shipping CQL endpoints over loopback HTTP.
 /// SDK-owned writes seed private Mongo copies. Controlled bearer/admission is
 /// test infrastructure, not production signup/billing or replication proof.</summary>
 public sealed class CqlClickHouseMongoNativeTests
 {
-    private const string Database = "cosmic_cql_clickhouse_http_demo";
-    private const string Owner = "cosmic-cql-clickhouse-http-v1";
-    private static readonly ProviderType[] Types = { ProviderType.MongoDBOASIS, ProviderType.ClickHouseOASIS };
+
+
+
     private sealed class Sources(IOASISStorageProvider mongo, IOASISStorageProvider clickhouseSource,
-        OASISDNA dna, ProviderManager registry) : ICqlV1Providers
+        OASISDNA dna, ProviderManager registry, ProviderType sourceType) : ICqlV1Providers
     {
         public IOASISStorageProvider Resolve(ProviderType? requested) => requested switch {
             null or ProviderType.MongoDBOASIS => mongo,
-            ProviderType.ClickHouseOASIS => clickhouseSource,
+            var type when type == sourceType => clickhouseSource,
             _ => throw new InvalidOperationException("Only the two explicitly enrolled native fixture providers are available.") };
         public HolonManager CreateManager(IOASISStorageProvider provider) => new(null, dna, registry);
     }
@@ -63,28 +73,48 @@ public sealed class CqlClickHouseMongoNativeTests
     [ClickHouseMongoNativeFact]
     public async Task NativeClickHouseMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {
+        await RunNativeFederationAsync(ProviderType.ClickHouseOASIS);
+    }
+
+    [QuestDbMongoNativeFact]
+    public async Task NativeQuestDbSymbolsAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
+    {
+        await RunNativeFederationAsync(ProviderType.QuestDBOASIS);
+    }
+
+    private static async Task RunNativeFederationAsync(ProviderType sourceType)
+    {
+        bool questDb = sourceType == ProviderType.QuestDBOASIS;
+        var providerName = sourceType.ToString();
+        var metadataKey = questDb ? QuestDbSource.SymbolMetadata : ClickHouseSource.AddressMetadata;
+        var slug = questDb ? "questdb" : "clickhouse";
+        var Database = $"cosmic_cql_{slug}_http_demo";
+        var Owner = $"cosmic-cql-{slug}-http-v1";
+        var Types = new[] { ProviderType.MongoDBOASIS, sourceType };
+        var fixture = questDb ? "QuestDb" : "ClickHouse";
         var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
-        Assert.True(Directory.Exists(Path.Combine(root, "LocalState/COSMIC/HostedClickHousePublicSourceCurrent")));
+
         const string mongoConnection = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs";
         var mongoUrl = new MongoUrl(mongoConnection);
         Assert.Equal("127.0.0.1", Assert.Single(mongoUrl.Servers).Host);
         Assert.Equal(27029, Assert.Single(mongoUrl.Servers).Port);
         Assert.Equal("oasisRecoveryRs", mongoUrl.ReplicaSetName);
-        var state = Path.Combine(root, "LocalState/COSMIC/ClickHouseMongoHttpCurrent");
+        var state = Path.Combine(root, $"LocalState/COSMIC/{fixture}MongoHttpCurrent");
         Directory.CreateDirectory(state);
         var intent = Path.Combine(state, "fixture.intent.json");
         Assert.False(IoFile.Exists(intent), "Preserve the original fixture outcome; never reseed/replay it.");
         Assert.Empty(Directory.EnumerateFiles(state));
         var configPath = Path.Combine(root, "LocalState/COSMIC/HostedClickHousePublicSourceCurrent/source.json");
-        var configJson = await IoFile.ReadAllTextAsync(configPath);
-        using var config = JsonDocument.Parse(configJson);
-        var allowed = config.RootElement.GetProperty("countries").EnumerateArray().Select(country => country.GetString()!).ToArray();
+        var configJson = questDb ? null : await IoFile.ReadAllTextAsync(configPath);
+        using var config = configJson == null ? null : JsonDocument.Parse(configJson);
+        var allowed = questDb ? new[] { "BTC-USDT", "ETH-USDT", "SOL-USDT" }
+            : config!.RootElement.GetProperty("countries").EnumerateArray().Select(country => country.GetString()!).ToArray();
         Assert.Equal(3, allowed.Length);
         var actor = Guid.NewGuid();
         var foreignActor = Guid.NewGuid();
         var nonce = Guid.NewGuid().ToString("D");
         var identities = CqlHostedDemoIdentities.Create(new CqlDemoIdentityRequest {
-            Provider = "ClickHouseOASIS", Keys = allowed.Take(2).ToArray() }, actor);
+            Provider = providerName, Keys = allowed.Take(2).ToArray() }, actor);
         var copies = identities.Records.Select(record => record.Id).ToArray();
         var operations = new[] { Guid.NewGuid(), Guid.NewGuid() };
         var client = new MongoClient(mongoConnection);
@@ -96,16 +126,21 @@ public sealed class CqlClickHouseMongoNativeTests
             file.Flush(true);
         }
 
-        using var clickhouseSource = ClickHouseSource.FromJson(configJson);
-        Assert.False((await clickhouseSource.ActivateQuerySourceAsync(default)).IsError);
-        var nativeQuery = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.ClickHouseOASIS).Result)
+        using var nativeHttp = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+        using IDisposable disposableSource = questDb
+            ? new QuestDbSource(nativeHttp, new Uri("http://127.0.0.1:29000/api/v1/sql/execute"), actor, allowed)
+            : ClickHouseSource.FromJson(configJson!);
+        var clickhouseSource = (IOASISStorageProvider)disposableSource;
+        var querySource = (ICosmicQueryStorageProvider)disposableSource;
+        Assert.False((await ((ICosmicReadOnlyQueryActivation)disposableSource).ActivateQuerySourceAsync(default)).IsError);
+        var nativeQuery = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(sourceType).Result)
             .WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result)
-            .Where(row => allowed.Contains(CosmicQueryMetadata.Value<string>(row, ClickHouseSource.AddressMetadata)));
+            .Where(row => allowed.Contains(CosmicQueryMetadata.Value<string>(row, metadataKey)));
         Assert.False(nativeQuery.IsError, nativeQuery.ErrorCode);
-        var plan = CosmicQueryPlanner.Plan(nativeQuery.Result, ProviderType.ClickHouseOASIS,
-            new[] { new CosmicQueryTarget(ProviderType.ClickHouseOASIS, clickhouseSource.QueryCapabilities) });
+        var plan = CosmicQueryPlanner.Plan(nativeQuery.Result, sourceType,
+            new[] { new CosmicQueryTarget(sourceType, querySource.QueryCapabilities) });
         Assert.False(plan.IsError, plan.ErrorCode);
-        var source = await clickhouseSource.ExecuteCosmicQueryAsync(plan.Result);
+        var source = await querySource.ExecuteCosmicQueryAsync(plan.Result);
         Assert.False(source.IsError, source.ErrorCode);
         Assert.Equal(3, source.Result.Count);
 
@@ -119,12 +154,12 @@ public sealed class CqlClickHouseMongoNativeTests
         var registry = new ProviderManager(null, dna) {
             IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false };
         registry.RegisterProvider(mongo);
-        var providers = new Sources(mongo, clickhouseSource, dna, registry);
+        var providers = new Sources(mongo, clickhouseSource, dna, registry, sourceType);
         var manager = providers.CreateManager(mongo);
         for (var index = 0; index < identities.Records.Count; index++)
         {
             var identity = identities.Records[index];
-            var original = source.Result.Single(row => (string)row.MetaData[ClickHouseSource.AddressMetadata] == identity.NativeKey);
+            var original = source.Result.Single(row => (string)row.MetaData[metadataKey] == identity.NativeKey);
             var metadata = original.MetaData.ToDictionary(pair => pair.Key, pair => pair.Value);
             foreach (var pair in identity.Metadata) metadata[pair.Key] = pair.Value;
             metadata["COSMIC.Demo.Dataset"] = "COSMIC.CQL.Demo.v1";
@@ -144,7 +179,7 @@ public sealed class CqlClickHouseMongoNativeTests
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { Args = Array.Empty<string>(), ContentRootPath = root });
         builder.Configuration.Sources.Clear();
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> {
-            [CqlPublicReadCatalogue.ConfigurationKey] = JsonSerializer.Serialize(new Dictionary<string, Guid[]> { ["ClickHouseOASIS"] = source.Result.Select(row => row.Id).ToArray() }) });
+            [CqlPublicReadCatalogue.ConfigurationKey] = JsonSerializer.Serialize(new Dictionary<string, Guid[]> { [providerName] = source.Result.Select(row => row.Id).ToArray() }) });
         builder.Logging.ClearProviders(); builder.WebHost.UseUrls("http://127.0.0.1:0");
         builder.Services.AddControllers();
         builder.Services.AddConfiguredCqlReadAccessPolicy(builder.Configuration);
@@ -184,9 +219,9 @@ public sealed class CqlClickHouseMongoNativeTests
         async Task Execute(HttpContext http, bool federation)
         {
             var handle = (UsageExecutionHandle)http.Items[Web4UsageMeasurement.ExecutionKey]!;
-            var admission = new PreparedStorageExecution(handle, "native-clickhouse-query", new Dictionary<ProviderType, string>(),
+            var admission = new PreparedStorageExecution(handle, $"native-{slug}-query", new Dictionary<ProviderType, string>(),
                 Types, Types.Select(type => new StorageQueryTariff(type, 0, "native-test")),
-                null!, false, null!, new[] { ProviderType.ClickHouseOASIS });
+                null!, false, null!, new[] { sourceType });
             IActionResult action;
             if (federation)
             {
@@ -209,7 +244,7 @@ public sealed class CqlClickHouseMongoNativeTests
             using var http = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(40) };
             var counts = new Dictionary<string, int>();
             object Selection(IEnumerable<string> selected) => new { orderBy = "None", take = 8, includeMetadata = true,
-                filters = new[] { new { metadataPath = new[] { ClickHouseSource.AddressMetadata }, scalar = "String", @operator = "In", value = selected.ToArray() } } };
+                filters = new[] { new { metadataPath = new[] { metadataKey }, scalar = "String", @operator = "In", value = selected.ToArray() } } };
             async Task Check(string name, string token, string route, object request, int expected)
             {
                 http.DefaultRequestHeaders.Authorization = new("Bearer", token);
@@ -232,25 +267,28 @@ public sealed class CqlClickHouseMongoNativeTests
                     Assert.True(selectedIds.Add(id), "Each preserved physical copy must be unique.");
                     var isMongo = copies.Contains(id);
                     Assert.True(isMongo || source.Result.Any(original => original.Id == id));
-                    if (paired) Assert.Equal(isMongo ? "MongoDBOASIS" : "ClickHouseOASIS", selected.GetProperty("provider").GetString());
+                    if (paired) Assert.Equal(isMongo ? "MongoDBOASIS" : providerName, selected.GetProperty("provider").GetString());
                     Assert.Equal(!isMongo, row.GetProperty("isPublic").GetBoolean());
-                    Assert.Equal("operator-reported-public-country-summary", row.GetProperty("metadata").GetProperty("ClickHouseObservationPolicy").GetString());
                     var observedMetadata = row.GetProperty("metadata");
-                    var nativeKey = observedMetadata.GetProperty("ClickHouseCountryName").GetString()!;
+                    var nativeKey = observedMetadata.GetProperty(metadataKey).GetString()!;
                     Assert.Contains(nativeKey, allowed);
-                    Assert.Equal("blogs.countries", observedMetadata.GetProperty("ClickHouseTable").GetString());
-                    var polygonCount = observedMetadata.GetProperty("ClickHousePolygonCount").GetString()!;
-                    Assert.True(ulong.TryParse(polygonCount, System.Globalization.NumberStyles.None,
-                        System.Globalization.CultureInfo.InvariantCulture, out var count) && count > 0);
-                    Assert.Equal(count.ToString(System.Globalization.CultureInfo.InvariantCulture), polygonCount);
+                    if (!questDb)
+                    {
+                        Assert.Equal("operator-reported-public-country-summary", observedMetadata.GetProperty("ClickHouseObservationPolicy").GetString());
+                        Assert.Equal("blogs.countries", observedMetadata.GetProperty("ClickHouseTable").GetString());
+                        var polygonCount = observedMetadata.GetProperty("ClickHousePolygonCount").GetString()!;
+                        Assert.True(ulong.TryParse(polygonCount, System.Globalization.NumberStyles.None,
+                            System.Globalization.CultureInfo.InvariantCulture, out var count) && count > 0);
+                        Assert.Equal(count.ToString(System.Globalization.CultureInfo.InvariantCulture), polygonCount);
+                    }
                     if (isMongo)
                     {
                         Assert.Equal(ownerToken, token);
                         Assert.Equal(actor, row.GetProperty("createdByAvatarId").GetGuid());
                         Assert.Equal(1, row.GetProperty("version").GetInt32());
-                        var original = source.Result.Single(value => value.MetaData[ClickHouseSource.AddressMetadata].ToString() ==
-                            row.GetProperty("metadata").GetProperty("ClickHouseCountryName").GetString());
-                        foreach (var field in original.MetaData.Keys.Where(key => key.StartsWith("ClickHouse", StringComparison.Ordinal)))
+                        var original = source.Result.Single(value => value.MetaData[metadataKey].ToString() ==
+                            row.GetProperty("metadata").GetProperty(metadataKey).GetString());
+                        foreach (var field in original.MetaData.Keys.Where(key => key.StartsWith(fixture, StringComparison.Ordinal)))
                             Assert.Equal(original.MetaData[field].ToString(), row.GetProperty("metadata").GetProperty(field).GetString());
                     }
                 }
@@ -258,21 +296,22 @@ public sealed class CqlClickHouseMongoNativeTests
             foreach (var count in new[] { 3, 2 })
             {
                 var selected = allowed.Take(count).ToArray();
-                await Check("clickhouse-" + count, ownerToken, "/api/data/query-cql", new { provider = "ClickHouseOASIS", maximumDurationMilliseconds = 30000,
+                await Check(slug + "-" + count, ownerToken, "/api/data/query-cql", new { provider = providerName, maximumDurationMilliseconds = 30000,
                     orderBy = "None", take = 8, includeMetadata = true,
-                    filters = new[] { new { metadataPath = new[] { ClickHouseSource.AddressMetadata }, scalar = "String", @operator = "In", value = selected } } }, count);
+                    filters = new[] { new { metadataPath = new[] { metadataKey }, scalar = "String", @operator = "In", value = selected } } }, count);
                 await Check("paired-" + count, ownerToken, "/api/data/query-cql/federation", new { scope = "Named", maximumDurationMilliseconds = 30000,
-                    providers = new[] { "MongoDBOASIS", "ClickHouseOASIS" }, source = Selection(selected),
+                    providers = new[] { "MongoDBOASIS", providerName }, source = Selection(selected),
                     identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8 }, count + 2);
             }
             await Check("foreign-private", foreignToken, "/api/data/query-cql", new { provider = "MongoDBOASIS",
                 orderBy = "Id", take = 8, filters = new[] { new { field = "Id", scalar = "Guid", @operator = "In", value = copies } } }, 0);
             await Check("foreign-public-pair", foreignToken, "/api/data/query-cql/federation", new { scope = "Named", maximumDurationMilliseconds = 30000,
-                providers = new[] { "MongoDBOASIS", "ClickHouseOASIS" }, source = Selection(allowed),
+                providers = new[] { "MongoDBOASIS", providerName }, source = Selection(allowed),
                 identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8 }, 3);
-            Assert.Equal(configJson, await IoFile.ReadAllTextAsync(configPath));
+            if (!questDb) Assert.Equal(configJson, await IoFile.ReadAllTextAsync(configPath));
             Assert.Equal(9, receipts.Count);
-            await IoFile.WriteAllTextAsync(Path.Combine(root, "TestResults/ClickHousePublicSourceCurrent/clickhouse-mongo-native-summary.json"),
+            Directory.CreateDirectory(Path.Combine(root, $"TestResults/{fixture}PublicSourceCurrent"));
+            await IoFile.WriteAllTextAsync(Path.Combine(root, $"TestResults/{fixture}PublicSourceCurrent/{slug}-mongo-native-summary.json"),
                 JsonSerializer.Serialize(new { counts, sdkOwnedSaves = 2,
                     receiptCount = receipts.Count, productionBilling = false, replicationAcceptance = false, browserAcceptance = false }));
         }
