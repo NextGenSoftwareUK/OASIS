@@ -14,3 +14,8 @@ Discovery body SHA256 430543612E85E14FF8AD4667CA028218502372203115325A8F063F349B
 
 [Official message identity and API](https://layerzero.network/blog/cross-chain-compliance)
 · [Scan API contract](https://scan.layerzero-api.com/v1/swagger)
+
+The exact GUID HTTP client compiles with the provider, zero build errors.
+It validates the response identity and caps response bytes before decoding
+endpoint IDs, nonce and Scan-reported status. The client is not yet wired
+into CQL. Build log: TestResults/LayerZeroV2PublicSourceCurrent/scan-build.log.
