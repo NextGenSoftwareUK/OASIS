@@ -87,3 +87,7 @@ and resources before it could qualify as a demo source.
 The adapter now surfaces gateway redirects as HTTP failures and uses the
 shared OASIS activation state. The existing metadata unit suite passed 5/5.
 Native gateway and CQL acceptance are still open.
+
+Follow-up loopback HTTP controls passed 7/7 with the metadata suite. A 200
+health response activates the provider, deactivation clears the shared flag,
+and a 302 leaves it inactive without requesting the redirect target.
