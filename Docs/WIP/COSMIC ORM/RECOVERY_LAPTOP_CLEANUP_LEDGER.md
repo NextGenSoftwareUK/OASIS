@@ -130,3 +130,13 @@ owned processes exited. Observed footprints:
 - LocalState/COSMIC/RecoveryLaptopMongo82 : 211484810 bytes
 - LocalState/COSMIC/HyperlaneMongoHttpCurrent : 849 bytes
 - TestResults/HyperlanePublicSourceCurrent : 978255 bytes
+
+### Hyperlane fixture cleanup verified
+
+The read-only continuation reconciled the two original save acknowledgments.
+The owned test database was removed after identity and contents were verified.
+Port 27029 has no listener. Keep the stopped reusable replica store and compact
+qualification receipts. Current measured footprints:
+- LocalState/COSMIC/RecoveryLaptopMongo82 : 212213435 bytes
+- LocalState/COSMIC/HyperlaneMongoHttpCurrent : 919 bytes
+- TestResults/HyperlanePublicSourceCurrent : 981940 bytes
