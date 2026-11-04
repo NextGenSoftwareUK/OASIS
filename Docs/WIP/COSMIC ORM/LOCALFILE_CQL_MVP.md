@@ -194,3 +194,27 @@ LocalState path in this checkout. Recover the original source configuration,
 bundle, export acknowledgment and qualification receipt together, then check their
 hashes through the publisher before preparing a candidate. No hosted mutation
 was performed from this checkout.
+
+## LocalFile admission and hosted verifier ready
+
+Core a9a238371 permits explicit LocalFile unsigned query tariffs. WEB4 rebuilt
+under the shared build lease and passed the focused admission regression
+(1 passed, 0 skipped). Explicit query-only enrollment is required and a
+LocalFile SaveHolon tariff is rejected for that enrollment.
+TRX: TestResults/HostedLocalFileSourceCurrent/localfile-tariff.trx
+SHA256 A396D948AE2F224C95C50BF987C0F74DE9E09F46820A00143C963A68FE572B50.
+
+The hosted verifier now accepts LocalFileOASIS. The sibling Web4Site checkout
+was fast-forwarded to 2170b6728 to recover the published client modules. Their
+ID recipe accepts the publisher's synthetic presets and composes five/four
+ID predicates from three/two source IDs and two mapped snapshot IDs. This is
+offline request construction evidence.
+
+Once both owner inputs arrive, validate the original bundle through publisher
+prepare, review the five-variable candidate, verify the exact code deployment
+and Core pin, then apply the candidate once. Observe the resulting settings
+deployment before running Verify-HostedQuerySource.py LocalFileOASIS --prepare
+with a fresh provider-scoped journal. Check native 3/2, paired 5/4, repeat
+reuse, foreign-private 0/public 3 and both exact replicas before publishing
+the card. Preserve partial journals and reconcile any uncertain mutation
+before continuing. No hosted acceptance or deployment from this checkpoint.
