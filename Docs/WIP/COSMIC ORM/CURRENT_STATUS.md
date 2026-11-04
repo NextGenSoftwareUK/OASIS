@@ -1,6 +1,6 @@
 # COSMIC ORM / CQL current status
 
-Updated 3 November 2026. Goal active and incomplete.
+Updated 4 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
@@ -14,6 +14,14 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 - Public ThreeFold/ClickHouse/Zcash cohorts are accepted and frozen.
 
 ## Current batch / exact next step
+
+Live demo rehearsal, 4 November: Development health200; authenticated discovery
+59/60 ready (Nostr unavailable). ActivityPub and IPFS native examples pass3/2.
+Published sandbox client IPFS+Mongo passes5/4; two private saves, reuse0 new saves,
+SQLite/Neo4j replicas2/2. HTTP/client proof, browser rerun open. Report SHA256
+679D2FA2F738B1388BC51B8F77059ED700D73D31BFA81C1B6F6F0D277C56AA19
+at TestResults/HostedDemoRehearsal/ipfs-http-flow.json. Separate rehearsal session;
+prior cohorts preserved. LocalFile deployment still requires retained qualification.
 
 Source-recovery fix published Development b718f2879;Core5415961/settings unchanged.
 Exact job33c9ef7d-b8b3-4403-9109-32ce47c4d7a8 SUCCESS;healthy/four-provider-ready.
