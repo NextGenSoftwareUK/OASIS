@@ -477,3 +477,13 @@ D1 hosted probe HTTP contract passed against the existing loopback Worker:
 full BTC/ETH/SOL, subset BTC/ETH, duplicate 400 and POST 405. The direct
 probe function was used for loopback testing, so no hosted qualification
 intent or receipt was created. The Worker exited after stdin closed.
+
+NATS JetStream qualification owns LocalState/COSMIC/RecoveryLaptopNats2152.
+Official Windows x64 v2.15.2 ZIP is 7,488,183 bytes and SHA256
+f6398d5d11093778f870db70242cb50d20a58134c937c805ba8d114e7e398766.
+Archive, unpacked runtime, startup.log and empty JetStream fixture root
+are retained. The combined download/extract/archive removal command was
+rejected by automatic policy review without a specific reason. Download
+and extraction succeeded separately. The owned process was stopped after
+INFO verified v2.15.2 and JetStream on loopback 24222. Compact receipt:
+TestResults/NatsRecoveryLaptopCurrent/native-info.json.
