@@ -318,3 +318,10 @@ Axelar block reader verification reuses the installed .NET runtime.
 Generated outputs are the AxelarOASIS provider bin/obj and
 TestResults/ProviderBuildCurrent/cosmic-axelar-build.log. Retain for the
 adapter build and remove when dependent verification is complete.
+
+Axelar block admission reuses shared WEB4 bin/obj and writes
+TestResults/ProviderBuildCurrent/cosmic-axelar-admission.log. Its isolated
+public fixture and evidence are under
+LocalState/COSMIC/AxelarBlockPublicQualificationCurrent and
+TestResults/AxelarBlockPublicSourceCurrent. The local Mongo test owns
+cosmic_cql_axelar_http_demo only. Preserve the earlier GMP evidence.

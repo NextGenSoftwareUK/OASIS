@@ -70,3 +70,8 @@ The bounded read-only CQL adapter built and activated all three qualified
 heights live. It projects stable public holon IDs and exposes the exact
 source timestamp, chain ID and block hash. Compiler and WEB4 registration,
 end-to-end CQL execution and federation still need verification.
+
+The guarded block publisher passed three configuration tests. It requires
+the exact Axelar block source digest and local federation/cleanup receipt
+before accessing Railway. Applying requires the reviewed live release.
+The older GMP probe and evidence use separate paths.
