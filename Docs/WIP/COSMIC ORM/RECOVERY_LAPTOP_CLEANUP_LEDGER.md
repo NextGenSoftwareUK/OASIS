@@ -202,3 +202,9 @@ Connext Ethereum indexed evidence uses existing HTTP tooling.
 Connext reused MongoDB 8.2 and removed its owned fixture database. Port
 27029 is closed. Retain native/admission/HTTP reports.
 - TestResults/ConnextPublicSourceCurrent : 2042872 bytes
+
+Miden typed gRPC client build reused cached Google.Protobuf 3.27.0,
+Grpc.Net.Client 2.67.0 and Grpc.Tools 2.67.0. The lease protects shared
+Core/Common outputs. The Miden provider bin/obj and
+TestResults/ProviderBuildCurrent/cosmic-miden-build.log are generated outputs.
+Retain for the upcoming CQL admission batch and clean after dependent work ends.

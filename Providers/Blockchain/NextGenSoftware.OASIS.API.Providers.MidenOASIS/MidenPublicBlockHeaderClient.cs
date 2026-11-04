@@ -1,0 +1,39 @@
+using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using Grpc.Net.Client;
+using NextGenSoftware.OASIS.API.Providers.MidenOASIS.PublicRpc;
+
+namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS;
+
+internal sealed class MidenPublicBlockHeaderClient : IDisposable
+{
+    private readonly GrpcChannel _channel;
+    private readonly NodeService.NodeServiceClient _client;
+
+    public MidenPublicBlockHeaderClient(Uri endpoint)
+    {
+        _channel = GrpcChannel.ForAddress(endpoint, new GrpcChannelOptions { MaxReceiveMessageSize = 64 * 1024 });
+        _client = new NodeService.NodeServiceClient(_channel);
+    }
+
+    public async Task<BlockHeader> ReadAsync(uint height, CancellationToken cancellationToken)
+    {
+        using var call = _client.GetBlockHeaderByNumberAsync(
+            new GetBlockHeaderByNumberRequest { BlockNum = height },
+            deadline: DateTime.UtcNow.AddSeconds(12),
+            cancellationToken: cancellationToken);
+        var response = await call.ResponseAsync.ConfigureAwait(false);
+        var header = response.BlockHeader;
+        if (header?.BlockNum?.BlockNum != height || header.Version != BlockVersion.V1 ||
+            header.Timestamp == 0 || header.PrevBlockCommitment?.Encoded.Length != 32)
+        {
+            throw new InvalidDataException($"Miden returned an invalid block header for height {height}.");
+        }
+
+        return header;
+    }
+
+    public void Dispose() => _channel.Dispose();
+}
