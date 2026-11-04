@@ -21,7 +21,10 @@ Published sandbox client IPFS+Mongo passes5/4; two private saves, reuse0 new sav
 SQLite/Neo4j replicas2/2. HTTP/client proof, browser rerun open. Report SHA256
 679D2FA2F738B1388BC51B8F77059ED700D73D31BFA81C1B6F6F0D277C56AA19
 at TestResults/HostedDemoRehearsal/ipfs-http-flow.json. Separate rehearsal session;
-prior cohorts preserved. LocalFile deployment still requires retained qualification.
+prior cohorts preserved. A second visitor saw3 public rows and0 of the private
+Mongo snapshots by exact ID. Isolation summary SHA256
+64AEEB6D8B1427DD178A9F95F698185998C78D38D8319653DB96DA6AB1904F90.
+LocalFile deployment still requires retained qualification.
 
 Source-recovery fix published Development b718f2879;Core5415961/settings unchanged.
 Exact job33c9ef7d-b8b3-4403-9109-32ce47c4d7a8 SUCCESS;healthy/four-provider-ready.
