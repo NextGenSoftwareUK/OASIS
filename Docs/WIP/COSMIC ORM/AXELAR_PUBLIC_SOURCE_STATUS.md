@@ -75,3 +75,10 @@ The guarded block publisher passed three configuration tests. It requires
 the exact Axelar block source digest and local federation/cleanup receipt
 before accessing Railway. Applying requires the reviewed live release.
 The older GMP probe and evidence use separate paths.
+
+Axelar block admission and local WEB4/Mongo federation passed. Native
+counts were 3/2 and federated counts 5/4. The foreign actor saw three
+public rows and zero private rows. Two SDK saves and nine usage receipts
+were verified. The test dropped its owned fixture database, the replica
+stopped, and the publisher accepted the exact source-bound receipt.
+Hosted acceptance remains pending.

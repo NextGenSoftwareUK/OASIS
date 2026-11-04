@@ -32,6 +32,7 @@ using MidenSource = NextGenSoftware.OASIS.API.Providers.MidenOASIS.MidenPublicBl
 using EspressoSource = NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS.EspressoPublicBlockHeaderSource;
 using EigenLayerSource = NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS.EigenLayerPublicOperatorSource;
 using FhenixSource = NextGenSoftware.OASIS.API.Providers.FhenixOASIS.FhenixPublicTaskManagerSource;
+using AxelarSource = NextGenSoftware.OASIS.API.Providers.AxelarOASIS.AxelarPublicBlockSource;
 using SynapseSource = NextGenSoftware.OASIS.API.Providers.SynapseOASIS.SynapsePublicTransactionMetadataSource;
 using DeBridgeSource = NextGenSoftware.OASIS.API.Providers.deBridgeOASIS.DeBridgePublicOrderMetadataSource;
 using StargateSource = NextGenSoftware.OASIS.API.Providers.StargateOASIS.StargatePublicMessageMetadataSource;
@@ -132,6 +133,15 @@ public sealed class FhenixMongoNativeFactAttribute : FactAttribute
     {
         if (Environment.GetEnvironmentVariable("COSMIC_FHENIX_HTTP_NATIVE") != "owned-local-27029")
             Skip = "Explicit Fhenix/Mongo native gate.";
+    }
+}
+
+public sealed class AxelarMongoNativeFactAttribute : FactAttribute
+{
+    public AxelarMongoNativeFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("COSMIC_AXELAR_HTTP_NATIVE") != "owned-local-27029")
+            Skip = "Explicit Axelar/Mongo native gate.";
     }
 }
 
@@ -256,6 +266,19 @@ public sealed class CqlHyperlaneMongoNativeTests
             },
             Environment.GetEnvironmentVariable("COSMIC_FHENIX_HTTP_RESUME") == "1", "fhenix-cofhe-task-managers",
             config => config.GetProperty("chainIds").EnumerateArray().Select(chainId => chainId.GetString()!).ToArray());
+
+    [AxelarMongoNativeFact]
+    public Task NativeAxelarBlocksAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
+        => VerifyAsync(ProviderType.AxelarOASIS, "AxelarBlock", "axelar",
+            AxelarSource.HeightMetadata, AxelarSource.FromJson, Array.Empty<string>(),
+            (native, metadata, _) =>
+            {
+                Assert.Equal("axelar-dojo-1", metadata.GetProperty("AxelarChainId").GetString());
+                foreach (var field in new[] { "AxelarBlockTimestamp", "AxelarBlockHash" })
+                    Assert.Equal((string)native.MetaData[field], metadata.GetProperty(field).GetString());
+            },
+            Environment.GetEnvironmentVariable("COSMIC_AXELAR_HTTP_RESUME") == "1", "axelar-mainnet-blocks",
+            config => config.GetProperty("heights").EnumerateArray().Select(height => height.GetRawText()).ToArray());
 
     private static void VerifyScanMetadata(IHolon native, JsonElement metadata, bool isMongo)
     {
@@ -464,7 +487,7 @@ public sealed class CqlHyperlaneMongoNativeTests
         try
         {
             var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
-            var queryDuration = publicProvider == ProviderType.FhenixOASIS ? 30000 : 5000;
+            var queryDuration = publicProvider is ProviderType.FhenixOASIS or ProviderType.AxelarOASIS ? 30000 : 5000;
             using var http = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromMilliseconds(queryDuration + 15000) };
             var counts = new Dictionary<string, int>();
             object Selection(IEnumerable<string> selected) => new { orderBy = "None", take = 8, includeMetadata = true,

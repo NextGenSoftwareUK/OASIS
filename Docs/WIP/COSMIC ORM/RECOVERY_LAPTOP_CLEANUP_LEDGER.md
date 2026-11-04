@@ -325,3 +325,7 @@ public fixture and evidence are under
 LocalState/COSMIC/AxelarBlockPublicQualificationCurrent and
 TestResults/AxelarBlockPublicSourceCurrent. The local Mongo test owns
 cosmic_cql_axelar_http_demo only. Preserve the earlier GMP evidence.
+
+Axelar block federation passed, dropped its owned fixture database and
+closed port 27029. Retain the compact AxelarBlockPublicSourceCurrent
+summary and AxelarBlockMongoHttpCurrent cleanup receipt.
