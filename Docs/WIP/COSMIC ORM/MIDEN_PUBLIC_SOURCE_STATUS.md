@@ -37,3 +37,10 @@ read. The guarded provider build passed and live heights 1, 2, and 3 passed.
 Controlled typed inputs verified rejection of a wrong height, missing header,
 and mismatched genesis commitment. Source activation still needs to request
 block 1 even when it is outside the configured query catalogue.
+
+The read-only CQL provider adapter builds and activates against the live
+testnet. The activation smoke used heights 2 and 3, exercising the separate
+block 1 identity check. The adapter projects public holons using stable IDs
+and admits exact height equality and bounded membership. Compiler and WEB4
+registration, native CQL execution tests, federation and hosted acceptance
+remain open. Build outputs reuse the existing recovery ledger paths.
