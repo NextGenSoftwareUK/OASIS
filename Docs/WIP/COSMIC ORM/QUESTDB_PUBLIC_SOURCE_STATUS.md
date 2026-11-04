@@ -35,3 +35,15 @@ ClickHouse rollout remains immediate priority.
 ## Original native gate - 2 November 2026
 
 Fiveofflinecontrols pass. FirstGET to canonical/api/v1/sql/execute forSELECTbuild() returnedHTTP403/705bytes, SHA256dec3d13427dff18664fcc42853ae2464fd0ee60f769615fd356edd610ef33367. Explicit browser-signature denial present. Remaining3/2symbolqueries notsent. No nativebuild/record/CQLacceptance. Exclusiveintent/report/compresseddenial/SHAmanifest durable QuestDbPublicQualificationCurrent; raw TestResults/QuestDbPublicSourceCurrent/response-1.json. No retry/alternateheaders/transport/route/proxy or account/runtime install. Legitimate permitted access is unresolved; do not relabel generatedrows/otherdatabase/publicAPI as QuestDBproof. Other breadth work remains, no owneraction requested.
+
+## Recovery laptop local native fixture — 4 November 2026
+
+The official standalone Windows QuestDB 10.1.0 runtime returned the expected
+build identity through the documented REST SQL route. An isolated synthetic
+symbol table returned exactly BTC-USDT, ETH-USDT and SOL-USDT in the full query,
+and BTC-USDT and SOL-USDT in the membership query. This establishes native
+local REST 3/2 and supplies a repeatable input for the CQL adapter. The public
+demo gateway denial remains recorded separately. CQL and hosted checks are open.
+
+Evidence: TestResults/QuestDbRecoveryLaptopCurrent/native-rest.json,
+SHA256 57DC336C1E41F6137D2D29B2CF8C6791286A756948324B0BC201DB42DFB88514.

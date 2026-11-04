@@ -363,3 +363,13 @@ No runtime or database files were generated.
 Tableland unit build reused the installed SDK and shared build lease.
 Generated outputs are the Tableland provider and Tableland unit test bin/obj
 plus shared dependency bin/obj. Receipt: TestResults/ProviderBuildCurrent/cosmic-tableland-unit.log.
+
+QuestDB 10.1.0 Windows x64 standalone runtime qualification owns
+LocalState/COSMIC/RecoveryLaptopQuestDB1010. The official 86,488,172-byte
+archive is checked against the GitHub release SHA256 before extraction.
+No Windows service or system Java install is planned.
+
+QuestDB archive removed after verified extraction. Retain the unpacked pinned
+runtime for CQL integration. Owned processes stopped, loopback port 29000
+closed and the isolated fixture root removed. Compact REST receipt is under
+TestResults/QuestDbRecoveryLaptopCurrent.
