@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -26,6 +28,32 @@ public sealed class NatsPublicCqlProfile : NATSJetStreamOASIS, ICosmicReadOnlyQu
             catalogue.Count != selected.Length)
             throw new ArgumentException("One to 100 distinct public NATS record identities and an owner are required.");
         this.owner = owner;
+    }
+
+    public static NatsPublicCqlProfile FromJson(string json)
+    {
+        if (Encoding.UTF8.GetByteCount(json) > 8192)
+            throw new ArgumentException("Bounded NATS profile configuration required.", nameof(json));
+        using var document = JsonDocument.Parse(json, new JsonDocumentOptions { MaxDepth = 4 });
+        var root = document.RootElement;
+        var fields = new HashSet<string>(new[] { "schema", "endpoint", "bucket", "sourceOwner", "ids" }, StringComparer.Ordinal);
+        if (root.ValueKind != JsonValueKind.Object ||
+            root.EnumerateObject().Any(property => !fields.Remove(property.Name)) || fields.Count != 0 ||
+            root.GetProperty("schema").GetInt32() != 1)
+            throw new ArgumentException("Exact NATS profile configuration required.", nameof(json));
+
+        var endpoint = root.GetProperty("endpoint").GetString();
+        if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) || uri.Scheme != "tls" ||
+            uri.Host.Length == 0 || uri.IsLoopback || uri.UserInfo.Length != 0 ||
+            uri.AbsolutePath is not ("" or "/") || uri.Query.Length != 0 || uri.Fragment.Length != 0 ||
+            endpoint!.Contains(','))
+            throw new ArgumentException("One explicit TLS NATS endpoint is required.", nameof(json));
+        var bucket = root.GetProperty("bucket").GetString();
+        if (string.IsNullOrEmpty(bucket) || bucket.Length > 64 ||
+            bucket.Any(character => !char.IsAsciiLetterOrDigit(character) && character is not ('_' or '-')))
+            throw new ArgumentException("An explicit NATS key-value bucket is required.", nameof(json));
+        var ids = root.GetProperty("ids").EnumerateArray().Take(101).Select(item => item.GetGuid()).ToArray();
+        return new NatsPublicCqlProfile(endpoint, bucket, root.GetProperty("sourceOwner").GetGuid(), ids);
     }
 
     public override Task<OASISResult<bool>> ActivateProviderAsync() => ActivateQuerySourceAsync();

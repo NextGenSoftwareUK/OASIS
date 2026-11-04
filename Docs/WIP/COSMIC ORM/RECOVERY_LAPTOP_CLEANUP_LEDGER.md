@@ -507,3 +507,6 @@ NATS read-only profile reused the retained sdk-fixture and SDK probe outputs.
 profile-build.log and profile-native.log under TestResults/NatsRecoveryLaptopCurrent
 record missing-bucket rejection, save rejection and exact 3/2 results.
 The owned server stopped; profile-server.log remains with the runtime.
+
+NATS TLS profile configuration build reused the SDK probe and shared outputs.
+Receipt: TestResults/NatsRecoveryLaptopCurrent/config-build.log. No server started.
