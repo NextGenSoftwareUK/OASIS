@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -77,6 +78,23 @@ class LocalFileConfigurationTests(unittest.TestCase):
             elif scenario == "directory": source["directory"] = "/data/unrelated"
             else: source["credential"] = "forbidden"
             with self.assertRaises(ValueError): publisher.candidate(before, source, bundle)
+
+    def test_prepare_creates_fresh_output_directories_without_mutation(self):
+        before, source, bundle = self.fixture()
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / "LocalState" / "rollout"
+            with patch.object(publisher, "ROOT", root), \
+                 patch.object(publisher.configuration, "STATE", state), \
+                 patch.object(publisher, "qualified_source", return_value=(source, bundle)), \
+                 patch.object(publisher.configuration, "variables", return_value=before), \
+                 patch.object(publisher.configuration.verification, "protected_token", return_value=b"sealed"), \
+                 patch.object(publisher.configuration, "apply_values") as mutation:
+                publisher.prepare()
+            self.assertEqual(2, len(list(state.glob("*.dpapi"))))
+            review = root / "TestResults/HostedLocalFileSourceCurrent/prepared-review.json"
+            self.assertEqual(publisher.KEYS, json.loads(review.read_bytes())["changedKeys"])
+            mutation.assert_not_called()
 
     def test_apply_cannot_mutate_before_exact_release_gate(self):
         before, source, bundle = self.fixture()
