@@ -37,3 +37,11 @@ Discovery SHA256 4678F11E6D2355C09A185A5EA4AFBB1D75199215A1DA06CD9A830682DEA2C4C
 Raw intents, headers and responses are retained in TestResults/ConnextPublicSourceCurrent.
 
 [Official deployment](https://docs.connext.network/resources/deployments).
+
+## Native CQL verified
+
+Five controlled cases and one guarded live test passed, zero skips.
+The retained catalogue returned exact 3/2 transfer selections. The profile
+rejects wrong blocks and transfer identities and only maps complete indexed
+Ethereum origin events. WEB4 admission and destination execution remain open.
+Native TRX SHA256 0B4407FA16561E9F1791B12BC720595AFC934FF535DDA63C446076715950BBD2.

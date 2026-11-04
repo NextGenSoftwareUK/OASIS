@@ -22,6 +22,7 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS\NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.ChainflipOASIS\NextGenSoftware.OASIS.API.Providers.ChainflipOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.SynapseOASIS\NextGenSoftware.OASIS.API.Providers.SynapseOASIS.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.ConnextOASIS\NextGenSoftware.OASIS.API.Providers.ConnextOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.StargateOASIS\NextGenSoftware.OASIS.API.Providers.StargateOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.WormholeOASIS\NextGenSoftware.OASIS.API.Providers.WormholeOASIS.csproj" />
   </ItemGroup>
