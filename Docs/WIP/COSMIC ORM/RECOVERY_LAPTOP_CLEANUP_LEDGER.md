@@ -450,3 +450,7 @@ D1 native CQL Worker test reused the D1 and .NET environments. Receipts:
 TestResults/ProviderBuildCurrent/cosmic-d1-source.log and
 cosmic-d1-worker-cql.log (1 passed, zero skips, exact 3/2). The test
 closed Worker stdin and verified process exit. No database files retained.
+
+D1 response controls reused provider/test bin and obj. Compact receipt:
+TestResults/ProviderBuildCurrent/cosmic-d1-symbol-controls.log (3/3 passed).
+No Worker process, database or new runtime was needed.
