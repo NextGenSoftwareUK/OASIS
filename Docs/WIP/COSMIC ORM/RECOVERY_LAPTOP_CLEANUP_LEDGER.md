@@ -432,3 +432,11 @@ D1 binding probe passed exact local 3/2 via qualify-d1.cjs in the runtime
 root. Evidence: TestResults/ProviderBuildCurrent/cosmic-d1-binding.json.
 The in-memory fixture was disposed. Runtime and npm cache remain under the
 owned root. Automatic policy review rejected recursive removal of npm-cache.
+
+D1 Worker HTTP probe reused Miniflare and bundled Node from RecoveryLaptopD1.
+Retain qualify-d1-worker-http.cjs and TestResults/ProviderBuildCurrent/
+cosmic-d1-worker-http.json. Loopback GET returned exact 3/2, duplicate keys
+returned 400 and POST returned 405. Runtime disposed its in-memory database.
+An untracked root .wrangler/cache was observed before this run and left in
+place because ownership was not established. This run used the D1 runtime
+folder as its working directory.
