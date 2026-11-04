@@ -21,8 +21,11 @@ public sealed class LayerZeroScanMessageClient(HttpClient client)
         if (guid == null || !MessageGuid.IsMatch(guid))
             throw new ArgumentException("A canonical LayerZero message GUID is required.", nameof(guid));
 
-        using var response = await client.GetAsync(
-            new Uri("https://scan.layerzero-api.com/v1/messages/guid/" + guid),
+        using var request = new HttpRequestMessage(HttpMethod.Get,
+            new Uri("https://scan.layerzero-api.com/v1/messages/guid/" + guid));
+        request.Headers.Accept.ParseAdd("application/json");
+        request.Headers.UserAgent.ParseAdd("OASIS-LayerZeroScan/1.0");
+        using var response = await client.SendAsync(request,
             HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
         if (response.Content.Headers.ContentLength > MaximumResponseBytes)

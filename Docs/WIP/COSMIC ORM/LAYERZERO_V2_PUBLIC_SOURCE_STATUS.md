@@ -29,3 +29,11 @@ curl qualification remains valid for its own transport and does not establish
 guarded .NET access. Preserve the fixed catalogue; investigate the transport
 difference before retrying or admitting the profile to WEB4.
 Native test report SHA256 59A01C004601BA89F43B839CAE92E193C484C5446621002BF15DC87E85618928.
+
+The guarded client now requests JSON and identifies itself as OASIS. Five
+controlled tests and the one real native CQL test passed with zero skips.
+The original catalogue returned exact 3/2 selections. Both header changes
+were tested together, so neither is established as the individual cause of
+the original 403. The endpoint, guard and catalogue stayed the same.
+Identified-client TRX SHA256 5F4B4A8562A07E53E1FB67D64823ACB26D089D07C1AFB195D70BB162CF98693D.
+Next: explicit WEB4 registration, tariff and paired presets, then local HTTP federation.
