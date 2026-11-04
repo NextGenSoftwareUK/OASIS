@@ -301,3 +301,8 @@ retains the exact cosmic_cql_fhenix_http_demo database and fixture intent.
 The concurrent-read build and resume write cosmic-fhenix-concurrent.log
 under ProviderBuildCurrent and federation-resume.log under
 TestResults/FhenixPublicSourceCurrent. Keep until cleanup is confirmed.
+
+Fhenix preset verification reuses the shared outputs and records
+TestResults/ProviderBuildCurrent/cosmic-fhenix-preset.log and
+TestResults/FhenixPublicSourceCurrent/federation-preset-resume.log.
+Retain the original two save receipts and exact fixture until cleanup.

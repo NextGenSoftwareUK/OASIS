@@ -39,3 +39,11 @@ The source activated all three configured networks live using the exact local
 fixture. It exposes chain ID, Task Manager address and finalized block
 provenance. WEB4 registration, native CQL and local/hosted federation remain
 open. The guarded publisher configuration passed its three tests.
+
+WEB4 admission passed. The local HTTP test saved two private Mongo fixture
+copies, then its first three-network request hit the default 5-second WEB4
+deadline. The concurrent chain-read build passed, but the resume still used
+that default. The harness now sends the reviewed 30-second demo budget for
+Fhenix and keeps the reader's 15-second bound. The exact two acknowledged
+copies are retained for validated resume. Local federation and cleanup
+remain open until the updated run completes.
