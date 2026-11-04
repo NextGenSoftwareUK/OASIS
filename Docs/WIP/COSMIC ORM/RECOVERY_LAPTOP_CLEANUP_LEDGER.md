@@ -178,3 +178,6 @@ Stargate bounded Scan reads reused the existing HTTP client tooling.
 Stargate HTTP reused MongoDB 8.2 and removed its owned fixture database. Port
 27029 is closed. Retain native/admission/HTTP reports.
 - TestResults/StargatePublicSourceCurrent : 1769414 bytes
+
+deBridge bounded discovery and exact reads used existing HTTP tooling.
+- TestResults/DeBridgePublicSourceCurrent : 34989 bytes
