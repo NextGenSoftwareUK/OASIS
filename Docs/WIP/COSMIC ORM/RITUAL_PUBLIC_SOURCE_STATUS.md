@@ -29,3 +29,7 @@ The read-only CQL source built and activated blocks 1, 2, and 3 against
 the live Ritual RPC. It projects stable public holon IDs and exact block
 hashes and timestamp quantities. WEB4 admission, query execution and
 federation remain open.
+
+The guarded hosted publisher passed three configuration tests. It requires
+the exact source digest and local federation/cleanup receipt before
+accessing Railway. Applying requires the matching reviewed live release.

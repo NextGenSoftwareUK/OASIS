@@ -334,3 +334,9 @@ Ritual Chain block reader verification reuses installed .NET and the
 shared build lease. Generated outputs are RitualOASIS provider bin/obj
 and TestResults/ProviderBuildCurrent/cosmic-ritual-build.log. Retain for
 adapter verification and clean once its consumers finish.
+
+Ritual admission reuses shared WEB4 bin/obj and writes
+TestResults/ProviderBuildCurrent/cosmic-ritual-admission.log. Its isolated
+fixture and report paths are LocalState/COSMIC/RitualPublicQualificationCurrent
+and TestResults/RitualPublicSourceCurrent. The local test owns only
+cosmic_cql_ritual_http_demo.
