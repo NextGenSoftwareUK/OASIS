@@ -270,3 +270,9 @@ The retained replacement-bootstrap.trx SHA256 is
 The startup receipt matches the SHA256 above. The Railway account check
 returned Unauthorized. Persistent mount and deployment identity still
 require authenticated inspection before any settings mutation.
+
+The publisher read the actual retained replacement files and accepted both
+source-bound qualification receipts without accessing Railway. The LocalFile
+publisher, shared configuration and release guard, and publisher test file
+match the published candidate byte-for-byte. All eight publisher tests passed,
+including the release guard before mutation and protection of existing settings.
