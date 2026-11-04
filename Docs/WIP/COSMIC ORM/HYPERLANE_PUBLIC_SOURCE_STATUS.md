@@ -54,3 +54,13 @@ and an unrelated service on 27017. The former laptop's 8.3.11 binary and
 replica store are absent. Use a separately owned reusable local test store
 with explicit identity and keep the existing service outside the test.
 No WEB4 configuration or deployment has changed.
+
+## Local HTTP continuation passed
+
+The original two saves were acknowledged before HTTP 500. The read-only
+continuation isolated the missing Core tariff allowlist entry, then passed
+native 3/2, Mongo 5/4, foreign-private 0/public 3, and nine measured receipts
+with zero additional saves. Exact fixture database cleanup verified. Original
+failed reports retained. Final TRX SHA256 257B6A7187172CBCDE886F7727CF3DF30DBD6BA7FDCB05C24F809589256672A6.
+The source-bound local receipt now permits protected candidate preparation
+after Railway sign-in. Hosted settings, deployment and visitor proof remain open.
