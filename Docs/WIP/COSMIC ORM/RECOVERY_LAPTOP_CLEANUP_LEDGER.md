@@ -329,3 +329,8 @@ cosmic_cql_axelar_http_demo only. Preserve the earlier GMP evidence.
 Axelar block federation passed, dropped its owned fixture database and
 closed port 27029. Retain the compact AxelarBlockPublicSourceCurrent
 summary and AxelarBlockMongoHttpCurrent cleanup receipt.
+
+Ritual Chain block reader verification reuses installed .NET and the
+shared build lease. Generated outputs are RitualOASIS provider bin/obj
+and TestResults/ProviderBuildCurrent/cosmic-ritual-build.log. Retain for
+adapter verification and clean once its consumers finish.

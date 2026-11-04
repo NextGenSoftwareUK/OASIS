@@ -20,3 +20,7 @@ No runtime or generated output was needed.
 
 [Current Ritual Chain docs](https://docs.ritualfoundation.org/) ·
 [Older backend example](https://github.com/ritual-foundation/ritual-dapp-skills/blob/main/skills/ritual-dapp-backend/SKILL.md)
+
+The guarded .NET reader built with zero errors and verified chain ID and
+genesis before reproducing the three block hashes live. It retains exact
+RPC timestamp quantities. The smoke used the existing build outputs.
