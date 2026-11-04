@@ -528,3 +528,19 @@ Status: missing account/configuration information,2 November2026. David approved
   WEB4 project access. Tell the agent when sign-in completes. Keep tokens and
   credentials out of chat and Git.
 - [LocalFile qualification and rollout](../COSMIC%20ORM/LOCALFILE_CQL_MVP.md).
+
+### Cloudflare D1 Worker for Development WEB4
+
+Status 4 November 2026. Pending existing Cloudflare account access, after the
+LocalFile rollout. Local D1/Mongo WEB4 HTTP verification passed with the
+isolated symbol fixture. The hosted demo needs a dedicated development D1
+database and a Worker with its DB binding on an existing account. David can
+grant scoped access through the existing secure account workflow, or provide
+the public HTTPS /symbols URL after deploying the reviewed Worker and schema.
+Keep this free and separate from the Workers KV namespace action. Do not share
+API tokens in chat. Engineering owns HTTPS qualification, Railway enrollment,
+and hosted federation and replication verification.
+
+[Worker module](../../../Scripts/Sandbox/D1SymbolWorker.mjs) ·
+[Fixture schema](../../../Scripts/Sandbox/D1SymbolWorker.sql) ·
+[HTTPS qualification](../../../Scripts/Sandbox/Probe-D1WorkerHostedReadiness.py).
