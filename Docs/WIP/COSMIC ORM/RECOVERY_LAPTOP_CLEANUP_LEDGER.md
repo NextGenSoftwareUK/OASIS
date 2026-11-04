@@ -1,0 +1,58 @@
+# COSMIC cleanup ledger for the recovery laptop
+
+Workspace: C:/Source/OASIS2. Started 4 November 2026.
+This ledger applies to the recovery laptop only. The original laptop has its
+own [environment and cleanup ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+## Disk and environment
+
+- C: had 36.64 GB free at the 4 November inventory. Treat directory sizes below
+  as observed footprints, including pre-existing outputs, rather than net
+  allocations attributable to this session.
+- Reused the existing .NET 10.0.401 SDK, Python 3.14.3, Node and Railway 4.11.0.
+  No new runtime, worktree, database service or container was installed.
+- Fetched the pinned Holochain Git object into the existing sibling clone.
+  Aligned six clean submodules and the two existing sibling clones to the
+  release pins. Git objects and source checkouts are retained.
+- Restored .NET packages for WEB4, the SQLite example and provider test projects
+  into the existing shared NuGet cache. Do not clear that shared cache or infer
+  session ownership from cache timestamps.
+
+## Build outputs measured on 4 November
+
+Paths are relative to C:/Source/OASIS2. Figures are bytes, bin then obj.
+
+| Project output location | bin | obj |
+|---|---:|---:|
+| ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI | 1,763,914,526 | 350,165,223 |
+| ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests | 390,108,472 | 8,250,274 |
+| Examples/CosmicCqlDemo | 341,848,475 | 5,105,899 |
+| Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.IntegrationTests | 48,700,343 | 1,138,753 |
+| Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests | 50,099,398 | 1,621,946 |
+| Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests | 60,958,400 | 1,030,937 |
+| Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests | 0 at measurement | 147,915 |
+
+WEB4 and the provider builds also touched shared dependency outputs in the
+parent checkout, pinned submodules and sibling clones. Treat them as shared
+until individually inventoried. Current Cosmos/SOLID build batch owns the
+lease. Remeasure after it exits. Retain the reusable build outputs while their
+verification is active. For cleanup, first confirm owned processes are stopped,
+acquire the build lease for shared outputs and validate exact absolute paths.
+Remove only identified generated output trees and record reclaimed bytes here.
+
+## Test evidence and state
+
+| Path | Bytes measured | Disposition |
+|---|---:|---|
+| TestResults/HostedLocalFileSourceCurrent | 2,439,031 | Keep compact TRX and summaries. Logs are regenerable after reconciliation. |
+| TestResults/HostedDemoRehearsal | 106,429 | Keep live HTTP evidence and client hashes. Served JS copies are regenerable. |
+| TestResults/CosmicCqlDemo | 12,356 | Keep console and interactive reports. The successful runner removed the owned database. |
+| TestResults/CosmicCqlDemo-laptop-decimal-original | 782,817 | Preserve the original failed SQLite fixture and manifest as evidence. |
+| TestResults/ActivityPubCurrent | 7,795 | Keep native TRX. No owned provider data created. |
+| TestResults/LauncherRecoveryCurrent | 203,779 | Keep compact audit JSON. Downloaded public sandbox HTML is disposable. |
+| LocalState/COSMIC/HostedDemoRehearsalDiscovery | 12,808 | Retain the two journaled sandbox sessions and protected credentials locally. |
+
+Also tracked: TestResults/sqlite-coffee-rerun.log, TestResults/sqlite-coffee-http.log,
+and the LocalState/COSMIC/ActivityPubCurrent environment lock. A lock file alone
+does not indicate a live process. No cleanup deletion was performed during the
+inventory. Do not delete source, credentials, user data or unrelated outputs.
