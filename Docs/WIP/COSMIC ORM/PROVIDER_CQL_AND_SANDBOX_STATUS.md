@@ -1,5 +1,15 @@
 # Provider implementation, CQL and live demo status
 
+## Development demo status on 4 November 2026
+
+Authenticated discovery reports 59 of 60 advertised profiles available. Nostr
+is the unavailable profile. Historical functional HTTP acceptance remains
+recorded below; current availability is a separate gate. The fresh IPFS
+rehearsal verified native 3/2, Mongo federation 5/4, zero new saves on repeat,
+two exact replicas each in SQLite and Neo4j, and zero private rows visible to
+a second visitor. The rehearsal used the public client over HTTP. See
+[Current status](CURRENT_STATUS.md) for evidence and the LocalFile rollout gate.
+
 **Current launcher coverage:** All37published launcher paths now exist; the original audit found35missing. Source/build/controlled recovery does not prove all services/configurations/native executions ready. [Exact scope and recovery](LOCAL_LAUNCHER_INTEGRATION_GAP.md).
 
 **LocalFile next hosted scope,3November:** Public CQL profile/readonly activation,explicit configuration and write-once sandbox public-data bootstrap implemented;16profile+41API/bootstrap/discovery/schema checks pass without touching retained cohorts. Sourcebundle/rollout/HTTP/Mongo/replica/card gates remain open;no coverage count increase. Partial/changed data is never automatically overwritten or reseeded. Legacy template unit compile gaps remain documented unchanged. [Scope/evidence](LOCALFILE_CQL_MVP.md#hosted-public-profile-preparation3november2026).
