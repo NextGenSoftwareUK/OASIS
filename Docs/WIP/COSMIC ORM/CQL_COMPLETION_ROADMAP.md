@@ -1,7 +1,14 @@
 # CQL completion roadmap
 
-Updated 2 November 2026. Full programme remains incomplete.
+Updated 4 November 2026. Full programme remains incomplete.
 [CURRENT_STATUS](CURRENT_STATUS.md) owns deployment state and the exact next step.
+
+Continue the full CQL, COSMIC ORM and HyperDrive roadmap. Prioritize the live
+Development WEB4 demo. When a gate needs owner access or retained evidence,
+keep that gate open and advance the next independent provider or engineering
+scope. Verify the remaining browser, native, ORM and HyperDrive gates separately.
+The 4 November published launcher audit found all 37 referenced scripts in the
+task checkout. Runtime qualification remains separate.
 
 1. Verify/deploy explicit source recovery for the reproduced Nostr startup503;
    [27controlled/API/schema cases pass](CQL_SOURCE_RECOVERY.md),live gate remains.
