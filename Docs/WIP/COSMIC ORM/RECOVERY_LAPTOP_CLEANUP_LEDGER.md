@@ -230,3 +230,8 @@ The test dropped its exact fixture database and port 27029 is closed.
 Retain the compact TestResults/MidenPublicSourceCurrent report and
 LocalState/COSMIC/MidenMongoHttpCurrent cleanup receipt. The resume logs
 in TestResults/ProviderBuildCurrent are disposable after evidence review.
+
+Espresso guarded client build uses the existing .NET runtime and shared lease.
+Generated outputs are the EspressoSystemsOASIS provider bin/obj and
+TestResults/ProviderBuildCurrent/cosmic-espresso-build.log. Reuse for CQL
+adapter verification and remove owned outputs when their consumers finish.

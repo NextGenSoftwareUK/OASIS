@@ -18,3 +18,9 @@ outside this probe. CQL adapter, local WEB4 federation, and hosted acceptance
 remain open. No runtime or output files were needed for the probe.
 
 [Official Espresso query API documentation](https://docs.espressosys.com/network/developer/espresso-api)
+
+The guarded .NET client builds and reads all three headers live. It bounds
+the response to 16 KiB and the request to 12 seconds, checks the requested
+height and the returned chain ID, and pins block 1's reported L1 hash as a
+source identity anchor. Source activation should request block 1 even when
+the configured catalogue excludes it.
