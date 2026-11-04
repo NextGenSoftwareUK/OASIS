@@ -126,13 +126,22 @@ def prepare():
     review_path = ROOT / "TestResults/HostedLocalFileSourceCurrent/prepared-review.json"
     review_path.parent.mkdir(parents=True, exist_ok=True)
     for suffix, value in (("before", before), ("candidate", after)):
-        configuration.write_new(configuration.STATE / (PREFIX + "-" + suffix + "-variables.dpapi"),
-            configuration.verification.protected_token(configuration.compact(value).encode()))
+        path = configuration.STATE / (PREFIX + "-" + suffix + "-variables.dpapi")
+        if path.exists():
+            if configuration.protected_read(path.name) != value:
+                raise RuntimeError("Existing LocalFile preparation differs; reconcile before continuing.")
+        else:
+            configuration.write_new(path,
+                configuration.verification.protected_token(configuration.compact(value).encode()))
     review = {"changedKeys": KEYS, "source": source, "presets": json.loads(after[KEYS[4]]),
               "sourceRows": 3, "bootstrapBytes": len(after[KEYS[1]].encode()), "dnaUnchanged": True,
               "hostingSpend": 0, "requiresExistingVolume": "/data", "hostedVerified": False}
-    configuration.write_new(review_path,
-                            (json.dumps(review, indent=2) + "\n").encode())
+    review_bytes = (json.dumps(review, indent=2) + "\n").encode()
+    if review_path.exists():
+        if review_path.read_bytes() != review_bytes:
+            raise RuntimeError("Existing LocalFile review differs; reconcile before continuing.")
+    else:
+        configuration.write_new(review_path, review_bytes)
     print("Protected LocalFile candidate prepared:five values/four presets,no service mutation or deployment.")
 
 
