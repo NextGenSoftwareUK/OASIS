@@ -40,3 +40,17 @@ The guarded hosted publisher passed three configuration tests. It binds
 preparation to the exact local source digest and federation/cleanup receipt,
 preserves existing write admission, and checks the expected live release
 before applying the reviewed query-only configuration.
+
+Local federation exposed a stall during the finalized-block RPC before
+writes. Removing the duplicate 15-second adapter deadline allowed the
+reader's own deadline to report the failing request. The fixed-length
+JSON build passed and the compiled reader returned three true flags and
+one false control again at finalized block 0x191f738. A direct transport
+comparison accepted both fixed and chunked requests, so framing is not
+established as the root cause. WEB4 federation still requires a green run.
+
+Using a stable ID for each sequential JSON-RPC request, WEB4 admission and
+local Mongo federation passed. Native counts were 3/2, federation 5/4,
+foreign private 0 and foreign public 3. The harness verified two SDK saves
+and nine receipts, dropped its exact fixture database, and the publisher
+accepted the source-bound cleanup receipt. Hosted acceptance is open.
