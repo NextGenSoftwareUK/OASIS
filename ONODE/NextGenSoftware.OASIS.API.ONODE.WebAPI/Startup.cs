@@ -607,6 +607,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_SYNAPSE_PUBLIC_SOURCE_JSON"] is string synapsePublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.SynapseOASIS.SynapsePublicTransactionMetadataSource.FromJson(synapsePublicSource)));
+            // Connext Ethereum origin event metadata is enrolled only as an explicit read source.
+            if (Configuration["CQL_CONNEXT_PUBLIC_SOURCE_JSON"] is string connextPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextPublicOriginMetadataSource.FromJson(connextPublicSource)));
             // Wormhole indexed messages are read-only, separate from cross-chain dispatch.
             if (Configuration["CQL_WORMHOLE_PUBLIC_SOURCE_JSON"] is string wormholePublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(

@@ -45,3 +45,12 @@ The retained catalogue returned exact 3/2 transfer selections. The profile
 rejects wrong blocks and transfer identities and only maps complete indexed
 Ethereum origin events. WEB4 admission and destination execution remain open.
 Native TRX SHA256 0B4407FA16561E9F1791B12BC720595AFC934FF535DDA63C446076715950BBD2.
+
+## WEB4 local HTTP verified
+
+Opt-in admission and four preset plans passed. The isolated WEB4 HTTP run
+returned native 3/2, paired 5/4, foreign-private 0/public 3 and nine metering
+receipts. Both test snapshots were removed with the isolated database. The
+retained Mongo replica stopped. The hosted publisher accepted both receipts.
+Local HTTP TRX SHA256 A56DAA72D41114AE91F5D6F41811FAC0C1A14CC273E7B27204A3180BDF21FEBF.
+Hosted settings, replicas and browser acceptance remain open.

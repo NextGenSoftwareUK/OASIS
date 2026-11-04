@@ -27,6 +27,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
+using ConnextSource = NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextPublicOriginMetadataSource;
 using SynapseSource = NextGenSoftware.OASIS.API.Providers.SynapseOASIS.SynapsePublicTransactionMetadataSource;
 using DeBridgeSource = NextGenSoftware.OASIS.API.Providers.deBridgeOASIS.DeBridgePublicOrderMetadataSource;
 using StargateSource = NextGenSoftware.OASIS.API.Providers.StargateOASIS.StargatePublicMessageMetadataSource;
@@ -82,6 +83,15 @@ public sealed class SynapseMongoNativeFactAttribute : FactAttribute
     {
         if (Environment.GetEnvironmentVariable("COSMIC_SYNAPSE_HTTP_NATIVE") != "owned-local-27029")
             Skip = "Explicit Synapse/Mongo native gate.";
+    }
+}
+
+public sealed class ConnextMongoNativeFactAttribute : FactAttribute
+{
+    public ConnextMongoNativeFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("COSMIC_CONNEXT_HTTP_NATIVE") != "owned-local-27029")
+            Skip = "Explicit Connext/Mongo native gate.";
     }
 }
 
@@ -141,6 +151,19 @@ public sealed class CqlHyperlaneMongoNativeTests
             new[] { "SynapseOriginChainId", "SynapseDestinationChainId" },
             (_, _, _) => { }, false, "rfq-indexed-transaction-identity");
 
+    [ConnextMongoNativeFact]
+    public Task NativeConnextMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
+        => VerifyAsync(ProviderType.ConnextOASIS, "Connext", "connext",
+            ConnextSource.TransferIdMetadata, ConnextSource.FromJson,
+            new[] { "ConnextOriginChainId", "ConnextOriginBlockNumber", "ConnextOriginLogIndex" },
+            (native, metadata, _) =>
+            {
+                foreach (var field in new[] { "ConnextOriginTransactionHash", "ConnextOriginBlockHash" })
+                    Assert.Equal((string)native.MetaData[field], metadata.GetProperty(field).GetString());
+            }, false, "ethereum-indexed-origin-event",
+            config => config.GetProperty("events").EnumerateArray()
+                .Select(row => row.GetProperty("transferId").GetString()!).ToArray());
+
     private static void VerifyScanMetadata(IHolon native, JsonElement metadata, bool isMongo)
     {
         Assert.Equal((string)native.MetaData["LayerZeroNonce"], metadata.GetProperty("LayerZeroNonce").GetString());
@@ -151,7 +174,8 @@ public sealed class CqlHyperlaneMongoNativeTests
 
     private static async Task VerifyAsync<TSource>(ProviderType publicProvider, string directoryPrefix, string fixture,
         string metadataKey, Func<string, TSource> createSource, string[] endpointFields,
-        Action<IHolon, JsonElement, bool> verifyMetadata, bool continuing, string policy)
+        Action<IHolon, JsonElement, bool> verifyMetadata, bool continuing, string policy,
+        Func<JsonElement, string[]>? selectCatalogue = null)
         where TSource : IOASISStorageProvider, ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
     {
         var Database = $"cosmic_cql_{fixture}_http_demo";
@@ -173,7 +197,9 @@ public sealed class CqlHyperlaneMongoNativeTests
         var configPath = Path.Combine(root, $"LocalState/COSMIC/{directoryPrefix}PublicQualificationCurrent/source.json");
         var configJson = await IoFile.ReadAllTextAsync(configPath);
         using var config = JsonDocument.Parse(configJson);
-        var allowed = config.RootElement.GetProperty("messageIds").EnumerateArray().Select(key => key.GetString()!).ToArray();
+        var allowed = selectCatalogue == null
+            ? config.RootElement.GetProperty("messageIds").EnumerateArray().Select(key => key.GetString()!).ToArray()
+            : selectCatalogue(config.RootElement);
         Assert.Equal(3, allowed.Length);
         using var previous = continuing ? JsonDocument.Parse(await IoFile.ReadAllTextAsync(intent)) : null;
         var prior = previous?.RootElement;

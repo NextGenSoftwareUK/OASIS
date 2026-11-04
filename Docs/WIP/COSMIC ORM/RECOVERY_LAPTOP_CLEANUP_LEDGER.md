@@ -198,3 +198,7 @@ Connext DNS diagnostic retained; no runtime or service installed.
 
 Connext Ethereum indexed evidence uses existing HTTP tooling.
 - TestResults/ConnextPublicSourceCurrent : 310687 bytes
+
+Connext reused MongoDB 8.2 and removed its owned fixture database. Port
+27029 is closed. Retain native/admission/HTTP reports.
+- TestResults/ConnextPublicSourceCurrent : 2042872 bytes
