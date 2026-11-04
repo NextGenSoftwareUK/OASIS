@@ -291,3 +291,17 @@ replicas before publishing its demo. Record browser acceptance separately.
 
 These candidates follow the LocalFile release gate. The local SQL results
 do not add to the hosted provider count.
+
+### NATS JetStream
+
+The retained local JetStream cohort passed native CQL 3/2 and WEB4 HTTP
+federation 5/4 against Core 47c3a84. A second user saw zero private copies
+and three public rows. Hosted enrollment requires a qualified TLS endpoint
+and existing read-only bucket with the exact owner and three enrolled IDs.
+The current profile configuration accepts no credential fields. Qualify a
+least-privilege connection for the target service before enrollment.
+
+Use the same IDs for the source and server-side public catalogue. Review the
+explicit query-only tariff and four presets before running the shared hosted
+verifier with a fresh NATS-scoped journal. Keep LocalFile first. Native TLS,
+hosted replicas and browser interaction remain unverified.
