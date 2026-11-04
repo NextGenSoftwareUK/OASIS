@@ -2,8 +2,9 @@ const assert = require("node:assert/strict");
 const path = require("node:path");
 const { createRequire } = require("node:module");
 
-if (process.argv.length !== 3)
-  throw new Error("Pass the existing Miniflare runtime directory as the only argument.");
+const serve = process.argv[3] === "--serve";
+if (process.argv.length !== (serve ? 4 : 3))
+  throw new Error("Pass the existing Miniflare runtime directory and optionally --serve.");
 const runtime = path.resolve(process.argv[2]);
 const runtimeRequire = createRequire(path.join(runtime, "package.json"));
 const { Miniflare } = runtimeRequire("miniflare");
@@ -54,6 +55,12 @@ async function main() {
     assert.equal(invalid.status, 400);
     assert.equal(write.status, 405);
     console.log(JSON.stringify({full, subset, duplicateStatus:invalid.status, writeStatus:write.status}));
+    if (serve) {
+      console.log(JSON.stringify({endpoint: endpoint.href}));
+      // The parent test owns the process and closes stdin when it finishes.
+      process.stdin.resume();
+      for await (const ignored of process.stdin) { }
+    }
   } finally { await mf.dispose(); }
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });
