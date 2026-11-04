@@ -12,3 +12,24 @@ The existing registry contract and provider defaults require separate
 migration evidence. No dependency or generated output was needed.
 
 [Fhenix CoFHE overview](https://www.fhenix.io/)
+
+## CoFHE read qualification
+
+The official SDK resolves the Task Manager through CoFHEAddressBook
+0xC0F4e00E531a2B086492Ae3DCC1515038307196b using getTm(uint256) with ID 1.
+Anonymous RPC calls used selector 0x25adb56b, checked chain IDs and
+requested each RPC's finalized block hash with requireCanonical=true.
+
+| Network | Chain ID | Finalized block | Task Manager |
+| --- | --- | --- | --- |
+| Ethereum | 1 | 0x191f6b9 | 0x52e7a0caf234b266bcfaa6aa933a412fde58432a |
+| Sepolia | 11155111 | 0xb8152d | 0xea30c4b8b44078bbf8a6ef5b9f1ec1626c7848d9 |
+| Base Sepolia | 84532 | 0x33f12ac | 0xea30c4b8b44078bbf8a6ef5b9f1ec1626c7848d9 |
+
+Arbitrum One returned historical state unavailable at its finalized block.
+Use the three qualified chain IDs as distinct keys, even when two networks
+report the same Task Manager address. This covers public deployment lookup.
+CQL integration and live WEB4 acceptance are pending.
+
+[Official SDK lookup](https://github.com/FhenixProtocol/cofhesdk/blob/master/packages/sdk/core/taskManager.ts) ·
+[SDK contract constants](https://github.com/FhenixProtocol/cofhesdk/blob/master/packages/sdk/core/consts.ts)
