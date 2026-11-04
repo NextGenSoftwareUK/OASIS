@@ -19,6 +19,11 @@ public class TursoPipelineTests
 
         Assert.AreEqual(expectedError, result.IsError, result.Message);
         Assert.AreEqual(!expectedError, result.Result);
+        Assert.AreEqual(!expectedError, provider.IsProviderActivated);
+
+        var deactivation = await provider.DeActivateProviderAsync();
+        Assert.IsTrue(deactivation.Result, deactivation.Message);
+        Assert.IsFalse(provider.IsProviderActivated);
     }
 
     private sealed class PipelineHandler(string body) : HttpMessageHandler

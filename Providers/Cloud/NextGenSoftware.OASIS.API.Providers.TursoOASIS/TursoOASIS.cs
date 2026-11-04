@@ -135,15 +135,25 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             try
             {
                 await EnsureTablesAsync();
+                IsProviderActivated = true;
                 result.Result = true; result.IsError = false;
                 result.Message = "TursoOASIS activated — tables ready in Turso (libSQL).";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error activating provider — {ex.Message}"); }
+            catch (Exception ex)
+            {
+                IsProviderActivated = false;
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"TursoOASIS: Error activating provider — {ex.Message}");
+            }
             return result;
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() => await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "TursoOASIS deactivated." });
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool> { Result = true, Message = "TursoOASIS deactivated." });
+        }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         // ─── Avatar saving ────────────────────────────────────────────────────────

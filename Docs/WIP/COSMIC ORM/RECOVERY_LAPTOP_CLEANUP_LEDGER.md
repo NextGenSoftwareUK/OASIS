@@ -350,3 +350,7 @@ Generated outputs are the Turso provider and Turso unit test project bin/obj
 directories plus shared dependency bin/obj. The compact run receipt is
 TestResults/ProviderBuildCurrent/cosmic-turso-pipeline.log (4 passed).
 No database, service process, download or runtime install was created.
+
+The follow-up Turso lifecycle run reused the same build outputs. Its receipt
+is TestResults/ProviderBuildCurrent/cosmic-turso-unit.log. Checked the upstream
+libSQL release asset list in memory. No runtime archive was downloaded.
