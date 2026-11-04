@@ -47,4 +47,34 @@ public class LocalFileRetainedCandidateTests
         // FromJson validates the full canonical public bundle;StartAsync is
         // intentionally not called and no acknowledged CQL query is repeated.
     }
+
+    [RetainedLocalFileCandidateFact]
+    public async Task ExactRetainedBundleStartsAndActivatesInAnIsolatedDirectory()
+    {
+        DirectoryInfo? root = new(AppContext.BaseDirectory);
+        while (root != null && !System.IO.File.Exists(Path.Combine(root.FullName, "Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1")))
+            root = root.Parent;
+        if (root == null) throw new DirectoryNotFoundException("Assigned checkout required.");
+        var state = Path.Combine(root.FullName, "LocalState/COSMIC/HostedLocalFilePublicDatasetCurrent");
+        var sourceConfig = JsonNode.Parse(await System.IO.File.ReadAllTextAsync(Path.Combine(state, "source-config.json")))!;
+        var bundle = await System.IO.File.ReadAllTextAsync(Path.Combine(state, "bootstrap.json"));
+        var parent = Path.Combine(root.FullName, "TestResults/HostedLocalFileSourceCurrent/replacement-bootstrap-cases");
+        var owned = Path.GetFullPath(Path.Combine(parent, Guid.NewGuid().ToString("D")));
+        if (Path.GetDirectoryName(owned) != Path.GetFullPath(parent) || Directory.Exists(owned))
+            throw new IOException("A fresh owned bootstrap directory is required.");
+        Directory.CreateDirectory(owned);
+        try
+        {
+            sourceConfig["directory"] = Path.Combine(owned, "source");
+            using var profile = LocalFilePublicCqlProfile.FromJson(sourceConfig.ToJsonString());
+            await LocalFilePublicBootstrap.FromJson(profile, bundle).StartAsync(default);
+            var activation = await profile.ActivateQuerySourceAsync(default);
+            Assert.False(activation.IsError, activation.Message);
+            Assert.True(profile.IsProviderActivated);
+        }
+        finally
+        {
+            Directory.Delete(owned, recursive: true);
+        }
+    }
 }

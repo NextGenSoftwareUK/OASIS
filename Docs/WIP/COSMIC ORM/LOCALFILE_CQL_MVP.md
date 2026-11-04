@@ -231,3 +231,9 @@ replacement bytes. The source-bound receipt records both TRX hashes and the
 publisher accepted the replacement. Retain replacement-export.trx and
 replacement-bootstrap.trx under TestResults/HostedLocalFileSourceCurrent.
 Railway still requires private sign-in before preparing the hosted candidate.
+
+Replacement bundle startup passed 1/1 with zero skips. Only the destination
+directory was substituted for the isolated Windows check. The actual startup
+service installed the unchanged bundle and the public profile activated. The
+owned directory was removed. No hosted mount or HTTP acceptance is implied.
+TRX SHA256 57143976524E7A671A1CA7860CB4E9BEB624CB9EBFC5C17949B3E506F54D14C4.
