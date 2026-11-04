@@ -1,6 +1,8 @@
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -38,6 +40,25 @@ class D1WorkerConfigurationTests(unittest.TestCase):
             for row in json.loads(after[publisher.KEYS[2]])])
         with self.assertRaisesRegex(ValueError, "reconciliation"):
             publisher.candidate(after, source)
+
+    def test_qualification_receipt_is_bound_to_exact_source_bytes(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(publisher, "ROOT", Path(directory)):
+            state = Path(directory) / "LocalState/COSMIC/D1WorkerHostedQualificationCurrent"
+            state.mkdir(parents=True)
+            source = dict(schema=1, endpoint="https://worker.example/symbols",
+                          symbols=publisher.EXPECTED_KEYS,
+                          sourceOwner="00000000-0000-0000-0000-000000000123")
+            raw = json.dumps(source).encode()
+            path = state / "source.json"
+            path.write_bytes(raw)
+            (state / "worker-https-qualified.acknowledged.json").write_text(json.dumps(dict(
+                schema=1, sourceSha256=hashlib.sha256(raw).hexdigest(),
+                fullSymbols=publisher.EXPECTED_KEYS, subsetSymbols=publisher.EXPECTED_KEYS[:2],
+                duplicateStatus=400, writeStatus=405)), encoding="utf-8")
+            self.assertEqual(source, publisher.qualified_source())
+            path.write_bytes(raw + b"\n")
+            with self.assertRaisesRegex(RuntimeError, "Source-bound"):
+                publisher.qualified_source()
 
     def test_prepare_requires_local_evidence_before_railway_access(self):
         with patch.object(publisher, "qualified_source", side_effect=RuntimeError("local proof missing")), \
