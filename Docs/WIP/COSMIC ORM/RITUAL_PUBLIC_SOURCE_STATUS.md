@@ -1,0 +1,22 @@
+# Ritual Chain public block source
+
+4 November 2026. The official Ritual Chain RPC returned chain ID 784
+(0x310), matching the current developer documentation. The older backend
+example lists 1979 for the same hostname. Use the current chain ID and the
+observed genesis hash when qualifying this source.
+
+| Height | Block hash |
+| --- | --- |
+| 0 | 0x220f7b8da21377ee959d6bf3dc6397ffb5ec0737c37b08974c08247d0822ba93 |
+| 1 | 0x03b6c4f4649f7fd4b367d70da103106023c04f28e6ee35f751dc987cf4358326 |
+| 2 | 0x1e79dae540fc4062296df60238d2102be7d1f13281b8d2b40d153922ee357edb |
+| 3 | 0x37bdf0258871d5ba6f8ceddae184447c77f00ab459dc26b763b0b5a08d8dd550 |
+
+Anonymous eth_getBlockByNumber responses matched all requested heights.
+This qualifies a bounded public chain read for further adapter work.
+Infernet jobs and Ritual Chain precompile execution are separate contracts.
+CQL integration and WEB4 federation and hosted acceptance remain open.
+No runtime or generated output was needed.
+
+[Current Ritual Chain docs](https://docs.ritualfoundation.org/) ·
+[Older backend example](https://github.com/ritual-foundation/ritual-dapp-skills/blob/main/skills/ritual-dapp-backend/SKILL.md)
