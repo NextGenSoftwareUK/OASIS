@@ -47,3 +47,8 @@ demo gateway denial remains recorded separately. CQL and hosted checks are open.
 
 Evidence: TestResults/QuestDbRecoveryLaptopCurrent/native-rest.json,
 SHA256 57DC336C1E41F6137D2D29B2CF8C6791286A756948324B0BC201DB42DFB88514.
+
+Local bounded CQL symbol adapter passed 1/1 against QuestDB 10.1.0 with
+zero skips, asserting exact 3/2 provider keys via the shared query planner.
+The adapter is separate from owned storage. WEB4 registration, HTTP/Mongo
+federation, public gateway qualification and hosted acceptance remain open.
