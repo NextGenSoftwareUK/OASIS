@@ -86,3 +86,14 @@ Exact Core 58c7cc9 local loopback HTTP federation passed 1/1: native 3/2,
 paired 5/4, foreign private 0 and foreign public 3. Two SDK-owned Mongo saves
 and nine controlled receipts verified. The test injects the local source and
 does not establish hosted endpoint, replication or browser acceptance.
+
+### Hosted source gate
+
+The WEB4 registration uses the shared public-destination HTTP guard. To enroll
+QuestDB on Development, first qualify a permitted public HTTPS SQL endpoint
+serving the enrolled cql_demo_symbols table and exact SYMBOL projection. The
+local fixture and the previously denied public demo endpoint are separate.
+After qualification, prepare the query-only tariff, public catalogue and
+four presets for the exact deployment. Run the hosted native and Mongo
+flow, then verify reuse, foreign privacy and exact replicas before card
+publication. No hosted source has been selected.
