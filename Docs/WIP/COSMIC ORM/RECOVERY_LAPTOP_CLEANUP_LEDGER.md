@@ -83,3 +83,13 @@ for paired verification. Original laptop source remains separate. Observed bytes
 - LocalState/COSMIC/DuckDbCql : 1324005
 - User profile/.nuget/packages/duckdb.net.bindings.full/1.1.3 : 359389618
 - User profile/.nuget/packages/duckdb.net.data.full/1.1.3 : 716956
+
+## Standalone LocalFile launcher
+
+4 November 2026. Native launcher passed 1/1, no skips. The new laptop-local
+teaching fixture is retained for local pairing. Hosted qualification is separate.
+The runner exited and released the build lease. Observed bytes:
+- LocalState/COSMIC/LocalFileCql : 5874
+- TestResults/LocalFileCqlCurrent : 2756
+- Providers/Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS/bin : 12425823
+- Providers/Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS/obj : 1299214
