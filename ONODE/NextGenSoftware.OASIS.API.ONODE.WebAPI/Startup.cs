@@ -587,6 +587,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_CHAINFLIP_PUBLIC_SOURCE_JSON"] is string chainflipPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.ChainflipOASIS.ChainflipPublicSwapMetadataSource.FromJson(chainflipPublicSource)));
+            // Hyperlane Explorer metadata is a query-only source.
+            if (Configuration["CQL_HYPERLANE_PUBLIC_SOURCE_JSON"] is string hyperlanePublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS.HyperlanePublicMessageMetadataSource.FromJson(hyperlanePublicSource)));
             // Wormhole indexed messages are read-only, separate from cross-chain dispatch.
             if (Configuration["CQL_WORMHOLE_PUBLIC_SOURCE_JSON"] is string wormholePublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(

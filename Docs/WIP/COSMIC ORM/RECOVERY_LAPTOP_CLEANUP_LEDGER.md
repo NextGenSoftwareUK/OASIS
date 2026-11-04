@@ -105,3 +105,16 @@ Retain the two archived fixtures and sequence/report evidence for reconciliation
 - TestResults/SQLiteHangDiagnostic : 1359355 bytes
 - Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests/bin : 92597079 bytes
 - Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.UnitTests/bin : 88967542 bytes
+
+## Hyperlane Explorer CQL qualification
+
+4 November 2026. Existing .NET and NuGet cache reused. No SDK install, node,
+container or database. Retain original Explorer timeout, exact-key responses,
+source catalogue and focused test reports. WEB4 build still owns the lease.
+Observed bytes at this checkpoint:
+- LocalState/COSMIC/HyperlanePublicQualificationCurrent : 4003
+- TestResults/HyperlanePublicSourceCurrent : 39639
+- Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS/bin : 8238287
+- Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS/obj : 907397
+- Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CrossChain.ProtocolTests/bin : 47669910
+- Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CrossChain.ProtocolTests/obj : 1339863

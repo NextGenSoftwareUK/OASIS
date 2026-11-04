@@ -33,3 +33,12 @@ requested sets, both HTTP 200. This qualifies indexed source access only.
 The first timeout remains recorded. Raw evidence and intent hashes are retained
 under LocalState/COSMIC/HyperlanePublicQualificationCurrent.
 Next implement the bounded read-only provider profile against this catalogue.
+
+## Native CQL profile and WEB4 build
+
+Five focused tests passed with zero skips. Native provider activation and CQL
+execution over the preserved Explorer catalogue passed one test with exact
+3/2 results and zero skips. Native TRX SHA256 16315AE133D09811FDDD764713F2B23CC7F7854DCC16A2624F30856FF71394C5.
+WEB4 builds with explicit query-source registration. Next verify the HTTP
+presets and Mongo federation/privacy, then prepare guarded hosted admission.
+No deployment or hosted coverage increment.
