@@ -463,3 +463,7 @@ Worker exited after stdin closed and left no persistent database.
 D1 host profile controls reused existing provider and test outputs.
 Receipt: TestResults/ProviderBuildCurrent/cosmic-d1-profile.log (3/3).
 No new runtime or database was created.
+
+D1/QuestDB exact WEB4 admission reused WEB4 and shared bin/obj.
+Receipt: TestResults/ProviderBuildCurrent/cosmic-d1-web4-admission.log
+(2/2 passed). The prior Core checkout was restored.

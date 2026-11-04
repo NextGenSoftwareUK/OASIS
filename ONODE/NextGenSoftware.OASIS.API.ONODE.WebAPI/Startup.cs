@@ -542,6 +542,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.ThreeFoldPublicNodeMetadataSource.FromJson(threeFoldPublicSource)));
 
+            if (Configuration["CQL_D1_WORKER_SYMBOL_SOURCE_JSON"] is string d1WorkerSymbols)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS.D1WorkerSymbolQuerySource.FromJson(d1WorkerSymbols)));
+
             if (Configuration["CQL_QUESTDB_SYMBOL_SOURCE_JSON"] is string questDbSymbols)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.QuestDbSymbolQuerySource.FromJson(questDbSymbols)));
