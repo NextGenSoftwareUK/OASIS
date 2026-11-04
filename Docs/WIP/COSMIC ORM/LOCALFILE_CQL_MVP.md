@@ -237,3 +237,12 @@ directory was substituted for the isolated Windows check. The actual startup
 service installed the unchanged bundle and the public profile activated. The
 owned directory was removed. No hosted mount or HTTP acceptance is implied.
 TRX SHA256 57143976524E7A671A1CA7860CB4E9BEB624CB9EBFC5C17949B3E506F54D14C4.
+
+### Release scope review
+
+Development b718f2879 is an ancestor of task head 1fe05dbae at this checkpoint.
+The task branch also contains the Tableland adapter change af2384d6f. Keep
+that independent change outside the LocalFile deployment batch. LocalFile
+and Hyperlane share the Core pin. Hyperlane stays disabled until its own
+explicit settings and acceptance. Validate the selected parent gitlink and
+Railway manifest together and recheck current Development before publishing.
