@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
     /// <summary>
     /// Stores OASIS avatars and holons in a NATS JetStream key-value bucket (NATS.Net client).
     /// </summary>
-    public class NATSJetStreamOASIS : KeyValueStorageProviderBase, IOASISDBStorageProvider
+    public partial class NATSJetStreamOASIS : KeyValueStorageProviderBase, IOASISDBStorageProvider
     {
         public NATSJetStreamOASIS(string natsUrl = "nats://localhost:4222", string bucket = "oasis")
             : base(new NatsKvBackend(natsUrl, bucket))

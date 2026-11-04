@@ -497,3 +497,8 @@ NATS SDK probe built and passed three exact saved-holon point reads on
 JetStream 2.15.2. The server stopped and port 24222 closed. Keep the
 6,827-byte sdk-fixture for the next CQL test; it is synthetic and isolated.
 Compact receipt: TestResults/NatsRecoveryLaptopCurrent/sdk-native.log.
+
+NATS native CQL 3/2 reused the original synthetic sdk-fixture without
+reseeding. Receipts cql-build.log and cql-native.log in
+TestResults/NatsRecoveryLaptopCurrent, plus cql-server.log in the runtime root.
+The owned server stopped after the test. Keep the existing fixture for WEB4.
