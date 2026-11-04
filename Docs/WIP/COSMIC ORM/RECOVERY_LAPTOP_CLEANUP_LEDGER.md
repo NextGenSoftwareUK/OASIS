@@ -407,3 +407,7 @@ cosmic-questdb-http-native.log in TestResults/ProviderBuildCurrent. Retain the
 QuestDbPublicSourceCurrent summary and QuestDbMongoHttpCurrent cleanup receipt.
 The owned Mongo fixture database was dropped, both ports closed and the
 QuestDB fixture directory and owned PID files removed.
+
+QuestDB hosted configuration checks reused the existing provider and integration
+bin/obj. TestResults/ProviderBuildCurrent/cosmic-questdb-config.log records
+2/2 passed. No fixture was started.

@@ -8,6 +8,18 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.IntegrationTests;
 [TestClass]
 public class QuestDbSymbolQueryTests
 {
+    [DataTestMethod]
+    [DataRow("http://questdb.example/api/v1/sql/execute")]
+    [DataRow("https://127.0.0.1/api/v1/sql/execute")]
+    public void HostedConfigurationRejectsIneligibleEndpoint(string endpoint)
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            schema = 1, endpoint, sourceOwner = Guid.NewGuid(), symbols = new[] { "BTC-USDT" }
+        });
+        Assert.ThrowsException<ArgumentException>(() => QuestDbSymbolQuerySource.FromJson(json));
+    }
+
     [TestMethod]
     public async Task NativeCqlReturnsExactFullAndSubsetKeys()
     {

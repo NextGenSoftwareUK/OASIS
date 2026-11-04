@@ -51,6 +51,8 @@ public sealed class QuestDbSymbolQuerySource : KeyValueStorageProviderBase, ICos
             throw new ArgumentException("Exact QuestDB symbol configuration required.", nameof(json));
 
         var endpoint = new Uri(root.GetProperty("endpoint").GetString()!, UriKind.Absolute);
+        if (endpoint.Scheme != Uri.UriSchemeHttps || endpoint.IsLoopback)
+            throw new ArgumentException("Hosted QuestDB symbols require a public HTTPS endpoint.", nameof(json));
         var owner = root.GetProperty("sourceOwner").GetGuid();
         var keys = root.GetProperty("symbols").EnumerateArray().Select(item => item.GetString()!).Take(9).ToArray();
         var client = new HttpClient(NativeConnectionGuard.CreateGuardedHttpHandler());
