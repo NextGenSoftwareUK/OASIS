@@ -280,3 +280,14 @@ the remaining local profiles in scoped Development batches after that gate.
 For each profile, confirm the deployed commit, review the query-only settings,
 then verify hosted native queries, Mongo federation, reuse, privacy and exact
 replicas before publishing its demo. Record browser acceptance separately.
+
+### Additional SQL candidates
+
+| Provider | Verified scope | Next hosted gate |
+|---|---|---|
+| QuestDB | Local native 3/2, WEB4 HTTP federation 5/4 and foreign visibility 0 private/3 public | Qualify a permitted public HTTPS SQL endpoint and its enrolled symbol table. [Evidence](QUESTDB_PUBLIC_SOURCE_STATUS.md) |
+| Cloudflare D1 | Local Worker activation and native 3/2, WEB4 HTTP federation 5/4 and foreign visibility 0 private/3 public | Existing-account development Worker binding and source-bound HTTPS qualification. [Owner dependency](../Release%20and%20Status/ACTIONS-FOR-DAVID.md#cloudflare-d1-worker-for-development-web4) |
+| SQL Server | Recovered original LocalDB CQL, Mongo federation and browser evidence | Select and qualify a Development tenant and fixture before explicit registration and admission. Preserve the original local cohort. [Evidence](SQLSERVER_CQL_MVP.md) |
+
+These candidates follow the LocalFile release gate. The local SQL results
+do not add to the hosted provider count.
