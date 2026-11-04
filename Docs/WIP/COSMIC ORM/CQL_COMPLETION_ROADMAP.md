@@ -14,6 +14,11 @@ SDKs, clients or APIs. Close placeholders, TODOs and unimplemented shipping
 paths, and verify behavior against native services with evidence for every
 applicable capability. Keep scoped MVP acceptance separate from full provider
 completion. Preserve existing owner deferrals as explicit open gates.
+Extend the [EF Core, EF6 and NHibernate parity checklist](CQL_PARITY_CHECKLIST.md)
+from SQLite, MongoDB and Neo4j to every provider after the MVP. Verify each
+applicable feature's observable behavior on its native provider. Record the
+reason and evidence for any inapplicable feature and keep unverified cells open.
+
 
 The 4 November published launcher audit found all 37 referenced scripts in the
 task checkout. Runtime qualification remains separate.
