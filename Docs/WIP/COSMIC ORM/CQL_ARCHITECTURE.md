@@ -1,5 +1,18 @@
 # CQL architecture
 
+## Proposed virtual import boundary
+
+See the [Virtual Holons import proposal](OASIS_Virtual_Holons_Import_Proposal.docx). Materialized import persists owned Holon payloads for
+HyperDrive replication. Virtual import would persist a collection mapping
+and resolve bounded native queries into ephemeral Holons with stable IDs.
+Keep mapping revisions in provenance and keep sensitive source keys private.
+Replicating the mapping carries the reference. Reading the payload still
+requires authorized access to the native provider.
+
+Hybrid mode would add explicitly selected cached or persisted records.
+An explicit snapshot save creates an owned Holon with source provenance.
+A source update requires its own authorization and write capability.
+
 Host-owned read-source activation recovery is explicit per CqlReadSourceProfile. Blockscout opts into at most2awaited health checks, one5s delay, shared30s aggregate deadline, and only typedHTTP500/502/503/504. Other profiles default to1attempt. No user query/write/signing operation, auth/rate-limit error, malformed data or timeout is retried. Failed attempts are logged with safe typed event4831 and recovery event4832; exhausted recovery remains unavailable.
 
 Blockscout uses shared query/read-only activation contracts with bounded configured address lookup and full validation before paging. Exact nullable balances/update heights and a public metadata allowlist avoid fabricated zeroes/private-field leakage. Explorer instance is part of source provenance/projected IDs. [Contract and limits](../../Devs/BLOCKSCOUT_PUBLIC_ADDRESS_CQL_GUIDE.md). Original read timeout preserved; successful read-only completion is functional proof, not reliability certification.
