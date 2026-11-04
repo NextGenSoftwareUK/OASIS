@@ -260,3 +260,9 @@ TestResults/ProviderBuildCurrent/cosmic-eigenlayer-admission.log.
 The owned local federation gate uses the ignored
 LocalState/COSMIC/EigenLayerPublicQualificationCurrent/source.json and
 TestResults/EigenLayerPublicSourceCurrent. Retain through verification.
+
+Fhenix CoFHE uses the existing .NET runtime and cached dependencies. Its
+planned leased build writes provider bin/obj under
+Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FhenixOASIS and
+TestResults/ProviderBuildCurrent/cosmic-fhenix-build.log. Build after the
+EigenLayer gate releases the shared outputs.
