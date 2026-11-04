@@ -28,6 +28,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
 using ClickHouseSource = NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.ClickHousePublicCountryMetadataSource;
+using D1Source = NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS.D1WorkerSymbolQuerySource;
 using QuestDbSource = NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.QuestDbSymbolQuerySource;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 using IoFile = System.IO.File;
@@ -49,6 +50,15 @@ public sealed class QuestDbMongoNativeFactAttribute : FactAttribute
     {
         if (Environment.GetEnvironmentVariable("COSMIC_QUESTDB_HTTP_NATIVE") != "owned-local-27029")
             Skip = "Requires the isolated QuestDB and Mongo native fixtures.";
+    }
+}
+
+public sealed class D1MongoNativeFactAttribute : FactAttribute
+{
+    public D1MongoNativeFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("COSMIC_D1_HTTP_NATIVE") != "owned-local-27029")
+            Skip = "Requires the isolated D1 Worker and Mongo native fixtures.";
     }
 }
 
@@ -82,16 +92,25 @@ public sealed class CqlClickHouseMongoNativeTests
         await RunNativeFederationAsync(ProviderType.QuestDBOASIS);
     }
 
+    [D1MongoNativeFact]
+    public async Task NativeD1SymbolsAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
+    {
+        await RunNativeFederationAsync(ProviderType.CloudflareD1OASIS);
+    }
+
     private static async Task RunNativeFederationAsync(ProviderType sourceType)
     {
-        bool questDb = sourceType == ProviderType.QuestDBOASIS;
+        bool clickHouse = sourceType == ProviderType.ClickHouseOASIS;
         var providerName = sourceType.ToString();
-        var metadataKey = questDb ? QuestDbSource.SymbolMetadata : ClickHouseSource.AddressMetadata;
-        var slug = questDb ? "questdb" : "clickhouse";
+        var (metadataKey, slug, fixture) = sourceType switch
+        {
+            ProviderType.CloudflareD1OASIS => (D1Source.SymbolMetadata, "d1", "D1"),
+            ProviderType.QuestDBOASIS => (QuestDbSource.SymbolMetadata, "questdb", "QuestDb"),
+            _ => (ClickHouseSource.AddressMetadata, "clickhouse", "ClickHouse")
+        };
         var Database = $"cosmic_cql_{slug}_http_demo";
         var Owner = $"cosmic-cql-{slug}-http-v1";
         var Types = new[] { ProviderType.MongoDBOASIS, sourceType };
-        var fixture = questDb ? "QuestDb" : "ClickHouse";
         var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
 
         const string mongoConnection = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs";
@@ -105,9 +124,9 @@ public sealed class CqlClickHouseMongoNativeTests
         Assert.False(IoFile.Exists(intent), "Preserve the original fixture outcome; never reseed/replay it.");
         Assert.Empty(Directory.EnumerateFiles(state));
         var configPath = Path.Combine(root, "LocalState/COSMIC/HostedClickHousePublicSourceCurrent/source.json");
-        var configJson = questDb ? null : await IoFile.ReadAllTextAsync(configPath);
+        var configJson = clickHouse ? await IoFile.ReadAllTextAsync(configPath) : null;
         using var config = configJson == null ? null : JsonDocument.Parse(configJson);
-        var allowed = questDb ? new[] { "BTC-USDT", "ETH-USDT", "SOL-USDT" }
+        var allowed = !clickHouse ? new[] { "BTC-USDT", "ETH-USDT", "SOL-USDT" }
             : config!.RootElement.GetProperty("countries").EnumerateArray().Select(country => country.GetString()!).ToArray();
         Assert.Equal(3, allowed.Length);
         var actor = Guid.NewGuid();
@@ -127,9 +146,15 @@ public sealed class CqlClickHouseMongoNativeTests
         }
 
         using var nativeHttp = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
-        using IDisposable disposableSource = questDb
-            ? new QuestDbSource(nativeHttp, new Uri("http://127.0.0.1:29000/api/v1/sql/execute"), actor, allowed)
-            : ClickHouseSource.FromJson(configJson!);
+        using IDisposable disposableSource = sourceType switch
+        {
+            ProviderType.CloudflareD1OASIS => new D1Source(nativeHttp, new Uri(
+                Environment.GetEnvironmentVariable("OASIS_D1_SYMBOL_TEST_ENDPOINT") ??
+                    throw new InvalidOperationException("D1 fixture endpoint required.")), actor, allowed),
+            ProviderType.QuestDBOASIS => new QuestDbSource(nativeHttp,
+                new Uri("http://127.0.0.1:29000/api/v1/sql/execute"), actor, allowed),
+            _ => ClickHouseSource.FromJson(configJson!)
+        };
         var clickhouseSource = (IOASISStorageProvider)disposableSource;
         var querySource = (ICosmicQueryStorageProvider)disposableSource;
         Assert.False((await ((ICosmicReadOnlyQueryActivation)disposableSource).ActivateQuerySourceAsync(default)).IsError);
@@ -272,7 +297,7 @@ public sealed class CqlClickHouseMongoNativeTests
                     var observedMetadata = row.GetProperty("metadata");
                     var nativeKey = observedMetadata.GetProperty(metadataKey).GetString()!;
                     Assert.Contains(nativeKey, allowed);
-                    if (!questDb)
+                    if (clickHouse)
                     {
                         Assert.Equal("operator-reported-public-country-summary", observedMetadata.GetProperty("ClickHouseObservationPolicy").GetString());
                         Assert.Equal("blogs.countries", observedMetadata.GetProperty("ClickHouseTable").GetString());
@@ -308,7 +333,7 @@ public sealed class CqlClickHouseMongoNativeTests
             await Check("foreign-public-pair", foreignToken, "/api/data/query-cql/federation", new { scope = "Named", maximumDurationMilliseconds = 30000,
                 providers = new[] { "MongoDBOASIS", providerName }, source = Selection(allowed),
                 identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8 }, 3);
-            if (!questDb) Assert.Equal(configJson, await IoFile.ReadAllTextAsync(configPath));
+            if (clickHouse) Assert.Equal(configJson, await IoFile.ReadAllTextAsync(configPath));
             Assert.Equal(9, receipts.Count);
             Directory.CreateDirectory(Path.Combine(root, $"TestResults/{fixture}PublicSourceCurrent"));
             await IoFile.WriteAllTextAsync(Path.Combine(root, $"TestResults/{fixture}PublicSourceCurrent/{slug}-mongo-native-summary.json"),

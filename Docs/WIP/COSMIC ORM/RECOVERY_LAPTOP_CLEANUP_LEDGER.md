@@ -467,3 +467,8 @@ No new runtime or database was created.
 D1/QuestDB exact WEB4 admission reused WEB4 and shared bin/obj.
 Receipt: TestResults/ProviderBuildCurrent/cosmic-d1-web4-admission.log
 (2/2 passed). The prior Core checkout was restored.
+
+D1 WEB4 HTTP proof reused Miniflare and MongoDB. Exact build/test receipts:
+TestResults/ProviderBuildCurrent/cosmic-d1-http-exact.log and cosmic-d1-http-native.log.
+Retain D1PublicSourceCurrent summary and D1MongoHttpCurrent cleanup receipt.
+The owned Mongo database was dropped, port 27029 closed, and the Worker exited.
