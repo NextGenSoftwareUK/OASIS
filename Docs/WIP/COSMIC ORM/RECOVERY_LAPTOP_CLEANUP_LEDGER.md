@@ -254,3 +254,9 @@ EigenLayer reader verification reuses the installed .NET runtime and shared
 provider build lease. Generated outputs are the EigenLayerOASIS bin/obj
 directories and TestResults/ProviderBuildCurrent/cosmic-eigenlayer-build.log.
 Retain through adapter testing and clean when those outputs have no consumers.
+
+EigenLayer admission reuses shared WEB4 bin/obj and writes
+TestResults/ProviderBuildCurrent/cosmic-eigenlayer-admission.log.
+The owned local federation gate uses the ignored
+LocalState/COSMIC/EigenLayerPublicQualificationCurrent/source.json and
+TestResults/EigenLayerPublicSourceCurrent. Retain through verification.

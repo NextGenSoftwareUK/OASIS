@@ -35,3 +35,8 @@ operators against Ethereum mainnet. It projects stable public holon IDs,
 registration flags and the shared finalized block provenance. WEB4 admission
 and end-to-end query and federation tests remain open. Existing build paths
 were reused.
+
+The guarded hosted publisher passed three configuration tests. It binds
+preparation to the exact local source digest and federation/cleanup receipt,
+preserves existing write admission, and checks the expected live release
+before applying the reviewed query-only configuration.
