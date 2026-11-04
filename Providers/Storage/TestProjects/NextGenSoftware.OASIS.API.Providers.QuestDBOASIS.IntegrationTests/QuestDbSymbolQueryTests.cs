@@ -18,6 +18,9 @@ public class QuestDbSymbolQueryTests
         using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
         var keys = new[] { "BTC-USDT", "ETH-USDT", "SOL-USDT" };
         var source = new QuestDbSymbolQuerySource(http, new Uri(endpoint), Guid.NewGuid(), keys);
+        using var profile = source;
+        var activation = await source.ActivateQuerySourceAsync();
+        Assert.IsTrue(activation.Result, activation.Exception?.ToString() ?? activation.Message);
         var scope = CosmicQueryScope.Named(ProviderType.QuestDBOASIS).Result;
         var targets = new[] { new CosmicQueryTarget(ProviderType.QuestDBOASIS, source.QueryCapabilities) };
 

@@ -11,36 +11,57 @@ using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS;
 
 /// <summary>Read-only CQL projection of an explicitly enrolled QuestDB symbol table.</summary>
-public sealed class QuestDbSymbolQuerySource : ICosmicQueryStorageProvider
+public sealed class QuestDbSymbolQuerySource : KeyValueStorageProviderBase, ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
 {
     public const string SymbolMetadata = "QuestDbSymbol";
-    private readonly QuestDbSymbolRestClient client;
-    private readonly HashSet<string> catalogue;
-    private readonly Guid owner;
-    private readonly string sourceName;
+    private readonly SymbolBackend backend;
+    private bool disposed;
 
     public QuestDbSymbolQuerySource(HttpClient http, Uri endpoint, Guid owner, IEnumerable<string> symbols)
+        : this(new SymbolBackend(http, endpoint, owner, symbols)) { }
+
+    private QuestDbSymbolQuerySource(SymbolBackend backend) : base(backend, SymbolBackend.Prefix)
     {
-        ArgumentNullException.ThrowIfNull(http);
-        ArgumentNullException.ThrowIfNull(endpoint);
-        ArgumentNullException.ThrowIfNull(symbols);
-        if (!endpoint.IsAbsoluteUri || endpoint.AbsolutePath != "/api/v1/sql/execute" ||
-            (endpoint.Scheme != Uri.UriSchemeHttps && !(endpoint.Scheme == Uri.UriSchemeHttp && endpoint.IsLoopback)) ||
-            endpoint.UserInfo.Length != 0 || endpoint.Query.Length != 0 || endpoint.Fragment.Length != 0 || owner == Guid.Empty)
-            throw new ArgumentException("An explicit QuestDB SQL endpoint and owner are required.");
-        var enrolled = symbols.Take(9).ToArray();
-        QuestDbSymbolRestClient.ValidateKeys(enrolled);
-        catalogue = new(enrolled, StringComparer.Ordinal);
-        this.owner = owner;
-        sourceName = $"questdb-symbols:{endpoint.AbsoluteUri}:cql_demo_symbols";
-        client = new(http, endpoint);
+        this.backend = backend;
+        ProviderType = new EnumValue<ProviderType>(QueryProviderType);
+        ProviderName = QueryProviderType.ToString();
+        ProviderDescription = "Read-only QuestDB symbol metadata";
+        ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
     }
 
-    public ProviderType QueryProviderType => ProviderType.QuestDBOASIS;
+    public override Task<OASISResult<bool>> ActivateProviderAsync() => ActivateQuerySourceAsync();
+
+    public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            ObjectDisposedException.ThrowIf(disposed, this);
+            await backend.VerifyAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            IsProviderActivated = true;
+            return new(true);
+        }
+        catch (Exception error)
+        {
+            IsProviderActivated = false;
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = error is OperationCanceledException
+                ? "CQL_QUERY_CANCELLED" : "CQL_SOURCE_UNAVAILABLE", Message = "QuestDB symbol activation failed.", Exception = error };
+        }
+    }
+
+    public void Dispose()
+    {
+        disposed = true;
+        IsProviderActivated = false;
+    }
+
+    public ProviderType QueryProviderType => Core.Enums.ProviderType.QuestDBOASIS;
     public CosmicQueryCapabilities QueryCapabilities { get; } =
         CosmicQueryCapabilities.ForStringMetadataKeyLookup(SymbolMetadata, 33, 8);
 
@@ -51,6 +72,8 @@ public sealed class QuestDbSymbolQuerySource : ICosmicQueryStorageProvider
             return Failure("CQL_PLAN_TARGET_UNAVAILABLE", "One explicit QuestDB symbol source is required.");
         if (maximumResults is < 1 or > 10000)
             return Failure("CQL_QUERY_LIMIT", "A bounded result budget is required.");
+        if (disposed || !IsProviderActivated)
+            return Failure("CQL_PROVIDER_INACTIVE", "Activate the QuestDB symbol profile first.");
         var admitted = QueryCapabilities.AdmitPlan(plan);
         if (admitted.IsError)
             return Failure(admitted.ErrorCode, admitted.Message);
@@ -68,14 +91,14 @@ public sealed class QuestDbSymbolQuerySource : ICosmicQueryStorageProvider
             if (selected.IsError) return Failure(selected.ErrorCode, selected.Message);
             keys = new[] { selected.Result };
         }
-        if (keys.Any(key => !catalogue.Contains(key)))
+        if (keys.Any(key => !backend.Keys.Contains(key, StringComparer.Ordinal)))
             return Failure("CQL_INVALID_SOURCE_KEY", "Select symbols from the enrolled QuestDB catalogue.");
 
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var symbols = await client.ReadSymbolsAsync(keys, cancellationToken);
-            var rows = symbols.Select(MapSymbol)
+            var symbols = await backend.Client.ReadSymbolsAsync(keys, cancellationToken);
+            var rows = symbols.Select(backend.MapSymbol)
                 .Where(row => plan.Query.ReadAccess == null || plan.Query.ReadAccess.CanRead(row))
                 .Skip(plan.Query.Offset).Take(plan.Query.Limit ?? symbols.Count).ToArray();
             cancellationToken.ThrowIfCancellationRequested();
@@ -93,21 +116,71 @@ public sealed class QuestDbSymbolQuerySource : ICosmicQueryStorageProvider
         }
     }
 
-    private IHolon MapSymbol(string symbol)
-    {
-        var fields = new Dictionary<string, object> { ["name"] = symbol, [SymbolMetadata] = symbol };
-        var mapped = NativeRecordHolonMapper.CreateHolon(owner, QueryProviderType,
-            new NativeRecord(sourceName, symbol, fields), NativeDataMapping.ForSource(sourceName));
-        if (mapped.IsError) throw new InvalidDataException(mapped.ErrorCode);
-        var row = mapped.Result;
-        row.CreatedByAvatarId = owner;
-        row.IsPublic = true;
-        row.IsActive = true;
-        row.Children = Array.Empty<IHolon>();
-        row.ProviderUniqueStorageKey[QueryProviderType] = symbol;
-        return row;
-    }
-
     private static OASISResult<IReadOnlyList<IHolon>> Failure(string code, string message, Exception? error = null)
         => new() { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message, Exception = error };
+    private sealed class SymbolBackend : IKeyValueBackend
+    {
+        public const string Prefix = "questdb-symbols/";
+        private readonly Guid owner;
+        private readonly string sourceName;
+        private readonly Dictionary<string, string> records;
+        public IReadOnlyList<string> Keys { get; }
+        public QuestDbSymbolRestClient Client { get; }
+
+        public SymbolBackend(HttpClient http, Uri endpoint, Guid owner, IEnumerable<string> symbols)
+        {
+            ArgumentNullException.ThrowIfNull(http);
+            ArgumentNullException.ThrowIfNull(endpoint);
+            ArgumentNullException.ThrowIfNull(symbols);
+            if (!endpoint.IsAbsoluteUri || endpoint.AbsolutePath != "/api/v1/sql/execute" ||
+                (endpoint.Scheme != Uri.UriSchemeHttps && !(endpoint.Scheme == Uri.UriSchemeHttp && endpoint.IsLoopback)) ||
+                endpoint.UserInfo.Length != 0 || endpoint.Query.Length != 0 || endpoint.Fragment.Length != 0 || owner == Guid.Empty)
+                throw new ArgumentException("An explicit QuestDB SQL endpoint and owner are required.");
+            var enrolled = symbols.Take(9).ToArray();
+            QuestDbSymbolRestClient.ValidateKeys(enrolled);
+            Keys = Array.AsReadOnly(enrolled);
+            this.owner = owner;
+            sourceName = $"questdb-symbols:{endpoint.AbsoluteUri}:cql_demo_symbols";
+            Client = new(http, endpoint);
+            records = Keys.ToDictionary(key => Prefix + "holon/" +
+                NativeRecordHolonMapper.StableHolonId(owner, Core.Enums.ProviderType.QuestDBOASIS, sourceName, key).ToString("N"),
+                StringComparer.Ordinal);
+        }
+
+        public IHolon MapSymbol(string symbol)
+        {
+            var fields = new Dictionary<string, object> { ["name"] = symbol, [SymbolMetadata] = symbol };
+            var mapped = NativeRecordHolonMapper.CreateHolon(owner, Core.Enums.ProviderType.QuestDBOASIS,
+                new NativeRecord(sourceName, symbol, fields), NativeDataMapping.ForSource(sourceName));
+            if (mapped.IsError) throw new InvalidDataException(mapped.ErrorCode);
+            var row = mapped.Result;
+            row.CreatedByAvatarId = owner;
+            row.IsPublic = true;
+            row.IsActive = true;
+            row.Children = Array.Empty<IHolon>();
+            row.ProviderUniqueStorageKey[Core.Enums.ProviderType.QuestDBOASIS] = symbol;
+            return row;
+        }
+        public async Task VerifyAsync(CancellationToken cancellationToken = default)
+            => await Client.ReadSymbolsAsync(Keys, cancellationToken);
+
+        public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
+        {
+            if (!records.TryGetValue(key, out var symbol)) return null!;
+            var native = await Client.ReadSymbolsAsync(new[] { symbol }, cancellationToken);
+            return StoredRecordJson.Serialize<IHolon>(MapSymbol(native[0]));
+        }
+
+        public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult<IReadOnlyList<string>>(records.Keys.Where(key => key.StartsWith(prefix, StringComparison.Ordinal)).ToArray());
+        }
+
+        public Task PutAsync(string key, string value, CancellationToken cancellationToken = default)
+            => Task.FromException(new NotSupportedException("QuestDB symbols are read-only."));
+
+        public Task DeleteAsync(string key, CancellationToken cancellationToken = default)
+            => Task.FromException(new NotSupportedException("QuestDB symbols are read-only."));
+    }
 }

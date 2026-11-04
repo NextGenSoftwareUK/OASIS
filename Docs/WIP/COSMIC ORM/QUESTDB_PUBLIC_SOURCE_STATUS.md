@@ -57,3 +57,8 @@ WEB4 enrollment requires a separate host-managed read-only storage profile
 with explicit activation and disposal. The current planner adapter is not
 eligible for that registry until it implements this contract. The native
 REST client now applies a single 15-second deadline to headers and body reads.
+
+The symbol source now implements the shared storage and explicit read-only
+activation interfaces. Activation reads every enrolled symbol. The real
+QuestDB lifecycle and exact CQL 3/2 integration test passed 1/1 with zero skips.
+Host configuration and admission remain open.

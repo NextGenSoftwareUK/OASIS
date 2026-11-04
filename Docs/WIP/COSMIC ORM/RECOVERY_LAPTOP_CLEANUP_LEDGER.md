@@ -380,3 +380,7 @@ receipt: TestResults/ProviderBuildCurrent/cosmic-questdb-client.log.
 QuestDB native CQL rerun reused 10.1.0 and generated integration project
 bin/obj and TestResults/ProviderBuildCurrent/cosmic-questdb-native-cql.log.
 The two owned processes stopped, port 29000 closed and fixture removed.
+
+QuestDB lifecycle rerun reused the same runtime and bin/obj. Receipt:
+TestResults/ProviderBuildCurrent/cosmic-questdb-profile.log. Owned processes
+stopped, port 29000 closed and the isolated fixture removed.
