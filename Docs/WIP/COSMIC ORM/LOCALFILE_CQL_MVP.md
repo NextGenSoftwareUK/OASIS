@@ -246,3 +246,10 @@ that independent change outside the LocalFile deployment batch. LocalFile
 and Hyperlane share the Core pin. Hyperlane stays disabled until its own
 explicit settings and acceptance. Validate the selected parent gitlink and
 Railway manifest together and recheck current Development before publishing.
+
+Candidate 2b25dc6576a568f346d03440b513b31f2e7a80c7 is published on
+codex/cosmic-localfile-release-candidate. The candidate retains the LocalFile
+publisher, exact-release guard, hosted verifier and shipping bootstrap. Its
+WEB4 API tree, Core pin and Docker definitions match the tested task head.
+Development still points at b718f2879. Railway sign-in, mount confirmation,
+candidate review and live acceptance remain open.
