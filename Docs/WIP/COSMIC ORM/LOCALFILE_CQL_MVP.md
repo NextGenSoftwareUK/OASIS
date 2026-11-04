@@ -213,7 +213,7 @@ offline request construction evidence.
 Once both owner inputs arrive, validate the original bundle through publisher
 prepare, review the five-variable candidate, verify the exact code deployment
 and Core pin. Confirm the existing Development WEB4 persistent volume is
-mounted at /data before applying the candidate once. The bootstrap checks
+mounted at /data before applying the candidate once. Confirm the service and environment in the Railway dashboard because this laptop's volume list command has no explicit project/environment/service selectors. The bootstrap checks
 that the parent directory exists, which does not establish persistence.
 Observe the resulting settings
 deployment before running Verify-HostedQuerySource.py LocalFileOASIS --prepare
@@ -247,9 +247,9 @@ and Hyperlane share the Core pin. Hyperlane stays disabled until its own
 explicit settings and acceptance. Validate the selected parent gitlink and
 Railway manifest together and recheck current Development before publishing.
 
-Candidate 2b25dc6576a568f346d03440b513b31f2e7a80c7 is published on
+Candidate 59fdb6a3da6bec3799e5495bd0e22f88a23ac17f is published on
 codex/cosmic-localfile-release-candidate. The candidate retains the LocalFile
-publisher, exact-release guard, hosted verifier and shipping bootstrap. Its
+publisher, exact-release guard, hosted verifier, shared Railway CLI resolution and shipping bootstrap. Its
 WEB4 API tree, Core pin and Docker definitions match the tested task head.
 Development still points at b718f2879. Railway sign-in, mount confirmation,
 candidate review and live acceptance remain open.
