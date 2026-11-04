@@ -100,10 +100,16 @@ def candidate(before, source, bootstrap):
 
 def qualified_source():
     state = ROOT / "LocalState/COSMIC/HostedLocalFilePublicDatasetCurrent"
-    raw = (state / "source-config.json").read_bytes()
-    bundle = (state / "bootstrap.json").read_bytes()
-    ack = json.loads((state / "export.acknowledged.json").read_text())
-    proof = json.loads((ROOT / "LocalState/COSMIC/HostedLocalFileSourceCurrent/source-qualified.json").read_text())
+    paths = (state / "source-config.json", state / "bootstrap.json",
+             state / "export.acknowledged.json",
+             ROOT / "LocalState/COSMIC/HostedLocalFileSourceCurrent/source-qualified.json")
+    missing = [str(path.relative_to(ROOT)) for path in paths if not path.is_file()]
+    if missing:
+        raise RuntimeError("Restore the original LocalFile qualification files before preparing a rollout: "
+                           + ", ".join(missing))
+    raw, bundle, ack_bytes, proof_bytes = (path.read_bytes() for path in paths)
+    ack = json.loads(ack_bytes)
+    proof = json.loads(proof_bytes)
     if ((ack.get("sdkFull"), ack.get("sdkSubset")) != (3, 2) or ack.get("nativeSourceUnchanged") is not True
             or proof.get("sdkCounts") != [3, 2] or proof.get("shippingBootstrapAdmitted") is not True
             or any(value.get(name) != hashlib.sha256(data).hexdigest() for value in (ack, proof)
