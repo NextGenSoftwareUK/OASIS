@@ -459,3 +459,7 @@ D1 activation reused existing Worker/runtime and .NET build outputs.
 Receipts cosmic-d1-activation.log (3/3 controls) and
 cosmic-d1-activation-native.log (1/1) under TestResults/ProviderBuildCurrent.
 Worker exited after stdin closed and left no persistent database.
+
+D1 host profile controls reused existing provider and test outputs.
+Receipt: TestResults/ProviderBuildCurrent/cosmic-d1-profile.log (3/3).
+No new runtime or database was created.

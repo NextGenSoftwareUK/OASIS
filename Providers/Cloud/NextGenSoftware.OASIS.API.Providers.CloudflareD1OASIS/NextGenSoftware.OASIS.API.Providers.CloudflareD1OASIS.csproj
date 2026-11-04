@@ -37,4 +37,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS.UnitTests" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
+  </ItemGroup>
 </Project>

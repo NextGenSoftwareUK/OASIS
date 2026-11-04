@@ -17,7 +17,7 @@ public class D1WorkerSymbolQueryTests
 
         using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
         var keys = new[] { "BTC-USDT", "ETH-USDT", "SOL-USDT" };
-        var source = new D1WorkerSymbolQuerySource(http, new Uri(endpoint), Guid.NewGuid(), keys);
+        using var source = new D1WorkerSymbolQuerySource(http, new Uri(endpoint), Guid.NewGuid(), keys);
         var activation = await source.ActivateQuerySourceAsync();
         Assert.IsTrue(activation.Result, activation.Exception?.ToString() ?? activation.Message);
         var scope = CosmicQueryScope.Named(ProviderType.CloudflareD1OASIS).Result;
@@ -46,7 +46,7 @@ public class D1WorkerSymbolQueryTests
         using var http = new HttpClient(new SymbolResponse(body));
         var keys = new[] { "BTC-USDT", "SOL-USDT" };
         var provider = ProviderType.CloudflareD1OASIS;
-        var source = new D1WorkerSymbolQuerySource(http, new Uri("https://d1.example/symbols"), Guid.NewGuid(), keys);
+        using var source = new D1WorkerSymbolQuerySource(http, new Uri("https://d1.example/symbols"), Guid.NewGuid(), keys);
         var activation = await source.ActivateQuerySourceAsync();
         Assert.IsTrue(activation.IsError);
         Assert.AreEqual("CQL_SOURCE_UNAVAILABLE", activation.ErrorCode);
@@ -56,15 +56,21 @@ public class D1WorkerSymbolQueryTests
             new[] { new CosmicQueryTarget(provider, source.QueryCapabilities) });
         Assert.IsFalse(plan.IsError, plan.Message);
 
-        var result = await source.ExecuteCosmicQueryAsync(plan.Result);
+        var inactive = await source.ExecuteCosmicQueryAsync(plan.Result);
+        Assert.AreEqual("CQL_PROVIDER_INACTIVE", inactive.ErrorCode);
+        using var activatedHttp = new HttpClient(new SymbolResponse(body, activateFirst: true));
+        using var activated = new D1WorkerSymbolQuerySource(activatedHttp, new Uri("https://d1.example/symbols"), Guid.NewGuid(), keys);
+        Assert.IsTrue((await activated.ActivateQuerySourceAsync()).Result);
+        var result = await activated.ExecuteCosmicQueryAsync(plan.Result);
         Assert.IsTrue(result.IsError);
         Assert.AreEqual("CQL_QUERY_FAILED", result.ErrorCode);
         Assert.IsNull(result.Result);
     }
 
-    private sealed class SymbolResponse(string body) : HttpMessageHandler
+    private sealed class SymbolResponse(string body, bool activateFirst = false) : HttpMessageHandler
     {
+        private int calls;
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            => Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = new StringContent(body) });
+            => Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = new StringContent(activateFirst && Interlocked.Increment(ref calls) == 1 ? """{"symbols":["BTC-USDT","SOL-USDT"]}""" : body) });
     }
 }
