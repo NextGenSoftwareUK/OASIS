@@ -24,3 +24,8 @@ No runtime or generated output was needed.
 The guarded .NET reader built with zero errors and verified chain ID and
 genesis before reproducing the three block hashes live. It retains exact
 RPC timestamp quantities. The smoke used the existing build outputs.
+
+The read-only CQL source built and activated blocks 1, 2, and 3 against
+the live Ritual RPC. It projects stable public holon IDs and exact block
+hashes and timestamp quantities. WEB4 admission, query execution and
+federation remain open.
