@@ -212,7 +212,10 @@ offline request construction evidence.
 
 Once both owner inputs arrive, validate the original bundle through publisher
 prepare, review the five-variable candidate, verify the exact code deployment
-and Core pin, then apply the candidate once. Observe the resulting settings
+and Core pin. Confirm the existing Development WEB4 persistent volume is
+mounted at /data before applying the candidate once. The bootstrap checks
+that the parent directory exists, which does not establish persistence.
+Observe the resulting settings
 deployment before running Verify-HostedQuerySource.py LocalFileOASIS --prepare
 with a fresh provider-scoped journal. Check native 3/2, paired 5/4, repeat
 reuse, foreign-private 0/public 3 and both exact replicas before publishing
