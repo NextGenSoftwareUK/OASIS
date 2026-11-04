@@ -276,3 +276,8 @@ source-bound qualification receipts without accessing Railway. The LocalFile
 publisher, shared configuration and release guard, and publisher test file
 match the published candidate byte-for-byte. All eight publisher tests passed,
 including the release guard before mutation and protection of existing settings.
+
+The live Development examplesVersion=2 provider catalogue returned 60 rows
+with the retained rehearsal visitor. MongoDB was available with federation.
+LocalFile and Hyperlane were absent. The existing visitor session was renewed
+through its journaled refresh. No new visitor or provider snapshot was created.

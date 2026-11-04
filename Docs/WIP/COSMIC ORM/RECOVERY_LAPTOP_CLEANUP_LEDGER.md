@@ -354,3 +354,8 @@ No database, service process, download or runtime install was created.
 The follow-up Turso lifecycle run reused the same build outputs. Its receipt
 is TestResults/ProviderBuildCurrent/cosmic-turso-unit.log. Checked the upstream
 libSQL release asset list in memory. No runtime archive was downloaded.
+
+The live catalogue check renewed the existing visitor session in
+LocalState/COSMIC/HostedDemoRehearsalDiscovery. Preserve the protected
+visitor session and matching visitor-refresh journal with that cohort.
+No runtime or database files were generated.
