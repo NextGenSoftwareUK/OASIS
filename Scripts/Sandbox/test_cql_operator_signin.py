@@ -17,7 +17,7 @@ spec.loader.exec_module(signin)
 class OperatorSignInTests(unittest.TestCase):
     def setUp(self):
         parent = ROOT / "TestResults/CqlSourceRecoveryCurrent/operator-signin-tests"
-        parent.mkdir(exist_ok=True)
+        parent.mkdir(parents=True, exist_ok=True)
         self.temp = tempfile.TemporaryDirectory(dir=parent)
         self.addCleanup(self.temp.cleanup)
         self.state = Path(self.temp.name) / "state"
