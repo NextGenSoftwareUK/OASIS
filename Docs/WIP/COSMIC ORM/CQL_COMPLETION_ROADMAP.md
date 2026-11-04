@@ -7,6 +7,14 @@ Continue the full CQL, COSMIC ORM and HyperDrive roadmap. Prioritize the live
 Development WEB4 demo. When a gate needs owner access or retained evidence,
 keep that gate open and advance the next independent provider or engineering
 scope. Verify the remaining browser, native, ORM and HyperDrive gates separately.
+After the live WEB4 demo and the CQL, COSMIC ORM and HyperDrive MVP,
+complete every provider in the [provider inventory](PROVIDER_CQL_AND_SANDBOX_STATUS.md).
+Each provider must implement its applicable shipping contracts through real
+SDKs, clients or APIs. Close placeholders, TODOs and unimplemented shipping
+paths, and verify behavior against native services with evidence for every
+applicable capability. Keep scoped MVP acceptance separate from full provider
+completion. Preserve existing owner deferrals as explicit open gates.
+
 The 4 November published launcher audit found all 37 referenced scripts in the
 task checkout. Runtime qualification remains separate.
 
