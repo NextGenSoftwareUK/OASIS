@@ -24,3 +24,16 @@ This is a separate source design. No RPC access or CQL behavior has been
 verified through it yet.
 
 [Connext contract event and getter reference](https://docs.connext.network/developers/reference/contracts/calls).
+
+## Ethereum origin event source qualified
+
+One bounded Blockscout Ethereum address-log page returned 50 logs, including
+16 decoded XCalled events for the official Connext deployment. Three distinct
+transfer IDs were selected. Three exact transaction-log reads independently
+matched contract address, event signature, transfer ID, transaction hash and
+log index. This verifies indexed origin events. Destination execution, raw RPC
+receipt verification and CQL remain open.
+Discovery SHA256 4678F11E6D2355C09A185A5EA4AFBB1D75199215A1DA06CD9A830682DEA2C4C9.
+Raw intents, headers and responses are retained in TestResults/ConnextPublicSourceCurrent.
+
+[Official deployment](https://docs.connext.network/resources/deployments).

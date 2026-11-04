@@ -195,3 +195,6 @@ Synapse reused MongoDB 8.2 and removed its owned fixture database. Port
 
 Connext DNS diagnostic retained; no runtime or service installed.
 - TestResults/ConnextPublicSourceCurrent : 215 bytes
+
+Connext Ethereum indexed evidence uses existing HTTP tooling.
+- TestResults/ConnextPublicSourceCurrent : 310687 bytes
