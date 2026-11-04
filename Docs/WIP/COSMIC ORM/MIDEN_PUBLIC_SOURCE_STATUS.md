@@ -25,5 +25,9 @@ commitment. This check loaded the existing provider build and cached libraries
 in PowerShell. It created no new runtime, build, or test output.
 
 Before CQL admission, exercise the response-height mismatch path with a
-controlled gRPC response. Use the shared native connection guard in the WEB4
-configuration path and require the genesis check during source activation.
+controlled gRPC response. Require the genesis check during source activation.
+
+The client now pins the official HTTPS testnet endpoint and uses the shared
+native connection guard, with proxies and cookies disabled. The guarded build
+passed and the live three-header smoke passed again, including the block 1
+genesis comparison. The build reused the recovery ledger paths.

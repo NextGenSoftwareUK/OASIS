@@ -1,8 +1,10 @@
 using System;
 using System.IO;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Net.Client;
+using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.Providers.MidenOASIS.PublicRpc;
 
 namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS;
@@ -12,9 +14,17 @@ internal sealed class MidenPublicBlockHeaderClient : IDisposable
     private readonly GrpcChannel _channel;
     private readonly NodeService.NodeServiceClient _client;
 
-    public MidenPublicBlockHeaderClient(Uri endpoint)
+    public MidenPublicBlockHeaderClient()
     {
-        _channel = GrpcChannel.ForAddress(endpoint, new GrpcChannelOptions { MaxReceiveMessageSize = 64 * 1024 });
+        var handler = (SocketsHttpHandler)NativeConnectionGuard.CreateGuardedHttpHandler();
+        handler.UseCookies = false;
+        handler.UseProxy = false;
+        _channel = GrpcChannel.ForAddress("https://rpc.testnet.miden.io", new GrpcChannelOptions
+        {
+            HttpHandler = handler,
+            DisposeHttpClient = true,
+            MaxReceiveMessageSize = 64 * 1024
+        });
         _client = new NodeService.NodeServiceClient(_channel);
     }
 
