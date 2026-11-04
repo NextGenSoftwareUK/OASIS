@@ -161,3 +161,8 @@ exited. Reused the existing SDK, NuGet cache and shared outputs.
 - LocalState/COSMIC/HostedLocalFileSourceCurrent : 502 bytes
 - TestResults/HostedLocalFileSourceCurrent : 3403735 bytes
 - TestResults/TablelandRecoveryLaptopCurrent : 3986 bytes
+
+## LayerZero V2 public reads
+
+Retain the bounded discovery and exact-key responses. No runtime or service installed.
+- TestResults/LayerZeroV2PublicSourceCurrent : 20199 bytes
