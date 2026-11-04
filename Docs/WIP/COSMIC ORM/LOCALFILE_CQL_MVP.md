@@ -2,6 +2,82 @@
 
 Updated 2 November 2026. Named source/launcher restored from retained pin 237403a75. Seven controlled tests, producer/consumer compilation and launcher syntax pass. No native fixture/source/seed replay. Acceptance below is historical, not a newly repeated run. Hosted LocalFile remains unverified.
 
+## Hosted public-profile preparation,3November2026
+
+New LocalFilePublicCqlProfile adds explicit public-catalogue query enrollment and
+read-only activation without changing the ordinary writer. Activation requires
+existing bounded canonical GUID files,matching startup hashes/public owner and
+strict UTF8. Query dispatch reuses the actual LocalFile decoder/stream budget;
+it rejects unlisted identities and later private/foreign response rows without
+publishing partial results. Files are plaintext,not encrypted or snapshot-pinned.
+Register this representation only in the CQL query-source registry,not as writable
+authority. Native/storage signing and broader LocalFile ORM remain separate.
+
+8new actual-filesystem cases pass,0failed/skipped;3/2selection,catalogue isolation,
+public/owner/hash admission,cancellation,missing-source handling and later privacy
+changes. Newly owned synthetic cases removed;original retained cohort untouched.
+Proof:LocalState/COSMIC/HostedLocalFileSourceCurrent/public-profile-evidence.json.
+Next:host configuration/explicit synthetic-public bootstrap,SDK/HTTP/Mongo5/4,
+privacy/replica proof and sandbox card. No hosted registration or count increase yet.
+
+Legacy unit-project gaps found while adding tests:CS0411 compares ProviderType to
+its enum wrapper;CS1061 calls nonexistent GetProviderVersion. These template tests
+remain unchanged/documented. New filesystem tests belong to the existing
+integration project;its cached dependencies compile. Initial NETSDK1004 and both
+compile-error logs/hashes preserved in the proof manifest,not relabelled green.
+
+### Explicit hosted configuration
+
+CQL_LOCALFILE_PUBLIC_SOURCE_JSON now registers the separate query profile through
+Startup/LocalFileCqlRegistration. Schema1 requires exactly `schema`,`directory`,
+`sourceOwner`,`records`;each record has exactly `id`,`sha256`. Directory must be
+absolute;IDs are nonempty unique GUIDs;hashes are64hex digits. Maximum100records
+and32768configuration bytes. No credentials,unknown fields or duplicate keys.
+Parsing captures metadata only;it never creates directories or activates storage.
+
+Public read grant,query tariff,presets and data provisioning remain separate
+explicit deployment configuration. LocalFile is admitted for bounded unsorted
+row/federation queries,not automatically into canonical three-store composition.
+Existing browser preparation already supports GUID recipes and avatar-mapped
+snapshot IDs;no frontend algorithm duplication is needed.
+
+16profile/configuration/native-filesystem cases and30API/discovery/schema cases
+pass,0failed/skipped. Original TRX/source hashes:
+LocalState/COSMIC/HostedLocalFileSourceCurrent/host-registration-evidence.json.
+Next implement the explicit public teaching-data bootstrap and verify hosted
+native3/2,Mongo5/4,privacy/replicas and card. No deployment/configuration change
+or hosted LocalFile acceptance yet;counts stay96local/60historical hosted proofs.
+
+### Write-once public teaching-data bootstrap
+
+CQL_LOCALFILE_PUBLIC_BOOTSTRAP_JSON is optional and requires an explicit source
+profile plus OASIS_SANDBOX=true. Schema1 contains exactly `schema`,`records`;
+each record contains `id`,`sha256`,`contentBase64`. The complete bundle must match
+the declared source IDs/hashes,strict UTF8 and live public flat rows belonging
+to the source owner. Unknown/duplicate fields,private/foreign/deleted/child rows
+and corrupt content are rejected before dataset creation. Bundle budget128KiB,
+individual decoded record32KiB. No account/key/new service is required.
+
+The source parent/volume must already exist. One exclusive sibling bootstrap
+lease owns creation. New source stores a durable intent before record files and
+ACK after all writes;each write is create-only and flushed. A pre-existing source
+without both matching receipts is not adopted,replayed or overwritten. Verified
+ACK reuse compares exact bounded bytes and performs no dataset writes. Altered
+or partial state requires explicit reconciliation;no automatic repair/fallback.
+This is not a multi-file database transaction or a general migration tool.
+
+Bootstrap starts before hosted source activation. Read grants,tariffs and presets
+remain independent explicit host configuration. DI owns profile disposal;host
+container disposal deactivates the profile. Target later uses the existing/data
+volume,not another server/environment. Existing LocalFile writer is unchanged.
+
+16profile tests and41API/bootstrap/discovery/schema checks pass,0failed/skipped.
+New synthetic filesystem cases removed;initial compile diagnostic preserved.
+Proof:LocalState/COSMIC/HostedLocalFileSourceCurrent/bootstrap-evidence.json.
+Next generate the declared source bundle,prepare protected hosted configuration,
+qualify the combined release,then verify native3/2,Mongo5/4,privacy/replicas/card.
+No live deployment/config/data/count change has occurred in this step.
+
 ## Demo
 
 ```powershell
@@ -81,3 +157,92 @@ Independent browser full5/subset4 verified; localfile-mongo-subset-current.png r
 Public section16/expanded command/fixed5110link verified: Web4Site main7bcfd230486837f97dde185406d92a407039c4f7, Production7452447621success. Screenshot localfile-catalogue-public.png SHA2563CB7A2E4759378F52E3E4B57D85228BE1685EFD56FDD2F7B8EB0E838A47209F1. HTML-only addition; hosted selector remains three databases. Backend changes remain task-branch only, no Railway deployment.
 
 After-demo gaps remain plaintext/encryption, metadata/content queries, child semantics, conditional writes, broader HyperDrive and full parity. This bounded profile does not turn those gates green.
+
+
+## Hosted public source qualification — 3 November 2026
+
+A separately declared, retained public teaching dataset was exported once under
+`LocalState/COSMIC/HostedLocalFilePublicDatasetCurrent`. Actual LocalFile/HolonManager/
+LINQ export test passed 1/1: full3/subset2 and unchanged source bytes. The shipping
+bootstrap parser independently admitted the retained bundle (1/1), without activation
+or a repeated source query. Qualification hashes and original TRX paths are in
+`LocalState/COSMIC/HostedLocalFileSourceCurrent/source-qualified.json`.
+
+Five pure publisher tests pass: exact five-value scope, bounded four presets, free
+query-only admission, no writable routing changes, existing-data preservation,
+corrupt bundle rejection and deployed-release-before-mutation gate. These are
+configuration controls, not hosted CQL proof.
+
+Real read-only preparation stopped: DNA `OASIS.Sandbox.Enabled` is true but
+`OASIS_SANDBOX` is absent. The new registration currently requires that separate
+flag, contrary to the canonical DNA-backed `SandboxOptions` setting. Fix the new
+registration/publisher at this boundary and add a regression before rollout.
+No protected candidate, hosted configuration change, bootstrap or deployment was
+performed by this preparation. Existing accepted sources were not replayed.
+
+## Laptop recovery — 4 November 2026
+
+Resumed the original task branch in C:/Source/OASIS2. WEB4 registration now
+uses the same DNA-backed SandboxOptions.Enabled as the host. Publisher preflight
+requires DNA sandbox mode, and all five publisher tests pass with the redundant
+environment flag absent. WEB4 bootstrap and registration tests passed 13/13 against the rebuilt API.
+The wider LocalFile filter had the same 13 passes and one gated skip for the
+missing retained export. Evidence: TestResults/HostedLocalFileSourceCurrent/localfile-laptop.trx.
+
+The original hosted-source qualification receipt is absent at its expected
+LocalState path in this checkout. Recover the original source configuration,
+bundle, export acknowledgment and qualification receipt together, then check their
+hashes through the publisher before preparing a candidate. No hosted mutation
+was performed from this checkout.
+
+## LocalFile admission and hosted verifier ready
+
+Core a9a238371 permits explicit LocalFile unsigned query tariffs. WEB4 rebuilt
+under the shared build lease and passed the focused admission regression
+(1 passed, 0 skipped). Explicit query-only enrollment is required and a
+LocalFile SaveHolon tariff is rejected for that enrollment.
+TRX: TestResults/HostedLocalFileSourceCurrent/localfile-tariff.trx
+SHA256 A396D948AE2F224C95C50BF987C0F74DE9E09F46820A00143C963A68FE572B50.
+
+The hosted verifier now accepts LocalFileOASIS. The sibling Web4Site checkout
+was fast-forwarded to 2170b6728 to recover the published client modules. Their
+ID recipe accepts the publisher's synthetic presets and composes five/four
+ID predicates from three/two source IDs and two mapped snapshot IDs. This is
+offline request construction evidence.
+
+Once both owner inputs arrive, validate the original bundle through publisher
+prepare, review the five-variable candidate, verify the exact code deployment
+and Core pin. Confirm the existing Development WEB4 persistent volume is
+mounted at /data before applying the candidate once. The bootstrap checks
+that the parent directory exists, which does not establish persistence.
+Observe the resulting settings
+deployment before running Verify-HostedQuerySource.py LocalFileOASIS --prepare
+with a fresh provider-scoped journal. Check native 3/2, paired 5/4, repeat
+reuse, foreign-private 0/public 3 and both exact replicas before publishing
+the card. Preserve partial journals and reconcile any uncertain mutation
+before continuing. No hosted acceptance or deployment from this checkpoint.
+
+## Recovery laptop replacement source — 4 November 2026
+
+David authorized recreation. The one-shot SDK export created a separate
+public teaching cohort with new IDs and passed 1/1 (full 3, subset 2, unchanged
+native bytes). The shipping bootstrap parser passed 1/1 against the exact
+replacement bytes. The source-bound receipt records both TRX hashes and the
+publisher accepted the replacement. Retain replacement-export.trx and
+replacement-bootstrap.trx under TestResults/HostedLocalFileSourceCurrent.
+Railway still requires private sign-in before preparing the hosted candidate.
+
+Replacement bundle startup passed 1/1 with zero skips. Only the destination
+directory was substituted for the isolated Windows check. The actual startup
+service installed the unchanged bundle and the public profile activated. The
+owned directory was removed. No hosted mount or HTTP acceptance is implied.
+TRX SHA256 57143976524E7A671A1CA7860CB4E9BEB624CB9EBFC5C17949B3E506F54D14C4.
+
+### Release scope review
+
+Development b718f2879 is an ancestor of task head 1fe05dbae at this checkpoint.
+The task branch also contains the Tableland adapter change af2384d6f. Keep
+that independent change outside the LocalFile deployment batch. LocalFile
+and Hyperlane share the Core pin. Hyperlane stays disabled until its own
+explicit settings and acceptance. Validate the selected parent gitlink and
+Railway manifest together and recheck current Development before publishing.

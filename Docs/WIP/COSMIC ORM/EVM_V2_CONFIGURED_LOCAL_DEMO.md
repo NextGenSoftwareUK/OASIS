@@ -65,3 +65,33 @@ consumer and HTTP host compile; configured native/Mongo/browser gates remain ope
 
 All37published launcher paths now exist; this file audit does not prove services,
 configuration or native/hosted readiness. Profile totals remain96local/60hosted.
+
+## Ethereum compatible-source preparation,3November2026
+
+Retained Polygon seed already uses Web3Core;preserve it without replacing or
+replaying its accepted cohort. Retained Ethereum seed uses the incompatible
+legacy ABI. A separate Ethereum V2 contract/identity journal is needed rather
+than relabelling the old fixture or weakening V2 decryption context.
+
+The shipping Web3Core contract compiles using retained solc0.8.26;all18source/
+import hashes and the embedded production SDK ABI match. Deployment bytecode
+16149bytes/runtime15493bytes. Matching-cache reuse also verified. Helper:
+Scripts/TestHosts/compile-cosmic-evm-v2.cjs. Regenerable artifact:
+TestResults/EvmV2ConfiguredCurrent/Web3CoreOASIS.json. Required source/hash proof:
+LocalState/COSMIC/LauncherRecoveryCurrent/ethereum-v2-artifact-preparation.json.
+No node/key/RPC/deployment/save operation performed. Next:separately journal and
+deploy the new Ethereum V2 namespace on the existing retained local chain,then
+seed once and verify the configured reader. Native Ethereum remains unverified.
+
+One-shot deployment helper deploy-cosmic-ethereum-v2.cjs now signs the local
+chain-bound creation offline and durably records nonce/hash/expected address
+before its only broadcast.6controlled cases pass:success,ACKloss,receipttimeout,
+wrongruntime,wrongchain andpendingnonce. No signedrawbytes/key in journals.
+Original state prevents resubmission after failure/unknown outcome. Evidence:
+LocalState/COSMIC/LauncherRecoveryCurrent/ethereum-v2-deployment-controls-evidence.json.
+
+Automatic review rejected the actual combined retained-node-start/deployment
+command before execution,without a specific reason. No setup/deployment intent,
+listener or newcontract exists. Do not retry/split/rewrite the denied operation
+to bypass review. Native setup,seed,CQL/Mongo/HTTP acceptance remain open;this is
+an agent tooling gate,not an account/funding task for David.

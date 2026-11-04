@@ -1,7 +1,27 @@
 # CQL completion roadmap
 
-Updated 2 November 2026. Full programme remains incomplete.
+Updated 4 November 2026. Full programme remains incomplete.
 [CURRENT_STATUS](CURRENT_STATUS.md) owns deployment state and the exact next step.
+
+Continue the full CQL, COSMIC ORM and HyperDrive roadmap. Prioritize the live
+Development WEB4 demo. When a gate needs owner access or retained evidence,
+keep that gate open and advance the next independent provider or engineering
+scope. Verify the remaining browser, native, ORM and HyperDrive gates separately.
+After the live WEB4 demo and the CQL, COSMIC ORM and HyperDrive MVP,
+complete every provider in the [provider inventory](PROVIDER_CQL_AND_SANDBOX_STATUS.md).
+Each provider must implement its applicable shipping contracts through real
+SDKs, clients or APIs. Close placeholders, TODOs and unimplemented shipping
+paths, and verify behavior against native services with evidence for every
+applicable capability. Keep scoped MVP acceptance separate from full provider
+completion. Preserve existing owner deferrals as explicit open gates.
+Extend the [EF Core, EF6 and NHibernate parity checklist](CQL_PARITY_CHECKLIST.md)
+from SQLite, MongoDB and Neo4j to every provider after the MVP. Verify each
+applicable feature's observable behavior on its native provider. Record the
+reason and evidence for any inapplicable feature and keep unverified cells open.
+
+
+The 4 November published launcher audit found all 37 referenced scripts in the
+task checkout. Runtime qualification remains separate.
 
 1. Verify/deploy explicit source recovery for the reproduced Nostr startup503;
    [27controlled/API/schema cases pass](CQL_SOURCE_RECOVERY.md),live gate remains.

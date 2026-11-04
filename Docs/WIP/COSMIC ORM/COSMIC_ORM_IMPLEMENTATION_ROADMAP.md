@@ -1,5 +1,14 @@
 # COSMIC ORM implementation roadmap
 
+## Virtual and hybrid native imports after the WEB4 demo
+
+The live breadth-first WEB4 CQL and HyperDrive demo remains the priority.
+Track [Virtual Holons import proposal](OASIS_Virtual_Holons_Import_Proposal.docx) as a post-demo design. Audit the existing provider Import and
+ImportAll paths and CQL source profiles, then prove one collection-level
+virtual mapping end to end. Follow with mixed-source federation, explicit
+owned snapshot saves, and opt-in hybrid caching. Validate each provider's
+capabilities before extending the feature to it.
+
 Updated 2 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state and the exact next action.
 
 1. Complete breadth-first live provider demos: **96 locally integrated query types,

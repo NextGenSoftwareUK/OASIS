@@ -127,14 +127,11 @@ the original hosted source/credentials remain unchanged.
   rejections pass; listeners unchanged.
 
 ```powershell
-# Inspect without services/credentials.
-Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Upstash -Federated -ShowPlan
-
 # SDK/HTTP checks, followed by loopback5115 browser demo.
-Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Upstash -Federated
+Scripts/TestHosts/Run-CosmicUpstashCqlNative.ps1 -Federated -Serve
 
 # Automatic verification and teardown.
-Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Upstash -Federated -VerifyOnly
+Scripts/TestHosts/Run-CosmicUpstashCqlNative.ps1 -Federated
 ```
 
 Stop using the page button to finish temporary Mongo cleanup. **This retained free

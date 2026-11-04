@@ -364,3 +364,16 @@ mining/key/ledger/contract replay. Local96/hosted60;one published launcher path
 remains missing (Ethereum). Original proof/hash LauncherRecoveryCurrent/tron-recovery-evidence.json.
 
 Last missing Ethereum launcher replaced by explicit configured V2 reader using shipping Ethereum/Polygon/Arbitrum factories. Seven controlled config/factory cases pass;native/Mongo/HTTP consumer compiles. No legacy seed adoption or configured native execution. File audit37/37present/0missing;configuration/runtime/hosted gates remain open. EVM_V2_CONFIGURED_LOCAL_DEMO.md.
+
+## Recovery laptop SQLite walkthrough
+
+4 November 2026. Live catalogue audit37/37 present; eight hub plans resolve.
+The fresh SQLite console run reproduced an obsolete decimal rejection assertion
+after successful query/save/concurrency checks. Original fixture archived under
+TestResults/CosmicCqlDemo-laptop-decimal-original; database SHA256
+F3C046CB6FD7572AB83EAAEE0A4F634B014D42893D5D10E6ED67FD439E5B2630.
+Fix e0ac8288c exercises SQLite's supported native decimal filter and confirms
+missing metadata does not satisfy ordering. Console and hub HTTP reruns pass.
+HTTP health ready, filtered2 rows, shutdown200, owned database removed.
+TestResults/CosmicCqlDemo/api-demo-result.json SHA256 9D8EF07493AD42E45A5F7B2B5859BEB62903CC10238D565F92F1EBB3715CCD4A.
+This is local HTTP evidence. Hosted coverage counts are unchanged.
