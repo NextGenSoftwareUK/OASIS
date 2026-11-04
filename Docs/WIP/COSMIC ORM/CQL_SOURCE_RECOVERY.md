@@ -100,7 +100,7 @@ David offered an existing Wizard account. No password or token is needed in chat
 Run this yourself in an interactive Windows terminal:
 
 ```powershell
-cd C:\Source\OASIS-cosmic
+cd C:\Source\OASIS2
 python Scripts/Sandbox/Prepare-CqlRecoveryOperatorSession.py
 ```
 
