@@ -60,3 +60,8 @@ federation and hosted acceptance remain open. No installs or outputs were
 needed for the probe.
 
 [Official mainnet chain identity](https://docs.axelar.dev/resources/contract-addresses/mainnet/)
+
+The compiled guarded LCD client built with zero errors and reproduced all
+three block IDs and exact source timestamp strings. It pins the endpoint,
+checks the chain ID and exact height, and bounds each response to 256 KiB
+and 12 seconds. The client smoke reused the existing binaries.

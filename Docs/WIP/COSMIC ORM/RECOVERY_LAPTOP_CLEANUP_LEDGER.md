@@ -313,3 +313,8 @@ TestResults/FhenixPublicSourceCurrent/federation-drpc-resume.log.
 
 Fhenix federation resume passed and removed its exact Mongo fixture.
 Port 27029 is closed. Retain the compact Fhenix summary and cleanup receipt.
+
+Axelar block reader verification reuses the installed .NET runtime.
+Generated outputs are the AxelarOASIS provider bin/obj and
+TestResults/ProviderBuildCurrent/cosmic-axelar-build.log. Retain for the
+adapter build and remove when dependent verification is complete.
