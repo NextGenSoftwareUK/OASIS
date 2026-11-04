@@ -17,3 +17,13 @@ typed protobuf decoding from the pinned schema, exact height membership, and
 genesis identity validation. Verify native CQL, local WEB4 federation, and
 hosted admission separately. The existing provider's REST storage contract,
 private notes, and transaction submission are separate from this read scope.
+
+The compiled generated .NET client passed a live testnet smoke for all three
+headers. Typed decoding produced timestamps 1791297293, 1791297294, and
+1791297297, respectively. The first header matched the pinned genesis
+commitment. This check loaded the existing provider build and cached libraries
+in PowerShell. It created no new runtime, build, or test output.
+
+Before CQL admission, exercise the response-height mismatch path with a
+controlled gRPC response. Use the shared native connection guard in the WEB4
+configuration path and require the genesis check during source activation.
