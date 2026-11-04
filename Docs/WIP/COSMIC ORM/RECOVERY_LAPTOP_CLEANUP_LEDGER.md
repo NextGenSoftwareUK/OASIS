@@ -340,3 +340,7 @@ TestResults/ProviderBuildCurrent/cosmic-ritual-admission.log. Its isolated
 fixture and report paths are LocalState/COSMIC/RitualPublicQualificationCurrent
 and TestResults/RitualPublicSourceCurrent. The local test owns only
 cosmic_cql_ritual_http_demo.
+
+Ritual federation passed, removed its owned Mongo fixture database and
+closed port 27029. Retain the compact RitualPublicSourceCurrent summary
+and RitualMongoHttpCurrent cleanup receipt.

@@ -33,6 +33,7 @@ using EspressoSource = NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS.
 using EigenLayerSource = NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS.EigenLayerPublicOperatorSource;
 using FhenixSource = NextGenSoftware.OASIS.API.Providers.FhenixOASIS.FhenixPublicTaskManagerSource;
 using AxelarSource = NextGenSoftware.OASIS.API.Providers.AxelarOASIS.AxelarPublicBlockSource;
+using RitualSource = NextGenSoftware.OASIS.API.Providers.RitualOASIS.RitualPublicBlockSource;
 using SynapseSource = NextGenSoftware.OASIS.API.Providers.SynapseOASIS.SynapsePublicTransactionMetadataSource;
 using DeBridgeSource = NextGenSoftware.OASIS.API.Providers.deBridgeOASIS.DeBridgePublicOrderMetadataSource;
 using StargateSource = NextGenSoftware.OASIS.API.Providers.StargateOASIS.StargatePublicMessageMetadataSource;
@@ -142,6 +143,15 @@ public sealed class AxelarMongoNativeFactAttribute : FactAttribute
     {
         if (Environment.GetEnvironmentVariable("COSMIC_AXELAR_HTTP_NATIVE") != "owned-local-27029")
             Skip = "Explicit Axelar/Mongo native gate.";
+    }
+}
+
+public sealed class RitualMongoNativeFactAttribute : FactAttribute
+{
+    public RitualMongoNativeFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("COSMIC_RITUAL_HTTP_NATIVE") != "owned-local-27029")
+            Skip = "Explicit Ritual/Mongo native gate.";
     }
 }
 
@@ -278,6 +288,19 @@ public sealed class CqlHyperlaneMongoNativeTests
                     Assert.Equal((string)native.MetaData[field], metadata.GetProperty(field).GetString());
             },
             Environment.GetEnvironmentVariable("COSMIC_AXELAR_HTTP_RESUME") == "1", "axelar-mainnet-blocks",
+            config => config.GetProperty("heights").EnumerateArray().Select(height => height.GetRawText()).ToArray());
+
+    [RitualMongoNativeFact]
+    public Task NativeRitualBlocksAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
+        => VerifyAsync(ProviderType.RitualOASIS, "Ritual", "ritual",
+            RitualSource.HeightMetadata, RitualSource.FromJson, Array.Empty<string>(),
+            (native, metadata, _) =>
+            {
+                Assert.Equal("784", metadata.GetProperty("RitualChainId").GetString());
+                foreach (var field in new[] { "RitualBlockTimestamp", "RitualBlockHash" })
+                    Assert.Equal((string)native.MetaData[field], metadata.GetProperty(field).GetString());
+            },
+            Environment.GetEnvironmentVariable("COSMIC_RITUAL_HTTP_RESUME") == "1", "ritual-chain-blocks",
             config => config.GetProperty("heights").EnumerateArray().Select(height => height.GetRawText()).ToArray());
 
     private static void VerifyScanMetadata(IHolon native, JsonElement metadata, bool isMongo)
@@ -487,7 +510,7 @@ public sealed class CqlHyperlaneMongoNativeTests
         try
         {
             var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
-            var queryDuration = publicProvider is ProviderType.FhenixOASIS or ProviderType.AxelarOASIS ? 30000 : 5000;
+            var queryDuration = publicProvider is ProviderType.FhenixOASIS or ProviderType.AxelarOASIS or ProviderType.RitualOASIS ? 30000 : 5000;
             using var http = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromMilliseconds(queryDuration + 15000) };
             var counts = new Dictionary<string, int>();
             object Selection(IEnumerable<string> selected) => new { orderBy = "None", take = 8, includeMetadata = true,

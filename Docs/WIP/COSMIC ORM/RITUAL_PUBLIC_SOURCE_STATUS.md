@@ -33,3 +33,9 @@ federation remain open.
 The guarded hosted publisher passed three configuration tests. It requires
 the exact source digest and local federation/cleanup receipt before
 accessing Railway. Applying requires the matching reviewed live release.
+
+Ritual admission and local WEB4/Mongo federation passed. Native counts
+were 3/2 and federated counts 5/4. The foreign actor saw three public rows
+and zero private rows. Two SDK saves and nine receipts were verified.
+The test dropped its fixture database, stopped the replica, and the
+publisher accepted the source-bound receipt. Hosted acceptance is open.
