@@ -5,7 +5,7 @@ import importlib.util
 import json
 from pathlib import Path
 from urllib.error import HTTPError
-from urllib.parse import urlencode, urlsplit
+from urllib.parse import urlencode
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -56,11 +56,9 @@ def main():
         "d1_publisher", Path(__file__).with_name("Publish-HostedD1WorkerConfiguration.py"))
     publisher = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(publisher)
-    endpoint = urlsplit(source["endpoint"])
-    if (endpoint.scheme != "https" or not endpoint.hostname or endpoint.hostname == "localhost"
-            or endpoint.path != "/symbols" or endpoint.username is not None or endpoint.query or endpoint.fragment
-            or source["symbols"] != publisher.EXPECTED_KEYS):
-        raise ValueError("Explicit public HTTPS D1 Worker and exact symbol catalogue required.")
+    publisher.validate_endpoint(source["endpoint"])
+    if source["symbols"] != publisher.EXPECTED_KEYS:
+        raise ValueError("Exact D1 Worker symbol catalogue required.")
     digest = hashlib.sha256(raw).hexdigest()
     with (STATE / "worker-https-qualification.intent.json").open("x", encoding="utf-8") as file:
         json.dump({"schema": 1, "sourceSha256": digest}, file)

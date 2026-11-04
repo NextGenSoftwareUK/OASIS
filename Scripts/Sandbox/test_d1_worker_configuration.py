@@ -11,6 +11,14 @@ spec.loader.exec_module(publisher)
 
 
 class D1WorkerConfigurationTests(unittest.TestCase):
+    def test_rejects_nonpublic_or_ambiguous_worker_endpoints(self):
+        for url in ("http://worker.example/symbols", "https://localhost./symbols",
+                    "https://127.0.0.1/symbols", "https://[::1]/symbols",
+                    "https://10.0.0.1/symbols", "https://worker.example/symbols?x=1"):
+            with self.subTest(url=url), self.assertRaises(ValueError):
+                publisher.validate_endpoint(url)
+        publisher.validate_endpoint("https://worker.example/symbols")
+
     def test_free_query_only_candidate_preserves_writes_and_refuses_replacement(self):
         source = dict(schema=1,
                       endpoint="https://d1.example/symbols", symbols=publisher.EXPECTED_KEYS, sourceOwner="00000000-0000-0000-0000-000000000123")

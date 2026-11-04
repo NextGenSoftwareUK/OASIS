@@ -7,6 +7,7 @@ from pathlib import Path
 import copy
 import hashlib
 import importlib.util
+import ipaddress
 import json
 import sys
 import uuid
@@ -29,6 +30,22 @@ def module(name):
 configuration = module("Publish-HostedSolidConfiguration")
 
 
+def validate_endpoint(url):
+    endpoint = urlsplit(url)
+    host = endpoint.hostname
+    if (endpoint.scheme != "https" or not host or host.rstrip(".") == "localhost"
+            or endpoint.path != "/symbols" or endpoint.username is not None
+            or endpoint.query or endpoint.fragment):
+        raise ValueError("The qualified public HTTPS D1 Worker endpoint is required.")
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        if "." not in host or host.rstrip(".").endswith(".localhost"):
+            raise ValueError("A public D1 Worker host is required.")
+    else:
+        if not address.is_global:
+            raise ValueError("A public D1 Worker address is required.")
+
 def candidate(before, source):
     if (set(source) != {"schema", "endpoint", "symbols", "sourceOwner"}
             or type(source["schema"]) is not int or source["schema"] != 1
@@ -37,11 +54,7 @@ def candidate(before, source):
             or not isinstance(source["sourceOwner"], str)
             or uuid.UUID(source["sourceOwner"]).int == 0):
         raise ValueError("The exact qualified D1 Worker symbol catalogue is required.")
-    endpoint = urlsplit(source["endpoint"])
-    if (endpoint.scheme != "https" or not endpoint.hostname
-            or endpoint.hostname == "localhost" or endpoint.path != "/symbols"
-            or endpoint.username is not None or endpoint.query or endpoint.fragment):
-        raise ValueError("The qualified public HTTPS D1 Worker endpoint is required.")
+    validate_endpoint(source["endpoint"])
     if KEYS[0] in before:
         raise ValueError("Existing D1 Worker symbol enrollment requires reconciliation, never replacement.")
     dna = json.loads(before["OASIS_DNA_JSON"])
