@@ -423,3 +423,12 @@ Cloudflare D1 unit checks reused the installed .NET SDK and shared outputs.
 Generated D1 provider/test bin and obj plus cosmic-d1-unit.log and
 cosmic-d1-contract.log under TestResults/ProviderBuildCurrent. Final suite
 9/9 passed. No D1 runtime, service, or database was created.
+
+D1 local Worker binding qualification owns LocalState/COSMIC/RecoveryLaptopD1
+including Miniflare 4.20260730.0, its package lock and task-specific npm cache.
+The runtime uses the pre-existing bundled Node 24.22.1.
+
+D1 binding probe passed exact local 3/2 via qualify-d1.cjs in the runtime
+root. Evidence: TestResults/ProviderBuildCurrent/cosmic-d1-binding.json.
+The in-memory fixture was disposed. Runtime and npm cache remain under the
+owned root. Automatic policy review rejected recursive removal of npm-cache.
