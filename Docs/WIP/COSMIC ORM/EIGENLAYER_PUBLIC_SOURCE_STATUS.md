@@ -24,3 +24,8 @@ needed for the probe.
 
 [Contract deployment](https://github.com/Layr-Labs/eigenlayer-contracts/blob/main/README.md) ·
 [DelegationManager contract notes](https://github.com/Layr-Labs/eigenlayer-contracts/blob/main/docs/core/DelegationManager.md)
+
+The compiled guarded reader passed a live smoke at the same canonical block.
+All three catalogue addresses returned true. The zero address returned false,
+exercising both canonical ABI boolean values. The provider build had zero
+errors. The smoke reused the existing binaries and created no output files.

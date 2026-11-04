@@ -249,3 +249,8 @@ was removed by the test suite and the reported temp path was confirmed absent.
 Espresso reused MongoDB 8.2 on port 27029, dropped its fixture database and
 stopped the replica. Retain TestResults/EspressoPublicSourceCurrent and
 LocalState/COSMIC/EspressoMongoHttpCurrent cleanup receipt as evidence.
+
+EigenLayer reader verification reuses the installed .NET runtime and shared
+provider build lease. Generated outputs are the EigenLayerOASIS bin/obj
+directories and TestResults/ProviderBuildCurrent/cosmic-eigenlayer-build.log.
+Retain through adapter testing and clean when those outputs have no consumers.
