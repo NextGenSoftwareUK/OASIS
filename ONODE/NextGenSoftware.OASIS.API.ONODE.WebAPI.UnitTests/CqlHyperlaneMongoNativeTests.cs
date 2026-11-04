@@ -29,6 +29,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
 using ConnextSource = NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextPublicOriginMetadataSource;
 using MidenSource = NextGenSoftware.OASIS.API.Providers.MidenOASIS.MidenPublicBlockHeaderSource;
+using EspressoSource = NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS.EspressoPublicBlockHeaderSource;
 using SynapseSource = NextGenSoftware.OASIS.API.Providers.SynapseOASIS.SynapsePublicTransactionMetadataSource;
 using DeBridgeSource = NextGenSoftware.OASIS.API.Providers.deBridgeOASIS.DeBridgePublicOrderMetadataSource;
 using StargateSource = NextGenSoftware.OASIS.API.Providers.StargateOASIS.StargatePublicMessageMetadataSource;
@@ -102,6 +103,15 @@ public sealed class MidenMongoNativeFactAttribute : FactAttribute
     {
         if (Environment.GetEnvironmentVariable("COSMIC_MIDEN_HTTP_NATIVE") != "owned-local-27029")
             Skip = "Explicit Miden/Mongo native gate.";
+    }
+}
+
+public sealed class EspressoMongoNativeFactAttribute : FactAttribute
+{
+    public EspressoMongoNativeFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("COSMIC_ESPRESSO_HTTP_NATIVE") != "owned-local-27029")
+            Skip = "Explicit Espresso/Mongo native gate.";
     }
 }
 
@@ -182,6 +192,16 @@ public sealed class CqlHyperlaneMongoNativeTests
             (native, metadata, _) => Assert.Equal((string)native.MetaData["MidenPreviousCommitment"],
                 metadata.GetProperty("MidenPreviousCommitment").GetString()),
             Environment.GetEnvironmentVariable("COSMIC_MIDEN_HTTP_RESUME") == "1", "miden-testnet-public-headers",
+            config => config.GetProperty("heights").EnumerateArray().Select(height => height.GetRawText()).ToArray());
+
+    [EspressoMongoNativeFact]
+    public Task NativeEspressoHeadersAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
+        => VerifyAsync(ProviderType.EspressoSystemsOASIS, "Espresso", "espresso",
+            EspressoSource.HeightMetadata, EspressoSource.FromJson,
+            new[] { "EspressoTimestampUnix", "EspressoReportedFinalizedL1Block" },
+            (native, metadata, _) => Assert.Equal((string)native.MetaData["EspressoReportedFinalizedL1Hash"],
+                metadata.GetProperty("EspressoReportedFinalizedL1Hash").GetString()),
+            Environment.GetEnvironmentVariable("COSMIC_ESPRESSO_HTTP_RESUME") == "1", "espresso-mainnet-public-headers",
             config => config.GetProperty("heights").EnumerateArray().Select(height => height.GetRawText()).ToArray());
 
     private static void VerifyScanMetadata(IHolon native, JsonElement metadata, bool isMongo)

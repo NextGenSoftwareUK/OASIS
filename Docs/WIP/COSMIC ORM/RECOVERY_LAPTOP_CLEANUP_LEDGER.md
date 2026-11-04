@@ -245,3 +245,7 @@ Espresso admission build uses the shared WEB4 and unit-test bin/obj outputs
 and TestResults/ProviderBuildCurrent/cosmic-espresso-admission.log. The
 318 public configuration tests passed. Their temporary publisher state
 was removed by the test suite and the reported temp path was confirmed absent.
+
+Espresso reused MongoDB 8.2 on port 27029, dropped its fixture database and
+stopped the replica. Retain TestResults/EspressoPublicSourceCurrent and
+LocalState/COSMIC/EspressoMongoHttpCurrent cleanup receipt as evidence.

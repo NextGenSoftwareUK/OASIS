@@ -41,3 +41,9 @@ The guarded rollout publisher and its three configuration tests are ready.
 It requires the exact source-bound local HTTP and cleanup receipt, which is
 currently absent. It refuses to prepare before that evidence exists and
 refuses to apply before the expected Development deployment is live.
+
+WEB4 admission and local federation now pass on Core 63d8851. Live Espresso
+returned 3/2 native rows and Mongo federation returned 5/4. The foreign
+actor saw 0 private rows and 3 public rows. The run verified 2 SDK saves,
+9 usage receipts and removal of its exact Mongo fixture database. The
+publisher accepted the source-bound local receipt. Hosted acceptance is open.
