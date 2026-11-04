@@ -36,3 +36,8 @@ parent pins 2acffcb0, while the shared checkout is detached at 54159614.
 Add EspressoSystemsOASIS to the query-only execution allowlist on the task
 Core branch when the checkout is available, then run the leased build and
 the owned Mongo gate. The local catalogue and report directory are ready.
+
+The guarded rollout publisher and its three configuration tests are ready.
+It requires the exact source-bound local HTTP and cleanup receipt, which is
+currently absent. It refuses to prepare before that evidence exists and
+refuses to apply before the expected Development deployment is live.
