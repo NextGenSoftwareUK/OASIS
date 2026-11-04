@@ -140,3 +140,15 @@ qualification receipts. Current measured footprints:
 - LocalState/COSMIC/RecoveryLaptopMongo82 : 212213435 bytes
 - LocalState/COSMIC/HyperlaneMongoHttpCurrent : 919 bytes
 - TestResults/HyperlanePublicSourceCurrent : 981940 bytes
+
+## LocalFile hosted admission build
+
+Reused the shared WEB4 build outputs and existing .NET installation. The leased
+build and focused test exited successfully. Retain the TRX and log. Shared bin
+and obj footprints are measurements, not exclusive cleanup ownership. The
+existing C:/Source/Web4Site checkout was fast-forwarded from b704dcb to 2170b67
+for the published client modules. No new checkout or runtime was created.
+- TestResults/HostedLocalFileSourceCurrent/localfile-tariff.log : 927360 bytes
+- TestResults/HostedLocalFileSourceCurrent/localfile-tariff.trx : 3288 bytes
+- ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/bin : 390245776 bytes
+- ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/obj : 8332482 bytes
