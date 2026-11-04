@@ -278,3 +278,13 @@ Fhenix local qualification has an ignored 103-byte fixture at
 LocalState/COSMIC/FhenixPublicQualificationCurrent/source.json and an empty
 TestResults/FhenixPublicSourceCurrent report directory. The fixture contains
 only the three qualified public chain IDs and a test owner ID.
+
+EigenLayer RPC framing build reuses the provider bin/obj paths and writes
+TestResults/ProviderBuildCurrent/cosmic-eigenlayer-framing.log. Live smoke
+and isolated framing probes used existing tools and generated no files.
+
+The combined Fhenix and EigenLayer admission run reuses the same WEB4
+and test bin/obj outputs and writes
+TestResults/ProviderBuildCurrent/cosmic-fhenix-eigenlayer-admission.log.
+After admission, the two federation tests use the existing port 27029
+replica sequentially. Each owns a separate fixture database and report.
