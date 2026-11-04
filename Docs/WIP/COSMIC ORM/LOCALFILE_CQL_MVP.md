@@ -247,7 +247,7 @@ and Hyperlane share the Core pin. Hyperlane stays disabled until its own
 explicit settings and acceptance. Validate the selected parent gitlink and
 Railway manifest together and recheck current Development before publishing.
 
-Candidate 59fdb6a3da6bec3799e5495bd0e22f88a23ac17f is published on
+Candidate c64adf4748856b0acaae02e24a7f8edd16d2a139 is published on
 codex/cosmic-localfile-release-candidate. The candidate retains the LocalFile
 publisher, exact-release guard, hosted verifier, shared Railway CLI resolution and shipping bootstrap. Its
 WEB4 API tree, Core pin and Docker definitions match the tested task head.
