@@ -487,3 +487,13 @@ rejected by automatic policy review without a specific reason. Download
 and extraction succeeded separately. The owned process was stopped after
 INFO verified v2.15.2 and JetStream on loopback 24222. Compact receipt:
 TestResults/NatsRecoveryLaptopCurrent/native-info.json.
+
+NATS provider SDK probe source lives under RecoveryLaptopNats2152/sdk-probe.
+Build uses the shared lease and writes sdk-probe bin/obj plus provider/shared
+bin/obj. Receipt: TestResults/NatsRecoveryLaptopCurrent/sdk-build.log.
+Run the fixture only after the build succeeds against loopback 24222.
+
+NATS SDK probe built and passed three exact saved-holon point reads on
+JetStream 2.15.2. The server stopped and port 24222 closed. Keep the
+6,827-byte sdk-fixture for the next CQL test; it is synthetic and isolated.
+Compact receipt: TestResults/NatsRecoveryLaptopCurrent/sdk-native.log.
