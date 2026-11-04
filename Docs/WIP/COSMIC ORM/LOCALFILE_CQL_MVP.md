@@ -253,3 +253,20 @@ publisher, exact-release guard, hosted verifier, shared Railway CLI resolution a
 WEB4 API tree, Core pin and Docker definitions match the tested task head.
 Development still points at b718f2879. Railway sign-in, mount confirmation,
 candidate review and live acceptance remain open.
+
+### Recovery laptop preflight — 4 November 2026
+
+The remote Development head is still b718f287933b7e79e862edbcf7d3bc13c37ba559.
+The published candidate c64adf4748856b0acaae02e24a7f8edd16d2a139 is a
+fast-forward from that head. The candidate manifest and Core gitlink both
+resolve to a9a238371c385137c0464ff259b8117d3d540345. The candidate delta
+includes disabled Hyperlane code and shared rollout tooling. Tableland and
+Turso provider changes are outside the delta.
+
+The retained replacement-export.trx SHA256 is
+D546EF5E2C18F0E63CCB4E1CB0B7117752CCDFA5D2D3AD9D92CBB0A75542C25B.
+The retained replacement-bootstrap.trx SHA256 is
+1DAEBB87626CE25840CEAAC219CAAAAEE654D7C8B118555BF830777F43505684.
+The startup receipt matches the SHA256 above. The Railway account check
+returned Unauthorized. Persistent mount and deployment identity still
+require authenticated inspection before any settings mutation.
