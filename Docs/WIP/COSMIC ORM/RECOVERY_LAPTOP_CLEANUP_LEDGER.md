@@ -266,3 +266,10 @@ planned leased build writes provider bin/obj under
 Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FhenixOASIS and
 TestResults/ProviderBuildCurrent/cosmic-fhenix-build.log. Build after the
 EigenLayer gate releases the shared outputs.
+
+EigenLayer preactivation attempts created only fixture intents. The two
+intents were archived under TestResults/EigenLayerPublicSourceCurrent with
+the first failure log. The deadline rebuild uses
+TestResults/ProviderBuildCurrent/cosmic-eigenlayer-deadline.log and the
+same shared binaries. Keep diagnostic artifacts until the federation gate
+passes and confirms exact database cleanup.
