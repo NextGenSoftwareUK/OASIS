@@ -93,3 +93,15 @@ The runner exited and released the build lease. Observed bytes:
 - TestResults/LocalFileCqlCurrent : 2756
 - Providers/Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS/bin : 12425823
 - Providers/Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS/obj : 1299214
+
+## SQLite acceptance diagnostics
+
+The unit suite passed 227/227. The isolated 2,048-row grouped average passed
+1/1 and removed its fixture. The broader native run was incomplete after
+1,636 passes and a 90-second diagnostic timeout. No memory dumps generated.
+Retain the two archived fixtures and sequence/report evidence for reconciliation.
+- TestResults/SQLiteCurrent-laptop-stalled : 27788459 bytes
+- TestResults/SQLiteCurrent-laptop-timeout90 : 4996396 bytes
+- TestResults/SQLiteHangDiagnostic : 1359355 bytes
+- Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests/bin : 92597079 bytes
+- Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.UnitTests/bin : 88967542 bytes
