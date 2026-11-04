@@ -118,3 +118,15 @@ Observed bytes at this checkpoint:
 - Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS/obj : 907397
 - Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CrossChain.ProtocolTests/bin : 47669910
 - Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CrossChain.ProtocolTests/obj : 1339863
+
+## Owned MongoDB replica for Hyperlane HTTP
+
+Reused installed MongoDB 8.2.1, with a separate owned loopback replica on port
+27029. The original initialization committed and was verified by hello after
+restart. No package or runtime download. Existing port 27017 service was left
+alone. Keep replica intent/ready receipts and the store for further reuse.
+Two acknowledged private snapshots remain pending HTTP reconciliation. Both
+owned processes exited. Observed footprints:
+- LocalState/COSMIC/RecoveryLaptopMongo82 : 211484810 bytes
+- LocalState/COSMIC/HyperlaneMongoHttpCurrent : 849 bytes
+- TestResults/HyperlanePublicSourceCurrent : 978255 bytes
