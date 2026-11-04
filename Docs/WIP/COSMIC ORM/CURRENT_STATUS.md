@@ -72,8 +72,7 @@ Source recovery live;27controlled/API/schema cases pass;secure sign-in helper re
 See CQL_SOURCE_RECOVERY.md. Website commands remain to correct.
 Ethereum V2 artifact/ABI/cache+6deploymentcontrols pass;native operation review-blocked.
 LocalFile sandbox-setting mismatch fixed and verified on the recovery laptop.
-The earlier export/parser proof remains historical. Restoring the exact retained
-bundle and signing in to Railway are required before hosted preparation.
+The replacement teaching dataset passed SDK export and WEB4 bootstrap parsing. The publisher verified both source hashes. Railway sign-in is required before hosted preparation.
 Independent breadth work: [Hyperlane](HYPERLANE_PUBLIC_SOURCE_STATUS.md) now
 passes native 3/2, four preset plans and local WEB4 HTTP federation/privacy. The task branch and Core pin are published. Hosted preparation and visitor acceptance remain open.
 Automatic review rejected the combined website-edit/consumer-build operation;
