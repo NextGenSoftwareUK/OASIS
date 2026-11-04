@@ -122,13 +122,16 @@ def prepare():
     source, bootstrap = qualified_source()
     before = configuration.variables()
     after = candidate(before, source, bootstrap)
+    configuration.STATE.mkdir(parents=True, exist_ok=True)
+    review_path = ROOT / "TestResults/HostedLocalFileSourceCurrent/prepared-review.json"
+    review_path.parent.mkdir(parents=True, exist_ok=True)
     for suffix, value in (("before", before), ("candidate", after)):
         configuration.write_new(configuration.STATE / (PREFIX + "-" + suffix + "-variables.dpapi"),
             configuration.verification.protected_token(configuration.compact(value).encode()))
     review = {"changedKeys": KEYS, "source": source, "presets": json.loads(after[KEYS[4]]),
               "sourceRows": 3, "bootstrapBytes": len(after[KEYS[1]].encode()), "dnaUnchanged": True,
               "hostingSpend": 0, "requiresExistingVolume": "/data", "hostedVerified": False}
-    configuration.write_new(ROOT / "TestResults/HostedLocalFileSourceCurrent/prepared-review.json",
+    configuration.write_new(review_path,
                             (json.dumps(review, indent=2) + "\n").encode())
     print("Protected LocalFile candidate prepared:five values/four presets,no service mutation or deployment.")
 
