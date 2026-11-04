@@ -31,7 +31,7 @@ internal sealed class FhenixPublicTaskManagerReader : IDisposable
     {
         var (endpoint, expectedChainId) = chainId switch
         {
-            "1" => (new Uri("https://ethereum-rpc.publicnode.com"), "0x1"),
+            "1" => (new Uri("https://eth.drpc.org"), "0x1"),
             "11155111" => (new Uri("https://ethereum-sepolia-rpc.publicnode.com"), "0xaa36a7"),
             "84532" => (new Uri("https://base-sepolia-rpc.publicnode.com"), "0x14a34"),
             _ => throw new ArgumentException("An explicitly supported CoFHE chain ID is required.", nameof(chainId))
@@ -40,15 +40,14 @@ internal sealed class FhenixPublicTaskManagerReader : IDisposable
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(15));
         var token = deadline.Token;
-        var id = 0;
         var aggregate = 0;
 
         async Task<JsonElement> Rpc(string method, object[] parameters)
         {
-            var current = ++id;
+            const int requestId = 1;
             using var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
             {
-                Content = JsonContent.Create(new { jsonrpc = "2.0", id = current, method, @params = parameters })
+                Content = JsonContent.Create(new { jsonrpc = "2.0", id = requestId, method, @params = parameters })
             };
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
             response.EnsureSuccessStatusCode();
@@ -68,7 +67,7 @@ internal sealed class FhenixPublicTaskManagerReader : IDisposable
             var fields = new HashSet<string>(StringComparer.Ordinal);
             foreach (var field in root.EnumerateObject())
                 if (!fields.Add(field.Name)) throw new InvalidDataException("Duplicate RPC envelope field.");
-            if (root.GetProperty("jsonrpc").GetString() != "2.0" || root.GetProperty("id").GetInt32() != current)
+            if (root.GetProperty("jsonrpc").GetString() != "2.0" || root.GetProperty("id").GetInt32() != requestId)
                 throw new InvalidDataException("CoFHE RPC envelope mismatch.");
             if (root.TryGetProperty("error", out _))
                 throw new InvalidDataException("CoFHE RPC returned an error.");

@@ -54,3 +54,10 @@ PublicNode finalized-block timeout while both testnet RPCs answered.
 Ethereum dRPC reported chain ID 1 and returned the expected Task Manager
 at canonical finalized block 0x191f837. The adapter now uses that
 qualified Ethereum endpoint. The resumed WEB4 gate still needs to pass.
+
+The qualified endpoint passed local WEB4 federation with the reviewed
+request budget. Native counts were 3/2 and federated counts were 5/4.
+The foreign actor saw three public rows and zero private rows. The resume
+validated the two original SDK saves and recorded nine usage receipts.
+The fixture database was removed, the replica stopped, and the guarded
+publisher accepted the source-bound evidence. Hosted acceptance is open.

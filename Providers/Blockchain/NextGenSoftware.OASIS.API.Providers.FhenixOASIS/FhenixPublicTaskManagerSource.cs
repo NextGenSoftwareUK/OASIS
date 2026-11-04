@@ -157,10 +157,11 @@ public sealed class FhenixPublicTaskManagerSource : KeyValueStorageProviderBase,
         {
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
             deadline.CancelAfter(TimeSpan.FromSeconds(15));
+            var observations = await Task.WhenAll(keys.Select(id => client.ReadAsync(id, deadline.Token)));
             var rows = new List<IHolon>(keys.Count);
-            foreach (var id in keys)
+            foreach (var observation in observations)
             {
-                var observation = await client.ReadAsync(id, deadline.Token);
+                var id = observation.ChainId;
                 var fields = new Dictionary<string, object>
                 {
                     [ChainIdMetadata] = id,

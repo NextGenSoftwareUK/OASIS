@@ -310,3 +310,6 @@ Retain the original two save receipts and exact fixture until cleanup.
 Fhenix Ethereum endpoint verification uses the same fixture, with
 TestResults/ProviderBuildCurrent/cosmic-fhenix-drpc.log and
 TestResults/FhenixPublicSourceCurrent/federation-drpc-resume.log.
+
+Fhenix federation resume passed and removed its exact Mongo fixture.
+Port 27029 is closed. Retain the compact Fhenix summary and cleanup receipt.

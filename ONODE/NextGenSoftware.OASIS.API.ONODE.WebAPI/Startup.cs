@@ -619,6 +619,14 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_ESPRESSO_PUBLIC_SOURCE_JSON"] is string espressoPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS.EspressoPublicBlockHeaderSource.FromJson(espressoPublicSource)));
+            // EigenLayer operator registration is enrolled only as an explicit read source.
+            if (Configuration["CQL_EIGENLAYER_PUBLIC_SOURCE_JSON"] is string eigenLayerPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS.EigenLayerPublicOperatorSource.FromJson(eigenLayerPublicSource)));
+            // CoFHE deployment reads are enrolled only as an explicit read source.
+            if (Configuration["CQL_FHENIX_PUBLIC_SOURCE_JSON"] is string fhenixPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.FhenixOASIS.FhenixPublicTaskManagerSource.FromJson(fhenixPublicSource)));
             // Wormhole indexed messages are read-only, separate from cross-chain dispatch.
             if (Configuration["CQL_WORMHOLE_PUBLIC_SOURCE_JSON"] is string wormholePublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(

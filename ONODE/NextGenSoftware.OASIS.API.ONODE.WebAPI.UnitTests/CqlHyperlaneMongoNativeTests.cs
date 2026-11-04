@@ -30,6 +30,8 @@ using NextGenSoftware.OASIS.Common;
 using ConnextSource = NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextPublicOriginMetadataSource;
 using MidenSource = NextGenSoftware.OASIS.API.Providers.MidenOASIS.MidenPublicBlockHeaderSource;
 using EspressoSource = NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS.EspressoPublicBlockHeaderSource;
+using EigenLayerSource = NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS.EigenLayerPublicOperatorSource;
+using FhenixSource = NextGenSoftware.OASIS.API.Providers.FhenixOASIS.FhenixPublicTaskManagerSource;
 using SynapseSource = NextGenSoftware.OASIS.API.Providers.SynapseOASIS.SynapsePublicTransactionMetadataSource;
 using DeBridgeSource = NextGenSoftware.OASIS.API.Providers.deBridgeOASIS.DeBridgePublicOrderMetadataSource;
 using StargateSource = NextGenSoftware.OASIS.API.Providers.StargateOASIS.StargatePublicMessageMetadataSource;
@@ -112,6 +114,24 @@ public sealed class EspressoMongoNativeFactAttribute : FactAttribute
     {
         if (Environment.GetEnvironmentVariable("COSMIC_ESPRESSO_HTTP_NATIVE") != "owned-local-27029")
             Skip = "Explicit Espresso/Mongo native gate.";
+    }
+}
+
+public sealed class EigenLayerMongoNativeFactAttribute : FactAttribute
+{
+    public EigenLayerMongoNativeFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("COSMIC_EIGENLAYER_HTTP_NATIVE") != "owned-local-27029")
+            Skip = "Explicit EigenLayer/Mongo native gate.";
+    }
+}
+
+public sealed class FhenixMongoNativeFactAttribute : FactAttribute
+{
+    public FhenixMongoNativeFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("COSMIC_FHENIX_HTTP_NATIVE") != "owned-local-27029")
+            Skip = "Explicit Fhenix/Mongo native gate.";
     }
 }
 
@@ -204,6 +224,39 @@ public sealed class CqlHyperlaneMongoNativeTests
             Environment.GetEnvironmentVariable("COSMIC_ESPRESSO_HTTP_RESUME") == "1", "espresso-mainnet-public-headers",
             config => config.GetProperty("heights").EnumerateArray().Select(height => height.GetRawText()).ToArray());
 
+    [EigenLayerMongoNativeFact]
+    public Task NativeEigenLayerOperatorsAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
+        => VerifyAsync(ProviderType.EigenLayerOASIS, "EigenLayer", "eigenlayer",
+            EigenLayerSource.AddressMetadata, EigenLayerSource.FromJson, Array.Empty<string>(),
+            (native, metadata, isMongo) =>
+            {
+                Assert.True(metadata.GetProperty("EigenLayerIsOperator").GetBoolean());
+                var hash = metadata.GetProperty("EigenLayerFinalizedBlockHash").GetString()!;
+                var number = metadata.GetProperty("EigenLayerFinalizedBlockNumber").GetString()!;
+                Assert.Matches("^0x[0-9a-f]{64}$", hash);
+                Assert.Matches("^0x[1-9a-f][0-9a-f]*$", number);
+                if (isMongo)
+                {
+                    Assert.Equal((string)native.MetaData["EigenLayerFinalizedBlockHash"], hash);
+                    Assert.Equal((string)native.MetaData["EigenLayerFinalizedBlockNumber"], number);
+                }
+            },
+            Environment.GetEnvironmentVariable("COSMIC_EIGENLAYER_HTTP_RESUME") == "1", "eigenlayer-mainnet-operators",
+            config => config.GetProperty("addresses").EnumerateArray().Select(address => address.GetString()!).ToArray());
+
+    [FhenixMongoNativeFact]
+    public Task NativeFhenixDeploymentsAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
+        => VerifyAsync(ProviderType.FhenixOASIS, "Fhenix", "fhenix",
+            FhenixSource.ChainIdMetadata, FhenixSource.FromJson, Array.Empty<string>(),
+            (_, metadata, _) =>
+            {
+                Assert.Matches("^0x[0-9a-f]{40}$", metadata.GetProperty("FhenixTaskManagerAddress").GetString()!);
+                Assert.Matches("^0x[0-9a-f]{64}$", metadata.GetProperty("FhenixFinalizedBlockHash").GetString()!);
+                Assert.Matches("^0x[1-9a-f][0-9a-f]*$", metadata.GetProperty("FhenixFinalizedBlockNumber").GetString()!);
+            },
+            Environment.GetEnvironmentVariable("COSMIC_FHENIX_HTTP_RESUME") == "1", "fhenix-cofhe-task-managers",
+            config => config.GetProperty("chainIds").EnumerateArray().Select(chainId => chainId.GetString()!).ToArray());
+
     private static void VerifyScanMetadata(IHolon native, JsonElement metadata, bool isMongo)
     {
         Assert.Equal((string)native.MetaData["LayerZeroNonce"], metadata.GetProperty("LayerZeroNonce").GetString());
@@ -284,7 +337,8 @@ public sealed class CqlHyperlaneMongoNativeTests
         }
 
         using var publicSource = createSource(configJson);
-        Assert.False((await publicSource.ActivateQuerySourceAsync(default)).IsError);
+        var activation = await publicSource.ActivateQuerySourceAsync(default);
+        Assert.False(activation.IsError, activation.Exception?.ToString() ?? activation.Message);
         var nativeQuery = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(publicProvider).Result)
             .WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result)
             .Where(row => allowed.Contains(CosmicQueryMetadata.Value<string>(row, metadataKey)));
@@ -410,7 +464,8 @@ public sealed class CqlHyperlaneMongoNativeTests
         try
         {
             var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
-            using var http = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(20) };
+            var queryDuration = publicProvider == ProviderType.FhenixOASIS ? 30000 : 5000;
+            using var http = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromMilliseconds(queryDuration + 15000) };
             var counts = new Dictionary<string, int>();
             object Selection(IEnumerable<string> selected) => new { orderBy = "None", take = 8, includeMetadata = true,
                 filters = new[] { new { metadataPath = new[] { metadataKey }, scalar = "String", @operator = "In", value = selected.ToArray() } } };
@@ -458,17 +513,17 @@ public sealed class CqlHyperlaneMongoNativeTests
             {
                 var selected = allowed.Take(count).ToArray();
                 await Check(fixture + "-" + count, ownerToken, "/api/data/query-cql", new { provider = providerName,
-                    orderBy = "None", take = 8, includeMetadata = true,
+                    orderBy = "None", take = 8, includeMetadata = true, maximumDurationMilliseconds = queryDuration,
                     filters = new[] { new { metadataPath = new[] { metadataKey }, scalar = "String", @operator = "In", value = selected } } }, count);
                 await Check("paired-" + count, ownerToken, "/api/data/query-cql/federation", new { scope = "Named",
                     providers = new[] { "MongoDBOASIS", providerName }, source = Selection(selected),
-                    identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8 }, count + 2);
+                    identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8, maximumDurationMilliseconds = queryDuration }, count + 2);
             }
             await Check("foreign-private", foreignToken, "/api/data/query-cql", new { provider = "MongoDBOASIS",
                 orderBy = "Id", take = 8, filters = new[] { new { field = "Id", scalar = "Guid", @operator = "In", value = copies } } }, 0);
             await Check("foreign-public-pair", foreignToken, "/api/data/query-cql/federation", new { scope = "Named",
                 providers = new[] { "MongoDBOASIS", providerName }, source = Selection(allowed),
-                identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8 }, 3);
+                identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8, maximumDurationMilliseconds = queryDuration }, 3);
             Assert.Equal(configJson, await IoFile.ReadAllTextAsync(configPath));
             Assert.Equal(9, receipts.Count);
             await IoFile.WriteAllTextAsync(Path.Combine(root, $"TestResults/{directoryPrefix}PublicSourceCurrent/{fixture}-mongo-native-summary.json"),
