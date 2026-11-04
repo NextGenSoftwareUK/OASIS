@@ -62,3 +62,11 @@ The symbol source now implements the shared storage and explicit read-only
 activation interfaces. Activation reads every enrolled symbol. The real
 QuestDB lifecycle and exact CQL 3/2 integration test passed 1/1 with zero skips.
 Host configuration and admission remain open.
+
+The opt-in WEB4 registration built successfully. The focused admission test
+failed at StorageQueryTariff.Capture before planning any native or Mongo
+queries. Neither the parent-pinned Core d6ae5e7 nor the shared checkout
+5415961 lists QuestDB in SupportedProviders. Extend that canonical unsigned
+read list on the COSMIC Core branch, rerun the focused test against the
+selected Core, and advance the parent gitlink and Railway manifest together.
+The WEB4 registration remains local and uncommitted pending that result.
