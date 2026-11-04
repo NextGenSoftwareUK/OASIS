@@ -54,12 +54,15 @@ namespace NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS
         };
 
         public CloudflareD1OASIS(string accountId, string databaseId, string apiToken)
+            : this(accountId, databaseId, apiToken, new HttpClientHandler()) { }
+
+        internal CloudflareD1OASIS(string accountId, string databaseId, string apiToken, HttpMessageHandler handler)
         {
             _accountId = accountId;
             _databaseId = databaseId;
             _apiToken = apiToken;
             _baseUrl = $"https://api.cloudflare.com/client/v4/accounts/{accountId}/d1/database/{databaseId}/query";
-            _http = new HttpClient();
+            _http = new HttpClient(handler);
             _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
             ProviderName = "CloudflareD1OASIS";
             ProviderDescription = "Cloudflare D1 provider (serverless SQLite-compatible REST API)";
@@ -75,28 +78,26 @@ namespace NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS
         private async Task<List<Dictionary<string, JsonElement>>> QueryAsync(string sql, object?[]? parameters = null)
         {
             var body = new { sql, @params = parameters ?? Array.Empty<object?>() };
-            var content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
-            var response = await _http.PostAsync(_baseUrl, content);
+            using var content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
+            using var response = await _http.PostAsync(_baseUrl, content);
             var raw = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode) throw new Exception($"D1 HTTP {(int)response.StatusCode}: {raw}");
             using var doc = JsonDocument.Parse(raw);
             var root = doc.RootElement;
             if (!root.GetProperty("success").GetBoolean()) throw new Exception($"D1 error: {raw}");
+            if (!root.TryGetProperty("result", out var sets) || sets.ValueKind != JsonValueKind.Array ||
+                sets.GetArrayLength() != 1 || sets[0].ValueKind != JsonValueKind.Object ||
+                !sets[0].TryGetProperty("success", out var success) || success.ValueKind != JsonValueKind.True ||
+                !sets[0].TryGetProperty("results", out var rows) || rows.ValueKind != JsonValueKind.Array)
+                throw new InvalidOperationException("D1 did not acknowledge the single SQL statement.");
+
             var results = new List<Dictionary<string, JsonElement>>();
-            if (root.TryGetProperty("result", out var resultArr) && resultArr.ValueKind == JsonValueKind.Array)
+            foreach (var row in rows.EnumerateArray())
             {
-                foreach (var resultSet in resultArr.EnumerateArray())
-                {
-                    if (resultSet.TryGetProperty("results", out var rows) && rows.ValueKind == JsonValueKind.Array)
-                    {
-                        foreach (var row in rows.EnumerateArray())
-                        {
-                            var dict = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
-                            foreach (var prop in row.EnumerateObject()) dict[prop.Name] = prop.Value.Clone();
-                            results.Add(dict);
-                        }
-                    }
-                }
+                var values = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
+                foreach (var property in row.EnumerateObject())
+                    values.Add(property.Name, property.Value.Clone());
+                results.Add(values);
             }
             return results;
         }

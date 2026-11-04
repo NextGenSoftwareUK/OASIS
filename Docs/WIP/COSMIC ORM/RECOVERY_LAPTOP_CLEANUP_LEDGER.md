@@ -418,3 +418,8 @@ http-build, http-exact and web4 now have a .gz suffix. The manifest
 TestResults/ProviderBuildCurrent/cosmic-questdb-log-archive.json records sizes
 and original SHA256 hashes. Reduced 7,046,996 bytes to 297,857 bytes before
 manifest overhead. Compact native test receipts remain uncompressed.
+
+Cloudflare D1 unit checks reused the installed .NET SDK and shared outputs.
+Generated D1 provider/test bin and obj plus cosmic-d1-unit.log and
+cosmic-d1-contract.log under TestResults/ProviderBuildCurrent. Final suite
+9/9 passed. No D1 runtime, service, or database was created.
