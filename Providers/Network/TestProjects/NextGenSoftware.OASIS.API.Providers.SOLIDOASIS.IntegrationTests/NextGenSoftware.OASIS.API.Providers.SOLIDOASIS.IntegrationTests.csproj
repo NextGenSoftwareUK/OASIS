@@ -16,7 +16,7 @@
     <Compile Include="../../../Shared/TestSupport/ProtocolPointWeb4Acceptance.cs" Link="TestSupport/ProtocolPointWeb4Acceptance.cs" />
     <!-- Explicit fixture providers/read policy replace node-default BootLoader composition. -->
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/*.cs"
-             Exclude="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Providers.cs;../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/DnaCqlSharedReads.cs" Link="Production/Cql/%(Filename)%(Extension)" />
+             Exclude="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Providers.cs;../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/DnaCqlSharedReads.cs;../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/LocalFileCqlRegistration.cs;../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/LocalFilePublicBootstrap.cs" Link="Production/Cql/%(Filename)%(Extension)" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/Cql*.cs" Link="Production/Models/%(Filename)%(Extension)" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs" Link="Production/CqlV1Controller.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/AuthorizeAttribute.cs" Link="Production/AuthorizeAttribute.cs" />

@@ -1,6 +1,6 @@
 # COSMIC ORM / CQL current status
 
-Updated 2 November 2026. Goal active and incomplete.
+Updated 4 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
@@ -15,10 +15,26 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
 ## Current batch / exact next step
 
-Sixth scoped recovery batch published Development d167dff13;Core5415961 and
-hosted settings unchanged. Exact job0096f2e4-f831-4dcd-9cd8-b1d7613781aa SUCCESS.
-Health/four-provider readiness pass;59/60ready,Nostr activation failed HTTP503.
-Journal LocalState/COSMIC/HostedLauncherRecoverySixthReleaseCurrent.
+Live demo rehearsal, 4 November: Development health200; authenticated discovery
+59/60 ready (Nostr unavailable). ActivityPub and IPFS native examples pass3/2.
+Published sandbox client IPFS+Mongo passes5/4; two private saves, reuse0 new saves,
+SQLite/Neo4j replicas2/2. HTTP/client proof, browser rerun open. Report SHA256
+679D2FA2F738B1388BC51B8F77059ED700D73D31BFA81C1B6F6F0D277C56AA19
+at TestResults/HostedDemoRehearsal/ipfs-http-flow.json. Separate rehearsal session;
+prior cohorts preserved. A second visitor saw3 public rows and0 of the private
+Mongo snapshots by exact ID. Isolation summary SHA256
+64AEEB6D8B1427DD178A9F95F698185998C78D38D8319653DB96DA6AB1904F90.
+LocalFile canonical sandbox-mode fix passes 16 native profile, 13 WEB4 and
+5 publisher tests. Retained source parser check awaits the original bundle.
+Restore the four files listed by publisher preflight, verify hashes and parser
+admission, prepare the five settings, then qualify the exact Development
+deployment before applying and rehearsing native, Mongo and replica reads.
+
+Source-recovery fix published Development b718f2879;Core5415961/settings unchanged.
+Exact job33c9ef7d-b8b3-4403-9109-32ce47c4d7a8 SUCCESS;healthy/four-provider-ready.
+Live anonymous401/demo-user403 pass;59/60ready,Nostr unavailable;operator gate open.
+Journal LocalState/COSMIC/HostedSourceRecoveryReleaseCurrent.
+Prior d167dff13 healthy/four-provider-ready;59/60ready,Nostr activation HTTP503.
 Previous fifth release5507b0aa0 passed health/four-provider discovery/federation.
 Published launcher file audit is green;runtime/configuration gates remain.
 
@@ -52,8 +68,13 @@ Protocol wrapper/keyset closure restored;3consumer builds+AST checks pass.
 TRON declared-source7controls/builds/syntax pass;old uncertain outcome untouched.
 Configured V2 Ethereum/Polygon/Arbitrum reader+Mongo/HTTP consumer restored;
 7factory/configuration controls pass. Needs explicit compatible existing source.
-Source recovery implemented;27controlled/API/schema cases pass;live gate next.
+Source recovery live;27controlled/API/schema cases pass;secure sign-in helper ready.
 See CQL_SOURCE_RECOVERY.md. Website commands remain to correct.
+Ethereum V2 artifact/ABI/cache+6deploymentcontrols pass;native operation review-blocked.
+LocalFile sandbox-setting mismatch fixed and verified on the recovery laptop.
+The replacement teaching dataset passed SDK export and WEB4 bootstrap parsing. The publisher verified both source hashes. Railway sign-in is required before hosted preparation.
+Independent breadth work: [Hyperlane](HYPERLANE_PUBLIC_SOURCE_STATUS.md) now
+passes native 3/2, four preset plans and local WEB4 HTTP federation/privacy. The task branch and Core pin are published. Hosted preparation and visitor acceptance remain open.
 Automatic review rejected the combined website-edit/consumer-build operation;
 it did not execute. Website commands remain open. A separate reproduced page
 bug is fixed/tested below;no new native/browser proof or denied-operation retry.
@@ -70,12 +91,11 @@ sixth-batch-shipping-schema-evidence.json. Consumer now compiles;3page regressio
   operator/transport/scale HyperDrive acceptance remain open;no uptime guarantee.
 - Native browser snapshots do not yet copy arbitrary complete source payloads.
 
-Work only C:/Source/OASIS-cosmic;task branch work/cosmic-cql-ton-public;
-Core work/cosmic-cql-google-public;website C:/Source/Web4Site/work/cosmic-cql.
+Recovery laptop checkout C:/Source/OASIS2; task branch work/cosmic-cql-ton-public. The original checkout was C:/Source/OASIS-cosmic.
 Use one build lease;/m:2 /nr:false /p:UseSharedCompilation=false.
 Raw logs TestResults/;original identities/proof LocalState/COSMIC/;named-file commits.
 No production/master promotion;preserve unknown root logs and shared/denied cleanup.
-Disk120GB target unmet;[resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) owns resources.
+Use the [recovery laptop cleanup ledger](RECOVERY_LAPTOP_CLEANUP_LEDGER.md) for this machine. The [original ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) records the other laptop.
 
 ## Entry points / commands
 

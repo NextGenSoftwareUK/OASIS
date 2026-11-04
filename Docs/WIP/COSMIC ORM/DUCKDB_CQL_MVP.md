@@ -118,14 +118,11 @@ dropped; original DuckDB source and tombstone remain unchanged.
   rejections pass; listeners unchanged.
 
 ```powershell
-# Inspect without services.
-Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider DuckDB -Federated -ShowPlan
-
-# SDK/HTTP checks followed by browser service on loopback5114.
-Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider DuckDB -Federated
+# SDK and HTTP checks, then serve the demo on loopback port 5116.
+Scripts/TestHosts/Run-CosmicDuckDbCqlNative.ps1 -Federated -Serve
 
 # Automatic checks and teardown.
-Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider DuckDB -Federated -VerifyOnly
+Scripts/TestHosts/Run-CosmicDuckDbCqlNative.ps1 -Federated
 ```
 
 Stop using the page button to complete verified temporary Mongo cleanup. This scope

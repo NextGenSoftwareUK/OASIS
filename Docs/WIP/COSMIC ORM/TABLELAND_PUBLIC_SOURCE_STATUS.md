@@ -61,3 +61,15 @@ establish stable holon ownership/identity, child/version semantics or CQL
 capabilities. These legacy paths remain unaudited for native conformance and are
 not the basis of a new demo acceptance claim. V2 work must enforce its own exact
 source and query contract rather than silently routing through this method.
+
+## Recovery laptop bound-query diagnostic
+
+4 November 2026. The provider compiles with validated table identifiers and
+a bound Int64 row key. A separate read-only diagnostic used the documented
+example table and predicates, with a one-row projection limit. The gateway
+returned HTTP 302 to https://textile.io/ with the same body SHA256 as the
+earlier version diagnostic. No redirect was followed and no table data was
+returned. Keep both observations and seek a supported Tableland query gateway.
+Evidence under TestResults/TablelandRecoveryLaptopCurrent/bound-query.*.
+
+[Operator parameter contract](https://blog.textile.io/weeknotes-base-sepolia).
