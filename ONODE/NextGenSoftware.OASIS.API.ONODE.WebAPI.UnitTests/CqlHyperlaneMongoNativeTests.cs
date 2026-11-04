@@ -27,6 +27,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
+using SynapseSource = NextGenSoftware.OASIS.API.Providers.SynapseOASIS.SynapsePublicTransactionMetadataSource;
 using DeBridgeSource = NextGenSoftware.OASIS.API.Providers.deBridgeOASIS.DeBridgePublicOrderMetadataSource;
 using StargateSource = NextGenSoftware.OASIS.API.Providers.StargateOASIS.StargatePublicMessageMetadataSource;
 using LayerZeroSource = NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS.LayerZeroPublicMessageMetadataSource;
@@ -72,6 +73,15 @@ public sealed class DeBridgeMongoNativeFactAttribute : FactAttribute
     {
         if (Environment.GetEnvironmentVariable("COSMIC_DEBRIDGE_HTTP_NATIVE") != "owned-local-27029")
             Skip = "Explicit deBridge/Mongo native gate.";
+    }
+}
+
+public sealed class SynapseMongoNativeFactAttribute : FactAttribute
+{
+    public SynapseMongoNativeFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("COSMIC_SYNAPSE_HTTP_NATIVE") != "owned-local-27029")
+            Skip = "Explicit Synapse/Mongo native gate.";
     }
 }
 
@@ -123,6 +133,13 @@ public sealed class CqlHyperlaneMongoNativeTests
                 Assert.False(string.IsNullOrWhiteSpace(state));
                 if (isMongo) Assert.Equal((string)native.MetaData["DeBridgeOrderState"], state);
             }, false, "dln-indexed-order-state");
+
+    [SynapseMongoNativeFact]
+    public Task NativeSynapseMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
+        => VerifyAsync(ProviderType.SynapseOASIS, "Synapse", "synapse",
+            SynapseSource.TransactionIdMetadata, SynapseSource.FromJson,
+            new[] { "SynapseOriginChainId", "SynapseDestinationChainId" },
+            (_, _, _) => { }, false, "rfq-indexed-transaction-identity");
 
     private static void VerifyScanMetadata(IHolon native, JsonElement metadata, bool isMongo)
     {

@@ -188,3 +188,7 @@ deBridge reused MongoDB 8.2 and removed its owned fixture database. Port
 
 Synapse bounded RFQ reads used existing HTTP tooling.
 - TestResults/SynapsePublicSourceCurrent : 103260 bytes
+
+Synapse reused MongoDB 8.2 and removed its owned fixture database. Port
+27029 is closed. Retain native/admission/HTTP reports.
+- TestResults/SynapsePublicSourceCurrent : 1836931 bytes
