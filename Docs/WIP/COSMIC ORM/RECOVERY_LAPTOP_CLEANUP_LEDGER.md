@@ -445,3 +445,8 @@ The reproducible D1 HTTP probe now lives at Scripts/Sandbox/Test-D1WorkerSymbolF
 Pass LocalState/COSMIC/RecoveryLaptopD1 as its sole argument using Node 24.
 The checked-in probe reproduced 3/2, duplicate 400 and POST 405 using the
 same runtime. No new runtime or persistent database was created.
+
+D1 native CQL Worker test reused the D1 and .NET environments. Receipts:
+TestResults/ProviderBuildCurrent/cosmic-d1-source.log and
+cosmic-d1-worker-cql.log (1 passed, zero skips, exact 3/2). The test
+closed Worker stdin and verified process exit. No database files retained.
