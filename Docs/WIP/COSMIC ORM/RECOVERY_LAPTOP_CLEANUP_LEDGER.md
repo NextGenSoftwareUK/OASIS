@@ -240,3 +240,8 @@ Espresso local federation uses the ignored 85-byte
 LocalState/COSMIC/EspressoPublicQualificationCurrent/source.json and the
 TestResults/EspressoPublicSourceCurrent report directory. The fixture is
 prepared and the test has not run. No Mongo database or process was created.
+
+Espresso admission build uses the shared WEB4 and unit-test bin/obj outputs
+and TestResults/ProviderBuildCurrent/cosmic-espresso-admission.log. The
+318 public configuration tests passed. Their temporary publisher state
+was removed by the test suite and the reported temp path was confirmed absent.
