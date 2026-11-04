@@ -384,3 +384,14 @@ The two owned processes stopped, port 29000 closed and fixture removed.
 QuestDB lifecycle rerun reused the same runtime and bin/obj. Receipt:
 TestResults/ProviderBuildCurrent/cosmic-questdb-profile.log. Owned processes
 stopped, port 29000 closed and the isolated fixture removed.
+
+QuestDB WEB4 registration validation reuses the WEB4 and shared provider
+bin/obj. Build receipt: TestResults/ProviderBuildCurrent/cosmic-questdb-web4.log.
+No separate runtime or database was started for this build.
+
+QuestDB admission test uses the WEB4 unit test project's bin/obj and
+TestResults/ProviderBuildCurrent/cosmic-questdb-admission.log.
+
+Exact-Core QuestDB admission reused shared outputs and wrote
+TestResults/ProviderBuildCurrent/cosmic-questdb-exact-core.log (1/1 passed).
+The previous Core checkout was restored. No test database was created.

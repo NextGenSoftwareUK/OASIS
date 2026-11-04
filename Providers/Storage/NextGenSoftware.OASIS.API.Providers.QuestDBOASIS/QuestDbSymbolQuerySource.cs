@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -22,6 +24,7 @@ public sealed class QuestDbSymbolQuerySource : KeyValueStorageProviderBase, ICos
     public const string SymbolMetadata = "QuestDbSymbol";
     private readonly SymbolBackend backend;
     private bool disposed;
+    private HttpClient? ownedClient;
 
     public QuestDbSymbolQuerySource(HttpClient http, Uri endpoint, Guid owner, IEnumerable<string> symbols)
         : this(new SymbolBackend(http, endpoint, owner, symbols)) { }
@@ -33,6 +36,33 @@ public sealed class QuestDbSymbolQuerySource : KeyValueStorageProviderBase, ICos
         ProviderName = QueryProviderType.ToString();
         ProviderDescription = "Read-only QuestDB symbol metadata";
         ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+    }
+
+    public static QuestDbSymbolQuerySource FromJson(string json)
+    {
+        if (Encoding.UTF8.GetByteCount(json) > 8192)
+            throw new ArgumentException("Bounded QuestDB symbol configuration required.", nameof(json));
+        using var document = JsonDocument.Parse(json, new JsonDocumentOptions { MaxDepth = 4 });
+        var root = document.RootElement;
+        var fields = new HashSet<string>(new[] { "schema", "endpoint", "sourceOwner", "symbols" }, StringComparer.Ordinal);
+        if (root.ValueKind != JsonValueKind.Object ||
+            root.EnumerateObject().Any(property => !fields.Remove(property.Name)) || fields.Count != 0 ||
+            root.GetProperty("schema").GetInt32() != 1)
+            throw new ArgumentException("Exact QuestDB symbol configuration required.", nameof(json));
+
+        var endpoint = new Uri(root.GetProperty("endpoint").GetString()!, UriKind.Absolute);
+        var owner = root.GetProperty("sourceOwner").GetGuid();
+        var keys = root.GetProperty("symbols").EnumerateArray().Select(item => item.GetString()!).Take(9).ToArray();
+        var client = new HttpClient(NativeConnectionGuard.CreateGuardedHttpHandler());
+        try
+        {
+            return new QuestDbSymbolQuerySource(client, endpoint, owner, keys) { ownedClient = client };
+        }
+        catch
+        {
+            client.Dispose();
+            throw;
+        }
     }
 
     public override Task<OASISResult<bool>> ActivateProviderAsync() => ActivateQuerySourceAsync();
@@ -59,6 +89,7 @@ public sealed class QuestDbSymbolQuerySource : KeyValueStorageProviderBase, ICos
     {
         disposed = true;
         IsProviderActivated = false;
+        ownedClient?.Dispose();
     }
 
     public ProviderType QueryProviderType => Core.Enums.ProviderType.QuestDBOASIS;

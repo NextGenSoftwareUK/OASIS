@@ -75,3 +75,9 @@ Core task commit 58c7cc9e7e4bd65c2bb8d8336b4af364b03c9370 adds QuestDB to
 the canonical unsigned read list. It was created with an isolated Git index
 while preserving the shared detached checkout at 5415961. Admission must be
 verified with the Core task commit before the parent pin is advanced.
+
+Exact Core 58c7cc9 passed the focused WEB4 admission test (1/1). All four
+QuestDB native and QuestDB/Mongo presets planned, and the zero-price tariff
+was accepted only for the explicit query-only enrollment. The shared Core
+checkout was restored to 5415961. Local HTTP execution and hosted acceptance
+remain open.

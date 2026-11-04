@@ -542,6 +542,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.ThreeFoldPublicNodeMetadataSource.FromJson(threeFoldPublicSource)));
 
+            if (Configuration["CQL_QUESTDB_SYMBOL_SOURCE_JSON"] is string questDbSymbols)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.QuestDbSymbolQuerySource.FromJson(questDbSymbols)));
+
             // Public country SQL reads never enroll owned ClickHouse table writes.
             if (Configuration["CQL_CLICKHOUSE_PUBLIC_SOURCE_JSON"] is string clickHousePublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
