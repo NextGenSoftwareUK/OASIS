@@ -281,3 +281,10 @@ The live Development examplesVersion=2 provider catalogue returned 60 rows
 with the retained rehearsal visitor. MongoDB was available with federation.
 LocalFile and Hyperlane were absent. The existing visitor session was renewed
 through its journaled refresh. No new visitor or provider snapshot was created.
+
+The GitHub WEB4 image workflow builds and publishes an image but does not
+inspect the Railway Development mount. The gated Railway release workflow
+runs on master and targets staging and production. Neither satisfies the
+Development WEB4 mount gate. The published candidate contains gitlinks for
+all three private manifest pins (API Core, ONODE Core and WEB6). Use the
+candidate pins for deployment review because the task branch has newer pins.
