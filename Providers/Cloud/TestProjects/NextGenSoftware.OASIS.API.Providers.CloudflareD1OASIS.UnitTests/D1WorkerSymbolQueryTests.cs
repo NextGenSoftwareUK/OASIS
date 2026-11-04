@@ -18,6 +18,8 @@ public class D1WorkerSymbolQueryTests
         using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
         var keys = new[] { "BTC-USDT", "ETH-USDT", "SOL-USDT" };
         var source = new D1WorkerSymbolQuerySource(http, new Uri(endpoint), Guid.NewGuid(), keys);
+        var activation = await source.ActivateQuerySourceAsync();
+        Assert.IsTrue(activation.Result, activation.Exception?.ToString() ?? activation.Message);
         var scope = CosmicQueryScope.Named(ProviderType.CloudflareD1OASIS).Result;
         var targets = new[] { new CosmicQueryTarget(ProviderType.CloudflareD1OASIS, source.QueryCapabilities) };
 
@@ -45,6 +47,9 @@ public class D1WorkerSymbolQueryTests
         var keys = new[] { "BTC-USDT", "SOL-USDT" };
         var provider = ProviderType.CloudflareD1OASIS;
         var source = new D1WorkerSymbolQuerySource(http, new Uri("https://d1.example/symbols"), Guid.NewGuid(), keys);
+        var activation = await source.ActivateQuerySourceAsync();
+        Assert.IsTrue(activation.IsError);
+        Assert.AreEqual("CQL_SOURCE_UNAVAILABLE", activation.ErrorCode);
         var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(provider).Result)
             .Where(row => keys.Contains(CosmicQueryMetadata.Value<string>(row, D1WorkerSymbolQuerySource.SymbolMetadata)));
         var plan = CosmicQueryPlanner.Plan(query.Result, provider,

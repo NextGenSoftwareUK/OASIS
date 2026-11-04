@@ -16,7 +16,7 @@ using NextGenSoftware.OASIS.Common;
 namespace NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS;
 
 /// <summary>Read-only CQL projection from an explicitly configured D1 Worker.</summary>
-public sealed class D1WorkerSymbolQuerySource : ICosmicQueryStorageProvider
+public sealed class D1WorkerSymbolQuerySource : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
 {
     public const string SymbolMetadata = "D1Symbol";
     private readonly HttpClient http;
@@ -48,6 +48,26 @@ public sealed class D1WorkerSymbolQuerySource : ICosmicQueryStorageProvider
     public ProviderType QueryProviderType => ProviderType.CloudflareD1OASIS;
     public CosmicQueryCapabilities QueryCapabilities { get; } =
         CosmicQueryCapabilities.ForStringMetadataKeyLookup(SymbolMetadata, 33, 8);
+
+    public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await ReadSymbolsAsync(catalogue.OrderBy(symbol => symbol, StringComparer.Ordinal).ToArray(), cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            return new(true);
+        }
+        catch (OperationCanceledException error)
+        {
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = "CQL_QUERY_CANCELLED",
+                Message = "D1 Worker activation cancelled.", Exception = error };
+        }
+        catch (Exception error)
+        {
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = "CQL_SOURCE_UNAVAILABLE",
+                Message = "D1 Worker did not verify the enrolled symbol catalogue.", Exception = error };
+        }
+    }
 
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon

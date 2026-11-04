@@ -454,3 +454,8 @@ closed Worker stdin and verified process exit. No database files retained.
 D1 response controls reused provider/test bin and obj. Compact receipt:
 TestResults/ProviderBuildCurrent/cosmic-d1-symbol-controls.log (3/3 passed).
 No Worker process, database or new runtime was needed.
+
+D1 activation reused existing Worker/runtime and .NET build outputs.
+Receipts cosmic-d1-activation.log (3/3 controls) and
+cosmic-d1-activation-native.log (1/1) under TestResults/ProviderBuildCurrent.
+Worker exited after stdin closed and left no persistent database.
