@@ -510,3 +510,8 @@ The owned server stopped; profile-server.log remains with the runtime.
 
 NATS TLS profile configuration build reused the SDK probe and shared outputs.
 Receipt: TestResults/NatsRecoveryLaptopCurrent/config-build.log. No server started.
+
+NATS/D1 exact WEB4 admission reused shared bin/obj. Original failure:
+TestResults/ProviderBuildCurrent/cosmic-nats-web4-admission.log. The
+authoritative-catalogue rerun cosmic-nats-web4-catalogue.log passed 2/2.
+Prior Core checkout restored. No fixture service started.
