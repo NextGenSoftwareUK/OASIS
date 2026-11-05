@@ -396,3 +396,10 @@ The image workflow's SDK source packaging preflight passed for Cosmos (4),
 Hedera (8), Near (7), Sui (3) and Polkadot (31 modules). Both validator scripts
 and all five provider directories matched the candidate tree before the check.
 No image was built by this preflight.
+
+The global-release freshness check found one mismatch on the immutable
+candidate manifest. Holochain main moved from pinned 75824d5b to 766f32be.
+The Libraries pin still matched upstream. That check belongs to the global
+release workflow. The Development candidate image builds the reviewed pins,
+so any decision to advance Holochain requires a new reviewed candidate and
+fresh verification.
