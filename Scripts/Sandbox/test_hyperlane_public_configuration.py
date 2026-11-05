@@ -1,6 +1,7 @@
 import importlib.util
 import json
 from pathlib import Path
+from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
 
@@ -51,3 +52,24 @@ class HyperlaneConfigurationTests(unittest.TestCase):
                 publisher.apply()
             gate.assert_called_once_with(publisher.configuration)
             apply_values.assert_not_called()
+
+    def test_prepare_resumes_after_candidate_snapshot_without_overwriting_evidence(self):
+        before = {"OASIS_DNA_JSON": "{}"}
+        after = dict(before, **{publisher.KEYS[2]: "[]"})
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / "state"
+            state.mkdir()
+            for suffix in ("before", "candidate"):
+                (state / f"{publisher.PREFIX}-{suffix}-variables.dpapi").write_bytes(b"preserved")
+            with patch.object(publisher, "ROOT", root), \
+                 patch.object(publisher.configuration, "STATE", state), \
+                 patch.object(publisher, "qualified_source", return_value={}), \
+                 patch.object(publisher.configuration, "variables", return_value=before), \
+                 patch.object(publisher, "candidate", return_value=after), \
+                 patch.object(publisher.configuration, "protected_read", side_effect=[before, after] * 2):
+                publisher.prepare()
+                publisher.prepare()
+            review = root / "TestResults/HyperlanePublicSourceCurrent/prepared-review.json"
+            self.assertEqual(publisher.KEYS, json.loads(review.read_bytes())["changedKeys"])
+            self.assertEqual([b"preserved"] * 2, [path.read_bytes() for path in state.glob("*.dpapi")])
