@@ -524,6 +524,13 @@ HTTP 401. Before changing the Development WEB4 source, verify the existing
 registry credentials grant that service pull access to the reviewed digest.
 The anonymous check downloaded no image layers.
 
+The recovery checkout passed the publisher's qualification check against
+the retained source configuration, bootstrap bytes, export receipt and SDK
+proof. Using those original inputs with the test's synthetic sandbox
+settings produced exactly five changed settings and four presets in memory.
+Live settings still need to be read and reviewed before applying the
+candidate. This check created no snapshots, downloads or build outputs.
+
 Live discovery using the retained rehearsal visitor still reported LocalFile
 absent or unavailable. Chroma, CouchDB, QuestDB, DuckDB, Cloudflare D1 and
 NATS JetStream returned the same readiness result. ClickHouse advertised
