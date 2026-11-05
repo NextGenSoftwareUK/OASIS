@@ -664,3 +664,5 @@ CouchDB, DuckDB and SQL Server WEB4 admission passed 3/3 against Core 79708cc4. 
 CouchDB database identity probe suite passed 43/43. Reused existing outputs. Receipt: TestResults/ProviderBuildCurrent/cosmic-couchdb-database-proof.log. No server started.
 
 SurrealDB database-scoped query activation build passed using existing outputs. Receipt: TestResults/ProviderBuildCurrent/cosmic-surreal-read-activation.log. No native process started.
+
+SurrealDB query activation controls passed 11/11. Reused unit test bin/obj. Receipt: TestResults/ProviderBuildCurrent/cosmic-surreal-query-controls.log. No native process started.

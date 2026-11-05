@@ -62,6 +62,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.UnitTests
             Assert.IsNull(overBudget.Result);
         }
 
+        [TestMethod]
+        public async Task QueryActivationRejectsMissingConfigurationAndCancellation()
+        {
+            var missing = await _provider.ActivateQuerySourceAsync(default);
+            Assert.AreEqual("CQL_QUERY_SOURCE_UNAVAILABLE", missing.ErrorCode);
+            Assert.IsFalse(_provider.IsProviderActivated);
+
+            var querySource = new SurrealDBOASIS("http://127.0.0.1:1", "reader", "unused", "demo", "demo", Guid.NewGuid());
+            var cancelled = await querySource.ActivateQuerySourceAsync(new System.Threading.CancellationToken(canceled: true));
+            Assert.AreEqual("CQL_QUERY_CANCELLED", cancelled.ErrorCode);
+            Assert.IsFalse(querySource.IsProviderActivated);
+        }
+
         [TestCleanup]
         public void Cleanup()
         {
