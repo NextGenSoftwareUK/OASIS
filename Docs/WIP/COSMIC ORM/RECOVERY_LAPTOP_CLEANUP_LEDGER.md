@@ -599,3 +599,7 @@ source. Pre-cancelled activation kept the provider inactive; the subsequent
 native probe activated it and the bounded CQL suite passed with original
 record fingerprints preserved. Instance stopped, existing outputs reused.
 Receipt sqlserver-cql-native.trx SHA256 5B74DA2F623493CEAF327966F2E736B596B0987588445EA56EC454E14CCAB25C.
+
+SQL Server opt-in WEB4 registration compiled using existing WEB4 bin/obj.
+Receipt: TestResults/SqlServerCqlCurrent/web4-build.log. No listener or
+database started. Core tariff admission and live configuration still pending.
