@@ -695,3 +695,5 @@ check returned Unauthorized. No settings, deployment or project link changed.
 
 - DuckDB native activation requalification uses existing source.duckdb, cached packages and the same provider build lease. Runner outputs TestResults/DuckDbCqlCurrent (native restore/build/test logs and TRX, with prior accepted TRX archived) and regenerated integration-project bin/obj. No Mongo process, new database or runtime install requested. Source digest checked before and after the run.
   Native requalification completed with 1 passed and zero failures or skips. The retained source SHA256 was unchanged. Preserve TestResults/DuckDbCqlCurrent/duckdb-cql-native.trx (SHA256 F01D0C0A9BDBC7B43B8D945D6C3C58DE554B429A87B5A13209635572BFBD75C6) alongside earlier native and paired reports.
+
+- DuckDB unit-test output cleanup was rejected by automatic policy review before execution. Confirmed Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.DuckDBOASIS.UnitTests/bin still exists (320891944 logical bytes). Keep it accounted for as regenerable output. The test suite is complete and no removal occurred.
