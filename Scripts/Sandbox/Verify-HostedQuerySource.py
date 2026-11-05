@@ -188,6 +188,13 @@ def require_reviewed_localfile_presets(source, review):
             raise RuntimeError(f"Hosted LocalFile preset {key} differs from the reviewed rollout.")
 
 
+def localfile_review():
+    path = ROOT / "TestResults/HostedLocalFileSourceCurrent/prepared-review.json"
+    if not path.is_file():
+        raise RuntimeError("Prepare and review the LocalFile rollout before verifying its advertised catalogue.")
+    return json.loads(path.read_bytes())
+
+
 def require_native_selection(responses, examples):
     if len(responses) != 2 or len(examples) != 2:
         raise RuntimeError("Two native source selections are required.")
@@ -237,7 +244,9 @@ def main():
             parser.error("--readiness cannot be combined with cohort execution.")
         _, token = session(ROOT / "LocalState/COSMIC/HostedDemoRehearsalDiscovery", "visitor", allow_create=False)
         try:
-            ready_source(options.provider, token, require_pair=True)
+            source = ready_source(options.provider, token, require_pair=True)
+            if options.provider == "LocalFileOASIS":
+                require_reviewed_localfile_presets(source, localfile_review())
         except RuntimeError as error:
             raise SystemExit(str(error)) from None
         print(f"{options.provider} advertises native and paired presets; no cohort created.")
@@ -267,8 +276,7 @@ def main():
         _, visitor_token = session(ROOT / "LocalState/COSMIC/HostedDemoRehearsalDiscovery",
                                    "visitor", allow_create=False)
         source = ready_source(options.provider, visitor_token, require_pair=True)
-        review_path = ROOT / "TestResults/HostedLocalFileSourceCurrent/prepared-review.json"
-        require_reviewed_localfile_presets(source, json.loads(review_path.read_bytes()))
+        require_reviewed_localfile_presets(source, localfile_review())
     state.mkdir(exist_ok=True)
     results = ROOT / "TestResults/HostedCqlIntegrationCurrent"
     if options.resume_unstarted_native:
