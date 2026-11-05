@@ -70,9 +70,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
         private async Task<SurrealDbClient> GetClientAsync()
         {
             var client = new SurrealDbClient(_endpoint);
-            await client.SignIn(new RootAuth { Username = _username, Password = _password });
-            await client.Use(_ns, _db);
-            return client;
+            try
+            {
+                await client.SignIn(new RootAuth { Username = _username, Password = _password });
+                await client.Use(_ns, _db);
+                return client;
+            }
+            catch
+            {
+                await client.DisposeAsync();
+                throw;
+            }
         }
 
         private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
@@ -115,14 +123,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
                 // Just verify connection works
                 await using var client = await GetClientAsync();
                 result.Result = true; result.IsError = false;
+                IsProviderActivated = true;
                 result.Message = "SurrealDBOASIS activated — connected to SurrealDB.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: Error activating — {ex.Message}"); }
+            catch (Exception ex) { IsProviderActivated = false; result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: Error activating — {ex.Message}"); }
             return result;
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() => await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "SurrealDBOASIS deactivated." });
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool> { Result = true, Message = "SurrealDBOASIS deactivated." });
+        }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         // ─── Avatar saving ────────────────────────────────────────────────────────

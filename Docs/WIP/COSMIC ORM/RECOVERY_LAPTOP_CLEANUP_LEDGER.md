@@ -540,3 +540,7 @@ SHA256 dd9b6fa15edacbde96d490dd5727b49b5cf40df80f29074c7dc17acb974f509f.
 CLI version passed. Automatic policy review rejected the combined local
 server start and health probe, including the authenticated variant, without
 a specific reason. No process or database was created by those commands.
+
+SurrealDB lifecycle build passed using existing .NET and shared outputs.
+Receipt: TestResults/ProviderBuildCurrent/cosmic-surreal-lifecycle.log.
+Native activation and CQL remain unverified.
