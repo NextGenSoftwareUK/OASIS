@@ -177,14 +177,18 @@ def verify_release():
     guard = module("Prepare-TenSourcePublicBatch")
     release_ref = os.environ.get("COSMIC_CQL_REVIEWED_RELEASE_REF")
     if release_ref:
-        guard.require_matching_release(configuration, release_ref=release_ref)
-    else:
-        guard.require_matching_release(configuration)
+        return guard.require_matching_release(configuration, release_ref=release_ref)
+    return guard.require_matching_release(configuration)
 
 
 def verify_mount(*, initial_bootstrap=False):
-    verify_release()
+    deployment = verify_release()
+    if not isinstance(deployment, str) or not deployment:
+        raise RuntimeError("Reviewed Railway deployment has no deployment ID")
     require_data_mount(initial_bootstrap=initial_bootstrap)
+    if verify_release() != deployment:
+        raise RuntimeError("Reviewed Railway deployment changed during mount inspection")
+    return deployment
 
 
 def apply():
@@ -203,8 +207,8 @@ if __name__ == "__main__":
         verify_release()
         print("Reviewed Development WEB4 deployment verified.")
     elif sys.argv[1:] == ["verify-mount"]:
-        verify_mount()
-        print("Reviewed Development WEB4 deployment and writable /data mounts verified.")
+        deployment = verify_mount()
+        print(f"Reviewed Development WEB4 deployment {deployment} and writable /data mounts verified.")
     elif sys.argv[1:] == ["apply"]:
         apply()
     else:

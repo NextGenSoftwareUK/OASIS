@@ -76,6 +76,7 @@ def require_matching_release(configuration, *, release_ref="HEAD"):
         matches = meta.get("imageDigest") == digest and meta.get("commitHash") in (None, expected)
     if not matches:
         raise RuntimeError("The successful deployment does not match the reviewed release")
+    return deployments[0].get("id")
 
 def apply(include_optimism=False,include_linea_scroll=False,include_zksync_abstract=False,include_monad=False,include_sei=False):
     prefix="seventeen-source-public" if include_sei else "sixteen-source-public" if include_monad else "fifteen-source-public" if include_zksync_abstract else "thirteen-source-public" if include_linea_scroll else "eleven-source-public" if include_optimism else PREFIX
