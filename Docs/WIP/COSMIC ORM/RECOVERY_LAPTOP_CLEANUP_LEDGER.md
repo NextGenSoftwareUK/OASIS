@@ -1599,3 +1599,16 @@ image and an owned disposable build-stage /data only after proving it absent;
 it must stop both native children and verify ownership before removal. No local
 image/layers downloaded and no new service/account/deployment. Build/test outputs
 are in ProviderBuildCurrent/pouchdb-* and the existing candidate phases.
+
+Linux PouchDB SDK CI run42094454362/job127480746394 completedSUCCESS against
+bd5fed9beb8e8f421787bde7ca0f4fa4354cefe8. Existing GitHub CI only:36/36pure
+cases and actual Node24.19/PouchDB9/nativeLevelDB fresh3/restart3, unchanged
+revisions, two Linux SIGTERM/clean native child exits and two stores closed each.
+Owned build-stage /data was proven absent before claim, ownership marker/path
+verified and removed after both children/stdio closed. No published image,
+deployment, local Linux/Node install or image-layer download. Reusable SDK build
+cache is GHA pouch-native; full image build will reuse it after CQL enrollment.
+Full job logs remain remote; fetched84371characters into tool memory and retained
+only compact excerpts/run identity in existing hosted-preparation/linux-sdk-ci.json
+(SHA627e32e115611b5d22423b6dc6948a675752a07583a27dbc7902f5c24b88a93e).
+First LocalFile image/mount access gate and accepted cohorts remain unchanged.

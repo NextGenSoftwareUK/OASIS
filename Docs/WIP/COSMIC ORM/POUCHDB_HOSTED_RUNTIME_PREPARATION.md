@@ -1,7 +1,7 @@
 # PouchDB persistent WEB4 source preparation
 
 5 November 2026. Native source/runtime and supervision verified on Windows;
-Docker packaging is prepared, Linux SDK qualification is next. Shipping CQL
+Docker packaging and Linux SDK qualification pass. Shipping CQL
 enrollment and hosted/browser acceptance remain open. Counts stay
 103 local/60 hosted HTTP/28 hosted browser. First LocalFile rollout remains the
 priority; its existing Railway session still returns Unauthorized.
@@ -80,13 +80,14 @@ download. Candidate is separate from the accepted local source:
   `7aeab8c3cb8f9356f1bb6b787917e63e6c5920bed8c7d0dd5075e0456c47779c`.
 
 Current repaired code has retained/restart proof on the original source. Complete
-fresh-container startup remains a separate required gate; do not relabel the
+WEB4 startup remains a separate required gate; do not relabel the
 failed initial HTTP run as success.
 
 ## Next implementation
 
-1. Run the prepared Linux SDK qualification target. Process supervisor integration
-   and packaging are now implemented; exact evidence and scope are below.
+1. Add explicit query-only Core tariff and WEB4 read-profile/four-preset admission;
+   verify native CQL3/2/paging and manager/Mongo/HTTP against the owned source.
+   Process supervisor, packaging and Linux SDK qualification now pass below.
 3. Add explicit query-only Core tariff and WEB4 read-profile/four-preset admission;
    advance the parent gitlink and manifest together. Verify native CQL3/2/paging,
    manager/Mongo/HTTP behavior and the exact dependency/image.
@@ -151,4 +152,22 @@ close ACKs, then removes only its verified owned directory. It publishes no imag
 or deployment. Source SDK CI is path-filtered on this task branch, with reusable
 GHA cache. The later full WEB4 image reuses that cache and checks final-stage
 native module loading; CQL enrollment must be included before that full build.
-Linux execution is pending at this checkpoint; do not infer it from Windows tests.
+### Actual Linux qualification
+
+[Run42094454362](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42094454362)
+and job127480746394 completed SUCCESS at exact source
+`bd5fed9beb8e8f421787bde7ca0f4fa4354cefe8`. Logs independently show36tests,
+36passes,0failures,0skips. Actual probe receipt:
+
+- Nodev24.19.0 / PouchDB9.0.0 / native LevelDB.
+- Three fresh records and three retained records after a separate process restart.
+- Original revisions unchanged; both actual native children exited through real
+  Linux SIGTERM with two native stores closed each, no escalation.
+- Verified owned disposable build-stage /data removed after children/stdio closed.
+
+This closes the SDK-stage fresh startup/restart/OS-signal gate. It does not prove
+the full WEB4 final-stage dependency load, CQL enrollment, persistent Development
+mount or deployed visitor/browser behavior. No image was published or deployed.
+Compact log excerpts/run identity are retained in `hosted-preparation/linux-sdk-ci.json`,
+SHA256 `627e32e115611b5d22423b6dc6948a675752a07583a27dbc7902f5c24b88a93e`.
+Full logs remain on the exact GitHub job; no image layers were downloaded locally.

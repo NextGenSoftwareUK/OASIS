@@ -10,7 +10,10 @@ Supervision/packaging continuation:36scoped controls and5selected shared cases
 pass; real retained SDK runtime handles simulated shutdown and validation-failure
 cleanup. Exact registry checksums filled without version changes or package
 downloads. Opt-in supervisor, Docker target and small Linux SDK CI prepared;
-actual Linux probe, CQL enrollment/full image and deployment remain open.
+Linux run42094454362/job127480746394 SUCCESS atbd5fed9be:36/36 and actual
+Node24.19/PouchDB9 LevelDB fresh3/restart3, unchanged revisions and two real
+SIGTERM child exits/2stores closed each. Disposable build source removed. No
+image publication/deployment; CQL enrollment/full WEB4 image remain open.
 
 Write-once public teaching source and vendor read-only loopback HTTP runtime
 prepared using the existing Node/PouchDB cache. Nineteen pure guards pass;
