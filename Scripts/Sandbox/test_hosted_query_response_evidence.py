@@ -17,6 +17,37 @@ spec.loader.exec_module(verification)
 
 
 class ResponseEvidenceTests(unittest.TestCase):
+    def test_exact_key_preset_fragment_is_exclusive_and_uses_the_acceptance_catalogue(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            descriptor, output = root / "catalogue.json", root / "presets.json"
+            actor, first, second, third, deleted, missing = [str(uuid.UUID(int=i)) for i in range(1, 7)]
+            descriptor.write_text(json.dumps({
+                "Actor": actor, "LiveIds": [first, second, third], "DeletedId": deleted, "MissingId": missing,
+            }))
+            provider = "RedisOASIS"
+            args = ["verify", provider, "--reviewed-exact-key-source", str(descriptor),
+                    "--prepare-exact-key-presets", str(output)]
+            with (
+                patch("sys.argv", args),
+                patch.object(verification, "session") as session,
+                patch.object(verification, "call") as call,
+            ):
+                verification.main()
+                original = output.read_bytes()
+                with self.assertRaises(FileExistsError):
+                    verification.main()
+                self.assertEqual(original, output.read_bytes())
+                session.assert_not_called()
+                call.assert_not_called()
+            fragment = json.loads(original)
+            key = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
+            self.assertEqual([key], list(fragment))
+            presets = json.loads(fragment[key])
+            self.assertTrue(all(0 < len(row["label"]) <= 100 for row in presets))
+            verification.require_reviewed_presets(provider, {"examples": presets},
+                                                 verification.reviewed_exact_key_source(provider, descriptor))
+
     def test_exact_key_admission_matches_the_reviewed_source_before_owner_creation(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

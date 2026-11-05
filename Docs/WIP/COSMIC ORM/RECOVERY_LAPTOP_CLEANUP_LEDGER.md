@@ -1896,3 +1896,8 @@ The shared hosted exact-key verifier passed 16 focused Python tests, including
 catalogue checks for ten prepared providers. Tests reused the existing
 interpreter with bytecode output suppressed and removed their temporary
 descriptors. No live requests, visitor sessions, downloads or installs occurred.
+
+Preset-fragment preparation passed 17 focused Python tests with the existing
+interpreter. The generated test fragment and descriptor were temporary and
+removed automatically. Future operator fragments are small local review
+files at the explicitly supplied path and can be removed after review.

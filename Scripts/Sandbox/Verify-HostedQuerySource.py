@@ -330,8 +330,10 @@ def reviewed_exact_key_source(provider, path):
         selection = {"orderBy": "None", "take": 25, "includeMetadata": True,
                      "filters": [{"field": "Id", "scalar": "Guid", "operator": "In", "value": selected}]}
         presets.extend([
-            {"id": "public-" + suffix, "request": dict(selection, provider=provider, maximumDurationMilliseconds=30000)},
-            {"id": "mongo-public-" + suffix, "operation": "Federation", "request": {
+            {"id": "public-" + suffix, "label": f"{provider} public teaching records ({len(selected)})",
+             "request": dict(selection, provider=provider, maximumDurationMilliseconds=30000)},
+            {"id": "mongo-public-" + suffix, "label": f"MongoDB + {provider} ({len(selected)} source records)",
+             "operation": "Federation", "request": {
                 "scope": "Named", "providers": ["MongoDBOASIS", provider], "source": selection,
                 "identityMode": "PreserveCopies", "maximumProviderAttempts": 2,
                 "maximumDurationMilliseconds": 30000, "take": 25}},
@@ -367,6 +369,8 @@ def main():
     parser.add_argument("--recover-localfile-receipt", action="store_true",
                         help="Finalize the original completed LocalFile reports without sessions, queries or saves.")
     parser.add_argument("--reviewed-exact-key-source", type=Path, help="Reviewed native teaching catalogue for the prepared exact-key providers.")
+    parser.add_argument("--prepare-exact-key-presets", type=Path, metavar="OUTPUT",
+                        help="Write one reviewed provider's preset settings fragment without contacting WEB4.")
     parser.add_argument("--pouchdb-reviewed-settings", type=Path, help="Explicit reviewed settings patch for the qualified PouchDB source.")
     parser.add_argument("--resume-unstarted-native", action="store_true",
                         help="One explicit same-owner continuation before any client preparation/save; original failure must be recorded.")
@@ -383,7 +387,8 @@ def main():
         if (options.provider != "LocalFileOASIS" or options.prepare or options.readiness
                 or options.resume_unstarted_native or options.continue_settled_read
                 or options.continue_native_read_failure or options.continue_snapshot_observation_change
-                or options.pouchdb_reviewed_settings is not None or options.reviewed_exact_key_source is not None):
+                or options.pouchdb_reviewed_settings is not None or options.reviewed_exact_key_source is not None
+                or options.prepare_exact_key_presets is not None):
             parser.error("--recover-localfile-receipt is a standalone LocalFile operation.")
         suffix = options.provider + ("" if options.cohort == "current" else "-" + options.cohort)
         state = ROOT / "LocalState/COSMIC" / ("HostedQueryAcceptance-" + suffix)
@@ -402,6 +407,15 @@ def main():
     reviewed_source = (reviewed_exact_key_source(options.provider, options.reviewed_exact_key_source)
                        if is_reviewed_exact_key else reviewed_pouchdb)
     continuing = options.continue_settled_read or options.continue_native_read_failure or options.continue_snapshot_observation_change
+    if options.prepare_exact_key_presets is not None:
+        if (not is_reviewed_exact_key or options.prepare or options.readiness or continuing
+                or options.resume_unstarted_native or options.cohort != "current"):
+            parser.error("--prepare-exact-key-presets is a standalone operation for prepared exact-key providers.")
+        key = "CQL_HOSTED_QUERY_EXAMPLES__" + options.provider
+        fragment = {key: json.dumps(reviewed_source["presets"], separators=(",", ":"))}
+        write_new(options.prepare_exact_key_presets, (json.dumps(fragment, indent=2) + "\n").encode())
+        print(f"Prepared one reviewed {options.provider} preset partition.")
+        return
     continuation_folder = "snapshot-reuse-completion" if options.continue_snapshot_observation_change else "native-read-completion" if options.continue_native_read_failure else "settlement-continuation"
     if sum((options.continue_settled_read, options.continue_native_read_failure, options.continue_snapshot_observation_change)) > 1:
         parser.error("Choose one explicit continuation kind.")

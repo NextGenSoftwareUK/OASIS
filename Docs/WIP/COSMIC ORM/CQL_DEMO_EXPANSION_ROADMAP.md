@@ -351,6 +351,14 @@ python -B Scripts/Sandbox/Verify-HostedQuerySource.py RedisOASIS --reviewed-exac
 
 Use the provider's canonical enum name. The catalogue contains `Actor`,
 three ordered `LiveIds`, `DeletedId` and `MissingId` as canonical UUIDs.
+Prepare the provider's one-setting fragment from that same catalogue:
+
+```powershell
+python -B Scripts/Sandbox/Verify-HostedQuerySource.py RedisOASIS --reviewed-exact-key-source <catalogue.json> --prepare-exact-key-presets <new-fragment.json>
+```
+
+The command creates a new local file for review. Coordinate the fragment
+with the provider's source settings, public grants and query-only tariff.
 Advertise exactly four presets. Use `Id` membership, unordered selection,
 metadata, a 25-row limit and a 30-second top-level deadline. The paired
 presets use named Mongo and native targets, preserve copies, and allow two
