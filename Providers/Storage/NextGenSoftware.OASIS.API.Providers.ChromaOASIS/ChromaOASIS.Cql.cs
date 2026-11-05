@@ -15,10 +15,45 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS;
 
-public partial class ChromaOASIS : ICosmicQueryStorageProvider
+public partial class ChromaOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
 {
     public ProviderType QueryProviderType => Core.Enums.ProviderType.ChromaOASIS;
     public CosmicQueryCapabilities QueryCapabilities => ChromaCqlCompiler.Capabilities;
+
+    public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            using var response = await _http.GetAsync($"{CollectionsUrl}/{CollHolons}",
+                HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            response.EnsureSuccessStatusCode();
+            using var document = await ReadQueryResponseAsync(response, cancellationToken);
+            var collection = document.RootElement;
+            var id = collection.GetProperty("id").GetString();
+            if (collection.GetProperty("name").GetString() != CollHolons ||
+                !Guid.TryParseExact(id, "D", out var uuid) || uuid == Guid.Empty || id != uuid.ToString("D"))
+                throw new InvalidDataException("Chroma returned an invalid holon collection identity.");
+
+            cancellationToken.ThrowIfCancellationRequested();
+            _collectionIds[CollHolons] = id;
+            IsProviderActivated = true;
+            return new(true);
+        }
+        catch (Exception error)
+        {
+            IsProviderActivated = false;
+            _collectionIds.Remove(CollHolons);
+            return new()
+            {
+                IsError = true,
+                ErrorCount = 1,
+                ErrorCode = error is OperationCanceledException ? "CQL_QUERY_CANCELLED" : "CQL_QUERY_SOURCE_UNAVAILABLE",
+                Message = "Chroma query activation did not verify the existing collection.",
+                Exception = error
+            };
+        }
+    }
 
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100,

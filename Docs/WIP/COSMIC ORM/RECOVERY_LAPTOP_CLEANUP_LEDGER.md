@@ -640,3 +640,5 @@ LocalFileCql and RecoveryLaptopMongo82 sources. Reused caches and provider
 build lease. Temporary Mongo fixture cleaned and listener stopped. Reports
 in TestResults/LocalFileCqlCurrent, generated outputs in LocalFile provider
 and integration bin/obj. Separate from the hosted replacement bundle.
+
+Chroma read-only activation provider build passed. Generated Chroma bin/obj, receipt TestResults/ProviderBuildCurrent/cosmic-chroma-activation.log. No server or database created.
