@@ -1426,3 +1426,25 @@ windows-consumer.prepared.cs remains a disposable source artifact (not runtime),
 retained pending final source review; source fixture now lives in git. Original
 failed pre-save source-path check remains in interactive48268... . Logs/TRX and
 reader receipts retained in the single runtime cache. No unrelated files removed.
+
+### PouchDB CQL native environment admission, 2026-11-05
+Reuse installed Node18.18.0; no new Node/system install. One local npm environment
+LocalState/COSMIC/RecoveryLaptopPouchDBCql: pinned pouchdb9.0.0,
+express-pouchdb4.2.0,express4.21.2 from official npm registry. package-lock and
+owned npm-cache retained, no global packages. Install scripts disabled; actual
+bundled LevelDB N-API binding must qualify before any source creation. No
+substitute memory/CouchDB backend or emulated responses. Dependencies/tree bytes
+and runtime manifest pending install. Provider controlled build/test outputs in
+existing project bin/obj; compact logs/TRX under this cache and
+TestResults/ProviderBuildCurrent/cosmic-pouchdb-controls.log. No native source yet.
+
+PouchDB initial npm9.8.1 failed in Arborist reify saveIdealTree/spec after package extraction. Original install/debug logs retained; no business source writes. PouchDB9/express4.2 and native LevelDB binding load. One local npm10.9.4 tool admitted under the same cache/npm-tool (official registry SHA512, Node>=18.17 supported), about11.6MB extracted. No global npm/Node change. Installer archive retained pending tool qualification.
+
+PouchDB npm10 --prefix also failed at the same saveIdealTree/spec; not a version
+fix. Same tool run with cwd set to owned package directory succeeded, locked
+same environment. Original two failures retained. Actual native LevelDB empty
+store close/reopen passes with stable ID, no business records. runtime.json,
+runtime-files.json2821files/37236717B retained with lock/hash. One retained
+runtime-probe store; no per-run copies. npm-tool10.9.4 and2714849B archive are
+owned cleanup candidates once installer no longer needed; no automatic broad
+recursive deletion. Provider controlled cases18/18, controls-v2 TRX retained.
