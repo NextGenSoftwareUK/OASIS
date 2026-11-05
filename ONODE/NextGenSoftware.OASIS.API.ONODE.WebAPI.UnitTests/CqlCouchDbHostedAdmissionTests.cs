@@ -47,6 +47,16 @@ public class CqlCouchDbHostedAdmissionTests
         Assert.False(source.IsProviderActivated);
     }
 
+    [Fact]
+    public void MeilisearchExactKeyPresetsPlanNativeAndMongoQueries()
+    {
+        using var client = new System.Net.Http.HttpClient();
+        var source = new NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.MeilisearchOASIS(
+            "https://meili.example.test", null, client);
+        VerifyExactKeyPresets(ProviderType.MeilisearchOASIS, source.QueryCapabilities);
+        Assert.False(source.IsProviderActivated);
+    }
+
     private static void VerifyExactKeyPresets(ProviderType providerType, CosmicQueryCapabilities capabilities)
     {
         var provider = providerType.ToString();

@@ -220,3 +220,28 @@ Its native+manager/HTTP+local browser proof adds one distinct local profile to
 the preserved96baseline:97=3canonical+57public/source+37other local. Hosted
 HTTP60and hosted browser28/32remain unchanged. Full provider conformance is not
 increased; do not count RavenDB/Typesense controlled-only work as native proof.
+
+## WEB4 hosted enrollment preparation
+
+The opt-in query profile uses `CQL_MEILISEARCH_QUERY_ORIGIN` and
+`CQL_MEILISEARCH_QUERY_API_KEY`. It requires an explicit HTTPS origin and
+a key restricted to `indexes.get` and `documents.get` on the existing
+`oasis_holons` index. The request guard only allows index metadata and
+individual canonical GUID document GETs at that origin. Seventeen focused
+WEB4 controls passed with zero skips at Core `382b2d6`, including query tariff
+admission, request fences and all four native and Mongo-paired preset plans.
+The TRX SHA-256 is
+`d405a70d2d09824f335fbcb1b62c0ef4d09e6b6de3bc93440b435f8b0f57f277`.
+[Meilisearch key actions](https://www.meilisearch.com/docs/reference/api/keys/create-api-key).
+
+The separate `MeilisearchHostedCqlNative` fixture accepts an existing owned
+source descriptor via `COSMIC_MEILISEARCH_HOSTED_CQL_SOURCE`. It expects
+`Endpoint`, `Actor`, three `LiveIds`, one `DeletedId` and one `MissingId`.
+It uses WEB4's actual transport guard and the native REST API. Its checks cover
+public root ownership, full/subset/paging, native missing and deleted behavior
+and before/after document hashes. The credential stays in the process
+environment. Native HTTPS execution, hosted source settings and deployment
+remain pending. Existing Windows native and browser evidence remains valid.
+The fixture compiled with zero errors and 1,143 existing build warnings.
+The [owner actions list](../Release%20and%20Status/ACTIONS-FOR-DAVID.md) records
+the existing source access needed for native execution.

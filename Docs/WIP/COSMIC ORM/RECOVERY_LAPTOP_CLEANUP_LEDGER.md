@@ -1713,3 +1713,12 @@ NuGet cache and leased provider outputs. The build log is
 TRX and Core candidate receipt are under
 `LocalState/COSMIC/RecoveryLaptopMeilisearchCql/hosted-preparation/`.
 This phase uses controlled transport only and starts no native service.
+
+The focused Meilisearch admission run completed with 17 passes and zero skips.
+TRX SHA-256 `d405a70d2d09824f335fbcb1b62c0ef4d09e6b6de3bc93440b435f8b0f57f277`.
+`RecoveryLaptopMeilisearchCql/hosted-preparation/` holds evidence only. The
+native environment remains `RecoveryLaptopMeili1561`. The hosted fixture build
+uses the same lease and outputs, with log
+`TestResults/ProviderBuildCurrent/meilisearch-hosted-native-fixture-build.log`.
+The fixture build completed with 1,143 warnings and zero errors. The lease
+restored the shared Core checkout to `54159614`. No native process started.

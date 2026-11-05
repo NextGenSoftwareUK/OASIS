@@ -584,6 +584,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 
             Services.Cql.CqlMinioReadSourceRegistration.AddMinioReadSource(services, Configuration);
             Services.Cql.CqlPouchDbReadSourceRegistration.AddPouchDbReadSource(services, Configuration);
+            Services.Cql.CqlMeilisearchReadSourceRegistration.AddMeilisearchReadSource(services, Configuration);
 
             if (Configuration["CQL_CHROMA_QUERY_ORIGIN"] is string chromaOrigin)
             {

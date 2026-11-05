@@ -627,3 +627,11 @@ and hosted federation and replication verification.
 - Reason: Development must reach a real qualified source using the restricted query key. This laptop's loopback source/root credentials cannot be used as a hosted source. Source proof, reviewed settings, exact image and deployed browser/privacy/replica acceptance are separate gates.
 - Reviewable result: [MinIO hosted preparation and exact evidence](../COSMIC%20ORM/MINIO_CQL_MVP.md#hosted-registration-preparation-5-november-2026), [read-only qualification launcher](../../../Scripts/TestHosts/Run-CosmicMinioHostedNative.ps1).
 - Agent work continues on other red scopes; existing LocalFile image/mount, Nostr operator, quota and deferred hosting decisions are preserved.
+
+## Meilisearch hosted teaching source access - 2026-11-05
+
+- Status: pending owned source access. The 17 focused WEB4 controls pass and the native HTTPS qualifier compiles.
+- Owner step: identify an existing reachable HTTPS Meilisearch service for synthetic teaching records and provide restricted access privately. Limit the query key to indexes.get and documents.get on oasis_holons. If the owned service has no teaching index yet, provide secure provisioning access so engineering can prepare it separately.
+- The qualifier requires three public live root records, one deleted record and one absent ID under the declared actor. Give engineering the existing origin and make the restricted API key available through the process environment. Keep keys out of chat, the descriptor and git.
+- Reason: native HTTPS source proof must precede any Development settings review or hosted acceptance. The accepted Windows-local demo remains available. No new paid host or account was requested.
+- [Settings, descriptor and qualification scope](../COSMIC%20ORM/MEILISEARCH_CQL_MVP.md#web4-hosted-enrollment-preparation).

@@ -246,6 +246,14 @@ SHA-256 `0b5aae6847b9c2be50b60b61d878d78d68c5741feaf5f390fa4ba695c2d93e9b`.
 This image requires scope review, registry pull authorization and a separate
 Development rollout after the qualified LocalFile image.
 
+The parent image source shares Development `b718f2879` with the qualified
+LocalFile candidate `c64adf474`. It differs from that candidate by 385 files,
+including 200 under Docker, WEB4, the architecture and providers. Its Core
+pin descends from LocalFile's Core pin. The full image qualifies PouchDB
+packaging, while a later rollout needs a reviewed source delta that preserves
+the first LocalFile release. Select that delta against the then-live
+Development release before choosing an image.
+
 ### Live acceptance entry point
 
 After the LocalFile rollout and the separate PouchDB image, settings and

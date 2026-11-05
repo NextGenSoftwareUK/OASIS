@@ -330,6 +330,11 @@ cleanup. Original native documents match their first batch. Earlier paired
 startup failure is retained/cause unknown. Later local browser acceptance and
 published card are recorded in Verified scope above; hosted enrollment remains open. [Scope](MEILISEARCH_CQL_MVP.md).
 
+Meilisearch WEB4 admission passed 17 focused cases, including the request
+guard and native/Mongo presets. The HTTPS source qualifier builds. A qualified
+owned source and restricted read key remain necessary for native and hosted
+execution. See [Meilisearch hosted preparation](MEILISEARCH_CQL_MVP.md#web4-hosted-enrollment-preparation).
+
 ## Constraints / wider unfinished work
 
 - Hosted Azure Cosmos/Oracle/PostgreSQL deferred by David;no account/spend re-asks.
