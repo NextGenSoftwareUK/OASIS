@@ -34,10 +34,26 @@ foreach($provider in @('SQLite','Databases','CosmosDB')){
     try{& $hub -Provider $provider -ArchiveCompletedDemo -ShowPlan}catch{$denied=$true}
     if(!$denied){throw 'Database fixture lifecycle must not accept protocol archive options.'}
 }
+$surrealPlans = foreach ($bounded in @($true,$false)) {
+    $plan = & $hub -Provider SurrealDB -Federated -VerifyOnly:$bounded -ShowPlan
+    $mode = if ($bounded) {'bounded verification'} else {'interactive until explicit shutdown'}
+    if ($plan.Provider -ne 'SurrealDB' -or $plan.Mode -ne $mode -or
+        $plan.Url -ne 'http://127.0.0.1:5133/' -or
+        $plan.Runner -ne (Join-Path $PSScriptRoot 'Run-CosmicSurrealDbLinuxDemo.ps1')) {
+        throw 'SurrealDB paired discovery contract mismatch.'
+    }
+    $plan
+}
+foreach ($argsToReject in @(@{}, @{Federated=$true; ArchiveCompletedDemo=$true})) {
+    $denied = $false
+    try { & $hub -Provider SurrealDB @argsToReject -ShowPlan } catch { $denied = $true }
+    if (!$denied) { throw 'SurrealDB requires explicit paired scope and preserved source.' }
+}
+
 $after=Listeners
 if($before -cne $after){throw 'Plan-only discovery changed native/demo listeners.'}
 $work=Join-Path $root 'TestResults/ProtocolCqlCurrent'
 New-Item -ItemType Directory -Path $work -Force | Out-Null
-@{profiles=$contracts.Count;plans=@($verified);archiveRejections=3;listenersUnchanged=$true} |
+@{profiles=$contracts.Count;plans=@($verified);archiveRejections=4;pairedScopeRejections=1;surrealPlans=@($surrealPlans);listenersUnchanged=$true} |
     ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $work 'database-hub-routing.json') -Encoding utf8
-Write-Output 'PASS: eight profiles, both lifecycle plans, three archive rejections; listeners unchanged.'
+Write-Output 'PASS: nine profiles, both lifecycle plans, five rejections; listeners unchanged.'

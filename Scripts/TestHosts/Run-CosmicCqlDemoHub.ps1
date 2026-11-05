@@ -1,13 +1,34 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param(
-    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB')][string]$Provider='SQLite',
+    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','SurrealDB')][string]$Provider='SQLite',
     [switch]$VerifyOnly,
+    [switch]$Federated,
     [switch]$ArchiveCompletedDemo,
     [switch]$ShowPlan
 )
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+if ($Provider -eq 'SurrealDB') {
+    if (!$Federated -or $ArchiveCompletedDemo) {
+        throw 'SurrealDB requires the Mongo-paired preset and preserves its original source. Use -Federated without -ArchiveCompletedDemo.'
+    }
+    $runner = Join-Path $PSScriptRoot 'Run-CosmicSurrealDbLinuxDemo.ps1'
+    if ($ShowPlan) {
+        [pscustomobject]@{
+            Provider = $Provider
+            Mode = $(if ($VerifyOnly) {'bounded verification'} else {'interactive until explicit shutdown'})
+            Runner = $runner
+            Url = 'http://127.0.0.1:5133/'
+            Scope = 'Mongo and retained authenticated native SurrealDB, five rows and four in the subset'
+        }
+        return
+    }
+    & $runner -Federated -Serve:(!$VerifyOnly)
+    return
+}
+if ($Federated) { throw 'This launcher has no explicit Mongo-paired route for this provider.' }
+
 $runner=switch($Provider){
     'SQLite' {'Scripts/TestHosts/Run-CosmicCqlDemo.ps1'}
     'Databases' {'Scripts/TestHosts/Run-CosmicCqlV1Demo.ps1'}
