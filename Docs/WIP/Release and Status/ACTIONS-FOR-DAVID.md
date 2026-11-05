@@ -526,7 +526,10 @@ Status: missing account/configuration information,2 November2026. David approved
 - Update 2026-11-05 UTC: the isolated candidate image build succeeded.
   Railway still returns Unauthorized on this laptop. After sign-in,
   engineering will confirm the Development WEB4 /data attachment and
-  verify the exact image and settings before rollout.
+  verify the exact image and settings before rollout. The registry rejected
+  anonymous pulls. Engineering will check the existing Development WEB4
+  registry authorization after sign-in and update this entry if package access
+  requires an owner action.
   [Candidate image build](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/41948106729).
 - The replacement LocalFile bundle is qualified. Sign in privately with
   Railway CLI 5.62.1 on this laptop using the existing account with Development
