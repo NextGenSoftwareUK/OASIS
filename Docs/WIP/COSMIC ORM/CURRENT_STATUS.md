@@ -48,10 +48,12 @@ creating a cohort, followed by native, Mongo, privacy and exact replica checks.
 
 The reviewed `c64adf474` image source contains the Hyperlane opt-in
 registration alongside LocalFile. SQL Server, DuckDB, CouchDB, NATS
-JetStream, Cloudflare D1 and QuestDB registrations are on the advancing
-task branch. Those six require a later reviewed WEB4 build as well as
-their own source qualification and settings. Keep them out of the
-first image's settings batch.
+JetStream, Cloudflare D1, QuestDB and Chroma registrations are on the
+advancing task branch. These seven require a later reviewed WEB4 build
+and their own source qualification and settings. DuckDB passed its
+retained native and Mongo-paired replay and awaits persistent file placement.
+Chroma passed WEB4 and Core preset admission and awaits HTTPS source
+qualification. Keep these providers out of the first image's settings batch.
 
 Source-recovery fix published Development b718f2879;Core5415961/settings unchanged.
 Exact job33c9ef7d-b8b3-4403-9109-32ce47c4d7a8 SUCCESS;healthy/four-provider-ready.
