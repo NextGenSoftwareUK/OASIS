@@ -6,6 +6,7 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="TigrisCqlNativeTests.cs" Condition="'$(EnableTigrisCqlNativeTests)' != 'true'" />
     <Using Include="NextGenSoftware.OASIS.Providers.TestSupport" />
     <Compile Include="../../../Shared/TestSupport/SdkHandlerHttpClientFactory.cs" Link="Shared/SdkHandlerHttpClientFactory.cs" />
     <Compile Include="../../../Shared/TestSupport/ConditionalObjectTransportAcceptance.cs" Link="Shared/ConditionalObjectTransportAcceptance.cs" />

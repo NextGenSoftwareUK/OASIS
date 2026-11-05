@@ -1515,3 +1515,12 @@ Final controls14/14, no skips; final TRXSHA256
 42fc1b51fc8ea7d801400fb09c235eaa0935a2d43506cc6f1b9cc0c53c3f0322.
 No cleanup deletion attempted; existing shared bin/obj must not be removed while
 other agents may use them. No accepted provider/demo count increment.
+
+Tigris native fixture preparation: same project/cache/output tree reused; opt-in
+build phase build-6c8cb5473d39452db1b367cd7288e84d,1135warnings/0errors. The
+global opt-in build property rebuilt dependencies under one lease; no duplicate
+runtime or private environment. BuildOnly never contacts the cloud. Initial
+launcher expression failed before phase creation and was corrected. Missing
+descriptor guard verified before phase/lease; no native requests, credentials,
+bucket or objects created. Retain compact build.log and the scoped controls.
+Disk free observed47177441280bytes; no cleanup/delete required or attempted.

@@ -10,7 +10,9 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 Actual SDK pipeline reproduced and fixed path-style addressing in the shared
 factory. Explicit probe activation and bounded canonical object queries added.
 Native teaching source and federation/browser qualification remain pending;
-counts stay 103/60/28. [Evidence and next scope](TIGRIS_CQL_MVP.md).
+counts stay 103/60/28. Read-only native fixture now compiles, missing-config
+launcher guard passes; owned source access recorded in the central action list.
+[Evidence and next scope](TIGRIS_CQL_MVP.md).
 
 ## MinIO local profile accepted, 5 November2026
 

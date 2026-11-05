@@ -607,3 +607,13 @@ and hosted federation and replication verification.
 - Concrete owner step: make an owned Algolia teaching application's existing oasis_holons fixture available through a private source descriptor and an index-restricted key with search ACL. Descriptor fields are AppId, Actor, three LiveIds, one soft-deleted DeletedId, and one absent MissingId. Set COSMIC_ALGOLIA_CQL_API_KEY privately in the process environment; keep credentials outside chat and the descriptor. If no teaching fixture exists, identify the owned application and secure provisioning access so engineering can prepare it; David is not asked to write records manually.
 - Reason: account selection and credentials belong to David. Engineering owns source preparation and native verification; no permission is inferred to create or purchase another account. The prepared read-only launcher makes no native writes and preserves first failures without automatic retries.
 - Reviewable result and steps: [Algolia CQL native gate](../COSMIC%20ORM/ALGOLIA_CQL_MVP.md), [qualification launcher](../../../Scripts/TestHosts/Run-CosmicAlgoliaCqlNative.ps1).
+
+## Tigris owned teaching source access - 2026-11-05
+
+- Status: pending owner access; no native Tigris acceptance or count increment.
+- Context: 14 scoped CQL/SDK/protocol controls pass; virtual-hosted addressing fixed. A read-only native fixture and opt-in launcher are prepared. No Tigris source descriptor or credentials were present in this laptop process environment.
+- Concrete owner step: identify an owned Tigris teaching bucket/account and make read-restricted access available privately. An existing fixture needs three live canonical Holons, one soft-deleted and one absent identity, with original SHA256/ETag receipts. If no fixture exists, identify the owned account and secure provisioning access so engineering can prepare it; David need not create records manually. Do not open a new paid account for this step.
+- Private configuration: COSMIC_TIGRIS_CQL_SOURCE is a bounded descriptor path; COSMIC_TIGRIS_CQL_ACCESS_KEY and COSMIC_TIGRIS_CQL_SECRET_KEY stay in the process environment, never chat or git. Exact descriptor fields and supported native endpoints are in the scope below.
+- Reason: independent native SDK reads, CQL 3/2/0/paging and unchanged-original evidence require the owned service; MinIO or controlled SDK handlers cannot qualify Tigris.
+- Reviewable result: [Tigris CQL scope and native admission](../COSMIC%20ORM/TIGRIS_CQL_MVP.md), [read-only qualification launcher](../../../Scripts/TestHosts/Run-CosmicTigrisNative.ps1).
+- Agent work continues on other red scopes while access is pending. Existing LocalFile, Nostr, quota, license and device decisions remain separate preserved entries.
