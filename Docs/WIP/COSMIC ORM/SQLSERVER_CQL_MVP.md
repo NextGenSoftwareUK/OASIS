@@ -119,3 +119,24 @@ ready on the task branch. The four canonical verifier presets passed the
 focused admission test with no skips. Receipt:
 TestResults/SqlServerCqlCurrent/web4-preset-names.log. Reused existing test
 outputs and started no services. The hosted source is still pending.
+
+### Development configuration review
+
+The rollout uses four settings. SQL Server provisioning is separate from WEB4
+configuration. Seed and qualify the three teaching records on the reachable
+database before enrolling their IDs.
+
+| Setting | Required value |
+|---|---|
+| CQL_SQLSERVER_QUERY_CONNECTION_STRING | Secret connection string for the qualified SELECT-only login |
+| PREPARED_STORAGE_ADMISSION_JSON | Preserve existing entries and add SQLServerDBOASIS as query-only with an explicit zero-cost read tariff |
+| CQL_PUBLIC_READ_CATALOGUES_JSON | Preserve existing catalogues and add exactly the three qualified GUIDs for SQLServerDBOASIS |
+| CQL_HOSTED_QUERY_EXAMPLES__SQLServerDBOASIS | public-records, public-subset, mongo-public-records, mongo-public-subset |
+
+Use the tested identity predicates and preserve physical copies in paired
+queries. Verify the exact reviewed Development release and settings, then run
+the cohort-free check before any snapshot preparation:
+
+```powershell
+python Scripts/Sandbox/Verify-HostedQuerySource.py SQLServerDBOASIS --readiness
+```
