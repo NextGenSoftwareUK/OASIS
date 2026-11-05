@@ -642,3 +642,5 @@ in TestResults/LocalFileCqlCurrent, generated outputs in LocalFile provider
 and integration bin/obj. Separate from the hosted replacement bundle.
 
 Chroma read-only activation provider build passed. Generated Chroma bin/obj, receipt TestResults/ProviderBuildCurrent/cosmic-chroma-activation.log. No server or database created.
+
+Chroma unit suite passed 51/51 including read-only activation. Test bin/obj and TestResults/ProviderBuildCurrent/cosmic-chroma-activation-tests.log are generated outputs. No Chroma process or database.

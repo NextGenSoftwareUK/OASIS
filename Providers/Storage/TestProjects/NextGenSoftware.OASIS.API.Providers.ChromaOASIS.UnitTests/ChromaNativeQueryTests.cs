@@ -15,11 +15,12 @@ public class ChromaNativeQueryTests
         public const string Collection = "3bbf531e-0f7d-4e8a-9306-c901ae2c7880";
         public Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> Query = (_, _) => throw new InvalidOperationException();
         public int Queries;
+        public Func<HttpRequestMessage, HttpResponseMessage>? Lookup;
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
         {
             if (request.Method == HttpMethod.Get)
-                return Task.FromResult(Json(new { id = "3bbf531e-0f7d-4e8a-9306-c901ae2c7880", name = request.RequestUri!.Segments.Last(), tenant = "default_tenant", database = "default_database", dimension = (int?)null, metadata = new { cosmic_storage_schema = "chroma-doc-v1", cosmic_embedding_dimension = 1 } }));
+                return Task.FromResult(Lookup?.Invoke(request) ?? Json(new { id = "3bbf531e-0f7d-4e8a-9306-c901ae2c7880", name = request.RequestUri!.Segments.Last(), tenant = "default_tenant", database = "default_database", dimension = (int?)null, metadata = new { cosmic_storage_schema = "chroma-doc-v1", cosmic_embedding_dimension = 1 } }));
             Queries++;
             return Query(request, token);
         }
@@ -35,6 +36,35 @@ public class ChromaNativeQueryTests
         if (paging) query = query.Skip(1).Result.Take(1).Result;
         return CosmicQueryPlanner.Plan(query, ProviderType.ChromaOASIS,
             new[] { new CosmicQueryTarget(ProviderType.ChromaOASIS, provider.QueryCapabilities) }).Result;
+    }
+
+    [TestMethod]
+    public async Task ReadOnlyActivationLooksUpHolonsWithoutProvisioning()
+    {
+        var lookups = 0;
+        var transport = new Transport
+        {
+            Lookup = request =>
+            {
+                Assert.AreEqual("/api/v2/tenants/default_tenant/databases/default_database/collections/oasis_holons",
+                    request.RequestUri!.AbsolutePath);
+                return ++lookups == 1
+                    ? Json(new { id = Transport.Collection, name = "oasis_holons" })
+                    : Json(new { }, HttpStatusCode.NotFound);
+            }
+        };
+        using var client = new HttpClient(transport);
+        var provider = new ChromaOASIS(client);
+
+        var ready = await provider.ActivateQuerySourceAsync(default);
+        Assert.IsFalse(ready.IsError, ready.Message);
+        Assert.IsTrue(provider.IsProviderActivated);
+
+        var missing = await provider.ActivateQuerySourceAsync(default);
+        Assert.AreEqual("CQL_QUERY_SOURCE_UNAVAILABLE", missing.ErrorCode);
+        Assert.IsFalse(provider.IsProviderActivated);
+        Assert.AreEqual(2, lookups);
+        Assert.AreEqual(0, transport.Queries);
     }
 
     [DataTestMethod]
