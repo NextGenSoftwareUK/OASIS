@@ -288,6 +288,26 @@ Development WEB4 mount gate. The published candidate contains gitlinks for
 all three private manifest pins (API Core, ONODE Core and WEB6). Use the
 candidate pins for deployment review because the task branch has newer pins.
 
+### First deployment and settings deployment
+
+After sign-in, inspect the current Development WEB4 source, volume attachment
+and active deployment in Railway. Preserve the current source and deployment
+identities in the release journal. Confirm the service can pull the reviewed
+image before selecting it as a deployment source. The immutable image
+reference is
+`ghcr.io/nextgensoftwareuk/oasis-web4@sha256:11257dfebf23acfa6a321273baf98b8eefe2f83f8b430a862ab54ed9a168a6ce`.
+If the service uses a Git source, reconcile the source change with the existing
+Development deployment configuration before applying it.
+
+First bring up the reviewed release with the current settings. Require a
+successful deployment, health, the exact commit or digest, and the attached
+writable mount. Then prepare and review the five settings and apply them with
+deploys skipped. Use Railway's staged change review to deploy those settings
+together against the same immutable source. Record the new deployment ID and
+verify it before discovery or cohort creation. The Railway CLI command
+`deploy` provisions a template. `redeploy --from-source` can pick up a newer
+configured source, so use the reviewed staged deployment in this sequence.
+
 ### Readiness before starting a hosted cohort
 
 After the exact settings deployment succeeds, run
@@ -317,6 +337,9 @@ its exact SHA instead.
 ```powershell
 $env:COSMIC_CQL_REVIEWED_RELEASE_REF = 'refs/heads/codex/cosmic-localfile-release-candidate'
 $env:COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT = 'c64adf4748856b0acaae02e24a7f8edd16d2a139'
+$env:COSMIC_CQL_EXPECTED_DEPLOYMENT_IMAGE_DIGEST = 'sha256:11257dfebf23acfa6a321273baf98b8eefe2f83f8b430a862ab54ed9a168a6ce'
+$env:COSMIC_CQL_REVIEWED_INSTANCE_IDS = $reviewedInstanceIds -join ','
+python -B Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py verify-mount
 python Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py
 python Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py apply
 ```
