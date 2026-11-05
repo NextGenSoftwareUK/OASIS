@@ -40,6 +40,13 @@ Updated 1 November 2026. **Live HTTP lifecycle and frontend publication verified
 
 ## Next
 
+The new browser tab loaded `session-renewal-lifetime-v2` and created
+demo avatar sandbox-3a2cb72c. HyperDrive state loaded, and BNB Chain
+native full/subset queries returned 3/2. The original tab remains retained.
+Continue this new session through its normal renewal boundary, then verify
+the same avatar can still query its private records. Startup success alone
+does not prove renewal.
+
 Published Web4Site `6994b87` advances the session module URL to
 `session-renewal-lifetime-v2`. All 111 website tests passed, including
 delayed authentication consuming the issued lifetime and a response

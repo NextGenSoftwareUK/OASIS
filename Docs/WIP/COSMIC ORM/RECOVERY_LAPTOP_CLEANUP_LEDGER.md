@@ -1,5 +1,10 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+The clock-corrected website verification owns a second browser tab and
+demo avatar sandbox-3a2cb72c. Startup and BNB Chain native 3/2 passed.
+No private holons were created yet in this session. Keep the original
+tab and its teaching records retained. Browser renewal verification is open.
+
 Browser verification on 5 November created one Development demo avatar,
 sandbox-ca8924da, with ten private Mongo records across Solana, Google,
 Ethereum, Polygon and Arbitrum. The retained browser tab owns its live
