@@ -65,12 +65,23 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
             try
             {
                 if (_store != null) return _store;
-                _connection = new NatsConnection(new NatsOpts { Url = _url, AuthOpts = _auth });
-                await _connection.ConnectAsync();
-                var context = _connection.CreateKeyValueStoreContext();
-                _store = _readOnly ? await context.GetStoreAsync(_bucket, ct)
-                    : await context.CreateOrUpdateStoreAsync(new NatsKVConfig(_bucket), ct);
-                return _store;
+                var connection = new NatsConnection(new NatsOpts { Url = _url, AuthOpts = _auth });
+                try
+                {
+                    await connection.ConnectAsync();
+                    ct.ThrowIfCancellationRequested();
+                    var context = connection.CreateKeyValueStoreContext();
+                    var store = _readOnly ? await context.GetStoreAsync(_bucket, ct)
+                        : await context.CreateOrUpdateStoreAsync(new NatsKVConfig(_bucket), ct);
+                    _connection = connection;
+                    _store = store;
+                    return store;
+                }
+                catch
+                {
+                    await connection.DisposeAsync();
+                    throw;
+                }
             }
             finally { _connectLock.Release(); }
         }
