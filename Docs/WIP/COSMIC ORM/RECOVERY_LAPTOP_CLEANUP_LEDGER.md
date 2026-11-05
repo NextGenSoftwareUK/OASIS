@@ -628,3 +628,5 @@ DuckDB native replay passed 1/1 with read-only activation. Writable
 configuration was rejected and original record fingerprints were preserved.
 Reused existing source and build outputs. Native TRX SHA256
 3E7AC6E748FCBDD7A5FE0582A29F9686AED806E72FEE73F5C98A7CA89027D47E.
+
+DuckDB opt-in WEB4 build passed using existing WEB4 bin/obj. Receipt: TestResults/DuckDbCqlCurrent/web4-build.log. No listener or database opened.

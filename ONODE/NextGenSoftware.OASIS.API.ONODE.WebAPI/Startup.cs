@@ -560,6 +560,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     new NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.SQLServerDBOASIS(sqlServerQueryConnection)));
 
+            if (Configuration["CQL_DUCKDB_QUERY_CONNECTION_STRING"] is string duckDbQueryConnection)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    new NextGenSoftware.OASIS.API.Providers.DuckDBOASIS.DuckDBOASIS(duckDbQueryConnection)));
+
             // Public country SQL reads never enroll owned ClickHouse table writes.
             if (Configuration["CQL_CLICKHOUSE_PUBLIC_SOURCE_JSON"] is string clickHousePublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
