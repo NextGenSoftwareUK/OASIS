@@ -609,3 +609,9 @@ outputs. Four native/paired plans admitted with the authoritative SQL Server
 catalogue. No source activated. Reused WEB4 test bin/obj. Receipts:
 TestResults/SqlServerCqlCurrent/web4-admission.log (Core build) and
 web4-admission-focused.log (focused test). Core source checkout restored.
+
+DuckDB native CQL replay passed 1/1 against the retained source at
+LocalState/COSMIC/DuckDbCql. Reused cached dependencies and restored producer
+assets under the provider build lease. Keep provider/integration bin and obj
+for pairing. No new runtime or Mongo database. Native TRX under
+TestResults/DuckDbCqlCurrent SHA256 FD513CF3672CD69E87C1495AB7BBF7522AFEAA11997548CABD81960E1E4E9DE6.

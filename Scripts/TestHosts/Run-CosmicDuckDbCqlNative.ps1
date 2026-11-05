@@ -30,7 +30,7 @@ $results=Join-Path $root 'TestResults/DuckDbCqlCurrent'
             }
         }
         $project=Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.DuckDBOASIS.IntegrationTests'
-        & dotnet restore $project --source C:/Users/david/.nuget/packages /p:NuGetAudit=false /p:RestoreRecursive=false /m:2 /nr:false *> (Join-Path $results 'native-restore.log')
+        & dotnet restore $project --source C:/Users/david/.nuget/packages /p:NuGetAudit=false /m:2 /nr:false *> (Join-Path $results 'native-restore.log')
         if($LASTEXITCODE){throw 'Cached restore failed.'}
         if($Federated){
             & dotnet build (Join-Path $root 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS') --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false *> (Join-Path $results 'mongo-build.log')
