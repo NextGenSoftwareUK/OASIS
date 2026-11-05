@@ -403,3 +403,9 @@ The Libraries pin still matched upstream. That check belongs to the global
 release workflow. The Development candidate image builds the reviewed pins,
 so any decision to advance Holochain requires a new reviewed candidate and
 fresh verification.
+
+All seven private clone pins were checked against the repositories used by
+the image build. Six match advertised refs directly. The API Core pin is
+an ancestor of 6fcc2fea, the advertised tip of work/cosmic-duckdb-admission.
+This proves Git reachability through the current laptop credentials.
+The workflow's own credential and successful image build remain unverified.
