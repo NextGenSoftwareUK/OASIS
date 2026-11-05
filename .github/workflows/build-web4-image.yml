@@ -16,7 +16,7 @@ on:
         type: string
         default: Development
       tag:
-        description: Extra image tag besides the commit SHA (for example sandbox)
+        description: Extra image tag besides the commit SHA (leave empty for a commit-only build)
         required: false
         type: string
         default: sandbox
@@ -53,10 +53,26 @@ jobs:
 
       - name: Compute image names
         id: names
+        env:
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+          EXTRA_IMAGE_TAG: ${{ inputs.tag }}
         run: |
-          repo="ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/oasis-web4"
-          echo "repo=${repo}" >> "$GITHUB_OUTPUT"
-          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          repo="ghcr.io/${REPOSITORY_OWNER,,}/oasis-web4"
+          sha="$(git rev-parse HEAD)"
+          echo "repo=$repo" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          if [[ -n "$EXTRA_IMAGE_TAG" && ! "$EXTRA_IMAGE_TAG" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}$ ]]; then
+            echo "Invalid extra image tag" >&2
+            exit 1
+          fi
+          {
+            echo 'tags<<TAGS'
+            echo "$repo:$sha"
+            if [[ -n "$EXTRA_IMAGE_TAG" && "$EXTRA_IMAGE_TAG" != "$sha" ]]; then
+              echo "$repo:$EXTRA_IMAGE_TAG"
+            fi
+            echo TAGS
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build and push
         id: publish
@@ -66,9 +82,7 @@ jobs:
           file: Docker/Dockerfile.web4
           push: true
           provenance: false
-          tags: |
-            ${{ steps.names.outputs.repo }}:${{ steps.names.outputs.sha }}
-            ${{ steps.names.outputs.repo }}:${{ inputs.tag }}
+          tags: ${{ steps.names.outputs.tags }}
           build-args: |
             GITHUB_PAT=${{ secrets.PRIVATE_SUBMODULE_PAT }}
           cache-from: type=gha
