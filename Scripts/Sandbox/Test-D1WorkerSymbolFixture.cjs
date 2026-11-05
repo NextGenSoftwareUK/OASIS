@@ -43,7 +43,7 @@ async function main() {
     assert.deepEqual(await unbounded.json(), {error:"Invalid symbol selection"});
     assert.equal(write.status, 405);
     console.log(JSON.stringify({full, subset, duplicateStatus:invalid.status,
-      unenrolledStatus:unenrolled.status, writeStatus:write.status}));
+      unenrolledStatus:unenrolled.status, unboundedStatus:unbounded.status, writeStatus:write.status}));
     if (serve) {
       console.log(JSON.stringify({endpoint: endpoint.href}));
       // The parent test owns the process and closes stdin when it finishes.
