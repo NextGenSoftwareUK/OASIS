@@ -231,3 +231,13 @@ increase the scoped browser count from five to nine and reduce the open
 count from 55 to 51. Ethereum's standalone screenshot
 and durable browser credential export remain absent. Existing accepted
 HTTP cohorts remain retained.
+
+## Preparation operation identity correction
+
+The Aptos rejection exposed stale query identity in the separate operation
+panel. Web4Site ad79cee clears that panel at preparation start, while the
+request error retains its own preparation identifiers. Regression reproduced
+the stale state before the fix; 106 client/query/preparation/session tests
+passed after it, zero failed/skipped. No quota reset, retry, new avatar or
+save was performed. The website candidate is pushed on its task branch;
+public deployment/browser acceptance is not yet claimed.

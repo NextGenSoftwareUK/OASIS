@@ -760,3 +760,8 @@ check returned Unauthorized. No settings, deployment or project link changed.
 
 - Chroma WEB4 opt-in registration build, owner cosmic-chroma-web4. Cached restore and leased bounded build reuse or regenerate WEB4, Chroma, and their project references' bin/obj. No service, runtime install or separate build log requested.
   The full build reported one namespace error. The corrected leased WEB4 consumer build reused the completed references and succeeded with zero errors.
+
+- Preparation operation-panel regression used the existing system Node runtime
+  and sibling Web4Site checkout. 106 tests passed in memory; no dependency
+  install, database, new environment or persisted test output was created.
+  Web4Site candidate ad79cee contains the correction and cache-version change.
