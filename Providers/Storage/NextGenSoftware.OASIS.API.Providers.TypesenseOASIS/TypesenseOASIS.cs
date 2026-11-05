@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
     ///   host   — Typesense host URL, e.g. "http://localhost:8108"
     ///   apiKey — Typesense API key (X-TYPESENSE-API-KEY header)
     /// </summary>
-    public class TypesenseOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class TypesenseOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -52,9 +52,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
         private const string ColHolons = "oasis_holons";
 
         public TypesenseOASIS(string host, string apiKey)
+            : this(host, apiKey, new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })) { }
+
+        public TypesenseOASIS(string host, string apiKey, HttpClient httpClient)
         {
             _host = host.TrimEnd('/');
-            _http = new HttpClient();
+            _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _http.DefaultRequestHeaders.Add("X-TYPESENSE-API-KEY", apiKey);
             ProviderName = "TypesenseOASIS";
             ProviderDescription = "Typesense provider (fast fuzzy-search engine via REST API)";

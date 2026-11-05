@@ -138,6 +138,11 @@ RavenDB independent breadth work now has an official-SDK bounded ID reader and
 a passing leased provider/shared build. Controlled/native/manager/HTTP/Mongo
 and hosted gates remain open; counts unchanged. [Scope](RAVENDB_CQL_MVP.md).
 
+Typesense independent breadth work now has a real REST bounded ID reader,
+read-only existing-collection activation, a passing provider build and 13
+controlled tests. Native/manager/HTTP/hosted gates remain open; counts unchanged.
+[Scope](TYPESENSE_CQL_MVP.md).
+
 ## Constraints / wider unfinished work
 
 - Hosted Azure Cosmos/Oracle/PostgreSQL deferred by David;no account/spend re-asks.

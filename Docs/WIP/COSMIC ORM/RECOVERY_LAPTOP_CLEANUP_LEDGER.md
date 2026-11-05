@@ -852,3 +852,17 @@ check returned Unauthorized. No settings, deployment or project link changed.
   suite passed 22; the added failed-initialization regression brought final
   verification to 23. No native server/package extraction/license acceptance,
   fixture database or external request. Existing source.json and archive kept.
+
+- Typesense bounded CQL provider build planned under lease cosmic-typesense-cql. Uses system HttpClient/.NET and existing shared compiler; no new SDK/runtime package. Provider/Core/Shared bin/obj regenerable. No service, credentials, collection or data mutation.
+
+- Typesense provider build passed with zero errors. Controlled HTTP-boundary test build/run planned under lease cosmic-typesense-controls; reuse cached MSTest and shared outputs. Test bin/obj regenerable. No native endpoint/process/fixture or runtime install.
+
+- Typesense provider/shared build and controlled unit suite completed: 13 passed,
+  zero failed/skipped (eight new CQL cases plus five metadata tests). No native
+  service, credentials, runtime download, data or external API request. C: free
+  37,376,495,616 bytes at checkpoint. Keep current generated outputs for native
+  fixture work; they are disposable after this scope is no longer using them.
+  Providers/Storage/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS/bin: 8269480 bytes.
+  Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.UnitTests/bin: 47114468 bytes.
+  Providers/Storage/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS/obj: 968987 bytes.
+  Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.UnitTests/obj: 1006467 bytes.
