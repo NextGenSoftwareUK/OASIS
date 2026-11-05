@@ -555,3 +555,7 @@ SurrealDB integration test build passed using the existing provider output.
 Receipt: TestResults/ProviderBuildCurrent/cosmic-surreal-integration.log.
 Integration project bin/Debug/net10.0 and obj are reusable generated outputs.
 The fixture was compiled only. No SurrealDB process or test records created.
+
+SurrealDB offline admission tests passed 6/6 with no skips. Receipt:
+TestResults/ProviderBuildCurrent/cosmic-surreal-offline.log. Unit test project
+bin/Debug/net10.0 and obj are generated outputs. No server or database created.
