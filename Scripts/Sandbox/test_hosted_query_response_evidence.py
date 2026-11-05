@@ -15,6 +15,20 @@ spec.loader.exec_module(verification)
 
 
 class ResponseEvidenceTests(unittest.TestCase):
+    def test_foreign_visibility_rejects_replica_leak(self):
+        providers = ["MongoDBOASIS", "SQLLiteDBOASIS", "Neo4jOASIS"]
+        ids = ["11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8222-222222222222"]
+        empty = {"result": {"rows": []}}
+        with patch.object(verification, "call", return_value=empty) as request:
+            self.assertEqual(dict.fromkeys(providers, empty),
+                             verification.verify_private_visibility("visitor", ids, providers))
+            for provider, observed in zip(providers, request.call_args_list, strict=True):
+                self.assertEqual(provider, observed.args[2]["provider"])
+                self.assertEqual(ids, observed.args[2]["filters"][0]["value"])
+        with patch.object(verification, "call", side_effect=[empty, {"result": {"rows": [{"id": ids[0]}]}}]):
+            with self.assertRaisesRegex(RuntimeError, "SQLLiteDBOASIS"):
+                verification.verify_private_visibility("visitor", ids, providers)
+
     def test_paired_readiness_rejects_an_unavailable_preset(self):
         provider = "LocalFileOASIS"
         examples = [{"id": key, "available": key != "mongo-public-subset"} for key in (

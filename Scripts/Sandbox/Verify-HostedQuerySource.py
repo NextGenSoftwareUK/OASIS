@@ -168,6 +168,19 @@ def require_native_selection(responses, examples):
         require_native_rows(response, example, count)
 
 
+def verify_private_visibility(token, ids, providers):
+    if len(ids) != 2 or len(set(ids)) != 2:
+        raise RuntimeError("Visibility verification requires two distinct acknowledged snapshot IDs.")
+    observations = {}
+    for provider in providers:
+        response = call("data/query-cql", token, {"provider": provider, "orderBy": "Id", "take": 2,
+                        "filters": [{"field": "Id", "scalar": "Guid", "operator": "In", "value": ids}]})
+        if response["result"]["rows"]:
+            raise RuntimeError(f"Independent visitor can see private snapshot IDs on {provider}.")
+        observations[provider] = response
+    return observations
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("provider", choices=["ThreeFoldOASIS", "ClickHouseOASIS", "QuestDBOASIS", "SQLServerDBOASIS", "DuckDBOASIS", "CouchDBOASIS", "CloudflareD1OASIS", "NATSJetStreamOASIS", "ZcashOASIS", "BittensorOASIS", "AkashOASIS", "EclipseOASIS", "ENSOASIS", "BlockscoutOASIS", "CelestiaOASIS", "ChainflipOASIS", "LocalFileOASIS", "HyperlaneOASIS", "LayerZeroV2OASIS", "StargateOASIS", "deBridgeOASIS", "SynapseOASIS", "ConnextOASIS", "WormholeOASIS", "BlockStackOASIS", "MatrixOASIS", "NostrOASIS", "BlueSkyOASIS", "ChainLinkOASIS", "EOSIOOASIS", "TelosOASIS", "FilecoinOASIS", "FantomOASIS", "AzureStorageOASIS", "SOLIDOASIS", "AWSS3OASIS", "SolanaOASIS", "GoogleCloudOASIS", "EthereumOASIS", "PolygonOASIS", "ArbitrumOASIS", "CosmosBlockChainOASIS", "PolkadotOASIS", "NEAROASIS", "BaseOASIS", "AvalancheOASIS", "BNBChainOASIS", "OptimismOASIS", "LineaOASIS", "ScrollOASIS", "ZkSyncOASIS", "AbstractOASIS", "MonadOASIS", "SeiOASIS", "BerachainOASIS", "BitcoinOASIS", "XRPLOASIS", "StellarOASIS", "AlgorandOASIS", "AptosOASIS", "HashgraphOASIS", "SuiOASIS", "ElrondOASIS", "RadixOASIS", "StarknetOASIS", "CardanoOASIS", "ArweaveOASIS", "TONOASIS"])
@@ -278,13 +291,13 @@ def main():
         proof = json.loads(report.read_text())
         foreign, foreign_token = session(state, "foreign")
         public = call("data/query-cql", foreign_token, leaf[0]["request"])
-        private = call("data/query-cql", foreign_token, {"provider": "MongoDBOASIS", "orderBy": "Id", "take": 2,
-                       "filters": [{"field": "Id", "scalar": "Guid", "operator": "In", "value": proof["ids"]}]})
         require_native_rows(public, leaf[0], 3)
-        if private["result"]["rows"]:
-            raise RuntimeError("Independent visitor visibility differs.")
+        private = verify_private_visibility(foreign_token, proof["ids"],
+                                            ["MongoDBOASIS", *proof["replicas"]])
         verification.write(results / (suffix + "-isolation-http.json"),
-                           {"avatar": foreign, "public": public, "foreignPrivateIds": private, "browserAcceptance": False})
+                           {"avatar": foreign, "public": public, "foreignPrivateIds": private["MongoDBOASIS"],
+                            "foreignPrivateReplicaIds": {key: private[key] for key in proof["replicas"]},
+                            "browserAcceptance": False})
     print(json.dumps({"provider": options.provider, "nativeRows": [3, 2], "nativeProofReused": continuing, "browserAcceptance": False}))
 
 
