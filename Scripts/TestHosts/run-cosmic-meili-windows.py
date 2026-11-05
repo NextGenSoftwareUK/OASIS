@@ -11,6 +11,7 @@ import secrets
 import socket
 import subprocess
 import time
+import uuid
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -95,6 +96,7 @@ def main():
     parser.add_argument('--initialize', action='store_true')
     parser.add_argument('--paired', action='store_true', help='Run the manager/Mongo/HTTP fixture against the retained source.')
     parser.add_argument('--resume-paired', action='store_true', help='Resume only proven undispatched paired work after explicit reconciliation.')
+    parser.add_argument('--serve-run-id', help='Explicit unique interactive demo identity; retains the original native source.')
     parser.add_argument('--diagnose-startup', nargs='?', const='standalone', choices=['standalone', 'with-mongo'],
         help='One read-only startup observation; no test or mutation dispatch.')
     args = parser.parse_args()
@@ -102,6 +104,10 @@ def main():
         raise RuntimeError('Pairing requires the already acknowledged original source.')
     if args.resume_paired and not args.paired:
         raise RuntimeError('Explicit paired mode is required for paired resumption.')
+    if args.serve_run_id and (not args.paired or args.resume_paired or args.initialize or args.diagnose_startup):
+        raise RuntimeError('An interactive demo requires its own explicit retained-source paired run.')
+    if args.serve_run_id and uuid.UUID(args.serve_run_id).hex != args.serve_run_id:
+        raise RuntimeError('Canonical interactive run identity required.')
     if args.diagnose_startup and (args.initialize or args.paired):
         raise RuntimeError('Startup diagnostics cannot initialize data or dispatch paired tests.')
     if args.diagnose_startup == 'with-mongo' and os.environ.get('OASIS_MONGO_REPLICA_SET_CONNECTION') != (
@@ -168,7 +174,8 @@ def main():
 
     RESULTS.mkdir(parents=True, exist_ok=True)
     resume_evidence = validate_paired_resume(STATE, source_hash) if args.resume_paired else None
-    label = ('paired-resumed' if args.resume_paired else
+    label = ('interactive-' + args.serve_run_id if args.serve_run_id else
+             'paired-resumed' if args.resume_paired else
              'concurrent-startup-diagnostic' if args.diagnose_startup == 'with-mongo' else
              'startup-diagnostic' if args.diagnose_startup else 'paired' if args.paired else
              'initial' if args.initialize else 'retained')
@@ -232,6 +239,7 @@ def main():
                 print('Read-only native startup diagnostic completed; original four documents verified, no test or mutation dispatched.')
                 return
             test_env = dict(env, COSMIC_MEILISEARCH_CQL_SOURCE=str(STATE / 'source.json'), COSMIC_MEILISEARCH_CQL_KEY=key)
+            test_env['OASIS_MEILISEARCH_MONGO_SERVE'] = '1' if args.serve_run_id else '0'
             project = ROOT / 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.IntegrationTests'
             category = 'MeilisearchMongoCqlNative' if args.paired else 'MeilisearchCqlNative'
             test_dispatch_attempted = True

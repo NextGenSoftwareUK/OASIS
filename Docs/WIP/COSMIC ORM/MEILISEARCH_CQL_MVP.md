@@ -172,3 +172,21 @@ beside the single native source. Hosted enrollment, browser interaction, broader
 privacy/replication and full storage/ORM parity remain open. Existing global
 counts await explicit scope reconciliation; this milestone does not relabel
 controlled-only providers or the original failed run as complete.
+
+## Local interactive browser acceptance
+
+The explicit -Serve launcher now reuses the same source and admitted environment,
+with a unique session evidence ID and normal verified Mongo fixture cleanup.
+Local IAB browser interaction passed on http://127.0.0.1:5116/ : clicking full
+returned5physical rows (Meili3/Mongo2), then subset4 (2each), with exact provider
+provenance in actual JSON. The page clearly names retained authenticated native
+Meilisearch and warns that reads do not form a distributed snapshot. Its stop
+button acknowledged shutdown, then the runner passed1/1/zero skips, removed the
+verified temporary Mongo database and pending/ready markers, verified all four
+original Meili documents and stopped owned services.17700/27029/5116closed.
+
+Interactive run1f3e76130bf34a56ab6f24f796045b71 TRX SHA256:
+816e4d41955d5ccb2c2779be14ef2bfae58c67ed80e52fbe561a88d1d39988a2.
+Compact local-browser-evidence.json is retained with the source. This is a
+local browser gate; hosted browser totals remain28verified/32open.
+[Launch and presentation guide](../../Devs/MEILISEARCH_CQL_LOCAL_DEMO.md).

@@ -1,9 +1,11 @@
-param([switch]$DiagnoseStartup,[switch]$ResumePaired)
+param([switch]$DiagnoseStartup,[switch]$ResumePaired,[switch]$Serve)
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $state = Join-Path $root 'LocalState/COSMIC/RecoveryLaptopMeili1561'
 if ($DiagnoseStartup -and $ResumePaired) { throw 'Diagnostics and paired resumption are separate operations.' }
-$phase = if ($DiagnoseStartup) { 'concurrent-startup-diagnostic' } elseif ($ResumePaired) { 'paired-resumed' } else { 'paired' }
+if ($Serve -and ($DiagnoseStartup -or $ResumePaired)) { throw 'Interactive demo is a separate explicit operation.' }
+$serveId = if ($Serve) { [Guid]::NewGuid().ToString('N') } else { $null }
+$phase = if ($Serve) { "interactive-$serveId" } elseif ($DiagnoseStartup) { 'concurrent-startup-diagnostic' } elseif ($ResumePaired) { 'paired-resumed' } else { 'paired' }
 if ((Test-Path (Join-Path $state "$phase-run.intent.json")) -or (Test-Path (Join-Path $state 'mongo.pending.json'))) {
     throw 'Existing paired run or Mongo intent requires reconciliation; no replay.'
 }
@@ -33,7 +35,9 @@ if ((Test-Path (Join-Path $state "$phase-run.intent.json")) -or (Test-Path (Join
         }
         if (!$ready) { throw 'Owned Mongo readiness deadline exceeded.' }
         $env:OASIS_MONGO_REPLICA_SET_CONNECTION = 'mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000'
-        if ($DiagnoseStartup) {
+        if ($Serve) {
+            & python -B (Join-Path $PSScriptRoot 'run-cosmic-meili-windows.py') --paired --serve-run-id $serveId
+        } elseif ($DiagnoseStartup) {
             & python -B (Join-Path $PSScriptRoot 'run-cosmic-meili-windows.py') --diagnose-startup with-mongo
         } elseif ($ResumePaired) {
             & python -B (Join-Path $PSScriptRoot 'run-cosmic-meili-windows.py') --paired --resume-paired

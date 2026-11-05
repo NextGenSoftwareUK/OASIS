@@ -987,3 +987,22 @@ check returned Unauthorized. No settings, deployment or project link changed.
   paired-resumed-run.intent.json: 645 bytes retained.
   paired-resumed-run.result.json: 505 bytes retained.
   paired-resumed-server.log: 7371 bytes retained.
+
+- Planned explicit interactive Meili/Mongo teaching session: same retained native source and admitted Mongo environment, one temporary verified Mongo fixture, shared HTTP page5116. Unique nonsecret run ID gives separate intent/log/TRX, not a new environment or native database copy. No Meili reseed. Stop page invokes normal fixture cleanup; await runner completion and source-preservation ACK before claiming closed.
+
+- Meili explicit interactive session1f3e76130bf34a56ab6f24f796045b71 completed:
+  local browser full5/subset4 and stop button verified. Runner1pass/0skips,
+  original4native documents matched; Mongo pending and ready marker absent,
+  native17700/Mongo27029/UI5116closed. Temporary Mongo fixture verified/dropped.
+  No hosted avatar or credential was sent to the local page, no Meili reseed,
+  no runtime/environment copy. local-browser-evidence.json and per-session
+  intent/log/TRX retained; source and protected key remain reusable.
+  interactive-1f3e76130bf34a56ab6f24f796045b71-identity.json: 137 bytes retained.
+  interactive-1f3e76130bf34a56ab6f24f796045b71-mongo.log: 1822565 bytes retained.
+  interactive-1f3e76130bf34a56ab6f24f796045b71-original-source-verified.json: 232 bytes retained.
+  interactive-1f3e76130bf34a56ab6f24f796045b71-process-observations.json: 472 bytes retained.
+  interactive-1f3e76130bf34a56ab6f24f796045b71-process-started.json: 191 bytes retained.
+  interactive-1f3e76130bf34a56ab6f24f796045b71-process-stopped.json: 142 bytes retained.
+  interactive-1f3e76130bf34a56ab6f24f796045b71-run.intent.json: 201 bytes retained.
+  interactive-1f3e76130bf34a56ab6f24f796045b71-run.result.json: 505 bytes retained.
+  interactive-1f3e76130bf34a56ab6f24f796045b71-server.log: 8655 bytes retained.
