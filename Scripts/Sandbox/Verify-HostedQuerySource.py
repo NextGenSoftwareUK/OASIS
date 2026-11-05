@@ -137,7 +137,7 @@ def session(state, label, *, allow_create=True):
 def ready_source(provider, token, require_pair):
     discovery = call("data/query-cql/providers?examplesVersion=2", token, method="GET")
     source = next((row for row in discovery["result"] if row["provider"] == provider), None)
-    if source is None or not source.get("available") or not source.get("federationAvailable"):
+    if source is None or not source.get("available") or (require_pair and not source.get("federationAvailable")):
         raise RuntimeError(f"{provider} is absent or unavailable in hosted discovery.")
     required = {"public-records", "public-subset"}
     if require_pair:

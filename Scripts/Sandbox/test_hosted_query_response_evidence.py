@@ -53,6 +53,10 @@ class ResponseEvidenceTests(unittest.TestCase):
             self.assertIs(source, verification.ready_source(provider, "test", require_pair=False))
             with self.assertRaisesRegex(RuntimeError, "missing required hosted query presets"):
                 verification.ready_source(provider, "test", require_pair=True)
+            source["federationAvailable"] = False
+            self.assertIs(source, verification.ready_source(provider, "test", require_pair=False))
+            with self.assertRaisesRegex(RuntimeError, "absent or unavailable"):
+                verification.ready_source(provider, "test", require_pair=True)
             self.assertTrue(all(call.kwargs["method"] == "GET" for call in request.call_args_list))
 
     def test_native_selection_requires_exact_distinct_preset_ids(self):
