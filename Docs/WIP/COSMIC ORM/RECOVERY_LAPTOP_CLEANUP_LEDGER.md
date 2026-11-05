@@ -529,3 +529,7 @@ Receipt: TestResults/NatsRecoveryLaptopCurrent/auth-build.log. No server started
 NATS sdk-probe validate-config passed: anonymous and complete credentials
 accepted, username-only/password-only/empty pair refused, no network activation.
 Reused existing outputs. Build receipt: TestResults/NatsRecoveryLaptopCurrent/auth-config-build.log.
+
+NATS WEB4 credential wiring built and focused admission passed 1/1 against
+Core 47c3a84. Receipt: TestResults/ProviderBuildCurrent/cosmic-nats-web4-auth.log.
+Shared Core checkout restored. Authenticated live TLS remains a separate gate.
