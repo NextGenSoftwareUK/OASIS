@@ -154,3 +154,8 @@ access_mode=READ_ONLY. Enroll only the three live GUIDs from demo-seed.json in
 the read catalogue, add query-only zero-cost admission and the four canonical
 presets. Use Verify-HostedQuerySource.py DuckDBOASIS --readiness before
 preparing a cohort. No file was copied or deployed during this check.
+
+The WEB4 build dependency manifest declares DuckDB.NET Bindings.Full 1.1.3
+and copies its Linux x64 and arm64 native assets. ELF headers matched their
+declared architectures. This checks build packaging. Opening the exact
+retained file under the deployed Linux runtime remains an acceptance gate.
