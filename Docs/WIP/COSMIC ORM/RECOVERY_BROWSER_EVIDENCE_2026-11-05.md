@@ -8,7 +8,10 @@ Reuse reported zero saved and two prepared. Both SQLite and Neo4j returned
 two rows with rendered contents exactly matching MongoDB. Independent
 HTTP privacy stopped at USER_BOUND_BEARER_REQUIRED. The HTTP session
 expiry decision still uses the laptop wall clock and needs the same
-issued-lifetime correction as the browser. Keep privacy open.
+issued-lifetime correction as the browser. After the HTTP correction, the
+same retained visitor rotated to a recorded local deadline and returned zero
+rows for both Scroll IDs on MongoDB, SQLite and Neo4j. The earlier identity
+rejection remains recorded. Scroll's functional browser flow passed.
 
 Live page https://web4.oasisomniverse.one/web4-sandbox.html.
 Development selected. One demo session, sandbox-ca8924da, owner
