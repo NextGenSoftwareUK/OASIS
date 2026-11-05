@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param(
-    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','SurrealDB')][string]$Provider='SQLite',
+    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','SurrealDB','CouchDB')][string]$Provider='SQLite',
     [switch]$VerifyOnly,
     [switch]$Federated,
     [switch]$ArchiveCompletedDemo,
@@ -9,18 +9,19 @@ param(
 )
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-if ($Provider -eq 'SurrealDB') {
+if ($Provider -in @('SurrealDB','CouchDB')) {
     if (!$Federated -or $ArchiveCompletedDemo) {
-        throw 'SurrealDB requires the Mongo-paired preset and preserves its original source. Use -Federated without -ArchiveCompletedDemo.'
+        throw "$Provider requires the Mongo-paired preset and preserves its original source. Use -Federated without -ArchiveCompletedDemo."
     }
-    $runner = Join-Path $PSScriptRoot 'Run-CosmicSurrealDbLinuxDemo.ps1'
+    $runnerName = if ($Provider -eq 'SurrealDB') {'Run-CosmicSurrealDbLinuxDemo.ps1'} else {'Run-CosmicCouchDbLinuxDemo.ps1'}
+    $runner = Join-Path $PSScriptRoot $runnerName
     if ($ShowPlan) {
         [pscustomobject]@{
             Provider = $Provider
             Mode = $(if ($VerifyOnly) {'bounded verification'} else {'interactive until explicit shutdown'})
             Runner = $runner
-            Url = 'http://127.0.0.1:5133/'
-            Scope = 'Mongo and retained authenticated native SurrealDB, five rows and four in the subset'
+            Url = $(if ($Provider -eq 'SurrealDB') {'http://127.0.0.1:5133/'} else {'http://127.0.0.1:5132/'})
+            Scope = "Mongo and retained authenticated native $Provider, five rows and four in the subset"
         }
         return
     }
