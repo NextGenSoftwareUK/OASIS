@@ -1666,3 +1666,17 @@ checking their absolute paths. The directory retains only `receipt.json`
 5 November 2026, 15:13 local. Read-only LocalFile access recheck used the
 existing Railway 5.62.1 executable. Authentication remains unavailable.
 No settings, services, volumes or installed tools changed.
+
+The hosted PouchDB/Mongo consumer used the same PouchDB SDK cache and
+`RecoveryLaptopMongo82`. Its first preflight refused the misplaced
+`-PathType` option before taking the lease or starting a process. Corrected
+consumer `consumer-5aee3287c6ee4ecdb5fa5067ec59f78c` owns the build log and
+Mongo process, native log, signal and shutdown receipts in
+`hosted-preparation/`. Build had 1,142 warnings and zero errors. Node and
+test receipts are in `hosted-paired-c44d97334e4443f398754067a2750877`.
+PouchDB PID 13420 closed both stores with zero record writes. Mongo PID 8288
+proved native console shutdown and WiredTiger closure. Ports 13800 and 27029
+were closed. The test verified and dropped only
+`cosmic_cql_mongo_pouchdb_hosted`, acknowledged cleanup and cleared its
+pending journal. The retained source receipt and shared Core checkout were
+verified unchanged. No new runtime, cache, database copy or image download.

@@ -11,6 +11,7 @@ using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS.IntegrationTests;
 
@@ -22,16 +23,46 @@ public class PouchDBMongoCqlNativeTests
     [TestCategory("PouchDBMongoCqlNative")]
     public async Task NativePouchDBMongoFederationRunsSdkAndHttpWithProviderProvenance()
     {
-
-        const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
-        const string database = "cosmic_cql_mongo_pouchdb_demo";
-        Assert.AreEqual(mongoUri, Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
         var state = Path.GetDirectoryName(Environment.GetEnvironmentVariable("COSMIC_POUCHDB_CQL_SOURCE"))!;
         using var seed = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(state, "source.json")));
-        var pouchdbIds = seed.RootElement.GetProperty("LiveIds").EnumerateArray().Select(v => v.GetGuid()).ToArray();
-        var actor = seed.RootElement.GetProperty("Actor").GetGuid();
-        using var sourceLease = new FileStream(Path.Combine(state, "environment.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         Assert.IsTrue(File.Exists(Path.Combine(state, "bootstrap.ack.json")));
+        var pouchdb = new PouchDBOASIS(seed.RootElement.GetProperty("Endpoint").GetString()!, null, null);
+        await RunPairedAsync(seed.RootElement, pouchdb, state, "cosmic_cql_mongo_pouchdb_demo",
+            Environment.GetEnvironmentVariable("OASIS_POUCHDB_MONGO_SERVE") == "1");
+    }
+
+    [TestMethod]
+    public async Task NativeHostedPouchDBMongoFederationRunsSdkAndHttpWithProviderProvenance()
+    {
+        var descriptor = Environment.GetEnvironmentVariable("COSMIC_POUCHDB_HOSTED_CQL_SOURCE")
+            ?? throw new InvalidOperationException("Explicit retained hosted PouchDB source descriptor required.");
+        Assert.IsTrue(new FileInfo(descriptor).Length is > 0 and <= 16384);
+        var phase = Directory.GetParent(Path.GetFullPath(descriptor))!;
+        Assert.IsTrue(phase.Name.StartsWith("hosted-paired-", StringComparison.Ordinal));
+        var state = phase.Parent!;
+        Assert.AreEqual("hosted-preparation", state.Name);
+        using var seed = JsonDocument.Parse(await File.ReadAllBytesAsync(descriptor));
+        var endpoint = seed.RootElement.GetProperty("Endpoint").GetString()!;
+        Assert.AreEqual("http://127.0.0.1:13800", endpoint);
+        var digest = seed.RootElement.GetProperty("Digest").GetString()!;
+        using var http = new HttpClient(new CqlPouchDbSourceHttpHandler(digest,
+            new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false, UseProxy = false }));
+        var pouchdb = new PouchDBOASIS(endpoint, null, null, http);
+        await RunPairedAsync(seed.RootElement, pouchdb, state.FullName, "cosmic_cql_mongo_pouchdb_hosted", false,
+            Path.Combine(phase.FullName, "mongo-cleanup.ack.json"));
+    }
+
+    private static async Task RunPairedAsync(JsonElement seed, PouchDBOASIS pouchdb, string state,
+        string database, bool serve, string? cleanupReceipt = null)
+    {
+        const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.AreEqual(mongoUri, Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
+        var pouchdbIds = seed.GetProperty("LiveIds").EnumerateArray().Select(v => v.GetGuid()).ToArray();
+        var actor = seed.GetProperty("Actor").GetGuid();
+        Assert.AreEqual(3, pouchdbIds.Distinct().Count());
+        Assert.IsFalse(pouchdbIds.Contains(Guid.Empty));
+        Assert.AreNotEqual(Guid.Empty, actor);
+        using var sourceLease = new FileStream(Path.Combine(state, "environment.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         var journal = Path.Combine(state, "mongo.pending.json");
         Assert.IsFalse(File.Exists(journal), "Preserve unfinished Mongo fixture.");
         var client = new MongoClient(mongoUri);
@@ -42,7 +73,6 @@ public class PouchDBMongoCqlNativeTests
         using (var file = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         { await JsonSerializer.SerializeAsync(file, new { database, actor, ids = records.Select(r => r.Id) }); file.Flush(true); }
 
-        var pouchdb = new PouchDBOASIS(seed.RootElement.GetProperty("Endpoint").GetString()!, null, null);
         var mongo = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(mongoUri, database) { IsVersionControlEnabled = false };
         try
         {
@@ -106,7 +136,7 @@ public class PouchDBMongoCqlNativeTests
                 }
                 finally { await app.StopAsync(); }
             }
-            if (Environment.GetEnvironmentVariable("OASIS_POUCHDB_MONGO_SERVE") == "1")
+            if (serve)
             {
                 await using var interactive = CosmicCqlDemo.IdentityFederationApiHost.Build(manager, mongo, pouchdb, actor,
                     pouchdbIds, records.Select(r => r.Id), pouchdbIds, "http://127.0.0.1:5141");
@@ -136,6 +166,12 @@ public class PouchDBMongoCqlNativeTests
             Assert.IsFalse((await mongo.DeActivateProviderAsync()).IsError);
             await client.DropDatabaseAsync(database);
             using (var names = await client.ListDatabaseNamesAsync()) Assert.IsFalse((await names.ToListAsync()).Contains(database));
+            if (cleanupReceipt != null)
+            {
+                using var receipt = new FileStream(cleanupReceipt, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                await JsonSerializer.SerializeAsync(receipt, new { database, actor, ids = records.Select(r => r.Id), dropped = true });
+                receipt.Flush(true);
+            }
             File.Delete(journal);
         }
         finally { await mongo.DeActivateProviderAsync(); await pouchdb.DeActivateProviderAsync(); }

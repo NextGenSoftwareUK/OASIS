@@ -188,7 +188,7 @@ WEB4 registration, source response guards and admission for all four presets
 passed 23 focused tests with zero skips at Core
 `c8f8278dd885cf76298fac1c2ed4a3843d2a2ac1`. The exact API TRX SHA-256 is
 `e89bc2e3dd8bce4ce46a4a72474c256d0369914e846c04df0cd7ee15c2755601`.
-Paired manager/Mongo HTTP, full image and deployed verification remain open.
+Full image and deployed verification remain open.
 
 The paired check should use the same guarded retained source and the existing
 recovery Mongo replica set. Reuse the established manager and HTTP assertions,
@@ -196,6 +196,21 @@ with a separately owned disposable Mongo database and its own intent and
 cleanup proof. Do not replay the accepted local PouchDB source or its browser
 cohort. Publish a SHA-tagged qualification image only after the paired check;
 the first live WEB4 rollout is still the qualified LocalFile image.
+
+The paired run passed at the committed Core pin. The actual PouchDB and Mongo
+providers returned 5 full and 4 subset rows through the manager and local HTTP
+host. The host rejected a forged actor and unknown preset, and returned 503
+without rows when the source was inactive. The original PouchDB source receipt
+remained unchanged and both native stores closed. The temporary Mongo database
+was removed after verifying its three records and collection ownership.
+The test used the local federation host. Deployed WEB4 HTTP and browser proof
+remain separate.
+
+Phase `hosted-paired-c44d97334e4443f398754067a2750877`, 1 pass and zero
+skips. TRX SHA-256
+`bd9d2b21566edce24ce2768f1b4e695778c56017cdced1dc45a4ec6c4970d4ab`.
+Mongo cleanup receipt SHA-256
+`2d9a92446c228093e10ee8350a361ec2ac0d5a5e90b071c7cd0bfe7170d6fe0e`.
 
 ### Settings rehearsal
 

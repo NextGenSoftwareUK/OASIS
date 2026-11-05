@@ -11,7 +11,10 @@ shipping response guard: 3 full, 2 filtered, 1 paged, 0 unadmitted; native
 404 confirmed independently. Original wire hashes and revisions unchanged;
 both native stores closed. WEB4 registration, source response guards and four
 native/Mongo presets passed 23 focused admission tests, zero skips. Paired
-manager/Mongo/HTTP and the full image remain open.
+manager and local HTTP returned 5 full and 4 subset rows, with explicit
+provider provenance and rejection of forged actor, foreign preset and inactive
+source. Both runtimes stopped and the disposable Mongo database was removed.
+Full WEB4 image and hosted verification remain open.
 
 Supervision/packaging continuation:36scoped controls and5selected shared cases
 pass; real retained SDK runtime handles simulated shutdown and validation-failure

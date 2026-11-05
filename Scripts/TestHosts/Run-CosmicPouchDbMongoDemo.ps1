@@ -1,19 +1,28 @@
-param([switch]$Serve)
+param([switch]$Serve, [switch]$HostedSource)
 $ErrorActionPreference = 'Stop'
+if ($Serve -and $HostedSource) { throw 'Hosted source qualification is noninteractive.' }
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $state = Join-Path $root 'LocalState/COSMIC/RecoveryLaptopPouchDBCql'
+if ($HostedSource) { $state = Join-Path $state 'hosted-preparation' }
 $serveId = if ($Serve) { [Guid]::NewGuid().ToString('N') } else { $null }
 $phase = 'consumer-' + [Guid]::NewGuid().ToString('N')
 if ((Test-Path (Join-Path $state "$phase-run.intent.json")) -or (Test-Path (Join-Path $state 'mongo.pending.json'))) {
     throw 'Existing paired run or Mongo intent requires reconciliation; no replay.'
 }
-if (!(Test-Path (Join-Path $state 'bootstrap.ack.json'))) { throw 'The acknowledged retained PouchDB source is required.' }
-& (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner 'cosmic-pouchdb-mongo-native' -Operation {
+$sourceAck = if ($HostedSource) { 'source/bootstrap.acknowledged.json' } else { 'bootstrap.ack.json' }
+if (!(Test-Path -LiteralPath (Join-Path $state $sourceAck) -PathType Leaf)) { throw 'The acknowledged retained PouchDB source is required.' }
+$run = {
+    if ($HostedSource) {
+        $project = Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PouchDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.PouchDBOASIS.IntegrationTests.csproj'
+        dotnet build $project /m:2 /nr:false /p:UseSharedCompilation=false *> (Join-Path $state "$phase-build.log")
+        if ($LASTEXITCODE -ne 0) { throw 'Hosted federation test build failed.' }
+    }
     $mongo = $null
     $mongoSignalSent = $false
     $priorMongo = $env:OASIS_MONGO_REPLICA_SET_CONNECTION
     try {
-        if (Get-NetTCPConnection -State Listen -LocalPort 19600,27029,5141 -ErrorAction SilentlyContinue) {
+        $ports = if ($HostedSource) { @(13800,27029) } else { @(19600,27029,5141) }
+        if (Get-NetTCPConnection -State Listen -LocalPort $ports -ErrorAction SilentlyContinue) {
             throw 'A required native demo port is occupied; no process adoption.'
         }
         $source = & (Join-Path $PSScriptRoot 'Get-CosmicMongoDemoSource.ps1') -Root $root -RecoveryMongo
@@ -37,7 +46,9 @@ if (!(Test-Path (Join-Path $state 'bootstrap.ack.json'))) { throw 'The acknowled
         }
         if (!$ready) { throw 'Owned Mongo readiness deadline exceeded.' }
         $env:OASIS_MONGO_REPLICA_SET_CONNECTION = 'mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000'
-        if ($Serve) {
+        if ($HostedSource) {
+            & node (Join-Path $PSScriptRoot 'Qualify-HostedPouchDbCql.cjs') --paired
+        } elseif ($Serve) {
             & python -B (Join-Path $PSScriptRoot 'run-cosmic-pouchdb-windows.py') --paired --serve
         } else {
             & python -B (Join-Path $PSScriptRoot 'run-cosmic-pouchdb-windows.py') --paired
@@ -67,5 +78,40 @@ if (!(Test-Path (Join-Path $state 'bootstrap.ack.json'))) { throw 'The acknowled
                 Set-Content -LiteralPath (Join-Path $state "$phase-mongo-stopped.json") -Encoding utf8
             $mongo.Dispose()
         }
+    }
+    if ($HostedSource) {
+        if (Get-NetTCPConnection -State Listen -LocalPort $ports -ErrorAction SilentlyContinue) {
+            throw 'A hosted qualification port is still listening after shutdown.'
+        }
+        @{ phase = $phase; mongoStopped = $true; portsClosed = $ports } | ConvertTo-Json -Compress
+    }
+}
+
+& (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner 'cosmic-pouchdb-mongo-native' -Operation {
+    if (!$HostedSource) {
+        & $run
+        return
+    }
+    $coreRelative = 'OASIS Architecture/NextGenSoftware.OASIS.API.Core'
+    $core = Join-Path $root $coreRelative
+    $pin = git -C $root rev-parse "HEAD:$coreRelative"
+    if ($LASTEXITCODE -ne 0 -or $pin -cnotmatch '^[a-f0-9]{40}$') { throw 'Committed Core pin required.' }
+    $original = git -C $core rev-parse HEAD
+    if ($LASTEXITCODE -ne 0 -or $original -cnotmatch '^[a-f0-9]{40}$' -or (git -C $core status --porcelain)) {
+        throw 'Clean Core checkout required.'
+    }
+    if ($original -eq $pin) {
+        & $run
+        return
+    }
+    git -C $core symbolic-ref -q HEAD | Out-Null
+    if ($LASTEXITCODE -ne 1) { throw 'Temporary checkout requires detached Core.' }
+    git -C $core switch --detach $pin
+    if ($LASTEXITCODE -ne 0) { throw 'Unable to select the committed Core pin.' }
+    try { & $run }
+    finally {
+        if (git -C $core status --porcelain) { throw 'Core changed during qualification. Preserve the changes for reconciliation.' }
+        git -C $core switch --detach $original
+        if ($LASTEXITCODE -ne 0) { throw 'Unable to restore the original Core checkout.' }
     }
 }
