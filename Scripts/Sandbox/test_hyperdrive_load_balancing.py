@@ -25,10 +25,12 @@ class RouteEvidenceTests(unittest.TestCase):
     def test_read_only_expired_session_never_creates_or_sends_a_request(self):
         import base64
         claims = base64.urlsafe_b64encode(json.dumps({"exp": 1}).encode()).decode().rstrip("=")
-        with patch.object(Path, "exists", return_value=True), patch.object(Path, "read_bytes", return_value=b"controlled"), \
+        with patch.object(Path, "exists", return_value=True), \
+                patch.object(Path, "read_text", return_value='{"id":"11111111-1111-4111-8111-111111111111"}'), \
+                patch.object(Path, "read_bytes", return_value=b"controlled"), \
                 patch.object(gate.flow.verification, "protected_token", return_value=("header." + claims + ".signature").encode()), \
                 patch.object(gate.flow, "call") as request, patch.object(gate.flow, "write_new") as write:
-            with self.assertRaises(RuntimeError):
+            with self.assertRaisesRegex(RuntimeError, "Acknowledged legacy session expired"):
                 gate.flow.session(Path("controlled-unused-state"), "owner", allow_create=False)
             request.assert_not_called()
             write.assert_not_called()
