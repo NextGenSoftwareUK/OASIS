@@ -589,6 +589,13 @@ from the retained source configuration, then compare the first field of
 each remote `sha256sum` result:
 
 ```powershell
+$reviewedInstances = $env:COSMIC_CQL_REVIEWED_INSTANCE_IDS -split ','
+if ($reviewedInstances.Count -ne 1 -or $reviewedInstances[0] -notmatch '^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$') {
+    throw 'Set the single reviewed instance ID for initial LocalFile bootstrap.'
+}
+$reviewedInstanceId = $reviewedInstances[0]
+python -B Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py verify-settings
+if ($LASTEXITCODE -ne 0) { throw 'LocalFile settings deployment verification failed.' }
 $source = Get-Content -Raw LocalState/COSMIC/HostedLocalFilePublicDatasetCurrent/source-config.json | ConvertFrom-Json
 foreach ($record in $source.records) {
     $file = "/data/cql-local-file-demo/Holons/$($record.id).json"
@@ -601,6 +608,8 @@ foreach ($record in $source.records) {
         throw "LocalFile teaching record digest differs for $($record.id)."
     }
 }
+python -B Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py verify-settings
+if ($LASTEXITCODE -ne 0) { throw 'LocalFile settings deployment changed during file verification.' }
 ```
 
 Use the instance ID from the verified settings deployment and record the
