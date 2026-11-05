@@ -90,3 +90,10 @@ creation and document upsert/delete are denied on a disposable fixture.
 The provider's injected HTTP client supports separate host-managed
 authentication. Keep credential values out of source configuration and
 acceptance reports.
+
+The opt-in WEB4 registration uses `CQL_CHROMA_QUERY_ORIGIN`,
+`CQL_CHROMA_QUERY_TENANT`, `CQL_CHROMA_QUERY_DATABASE` and the private
+`CQL_CHROMA_QUERY_BEARER_TOKEN`. This contract targets a reviewed HTTPS
+service that accepts a scoped bearer credential for the two read routes.
+Build, Core tariff admission and native endpoint qualification are separate
+gates.

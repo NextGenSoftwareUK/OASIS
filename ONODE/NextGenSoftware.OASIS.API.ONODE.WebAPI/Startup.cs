@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +19,7 @@ using System.Threading.RateLimiting;
 using Microsoft.OpenApi.Models;
 using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
 using NextGenSoftware.OASIS.Common;
@@ -577,6 +580,32 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                     throw new InvalidOperationException("CouchDB CQL requires both query credentials.");
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     new NextGenSoftware.OASIS.API.Providers.CouchDBOASIS.CouchDBOASIS(couchDbUri.AbsoluteUri, username, password)));
+            }
+
+            if (Configuration["CQL_CHROMA_QUERY_ORIGIN"] is string chromaOrigin)
+            {
+                if (!Uri.TryCreate(chromaOrigin, UriKind.Absolute, out var origin) ||
+                    origin.Scheme != Uri.UriSchemeHttps || origin.IsLoopback ||
+                    origin.AbsolutePath != "/" || origin.UserInfo.Length != 0 ||
+                    origin.Query.Length != 0 || origin.Fragment.Length != 0)
+                    throw new InvalidOperationException("Chroma CQL requires an explicit credential-free HTTPS origin.");
+                var tenant = Configuration["CQL_CHROMA_QUERY_TENANT"];
+                var database = Configuration["CQL_CHROMA_QUERY_DATABASE"];
+                var token = Configuration["CQL_CHROMA_QUERY_BEARER_TOKEN"];
+                if (string.IsNullOrWhiteSpace(tenant) || string.IsNullOrWhiteSpace(database) ||
+                    string.IsNullOrWhiteSpace(token) || token.Any(char.IsWhiteSpace))
+                    throw new InvalidOperationException("Chroma CQL requires an explicit tenant, database and scoped bearer token.");
+
+                const string clientKey = "cql-chroma-query";
+                services.AddKeyedSingleton<HttpClient>(clientKey, (_, _) =>
+                {
+                    var client = new HttpClient(NativeConnectionGuard.CreateGuardedHttpHandler());
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                    return client;
+                });
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(provider => new Services.Cql.CqlReadSourceProfile(
+                    new NextGenSoftware.OASIS.API.Providers.ChromaOASIS.ChromaOASIS(
+                        provider.GetRequiredKeyedService<HttpClient>(clientKey), origin.AbsoluteUri, tenant, database)));
             }
 
             // Public country SQL reads never enroll owned ClickHouse table writes.

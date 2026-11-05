@@ -713,3 +713,6 @@ check returned Unauthorized. No settings, deployment or project link changed.
 
 - QuestDB guarded HTTPS qualification fixture build, owner cosmic-questdb-hosted-qualification. Regenerates the QuestDB provider and integration-test bin/obj and shared project outputs under the build lease, using the existing NuGet cache. No listener, database, runtime install or hosted request.
   The fixture build completed successfully with zero errors. Two offline endpoint rejection cases passed.
+
+- Chroma WEB4 opt-in registration build, owner cosmic-chroma-web4. Cached restore and leased bounded build reuse or regenerate WEB4, Chroma, and their project references' bin/obj. No service, runtime install or separate build log requested.
+  The full build reported one namespace error. The corrected leased WEB4 consumer build reused the completed references and succeeded with zero errors.
