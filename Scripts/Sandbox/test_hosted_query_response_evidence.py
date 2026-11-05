@@ -22,13 +22,25 @@ class ResponseEvidenceTests(unittest.TestCase):
             selection = {"filters": [{"field": "Id", "scalar": "Guid", "operator": "In", "value": ids}]}
             presets.extend([
                 {"id": f"public-{suffix}", "request": dict(selection, provider=provider)},
-                {"id": f"mongo-public-{suffix}", "request": {"source": selection,
-                     "providers": ["MongoDBOASIS", provider]}}
+                {"id": f"mongo-public-{suffix}", "operation": "Federation", "request": {"source": selection,
+                     "providers": ["MongoDBOASIS", provider], "scope": "Named",
+                     "identityMode": "PreserveCopies"}}
             ])
         review = {"presets": presets}
         source = {"examples": json.loads(json.dumps(presets))}
         source["examples"][0]["request"]["skip"] = 0
         verification.require_reviewed_localfile_presets(source, review)
+        for field, value in (("scope", "All"), ("identityMode", "Deduplicate")):
+            with self.subTest(field=field):
+                source = {"examples": json.loads(json.dumps(presets))}
+                source["examples"][3]["request"][field] = value
+                with self.assertRaisesRegex(RuntimeError, "mongo-public-subset differs"):
+                    verification.require_reviewed_localfile_presets(source, review)
+        source = {"examples": json.loads(json.dumps(presets))}
+        source["examples"][3]["operation"] = "Rows"
+        with self.assertRaisesRegex(RuntimeError, "mongo-public-subset differs"):
+            verification.require_reviewed_localfile_presets(source, review)
+        source = {"examples": json.loads(json.dumps(presets))}
         source["examples"][3]["request"]["source"]["filters"][0]["value"][1] = "different"
         with self.assertRaisesRegex(RuntimeError, "mongo-public-subset differs"):
             verification.require_reviewed_localfile_presets(source, review)

@@ -188,7 +188,10 @@ def require_reviewed_localfile_presets(source, review):
         reviewed_selection = reviewed.get("source", {}) if paired else reviewed
         filters = observed_selection.get("filters", [])
         reviewed_filters = reviewed_selection.get("filters", [])
-        if (len(filters) != 1 or len(reviewed_filters) != 1
+        if (actual.get(key, {}).get("operation", "Rows") != expected.get(key, {}).get("operation", "Rows")
+                or (paired and any(observed.get(field) != reviewed.get(field)
+                                   for field in ("scope", "identityMode")))
+                or len(filters) != 1 or len(reviewed_filters) != 1
                 or any(filters[0].get(field) != reviewed_filters[0].get(field)
                        for field in ("field", "scalar", "operator", "value", "metadataPath"))
                 or observed.get("providers" if paired else "provider")
