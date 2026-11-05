@@ -79,7 +79,13 @@ public class SqlServerCqlNativeTests
             seed = JsonSerializer.Deserialize<Seed>(await File.ReadAllTextAsync(manifest))!;
             await native.OpenAsync();
             Assert.AreEqual(3L, await Count("SELECT count(*) FROM sys.tables WHERE name IN ('OASISHolons','OASISAvatars','OASISAvatarDetails')"), "Original tables required before activation.");
-            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            var cancelled = await provider.ActivateQuerySourceAsync(new System.Threading.CancellationToken(canceled: true));
+            Assert.AreEqual("CQL_QUERY_CANCELLED", cancelled.ErrorCode);
+            Assert.IsFalse(provider.IsProviderActivated);
+
+            var active = await provider.ActivateQuerySourceAsync(default);
+            Assert.IsFalse(active.IsError, active.Message + active.Exception);
+            Assert.IsTrue(provider.IsProviderActivated);
         }
         Assert.AreEqual(3, seed.Ids.Distinct().Count());
         async Task<string[]> Snapshot()

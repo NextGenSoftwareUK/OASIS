@@ -593,3 +593,9 @@ TestResults/SqlServerCqlCurrent:
 SQL Server read-only activation build reused existing provider outputs.
 Receipt: TestResults/SqlServerCqlCurrent/query-activation-build.log.
 No server started for this build. Native activation and WEB4 wiring pending.
+
+SQL Server read-only activation verified against the retained identity
+source. Pre-cancelled activation kept the provider inactive; the subsequent
+native probe activated it and the bounded CQL suite passed with original
+record fingerprints preserved. Instance stopped, existing outputs reused.
+Receipt sqlserver-cql-native.trx SHA256 5B74DA2F623493CEAF327966F2E736B596B0987588445EA56EC454E14CCAB25C.
