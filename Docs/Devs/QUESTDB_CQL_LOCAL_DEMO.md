@@ -13,7 +13,7 @@ From the prepared recovery checkout `C:/Source/OASIS2`:
 pwsh -File Scripts/TestHosts/Run-CosmicQuestDbMongoDemo.ps1 -Serve
 ```
 
-Open <http://127.0.0.1:5120/>. Choose **Query all records**, then
+Open <http://127.0.0.1:5134/>. Choose **Query all records**, then
 **Query two-record subset**. The full query returns three QuestDB rows and two
 Mongo copies. The subset selects BTC-USDT and ETH-USDT, returning two from each.
 Each physical copy retains its provider, even when copies share a Holon ID.
@@ -45,7 +45,7 @@ keeps provider provenance. Native query failure fails the complete operation.
 
 The admitted QuestDB10.1.0 Windows linked runtime remains under
 `LocalState/COSMIC/RecoveryLaptopQuestDB1010`. This command reuses it and the
-admitted Mongo8.2 replica/store; it installs nothing. Ports29000,27029 and5120
+admitted Mongo8.2 replica/store; it installs nothing. Ports29000,27029 and5134
 must be free. Services bind to loopback; the native SQL endpoint is an owned
 teaching database, not a public restricted-query service. Hosted sign-in is
 never forwarded.

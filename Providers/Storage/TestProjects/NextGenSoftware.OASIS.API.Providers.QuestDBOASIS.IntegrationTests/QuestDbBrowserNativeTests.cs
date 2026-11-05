@@ -106,10 +106,10 @@ public class QuestDbBrowserNativeTests
             if(Environment.GetEnvironmentVariable("COSMIC_QUESTDB_BROWSER_SERVE")=="1")
             {
                 await using var app=CosmicCqlDemo.IdentityFederationApiHost.Build(manager,mongo,quest,actor,ids,
-                    records.Select(row=>row.Id),ids,"http://127.0.0.1:5120",contentPresets:presets);
+                    records.Select(row=>row.Id),ids,"http://127.0.0.1:5134",contentPresets:presets);
                 await app.StartAsync();
                 var ready=Path.Combine(state,"demo-ready.json");
-                await File.WriteAllTextAsync(ready,JsonSerializer.Serialize(new {url="http://127.0.0.1:5120/"}));
+                await File.WriteAllTextAsync(ready,JsonSerializer.Serialize(new {url="http://127.0.0.1:5134/"}));
                 await app.WaitForShutdownAsync();File.Delete(ready);
             }
             var db=client.GetDatabase(database);

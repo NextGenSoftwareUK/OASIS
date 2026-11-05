@@ -46,7 +46,7 @@ The launcher holds the provider build lease for the entire run and refuses any
 occupied required port or pending Mongo fixture. It verifies manager/HTTP checks
 before serving the page. Wait for
 `LocalState/COSMIC/RecoveryLaptopSolr1010/demo-ready.json`, then open
-[the local demo](http://127.0.0.1:5117/).
+[the local demo](http://127.0.0.1:5136/).
 
 Each explicit interactive session has a new nonsecret run identity and evidence
 files, using the same native source and Mongo environment. The fixed temporary

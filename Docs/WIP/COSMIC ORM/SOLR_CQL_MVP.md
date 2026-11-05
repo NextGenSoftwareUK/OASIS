@@ -1,5 +1,10 @@
 # Solr bounded CQL scope
 
+Current local UI address (5 November correction): `http://127.0.0.1:5136/`.
+Original cohort retained; new-address browser/provenance and consumer1/1 pass.
+[Address correction and exact evidence](LOCAL_DEMO_ADDRESS_CORRECTION.md) owns
+publication status; earlier UI addresses below are historical evidence.
+
 5 November 2026. Controlled provider/CQL tests: 16 passed, zero failures or
 skips. This is an adapter milestone, not native or hosted acceptance. Coverage
 counts remain 97 local profiles, 60 hosted HTTP proofs and 28 hosted browser flows.

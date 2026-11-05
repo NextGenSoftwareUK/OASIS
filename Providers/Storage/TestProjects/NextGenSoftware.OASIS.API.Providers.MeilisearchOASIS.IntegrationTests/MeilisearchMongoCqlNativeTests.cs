@@ -109,10 +109,10 @@ public class MeilisearchMongoCqlNativeTests
             if (Environment.GetEnvironmentVariable("OASIS_MEILISEARCH_MONGO_SERVE") == "1")
             {
                 await using var interactive = CosmicCqlDemo.IdentityFederationApiHost.Build(manager, mongo, meilisearch, actor,
-                    meilisearchIds, records.Select(r => r.Id), meilisearchIds, "http://127.0.0.1:5116");
+                    meilisearchIds, records.Select(r => r.Id), meilisearchIds, "http://127.0.0.1:5135");
                 await interactive.StartAsync();
                 var ready = Path.Combine(state, "demo-ready.json");
-                await File.WriteAllTextAsync(ready, JsonSerializer.Serialize(new { url = "http://127.0.0.1:5116/", providers = new[] { "MongoDBOASIS", "MeilisearchOASIS" } }));
+                await File.WriteAllTextAsync(ready, JsonSerializer.Serialize(new { url = "http://127.0.0.1:5135/", providers = new[] { "MongoDBOASIS", "MeilisearchOASIS" } }));
                 await interactive.WaitForShutdownAsync(); File.Delete(ready);
             }
             // This exact database was absent before the journal. Verify all owned

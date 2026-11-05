@@ -1,5 +1,10 @@
 # Meilisearch bounded CQL demo scope
 
+Current local UI address (5 November correction): `http://127.0.0.1:5135/`.
+Original cohort retained; new-address browser/provenance and consumer1/1 pass.
+[Address correction and exact evidence](LOCAL_DEMO_ADDRESS_CORRECTION.md) owns
+publication status; earlier UI addresses below are historical evidence.
+
 Current checkpoint: native CQL/restart, manager/Mongo/HTTP and local browser
 acceptance pass. The explicitly local Windows card is published on WEB4.
 Hosted provider enrollment and full ORM remain open; the original failed startup

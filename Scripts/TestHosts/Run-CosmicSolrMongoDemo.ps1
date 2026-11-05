@@ -12,7 +12,7 @@ if (!(Test-Path (Join-Path $state 'seed.ack.json'))) { throw 'The acknowledged r
     $mongo = $null
     $priorMongo = $env:OASIS_MONGO_REPLICA_SET_CONNECTION
     try {
-        if (Get-NetTCPConnection -State Listen -LocalPort 18883,17883,27029,5117 -ErrorAction SilentlyContinue) {
+        if (Get-NetTCPConnection -State Listen -LocalPort 18883,17883,27029,5136 -ErrorAction SilentlyContinue) {
             throw 'A required native demo port is occupied; no process adoption.'
         }
         $source = & (Join-Path $PSScriptRoot 'Get-CosmicMongoDemoSource.ps1') -Root $root -RecoveryMongo

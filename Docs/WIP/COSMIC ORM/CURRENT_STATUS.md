@@ -4,6 +4,15 @@ Updated 5 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
+## Local catalogue routing correction, 5 November 2026
+
+Reproduced provider UI address clashes fixed at their assignments: QuestDB5134,
+Meilisearch5135, Solr5136, ArcadeDB5137, OpenSearch5138. All five new addresses
+browser/provenance verified and complete consumer1/1each passes with original
+source unchanged. No native source reseeding. Catalogue regression reproduces
+old conflicts and now passes;113client tests pass. Corrected-link publication
+is next. [Exact state and evidence](LOCAL_DEMO_ADDRESS_CORRECTION.md).
+
 ## QuestDB browser continuation, 5 November 2026
 
 Existing native CQL/HTTP proof retained; local browser gap closed5/4 over

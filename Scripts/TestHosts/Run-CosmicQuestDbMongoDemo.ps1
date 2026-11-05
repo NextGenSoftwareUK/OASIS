@@ -15,7 +15,7 @@ if ($Initialize) {
     $mongoSignalSent = $false
     $priorMongo = $env:OASIS_MONGO_REPLICA_SET_CONNECTION
     try {
-        if (Get-NetTCPConnection -State Listen -LocalPort 29000,27029,5120 -ErrorAction SilentlyContinue) {
+        if (Get-NetTCPConnection -State Listen -LocalPort 29000,27029,5134 -ErrorAction SilentlyContinue) {
             throw 'A required native demo port is occupied; no process adoption.'
         }
         $source = & (Join-Path $PSScriptRoot 'Get-CosmicMongoDemoSource.ps1') -Root $root -RecoveryMongo

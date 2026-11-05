@@ -52,7 +52,7 @@ The launcher holds the provider build lease, refuses occupied ports or unfinishe
 fixtures, and starts only its own processes. It runs manager/HTTP checks before
 serving the page. Wait for
 `LocalState/COSMIC/RecoveryLaptopOpenSearch390/demo-ready.json`, then open
-[the local query page](http://127.0.0.1:5119/).
+[the local query page](http://127.0.0.1:5138/).
 
 Each explicit session has a new nonsecret run identity and evidence files, using
 the same native store and Mongo environment. The fixed temporary database

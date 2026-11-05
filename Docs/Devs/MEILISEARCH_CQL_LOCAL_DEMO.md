@@ -47,7 +47,7 @@ The runner takes the provider lease, refuses occupied demo ports or unresolved
 fixture journals, and starts only its own loopback processes. It verifies the
 manager/HTTP checks before opening the interactive host. Wait for
 `LocalState/COSMIC/RecoveryLaptopMeili1561/demo-ready.json`, then open
-[the local demo](http://127.0.0.1:5116/).
+[the local demo](http://127.0.0.1:5135/).
 
 Each explicitly started session has its own nonsecret run ID and evidence files.
 It reuses the same native Meilisearch store and Mongo environment. One small

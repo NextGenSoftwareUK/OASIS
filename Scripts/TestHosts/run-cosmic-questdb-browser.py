@@ -93,7 +93,7 @@ def run():
         msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
         if (STATE / 'active-process.json').exists() or (STATE / 'mongo.pending.json').exists():
             raise RuntimeError('Unresolved original process or Mongo outcome; preserve without replay')
-        for port in [29000, 5120]:
+        for port in [29000, 5134]:
             with socket.socket() as s:
                 if s.connect_ex(('127.0.0.1', port)) == 0:
                     raise RuntimeError('Required port occupied; no process adoption')

@@ -109,10 +109,10 @@ public class SolrMongoCqlNativeTests
             if (Environment.GetEnvironmentVariable("OASIS_SOLR_MONGO_SERVE") == "1")
             {
                 await using var interactive = CosmicCqlDemo.IdentityFederationApiHost.Build(manager, mongo, solr, actor,
-                    solrIds, records.Select(r => r.Id), solrIds, "http://127.0.0.1:5117");
+                    solrIds, records.Select(r => r.Id), solrIds, "http://127.0.0.1:5136");
                 await interactive.StartAsync();
                 var ready = Path.Combine(state, "demo-ready.json");
-                await File.WriteAllTextAsync(ready, JsonSerializer.Serialize(new { url = "http://127.0.0.1:5117/", providers = new[] { "MongoDBOASIS", "SolrOASIS" } }));
+                await File.WriteAllTextAsync(ready, JsonSerializer.Serialize(new { url = "http://127.0.0.1:5136/", providers = new[] { "MongoDBOASIS", "SolrOASIS" } }));
                 await interactive.WaitForShutdownAsync(); File.Delete(ready);
             }
             // This exact database was absent before the journal. Verify all owned

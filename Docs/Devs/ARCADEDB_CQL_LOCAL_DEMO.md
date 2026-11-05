@@ -50,7 +50,7 @@ The launcher holds the provider build lease, refuses occupied ports or pending
 fixtures, and starts only its owned processes. It verifies manager/HTTP checks
 before serving the page. Wait for
 `LocalState/COSMIC/RecoveryLaptopArcade26111/demo-ready.json`, then open
-[the local query page](http://127.0.0.1:5118/).
+[the local query page](http://127.0.0.1:5137/).
 
 An explicit session has its own nonsecret run ID/evidence, reusing the same native
 source and Mongo environment. The fixed temporary database

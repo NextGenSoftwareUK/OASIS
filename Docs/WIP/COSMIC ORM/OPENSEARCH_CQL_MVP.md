@@ -1,5 +1,10 @@
 # OpenSearch bounded CQL scope
 
+Current local UI address (5 November correction): `http://127.0.0.1:5138/`.
+Original cohort retained; new-address browser/provenance and consumer1/1 pass.
+[Address correction and exact evidence](LOCAL_DEMO_ADDRESS_CORRECTION.md) owns
+publication status; earlier UI addresses below are historical evidence.
+
 Current checkpoint: create-only native bootstrap, CQL3/2/0/paging/source
 preservation and retained restart pass. Owned hidden-console Ctrl+C and native
 node shutdown are verified. Manager/Mongo/HTTP and local browser acceptance

@@ -109,10 +109,10 @@ public class OpenSearchMongoCqlNativeTests
             if (Environment.GetEnvironmentVariable("OASIS_OPENSEARCH_MONGO_SERVE") == "1")
             {
                 await using var interactive = CosmicCqlDemo.IdentityFederationApiHost.Build(manager, mongo, opensearch, actor,
-                    opensearchIds, records.Select(r => r.Id), opensearchIds, "http://127.0.0.1:5119");
+                    opensearchIds, records.Select(r => r.Id), opensearchIds, "http://127.0.0.1:5138");
                 await interactive.StartAsync();
                 var ready = Path.Combine(state, "demo-ready.json");
-                await File.WriteAllTextAsync(ready, JsonSerializer.Serialize(new { url = "http://127.0.0.1:5119/", providers = new[] { "MongoDBOASIS", "OpenSearchOASIS" } }));
+                await File.WriteAllTextAsync(ready, JsonSerializer.Serialize(new { url = "http://127.0.0.1:5138/", providers = new[] { "MongoDBOASIS", "OpenSearchOASIS" } }));
                 await interactive.WaitForShutdownAsync(); File.Delete(ready);
             }
             // This exact database was absent before the journal. Verify all owned

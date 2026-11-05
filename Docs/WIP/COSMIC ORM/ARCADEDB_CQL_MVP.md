@@ -1,5 +1,10 @@
 # ArcadeDB bounded CQL scope
 
+Current local UI address (5 November correction): `http://127.0.0.1:5137/`.
+Original cohort retained; new-address browser/provenance and consumer1/1 pass.
+[Address correction and exact evidence](LOCAL_DEMO_ADDRESS_CORRECTION.md) owns
+publication status; earlier UI addresses below are historical evidence.
+
 Current checkpoint: native/restart, manager/Mongo/HTTP and local browser acceptance
 pass. Local profile99 is verified; WEB4 local card8123df9 is published and
 browser-verified. Hosted/full-provider

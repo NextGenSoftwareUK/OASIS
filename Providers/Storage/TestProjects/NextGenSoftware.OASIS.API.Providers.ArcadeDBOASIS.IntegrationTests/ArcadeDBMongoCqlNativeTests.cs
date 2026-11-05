@@ -110,10 +110,10 @@ public class ArcadeDBMongoCqlNativeTests
             if (Environment.GetEnvironmentVariable("OASIS_ARCADEDB_MONGO_SERVE") == "1")
             {
                 await using var interactive = CosmicCqlDemo.IdentityFederationApiHost.Build(manager, mongo, arcadedb, actor,
-                    arcadedbIds, records.Select(r => r.Id), arcadedbIds, "http://127.0.0.1:5118");
+                    arcadedbIds, records.Select(r => r.Id), arcadedbIds, "http://127.0.0.1:5137");
                 await interactive.StartAsync();
                 var ready = Path.Combine(state, "demo-ready.json");
-                await File.WriteAllTextAsync(ready, JsonSerializer.Serialize(new { url = "http://127.0.0.1:5118/", providers = new[] { "MongoDBOASIS", "ArcadeDBOASIS" } }));
+                await File.WriteAllTextAsync(ready, JsonSerializer.Serialize(new { url = "http://127.0.0.1:5137/", providers = new[] { "MongoDBOASIS", "ArcadeDBOASIS" } }));
                 await interactive.WaitForShutdownAsync(); File.Delete(ready);
             }
             // This exact database was absent before the journal. Verify all owned

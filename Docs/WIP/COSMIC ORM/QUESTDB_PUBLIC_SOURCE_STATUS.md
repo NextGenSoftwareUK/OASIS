@@ -3,6 +3,12 @@
 Local native REST, CQL and WEB4 HTTP/Mongo acceptance passed on the recovery
 laptop. Hosted endpoint qualification and hosted browser acceptance remain open.
 
+Current local launcher address is `http://127.0.0.1:5134/`, independently
+browser-verified after correcting the initial5120/Valkey overlap. New-address
+consumer `interactive-3fe0c37e75ef49ee9843f35d16ba2a94` passes1/1, original source
+unchanged, exact Mongo fixture removed and owned services stopped. See the
+[address correction](LOCAL_DEMO_ADDRESS_CORRECTION.md) for publication status.
+
 ## Local browser continuation — 5 November 2026
 
 The remaining local browser flow now passes using the admitted10.1.0 linked
