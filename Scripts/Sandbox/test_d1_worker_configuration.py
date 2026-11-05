@@ -13,6 +13,27 @@ spec.loader.exec_module(publisher)
 
 
 class D1WorkerConfigurationTests(unittest.TestCase):
+    def test_failed_https_qualification_retains_evidence_and_cannot_replay(self):
+        probe_spec = importlib.util.spec_from_file_location(
+            "d1_probe", Path(__file__).with_name("Probe-D1WorkerHostedReadiness.py"))
+        probe = importlib.util.module_from_spec(probe_spec)
+        probe_spec.loader.exec_module(probe)
+        with tempfile.TemporaryDirectory() as directory:
+            state = Path(directory)
+            raw = json.dumps({"endpoint": "https://worker.example/symbols", "symbols": publisher.EXPECTED_KEYS}).encode()
+            (state / "source.json").write_bytes(raw)
+            with patch.object(probe, "STATE", state), patch("sys.argv", ["probe"]), \
+                 patch.object(probe, "qualify", side_effect=TimeoutError("private diagnostic")) as qualify:
+                with self.assertRaises(TimeoutError):
+                    probe.main()
+                with self.assertRaises(FileExistsError):
+                    probe.main()
+                qualify.assert_called_once()
+            receipt = json.loads((state / "worker-https-qualification.failed.json").read_bytes())
+            self.assertEqual({"schema": 1, "sourceSha256": hashlib.sha256(raw).hexdigest(),
+                              "qualified": False, "failureType": "TimeoutError"}, receipt)
+            self.assertFalse((state / "worker-https-qualified.acknowledged.json").exists())
+
     def test_rejects_nonpublic_or_ambiguous_worker_endpoints(self):
         for url in ("http://worker.example/symbols", "https://localhost./symbols",
                     "https://127.0.0.1/symbols", "https://[::1]/symbols",
