@@ -576,3 +576,8 @@ provider and integration project bin/obj and TestResults/SqlServerCqlCurrent.
 Restart TRX SHA256 76DBA16A3F51BDA3F59C3282700F7E935A3328330BB603146290940F6A04EBC8.
 Pairing stopped before Mongo startup because LocalState/COSMIC/mongo-data
 has no WiredTiger store. No Mongo records or new runtime were created.
+
+SQL Server Mongo pairing passed 1/1 with the existing admitted Mongo 8.2
+replica, selected explicitly with -RecoveryMongo. SQL Server stopped, ports
+27029 and 5115 clear, fixture journal removed after database cleanup.
+Reused both stores and build outputs. Paired TRX SHA256 7103555046C9F1E040F85072BFDB151E41FB60E0F381ED2A4F061122CF900E17.
