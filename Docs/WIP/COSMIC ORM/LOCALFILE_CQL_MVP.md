@@ -546,6 +546,13 @@ Paired presets report `Federation` with scope `Named` and identity mode
 `PreserveCopies`. This confirms the response format while LocalFile's
 own four presets remain unverified on Development.
 
+Later readiness check, 6 November UTC. Railway still required sign-in and
+Development remained at `b718f2879`. The existing rehearsal visitor's refresh
+returned an application-level “Avatar not found” with no result or cookie.
+Discovery did not run. Preserve the original sealed response and pending
+rotation; reconcile the server-side owner lookup before another attempt.
+The LocalFile cohort remains absent.
+
 The image-digest guard is operator-side tooling. The built candidate's shared
 settings mutation code matches the task branch. Use the updated publisher and
 guard from the task checkout with the explicit reviewed release ref. Set

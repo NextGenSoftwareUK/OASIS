@@ -1919,3 +1919,9 @@ LocalFile per-setting deployment verification passed 13 publisher and eight
 shared settings tests. The tests simulated a deployment change after one
 acknowledged setting and reused the existing Python runtime with bytecode
 output suppressed. No Railway settings were changed.
+
+LocalFile readiness preserved one original refresh intent and its encrypted
+response in `LocalState/COSMIC/HostedDemoRehearsalDiscovery/` under the
+`visitor-refresh-81eced6f118856d6` prefix. Retain both as reconciliation
+evidence. The response carried no new cookie. No cohort or build output
+was created.
