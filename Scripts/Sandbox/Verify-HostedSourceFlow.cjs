@@ -101,12 +101,17 @@ async function main() {
   // Preserve the existing protocol gate's request order; ID recipes need the
   // mapped identities earlier to compose their actor-specific query predicate.
   if (ids === null) ids = await mappedIds();
-  for (const [response, count] of [[five, 5], [four, 4]]) {
+  for (const [response, count, example] of [[five, 5, input.pairedThree], [four, 4, input.pairedTwo]]) {
     const selected = rows(response, count).map(entry => entry.selected);
     const nativeIds = new Set(selected.filter(copy => copy?.provider === input.source.provider)
       .map(copy => copy.row?.id));
     const mongoIds = new Set(selected.filter(copy => copy?.provider === 'MongoDBOASIS')
       .map(copy => copy.row?.id));
+    if (plan.selectionKind === 'Id') {
+      const expectedNative = example.request.source.filters[0].value;
+      if (expectedNative.length !== nativeIds.size || expectedNative.some(id => !nativeIds.has(id.toLowerCase())))
+        throw Error('Federation returned native IDs outside the requested source selection.');
+    }
     if (nativeIds.has(undefined) || nativeIds.size !== count - ids.length ||
         mongoIds.size !== ids.length || ids.some(id => !mongoIds.has(id)) ||
         selected.some(copy => !copy?.row?.id || ![input.source.provider, 'MongoDBOASIS'].includes(copy.provider)))
