@@ -269,9 +269,15 @@ publisher before its explicit `apply` command. Applying settings stages the
 six values without deploying. Review the resulting settings deployment
 separately, then set its ID in `COSMIC_CQL_SETTINGS_DEPLOYMENT_ID` and run
 `verify-settings`. It checks the same release and writable mount before and
-after comparing the complete protected settings. The publisher rehearsal
+after comparing the complete protected settings. It also reads the bounded
+bootstrap receipt on that instance and checks the source digest, SDK version,
+three identities and payload/native hashes against the qualified source.
+The live store records its own first-generation revisions. The publisher rehearsal
 used the retained bundle and mocked mount observation. It passed the
 six-value comparison and refused a missing digest and an unverified mount.
+The separate receipt rehearsal accepted the original and an alternate valid
+first-generation revision, and refused changed, malformed and oversized
+receipts. Live receipt and HTTP acceptance remain pending.
 
 Use the public review with the existing hosted verifier:
 

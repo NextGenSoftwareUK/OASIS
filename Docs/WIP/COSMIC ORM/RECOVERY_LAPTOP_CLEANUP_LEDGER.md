@@ -1722,3 +1722,15 @@ uses the same lease and outputs, with log
 `TestResults/ProviderBuildCurrent/meilisearch-hosted-native-fixture-build.log`.
 The fixture build completed with 1,143 warnings and zero errors. The lease
 restored the shared Core checkout to `54159614`. No native process started.
+
+Solr WEB4 admission uses the existing .NET SDK, NuGet cache and provider
+build lease. The build log is
+`TestResults/ProviderBuildCurrent/solr-hosted-api-cql.log`, with the Core
+candidate receipt and planned TRX under
+`LocalState/COSMIC/RecoveryLaptopSolr1010/hosted-preparation/`.
+No Solr process, runtime or copy of the retained source was created.
+
+PouchDB mounted-source receipt verification used the retained local receipt
+and mocked instance SSH output. Two admitted shapes and four refusal cases
+passed. The first rehearsal had a command-tail assertion error, corrected
+before verification. Nothing was written to Railway or to the source.

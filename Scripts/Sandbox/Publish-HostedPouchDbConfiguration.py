@@ -85,13 +85,54 @@ def apply():
     configuration.apply_values(PREFIX, KEYS, reviewed_snapshots=(before, after))
 
 
+def verify_source_receipt(digest):
+    instance = os.environ["COSMIC_CQL_REVIEWED_INSTANCE_IDS"]
+    try:
+        observed = subprocess.run(
+            [str(configuration.CLI), "ssh", *configuration.COMMON, "-d", instance, "--",
+             "head", "-c", "16385", "/data/COSMIC/SandboxPouchDB/bootstrap.acknowledged.json"],
+            capture_output=True, timeout=30)
+    except (OSError, subprocess.TimeoutExpired):
+        raise RuntimeError("Could not inspect the PouchDB receipt on the reviewed instance.") from None
+    if observed.returncode or not 0 < len(observed.stdout) <= 16384:
+        raise RuntimeError("The reviewed instance has no bounded PouchDB source receipt.")
+    proof = json.loads((SOURCE / "native-source-qualified.json").read_bytes())
+    original_bytes = (SOURCE / "source/bootstrap.acknowledged.json").read_bytes()
+    if hashlib.sha256(original_bytes).hexdigest() != proof["originalSourceAckSha256"].lower():
+        raise RuntimeError("Local PouchDB receipt differs from native qualification.")
+    original = json.loads(original_bytes)
+    try:
+        live = json.loads(observed.stdout)
+    except (UnicodeDecodeError, ValueError):
+        raise RuntimeError("The reviewed instance returned an invalid PouchDB receipt.") from None
+    if (not isinstance(live, dict) or set(live) != {"schema", "digest", "version", "records"}
+            or type(live["schema"]) is not int
+            or live["schema"] != 1 or live["digest"] != digest or original["digest"] != digest
+            or live["version"] != original["version"] or not isinstance(live["records"], list)
+            or len(live["records"]) != 3):
+        raise RuntimeError("The live PouchDB receipt differs from the reviewed source.")
+    fields = ("id", "payloadSha256", "nativeSha256")
+    expected = {tuple(row[key] for key in fields) for row in original["records"]}
+    actual = set()
+    for row in live["records"]:
+        if (not isinstance(row, dict) or set(row) != {*fields, "revision"}
+                or not all(isinstance(value, str) for value in row.values())
+                or not re.fullmatch(r"1-[a-f0-9]{32}", row["revision"])):
+            raise RuntimeError("The live PouchDB receipt has an invalid first-generation record.")
+        actual.add(tuple(row[key] for key in fields))
+    if len(actual) != 3 or actual != expected:
+        raise RuntimeError("The live PouchDB records differ from the qualified teaching source.")
+
+
 def verify_settings():
     expected = os.environ.get("COSMIC_CQL_SETTINGS_DEPLOYMENT_ID")
     if not expected:
         raise RuntimeError("Set the reviewed Development PouchDB settings deployment ID.")
     deployment = verify_mount(expected)
-    if configuration.variables() != configuration.protected_read(f"{PREFIX}-candidate-variables.dpapi"):
+    candidate_settings = configuration.protected_read(f"{PREFIX}-candidate-variables.dpapi")
+    if configuration.variables() != candidate_settings:
         raise RuntimeError("Development WEB4 settings differ from the protected PouchDB review.")
+    verify_source_receipt(candidate_settings[REVIEW_KEYS[2]])
     if mount.verify_release() != deployment:
         raise RuntimeError("Reviewed Railway deployment changed during settings inspection.")
     return deployment
@@ -105,6 +146,6 @@ if __name__ == "__main__":
     elif sys.argv[1:] == ["verify-mount"]:
         print(f"Reviewed Development deployment {verify_mount()} and its writable mount verified.")
     elif sys.argv[1:] == ["verify-settings"]:
-        print(f"Reviewed Development settings and mount verified for deployment {verify_settings()}.")
+        print(f"Reviewed Development settings, mount and source receipt verified for deployment {verify_settings()}.")
     else:
         raise SystemExit("Use no arguments to prepare, or select verify-mount, apply or verify-settings.")
