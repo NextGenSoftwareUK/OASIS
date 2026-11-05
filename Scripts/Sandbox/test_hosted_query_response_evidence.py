@@ -15,6 +15,24 @@ spec.loader.exec_module(verification)
 
 
 class ResponseEvidenceTests(unittest.TestCase):
+    def test_localfile_catalogue_guard_uses_reviewed_native_and_paired_ids(self):
+        provider = "LocalFileOASIS"
+        presets = []
+        for suffix, ids in (("records", ["a", "b", "c"]), ("subset", ["a", "b"])):
+            selection = {"filters": [{"field": "Id", "scalar": "Guid", "operator": "In", "value": ids}]}
+            presets.extend([
+                {"id": f"public-{suffix}", "request": dict(selection, provider=provider)},
+                {"id": f"mongo-public-{suffix}", "request": {"source": selection,
+                     "providers": ["MongoDBOASIS", provider]}}
+            ])
+        review = {"presets": presets}
+        source = {"examples": json.loads(json.dumps(presets))}
+        source["examples"][0]["request"]["skip"] = 0
+        verification.require_reviewed_localfile_presets(source, review)
+        source["examples"][3]["request"]["source"]["filters"][0]["value"][1] = "different"
+        with self.assertRaisesRegex(RuntimeError, "mongo-public-subset differs"):
+            verification.require_reviewed_localfile_presets(source, review)
+
     def test_unavailable_localfile_does_not_create_a_cohort(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
