@@ -23,6 +23,9 @@ chat. Both show four physical rows with native and Mongo provider labels,
 and preparation reuse. Images have no retained standalone path. Privacy
 checks used HTTP with the independent retained rehearsal visitor.
 
-Exact owner replica contents have not been checked for these new copies.
-Browser acceptance totals remain pending reconciliation. Existing accepted
-HTTP cohorts remain retained.
+The same owner queried all six private IDs through the browser on MongoDB,
+SQLite and Neo4j. Each provider returned six rows, all at version 1.
+Rendered name, description, version, ID and metadata matched exactly after
+excluding the provider column. This verifies the displayed content on both
+replicas for all three pairs. Browser acceptance totals remain pending
+reconciliation. Existing accepted HTTP cohorts remain retained.
