@@ -523,6 +523,11 @@ Status: missing account/configuration information,2 November2026. David approved
 - Status 2026-11-04: the installed Railway CLI returned Unauthorized on the
   read-only account check. The LocalFile publisher needs authenticated access
   to read the current Development WEB4 settings and verify the exact release.
+- Update 2026-11-05 UTC: the isolated candidate image build succeeded.
+  Railway still returns Unauthorized on this laptop. After sign-in,
+  engineering will confirm the Development WEB4 /data attachment and
+  verify the exact image and settings before rollout.
+  [Candidate image build](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/41948106729).
 - The replacement LocalFile bundle is qualified. Sign in privately with
   `railway login` on this laptop using the existing account with Development
   WEB4 project access. Tell the agent when sign-in completes. Keep tokens and
