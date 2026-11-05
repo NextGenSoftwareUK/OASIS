@@ -1909,3 +1909,8 @@ Python test harness. No Railway settings or credentials were retrieved.
 The retained browser recovery check opened one temporary WEB4 tab. The
 page was signed out and had no retained session. The tab produced no
 download, screenshot, new visitor or test data.
+
+The published preparation module was fetched into memory for an exact Git
+blob comparison. The 20-preset controlled check reused the existing Node
+and Python runtimes. The temporary synthetic catalogue was automatically
+removed. No assets, credentials or live query results were written to disk.

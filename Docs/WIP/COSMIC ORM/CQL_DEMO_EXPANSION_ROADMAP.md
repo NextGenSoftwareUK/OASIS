@@ -379,3 +379,11 @@ Readiness uses the retained discovery visitor. The acceptance flow checks
 the reviewed presets before creating a visitor, then verifies native 3/2,
 paired 5/4, snapshot reuse, replicas and independent-visitor privacy. Browser
 acceptance and real deployment evidence remain separate.
+
+Published-client compatibility check, 5 November 2026. The downloaded-in-memory
+preparation module matched Web4Site main `fe496ad7`, Git blob
+`030a52827fa0c5844ebf56d9ac7394a3f5b7f92b`. Using generated catalogue fixtures,
+that exact module accepted all twenty paired presets, selected the two
+reviewed native setup IDs with the 30-second deadline and composed the
+expected 5/4 ID unions with two synthetic Mongo IDs. This check used
+controlled inputs and made no CQL, identity-map or save calls.
