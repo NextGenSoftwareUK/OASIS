@@ -8,8 +8,8 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
 - **96 local query types/profiles:**3 canonical, 57 public/source, 36 other local;
   includes 31 recovered historical demos. Not 96 fully implemented providers.
-- **60 scoped hosted HTTP proofs; 8 browser flows verified / 52 browser gates open.**
-  Solana, Google Cloud public objects and Ethereum public balances add native
+- **60 scoped hosted HTTP proofs; 9 browser flows verified / 51 browser gates open.**
+  Solana, Google Cloud public objects, Ethereum and Polygon public balances add native
   3/2, paired 5/4, preparation reuse, independent privacy and matching rendered
   replica content. [Browser evidence](RECOVERY_BROWSER_EVIDENCE_2026-11-05.md).
 - MongoDB/SQLite/Neo4j strict parity **50/82 each**; investor subset green.

@@ -43,7 +43,8 @@ Rendered name, description, version, ID and metadata matched exactly after
 excluding the provider column. This verifies the displayed content on both
 replicas for all three pairs. These three flows satisfy native and paired
 browser execution, setup reuse, independent privacy and rendered replica
-content checks. They increase the scoped browser count from five to eight
-and reduce the open count from 55 to 52. Ethereum's standalone screenshot
+content checks. Polygon subsequently passed the same checks. Together they
+increase the scoped browser count from five to nine and reduce the open
+count from 55 to 51. Ethereum's standalone screenshot
 and durable browser credential export remain absent. Existing accepted
 HTTP cohorts remain retained.

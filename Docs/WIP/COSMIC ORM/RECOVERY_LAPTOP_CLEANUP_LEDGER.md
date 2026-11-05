@@ -1,5 +1,14 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+Browser verification on 5 November created one Development demo avatar,
+sandbox-ca8924da, with ten private Mongo records across Solana, Google,
+Ethereum, Polygon and Arbitrum. The retained browser tab owns its live
+session. IDs and completed checks are in
+RECOVERY_BROWSER_EVIDENCE_2026-11-05.md. Keep those records for continuation
+and later expiry review. Screenshots were emitted in the chat. No new
+runtime or standalone screenshot file was created. Arbitrum reuse and
+replica checks remain open after browser read/screenshot timeouts.
+
 The combined WEB4 admission run against Core `7b17894c` passed 7/7 with
 zero skips for Chroma, CouchDB, DuckDB, SQL Server, QuestDB, NATS JetStream
 and Cloudflare D1. The leased run restored the shared Core checkout to
