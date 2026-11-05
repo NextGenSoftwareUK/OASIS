@@ -15,7 +15,7 @@ b1f86140-00a9-4017-9b6c-af9eade65c76. Reuse this browser session.
 | PolkadotOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
 | NEAROASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
 | BaseOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
-| AvalancheOASIS | 3/2 | Not run | Bearer identity denied | Pending |
+| AvalancheOASIS | 3/2 | 5/4 | 2 saved after identity rejection; reuse pending | Pending |
 
 Avalanche native full/subset reads passed in the same session. Preparation
 then reported that billable routes require a validated bearer identity,
@@ -23,6 +23,12 @@ request key eb97063d-0be1-472a-9711-2231350d8b94. No save acknowledgement
 was shown. Preserve the session and inspect its renewal behavior before
 resubmitting preparation. The prior query operation displayed was
 9335c785-ee21-b1c8-f6d9-30200f643808, not a confirmed preparation operation.
+Discovery refresh then succeeded and an exact owner query returned both
+existing Base private copies. The same avatar resumed Avalanche preparation,
+which acknowledged two saves. Full/subset pairing returned 5/4. New private
+IDs are 9edd0c0e-1397-86c4-8308-d2946e639eb5 and
+eec55e3f-654b-85d7-ae68-f846ed5034e2, both version 1. Preserve the earlier
+identity denial. Its cause remains unassigned.
 
 Solana private IDs are 3066ca99-2a54-885f-afad-8b104f13b653 and
 b7f878cb-cd6d-8bf6-b075-e86856ade714. Google private IDs are
