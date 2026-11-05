@@ -1,5 +1,13 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+The combined WEB4 admission run against Core `7b17894c` passed 7/7 with
+zero skips for Chroma, CouchDB, DuckDB, SQL Server, QuestDB, NATS JetStream
+and Cloudflare D1. The leased run restored the shared Core checkout to
+`5415961`. It reused cached dependencies and regenerated existing
+`bin/Debug/net10.0` and `obj/Debug/net10.0` outputs in the WEB4 unit-test
+project and its project references. No runtime, database or standalone
+report was created.
+
 Workspace: C:/Source/OASIS2. Started 4 November 2026.
 This ledger applies to the recovery laptop only. The original laptop has its
 own [environment and cleanup ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
