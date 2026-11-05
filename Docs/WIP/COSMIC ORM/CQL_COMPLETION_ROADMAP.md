@@ -23,8 +23,10 @@ reason and evidence for any inapplicable feature and keep unverified cells open.
 The 4 November published launcher audit found all 37 referenced scripts in the
 task checkout. Runtime qualification remains separate.
 
-1. Verify/deploy explicit source recovery for the reproduced Nostr startup503;
-   [27controlled/API/schema cases pass](CQL_SOURCE_RECOVERY.md),live gate remains.
+1. Complete the [LocalFile Development rollout](LOCALFILE_CQL_MVP.md) using the
+   qualified image and verified persistent mount, then run the hosted demo gates.
+   Nostr source recovery is already deployed. The [operator recovery gate](CQL_SOURCE_RECOVERY.md)
+   remains open for the unavailable source.
    Recover the published launcher runtime/configuration gaps and their reviewed
    source dependencies from retained sandbox-integration pin 237403a75. DuckDB
    and LocalFile are restored with controlled tests/builds, no native replay.
