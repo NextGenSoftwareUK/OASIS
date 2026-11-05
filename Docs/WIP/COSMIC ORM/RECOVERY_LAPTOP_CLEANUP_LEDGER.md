@@ -1797,6 +1797,23 @@ Two focused LocalFile checks passed after binding the receipt writer to the
 source already verified on the instance. No live receipt, cache or new
 runtime was created.
 
+Qdrant read-only activation qualification reuses the existing .NET SDK,
+NuGet cache and provider build lease. The log is
+`TestResults/ProviderBuildCurrent/qdrant-hosted-read-activation.log`, and the
+TRX is planned in evidence-only `LocalState/COSMIC/HostedQdrantCqlQualification/`.
+The controlled tests start no native service and do not touch the retained source.
+
+Qdrant activation passed four focused controls with zero skips. TRX SHA-256
+`361f985033e6aefcda6d40ad5727d9871a2ba641a1ab40ef3d898164966e119a`.
+WEB4 admission uses the same evidence directory and existing build lease.
+Its build log is `TestResults/ProviderBuildCurrent/qdrant-hosted-api-cql.log`.
+The admission run finished with seven passes and zero skips. TRX SHA-256
+`5b10e9ab9ab40c8e47d8de4aa504920b4f02638e1f6b6328d8ee280af7845db4`.
+The separate fixture build uses the same leased outputs and logs to
+`TestResults/ProviderBuildCurrent/qdrant-hosted-native-fixture-build.log`.
+The fixture compiled with 145 warnings and zero errors. The lease restored
+shared Core to `54159614`. No native process started.
+
 The ArcadeDB admission run completed with seven passes and zero skips.
 TRX SHA-256 `adbc578d9ed2b3903d5f64e0fa174a23915b739c5bfba4ba8341b05cafe84e3d`.
 The separate hosted fixture build uses the same lease and existing outputs.

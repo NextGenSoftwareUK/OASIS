@@ -15,10 +15,79 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS;
 
-public partial class QdrantOASIS : ICosmicQueryStorageProvider
+public partial class QdrantOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
 {
+    private readonly Guid? _queryProbeId;
     public ProviderType QueryProviderType => Core.Enums.ProviderType.QdrantOASIS;
     public CosmicQueryCapabilities QueryCapabilities => QdrantCqlCompiler.Capabilities;
+
+    public QdrantOASIS(HttpClient client, string host, string? apiKey, Guid queryProbeId)
+        : this(client, host, apiKey)
+    {
+        if (queryProbeId == Guid.Empty)
+            throw new ArgumentException("An existing teaching probe identity is required.", nameof(queryProbeId));
+        _queryProbeId = queryProbeId;
+    }
+
+    public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
+    {
+        IsProviderActivated = false;
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (_queryProbeId is not Guid probe)
+                throw new InvalidOperationException("Explicit Qdrant query source settings are required.");
+            using var document = await RetrieveQueryPointsAsync(new[] { probe }, 1024 * 1024, cancellationToken);
+            var records = document.RootElement.GetProperty("result");
+            if (records.ValueKind != JsonValueKind.Array || records.GetArrayLength() != 1 ||
+                records[0].GetProperty("id").GetString() != probe.ToString("D"))
+                throw new InvalidDataException("The existing Qdrant teaching probe was not verified.");
+            var payload = records[0].GetProperty("payload");
+            var row = Des<Holon>(payload.GetProperty("data_json").GetString());
+            if (row == null || row.Id != probe || !row.IsPublic || row.IsDeleted || payload.GetProperty("is_deleted").GetBoolean())
+                throw new InvalidDataException("The Qdrant teaching probe must be an existing public record.");
+            cancellationToken.ThrowIfCancellationRequested();
+            IsProviderActivated = true;
+            return new(true);
+        }
+        catch (Exception cause)
+        {
+            return new()
+            {
+                IsError = true,
+                ErrorCount = 1,
+                ErrorCode = cause is OperationCanceledException ? "CQL_QUERY_CANCELLED" : "CQL_QUERY_SOURCE_UNAVAILABLE",
+                Message = "Qdrant query activation did not verify the teaching probe.",
+                Exception = cause
+            };
+        }
+    }
+
+    private async Task<JsonDocument> RetrieveQueryPointsAsync(IEnumerable<Guid> ids, int maximumBytes,
+        CancellationToken cancellationToken)
+    {
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(TimeSpan.FromSeconds(15));
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{_host}/collections/oasis_holons/points?timeout=15")
+        {
+            Content = new StringContent(JsonSerializer.Serialize(new {
+                ids = ids.Select(id => id.ToString("D")).ToArray(), with_payload = true, with_vector = false
+            }), Encoding.UTF8, "application/json")
+        };
+        using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+        response.EnsureSuccessStatusCode();
+        var document = await ReadNativeResponseAsync(response, maximumBytes, deadline.Token);
+        try
+        {
+            if (!HasOkStatus(document.RootElement)) throw new InvalidDataException("Native Qdrant read failed.");
+            return document;
+        }
+        catch
+        {
+            document.Dispose();
+            throw;
+        }
+    }
 
     private static async Task<JsonDocument> ReadNativeResponseAsync(HttpResponseMessage response,
         int maximumBytes, CancellationToken cancellation)
@@ -62,19 +131,7 @@ public partial class QdrantOASIS : ICosmicQueryStorageProvider
             var rows = new Dictionary<Guid, IHolon>();
             if (selected.Result.Count != 0)
             {
-                // Native retrieval over admitted keys, without vector similarity or scroll.
-                using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                deadline.CancelAfter(TimeSpan.FromSeconds(15));
-                using var request = new HttpRequestMessage(HttpMethod.Post, $"{_host}/collections/oasis_holons/points?timeout=15")
-                {
-                    Content = new StringContent(JsonSerializer.Serialize(new {
-                        ids = selected.Result.Select(id => id.ToString("D")).ToArray(), with_payload = true, with_vector = false
-                    }), Encoding.UTF8, "application/json")
-                };
-                using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
-                response.EnsureSuccessStatusCode();
-                using var document = await ReadNativeResponseAsync(response, 4 * 1024 * 1024, deadline.Token);
-                if (!HasOkStatus(document.RootElement)) throw new InvalidDataException("Native Qdrant read failed.");
+                using var document = await RetrieveQueryPointsAsync(selected.Result, 4 * 1024 * 1024, cancellationToken);
                 var records = document.RootElement.GetProperty("result");
                 if (records.ValueKind != JsonValueKind.Array || records.GetArrayLength() > selected.Result.Count)
                     throw new InvalidDataException("Native retrieval exceeds the selected catalogue.");

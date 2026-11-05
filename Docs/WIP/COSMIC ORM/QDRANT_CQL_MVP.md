@@ -91,3 +91,23 @@ central registration, legacy lookup/search/delete HTTP/size audit, semantic sear
 hosted/distributed snapshots and full HyperDrive/parity remain separate work.
 [Historical proof](Archive/QDRANT_CQL_MVP_PRESERVED_2026-10-30.md),
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md), [later work](AFTER_DEMO_BACKLOG.md).
+
+## WEB4 hosted enrollment preparation
+
+The read profile uses `CQL_QDRANT_QUERY_ORIGIN`, `CQL_QDRANT_QUERY_API_KEY`
+and `CQL_QDRANT_QUERY_PROBE_ID`. It requires an existing owned HTTPS origin,
+a key restricted to reading `oasis_holons`, and a public teaching probe.
+Read-only activation passed four focused controls. The WEB4 guard accepts
+only bounded, exact point retrieval with payloads and without vectors.
+
+The `QdrantHostedCqlNative` fixture uses the shipping registration. Set
+`COSMIC_QDRANT_HOSTED_CQL_SOURCE` to a descriptor with Actor, three LiveIds,
+one DeletedId and one MissingId. Use one live ID as the probe and keep the
+API key in the process environment. The fixture checks public ownership,
+full and subset reads, paging, excluded records and stable read projections.
+Seven focused WEB4 checks passed with zero skips, including the guarded
+probe and native/Mongo preset plans. TRX SHA-256
+`5b10e9ab9ab40c8e47d8de4aa504920b4f02638e1f6b6328d8ee280af7845db4`.
+The native HTTPS fixture compiled with 145 warnings and zero errors.
+Execution still needs an owned source and restricted read key.
+The retained historical Linux source remains untouched.

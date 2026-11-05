@@ -84,6 +84,15 @@ public class CqlCouchDbHostedAdmissionTests
         VerifyExactKeyPresets(ProviderType.SurrealDBOASIS, source.QueryCapabilities);
     }
 
+    [Fact]
+    public void QdrantExactKeyPresetsPlanNativeAndMongoQueries()
+    {
+        using var client = new System.Net.Http.HttpClient();
+        var source = new NextGenSoftware.OASIS.API.Providers.QdrantOASIS.QdrantOASIS(client,
+            "https://qdrant.example.test", "restricted", Guid.NewGuid());
+        VerifyExactKeyPresets(ProviderType.QdrantOASIS, source.QueryCapabilities);
+    }
+
     [Theory]
     [InlineData(ProviderType.ElasticsearchOASIS)]
     [InlineData(ProviderType.OpenSearchOASIS)]

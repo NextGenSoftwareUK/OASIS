@@ -1,4 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Net;
+using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -9,6 +11,47 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS.UnitTests;
 [TestClass]
 public class QdrantCqlTests
 {
+    [DataTestMethod]
+    [DataRow("public", true)]
+    [DataRow("private", false)]
+    [DataRow("deleted", false)]
+    [DataRow("missing", false)]
+    public async Task QueryActivationOnlyReadsAnExistingPublicProbe(string fixture, bool admitted)
+    {
+        var id = Guid.NewGuid();
+        using var transport = new ProbeTransport(id, fixture);
+        using var client = new HttpClient(transport);
+        var provider = new QdrantOASIS(client, "https://qdrant.example.test", "reader", id);
+        var result = await provider.ActivateQuerySourceAsync(default);
+        Assert.AreEqual(admitted, provider.IsProviderActivated);
+        Assert.AreEqual(!admitted, result.IsError);
+        Assert.AreEqual(1, transport.Requests);
+    }
+
+    private sealed class ProbeTransport(Guid id, string fixture) : HttpMessageHandler
+    {
+        internal int Requests { get; private set; }
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            Requests++;
+            Assert.AreEqual(HttpMethod.Post, request.Method);
+            Assert.AreEqual("/collections/oasis_holons/points?timeout=15", request.RequestUri!.PathAndQuery);
+            using var input = JsonDocument.Parse(await request.Content!.ReadAsByteArrayAsync(cancellationToken));
+            Assert.AreEqual(id, input.RootElement.GetProperty("ids").EnumerateArray().Single().GetGuid());
+            Assert.IsTrue(input.RootElement.GetProperty("with_payload").GetBoolean());
+            Assert.IsFalse(input.RootElement.GetProperty("with_vector").GetBoolean());
+            var row = new { id, payload = new { is_deleted = fixture == "deleted",
+                data_json = JsonSerializer.Serialize(new { id, isPublic = fixture != "private" }) } };
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(new {
+                    status = "ok", result = fixture == "missing" ? Array.Empty<object>() : new object[] { row }
+                }))
+            };
+        }
+    }
+
     private static CosmicQuery<Holon> Query(Guid[] ids)
         => CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.QdrantOASIS).Result)
             .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(
