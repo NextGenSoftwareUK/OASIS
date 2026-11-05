@@ -69,3 +69,4 @@ Full canonical Solana ORM writes, memo decoding and history recovery remain sepa
 
 Browser native reads, 5 November 2026. The live Development CQL Playground session sandbox-ca8924da selected SolanaOASIS and ran the advertised full and subset examples. The table rendered three native accounts at slot 465589402, then the status reported two rows for the subset. Native full operation 315699a3-5eea-cd7a-c1de-6dc94037eb92. Mongo preparation and paired browser reads remain open. Retain the browser tab for this session.
 
+Browser pairing continuation, 5 November 2026. Same sandbox-ca8924da session saved two private Mongo records. Full federation returned five rows from MongoDBOASIS and SolanaOASIS; subset returned four. Repeated preparation reported zero saved and two already prepared. Browser session remains retained. Independent browser privacy and screenshot capture remain open.
