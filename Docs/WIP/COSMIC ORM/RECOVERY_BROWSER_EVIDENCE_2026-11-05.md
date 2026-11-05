@@ -254,3 +254,20 @@ and exactly match committed blobs (local checkout line endings differ):
 HTML loads cql-playground.js?v=cql-preparation-identity-v3. Retained browser tabs
 were not reloaded and no preparation was retried. Live interaction of this
 specific correction remains unverified; the controlled regression passes.
+
+The earlier Aptos error lacks the route that emitted the quota rejection.
+Preparation first reads the native source, maps the snapshot IDs and checks
+Mongo before any save. A request key and an operation ID alone therefore
+cannot identify the failed stage or exclude an earlier successful save.
+Use the retained avatar's existing operation evidence and any original
+preparation intents. The deployed `GET /api/subscription/usage/events` and
+`GET /api/subscription/usage/audit` are scoped to the authenticated avatar.
+They can supply positive evidence of a matching operation. Absence from a
+bounded page does not authorize replay. Reconcile any exact Mongo write intent
+before another preparation attempt.
+
+Web4Site task commit `084df28996bb06ec77b2ba84ca9b1ca4e46c2b0f` adds the
+exact failed preparation route to the visible error while preserving the
+request key and operation ID. All 91 focused browser-client and preparation
+tests passed. The change is local to the task branch and does not reconstruct
+the route of the earlier Aptos failure. No live replay or sign-in occurred.

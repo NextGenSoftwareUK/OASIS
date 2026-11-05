@@ -1787,6 +1787,11 @@ used temporary synthetic reports and verified distinct visitors, the current
 deployment, evidence hashes and refusal to overwrite. The test runner removed
 its files. No live requests, cohorts or snapshots were created.
 
+WEB4 preparation error route regression used the existing Node executable
+and Web4Site checkout. The 91 focused client tests passed with no skips.
+Only the named task-branch source files were committed. No log, browser
+capture, runtime, download or new session was created.
+
 The ArcadeDB admission run completed with seven passes and zero skips.
 TRX SHA-256 `adbc578d9ed2b3903d5f64e0fa174a23915b739c5bfba4ba8341b05cafe84e3d`.
 The separate hosted fixture build uses the same lease and existing outputs.
