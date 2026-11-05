@@ -345,6 +345,10 @@ committed Web4Site `2170b67` blobs in read-only HTTP checks. SHA256 values:
 and `cql-demo-preparation.js`
 `c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a`.
 These identify the client assets for the eventual browser proof.
+Using the retained qualified bundle and a synthetic settings baseline, the
+same preparation module accepted both LocalFile paired presets and composed
+the exact five- and four-ID unions with two synthetic snapshot IDs. This
+check made no API calls and created no snapshots.
 
 ### Apply from the existing task checkout
 
