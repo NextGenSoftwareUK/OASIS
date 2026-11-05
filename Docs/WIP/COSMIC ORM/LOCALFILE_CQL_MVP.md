@@ -429,3 +429,5 @@ was pushed with digest
 sha256:11257dfebf23acfa6a321273baf98b8eefe2f83f8b430a862ab54ed9a168a6ce.
 Use that immutable digest when reviewing the Development image. Railway
 authentication, instance mount confirmation and live acceptance remain open.
+
+The build log confirms that both the full commit tag and the isolated candidate tag were pushed to the same digest. The job did not push the shared sandbox tag.
