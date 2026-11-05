@@ -63,9 +63,12 @@ def require_matching_release(configuration):
         raise RuntimeError("Deployment observation failed; output withheld and no configuration mutation")
     deployments=json.loads(observed.stdout)
     if (not isinstance(deployments, list) or len(deployments) != 1
+            or not isinstance(deployments[0], dict)
             or deployments[0].get("status") != "SUCCESS"):
         raise RuntimeError("The reviewed release must be successfully deployed before configuration application")
-    meta = deployments[0].get("meta") or {}
+    meta = deployments[0].get("meta")
+    if not isinstance(meta, dict):
+        raise RuntimeError("The successful deployment has no verifiable release metadata")
     if digest is None:
         matches = meta.get("commitHash") == expected
     else:
