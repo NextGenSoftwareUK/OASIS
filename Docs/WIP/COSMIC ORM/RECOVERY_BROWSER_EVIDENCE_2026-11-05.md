@@ -4,7 +4,9 @@ Monad passed native 3/2 and pairing 5/4 in sandbox-3a2cb72c.
 Preparation acknowledged two saves. Private IDs are
 0d61a851-691d-8ab2-9111-d4cc58afcac6 and
 3bd24259-12fd-8974-8530-eddbf8aad94f, both version 1.
-Reuse, privacy and rendered replica comparison remain open.
+Reuse reported zero saved and two prepared. SQLite and Neo4j each returned
+both copies with rendered contents exactly matching MongoDB. The independent
+retained visitor saw zero rows for both IDs on all three providers.
 
 Abstract passed native 3/2 and pairing 5/4 in sandbox-3a2cb72c.
 Preparation acknowledged two saves. Private IDs are
