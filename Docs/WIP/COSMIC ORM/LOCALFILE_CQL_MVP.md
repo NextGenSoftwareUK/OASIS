@@ -409,3 +409,9 @@ the image build. Six match advertised refs directly. The API Core pin is
 an ancestor of 6fcc2fea, the advertised tip of work/cosmic-duckdb-admission.
 This proves Git reachability through the current laptop credentials.
 The workflow's own credential and successful image build remain unverified.
+
+The task-branch WEB4 workflow summary now records source SHA and registry
+digest. Its exact shell step passed a local check with a valid digest and
+rejected missing and malformed digests without writing a summary. This is
+local shell evidence. The workflow still needs a successful GitHub run for
+the exact candidate to produce a real digest.
