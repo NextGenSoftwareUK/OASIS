@@ -4,6 +4,13 @@ Live page https://web4.oasisomniverse.one/web4-sandbox.html.
 Development selected. One demo session, sandbox-ca8924da, owner
 b1f86140-00a9-4017-9b6c-af9eade65c76. Reuse this browser session.
 
+The second retained tab uses sandbox-3a2cb72c with the clock-corrected
+session module. BNB Chain native 3/2 and pairing 5/4 passed there.
+Preparation acknowledged two saves. Private IDs are
+6f56a007-7fd0-8d1e-82d7-ba53d34904b6 and
+733c0191-8ca9-8975-ac2a-a2850d7b575a, both version 1. Reuse, privacy,
+replica comparison and renewal across the lifetime boundary remain open.
+
 | Provider | Native full/subset | Mongo full/subset | Preparation/reuse | Independent exact-ID privacy |
 |---|---|---|---|---|
 | SolanaOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
