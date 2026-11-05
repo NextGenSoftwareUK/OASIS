@@ -184,8 +184,8 @@ class LocalFileConfigurationTests(unittest.TestCase):
         with TemporaryDirectory() as directory, \
              patch.object(publisher.configuration, "STATE", Path(directory)), \
              patch.dict(publisher.os.environ, {"COSMIC_CQL_SETTINGS_DEPLOYMENT_ID": "deployment"}), \
-             patch.object(publisher, "verify_mount", return_value="deployment") as mount, \
-             patch.object(publisher, "verify_release", return_value="deployment"), \
+             patch.object(publisher, "require_data_mount") as mount, \
+             patch.object(publisher, "verify_release", return_value="deployment") as release, \
              patch.object(publisher.configuration, "protected_read", return_value=after), \
              patch.object(publisher.configuration, "variables", return_value=after) as variables, \
              patch.object(publisher.configuration, "apply_values") as mutation:
@@ -197,10 +197,12 @@ class LocalFileConfigurationTests(unittest.TestCase):
                 ack.write_text(json.dumps(dict(key=key, verified=True, deploymentTriggered=False,
                     sha256=publisher.hashlib.sha256(after[key].encode()).hexdigest())))
             self.assertEqual("deployment", publisher.verify_settings())
-            mount.return_value = "earlier-deployment-of-same-image"
+            mount.reset_mock()
+            release.return_value = "earlier-deployment-of-same-image"
             with self.assertRaisesRegex(RuntimeError, "not the reviewed LocalFile settings deployment"):
                 publisher.verify_settings()
-            mount.return_value = "deployment"
+            mount.assert_not_called()
+            release.return_value = "deployment"
             variables.return_value = dict(after, **{publisher.KEYS[0]: "different"})
             with self.assertRaisesRegex(RuntimeError, "settings differ"):
                 publisher.verify_settings()

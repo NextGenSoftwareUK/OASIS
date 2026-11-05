@@ -181,10 +181,12 @@ def verify_release():
     return guard.require_matching_release(configuration)
 
 
-def verify_mount(*, initial_bootstrap=False):
+def verify_mount(*, initial_bootstrap=False, expected_deployment=None):
     deployment = verify_release()
     if not isinstance(deployment, str) or not deployment:
         raise RuntimeError("Reviewed Railway deployment has no deployment ID")
+    if expected_deployment is not None and deployment != expected_deployment:
+        raise RuntimeError("Current deployment is not the reviewed LocalFile settings deployment")
     require_data_mount(initial_bootstrap=initial_bootstrap)
     if verify_release() != deployment:
         raise RuntimeError("Reviewed Railway deployment changed during mount inspection")
@@ -204,9 +206,7 @@ def verify_settings():
     expected_deployment = os.environ.get("COSMIC_CQL_SETTINGS_DEPLOYMENT_ID")
     if not expected_deployment:
         raise RuntimeError("Set the deployment ID created by the reviewed LocalFile settings change")
-    deployment = verify_mount()
-    if deployment != expected_deployment:
-        raise RuntimeError("Current deployment is not the reviewed LocalFile settings deployment")
+    deployment = verify_mount(expected_deployment=expected_deployment)
     expected = configuration.protected_read(PREFIX + "-candidate-variables.dpapi")
     for key in KEYS:
         path = configuration.STATE / f"{PREFIX}-{key}.acknowledged.json"
