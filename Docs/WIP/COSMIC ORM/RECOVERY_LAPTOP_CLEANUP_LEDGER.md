@@ -630,3 +630,5 @@ Reused existing source and build outputs. Native TRX SHA256
 3E7AC6E748FCBDD7A5FE0582A29F9686AED806E72FEE73F5C98A7CA89027D47E.
 
 DuckDB opt-in WEB4 build passed using existing WEB4 bin/obj. Receipt: TestResults/DuckDbCqlCurrent/web4-build.log. No listener or database opened.
+
+DuckDB and SQL Server WEB4 admission passed 2/2 against Core 6fcc2fea. Receipt: TestResults/DuckDbCqlCurrent/web4-admission.log. Reused existing build outputs and restored the shared Core source checkout.
