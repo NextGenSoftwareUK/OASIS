@@ -2,11 +2,16 @@ param([switch]$Federated,[switch]$Serve)
 if($Serve -and !$Federated){throw 'Serve requires federation.'}
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+$distributions = & wsl --list --quiet
+if ($LASTEXITCODE -ne 0 -or 'Ubuntu' -notin @($distributions | ForEach-Object { ($_ -replace '\x00', '').Trim() })) {
+    throw 'The Chroma demo requires the original Ubuntu WSL environment. No build or source changes were made.'
+}
+
 $results=Join-Path $root 'TestResults/ChromaCqlCurrent'
 [void][IO.Directory]::CreateDirectory($results)
 & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner 'COSMIC Chroma native demo' -Operation {
     $project=Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ChromaOASIS.IntegrationTests'
-    & dotnet restore $project --source C:/Users/david/.nuget/packages /p:NuGetAudit=false /p:RestoreRecursive=false /m:2 /nr:false *> (Join-Path $results 'native-restore.log')
+    & dotnet restore $project --source C:/Users/david/.nuget/packages /p:NuGetAudit=false /m:2 /nr:false *> (Join-Path $results 'native-restore.log')
     if($LASTEXITCODE){throw 'Cached native restore failed.'}
     $producers = @((Join-Path $root 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.ChromaOASIS'))
     if ($Federated) {
