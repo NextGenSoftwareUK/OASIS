@@ -4,15 +4,14 @@ Updated 5 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
-## PouchDB native continuation, 5 November2026
+## PouchDB local profile accepted, 5 November2026
 
-Bounded native-document CQL adapter implemented;18controlled cases pass, no
-skips. Real PouchDB9/express-pouchdb4.2 LevelDB runtime close/reopen qualified
-using installed Node18, one small npm environment. Package-context install
-failure resolved with retained logs and deterministic lock/runtime manifests.
-Create-only native HTTP source and retained restart pass1/1each, full canonical
-payloads/revision1 unchanged, native closure verified. Four runner controls pass.
-No accepted profile yet. Next manager/Mongo/HTTP/browser5141. Counts101/60/28 unchanged. [Scope](POUCHDB_CQL_MVP.md).
+18controlled cases and four runner guards pass. Real PouchDB9/express-pouchdb4.2
+LevelDB native bootstrap/retained restart plus manager/Mongo/HTTP/browser5/4 pass.
+Original hashes/revision1 unchanged; exact Mongo fixture removed, native store
+closed and both owned services stopped. New local profile102; hosted60/browser28
+unchanged. WEB4 local launcher publication follows scoped source commit.
+[Exact evidence and limits](POUCHDB_CQL_MVP.md).
 
 ## SurrealDB Windows recovery continuation, 5 November2026
 

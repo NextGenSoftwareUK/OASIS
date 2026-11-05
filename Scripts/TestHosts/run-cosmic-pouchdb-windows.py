@@ -87,11 +87,17 @@ def observe_source():
     return hashes
 
 
-def run(initialize):
+def run(initialize, paired=False, serve=False):
     with (STATE / 'runner.lock').open('a+b') as lock:
         lock.seek(0)
         msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
         validate_admission(initialize)
+        if paired:
+            if (STATE / 'demo-ready.json').exists():
+                raise RuntimeError('Unresolved previous browser session')
+            with socket.socket() as probe:
+                if probe.connect_ex(('127.0.0.1', 5141)) == 0:
+                    raise RuntimeError('Browser listener occupied')
         manifest = (STATE / 'runtime-files.json').read_bytes()
         if hashlib.sha256(manifest).hexdigest() != '60f79bf3018a5dfb578097f4f3aab298fa02632f2dfbceb29d0162df4ac04684':
             raise RuntimeError('Admitted runtime manifest differs')
@@ -105,7 +111,7 @@ def run(initialize):
             if probe.connect_ex(('127.0.0.1', 19600)) == 0:
                 raise RuntimeError('Existing native listener; no process adoption')
         (STATE / 'data').mkdir(exist_ok=True)
-        reports = STATE / (('initial-' if initialize else 'retained-') + uuid.uuid4().hex)
+        reports = STATE / (('interactive-' if serve else 'paired-' if paired else 'initial-' if initialize else 'retained-') + uuid.uuid4().hex)
         reports.mkdir()
         durable(reports / 'intent.json', {'initialize': initialize, 'port': 19600, 'adapter': 'leveldb'})
         startup = subprocess.STARTUPINFO()
@@ -135,6 +141,7 @@ def run(initialize):
                     durable(STATE / 'source.json', {'Endpoint': 'http://127.0.0.1:19600', 'Actor': str(uuid.uuid4()),
                         'LiveIds': identities[:3], 'DeletedId': identities[3], 'MissingId': identities[4]})
                 env = dict(os.environ, COSMIC_POUCHDB_CQL_SOURCE=str(STATE / 'source.json'), COSMIC_POUCHDB_CQL_ROOT=str(STATE))
+                env['OASIS_POUCHDB_MONGO_SERVE'] = '1' if serve else '0'
                 def test(category):
                     with (reports / (category + '.log')).open('xb') as output:
                         subprocess.run(['dotnet', 'test', str(PROJECT), '--no-build', '--no-restore', '--filter', 'TestCategory=' + category,
@@ -151,9 +158,11 @@ def run(initialize):
                 before = observe_source()
                 if before != json.loads((STATE / 'native-baseline.json').read_bytes()):
                     raise RuntimeError('Original native payload changed')
-                trx_hash = test('PouchDBCqlNative')
+                trx_hash = test('PouchDBMongoCqlNative' if paired else 'PouchDBCqlNative')
                 if observe_source() != before:
                     raise RuntimeError('Native query changed original payload/revision')
+                if (STATE / 'mongo.pending.json').exists() or (STATE / 'demo-ready.json').exists():
+                    raise RuntimeError('Consumer fixture cleanup incomplete')
                 durable(reports / 'result.json', {'passed': 1, 'trxSha256': trx_hash, 'originalDocumentsUnchanged': True})
             finally:
                 if node.poll() is not None:
@@ -173,5 +182,9 @@ if __name__ == '__main__':
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument('--initialize', action='store_true')
     mode.add_argument('--retained', action='store_true')
+    mode.add_argument('--paired', action='store_true')
+    parser.add_argument('--serve', action='store_true')
     args = parser.parse_args()
-    run(args.initialize)
+    if args.serve and not args.paired:
+        parser.error('Interactive serving requires paired mode')
+    run(args.initialize, args.paired, args.serve)

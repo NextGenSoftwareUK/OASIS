@@ -119,6 +119,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.PocketBaseOASIS => "PocketBase",
         ProviderType.SupabaseOASIS => "Supabase",
         ProviderType.CouchDBOASIS => "CouchDB",
+        ProviderType.PouchDBOASIS => "PouchDB",
         ProviderType.SurrealDBOASIS => "SurrealDB",
         ProviderType.ArangoDBOASIS => "ArangoDB",
         ProviderType.RavenDBOASIS => "RavenDB",

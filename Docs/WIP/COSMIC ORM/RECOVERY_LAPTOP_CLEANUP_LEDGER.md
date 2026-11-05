@@ -1458,3 +1458,10 @@ three runner controls pass. Retained restart is live; no duplicate source/store.
 No new packages/downloads this phase. Native runtime-probe remains separate.
 
 PouchDB retained92aa053d4e014ea099990049e49d3b381/1 native query passes, original payloads/revisions unchanged, no reseed. Both current phase logs explicitly prove one native DB closed;19600closed. Four runner controls pass; retain native store/ACKs/baseline for manager/browser continuation.
+
+PouchDB interactive251b996fb54e442ca5bfc4c64a0eb5151/1/browser5/4 accepted.
+Same retained native payloads/revision1 unchanged, exact temporary Mongo database
+verified/dropped. Owned NodePID9268CtrlC0/native DB close and MongoPID19264
+CtrlC12/storageClosed/shutdownComplete; all19600/27029/5141listeners closed.
+No new download/runtime. Consumer outputs reused,1142warnings/0errors logged.
+Compact TRX/result/shutdown receipts retained; local profile102, hosted unchanged.

@@ -80,3 +80,17 @@ exit0 and listener19600closed. Four runner controls pass after adding mandatory
 single native-close receipt validation. Historical stopped.json receipts predate
 that extra JSON field; actual current logs independently validate the same
 invariant, without re-running accepted native point queries. No profile increase.
+
+## Manager/HTTP/browser accepted, 5 November2026
+Interactive-251b996fb54e442ca5bfc4c64a0eb515 completes1/1, zero skips, TRX SHA256
+`9900873e49ad3b9deaf0e67938de9129c32a41d95703e0983509e066aada48a6`.
+Actual browser5141 returns5full/4subset physical rows with both providers and
+MovingProviderReads. Consumer verifies direct C# LINQ/manager federation,
+forged actor/unknown preset400 and inactive provider503 without partial rows.
+No PouchDB writes; all original raw hashes/revision1 match before/after.
+Exact three-record Mongo fixture verified/dropped and absence checked, pending/
+ready cleared. NativePID9268CtrlC0 with explicit database close; MongoPID19264
+CtrlC12/storageClosed/shutdownComplete.19600/27029/5141closed. Consumer build
+0errors/1142warnings (including existing shared warnings). No new downloads.
+Local profile102 accepted; hosted60/browser28/open32 unchanged. WEB4 local card
+publication next; hosted credentials/enrollment and full provider parity open.
