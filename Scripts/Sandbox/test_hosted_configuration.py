@@ -31,6 +31,21 @@ class File:
 
 
 class ConfigurationOwnerTests(unittest.TestCase):
+    def test_variable_observation_requires_a_complete_string_mapping(self):
+        for payload in (b'[]', b'{"ONE":null}', b'{broken'):
+            with self.subTest(payload=payload), patch.object(
+                    configuration.subprocess, "run",
+                    return_value=types.SimpleNamespace(returncode=0, stdout=payload)):
+                with self.assertRaisesRegex(RuntimeError, "observation was invalid; output withheld"):
+                    configuration.variables()
+
+    def test_variable_observation_timeout_is_reported_without_output(self):
+        with patch.object(configuration.subprocess, "run",
+                          side_effect=configuration.subprocess.TimeoutExpired("railway", 30)) as run:
+            with self.assertRaisesRegex(RuntimeError, "observation failed; output withheld"):
+                configuration.variables()
+            self.assertEqual(30, run.call_args.kwargs["timeout"])
+
     def exercise(self, mode):
         before = {"ONE": "old-one", "TWO": "old-two", "KEEP": "shared"}
         after = {"ONE": "new-one", "TWO": "new-two", "KEEP": "shared"}

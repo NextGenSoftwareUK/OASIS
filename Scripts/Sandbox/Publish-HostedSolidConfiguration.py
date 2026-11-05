@@ -41,10 +41,20 @@ def write_new(path, data):
 
 
 def variables():
-    result = subprocess.run([str(CLI), "variables", *COMMON, "--json"], capture_output=True)
+    try:
+        result = subprocess.run([str(CLI), "variables", *COMMON, "--json"],
+                                capture_output=True, timeout=30)
+    except (OSError, subprocess.TimeoutExpired):
+        raise RuntimeError("Hosted variable observation failed; output withheld.") from None
     if result.returncode:
         raise RuntimeError("Hosted variable observation failed; output withheld.")
-    return json.loads(result.stdout)
+    try:
+        observed = json.loads(result.stdout)
+    except (UnicodeDecodeError, ValueError):
+        raise RuntimeError("Hosted variable observation was invalid; output withheld.") from None
+    if not isinstance(observed, dict) or any(not isinstance(value, str) for value in observed.values()):
+        raise RuntimeError("Hosted variable observation was invalid; output withheld.")
+    return observed
 
 
 def protected_read(name):
