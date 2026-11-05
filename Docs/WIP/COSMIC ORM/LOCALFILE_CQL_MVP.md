@@ -215,8 +215,7 @@ prepare, review the five-variable candidate, verify the exact code deployment
 and Core pin. Confirm the existing Development WEB4 persistent volume is
 mounted at /data before applying the candidate once. Confirm the service and environment in the Railway dashboard because this laptop's volume list command has no explicit project/environment/service selectors. The bootstrap checks
 that the parent directory exists, which does not establish persistence.
-Observe the resulting settings
-deployment before running Verify-HostedQuerySource.py LocalFileOASIS --prepare
+Deploy the reviewed settings together as described below before running Verify-HostedQuerySource.py LocalFileOASIS --prepare
 with a fresh provider-scoped journal. Check native 3/2, paired 5/4, repeat
 reuse, foreign-private 0/public 3 and both exact replicas before publishing
 the card. Preserve partial journals and reconcile any uncertain mutation
@@ -321,8 +320,10 @@ python Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py apply
 
 Review prepared-review.json before apply. If the protected preparation differs
 from current service settings or the latest deployment differs from the reviewed
-SHA, reconcile that state before continuing. After applying, observe the settings
-deployment and run readiness before preparing the visitor cohort.
+SHA, reconcile that state before continuing. The publisher sets each value with --skip-deploys. After all five
+acknowledgements exist, inspect the staged settings and trigger one Development
+WEB4 deployment of the same reviewed commit. Verify SUCCESS and the commit
+hash before running readiness. An apply receipt confirms settings only.
 
 Offline candidate assembly passed using the actual retained qualified bundle
 and synthetic enabled-sandbox settings with an existing zero-cost IPFS tariff.
