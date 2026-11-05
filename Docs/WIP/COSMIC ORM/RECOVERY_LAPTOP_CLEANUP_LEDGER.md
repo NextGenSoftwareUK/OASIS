@@ -1014,7 +1014,7 @@ check returned Unauthorized. No settings, deployment or project link changed.
   No server startup, package/environment or data write. No standalone screenshots
   or downloaded verification artifacts retained; HTTP comparisons ran in memory.
 
-## Solr CQL adapter � 5 November 2026
+## Solr CQL adapter — 5 November 2026
 
 No runtime/package archive or new environment installed. Existing Java metadata inspected read-only; no native Solr process/source created. Both scoped builds held the provider lease with bounded workers. Unit TRX:16 passed/0failed/0skipped; integration fixture build:0errors/4warnings. Shared Core/Shared outputs reused; no separate build environment.
 
@@ -1033,3 +1033,49 @@ Unit TRX SHA256:9c2ba8a35c97c424d6e62b26f598320d388fda7e0e5f9edd7307d264b8dcee2f
 - `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests/bin`: 47118406 bytes.
 
 - `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests/obj`: 1016251 bytes.
+
+## Solr native runtime qualification — 5 November 2026
+
+Single reusable directory: `LocalState/COSMIC/RecoveryLaptopSolr1010`. Downloading Apache Solr 10.1.0 slim (83,063,602 bytes; SHA512 d22df360764a024ea59dbe0e29367ef0dfaabcfe9d7f6b568b35f73e034c7346ca325e5e18f51da312ae292eb4d1cff3c7380967f9288e56c6563306bab67f06 verified against Apache checksum) and Temurin21.0.13+9 JRE Windows x64 (49,106,397 bytes; expected official GitHub asset SHA2562332c0b4cff6bed722da3567c91d5e47568bcba863fa4945d0a8d6fc76158628). Archives and verification receipts are in this directory. No system install, PATH change, feature enablement or service registration. Retained QuestDB Java is a partial module image, so this is the one required general Java runtime, reusable for later providers. Adoptium metadata API returned403; official GitHub release metadata supplied the pinned asset and digest. Native source/server not yet created; pending expansion/process measurements follow below.
+
+### Solr native acceptance and archive cleanup
+
+Both native TRX runs:1passed/0failed/0skipped each; first seed exactly once, retained restart no reseed. Four runner controls pass. Two original pre-seed startup failures/logs preserved, all owned PIDs stopped gracefully with exit0. Ports18883/17883 have no listener. Railway whoami still Unauthorized at this checkpoint; no owner action duplicated. All1,942 installed runtime files verified against archive-derived manifest SHA2567f8e68dd01566a36e0b0c441481b3fcc477a63fa153a973eee8b04486ce32520. Archives removed after exact-path/hash verification, freeing132,169,999bytes; verification/expansion/cleanup receipts retained. No system/service/PATH changes.
+
+- `LocalState/COSMIC/RecoveryLaptopSolr1010/jdk-21.0.13+9-jre`: 151829828 bytes retained.
+- `LocalState/COSMIC/RecoveryLaptopSolr1010/solr-10.1.0-slim`: 119153152 bytes retained.
+- `LocalState/COSMIC/RecoveryLaptopSolr1010/home`: 194295 bytes retained.
+- `LocalState/COSMIC/RecoveryLaptopSolr1010/logs`: 37302 bytes retained.
+- `LocalState/COSMIC/RecoveryLaptopSolr1010/tmp`: 229191 bytes retained.
+- `TestResults/SolrCqlNativeCurrent`: 5714 bytes retained.
+- `initial-process.json`: 1051 bytes retained.
+- `initial-run.intent.json`: 52 bytes retained.
+- `initial-stopped.json`: 38 bytes retained.
+- `native-evidence.json`: 1627 bytes retained.
+- `OpenJDK21U-jre_x64_windows_hotspot_21.0.13_9.zip.expanded.json`: 81 bytes retained.
+- `OpenJDK21U-jre_x64_windows_hotspot_21.0.13_9.zip.verified.json`: 296 bytes retained.
+- `retained-0d7a9085cb334bd79012c5c7fe71092b-process.json`: 1051 bytes retained.
+- `retained-0d7a9085cb334bd79012c5c7fe71092b-run.intent.json`: 87 bytes retained.
+- `retained-0d7a9085cb334bd79012c5c7fe71092b-run.result.json`: 502 bytes retained.
+- `retained-0d7a9085cb334bd79012c5c7fe71092b-stopped.json`: 38 bytes retained.
+- `runtime-manifest.json`: 262708 bytes retained.
+- `seed-dispatch.intent.json`: 162 bytes retained.
+- `seed.ack.json`: 185 bytes retained.
+- `seed.intent.json`: 1664 bytes retained.
+- `solr-10.1.0-slim.tgz.expanded.json`: 53 bytes retained.
+- `solr-10.1.0-slim.tgz.verified.json`: 297 bytes retained.
+- `source.json`: 364 bytes retained.
+- `unseeded-resume-b7401217fd864536b8f0186ebf9355d2-process.json`: 1051 bytes retained.
+- `unseeded-resume-b7401217fd864536b8f0186ebf9355d2-run.intent.json`: 93 bytes retained.
+- `unseeded-resume-b7401217fd864536b8f0186ebf9355d2-stopped.json`: 38 bytes retained.
+- `unseeded-resume-c75bb54aa04d47329bbdb590fbb65186-process.json`: 1051 bytes retained.
+- `unseeded-resume-c75bb54aa04d47329bbdb590fbb65186-run.intent.json`: 93 bytes retained.
+- `unseeded-resume-c75bb54aa04d47329bbdb590fbb65186-run.result.json`: 501 bytes retained.
+- `unseeded-resume-c75bb54aa04d47329bbdb590fbb65186-stopped.json`: 38 bytes retained.
+- `verified-archive-cleanup.json`: 616 bytes retained.
+- `initial-server.log`: 2141 bytes retained (failed and successful attempts distinct).
+- `retained-0d7a9085cb334bd79012c5c7fe71092b-server.log`: 12362 bytes retained (failed and successful attempts distinct).
+- `unseeded-resume-b7401217fd864536b8f0186ebf9355d2-server.log`: 8999 bytes retained (failed and successful attempts distinct).
+- `unseeded-resume-c75bb54aa04d47329bbdb590fbb65186-server.log`: 13800 bytes retained (failed and successful attempts distinct).
+- `retained-0d7a9085cb334bd79012c5c7fe71092b.trx`: 2857bytes; SHA25694b183d594fe7bc87057bc5298e215d968913c0316ce1736848c40d89b69a703.
+- `unseeded-resume-c75bb54aa04d47329bbdb590fbb65186.trx`: 2857bytes; SHA256afcb81655de402f459560deca34dd73480349b822fc23791acb11322d2bc20e0.

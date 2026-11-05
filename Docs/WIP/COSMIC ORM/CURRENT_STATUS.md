@@ -7,8 +7,9 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 ## Solr adapter continuation, 5 November 2026
 
 Solr bounded CQL and read-only existing-collection activation now have 16 passing
-controlled tests, zero skips. Native fixture is prepared; runtime/schema, native,
-manager and browser qualification remain open. Coverage counts unchanged.
+controlled tests, zero skips. Native Solr10.1.0 first seed and retained restart
+now pass3/2/0 and source preservation; four runner control tests pass. Manager,
+HTTP and browser qualification remain open. Coverage counts unchanged.
 See [scope and remaining gates](SOLR_CQL_MVP.md).
 
 ## Browser continuation gate, 5 November 2026

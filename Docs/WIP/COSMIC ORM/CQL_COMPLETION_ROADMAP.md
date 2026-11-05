@@ -41,7 +41,9 @@ task checkout. Runtime qualification remains separate.
    links and exact public static bytes are verified. Counts are demo scopes,
    not full provider or ORM certification. Meilisearch adds the new Windows-local
    profile: native/restart, manager/Mongo/HTTP and browser verified, with an honest
-   local-only WEB4 card. Hosted Meili enrollment remains open.
+   local-only WEB4 card. Hosted Meili enrollment remains open. Solr now has
+   bounded native3/2/0 and retained restart proof; its manager/HTTP/browser
+   integration remains open and does not increment these counts.
 3. Keep filtered native queries and Mongo federated presets for every admitted
    provider. Expand remaining red scopes with explicit capabilities/consistency,
    controlled tests, actual native manager/LINQ and HTTP proof, privacy/replicas,
