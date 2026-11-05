@@ -1,7 +1,45 @@
 # QuestDB public demo qualification
 
 Local native REST, CQL and WEB4 HTTP/Mongo acceptance passed on the recovery
-laptop. Hosted endpoint qualification and browser acceptance remain open.
+laptop. Hosted endpoint qualification and hosted browser acceptance remain open.
+
+## Local browser continuation — 5 November 2026
+
+The remaining local browser flow now passes using the admitted10.1.0 linked
+runtime (174files/128242521bytes, retained-inventory manifest SHA256
+`3e53e13800098a9b341d83449d608a391978136f2d49bb52a71e2900ed8b0bff`).
+No new runtime/download. The prior disposable HTTP fixture had been removed;
+the separate, explicitly initialized `RecoveryLaptopQuestDB1010/browser-source`
+retains three synthetic symbols in `cql_demo_symbols`. Historical HTTP cohort
+IDs/receipts and the original public gateway denial remain untouched.
+
+Initial native source bootstrap and new manager/Mongo/HTTP preset flow pass1/1.
+Retained restart with interactive browser flow passes1/1. Actual browser full
+selection returns5rows (QuestDB3/Mongo2); subset returns4 (QuestDB2/Mongo2),
+showing identical canonical IDs across physical provider copies and
+`MovingProviderReads`. Unknown/forged presets400 and inactive503 pass. Stop
+button observed, exact3-record Mongo fixture verified/removed, native QuestDB
+shutdown hook reports complete/exit130, Mongo native shutdown/storage-close
+exit12, and all29000/27029/5120listeners closed. Native source hash unchanged:
+`6383b7a66ea48807bf1130e340688695e59b46bd832c7db00dc14eac01ba81a1`.
+
+Runtime-root evidence: `initial-33a5c5e1aa764f8384325150e8f48280` and
+`interactive-080e30d52ad14302a0cd27aa87de5a61` retain original logs/TRXs/acceptance
+and native shutdown receipts. `browser-acceptance.json` records actual CUA
+observations, not screenshots. Two source-admission controls exercise changed
+actor/network configuration and missing admission; exact source/configuration
+SHA admission is required before subsequent startup and after the consumer.
+
+The shared teaching host now allows trusted explicit CQL presets for its full
+and subset buttons, rather than imposing ID membership on a metadata-only
+native source. No error-time alternative query path. Its default identity
+presets remain the default when no explicit CQL preset is supplied.
+
+This closes a local browser gap, not another provider/profile: counts remain
+100local/60hostedHTTP/28hostedbrowser. Public local catalogue card/guide is next.
+Hosted HTTPS restrictions/enrollment, public gateway qualification, PGWire
+holon storage and full ORM parity remain open. See the
+[local launcher guide](../../Devs/QUESTDB_CQL_LOCAL_DEMO.md).
 
 ## Contract and free access
 

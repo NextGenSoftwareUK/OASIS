@@ -4,6 +4,15 @@ Updated 5 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
+## QuestDB browser continuation, 5 November 2026
+
+Existing native CQL/HTTP proof retained; local browser gap closed5/4 over
+QuestDB symbols and private Mongo copies. Reused admitted runtime/Mongo, no
+download. Separate retained browser-source initialized once; restart/source
+preservation, exact Mongo fixture cleanup and both native shutdowns pass.
+Two source identity/configuration controls pass. Public local card/guide is
+next; counts100/60/28 unchanged. [Evidence](QUESTDB_PUBLIC_SOURCE_STATUS.md).
+
 ## Elasticsearch continuation, 5 November 2026
 
 Elasticsearch continuation:32controlled cases and2shutdown-lineage controls

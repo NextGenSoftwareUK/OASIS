@@ -269,7 +269,13 @@ public static class IdentityFederationApiHost
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
                 "Read synthetic holons from MongoDB and retained Realtime Database emulator checkpoint for Firebase through HolonManager.", StringComparison.Ordinal)
                 .Replace("Stop demo and clean fixtures", "Stop demo (keep original Firebase checkpoint)", StringComparison.Ordinal);
-        if (content != null)
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.QuestDBOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read enrolled synthetic symbol metadata from native QuestDB and private Mongo copies through HolonManager. This is separate from QuestDB holon storage and hosted enrollment.", StringComparison.Ordinal)
+                .Replace("source.Where(row =&gt; selectedIds.Contains(row.Id));",
+                    "source.Where(row =&gt; selectedSymbols.Contains(\n    CosmicQueryMetadata.Value&lt;string&gt;(row, \"QuestDbSymbol\")));", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep QuestDB symbols)", StringComparison.Ordinal);
+        if (content != null && content.Keys.Any(key => key is not "all" and not "subset"))
         {
             page = page.Replace("<button id=\"subset\">Query two-record subset</button>",
                 "<button id=\"subset\">Query two-record subset</button>" + ContentButtons, StringComparison.Ordinal);
@@ -286,8 +292,11 @@ public static class IdentityFederationApiHost
                 "subset" => ids.Take(2).ToArray(),
                 _ => null
             };
+            // Explicit CQL presets may select by native metadata rather than IDs.
+            // Their predicates and authority are captured by trusted fixture code.
             CosmicQuery<Holon> contentSource = null;
-            if (selection == null && (content == null || !content.TryGetValue(request.Preset, out contentSource)))
+            content?.TryGetValue(request.Preset, out contentSource);
+            if (selection == null && contentSource == null)
                 return Results.BadRequest(new { code = "DEMO_PRESET_REQUIRED" });
 
             try
