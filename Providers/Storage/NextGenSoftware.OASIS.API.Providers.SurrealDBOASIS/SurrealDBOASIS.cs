@@ -452,7 +452,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             try
             {
                 var loaded = await LoadHolonAsync(id); if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: Holon '{id}' not found."); return result; }
-                var holon = (Holon)loaded.Result; holon.DeletedDate = DateTime.UtcNow; await SaveHolonAsync(holon);
+                var holon = (Holon)loaded.Result;
+                holon.DeletedDate = DateTime.UtcNow;
+                var saved = await SaveHolonAsync(holon);
+                if (saved.IsError) return saved;
                 result.Result = holon; result.IsError = false; result.Message = $"SurrealDBOASIS: Holon '{id}' soft-deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }

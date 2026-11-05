@@ -139,6 +139,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.IntegrationTests
             var liveId = Guid.NewGuid();
             var missingId = Guid.NewGuid();
             var foreignId = Guid.NewGuid();
+            var liveDeleted = false;
 
             CosmicQueryPlan<Holon> Plan(Guid id, Guid? admittedId = null)
             {
@@ -178,12 +179,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.IntegrationTests
                     cancellationToken: new CancellationToken(canceled: true));
                 Assert.AreEqual("CQL_QUERY_CANCELLED", cancelled.ErrorCode);
                 Assert.IsNull(cancelled.Result);
+
+                var deleted = await _provider.DeleteHolonAsync(liveId);
+                Assert.IsFalse(deleted.IsError, deleted.Message);
+                liveDeleted = true;
+                var tombstone = await _provider.ExecuteCosmicQueryAsync(Plan(liveId));
+                Assert.IsFalse(tombstone.IsError, tombstone.Message + tombstone.Exception);
+                Assert.AreEqual(0, tombstone.Result.Count);
             }
             finally
             {
-                var liveCleanup = await _provider.DeleteHolonAsync(liveId);
+                var liveCleanup = liveDeleted ? null : await _provider.DeleteHolonAsync(liveId);
                 var foreignCleanup = await _provider.DeleteHolonAsync(foreignId);
-                Assert.IsFalse(liveCleanup.IsError, liveCleanup.Message);
+                if (liveCleanup != null) Assert.IsFalse(liveCleanup.IsError, liveCleanup.Message);
                 Assert.IsFalse(foreignCleanup.IsError, foreignCleanup.Message);
             }
         }
