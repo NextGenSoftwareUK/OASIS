@@ -32,7 +32,7 @@ def validate_source(source):
     if set(source) != {'origin', 'tenant', 'database', 'collectionId', 'ids'}:
         raise ValueError('Exact source configuration required.')
     origin = urlsplit(source['origin'])
-    if (origin.scheme != 'https' or not origin.hostname or origin.username or origin.password
+    if (origin.scheme != 'https' or not origin.hostname or origin.username is not None or origin.password is not None
             or origin.query or origin.fragment or origin.path or origin.port not in (None, 443)):
         raise ValueError('HTTPS origin without credentials, path or custom port required.')
     for key in ('tenant', 'database'):

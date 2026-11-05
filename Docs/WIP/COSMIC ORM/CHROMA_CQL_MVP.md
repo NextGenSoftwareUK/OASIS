@@ -143,3 +143,9 @@ reviewed UUID and exact teaching counts. These assertions qualify a source;
 they do not replace the provider's CQL read authority. The complete Sandbox
 Python suite passes 637 tests, zero failures/skips, including six new Chroma
 cases. No external source was contacted by that test run.
+
+The new qualification tool's URL check reproduced one edge case before use:
+empty userinfo (`https://@host`) passed a truthiness check. It now rejects
+userinfo by presence, including empty username/password, before any request.
+The six focused tests pass with both empty-userinfo regressions included.
+No hosted call or qualification receipt was created.

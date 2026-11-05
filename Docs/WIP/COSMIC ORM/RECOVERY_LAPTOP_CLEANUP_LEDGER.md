@@ -782,3 +782,11 @@ check returned Unauthorized. No settings, deployment or project link changed.
   passed in 2.213 seconds with Python -B. No new SDK/runtime or persistent test
   report. Tests use their existing temporary-directory cleanup; candidate
   configuration messages are controlled fixtures, not Railway mutations.
+
+- 5 November 02:15 local: read-only Railway 5.62.1 account check still returns
+  Unauthorized. No operator-session directory exists at
+  LocalState/COSMIC/HostedSourceRecoveryOperatorCurrent. No credentials,
+  settings, deployments or provider data changed. Existing owner access action
+  remains the single request; no competing action list was created.
+- Chroma empty-userinfo validation fix: six focused offline tests pass with
+  existing Python -B; no new files outside tracked source/docs or test outputs.

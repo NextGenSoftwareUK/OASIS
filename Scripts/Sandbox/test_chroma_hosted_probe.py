@@ -63,6 +63,7 @@ class ChromaHostedProbeTests(unittest.TestCase):
 
     def test_invalid_source_or_credential_sends_nothing(self):
         for origin in ('http://chroma.example.com', 'https://secret@chroma.example.com',
+                       'https://@chroma.example.com', 'https://:@chroma.example.com',
                        'https://chroma.example.com/path', 'https://chroma.example.com?token=secret'):
             source = self.source(); source['origin'] = origin
             with self.assertRaises(ValueError):
