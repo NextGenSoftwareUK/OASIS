@@ -133,6 +133,13 @@ database before enrolling their IDs.
 | CQL_PUBLIC_READ_CATALOGUES_JSON | Preserve existing catalogues and add exactly the three qualified GUIDs for SQLServerDBOASIS |
 | CQL_HOSTED_QUERY_EXAMPLES__SQLServerDBOASIS | public-records, public-subset, mongo-public-records, mongo-public-subset |
 
+Use the [four-preset generator](DUCKDB_CQL_MVP.md) with provider
+`SQLServerDBOASIS`, SQL Server labels, and the seed whose IDs were qualified
+on the target database. The retained local seed at
+`LocalState/COSMIC/SqlServerCql/demo-seed.json` passed offline verification
+against Web4Site `2170b67`. Both paired presets select the first two native
+IDs for preparation and keep their original three- and two-ID filters.
+
 Use the tested identity predicates and preserve physical copies in paired
 queries. Verify the exact reviewed Development release and settings, then run
 the cohort-free check before any snapshot preparation:
