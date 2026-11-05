@@ -116,6 +116,9 @@ async function main() {
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
     rows(response, 2);
+    const replicaIds = new Set(response.result.rows.map(row => row.id));
+    if (replicaIds.size !== ids.length || ids.some(id => !replicaIds.has(id)))
+      throw Error(provider + ' did not return the exact private replica IDs.');
     for (const row of response.result.rows) {
       const original = mongo.get(row.id);
       if (!ids.includes(row.id) || !original || row.createdByAvatarId !== input.ownerId || row.isPublic !== false ||
