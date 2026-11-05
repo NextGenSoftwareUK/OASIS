@@ -704,3 +704,5 @@ check returned Unauthorized. No settings, deployment or project link changed.
 - NATS activation native requalification rebuilt the retained sdk-probe bin/obj under the provider lease. The retained JetStream 2.15.2 fixture passed exact 3/2 SDK/CQL selections, absent-bucket rejection and profile save rejection. No reseeding. Owned listener 24222 stopped. Retain identity-activation-server.log (2044 bytes) in RecoveryLaptopNats2152 with the compact verification record.
 
 - NATS connection ownership change passed a leased provider build with zero errors, reusing the same provider bin/obj and shared dependencies. No native listener or new runtime in this run.
+
+- NATS connection ownership verification reused the leased SDK probe build and retained JetStream fixture. Absent-bucket activation and attempted profile save rejected; exact 3/2 reads passed and owned listener 24222 stopped. New log connection-ownership-server.log (2068 bytes), retained alongside the previous activation evidence. No new runtime, reseeding or hosted changes.
