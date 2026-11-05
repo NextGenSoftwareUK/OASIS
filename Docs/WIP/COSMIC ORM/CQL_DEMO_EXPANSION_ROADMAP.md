@@ -359,6 +359,17 @@ python -B Scripts/Sandbox/Verify-HostedQuerySource.py RedisOASIS --reviewed-exac
 
 The command creates a new local file for review. Coordinate the fragment
 with the provider's source settings, public grants and query-only tariff.
+To prepare the three changes together from a reviewed protected WEB4
+baseline, use:
+
+```powershell
+python -B Scripts/Sandbox/Prepare-HostedExactKeyConfiguration.py RedisOASIS --catalogue <catalogue.json> --baseline <baseline.dpapi> --output <new-candidate.dpapi>
+```
+
+Review the candidate against the original baseline before applying settings.
+The tool adds the provider's query-only admission, three public IDs and
+preset partition. Review the source credentials and vendor usage separately.
+
 Advertise exactly four presets. Use `Id` membership, unordered selection,
 metadata, a 25-row limit and a 30-second top-level deadline. The paired
 presets use named Mongo and native targets, preserve copies, and allow two

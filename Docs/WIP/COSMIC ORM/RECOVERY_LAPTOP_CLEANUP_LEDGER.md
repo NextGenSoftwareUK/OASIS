@@ -1901,3 +1901,7 @@ Preset-fragment preparation passed 17 focused Python tests with the existing
 interpreter. The generated test fragment and descriptor were temporary and
 removed automatically. Future operator fragments are small local review
 files at the explicitly supplied path and can be removed after review.
+
+Protected exact-key settings preparation was tested with a synthetic DPAPI
+baseline and candidate. Both temporary files were removed by the existing
+Python test harness. No Railway settings or credentials were retrieved.
