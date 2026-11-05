@@ -75,3 +75,11 @@ Recheck ancestry at publication time. The LocalFile qualification bundle has
 since been recovered and its candidate image published. Railway still returns
 Unauthorized. Follow the [LocalFile rollout](LOCALFILE_CQL_MVP.md) first, then
 prepare the protected Hyperlane candidate and verify its hosted acceptance.
+
+Offline sequential assembly using both retained qualified bundles passed.
+Starting from synthetic enabled-sandbox settings with the free IPFS tariff,
+the LocalFile candidate followed by Hyperlane preserved the existing LocalFile
+source, bootstrap, catalogue and presets. The shared admission retained
+IPFS and LocalFile and appended Hyperlane at zero cost. Prepare Hyperlane
+from the fresh live baseline after LocalFile acceptance so the shared
+admission includes the accepted rollout. Live compatibility remains open.
