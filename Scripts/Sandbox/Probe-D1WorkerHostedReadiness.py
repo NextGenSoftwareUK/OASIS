@@ -4,7 +4,7 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
@@ -64,7 +64,13 @@ def main():
     digest = hashlib.sha256(raw).hexdigest()
     with (STATE / "worker-https-qualification.intent.json").open("x", encoding="utf-8") as file:
         json.dump({"schema": 1, "sourceSha256": digest}, file)
-    proof = qualify(source["endpoint"], publisher.EXPECTED_KEYS)
+    try:
+        proof = qualify(source["endpoint"], publisher.EXPECTED_KEYS)
+    except (URLError, TimeoutError, ValueError, RuntimeError) as error:
+        with (STATE / "worker-https-qualification.failed.json").open("x", encoding="utf-8") as file:
+            json.dump({"schema": 1, "sourceSha256": digest, "qualified": False,
+                       "failureType": type(error).__name__}, file)
+        raise
     with (STATE / "worker-https-qualified.acknowledged.json").open("x", encoding="utf-8") as file:
         json.dump({"schema": 1, "sourceSha256": digest, **proof}, file)
     print("Qualified D1 Worker HTTPS symbol reads (3/2).")
