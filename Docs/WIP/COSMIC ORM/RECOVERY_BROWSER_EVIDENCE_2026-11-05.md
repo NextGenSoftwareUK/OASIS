@@ -239,5 +239,10 @@ panel. Web4Site ad79cee clears that panel at preparation start, while the
 request error retains its own preparation identifiers. Regression reproduced
 the stale state before the fix; 106 client/query/preparation/session tests
 passed after it, zero failed/skipped. No quota reset, retry, new avatar or
-save was performed. The website candidate is pushed on its task branch;
-public deployment/browser acceptance is not yet claimed.
+save was performed. Web4Site main now fast-forwards to ad79cee. Both public files return HTTP 200
+and exactly match committed blobs (local checkout line endings differ):
+- cql-playground.js SHA256 1e1067ea9da91047eca3a39bc073766f045efbb60cd914b19051dc21167d1853
+- web4-sandbox.html SHA256 ab11d99e9a558d383c3d86b99231601f5c638e6d1ccafe4e9c2696643b44a134
+HTML loads cql-playground.js?v=cql-preparation-identity-v3. Retained browser tabs
+were not reloaded and no preparation was retried. Live interaction of this
+specific correction remains unverified; the controlled regression passes.

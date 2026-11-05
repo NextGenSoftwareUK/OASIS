@@ -11,6 +11,10 @@ daily call limit in the retained sandbox-3a2cb72c session. Full Aptos
 acceptance remains open. Preserve its request/operation IDs and reconcile
 possible partial preparation before further saves; do not reset usage or
 allocate another avatar to evade the limit. See [browser evidence](RECOVERY_BROWSER_EVIDENCE_2026-11-05.md).
+The resulting stale operation-panel bug is fixed in Web4Site ad79cee: preparation
+clears the preceding query identity. 106 controlled client tests pass, and both
+published HTML/JS match committed bytes. Existing tabs and their journals remain
+retained; publication does not close Aptos acceptance.
 Advance independent launcher/runtime engineering meanwhile. LocalFile still
 requires the already-recorded Railway access and persistent-mount checks.
 

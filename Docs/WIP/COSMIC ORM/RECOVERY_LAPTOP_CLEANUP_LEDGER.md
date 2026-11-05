@@ -765,3 +765,8 @@ check returned Unauthorized. No settings, deployment or project link changed.
   and sibling Web4Site checkout. 106 tests passed in memory; no dependency
   install, database, new environment or persisted test output was created.
   Web4Site candidate ad79cee contains the correction and cache-version change.
+
+- Published the scoped operation-panel fix from Web4Site ad79cee to main after
+  confirming its sole delta from main. Public HTML/JS bytes match git blobs.
+  HTTP checks ran in memory without downloaded files or new browser tabs.
+  The retained tabs still use their original loaded modules and journals.
