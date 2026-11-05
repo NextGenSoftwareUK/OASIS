@@ -178,3 +178,44 @@ lease and filter the integration test to SurrealDbQueryActivationNativeTests.
 Require one pass with zero skips before treating native activation as proven.
 The fixture only reads the admitted record. The unconfigured run skipped
 as expected, and native execution remains pending.
+
+### Windows recovery continuation, 5 November2026
+The unavailable Linux source remains separate. User explicitly authorizes
+recreation of needed environments; official pinned3.3.5 Windows amd64 runtime
+is being admitted once under LocalState/COSMIC/RecoveryLaptopSurrealDB335.
+Vendor release asset322004480B SHA256
+`fb859638bd875d658d483897d8d0c3eca6215e94a2946ff75693456b45e3bbbc`.
+Direct binary download has durable intent; never overwrite/restart partial
+outcome automatically. Runtime qualification receipt will precede execution.
+No source records created yet. Next: explicit create-only Windows teaching
+admission using new IDs, native/restart preservation, dedicated DB reader,
+then separate Windows Mongo/HTTP/browser fixture on unused UI5140. Existing
+Linux fixture/receipts and its URI27039 remain unchanged. Reuse admitted recovery
+Mongo27029. Hold one build lease for builds/consumer runs; no nested leases.
+No count increment: SurrealDB's prior accepted profile is already in baseline.
+Official source: https://github.com/surrealdb/surrealdb/releases/tag/v3.3.5
+
+Windows executable qualification passed, exact official SHA/version3.3.5.
+Initial-af840a34af6b4b658e530e950697108d created/acknowledged three new synthetic
+records, captured identity/baseline, then failed CQL3-versus0. The invariant
+was broken by raw StringRecordId reads while writes use RecordId.From with the
+SDK's typed string identity. CQL query activation and execution now use the
+same typed construction. No records replayed or IDs replaced.
+Retained-b41b88d4411642a69427367b0d996274 passes1/1, native3/subset2/page1 and
+original full-native hash unchanged after actual process restart; TRX SHA256
+`387d2bee0af1de59124b8dc9da070896db094abd112c97d3915cee654bee2bd0`.
+Key-fix build0errors/4warnings. Four runner admission controls pass. Exact owned
+node Ctrl+C/exit0 and no18001listener; native shutdown emits a vendor SurrealKV
+warning about no runtime available, retained unchanged in server.log. Logical
+restart preservation is proven; crash durability is not certified.
+
+New reproducible entry point Run-CosmicSurrealDbWindowsNative.ps1 -Mode Retained
+holds one lease and preserves every unique run report. Initialize mode refuses
+an existing source. Remaining: database VIEWER reader activation (official
+DEFINE USER ON DATABASE scope), separate Windows Mongo fixture/browser5140,
+then correct existing SurrealDB catalogue launcher; no new profile count.
+Legacy avatar/detail/ordinary-load raw-string keys are outside this reproduced
+CQL correction and remain documented full-provider depth work.
+
+Recovery branch provider controls pass11/11, zero skips after the key correction;
+key-controls/controls.trx and build/test log retained in the single Windows cache.

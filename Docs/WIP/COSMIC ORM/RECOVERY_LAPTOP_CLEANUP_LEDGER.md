@@ -1395,3 +1395,22 @@ and shutdownComplete. Runtime/native store retained for reuse; no new download.
 Failed pre-consumer paired503 retained; root cause fixed via bounded index health
 wait, six runner controls pass. Compact logs/TRX/admission evidence retained in
 the single Elasticsearch cache. No unrelated files/processes removed.
+
+### SurrealDB Windows recovery admission, 2026-11-05
+Original Linux3.3.5 runtime/source unavailable on this host; accepted historical
+proof remains separate. One official Windows3.3.5 executable admitted for reuse
+at LocalState/COSMIC/RecoveryLaptopSurrealDB335/surreal.exe,322004480bytes,
+vendor GitHub release asset SHA256 fb859638bd875d658d483897d8d0c3eca6215e94a2946ff75693456b45e3bbbc.
+Direct executable download only, no installer/archive, PATH/service changes or
+Linux environment. Download intent/partial/runtime receipt retained there.
+Any new teaching source will have new explicit identity, not replay original IDs.
+Native/storage/reader/browser qualification is still pending.
+
+SurrealDB download completed322004480B/vendor SHA matches; runtime.json reports
+3.3.5 Windows x86_64. No archive or extra runtime. Native first source is new
+windows-source, with generated private local credentials, identity, three ACKs
+and baseline. First query0/3 failure retained; typed SDK key correction yields
+retained-b41b88d4411642a69427367b0d9962741/1 with native hash unchanged. Both
+owned native processes explicitly Ctrl+C/exit0,18001listener closed. Vendor
+shutdown warning retained. Initial fixture build1139warnings/0errors; focused
+key-fix rebuild4warnings/0errors, logs retained. No unrelated cleanup.

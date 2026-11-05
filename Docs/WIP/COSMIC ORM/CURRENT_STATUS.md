@@ -4,6 +4,15 @@ Updated 5 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
+## SurrealDB Windows recovery continuation, 5 November2026
+
+Official pinned3.3.5 Windows executable admitted once and hash verified. New
+separate teaching source preserves original Linux proof. Native first CQL0/3
+failure fixed at SDK record-ID encoding; retained restart/query now1/1 with
+original source hash unchanged. Four admission controls pass. Database-reader,
+Windows manager/Mongo/HTTP/browser and existing catalogue launcher still open.
+Counts101/60/28 unchanged. [Evidence and next steps](SURREALDB_CQL_MVP.md).
+
 ## Algolia controlled CQL continuation, 5 November 2026
 
 Implemented real exact-ID batch REST CQL with read-only probe activation,

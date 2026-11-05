@@ -39,7 +39,7 @@ public partial class SurrealDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOn
                 throw new InvalidOperationException("Explicit database query configuration is required.");
 
             await using var client = await GetClientAsync(cancellationToken);
-            var key = new StringRecordId($"oasis_holons:{id:D}");
+            var key = RecordId.From("oasis_holons", id.ToString("D"));
             var record = await client.Select<HolonRecord>(key, cancellationToken);
             if (record == null || record.IsDeleted || record.Id?.ToString() != key.ToString())
                 throw new InvalidOperationException("The native teaching record identity was not verified.");
@@ -104,7 +104,7 @@ public partial class SurrealDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOn
                 var payloadBytes = 0;
                 foreach (var id in admittedIds)
                 {
-                    var key = new StringRecordId($"oasis_holons:{id:D}");
+                    var key = RecordId.From("oasis_holons", id.ToString("D"));
                     var record = await client.Select<HolonRecord>(key, deadline.Token);
                     if (record != null && record.Id?.ToString() != key.ToString())
                         return Error("CQL_QUERY_FAILED", "Native SurrealDB record identity differs from the admitted key.");
