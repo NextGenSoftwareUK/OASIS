@@ -298,3 +298,28 @@ paired presets to be available. The check passed for existing ClickHouse and
 reported LocalFile unavailable before rollout. Start the LocalFile
 `--prepare` flow only after its readiness check passes. Discovery readiness
 does not replace the native, federation, privacy or replica checks.
+
+### Apply from the reviewed release checkout
+
+The publisher checks both local HEAD and Railway's latest Development WEB4
+deployment against the full reviewed commit. Running apply from the advancing
+COSMIC task branch will fail even after the candidate is live. Use the existing
+checkout at the exact reviewed release after coordinating its switch. Preserve
+unrelated changes and verify the manifest and gitlinks before publishing.
+
+For the currently published candidate, the PowerShell commands below apply
+only after confirming the existing /data volume and a SUCCESS deployment of
+the same commit. If Development advances, review the new candidate and use
+its exact SHA instead.
+
+```powershell
+git rev-parse HEAD
+$env:COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT = 'c64adf4748856b0acaae02e24a7f8edd16d2a139'
+python Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py
+python Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py apply
+```
+
+Review prepared-review.json before apply. If the protected preparation differs
+from current service settings or the latest deployment differs from the reviewed
+SHA, reconcile that state before continuing. After applying, observe the settings
+deployment and run readiness before preparing the visitor cohort.
