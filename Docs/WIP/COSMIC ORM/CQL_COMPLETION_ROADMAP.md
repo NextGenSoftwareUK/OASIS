@@ -7,6 +7,9 @@ Continue the full CQL, COSMIC ORM and HyperDrive roadmap. Prioritize the live
 Development WEB4 demo. When a gate needs owner access or retained evidence,
 keep that gate open and advance the next independent provider or engineering
 scope. Verify the remaining browser, native, ORM and HyperDrive gates separately.
+The post-demo [virtual/hybrid import design](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md)
+tracks the proposal, one collection mapping, federation, explicit snapshot saves
+and opt-in caching; [architecture](CQL_ARCHITECTURE.md) defines its access boundary.
 After the live WEB4 demo and the CQL, COSMIC ORM and HyperDrive MVP,
 complete every provider in the [provider inventory](PROVIDER_CQL_AND_SANDBOX_STATUS.md).
 Each provider must implement its applicable shipping contracts through real
@@ -41,8 +44,8 @@ task checkout. Runtime qualification remains separate.
    provider. Expand remaining red scopes with explicit capabilities/consistency,
    controlled tests, actual native manager/LINQ and HTTP proof, privacy/replicas,
    honest labels and usable sandbox/local demo links.
-4. Complete 35 remaining browser gates. Twenty-five flows have browser evidence,
-   including the twenty recovery-session additions documented in
+4. Complete 34 remaining browser gates. Twenty-six flows have browser evidence,
+   including the twenty-one recovery-session additions documented in
    [browser evidence](RECOVERY_BROWSER_EVIDENCE_2026-11-05.md).
    Static assets and HTTP success do not prove browser interaction.
 5. Preserve the original MongoDB/SQLite/Neo4j investor subset and 50/82 green

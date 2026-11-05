@@ -1,5 +1,12 @@
 # Development browser evidence, 5 November 2026
 
+XRPL passed native 3/2 and paired 5/4 in sandbox-3a2cb72c.
+Preparation saved two private version-1 copies: 004132c7-5c90-8b72-80de-4929bf2ba893
+and 914ffe35-8854-8a89-a857-a6323c9fd39e. Repeat preparation reported zero
+saved and two already prepared. Exact-ID browser reads returned two matching
+rendered copies each from MongoDB, SQLite and Neo4j. The independent retained
+visitor returned zero rows for these IDs on all three providers.
+
 Bitcoin passed native 3/2 and pairing 5/4 in sandbox-3a2cb72c.
 Preparation saved two private version-1 copies: 17f9cde3-bae3-85c6-b90b-1e76cefd01a8
 and 3fe5060f-69be-8b34-8450-529fed16d5e7. Repeat preparation reported zero

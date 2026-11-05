@@ -1,14 +1,14 @@
 # COSMIC cleanup ledger for the recovery laptop
 
 The clock-corrected website verification owns a second browser tab and
-demo avatar sandbox-3a2cb72c. Ten completed provider flows (BNB Chain,
-Optimism, Linea, Scroll, ZkSync, Abstract, Monad, Sei, Berachain and Bitcoin)
-own twenty private Mongo copies and matching SQLite/Neo4j replicas.
+demo avatar sandbox-3a2cb72c. Eleven completed provider flows (BNB Chain,
+Optimism, Linea, Scroll, ZkSync, Abstract, Monad, Sei, Berachain, Bitcoin and XRPL)
+own twenty-two private Mongo copies and matching SQLite/Neo4j replicas.
 Exact IDs are in RECOVERY_BROWSER_EVIDENCE_2026-11-05.md. Keep both tabs
 and these records for continuation and later expiry review. Same-avatar
 browser access beyond the 15-minute token lifetime passed; direct renewal
 protocol timing remains unrecorded. No new runtime or report file was
-created for Bitcoin; browser results and independent privacy checks passed.
+created for Bitcoin or XRPL; browser results and independent privacy checks passed.
 
 Browser verification on 5 November created one Development demo avatar,
 sandbox-ca8924da, with twenty private Mongo records across Solana, Google,
