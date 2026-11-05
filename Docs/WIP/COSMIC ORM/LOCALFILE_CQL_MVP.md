@@ -550,6 +550,12 @@ reviewed release and reads mount metadata from each listed instance. Every
 instance must expose a separate writable `/data` mount. The dashboard remains
 the source for volume identity and the complete active instance list.
 
+The candidate's bootstrap checks that the source parent directory exists.
+The existence check alone cannot distinguish the attached volume from a
+container-root directory. Keep the confirmed volume attachment in the same
+staged change review, and repeat the mount check on the resulting settings
+deployment before treating its seeded records as persistent.
+
 Run the same checks without preparing or applying settings:
 
 ```powershell
