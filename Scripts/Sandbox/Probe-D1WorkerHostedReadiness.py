@@ -37,13 +37,15 @@ def qualify(endpoint, keys):
         status, body = request(selected)
         if status != 200 or json.loads(body) != {"symbols": selected}:
             raise RuntimeError(f"D1 Worker symbol query failed qualification (HTTP {status}).")
-    duplicate, _ = request([keys[0], keys[0]])
-    if duplicate != 400:
-        raise RuntimeError("D1 Worker did not reject duplicate symbols.")
+    for selection in ([keys[0], keys[0]], [keys[0], "UNENROLLED"]):
+        status, body = request(selection)
+        if status != 400 or json.loads(body) != {"error": "Invalid symbol selection"}:
+            raise RuntimeError("D1 Worker did not reject an invalid symbol selection.")
     write, _ = request([], method="POST")
     if write != 405:
         raise RuntimeError("D1 Worker did not reject POST.")
-    return {"fullSymbols": keys, "subsetSymbols": keys[:2], "duplicateStatus": duplicate, "writeStatus": write}
+    return {"fullSymbols": keys, "subsetSymbols": keys[:2], "duplicateStatus": 400,
+            "unenrolledStatus": 400, "writeStatus": write}
 
 
 def main():
