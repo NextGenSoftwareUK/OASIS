@@ -652,3 +652,5 @@ Chroma native activation fixture compiled. Integration bin/obj and TestResults/P
 CouchDB read-only CQL activation built successfully. Generated provider bin/obj and TestResults/ProviderBuildCurrent/cosmic-couchdb-read-activation.log. No native service started.
 
 CouchDB activation suite passed 42/42 using the controlled HTTP fixture. Unit test bin/obj and TestResults/ProviderBuildCurrent/cosmic-couchdb-read-activation-tests.log are generated outputs. No CouchDB service started.
+
+CouchDB retained-source read-only activation fixture compiled. Integration bin/obj and TestResults/ProviderBuildCurrent/cosmic-couchdb-native-activation.log are generated outputs. No native service started.

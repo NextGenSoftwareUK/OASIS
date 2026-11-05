@@ -37,7 +37,11 @@ public class CouchDbNativeCqlTests
         var seed=created?new Seed(Guid.NewGuid(),Enumerable.Range(0,3).Select(_=>Guid.NewGuid()).ToArray()):JsonSerializer.Deserialize<Seed>(File.ReadAllText(manifest))!;
         if(created)Durable(pending,seed);
         var provider=new CouchDBOASIS(endpoint,user,password);
-        var activated=await provider.ActivateProviderAsync();Assert.IsFalse(activated.IsError,activated.Message);
+        var activated = created
+            ? await provider.ActivateProviderAsync()
+            : await provider.ActivateQuerySourceAsync(default);
+        Assert.IsFalse(activated.IsError, activated.Message + activated.Exception);
+        Assert.IsTrue(provider.IsProviderActivated);
         try
         {
             async Task VerifyCatalogue()
