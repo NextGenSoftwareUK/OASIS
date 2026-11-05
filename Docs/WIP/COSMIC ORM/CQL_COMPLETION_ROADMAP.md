@@ -1,6 +1,6 @@
 # CQL completion roadmap
 
-Updated 4 November 2026. Full programme remains incomplete.
+Updated 5 November 2026. Full programme remains incomplete.
 [CURRENT_STATUS](CURRENT_STATUS.md) owns deployment state and the exact next step.
 
 Continue the full CQL, COSMIC ORM and HyperDrive roadmap. Prioritize the live
@@ -36,10 +36,12 @@ task checkout. Runtime qualification remains separate.
    laptop. Its Development file placement and activation remain open.
    ThreeFold's hosted audit and card/static assets now pass at website2170b67;
    preserve its original cohort/settings/ACKs. Do not replay accepted gates.
-2. Preserve 60 scoped hosted HTTP proofs and 96 local integrated query types.
+2. Preserve 60 scoped hosted HTTP proofs and 97 local integrated query types.
    ClickHouse is the latest accepted hosted addition; its sandbox card, guide/C#
    links and exact public static bytes are verified. Counts are demo scopes,
-   not full provider or ORM certification.
+   not full provider or ORM certification. Meilisearch adds the new Windows-local
+   profile: native/restart, manager/Mongo/HTTP and browser verified, with an honest
+   local-only WEB4 card. Hosted Meili enrollment remains open.
 3. Keep filtered native queries and Mongo federated presets for every admitted
    provider. Expand remaining red scopes with explicit capabilities/consistency,
    controlled tests, actual native manager/LINQ and HTTP proof, privacy/replicas,

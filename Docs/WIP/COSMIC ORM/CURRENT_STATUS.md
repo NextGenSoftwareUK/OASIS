@@ -1,6 +1,6 @@
 # COSMIC ORM / CQL current status
 
-Updated 4 November 2026. Goal active and incomplete.
+Updated 5 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
@@ -20,8 +20,8 @@ requires the already-recorded Railway access and persistent-mount checks.
 
 ## Verified scope
 
-- **96 local query types/profiles:**3 canonical, 57 public/source, 36 other local;
-  includes 31 recovered historical demos. Not 96 fully implemented providers.
+- **97 local query types/profiles:**3 canonical, 57 public/source, 37 other local;
+  includes 31 recovered historical demos. Not 97 fully implemented providers.
 - **60 scoped hosted HTTP proofs; 28 browser flows verified / 32 browser gates open.**
   Solana, Google Cloud public objects, Ethereum, Polygon and Arbitrum balances add native
   3/2, paired 5/4, preparation reuse, independent privacy and matching rendered
@@ -29,6 +29,11 @@ requires the already-recorded Railway access and persistent-mount checks.
 - MongoDB/SQLite/Neo4j strict parity **50/82 each**; investor subset green.
 - Published launcher audit:37 links / 37 present / **0 missing**; 3 audit tests pass.
 - Public ThreeFold/ClickHouse/Zcash cohorts are accepted and frozen.
+
+Meilisearch adds one newly verified local profile to the preserved96baseline:
+actual native/restart, manager/Mongo/HTTP and local browser5/4pass. Its explicitly
+local Windows card is published and rendered on WEB4 (site8d6d320); hosted
+Meili enrollment remains open. [Evidence](MEILISEARCH_CQL_MVP.md).
 
 ## Current batch / exact next step
 

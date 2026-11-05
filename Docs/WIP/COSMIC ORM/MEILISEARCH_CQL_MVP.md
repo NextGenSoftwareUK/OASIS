@@ -1,5 +1,10 @@
 # Meilisearch bounded CQL demo scope
 
+Current checkpoint: native CQL/restart, manager/Mongo/HTTP and local browser
+acceptance pass. The explicitly local Windows card is published on WEB4.
+Hosted provider enrollment and full ORM remain open; the original failed startup
+is preserved. Earlier sections below record the sequential evidence milestones.
+
 5 November 2026. Provider/shared build and 16 controlled tests pass, zero
 failed/skipped: eleven new HTTP/CQL cases and five existing metadata checks.
 No native runtime, manager/LINQ, HTTP/Mongo, hosted or browser proof yet.
@@ -190,3 +195,23 @@ Interactive run1f3e76130bf34a56ab6f24f796045b71 TRX SHA256:
 Compact local-browser-evidence.json is retained with the source. This is a
 local browser gate; hosted browser totals remain28verified/32open.
 [Launch and presentation guide](../../Devs/MEILISEARCH_CQL_LOCAL_DEMO.md).
+
+## Published WEB4 local catalogue card
+
+Web4Site8d6d32013a08eebd66a44f30d1a63821f200cd94 publishes the Windows-local
+Meili/Mongo card.112client tests pass; GitHub Vercel status is success. Public
+HTML returns200and exactly matches committed bytes, SHA256:
+7798ed838fc838752dafed471f57608e699ee11382adc81474141e50f7a76c71.
+The guide and C# walkthrough pinned to parent9824864d860c13cc3f59f7bb60c681842cb0ae08
+return200and match their git blobs. The new card's single launcher exists.
+The actual published browser card rendered its local-only scope, expanded the
+start instructions and showed the exact -Serve command and127.0.0.1:5116link.
+No demo session, avatar or sign-in was created to inspect this static card.
+API source enrollment, Railway settings and deployment remain unchanged.
+
+Coverage reconciliation: this newly implemented provider was explicitly marked
+not CQL-certified in the prior provider inventory and had no prior query reader.
+Its native+manager/HTTP+local browser proof adds one distinct local profile to
+the preserved96baseline:97=3canonical+57public/source+37other local. Hosted
+HTTP60and hosted browser28/32remain unchanged. Full provider conformance is not
+increased; do not count RavenDB/Typesense controlled-only work as native proof.

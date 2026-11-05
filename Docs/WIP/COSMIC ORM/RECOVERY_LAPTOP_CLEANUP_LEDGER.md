@@ -1006,3 +1006,10 @@ check returned Unauthorized. No settings, deployment or project link changed.
   interactive-1f3e76130bf34a56ab6f24f796045b71-run.intent.json: 201 bytes retained.
   interactive-1f3e76130bf34a56ab6f24f796045b71-run.result.json: 505 bytes retained.
   interactive-1f3e76130bf34a56ab6f24f796045b71-server.log: 8655 bytes retained.
+
+- Published Meili Windows-local WEB4 card at Web4Site8d6d320.112client tests
+  passed; served HTML exact git bytes SHA2567798ed838fc838752dafed471f57608e699ee11382adc81474141e50f7a76c71.
+  Both pinned guide/C#links return200and match source. Browser static card and
+  expanded launch command verified without creating a hosted avatar/session.
+  No server startup, package/environment or data write. No standalone screenshots
+  or downloaded verification artifacts retained; HTTP comparisons ran in memory.
