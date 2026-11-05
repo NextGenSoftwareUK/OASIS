@@ -101,10 +101,16 @@ async function main() {
   // Preserve the existing protocol gate's request order; ID recipes need the
   // mapped identities earlier to compose their actor-specific query predicate.
   if (ids === null) ids = await mappedIds();
-  for (const response of [five, four]) {
-    const pairedIds = new Set(response.result.rows.map(row => row.id));
-    if (pairedIds.size !== response.result.rows.length || ids.some(id => !pairedIds.has(id)))
-      throw Error('Federation did not return distinct source and private snapshot IDs.');
+  for (const [response, count] of [[five, 5], [four, 4]]) {
+    const selected = rows(response, count).map(entry => entry.selected);
+    const nativeIds = new Set(selected.filter(copy => copy?.provider === input.source.provider)
+      .map(copy => copy.row?.id));
+    const mongoIds = new Set(selected.filter(copy => copy?.provider === 'MongoDBOASIS')
+      .map(copy => copy.row?.id));
+    if (nativeIds.has(undefined) || nativeIds.size !== count - ids.length ||
+        mongoIds.size !== ids.length || ids.some(id => !mongoIds.has(id)) ||
+        selected.some(copy => !copy?.row?.id || ![input.source.provider, 'MongoDBOASIS'].includes(copy.provider)))
+      throw Error('Federation did not return distinct source and private snapshot IDs from their expected providers.');
   }
   const replicas = {};
   const stable = value => JSON.stringify(value, (_, entry) => entry && typeof entry === 'object' && !Array.isArray(entry)

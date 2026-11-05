@@ -71,7 +71,10 @@ for (const { byId, duplicateReplica, missingSnapshot } of [{ byId: false }, { by
       const rows = selected([...native, ...copies.values()], body.source);
       if (missingSnapshot && rows.length === 5)
         rows[rows.length - 1] = { ...rows.at(-1), id: '33333333-3333-4333-8333-333333333333' };
-      result = { result: { rows } };
+      result = { result: { rows: rows.map(row => ({
+        selected: { provider: nativeIds.includes(row.id) ? provider : 'MongoDBOASIS', row },
+        copies: []
+      })) } };
     } else if (route === 'data/query-cql') {
       const rows = selected(body.provider === provider ? native : [...copies.values()], body);
       result = { result: { rows: duplicateReplica && body.provider === 'Neo4jOASIS' ? [rows[0], rows[0]] : rows } };
