@@ -1905,3 +1905,7 @@ files at the explicitly supplied path and can be removed after review.
 Protected exact-key settings preparation was tested with a synthetic DPAPI
 baseline and candidate. Both temporary files were removed by the existing
 Python test harness. No Railway settings or credentials were retrieved.
+
+The retained browser recovery check opened one temporary WEB4 tab. The
+page was signed out and had no retained session. The tab produced no
+download, screenshot, new visitor or test data.

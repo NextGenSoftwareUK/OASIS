@@ -21,6 +21,13 @@ SandboxSubscriptionRules defines 200 daily demo calls without usage reset;
 this rejection alone is not evidence of a broken quota. Continue independent
 local engineering while this session allowance is exhausted. Totals stay 28/32.
 
+Later recovery check, 5 November. The in-app browser had no retained tab.
+A fresh Development WEB4 page was signed out and described its session as
+page-memory only. Neither of the two locally acknowledged HTTP visitors
+matched the prior browser identities. Original Aptos preparation therefore
+still needs same-owner evidence before any later write. No visitor was
+created and no quota rollover or save result was inferred.
+
 Algorand passed native 3/2 and paired 5/4 in sandbox-3a2cb72c.
 Preparation saved two private version-1 copies: 93acbe02-1a7f-89cb-b4dc-faefbe8e36af
 and fa5254d4-1013-8ba1-967f-c5f21ed844cc. Repeat preparation reported zero
