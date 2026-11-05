@@ -76,7 +76,9 @@ def read_revision_file(path: Path, revision: str | None) -> str:
     return result.stdout
 
 
-def load_manifest(text: str) -> dict[str, str]:
+def load_manifest(text: str | None = None) -> dict[str, str]:
+    if text is None:
+        text = read_revision_file(MANIFEST, None)
     values: dict[str, str] = {}
     for number, raw in enumerate(text.splitlines(), 1):
         line = raw.strip()
