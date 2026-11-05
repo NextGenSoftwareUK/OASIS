@@ -1,5 +1,10 @@
 # OpenSearch bounded CQL scope
 
+Current checkpoint: create-only native bootstrap, CQL3/2/0/paging/source
+preservation and retained restart pass. Owned hidden-console Ctrl+C and native
+node shutdown are verified. Manager/HTTP/browser remain open; counts stay99.
+Earlier sections preserve the initial adapter/package checkpoint history.
+
 5 November2026. Provider/unit26/26 passes, zero failures/skips:21new CQL cases
 and5existing metadata checks. The native reader fixture builds(0errors/4warnings)
 but has NOT run. No native server, index or source records have been created.
@@ -91,3 +96,85 @@ paths. Remove the verified archive after the chosen runtime is qualified.
 [official artifacts](https://opensearch.org/artifacts/by-version/).
 
 Unit TRX SHA256 7a91dac90bf1d6422aefb140086821f448e41b2d6fb26f83ebfd197d810d4d0d.
+
+## Native acceptance — 5 November 2026
+
+Native create-only bootstrap1/1, initial read1/1 and retained read1/1 pass, each
+zero failures/skips. Bootstrap creates exactly one explicitly owned index with
+one shard/zero replicas, checks index/shard acknowledgement, then creates four
+full canonical camel-case Holon documents through _create. Per-document intents
+flush before dispatch; native201/index/ID/result=created/version1/shard-success
+ACKs are checked and retained. Three private live records and one deleted control
+share the source actor; a fifth control is absent. No create/save replay occurs.
+Native CQL independently proves3/2/0,paging and all four document hashes unchanged
+before/after each read-only test. Same source/store/IDs reused on restart.
+
+The source uses the full canonical Holon serializer, not a scalar-only replacement.
+This still does not certify the legacy provider's unchecked CRUD acknowledgements,
+conditional writes or full storage suite. The fixture uses deliberate create-only
+bootstrap API semantics rather than claiming unsupported create-only provider CRUD.
+
+## Lifecycle and one retained pre-test failure
+
+Signal-OwnedConsoleProcess.py first detaches only its own inherited console,
+attaches to the known live target, verifies that the console contains exactly
+target+helper, then sends Ctrl+C. It refuses unrelated members or invalid/self
+PIDs before signalling. Three controlled guard tests pass. A real hidden-console
+process accepted SIGINT and exited0. The original preflight failed with WinError5
+because the helper was still attached to its inherited console; that root cause
+was corrected. The original controlled PID7032 then received SIGINT, and the
+independent corrected preflight PID17536 exited0. Neither test started a backend.
+
+OpenSearch uses its shipped JvmOptionsParser and the documented startup properties,
+with the same Java21 runtime,128MiB initial/512MiB maximum heap and2active CPUs.
+The direct JVM has one owned hidden console, with HTTP19200 and transport19300
+loopback-only. The node is standalone with security disabled only for this new
+owned loopback teaching configuration; hosted TLS/auth/least-privilege remains open.
+All package modules/plugins are retained. Index auto-creation is off; the bootstrap
+uses one explicit index creation. Source data/config/log/temp paths are in the
+single existing state directory; no new environment/system/PATH/service install.
+
+Initial and accepted restart both close through Ctrl+C: native logs explicitly
+show stopping/stopped/closing/closed, exit130 (normal SIGINT), listeners closed.
+The restart receipt records ctrlCSent=true,nodeClosed=true. All owned listeners
+are checked by PID and loopback address before bootstrap/tests. No broad Java
+kill, invented shutdown REST route or force-termination path is used.
+
+The first retained attempt stopped BEFORE test dispatch: the1second native health
+wait returned HTTP408 while recovery was still warming. The readiness decoder
+incorrectly treated that protocol outcome as fatal and shut the node down.
+Readiness now parses only bounded408 responses proving timed_out=true, correct
+cluster and a valid health state, then continues bounded readiness polling.
+Malformed/foreign/oversized408 or auth errors still fail; admission requires
+yellow/green and matching native identity/listeners. Four readiness controls pass.
+The original failure/log/PID and clean stop remain; the successful continuation
+is a separate phase, with no bootstrap or save replay.
+
+## Resource/capacity checkpoint
+
+Qualified native Java21 allowed removal of the exact verified1,050,303,612byte
+archive after process stop and checksum/path verification. The duplicate bundled
+JDK250,992,996bytes was never extracted. Retain the1,126,631,239byte package and
+shared Java while this demo is needed. The node's default disk monitor observed
+>90%use of C:, high-watermark/index-create blocking. Existing-index CQL and restart
+acceptance pass; new-index/full storage capacity remains a separate gate. No disk
+watermark was lowered or disabled. Windows reported44,374,634,496bytes free after
+archive cleanup. Data197,104bytes and temp5,921,631bytes at that checkpoint.
+
+Automatic approval review rejected additional recursive cleanup of disposable
+OpenSearch/ArcadeDB/Solr unit bin/obj and owned temp output, reporting only
+blocked by policy. No cleanup intent was executed and all those paths remain
+intact. Existing integration outputs/reports and all source data are retained.
+This is an agent/tool cleanup issue, not a new owner/account action.
+
+Exact native evidence:
+
+- `bootstrap.trx`: 2884bytes, SHA256 `0bdd123c18fbbeb5907148d626c0a914b46301aa5191bb9c90dd4e7ed87a2532`.
+
+- `initial.trx`: 2899bytes, SHA256 `0bda28dcd3e600c60a6f045402fb7f63cd4c7552301400f6538010e0f8e6c47a`.
+
+- `retained-88338fbc93f14e088b4ebee86740305a.trx`: 2899bytes, SHA256 `d333c66d76d1e2fd20178b74c2dc3e0363dd7e174ac67b0f921912eb7e7817c6`.
+
+Accepted retained phase: retained-88338fbc93f14e088b4ebee86740305a. Original pre-test failure: retained-db37c75d45574c29a27be84073fea063.
+Next: protect original payloads against bootstrap hashes, manager/Mongo/HTTP, then
+local browser and WEB4 local card. Hosted/full ORM/provider gates remain open.

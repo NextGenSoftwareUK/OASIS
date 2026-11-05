@@ -1225,3 +1225,74 @@ Provider/unit26passed/0failed/0skipped;21CQL+5metadata. Native fixture build0err
 - `runtime-version.log`: 170bytes retained.
 - `runtime-version.result.json`: 159bytes retained.
 - Unit TRX SHA2567a91dac90bf1d6422aefb140086821f448e41b2d6fb26f83ebfd197d810d4d0d.
+
+## OpenSearch native bootstrap/restart and lifecycle — 5 November2026
+
+Create-only full-Holon bootstrap1/1, initial native1/1, retained1/1 pass; no skips. Exactly one index/four acknowledged creates, no replay. Shared Java21, shipped JVM options,128MiB initial/512MiB maxheap/2CPUs, new loopback-only teaching profile with security off; hosted auth/TLS not qualified. Native Ctrl+C via exact owned console (target+helper only), node stopped/closed logs and exit130;19200/19300closed. First console helper preflight inherited-console WinError5 corrected by detaching helper; original testPID7032 then signalled, corrected preflightPID17536 exited0. Three guard controls pass. First retained readiness408 failed before tests, stopped cleanly, no TRX/writes; protocol handling corrected,4readiness controls pass and distinct retained read succeeds. Original failed evidence preserved.
+
+Archive1,050,303,612bytes deleted after exact-path/hash/process verification;250,992,996bytes duplicate JDK never extracted. High disk watermark observed (>90%used C:) with index-create blocking. Existing source reads/restart pass; no watermark disabled/lowered, full capacity gate stays open. Free44,374,634,496bytes observed after archive cleanup. Automatic approval review blocked additional recursive unit bin/obj and own temp cleanup, stated only blocked by policy; command did not execute, no cleanup intent exists, those files remain. No owner action requested for this engineering/tool issue.
+
+- `LocalState/COSMIC/RecoveryLaptopOpenSearch390/data`: 194433bytes retained.
+- `LocalState/COSMIC/RecoveryLaptopOpenSearch390/tmp`: 17218077bytes retained.
+- `LocalState/COSMIC/RecoveryLaptopOpenSearch390/logs`: 453492bytes retained.
+- `LocalState/COSMIC/RecoveryLaptopOpenSearch390/opensearch-3.9.0/logs`: 828336bytes retained.
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.IntegrationTests/bin`: 47142960bytes retained.
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.IntegrationTests/obj`: 1037678bytes retained.
+- `TestResults/OpenSearchCqlNativeCurrent`: 8682bytes retained.
+- `adapter-evidence.json`: 880bytes retained.
+- `archive-cleanup.json`: 418bytes retained.
+- `archive.verified.json`: 321bytes retained.
+- `bootstrap-368419d8-1199-4cc1-ae3c-907e71b490a6.ack.json`: 139bytes retained.
+- `bootstrap-368419d8-1199-4cc1-ae3c-907e71b490a6.intent.json`: 210bytes retained.
+- `bootstrap-868dce86-e9e4-44f2-a066-a1f7b21d951e.ack.json`: 139bytes retained.
+- `bootstrap-868dce86-e9e4-44f2-a066-a1f7b21d951e.intent.json`: 210bytes retained.
+- `bootstrap-c6c9a8f7-444b-4171-8e6b-ce9531effbd3.ack.json`: 139bytes retained.
+- `bootstrap-c6c9a8f7-444b-4171-8e6b-ce9531effbd3.intent.json`: 210bytes retained.
+- `bootstrap-cc702136-a1a1-4a41-8269-a00da0056e36.ack.json`: 139bytes retained.
+- `bootstrap-cc702136-a1a1-4a41-8269-a00da0056e36.intent.json`: 210bytes retained.
+- `bootstrap-index.ack.json`: 106bytes retained.
+- `bootstrap-run.result.json`: 455bytes retained.
+- `bootstrap.ack.json`: 102bytes retained.
+- `bootstrap.intent.json`: 125bytes retained.
+- `console-control-process.json`: 13bytes retained.
+- `console-control.intent.json`: 42bytes retained.
+- `console-control.log`: 0bytes retained.
+- `console-control.ready.json`: 13bytes retained.
+- `console-control.stopped.json`: 26bytes retained.
+- `console-v2-process.json`: 14bytes retained.
+- `console-v2.log`: 0bytes retained.
+- `console-v2.ready.json`: 14bytes retained.
+- `console-v2.result.json`: 71bytes retained.
+- `console-v2.stopped.json`: 27bytes retained.
+- `environment.lock`: 0bytes retained.
+- `expansion.ack.json`: 239bytes retained.
+- `expansion.intent.json`: 240bytes retained.
+- `initial-options.log`: 1106bytes retained.
+- `initial-process.json`: 1996bytes retained.
+- `initial-run.intent.json`: 116bytes retained.
+- `initial-run.result.json`: 569bytes retained.
+- `initial-server.log`: 54279bytes retained.
+- `initial-signal.log`: 74bytes retained.
+- `initial-stopped.json`: 73bytes retained.
+- `native-evidence.json`: 3951bytes retained.
+- `retained-88338fbc93f14e088b4ebee86740305a-options.log`: 1106bytes retained.
+- `retained-88338fbc93f14e088b4ebee86740305a-process.json`: 1996bytes retained.
+- `retained-88338fbc93f14e088b4ebee86740305a-ready.json`: 1435bytes retained.
+- `retained-88338fbc93f14e088b4ebee86740305a-run.intent.json`: 117bytes retained.
+- `retained-88338fbc93f14e088b4ebee86740305a-run.result.json`: 570bytes retained.
+- `retained-88338fbc93f14e088b4ebee86740305a-server.log`: 46139bytes retained.
+- `retained-88338fbc93f14e088b4ebee86740305a-signal.log`: 75bytes retained.
+- `retained-88338fbc93f14e088b4ebee86740305a-stopped.json`: 80bytes retained.
+- `retained-db37c75d45574c29a27be84073fea063-options.log`: 1106bytes retained.
+- `retained-db37c75d45574c29a27be84073fea063-process.json`: 1996bytes retained.
+- `retained-db37c75d45574c29a27be84073fea063-run.intent.json`: 117bytes retained.
+- `retained-db37c75d45574c29a27be84073fea063-server.log`: 59114bytes retained.
+- `retained-db37c75d45574c29a27be84073fea063-signal.log`: 75bytes retained.
+- `retained-db37c75d45574c29a27be84073fea063-stopped.json`: 80bytes retained.
+- `runtime-manifest.json`: 598731bytes retained.
+- `runtime-version.log`: 170bytes retained.
+- `runtime-version.result.json`: 159bytes retained.
+- `source.json`: 354bytes retained.
+- `bootstrap.trx` SHA2560bdd123c18fbbeb5907148d626c0a914b46301aa5191bb9c90dd4e7ed87a2532.
+- `initial.trx` SHA2560bda28dcd3e600c60a6f045402fb7f63cd4c7552301400f6538010e0f8e6c47a.
+- `retained-88338fbc93f14e088b4ebee86740305a.trx` SHA256d333c66d76d1e2fd20178b74c2dc3e0363dd7e174ac67b0f921912eb7e7817c6.

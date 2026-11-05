@@ -6,12 +6,15 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
 ## OpenSearch continuation, 5 November 2026
 
-OpenSearch now has26passing provider/CQL tests, zero skips, and a compiled native
-reader fixture. Official Windows3.9.0 archive/checksum and launcher version on
-reused Java21 qualify; actual server/source/native tests remain open. No second
-Java, source/index or server created. Counts stay99/60/28. Next: owned native
-startup/shutdown and journalled bootstrap, then integrated demo acceptance.
-[Exact handoff and package state](OPENSEARCH_CQL_MVP.md).
+OpenSearch26unit cases,3owned-console guards and4readiness controls pass. Actual
+create-only full-Holon bootstrap and CQL3/2/0/paging/source preservation pass;
+retained restart now passes without reseeding. Native Ctrl+C closes the owned
+node (exit130, explicit closed logs); both listeners are closed. Prior inherited-
+console and pre-test health408 failures preserved and corrected at their layers.
+The1.05GB archive was removed; no second Java retained. Additional recursive
+cleanup was tool-review blocked, files intact. Native default high disk watermark
+remains; no threshold bypass. Manager/Mongo/HTTP/browser remain next; counts99/60/28.
+[Exact handoff and evidence](OPENSEARCH_CQL_MVP.md).
 
 ## ArcadeDB native continuation, 5 November 2026
 
