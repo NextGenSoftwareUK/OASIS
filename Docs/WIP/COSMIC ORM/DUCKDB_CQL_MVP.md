@@ -213,6 +213,11 @@ $presets = foreach ($count in 3, 2) {
 ConvertTo-Json -InputObject @($presets) -Depth 8 -Compress
 ```
 
+Offline verification against Web4Site `2170b67` passed for both generated
+paired presets. The frontend preparation recipe selected the same first two
+native IDs from the retained seed in both cases and preserved the original
+three-ID and two-ID federation filters. Live browser acceptance remains open.
+
 The WEB4 build dependency manifest declares DuckDB.NET Bindings.Full 1.1.3
 and copies its Linux x64 and arm64 native assets. ELF headers matched their
 declared architectures. This checks build packaging. Opening the exact
