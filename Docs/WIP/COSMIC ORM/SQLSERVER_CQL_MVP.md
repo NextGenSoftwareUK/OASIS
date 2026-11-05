@@ -140,3 +140,25 @@ the cohort-free check before any snapshot preparation:
 ```powershell
 python Scripts/Sandbox/Verify-HostedQuerySource.py SQLServerDBOASIS --readiness
 ```
+
+Before enrolling the source, connect as the proposed WEB4 query login and
+verify its effective permissions on the same table that activation resolves.
+This probe does not change the database:
+
+```sql
+SELECT DB_NAME() AS DatabaseName,
+       HAS_PERMS_BY_NAME(N'OASISHolons', N'OBJECT', N'SELECT') AS CanRead,
+       HAS_PERMS_BY_NAME(N'OASISHolons', N'OBJECT', N'INSERT') AS CanInsert,
+       HAS_PERMS_BY_NAME(N'OASISHolons', N'OBJECT', N'UPDATE') AS CanUpdate,
+       HAS_PERMS_BY_NAME(N'OASISHolons', N'OBJECT', N'DELETE') AS CanDelete,
+       HAS_PERMS_BY_NAME(N'OASISHolons', N'OBJECT', N'ALTER') AS CanAlter,
+       HAS_PERMS_BY_NAME(DB_NAME(), N'DATABASE', N'CREATE TABLE') AS CanCreateTable;
+SELECT TOP (0) Id, DataJson, IsDeleted FROM OASISHolons;
+```
+
+Require the reviewed database name, `CanRead = 1`, and zero for each write
+or schema permission. An unknown permission result leaves this gate open.
+Then run the native full and subset reads with the same login and record the
+exact returned IDs before enrolling them. The LocalDB files on the recovery
+laptop are local evidence. The permissions and query results from a reachable
+Development source still need verification.
