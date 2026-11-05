@@ -59,6 +59,7 @@ jobs:
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Build and push
+        id: publish
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -74,4 +75,11 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Summary
-        run: echo "Published ${{ steps.names.outputs.repo }}:${{ steps.names.outputs.sha }}" >> "$GITHUB_STEP_SUMMARY"
+        env:
+          IMAGE_REPOSITORY: ${{ steps.names.outputs.repo }}
+          SOURCE_SHA: ${{ steps.names.outputs.sha }}
+          IMAGE_DIGEST: ${{ steps.publish.outputs.digest }}
+        run: |
+          [[ "$IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
+          printf 'Source commit: `%s`\n\nPublished image: `%s@%s`\n' \
+            "$SOURCE_SHA" "$IMAGE_REPOSITORY" "$IMAGE_DIGEST" >> "$GITHUB_STEP_SUMMARY"
