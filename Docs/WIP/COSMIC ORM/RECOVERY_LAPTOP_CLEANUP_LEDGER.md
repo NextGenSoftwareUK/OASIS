@@ -581,3 +581,11 @@ SQL Server Mongo pairing passed 1/1 with the existing admitted Mongo 8.2
 replica, selected explicitly with -RecoveryMongo. SQL Server stopped, ports
 27029 and 5115 clear, fixture journal removed after database cleanup.
 Reused both stores and build outputs. Paired TRX SHA256 7103555046C9F1E040F85072BFDB151E41FB60E0F381ED2A4F061122CF900E17.
+
+SQL Server content native and Mongo-paired SDK/HTTP passed 1/1 each with
+-Content -Federated -RecoveryMongo. The retained SQL source now includes
+the journaled content fixture. SQL Server stopped, no test ports or pending
+fixture journals remain. No runtime installation. Reports in
+TestResults/SqlServerCqlCurrent:
+- sqlserver-content-native.trx: 596533B198C681BE80E32D845BB75D846B23B29A03C86FC349D19C9F7A935324
+- sqlserver-content-mongo-federation.trx: 3C11F40508041EF02BA831D8984A7F06C1A5115813A2FC1118CE61DC9E7DCB9C
