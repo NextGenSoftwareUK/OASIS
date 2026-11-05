@@ -140,9 +140,12 @@ CouchDB integration project against a job-owned CouchDB 3 container on port
 5984. It provides a native qualification environment without a laptop
 install. The current integration tests exercise ordinary avatar and holon
 storage using the administrator account. They leave the query-role
-restriction unverified. Add the role test in that project using a separate
-database and user scoped to the CI job, and keep its result separate from
-the required policy verification on Development.
+restriction unverified. The scoped branch `codex/couchdb-cql-reader-ci`
+adds the role test using a separate database and user scoped to the CI
+job. The remote branch is at `a2666e4c1`. GitHub reported no
+pull-request-triggered workflow runs for that commit. The existing owner
+action tracks opening the draft PR to start the matrix. CI evidence and
+policy verification on the Development source are separate gates.
 
 After verifying the reviewed Development deployment, check discovery before
 creating a cohort:
