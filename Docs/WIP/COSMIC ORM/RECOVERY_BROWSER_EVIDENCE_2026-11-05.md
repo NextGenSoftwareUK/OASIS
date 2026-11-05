@@ -1,5 +1,18 @@
 # Development browser evidence, 5 November 2026
 
+Aptos remains open: native browser full/subset returned 3/2 in
+sandbox-3a2cb72c. Private preparation stopped with daily-call-limit rejection.
+Rejected request key f0f11b41-8b5e-4e9a-9e09-bbe493541929; operation
+927df3d7-640d-c7e5-0993-00d9a6d7edbd. The separate query-operation display
+still showed 16675e94-0f2c-411a-9309-839d4f3357a0 /
+210a687d-7a51-31f6-02cd-d7418db7c247; these are not the rejected preparation
+request. No preparation replay or new avatar was attempted. No successful
+save count or copy IDs were returned, so partial persistence is unproven.
+Reconcile retained preparation intent/state before any later write attempt.
+SandboxSubscriptionRules defines 200 daily demo calls without usage reset;
+this rejection alone is not evidence of a broken quota. Continue independent
+local engineering while this session allowance is exhausted. Totals stay 28/32.
+
 Algorand passed native 3/2 and paired 5/4 in sandbox-3a2cb72c.
 Preparation saved two private version-1 copies: 93acbe02-1a7f-89cb-b4dc-faefbe8e36af
 and fa5254d4-1013-8ba1-967f-c5f21ed844cc. Repeat preparation reported zero

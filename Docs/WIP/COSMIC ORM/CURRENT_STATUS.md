@@ -4,6 +4,16 @@ Updated 4 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
+## Browser continuation gate, 5 November 2026
+
+Aptos native browser queries passed 3/2; private preparation reached the
+daily call limit in the retained sandbox-3a2cb72c session. Full Aptos
+acceptance remains open. Preserve its request/operation IDs and reconcile
+possible partial preparation before further saves; do not reset usage or
+allocate another avatar to evade the limit. See [browser evidence](RECOVERY_BROWSER_EVIDENCE_2026-11-05.md).
+Advance independent launcher/runtime engineering meanwhile. LocalFile still
+requires the already-recorded Railway access and persistent-mount checks.
+
 ## Verified scope
 
 - **96 local query types/profiles:**3 canonical, 57 public/source, 36 other local;

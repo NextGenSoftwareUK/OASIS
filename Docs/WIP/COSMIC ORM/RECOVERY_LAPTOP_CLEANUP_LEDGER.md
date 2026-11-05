@@ -1,5 +1,11 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+Aptos preparation on 5 November hit the daily call limit. Its partial-save
+state is unknown; retain the browser journal and request/operation identifiers
+in RECOVERY_BROWSER_EVIDENCE_2026-11-05.md for reconciliation. Twenty-six
+acknowledged copies below exclude any unproven Aptos writes. No new avatar,
+runtime, database or downloaded artifact was created for this attempt.
+
 The clock-corrected website verification owns a second browser tab and
 demo avatar sandbox-3a2cb72c. Thirteen completed provider flows (BNB Chain,
 Optimism, Linea, Scroll, ZkSync, Abstract, Monad, Sei, Berachain, Bitcoin, XRPL, Stellar and Algorand)
