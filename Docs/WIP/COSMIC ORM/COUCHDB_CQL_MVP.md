@@ -128,6 +128,13 @@ Review the target's existing design documents and privileges before applying
 the rule. Verify creation, update and deletion rejection through CouchDB
 itself before live enrollment.
 
+Recovery-laptop inventory found no CouchDB or Docker executable, WSL
+distribution, retained CouchDB fixture directory or listener on port 5984.
+Apache's Windows binary distribution uses an installer. The controlled
+validator check used Node only. Native policy qualification still requires
+a dedicated CouchDB instance with an isolated teaching fixture.
+[Apache Windows installation guide](https://docs.couchdb.org/en/stable/install/windows.html)
+
 After verifying the reviewed Development deployment, check discovery before
 creating a cohort:
 
