@@ -1,18 +1,21 @@
 # COSMIC cleanup ledger for the recovery laptop
 
 The clock-corrected website verification owns a second browser tab and
-demo avatar sandbox-3a2cb72c. Startup and BNB Chain native 3/2 passed.
-No private holons were created yet in this session. Keep the original
-tab and its teaching records retained. Browser renewal verification is open.
+demo avatar sandbox-3a2cb72c. BNB Chain native 3/2, pairing 5/4, reuse,
+privacy and rendered replica comparisons passed. This session owns two
+private BNB copies and their replicas. Keep both browser tabs retained.
+Browser renewal verification is open.
 
 Browser verification on 5 November created one Development demo avatar,
-sandbox-ca8924da, with ten private Mongo records across Solana, Google,
-Ethereum, Polygon and Arbitrum. The retained browser tab owns its live
+sandbox-ca8924da, with twenty private Mongo records across Solana, Google,
+Ethereum, Polygon, Arbitrum, Cosmos Hub, Polkadot, NEAR, Base and Avalanche.
+The retained browser tab owns its live
 session. IDs and completed checks are in
 RECOVERY_BROWSER_EVIDENCE_2026-11-05.md. Keep those records for continuation
 and later expiry review. Screenshots were emitted in the chat. No new
-runtime or standalone screenshot file was created. Arbitrum reuse and
-replica checks remain open after browser read/screenshot timeouts.
+runtime or standalone screenshot file was created. All ten provider flows
+passed their functional checks. Earlier browser timeouts and the Avalanche
+identity rejection remain preserved in the evidence log.
 
 The combined WEB4 admission run against Core `7b17894c` passed 7/7 with
 zero skips for Chroma, CouchDB, DuckDB, SQL Server, QuestDB, NATS JetStream
