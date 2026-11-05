@@ -8,6 +8,7 @@ from email.message import Message
 from pathlib import Path
 import tempfile
 import unittest
+import uuid
 from unittest.mock import patch, Mock
 
 spec = importlib.util.spec_from_file_location("query_verification", Path(__file__).with_name("Verify-HostedQuerySource.py"))
@@ -16,6 +17,37 @@ spec.loader.exec_module(verification)
 
 
 class ResponseEvidenceTests(unittest.TestCase):
+    def test_exact_key_admission_matches_the_reviewed_source_before_owner_creation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            descriptor = root / "catalogue.json"
+            actor, first, second, third, deleted, missing = [str(uuid.UUID(int=i)) for i in range(1, 7)]
+            catalogue = {"Actor": actor, "LiveIds": [first, second, third], "DeletedId": deleted, "MissingId": missing}
+            descriptor.write_text(json.dumps(catalogue))
+            for provider in verification.REVIEWED_EXACT_KEY_PROVIDERS:
+                with self.subTest(provider=provider):
+                    reviewed = verification.reviewed_exact_key_source(provider, descriptor)
+                    presets = reviewed["presets"]
+                    self.assertEqual([first, second, third], presets[0]["request"]["filters"][0]["value"])
+                    self.assertEqual([first, second], presets[3]["request"]["source"]["filters"][0]["value"])
+                    verification.require_reviewed_presets(provider, {"examples": presets}, reviewed)
+                    drift = json.loads(json.dumps(presets))
+                    drift[3]["request"]["source"]["filters"][0]["value"][1] = missing
+                    with (
+                        patch.object(verification, "ROOT", root),
+                        patch("sys.argv", ["verify", provider, "--reviewed-exact-key-source", str(descriptor)]),
+                        patch.object(verification, "session", return_value=({}, "retained")) as session,
+                        patch.object(verification, "ready_source", return_value={"examples": drift}),
+                    ):
+                        with self.assertRaisesRegex(RuntimeError, "differs from the reviewed rollout"):
+                            verification.main()
+                    session.assert_called_once_with(root / "LocalState/COSMIC/HostedDemoRehearsalDiscovery",
+                                                    "visitor", allow_create=False)
+                    self.assertEqual([descriptor], list(root.iterdir()))
+            descriptor.write_text(json.dumps(dict(catalogue, DeletedId=first)))
+            with self.assertRaisesRegex(RuntimeError, "distinct record identities"):
+                verification.reviewed_exact_key_source("DynamoDBOASIS", descriptor)
+
     def test_localfile_receipt_recovers_bound_reports_without_opening_sessions(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

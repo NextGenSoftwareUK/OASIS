@@ -336,3 +336,27 @@ Use the same IDs for the source and server-side public catalogue. Review the
 explicit query-only tariff and four presets before running the shared hosted
 verifier with a fresh NATS-scoped journal. Keep LocalFile first. Native TLS,
 hosted replicas and browser interaction remain unverified.
+## Hosted acceptance for prepared exact-key providers
+
+After the LocalFile rollout and each provider's native qualification, use the
+same reviewed teaching catalogue with the Development WEB4 verifier. This
+applies to Meilisearch, Solr, Elasticsearch, OpenSearch, ArcadeDB, SurrealDB,
+Qdrant, Redis, Valkey and DynamoDB. Confirm the reviewed settings deployment
+and existing source authorization before running either command.
+
+```powershell
+python -B Scripts/Sandbox/Verify-HostedQuerySource.py RedisOASIS --reviewed-exact-key-source <catalogue.json> --readiness
+python -B Scripts/Sandbox/Verify-HostedQuerySource.py RedisOASIS --reviewed-exact-key-source <catalogue.json> --prepare
+```
+
+Use the provider's canonical enum name. The catalogue contains `Actor`,
+three ordered `LiveIds`, `DeletedId` and `MissingId` as canonical UUIDs.
+Advertise exactly four presets. Use `Id` membership, unordered selection,
+metadata, a 25-row limit and a 30-second top-level deadline. The paired
+presets use named Mongo and native targets, preserve copies, and allow two
+provider attempts. The subset uses the first two live IDs.
+
+Readiness uses the retained discovery visitor. The acceptance flow checks
+the reviewed presets before creating a visitor, then verifies native 3/2,
+paired 5/4, snapshot reuse, replicas and independent-visitor privacy. Browser
+acceptance and real deployment evidence remain separate.

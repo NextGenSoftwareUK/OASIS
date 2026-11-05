@@ -21,6 +21,11 @@ import HostedSessionCredentials as session_credentials
 ROOT = Path(__file__).resolve().parents[2]
 BASE = "https://dev.api.web4.oasisomniverse.one/api/"
 BROWSER_ORIGIN = "https://web4.oasisomniverse.one"
+REVIEWED_EXACT_KEY_PROVIDERS = (
+    "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
+    "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
+    "DynamoDBOASIS",
+)
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(verification)
@@ -179,7 +184,7 @@ def require_native_rows(response, example, count):
                 raise RuntimeError("Native source metadata keys differ from the reviewed preset.")
 
 
-def localfile_preset_request(request, paired):
+def normalized_preset_request(request, paired):
     # Discovery serializes the typed request and materializes its defaults.
     selection_defaults = {
         "provider": None, "filters": [], "anyOf": [], "anyChildren": [], "anyDescendants": [],
@@ -209,6 +214,8 @@ def require_reviewed_presets(provider, source, review):
     actual = {row["id"]: row for row in source["examples"]}
     if len(actual) != len(source["examples"]) or len(expected) != len(review["presets"]):
         raise RuntimeError(f"Hosted {provider} preset IDs must be unique.")
+    if provider in REVIEWED_EXACT_KEY_PROVIDERS and actual.keys() != expected.keys():
+        raise RuntimeError(f"Hosted {provider} preset set differs from the reviewed rollout.")
     for key in ("public-records", "public-subset", "mongo-public-records", "mongo-public-subset"):
         observed = actual.get(key, {}).get("request", {})
         reviewed = expected.get(key, {}).get("request", {})
@@ -218,9 +225,9 @@ def require_reviewed_presets(provider, source, review):
         filters = observed_selection.get("filters", [])
         reviewed_filters = reviewed_selection.get("filters", [])
         if (actual.get(key, {}).get("operation", "Rows") != expected.get(key, {}).get("operation", "Rows")
-                or (provider == "LocalFile"
-                    and json.dumps(localfile_preset_request(observed, paired), sort_keys=True)
-                    != json.dumps(localfile_preset_request(reviewed, paired), sort_keys=True))
+                or ((provider == "LocalFile" or provider in REVIEWED_EXACT_KEY_PROVIDERS)
+                    and json.dumps(normalized_preset_request(observed, paired), sort_keys=True)
+                    != json.dumps(normalized_preset_request(reviewed, paired), sort_keys=True))
                 or (paired and any(observed.get(field) != reviewed.get(field)
                                    for field in ("scope", "identityMode")))
                 or len(filters) != 1 or len(reviewed_filters) != 1
@@ -303,6 +310,35 @@ def pouchdb_review(path):
     return {"presets": presets}
 
 
+def reviewed_exact_key_source(provider, path):
+    if path is None or not path.is_file() or not 0 < path.stat().st_size <= 16384:
+        raise RuntimeError("An explicit reviewed native teaching catalogue is required.")
+    catalogue = json.loads(path.read_bytes())
+    try:
+        if (set(catalogue) != {"Actor", "LiveIds", "DeletedId", "MissingId"}
+                or not isinstance(catalogue["LiveIds"], list) or len(catalogue["LiveIds"]) != 3):
+            raise ValueError("Unexpected teaching catalogue shape.")
+        ids = catalogue["LiveIds"]
+        record_ids = [*ids, catalogue["DeletedId"], catalogue["MissingId"]]
+        if any(str(uuid.UUID(value)) != value or uuid.UUID(value).int == 0
+               for value in [catalogue["Actor"], *record_ids]) or len(set(record_ids)) != 5:
+            raise ValueError("Invalid teaching identities.")
+    except (AttributeError, KeyError, TypeError, ValueError) as error:
+        raise RuntimeError("The reviewed teaching catalogue requires canonical, distinct record identities.") from error
+    presets = []
+    for suffix, selected in (("records", ids), ("subset", ids[:2])):
+        selection = {"orderBy": "None", "take": 25, "includeMetadata": True,
+                     "filters": [{"field": "Id", "scalar": "Guid", "operator": "In", "value": selected}]}
+        presets.extend([
+            {"id": "public-" + suffix, "request": dict(selection, provider=provider, maximumDurationMilliseconds=30000)},
+            {"id": "mongo-public-" + suffix, "operation": "Federation", "request": {
+                "scope": "Named", "providers": ["MongoDBOASIS", provider], "source": selection,
+                "identityMode": "PreserveCopies", "maximumProviderAttempts": 2,
+                "maximumDurationMilliseconds": 30000, "take": 25}},
+        ])
+    return {"presets": presets}
+
+
 def require_native_selection(responses, examples):
     if len(responses) != 2 or len(examples) != 2:
         raise RuntimeError("Two native source selections are required.")
@@ -325,11 +361,12 @@ def verify_private_visibility(token, ids, providers):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("provider", choices=["ThreeFoldOASIS", "ClickHouseOASIS", "QuestDBOASIS", "SQLServerDBOASIS", "DuckDBOASIS", "CouchDBOASIS", "PouchDBOASIS", "ChromaOASIS", "CloudflareD1OASIS", "NATSJetStreamOASIS", "ZcashOASIS", "BittensorOASIS", "AkashOASIS", "EclipseOASIS", "ENSOASIS", "BlockscoutOASIS", "CelestiaOASIS", "ChainflipOASIS", "LocalFileOASIS", "HyperlaneOASIS", "LayerZeroV2OASIS", "StargateOASIS", "deBridgeOASIS", "SynapseOASIS", "ConnextOASIS", "WormholeOASIS", "BlockStackOASIS", "MatrixOASIS", "NostrOASIS", "BlueSkyOASIS", "ChainLinkOASIS", "EOSIOOASIS", "TelosOASIS", "FilecoinOASIS", "FantomOASIS", "AzureStorageOASIS", "SOLIDOASIS", "AWSS3OASIS", "SolanaOASIS", "GoogleCloudOASIS", "EthereumOASIS", "PolygonOASIS", "ArbitrumOASIS", "CosmosBlockChainOASIS", "PolkadotOASIS", "NEAROASIS", "BaseOASIS", "AvalancheOASIS", "BNBChainOASIS", "OptimismOASIS", "LineaOASIS", "ScrollOASIS", "ZkSyncOASIS", "AbstractOASIS", "MonadOASIS", "SeiOASIS", "BerachainOASIS", "BitcoinOASIS", "XRPLOASIS", "StellarOASIS", "AlgorandOASIS", "AptosOASIS", "HashgraphOASIS", "SuiOASIS", "ElrondOASIS", "RadixOASIS", "StarknetOASIS", "CardanoOASIS", "ArweaveOASIS", "TONOASIS"])
+    parser.add_argument("provider", choices=["ThreeFoldOASIS", "ClickHouseOASIS", "QuestDBOASIS", "SQLServerDBOASIS", "DuckDBOASIS", "CouchDBOASIS", "PouchDBOASIS", "ChromaOASIS", "CloudflareD1OASIS", "NATSJetStreamOASIS", "ZcashOASIS", "BittensorOASIS", "AkashOASIS", "EclipseOASIS", "ENSOASIS", "BlockscoutOASIS", "CelestiaOASIS", "ChainflipOASIS", "LocalFileOASIS", "HyperlaneOASIS", "LayerZeroV2OASIS", "StargateOASIS", "deBridgeOASIS", "SynapseOASIS", "ConnextOASIS", "WormholeOASIS", "BlockStackOASIS", "MatrixOASIS", "NostrOASIS", "BlueSkyOASIS", "ChainLinkOASIS", "EOSIOOASIS", "TelosOASIS", "FilecoinOASIS", "FantomOASIS", "AzureStorageOASIS", "SOLIDOASIS", "AWSS3OASIS", "SolanaOASIS", "GoogleCloudOASIS", "EthereumOASIS", "PolygonOASIS", "ArbitrumOASIS", "CosmosBlockChainOASIS", "PolkadotOASIS", "NEAROASIS", "BaseOASIS", "AvalancheOASIS", "BNBChainOASIS", "OptimismOASIS", "LineaOASIS", "ScrollOASIS", "ZkSyncOASIS", "AbstractOASIS", "MonadOASIS", "SeiOASIS", "BerachainOASIS", "BitcoinOASIS", "XRPLOASIS", "StellarOASIS", "AlgorandOASIS", "AptosOASIS", "HashgraphOASIS", "SuiOASIS", "ElrondOASIS", "RadixOASIS", "StarknetOASIS", "CardanoOASIS", "ArweaveOASIS", "TONOASIS", *REVIEWED_EXACT_KEY_PROVIDERS])
     parser.add_argument("--prepare", action="store_true")
     parser.add_argument("--readiness", action="store_true", help="Check discovery using the retained rehearsal visitor; create no cohort.")
     parser.add_argument("--recover-localfile-receipt", action="store_true",
                         help="Finalize the original completed LocalFile reports without sessions, queries or saves.")
+    parser.add_argument("--reviewed-exact-key-source", type=Path, help="Reviewed native teaching catalogue for the prepared exact-key providers.")
     parser.add_argument("--pouchdb-reviewed-settings", type=Path, help="Explicit reviewed settings patch for the qualified PouchDB source.")
     parser.add_argument("--resume-unstarted-native", action="store_true",
                         help="One explicit same-owner continuation before any client preparation/save; original failure must be recorded.")
@@ -346,7 +383,7 @@ def main():
         if (options.provider != "LocalFileOASIS" or options.prepare or options.readiness
                 or options.resume_unstarted_native or options.continue_settled_read
                 or options.continue_native_read_failure or options.continue_snapshot_observation_change
-                or options.pouchdb_reviewed_settings is not None):
+                or options.pouchdb_reviewed_settings is not None or options.reviewed_exact_key_source is not None):
             parser.error("--recover-localfile-receipt is a standalone LocalFile operation.")
         suffix = options.provider + ("" if options.cohort == "current" else "-" + options.cohort)
         state = ROOT / "LocalState/COSMIC" / ("HostedQueryAcceptance-" + suffix)
@@ -359,6 +396,11 @@ def main():
     if options.pouchdb_reviewed_settings is not None and not is_pouchdb:
         parser.error("--pouchdb-reviewed-settings applies only to PouchDBOASIS.")
     reviewed_pouchdb = pouchdb_review(options.pouchdb_reviewed_settings) if is_pouchdb else None
+    is_reviewed_exact_key = options.provider in REVIEWED_EXACT_KEY_PROVIDERS
+    if options.reviewed_exact_key_source is not None and not is_reviewed_exact_key:
+        parser.error("--reviewed-exact-key-source applies only to the prepared exact-key providers.")
+    reviewed_source = (reviewed_exact_key_source(options.provider, options.reviewed_exact_key_source)
+                       if is_reviewed_exact_key else reviewed_pouchdb)
     continuing = options.continue_settled_read or options.continue_native_read_failure or options.continue_snapshot_observation_change
     continuation_folder = "snapshot-reuse-completion" if options.continue_snapshot_observation_change else "native-read-completion" if options.continue_native_read_failure else "settlement-continuation"
     if sum((options.continue_settled_read, options.continue_native_read_failure, options.continue_snapshot_observation_change)) > 1:
@@ -375,8 +417,8 @@ def main():
             source = ready_source(options.provider, token, require_pair=True)
             if options.provider == "LocalFileOASIS":
                 require_reviewed_presets("LocalFile", source, localfile_review())
-            if is_pouchdb:
-                require_reviewed_presets(options.provider, source, reviewed_pouchdb)
+            if reviewed_source is not None:
+                require_reviewed_presets(options.provider, source, reviewed_source)
         except RuntimeError as error:
             raise SystemExit(str(error)) from None
         print(f"{options.provider} advertises native and paired presets; no cohort created.")
@@ -400,18 +442,18 @@ def main():
     if (state / "cql-http-acceptance.acknowledged.json").exists():
         raise RuntimeError("This cohort already completed acceptance; retain its acknowledged outcome.")
     results = ROOT / "TestResults/HostedCqlIntegrationCurrent"
-    if options.provider == "LocalFileOASIS" and (results / (suffix + "-client-http-flow.json")).exists():
-        raise RuntimeError("Original LocalFile client proof exists; reconcile it without another query or save.")
+    if (options.provider == "LocalFileOASIS" or is_reviewed_exact_key) and (results / (suffix + "-client-http-flow.json")).exists():
+        raise RuntimeError("Original client proof exists; reconcile it without another query or save.")
     if not continuing and (ROOT / "TestResults/HostedCqlIntegrationCurrent" / (suffix + "-client-http-flow.json.progress.json")).exists():
         raise RuntimeError("Original partial client flow exists; reconcile explicitly before another execution.")
     allow_create = not (continuing or options.resume_unstarted_native)
     reviewed_localfile = None
-    if (options.provider == "LocalFileOASIS" or is_pouchdb) and allow_create and not (state / "owner.acknowledged.json").exists():
+    if (options.provider == "LocalFileOASIS" or reviewed_source is not None) and allow_create and not (state / "owner.acknowledged.json").exists():
         _, visitor_token = session(ROOT / "LocalState/COSMIC/HostedDemoRehearsalDiscovery",
                                    "visitor", allow_create=False)
         source = ready_source(options.provider, visitor_token, require_pair=True)
-        if is_pouchdb:
-            require_reviewed_presets(options.provider, source, reviewed_pouchdb)
+        if reviewed_source is not None:
+            require_reviewed_presets(options.provider, source, reviewed_source)
         else:
             reviewed_localfile = localfile_review(require_mount=True)
             require_reviewed_presets("LocalFile", source, reviewed_localfile)
@@ -432,9 +474,9 @@ def main():
             "ownerId": owner["id"], "provider": options.provider, "operation": "explicit original native-only continuation",
             "replacementOwner": False, "replayAllowed": False}) + "\n").encode())
     avatar, token = session(state, "owner", allow_create=allow_create)
-    source = ready_source(options.provider, token, require_pair=options.prepare or is_pouchdb or reviewed_localfile is not None)
-    if is_pouchdb:
-        require_reviewed_presets(options.provider, source, reviewed_pouchdb)
+    source = ready_source(options.provider, token, require_pair=options.prepare or reviewed_source is not None or reviewed_localfile is not None)
+    if reviewed_source is not None:
+        require_reviewed_presets(options.provider, source, reviewed_source)
     if reviewed_localfile is not None:
         require_reviewed_presets("LocalFile", source, reviewed_localfile)
     examples = source["examples"]

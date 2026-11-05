@@ -1891,3 +1891,8 @@ automatically removed. No live request or new cohort was created.
 LocalFile HTTP receipt recovery was exercised in the existing Python runtime.
 Temporary evidence fixtures were removed by the tests. The rehearsal made no
 live queries, saves or session requests and installed nothing.
+
+The shared hosted exact-key verifier passed 16 focused Python tests, including
+catalogue checks for ten prepared providers. Tests reused the existing
+interpreter with bytecode output suppressed and removed their temporary
+descriptors. No live requests, visitor sessions, downloads or installs occurred.
