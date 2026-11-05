@@ -152,9 +152,12 @@ normal Core push returned GitHub's `fatal error in commit_refs_rules`.
 The same account could read the repository, reported write access and
 read the previous published commit. The candidate Core ref and commit
 were absent remotely. The rules API denied visibility for this private
-repository under its current plan. The exact cause of the push error
-remains unconfirmed. Publish the Core commit and verify its remote SHA
-before pushing the dependent parent commit.
+repository under its current plan. The exact cause of the earlier push error
+remains unconfirmed. Core `f73e719b4e22b8b62ee9d8efc7028dccd22228a7`
+was subsequently published on `codex/cql-dynamodb-hosted` and verified to
+include `06083474`. The dependent parent task branch was published and
+verified at `d3dafb5e0dbd3afe1c13bffc59b74d63614d942a`. Development rollout
+and native TLS qualification are still pending.
 
 [Status](CURRENT_STATUS.md) / [inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) /
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).

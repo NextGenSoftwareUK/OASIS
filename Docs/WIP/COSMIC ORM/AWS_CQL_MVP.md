@@ -57,4 +57,10 @@ the probe. Qualify native and Mongo-paired WEB4 HTTP and browser flows after
 the real AWS source passes. Hosted proof is pending. The combined AWSOASIS
 provider and its S3 operations have their own gates.
 
+The candidate is published on the task branch in parent `c3a877313`,
+with Core `f73e719b` available on `codex/cql-dynamodb-hosted`. Six controlled
+regional activation checks and seven WEB4 admission checks passed. The
+native AWS fixture compiled. This candidate awaits the reviewed AWS source
+and the Development rollout.
+
 [Programme](CURRENT_STATUS.md) | [Provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) | [Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
