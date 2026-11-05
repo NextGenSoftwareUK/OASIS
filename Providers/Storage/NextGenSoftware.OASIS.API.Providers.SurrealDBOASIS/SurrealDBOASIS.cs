@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using SurrealDb.Net;
 using SurrealDb.Net.Models;
@@ -39,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
     ///   ns        — SurrealDB namespace (e.g. "oasis")
     ///   db        — SurrealDB database (e.g. "oasis")
     /// </summary>
-    public class SurrealDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class SurrealDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly string _endpoint;
         private readonly string _username;
@@ -67,13 +68,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
-        private async Task<SurrealDbClient> GetClientAsync()
+        private async Task<SurrealDbClient> GetClientAsync(CancellationToken cancellationToken = default)
         {
             var client = new SurrealDbClient(_endpoint);
             try
             {
-                await client.SignIn(new RootAuth { Username = _username, Password = _password });
-                await client.Use(_ns, _db);
+                await client.SignIn(new RootAuth { Username = _username, Password = _password }, cancellationToken);
+                await client.Use(_ns, _db, cancellationToken);
                 return client;
             }
             catch

@@ -544,3 +544,9 @@ a specific reason. No process or database was created by those commands.
 SurrealDB lifecycle build passed using existing .NET and shared outputs.
 Receipt: TestResults/ProviderBuildCurrent/cosmic-surreal-lifecycle.log.
 Native activation and CQL remain unverified.
+
+SurrealDB bounded CQL adapter build passed (0 errors) using the existing
+provider bin/Debug/net10.0 and obj outputs and the shared compiler. Build
+receipt: TestResults/ProviderBuildCurrent/cosmic-surreal-cql.log. No new
+runtime, server or database. Reuse these build outputs for the next native
+gate and clean only after the provider test environment is idle.
