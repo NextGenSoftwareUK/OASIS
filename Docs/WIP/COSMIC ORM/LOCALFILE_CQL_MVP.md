@@ -469,6 +469,11 @@ authentication, instance mount confirmation and live acceptance remain open.
 The build log confirms that both the full commit tag and the isolated candidate tag were pushed to the same digest. The job did not push the shared sandbox tag.
 
 An independent registry check with the existing GitHub credential returned HTTP 403. The successful push log establishes publication at build time. Current pull access and the actual running image digest must be verified through the Development service.
+The anonymous registry manifest request returned a bearer challenge, and
+the anonymous token exchange for this repository's pull scope returned
+HTTP 401. Before changing the Development WEB4 source, verify the existing
+registry credentials grant that service pull access to the reviewed digest.
+The anonymous check downloaded no image layers.
 
 The image-digest guard is operator-side tooling. The built candidate's shared
 settings mutation code matches the task branch. Use the updated publisher and
