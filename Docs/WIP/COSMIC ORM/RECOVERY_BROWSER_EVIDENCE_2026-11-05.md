@@ -13,7 +13,7 @@ b1f86140-00a9-4017-9b6c-af9eade65c76. Reuse this browser session.
 | ArbitrumOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
 | CosmosBlockChainOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
 | PolkadotOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
-| NEAROASIS | 3/2 | 5/4 | 2 saved; reuse pending | Pending |
+| NEAROASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
 
 Solana private IDs are 3066ca99-2a54-885f-afad-8b104f13b653 and
 b7f878cb-cd6d-8bf6-b075-e86856ade714. Google private IDs are
@@ -56,8 +56,10 @@ zero rows for these IDs on each of the three providers.
 
 NEAR private IDs are 66872f24-1681-8196-aa5b-182c9241878b and
 7d93df36-a7fd-8570-a4c3-bd55f6de66a9, both version 1. Native full
-and subset and paired full and subset reads passed. Reuse, privacy and
-rendered replica comparison remain open.
+and subset and paired full and subset reads passed. Reuse reported zero
+saved and two prepared. SQLite and Neo4j each returned both private copies
+with rendered content exactly matching MongoDB. The independent retained
+visitor saw zero rows for these exact IDs on all three providers.
 
 Solana and Google subset screenshots were emitted and inspected in the
 chat. Both show four physical rows with native and Mongo provider labels,
