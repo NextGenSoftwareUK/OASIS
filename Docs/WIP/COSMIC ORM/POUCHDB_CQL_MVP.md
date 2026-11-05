@@ -94,3 +94,15 @@ CtrlC12/storageClosed/shutdownComplete.19600/27029/5141closed. Consumer build
 0errors/1142warnings (including existing shared warnings). No new downloads.
 Local profile102 accepted; hosted60/browser28/open32 unchanged. WEB4 local card
 publication next; hosted credentials/enrollment and full provider parity open.
+
+## Published local catalogue
+Websited085e2a23cfcbed2cc4cad2958770b5832ff2b05/Vercel success publishes card47.
+Live223396-byte HTML SHA256
+`7008fc617d0aa814353dbfdd5fe69e84c462b3788ea5b5d3378a6bb958187674`
+is Git-blob exact. Two linked guide/fixture sources match parent
+1cac150c4fc80bdb4e027bccb83644602d0f4298. Actual public card and expanded
+launcher browser-verified; ellipsized link targets in AX covered by exact HTML
+and actual native5141 browser proof.113client tests pass; publication.json kept.
+Verified obsolete npm10.9.4 archive removed2714849B, exact path/SHA512 checked,
+intent/completion receipts retained. Local npm tool/runtime/store/lock retained.
+Full-provider/hosted/HyperDrive parity remains open; counts102/60/28 scoped.

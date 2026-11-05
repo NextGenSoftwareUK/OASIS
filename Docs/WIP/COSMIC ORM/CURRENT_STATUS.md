@@ -10,7 +10,8 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 LevelDB native bootstrap/retained restart plus manager/Mongo/HTTP/browser5/4 pass.
 Original hashes/revision1 unchanged; exact Mongo fixture removed, native store
 closed and both owned services stopped. New local profile102; hosted60/browser28
-unchanged. WEB4 local launcher publication follows scoped source commit.
+unchanged. WEB4 local card47 publishedd085e2a/Vercel success;113client tests
+pass, exact live HTML/two pinned source links and browser launcher verified.
 [Exact evidence and limits](POUCHDB_CQL_MVP.md).
 
 ## SurrealDB Windows recovery continuation, 5 November2026

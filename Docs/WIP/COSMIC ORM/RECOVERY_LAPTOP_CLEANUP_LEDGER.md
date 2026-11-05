@@ -1465,3 +1465,10 @@ verified/dropped. Owned NodePID9268CtrlC0/native DB close and MongoPID19264
 CtrlC12/storageClosed/shutdownComplete; all19600/27029/5141listeners closed.
 No new download/runtime. Consumer outputs reused,1142warnings/0errors logged.
 Compact TRX/result/shutdown receipts retained; local profile102, hosted unchanged.
+
+PouchDB publicationd085e2a card47 verified:113client tests, exact HTML/two pinned
+sources and actual browser launcher. Removed only owned npm-tool/npm-10.9.4.tgz,
+2714849B after exact absolute path/vendor SHA512 verification; cleanup.intent/
+cleanup.json receipts retained. Installed npm tool, actual PouchDB runtime,
+native source/ACKs/baseline and compact evidence retained for reuse. No source,
+user credentials/database, unrelated environment or broad recursive cleanup.
