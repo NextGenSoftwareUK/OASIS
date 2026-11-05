@@ -25,8 +25,10 @@ independent retained visitor saw zero rows for both IDs on all three providers.
 Linea passed native 3/2 and pairing 5/4 in sandbox-3a2cb72c.
 Preparation acknowledged two saves. Private IDs are
 bcbb5ef0-2794-8ff4-a78c-834af5591843 and
-f54abb9f-5ee2-81ef-8e5e-ab7d52e1c880, both version 1. Reuse, privacy
-and rendered replica comparison remain open.
+f54abb9f-5ee2-81ef-8e5e-ab7d52e1c880, both version 1. Reuse reported
+zero saved and two prepared. SQLite and Neo4j each returned both copies
+with rendered contents exactly matching MongoDB. The independent retained
+visitor saw zero rows for both IDs on all three providers.
 
 | Provider | Native full/subset | Mongo full/subset | Preparation/reuse | Independent exact-ID privacy |
 |---|---|---|---|---|
