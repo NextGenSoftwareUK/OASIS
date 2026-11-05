@@ -59,7 +59,13 @@ and credentials are not certified. Heap128/512MiB, two processors.
 Evidence lives under the one runtime cache, with admission, source, intent,
 ACK, health, result and shutdown receipts. Shared build used Core checkout
 54159614ebdb879c8636eed5fae60be97dbbfff3; exact-parent deployed API qualification
-is separate. Local WEB4 catalogue publication follows the scoped source commit.
+is separate. Local WEB4 card45 is published at website27d58418598ebcb3eed0419b919024c5e5930fd2,
+Vercel success. Live218492-byte HTML SHA256
+`6864f112ee92082ef3da2cccd81ebc1f4e2106746144ad6556a646c703114f06`
+matches the Git blob; both source links match parent7e3b9b973422e26ebf806d592ed5295d9af54763.
+Actual live card and expanded launcher browser-verified; link target strings
+are ellipsized by AX, covered by exact HTML and native5139 browser proof.
+113client tests pass. Compact publication.json retained.
 Hosted enrollment/TLS/authentication, general search/vector/CRUD/history,
 replication and full EF/NHibernate parity remain open. Hosted60/browser28/open32
 unchanged. See [local guide](../../Devs/ELASTICSEARCH_CQL_LOCAL_DEMO.md) and

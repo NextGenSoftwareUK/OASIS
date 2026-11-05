@@ -41,7 +41,9 @@ manager/Mongo/HTTP and browser5/4 now pass against original version1 canonical
 records, including an embedded child. Native index-ready wait fixes the preserved
 pre-consumer503 at its source. Exact Mongo fixture removed; source unchanged;
 both owned services shut down cleanly. Local profile101; hosted60/browser28
-unchanged. WEB4 local card publication is next. [Evidence](ELASTICSEARCH_CQL_MVP.md).
+unchanged. WEB4 local card45 is published at website27d5841 (Vercel success),
+Git-exact HTML and two pinned source links checked, live card/launcher browser
+verified.113client tests pass. [Evidence](ELASTICSEARCH_CQL_MVP.md).
 
 ## Firebase recovery continuation, 5 November 2026
 
