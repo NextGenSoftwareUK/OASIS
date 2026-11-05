@@ -29,13 +29,8 @@ public class RavenDBCqlNativeTests
         public Guid MissingId { get; set; }
     }
 
-    [TestMethod]
-    [TestCategory("RavenDBCqlNative")]
-    public async Task RetainedNativeCatalogueSupportsExactThreeTwoAndExcludesDeletedAndMissing()
+    public static void ValidateSource(Source source)
     {
-        var path = Environment.GetEnvironmentVariable("COSMIC_RAVENDB_CQL_SOURCE");
-        Assert.IsFalse(string.IsNullOrWhiteSpace(path), "Explicit retained-source configuration is required; no auto-provisioning.");
-        var source = JsonSerializer.Deserialize<Source>(await File.ReadAllTextAsync(path!))!;
         Assert.IsNotNull(source);
         Assert.IsTrue(Uri.TryCreate(source.Endpoint, UriKind.Absolute, out var endpoint)
             && endpoint.Scheme == "http" && endpoint.IsLoopback && endpoint.UserInfo.Length == 0
@@ -47,6 +42,17 @@ public class RavenDBCqlNativeTests
         var catalogue = source.LiveIds.Concat(new[] { source.DeletedId, source.MissingId }).ToArray();
         Assert.AreEqual(5, catalogue.Distinct().Count());
         Assert.IsFalse(catalogue.Contains(Guid.Empty));
+    }
+
+    [TestMethod]
+    [TestCategory("RavenDBCqlNative")]
+    public async Task RetainedNativeCatalogueSupportsExactThreeTwoAndExcludesDeletedAndMissing()
+    {
+        var path = Environment.GetEnvironmentVariable("COSMIC_RAVENDB_CQL_SOURCE");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(path), "Explicit retained-source configuration is required; no auto-provisioning.");
+        var source = JsonSerializer.Deserialize<Source>(await File.ReadAllTextAsync(path!))!;
+        ValidateSource(source);
+        var catalogue = source.LiveIds.Concat(new[] { source.DeletedId, source.MissingId }).ToArray();
         using var store = new DocumentStore { Urls = new[] { source.Endpoint }, Database = source.Database };
         store.Initialize();
         async Task<string> ObserveSource()

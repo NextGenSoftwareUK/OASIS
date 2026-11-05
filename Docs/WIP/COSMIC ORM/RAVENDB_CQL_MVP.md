@@ -67,3 +67,24 @@ The archive is 149,728,697 bytes (371,595,943 bytes expanded). No server has
 been extracted or started. Package metadata requires license acceptance;
 LICENSE.txt is available alongside the archive for owner review before use.
 Keep that decision separate from preparing the native bootstrap and tests.
+
+## One-shot owned bootstrap
+
+RavenDBCqlBootstrapTests now compiles with the same integration project. Its
+separate RavenDBCqlBootstrap category creates exactly one uniquely named
+cosmic-cql-ravendb-<32hex> database, then stores three live and one deleted
+canonical envelopes with create-only change-vector conditions. MissingId stays
+absent. It flushes source hash, original identities and mutation bounds to an
+exclusive intent before the first mutation. Any existing intent stops another
+attempt, even after acknowledgement loss. Successful SaveChanges alone permits
+an exclusive ACK. Native errors leave the original intent for reconciliation.
+The read-only test never calls bootstrap. No mutation category was executed.
+
+Two offline bootstrap controls pass (zero skipped): existing intent cannot be
+overwritten, and unowned database/remote endpoint/duplicate IDs reject before
+mutation. Initial compilation caught assignment to derived IsDeleted; bootstrap
+now sets its owning DeletedDate field. The original failure remains recorded.
+Metadata-only source.json is prepared once under RecoveryLaptopRavenDB701,
+434 bytes, with one unique database/actor/five IDs and loopback port18087.
+No server start, database creation, seed, license acceptance or bootstrap intent
+has occurred. Pending owner license review is in ACTIONS-FOR-DAVID.md.

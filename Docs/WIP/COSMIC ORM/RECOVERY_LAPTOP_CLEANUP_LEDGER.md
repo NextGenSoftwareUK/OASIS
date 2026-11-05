@@ -827,3 +827,13 @@ check returned Unauthorized. No settings, deployment or project link changed.
   LICENSE.txt copied for owner review; download.json holds compact provenance.
   Metadata declares requireLicenseAcceptance=true. No license was accepted.
   Server runtimeconfig targets Microsoft.NETCore.App and AspNetCore.App 8.0.13.
+
+- RavenDB one-shot native bootstrap fixture build planned under lease cosmic-ravendb-bootstrap. Reuse existing integration bin/obj and SDK. Compilation only; no server/seed/bootstrap intent requested until license decision.
+
+- RavenDB bootstrap preparation generated source.json once (434 bytes) in the
+  existing RecoveryLaptopRavenDB701 directory; metadata-only, no credentials.
+  First build failed on assignment to derived IsDeleted; fixed DeletedDate at
+  its owning boundary. Leased rebuild and two filtered offline bootstrap
+  controls pass, zero failed/skipped. Temporary intent-control file removed by
+  exact owned filename. Integration bin/obj reused; no new runtime or native
+  process/database/seed/bootstrap journal created. License review remains open.
