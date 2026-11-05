@@ -533,3 +533,10 @@ Reused existing outputs. Build receipt: TestResults/NatsRecoveryLaptopCurrent/au
 NATS WEB4 credential wiring built and focused admission passed 1/1 against
 Core 47c3a84. Receipt: TestResults/ProviderBuildCurrent/cosmic-nats-web4-auth.log.
 Shared Core checkout restored. Authenticated live TLS remains a separate gate.
+
+SurrealDB qualification downloaded and verified the official v2.6.5 Windows
+x64 binary (62,194,176 bytes) in LocalState/COSMIC/RecoveryLaptopSurreal265.
+SHA256 dd9b6fa15edacbde96d490dd5727b49b5cf40df80f29074c7dc17acb974f509f.
+CLI version passed. Automatic policy review rejected the combined local
+server start and health probe, including the authenticated variant, without
+a specific reason. No process or database was created by those commands.
