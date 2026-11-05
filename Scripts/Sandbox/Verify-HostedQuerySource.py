@@ -245,17 +245,35 @@ def localfile_review(*, require_mount=False):
     return review
 
 
-def acknowledge_localfile_http(state, owner, foreign, reviewed_mount, reports):
+def acknowledge_localfile_http(state, owner, foreign, reviewed_mount, evidence):
     if owner == foreign:
         raise RuntimeError("LocalFile privacy proof requires two distinct visitor identities.")
     if localfile_review(require_mount=True)["mountedReceipt"] != reviewed_mount:
         raise RuntimeError("The reviewed LocalFile deployment changed during acceptance.")
-    evidence = {path.name: hashlib.sha256(path.read_bytes()).hexdigest() for path in reports}
     receipt = {"schema": 1, "provider": "LocalFileOASIS", "ownerId": owner, "foreignId": foreign,
                "deployment": reviewed_mount["deployment"], "imageDigest": reviewed_mount["imageDigest"],
                "nativeCounts": [3, 2], "federationCounts": [5, 4], "browserAcceptance": False,
                "evidenceSha256": evidence}
     write_new(state / "cql-http-acceptance.acknowledged.json", json.dumps(receipt, sort_keys=True).encode())
+
+
+def recover_localfile_http(state, native, paired, isolation):
+    if not all(path.is_file() for path in (native, paired, isolation)):
+        raise RuntimeError("All three original LocalFile HTTP reports are required for receipt recovery.")
+    isolation_bytes = isolation.read_bytes()
+    proof = json.loads(isolation_bytes)
+    binding = proof.get("localFileAcceptance")
+    if not isinstance(binding, dict) or set(binding) != {"ownerId", "mount", "priorEvidenceSha256"}:
+        raise RuntimeError("Original LocalFile isolation report has no deployment-bound acceptance evidence.")
+    prior = {path.name: hashlib.sha256(path.read_bytes()).hexdigest() for path in (native, paired)}
+    if prior != binding["priorEvidenceSha256"]:
+        raise RuntimeError("Original LocalFile native or paired report differs from the isolation evidence.")
+    owner = json.loads((state / "owner.acknowledged.json").read_bytes())["id"]
+    foreign = json.loads((state / "foreign.acknowledged.json").read_bytes())["id"]
+    if owner != binding["ownerId"] or foreign != proof.get("avatar", {}).get("id"):
+        raise RuntimeError("Original LocalFile visitor acknowledgements differ from the isolation evidence.")
+    evidence = prior | {isolation.name: hashlib.sha256(isolation_bytes).hexdigest()}
+    acknowledge_localfile_http(state, owner, foreign, binding["mount"], evidence)
 
 
 def pouchdb_review(path):
@@ -310,6 +328,8 @@ def main():
     parser.add_argument("provider", choices=["ThreeFoldOASIS", "ClickHouseOASIS", "QuestDBOASIS", "SQLServerDBOASIS", "DuckDBOASIS", "CouchDBOASIS", "PouchDBOASIS", "ChromaOASIS", "CloudflareD1OASIS", "NATSJetStreamOASIS", "ZcashOASIS", "BittensorOASIS", "AkashOASIS", "EclipseOASIS", "ENSOASIS", "BlockscoutOASIS", "CelestiaOASIS", "ChainflipOASIS", "LocalFileOASIS", "HyperlaneOASIS", "LayerZeroV2OASIS", "StargateOASIS", "deBridgeOASIS", "SynapseOASIS", "ConnextOASIS", "WormholeOASIS", "BlockStackOASIS", "MatrixOASIS", "NostrOASIS", "BlueSkyOASIS", "ChainLinkOASIS", "EOSIOOASIS", "TelosOASIS", "FilecoinOASIS", "FantomOASIS", "AzureStorageOASIS", "SOLIDOASIS", "AWSS3OASIS", "SolanaOASIS", "GoogleCloudOASIS", "EthereumOASIS", "PolygonOASIS", "ArbitrumOASIS", "CosmosBlockChainOASIS", "PolkadotOASIS", "NEAROASIS", "BaseOASIS", "AvalancheOASIS", "BNBChainOASIS", "OptimismOASIS", "LineaOASIS", "ScrollOASIS", "ZkSyncOASIS", "AbstractOASIS", "MonadOASIS", "SeiOASIS", "BerachainOASIS", "BitcoinOASIS", "XRPLOASIS", "StellarOASIS", "AlgorandOASIS", "AptosOASIS", "HashgraphOASIS", "SuiOASIS", "ElrondOASIS", "RadixOASIS", "StarknetOASIS", "CardanoOASIS", "ArweaveOASIS", "TONOASIS"])
     parser.add_argument("--prepare", action="store_true")
     parser.add_argument("--readiness", action="store_true", help="Check discovery using the retained rehearsal visitor; create no cohort.")
+    parser.add_argument("--recover-localfile-receipt", action="store_true",
+                        help="Finalize the original completed LocalFile reports without sessions, queries or saves.")
     parser.add_argument("--pouchdb-reviewed-settings", type=Path, help="Explicit reviewed settings patch for the qualified PouchDB source.")
     parser.add_argument("--resume-unstarted-native", action="store_true",
                         help="One explicit same-owner continuation before any client preparation/save; original failure must be recorded.")
@@ -322,6 +342,19 @@ def main():
     parser.add_argument("--continue-snapshot-observation-change", action="store_true",
                         help="Finish original acknowledged snapshots after a proved changing-observation reuse defect; no writes.")
     options = parser.parse_args()
+    if options.recover_localfile_receipt:
+        if (options.provider != "LocalFileOASIS" or options.prepare or options.readiness
+                or options.resume_unstarted_native or options.continue_settled_read
+                or options.continue_native_read_failure or options.continue_snapshot_observation_change
+                or options.pouchdb_reviewed_settings is not None):
+            parser.error("--recover-localfile-receipt is a standalone LocalFile operation.")
+        suffix = options.provider + ("" if options.cohort == "current" else "-" + options.cohort)
+        state = ROOT / "LocalState/COSMIC" / ("HostedQueryAcceptance-" + suffix)
+        results = ROOT / "TestResults/HostedCqlIntegrationCurrent"
+        recover_localfile_http(state, *(results / (suffix + ending) for ending in
+            ("-native-http.json", "-client-http-flow.json", "-isolation-http.json")))
+        print("Recovered the original LocalFile HTTP acceptance receipt.")
+        return
     is_pouchdb = options.provider == "PouchDBOASIS"
     if options.pouchdb_reviewed_settings is not None and not is_pouchdb:
         parser.error("--pouchdb-reviewed-settings applies only to PouchDBOASIS.")
@@ -449,13 +482,19 @@ def main():
         private = verify_private_visibility(foreign_token, proof["ids"],
                                             ["MongoDBOASIS", *proof["replicas"]])
         isolation = results / (suffix + "-isolation-http.json")
-        verification.write(isolation,
-                           {"avatar": foreign, "public": public, "foreignPrivateIds": private["MongoDBOASIS"],
-                            "foreignPrivateReplicaIds": {key: private[key] for key in proof["replicas"]},
-                            "browserAcceptance": False})
+        isolation_proof = {"avatar": foreign, "public": public, "foreignPrivateIds": private["MongoDBOASIS"],
+                           "foreignPrivateReplicaIds": {key: private[key] for key in proof["replicas"]},
+                           "browserAcceptance": False}
         if reviewed_localfile is not None:
-            acknowledge_localfile_http(state, avatar["id"], foreign["id"], reviewed_localfile["mountedReceipt"],
-                                       [results / (suffix + "-native-http.json"), report, isolation])
+            mount = reviewed_localfile["mountedReceipt"]
+            native_report = results / (suffix + "-native-http.json")
+            isolation_proof["localFileAcceptance"] = {"ownerId": avatar["id"], "mount": mount,
+                "priorEvidenceSha256": {path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+                                        for path in (native_report, report)}}
+            write_new(isolation, json.dumps(isolation_proof, sort_keys=True).encode())
+            recover_localfile_http(state, native_report, report, isolation)
+        else:
+            verification.write(isolation, isolation_proof)
     print(json.dumps({"provider": options.provider, "nativeRows": [3, 2], "nativeProofReused": continuing, "browserAcceptance": False}))
 
 

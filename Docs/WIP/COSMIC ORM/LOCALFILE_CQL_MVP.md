@@ -613,6 +613,13 @@ It creates the completion receipt once. An existing completed or partial
 client proof requires reconciliation before another query or save. Browser
 acceptance remains separate.
 
+If all three reports were written and the completion receipt is missing,
+keep the original deployment and instance settings and run
+`python -B Scripts/Sandbox/Verify-HostedQuerySource.py LocalFileOASIS --recover-localfile-receipt`.
+This verifies the retained report hashes, original visitor acknowledgements
+and current mount binding before writing the receipt. Missing or unbound
+reports require evidence review.
+
 Run the same checks without preparing or applying settings:
 
 ```powershell

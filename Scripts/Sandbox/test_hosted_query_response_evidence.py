@@ -16,6 +16,42 @@ spec.loader.exec_module(verification)
 
 
 class ResponseEvidenceTests(unittest.TestCase):
+    def test_localfile_receipt_recovers_bound_reports_without_opening_sessions(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / "LocalState/COSMIC/HostedQueryAcceptance-LocalFileOASIS"
+            results = root / "TestResults/HostedCqlIntegrationCurrent"
+            state.mkdir(parents=True)
+            results.mkdir(parents=True)
+            for label, identity in (("owner", "a"), ("foreign", "b")):
+                (state / (label + ".acknowledged.json")).write_text(json.dumps({"id": identity}))
+            native, paired, isolation = [results / ("LocalFileOASIS-" + suffix) for suffix in
+                ("native-http.json", "client-http-flow.json", "isolation-http.json")]
+            native.write_bytes(b"native")
+            paired.write_bytes(b"paired")
+            mount = {"deployment": "reviewed", "imageDigest": "sha256:" + "a" * 64}
+            binding = {"ownerId": "a", "mount": mount, "priorEvidenceSha256": {
+                path.name: hashlib.sha256(path.read_bytes()).hexdigest() for path in (native, paired)}}
+            isolation.write_text(json.dumps({"avatar": {"id": "b"}, "localFileAcceptance": binding}))
+            with (
+                patch.object(verification, "ROOT", root),
+                patch("sys.argv", ["verify", "LocalFileOASIS", "--recover-localfile-receipt"]),
+                patch.object(verification, "session") as session,
+                patch.object(verification, "call") as call,
+                patch.object(verification, "localfile_review", return_value={"mountedReceipt": mount}),
+            ):
+                paired.write_bytes(b"changed")
+                with self.assertRaisesRegex(RuntimeError, "paired report differs"):
+                    verification.main()
+                paired.write_bytes(b"paired")
+                verification.main()
+                session.assert_not_called()
+                call.assert_not_called()
+            receipt = json.loads((state / "cql-http-acceptance.acknowledged.json").read_bytes())
+            self.assertEqual("reviewed", receipt["deployment"])
+            self.assertEqual({"a", "b"}, {receipt["ownerId"], receipt["foreignId"]})
+            self.assertEqual(3, len(receipt["evidenceSha256"]))
+
     def test_localfile_catalogue_guard_uses_reviewed_native_and_paired_ids(self):
         provider = "LocalFileOASIS"
         presets = []
@@ -83,22 +119,22 @@ class ResponseEvidenceTests(unittest.TestCase):
             reports = [state / name for name in ("native.json", "paired.json", "privacy.json")]
             for report in reports:
                 report.write_bytes(report.name.encode())
+            evidence = {path.name: hashlib.sha256(path.read_bytes()).hexdigest() for path in reports}
             mount = {"deployment": "reviewed", "imageDigest": "sha256:" + "a" * 64}
             with patch.object(verification, "localfile_review", return_value={"mountedReceipt": mount}) as review:
                 with self.assertRaisesRegex(RuntimeError, "distinct visitor"):
-                    verification.acknowledge_localfile_http(state, "owner", "owner", mount, reports)
+                    verification.acknowledge_localfile_http(state, "owner", "owner", mount, evidence)
                 review.return_value = {"mountedReceipt": dict(mount, deployment="superseded")}
                 with self.assertRaisesRegex(RuntimeError, "deployment changed"):
-                    verification.acknowledge_localfile_http(state, "owner", "visitor", mount, reports)
+                    verification.acknowledge_localfile_http(state, "owner", "visitor", mount, evidence)
                 receipt = state / "cql-http-acceptance.acknowledged.json"
                 self.assertFalse(receipt.exists())
                 review.return_value = {"mountedReceipt": mount}
-                verification.acknowledge_localfile_http(state, "owner", "visitor", mount, reports)
+                verification.acknowledge_localfile_http(state, "owner", "visitor", mount, evidence)
                 original = receipt.read_bytes()
-                self.assertEqual({path.name: hashlib.sha256(path.read_bytes()).hexdigest() for path in reports},
-                                 json.loads(original)["evidenceSha256"])
+                self.assertEqual(evidence, json.loads(original)["evidenceSha256"])
                 with self.assertRaises(FileExistsError):
-                    verification.acknowledge_localfile_http(state, "owner", "visitor", mount, reports)
+                    verification.acknowledge_localfile_http(state, "owner", "visitor", mount, evidence)
                 self.assertEqual(original, receipt.read_bytes())
 
     def test_localfile_mount_refusal_precedes_cohort_creation(self):

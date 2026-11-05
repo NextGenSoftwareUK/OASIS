@@ -1887,3 +1887,7 @@ LocalFile catalogue request-shape verification ran 14 focused Python tests
 in the existing interpreter, with six new drift cases inside the catalogue
 test. `-B` suppressed bytecode output. Temporary test directories were
 automatically removed. No live request or new cohort was created.
+
+LocalFile HTTP receipt recovery was exercised in the existing Python runtime.
+Temporary evidence fixtures were removed by the tests. The rehearsal made no
+live queries, saves or session requests and installed nothing.
