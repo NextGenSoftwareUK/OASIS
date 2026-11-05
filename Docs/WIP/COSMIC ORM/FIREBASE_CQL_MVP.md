@@ -36,6 +36,14 @@ remain100local/60hostedHTTP/28hostedbrowser. See the
 [working launcher guide](../../Devs/FIREBASE_CQL_LOCAL_DEMO.md) and
 [cleanup ledger](RECOVERY_LAPTOP_CLEANUP_LEDGER.md).
 
+WEB4 card32 recovery launcher published as website7410650, Vercel success and
+actual live browser expanded command/guide verified. All112client tests pass.
+Pinned source647b53daffd18293243c81bab69a9bd6cebc0985 guide is HTTP200 and
+Git-blob exact, SHA2562428786139f3f9fb591a4e8f5b0d99ba7c07a1f8f382980ca46cd51cd1b5dd3f.
+Live HTML is Git-blob exact, SHA256452f1def2312a453b8f0ae5132914ef06e2db507f8e8a6a72034318669247db4.
+Runtime-root `publication.json` retains the comparison. This is the local demo
+catalogue, not hosted Firebase certification or API deployment.
+
 
 ## Source recovery — 2 November 2026
 

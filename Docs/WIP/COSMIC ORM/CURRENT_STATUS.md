@@ -10,8 +10,8 @@ Existing Firebase RTDB CQL retained; its missing original export cannot be
 recreated from its hash. A separate34.5MB official emulator reuses admitted JRE21
 and the single Mongo8.2 store. Recovery native/export-restore, manager/Mongo/HTTP
 and actual browser5/4 pass, source unchanged, exact Mongo fixture removed and
-owned listeners closed. Four admission controls pass. Existing card32 launcher
-update is next; counts remain100local/60hostedHTTP/28hostedbrowser.
+owned listeners closed. Four admission controls pass. Existing card32 launcher7410650 is
+published and browser-verified; counts remain100local/60hostedHTTP/28hostedbrowser.
 [Exact recovery evidence](FIREBASE_CQL_MVP.md).
 
 ## OpenSearch continuation, 5 November 2026

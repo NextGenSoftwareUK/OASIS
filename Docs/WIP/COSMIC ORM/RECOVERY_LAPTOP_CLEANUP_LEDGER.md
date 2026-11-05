@@ -1343,6 +1343,8 @@ Site5073f06 publishes local card43;112client tests pass, Vercel success, public 
 
 ### 2026-11-05 Firebase RTDB recovery admission
 
+- Publication7410650 verified:112client tests, Vercel success, actual live card32 command and pinned guide visible; raw guide/live HTML match exact Git blobs. Compact `publication.json` retained under this runtime root. No new browser screenshot or remote media download.
+
 - Recovery accepted: native/restart1/1each; paired1/1 and interactive paired/browser5/4 pass. Three unique run folders are listed in FIREBASE_CQL_MVP.md. Four admission controls preserve all11source files/9822bytes. Exact temporary Mongo fixture removed, both paired runs prove native console shutdown/storage closure/exit12. Ports19091/27029/5126 closed. Volatile emulator stopped only after export equality; no disk/crash durability claim. Runtime/source/compact reports retained for reuse. Build.log:0errors/1141warnings. No extra Java install or database copy.
 
 - Planned single runtime: `LocalState/COSMIC/RecoveryLaptopFirebaseRtdb4112/firebase-database-emulator-v4.11.2.jar` (34,495,935 bytes), official Google Storage Firebase emulator distribution. Expected SHA256 `b70d99344caf17c98b6f910fa8f6edf32a7c016cb1035e8915f70d38901eb97f`. Reuse the admitted Solr Temurin JRE21; no extra Java installation.
