@@ -58,11 +58,17 @@ def require_matching_release(configuration, *, release_ref="HEAD"):
         release_ref + "^{commit}"], cwd=ROOT, capture_output=True, text=True)
     if revision.returncode or revision.stdout.strip()!=expected:
         raise RuntimeError("Local release ref differs from the reviewed deployment SHA; no configuration mutation")
-    observed=subprocess.run([str(configuration.CLI), "deployment", "list", *configuration.COMMON,
-        "--limit", "1", "--json"], capture_output=True)
+    try:
+        observed=subprocess.run([str(configuration.CLI), "deployment", "list", *configuration.COMMON,
+            "--limit", "1", "--json"], capture_output=True, timeout=30)
+    except (OSError, subprocess.TimeoutExpired):
+        raise RuntimeError("Deployment observation failed; output withheld and no configuration mutation") from None
     if observed.returncode:
         raise RuntimeError("Deployment observation failed; output withheld and no configuration mutation")
-    deployments=json.loads(observed.stdout)
+    try:
+        deployments=json.loads(observed.stdout)
+    except (UnicodeDecodeError, ValueError):
+        raise RuntimeError("Deployment observation was invalid; output withheld and no configuration mutation") from None
     if (not isinstance(deployments, list) or len(deployments) != 1
             or not isinstance(deployments[0], dict)
             or deployments[0].get("status") != "SUCCESS"):
