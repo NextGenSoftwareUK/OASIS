@@ -60,3 +60,10 @@ A missing configuration fails rather than skipping or selecting a database.
 Latest leased fixture build passed with zero errors/two warnings. This is a
 compiled native verification path, not native query acceptance. Malformed
 payload/foreign identity controls, manager/LINQ and Mongo/HTTP remain open.
+
+Runtime acquisition: official RavenDB.Embedded 7.0.1 package cached once under
+LocalState/COSMIC/RecoveryLaptopRavenDB701; NuGet repository signature verifies.
+The archive is 149,728,697 bytes (371,595,943 bytes expanded). No server has
+been extracted or started. Package metadata requires license acceptance;
+LICENSE.txt is available alongside the archive for owner review before use.
+Keep that decision separate from preparing the native bootstrap and tests.

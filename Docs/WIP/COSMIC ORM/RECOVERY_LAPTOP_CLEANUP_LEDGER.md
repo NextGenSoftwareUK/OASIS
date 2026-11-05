@@ -816,3 +816,14 @@ check returned Unauthorized. No settings, deployment or project link changed.
   bin/obj are regenerable and retained for the pending configured native run.
   RavenDB integration bin: 56912056 bytes.
   RavenDB integration obj: 1054797 bytes.
+
+- Planned single RavenDB.Embedded 7.0.1 runtime cache from official api.nuget.org flat container. Published package length 149,728,697 bytes. Target LocalState/COSMIC/RecoveryLaptopRavenDB701/ravendb.embedded.7.0.1.nupkg; retain for signature/hash inspection before extraction. No license acceptance, runtime startup or database requested by this download.
+
+- RavenDB.Embedded 7.0.1 downloaded once from official NuGet: 149,728,697 bytes,
+  SHA256 0e2bc36d0fdd6a0cb232ba7eb0c8ded97348bd3fc60e634f6d93bb52ae0709af.
+  dotnet nuget verify --all exited 0; NuGet.org repository signature verified.
+  Runtime remains archived, not installed or started. Total archive expansion
+  would be 371,595,943 bytes; defer extraction until setup/license gate clears.
+  LICENSE.txt copied for owner review; download.json holds compact provenance.
+  Metadata declares requireLicenseAcceptance=true. No license was accepted.
+  Server runtimeconfig targets Microsoft.NETCore.App and AspNetCore.App 8.0.13.

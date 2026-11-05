@@ -567,3 +567,16 @@ and hosted federation and replication verification.
 [Worker module](../../../Scripts/Sandbox/D1SymbolWorker.mjs) ·
 [Fixture schema](../../../Scripts/Sandbox/D1SymbolWorker.sql) ·
 [HTTPS qualification](../../../Scripts/Sandbox/Probe-D1WorkerHostedReadiness.py).
+
+
+## RavenDB local demo runtime license review — 2026-11-05
+
+- Status: pending review before installation/use; bootstrap preparation remains agent-owned.
+- Context: RavenDB bounded CQL controls pass and native read fixture compiles.
+  The pinned official RavenDB.Embedded 7.0.1 package declares
+  `requireLicenseAcceptance=true`; agent has not accepted a license or started it.
+- Concrete owner step: review [the supplied license](../../../LocalState/COSMIC/RecoveryLaptopRavenDB701/LICENSE.txt)
+  and decide whether this RavenDB runtime may be used for the owned local demo.
+  No cloud account, subscription, purchase or credentials are requested.
+- Reason: the package explicitly requires license acceptance before installation/use.
+  [Scope and evidence](../COSMIC%20ORM/RAVENDB_CQL_MVP.md).
