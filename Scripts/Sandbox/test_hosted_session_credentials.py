@@ -15,7 +15,7 @@ COOKIE = "refreshToken=old%2Bvalue%3D; Path=/; Secure; HttpOnly; SameSite=Lax"
 NEXT_COOKIE = "refreshToken=new%2Bvalue%3D; Path=/; Secure; HttpOnly; SameSite=Lax"
 
 def token(owner=OWNER, seconds=900):
-    payload = base64.urlsafe_b64encode(json.dumps({"sub": owner, "exp": int(time.time()) + seconds}).encode()).decode().rstrip("=")
+    payload = base64.urlsafe_b64encode(json.dumps({"sub": owner, "iat": int(time.time()), "exp": int(time.time()) + seconds}).encode()).decode().rstrip("=")
     return "header." + payload + ".inert-signature"
 
 def seal(value):
@@ -26,6 +26,26 @@ def write_new(path, value):
         stream.write(value)
 
 class SessionCredentialTests(unittest.TestCase):
+    def test_local_deadline_ignores_issuer_clock_offset_and_consumes_network_time(self):
+        for offset in (-300, 81):
+            with patch.object(credentials.time, "time", return_value=1000 + offset):
+                issued = token()
+            with patch.object(credentials.time, "time", return_value=1020):
+                value = credentials.bundle(OWNER, issued, [COOKIE], requested_at=1000)
+                self.assertEqual(1900, value["expiresAtLocal"])
+                self.assertFalse(credentials.needs_renewal(value))
+            with patch.object(credentials.time, "time", return_value=1840):
+                self.assertTrue(credentials.needs_renewal(value))
+            with patch.object(credentials.time, "time", return_value=1900):
+                with self.assertRaisesRegex(RuntimeError, "arrived after"):
+                    credentials.bundle(OWNER, issued, [COOKIE], requested_at=1000)
+
+    def test_legacy_bundle_requires_same_owner_rotation_for_timing_evidence(self):
+        legacy = {"schema": 1, "ownerId": OWNER, "jwtToken": token(),
+                  "cookieHeader": "refreshToken=retained"}
+        self.assertEqual(legacy, credentials.validate(legacy, OWNER))
+        self.assertTrue(credentials.needs_renewal(legacy))
+
     @classmethod
     def setUpClass(cls):
         parent = Path(__file__).resolve().parents[2] / "TestResults/SandboxSessionRenewalCurrent"

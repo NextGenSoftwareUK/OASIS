@@ -22,7 +22,7 @@ class OperatorSignInTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.state = Path(self.temp.name) / "state"
         self.owner = "00000000-0000-0000-0000-000000000123"
-        payload = base64.urlsafe_b64encode(json.dumps({"sub": self.owner, "exp": 9999999999}).encode()).decode().rstrip("=")
+        payload = base64.urlsafe_b64encode(json.dumps({"sub": self.owner, "iat": 9999999099, "exp": 9999999999}).encode()).decode().rstrip("=")
         self.token = "synthetic." + payload + ".not-a-signature"
         self.calls = []
         self.cookies = ["refreshToken=synthetic-cookie; Path=/; Secure; HttpOnly; SameSite=Lax"]

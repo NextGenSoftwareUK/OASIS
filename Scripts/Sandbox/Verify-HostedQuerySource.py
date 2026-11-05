@@ -101,7 +101,7 @@ def session(state, label, *, allow_create=True):
             session_credentials.no_pending_rotation(state, label)
             credential = session_credentials.validate(json.loads(verification.protected_token(
                 session_file.read_bytes(), decrypt=True)), acknowledged["id"])
-            if session_credentials.claims(credential["jwtToken"])["exp"] <= datetime.datetime.now(datetime.timezone.utc).timestamp():
+            if session_credentials.needs_renewal(credential):
                 credential = session_credentials.rotate(state, label, credential, call, verification.protected_token, write_new)
             return acknowledged, credential["jwtToken"]
         # Retained unversioned cohorts own only their original JWT. Never guess a
@@ -122,12 +122,13 @@ def session(state, label, *, allow_create=True):
         write_new(state / (label + ".auth-response.dpapi"), verification.protected_token(json.dumps({
             "status": status, "bodyBase64": base64.b64encode(raw).decode(), "cookies": cookies}).encode()))
         captured.append((status, cookies))
+    requested_at = session_credentials.time.time()
     result = call("sandbox/session", operation=operation, capture_auth=capture)
     identity = verification.acknowledged_identity("sandbox/session", result)
     avatar = result["result"]
     if len(captured) != 1 or captured[0][0] != 200:
         raise RuntimeError("Session cookie issuance outcome is incomplete; no replacement avatar.")
-    credential = session_credentials.bundle(identity, avatar["jwtToken"], captured[0][1])
+    credential = session_credentials.bundle(identity, avatar["jwtToken"], captured[0][1], requested_at=requested_at)
     write_new(session_file, verification.protected_token(json.dumps(credential).encode()))
     recorded = {"id": identity, "username": avatar["username"], "label": label, "operationId": operation, "credentialsSchema": 1}
     write_new(ack, json.dumps(recorded).encode())

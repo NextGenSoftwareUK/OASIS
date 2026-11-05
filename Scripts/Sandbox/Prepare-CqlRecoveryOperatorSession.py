@@ -60,13 +60,14 @@ def prepare(state, username, password, query, authority=operator_authority):
                         "cookies": cookies}).encode()))
         captured.append((status, cookies))
 
+    requested_at = query.session_credentials.time.time()
     result = query.call("avatar/authenticate", body={"username": username, "password": password},
                         operation=operation, capture_auth=capture)
     avatar = result.get("result") or {}
     owner = str(uuid.UUID(avatar["id"]))
     if len(captured) != 1 or captured[0][0] != 200:
         raise RuntimeError("Complete sign-in issuance acknowledgement required.")
-    credential = query.session_credentials.bundle(owner, avatar["jwtToken"], captured[0][1])
+    credential = query.session_credentials.bundle(owner, avatar["jwtToken"], captured[0][1], requested_at=requested_at)
     role = authority(query, credential["jwtToken"])
     write_new(state / "operator.authority-observed.json", json.dumps(role).encode())
     if role["status"] != 409 or role["errorCode"] != "CQL_SOURCE_HOST_INSTANCE_CONFLICT":
