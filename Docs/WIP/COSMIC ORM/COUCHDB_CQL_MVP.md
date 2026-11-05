@@ -101,6 +101,17 @@ zero-cost tariff in PREPARED_STORAGE_ADMISSION_JSON. Configure the four
 canonical native and Mongo-paired presets in
 CQL_HOSTED_QUERY_EXAMPLES__CouchDBOASIS.
 
+Before enrollment, verify the read-only boundary on the server. CouchDB
+database membership permits ordinary document writes, so a member account
+alone is insufficient. Use a dedicated non-admin query role on the teaching
+database and enforce its write restriction with a database
+`validate_doc_update` rule. Verify the account can read the database identity
+and all three exact teaching IDs. In a dedicated disposable qualification
+database with the same policy, verify that creating, updating and deleting
+ordinary documents as the query role are rejected. Preserve the retained demo
+source and qualify the target policy before handing the credentials to WEB4.
+[CouchDB database security](https://docs.couchdb.org/en/stable/api/database/security.html)
+
 After verifying the reviewed Development deployment, check discovery before
 creating a cohort:
 
