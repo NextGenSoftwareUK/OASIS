@@ -84,3 +84,26 @@ children/depth/history/version mode, avatar/bulk atomicity, central registration
 replication/failover/load-balancing and distributed snapshots remain separate work.
 [Historical audit/proof](Archive/COUCHDB_CQL_MVP_PRESERVED_2026-10-30.md),
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md), [later work](AFTER_DEMO_BACKLOG.md).
+
+## Development enrollment
+
+The recovery branch builds the opt-in WEB4 adapter. Its 43 provider tests
+and the focused Core tariff and WEB4 preset admission tests passed. Native
+replay of the retained CouchDB source and live Development acceptance remain
+open.
+
+Use a qualified HTTPS source with three synthetic holons in oasis_holons.
+Set CQL_COUCHDB_QUERY_ENDPOINT and supply CQL_COUCHDB_QUERY_USERNAME and
+CQL_COUCHDB_QUERY_PASSWORD privately for an account restricted to reads of
+the demo database. Preserve other provider entries when enrolling the three
+IDs in CQL_PUBLIC_READ_CATALOGUES_JSON and adding an explicit query-only
+zero-cost tariff in PREPARED_STORAGE_ADMISSION_JSON. Configure the four
+canonical native and Mongo-paired presets in
+CQL_HOSTED_QUERY_EXAMPLES__CouchDBOASIS.
+
+After verifying the reviewed Development deployment, check discovery before
+creating a cohort:
+
+```powershell
+python -B Scripts/Sandbox/Verify-HostedQuerySource.py CouchDBOASIS --readiness
+```
