@@ -4,7 +4,9 @@ zkSync passed native 3/2 and pairing 5/4 in sandbox-3a2cb72c.
 Preparation acknowledged two saves. Private IDs are
 24046998-11d0-8807-accf-e1d0af47d6c9 and
 604570f0-00fd-86a9-9d81-36fa910805ec, both version 1.
-Reuse, privacy and rendered replica comparison remain open.
+Reuse reported zero saved and two prepared. SQLite and Neo4j each returned
+both copies with rendered contents exactly matching MongoDB. Independent
+visitor privacy returned zero rows for these IDs on all three providers.
 
 Scroll passed native 3/2 and pairing 5/4 in sandbox-3a2cb72c.
 Preparation acknowledged two saves. Private IDs are
