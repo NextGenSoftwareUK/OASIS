@@ -700,3 +700,5 @@ check returned Unauthorized. No settings, deployment or project link changed.
 
 - NATS public activation identity/cancellation build, owner cosmic-nats-read-activation. Leased no-restore build reuses the existing SDK and regenerates bin/obj under Providers/Network/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS and its shared references. No new runtime, test database, listener or separate log file requested.
   The leased build completed successfully with zero errors. Native execution remains pending.
+
+- NATS activation native requalification rebuilt the retained sdk-probe bin/obj under the provider lease. The retained JetStream 2.15.2 fixture passed exact 3/2 SDK/CQL selections, absent-bucket rejection and profile save rejection. No reseeding. Owned listener 24222 stopped. Retain identity-activation-server.log (2044 bytes) in RecoveryLaptopNats2152 with the compact verification record.
