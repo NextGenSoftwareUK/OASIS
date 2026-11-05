@@ -614,6 +614,10 @@ if ($LASTEXITCODE -ne 0) { throw 'LocalFile settings deployment changed during f
 
 Use the instance ID from the verified settings deployment and record the
 deployment ID with the three matches. Run discovery and HTTP acceptance next.
+The command block passed a PowerShell rehearsal using the three retained
+source records and simulated Railway output. It checked all paths and
+digests between two successful settings checks. Live SSH and settings
+verification still require Railway access.
 
 Run the same checks without preparing or applying settings:
 
