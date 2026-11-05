@@ -36,3 +36,27 @@ inactive-store and invalid-plan/budget errors without a network connection.
 The shared compiler remains the single owner of bounded identity algebra.
 Native envelope/payload behavior, real-service availability and manager/HTTP
 execution still require separate tests. No server or teaching records created.
+
+## Native retained-source fixture
+
+RavenDBCqlNativeTests compiles against the real SDK; execution remains open.
+No retained RavenDB runtime/source was found in this laptop's COSMIC ledger or
+runtime directories. Official installation entry point: https://ravendb.net/download
+and https://ravendb.net/docs/article-page/7.0/csharp/start/getting-started .
+No runtime download, license selection, server startup or native write occurred.
+
+The test requires COSMIC_RAVENDB_CQL_SOURCE pointing to a metadata-only JSON
+file with Endpoint (HTTP loopback origin), Database, Actor, LiveIds (three GUIDs),
+DeletedId and MissingId. All five IDs must be distinct and nonempty. Select only
+an explicitly owned, already prepared teaching database; there is no provisioning
+or seed path in this test. It uses the official SDK to independently prove the
+deleted control actually exists and the missing control is absent, then checks
+CQL full/subset/empty/paging results in canonical ID order. Native envelopes
+and projected rows must remain identical before and after the read sequence.
+
+Run only after reviewing the exact source and server identity:
+`dotnet test <RavenDB integration project> --no-build --no-restore --filter TestCategory=RavenDBCqlNative`
+A missing configuration fails rather than skipping or selecting a database.
+Latest leased fixture build passed with zero errors/two warnings. This is a
+compiled native verification path, not native query acceptance. Malformed
+payload/foreign identity controls, manager/LINQ and Mongo/HTTP remain open.

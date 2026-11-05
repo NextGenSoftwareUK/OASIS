@@ -807,3 +807,12 @@ check returned Unauthorized. No settings, deployment or project link changed.
   bytes; obj 1,028,039 bytes. Provider bin 8,256,916 and obj 970,975 bytes at
   initial build checkpoint. All are regenerable after current scope; retain
   while native fixture work consumes them. No native server or database.
+
+- RavenDB native read-only fixture compilation planned under lease cosmic-ravendb-native-fixture. Reuses SDK/NuGet cache and integration bin/obj. No runtime downloaded or server/database started; test execution requires explicit retained-source configuration.
+
+- RavenDB native read-only fixture builds: first restore/build zero errors;
+  final no-restore build zero errors/two warnings in 6.58 seconds. No test was
+  executed against a server and no database/runtime was created. Integration
+  bin/obj are regenerable and retained for the pending configured native run.
+  RavenDB integration bin: 56912056 bytes.
+  RavenDB integration obj: 1054797 bytes.
