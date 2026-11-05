@@ -1551,3 +1551,31 @@ All build processes terminal; shared outputs retained for reuse, no deletion.
 Core branch published; matching parent gitlink/manifest staged, no deployment.
 Oracle historical guide restored from git as source documentation only; no
 Oracle runtime or accepted test replay. Accepted counts remain103/60/28.
+
+PouchDB persistent hosted-source preparation, 5 November2026: reusing admitted
+Node18.18.0 and PouchDB9/express-pouchdb4.2/express4.21.2 cache; no install or
+download. New owned candidate source is confined to
+LocalState/COSMIC/RecoveryLaptopPouchDBCql/hosted-preparation/{bundle.json,source}
+plus unique compact initialization/retained evidence phases. This is one retained
+teaching source, not per-run database copies, and does not touch accepted data/,
+source.json or their receipts. Module pure guards19/19pass. Native initialization
+is next: exactly three public synthetic records with durable intents/receipts,
+real vendor HTTP GETs only, explicit SDK/HTTP shutdown; no WEB4/native account,
+deployment or hosted acceptance claimed. Preserve any partial outcome without
+reinitializing or deleting the original source. Railway whoami still Unauthorized.
+
+PouchDB hosted-source native outcome: first three SDK writes and per-record/global
+ACKs retained despite HTTP discovery failure. Read-only diagnostic and later
+close failure remain separate phases. Plugin registration ordering and one vendor
+cached SDK handle per native store fix those reproduced errors. Corrected
+retained-ec1dcf9fa503427599b112834bf59e40 and separate process
+retained-370e71d5e65946dfada28cd783746a2f both pass native HTTP/unchanged original
+revisions/hashes, zero record writes and two native stores closed. Latter also
+passes three metadata-only admission guards (no native DBs for negative cases).
+Native pure guards19/19pass; log retained. Owned PIDs8676/1876 and their listeners
+63346/63379 independently absent. Native candidate/evidence73files34510bytes at
+observation; retain this one source and compact phases for packaging/CQL next.
+native-source-qualified.json has exact hashes/audit; see
+POUCHDB_HOSTED_RUNTIME_PREPARATION.md. No installs/downloads, new API avatars,
+Mongo records, cloud resources or deletion. Accepted local data/ and its receipts
+untouched. Complete fresh-container startup and hosted acceptance remain open.

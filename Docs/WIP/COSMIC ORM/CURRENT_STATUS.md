@@ -4,6 +4,16 @@ Updated 5 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
+## PouchDB persistent hosted-source module, 5 November 2026
+
+Write-once public teaching source and vendor read-only loopback HTTP runtime
+prepared using the existing Node/PouchDB cache. Nineteen pure guards pass;
+original three SDK write receipts preserved. Discovery/close failures fixed at
+vendor initialization and SDK ownership; two retained processes now pass native
+reads/unchanged revisions and close both native stores. Docker/fresh-container,
+shipping CQL registration and hosted acceptance remain open. No new environment,
+runtime, deployment or accepted-provider count. [Evidence/next scope](POUCHDB_HOSTED_RUNTIME_PREPARATION.md).
+
 ## MinIO hosted registration preparation, 5 November 2026
 
 Explicit opt-in HTTPS/read-only registration, native client lifecycle and

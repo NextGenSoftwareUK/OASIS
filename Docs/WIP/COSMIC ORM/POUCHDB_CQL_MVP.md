@@ -106,3 +106,10 @@ and actual native5141 browser proof.113client tests pass; publication.json kept.
 Verified obsolete npm10.9.4 archive removed2714849B, exact path/SHA512 checked,
 intent/completion receipts retained. Local npm tool/runtime/store/lock retained.
 Full-provider/hosted/HyperDrive parity remains open; counts102/60/28 scoped.
+
+5 November hosted-runtime continuation: a separate persistent synthetic source
+and vendor read-only HTTP module now have19pure guards and two unchanged-source
+native process proofs. Initial discovery/close failures are preserved and fixed;
+no original accepted source was replayed or replaced. SDK cache reused, no new
+runtime. Packaging, shipping CQL/enrollment and actual hosting remain open;
+current overall counts103/60/28 unchanged. [Exact source/runtime preparation](POUCHDB_HOSTED_RUNTIME_PREPARATION.md).
