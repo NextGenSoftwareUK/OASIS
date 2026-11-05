@@ -1164,3 +1164,30 @@ Provider/CQL22/22, runner controls3/3, bootstrap1/1 and native initial/retained1
 - `bootstrap.trx` SHA256b6bc6a4c80c898b20295b3cf3322eab1bd23a9b445a1a1b344bea84c72318ba3.
 - `initial.trx` SHA25625331c83c69a6290acb799bb5c17bc5f04d0b1ed4705f33aca5360265c279cd3.
 - `retained-931c73452b364611b349b69ac53337d2.trx` SHA2567d5a2f79cd4a9f1bcb889e1b58122f9b434438f521a1fb3f17c693b357abbf2b.
+
+## ArcadeDB manager/HTTP and browser — 5 November 2026
+
+No downloads or new environment. Reused pinned ArcadeDB/JRE and admitted Mongo8.2 store. Paired and interactive each1pass/0skip; manager/HTTP and browser5/4/provenance verified. Original four ArcadeDB values/hashes unchanged; absent control remains absent, no seed replay. Exact temporary cosmic_cql_mongo_arcadedb_demo three-record fixture verified/dropped, absence checked, pending/ready markers removed. Both owned native/Mongo stopped,24800/27029/5118closed. Four runner controls pass. Build0errors/1142existing warnings, bounded workers and provider lease. No screenshot files.
+
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS.IntegrationTests/bin`: 48637976bytes retained.
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS.IntegrationTests/obj`: 1104516bytes retained.
+- `TestResults/ArcadeDBCqlNativeCurrent`: 29130bytes retained.
+- `paired-browser-evidence.json`: 810bytes retained.
+- `paired-mongo-process.json`: 126bytes retained.
+- `paired-mongo-stopped.json`: 42bytes retained.
+- `paired-mongo.log`: 109543bytes retained.
+- `paired-process.json`: 819bytes retained.
+- `paired-run.intent.json`: 117bytes retained.
+- `paired-run.result.json`: 608bytes retained.
+- `paired-server.log`: 3363bytes retained.
+- `paired-stopped.json`: 55bytes retained.
+- `interactive-ceeaaeafb7114c3ab245d9610c43de2f-mongo-process.json`: 164bytes retained.
+- `interactive-ceeaaeafb7114c3ab245d9610c43de2f-mongo-stopped.json`: 42bytes retained.
+- `interactive-ceeaaeafb7114c3ab245d9610c43de2f-mongo.log`: 167298bytes retained.
+- `interactive-ceeaaeafb7114c3ab245d9610c43de2f-process.json`: 819bytes retained.
+- `interactive-ceeaaeafb7114c3ab245d9610c43de2f-run.intent.json`: 117bytes retained.
+- `interactive-ceeaaeafb7114c3ab245d9610c43de2f-run.result.json`: 608bytes retained.
+- `interactive-ceeaaeafb7114c3ab245d9610c43de2f-server.log`: 3363bytes retained.
+- `interactive-ceeaaeafb7114c3ab245d9610c43de2f-stopped.json`: 55bytes retained.
+- `paired.trx`: SHA25660891ccee6c0d70dc9c3a1eba183792f32aa03fb72eac7ded2028936c6fa913d.
+- `interactive-ceeaaeafb7114c3ab245d9610c43de2f.trx`: SHA256b4f09240b179137e80c4f0c897f346b09bed7c969c768d640d7e6a0839c78b0e.

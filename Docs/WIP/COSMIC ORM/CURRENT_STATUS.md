@@ -9,7 +9,9 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 ArcadeDB now has22passing provider/CQL tests and3runner controls. Actual native
 bootstrap, CQL3/2/0/paging/source preservation and retained restart pass1/1each.
 It reuses the qualified Java runtime and one owned source; no seed replay.
-Manager/Mongo/HTTP/browser remain next, counts unchanged. [Evidence](ARCADEDB_CQL_MVP.md).
+Manager/Mongo/HTTP and local browser5/4 now pass too, with original-source and
+fixture cleanup verified. Four runner controls pass. ArcadeDB adds local profile99;
+its local WEB4 card is next. [Evidence](ARCADEDB_CQL_MVP.md).
 
 ## Solr adapter continuation, 5 November 2026
 
@@ -36,8 +38,8 @@ requires the already-recorded Railway access and persistent-mount checks.
 
 ## Verified scope
 
-- **98 local query types/profiles:**3 canonical, 57 public/source, 38 other local;
-  includes 31 recovered historical demos. Not 98 fully implemented providers.
+- **99 local query types/profiles:**3 canonical, 57 public/source, 39 other local;
+  includes 31 recovered historical demos. Not 99 fully implemented providers.
 - **60 scoped hosted HTTP proofs; 28 browser flows verified / 32 browser gates open.**
   Solana, Google Cloud public objects, Ethereum, Polygon and Arbitrum balances add native
   3/2, paired 5/4, preparation reuse, independent privacy and matching rendered

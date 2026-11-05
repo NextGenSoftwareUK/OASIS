@@ -1,6 +1,10 @@
 # ArcadeDB bounded CQL scope
 
-5 November2026. Provider/unit suite22/22 passes, zero skips; eighteen new CQL
+Current checkpoint: native/restart, manager/Mongo/HTTP and local browser acceptance
+pass. Local profile99 is verified; WEB4 local card is next. Hosted/full-provider
+acceptance remains open. Earlier sections retain the native checkpoint history.
+
+Initial native checkpoint,5 November2026. Provider/unit suite22/22 passes, zero skips; eighteen new CQL
 cases and four metadata tests. Native provider bootstrap1/1, native reader1/1
 and retained restart1/1 pass, each zero skips. Three runner readiness controls
 pass. Integrated manager/Mongo/HTTP/browser acceptance remains open, so coverage
@@ -87,3 +91,30 @@ interactive local browser flow against this retained source, without reseeding.
 Protocol/runtime references: [HTTP/JSON API](https://docs.arcadedb.com/arcadedb/reference/http-api/http),
 [requirements](https://docs.arcadedb.com/arcadedb/reference/requirements),
 [official release](https://github.com/ArcadeData/arcadedb/releases/tag/26.11.1).
+
+## Integrated local acceptance — 5 November 2026
+
+Actual manager/LINQ and Kestrel HTTP paired1/1 pass, zero skips. Full query
+returns5physical rows(ArcadeDB3/Mongo2), subset4(2each), with exact provider
+provenance and exclusion of the third unrelated Mongo record. Forged actor and
+unknown preset return400; inactive native provider returns503 without rows.
+The host accurately labels the authenticated native ArcadeDB source.
+
+Local browser tab7 independently showed full5/subset4 JSON and MovingProviderReads,
+then used Stop demo. Interactive runceeaaeafb7114c3ab245d9610c43de2f passed1/1,
+zero skips. The runner verifies original ID/name/owner/parent/privacy/activity/
+deleted-date values and all four native document hashes before/after. Absent
+control remains absent; no ArcadeDB seed/save replay. The exact temporary Mongo
+database was verified/dropped and confirmed absent; journal/ready markers are
+removed. Owned ArcadeDB stops through native API with exit0; Mongo stop confirmed.
+All24800/27029/5118 listeners are closed. No screenshot artifact files.
+
+Four runner control tests pass, including original-value/missing-control checks.
+The guide and single-environment launcher are ready. Local count99=3canonical+
+57public/source+39otherlocal, including31historical recoveries. Hosted60HTTP and
+28browser/open32 stay unchanged. Full storage/ORM and hosted enrollment remain
+open. WEB4 local card publication is next.
+
+- `paired.trx`: 8152bytes, SHA256 `60891ccee6c0d70dc9c3a1eba183792f32aa03fb72eac7ded2028936c6fa913d`.
+
+- `interactive-ceeaaeafb7114c3ab245d9610c43de2f.trx`: 12326bytes, SHA256 `b4f09240b179137e80c4f0c897f346b09bed7c969c768d640d7e6a0839c78b0e`.

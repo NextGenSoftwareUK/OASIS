@@ -73,6 +73,29 @@ def run_test(category, phase, env):
         raise RuntimeError('Native test counters differ')
     return dict(counters=counters,trxSha256=hashlib.sha256(target.read_bytes()).hexdigest())
 
+def observe_source(password):
+    source = json.loads((STATE / 'source.json').read_bytes())
+    hashes = []
+    for id in source['LiveIds'] + [source['DeletedId'],source['MissingId']]:
+        body = request('/api/v1/query/oasis',password,{'language':'sql',
+            'command':'SELECT oasisId, doc FROM Holon WHERE oasisId = :id LIMIT 2','params':{'id':id}})
+        rows = body['result']
+        if id == source['MissingId']:
+            if rows != []: raise RuntimeError('Original absent control is present')
+            continue
+        if len(rows)!=1 or rows[0]['oasisId']!=id: raise RuntimeError('Original native identity differs')
+        raw = rows[0]['doc'].encode()
+        if len(raw)>1024*1024: raise RuntimeError('Original stored document exceeds budget')
+        row = json.loads(raw)
+        expected = {'Id':id,'Name':'ArcadeDB CQL teaching ' + uuid.UUID(id).hex,
+            'CreatedByAvatarId':source['Actor'],'ParentHolonId':source['Actor'],'IsPublic':False,'IsActive':True,
+            'DeletedDate':'2026-11-05T00:00:00Z' if id == source['DeletedId'] else '0001-01-01T00:00:00'}
+        if any(row.get(key)!=value for key,value in expected.items()):
+            raise RuntimeError('Original acknowledged teaching payload differs')
+        hashes.append(hashlib.sha256(raw).hexdigest())
+    return hashes
+
+
 def wait_until_ready(process, password):
     until = time.monotonic() + 60
     while True:
@@ -92,7 +115,13 @@ def wait_until_ready(process, password):
 def run():
     parser = argparse.ArgumentParser()
     parser.add_argument('--initialize',action='store_true')
+    parser.add_argument('--paired',action='store_true')
+    parser.add_argument('--serve-run-id')
     args = parser.parse_args()
+    if args.paired and args.initialize: raise RuntimeError('Pairing requires the retained acknowledged source')
+    if args.serve_run_id and (not args.paired or len(args.serve_run_id)!=32 or any(c not in '0123456789abcdef' for c in args.serve_run_id)):
+        raise RuntimeError('Interactive pairing requires an explicit GuidN run identity')
+    if (STATE / 'mongo.pending.json').exists(): raise RuntimeError('Unfinished Mongo fixture requires reconciliation')
     with socket.socket() as port: port.bind(('127.0.0.1',24800))
     verify_runtimes()
     spec = importlib.util.spec_from_file_location('protection',ROOT / 'Scripts/Sandbox/Verify-HostedCqlDemo.py')
@@ -116,12 +145,13 @@ def run():
         ack = json.loads((STATE / 'bootstrap.ack.json').read_bytes())
         if ack['sourceSha256'].lower() != source_hash or ack['savedRecords'] != 4:
             raise RuntimeError('Original retained bootstrap identity differs')
-    phase = 'initial' if args.initialize else 'retained-' + uuid.uuid4().hex
+    phase = ('interactive-' + args.serve_run_id if args.serve_run_id else 'paired') if args.paired else ('initial' if args.initialize else 'retained-' + uuid.uuid4().hex)
     write_once(STATE / (phase + '-run.intent.json'),dict(sourceSha256=source_hash,bootstrapThisRun=args.initialize))
     env = os.environ.copy()
     env['arcadedb.server.rootPassword'] = password
     env['COSMIC_ARCADEDB_CQL_SOURCE'] = str(STATE / 'source.json')
     env['COSMIC_ARCADEDB_CQL_PASSWORD'] = password
+    env['OASIS_ARCADEDB_MONGO_SERVE'] = '1' if args.serve_run_id else '0'
     command = [str(JAVA),'-Xms64m','-Xmx256m','--enable-native-access=ALL-UNNAMED',
         '-Darcadedb.profile=low-ram','-Darcadedb.server.rootPath=' + str(HOME),
         '-Darcadedb.server.httpIncomingHost=127.0.0.1','-Darcadedb.server.httpIncomingPort=24800',
@@ -140,8 +170,12 @@ def run():
                 write_once(STATE / 'bootstrap-run.result.json',result)
             ack = json.loads((STATE / 'bootstrap.ack.json').read_bytes())
             if ack['sourceSha256'].lower() != source_hash or ack['savedRecords'] != 4: raise RuntimeError('Original acknowledged bootstrap source differs')
-            result = run_test('ArcadeDBCqlNative',phase,env)
-            write_once(STATE / (phase + '-run.result.json'),dict(sourceSha256=source_hash,bootstrapThisRun=args.initialize,**result))
+            before = observe_source(password)
+            result = run_test('ArcadeDBMongoCqlNative' if args.paired else 'ArcadeDBCqlNative',phase,env)
+            if observe_source(password) != before: raise RuntimeError('Original ArcadeDB source changed during demo')
+            if args.paired and ((STATE / 'mongo.pending.json').exists() or (STATE / 'demo-ready.json').exists()):
+                raise RuntimeError('Paired fixture cleanup is incomplete')
+            write_once(STATE / (phase + '-run.result.json'),dict(sourceSha256=source_hash,bootstrapThisRun=args.initialize,originalDocumentsUnchanged=True,**result))
         finally:
             if process.poll() is None:
                 if ready:

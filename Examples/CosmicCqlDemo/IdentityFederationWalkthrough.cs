@@ -135,6 +135,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.MeilisearchOASIS => "Meilisearch",
         ProviderType.TypesenseOASIS => "Typesense",
         ProviderType.SolrOASIS => "Solr",
+        ProviderType.ArcadeDBOASIS => "ArcadeDB",
         ProviderType.ChromaOASIS => "Chroma",
         ProviderType.ScyllaDBOASIS => "ScyllaDB",
         ProviderType.FirebaseOASIS => "Firebase RTDB",
