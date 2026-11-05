@@ -386,3 +386,8 @@ ref and a unique extra tag such as localfile-candidate-c64adf474. The workflow
 publishes both the commit tag and the extra tag. Its default sandbox extra tag
 would move the shared tag. Record the successful build and image digest before
 using the image in a reviewed Development release.
+
+An anonymous GHCR lookup for the candidate commit tag returned HTTP 401 at
+the registry token endpoint. It provides no evidence that the tag exists
+or is absent. Verify the image through authenticated package access or the
+successful build run and recorded digest before selecting it for Development.
