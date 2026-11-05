@@ -1106,3 +1106,11 @@ No downloads, new runtime or database environment. Reused admitted Mongo8.2 runt
 - `interactive-0e08b8fd4142424da146fe06e2aceab7-stopped.json`: 37bytes retained.
 - `paired.trx`: SHA25670058347ba4fc1dce30e27136ed150fe5b7a24706f2be11836762752aa717666.
 - `interactive-0e08b8fd4142424da146fe06e2aceab7.trx`: SHA25627e93a7635dfc32eeb1c436463793177b0d858efd08ff8ec35d01af103abfee4.
+
+### Solr WEB4 local card and successful log cleanup
+
+Website72e29ba is published/Vercel success;112client tests pass. Public HTML208,508bytes/SHA2565427f03213d97eded12944a949a2e2fc3885904a7a80174080f902707dff82f6 matches committed Git bytes. Both pinned guide/C#sources200and git-exact; live signed-out card/disclosure checked. No hosted session, API/settings change, new download or environment. Initial source-link check compared checkout line endings; corrected to pinned Git blobs. No screenshots/downloaded verification artifacts retained. Algolia status row restored and verified against pre-edit committed row; Solr evidence is on its own row.
+
+- Removed exact owned successful `paired-mongo.log` after process stop/ports closed: 98862bytes, SHA256300fb35dac984937f28415ab551e09d79e2c22d7b573f54d7a74d7819a158a2a. Compact TRX/result/process/cleanup receipts retained.
+- Removed exact owned successful `interactive-0e08b8fd4142424da146fe06e2aceab7-mongo.log` after process stop/ports closed: 156040bytes, SHA256bab036ad2eef03678dd76cb19dadadfb8b77f2b02f607160fc682dd6988ee549. Compact TRX/result/process/cleanup receipts retained.
+- Total successful Mongo logs freed: 254902bytes. Failed startup logs, native store, pinned runtimes and compiled demo outputs remain for continuation.

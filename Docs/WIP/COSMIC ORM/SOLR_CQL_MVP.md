@@ -118,3 +118,27 @@ are unchanged. Full ORM, CRUD/storage conformance and hosted Solr remain open.
 - `paired.trx`: SHA256 `70058347ba4fc1dce30e27136ed150fe5b7a24706f2be11836762752aa717666`.
 
 - `interactive-0e08b8fd4142424da146fe06e2aceab7.trx`: SHA256 `27e93a7635dfc32eeb1c436463793177b0d858efd08ff8ec35d01af103abfee4`.
+
+## Published WEB4 local card
+
+Web4Site72e29ba9e0db5e96df4de1b1293ce61327da6756 publishes card41,
+Solr + MongoDB / Windows local. It explicitly states that Solr is not enrolled
+on the hosted API and uses the retained scalar loopback source. The launch
+command points to Run-CosmicSolrMongoDemo.ps1 -Serve; localhost5117 is shared
+with other teaching demos, so start one at a time. The new launcher audit is
+1/1present; no old accepted launcher/environment was rerun.
+
+All112 existing client tests pass, zero skips. GitHub's Vercel status is success.
+The public sandbox HTML returns200 and matches the exact published Git blob:
+208,508bytes/SHA2565427f03213d97eded12944a949a2e2fc3885904a7a80174080f902707dff82f6.
+The guide and C#links are pinned to parente3e4749ae86c653715561d7acc0d61c722c0d996;
+both raw sources return200 and match committed Git bytes. Guide SHA256
+c44d33d536cdab931d0121646d289f9552e5004b04d070281d9aea94a54da1f9;
+walkthrough SHA2569f5b33ed7c403cea32d7a1db84602fa4b01e5fc77d6d21f28bb8190a8c8455bf.
+An initial comparison incorrectly used checkout bytes with different line endings;
+verification was corrected to the pinned Git blobs. No source mismatch remained.
+
+A signed-out live browser tab verified the CQL card, honest local label and
+expanded exact launcher command. No hosted avatar/session, credentials, source
+cohort, API deployment or settings were created/changed by this publication.
+Hosted Solr and full ORM/HyperDrive/provider gates remain open.

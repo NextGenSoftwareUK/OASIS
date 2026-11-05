@@ -44,7 +44,8 @@ actual native/restart, manager/Mongo/HTTP and local browser5/4pass. Its explicit
 local Windows card is published and rendered on WEB4 (site8d6d320); hosted
 Meili enrollment remains open. [Evidence](MEILISEARCH_CQL_MVP.md). Solr adds the
 next local profile after native/restart, manager/Mongo/HTTP and browser5/4
-acceptance. Its local WEB4 card is pending; [Solr evidence](SOLR_CQL_MVP.md).
+acceptance. Its local WEB4 card is published and browser-verified at site72e29ba;
+[Solr evidence](SOLR_CQL_MVP.md).
 
 ## Current batch / exact next step
 

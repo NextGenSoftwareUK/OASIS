@@ -43,7 +43,8 @@ task checkout. Runtime qualification remains separate.
    profile: native/restart, manager/Mongo/HTTP and browser verified, with an honest
    local-only WEB4 card. Hosted Meili enrollment remains open. Solr now has
    native3/2/0, retained restart, manager/HTTP and local browser5/4 proof, adding
-   one local profile. Its local WEB4 card is next; hosted Solr remains open.
+   one local profile. Its local WEB4 card72e29ba and pinned guide/C#links are
+   published and browser-verified; hosted Solr remains open.
 3. Keep filtered native queries and Mongo federated presets for every admitted
    provider. Expand remaining red scopes with explicit capabilities/consistency,
    controlled tests, actual native manager/LINQ and HTTP proof, privacy/replicas,
