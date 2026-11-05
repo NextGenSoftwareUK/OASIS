@@ -76,6 +76,14 @@ public class CqlCouchDbHostedAdmissionTests
         VerifyExactKeyPresets(ProviderType.ArcadeDBOASIS, source.QueryCapabilities);
     }
 
+    [Fact]
+    public void SurrealDbExactKeyPresetsPlanNativeAndMongoQueries()
+    {
+        var source = new NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.SurrealDBOASIS(
+            "https://surreal.example.test", "reader", "restricted", "teaching", "public_demo", Guid.NewGuid());
+        VerifyExactKeyPresets(ProviderType.SurrealDBOASIS, source.QueryCapabilities);
+    }
+
     [Theory]
     [InlineData(ProviderType.ElasticsearchOASIS)]
     [InlineData(ProviderType.OpenSearchOASIS)]

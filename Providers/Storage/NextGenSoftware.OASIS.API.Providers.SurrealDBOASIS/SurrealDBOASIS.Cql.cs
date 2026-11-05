@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,8 +19,13 @@ public partial class SurrealDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOn
 {
     private const int MaximumHolonPayloadBytes = 1024 * 1024;
     private readonly Guid? _queryProbeId;
+    private readonly HttpMessageHandler? _queryTransport;
 
     public SurrealDBOASIS(string endpoint, string username, string password, string ns, string db, Guid queryProbeId)
+        : this(endpoint, username, password, ns, db, queryProbeId, null) { }
+
+    public SurrealDBOASIS(string endpoint, string username, string password, string ns, string db, Guid queryProbeId,
+        HttpMessageHandler? queryTransport)
         : this(endpoint, username, password, ns, db)
     {
         if (string.IsNullOrWhiteSpace(endpoint) || string.IsNullOrWhiteSpace(username) ||
@@ -28,6 +34,7 @@ public partial class SurrealDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOn
         if (queryProbeId == Guid.Empty)
             throw new ArgumentException("A teaching record identity is required.", nameof(queryProbeId));
         _queryProbeId = queryProbeId;
+        _queryTransport = queryTransport;
     }
 
     public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)

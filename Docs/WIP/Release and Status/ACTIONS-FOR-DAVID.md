@@ -657,3 +657,10 @@ and hosted federation and replication verification.
 - Owner step: identify an existing reachable ArcadeDB HTTPS service for synthetic teaching records and make credentials available privately. Use a restricted reader for the oasis database. If the teaching source does not exist, provide secure provisioning access so engineering can prepare it separately.
 - The source needs three public live roots, one deleted record and one absent ID under the declared actor. Keep credentials in the process environment, outside chat, descriptors and git. No new host or paid resources were requested.
 - Reason: native HTTPS proof precedes settings review and hosted acceptance. [Settings and fixture](../COSMIC%20ORM/ARCADEDB_CQL_MVP.md#web4-hosted-enrollment-preparation).
+
+## SurrealDB hosted teaching source access - 2026-11-05
+
+- Status: pending owned HTTPS source access. Nine WEB4 checks passed and the native HTTPS qualifier compiled.
+- Owner step: identify an existing reachable SurrealDB HTTPS service with an explicit namespace and database for synthetic teaching records. Make a database VIEWER account available privately. If the teaching catalogue does not exist, provide secure provisioning access so engineering can prepare it separately.
+- The source needs three public roots, one deleted record and one absent ID under its declared actor. Use a live record as the probe. Keep credentials in the process environment, outside chat, descriptors and git. No new host or paid resources were requested.
+- Reason: native HTTPS proof precedes settings review and hosted acceptance. [Settings and fixture](../COSMIC%20ORM/SURREALDB_CQL_MVP.md#web4-hosted-enrollment-preparation).

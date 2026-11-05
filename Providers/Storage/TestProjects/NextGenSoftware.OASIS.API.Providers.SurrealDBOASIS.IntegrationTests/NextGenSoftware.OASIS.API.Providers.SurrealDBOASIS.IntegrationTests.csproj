@@ -18,6 +18,8 @@
   </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSurrealDbReadSourceRegistration.cs" Link="Hosted/CqlSurrealDbReadSourceRegistration.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadSourceProfile.cs" Link="Hosted/CqlReadSourceProfile.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs" Link="Demo/IdentityFederationWalkthrough.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationApiHost.cs" Link="Demo/IdentityFederationApiHost.cs" />
     <Compile Include="../NextGenSoftware.OASIS.API.Providers.LitestreamOASIS.IntegrationTests/LinuxMongoDemoEnvironmentTests.cs" Link="TestSupport/LinuxMongoDemoEnvironmentTests.cs" />

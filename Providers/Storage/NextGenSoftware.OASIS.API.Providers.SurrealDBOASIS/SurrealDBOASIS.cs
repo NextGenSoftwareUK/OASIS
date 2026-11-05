@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             {
                 Endpoint = _endpoint, Namespace = _ns, Database = _db,
                 Username = _username, Password = _password, AuthLevel = _queryProbeId.HasValue ? "Database" : "Root"
-            }, httpClientFactory: _queryProbeId.HasValue ? new DatabaseHttpClientFactory(_ns, _db) : null);
+            }, httpClientFactory: _queryProbeId.HasValue ? new DatabaseHttpClientFactory(_ns, _db, _queryTransport) : null);
             try
             {
                 await client.Connect(cancellationToken);
@@ -97,13 +97,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             private static readonly HttpClientHandler Transport = new() { AllowAutoRedirect = false, UseCookies = false };
             private readonly string _namespace;
             private readonly string _database;
+            private readonly HttpMessageHandler _transport;
 
-            public DatabaseHttpClientFactory(string ns, string db)
-            { _namespace = ns; _database = db; }
+            public DatabaseHttpClientFactory(string ns, string db, HttpMessageHandler? transport)
+            { _namespace = ns; _database = db; _transport = transport ?? Transport; }
 
             public HttpClient CreateClient(string name)
             {
-                var client = new HttpClient(Transport, disposeHandler: false);
+                var client = new HttpClient(_transport, disposeHandler: false);
                 client.DefaultRequestHeaders.Add("surreal-auth-ns", _namespace);
                 client.DefaultRequestHeaders.Add("surreal-auth-db", _database);
                 return client;

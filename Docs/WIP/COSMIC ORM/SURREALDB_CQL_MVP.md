@@ -265,3 +265,24 @@ publication.json retained. No new profile count or hosted enrollment claim.
 Combined terminal website edit was automatic-review rejected without specific
 reason; no command ran. A focused apply_patch completed the edit and independent
 tests/commit/publication checks passed. No owner action required.
+
+## WEB4 hosted enrollment preparation
+
+The read profile uses CQL_SURREALDB_QUERY_ORIGIN, USERNAME, PASSWORD,
+NAMESPACE, DATABASE and PROBE_ID with the same prefix. It requires an
+existing owned HTTPS origin and an account with the database VIEWER role.
+The native SDK applies explicit database authentication headers through the
+WEB4 guarded HTTPS transport.
+
+SurrealDbHostedCqlNative uses the shipping WEB4 registration. Set
+COSMIC_SURREALDB_HOSTED_CQL_SOURCE to a descriptor containing Actor, three
+LiveIds, one DeletedId and one MissingId. Use a probe from the live IDs and
+keep credentials in the process environment. The fixture checks public
+ownership, full and subset reads, paging, excluded records and unchanged
+read projections. Nine focused WEB4 tests passed at Core `315ca55`, including
+database headers on the actual SDK transport, configuration and four preset
+plans. TRX SHA-256
+`cd9268a128933e43e9cd72265e0c8bfaddff0016cbe2f5c4bd45761850aafb2e`.
+The HTTPS fixture compiled with 147 warnings and zero errors. Native
+HTTPS execution remains pending an owned source and VIEWER credentials.
+The retained local source is preserved.
