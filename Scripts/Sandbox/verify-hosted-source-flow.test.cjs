@@ -9,7 +9,7 @@ const vm = require('node:vm');
 const modulePath = path.resolve(__dirname, '../../../Web4Site/cql-demo-preparation.js');
 const program = fs.readFileSync(path.join(__dirname, 'Verify-HostedSourceFlow.cjs'), 'utf8');
 
-for (const { byId, duplicateReplica, missingSnapshot, wrongNative } of [{ byId: false }, { byId: false, wrongNative: true }, { byId: true }, { byId: true, duplicateReplica: true }, { byId: true, missingSnapshot: true }, { byId: true, wrongNative: true }]) test(wrongNative ? "verifier rejects a different native ${byId ? 'ID' : 'key'} at the expected row count" : missingSnapshot ? "verifier rejects a missing private snapshot despite the expected row count" : duplicateReplica ? "verifier rejects duplicate replica IDs" : `verifier uses ${byId ? 'native ID unions' : 'protocol keys'} and checks both replicas`, async () => {
+for (const { byId, duplicateReplica, missingSnapshot, wrongNative } of [{ byId: false }, { byId: false, wrongNative: true }, { byId: true }, { byId: true, duplicateReplica: true }, { byId: true, missingSnapshot: true }, { byId: true, wrongNative: true }]) test(wrongNative ? `verifier rejects a different native ${byId ? 'ID' : 'key'} at the expected row count` : missingSnapshot ? "verifier rejects a missing private snapshot despite the expected row count" : duplicateReplica ? "verifier rejects duplicate replica IDs" : `verifier uses ${byId ? 'native ID unions' : 'protocol keys'} and checks both replicas`, async () => {
   const owner = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
   const nativeIds = ['44444444-4444-4444-8444-444444444441',
     '44444444-4444-4444-8444-444444444442', '44444444-4444-4444-8444-444444444443'];
