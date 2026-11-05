@@ -22,6 +22,9 @@ public partial class SurrealDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOn
     public SurrealDBOASIS(string endpoint, string username, string password, string ns, string db, Guid queryProbeId)
         : this(endpoint, username, password, ns, db)
     {
+        if (string.IsNullOrWhiteSpace(endpoint) || string.IsNullOrWhiteSpace(username) ||
+            string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(ns) || string.IsNullOrWhiteSpace(db))
+            throw new ArgumentException("An explicit endpoint, database scope and reader credentials are required.");
         if (queryProbeId == Guid.Empty)
             throw new ArgumentException("A teaching record identity is required.", nameof(queryProbeId));
         _queryProbeId = queryProbeId;
