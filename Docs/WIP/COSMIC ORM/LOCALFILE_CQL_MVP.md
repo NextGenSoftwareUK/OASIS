@@ -583,41 +583,21 @@ container-root directory. Keep the confirmed volume attachment in the same
 staged change review, and repeat the mount check on the resulting settings
 deployment before treating its seeded records as persistent.
 
-On that same instance, verify the three files in the reviewed catalogue
-without displaying their contents. Read the public IDs and expected digests
-from the retained source configuration, then compare the first field of
-each remote `sha256sum` result:
+On the exact settings deployment, verify the three files in the reviewed
+catalogue with the single reviewed instance ID already set:
 
 ```powershell
-$reviewedInstances = $env:COSMIC_CQL_REVIEWED_INSTANCE_IDS -split ','
-if ($reviewedInstances.Count -ne 1 -or $reviewedInstances[0] -notmatch '^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$') {
-    throw 'Set the single reviewed instance ID for initial LocalFile bootstrap.'
-}
-$reviewedInstanceId = $reviewedInstances[0]
-python -B Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py verify-settings
-if ($LASTEXITCODE -ne 0) { throw 'LocalFile settings deployment verification failed.' }
-$source = Get-Content -Raw LocalState/COSMIC/HostedLocalFilePublicDatasetCurrent/source-config.json | ConvertFrom-Json
-foreach ($record in $source.records) {
-    $file = "/data/cql-local-file-demo/Holons/$($record.id).json"
-    $resolved = & $env:OASIS_RAILWAY_CLI ssh -p 712f50f6-3b7b-46d4-b229-44b49922f16b -e dev -s 5123199a-43c4-4439-9921-e10e2aec7841 -d $reviewedInstanceId -- realpath -e $file
-    if ($LASTEXITCODE -ne 0 -or $resolved -cne $file) {
-        throw "LocalFile teaching record does not resolve to the reviewed path for $($record.id)."
-    }
-    $digest = & $env:OASIS_RAILWAY_CLI ssh -p 712f50f6-3b7b-46d4-b229-44b49922f16b -e dev -s 5123199a-43c4-4439-9921-e10e2aec7841 -d $reviewedInstanceId -- sha256sum $file
-    if ($LASTEXITCODE -ne 0 -or ($digest -split '\s+')[0] -cne $record.sha256) {
-        throw "LocalFile teaching record digest differs for $($record.id)."
-    }
-}
-python -B Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py verify-settings
-if ($LASTEXITCODE -ne 0) { throw 'LocalFile settings deployment changed during file verification.' }
+python -B Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py verify-records
 ```
 
-Use the instance ID from the verified settings deployment and record the
-deployment ID with the three matches. Run discovery and HTTP acceptance next.
-The command block passed a PowerShell rehearsal using the three retained
-source records and simulated Railway output. It checked all paths and
-digests between two successful settings checks. Live SSH and settings
-verification still require Railway access.
+This command checks the protected settings and mount before and after
+inspecting the files. It verifies each resolved path, reads at most
+32,769 bytes per record and compares the three qualified SHA-256 digests.
+It prints the deployment ID and verification result. The focused rehearsal
+accepted all three original records and rejected a redirected path, changed
+bytes, an oversized record and a deployment change. The actual Railway
+inspection still requires sign-in. After it passes, run discovery and the
+native, paired, replica and privacy acceptance.
 
 Run the same checks without preparing or applying settings:
 

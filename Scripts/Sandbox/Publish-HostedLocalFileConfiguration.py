@@ -228,6 +228,39 @@ def verify_settings():
     return deployment
 
 
+def verify_records():
+    instance = os.environ.get("COSMIC_CQL_REVIEWED_INSTANCE_IDS", "")
+    if not re.fullmatch(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}", instance):
+        raise RuntimeError("Mounted record verification requires one reviewed active instance.")
+    source, _ = qualified_source()
+    expected = configuration.protected_read(PREFIX + "-candidate-variables.dpapi")
+    if json.loads(expected[KEYS[0]]) != source:
+        raise RuntimeError("Protected LocalFile source differs from native qualification.")
+    deployment = verify_settings()
+
+    def inspect(*args):
+        try:
+            result = subprocess.run(
+                [str(configuration.CLI), "ssh", *configuration.COMMON, "-d", instance, "--", *args],
+                capture_output=True, timeout=30)
+        except (OSError, subprocess.TimeoutExpired):
+            raise RuntimeError("Could not inspect LocalFile on the reviewed instance.") from None
+        if result.returncode:
+            raise RuntimeError("Could not inspect LocalFile on the reviewed instance.")
+        return result.stdout
+
+    for row in source["records"]:
+        path = f"/data/cql-local-file-demo/Holons/{row['id']}.json"
+        if inspect("realpath", "-e", path).rstrip(b"\r\n") != path.encode():
+            raise RuntimeError("Mounted LocalFile teaching record resolves outside its reviewed path.")
+        content = inspect("head", "-c", "32769", path)
+        if not 0 < len(content) <= 32768 or hashlib.sha256(content).hexdigest() != row["sha256"]:
+            raise RuntimeError("Mounted LocalFile teaching record differs from its qualified digest.")
+    if verify_settings() != deployment:
+        raise RuntimeError("Reviewed Railway deployment changed during record inspection.")
+    return deployment
+
+
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prepare()
@@ -242,5 +275,8 @@ if __name__ == "__main__":
     elif sys.argv[1:] == ["verify-settings"]:
         deployment = verify_settings()
         print(f"Reviewed LocalFile settings and mount verified for deployment {deployment}.")
+    elif sys.argv[1:] == ["verify-records"]:
+        deployment = verify_records()
+        print(f"Reviewed LocalFile settings, mount and three teaching records verified for deployment {deployment}.")
     else:
-        raise SystemExit("Use no arguments to prepare, verify-release, verify-mount or verify-settings to inspect, or apply after exact code deployment.")
+        raise SystemExit("Use no arguments to prepare, verify-release, verify-mount, verify-settings or verify-records to inspect, or apply after exact code deployment.")

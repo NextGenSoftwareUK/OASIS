@@ -211,6 +211,40 @@ class LocalFileConfigurationTests(unittest.TestCase):
                 publisher.verify_settings()
             mutation.assert_not_called()
 
+    def test_verify_records_binds_all_bytes_to_one_reviewed_deployment(self):
+        before, source, bundle = self.fixture()
+        candidate = publisher.candidate(before, source, bundle)
+        instance = "11111111-1111-4111-8111-111111111111"
+        paths = [f"/data/cql-local-file-demo/Holons/{row['id']}.json" for row in source["records"]]
+        payloads = [base64.b64decode(row["contentBase64"]) for row in bundle["records"]]
+        for issue in (None, "path", "digest", "oversize", "deployment"):
+            with self.subTest(issue=issue):
+                observations = [response for path, body in zip(paths, payloads, strict=True)
+                                for response in (path.encode() + b"\n", body)]
+                if issue == "path":
+                    observations[0] = b"/tmp/foreign.json\n"
+                elif issue == "digest":
+                    observations[1] = b"changed"
+                elif issue == "oversize":
+                    observations[1] = b"x" * 32769
+                with (
+                    patch.dict(publisher.os.environ, {"COSMIC_CQL_REVIEWED_INSTANCE_IDS": instance}),
+                    patch.object(publisher, "qualified_source", return_value=(source, bundle)),
+                    patch.object(publisher.configuration, "protected_read", return_value=candidate),
+                    patch.object(publisher, "verify_settings", side_effect=["reviewed", "changed" if issue == "deployment" else "reviewed"]),
+                    patch.object(publisher.subprocess, "run", side_effect=[
+                        SimpleNamespace(returncode=0, stdout=value) for value in observations]) as ssh,
+                ):
+                    if issue is None:
+                        self.assertEqual("reviewed", publisher.verify_records())
+                        self.assertEqual(6, ssh.call_count)
+                        for index, path in enumerate(paths):
+                            self.assertEqual(["-d", instance, "--", "realpath", "-e", path], ssh.call_args_list[2 * index].args[0][-6:])
+                            self.assertEqual(["-d", instance, "--", "head", "-c", "32769", path], ssh.call_args_list[2 * index + 1].args[0][-7:])
+                    else:
+                        with self.assertRaisesRegex(RuntimeError, "outside|qualified digest|deployment changed"):
+                            publisher.verify_records()
+
     def test_qualification_rejects_modified_retained_bundle(self):
         _, source, bundle = self.fixture()
         with TemporaryDirectory() as directory:

@@ -1773,6 +1773,10 @@ The fixture build uses the same lease and outputs. Its log is
 The fixture compiled with 147 warnings and zero errors. The lease restored
 shared Core to `54159614`. No native process started.
 
+LocalFile mounted-record verification ran one focused Python test with five
+cases, using mocked instance SSH and in-memory bytes. No files, credentials,
+deployment, runtime or cache were created by the test.
+
 The ArcadeDB admission run completed with seven passes and zero skips.
 TRX SHA-256 `adbc578d9ed2b3903d5f64e0fa174a23915b739c5bfba4ba8341b05cafe84e3d`.
 The separate hosted fixture build uses the same lease and existing outputs.
