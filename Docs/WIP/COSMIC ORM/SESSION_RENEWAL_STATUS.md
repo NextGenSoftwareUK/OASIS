@@ -47,6 +47,15 @@ Continue this new session through its normal renewal boundary, then verify
 the same avatar can still query its private records. Startup success alone
 does not prove renewal.
 
+At laptop time 01:34:55 on 5 November, the same sandbox-3a2cb72c browser
+avatar returned both original BNB private IDs at version 1. Its first
+visible signed-in HyperDrive update was 01:15:45, more than nineteen minutes
+earlier. The page uses the published lifetime-v2 module and the checked-in
+JWT lifetime is fifteen minutes. This verifies sustained private access
+under the same visible avatar beyond that lifetime. Exact refresh request
+and token timestamps were not captured, so protocol-level rotation evidence
+still comes from the separately retained HTTP lifecycle.
+
 Published Web4Site `6994b87` advances the session module URL to
 `session-renewal-lifetime-v2`. All 111 website tests passed, including
 delayed authentication consuming the issued lifetime and a response
