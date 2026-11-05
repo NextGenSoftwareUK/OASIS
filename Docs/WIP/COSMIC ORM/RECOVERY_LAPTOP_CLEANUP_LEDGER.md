@@ -658,3 +658,5 @@ CouchDB retained-source read-only activation fixture compiled. Integration bin/o
 CouchDB authorized catalogue tests passed 43/43. Reused provider/test bin and obj. Receipt: TestResults/ProviderBuildCurrent/cosmic-couchdb-catalogue.log.
 
 CouchDB opt-in WEB4 build passed using existing WEB4 bin/obj. Receipt: TestResults/ProviderBuildCurrent/cosmic-couchdb-web4.log. No server started.
+
+CouchDB, DuckDB and SQL Server WEB4 admission passed 3/3 against Core 79708cc4. Receipt: TestResults/ProviderBuildCurrent/cosmic-couchdb-web4-admission.log. Reused build outputs and restored shared Core.
