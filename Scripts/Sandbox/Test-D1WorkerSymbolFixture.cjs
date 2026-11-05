@@ -33,11 +33,14 @@ async function main() {
     const endpoint = new URL("/symbols", await mf.ready);
     const invalid = await fetch(new URL("?symbol=BTC-USDT&symbol=BTC-USDT", endpoint));
     const unenrolled = await fetch(new URL("?symbol=BTC-USDT&symbol=UNENROLLED", endpoint));
+    const unbounded = await fetch(endpoint);
     const write = await fetch(endpoint, {method:"POST"});
     assert.equal(invalid.status, 400);
     assert.equal(unenrolled.status, 400);
+    assert.equal(unbounded.status, 400);
     assert.deepEqual(await invalid.json(), {error:"Invalid symbol selection"});
     assert.deepEqual(await unenrolled.json(), {error:"Invalid symbol selection"});
+    assert.deepEqual(await unbounded.json(), {error:"Invalid symbol selection"});
     assert.equal(write.status, 405);
     console.log(JSON.stringify({full, subset, duplicateStatus:invalid.status,
       unenrolledStatus:unenrolled.status, writeStatus:write.status}));
