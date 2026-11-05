@@ -103,3 +103,35 @@ recovery laptop, and that run used plaintext without authentication. To
 accept Development, qualify the reviewed HTTPS endpoint and scoped credential,
 replay the same three IDs on that endpoint, then verify WEB4 discovery,
 native and Mongo-paired query results, and the signed-in browser card.
+
+## Recovery-laptop HTTPS read qualification tool, 5 November 2026
+
+`Scripts/Sandbox/Probe-ChromaHostedReadiness.py` now qualifies the exact two
+provider read routes without creating a collection or mutating documents.
+Supply a metadata-only JSON source with exactly `origin`, `tenant`, `database`,
+`collectionId` and `ids` (three distinct canonical UUIDs). The reviewed collection
+must already contain the three public, active, undeleted canonical Holon documents.
+The collection activation response must match both oasis_holons and the reviewed
+UUID. Native reads request documents only, with bounded full/subset selections;
+response order is not treated as stable. Each payload ID must match its native ID.
+
+Keep the scoped bearer token only in the process environment
+`CQL_CHROMA_QUERY_BEARER_TOKEN`. The tool rejects redirects, proxies, non-HTTPS
+origins, URL credentials and local/private DNS results before credential dispatch.
+It makes at most three requests, each with a 15-second timeout and 4 MiB response
+bound. Receipts retain only the source hash, counts, outcome type and scope;
+neither credentials nor document contents are written to the receipts.
+
+```powershell
+python -B Scripts/Sandbox/Probe-ChromaHostedReadiness.py `
+  LocalState/COSMIC/ChromaHostedQualificationCurrent/source.json `
+  LocalState/COSMIC/ChromaHostedQualificationCurrent
+```
+
+Exclusive intent/ACK/failure files prevent an implicit repeat after uncertainty.
+Review the original outcome before any separately authorized qualification run.
+Six controlled tests pass without network calls or new runtime dependencies.
+No real hosted endpoint or credential has been supplied or qualified. The tool
+explicitly does not certify denial of mutation routes, hosted CQL, federation,
+replicas or browser acceptance. Qualify denied mutations only on a separately
+owned disposable fixture, then retain that distinct authorization proof.

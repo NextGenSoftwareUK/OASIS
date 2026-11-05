@@ -770,3 +770,10 @@ check returned Unauthorized. No settings, deployment or project link changed.
   confirming its sole delta from main. Public HTML/JS bytes match git blobs.
   HTTP checks ran in memory without downloaded files or new browser tabs.
   The retained tabs still use their original loaded modules and journals.
+
+- Chroma HTTPS read qualification tooling uses Python standard library only.
+  Six controlled offline tests passed with no pycache (`-B`), output files,
+  hosted requests, credentials, fixture databases or new installed packages.
+  Future explicitly configured runs create only three small exclusive JSON
+  receipts under the selected qualification directory; retain uncertainty
+  receipts before any retry. No runtime or source data was created in this step.
