@@ -391,3 +391,8 @@ An anonymous GHCR lookup for the candidate commit tag returned HTTP 401 at
 the registry token endpoint. It provides no evidence that the tag exists
 or is absent. Verify the image through authenticated package access or the
 successful build run and recorded digest before selecting it for Development.
+
+The image workflow's SDK source packaging preflight passed for Cosmos (4),
+Hedera (8), Near (7), Sui (3) and Polkadot (31 modules). Both validator scripts
+and all five provider directories matched the candidate tree before the check.
+No image was built by this preflight.
