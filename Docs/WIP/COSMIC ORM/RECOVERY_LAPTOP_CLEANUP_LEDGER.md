@@ -837,3 +837,10 @@ check returned Unauthorized. No settings, deployment or project link changed.
   controls pass, zero failed/skipped. Temporary intent-control file removed by
   exact owned filename. Integration bin/obj reused; no new runtime or native
   process/database/seed/bootstrap journal created. License review remains open.
+
+- RavenDB controlled SDK-boundary payload tests planned under lease cosmic-ravendb-payload. Reuse unit-test bin/obj; no RavenDB server/license use/database/network. DispatchProxy controls only LoadAsync and rejects any unexpected SDK operation.
+
+- RavenDB controlled payload gate completed: 19 passed, zero failed/skipped,
+  including six new reader/SDK-boundary cases. Existing leased unit outputs
+  reused/regenerated. No native RavenDB runtime extraction, license acceptance,
+  process, database, server request or new runtime download occurred.

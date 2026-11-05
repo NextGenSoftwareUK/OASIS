@@ -88,3 +88,16 @@ Metadata-only source.json is prepared once under RecoveryLaptopRavenDB701,
 434 bytes, with one unique database/actor/five IDs and loopback port18087.
 No server start, database creation, seed, license acceptance or bootstrap intent
 has occurred. Pending owner license review is in ACTIONS-FOR-DAVID.md.
+
+## Controlled SDK payload boundary
+
+The unit suite now passes 19/19 tests, zero failures/skips. Six additional
+cases execute the actual CQL reader through DispatchProxy implementations of
+IDocumentStore/IAsyncDocumentSession. They permit only nontracking/noncached
+OpenAsyncSession, bounded LoadAsync and disposal; any other SDK operation fails.
+Five malformed second rows prove that a valid first row is never published as
+partial success: envelope ID mismatch, payload ID mismatch, inconsistent deleted
+state, missing JSON and over-1-MiB payload. Another case checks exact canonical
+requested keys and applies paging after deleted/missing exclusions. These are
+controlled boundary tests, not native RavenDB or HTTP proof. No production seam
+or alternate read path was added. Runtime license review remains pending.
