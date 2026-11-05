@@ -8,6 +8,7 @@ import copy
 import hashlib
 import importlib.util
 import json
+import os
 import sys
 import uuid
 
@@ -144,7 +145,8 @@ def apply():
     after = configuration.protected_read(PREFIX + "-candidate-variables.dpapi")
     if candidate(before, qualified_source()) != after:
         raise RuntimeError("Reviewed candidate/source differs; no mutation permitted.")
-    module("Prepare-TenSourcePublicBatch").require_matching_release(configuration)
+    release_ref = os.environ.get("COSMIC_CQL_REVIEWED_RELEASE_REF", "HEAD")
+    module("Prepare-TenSourcePublicBatch").require_matching_release(configuration, release_ref=release_ref)
     configuration.apply_values(PREFIX, KEYS)
 
 

@@ -41,7 +41,8 @@ class HyperlaneConfigurationTests(unittest.TestCase):
 
     def test_apply_refuses_mutation_until_reviewed_release_is_live(self):
         before, after = {}, {"reviewed": "candidate"}
-        with patch.object(publisher.configuration, "protected_read", side_effect=[before, after]), \
+        with patch.dict(publisher.os.environ, {"COSMIC_CQL_REVIEWED_RELEASE_REF": "refs/heads/reviewed"}), \
+             patch.object(publisher.configuration, "protected_read", side_effect=[before, after]), \
              patch.object(publisher, "qualified_source", return_value={}), \
              patch.object(publisher, "candidate", return_value=after), \
              patch.object(publisher, "module") as release, \
@@ -50,7 +51,7 @@ class HyperlaneConfigurationTests(unittest.TestCase):
             gate.side_effect = RuntimeError("expected release is not live")
             with self.assertRaisesRegex(RuntimeError, "expected release is not live"):
                 publisher.apply()
-            gate.assert_called_once_with(publisher.configuration)
+            gate.assert_called_once_with(publisher.configuration, release_ref="refs/heads/reviewed")
             apply_values.assert_not_called()
 
     def test_prepare_resumes_after_candidate_snapshot_without_overwriting_evidence(self):
