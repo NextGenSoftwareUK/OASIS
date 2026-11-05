@@ -4,6 +4,14 @@ Updated 5 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
+## Tigris controlled CQL implementation, 5 November 2026
+
+14 scoped tests pass: 12 CQL controls plus two existing Tigris protocol tests.
+Actual SDK pipeline reproduced and fixed path-style addressing in the shared
+factory. Explicit probe activation and bounded canonical object queries added.
+Native teaching source and federation/browser qualification remain pending;
+counts stay 103/60/28. [Evidence and next scope](TIGRIS_CQL_MVP.md).
+
 ## MinIO local profile accepted, 5 November2026
 
 16controlled SDK cases and five runner guards pass. Create-only native source,

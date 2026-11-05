@@ -1503,3 +1503,15 @@ MongoPID18960CtrlC12/storageClosed/shutdownComplete; all four listeners closed.
 No new download/runtime or MinIO seed replay. Five runner guards pass; consumer
 8warnings/0errors, earlier broad1140warnings/0errors. Local profile103, hosted
 unchanged. Retain source, credentials, acknowledgements and compact evidence.
+
+Tigris controlled CQL continuation, 5 November2026: reused existing EdgeStorage
+protocol project, cached AWS SDK and shared Core outputs; no download, runtime,
+database, cloud source or background service created. Shared build lease held
+once per batch, /m:2 /nr:false /p:UseSharedCompilation=false. Retain compact
+LocalState/COSMIC/RecoveryLaptopTigrisCql/{address-red-v2,controls-green,controls-green-v2}
+TRX evidence and TestResults/ProviderBuildCurrent/cosmic-tigris-*.log; initial
+compile error, reproduced host mismatch and assertion correction preserved.
+Final controls14/14, no skips; final TRXSHA256
+42fc1b51fc8ea7d801400fb09c235eaa0935a2d43506cc6f1b9cc0c53c3f0322.
+No cleanup deletion attempted; existing shared bin/obj must not be removed while
+other agents may use them. No accepted provider/demo count increment.
