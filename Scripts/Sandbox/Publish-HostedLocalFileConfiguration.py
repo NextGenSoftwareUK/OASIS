@@ -221,6 +221,8 @@ def verify_settings():
     observed = configuration.variables()
     if any(observed.get(key) != expected[key] for key in KEYS):
         raise RuntimeError("Development LocalFile settings differ from the reviewed candidate")
+    if observed != expected:
+        raise RuntimeError("Other Development WEB4 settings changed since the LocalFile review; reconcile before acceptance")
     if verify_release() != deployment:
         raise RuntimeError("Reviewed Railway deployment changed during settings inspection")
     return deployment

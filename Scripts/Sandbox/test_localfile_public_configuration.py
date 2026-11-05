@@ -206,6 +206,9 @@ class LocalFileConfigurationTests(unittest.TestCase):
             variables.return_value = dict(after, **{publisher.KEYS[0]: "different"})
             with self.assertRaisesRegex(RuntimeError, "settings differ"):
                 publisher.verify_settings()
+            variables.return_value = dict(after, UNREVIEWED_SETTING="changed")
+            with self.assertRaisesRegex(RuntimeError, "Other Development WEB4 settings changed"):
+                publisher.verify_settings()
             mutation.assert_not_called()
 
     def test_qualification_rejects_modified_retained_bundle(self):
