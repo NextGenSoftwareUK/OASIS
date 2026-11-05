@@ -142,3 +142,15 @@ builds. Local Core candidate 6fcc2fead73f542480d30f981e24764683917b9c adds
 DuckDB query tariff admission on top of SQL Server's pin. The WEB4 admission
 fixture is ready for verification against that candidate before publication.
 Development still requires placement of a qualified read-only database.
+
+The retained demo file, LocalState/COSMIC/DuckDbCql/source.duckdb, is
+1,323,008 bytes, with no adjacent WAL at qualification. SHA256:
+DB649A3DD1A2FCE1694CBA1F9E303505596A3D3289B01F8166A6D232D3FFCA19.
+It contains three teaching records and a tombstone. Core tariff pin and four
+native/paired preset plans passed. For Development, first confirm persistent
+placement and verify the file hash after transfer. Set
+CQL_DUCKDB_QUERY_CONNECTION_STRING to the absolute mounted file with
+access_mode=READ_ONLY. Enroll only the three live GUIDs from demo-seed.json in
+the read catalogue, add query-only zero-cost admission and the four canonical
+presets. Use Verify-HostedQuerySource.py DuckDBOASIS --readiness before
+preparing a cohort. No file was copied or deployed during this check.
