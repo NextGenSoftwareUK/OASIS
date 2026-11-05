@@ -9,7 +9,7 @@ const vm = require('node:vm');
 const modulePath = path.resolve(__dirname, '../../../Web4Site/cql-demo-preparation.js');
 const program = fs.readFileSync(path.join(__dirname, 'Verify-HostedSourceFlow.cjs'), 'utf8');
 
-for (const byId of [false, true]) test(`verifier uses ${byId ? 'native ID unions' : 'protocol keys'} and checks both replicas`, async () => {
+for (const { byId, duplicateReplica } of [{ byId: false }, { byId: true }, { byId: true, duplicateReplica: true }]) test(duplicateReplica ? "verifier rejects duplicate replica IDs" : `verifier uses ${byId ? 'native ID unions' : 'protocol keys'} and checks both replicas`, async () => {
   const owner = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
   const nativeIds = ['44444444-4444-4444-8444-444444444441',
     '44444444-4444-4444-8444-444444444442', '44444444-4444-4444-8444-444444444443'];
@@ -70,13 +70,21 @@ for (const byId of [false, true]) test(`verifier uses ${byId ? 'native ID unions
     } else if (route.endsWith('/federation')) {
       result = { result: { rows: selected([...native, ...copies.values()], body.source) } };
     } else if (route === 'data/query-cql') {
-      result = { result: { rows: selected(body.provider === provider ? native : [...copies.values()], body) } };
+      const rows = selected(body.provider === provider ? native : [...copies.values()], body);
+      result = { result: { rows: duplicateReplica && body.provider === 'Neo4jOASIS' ? [rows[0], rows[0]] : rows } };
     } else throw Error('Unexpected route ' + route);
     return { ok: true, status: 200, headers: { get: () => 'controlled-operation' }, text: async () => JSON.stringify(result) };
   };
   const errors = []; const process = { exitCode: 0 };
   await vm.runInNewContext(program, { require: name => name === 'node:fs' ? memory : require(name),
     fetch, AbortSignal, setTimeout, process, console: { log() {}, error: value => errors.push(value) } });
+  if (duplicateReplica) {
+    assert.equal(process.exitCode, 1);
+    assert.match(errors.join('\n'), /Neo4jOASIS did not return the exact private replica IDs/);
+    assert.equal(files.has(input.report), false);
+    assert.equal(saves, 2);
+    return;
+  }
   assert.equal(process.exitCode, 0, errors.join('\n'));
   const proof = JSON.parse(files.get(input.report));
   assert.equal(saves, 2); assert.equal(proof.repeated.saved, 0); assert.equal(proof.repeated.existing, 2);
