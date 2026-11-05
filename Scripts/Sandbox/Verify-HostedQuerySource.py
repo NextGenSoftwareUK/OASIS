@@ -179,6 +179,31 @@ def require_native_rows(response, example, count):
                 raise RuntimeError("Native source metadata keys differ from the reviewed preset.")
 
 
+def localfile_preset_request(request, paired):
+    # Discovery serializes the typed request and materializes its defaults.
+    selection_defaults = {
+        "provider": None, "filters": [], "anyOf": [], "anyChildren": [], "anyDescendants": [],
+        "orderBy": "Name", "descending": False, "skip": 0, "take": 25,
+        "maximumDurationMilliseconds": 5000, "includeMetadata": False, "graph": None,
+    }
+
+    def selection(value):
+        normalized = selection_defaults | value
+        normalized["filters"] = [{"metadataPath": None} | row for row in normalized["filters"]]
+        return normalized
+
+    if not paired:
+        return selection(request)
+    federation_defaults = {
+        "scope": "CurrentDefault", "providers": [], "identityMode": "PreserveCopies", "providerPriority": [],
+        "skip": 0, "take": 25, "maximumInputRows": 300, "maximumRowsPerProvider": 100,
+        "maximumInputBytes": 4194304, "maximumOutputBytes": 1048576, "maximumWork": 100000,
+        "maximumProviderAttempts": 3, "maximumDurationMilliseconds": 5000,
+        "enableContinuation": False, "cursor": None,
+    }
+    return federation_defaults | request | {"source": selection(request.get("source", {}))}
+
+
 def require_reviewed_presets(provider, source, review):
     expected = {row["id"]: row for row in review["presets"]}
     actual = {row["id"]: row for row in source["examples"]}
@@ -193,6 +218,9 @@ def require_reviewed_presets(provider, source, review):
         filters = observed_selection.get("filters", [])
         reviewed_filters = reviewed_selection.get("filters", [])
         if (actual.get(key, {}).get("operation", "Rows") != expected.get(key, {}).get("operation", "Rows")
+                or (provider == "LocalFile"
+                    and json.dumps(localfile_preset_request(observed, paired), sort_keys=True)
+                    != json.dumps(localfile_preset_request(reviewed, paired), sort_keys=True))
                 or (paired and any(observed.get(field) != reviewed.get(field)
                                    for field in ("scope", "identityMode")))
                 or len(filters) != 1 or len(reviewed_filters) != 1

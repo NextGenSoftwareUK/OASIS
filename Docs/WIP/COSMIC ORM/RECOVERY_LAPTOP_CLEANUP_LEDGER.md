@@ -1882,3 +1882,8 @@ DynamoDB WEB4 admission passed 7/7 with no skips. The retained
 The native AWS fixture compiled with 148 warnings and zero errors.
 Build output is `TestResults/ProviderBuildCurrent/dynamodb-hosted-native-fixture-build.log`.
 Each lease restored shared Core to `54159614`. No cloud operation was sent.
+
+LocalFile catalogue request-shape verification ran 14 focused Python tests
+in the existing interpreter, with six new drift cases inside the catalogue
+test. `-B` suppressed bytecode output. Temporary test directories were
+automatically removed. No live request or new cohort was created.

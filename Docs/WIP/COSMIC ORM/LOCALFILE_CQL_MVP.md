@@ -329,6 +329,9 @@ reported LocalFile unavailable before rollout. Start the LocalFile
 `--prepare` flow only after its readiness check passes. Discovery readiness
 does not replace the native, federation, privacy or replica checks.
 The LocalFile verifier also enforces this check before creating a new owner.
+A matching catalogue must preserve the reviewed request shape, including
+selection order, paging, metadata and federation limits. Discovery may
+include WEB4's serialized default fields.
 A live Development invocation of `--prepare` rejected the unavailable source
 and left the LocalFile cohort directory absent.
 The hosted verifier checks the two exact saved IDs from a second visitor on

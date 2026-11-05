@@ -31,6 +31,20 @@ class ResponseEvidenceTests(unittest.TestCase):
         source = {"examples": json.loads(json.dumps(presets))}
         source["examples"][0]["request"]["skip"] = 0
         verification.require_reviewed_presets("LocalFile", source, review)
+        for index, nested, field, value in (
+            (0, False, "skip", 1),
+            (0, False, "take", 2),
+            (0, False, "includeMetadata", True),
+            (3, True, "orderBy", "Id"),
+            (3, True, "descending", True),
+            (3, False, "maximumProviderAttempts", 4),
+        ):
+            with self.subTest(field=field):
+                drifted = {"examples": json.loads(json.dumps(presets))}
+                request = drifted["examples"][index]["request"]
+                (request["source"] if nested else request)[field] = value
+                with self.assertRaisesRegex(RuntimeError, "differs from the reviewed rollout"):
+                    verification.require_reviewed_presets("LocalFile", drifted, review)
         source["examples"].append(source["examples"][0])
         with self.assertRaisesRegex(RuntimeError, "preset IDs must be unique"):
             verification.require_reviewed_presets("LocalFile", source, review)
