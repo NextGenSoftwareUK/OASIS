@@ -331,6 +331,14 @@ The hosted verifier checks the two exact saved IDs from a second visitor on
 MongoDB and both verified replica targets, SQLite and Neo4j. The isolation
 report retains separate observations for each target.
 
+The published [LocalFile card](https://web4.oasisomniverse.one/web4-sandbox.html#cql-localfile-catalogue)
+currently launches the retained local runner. After Development HTTP acceptance,
+verify the live CQL tab with a signed-in demo visitor: refresh discovery, select
+LocalFileOASIS, run both native presets, prepare private snapshots once, and run
+both Mongo-paired presets. Capture provider provenance and the 3/2 and 5/4 row
+counts before describing the hosted flow as browser verified. Keep the local
+runner instructions available for the retained offline demo.
+
 ### Apply from the existing task checkout
 
 The updated operator-side publisher checks the local reviewed release ref and
