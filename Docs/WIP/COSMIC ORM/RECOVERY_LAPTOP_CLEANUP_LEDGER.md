@@ -688,3 +688,7 @@ check returned Unauthorized. No settings, deployment or project link changed.
 
 - DuckDB read-only path validation build, owner cosmic-duckdb-path. Uses the existing .NET SDK and NuGet cache with provider build lease. Restore and test can regenerate bin/obj in DuckDBOASIS and DuckDBOASIS.UnitTests and their Core/Shared project references. Reuse shared outputs while builds need them. Remove only inventoried disposable outputs after the leased operation ends. No database copy or runtime install requested.
   The leased run completed with 14 passed, zero skipped and zero failures. No separate test report was generated.
+- DuckDB leased build output: Providers\Storage\NextGenSoftware.OASIS.API.Providers.DuckDBOASIS\bin (8275524 bytes). Generated and regenerable. Retain while DuckDB verification uses it.
+- DuckDB leased build output: Providers\Storage\NextGenSoftware.OASIS.API.Providers.DuckDBOASIS\obj (978914 bytes). Generated and regenerable. Retain while DuckDB verification uses it.
+- DuckDB leased build output: Providers\Storage\TestProjects\NextGenSoftware.OASIS.API.Providers.DuckDBOASIS.UnitTests\bin (320890216 bytes). Generated and regenerable. Retain while DuckDB verification uses it.
+- DuckDB leased build output: Providers\Storage\TestProjects\NextGenSoftware.OASIS.API.Providers.DuckDBOASIS.UnitTests\obj (1006975 bytes). Generated and regenerable. Retain while DuckDB verification uses it.
