@@ -169,6 +169,25 @@ def require_native_rows(response, example, count):
                 raise RuntimeError("Native source selection IDs differ from the reviewed preset.")
 
 
+def require_reviewed_localfile_presets(source, review):
+    expected = {row["id"]: row for row in review["presets"]}
+    actual = {row["id"]: row for row in source["examples"]}
+    for key in ("public-records", "public-subset", "mongo-public-records", "mongo-public-subset"):
+        observed = actual.get(key, {}).get("request", {})
+        reviewed = expected.get(key, {}).get("request", {})
+        paired = key.startswith("mongo-")
+        observed_selection = observed.get("source", {}) if paired else observed
+        reviewed_selection = reviewed.get("source", {}) if paired else reviewed
+        filters = observed_selection.get("filters", [])
+        reviewed_filters = reviewed_selection.get("filters", [])
+        if (len(filters) != 1 or len(reviewed_filters) != 1
+                or any(filters[0].get(field) != reviewed_filters[0].get(field)
+                       for field in ("field", "scalar", "operator", "value", "metadataPath"))
+                or observed.get("providers" if paired else "provider")
+                != reviewed.get("providers" if paired else "provider")):
+            raise RuntimeError(f"Hosted LocalFile preset {key} differs from the reviewed rollout.")
+
+
 def require_native_selection(responses, examples):
     if len(responses) != 2 or len(examples) != 2:
         raise RuntimeError("Two native source selections are required.")
@@ -247,7 +266,9 @@ def main():
     if options.provider == "LocalFileOASIS" and allow_create and not (state / "owner.acknowledged.json").exists():
         _, visitor_token = session(ROOT / "LocalState/COSMIC/HostedDemoRehearsalDiscovery",
                                    "visitor", allow_create=False)
-        ready_source(options.provider, visitor_token, require_pair=True)
+        source = ready_source(options.provider, visitor_token, require_pair=True)
+        review_path = ROOT / "TestResults/HostedLocalFileSourceCurrent/prepared-review.json"
+        require_reviewed_localfile_presets(source, json.loads(review_path.read_bytes()))
     state.mkdir(exist_ok=True)
     results = ROOT / "TestResults/HostedCqlIntegrationCurrent"
     if options.resume_unstarted_native:
