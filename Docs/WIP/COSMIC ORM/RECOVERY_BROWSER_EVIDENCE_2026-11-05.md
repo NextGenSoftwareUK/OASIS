@@ -1,5 +1,11 @@
 # Development browser evidence, 5 November 2026
 
+Scroll passed native 3/2 and pairing 5/4 in sandbox-3a2cb72c.
+Preparation acknowledged two saves. Private IDs are
+2fe7afb1-7040-87d2-90d3-746bb68b35ef and
+4c1c1603-4fe6-8835-94ad-bdc6444206c3, both version 1.
+Reuse, privacy and rendered replica comparison remain open.
+
 Live page https://web4.oasisomniverse.one/web4-sandbox.html.
 Development selected. One demo session, sandbox-ca8924da, owner
 b1f86140-00a9-4017-9b6c-af9eade65c76. Reuse this browser session.
