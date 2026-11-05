@@ -75,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             var client = new SurrealDbClient(new SurrealDbOptions
             {
                 Endpoint = _endpoint, Namespace = _ns, Database = _db,
-                Username = _username, Password = _password, AuthLevel = "Root"
+                Username = _username, Password = _password, AuthLevel = _queryProbeId.HasValue ? "Database" : "Root"
             });
             try
             {

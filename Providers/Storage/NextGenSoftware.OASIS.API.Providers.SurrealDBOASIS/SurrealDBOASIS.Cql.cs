@@ -14,8 +14,53 @@ using SurrealDb.Net.Models;
 
 namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS;
 
-public partial class SurrealDBOASIS : ICosmicQueryStorageProvider
+public partial class SurrealDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
 {
+    private readonly Guid? _queryProbeId;
+
+    public SurrealDBOASIS(string endpoint, string username, string password, string ns, string db, Guid queryProbeId)
+        : this(endpoint, username, password, ns, db)
+    {
+        if (queryProbeId == Guid.Empty)
+            throw new ArgumentException("A teaching record identity is required.", nameof(queryProbeId));
+        _queryProbeId = queryProbeId;
+    }
+
+    public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (_queryProbeId is not Guid id)
+                throw new InvalidOperationException("Explicit database query configuration is required.");
+
+            await using var client = await GetClientAsync(cancellationToken);
+            var key = new StringRecordId($"oasis_holons:{id:D}");
+            var record = await client.Select<HolonRecord>(key, cancellationToken);
+            if (record == null || record.IsDeleted || record.Id?.ToString() != key.ToString())
+                throw new InvalidOperationException("The native teaching record identity was not verified.");
+            var row = Des<Holon>(record.DataJson);
+            if (row == null || row.IsDeleted || row.Id != id)
+                throw new InvalidOperationException("The decoded teaching record identity was not verified.");
+
+            cancellationToken.ThrowIfCancellationRequested();
+            IsProviderActivated = true;
+            return new(true);
+        }
+        catch (Exception error)
+        {
+            IsProviderActivated = false;
+            return new()
+            {
+                IsError = true,
+                ErrorCount = 1,
+                ErrorCode = error is OperationCanceledException ? "CQL_QUERY_CANCELLED" : "CQL_QUERY_SOURCE_UNAVAILABLE",
+                Message = "SurrealDB query activation did not verify the configured teaching record.",
+                Exception = error
+            };
+        }
+    }
+
     public ProviderType QueryProviderType => Core.Enums.ProviderType.SurrealDBOASIS;
     public CosmicQueryCapabilities QueryCapabilities => BoundedIdentityCqlCompiler.Capabilities;
 
