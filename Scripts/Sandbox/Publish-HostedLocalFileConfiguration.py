@@ -258,7 +258,7 @@ def verify_records():
             raise RuntimeError("Mounted LocalFile teaching record differs from its qualified digest.")
     if verify_settings() != deployment:
         raise RuntimeError("Reviewed Railway deployment changed during record inspection.")
-    return deployment
+    return deployment, source
 
 
 def mounted_record_receipt(deployment, source):
@@ -278,8 +278,7 @@ def mounted_record_receipt(deployment, source):
     return path, receipt
 
 
-def write_mounted_record_receipt(deployment):
-    source, _ = qualified_source()
+def write_mounted_record_receipt(deployment, source):
     path, receipt = mounted_record_receipt(deployment, source)
     data = configuration.compact(receipt).encode()
     if path.exists():
@@ -314,8 +313,8 @@ if __name__ == "__main__":
         deployment = verify_settings()
         print(f"Reviewed LocalFile settings and mount verified for deployment {deployment}.")
     elif sys.argv[1:] == ["verify-records"]:
-        deployment = verify_records()
-        write_mounted_record_receipt(deployment)
+        deployment, source = verify_records()
+        write_mounted_record_receipt(deployment, source)
         print(f"Reviewed LocalFile settings, mount and three teaching records verified for deployment {deployment}.")
     else:
         raise SystemExit("Use no arguments to prepare, verify-release, verify-mount, verify-settings or verify-records to inspect, or apply after exact code deployment.")

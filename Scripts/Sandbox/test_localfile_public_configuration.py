@@ -236,7 +236,7 @@ class LocalFileConfigurationTests(unittest.TestCase):
                         SimpleNamespace(returncode=0, stdout=value) for value in observations]) as ssh,
                 ):
                     if issue is None:
-                        self.assertEqual("reviewed", publisher.verify_records())
+                        self.assertEqual(("reviewed", source), publisher.verify_records())
                         self.assertEqual(6, ssh.call_count)
                         for index, path in enumerate(paths):
                             self.assertEqual(["-d", instance, "--", "realpath", "-e", path], ssh.call_args_list[2 * index].args[0][-6:])
@@ -258,13 +258,13 @@ class LocalFileConfigurationTests(unittest.TestCase):
             with (
                 patch.object(publisher, "ROOT", root),
                 patch.dict(publisher.os.environ, env),
-                patch.object(publisher, "qualified_source", return_value=(source, bundle)),
+                patch.object(publisher, "qualified_source", side_effect=AssertionError("Receipt must use the verified source.")),
                 patch.object(publisher, "verify_release", return_value=deployment) as release,
             ):
                 with self.assertRaisesRegex(RuntimeError, "Verify mounted"):
                     publisher.require_mounted_record_receipt(source)
-                publisher.write_mounted_record_receipt(deployment)
-                publisher.write_mounted_record_receipt(deployment)
+                publisher.write_mounted_record_receipt(deployment, source)
+                publisher.write_mounted_record_receipt(deployment, source)
                 self.assertEqual(deployment, publisher.require_mounted_record_receipt(source)["deployment"])
                 with self.assertRaisesRegex(RuntimeError, "reviewed source"):
                     publisher.require_mounted_record_receipt(dict(source, records=[]))

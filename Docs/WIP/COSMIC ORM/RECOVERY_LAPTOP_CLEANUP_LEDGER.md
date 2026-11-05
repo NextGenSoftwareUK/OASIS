@@ -1792,6 +1792,11 @@ and Web4Site checkout. The 91 focused client tests passed with no skips.
 Only the named task-branch source files were committed. No log, browser
 capture, runtime, download or new session was created.
 
+5 November, 17:31 local. The existing Railway CLI still required sign-in.
+Two focused LocalFile checks passed after binding the receipt writer to the
+source already verified on the instance. No live receipt, cache or new
+runtime was created.
+
 The ArcadeDB admission run completed with seven passes and zero skips.
 TRX SHA-256 `adbc578d9ed2b3903d5f64e0fa174a23915b739c5bfba4ba8341b05cafe84e3d`.
 The separate hosted fixture build uses the same lease and existing outputs.
