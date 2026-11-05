@@ -95,5 +95,8 @@ The opt-in WEB4 registration uses `CQL_CHROMA_QUERY_ORIGIN`,
 `CQL_CHROMA_QUERY_TENANT`, `CQL_CHROMA_QUERY_DATABASE` and the private
 `CQL_CHROMA_QUERY_BEARER_TOKEN`. This contract targets a reviewed HTTPS
 service that accepts a scoped bearer credential for the two read routes.
-Build, Core tariff admission and native endpoint qualification are separate
-gates.
+The WEB4 build and the exact Core `7b17894c` admission run passed. Chroma
+and CouchDB passed 2/2 with zero skips, covering the zero-cost query-only
+tariffs and four planned presets per provider. The parent gitlink and
+Railway manifest match. Native endpoint and credential qualification and
+live Development acceptance remain open.
