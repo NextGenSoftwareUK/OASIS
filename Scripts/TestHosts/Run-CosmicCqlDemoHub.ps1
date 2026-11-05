@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param(
-    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','SurrealDB','CouchDB','SQLServer')][string]$Provider='SQLite',
+    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','SurrealDB','CouchDB','SQLServer','DuckDB')][string]$Provider='SQLite',
     [switch]$VerifyOnly,
     [switch]$Federated,
     [switch]$RecoveryMongo,
@@ -10,26 +10,30 @@ param(
 )
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-if ($RecoveryMongo -and $Provider -ne 'SQLServer') {
-    throw 'RecoveryMongo is available for the SQL Server preset.'
+if ($RecoveryMongo -and $Provider -notin @('SQLServer','DuckDB')) {
+    throw 'RecoveryMongo is available for the SQL Server and DuckDB presets.'
 }
-if ($Provider -eq 'SQLServer') {
+if ($Provider -in @('SQLServer','DuckDB')) {
     if (!$Federated -or $ArchiveCompletedDemo) {
-        throw 'SQL Server requires -Federated and preserves its demo source.'
+        throw "$Provider requires -Federated and preserves its demo source."
     }
-    $runner = Join-Path $PSScriptRoot 'Run-CosmicSqlServerCqlNative.ps1'
+    $isSqlServer = $Provider -eq 'SQLServer'
+    $runnerName = if ($isSqlServer) {'Run-CosmicSqlServerCqlNative.ps1'} else {'Run-CosmicDuckDbCqlNative.ps1'}
+    $runner = Join-Path $PSScriptRoot $runnerName
     if ($ShowPlan) {
         [pscustomobject]@{
             Provider = $Provider
             Mode = $(if ($VerifyOnly) {'bounded verification'} else {'interactive until explicit shutdown'})
             Runner = $runner
-            Url = 'http://127.0.0.1:5115/'
-            Scope = 'SQL Server and Mongo content query federation over retained demo fixtures'
+            Url = $(if ($isSqlServer) {'http://127.0.0.1:5115/'} else {'http://127.0.0.1:5116/'})
+            Scope = "$Provider and Mongo CQL federation over retained demo fixtures"
             RecoveryMongo = $RecoveryMongo.IsPresent
         }
         return
     }
-    & $runner -Content -Federated -RecoveryMongo:$RecoveryMongo -Serve:(!$VerifyOnly)
+    $runnerOptions = @{Federated=$true; RecoveryMongo=$RecoveryMongo; Serve=!$VerifyOnly}
+    if ($isSqlServer) { $runnerOptions.Content = $true }
+    & $runner @runnerOptions
     return
 }
 
