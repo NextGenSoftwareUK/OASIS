@@ -358,3 +358,20 @@ ONODE Core 308a7860b and WEB6 b7f4d7aa7 gitlinks all equal their manifest pins
 in the same committed tree. The candidate includes opt-in Hyperlane code.
 The Railway service, persistent volume and deployed settings are separate
 checks and remain pending.
+
+### Check the mount in the reviewed instance
+
+The installed Railway CLI supports explicit project, environment, service and
+deployment instance selectors for SSH. After authenticating and confirming the
+volume attachment in the dashboard, use the active instance ID for the exact
+reviewed deployment. Inspect mount metadata without creating a test file:
+
+```powershell
+& $env:OASIS_RAILWAY_CLI ssh -p 712f50f6-3b7b-46d4-b229-44b49922f16b -e dev -s 5123199a-43c4-4439-9921-e10e2aec7841 -d $reviewedInstanceId -- cat /proc/self/mountinfo
+```
+
+Require a separate mount entry with field five equal to /data and confirm
+its identity against the Development WEB4 volume attachment. A directory on
+the container root is insufficient. If there are multiple active instances,
+verify each intended demo instance. This command was checked against local CLI
+help. The remote check still requires authenticated access.
