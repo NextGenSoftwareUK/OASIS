@@ -55,6 +55,13 @@ retained native and Mongo-paired replay and awaits persistent file placement.
 Chroma passed WEB4 and Core preset admission and awaits HTTPS source
 qualification. Keep these providers out of the first image's settings batch.
 
+The later-build preflight at task commit `855668f9f` includes Development
+`b718f2879` and passes the manifest and gitlink validator for all seven
+Dockerfiles. Its Core pin `7b17894c` descends from Development Core
+`54159614` and includes additional query admissions beyond the seven
+providers listed above. Review that full delta when selecting a scoped
+build commit. This preflight did not build or deploy an image.
+
 Source-recovery fix published Development b718f2879;Core5415961/settings unchanged.
 Exact job33c9ef7d-b8b3-4403-9109-32ce47c4d7a8 SUCCESS;healthy/four-provider-ready.
 Live anonymous401/demo-user403 pass;59/60ready,Nostr unavailable;operator gate open.
