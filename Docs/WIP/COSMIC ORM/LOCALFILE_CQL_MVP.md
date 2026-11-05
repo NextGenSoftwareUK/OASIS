@@ -375,3 +375,14 @@ its identity against the Development WEB4 volume attachment. A directory on
 the container root is insufficient. If there are multiple active instances,
 verify each intended demo instance. This command was checked against local CLI
 help. The remote check still requires authenticated access.
+
+### Build the candidate image without moving the shared tag
+
+GitHub returned no commit statuses or pull-request workflow runs for the
+candidate. The WEB4 image workflow is manual and builds the input ref, so
+those queries alone do not establish whether a manually dispatched build exists.
+For a candidate-only build, use the full c64adf4748856b0acaae02e24a7f8edd16d2a139
+ref and a unique extra tag such as localfile-candidate-c64adf474. The workflow
+publishes both the commit tag and the extra tag. Its default sandbox extra tag
+would move the shared tag. Record the successful build and image digest before
+using the image in a reviewed Development release.
