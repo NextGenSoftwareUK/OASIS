@@ -235,6 +235,11 @@ def main():
         raise RuntimeError("This cohort already completed acceptance; retain its acknowledged outcome.")
     if not continuing and (ROOT / "TestResults/HostedCqlIntegrationCurrent" / (suffix + "-client-http-flow.json.progress.json")).exists():
         raise RuntimeError("Original partial client flow exists; reconcile explicitly before another execution.")
+    allow_create = not (continuing or options.resume_unstarted_native)
+    if options.provider == "LocalFileOASIS" and allow_create and not (state / "owner.acknowledged.json").exists():
+        _, visitor_token = session(ROOT / "LocalState/COSMIC/HostedDemoRehearsalDiscovery",
+                                   "visitor", allow_create=False)
+        ready_source(options.provider, visitor_token, require_pair=True)
     state.mkdir(exist_ok=True)
     results = ROOT / "TestResults/HostedCqlIntegrationCurrent"
     if options.resume_unstarted_native:
@@ -250,7 +255,7 @@ def main():
         write_new(state / "native-read-continuation.intent.json", (json.dumps({
             "ownerId": owner["id"], "provider": options.provider, "operation": "explicit original native-only continuation",
             "replacementOwner": False, "replayAllowed": False}) + "\n").encode())
-    avatar, token = session(state, "owner", allow_create=not (continuing or options.resume_unstarted_native))
+    avatar, token = session(state, "owner", allow_create=allow_create)
     source = ready_source(options.provider, token, require_pair=options.prepare)
     examples = source["examples"]
     leaf = [next(row for row in examples if row["id"] == key) for key in ("public-records", "public-subset")]

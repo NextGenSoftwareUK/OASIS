@@ -15,6 +15,20 @@ spec.loader.exec_module(verification)
 
 
 class ResponseEvidenceTests(unittest.TestCase):
+    def test_unavailable_localfile_does_not_create_a_cohort(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with patch.object(verification, "ROOT", root), \
+                 patch("sys.argv", ["verify", "LocalFileOASIS"]), \
+                 patch.object(verification, "session", return_value=({}, "retained")) as session, \
+                 patch.object(verification, "ready_source", side_effect=RuntimeError("unavailable")) as ready:
+                with self.assertRaisesRegex(RuntimeError, "unavailable"):
+                    verification.main()
+            session.assert_called_once_with(root / "LocalState/COSMIC/HostedDemoRehearsalDiscovery",
+                                            "visitor", allow_create=False)
+            ready.assert_called_once_with("LocalFileOASIS", "retained", require_pair=True)
+            self.assertEqual([], list(root.iterdir()))
+
     def test_foreign_visibility_rejects_replica_leak(self):
         providers = ["MongoDBOASIS", "SQLLiteDBOASIS", "Neo4jOASIS"]
         ids = ["11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8222-222222222222"]
