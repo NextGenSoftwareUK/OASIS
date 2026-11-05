@@ -17,6 +17,8 @@ public class MinioCqlTests
     private sealed class Client(Func<Guid, GetObjectResponse> read) : AmazonS3Client(new AnonymousAWSCredentials(), new AmazonS3Config { ServiceURL = "http://127.0.0.1:1", ForcePathStyle = true })
     {
         public List<Guid> ReadIds = new();
+        public bool WasDisposed { get; private set; }
+        protected override void Dispose(bool disposing) { WasDisposed = true; base.Dispose(disposing); }
         public override Task<GetObjectResponse> GetObjectAsync(GetObjectRequest request, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
@@ -41,6 +43,40 @@ public class MinioCqlTests
     private static CosmicQueryPlan<Holon> Plan(MinIOOASIS provider, CosmicQuery<Holon> query) => CosmicQueryPlanner.Plan(query,
         ProviderType.MinIOOASIS, new[] { new CosmicQueryTarget(ProviderType.MinIOOASIS, provider.QueryCapabilities) }).Result;
     private static MinIOOASIS Provider(Guid probe, Client client) => new("http://127.0.0.1:1", "controlled", "controlled", "teaching", false, probe, client);
+
+    [TestMethod]
+    public async Task QueryClientFactoryRemainsTheOwnerAcrossDeactivation()
+    {
+        var id = Guid.NewGuid(); var created = new List<Client>();
+        var provider = new MinIOOASIS("http://127.0.0.1:1", "controlled", "controlled", "teaching", false, id,
+            clientFactory: () => { var client = new Client(key => Response(Payload(key))); created.Add(client); return client; });
+        Assert.AreEqual(0, created.Count);
+        for (var activation = 0; activation < 2; activation++)
+        {
+            var result = await provider.ActivateQuerySourceAsync(default);
+            Assert.IsFalse(result.IsError, result.Exception?.ToString() ?? result.Message);
+            Assert.AreEqual(activation + 1, created.Count);
+            CollectionAssert.AreEqual(new[] { id }, created[activation].ReadIds);
+            Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError);
+            Assert.IsFalse(provider.IsProviderActivated);
+            Assert.IsTrue(created[activation].WasDisposed);
+        }
+        Assert.AreNotSame(created[0], created[1]);
+    }
+
+    [TestMethod]
+    public async Task HostedProfileCanDisposeItsNativeClientWithoutAnotherActivation()
+    {
+        var id = Guid.NewGuid();
+        using var client = new Client(key => Response(Payload(key)));
+        var provider = Provider(id, client);
+        Assert.IsFalse((await provider.ActivateQuerySourceAsync(default)).IsError);
+        Assert.IsInstanceOfType<IDisposable>(provider);
+        ((IDisposable)provider).Dispose();
+        Assert.IsTrue(client.WasDisposed);
+        Assert.IsFalse(provider.IsProviderActivated);
+        ((IDisposable)provider).Dispose();
+    }
 
     [TestMethod]
     public async Task NativeKeysReturnThreeTwoExcludedAndPageWithEmbeddedChildrenProjectedOut()

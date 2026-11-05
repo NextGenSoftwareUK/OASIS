@@ -28,6 +28,15 @@ public class CqlCouchDbHostedAdmissionTests
         Assert.False(source.IsProviderActivated);
     }
 
+    [Fact]
+    public void MinioExactKeyPresetsPlanNativeAndMongoQueries()
+    {
+        var source = new NextGenSoftware.OASIS.API.Providers.MinIOOASIS.MinIOOASIS(
+            "https://minio.example", "controlled", "controlled", "owned-teaching", true, Guid.NewGuid());
+        VerifyExactKeyPresets(ProviderType.MinIOOASIS, source.QueryCapabilities);
+        Assert.False(source.IsProviderActivated);
+    }
+
     private static void VerifyExactKeyPresets(ProviderType providerType, CosmicQueryCapabilities capabilities)
     {
         var provider = providerType.ToString();

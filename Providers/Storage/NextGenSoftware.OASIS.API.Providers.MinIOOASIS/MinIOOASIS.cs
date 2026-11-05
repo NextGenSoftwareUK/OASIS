@@ -147,7 +147,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { _s3?.Dispose(); _s3 = null!; IsProviderActivated = false; return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "MinIOOASIS deactivated." }); }
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { Dispose(); return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "MinIOOASIS deactivated." }); }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         // ─── Avatar ───────────────────────────────────────────────────────────────

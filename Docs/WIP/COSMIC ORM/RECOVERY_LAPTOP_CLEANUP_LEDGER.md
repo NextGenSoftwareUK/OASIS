@@ -1524,3 +1524,30 @@ launcher expression failed before phase creation and was corrected. Missing
 descriptor guard verified before phase/lease; no native requests, credentials,
 bucket or objects created. Retain compact build.log and the scoped controls.
 Disk free observed47177441280bytes; no cleanup/delete required or attempted.
+
+MinIO hosted registration preparation, 5 November2026: reused existing WEB4
+test project and MinIO environment. Leased API configuration/admission build
+is in progress (owner cosmic-minio-hosted-config), /m:2 /nr:false and shared
+compilation disabled. Outputs stay in existing shared bin/obj and
+TestResults/ProviderBuildCurrent/cosmic-minio-hosted-preparation.log; new compact
+TRX directory is LocalState/COSMIC/RecoveryLaptopMinIO20250907/hosted-preparation.
+Normal project restore refreshed existing assets across the API closure; no
+new runtime install, provider source, database, server or cloud request created.
+Do not remove shared outputs or stop build servers during this active operation.
+
+MinIO hosted preparation completion: initial API16/17 and candidate-Core16/17
+failures retained, plus disposal-red0/1. Corrected provider CQL/lifecycle13/13
+and API17/17 pass, zero skips. Exact Coreece17341 used under one lease per batch;
+original clean detached54159614 restored in finally after each. Local chat
+inventory confirmed no other active OASIS chat before temporary checkout; no
+additional worktree/environment. Native hosted qualifier builds9warnings/0errors
+against same candidate Core. Launcher AST and missing-source-before-phase guard
+pass. Native fixture was compiled, not executed; no services/native source
+requests, accounts, credentials, buckets, objects or Mongo copies created.
+Existing cache retains hosted-preparation*, host-disposal-red and
+hosted-lifecycle-green compact evidence; exact hashes in MINIO_CQL_MVP.md.
+hosted-core-qualification.intent.json preserves original/candidate source heads.
+All build processes terminal; shared outputs retained for reuse, no deletion.
+Core branch published; matching parent gitlink/manifest staged, no deployment.
+Oracle historical guide restored from git as source documentation only; no
+Oracle runtime or accepted test replay. Accepted counts remain103/60/28.

@@ -582,6 +582,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                     new NextGenSoftware.OASIS.API.Providers.CouchDBOASIS.CouchDBOASIS(couchDbUri.AbsoluteUri, username, password)));
             }
 
+            Services.Cql.CqlMinioReadSourceRegistration.AddMinioReadSource(services, Configuration);
+
             if (Configuration["CQL_CHROMA_QUERY_ORIGIN"] is string chromaOrigin)
             {
                 if (!Uri.TryCreate(chromaOrigin, UriKind.Absolute, out var origin) ||

@@ -1,5 +1,11 @@
 # Provider implementation, CQL and live demo status
 
+5 November MinIO hosted preparation: explicit HTTPS query registration,
+reactivation/disposal and exact Core/API admission verified (13 provider and
+17 WEB4 checks); native hosted qualifier compiles. Owned TLS source, deployment,
+settings and live browser acceptance remain open. Counts remain103local,
+60hosted HTTP/28hosted browser. [Exact scope](MINIO_CQL_MVP.md#hosted-registration-preparation-5-november-2026).
+
 ## Development demo status on 4 November 2026
 
 Authenticated discovery reports 59 of 60 advertised profiles available. Nostr

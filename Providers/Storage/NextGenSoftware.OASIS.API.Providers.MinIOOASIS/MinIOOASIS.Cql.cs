@@ -16,18 +16,29 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS;
 
-public partial class MinIOOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
+public partial class MinIOOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
 {
     private readonly Guid? _queryProbeId;
+    private readonly Func<IAmazonS3>? _queryClientFactory;
     public Core.Enums.ProviderType QueryProviderType => StorageProviderType;
     public CosmicQueryCapabilities QueryCapabilities => BoundedIdentityCqlCompiler.Capabilities;
     private sealed class QueryLimitException : IOException { }
 
+    public void Dispose()
+    {
+        _s3?.Dispose();
+        _s3 = null!;
+        IsProviderActivated = false;
+    }
+
     public MinIOOASIS(string endpoint, string accessKey, string secretKey, string bucketName, bool useSSL,
-        Guid queryProbeId, IAmazonS3? client = null) : this(endpoint, accessKey, secretKey, bucketName, useSSL)
+        Guid queryProbeId, IAmazonS3? client = null, Func<IAmazonS3>? clientFactory = null) : this(endpoint, accessKey, secretKey, bucketName, useSSL)
     {
         if (queryProbeId == Guid.Empty) throw new ArgumentException("Explicit live probe identity required.", nameof(queryProbeId));
+        if (client != null && clientFactory != null) throw new ArgumentException("Specify one native query client owner.");
         _queryProbeId = queryProbeId;
+        _queryClientFactory = clientFactory ?? (() => new AmazonS3Client(_accessKey, _secretKey, new AmazonS3Config {
+            ServiceURL = _endpoint, ForcePathStyle = true, UseHttp = !_useSSL, AuthenticationRegion = "us-east-1", MaxErrorRetry = 0 }));
         if (client != null) _s3 = client;
     }
 
@@ -90,8 +101,7 @@ public partial class MinIOOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQu
             if (string.IsNullOrWhiteSpace(_bucket) || string.IsNullOrWhiteSpace(_accessKey) || string.IsNullOrWhiteSpace(_secretKey))
                 throw new InvalidOperationException("Explicit bucket and native source credentials required.");
             if (_s3 == null)
-                _s3 = new AmazonS3Client(_accessKey, _secretKey, new AmazonS3Config {
-                    ServiceURL = _endpoint, ForcePathStyle = true, UseHttp = !_useSSL, AuthenticationRegion = "us-east-1", MaxErrorRetry = 0 });
+                _s3 = _queryClientFactory!() ?? throw new InvalidOperationException("Native query client factory returned no client.");
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             deadline.CancelAfter(TimeSpan.FromSeconds(15));
             var row = await ReadQueryRecordAsync(probe, _ => { }, deadline.Token);

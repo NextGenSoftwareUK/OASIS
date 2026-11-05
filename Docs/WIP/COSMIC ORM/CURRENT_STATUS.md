@@ -4,6 +4,17 @@ Updated 5 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
+## MinIO hosted registration preparation, 5 November 2026
+
+Explicit opt-in HTTPS/read-only registration, native client lifecycle and
+shipping read-profile/preset admission now pass 13 focused provider controls and
+17 WEB4 checks. Hosted native qualifier builds (9 warnings, 0 errors), launcher
+parse/missing-source guard pass; native cloud execution remains pending. Exact
+Core ece17341 is published, parent gitlink/manifest paired; original shared Core
+54159614 restored after leased tests. Owned TLS source/read credentials remain
+an owner gate; no Development deployment, source writes or count increase.
+[Evidence/settings/source qualification](MINIO_CQL_MVP.md#hosted-registration-preparation-5-november-2026).
+
 ## Tigris controlled CQL implementation, 5 November 2026
 
 14 scoped tests pass: 12 CQL controls plus two existing Tigris protocol tests.

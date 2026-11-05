@@ -118,3 +118,103 @@ is Git-blob exact. Two guide/fixture links match scoped parent
 browser verified; ellipsized AX targets covered by exact HTML plus actual5142
 native browser proof.113client tests pass. publication.json retained. Local
 profile103, hosted60/browser28/open32; no hosted MinIO enrollment claim.
+
+## Hosted registration preparation, 5 November 2026
+
+Configuration/admission preparation verified; not deployed or counted. WEB4
+opt-in source registration connects the accepted native adapter. All six settings must
+be present together: `CQL_MINIO_QUERY_ORIGIN`, `CQL_MINIO_QUERY_BUCKET`,
+`CQL_MINIO_QUERY_REGION`, `CQL_MINIO_QUERY_PROBE_ID`,
+`CQL_MINIO_QUERY_ACCESS_KEY`, `CQL_MINIO_QUERY_SECRET_KEY`.
+Absent configuration registers nothing. Partial/invalid configuration fails
+before service creation. HTTPS origin has no path, credentials, query or fragment;
+the teaching bucket and signing region are explicit. Probe is one existing live
+canonical identity. Construction performs no native I/O or provisioning.
+
+The host SDK uses the guarded DNS/socket HTTP handler, no redirects and zero
+SDK retries. A provider-owned client factory preserves that same policy across
+deactivation/disposal/reactivation. It does not change default storage registry
+or enable native writes. The query-only grant, public read catalogue and four
+native/Mongo examples still require reviewed configuration. No local loopback
+source is advertised as a Development source.
+
+Hosted source qualification requires an owned reachable TLS MinIO source, a
+read-only native key restricted to the admitted canonical object keys, original
+identity/owner/hash/ETag receipts, and independent full/subset reads with that
+same key. Provisioning and any new hosting/account/cost decision remain separate.
+Local root credentials must not be used on WEB4. The existing first LocalFile
+image/settings batch is unchanged; MinIO requires a later reviewed build and
+exact dependency qualification before deployment.
+
+### Native source qualifier prepared
+
+`Scripts/TestHosts/Run-CosmicMinioHostedNative.ps1 -BuildOnly` builds the native
+fixture without starting services or requesting cloud data. Omit `-BuildOnly`
+only with an admitted owned synthetic teaching source. Missing source is
+verified to fail before phase creation or lease acquisition; the launcher parses.
+Native fixture compilation passes with 9 warnings and 0 errors against the same
+candidate Core below. No hosted native execution or live source acceptance ran.
+
+Private process variables: `COSMIC_MINIO_HOSTED_SOURCE` (descriptor path),
+`COSMIC_MINIO_HOSTED_ACCESS_KEY`, `COSMIC_MINIO_HOSTED_SECRET_KEY`.
+Descriptor fields are exactly `Endpoint`, `Bucket`, `Region`, `Actor`, three
+`LiveIds`, one `DeletedId`, one `MissingId`, and four `Originals` entries with
+`Id`, `Sha256`, `ETag`. The five distinct nonempty IDs identify existing canonical
+`oasis-holons/{id:D}.json` objects and one admitted absent key. Original SHA/ETags
+come from provisioning receipts, never a failed qualifier's current observations.
+Credentials stay outside the descriptor/chat/git. HTTPS and explicit signing
+region are required; every SDK connection uses the existing guarded transport.
+No bucket scan, HEAD, provisioning, source save or delete is issued.
+
+The fixture independently verifies original identity/owner/deletion/bytes/ETags,
+requires strict absent-key `NoSuchKey`/404, then CQL 3/2/0/paging and unchanged
+originals/descriptor. A missing key returning an authorization error remains a
+real qualification failure. The launcher requires exactly one passing native
+case and zero skips, records the actual Core source revision and retains unique
+intent/ACK/TRX phases in the existing MinIO cache. Native source proof alone
+does not certify a WEB4 image or its deployment.
+
+After source qualification, the reviewed settings also need:
+
+- `PREPARED_STORAGE_ADMISSION_JSON`: preserve existing grants and explicitly add
+  MinIOOASIS as query-only with a zero-cost read tariff, no ordinary write grant.
+- `CQL_PUBLIC_READ_CATALOGUES_JSON`: preserve existing catalogues and admit only
+  the three qualified synthetic live IDs for MinIOOASIS.
+- `CQL_HOSTED_QUERY_EXAMPLES__MinIOOASIS`: the four tested `public-records`,
+  `public-subset`, `mongo-public-records`, `mongo-public-subset` presets.
+
+Source/credentials/TLS, code publication, settings review, readiness and the live
+native/Mongo/privacy/replica/browser flow remain separate acceptance gates.
+
+### Exact preparation evidence
+
+Core `ece17341fa3cea3e2c36dae08fec106effa12b76` adds only MinIO to the explicit
+query tariff allowlist, descending from task pin `7b17894c`. Published and remote
+SHA verified on `codex/cql-minio-hosted`. Parent gitlink and Railway manifest
+advance together; no Development deployment. Shared Core checkout restored to
+original clean detached `54159614` after each leased qualification batch. No other
+active local OASIS chat was present before the coordinated temporary checkout.
+
+- Initial API run: 16/17, tariff admission rejected MinIO on the old Core;
+  `hosted-preparation/admission.trx` retained.
+- Disposal regression: 0/1, provider lacked the IDisposable contract used by
+  hosted profiles; `host-disposal-red/controls.trx` retained.
+- First candidate-Core API run: 16/17, correctly exposed the missing API read
+  profile and unordered protocol-read admission; `hosted-preparation-pinned/admission.trx` retained.
+- Provider CQL/lifecycle controls: 13/13, zero skips,
+  `hosted-lifecycle-green/controls.trx`, SHA256
+  `7b4fb414a138e8c06e127ad1080f20dc73ff6ac2d89527e33e3a46ce3fb8f468`.
+- Corrected shipping API configuration/four-preset admission: 17/17, zero skips,
+  `hosted-preparation-final/admission.trx`, SHA256
+  `61879a0b40a83306bc0fd74f7b8fc5244ac8cdd63c2339f86854a2dbed6b8996`.
+- Native fixture build log SHA256
+  `d3ff29f3e7a7525e092381523325aa3ec8d422e3d5e84cbc5c296b92a69ea45b`.
+
+TRX paths are relative to the existing
+`LocalState/COSMIC/RecoveryLaptopMinIO20250907/`; build logs stay under
+`TestResults/ProviderBuildCurrent/cosmic-minio-hosted-*.log` and the preserved
+disposal-red log. Query client factory owns reactivation; IDisposable and
+ordinary deactivation share one disposal implementation. Default canonical
+composition providers and existing source cohorts remain unchanged. Counts
+remain 103 local/60 hosted HTTP/28 hosted browser; owner source access is in
+the central David action list.
