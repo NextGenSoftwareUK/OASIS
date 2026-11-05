@@ -24,14 +24,15 @@ at TestResults/HostedDemoRehearsal/ipfs-http-flow.json. Separate rehearsal sessi
 prior cohorts preserved. A second visitor saw3 public rows and0 of the private
 Mongo snapshots by exact ID. Isolation summary SHA256
 64AEEB6D8B1427DD178A9F95F698185998C78D38D8319653DB96DA6AB1904F90.
-LocalFile remains the first rollout. The replacement teaching bundle passed
-SDK export, WEB4 bootstrap parsing and publisher source-hash checks. All eight
-publisher checks passed. Remote Development still points at b718f2879 and
-the published candidate at c64adf474. Authenticate Railway and inspect the
-Development WEB4 service and /data mount before advancing the candidate.
-After the exact settings deployment, run cohort-free readiness before
-creating a LocalFile visitor cohort. Then verify native, paired Mongo, privacy
-and exact replicas. [Qualification and rollout](LOCALFILE_CQL_MVP.md).
+LocalFile remains the first rollout. The qualified teaching bundle and isolated
+Linux image are ready. GitHub run 41948106729 published c64adf474 with digest
+sha256:11257dfebf23acfa6a321273baf98b8eefe2f83f8b430a862ab54ed9a168a6ce.
+The current cohort-free discovery check passed for ClickHouse and reported
+LocalFile unavailable. Railway still rejects the local session. Authenticate,
+inspect the Development WEB4 /data attachment and exact deployment, then apply
+the five reviewed settings and deploy them together. Require readiness before
+creating a cohort, followed by native, Mongo, privacy and exact replica checks.
+[Qualification and rollout](LOCALFILE_CQL_MVP.md).
 
 Source-recovery fix published Development b718f2879;Core5415961/settings unchanged.
 Exact job33c9ef7d-b8b3-4403-9109-32ce47c4d7a8 SUCCESS;healthy/four-provider-ready.
