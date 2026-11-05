@@ -20,7 +20,11 @@ public class MinioCqlNativeTests
     public async Task ExistingNativeObjectsSupportThreeTwoExcludedPagingAndUnchangedEtags()
     {
         var path = Environment.GetEnvironmentVariable("COSMIC_MINIO_CQL_SOURCE") ?? throw new InvalidOperationException("Explicit retained source required.");
-        var source = JsonSerializer.Deserialize<MinioCqlSource>(await File.ReadAllTextAsync(path))!;
+        var sourceBytes = await File.ReadAllBytesAsync(path);
+        var source = JsonSerializer.Deserialize<MinioCqlSource>(sourceBytes)!;
+        using var admitted = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(path)!, "bootstrap.ack.json")));
+        Assert.AreEqual(Convert.ToHexString(SHA256.HashData(sourceBytes)), admitted.RootElement.GetProperty("sourceSha256").GetString());
+        Assert.AreEqual(4, admitted.RootElement.GetProperty("createdRecords").GetInt32());
         Assert.AreEqual("http://127.0.0.1:19700", source.Endpoint);
         Assert.AreEqual("cosmic-cql-minio-recovery", source.Bucket);
         Assert.AreNotEqual(Guid.Empty, source.Actor); Assert.AreEqual(3, source.LiveIds.Length);
@@ -53,7 +57,11 @@ public class MinioCqlNativeTests
                 Assert.AreEqual(id, row.RootElement.GetProperty("Id").GetGuid());
                 Assert.AreEqual(source.Actor, row.RootElement.GetProperty("CreatedByAvatarId").GetGuid());
                 Assert.AreEqual(id == source.DeletedId, row.RootElement.GetProperty("IsDeleted").GetBoolean());
-                observations.Add(response.ETag + ":" + Convert.ToHexString(SHA256.HashData(body.ToArray())));
+                var hash = Convert.ToHexString(SHA256.HashData(body.ToArray()));
+                using var original = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(path)!, id.ToString("N") + ".ack.json")));
+                Assert.AreEqual(original.RootElement.GetProperty("etag").GetString(), response.ETag);
+                Assert.AreEqual(original.RootElement.GetProperty("payloadSha256").GetString(), hash);
+                observations.Add(response.ETag + ":" + hash);
             }
             return observations.ToArray();
         }

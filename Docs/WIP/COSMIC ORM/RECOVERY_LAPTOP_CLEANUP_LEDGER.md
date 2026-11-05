@@ -1483,3 +1483,12 @@ locally, never printed. Owned PID11824CtrlC0/current native INTERRUPT log,
 19700/19701closed. SDK controls16/16zero skips, original13case receipt retained;
 controls-v2/TRX and reusable provider outputs kept. Read-only native fixture build
 in progress using same cache/environment, no new native operation dispatched.
+
+MinIO initial5273dda8a1f5450f9d7bbaae6d732dea: one journalled owned bucket and
+four conditionally created objects acknowledged; source/credential admission,
+object intents/SHA/ETags/ACKs retained. Bootstrap/query1/1each passes. Retained
+83a7ed8d59424ca19e4fed6e6d2286121/1 passes with original hashes/ETags and no
+source writes. Owned native PIDs1612/10684CtrlC0/current INTERRUPT logs;
+19700/19701closed. Four runner controls pass. Source-build4warnings/0errors,
+initial bootstrap-build1120warnings/0errors. All outputs in same cache; no
+runtime duplication/download. Retain native store/credentials for federation.

@@ -53,3 +53,31 @@ write intents/ACKs, then query/restart, manager/Mongo/HTTP/browser5142 and WEB4
 catalogue. Preserve unknown writes; no automatic save replay.
 Full storage acknowledgements/CRUD/history/replication/EF parity and hosted
 least-privilege/TLS/source admission remain separate gates. Counts102/60/28 unchanged.
+
+## Native source and retained restart accepted, 5 November2026
+Initial-5273dda8a1f5450f9d7bbaae6d732dea bootstrap1/1 and nativeCQL1/1 pass,
+zero skips. Fixed owned bucketcosmic-cql-minio-recovery was absent before its
+journalled SDK create. Four unique canonical object writes use If-None-Match:*
+with per-object intent and native ETag/MD5 acknowledgement. Three live, one
+soft-deleted, one embedded-child control; fifth key remains absent. No legacy
+SaveHolon acknowledgement or general storage certification is inferred.
+Source SHA256
+`b55f8216bf71530ab3f26269fa6a156d339a28e987cc570b336f4670563ce02f`.
+Native CQL TRX SHA256
+`c20d5cf018e928c0971509724919572c505136f90f13eb6bba34dc08fc143171`.
+
+Retained-83a7ed8d59424ca19e4fed6e6d228612 passes1/1, zero skips, without source
+writes; TRX SHA256
+`fa822bb1ea814fe70928fc474dbf78007531be327293a40081ee043d81d5fc62`.
+Each run independently checks original SDK raw SHA/ETag/owner/deletion/absence
+against immutable per-write ACKs, then CQL3/2/0/page and unchanged observations.
+Original credentials are hashed in credential.admission.json and rechecked.
+Both exact owned native PIDs1612/10684CtrlC0, current phase INTERRUPT logs and
+19700/19701closed. Four runner admission/shutdown guards pass. Source fixture
+build0errors/4warnings; first bootstrap build0errors/1120existing shared warnings.
+Shared Core checkout54159614ebdb879c8636eed5fae60be97dbbfff3; exact-parent/API
+qualification remains separate. All source/ETag/intent/ACK/TRX/logs retained in
+one cache; no new runtime/download. Reusable Run-CosmicMinioWindowsNative.ps1
+supports Initialize once or Retained with one build/consumer lease.
+Next manager/Mongo/HTTP/browser5142 and WEB4 local catalogue, then separate
+hosted scoped-reader credential/TLS/enrollment. Counts102/60/28 unchanged.

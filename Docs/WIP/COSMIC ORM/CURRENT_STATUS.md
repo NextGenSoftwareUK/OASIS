@@ -8,9 +8,9 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
 16controlled SDK cases pass for bounded native object CQL/read-only activation.
 One official pinned Windows binary/hash verified; actual authenticated native
-preflight/anonymous403/health200/owned shutdown0 passes. No buckets or Holons
-created yet. Native reader fixture prepared; next create-only source/restart,
-manager/Mongo/browser5142. Counts102/60/28 unchanged. [Evidence](MINIO_CQL_MVP.md).
+preflight/anonymous403/health200/owned shutdown0 passes. Create-only native source and retained restart now pass1/1each, original object
+SHA/ETags preserved, four admission/shutdown guards pass. Next manager/Mongo/
+HTTP/browser5142. Counts102/60/28 unchanged. [Evidence](MINIO_CQL_MVP.md).
 
 ## PouchDB local profile accepted, 5 November2026
 
