@@ -580,3 +580,21 @@ and hosted federation and replication verification.
   No cloud account, subscription, purchase or credentials are requested.
 - Reason: the package explicitly requires license acceptance before installation/use.
   [Scope and evidence](../COSMIC%20ORM/RAVENDB_CQL_MVP.md).
+
+
+## Recovery laptop: enable WSL2 host prerequisites — 2026-11-05
+
+- Status: pending device access/reboot window; no system changes performed.
+- Context: Typesense's controlled CQL tests pass and native fixture compiles.
+  This recovery laptop has no registered WSL distributions or standard Docker
+  executable. System32/wsl.exe --status requires Virtual Machine Platform and
+  firmware virtualization; Windows currently reports firmware virtualization false.
+- Concrete owner steps: when ready for a reboot, check/enable virtualization in
+  this laptop's BIOS/UEFI if supported. Enable Virtual Machine Platform using
+  an Administrator terminal per [Microsoft's WSL2 prerequisites](https://learn.microsoft.com/en-us/windows/wsl/install-manual#step-3---enable-virtual-machine-feature),
+  then reboot when your work is saved. Tell the agent when the host is ready;
+  engineering will recheck and provision only one reusable Linux environment.
+- Reason: BIOS/device access and a reboot window belong to David. Do not
+  silently replace this with a cloud account or repeated provider environments.
+  This is separate from the other laptop's older WSL disk-compaction item.
+- Evidence/scope: [Typesense native gate](../COSMIC%20ORM/TYPESENSE_CQL_MVP.md).

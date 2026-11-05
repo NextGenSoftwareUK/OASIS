@@ -57,3 +57,21 @@ TypesenseCqlNative category. Existing old integration tests are not its runner.
 
 The leased native fixture build passed with zero errors. This is compilation
 only; no native test was dispatched and no coverage count increased.
+
+## Recovery-laptop Linux host gate
+
+Read-only host inspection on 5 November identified the actual WSL2 blocker:
+System32/wsl.exe --status reports that the current configuration does not
+support WSL2 and requires Virtual Machine Platform plus firmware virtualization.
+Win32_Processor reports VirtualizationFirmwareEnabled=false; SLAT/VM monitor
+properties also report false in this current configuration. This does not prove
+that the physical CPU lacks support. No distributions are registered under
+this user's Lxss key, and the standard Docker executable is absent.
+
+Do not download a Linux provider runtime until one reusable host is available.
+The recovery-laptop device action is in ACTIONS-FOR-DAVID.md, distinct from the
+other laptop's old WSL disk-compaction item. No BIOS, Windows optional feature,
+boot setting, reboot or distribution installation was performed. Follow
+[Microsoft's WSL2 prerequisites](https://learn.microsoft.com/en-us/windows/wsl/install-manual#step-3---enable-virtual-machine-feature)
+when the owner is ready for the device step. Keep native Typesense acceptance
+open; controlled Windows tests and compilation are not a Linux service.

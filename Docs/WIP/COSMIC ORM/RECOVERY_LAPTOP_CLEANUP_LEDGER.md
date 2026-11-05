@@ -874,3 +874,10 @@ check returned Unauthorized. No settings, deployment or project link changed.
   or Linux installation. Retain integration outputs for pending native use.
   Typesense integration bin: 47121393 bytes.
   Typesense integration obj: 1018220 bytes.
+
+- Recovery-laptop WSL2 read-only preflight: wsl.exe --status reports Virtual
+  Machine Platform/firmware virtualization requirements; CPU virtualization,
+  SLAT and monitor properties currently false. No registered distro children
+  under Lxss; standard Docker binary absent. C: free 37,323,599,872 bytes.
+  No feature install, BIOS change, reboot, runtime download or environment
+  allocation. Device prerequisites recorded in the single owner-action list.
