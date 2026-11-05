@@ -31,6 +31,10 @@ at LocalState/COSMIC/HostedDemoRehearsalDiscovery/foreign-replica-visibility-obs
 LocalFile remains the first rollout. The qualified teaching bundle and isolated
 Linux image are ready. GitHub run 41948106729 published c64adf474 with digest
 sha256:11257dfebf23acfa6a321273baf98b8eefe2f83f8b430a862ab54ed9a168a6ce.
+One authenticated discovery request with the existing rehearsal visitor
+confirmed that LocalFile, Hyperlane, DuckDB, SQL Server, CouchDB, Cloudflare
+D1, QuestDB and NATS JetStream were absent. ClickHouse was available for
+native and federated queries in the same response. No cohort was created.
 The current cohort-free discovery check passed for ClickHouse and reported
 LocalFile unavailable. Railway still rejects the local session. Authenticate,
 inspect the Development WEB4 /data attachment and exact deployment, then apply
