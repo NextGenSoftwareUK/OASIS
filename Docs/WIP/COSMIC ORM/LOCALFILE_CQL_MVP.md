@@ -556,6 +556,25 @@ container-root directory. Keep the confirmed volume attachment in the same
 staged change review, and repeat the mount check on the resulting settings
 deployment before treating its seeded records as persistent.
 
+On that same instance, verify the three files in the reviewed catalogue
+without displaying their contents. Read the public IDs and expected digests
+from the retained source configuration, then compare the first field of
+each remote `sha256sum` result:
+
+```powershell
+$source = Get-Content -Raw LocalState/COSMIC/HostedLocalFilePublicDatasetCurrent/source-config.json | ConvertFrom-Json
+foreach ($record in $source.records) {
+    $file = "/data/cql-local-file-demo/Holons/$($record.id).json"
+    $digest = & $env:OASIS_RAILWAY_CLI ssh -p 712f50f6-3b7b-46d4-b229-44b49922f16b -e dev -s 5123199a-43c4-4439-9921-e10e2aec7841 -d $reviewedInstanceId -- sha256sum $file
+    if ($LASTEXITCODE -ne 0 -or ($digest -split '\s+')[0] -cne $record.sha256) {
+        throw "LocalFile teaching record digest differs for $($record.id)."
+    }
+}
+```
+
+Use the instance ID from the verified settings deployment and record the
+deployment ID with the three matches. Run discovery and HTTP acceptance next.
+
 Run the same checks without preparing or applying settings:
 
 ```powershell
