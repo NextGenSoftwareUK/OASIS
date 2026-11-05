@@ -135,3 +135,11 @@ No real hosted endpoint or credential has been supplied or qualified. The tool
 explicitly does not certify denial of mutation routes, hosted CQL, federation,
 replicas or browser acceptance. Qualify denied mutations only on a separately
 owned disposable fixture, then retain that distinct authorization proof.
+
+Contract comparison and shared-tool verification: activation matches the shipping
+GET collection-name route; reads match its POST collection-UUID/get request,
+documents-only include, limit and offset. The probe additionally requires the
+reviewed UUID and exact teaching counts. These assertions qualify a source;
+they do not replace the provider's CQL read authority. The complete Sandbox
+Python suite passes 637 tests, zero failures/skips, including six new Chroma
+cases. No external source was contacted by that test run.

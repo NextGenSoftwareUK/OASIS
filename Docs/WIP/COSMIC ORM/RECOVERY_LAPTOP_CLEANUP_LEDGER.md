@@ -777,3 +777,8 @@ check returned Unauthorized. No settings, deployment or project link changed.
   Future explicitly configured runs create only three small exclusive JSON
   receipts under the selected qualification directory; retain uncertainty
   receipts before any retry. No runtime or source data was created in this step.
+
+- Shared Sandbox tooling suite after Chroma qualification integration: 637 tests
+  passed in 2.213 seconds with Python -B. No new SDK/runtime or persistent test
+  report. Tests use their existing temporary-directory cleanup; candidate
+  configuration messages are controlled fixtures, not Railway mutations.
