@@ -11,7 +11,9 @@ Typed SDK IDs and native database authentication scope headers fix reproduced
 query/reader failures. Database VIEWER native activation1/1 and six runner
 controls pass. Windows manager/Mongo/HTTP/browser5/4 now passes1/1, original
 native hash unchanged, exact Mongo fixture removed and both services stopped.
-Local catalogue launcher publication is next. Counts101/60/28 unchanged.
+Local card46 is published at websitef90b9a4/Vercel success; exact live HTML,
+two pinned source links and browser card/launcher checked.113client tests pass.
+Counts101/60/28 unchanged.
 [Evidence and next steps](SURREALDB_CQL_MVP.md).
 
 ## Algolia controlled CQL continuation, 5 November 2026

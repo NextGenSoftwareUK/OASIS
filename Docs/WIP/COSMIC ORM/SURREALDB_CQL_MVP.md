@@ -252,3 +252,16 @@ preserved separately. Counts101local/60hostedHTTP/28hostedbrowser unchanged.
 
 Final provider controls after the HTTP scope fix pass11/11, zero skips;
 scoped-auth-controls/controls.trx and log retained.
+
+### Live local catalogue publication
+Websitef90b9a459063bc9a1b45b8a07014647af6730792/Vercel success publishes card46.
+Live220953-byte HTML SHA256
+`eb92c88a5353315d77126c54c289222ff1df7ad54b72685f2b0ab55e869a61c5`
+is Git-blob exact. Guide and Windows fixture links match scoped parent
+3fb4991d9fc496209a3592882ee1139a33ea46c1. Actual public card and expanded
+launcher browser verified; target link values ellipsized in AX, covered by
+exact HTML plus actual native5140 browser proof.113client tests pass.
+publication.json retained. No new profile count or hosted enrollment claim.
+Combined terminal website edit was automatic-review rejected without specific
+reason; no command ran. A focused apply_patch completed the edit and independent
+tests/commit/publication checks passed. No owner action required.
