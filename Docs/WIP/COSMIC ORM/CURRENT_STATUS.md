@@ -15,7 +15,8 @@ The1.05GB archive was removed; no second Java retained. Additional recursive
 cleanup was tool-review blocked, files intact. Native default high disk watermark
 remains; no threshold bypass. Native manager/Mongo/HTTP and local browser5/4 now pass, all original payloads/
 version1 preserved and exact Mongo fixture removed. Eight lifecycle/source
-controls pass. OpenSearch adds local profile100; WEB4 local card is next.
+controls pass. OpenSearch adds local profile100; WEB4 local card5073f06 and its
+pinned guide/C#links are published and browser-verified.
 [Exact handoff and evidence](OPENSEARCH_CQL_MVP.md).
 
 ## ArcadeDB native continuation, 5 November 2026

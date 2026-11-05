@@ -3,7 +3,8 @@
 Current checkpoint: create-only native bootstrap, CQL3/2/0/paging/source
 preservation and retained restart pass. Owned hidden-console Ctrl+C and native
 node shutdown are verified. Manager/Mongo/HTTP and local browser acceptance
-also pass. Local profile100 is verified; WEB4 local card is next. Hosted and
+also pass. Local profile100 and WEB4 local card5073f06 are published and
+browser-verified. Hosted and
 full-provider/storage/ORM gates remain open.
 Earlier sections preserve the initial adapter/package checkpoint history.
 
@@ -218,3 +219,24 @@ stay unchanged. [Local guide](../../Devs/OPENSEARCH_CQL_LOCAL_DEMO.md). WEB4 car
 - `paired.trx`: 8176bytes, SHA256 `f1eca2a7a3b0f7516b0a964b19effe8dc3d0ca2b2e322593aa68c1464d4c2176`.
 
 - `interactive-f12e841b51434eef876bd81f4a4ba5fe.trx`: 12352bytes, SHA256 `f31b5eb02c8cc7c41254a23a965eae8363d19e9cdfa1953129aa248af927ebe8`.
+
+## Published WEB4 local card
+
+Web4Site5073f060ccdb99b0fd7e84a5bd0edb5205eaa5d4 publishes card43,
+OpenSearch + MongoDB / Windows local. It clearly distinguishes the retained
+loopback teaching source from hosted WEB4 enrollment and links the actual
+launcher Run-CosmicOpenSearchMongoDemo.ps1 -Serve at localhost5119. Run one
+native demo at a time; the Mongo environment/port are shared with other demos.
+New launcher audit1/1present; old accepted launcher environments not rerun.
+
+All112 client tests pass, zero skips. GitHub Vercel status success. Public sandbox
+HTML returns200 and matches the exact committed Git blob:213,331bytes/SHA256
+1ea977334a0b7824a839fcbf938e3d00a5adb6b97c751fd2d689f37c53e91dee.
+Guide and C#links pin parentcb3c147052ea6fc7a1c24c33d7f19e2a60224278; both raw
+sources return200 and match Git bytes. Guide SHA256
+beaaf411436047afb1201559d5e3ca64558855f82132bd5786e5f74734c9695c;
+walkthrough SHA25611a55d640cd5b6e02e00c60e550d600d1c823cc5c97a308cb8922f9be7916867.
+Signed-out live browser tab10 verified the local card and expanded exact command.
+No hosted avatar/session, API/settings/source cohort or credentials were changed
+by publication. Counts100local/60hostedHTTP/28hostedbrowser(open32), not100fully
+implemented providers. Full ORM/HyperDrive/provider and hosted gates stay open.

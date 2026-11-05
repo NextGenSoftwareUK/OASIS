@@ -48,7 +48,8 @@ task checkout. Runtime qualification remains separate.
    restart, manager/Mongo/HTTP and local browser5/4 proof; its local WEB4 card
    and pinned source links8123df9 are published/browser-verified. Hosted enrollment
    remains open. OpenSearch adds native/restart, manager/Mongo/HTTP and local
-   browser5/4 proof; its local WEB4 card is next, hosted/full-provider gates open.
+   browser5/4 proof; its local WEB4 card/source links5073f06 are published and
+   browser-verified. Hosted/full-provider gates stay open.
 3. Keep filtered native queries and Mongo federated presets for every admitted
    provider. Expand remaining red scopes with explicit capabilities/consistency,
    controlled tests, actual native manager/LINQ and HTTP proof, privacy/replicas,

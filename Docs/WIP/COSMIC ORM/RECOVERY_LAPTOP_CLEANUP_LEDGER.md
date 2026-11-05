@@ -1333,3 +1333,10 @@ No new download or runtime/environment. Reused pinned OpenSearch/JRE and admitte
 - `interactive-f12e841b51434eef876bd81f4a4ba5fe-stopped.json`: 80bytes retained.
 - `paired.trx` SHA256f1eca2a7a3b0f7516b0a964b19effe8dc3d0ca2b2e322593aa68c1464d4c2176.
 - `interactive-f12e841b51434eef876bd81f4a4ba5fe.trx` SHA256f31b5eb02c8cc7c41254a23a965eae8363d19e9cdfa1953129aa248af927ebe8.
+
+### OpenSearch WEB4 local card and successful log cleanup
+
+Site5073f06 publishes local card43;112client tests pass, Vercel success, public HTML213,331bytes/SHA2561ea977334a0b7824a839fcbf938e3d00a5adb6b97c751fd2d689f37c53e91dee git-exact. Pinned guide/C#200and git-exact, signed-out card/disclosure verified with no new hosted session. No API/settings/source mutation, download, environment or screenshot files. Full programme remains incomplete; local100 is scoped profiles, hosted60HTTP/28browser/open32 unchanged.
+
+- Removed exact owned successful `interactive-f12e841b51434eef876bd81f4a4ba5fe-mongo.log` after storage/shutdown/exit12 receipts and closed listeners: 121216bytes; SHA256df3278db8b2ee6883811976912849580275c046e1df355a82d2db43fd0b92284. Compact TRX/result/signal/shutdown/cleanup receipts retained. Original paired failure/reconciliation log remains.
+- Prior recursive unit/temp cleanup rejection remains documented and untouched; no permission/owner action requested.
