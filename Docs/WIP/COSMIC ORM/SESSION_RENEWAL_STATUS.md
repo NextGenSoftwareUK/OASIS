@@ -40,6 +40,18 @@ Updated 1 November 2026. **Live HTTP lifecycle and frontend publication verified
 
 ## Next
 
+Published Web4Site `6994b87` advances the session module URL to
+`session-renewal-lifetime-v2`. All 111 website tests passed, including
+delayed authentication consuming the issued lifetime and a response
+arriving after expiry being rejected. Public module and HTML bytes match
+that commit. Module SHA256
+b5297386ba9c9757015443cf52671172e55a1a9ff0f075f271b4337733dbfb87.
+HTML SHA256
+af4726acf773f5c96e7221459457194465f1cbb13b210fbb47603ba00de98fa9.
+The existing browser tab still runs its original module. Keep it retained
+for its original owner. Live browser lifecycle verification of the newly
+published module remains open.
+
 Web4Site candidate `26d2e30` on `codex/cql-session-clock-offset`
 schedules expiry from the JWT's issued lifetime (`exp - iat`) anchored at
 the authentication request start. Authentication and renewal use this
