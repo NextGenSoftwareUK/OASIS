@@ -69,11 +69,10 @@ Subsequent user-requested reviewed cleanup removed these private bins as part of
 
 The recovered provider exposes explicit read-only CQL activation. It verifies
 the existing holon collection by name and canonical UUID using GET. The
-WEB4 project currently has no Chroma registration. Add opt-in registration
-with the guarded HTTP client, explicit HTTPS origin, tenant and database.
-Qualify the exact collection and three live teaching IDs with credentials
-restricted to that source before adding the public catalogue and zero-cost
-query tariff. Chroma's bounded reads use POST for the native collection
+WEB4 now has opt-in registration with a guarded HTTP client, explicit
+HTTPS origin, tenant and database. Qualify the exact collection and three
+live teaching IDs with credentials restricted to that source before
+publishing the Development catalogue. Chroma's bounded reads use POST for the native collection
 query API, so qualify read permissions by operation and path. Keep native
 mutation endpoints outside the query credential's scope.
 
@@ -98,5 +97,9 @@ service that accepts a scoped bearer credential for the two read routes.
 The WEB4 build and the exact Core `7b17894c` admission run passed. Chroma
 and CouchDB passed 2/2 with zero skips, covering the zero-cost query-only
 tariffs and four planned presets per provider. The parent gitlink and
-Railway manifest match. Native endpoint and credential qualification and
-live Development acceptance remain open.
+Railway manifest match. The earlier loopback native/browser run establishes
+the three-record demo shape. The original evidence path is absent on the
+recovery laptop, and that run used plaintext without authentication. To
+accept Development, qualify the reviewed HTTPS endpoint and scoped credential,
+replay the same three IDs on that endpoint, then verify WEB4 discovery,
+native and Mongo-paired query results, and the signed-in browser card.
