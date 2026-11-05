@@ -623,3 +623,8 @@ TestResults/DuckDbCqlCurrent/duckdb-mongo-federation.trx
 SHA256 D2CC28FC519744125C23181B4250D2D753D7DFDE9A78B35E2281B28C7F2216E1.
 
 DuckDB activation build reused provider bin/obj. Receipt: TestResults/DuckDbCqlCurrent/query-activation-build.log. No database opened.
+
+DuckDB native replay passed 1/1 with read-only activation. Writable
+configuration was rejected and original record fingerprints were preserved.
+Reused existing source and build outputs. Native TRX SHA256
+3E7AC6E748FCBDD7A5FE0582A29F9686AED806E72FEE73F5C98A7CA89027D47E.

@@ -69,7 +69,13 @@ public class DuckDbCqlNativeTests
             await using var check = original.CreateCommand();
             check.CommandText = "SELECT count(*) FROM information_schema.tables WHERE table_name IN ('oasis_holons','oasis_avatars','oasis_avatar_details')";
             Assert.AreEqual(3L, Convert.ToInt64(await check.ExecuteScalarAsync()), "Original tables required before activation.");
-            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            var writable = await provider.ActivateQuerySourceAsync(default);
+            Assert.AreEqual("CQL_QUERY_SOURCE_UNAVAILABLE", writable.ErrorCode);
+            Assert.IsFalse(provider.IsProviderActivated);
+            provider = new DuckDBOASIS(connectionString + ";access_mode=READ_ONLY");
+            var active = await provider.ActivateQuerySourceAsync(default);
+            Assert.IsFalse(active.IsError, active.Message + active.Exception);
+            Assert.IsTrue(provider.IsProviderActivated);
         }
         Assert.AreEqual(3, seed.Ids.Distinct().Count());
         await using var inspection = new DuckDBConnection(connectionString);
