@@ -1,5 +1,14 @@
 # Development browser evidence, 5 November 2026
 
+Bitcoin passed native 3/2 and pairing 5/4 in sandbox-3a2cb72c.
+Preparation saved two private version-1 copies: 17f9cde3-bae3-85c6-b90b-1e76cefd01a8
+and 3fe5060f-69be-8b34-8450-529fed16d5e7. Repeat preparation reported zero
+saved and two already prepared. Exact-ID SQLite and Neo4j browser queries
+returned both copies with rendered contents equal to MongoDB. The independent
+retained visitor returned zero rows for these IDs on all three providers.
+Provider selection resets the editor; unfiltered replica reads returned ten rows
+before explicit ID filters were reapplied. Those reads are not replica proof.
+
 Berachain passed native 3/2 and pairing 5/4 in sandbox-3a2cb72c.
 Preparation acknowledged two saves. Private IDs are
 c45b1362-8ab1-8d2f-9c47-780b0fee871f and
