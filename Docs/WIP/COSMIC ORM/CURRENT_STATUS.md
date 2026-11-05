@@ -86,7 +86,7 @@ sixth-batch-shipping-schema-evidence.json. Consumer now compiles;3page regressio
 SurrealDB bounded record-ID CQL and its integration fixture compile. The adapter
 intersects requested IDs with the authorized catalogue before SDK reads. Native
 execution is pending because automatic review rejected local server startup.
-WEB4 source enrollment and hosted acceptance remain separate gates.
+The original branch has historical native, restart and Mongo/browser proof. See [SurrealDB recovery and provenance](SURREALDB_CQL_MVP.md). WEB4 source enrollment and hosted acceptance remain open.
 
 ## Constraints / wider unfinished work
 
