@@ -172,6 +172,10 @@ controlled tests, zero skips. Native Solr10.1.0 first seed and retained restart
 now pass3/2/0 and source preservation; five runner control tests pass. Native
 manager/Mongo/HTTP and local browser5/4 also pass, with fixture cleanup and original
 source preservation. Solr adds one local profile; hosted enrollment remains open.
+Solr WEB4 admission passed 18 focused cases with zero skips. The HTTPS
+qualification fixture compiled. An owned public teaching source and restricted
+credentials remain necessary for native HTTPS execution and live acceptance.
+[Hosted preparation](SOLR_CQL_MVP.md#web4-hosted-enrollment-preparation).
 See [scope and remaining gates](SOLR_CQL_MVP.md).
 
 ## Browser continuation gate, 5 November 2026

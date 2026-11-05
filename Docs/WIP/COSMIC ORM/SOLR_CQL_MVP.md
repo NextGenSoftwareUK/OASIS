@@ -147,3 +147,26 @@ A signed-out live browser tab verified the CQL card, honest local label and
 expanded exact launcher command. No hosted avatar/session, credentials, source
 cohort, API deployment or settings were created/changed by this publication.
 Hosted Solr and full ORM/HyperDrive/provider gates remain open.
+
+## WEB4 hosted enrollment preparation
+
+The opt-in query profile uses `CQL_SOLR_QUERY_ORIGIN`,
+`CQL_SOLR_QUERY_USERNAME` and `CQL_SOLR_QUERY_PASSWORD`. Use an existing
+owned HTTPS service with read access to the `oasis_holons` collection.
+WEB4 restricts requests to the schema unique-key check and one canonical GUID
+per RealTime Get request. Scans, alternate collections, multi-ID requests
+and updates are refused before transport. The Core tariff, registration and
+four native/Mongo presets passed 18 focused tests with zero skips at Core
+`c5030f9`. TRX SHA-256
+`9eb99c674303864ed9b9af62dc61b4a49fcb8950c8b82ba802f29b0953dd06e2`.
+[Apache Solr RealTime Get](https://solr.apache.org/guide/solr/latest/configuration-guide/realtime-get.html).
+
+The separate `SolrHostedCqlNative` fixture accepts an existing public
+teaching source descriptor via `COSMIC_SOLR_HOSTED_CQL_SOURCE`. Its fields are
+`Endpoint`, `Actor`, three `LiveIds`, one `DeletedId` and one `MissingId`.
+It uses WEB4's actual transport guard and verifies public root ownership,
+native absence, full/subset/paging and unchanged native document hashes.
+Credentials stay in the process environment. The hosted fixture compiled
+with zero errors. Native HTTPS execution and live enrollment remain pending
+owned source access. Existing Windows native and browser evidence is preserved.
+[Owner actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).

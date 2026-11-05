@@ -1730,6 +1730,13 @@ candidate receipt and planned TRX under
 `LocalState/COSMIC/RecoveryLaptopSolr1010/hosted-preparation/`.
 No Solr process, runtime or copy of the retained source was created.
 
+Solr exact API qualification completed with 18 passes and zero skips.
+TRX SHA-256 `9eb99c674303864ed9b9af62dc61b4a49fcb8950c8b82ba802f29b0953dd06e2`.
+The separate hosted fixture build uses the same lease and existing outputs.
+Its log is `TestResults/ProviderBuildCurrent/solr-hosted-native-fixture-build.log`.
+It compiled with 1,143 warnings and zero errors. The shared Core checkout was
+restored to `54159614`. No native process started.
+
 PouchDB mounted-source receipt verification used the retained local receipt
 and mocked instance SSH output. Two admitted shapes and four refusal cases
 passed. The first rehearsal had a command-tail assertion error, corrected

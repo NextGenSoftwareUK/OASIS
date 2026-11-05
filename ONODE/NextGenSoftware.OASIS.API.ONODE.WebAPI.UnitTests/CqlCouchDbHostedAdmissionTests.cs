@@ -57,6 +57,16 @@ public class CqlCouchDbHostedAdmissionTests
         Assert.False(source.IsProviderActivated);
     }
 
+    [Fact]
+    public void SolrExactKeyPresetsPlanNativeAndMongoQueries()
+    {
+        using var client = new System.Net.Http.HttpClient();
+        var source = new NextGenSoftware.OASIS.API.Providers.SolrOASIS.SolrOASIS(
+            "https://solr.example.test", null, null, client);
+        VerifyExactKeyPresets(ProviderType.SolrOASIS, source.QueryCapabilities);
+        Assert.False(source.IsProviderActivated);
+    }
+
     private static void VerifyExactKeyPresets(ProviderType providerType, CosmicQueryCapabilities capabilities)
     {
         var provider = providerType.ToString();

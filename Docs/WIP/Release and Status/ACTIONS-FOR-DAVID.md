@@ -635,3 +635,11 @@ and hosted federation and replication verification.
 - The qualifier requires three public live root records, one deleted record and one absent ID under the declared actor. Give engineering the existing origin and make the restricted API key available through the process environment. Keep keys out of chat, the descriptor and git.
 - Reason: native HTTPS source proof must precede any Development settings review or hosted acceptance. The accepted Windows-local demo remains available. No new paid host or account was requested.
 - [Settings, descriptor and qualification scope](../COSMIC%20ORM/MEILISEARCH_CQL_MVP.md#web4-hosted-enrollment-preparation).
+
+## Solr hosted teaching source access - 2026-11-05
+
+- Status: pending owned source access. The 18 focused WEB4 checks passed and the native HTTPS qualifier compiled.
+- Owner step: identify an existing reachable HTTPS Solr service for synthetic teaching records and make restricted credentials available privately. Restrict the account to the unique-key schema read and RealTime Get on oasis_holons. If the owned service has no teaching collection, provide secure provisioning access so engineering can prepare it separately.
+- The qualifier requires three public live root records, one deleted record and one absent ID under the declared actor. Keep the query username and password in the process environment. Do not place credentials in chat, the descriptor or git.
+- Reason: native HTTPS proof precedes any Development settings review or hosted acceptance. The accepted Windows-local demo remains available. No new paid host or account was requested.
+- [Settings, descriptor and qualification scope](../COSMIC%20ORM/SOLR_CQL_MVP.md#web4-hosted-enrollment-preparation).
