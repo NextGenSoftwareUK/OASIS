@@ -160,10 +160,20 @@ def require_data_mount():
                 capture_output=True, timeout=30)
         except (OSError, subprocess.TimeoutExpired):
             raise RuntimeError("Could not inspect the reviewed instance mount") from None
-        mounts = [line.split() for line in result.stdout.splitlines()]
-        data_mounts = [fields for fields in mounts if len(fields) >= 10 and fields[4] == b"/data"]
-        if result.returncode or len(data_mounts) != 1 or b"rw" not in data_mounts[0][5].split(b","):
+        mounts = [line.partition(b" - ") for line in result.stdout.splitlines()]
+        data_mounts = [(mount.split(), filesystem.split()) for mount, separator, filesystem in mounts
+                       if separator and mount.split()[4:5] == [b"/data"]]
+        if result.returncode or len(data_mounts) != 1:
             raise RuntimeError("The reviewed instance must expose a separate writable /data mount")
+        mount, filesystem = data_mounts[0]
+        if len(mount) < 6 or len(filesystem) != 3 or any(
+                b"rw" not in options.split(b",") for options in (mount[5], filesystem[2])):
+            raise RuntimeError("The reviewed instance must expose a separate writable /data mount")
+
+
+def verify_mount():
+    module("Prepare-TenSourcePublicBatch").require_matching_release(configuration)
+    require_data_mount()
 
 
 def apply():
@@ -171,8 +181,7 @@ def apply():
     after = configuration.protected_read(PREFIX + "-candidate-variables.dpapi")
     if candidate(before, *qualified_source()) != after:
         raise RuntimeError("Reviewed source/candidate differs;no mutation allowed.")
-    module("Prepare-TenSourcePublicBatch").require_matching_release(configuration)
-    require_data_mount()
+    verify_mount()
     configuration.apply_values(PREFIX, KEYS)
 
 
@@ -182,7 +191,10 @@ if __name__ == "__main__":
     elif sys.argv[1:] == ["verify-release"]:
         module("Prepare-TenSourcePublicBatch").require_matching_release(configuration)
         print("Reviewed Development WEB4 deployment verified.")
+    elif sys.argv[1:] == ["verify-mount"]:
+        verify_mount()
+        print("Reviewed Development WEB4 deployment and writable /data mounts verified.")
     elif sys.argv[1:] == ["apply"]:
         apply()
     else:
-        raise SystemExit("Use no arguments to prepare, verify-release to inspect the deployment, or apply after exact code deployment.")
+        raise SystemExit("Use no arguments to prepare, verify-release or verify-mount to inspect, or apply after exact code deployment.")

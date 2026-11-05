@@ -136,7 +136,8 @@ class LocalFileConfigurationTests(unittest.TestCase):
         instances = ["11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222"]
         writable = b"42 37 8:1 / /data rw,relatime - ext4 /dev/disk rw\n"
         for second in (writable.replace(b"/data", b"/data/child"),
-                       writable.replace(b"rw", b"ro"), writable):
+                       writable.replace(b"rw", b"ro", 1),
+                       writable.replace(b"/dev/disk rw", b"/dev/disk ro"), writable):
             with patch.dict(publisher.os.environ, {"COSMIC_CQL_REVIEWED_INSTANCE_IDS": ",".join(instances)}), \
                  patch.object(publisher, "qualified_source", return_value=(source, bundle)), \
                  patch.object(publisher.configuration, "protected_read", side_effect=[before, after]), \

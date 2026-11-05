@@ -474,4 +474,10 @@ reviewed release and reads mount metadata from each listed instance. Every
 instance must expose a separate writable `/data` mount. The dashboard remains
 the source for volume identity and the complete active instance list.
 
+Run the same checks without preparing or applying settings:
+
+```powershell
+python -B Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py verify-mount
+```
+
 Railway 5.62.1 accepted the exact project-scoped deployment list arguments and returned Unauthorized. Its volume list still lacks project, service and environment selectors. Use the dashboard attachment and instance-scoped SSH mount check for the reviewed service.
