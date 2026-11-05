@@ -907,3 +907,17 @@ check returned Unauthorized. No settings, deployment or project link changed.
   for the pending actual native run, then disposable after owned use ends.
   Meilisearch integration bin: 47123219 bytes.
   Meilisearch integration obj: 1020024 bytes.
+
+- Meilisearch initial native run planned: one owned loopback17700 process, pinned v1.56.1 binary, data.ms under RecoveryLaptopMeili1561, telemetry off, indexing256MiB/2threads. One protected master key via DPAPI; original source fixed. Exclusive bootstrap/request/task receipts precede single index and four-document batch dispatches; missing control remains absent. Retain database/receipts for reuse, no seed replay. TRX/log under existing state/TestResults; stop only owned process after quiescence, not durability certification.
+
+- Meilisearch initial native run passed exactly1test/zero skips. Original create-index and four-document async tasks acknowledged; bootstrap retained. Owned process terminated after completed read-only verification. Next retained restart uses same data.ms/protected key/identities with zero seed calls and requires original batch payload hash plus exact four native documents before/after test. No new database/environment.
+
+- Meilisearch retained restart passed exactly1native test/zero skips, zero seed
+  calls, four exact original-batch native documents verified before/after. Both
+  owned processes stopped and port17700closed. Native data.ms logical bytes
+  442,438; retain as the single reusable original source. master-key.dpapi stays
+  protected/private. Intents/ACKs/logs/compact native-evidence.json remain in
+  RecoveryLaptopMeili1561. TRX reports initial/retained each2,906bytes; hashes in
+  MEILISEARCH_CQL_MVP.md. No additional runtime or database copy was created.
+  initial-server.log: 13710 bytes; retained diagnostic output.
+  retained-server.log: 14078 bytes; retained diagnostic output.

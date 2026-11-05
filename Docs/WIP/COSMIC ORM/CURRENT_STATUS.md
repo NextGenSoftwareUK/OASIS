@@ -145,7 +145,9 @@ controlled tests. Native/manager/HTTP/hosted gates remain open; counts unchanged
 
 Meilisearch independent breadth work now has a real REST bounded ID reader,
 read-only index/primary-key activation and 16 passing controlled tests/build.
-Native and hosted gates remain open; counts unchanged. [Scope](MEILISEARCH_CQL_MVP.md).
+Native Windows CQL and retained restart now pass1/1each, zero skips, with
+original-batch source preservation and no reseed on restart. Manager/LINQ and
+Mongo/HTTP/hosted gates remain open; counts unchanged. [Scope](MEILISEARCH_CQL_MVP.md).
 
 ## Constraints / wider unfinished work
 

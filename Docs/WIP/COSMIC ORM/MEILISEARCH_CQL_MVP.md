@@ -58,3 +58,37 @@ LINQ and Mongo/HTTP remain open. Runtime identity alone is not CQL acceptance.
 
 The leased native fixture build passed with zero errors. It has not run against
 a server; no native coverage count or source-mutation claim follows.
+
+## Actual Windows native acceptance — 5 November 2026
+
+The pinned community runtime started on127.0.0.1:17700 with telemetry off and
+indexing bounded to256MiB/two threads. One protected master key is retained with
+Windows DPAPI; no secret was written to arguments or source config. One index
+creation and one four-document batch were journalled before dispatch, and their
+actual asynchronous task identities were polled to succeeded before ACKs.
+No uncertain mutation was retried. Three live records, one deleted control and
+one absent identity remain in the fixed source.
+
+Native CQL test initial1/1passes, zero skips: exact3/2/0selections, paging,
+independent deleted/missing controls and identical native document hashes before/
+after reads. A retained restart passed1/1with zero skips and zero seed calls.
+All four native documents matched the reconstructed original request body,
+whose SHA256matches the immutable pre-dispatch intent, before/after the restart
+test. Original batch SHA256:
+05124a9bec7a59351e916b0a61720db9abd82eccfbbefb2c577c6a305cda0e81.
+
+| Evidence | SHA256 |
+|---|---|
+| initial.trx | 9da7b261afbccb546c178eb2406c9b95b4a25e272a1b11017cf8db21343583d2 |
+| retained.trx | 984daf539505d995894ead35259123aada4ac44745721bdabed950a33e1710d7 |
+
+Reports: TestResults/MeilisearchCqlNativeCurrent. Compact provenance, source,
+original intents/task ACKs and native-evidence.json remain under
+LocalState/COSMIC/RecoveryLaptopMeili1561. Runner:
+Scripts/TestHosts/run-cosmic-meili-windows.py. Its initialization refuses existing
+data/intent; existing initial/retained run journals prevent accidental replay.
+Only the owned Windows process was terminated after each quiescent test; the
+port is closed. Retained database logical file bytes442,438. This verifies this
+completed-write restart, not generic uncheckpointed crash durability or cluster
+availability. Manager/LINQ walkthrough, Mongo/HTTP pairing, privacy/replicas,
+WEB4 registration and browser acceptance remain open; global counts unchanged.
