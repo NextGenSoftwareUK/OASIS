@@ -2,7 +2,9 @@
 
 Current checkpoint: create-only native bootstrap, CQL3/2/0/paging/source
 preservation and retained restart pass. Owned hidden-console Ctrl+C and native
-node shutdown are verified. Manager/HTTP/browser remain open; counts stay99.
+node shutdown are verified. Manager/Mongo/HTTP and local browser acceptance
+also pass. Local profile100 is verified; WEB4 local card is next. Hosted and
+full-provider/storage/ORM gates remain open.
 Earlier sections preserve the initial adapter/package checkpoint history.
 
 5 November2026. Provider/unit26/26 passes, zero failures/skips:21new CQL cases
@@ -178,3 +180,41 @@ Exact native evidence:
 Accepted retained phase: retained-88338fbc93f14e088b4ebee86740305a. Original pre-test failure: retained-db37c75d45574c29a27be84073fea063.
 Next: protect original payloads against bootstrap hashes, manager/Mongo/HTTP, then
 local browser and WEB4 local card. Hosted/full ORM/provider gates remain open.
+
+## Integrated local acceptance — 5 November2026
+
+Actual manager/LINQ and Kestrel HTTP paired1/1 and interactive1/1 pass, zero skips.
+Full5physical rows(OpenSearch3/Mongo2), subset4(2each), provider provenance and
+exclusion of the third unrelated Mongo row pass. Forged actor/unknown preset
+return400; inactive source returns503 without partial rows. The page accurately
+labels native OpenSearch without claiming account authentication.
+
+Browser tab9 independently displayed full5/subset4 actual JSON and
+MovingProviderReads, then used Stop demo. Interactive runf12e841b51434eef876bd81f4a4ba5fe
+passes with outer wrapper exit0. Native _source payload bytes exactly match all
+four original bootstrap SHA256s, each document remains version1, and the missing
+control stays absent. Before/after hashes match; no seed/native save replay.
+The exact3record temporary Mongo database was verified/dropped and confirmed
+absent. Pending journal and ready marker removed; all19200/19300/27029/5119closed.
+
+The first paired QUERY test passed, but the wrapper initially returned1 because
+its new graceful Mongo stop incorrectly expected exit0. Native Mongo logs prove
+WiredTiger closed, mongod shutdown complete and exit12; the helper proves Ctrl+C
+was sent to its exact owned console. MongoDB8.2's Windows CtrlHandler calls
+exitCleanly(ExitCode::kill), whose value is12. The wrapper now requires that
+contract plus the native storage/shutdown log events, with no force kill. Original
+wrapper failure/logs remain; a separate paired-mongo-stop.reconciled.json records
+the proven terminal state without replaying tests/saves. The later interactive
+run validates the corrected complete path, including exit12 and receipts.
+[Windows signal implementation](https://raw.githubusercontent.com/mongodb/mongo/v8.2/src/mongo/util/signal_handlers.cpp),
+[exit code definition](https://raw.githubusercontent.com/mongodb/mongo/v8.2/src/mongo/util/exit_code.h).
+
+Five readiness/source controls plus3console guard controls pass. The original
+canonical source version/hash guard is new and verified against the real API.
+No extra download/environment or screenshot files. Local100=3canonical+57public/
+source+40otherlocal, including31historical recoveries. Hosted60HTTP/28browser/open32
+stay unchanged. [Local guide](../../Devs/OPENSEARCH_CQL_LOCAL_DEMO.md). WEB4 card next.
+
+- `paired.trx`: 8176bytes, SHA256 `f1eca2a7a3b0f7516b0a964b19effe8dc3d0ca2b2e322593aa68c1464d4c2176`.
+
+- `interactive-f12e841b51434eef876bd81f4a4ba5fe.trx`: 12352bytes, SHA256 `f31b5eb02c8cc7c41254a23a965eae8363d19e9cdfa1953129aa248af927ebe8`.

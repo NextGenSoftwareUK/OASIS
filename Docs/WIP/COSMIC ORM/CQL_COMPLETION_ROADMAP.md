@@ -36,7 +36,7 @@ task checkout. Runtime qualification remains separate.
    laptop. Its Development file placement and activation remain open.
    ThreeFold's hosted audit and card/static assets now pass at website2170b67;
    preserve its original cohort/settings/ACKs. Do not replay accepted gates.
-2. Preserve 60 scoped hosted HTTP proofs and 99 local integrated query types.
+2. Preserve 60 scoped hosted HTTP proofs and 100 local integrated query types.
    ClickHouse is the latest accepted hosted addition; its sandbox card, guide/C#
    links and exact public static bytes are verified. Counts are demo scopes,
    not full provider or ORM certification. Meilisearch adds the new Windows-local
@@ -47,7 +47,8 @@ task checkout. Runtime qualification remains separate.
    published and browser-verified; hosted Solr remains open. ArcadeDB adds native/
    restart, manager/Mongo/HTTP and local browser5/4 proof; its local WEB4 card
    and pinned source links8123df9 are published/browser-verified. Hosted enrollment
-   remains open.
+   remains open. OpenSearch adds native/restart, manager/Mongo/HTTP and local
+   browser5/4 proof; its local WEB4 card is next, hosted/full-provider gates open.
 3. Keep filtered native queries and Mongo federated presets for every admitted
    provider. Expand remaining red scopes with explicit capabilities/consistency,
    controlled tests, actual native manager/LINQ and HTTP proof, privacy/replicas,

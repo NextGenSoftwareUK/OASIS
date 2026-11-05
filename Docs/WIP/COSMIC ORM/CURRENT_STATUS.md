@@ -13,7 +13,9 @@ node (exit130, explicit closed logs); both listeners are closed. Prior inherited
 console and pre-test health408 failures preserved and corrected at their layers.
 The1.05GB archive was removed; no second Java retained. Additional recursive
 cleanup was tool-review blocked, files intact. Native default high disk watermark
-remains; no threshold bypass. Manager/Mongo/HTTP/browser remain next; counts99/60/28.
+remains; no threshold bypass. Native manager/Mongo/HTTP and local browser5/4 now pass, all original payloads/
+version1 preserved and exact Mongo fixture removed. Eight lifecycle/source
+controls pass. OpenSearch adds local profile100; WEB4 local card is next.
 [Exact handoff and evidence](OPENSEARCH_CQL_MVP.md).
 
 ## ArcadeDB native continuation, 5 November 2026
@@ -51,8 +53,8 @@ requires the already-recorded Railway access and persistent-mount checks.
 
 ## Verified scope
 
-- **99 local query types/profiles:**3 canonical, 57 public/source, 39 other local;
-  includes 31 recovered historical demos. Not 99 fully implemented providers.
+- **100 local query types/profiles:**3 canonical, 57 public/source, 40 other local;
+  includes 31 recovered historical demos. Not 100 fully implemented providers.
 - **60 scoped hosted HTTP proofs; 28 browser flows verified / 32 browser gates open.**
   Solana, Google Cloud public objects, Ethereum, Polygon and Arbitrum balances add native
   3/2, paired 5/4, preparation reuse, independent privacy and matching rendered

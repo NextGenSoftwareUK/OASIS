@@ -1296,3 +1296,40 @@ Archive1,050,303,612bytes deleted after exact-path/hash/process verification;250
 - `bootstrap.trx` SHA2560bdd123c18fbbeb5907148d626c0a914b46301aa5191bb9c90dd4e7ed87a2532.
 - `initial.trx` SHA2560bda28dcd3e600c60a6f045402fb7f63cd4c7552301400f6538010e0f8e6c47a.
 - `retained-88338fbc93f14e088b4ebee86740305a.trx` SHA256d333c66d76d1e2fd20178b74c2dc3e0363dd7e174ac67b0f921912eb7e7817c6.
+
+## OpenSearch manager/HTTP and browser acceptance — 5 November2026
+
+No new download or runtime/environment. Reused pinned OpenSearch/JRE and admitted Mongo8.2 store. Native manager/HTTP1/1 and interactive browser1/1 pass, no skips; full5/subset4 and provenance verified. All original native payloads match bootstrap hashes/version1 before/after. Exactly3temporary Mongo records per explicit fixture, contents verified then database dropped/absence checked; pending/ready markers absent. Native JVM clean Ctrl+C/closed/exit130. Mongo graceful Ctrl+C path properly closes WiredTiger and shutdown, exit12 per native Windows contract. Initial paired wrapper1 was an incorrect zero-exit expectation; query TRX passed, original failure preserved and terminal state separately reconciled without reruns. Corrected interactive wrapper0 and Mongo signal/storage/shutdown receipts pass. All19200/19300/27029/5119closed. Five source/readiness+3console controls pass. No screenshots. Prior recursive cleanup block still documented, files untouched. LocalFile Railway whoami still Unauthorized; existing owner action unchanged.
+
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.IntegrationTests/bin`: 48635242bytes retained.
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.IntegrationTests/obj`: 1107780bytes retained.
+- `TestResults/OpenSearchCqlNativeCurrent`: 29210bytes retained.
+- `LocalState/COSMIC/RecoveryLaptopOpenSearch390/tmp`: 28514523bytes retained.
+- `LocalState/COSMIC/RecoveryLaptopOpenSearch390/logs`: 723742bytes retained.
+- `paired-browser-evidence.json`: 885bytes retained.
+- `paired-mongo-process.json`: 126bytes retained.
+- `paired-mongo-signal.log`: 75bytes retained.
+- `paired-mongo-stop.reconciled.json`: 310bytes retained.
+- `paired-mongo.log`: 132508bytes retained.
+- `paired-options.log`: 1106bytes retained.
+- `paired-process.json`: 1995bytes retained.
+- `paired-ready.json`: 1436bytes retained.
+- `paired-run.intent.json`: 117bytes retained.
+- `paired-run.result.json`: 608bytes retained.
+- `paired-server.log`: 46437bytes retained.
+- `paired-signal.log`: 73bytes retained.
+- `paired-stopped.json`: 79bytes retained.
+- `interactive-f12e841b51434eef876bd81f4a4ba5fe-mongo-process.json`: 164bytes retained.
+- `interactive-f12e841b51434eef876bd81f4a4ba5fe-mongo-signal.log`: 75bytes retained.
+- `interactive-f12e841b51434eef876bd81f4a4ba5fe-mongo-stopped.json`: 138bytes retained.
+- `interactive-f12e841b51434eef876bd81f4a4ba5fe-mongo.log`: 121216bytes retained.
+- `interactive-f12e841b51434eef876bd81f4a4ba5fe-options.log`: 1106bytes retained.
+- `interactive-f12e841b51434eef876bd81f4a4ba5fe-process.json`: 1996bytes retained.
+- `interactive-f12e841b51434eef876bd81f4a4ba5fe-ready.json`: 1438bytes retained.
+- `interactive-f12e841b51434eef876bd81f4a4ba5fe-run.intent.json`: 117bytes retained.
+- `interactive-f12e841b51434eef876bd81f4a4ba5fe-run.result.json`: 608bytes retained.
+- `interactive-f12e841b51434eef876bd81f4a4ba5fe-server.log`: 47550bytes retained.
+- `interactive-f12e841b51434eef876bd81f4a4ba5fe-signal.log`: 75bytes retained.
+- `interactive-f12e841b51434eef876bd81f4a4ba5fe-stopped.json`: 80bytes retained.
+- `paired.trx` SHA256f1eca2a7a3b0f7516b0a964b19effe8dc3d0ca2b2e322593aa68c1464d4c2176.
+- `interactive-f12e841b51434eef876bd81f4a4ba5fe.trx` SHA256f31b5eb02c8cc7c41254a23a965eae8363d19e9cdfa1953129aa248af927ebe8.

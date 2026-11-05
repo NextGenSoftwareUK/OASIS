@@ -52,6 +52,35 @@ def request(path,timeout=15):
     if 'error' in body:raise RuntimeError('Native OpenSearch returned an error')
     return body
 
+def observe_source():
+    source=json.loads((STATE/'source.json').read_bytes());hashes=[]
+    for id in source['LiveIds']+[source['DeletedId']]:
+        native=request('/oasis_holons/_doc/'+id+'?realtime=true&_source=true')
+        if native.get('_index')!='oasis_holons' or native.get('_id')!=id or native.get('found') is not True or native.get('_version')!=1:
+            raise RuntimeError('Original OpenSearch identity/version differs')
+        intent=json.loads((STATE/('bootstrap-'+id+'.intent.json')).read_bytes())
+        ack=json.loads((STATE/('bootstrap-'+id+'.ack.json')).read_bytes())
+        source_hash=hashlib.sha256((STATE/'source.json').read_bytes()).hexdigest()
+        if intent['sourceSha256'].lower()!=source_hash or ack['sourceSha256'].lower()!=source_hash or ack['version']!=1:
+            raise RuntimeError('Original document intent/ACK differs')
+        with OPENER.open(ENDPOINT+'/oasis_holons/_source/'+id+'?realtime=true',timeout=15) as response:raw=response.read(1024*1024+1)
+        if len(raw)>1024*1024 or hashlib.sha256(raw).hexdigest()!=intent['payloadSha256'].lower():
+            raise RuntimeError('Original acknowledged canonical payload differs')
+        hashes.append(hashlib.sha256(raw).hexdigest())
+    try:
+        request('/oasis_holons/_doc/'+source['MissingId']+'?realtime=true&_source=true')
+    except urllib.error.HTTPError as error:
+        if error.code!=404:raise
+        try:raw=error.read(16385)
+        finally:error.close()
+        if len(raw)>16384:raise RuntimeError('Missing-control response exceeds budget')
+        absent=json.loads(raw)
+        if absent.get('_index')!='oasis_holons' or absent.get('_id')!=source['MissingId'] or absent.get('found') is not False or '_source' in absent or 'error' in absent:
+            raise RuntimeError('Native response did not prove original absent control')
+    else:raise RuntimeError('Original absent control is present')
+    return hashes
+
+
 def split_windows_options(text):
     shell=ctypes.WinDLL('shell32',use_last_error=True);kernel=ctypes.WinDLL('kernel32',use_last_error=True)
     shell.CommandLineToArgvW.argtypes=[wintypes.LPCWSTR,ctypes.POINTER(ctypes.c_int)];shell.CommandLineToArgvW.restype=ctypes.POINTER(wintypes.LPWSTR)
@@ -124,7 +153,11 @@ def run_test(category,phase,env):
     return dict(counters=counters,trxSha256=hashlib.sha256(target.read_bytes()).hexdigest())
 
 def run():
-    parser=argparse.ArgumentParser();parser.add_argument('--initialize',action='store_true');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--initialize',action='store_true');parser.add_argument('--paired',action='store_true');parser.add_argument('--serve-run-id');args=parser.parse_args()
+    if args.paired and args.initialize:raise RuntimeError('Pairing requires an existing acknowledged source')
+    if args.serve_run_id and (not args.paired or len(args.serve_run_id)!=32 or any(c not in '0123456789abcdef' for c in args.serve_run_id)):
+        raise RuntimeError('Interactive pairing requires an explicit GuidN identity')
+    if (STATE/'mongo.pending.json').exists():raise RuntimeError('Unfinished Mongo fixture requires reconciliation')
     for number in [19200,19300]:
         with socket.socket() as port:port.bind(('127.0.0.1',number))
     verify_runtimes()
@@ -136,13 +169,13 @@ def run():
     if not args.initialize:
         ack=json.loads((STATE/'bootstrap.ack.json').read_bytes())
         if ack['sourceSha256'].lower()!=source_hash or ack['createdRecords']!=4:raise RuntimeError('Original acknowledged source differs')
-    phase='initial' if args.initialize else 'retained-'+uuid.uuid4().hex
+    phase=('interactive-'+args.serve_run_id if args.serve_run_id else 'paired') if args.paired else ('initial' if args.initialize else 'retained-'+uuid.uuid4().hex)
     write_once(STATE/(phase+'-run.intent.json'),dict(sourceSha256=source_hash,bootstrapThisRun=args.initialize))
     (STATE/'tmp').mkdir(exist_ok=True);(STATE/'logs').mkdir(exist_ok=True)
     env=os.environ.copy()
     for key in ['JAVA_TOOL_OPTIONS','JDK_JAVA_OPTIONS','_JAVA_OPTIONS','COSMIC_OPENSEARCH_CQL_USERNAME','COSMIC_OPENSEARCH_CQL_PASSWORD']:env.pop(key,None)
     env.update(OPENSEARCH_HOME=str(INSTALL),OPENSEARCH_PATH_CONF=str(STATE/'config'),OPENSEARCH_TMPDIR=str(STATE/'tmp'),
-        OPENSEARCH_JAVA_OPTS='-Xms128m -Xmx512m -XX:ActiveProcessorCount=2',COSMIC_OPENSEARCH_CQL_SOURCE=str(STATE/'source.json'))
+        OPENSEARCH_JAVA_OPTS='-Xms128m -Xmx512m -XX:ActiveProcessorCount=2',COSMIC_OPENSEARCH_CQL_SOURCE=str(STATE/'source.json'),OASIS_OPENSEARCH_MONGO_SERVE='1' if args.serve_run_id else '0')
     parsed=subprocess.run([str(JAVA),'-cp',str(INSTALL/'lib/*'),'org.opensearch.tools.launchers.JvmOptionsParser',str(STATE/'config')],cwd=INSTALL,env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,creationflags=subprocess.CREATE_NO_WINDOW,timeout=30,check=True)
     write_once(STATE/(phase+'-options.log'),parsed.stdout+parsed.stderr)
     command=[str(JAVA)]+split_windows_options(parsed.stdout.decode().strip())+['-Dopensearch','-Dopensearch.path.home='+str(INSTALL),
@@ -156,8 +189,11 @@ def run():
             if args.initialize:write_once(STATE/'bootstrap-run.result.json',run_test('OpenSearchCqlBootstrap','bootstrap',env))
             ack=json.loads((STATE/'bootstrap.ack.json').read_bytes())
             if ack['sourceSha256'].lower()!=source_hash or ack['createdRecords']!=4:raise RuntimeError('Native bootstrap acknowledgement differs')
-            result=run_test('OpenSearchCqlNative',phase,env)
-            write_once(STATE/(phase+'-run.result.json'),dict(sourceSha256=source_hash,bootstrapThisRun=args.initialize,**result))
+            before=observe_source()
+            result=run_test('OpenSearchMongoCqlNative' if args.paired else 'OpenSearchCqlNative',phase,env)
+            if observe_source()!=before:raise RuntimeError('Original OpenSearch source changed during demo')
+            if args.paired and ((STATE/'mongo.pending.json').exists() or (STATE/'demo-ready.json').exists()):raise RuntimeError('Paired fixture cleanup incomplete')
+            write_once(STATE/(phase+'-run.result.json'),dict(sourceSha256=source_hash,bootstrapThisRun=args.initialize,originalDocumentsUnchanged=True,**result))
         finally:
             signal_sent=False
             if process.poll() is None:

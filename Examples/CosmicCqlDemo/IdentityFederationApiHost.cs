@@ -215,7 +215,7 @@ public static class IdentityFederationApiHost
                 .Replace("Stop demo and clean fixtures", "Stop demo (keep original Elasticsearch source)", StringComparison.Ordinal);
         if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.OpenSearchOASIS)
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
-                "Read synthetic holons from MongoDB and retained authenticated native OpenSearch through HolonManager.", StringComparison.Ordinal)
+                "Read synthetic holons from MongoDB and retained native OpenSearch through HolonManager.", StringComparison.Ordinal)
                 .Replace("Stop demo and clean fixtures", "Stop demo (keep original OpenSearch source)", StringComparison.Ordinal);
         if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.CouchbaseOASIS)
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
