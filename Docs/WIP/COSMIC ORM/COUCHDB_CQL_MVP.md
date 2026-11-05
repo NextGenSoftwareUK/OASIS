@@ -135,6 +135,15 @@ validator check used Node only. Native policy qualification still requires
 a dedicated CouchDB instance with an isolated teaching fixture.
 [Apache Windows installation guide](https://docs.couchdb.org/en/stable/install/windows.html)
 
+The existing `ci-cd.yml` provider integration matrix already runs the
+CouchDB integration project against a job-owned CouchDB 3 container on port
+5984. It provides a native qualification environment without a laptop
+install. The current integration tests exercise ordinary avatar and holon
+storage using the administrator account. They leave the query-role
+restriction unverified. Add the role test in that project using a separate
+database and user scoped to the CI job, and keep its result separate from
+the required policy verification on Development.
+
 After verifying the reviewed Development deployment, check discovery before
 creating a cohort:
 
