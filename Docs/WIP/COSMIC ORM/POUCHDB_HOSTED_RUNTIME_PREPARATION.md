@@ -245,8 +245,23 @@ the exact image digest is available. Deployment is separate.
 ### Live acceptance entry point
 
 After the LocalFile rollout and the separate PouchDB image, settings and
-persistent mount review, use the reviewed PouchDB patch with the existing
-hosted verifier:
+persistent mount review, use `Scripts/Sandbox/Publish-HostedPouchDbConfiguration.py`
+to prepare the six values against current Development settings. It reuses the
+protected settings snapshot and per-key journal. Only the public bundle,
+digest and presets are exported to `hosted-preparation/prepared-review.json`.
+
+Set the reviewed release commit, immutable image digest, Railway executable
+and exact single instance using the same environment variables as the
+[LocalFile rollout](LOCALFILE_CQL_MVP.md). Run `verify-mount` on the PouchDB
+publisher before its explicit `apply` command. Applying settings stages the
+six values without deploying. Review the resulting settings deployment
+separately, then set its ID in `COSMIC_CQL_SETTINGS_DEPLOYMENT_ID` and run
+`verify-settings`. It checks the same release and writable mount before and
+after comparing the complete protected settings. The publisher rehearsal
+used the retained bundle and mocked mount observation. It passed the
+six-value comparison and refused a missing digest and an unverified mount.
+
+Use the public review with the existing hosted verifier:
 
 ```powershell
 python -B Scripts/Sandbox/Verify-HostedQuerySource.py PouchDBOASIS --pouchdb-reviewed-settings $reviewedPatch --readiness

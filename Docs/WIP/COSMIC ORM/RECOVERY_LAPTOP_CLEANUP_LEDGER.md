@@ -1692,3 +1692,9 @@ Hosted PouchDB verifier controls ran with the existing Python executable and
 `-B`. Twelve tests passed. The initial run caught two mistakes in the new
 test fixture before any live calls. Temporary fixture files were owned and
 removed by the test runner. No hosted session, runtime or cache was created.
+
+The protected PouchDB publisher rehearsal ran with the existing Python and
+Node executables. It verified the retained bundle and acknowledgement, the
+six changed values, and refusal before settings mutation when the digest or
+mount was unverified. The baseline and mock observations stayed in memory.
+No live variable snapshot, protected files, settings or services were changed.
