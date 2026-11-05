@@ -146,3 +146,9 @@ and offline tests do not establish the earlier runtime proof on this checkout.
 Recover the verified implementation and runner from that branch, keeping the
 current pre-read catalogue filter and delete error propagation. Reuse original
 Linux state if available. Hosted Development registration remains open.
+
+The native and Mongo-paired fixtures, shared Mongo environment test helper and
+original Linux runner are restored. The Windows integration build passed.
+The restored runner targets the original pinned Linux runtime and retained
+source. It has not been executed on this laptop. The demo hub route has not
+been re-enrolled on this branch.

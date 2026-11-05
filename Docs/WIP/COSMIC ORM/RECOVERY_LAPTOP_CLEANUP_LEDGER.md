@@ -563,3 +563,7 @@ bin/Debug/net10.0 and obj are generated outputs. No server or database created.
 SurrealDB recovered SDK setup and save acknowledgement passed 10/10 offline
 tests. Receipt: TestResults/ProviderBuildCurrent/cosmic-surreal-recovery.log.
 Reused provider and unit-test build outputs. No native runtime started.
+
+Restored SurrealDB native/Mongo fixture build reused the integration outputs.
+Receipt: TestResults/ProviderBuildCurrent/cosmic-surreal-native-fixtures.log.
+No runtime installed or test database started by the recovery build.
