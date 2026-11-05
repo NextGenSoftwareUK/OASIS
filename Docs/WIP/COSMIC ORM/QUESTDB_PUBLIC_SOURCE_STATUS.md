@@ -97,3 +97,13 @@ After qualification, prepare the query-only tariff, public catalogue and
 four presets for the exact deployment. Run the hosted native and Mongo
 flow, then verify reuse, foreign privacy and exact replicas before card
 publication. No hosted source has been selected.
+
+The shipping profile expects exactly `schema`, `endpoint`, `sourceOwner`
+and `symbols`. Use schema 1 and the reviewed HTTPS
+`/api/v1/sql/execute` endpoint without credentials, query parameters or a
+fragment in the URL. Its read requests use the `cql_demo_symbols` table.
+Qualify the target with only the synthetic teaching dataset and restrict
+the endpoint's SQL permissions independently of the WEB4 profile. The
+WEB4 adapter bounds its own SQL and validates exact returned symbols.
+That does not restrict direct callers of the endpoint. Verify that
+unrelated tables and mutations are unavailable before exposing the fixture.
