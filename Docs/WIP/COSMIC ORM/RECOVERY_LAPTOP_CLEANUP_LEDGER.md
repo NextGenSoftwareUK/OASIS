@@ -603,3 +603,9 @@ Receipt sqlserver-cql-native.trx SHA256 5B74DA2F623493CEAF327966F2E736B596B09875
 SQL Server opt-in WEB4 registration compiled using existing WEB4 bin/obj.
 Receipt: TestResults/SqlServerCqlCurrent/web4-build.log. No listener or
 database started. Core tariff admission and live configuration still pending.
+
+SQL Server WEB4 admission passed 1/1 against Core candidate 2ef15c3d build
+outputs. Four native/paired plans admitted with the authoritative SQL Server
+catalogue. No source activated. Reused WEB4 test bin/obj. Receipts:
+TestResults/SqlServerCqlCurrent/web4-admission.log (Core build) and
+web4-admission-focused.log (focused test). Core source checkout restored.
