@@ -1472,3 +1472,14 @@ sources and actual browser launcher. Removed only owned npm-tool/npm-10.9.4.tgz,
 cleanup.json receipts retained. Installed npm tool, actual PouchDB runtime,
 native source/ACKs/baseline and compact evidence retained for reuse. No source,
 user credentials/database, unrelated environment or broad recursive cleanup.
+
+### MinIO Windows native admission, 2026-11-05
+One official GitHub MinIO RELEASE.2025-09-07T16-13-09Z Windows amd64 executable admitted in LocalState/COSMIC/RecoveryLaptopMinIO20250907,113115136B SHA256 af709e6ba68488404e85acdd22a3030d0f5e56a108d4b27d744f18ceb50861b4. Old dl.min.io archive endpoint410 preserved as discovery evidence; official GitHub asset remains available. Direct binary, no archive/Go/Java/WSL/system service install. Runtime version/hash must qualify before source creation. Download intent/partial/receipt retained; never overwrite uncertain existing file. SDK build/test outputs tracked in same cache.
+
+MinIO runtime113115136B exact vendor SHA/version verified; direct retainedbinary,
+no installer archive. Actual native preflight initialized engine metadata only,
+no buckets/Holons/source IDs. One generated teaching credentials.json retained
+locally, never printed. Owned PID11824CtrlC0/current native INTERRUPT log,
+19700/19701closed. SDK controls16/16zero skips, original13case receipt retained;
+controls-v2/TRX and reusable provider outputs kept. Read-only native fixture build
+in progress using same cache/environment, no new native operation dispatched.

@@ -41,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS
     ///   bucketName      — bucket name (default: "oasis")
     ///   useSSL          — whether to use HTTPS (default: false)
     /// </summary>
-    public class MinIOOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class MinIOOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         protected virtual Core.Enums.ProviderType StorageProviderType => Core.Enums.ProviderType.MinIOOASIS;
         /// <summary>
@@ -50,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS
         /// </summary>
         public bool IsVersionControlEnabled { get; set; }
 
-        private AmazonS3Client _s3 = null!;
+        private IAmazonS3 _s3 = null!;
         private readonly string _endpoint;
         private readonly string _accessKey;
         private readonly string _secretKey;
@@ -147,7 +147,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { _s3?.Dispose(); IsProviderActivated = false; return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "MinIOOASIS deactivated." }); }
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { _s3?.Dispose(); _s3 = null!; IsProviderActivated = false; return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "MinIOOASIS deactivated." }); }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         // ─── Avatar ───────────────────────────────────────────────────────────────
