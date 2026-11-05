@@ -515,4 +515,9 @@ Run the same checks without preparing or applying settings:
 python -B Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py verify-mount
 ```
 
+Record the deployment ID printed by the preflight alongside the dashboard
+volume and instance identities. The publisher checks that the same deployment
+ID is still current after inspecting the mount. Settings application also
+requires exactly one reviewed active instance for initial bootstrap.
+
 Railway 5.62.1 accepted the exact project-scoped deployment list arguments and returned Unauthorized. Its volume list still lacks project, service and environment selectors. Use the dashboard attachment and instance-scoped SSH mount check for the reviewed service.
