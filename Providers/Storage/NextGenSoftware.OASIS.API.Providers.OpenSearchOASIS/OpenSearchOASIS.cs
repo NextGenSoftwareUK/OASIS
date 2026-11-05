@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
     /// Upsert: PUT /{index}/_doc/{id}
     /// Search: POST /{index}/_search with query.term or query.match
     /// </summary>
-    public class OpenSearchOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class OpenSearchOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -51,10 +51,10 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
         private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
         private StringContent Json(object obj) => new StringContent(Ser(obj), Encoding.UTF8, "application/json");
 
-        public OpenSearchOASIS(string host = "http://localhost:9200", string? username = null, string? password = null)
+        public OpenSearchOASIS(string host = "http://localhost:9200", string? username = null, string? password = null, HttpClient? httpClient = null)
         {
             _baseUrl = host.TrimEnd('/');
-            _http = new HttpClient();
+            _http = httpClient ?? new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             if (username != null && password != null)
             {

@@ -4,6 +4,15 @@ Updated 5 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
+## OpenSearch continuation, 5 November 2026
+
+OpenSearch now has26passing provider/CQL tests, zero skips, and a compiled native
+reader fixture. Official Windows3.9.0 archive/checksum and launcher version on
+reused Java21 qualify; actual server/source/native tests remain open. No second
+Java, source/index or server created. Counts stay99/60/28. Next: owned native
+startup/shutdown and journalled bootstrap, then integrated demo acceptance.
+[Exact handoff and package state](OPENSEARCH_CQL_MVP.md).
+
 ## ArcadeDB native continuation, 5 November 2026
 
 ArcadeDB now has22passing provider/CQL tests and4runner controls. Actual native

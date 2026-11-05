@@ -1199,3 +1199,29 @@ Site8123df9 publishes local card42;112client tests pass. Vercel success and publ
 - Removed exact owned successful `paired-mongo.log` after stop/closed ports: 109543bytes, SHA256f6d331a862a7baf4c18cb628599813b919a443c199801bfdb980bfb902efb387. Compact TRX/result/process/cleanup receipts retained.
 - Removed exact owned successful `interactive-ceeaaeafb7114c3ab245d9610c43de2f-mongo.log` after stop/closed ports: 167298bytes, SHA256eb4e87d9beb5d08923a97f80c252607d0e89ebf45e50afc20f089a6793037f17. Compact TRX/result/process/cleanup receipts retained.
 - Total successful Mongo logs freed: 276841bytes. Native runtime/store, protected credential, SDK outputs and native logs retained for demo continuation.
+
+## OpenSearch bounded CQL/runtime qualification — 5 November 2026
+
+One reusable directory: LocalState/COSMIC/RecoveryLaptopOpenSearch390. Official Windows3.9.0 bundle metadata checked:1,050,303,612bytes, published SHA5128d6d1420a93de227b20c4bd4de4987279349841e291b936cf87b40a3522bfd0ef8c1753a92bf35bfd82713a609b55682de2e450633ca964d2bc0631c3a64b01e. About45.6GBfree before download. The official minimal distribution has no Windows artifact; no unofficial build selected. Java21 is supported by official compatibility matrix; existing qualified Temurin21 JRE will be evaluated before retaining a second Java. Archive/expansion/native results to follow. No server/source/system/PATH/service change yet.
+
+### OpenSearch package and controlled acceptance checkpoint
+
+Provider/unit26passed/0failed/0skipped;21CQL+5metadata. Native fixture build0errors/4warnings, not executed. Official launcher -V -s exit0/OpenSearch3.9.0/JVM21.0.13 through the existing Temurin JRE. No server, source/index or DB records created; no native query acceptance yet. No system/PATH/service changes. Archive retained until native Java compatibility qualification, then remove after exact-path/hash checks. Duplicate bundled JDK250,992,996bytes not extracted. All other3423files1,126,631,239bytes; manifestSHA256bbc42bc9d2a1a9aa164083270dec1e921aedc9eec2033e2f0b0a31c6199764b8. Reused JRE remains shared with Solr/ArcadeDB; do not remove while any demo uses it. All .NET production held provider lease and bounded workers.
+
+- `LocalState/COSMIC/RecoveryLaptopOpenSearch390`: 2177558561bytes retained.
+- `Providers/Storage/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS/bin`: 8272807bytes retained.
+- `Providers/Storage/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS/obj`: 973439bytes retained.
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.UnitTests/bin`: 47127947bytes retained.
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.UnitTests/obj`: 1019925bytes retained.
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.IntegrationTests/bin`: 47125916bytes retained.
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.IntegrationTests/obj`: 1019630bytes retained.
+- `TestResults/OpenSearchCqlUnitCurrent`: 40083bytes retained.
+- `adapter-evidence.json`: 880bytes retained.
+- `archive.verified.json`: 321bytes retained.
+- `expansion.ack.json`: 239bytes retained.
+- `expansion.intent.json`: 240bytes retained.
+- `opensearch-3.9.0-windows-x64.zip`: 1050303612bytes retained.
+- `runtime-manifest.json`: 598731bytes retained.
+- `runtime-version.log`: 170bytes retained.
+- `runtime-version.result.json`: 159bytes retained.
+- Unit TRX SHA2567a91dac90bf1d6422aefb140086821f448e41b2d6fb26f83ebfd197d810d4d0d.
