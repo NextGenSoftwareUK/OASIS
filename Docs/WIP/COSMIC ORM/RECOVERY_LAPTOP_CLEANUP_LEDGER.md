@@ -676,3 +676,10 @@ SurrealDB native identity validation build passed using existing outputs. Receip
 SurrealDB dedicated database-reader fixture compiled using existing integration bin/obj. Receipt: TestResults/ProviderBuildCurrent/cosmic-surreal-reader-fixture.log. No server started or source mutated.
 
 SurrealDB reader configuration build passed with reused outputs. Receipt: TestResults/ProviderBuildCurrent/cosmic-surreal-reader-config.log.
+
+Installed pinned Railway CLI 5.62.1 once under
+LocalState/COSMIC/RecoveryLaptopRailway5621 (28,205,765 bytes, including npm
+lockfile and dependencies). Reused system Node and npm cache. Keep this
+isolated runtime for the rollout. Existing 4.11 lacks the required project
+selector and stdin variable writes. New CLI help verified both. Account
+check returned Unauthorized. No settings, deployment or project link changed.

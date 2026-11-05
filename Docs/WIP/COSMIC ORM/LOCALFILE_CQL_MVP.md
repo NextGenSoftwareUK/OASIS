@@ -332,11 +332,11 @@ bootstrap for the three retained rows. All eight publisher tests passed again.
 Actual Development settings compatibility still requires authenticated prepare.
 
 On the recovery laptop, set the publisher's executable path before running
-prepare or apply. The default WinGet path is absent. The existing npm-installed
-Railway executable is available and currently returns Unauthorized.
+prepare or apply. The default WinGet path is absent. The original npm-installed
+Railway 4.11 executable lacks project-scoped deployment listing and stdin variable writes. Use the isolated Railway 5.62.1 executable, which supports both and currently returns Unauthorized.
 
 ```powershell
-$env:OASIS_RAILWAY_CLI = Join-Path $env:APPDATA 'npm/node_modules/@railway/cli/bin/railway.exe'
+$env:OASIS_RAILWAY_CLI = Join-Path $PWD 'LocalState/COSMIC/RecoveryLaptopRailway5621/node_modules/@railway/cli/bin/railway.exe'
 & $env:OASIS_RAILWAY_CLI whoami
 ```
 
