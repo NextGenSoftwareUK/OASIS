@@ -329,3 +329,12 @@ and synthetic enabled-sandbox settings with an existing zero-cost IPFS tariff.
 The publisher assembled exactly five settings, four presets and an 8,159-byte
 bootstrap for the three retained rows. All eight publisher tests passed again.
 Actual Development settings compatibility still requires authenticated prepare.
+
+On the recovery laptop, set the publisher's executable path before running
+prepare or apply. The default WinGet path is absent. The existing npm-installed
+Railway executable is available and currently returns Unauthorized.
+
+```powershell
+$env:OASIS_RAILWAY_CLI = Join-Path $env:APPDATA 'npm/node_modules/@railway/cli/bin/railway.exe'
+& $env:OASIS_RAILWAY_CLI whoami
+```
