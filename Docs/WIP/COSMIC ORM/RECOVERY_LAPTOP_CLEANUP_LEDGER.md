@@ -589,3 +589,7 @@ fixture journals remain. No runtime installation. Reports in
 TestResults/SqlServerCqlCurrent:
 - sqlserver-content-native.trx: 596533B198C681BE80E32D845BB75D846B23B29A03C86FC349D19C9F7A935324
 - sqlserver-content-mongo-federation.trx: 3C11F40508041EF02BA831D8984A7F06C1A5115813A2FC1118CE61DC9E7DCB9C
+
+SQL Server read-only activation build reused existing provider outputs.
+Receipt: TestResults/SqlServerCqlCurrent/query-activation-build.log.
+No server started for this build. Native activation and WEB4 wiring pending.
