@@ -83,3 +83,9 @@ source, bootstrap, catalogue and presets. The shared admission retained
 IPFS and LocalFile and appended Hyperlane at zero cost. Prepare Hyperlane
 from the fresh live baseline after LocalFile acceptance so the shared
 admission includes the accepted rollout. Live compatibility remains open.
+
+The reviewed LocalFile image source `c64adf474` contains the Hyperlane WEB4
+registration. Its Core pin `a9a238371` descends from the verified Hyperlane
+admission commit `89d39f6c2`. Review those source and Core pins when
+considering reuse of the image for Hyperlane after LocalFile acceptance.
+Hyperlane settings and runtime acceptance still require separate verification.
