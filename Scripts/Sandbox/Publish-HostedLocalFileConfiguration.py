@@ -208,8 +208,18 @@ def verify_settings():
     if deployment != expected_deployment:
         raise RuntimeError("Current deployment is not the reviewed LocalFile settings deployment")
     expected = configuration.protected_read(PREFIX + "-candidate-variables.dpapi")
+    for key in KEYS:
+        path = configuration.STATE / f"{PREFIX}-{key}.acknowledged.json"
+        if key not in expected or not path.is_file():
+            raise RuntimeError(f"Missing reviewed LocalFile settings acknowledgement for {key}")
+        acknowledgement = json.loads(path.read_bytes())
+        digest = hashlib.sha256(expected[key].encode()).hexdigest()
+        if (acknowledgement.get("key") != key or acknowledgement.get("sha256") != digest
+                or acknowledgement.get("verified") is not True
+                or acknowledgement.get("deploymentTriggered") is not False):
+            raise RuntimeError(f"Invalid reviewed LocalFile settings acknowledgement for {key}")
     observed = configuration.variables()
-    if any(key not in expected or observed.get(key) != expected[key] for key in KEYS):
+    if any(observed.get(key) != expected[key] for key in KEYS):
         raise RuntimeError("Development LocalFile settings differ from the reviewed candidate")
     if verify_release() != deployment:
         raise RuntimeError("Reviewed Railway deployment changed during settings inspection")

@@ -181,12 +181,21 @@ class LocalFileConfigurationTests(unittest.TestCase):
     def test_verify_settings_rejects_drift_without_writing(self):
         before, source, bundle = self.fixture()
         after = publisher.candidate(before, source, bundle)
-        with patch.dict(publisher.os.environ, {"COSMIC_CQL_SETTINGS_DEPLOYMENT_ID": "deployment"}), \
+        with TemporaryDirectory() as directory, \
+             patch.object(publisher.configuration, "STATE", Path(directory)), \
+             patch.dict(publisher.os.environ, {"COSMIC_CQL_SETTINGS_DEPLOYMENT_ID": "deployment"}), \
              patch.object(publisher, "verify_mount", return_value="deployment") as mount, \
              patch.object(publisher, "verify_release", return_value="deployment"), \
              patch.object(publisher.configuration, "protected_read", return_value=after), \
              patch.object(publisher.configuration, "variables", return_value=after) as variables, \
              patch.object(publisher.configuration, "apply_values") as mutation:
+            with self.assertRaisesRegex(RuntimeError, "Missing reviewed LocalFile settings acknowledgement"):
+                publisher.verify_settings()
+            variables.assert_not_called()
+            for key in publisher.KEYS:
+                ack = Path(directory) / f"{publisher.PREFIX}-{key}.acknowledged.json"
+                ack.write_text(json.dumps(dict(key=key, verified=True, deploymentTriggered=False,
+                    sha256=publisher.hashlib.sha256(after[key].encode()).hexdigest())))
             self.assertEqual("deployment", publisher.verify_settings())
             mount.return_value = "earlier-deployment-of-same-image"
             with self.assertRaisesRegex(RuntimeError, "not the reviewed LocalFile settings deployment"):
