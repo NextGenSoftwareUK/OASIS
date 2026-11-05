@@ -108,3 +108,13 @@ pass; latest consumer build0errors/8warnings, initial broad build1140warnings.
 Local profile103 accepted. Hosted60/browser28/open32 unchanged; local catalogue
 publication follows scoped source commit. Full storage/replication/parity and
 hosted restricted credentials/TLS/enrollment remain open.
+
+## Published local catalogue
+Websitefe496ad71c02fb226d2ff3df638e15d57f93f4f1/Vercel success publishes card48.
+Live225801-byte HTML SHA256
+`67ce344ed818e8743a5a8b43372ec53a4def48e9aa35741b94c7ab0b0588432f`
+is Git-blob exact. Two guide/fixture links match scoped parent
+2d55029988e65c61ab7f318c1a36aaabfb6025b4. Actual public card/expanded launcher
+browser verified; ellipsized AX targets covered by exact HTML plus actual5142
+native browser proof.113client tests pass. publication.json retained. Local
+profile103, hosted60/browser28/open32; no hosted MinIO enrollment claim.

@@ -10,7 +10,8 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 retained restart, manager/Mongo/HTTP and browser5/4 verified. Original object
 SHA/ETags unchanged; exact Mongo fixture removed and both services stopped.
 Preserved copied-assertion failure reconciled without replaying saves. Local
-profile103; hosted60/browser28 unchanged. WEB4 local publication is next.
+profile103; hosted60/browser28 unchanged. WEB4 card48 publishedfe496ad/Vercel
+success:113client tests, exact HTML/two source links and browser launcher checked.
 [Exact evidence and remaining gates](MINIO_CQL_MVP.md).
 
 ## PouchDB local profile accepted, 5 November2026
