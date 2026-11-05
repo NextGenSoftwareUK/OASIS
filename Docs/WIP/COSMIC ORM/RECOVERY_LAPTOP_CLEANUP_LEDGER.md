@@ -567,3 +567,12 @@ Reused provider and unit-test build outputs. No native runtime started.
 Restored SurrealDB native/Mongo fixture build reused the integration outputs.
 Receipt: TestResults/ProviderBuildCurrent/cosmic-surreal-native-fixtures.log.
 No runtime installed or test database started by the recovery build.
+
+SQL Server native and restart passed on a new synthetic source using the
+existing LocalDB 17.0.4025.3 runtime. Dedicated instance CosmicCql stopped.
+Retain LocalState/COSMIC/SqlServerCql (16,778,157 bytes) and exact registered
+instance for repeat demos. Build and test outputs are under the SQL Server
+provider and integration project bin/obj and TestResults/SqlServerCqlCurrent.
+Restart TRX SHA256 76DBA16A3F51BDA3F59C3282700F7E935A3328330BB603146290940F6A04EBC8.
+Pairing stopped before Mongo startup because LocalState/COSMIC/mongo-data
+has no WiredTiger store. No Mongo records or new runtime were created.

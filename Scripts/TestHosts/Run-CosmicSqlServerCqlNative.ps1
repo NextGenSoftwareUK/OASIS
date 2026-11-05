@@ -15,7 +15,7 @@ $instanceDirectory=Join-Path $env:LOCALAPPDATA 'Microsoft/Microsoft SQL Server L
     $priorConnection=$env:OASIS_SQLSERVER_CQL_CONNECTION;$priorState=$env:OASIS_SQLSERVER_CQL_STATE
     $oldMongo=$env:OASIS_MONGO_REPLICA_SET_CONNECTION;$oldServe=$env:OASIS_SQLSERVER_MONGO_SERVE
     $mongo=$null
-    $started=$false;$passed=$false
+    $started=$false
     try {
         if($Content -and (Test-Path (Join-Path $state 'mongo-content.pending.json'))){throw 'Content Mongo fixture unresolved.'}
         if($Content -and (Test-Path (Join-Path $state 'content-long-seed.pending.json'))){throw 'Content extension unresolved; preserve without replay.'}
@@ -55,7 +55,7 @@ $instanceDirectory=Join-Path $env:LOCALAPPDATA 'Microsoft/Microsoft SQL Server L
         if($Content){
             if(!(Test-Path (Join-Path $project 'obj/project.assets.json'))){throw 'Existing integration assets required; inspect caches before restoring.'}
         } else {
-        & dotnet restore $project --source C:/Users/david/.nuget/packages /p:NuGetAudit=false /p:RestoreRecursive=false /m:2 /nr:false *> (Join-Path $results 'native-restore.log')
+        & dotnet restore $project --source C:/Users/david/.nuget/packages /p:NuGetAudit=false /m:2 /nr:false *> (Join-Path $results 'native-restore.log')
         if($LASTEXITCODE){throw 'Cached restore failed.'}
         }
         if($Federated){
@@ -106,11 +106,11 @@ $instanceDirectory=Join-Path $env:LOCALAPPDATA 'Microsoft/Microsoft SQL Server L
             if(Test-Path (Join-Path $state $mongoJournal)){throw 'Mongo fixture cleanup incomplete.'}
             Get-Content (Join-Path $results $pairedLog) -Tail 4
         }
-        $passed=$true
+
     } finally {
         $env:OASIS_SQLSERVER_CQL_CONTENT=$oldContent;$env:OASIS_SQLSERVER_CQL_CONNECTION=$priorConnection;$env:OASIS_SQLSERVER_CQL_STATE=$priorState;$env:OASIS_MONGO_REPLICA_SET_CONNECTION=$oldMongo;$env:OASIS_SQLSERVER_MONGO_SERVE=$oldServe
         if($mongo){if(!$mongo.HasExited){$mongo.Kill();if(!$mongo.WaitForExit(30000)){throw "Owned Mongo teardown incomplete."}};$mongo.Dispose()}
-        try {if($started -and $passed){& $tool stop $instance *> (Join-Path $results 'instance-stop.log');if($LASTEXITCODE){throw 'Owned instance stop failed.'}}}
+        try {if($started){& $tool stop $instance *> (Join-Path $results 'instance-stop.log');if($LASTEXITCODE){throw 'Owned instance stop failed.'}}}
         finally {$lease.Dispose()}
     }
 }
