@@ -465,3 +465,5 @@ python -B Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py verify-release
 
 This only checks the deployment observation. Verify the persistent mount
 separately before applying any settings.
+
+Railway 5.62.1 accepted the exact project-scoped deployment list arguments and returned Unauthorized. Its volume list still lacks project, service and environment selectors. Use the dashboard attachment and instance-scoped SSH mount check for the reviewed service.
