@@ -158,6 +158,22 @@ class LocalFileConfigurationTests(unittest.TestCase):
                 self.assertEqual(2, ssh.call_count)
                 mutation.assert_not_called()
 
+    def test_apply_stages_settings_after_single_instance_mount_is_verified(self):
+        before, source, bundle = self.fixture()
+        after = publisher.candidate(before, source, bundle)
+        instance = "11111111-1111-1111-1111-111111111111"
+        with patch.dict(publisher.os.environ, {"COSMIC_CQL_REVIEWED_INSTANCE_IDS": instance}), \
+             patch.object(publisher, "qualified_source", return_value=(source, bundle)), \
+             patch.object(publisher.configuration, "protected_read", side_effect=[before, after]), \
+             patch.object(publisher.configuration, "apply_values") as mutation, \
+             patch.object(publisher, "verify_release") as release, \
+             patch.object(publisher.subprocess, "run", return_value=SimpleNamespace(
+                 returncode=0, stdout=b"42 37 8:1 / /data rw,relatime - ext4 /dev/disk rw\n")) as ssh:
+            publisher.apply()
+            release.assert_called_once_with()
+            ssh.assert_called_once()
+            mutation.assert_called_once_with(publisher.PREFIX, publisher.KEYS)
+
     def test_qualification_rejects_modified_retained_bundle(self):
         _, source, bundle = self.fixture()
         with TemporaryDirectory() as directory:
