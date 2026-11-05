@@ -615,3 +615,9 @@ LocalState/COSMIC/DuckDbCql. Reused cached dependencies and restored producer
 assets under the provider build lease. Keep provider/integration bin and obj
 for pairing. No new runtime or Mongo database. Native TRX under
 TestResults/DuckDbCqlCurrent SHA256 FD513CF3672CD69E87C1495AB7BBF7522AFEAA11997548CABD81960E1E4E9DE6.
+
+DuckDB paired CQL passed 1/1 using the admitted recovery Mongo replica.
+Reused original DuckDB and Mongo stores. Temporary Mongo fixture cleaned,
+no pending journal or owned Mongo listener remains. Report:
+TestResults/DuckDbCqlCurrent/duckdb-mongo-federation.trx
+SHA256 D2CC28FC519744125C23181B4250D2D753D7DFDE9A78B35E2281B28C7F2216E1.

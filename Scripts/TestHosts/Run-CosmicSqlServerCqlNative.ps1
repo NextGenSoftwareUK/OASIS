@@ -81,22 +81,9 @@ $instanceDirectory=Join-Path $env:LOCALAPPDATA 'Microsoft/Microsoft SQL Server L
         if($report.TestRun.ResultSummary.Counters.passed -ne '1' -or $report.TestRun.ResultSummary.Counters.total -ne '1'){throw 'One native pass without skips required.'}
         if($Federated){
             if(Get-NetTCPConnection -State Listen -LocalPort 27029,5115 -ErrorAction SilentlyContinue){throw 'Paired ports occupied; no process adoption.'}
-            if ($RecoveryMongo) {
-                $recovery = Join-Path $root 'LocalState/COSMIC/RecoveryLaptopMongo82'
-                $receipt = Get-Content (Join-Path $recovery 'replica.ready.json') -Raw | ConvertFrom-Json
-                $runtime = 'C:/Program Files/MongoDB/Server/8.2/bin/mongod.exe'
-                $data = Join-Path $recovery 'data'
-                if ($receipt.runtime -ne $runtime -or $receipt.address -ne '127.0.0.1:27029' -or
-                    $receipt.replica -ne 'oasisRecoveryRs' -or (Get-FileHash -LiteralPath $runtime).Hash -ne $receipt.sha256 -or
-                    !(Test-Path -LiteralPath (Join-Path $data 'WiredTiger'))) {
-                    throw 'Recovery Mongo runtime or store differs from the admitted replica.'
-                }
-            } else {
-                $runtime='C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe'
-                $data=Join-Path $root 'LocalState/COSMIC/mongo-data'
-                if(!(Test-Path (Join-Path $data 'WiredTiger'))){throw 'Original Mongo store missing.'}
-                if(((& $runtime --version)-join ' ') -notmatch 'v8\.3\.11\b'){throw 'Pinned Mongo version differs.'}
-            }
+            $mongoSource = & (Join-Path $PSScriptRoot 'Get-CosmicMongoDemoSource.ps1') -Root $root -RecoveryMongo:$RecoveryMongo
+            $runtime = $mongoSource.Runtime
+            $data = $mongoSource.Data
             $mongo=Start-Process $runtime -ArgumentList @('--dbpath',$data,'--bind_ip','127.0.0.1','--port','27029','--replSet','oasisRecoveryRs','--wiredTigerCacheSizeGB','0.25','--oplogSize','32','--logpath',(Join-Path $results 'mongo-service.log'),'--logappend') -WindowStyle Hidden -PassThru
             $mongoReady=$false
             for($i=0;$i -lt 40;$i++){
