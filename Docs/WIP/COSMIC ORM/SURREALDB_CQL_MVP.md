@@ -157,3 +157,14 @@ Recovery laptop inventory confirmed that WSL has no installed distributions.
 The launcher now rejects missing Ubuntu before writing outputs or starting a
 build. The original Linux runtime and data therefore require recovery before
 the original-source verification can run on this laptop.
+
+### Development read source gate
+
+The recovered provider activation calls DEFINE TABLE for the storage schema
+and its SDK connection currently uses AuthLevel Root. WEB4 query enrollment
+requires an independent read-only activation path and credentials scoped to
+the demo namespace/database. Verify the configured database by reading an
+explicit teaching record and checking its native and decoded IDs. An empty
+query result alone cannot establish that the dataset is present. Keep
+ordinary storage activation for provisioning, then verify the read-only
+path against the native source before enrolling it in WEB4.
