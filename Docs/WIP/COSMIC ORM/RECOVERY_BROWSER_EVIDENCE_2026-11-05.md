@@ -4,7 +4,11 @@ Scroll passed native 3/2 and pairing 5/4 in sandbox-3a2cb72c.
 Preparation acknowledged two saves. Private IDs are
 2fe7afb1-7040-87d2-90d3-746bb68b35ef and
 4c1c1603-4fe6-8835-94ad-bdc6444206c3, both version 1.
-Reuse, privacy and rendered replica comparison remain open.
+Reuse reported zero saved and two prepared. Both SQLite and Neo4j returned
+two rows with rendered contents exactly matching MongoDB. Independent
+HTTP privacy stopped at USER_BOUND_BEARER_REQUIRED. The HTTP session
+expiry decision still uses the laptop wall clock and needs the same
+issued-lifetime correction as the browser. Keep privacy open.
 
 Live page https://web4.oasisomniverse.one/web4-sandbox.html.
 Development selected. One demo session, sandbox-ca8924da, owner
