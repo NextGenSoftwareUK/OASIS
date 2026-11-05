@@ -50,21 +50,27 @@ foreach ($argsToReject in @(@{}, @{Federated=$true; ArchiveCompletedDemo=$true})
     if (!$denied) { throw 'SurrealDB requires explicit paired scope and preserved source.' }
 }
 
-$sqlServerPlans = foreach ($bounded in @($true, $false)) {
-    $plan = & $hub -Provider SQLServer -Federated -RecoveryMongo -VerifyOnly:$bounded -ShowPlan
-    $mode = if ($bounded) {'bounded verification'} else {'interactive until explicit shutdown'}
-    if ($plan.Provider -ne 'SQLServer' -or $plan.Mode -ne $mode -or !$plan.RecoveryMongo -or
-        $plan.Url -ne 'http://127.0.0.1:5115/' -or
-        $plan.Runner -ne (Join-Path $PSScriptRoot 'Run-CosmicSqlServerCqlNative.ps1')) {
-        throw 'SQL Server recovery demo routing contract mismatch.'
+$recoveryPlans = foreach ($contract in @(
+    @{Provider='SQLServer'; Runner='Run-CosmicSqlServerCqlNative.ps1'; Port=5115},
+    @{Provider='DuckDB'; Runner='Run-CosmicDuckDbCqlNative.ps1'; Port=5116},
+    @{Provider='LocalFile'; Runner='Run-CosmicLocalFileCqlNative.ps1'; Port=5110}
+)) {
+    foreach ($bounded in @($true, $false)) {
+        $plan = & $hub -Provider $contract.Provider -Federated -RecoveryMongo -VerifyOnly:$bounded -ShowPlan
+        $mode = if ($bounded) {'bounded verification'} else {'interactive until explicit shutdown'}
+        if ($plan.Provider -ne $contract.Provider -or $plan.Mode -ne $mode -or !$plan.RecoveryMongo -or
+            $plan.Url -ne "http://127.0.0.1:$($contract.Port)/" -or
+            $plan.Runner -ne (Join-Path $PSScriptRoot $contract.Runner)) {
+            throw "Recovery demo routing contract mismatch for $($contract.Provider)."
+        }
+        $plan
     }
-    $plan
 }
 
 $after=Listeners
 if($before -cne $after){throw 'Plan-only discovery changed native/demo listeners.'}
 $work=Join-Path $root 'TestResults/ProtocolCqlCurrent'
 New-Item -ItemType Directory -Path $work -Force | Out-Null
-@{profiles=$contracts.Count;plans=@($verified);archiveRejections=4;pairedScopeRejections=1;surrealPlans=@($surrealPlans);sqlServerPlans=@($sqlServerPlans);listenersUnchanged=$true} |
+@{profiles=$contracts.Count;plans=@($verified);archiveRejections=4;pairedScopeRejections=1;surrealPlans=@($surrealPlans);recoveryPlans=@($recoveryPlans);listenersUnchanged=$true} |
     ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $work 'database-hub-routing.json') -Encoding utf8
-Write-Output 'PASS: ten profiles, both lifecycle plans, five rejections; listeners unchanged.'
+Write-Output 'PASS: twelve profiles, both lifecycle plans, five rejections; listeners unchanged.'
