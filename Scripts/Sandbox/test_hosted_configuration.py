@@ -46,13 +46,15 @@ class ConfigurationOwnerTests(unittest.TestCase):
                 current["KEEP"] = "another-owner"
             return copy.deepcopy(current)
 
-        def send(arguments, *, input, capture_output):
+        def send(arguments, *, input, capture_output, timeout):
             key = arguments[3]
             sent.append(key)
             self.assertIn("s3-public-" + key + ".intent.json", records)
             self.assertIn("--stdin", arguments)
             self.assertIn("--skip-deploys", arguments)
             current[key] = input.decode()
+            if mode == "timeout":
+                raise configuration.subprocess.TimeoutExpired(arguments, timeout)
             return types.SimpleNamespace(returncode=1 if mode == "unknown" else 0)
 
         def persist(file, data):
@@ -74,7 +76,7 @@ class ConfigurationOwnerTests(unittest.TestCase):
                     configuration.apply_values("s3-public", ["ONE", "TWO"])
                 self.assertEqual(sent, ["ONE"])
                 self.assertNotIn("s3-public-TWO.intent.json", records)
-                if mode == "unknown":
+                if mode in ("unknown", "timeout"):
                     self.assertNotIn("s3-public-ONE.acknowledged.json", records)
                 else:
                     self.assertEqual(current["KEEP"], "another-owner")
@@ -87,6 +89,9 @@ class ConfigurationOwnerTests(unittest.TestCase):
 
     def test_unknown_mutation_outcome_keeps_intent_and_blocks_replay(self):
         self.exercise("unknown")
+
+    def test_timed_out_mutation_keeps_intent_and_blocks_replay(self):
+        self.exercise("timeout")
 
     def test_concurrent_configuration_change_stops_before_next_mutation(self):
         self.exercise("concurrent")

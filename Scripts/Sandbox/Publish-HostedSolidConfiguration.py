@@ -148,8 +148,12 @@ def apply_values(prefix, keys):
             raise RuntimeError("Configuration changed concurrently; no mutation sent.")
         digest = hashlib.sha256(after[name].encode()).hexdigest()
         write_new(intent, compact({"key": name, "sha256": digest, "skipDeploys": True}).encode())
-        result = subprocess.run([str(CLI), "variable", "set", name, *COMMON, "--stdin", "--skip-deploys", "--json"],
-                                input=after[name].encode(), capture_output=True)
+        try:
+            result = subprocess.run(
+                [str(CLI), "variable", "set", name, *COMMON, "--stdin", "--skip-deploys", "--json"],
+                input=after[name].encode(), capture_output=True, timeout=60)
+        except (OSError, subprocess.TimeoutExpired):
+            raise RuntimeError("Mutation outcome needs reconciliation; original intent retained.") from None
         if result.returncode:
             raise RuntimeError("Mutation outcome needs reconciliation; original intent retained.")
         expected[name] = after[name]
