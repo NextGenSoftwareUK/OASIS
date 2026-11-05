@@ -509,6 +509,14 @@ authentication, instance mount confirmation and live acceptance remain open.
 
 The build log confirms that both the full commit tag and the isolated candidate tag were pushed to the same digest. The job did not push the shared sandbox tag.
 
+A fresh fetch confirmed `origin/Development` at `b718f2879` is an
+ancestor of candidate `c64adf474`. The only Docker input changed is the
+Core pin. Candidate Core `a9a23837` descends from Development Core
+`54159614` and adds the bounded Hyperlane and explicit LocalFile query
+tariffs. The manifest validator passed for all seven Dockerfiles and the
+candidate gitlinks. Repeat the ancestry check immediately before rollout
+if Development advances.
+
 An independent registry check with the existing GitHub credential returned HTTP 403. The successful push log establishes publication at build time. Current pull access and the actual running image digest must be verified through the Development service.
 The anonymous registry manifest request returned a bearer challenge, and
 the anonymous token exchange for this repository's pull scope returned
