@@ -40,6 +40,18 @@ Updated 1 November 2026. **Live HTTP lifecycle and frontend publication verified
 
 ## Next
 
+Recovery browser observation, 5 November 2026. Session sandbox-ca8924da
+completed several CQL provider flows, then Avalanche preparation received
+USER_BOUND_BEARER_REQUIRED with request key
+eb97063d-0be1-472a-9711-2231350d8b94. The browser console exposed no warning
+or error. The published web4-session.js SHA256 still matches the verified
+41f7adf87786fc3071b23377eb1278fb4d41ce6f17b8519b19cc8a97acafc856
+and its text matches the local module after line-ending normalization.
+Preparation calls ensureAccessToken, and each request obtains accessContext.
+The denial proves an unauthenticated API principal on that request.
+Token expiry, renewal issuance and deployment-instance signing consistency
+still need direct evidence before assigning a cause. Preserve this avatar.
+
 Continue Starknet selected release and hosted acceptance. Browser renewal/expiry interaction stays separately open while CUA is unavailable; do not resume OS control or ask David to reopen the browser. Preserve the completed session cohort and all original failure evidence.
 
 [Current status](CURRENT_STATUS.md) / [protocol](../../Devs/WEB4_SANDBOX_SESSION_AUTH.md) / [rollout history](Archive/SESSION_RENEWAL_ROLLOUT_HISTORY_2026-11-01.md) / [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
