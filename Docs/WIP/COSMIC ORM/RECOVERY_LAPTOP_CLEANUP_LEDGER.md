@@ -1753,6 +1753,20 @@ one lease, with logs under `TestResults/ProviderBuildCurrent/` named
 They finished with 148 and 11 warnings respectively, and zero errors.
 The lease restored the shared Core checkout to `54159614`.
 
+ArcadeDB WEB4 admission uses the existing .NET SDK, NuGet cache and
+provider build lease. Log:
+`TestResults/ProviderBuildCurrent/arcadedb-hosted-api-cql.log`. Candidate
+receipt and planned TRX are in the evidence-only
+`LocalState/COSMIC/HostedArcadeDbCqlQualification/` directory.
+No native ArcadeDB process, runtime or source copy was created.
+
+The ArcadeDB admission run completed with seven passes and zero skips.
+TRX SHA-256 `adbc578d9ed2b3903d5f64e0fa174a23915b739c5bfba4ba8341b05cafe84e3d`.
+The separate hosted fixture build uses the same lease and existing outputs.
+Its log is `TestResults/ProviderBuildCurrent/arcadedb-hosted-native-fixture-build.log`.
+The build finished with 145 warnings and zero errors and restored shared Core
+to `54159614`. No native process started.
+
 5 November 2026, 16:24 local. The Railway project page was checked read-only
 in a temporary in-app browser tab. It displayed Login and did not expose
 the project. No credentials, changes, screenshots or downloads were made.

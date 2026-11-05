@@ -67,6 +67,15 @@ public class CqlCouchDbHostedAdmissionTests
         Assert.False(source.IsProviderActivated);
     }
 
+    [Fact]
+    public void ArcadeDbExactKeyPresetsPlanNativeAndMongoQueries()
+    {
+        using var client = new System.Net.Http.HttpClient();
+        var source = new NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS.ArcadeDBOASIS(
+            "https://arcade.example.test", "reader", "restricted", client);
+        VerifyExactKeyPresets(ProviderType.ArcadeDBOASIS, source.QueryCapabilities);
+    }
+
     [Theory]
     [InlineData(ProviderType.ElasticsearchOASIS)]
     [InlineData(ProviderType.OpenSearchOASIS)]

@@ -47,10 +47,13 @@ public partial class ArcadeDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOnl
         _queryProbeId = queryProbeId;
     }
 
+    public const string CqlExactRecordRoute = "/api/v1/query/" + Database;
+    public const string CqlExactRecordQuery = "SELECT oasisId, doc FROM Holon WHERE oasisId = :id LIMIT 2";
+
     private async Task<(Holon? Row, int Bytes)> ReadQueryRecordAsync(Guid id, CancellationToken token)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/api/v1/query/{Database}") {
-            Content = Json(new { language = "sql", command = "SELECT oasisId, doc FROM Holon WHERE oasisId = :id LIMIT 2",
+        using var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl + CqlExactRecordRoute) {
+            Content = Json(new { language = "sql", command = CqlExactRecordQuery,
                 @params = new { id = id.ToString("D") } }) };
         using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
         response.EnsureSuccessStatusCode();

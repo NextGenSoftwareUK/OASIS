@@ -587,6 +587,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             Services.Cql.CqlMeilisearchReadSourceRegistration.AddMeilisearchReadSource(services, Configuration);
             Services.Cql.CqlSolrReadSourceRegistration.AddSolrReadSource(services, Configuration);
             Services.Cql.CqlSearchDocumentReadSources.AddSearchDocumentReadSources(services, Configuration);
+            Services.Cql.CqlArcadeDbReadSourceRegistration.AddArcadeDbReadSource(services, Configuration);
 
             if (Configuration["CQL_CHROMA_QUERY_ORIGIN"] is string chromaOrigin)
             {

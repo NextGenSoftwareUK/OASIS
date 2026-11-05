@@ -148,3 +148,23 @@ least-privilege credential qualification and full ORM/provider gates remain open
 
 LocalFile priority rechecked: retained Railway CLI whoami still Unauthorized.
 The existing owner action remains pending; no duplicate action/account request.
+
+## WEB4 hosted enrollment preparation
+
+The opt-in profile uses CQL_ARCADEDB_QUERY_ORIGIN, CQL_ARCADEDB_QUERY_USERNAME,
+CQL_ARCADEDB_QUERY_PASSWORD and CQL_ARCADEDB_QUERY_PROBE_ID. It requires an
+existing owned HTTPS origin, a restricted reader for the oasis database and a
+live teaching probe. The transport admits only the provider's parameterized
+exact-ID SELECT, with one canonical GUID and an unchanged query body.
+
+The ArcadeDBHostedCqlNative fixture accepts COSMIC_ARCADEDB_HOSTED_CQL_SOURCE
+with Endpoint, Actor, three LiveIds, one DeletedId and one MissingId. It uses
+WEB4's actual request guard and checks public roots, full and subset reads,
+paging, native absence and unchanged document hashes. Credentials stay in the
+process environment. Seven focused WEB4 tests passed with zero skips at Core
+`c630ec4`. They include actual adapter request construction, rejection of
+unadmitted requests and all four preset plans. TRX SHA-256
+`adbc578d9ed2b3903d5f64e0fa174a23915b739c5bfba4ba8341b05cafe84e3d`.
+The HTTPS fixture compiled with 145 warnings and zero errors. Native HTTPS
+execution requires an owned source and restricted credentials. The retained
+Windows source was untouched.
