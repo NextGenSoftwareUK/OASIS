@@ -15,7 +15,7 @@ b1f86140-00a9-4017-9b6c-af9eade65c76. Reuse this browser session.
 | PolkadotOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
 | NEAROASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
 | BaseOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
-| AvalancheOASIS | 3/2 | 5/4 | 2 saved after identity rejection; reuse pending | Pending |
+| AvalancheOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared; earlier denial retained | MongoDB, SQLite, Neo4j each 0 |
 
 Avalanche native full/subset reads passed in the same session. Preparation
 then reported that billable routes require a validated bearer identity,
@@ -35,6 +35,10 @@ Independent privacy was interrupted by HTTP 401 USER_BOUND_BEARER_REQUIRED.
 The visitor token had 64 seconds remaining by the laptop clock. The API
 edge Date header was approximately 81 seconds ahead of that clock.
 Clock offset must be accounted for when deciding when to renew.
+The same independent visitor subsequently renewed normally and saw zero
+rows for both Avalanche private IDs on MongoDB, SQLite and Neo4j.
+Avalanche's functional browser flow now has native, pairing, reuse,
+replica-content and independent privacy evidence.
 
 Solana private IDs are 3066ca99-2a54-885f-afad-8b104f13b653 and
 b7f878cb-cd6d-8bf6-b075-e86856ade714. Google private IDs are
