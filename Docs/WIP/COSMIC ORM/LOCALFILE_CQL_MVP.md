@@ -422,3 +422,10 @@ localfile-candidate-c64adf474. GitHub accepted the dispatch (HTTP 204) and
 reported [run 41948106729](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/41948106729)
 in progress. Reuse that run for observation. This image build does not
 apply Railway settings or promote a deployment.
+
+[Run 41948106729](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/41948106729)
+completed successfully. Job 126985246906 confirmed the isolated candidate tag
+was pushed with digest
+sha256:11257dfebf23acfa6a321273baf98b8eefe2f83f8b430a862ab54ed9a168a6ce.
+Use that immutable digest when reviewing the Development image. Railway
+authentication, instance mount confirmation and live acceptance remain open.
