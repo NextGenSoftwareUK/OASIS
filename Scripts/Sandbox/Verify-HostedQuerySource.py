@@ -137,12 +137,15 @@ def session(state, label, *, allow_create=True):
 def ready_source(provider, token, require_pair):
     discovery = call("data/query-cql/providers?examplesVersion=2", token, method="GET")
     source = next((row for row in discovery["result"] if row["provider"] == provider), None)
-    if source is None or not source.get("available") or (require_pair and not source.get("federationAvailable")):
+    if source is None or source.get("available") is not True or (require_pair and source.get("federationAvailable") is not True):
         raise RuntimeError(f"{provider} is absent or unavailable in hosted discovery.")
     required = {"public-records", "public-subset"}
     if require_pair:
         required.update(("mongo-public-records", "mongo-public-subset"))
-    available = {row["id"] for row in source["examples"] if row.get("available") is not False}
+    examples = source["examples"]
+    if any("available" in row and type(row["available"]) is not bool for row in examples):
+        raise RuntimeError(f"{provider} returned invalid hosted preset availability.")
+    available = {row["id"] for row in examples if row.get("available", True)}
     if not required.issubset(available):
         raise RuntimeError(f"{provider} is missing required hosted query presets.")
     return source
