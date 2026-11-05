@@ -598,3 +598,12 @@ and hosted federation and replication verification.
   silently replace this with a cloud account or repeated provider environments.
   This is separate from the other laptop's older WSL disk-compaction item.
 - Evidence/scope: [Typesense native gate](../COSMIC%20ORM/TYPESENSE_CQL_MVP.md).
+
+
+## Algolia owned teaching source access - 2026-11-05
+
+- Status: pending owned-source/account access; no native request or new account created.
+- Context: bounded canonical-Holons CQL implementation passes31controlled tests; the read-only native qualification fixture compiles. This is not native or hosted Algolia acceptance. No Algolia process-environment credentials/source descriptor have been supplied on this laptop.
+- Concrete owner step: make an owned Algolia teaching application's existing oasis_holons fixture available through a private source descriptor and an index-restricted key with search ACL. Descriptor fields are AppId, Actor, three LiveIds, one soft-deleted DeletedId, and one absent MissingId. Set COSMIC_ALGOLIA_CQL_API_KEY privately in the process environment; keep credentials outside chat and the descriptor. If no teaching fixture exists, identify the owned application and secure provisioning access so engineering can prepare it; David is not asked to write records manually.
+- Reason: account selection and credentials belong to David. Engineering owns source preparation and native verification; no permission is inferred to create or purchase another account. The prepared read-only launcher makes no native writes and preserves first failures without automatic retries.
+- Reviewable result and steps: [Algolia CQL native gate](../COSMIC%20ORM/ALGOLIA_CQL_MVP.md), [qualification launcher](../../../Scripts/TestHosts/Run-CosmicAlgoliaCqlNative.ps1).

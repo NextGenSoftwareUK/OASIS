@@ -30,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgoliaOASIS
     /// List:    POST https://{appId}-dsn.algolia.net/1/indexes/{index}/browse
     ///            body: {"hitsPerPage":1000}
     /// </summary>
-    public class AlgoliaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class AlgoliaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -56,11 +56,18 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgoliaOASIS
         private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
         private StringContent Json(object obj) => new StringContent(Ser(obj), Encoding.UTF8, "application/json");
 
-        public AlgoliaOASIS(string appId, string apiKey)
+        public AlgoliaOASIS(string appId, string apiKey, HttpClient? httpClient = null)
         {
+            if (string.IsNullOrEmpty(appId) || appId.Length > 50 || System.Linq.Enumerable.Any(appId,
+                c => !(c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z' || c >= '0' && c <= '9')))
+                throw new ArgumentException("An ASCII alphanumeric Algolia application ID is required.", nameof(appId));
+            if (string.IsNullOrWhiteSpace(apiKey) || System.Linq.Enumerable.Any(apiKey, c => c < 32 || c > 126))
+                throw new ArgumentException("A valid Algolia API credential is required.", nameof(apiKey));
             _appId = appId;
             _baseUrl = $"https://{appId}-dsn.algolia.net";
-            _http = new HttpClient();
+            _http = httpClient ?? new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+            if (_http.DefaultRequestHeaders.Contains("X-Algolia-Application-Id") || _http.DefaultRequestHeaders.Contains("X-Algolia-API-Key"))
+                throw new ArgumentException("Supply a dedicated credential-free HTTP client for this Algolia provider.", nameof(httpClient));
             _http.DefaultRequestHeaders.Add("X-Algolia-Application-Id", appId);
             _http.DefaultRequestHeaders.Add("X-Algolia-API-Key", apiKey);
             ProviderName = "AlgoliaOASIS";

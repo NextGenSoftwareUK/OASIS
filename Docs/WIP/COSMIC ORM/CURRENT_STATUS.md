@@ -4,6 +4,18 @@ Updated 5 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
+## Algolia controlled CQL continuation, 5 November 2026
+
+Implemented real exact-ID batch REST CQL with read-only probe activation,
+request/result identity/order checks, authority/deletion/paging, bounded payloads
+and cancellation.31controlled cases pass; native fixture builds. Reproduced
+embedded-child projection failure fixed before materialization; failure tests
+assert intended causes. Owned native source/search key still required, recorded
+in the existing David actions list. Native/Mongo/HTTP/browser/hosted acceptance
+remain open, counts100/60/28 unchanged. [Evidence](ALGOLIA_CQL_MVP.md).
+Task branch includes the fetched Development state; no unverified bulk
+promotion. [Scoped integration state](CQL_BRANCH_INTEGRATION_STATUS.md).
+
 ## Local catalogue routing correction, 5 November 2026
 
 Reproduced provider UI address clashes fixed at their assignments: QuestDB5134,
