@@ -107,3 +107,9 @@ reviewed Core commit with the matching Railway manifest. Verify no enrollment
 without configuration and no storage write tariff for the query-only profile.
 Then verify discovery, native and Mongo-paired presets, isolation and replicas
 through the live Development service. LocalFile remains the first rollout.
+
+Core admission candidate 2ef15c3d7ad3c68c97d3b0dcd32ee24c2428b33a is on local
+Core branch work/cosmic-sqlserver-admission, based on parent pin 47c3a841.
+It adds SQL Server to the explicit query-tariff allowlist. The shared Core
+checkout was untouched. Build and verify query-only admission before publishing
+the Core commit or advancing the parent manifest and gitlink.
