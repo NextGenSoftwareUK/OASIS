@@ -1612,3 +1612,57 @@ Full job logs remain remote; fetched84371characters into tool memory and retaine
 only compact excerpts/run identity in existing hosted-preparation/linux-sdk-ci.json
 (SHA627e32e115611b5d22423b6dc6948a675752a07583a27dbc7902f5c24b88a93e).
 First LocalFile image/mount access gate and accepted cohorts remain unchanged.
+
+PouchDB hosted CQL qualification reuses the existing Node SDK, retained source
+and .NET build outputs under the provider build lease. The first phase
+`hosted-cql-4becd032fd364dd88c1002d57bc12993` retains its failed TRX and logs:
+the test's nested captured ID was rejected during expression construction.
+The phase closed both native stores; PID 5128 stopped and port 13800 was no
+longer listening. The corrected test runs in a new evidence directory against
+the same source. Build logs are under `TestResults/ProviderBuildCurrent/` as
+`pouchdb-hosted-native-cql-build.log`, `pouchdb-hosted-native-cql-recheck.log`
+and `pouchdb-hosted-api-cql.log`; API TRX is planned under the existing
+candidate's `api-cql-admission/`. No runtime installation or source copy.
+
+Corrected phase `hosted-cql-e9c6add29b464e999cbedc7c19728711` passed one
+native CQL test, zero skips; TRX SHA-256
+`2ff905aefa1fed225ed2d4a91fcc50e96aa1e27444ba50829a5160d98c82cb2e`.
+Native PID 2436 reported both stores closed and no source writes; port 13800
+was no longer listening. Preserve the compact phase receipts and original
+source. The WEB4 admission build uses the same leased outputs.
+
+The first WEB4 test invocation selected the identically named project under
+`ONODE/TestProjects`. Its build log is retained as
+`pouchdb-hosted-api-cql.log` and cannot qualify these tests. Use the exact
+`ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/` project for the
+focused admission run. The paired runner is configured to reuse
+`RecoveryLaptopMongo82` and the existing PouchDB SDK. Its separate disposable
+database is `cosmic_cql_mongo_pouchdb_hosted`, with an intent under
+`hosted-preparation` and a cleanup receipt in its paired test directory.
+
+The first API build finished with zero matching tests. Its TRX remains at
+`api-cql-admission/admission.trx`. The exact project now runs under the
+same lease with log `pouchdb-hosted-api-cql-exact.log` and a separate
+`api-cql-admission-exact/` results path. Existing provider outputs and
+the NuGet cache are shared across the runs.
+
+The exact API run finished with 23 passes, zero failures or skips.
+`api-cql-admission-exact/admission.trx` SHA-256
+`e89bc2e3dd8bce4ce46a4a72474c256d0369914e846c04df0cd7ee15c2755601`.
+The lease restored the original shared Core checkout to `54159614`.
+
+PouchDB settings rehearsal used the existing Node executable and retained
+bundle in memory. Six settings, four presets and four refusal cases passed
+against a synthetic WEB4 baseline. No settings file, runtime, database, image
+or download was created.
+
+The separate settings CLI rehearsal
+`settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
+output preserves an existing patch and an invalid qualification receipt
+creates no output. Removed the three exact synthetic input/output files after
+checking their absolute paths. The directory retains only `receipt.json`
+(191 bytes). The existing PouchDB source and receipts were read only.
+
+5 November 2026, 15:13 local. Read-only LocalFile access recheck used the
+existing Railway 5.62.1 executable. Authentication remains unavailable.
+No settings, services, volumes or installed tools changed.

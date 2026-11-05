@@ -170,3 +170,50 @@ mount or deployed visitor/browser behavior. No image was published or deployed.
 Compact log excerpts/run identity are retained in `hosted-preparation/linux-sdk-ci.json`,
 SHA256 `627e32e115611b5d22423b6dc6948a675752a07583a27dbc7902f5c24b88a93e`.
 Full logs remain on the exact GitHub job; no image layers were downloaded locally.
+
+### Retained source through the .NET CQL adapter
+
+The actual PouchDB adapter used WEB4's shipping HTTP source guard against the
+same retained LevelDB database. The guard requires the exact source digest and
+PouchDB SDK version on every response. The test returned 3 full rows, 2 filtered,
+1 paged and 0 for an unadmitted ID. An independent exact-ID request returned a
+native 404. The original payload hashes, record revisions and source receipt
+were unchanged before and after; both native stores closed.
+
+Local phase `hosted-cql-e9c6add29b464e999cbedc7c19728711`: 1 pass, zero
+skips, no writes; TRX SHA-256
+`2ff905aefa1fed225ed2d4a91fcc50e96aa1e27444ba50829a5160d98c82cb2e`.
+The first attempt's failed expression construction is retained separately.
+WEB4 registration, source response guards and admission for all four presets
+passed 23 focused tests with zero skips at Core
+`c8f8278dd885cf76298fac1c2ed4a3843d2a2ac1`. The exact API TRX SHA-256 is
+`e89bc2e3dd8bce4ce46a4a72474c256d0369914e846c04df0cd7ee15c2755601`.
+Paired manager/Mongo HTTP, full image and deployed verification remain open.
+
+The paired check should use the same guarded retained source and the existing
+recovery Mongo replica set. Reuse the established manager and HTTP assertions,
+with a separately owned disposable Mongo database and its own intent and
+cleanup proof. Do not replay the accepted local PouchDB source or its browser
+cohort. Publish a SHA-tagged qualification image only after the paired check;
+the first live WEB4 rollout is still the qualified LocalFile image.
+
+### Settings rehearsal
+
+`Scripts/Sandbox/Prepare-HostedPouchDbConfiguration.cjs` takes a reviewed
+settings snapshot, the qualified bundle, its native qualification receipt and a
+new output path. It writes a patch for review without contacting Railway. The
+patch contains the opt-in flag, original bundle bytes, source digest, four
+presets, a query-only zero-cost tariff and the public catalogue entry for
+exactly the three source IDs. The existing sandbox DNA, unrelated tariffs and
+catalogues are preserved. An existing PouchDB registration requires explicit
+reconciliation.
+
+The rehearsal used the retained bundle and a synthetic baseline. It produced
+six setting values and four presets, and rejected an existing registration,
+disabled sandbox DNA, missing free tariff and altered bundle. The in-memory
+patch SHA-256 was
+`9bb8bebf2ca4295902b7bf84e1b3191e2f2f87398dac0424a5f0948fe29b1284`.
+Live settings review requires the actual Development snapshot after LocalFile.
+The CLI produced the same digest with the real qualification receipt. It
+refused to replace the existing output and produced no output with an invalid
+receipt. The synthetic files were removed after checking their exact paths.

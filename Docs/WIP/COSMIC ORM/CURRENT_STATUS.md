@@ -6,6 +6,13 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
 ## PouchDB persistent hosted-source module, 5 November 2026
 
+The .NET PouchDB adapter passed its retained-source CQL test with WEB4's
+shipping response guard: 3 full, 2 filtered, 1 paged, 0 unadmitted; native
+404 confirmed independently. Original wire hashes and revisions unchanged;
+both native stores closed. WEB4 registration, source response guards and four
+native/Mongo presets passed 23 focused admission tests, zero skips. Paired
+manager/Mongo/HTTP and the full image remain open.
+
 Supervision/packaging continuation:36scoped controls and5selected shared cases
 pass; real retained SDK runtime handles simulated shutdown and validation-failure
 cleanup. Exact registry checksums filled without version changes or package
