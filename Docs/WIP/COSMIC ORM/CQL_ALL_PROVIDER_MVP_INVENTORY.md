@@ -248,7 +248,7 @@ Fetched Development 835653f31 is integrated. See [integration verification](DEVE
 
 These are not counted as extra concrete provider identities until their role is verified. They remain in scope for assessment, including wrappers, shared implementations and spelling aliases.
 
-- EdgeSQLiteOASIS: [project](<../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS.csproj>)
+- EdgeSQLiteOASIS: [sync-state component assessment](EDGE_SQLITE_CAPABILITY_ASSESSMENT.md); [project](<../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS.csproj>)
 - EOSNewYork.EOSCore: [project](<../../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/EOSNewYork.EOSCore/EOSNewYork.EOSCore.csproj>)
 - HoloOASIS.Desktop: [project](<../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.csproj>)
 - HoloOASIS.Edge: [project](<../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge.csproj>)
