@@ -70,7 +70,9 @@ queries. Neither the parent-pinned Core d6ae5e7 nor the shared checkout
 5415961 lists QuestDB in SupportedProviders. Extend that canonical unsigned
 read list on the COSMIC Core branch, rerun the focused test against the
 selected Core, and advance the parent gitlink and Railway manifest together.
-The WEB4 registration remains local and uncommitted pending that result.
+The opt-in WEB4 registration was subsequently committed in `7cbc15ba3`.
+It reads `CQL_QUESTDB_SYMBOL_SOURCE_JSON` and remains disabled until a
+Development source is reviewed and configured.
 
 Core task commit 58c7cc9e7e4bd65c2bb8d8336b4af364b03c9370 adds QuestDB to
 the canonical unsigned read list. It was created with an isolated Git index
@@ -109,9 +111,11 @@ WEB4 adapter bounds its own SQL and validates exact returned symbols.
 That does not restrict direct callers of the endpoint. Verify that
 unrelated tables and mutations are unavailable before exposing the fixture.
 
-The recovery laptop retains the pinned QuestDB 10.1.0 runtime and the
-completed fixture cleanup receipt. The previous temporary database was
-removed. For a new, isolated qualification database, seed the same table
+The recovery laptop retains the pinned QuestDB 10.1.0 runtime at
+`LocalState/COSMIC/RecoveryLaptopQuestDB1010`. The local HTTP fixture's
+`LocalState/COSMIC/QuestDbMongoHttpCurrent/fixture.cleaned.json` records
+`databaseAbsent: true`. Reuse the pinned runtime for a local replay. For a
+new, isolated qualification database, seed the same table
 shape and teaching symbols with a separate provisioning account:
 
 ```sql
