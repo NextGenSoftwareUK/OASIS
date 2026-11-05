@@ -82,6 +82,25 @@ class DeploymentGuardTests(unittest.TestCase):
         with patch.dict(batch.os.environ,{"COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT":"a"*40}),patch.object(batch.subprocess,"run",return_value=SimpleNamespace(returncode=0,stdout="b"*40)) as run:
             with self.assertRaises(RuntimeError):batch.require_matching_release(self.configuration())
             self.assertEqual(1,run.call_count)
+    def test_explicit_local_release_ref_must_resolve_to_reviewed_deployed_commit(self):
+        expected = "a" * 40
+        ref = "refs/heads/codex/cosmic-localfile-release-candidate"
+        deployment = json.dumps([{"status": "SUCCESS", "meta": {"commitHash": expected}}])
+        with patch.dict(batch.os.environ, {"COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT": expected}, clear=True):
+            for local in (expected, "b" * 40):
+                with self.subTest(local=local), patch.object(batch.subprocess, "run", side_effect=[
+                        SimpleNamespace(returncode=0, stdout=local),
+                        SimpleNamespace(returncode=0, stdout=deployment)]) as run:
+                    if local == expected:
+                        batch.require_matching_release(self.configuration(), release_ref=ref)
+                        self.assertEqual(2, run.call_count)
+                    else:
+                        with self.assertRaisesRegex(RuntimeError, "Local release ref differs"):
+                            batch.require_matching_release(self.configuration(), release_ref=ref)
+                        run.assert_called_once()
+                    self.assertEqual(["git", "rev-parse", "--verify", "--end-of-options", ref + "^{commit}"],
+                                     run.call_args_list[0].args[0])
+
     def test_apply_never_calls_mutation_owner_when_release_guard_fails(self):
         before,after=ApplicationScopeTests().fixture()
         from unittest.mock import Mock
