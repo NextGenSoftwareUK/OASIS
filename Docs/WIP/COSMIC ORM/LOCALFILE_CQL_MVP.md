@@ -412,6 +412,18 @@ The local demo hub invocation passed native and Mongo-paired verification,
 Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider LocalFile -Federated -RecoveryMongo -VerifyOnly
 ```
 
+For the local browser demo on the recovery laptop, run the published runner
+with the existing recovery Mongo environment selected explicitly:
+
+```powershell
+pwsh -File Scripts/TestHosts/Run-CosmicLocalFileCqlNative.ps1 -Federated -Serve -RecoveryMongo
+```
+
+Open [the loopback query page](http://127.0.0.1:5110/) after the runner starts,
+then use its stop control and wait for fixture cleanup. The recovery-specific
+serve command was checked against the runner parameters. The recovery hub
+evidence above covers `-VerifyOnly`; it does not cover a new browser session.
+
 The temporary Mongo fixture was cleaned and no test listeners remained.
 A fresh hosted readiness check using the retained visitor still reported
 LocalFile absent or unavailable. The hosted replacement bundle remains separate
