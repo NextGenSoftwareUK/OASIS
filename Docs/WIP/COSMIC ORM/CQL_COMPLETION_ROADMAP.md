@@ -41,8 +41,8 @@ task checkout. Runtime qualification remains separate.
    provider. Expand remaining red scopes with explicit capabilities/consistency,
    controlled tests, actual native manager/LINQ and HTTP proof, privacy/replicas,
    honest labels and usable sandbox/local demo links.
-4. Complete 37 remaining browser gates. Twenty-three flows have browser evidence,
-   including the eighteen recovery-session additions documented in
+4. Complete 36 remaining browser gates. Twenty-four flows have browser evidence,
+   including the nineteen recovery-session additions documented in
    [browser evidence](RECOVERY_BROWSER_EVIDENCE_2026-11-05.md).
    Static assets and HTTP success do not prove browser interaction.
 5. Preserve the original MongoDB/SQLite/Neo4j investor subset and 50/82 green

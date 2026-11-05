@@ -8,7 +8,7 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
 - **96 local query types/profiles:**3 canonical, 57 public/source, 36 other local;
   includes 31 recovered historical demos. Not 96 fully implemented providers.
-- **60 scoped hosted HTTP proofs; 23 browser flows verified / 37 browser gates open.**
+- **60 scoped hosted HTTP proofs; 24 browser flows verified / 36 browser gates open.**
   Solana, Google Cloud public objects, Ethereum, Polygon and Arbitrum balances add native
   3/2, paired 5/4, preparation reuse, independent privacy and matching rendered
   replica content. [Browser evidence](RECOVERY_BROWSER_EVIDENCE_2026-11-05.md).

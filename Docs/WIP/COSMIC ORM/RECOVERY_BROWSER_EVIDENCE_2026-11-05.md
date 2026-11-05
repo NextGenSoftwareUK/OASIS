@@ -4,7 +4,9 @@ Berachain passed native 3/2 and pairing 5/4 in sandbox-3a2cb72c.
 Preparation acknowledged two saves. Private IDs are
 c45b1362-8ab1-8d2f-9c47-780b0fee871f and
 c7f868da-a577-8e6e-8db1-41e519f68621, both version 1.
-Reuse, privacy and rendered replica comparison remain open.
+Reuse reported zero saved and two prepared. SQLite and Neo4j each returned
+both copies with rendered contents exactly matching MongoDB. The independent
+retained visitor saw zero rows for both IDs on all three providers.
 
 Sei passed native 3/2 and pairing 5/4 in sandbox-3a2cb72c.
 Preparation acknowledged two saves. Private IDs are
