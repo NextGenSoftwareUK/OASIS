@@ -698,6 +698,15 @@ check returned Unauthorized. No settings, deployment or project link changed.
 
 - DuckDB unit-test output cleanup was rejected by automatic policy review before execution. Confirmed Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.DuckDBOASIS.UnitTests/bin still exists (320891944 logical bytes). Keep it accounted for as regenerable output. The test suite is complete and no removal occurred.
 
+- DuckDB recovery hub replay reused the existing DuckDB source, Mongo runtime
+  and data directory, and provider build lease. Native and paired TRX each
+  passed 1/1 with zero skips. Keep the compact TRX and archived prior reports
+  in TestResults/DuckDbCqlCurrent. Logs in that directory and regenerated
+  provider/Mongo/integration bin and obj are disposable after use. The
+  fixture journal cleared, owned listeners on 27029 and 5116 were absent,
+  and the DuckDB source digest and absence of a WAL were confirmed after exit.
+  No runtime was installed.
+
 - NATS public activation identity/cancellation build, owner cosmic-nats-read-activation. Leased no-restore build reuses the existing SDK and regenerates bin/obj under Providers/Network/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS and its shared references. No new runtime, test database, listener or separate log file requested.
   The leased build completed successfully with zero errors. Native execution remains pending.
 
