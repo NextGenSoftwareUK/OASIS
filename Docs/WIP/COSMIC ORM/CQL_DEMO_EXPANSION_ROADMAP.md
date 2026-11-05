@@ -4,6 +4,8 @@ Updated 1 November 2026. User priority: broader hosted demo before full EF/NHibe
 The original full roadmap remains active; defer depth the demo does not need.
 Current release state/counts: [CURRENT_STATUS](CURRENT_STATUS.md). Detailed dated checkpoints below are historical.
 
+The [WEB4 sandbox acceptance roadmap](SANDBOX_PROVIDER_DEMO_ROADMAP.md) applies to every provider demo.
+
 ## Priority and recommendations
 
 | Order | Provider | Evidence and next work |
