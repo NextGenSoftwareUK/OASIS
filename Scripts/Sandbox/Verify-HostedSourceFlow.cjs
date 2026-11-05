@@ -101,6 +101,11 @@ async function main() {
   // Preserve the existing protocol gate's request order; ID recipes need the
   // mapped identities earlier to compose their actor-specific query predicate.
   if (ids === null) ids = await mappedIds();
+  for (const response of [five, four]) {
+    const pairedIds = new Set(response.result.rows.map(row => row.id));
+    if (pairedIds.size !== response.result.rows.length || ids.some(id => !pairedIds.has(id)))
+      throw Error('Federation did not return distinct source and private snapshot IDs.');
+  }
   const replicas = {};
   const stable = value => JSON.stringify(value, (_, entry) => entry && typeof entry === 'object' && !Array.isArray(entry)
     ? Object.fromEntries(Object.entries(entry).sort(([left], [right]) => left.localeCompare(right))) : entry);
