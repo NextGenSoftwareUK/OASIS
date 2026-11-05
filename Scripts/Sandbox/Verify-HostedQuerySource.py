@@ -203,11 +203,18 @@ def require_reviewed_presets(provider, source, review):
             raise RuntimeError(f"Hosted {provider} preset {key} differs from the reviewed rollout.")
 
 
-def localfile_review():
+def localfile_review(*, require_mount=False):
     path = ROOT / "TestResults/HostedLocalFileSourceCurrent/prepared-review.json"
     if not path.is_file():
         raise RuntimeError("Prepare and review the LocalFile rollout before verifying its advertised catalogue.")
-    return json.loads(path.read_bytes())
+    review = json.loads(path.read_bytes())
+    if require_mount:
+        publisher_path = Path(__file__).with_name("Publish-HostedLocalFileConfiguration.py")
+        publisher_spec = importlib.util.spec_from_file_location("localfile_publisher", publisher_path)
+        publisher = importlib.util.module_from_spec(publisher_spec)
+        publisher_spec.loader.exec_module(publisher)
+        publisher.require_mounted_record_receipt(review["source"])
+    return review
 
 
 def pouchdb_review(path):
@@ -321,6 +328,7 @@ def main():
     if not continuing and (ROOT / "TestResults/HostedCqlIntegrationCurrent" / (suffix + "-client-http-flow.json.progress.json")).exists():
         raise RuntimeError("Original partial client flow exists; reconcile explicitly before another execution.")
     allow_create = not (continuing or options.resume_unstarted_native)
+    reviewed_localfile = None
     if (options.provider == "LocalFileOASIS" or is_pouchdb) and allow_create and not (state / "owner.acknowledged.json").exists():
         _, visitor_token = session(ROOT / "LocalState/COSMIC/HostedDemoRehearsalDiscovery",
                                    "visitor", allow_create=False)
@@ -328,7 +336,10 @@ def main():
         if is_pouchdb:
             require_reviewed_presets(options.provider, source, reviewed_pouchdb)
         else:
-            require_reviewed_presets("LocalFile", source, localfile_review())
+            reviewed_localfile = localfile_review(require_mount=True)
+            require_reviewed_presets("LocalFile", source, reviewed_localfile)
+    elif options.provider == "LocalFileOASIS":
+        reviewed_localfile = localfile_review(require_mount=True)
     state.mkdir(exist_ok=True)
     results = ROOT / "TestResults/HostedCqlIntegrationCurrent"
     if options.resume_unstarted_native:
@@ -345,9 +356,11 @@ def main():
             "ownerId": owner["id"], "provider": options.provider, "operation": "explicit original native-only continuation",
             "replacementOwner": False, "replayAllowed": False}) + "\n").encode())
     avatar, token = session(state, "owner", allow_create=allow_create)
-    source = ready_source(options.provider, token, require_pair=options.prepare or is_pouchdb)
+    source = ready_source(options.provider, token, require_pair=options.prepare or is_pouchdb or reviewed_localfile is not None)
     if is_pouchdb:
         require_reviewed_presets(options.provider, source, reviewed_pouchdb)
+    if reviewed_localfile is not None:
+        require_reviewed_presets("LocalFile", source, reviewed_localfile)
     examples = source["examples"]
     leaf = [next(row for row in examples if row["id"] == key) for key in ("public-records", "public-subset")]
     if continuing:

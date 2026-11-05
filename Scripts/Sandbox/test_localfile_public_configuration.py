@@ -245,6 +245,33 @@ class LocalFileConfigurationTests(unittest.TestCase):
                         with self.assertRaisesRegex(RuntimeError, "outside|qualified digest|deployment changed"):
                             publisher.verify_records()
 
+    def test_mounted_receipt_refuses_missing_modified_and_superseded_evidence(self):
+        _, source, bundle = self.fixture()
+        deployment = "11111111-1111-4111-8111-111111111111"
+        env = {"COSMIC_CQL_SETTINGS_DEPLOYMENT_ID": deployment,
+               "COSMIC_CQL_REVIEWED_INSTANCE_IDS": "22222222-2222-4222-8222-222222222222",
+               "COSMIC_CQL_EXPECTED_DEPLOYMENT_IMAGE_DIGEST": "sha256:" + "a" * 64,
+               "COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT": "b" * 40}
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "TestResults/HostedLocalFileSourceCurrent").mkdir(parents=True)
+            with (
+                patch.object(publisher, "ROOT", root),
+                patch.dict(publisher.os.environ, env),
+                patch.object(publisher, "qualified_source", return_value=(source, bundle)),
+                patch.object(publisher, "verify_release", return_value=deployment) as release,
+            ):
+                with self.assertRaisesRegex(RuntimeError, "Verify mounted"):
+                    publisher.require_mounted_record_receipt(source)
+                publisher.write_mounted_record_receipt(deployment)
+                publisher.write_mounted_record_receipt(deployment)
+                self.assertEqual(deployment, publisher.require_mounted_record_receipt(source)["deployment"])
+                with self.assertRaisesRegex(RuntimeError, "reviewed source"):
+                    publisher.require_mounted_record_receipt(dict(source, records=[]))
+                release.return_value = "superseded"
+                with self.assertRaisesRegex(RuntimeError, "live deployment"):
+                    publisher.require_mounted_record_receipt(source)
+
     def test_qualification_rejects_modified_retained_bundle(self):
         _, source, bundle = self.fixture()
         with TemporaryDirectory() as directory:

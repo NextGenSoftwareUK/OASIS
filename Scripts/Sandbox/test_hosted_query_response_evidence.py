@@ -63,6 +63,23 @@ class ResponseEvidenceTests(unittest.TestCase):
             ready.assert_called_once_with("LocalFileOASIS", "retained", require_pair=True)
             self.assertEqual([], list(root.iterdir()))
 
+    def test_localfile_mount_refusal_precedes_cohort_creation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with (
+                patch.object(verification, "ROOT", root),
+                patch("sys.argv", ["verify", "LocalFileOASIS"]),
+                patch.object(verification, "session", return_value=({}, "retained")) as session,
+                patch.object(verification, "ready_source", return_value={"examples": []}),
+                patch.object(verification, "localfile_review", side_effect=RuntimeError("Missing mount receipt")) as review,
+            ):
+                with self.assertRaisesRegex(RuntimeError, "Missing mount receipt"):
+                    verification.main()
+            review.assert_called_once_with(require_mount=True)
+            session.assert_called_once_with(root / "LocalState/COSMIC/HostedDemoRehearsalDiscovery",
+                                            "visitor", allow_create=False)
+            self.assertEqual([], list(root.iterdir()))
+
     def test_pouchdb_review_binds_presets_to_the_qualified_source(self):
         ids = ["11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8222-222222222222",
                "33333333-3333-4333-8333-333333333333"]

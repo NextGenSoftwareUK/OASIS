@@ -261,6 +261,44 @@ def verify_records():
     return deployment
 
 
+def mounted_record_receipt(deployment, source):
+    uuid_pattern = r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}"
+    if not isinstance(deployment, str) or not re.fullmatch(uuid_pattern, deployment) or not identity(deployment):
+        raise RuntimeError("A canonical settings deployment ID is required.")
+    image = os.environ.get("COSMIC_CQL_EXPECTED_DEPLOYMENT_IMAGE_DIGEST", "")
+    commit = os.environ.get("COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT", "")
+    instance = os.environ.get("COSMIC_CQL_REVIEWED_INSTANCE_IDS", "")
+    if not re.fullmatch(r"sha256:[0-9a-f]{64}", image) or not re.fullmatch(r"[0-9a-f]{40}", commit):
+        raise RuntimeError("Exact reviewed image and commit are required for mounted record evidence.")
+    if not re.fullmatch(uuid_pattern, instance) or not identity(instance):
+        raise RuntimeError("One canonical reviewed instance ID is required.")
+    path = ROOT / "TestResults/HostedLocalFileSourceCurrent" / f"mounted-records-{deployment}.json"
+    receipt = {"schema": 1, "deployment": deployment, "instance": instance, "imageDigest": image,
+               "commit": commit, "source": source}
+    return path, receipt
+
+
+def write_mounted_record_receipt(deployment):
+    source, _ = qualified_source()
+    path, receipt = mounted_record_receipt(deployment, source)
+    data = configuration.compact(receipt).encode()
+    if path.exists():
+        if path.read_bytes() != data:
+            raise RuntimeError("Existing mounted record receipt differs. Reconcile the original observation.")
+    else:
+        configuration.write_new(path, data)
+
+
+def require_mounted_record_receipt(source):
+    deployment = os.environ.get("COSMIC_CQL_SETTINGS_DEPLOYMENT_ID", "")
+    path, expected = mounted_record_receipt(deployment, source)
+    if not path.is_file() or not 0 < path.stat().st_size <= 16384:
+        raise RuntimeError("Verify mounted LocalFile records before hosted acceptance.")
+    if json.loads(path.read_bytes()) != expected or verify_release() != deployment:
+        raise RuntimeError("Mounted LocalFile receipt differs from the reviewed source or live deployment.")
+    return expected
+
+
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prepare()
@@ -277,6 +315,7 @@ if __name__ == "__main__":
         print(f"Reviewed LocalFile settings and mount verified for deployment {deployment}.")
     elif sys.argv[1:] == ["verify-records"]:
         deployment = verify_records()
+        write_mounted_record_receipt(deployment)
         print(f"Reviewed LocalFile settings, mount and three teaching records verified for deployment {deployment}.")
     else:
         raise SystemExit("Use no arguments to prepare, verify-release, verify-mount, verify-settings or verify-records to inspect, or apply after exact code deployment.")

@@ -593,7 +593,12 @@ python -B Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py verify-records
 This command checks the protected settings and mount before and after
 inspecting the files. It verifies each resolved path, reads at most
 32,769 bytes per record and compares the three qualified SHA-256 digests.
-It prints the deployment ID and verification result. The focused rehearsal
+It writes a deployment-specific public receipt under
+`TestResults/HostedLocalFileSourceCurrent/` and prints the deployment ID.
+Keep the reviewed commit, digest, deployment and instance variables set
+for HTTP acceptance. The verifier checks that the receipt matches the
+review and the same deployment is still current before creating a cohort.
+The focused rehearsal
 accepted all three original records and rejected a redirected path, changed
 bytes, an oversized record and a deployment change. The actual Railway
 inspection still requires sign-in. After it passes, run discovery and the
