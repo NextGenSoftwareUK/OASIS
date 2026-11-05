@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param(
-    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','SurrealDB','CouchDB','SQLServer','DuckDB','LocalFile')][string]$Provider='SQLite',
+    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','SurrealDB','CouchDB','SQLServer','DuckDB','LocalFile','Chroma')][string]$Provider='SQLite',
     [switch]$VerifyOnly,
     [switch]$Federated,
     [switch]$RecoveryMongo,
@@ -41,18 +41,22 @@ if ($Provider -in @('SQLServer','DuckDB','LocalFile')) {
     return
 }
 
-if ($Provider -in @('SurrealDB','CouchDB')) {
+if ($Provider -in @('SurrealDB','CouchDB','Chroma')) {
     if (!$Federated -or $ArchiveCompletedDemo) {
         throw "$Provider requires the Mongo-paired preset and preserves its original source. Use -Federated without -ArchiveCompletedDemo."
     }
-    $runnerName = if ($Provider -eq 'SurrealDB') {'Run-CosmicSurrealDbLinuxDemo.ps1'} else {'Run-CosmicCouchDbLinuxDemo.ps1'}
+    $runnerName = switch ($Provider) {
+        'SurrealDB' {'Run-CosmicSurrealDbLinuxDemo.ps1'}
+        'CouchDB' {'Run-CosmicCouchDbLinuxDemo.ps1'}
+        'Chroma' {'Run-CosmicChromaLinuxDemo.ps1'}
+    }
     $runner = Join-Path $PSScriptRoot $runnerName
     if ($ShowPlan) {
         [pscustomobject]@{
             Provider = $Provider
             Mode = $(if ($VerifyOnly) {'bounded verification'} else {'interactive until explicit shutdown'})
             Runner = $runner
-            Url = $(if ($Provider -eq 'SurrealDB') {'http://127.0.0.1:5133/'} else {'http://127.0.0.1:5132/'})
+            Url = $(if ($Provider -eq 'CouchDB') {'http://127.0.0.1:5132/'} else {'http://127.0.0.1:5133/'})
             Scope = "Mongo and retained authenticated native $Provider, five rows and four in the subset"
         }
         return
