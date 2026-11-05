@@ -1,5 +1,12 @@
 # Development browser evidence, 5 November 2026
 
+Algorand passed native 3/2 and paired 5/4 in sandbox-3a2cb72c.
+Preparation saved two private version-1 copies: 93acbe02-1a7f-89cb-b4dc-faefbe8e36af
+and fa5254d4-1013-8ba1-967f-c5f21ed844cc. Repeat preparation reported zero
+saved and two already prepared. Exact-ID browser queries returned both copies
+with rendered contents equal across MongoDB, SQLite and Neo4j. The independent
+retained visitor returned zero rows for these IDs on all three providers.
+
 Stellar passed native 3/2 and paired 5/4 in sandbox-3a2cb72c.
 Preparation saved two private version-1 copies: 639841c4-6013-8b02-857a-b7987747f04f
 and fb968617-c5f9-81b5-a78c-2e8acdfa8945. Repeat preparation reported zero
