@@ -76,3 +76,17 @@ restricted to that source before adding the public catalogue and zero-cost
 query tariff. Chroma's bounded reads use POST for the native collection
 query API, so qualify read permissions by operation and path. Keep native
 mutation endpoints outside the query credential's scope.
+
+The adapter needs these two native operations under the exact configured
+tenant and database:
+
+- `GET /api/v2/tenants/{tenant}/databases/{database}/collections/oasis_holons`
+  for collection activation.
+- `POST /api/v2/tenants/{tenant}/databases/{database}/collections/{uuid}/get`
+  for the bounded ID query. Use the collection UUID returned by activation.
+
+Qualify the credential against both routes and confirm that collection
+creation and document upsert/delete are denied on a disposable fixture.
+The provider's injected HTTP client supports separate host-managed
+authentication. Keep credential values out of source configuration and
+acceptance reports.
