@@ -42,7 +42,8 @@ native source. No error-time alternative query path. Its default identity
 presets remain the default when no explicit CQL preset is supplied.
 
 This closes a local browser gap, not another provider/profile: counts remain
-100local/60hostedHTTP/28hostedbrowser. Public local catalogue card/guide is next.
+100local/60hostedHTTP/28hostedbrowser. Public local catalogue card44/guide published at websiteaf74e5a, with corrected
+5134address, Vercel success, exact public bytes and live browser verification.
 Hosted HTTPS restrictions/enrollment, public gateway qualification, PGWire
 holon storage and full ORM parity remain open. See the
 [local launcher guide](../../Devs/QUESTDB_CQL_LOCAL_DEMO.md).

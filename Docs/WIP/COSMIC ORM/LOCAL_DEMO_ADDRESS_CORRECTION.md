@@ -31,11 +31,18 @@ before correction and passes afterward. All113client/catalogue tests pass.
 Compact red/green reports and build logs live under
 `LocalState/COSMIC/LocalCatalogueAddressCurrent`.
 
-Publication pending: parent task source commit must pin the corrected guides and
-QuestDB C# fixture; update all five affected website source links, publish the
-scoped website batch, verify Vercel/live bytes and actual card hrefs. Current
-published websitebfd1e4b has the initial QuestDB card; corrections are in its
-working tree. Do not claim corrected-link publication yet.
+Publication complete: parent source `e33199d90f821776cbf514b57a6671911c16e4ab`
+pins all five corrected guides and the QuestDB C# fixture. Website `af74e5a`
+published/Vercel success. All113client/catalogue tests pass; seven distinct
+pinned source links are HTTP200 and exact Git blobs. Public HTML216038bytes,
+SHA256 `f03151e3b52abde0ca4410bf6508339dab12f2cb2aa92f71c7cd269fac08e8d4`,
+exactly matches the website Git blob. Actual live browser cards and expanded
+QuestDB launcher observed. Three new local hrefs are visible in AX; the two
+ellipsis-shortened AX values are independently covered by the exact public HTML
+comparison and their already verified native browser addresses. No fabricated
+UI target or screenshot proof. Runtime-root `publication.json` and
+`source-links.json` retain checks. Initial websitebfd1e4b and previous UI address
+proofs remain historical; current launchers are5134–5138.
 
 Counts remain100local/60hostedHTTP/28hostedbrowser. No hosted API enrollment,
 settings changes, new runtime/download or Development deployment.
