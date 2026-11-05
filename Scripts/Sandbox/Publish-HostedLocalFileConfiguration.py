@@ -157,7 +157,10 @@ def apply():
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prepare()
+    elif sys.argv[1:] == ["verify-release"]:
+        module("Prepare-TenSourcePublicBatch").require_matching_release(configuration)
+        print("Reviewed Development WEB4 deployment verified.")
     elif sys.argv[1:] == ["apply"]:
         apply()
     else:
-        raise SystemExit("Use no arguments to prepare,or apply after exact code deployment.")
+        raise SystemExit("Use no arguments to prepare, verify-release to inspect the deployment, or apply after exact code deployment.")
