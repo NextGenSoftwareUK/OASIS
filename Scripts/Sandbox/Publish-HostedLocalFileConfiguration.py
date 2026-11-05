@@ -199,7 +199,7 @@ def apply():
     if candidate(before, *qualified_source()) != after:
         raise RuntimeError("Reviewed source/candidate differs;no mutation allowed.")
     verify_mount(initial_bootstrap=True)
-    configuration.apply_values(PREFIX, KEYS)
+    configuration.apply_values(PREFIX, KEYS, reviewed_snapshots=(before, after))
 
 
 def verify_settings():

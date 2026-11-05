@@ -145,10 +145,12 @@ def prepare():
     print("Protected SOLID candidate prepared: six values, four public presets; no service mutation.")
 
 
-def apply_values(prefix, keys):
+def apply_values(prefix, keys, *, reviewed_snapshots=None):
     """One mutation/observation owner shared by explicit hosted source publishers."""
     before = protected_read(prefix + "-before-variables.dpapi")
     after = protected_read(prefix + "-candidate-variables.dpapi")
+    if reviewed_snapshots is not None and (before, after) != reviewed_snapshots:
+        raise RuntimeError("Protected configuration changed after review; no mutation sent.")
     expected = copy.deepcopy(before)
     for name in keys:
         intent = STATE / (prefix + "-" + name + ".intent.json")

@@ -31,6 +31,17 @@ class File:
 
 
 class ConfigurationOwnerTests(unittest.TestCase):
+    def test_changed_protected_candidate_stops_before_hosted_access(self):
+        before = {"ONE": "old"}
+        with patch.object(configuration, "protected_read", side_effect=[before, {"ONE": "changed"}]), \
+             patch.object(configuration, "variables") as observe, \
+             patch.object(configuration, "write_new") as journal:
+            with self.assertRaisesRegex(RuntimeError, "changed after review"):
+                configuration.apply_values("localfile-public", ["ONE"],
+                                           reviewed_snapshots=(before, {"ONE": "approved"}))
+            observe.assert_not_called()
+            journal.assert_not_called()
+
     def test_variable_observation_requires_a_complete_string_mapping(self):
         for payload in (b'[]', b'{"ONE":null}', b'{broken'):
             with self.subTest(payload=payload), patch.object(

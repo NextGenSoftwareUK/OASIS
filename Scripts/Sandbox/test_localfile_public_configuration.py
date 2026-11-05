@@ -172,7 +172,7 @@ class LocalFileConfigurationTests(unittest.TestCase):
             publisher.apply()
             self.assertEqual(2, release.call_count)
             ssh.assert_called_once()
-            mutation.assert_called_once_with(publisher.PREFIX, publisher.KEYS)
+            mutation.assert_called_once_with(publisher.PREFIX, publisher.KEYS, reviewed_snapshots=(before, after))
             mutation.reset_mock()
             with self.assertRaisesRegex(RuntimeError, "deployment changed"):
                 publisher.apply()
