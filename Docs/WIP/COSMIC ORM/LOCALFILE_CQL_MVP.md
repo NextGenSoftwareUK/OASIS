@@ -323,3 +323,9 @@ Review prepared-review.json before apply. If the protected preparation differs
 from current service settings or the latest deployment differs from the reviewed
 SHA, reconcile that state before continuing. After applying, observe the settings
 deployment and run readiness before preparing the visitor cohort.
+
+Offline candidate assembly passed using the actual retained qualified bundle
+and synthetic enabled-sandbox settings with an existing zero-cost IPFS tariff.
+The publisher assembled exactly five settings, four presets and an 8,159-byte
+bootstrap for the three retained rows. All eight publisher tests passed again.
+Actual Development settings compatibility still requires authenticated prepare.
