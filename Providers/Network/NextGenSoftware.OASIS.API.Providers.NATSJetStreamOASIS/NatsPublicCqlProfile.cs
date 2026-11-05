@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using NATS.Client.Core;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.Common;
@@ -75,9 +76,10 @@ public sealed class NatsPublicCqlProfile : NATSJetStreamOASIS, ICosmicReadOnlyQu
             foreach (var id in catalogue)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var row = await LoadHolonAsync(id, loadChildren: false);
-                if (row.IsError || row.Result == null || !IsPublicRecord(row.Result))
-                    throw new InvalidOperationException("An enrolled NATS row is missing or has changed visibility.", row.Exception);
+                var json = await Backend.GetAsync(RecordKey("holon", id), cancellationToken);
+                var row = json == null ? null : OasisJson.DeserializeStored<Holon>(json);
+                if (row == null || row.Id != id || !IsPublicRecord(row))
+                    throw new InvalidOperationException("An enrolled NATS row is missing or has changed identity or visibility.");
             }
             cancellationToken.ThrowIfCancellationRequested();
             IsProviderActivated = true;
