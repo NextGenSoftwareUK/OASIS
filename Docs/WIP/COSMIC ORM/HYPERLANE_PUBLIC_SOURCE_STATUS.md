@@ -89,3 +89,8 @@ registration. Its Core pin `a9a238371` descends from the verified Hyperlane
 admission commit `89d39f6c2`. Review those source and Core pins when
 considering reuse of the image for Hyperlane after LocalFile acceptance.
 Hyperlane settings and runtime acceptance still require separate verification.
+
+With the retained qualified catalogue, both generated paired presets passed
+the published Web4Site `2170b67` preparation recipe offline. It selected
+the first two message keys through `HyperlaneMessageId` and retained the
+three- and two-key federation selections. No API calls or saves were made.
