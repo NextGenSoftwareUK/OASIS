@@ -47,9 +47,14 @@ def main():
     request("PUT", database + "/teaching-record", admin, (201,), {"kind": "synthetic"})
     original = request("GET", database + "/teaching-record", reader, (200,))
     revision = original["_rev"]
-    request("PUT", database + "/new-record", reader, (403,), {"kind": "synthetic"})
-    request("PUT", database + "/teaching-record", reader, (403,), {"_rev": revision, "kind": "changed"})
-    request("DELETE", database + "/teaching-record?rev=" + revision, reader, (403,))
+    for method, path, body in (
+        ("PUT", database + "/new-record", {"kind": "synthetic"}),
+        ("PUT", database + "/teaching-record", {"_rev": revision, "kind": "changed"}),
+        ("DELETE", database + "/teaching-record?rev=" + revision, None),
+    ):
+        refusal = request(method, path, reader, (403,), body)
+        if refusal.get("error") != "forbidden" or refusal.get("reason") != "The CQL demo role is read-only.":
+            raise RuntimeError(f"CouchDB {method} did not report the expected reader-role policy denial.")
     if request("GET", database + "/teaching-record", reader, (200,)) != original:
         raise RuntimeError("The query role changed the original teaching record.")
     print("CouchDB query role read the fixture and was denied create, update and delete.")
