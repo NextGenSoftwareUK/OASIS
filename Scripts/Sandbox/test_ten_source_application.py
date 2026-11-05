@@ -97,4 +97,31 @@ class DeploymentGuardTests(unittest.TestCase):
                 else:
                     with self.assertRaises(RuntimeError):batch.require_matching_release(self.configuration())
 
+    def test_image_mode_requires_exact_digest_and_consistent_commit(self):
+        commit = "a" * 40
+        digest = "sha256:" + "b" * 64
+        settings = {
+            "COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT": commit,
+            "COSMIC_CQL_EXPECTED_DEPLOYMENT_IMAGE_DIGEST": digest,
+        }
+        for status, meta, accepted in [
+            ("SUCCESS", {"imageDigest": digest}, True),
+            ("SUCCESS", {"imageDigest": digest, "commitHash": commit}, True),
+            ("SUCCESS", {"imageDigest": digest, "commitHash": "c" * 40}, False),
+            ("SUCCESS", {"commitHash": commit}, False),
+            ("SUCCESS", {"imageDigest": "sha256:" + "c" * 64}, False),
+            ("BUILDING", {"imageDigest": digest}, False),
+        ]:
+            observation = json.dumps([{"status": status, "meta": meta}])
+            with self.subTest(status=status, meta=meta), patch.dict(batch.os.environ, settings, clear=True), \
+                    patch.object(batch.subprocess, "run", side_effect=[
+                        SimpleNamespace(returncode=0, stdout=commit),
+                        SimpleNamespace(returncode=0, stdout=observation),
+                    ]):
+                if accepted:
+                    batch.require_matching_release(self.configuration())
+                else:
+                    with self.assertRaises(RuntimeError):
+                        batch.require_matching_release(self.configuration())
+
 if __name__=="__main__":unittest.main()
