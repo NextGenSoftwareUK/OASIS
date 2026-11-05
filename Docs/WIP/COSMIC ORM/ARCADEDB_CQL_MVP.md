@@ -1,7 +1,8 @@
 # ArcadeDB bounded CQL scope
 
 Current checkpoint: native/restart, manager/Mongo/HTTP and local browser acceptance
-pass. Local profile99 is verified; WEB4 local card is next. Hosted/full-provider
+pass. Local profile99 is verified; WEB4 local card8123df9 is published and
+browser-verified. Hosted/full-provider
 acceptance remains open. Earlier sections retain the native checkpoint history.
 
 Initial native checkpoint,5 November2026. Provider/unit suite22/22 passes, zero skips; eighteen new CQL
@@ -118,3 +119,27 @@ open. WEB4 local card publication is next.
 - `paired.trx`: 8152bytes, SHA256 `60891ccee6c0d70dc9c3a1eba183792f32aa03fb72eac7ded2028936c6fa913d`.
 
 - `interactive-ceeaaeafb7114c3ab245d9610c43de2f.trx`: 12326bytes, SHA256 `b4f09240b179137e80c4f0c897f346b09bed7c969c768d640d7e6a0839c78b0e`.
+
+## Published WEB4 local card
+
+Web4Site8123df9c227a0199b7c2e4cc63f7374feaf7d3a6 publishes card42,
+ArcadeDB + MongoDB / Windows local. It explicitly labels the prepared local
+source and states ArcadeDB is not enrolled on the hosted API. Its launch command
+is Run-CosmicArcadeDBMongoDemo.ps1 -Serve, localhost5118. One demo at a time:
+this port and the Mongo environment are shared with other teaching demos.
+New launcher audit1/1present; existing accepted launcher environments not rerun.
+
+All112 client tests pass, zero skips; GitHub Vercel status success. Public sandbox
+HTML returns200 and matches the exact committed Git blob:210,868bytes, SHA256
+f9aee60d1fa76818c0c3aa0c3259e73a812df7bdffb349967bde2715b4cad210.
+Guide and C#source links are pinned to parentd0be32db900a08eb2438f663c326fd1e1154e258;
+both raw sources return200 and match committed Git bytes. Guide SHA256
+565717ab58e17d87ee2eba916960f16b3e380faf7431cfe19dc8b56a0611f0cc;
+walkthrough SHA25611a55d640cd5b6e02e00c60e550d600d1c823cc5c97a308cb8922f9be7916867.
+Signed-out live browser tab8 verified the card, local label and exact expanded
+launcher command, without creating a hosted avatar/session or forwarding tokens.
+No hosted API deployment, settings or source cohort changed. Hosted enrollment,
+least-privilege credential qualification and full ORM/provider gates remain open.
+
+LocalFile priority rechecked: retained Railway CLI whoami still Unauthorized.
+The existing owner action remains pending; no duplicate action/account request.

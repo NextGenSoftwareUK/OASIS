@@ -1191,3 +1191,11 @@ No downloads or new environment. Reused pinned ArcadeDB/JRE and admitted Mongo8.
 - `interactive-ceeaaeafb7114c3ab245d9610c43de2f-stopped.json`: 55bytes retained.
 - `paired.trx`: SHA25660891ccee6c0d70dc9c3a1eba183792f32aa03fb72eac7ded2028936c6fa913d.
 - `interactive-ceeaaeafb7114c3ab245d9610c43de2f.trx`: SHA256b4f09240b179137e80c4f0c897f346b09bed7c969c768d640d7e6a0839c78b0e.
+
+### ArcadeDB WEB4 publication and successful log cleanup
+
+Site8123df9 publishes local card42;112client tests pass. Vercel success and public HTML210,868bytes/SHA256f9aee60d1fa76818c0c3aa0c3259e73a812df7bdffb349967bde2715b4cad210 git-exact, both pinned source links200and git-exact, signed-out live card/disclosure verified. No hosted account, API/settings/source mutation, download or environment. No screenshot files; source/asset comparisons ran in memory. LocalFile Railway identity remains Unauthorized; existing owner action retained. Native logs checked: no plaintext protected credential. Reused JRE in RecoveryLaptopSolr1010 remains a live dependency of the ArcadeDB launcher; do not remove it while either demo is needed.
+
+- Removed exact owned successful `paired-mongo.log` after stop/closed ports: 109543bytes, SHA256f6d331a862a7baf4c18cb628599813b919a443c199801bfdb980bfb902efb387. Compact TRX/result/process/cleanup receipts retained.
+- Removed exact owned successful `interactive-ceeaaeafb7114c3ab245d9610c43de2f-mongo.log` after stop/closed ports: 167298bytes, SHA256eb4e87d9beb5d08923a97f80c252607d0e89ebf45e50afc20f089a6793037f17. Compact TRX/result/process/cleanup receipts retained.
+- Total successful Mongo logs freed: 276841bytes. Native runtime/store, protected credential, SDK outputs and native logs retained for demo continuation.

@@ -6,12 +6,13 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
 ## ArcadeDB native continuation, 5 November 2026
 
-ArcadeDB now has22passing provider/CQL tests and3runner controls. Actual native
+ArcadeDB now has22passing provider/CQL tests and4runner controls. Actual native
 bootstrap, CQL3/2/0/paging/source preservation and retained restart pass1/1each.
 It reuses the qualified Java runtime and one owned source; no seed replay.
 Manager/Mongo/HTTP and local browser5/4 now pass too, with original-source and
 fixture cleanup verified. Four runner controls pass. ArcadeDB adds local profile99;
-its local WEB4 card is next. [Evidence](ARCADEDB_CQL_MVP.md).
+its local WEB4 card8123df9 is published and browser-verified.
+[Evidence](ARCADEDB_CQL_MVP.md).
 
 ## Solr adapter continuation, 5 November 2026
 
