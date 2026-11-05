@@ -155,6 +155,22 @@ the read catalogue, add query-only zero-cost admission and the four canonical
 presets. Use Verify-HostedQuerySource.py DuckDBOASIS --readiness before
 preparing a cohort. No file was copied or deployed during this check.
 
+For the Development enrollment review, use a dedicated path such as
+`/data/cql/duckdb/source.duckdb` on the verified WEB4 volume. Require the
+qualified SHA256 after placement and check that no adjacent WAL exists before
+setting `Data Source=/data/cql/duckdb/source.duckdb;access_mode=READ_ONLY`.
+The retained seed and source snapshot agree on these three live IDs, in preset
+order:
+
+1. `0d3cbcef-c8cf-4083-af88-5a71de0486ef`
+2. `3dc27e40-909f-4323-a6fe-15d835e332f1`
+3. `37f7f99a-a41e-41a6-9259-07778fd410f2`
+
+Use the first two for the subset and all three for the full preset. Keep the
+tombstone `6888e38f-7d88-40bd-b599-d124b0f7e2be` outside the public catalogue.
+The recovery-laptop file still matches the qualified digest. Remote placement
+and activation remain open.
+
 The WEB4 build dependency manifest declares DuckDB.NET Bindings.Full 1.1.3
 and copies its Linux x64 and arm64 native assets. ELF headers matched their
 declared architectures. This checks build packaging. Opening the exact
