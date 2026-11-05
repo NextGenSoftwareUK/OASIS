@@ -654,3 +654,5 @@ CouchDB read-only CQL activation built successfully. Generated provider bin/obj 
 CouchDB activation suite passed 42/42 using the controlled HTTP fixture. Unit test bin/obj and TestResults/ProviderBuildCurrent/cosmic-couchdb-read-activation-tests.log are generated outputs. No CouchDB service started.
 
 CouchDB retained-source read-only activation fixture compiled. Integration bin/obj and TestResults/ProviderBuildCurrent/cosmic-couchdb-native-activation.log are generated outputs. No native service started.
+
+CouchDB authorized catalogue tests passed 43/43. Reused provider/test bin and obj. Receipt: TestResults/ProviderBuildCurrent/cosmic-couchdb-catalogue.log.

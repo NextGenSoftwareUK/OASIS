@@ -64,7 +64,7 @@ public partial class CouchDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOnly
             cancellationToken.ThrowIfCancellationRequested();
             if(!IsProviderActivated)return Error("CQL_PROVIDER_INACTIVE","Activate configured CouchDB before querying.");
             var rows=new List<IHolon>();long bytesRead=0;
-            foreach(var id in selected.Result)
+            foreach(var id in selected.Result.Where(id => plan.Query.ReadAccess.CanRead(id, false, Guid.Empty)))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var key=id.ToString("D");

@@ -78,6 +78,17 @@ public class CouchDbCqlExecutionTests
         CollectionAssert.AreEquivalent(chosen,h.Reads.ToArray());CollectionAssert.AreEquivalent(chosen,result.Result.Select(r=>r.Id).ToArray());
         Assert.IsTrue(result.Result.All(r=>!r.Children.Any()));
     }
+    [TestMethod]
+    public async Task UnadmittedIdentityNeverReachesCouchDb()
+    {
+        var (provider, handler, query, _) = Setup();
+        var foreign = Guid.NewGuid();
+        var result = await provider.ExecuteCosmicQueryAsync(Plan(provider, query.Where(row => row.Id == foreign).Result));
+        Assert.IsFalse(result.IsError, result.Message);
+        Assert.AreEqual(0, result.Result.Count);
+        Assert.AreEqual(0, handler.Reads.Count);
+    }
+
     [DataTestMethod][DataRow("missing")][DataRow("deleted")]
     public async Task MissingAndDeletedNativeRecordsSkip(string mode)
     {
