@@ -15,10 +15,36 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS;
 
-public partial class CouchDBOASIS : ICosmicQueryStorageProvider
+public partial class CouchDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
 {
     public ProviderType QueryProviderType => Core.Enums.ProviderType.CouchDBOASIS;
     public CosmicQueryCapabilities QueryCapabilities => CouchDbCqlCompiler.Capabilities;
+    public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            using var response = await _http.GetAsync($"{_baseUrl}/{DbHolons}",
+                HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            response.EnsureSuccessStatusCode();
+            cancellationToken.ThrowIfCancellationRequested();
+            IsProviderActivated = true;
+            return new(true);
+        }
+        catch (Exception error)
+        {
+            IsProviderActivated = false;
+            return new()
+            {
+                IsError = true,
+                ErrorCount = 1,
+                ErrorCode = error is OperationCanceledException ? "CQL_QUERY_CANCELLED" : "CQL_QUERY_SOURCE_UNAVAILABLE",
+                Message = "CouchDB query activation could not access the existing holon database.",
+                Exception = error
+            };
+        }
+    }
+
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan,int maximumResults=100,CancellationToken cancellationToken=default) where T:IHolon
     {
