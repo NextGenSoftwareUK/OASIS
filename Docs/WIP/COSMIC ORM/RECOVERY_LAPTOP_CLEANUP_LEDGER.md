@@ -921,3 +921,20 @@ check returned Unauthorized. No settings, deployment or project link changed.
   MEILISEARCH_CQL_MVP.md. No additional runtime or database copy was created.
   initial-server.log: 13710 bytes; retained diagnostic output.
   retained-server.log: 14078 bytes; retained diagnostic output.
+
+- Meilisearch manager/Mongo/HTTP fixture compilation planned under provider lease cosmic-meili-mongo-fixture. Reuse existing Meili/Mongo/Core/Shared and integration outputs; add links to the retained shared federation walkthrough/API host. No runtime/server/seed dispatch in this build. Future Mongo fixture uses one owned absent-before database plus three journalled records, verified cleanup; Meili records remain read-only.
+
+- Meilisearch manager/Mongo/HTTP fixture build passed with zero errors; PowerShell runner syntax passes. Planned actual paired run reuses admitted Mongo8.2 replica/runtime/data and Meili1.56.1 retained source. Own listeners27029/17700 plus ephemeral HTTP; fixed absent-before Mongo database cosmic_cql_mongo_meilisearch_demo and journalled3records, verified cleanup after checks. Meili source payloads must match original batch before/after, no reseed. Output paired.trx, server logs and compact receipts retained; stop owned processes only.
+
+- First Meilisearch paired attempt failed before test dispatch: readiness30s and
+  stop wait15s expired; Meili log0bytes, no paired.trx or mongo.pending.json.
+  Reconciliation found no Meili process and closed17700/27029/5116listeners.
+  Older unrelated mongod PID4724was preserved. Keep original paired-run intent,
+  empty startup log and Mongo log; no source reseed or native fixture writes.
+  paired-failure-reconciled-observed.json records this state; cause unresolved.
+- Runner PID/error/stop-outcome handling fixed. Three controlled regressions
+  pass with temporary test files cleaned by their owning temporary-directory
+  contexts. No native process restart, additional runtime or database copy.
+  paired-mongo.log: 726891 bytes retained.
+  paired-server.log: 0 bytes retained.
+  paired-failure-reconciled-observed.json: 414 bytes retained.

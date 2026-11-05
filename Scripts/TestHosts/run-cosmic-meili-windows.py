@@ -41,10 +41,28 @@ def teaching_documents(source):
         for index, item in enumerate(source['LiveIds'] + [source['DeletedId']])]
 
 
+def stop_owned_process(process, label, source_hash, failure=None):
+    if process.poll() is None:
+        process.terminate()
+    try:
+        process.wait(timeout=15)
+    except subprocess.TimeoutExpired as stop_error:
+        write_new(STATE / (label + '-process-stop-unknown.json'), {'pid': process.pid,
+            'sourceSha256': source_hash, 'stopWaitSeconds': 15})
+        if failure is not None:
+            raise ExceptionGroup('Native operation failed and owned process stop is unconfirmed', [failure, stop_error])
+        raise
+    write_new(STATE / (label + '-process-stopped.json'), {'pid': process.pid, 'exitCode': process.returncode,
+        'method': 'owned Windows process termination after completed or failed run; not crash-durability proof'})
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--initialize', action='store_true')
+    parser.add_argument('--paired', action='store_true', help='Run the manager/Mongo/HTTP fixture against the retained source.')
     args = parser.parse_args()
+    if args.initialize and args.paired:
+        raise RuntimeError('Pairing requires the already acknowledged original source.')
     raw = (STATE / 'source.json').read_bytes()
     source = json.loads(raw)
     if source['Endpoint'] != 'http://127.0.0.1:17700':
@@ -105,7 +123,7 @@ def main():
             time.sleep(.25)  # Poll the acknowledged asynchronous task; never resubmit a mutation.
 
     RESULTS.mkdir(parents=True, exist_ok=True)
-    label = 'initial' if args.initialize else 'retained'
+    label = 'paired' if args.paired else 'initial' if args.initialize else 'retained'
     write_new(STATE / (label + '-run.intent.json'), {'sourceSha256': source_hash, 'runtimeSha256': DIGEST})
     env = dict(os.environ, MEILI_MASTER_KEY=key, MEILI_NO_ANALYTICS='true')
     with (STATE / (label + '-server.log')).open('xb') as log:
@@ -113,7 +131,11 @@ def main():
             '--db-path', str(STATE / 'data.ms'), '--no-analytics', '--max-indexing-memory', '256MiB',
             '--max-indexing-threads', '2'], cwd=STATE, env=env, stdout=log, stderr=log,
             creationflags=subprocess.CREATE_NO_WINDOW)
+        failure = None
+        test_dispatch_attempted = False
         try:
+            write_new(STATE / (label + '-process-started.json'), {'pid': process.pid,
+                'runtimeSha256': DIGEST, 'sourceSha256': source_hash})
             until = time.monotonic() + 30
             while True:
                 if process.poll() is not None:
@@ -151,8 +173,10 @@ def main():
             verify_original_source()
             test_env = dict(env, COSMIC_MEILISEARCH_CQL_SOURCE=str(STATE / 'source.json'), COSMIC_MEILISEARCH_CQL_KEY=key)
             project = ROOT / 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.IntegrationTests'
+            category = 'MeilisearchMongoCqlNative' if args.paired else 'MeilisearchCqlNative'
+            test_dispatch_attempted = True
             completed = subprocess.run(['dotnet', 'test', str(project), '--no-build', '--no-restore',
-                '--filter', 'TestCategory=MeilisearchCqlNative', '--logger', 'trx;LogFileName=' + label + '.trx',
+                '--filter', 'TestCategory=' + category, '--logger', 'trx;LogFileName=' + label + '.trx',
                 '--results-directory', str(RESULTS), '-v:q'], cwd=ROOT, env=test_env)
             counters = ET.parse(RESULTS / (label + '.trx')).find('.//{*}Counters').attrib
             write_new(STATE / (label + '-run.result.json'), {'testExitCode': completed.returncode,
@@ -161,14 +185,18 @@ def main():
                     {'total': '1', 'passed': '1', 'failed': '0', 'notExecuted': '0'}.items()):
                 raise RuntimeError('Native CQL test failed; preserve original source and evidence.')
             verify_original_source()
+            if args.paired and (STATE / 'mongo.pending.json').exists():
+                raise RuntimeError('Owned Mongo fixture cleanup is incomplete; preserve its journal.')
             write_new(STATE / (label + '-original-source-verified.json'), {'sourceSha256': source_hash,
                 'originalBatchSha256': original['bodySha256'], 'matchedDocuments': 4, 'seededThisRun': args.initialize})
+        except Exception as error:
+            failure = error
+            write_new(STATE / (label + '-run.failed.json'), {'failureType': type(error).__name__,
+                'pid': process.pid, 'sourceSha256': source_hash, 'testDispatchAttempted': test_dispatch_attempted,
+                'testReportExists': (RESULTS / (label + '.trx')).exists()})
+            raise
         finally:
-            if process.poll() is None:
-                process.terminate()
-            process.wait(timeout=15)
-            write_new(STATE / (label + '-process-stopped.json'), {'pid': process.pid, 'exitCode': process.returncode,
-                'method': 'owned Windows process termination after completed or failed run; not crash-durability proof'})
+            stop_owned_process(process, label, source_hash, failure)
     print('Native Meilisearch run completed; source and original mutation receipts retained.')
 
 

@@ -92,3 +92,31 @@ port is closed. Retained database logical file bytes442,438. This verifies this
 completed-write restart, not generic uncheckpointed crash durability or cluster
 availability. Manager/LINQ walkthrough, Mongo/HTTP pairing, privacy/replicas,
 WEB4 registration and browser acceptance remain open; global counts unchanged.
+
+## Manager/Mongo/HTTP preparation and original startup failure
+
+The real manager/federation/HTTP fixture and linked shared walkthrough/API host
+compile with zero errors. Run-CosmicMeilisearchMongoDemo.ps1 reuses the admitted
+Mongo8.2runtime/replica and retained Meili source. It refuses occupied ports,
+existing run evidence and unresolved Mongo journals. The fixture scopes one
+absent-before Mongo database, journals three SDK-owned copies before saves,
+checks manager5/4provenance plus HTTP presets/forged-input rejection/source
+failure propagation, then verifies exact contents/ownership before cleanup.
+Meili activation uses only the read-only collection/index path; no reseed.
+
+The first actual paired attempt is FAILED, not accepted. Mongo reached primary
+but Meili did not become ready within30seconds. Its paired-server.log is empty.
+The subsequent15-second stop wait also expired and obscured the original error.
+No paired TRX or Mongo fixture intent exists: test dispatch was not reached.
+Read-only reconciliation observed no Meili process and closed17700/27029/5116
+ports; the unrelated older Mongo process was preserved. Startup cause remains
+unresolved; memory/antivirus or source corruption must not be inferred without
+proof. No restart/reseed or longer-timeout workaround was attempted.
+
+Original state/logs and paired-failure-reconciled-observed.json are retained.
+The runner now records PID immediately within its cleanup scope, saves the
+operation failure and explicit dispatch-attempt state, records unknown stop
+outcomes and groups operation/stop failures so neither is lost. Three controlled
+process-boundary regression tests pass without starting a service. These fix
+failure evidence, not the unresolved native startup. Manager/Mongo/HTTP remains
+open; original native/restart acceptance and global counts are unchanged.
