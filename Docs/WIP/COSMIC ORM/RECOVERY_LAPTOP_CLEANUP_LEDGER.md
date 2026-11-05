@@ -844,3 +844,11 @@ check returned Unauthorized. No settings, deployment or project link changed.
   including six new reader/SDK-boundary cases. Existing leased unit outputs
   reused/regenerated. No native RavenDB runtime extraction, license acceptance,
   process, database, server request or new runtime download occurred.
+
+- RavenDB read-only activation build/tests under lease cosmic-ravendb-read-activation. Existing SDK/unit bin/obj reused. Controlled one-record SDK read only; no server/runtime extraction/license acceptance/database or native credential.
+
+- RavenDB read-only activation/lifecycle controls passed 23/23 with no skips.
+  Reused leased provider/shared/unit bin/obj and existing SDK. First activation
+  suite passed 22; the added failed-initialization regression brought final
+  verification to 23. No native server/package extraction/license acceptance,
+  fixture database or external request. Existing source.json and archive kept.

@@ -58,8 +58,10 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
         private IDocumentStore GetStore()
         {
             if (_store != null) return _store;
-            _store = new DocumentStore { Urls = _serverUrls, Database = _database };
-            _store.Initialize();
+            var store = new DocumentStore { Urls = _serverUrls, Database = _database };
+            try { store.Initialize(); }
+            catch { store.Dispose(); throw; }
+            _store = store;
             return _store;
         }
 
@@ -99,8 +101,8 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
-            try { GetStore(); result.Result = true; result.IsError = false; result.Message = "RavenDBOASIS activated."; }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: Error activating — {ex.Message}"); }
+            try { GetStore(); IsProviderActivated = true; result.Result = true; result.IsError = false; result.Message = "RavenDBOASIS activated."; }
+            catch (Exception ex) { IsProviderActivated = false; result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: Error activating — {ex.Message}"); }
             return await Task.FromResult(result);
         }
 
@@ -108,6 +110,7 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
+            IsProviderActivated = false;
             _store?.Dispose(); _store = null;
             return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "RavenDBOASIS deactivated." });
         }

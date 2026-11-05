@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -13,8 +14,58 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS;
 
-public partial class RavenDBOASIS : ICosmicQueryStorageProvider
+public partial class RavenDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
 {
+    private readonly Guid? _queryProbeId;
+
+    public RavenDBOASIS(string[] serverUrls, string database, Guid queryProbeId) : this(serverUrls, database)
+    {
+        if (queryProbeId == Guid.Empty) throw new ArgumentException("An explicit teaching record is required.", nameof(queryProbeId));
+        _queryProbeId = queryProbeId;
+    }
+
+    private sealed class QueryPayloadLimitException : IOException { }
+
+    private static Holon DecodeQueryEnvelope(HolonDoc document, Guid id)
+    {
+        if (document.Id != "OasisHolons/" + id.ToString("D") || document.DataJson == null)
+            throw new InvalidDataException("Native RavenDB envelope identity or payload is invalid.");
+        if (Encoding.UTF8.GetByteCount(document.DataJson) > 1024 * 1024)
+            throw new QueryPayloadLimitException();
+        var row = Des<Holon>(document.DataJson);
+        if (row == null || row.Id != id || row.IsDeleted != document.IsDeleted)
+            throw new InvalidDataException("Native RavenDB payload identity or deletion state is invalid.");
+        return row;
+    }
+
+    public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
+    {
+        IsProviderActivated = false;
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (_queryProbeId is not Guid id)
+                throw new InvalidOperationException("An explicit existing RavenDB teaching record is required.");
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            deadline.CancelAfter(TimeSpan.FromSeconds(15));
+            using var session = GetStore().OpenAsyncSession(new Raven.Client.Documents.Session.SessionOptions
+            { NoTracking = true, NoCaching = true });
+            var key = "OasisHolons/" + id.ToString("D");
+            var rows = await session.LoadAsync<HolonDoc>(new[] { key }, deadline.Token);
+            if (!rows.TryGetValue(key, out var envelope) || envelope == null || DecodeQueryEnvelope(envelope, id).IsDeleted)
+                throw new InvalidDataException("The existing RavenDB teaching record was not verified.");
+            cancellationToken.ThrowIfCancellationRequested();
+            IsProviderActivated = true;
+            return new(true);
+        }
+        catch (Exception error)
+        {
+            return new() { IsError = true, ErrorCount = 1,
+                ErrorCode = error is OperationCanceledException ? "CQL_QUERY_CANCELLED" : "CQL_QUERY_SOURCE_UNAVAILABLE",
+                Message = "RavenDB query activation did not verify the existing teaching record.", Exception = error };
+        }
+    }
+
     public ProviderType QueryProviderType => Core.Enums.ProviderType.RavenDBOASIS;
     public CosmicQueryCapabilities QueryCapabilities => BoundedIdentityCqlCompiler.Capabilities;
 
@@ -37,7 +88,7 @@ public partial class RavenDBOASIS : ICosmicQueryStorageProvider
             if (IsVersionControlEnabled)
                 return Error("CQL_CAPABILITY_UNSUPPORTED", "RavenDB historical CQL reads are not implemented.");
             cancellationToken.ThrowIfCancellationRequested();
-            if (_store == null)
+            if (!IsProviderActivated || _store == null)
                 return Error("CQL_PROVIDER_INACTIVE", "Activate the configured RavenDB store before querying.");
             var ids = selected.Result.Where(id => plan.Query.ReadAccess.CanRead(id, false, Guid.Empty)).ToArray();
             var rows = new List<IHolon>();
@@ -55,15 +106,11 @@ public partial class RavenDBOASIS : ICosmicQueryStorageProvider
                     deadline.Token.ThrowIfCancellationRequested();
                     var key = "OasisHolons/" + id.ToString("D");
                     if (!documents.TryGetValue(key, out var document) || document == null) continue;
-                    if (document.Id != key || document.DataJson == null)
-                        return Error("CQL_QUERY_FAILED", "Native RavenDB envelope identity or payload is invalid.");
-                    var size = Encoding.UTF8.GetByteCount(document.DataJson);
-                    bytes += size;
-                    if (size > 1024 * 1024 || bytes > 4 * 1024 * 1024)
+                    var row = DecodeQueryEnvelope(document, id);
+                    bytes += Encoding.UTF8.GetByteCount(document.DataJson!);
+                    if (bytes > 4 * 1024 * 1024)
                         return Error("CQL_QUERY_LIMIT", "Stored RavenDB payload exceeds the admitted byte budget.");
-                    var row = Des<Holon>(document.DataJson);
-                    if (row == null || row.Id != id || row.IsDeleted != document.IsDeleted
-                        || !plan.Query.ReadAccess.CanRead(row))
+                    if (!plan.Query.ReadAccess.CanRead(row))
                         return Error("CQL_QUERY_FAILED", "Native RavenDB holon differs from read authority.");
                     if (row.IsDeleted) continue;
                     row.Children = Array.Empty<IHolon>();
@@ -78,6 +125,8 @@ public partial class RavenDBOASIS : ICosmicQueryStorageProvider
         }
         catch (OperationCanceledException error) when (cancellationToken.IsCancellationRequested)
         { return Error("CQL_QUERY_CANCELLED", "RavenDB query cancelled; no partial rows published.", error); }
+        catch (QueryPayloadLimitException error)
+        { return Error("CQL_QUERY_LIMIT", "Stored RavenDB payload exceeds the admitted byte budget.", error); }
         catch (Exception error)
         { return Error("CQL_QUERY_FAILED", "Native RavenDB query failed; no partial rows published.", error); }
     }

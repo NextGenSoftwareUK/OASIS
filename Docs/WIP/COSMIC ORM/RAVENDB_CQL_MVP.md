@@ -101,3 +101,21 @@ state, missing JSON and over-1-MiB payload. Another case checks exact canonical
 requested keys and applies paging after deleted/missing exclusions. These are
 controlled boundary tests, not native RavenDB or HTTP proof. No production seam
 or alternate read path was added. Runtime license review remains pending.
+
+## Explicit read-only activation
+
+RavenDB now implements ICosmicReadOnlyQueryActivation. Its query constructor
+requires an explicit nonempty teaching-record GUID. Activation uses a fresh
+nontracking/noncached SDK session to load only that existing ID, validates the
+same bounded envelope decoder used by queries, and rejects missing/deleted or
+mismatched data. No database statistics privilege, index, provisioning or write
+operation is needed. Unconfigured or pre-cancelled activation makes no SDK read.
+
+CQL requires both the active flag and initialized store. Failed activation
+clears readiness. The store lifecycle now assigns its field only after SDK
+initialization succeeds, disposing a failed candidate and preserving the error;
+regular activation/deactivation publish the corresponding active state. These
+fixes prevent a failed client initialization from leaving a readable-looking
+store handle. Four new controls plus the prior suite pass 23/23, zero skipped:
+valid/failed probe transitions, missing/pre-cancelled probe, deactivation and
+failed SDK initialization. Actual native activation is not yet verified.

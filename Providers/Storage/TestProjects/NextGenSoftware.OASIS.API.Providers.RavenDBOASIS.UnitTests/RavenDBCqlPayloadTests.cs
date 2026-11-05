@@ -45,6 +45,7 @@ public class RavenDBCqlPayloadTests
         public IAsyncDocumentSession Session = null!;
         protected override object? Invoke(MethodInfo? method, object?[]? args)
         {
+            if (method!.Name == "Dispose") return null;
             if (method!.Name != "OpenAsyncSession") throw new InvalidOperationException("Unexpected store operation: " + method.Name);
             var options = (SessionOptions)args![0]!;
             Assert.IsTrue(options.NoTracking);
@@ -53,12 +54,15 @@ public class RavenDBCqlPayloadTests
         }
     }
 
-    private static (RavenDBOASIS Provider, SessionBoundary Session) Provider()
+    private static (RavenDBOASIS Provider, SessionBoundary Session) Provider(Guid? probe = null)
     {
         var session = DispatchProxy.Create<IAsyncDocumentSession, SessionBoundary>();
         var store = DispatchProxy.Create<IDocumentStore, StoreBoundary>();
         ((StoreBoundary)(object)store).Session = session;
-        var provider = new RavenDBOASIS(new[] { "http://127.0.0.1:1" });
+        var provider = probe.HasValue
+            ? new RavenDBOASIS(new[] { "http://127.0.0.1:1" }, "controlled", probe.Value)
+            : new RavenDBOASIS(new[] { "http://127.0.0.1:1" });
+        provider.IsProviderActivated = true;
         typeof(RavenDBOASIS).GetField("_store", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(provider, store);
         return (provider, (SessionBoundary)(object)session);
     }
@@ -115,5 +119,61 @@ public class RavenDBCqlPayloadTests
         Assert.IsFalse(result.IsError, result.Message);
         CollectionAssert.AreEqual(new[] { ids[2] }, result.Result.Select(row => row.Id).ToArray());
         CollectionAssert.AreEqual(ids.Select(id => "OasisHolons/" + id).ToArray(), session.Requested);
+    }
+
+    [TestMethod]
+    public async Task ReadOnlyActivationVerifiesOneExistingRecordAndFailureClearsReadiness()
+    {
+        var id = Guid.NewGuid();
+        var (provider, session) = Provider(id);
+        var key = "OasisHolons/" + id;
+        session.Rows[key] = (key, false, Payload(id));
+        var ready = await provider.ActivateQuerySourceAsync(default);
+        Assert.IsFalse(ready.IsError, ready.Message);
+        Assert.IsTrue(provider.IsProviderActivated);
+        CollectionAssert.AreEqual(new[] { key }, session.Requested);
+        session.Rows[key] = (key, true, Payload(id, true));
+        var rejected = await provider.ActivateQuerySourceAsync(default);
+        Assert.AreEqual("CQL_QUERY_SOURCE_UNAVAILABLE", rejected.ErrorCode);
+        Assert.IsFalse(provider.IsProviderActivated);
+        var read = await provider.ExecuteCosmicQueryAsync(Plan(provider, Query(new[] { id })));
+        Assert.AreEqual("CQL_PROVIDER_INACTIVE", read.ErrorCode);
+    }
+
+    [TestMethod]
+    public async Task MissingProbeAndPreCancellationSendNoSdkRead()
+    {
+        var (unconfigured, session) = Provider();
+        var missing = await unconfigured.ActivateQuerySourceAsync(default);
+        Assert.AreEqual("CQL_QUERY_SOURCE_UNAVAILABLE", missing.ErrorCode);
+        Assert.AreEqual(0, session.Requested.Length);
+        Assert.IsFalse(unconfigured.IsProviderActivated);
+        var (provider, cancelledSession) = Provider(Guid.NewGuid());
+        using var token = new CancellationTokenSource();
+        token.Cancel();
+        var stopped = await provider.ActivateQuerySourceAsync(token.Token);
+        Assert.AreEqual("CQL_QUERY_CANCELLED", stopped.ErrorCode);
+        Assert.AreEqual(0, cancelledSession.Requested.Length);
+        Assert.IsFalse(provider.IsProviderActivated);
+    }
+
+    [TestMethod]
+    public async Task DeactivationClearsReadinessAndStoreHandle()
+    {
+        var (provider, _) = Provider();
+        var result = await provider.DeActivateProviderAsync();
+        Assert.IsFalse(result.IsError);
+        Assert.IsFalse(provider.IsProviderActivated);
+        Assert.IsNull(typeof(RavenDBOASIS).GetField("_store", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(provider));
+    }
+
+    [TestMethod]
+    public async Task FailedSdkInitializationDoesNotPublishStoreOrReadiness()
+    {
+        var provider = new RavenDBOASIS(Array.Empty<string>());
+        var result = await provider.ActivateProviderAsync();
+        Assert.IsTrue(result.IsError);
+        Assert.IsFalse(provider.IsProviderActivated);
+        Assert.IsNull(typeof(RavenDBOASIS).GetField("_store", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(provider));
     }
 }
