@@ -26,7 +26,9 @@ BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6d
 
 ## Current functional milestone â€” 2 November 2026
 
-**60 query profiles have scoped hosted HTTP evidence; 5 have browser evidence and 55 browser gates remain open. ThreeFold is the latest hosted addition; its card/static bytes2170b67 pass; ClickHouse is accepted; its card/static assets d3dfe48 are published/verified; Zcash remains accepted; its card/static assets3141cca are published/verified. Bittensor remains accepted; its card/public bytesbc31379are verified and browser gate remains open.**
+**60 query profiles have scoped hosted HTTP evidence; 19 have functional browser evidence and 41 browser gates remain open. ThreeFold is the latest hosted addition; its card/static bytes2170b67 pass; ClickHouse is accepted; its card/static assets d3dfe48 are published/verified; Zcash remains accepted; its card/static assets3141cca are published/verified. Bittensor remains accepted; its card/public bytesbc31379are verified and browser gate remains open.**
+
+The 5 November recovery browser flows and retained identities are recorded in [browser evidence](RECOVERY_BROWSER_EVIDENCE_2026-11-05.md). Native 3/2, paired 5/4, reuse, independent privacy and rendered SQLite/Neo4j replica comparisons passed for fourteen additional profiles. Older dated browser statements below describe their original checkpoints.
 
 Telos hosted HTTP acceptance is complete at parent7c498e0f2e8a97207fb8d511d35cea521e7e240c/Core80b879b0ef289ccfff3b7efefa5a9ff26e6b4135, settingsad7aab39 SUCCESS. Native3/2, paired5/4, reuse0new/2existing, private0/public3, replicas2/2 and two version1 saves/no pending pass. Website4ff3661c4ead0fc0b8df62c0be69cf17f5bf1685 publishes the Telos/Filecoin cards and pinned guides/C# links. All95client tests pass. Public HTML164814bytes/SHA2564853a50e7c7ef72aa63044d53d7c672c04b5723676a61dcc2e88f38749c545b0 and both scripts match exact git blobs. Browser interaction remains open; generic private demo records copy identity/name/description/provenance, not all native metadata.
 
