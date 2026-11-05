@@ -200,6 +200,17 @@ def apply():
     configuration.apply_values(PREFIX, KEYS)
 
 
+def verify_settings():
+    deployment = verify_mount()
+    expected = configuration.protected_read(PREFIX + "-candidate-variables.dpapi")
+    observed = configuration.variables()
+    if any(key not in expected or observed.get(key) != expected[key] for key in KEYS):
+        raise RuntimeError("Development LocalFile settings differ from the reviewed candidate")
+    if verify_release() != deployment:
+        raise RuntimeError("Reviewed Railway deployment changed during settings inspection")
+    return deployment
+
+
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prepare()
@@ -211,5 +222,8 @@ if __name__ == "__main__":
         print(f"Reviewed Development WEB4 deployment {deployment} and writable /data mounts verified.")
     elif sys.argv[1:] == ["apply"]:
         apply()
+    elif sys.argv[1:] == ["verify-settings"]:
+        deployment = verify_settings()
+        print(f"Reviewed LocalFile settings and mount verified for deployment {deployment}.")
     else:
-        raise SystemExit("Use no arguments to prepare, verify-release or verify-mount to inspect, or apply after exact code deployment.")
+        raise SystemExit("Use no arguments to prepare, verify-release, verify-mount or verify-settings to inspect, or apply after exact code deployment.")

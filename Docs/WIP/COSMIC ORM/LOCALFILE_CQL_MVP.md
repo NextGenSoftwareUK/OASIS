@@ -368,6 +368,11 @@ SHA, reconcile that state before continuing. The publisher sets each value with 
 acknowledgements exist, inspect the staged settings and trigger one Development
 WEB4 deployment of the same reviewed commit. Verify SUCCESS and the commit
 hash before running readiness. An apply receipt confirms settings only.
+After the staged deployment succeeds, update the reviewed instance IDs and
+run `python -B Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py verify-settings`.
+It compares the five observed service settings with the protected candidate
+without printing their values. Runtime discovery and the native and paired
+queries are still required to prove the application loaded those settings.
 
 Offline candidate assembly passed using the actual retained qualified bundle
 and synthetic enabled-sandbox settings with an existing zero-cost IPFS tariff.

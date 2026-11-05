@@ -178,6 +178,20 @@ class LocalFileConfigurationTests(unittest.TestCase):
                 publisher.apply()
             mutation.assert_not_called()
 
+    def test_verify_settings_rejects_drift_without_writing(self):
+        before, source, bundle = self.fixture()
+        after = publisher.candidate(before, source, bundle)
+        with patch.object(publisher, "verify_mount", return_value="deployment"), \
+             patch.object(publisher, "verify_release", return_value="deployment"), \
+             patch.object(publisher.configuration, "protected_read", return_value=after), \
+             patch.object(publisher.configuration, "variables", return_value=after) as variables, \
+             patch.object(publisher.configuration, "apply_values") as mutation:
+            self.assertEqual("deployment", publisher.verify_settings())
+            variables.return_value = dict(after, **{publisher.KEYS[0]: "different"})
+            with self.assertRaisesRegex(RuntimeError, "settings differ"):
+                publisher.verify_settings()
+            mutation.assert_not_called()
+
     def test_qualification_rejects_modified_retained_bundle(self):
         _, source, bundle = self.fixture()
         with TemporaryDirectory() as directory:
