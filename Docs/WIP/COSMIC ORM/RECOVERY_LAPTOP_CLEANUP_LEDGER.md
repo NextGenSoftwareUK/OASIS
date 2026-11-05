@@ -1448,3 +1448,13 @@ runtime-files.json2821files/37236717B retained with lock/hash. One retained
 runtime-probe store; no per-run copies. npm-tool10.9.4 and2714849B archive are
 owned cleanup candidates once installer no longer needed; no automatic broad
 recursive deletion. Provider controlled cases18/18, controls-v2 TRX retained.
+
+PouchDB native HTTP source initialized once: initial-d172007ae66d4ab3a4fb369b6dbc0ee7.
+Four records/intents/ACKs (three live/one soft-deleted), embedded-child control,
+source.json/bootstrap/native-baseline retained in same cache. Bootstrap and CQL
+1/1each pass; raw data/revisions unchanged. Owned NodePID5412CtrlC0, explicit
+native database close1 in current-phase server log. Build1122warnings/0errors;
+three runner controls pass. Retained restart is live; no duplicate source/store.
+No new packages/downloads this phase. Native runtime-probe remains separate.
+
+PouchDB retained92aa053d4e014ea099990049e49d3b381/1 native query passes, original payloads/revisions unchanged, no reseed. Both current phase logs explicitly prove one native DB closed;19600closed. Four runner controls pass; retain native store/ACKs/baseline for manager/browser continuation.

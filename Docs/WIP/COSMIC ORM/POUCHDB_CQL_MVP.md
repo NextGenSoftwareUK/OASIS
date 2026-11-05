@@ -46,3 +46,37 @@ No source replay, global install or alternate backend. One local npm tool
 (~11.6MB) and2714849B archive retained; no second Node. Next create-once native
 HTTP source19600 with original revisions/hash preserved through restart, then
 C#/manager/HTTP/browser5141. Hosted enrollment remains separate.
+
+## Real HTTP source admitted, 5 November2026
+Official express-pouchdb minimumForPouchDB mode serves real native routes over
+PouchDB9 LevelDB, loopback19600, without authentication for this synthetic
+teaching environment. No hosted sign-in/credential is used. Runtime file and
+installed Node binary hashes verified before startup. One explicit create-only
+source has new actor/IDs and per-record intents/ACKs. Four canonical Holon docs
+include three live and one soft-deleted; first contains an embedded child.
+Fifth control remains absent. No legacy mutation success claim.
+Initial-d172007ae66d4ab3a4fb369b6dbc0ee7 bootstrap1/1 and nativeCQL1/1 pass,
+zero skips; native CQL TRX SHA256
+`30a7f1fe91204b1a7d54b43820773d1b5ea46349a0a84d0f7aabf733b26b49ff`.
+3/2/0/page results and all original raw hashes/revision1 match before/after.
+Server PID5412 exact console Ctrl+C, exit0, current log stopped and one native
+DB explicitly closed. Native fixture build0errors/1122warnings (existing shared
+warnings included). Three runner admission controls pass. Retained process
+restart proof now passes against the original source, without source writes.
+
+New reusable Run-CosmicPouchDbWindowsNative.ps1 supports Initialize once or
+Retained mode, one build/consumer lease. All reports are unique inside the single
+cache. Source/native-baseline/bootstrap receipts retained. Next manager/Mongo/
+HTTP/browser5141 and catalogue publication, then explicit hosted admission.
+Counts101/60/28 remain unchanged until full local profile acceptance.
+
+Retained-92aa053d4e014ea099990049e49d3b38 passes1/1, zero skips; TRX SHA256
+`f4e2ddd037f0205b14009e4dd9f7400cf948f3382d1221c5c99da746dc7e7ea5`.
+Source descriptor SHA256
+`aceb5d1c4e05854c1578b8c06ceaec3dddd4e4337bc839bbc427f408a8d4fd1b`.
+All original native raw hashes and revision1 preserved through real shutdown/
+restart. Both current-phase logs pass explicit native database-close validation;
+exit0 and listener19600closed. Four runner controls pass after adding mandatory
+single native-close receipt validation. Historical stopped.json receipts predate
+that extra JSON field; actual current logs independently validate the same
+invariant, without re-running accepted native point queries. No profile increase.

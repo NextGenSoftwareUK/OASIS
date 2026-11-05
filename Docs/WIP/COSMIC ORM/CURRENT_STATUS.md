@@ -10,8 +10,9 @@ Bounded native-document CQL adapter implemented;18controlled cases pass, no
 skips. Real PouchDB9/express-pouchdb4.2 LevelDB runtime close/reopen qualified
 using installed Node18, one small npm environment. Package-context install
 failure resolved with retained logs and deterministic lock/runtime manifests.
-No native Holon source or accepted profile yet. Next native HTTP/restart,
-manager/Mongo/browser5141. Counts101/60/28 unchanged. [Scope](POUCHDB_CQL_MVP.md).
+Create-only native HTTP source and retained restart pass1/1each, full canonical
+payloads/revision1 unchanged, native closure verified. Four runner controls pass.
+No accepted profile yet. Next manager/Mongo/HTTP/browser5141. Counts101/60/28 unchanged. [Scope](POUCHDB_CQL_MVP.md).
 
 ## SurrealDB Windows recovery continuation, 5 November2026
 
