@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.UnitTests
         [TestMethod]
         public void ProviderType_ShouldBeElasticsearchOASIS()
         {
-            Assert.AreEqual(ProviderType.ElasticsearchOASIS, _provider.ProviderType);
+            Assert.AreEqual(ProviderType.ElasticsearchOASIS, _provider.ProviderType.Value);
         }
 
         [TestMethod]
@@ -41,11 +41,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.UnitTests
         }
 
         [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
+        public void QueryProviderType_ShouldMatchStorageProvider()
         {
-            var version = _provider.GetProviderVersion();
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
+            Assert.AreEqual(_provider.ProviderType.Value, _provider.QueryProviderType);
         }
 
         [TestCleanup]

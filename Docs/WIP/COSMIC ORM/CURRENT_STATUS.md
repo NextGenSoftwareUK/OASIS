@@ -4,6 +4,15 @@ Updated 5 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
+## Elasticsearch continuation, 5 November 2026
+
+Elasticsearch continuation:32controlled cases and2shutdown-lineage controls
+pass. Real Windows8.19.24 node startup/native Ctrl+C/closed/exit130 verified
+with its required bundled JDK after shared-JRE `jdk.jlink` failure. Owned520MB
+archive removed after actual qualification. Native default90% high-watermark
+capacity remains short about2.38GB; no source records/index bootstrapped, no
+profile/card increment. [Exact next steps](ELASTICSEARCH_CQL_MVP.md).
+
 ## Firebase recovery continuation, 5 November 2026
 
 Existing Firebase RTDB CQL retained; its missing original export cannot be

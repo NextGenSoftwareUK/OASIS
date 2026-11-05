@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
     ///   password  — HTTP Basic auth password (optional)
     ///   apiKey    — Elasticsearch API key (optional; takes priority over Basic auth)
     /// </summary>
-    public class ElasticsearchOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class ElasticsearchOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly string _host;
         private readonly HttpClient _http;
@@ -49,10 +49,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
-        public ElasticsearchOASIS(string host, string? username = null, string? password = null, string? apiKey = null)
+        public ElasticsearchOASIS(string host, string? username = null, string? password = null, string? apiKey = null, HttpClient? httpClient = null)
         {
             _host = host.TrimEnd('/');
-            _http = new HttpClient();
+            _http = httpClient ?? new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
             if (!string.IsNullOrEmpty(apiKey))
                 _http.DefaultRequestHeaders.Add("Authorization", $"ApiKey {apiKey}");
             else if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
@@ -166,7 +166,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() => await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "ElasticsearchOASIS deactivated." });
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "ElasticsearchOASIS deactivated." });
+        }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         // ─── Avatar saving ────────────────────────────────────────────────────────
