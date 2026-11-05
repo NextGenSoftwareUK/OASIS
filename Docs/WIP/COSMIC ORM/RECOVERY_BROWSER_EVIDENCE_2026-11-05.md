@@ -1,0 +1,25 @@
+# Development browser evidence, 5 November 2026
+
+Live page https://web4.oasisomniverse.one/web4-sandbox.html.
+Development selected. One demo session, sandbox-ca8924da, owner
+b1f86140-00a9-4017-9b6c-af9eade65c76. Reuse this browser session.
+
+| Provider | Native full/subset | Mongo full/subset | Preparation/reuse | Independent exact-ID privacy |
+|---|---|---|---|---|
+| SolanaOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
+| GoogleCloudOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
+| EthereumOASIS | 3/2 | Pending | Pending | Pending |
+
+Solana private IDs are 3066ca99-2a54-885f-afad-8b104f13b653 and
+b7f878cb-cd6d-8bf6-b075-e86856ade714. Google private IDs are
+320c306b-485e-895b-91e9-b407ceb03e1c and
+ddcdee44-dac8-815b-bf8c-d01adef3e65d.
+
+Solana and Google subset screenshots were emitted and inspected in the
+chat. Both show four physical rows with native and Mongo provider labels,
+and preparation reuse. Images have no retained standalone path. Privacy
+checks used HTTP with the independent retained rehearsal visitor.
+
+Exact owner replica contents have not been checked for these new copies.
+Browser acceptance totals remain pending reconciliation. Existing accepted
+HTTP cohorts remain retained.
