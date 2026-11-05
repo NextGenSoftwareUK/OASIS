@@ -46,11 +46,12 @@ public partial class SurrealDBOASIS : ICosmicQueryStorageProvider
         {
             deadline.Token.ThrowIfCancellationRequested();
             var rows = new List<IHolon>();
-            if (selected.Result.Count != 0)
+            var admittedIds = selected.Result.Where(id => plan.Query.ReadAccess.CanRead(id, false, Guid.Empty)).ToArray();
+            if (admittedIds.Length != 0)
             {
                 await using var client = await GetClientAsync(deadline.Token);
                 var payloadBytes = 0;
-                foreach (var id in selected.Result)
+                foreach (var id in admittedIds)
                 {
                     var record = await client.Select<HolonRecord>(new StringRecordId($"oasis_holons:{id:D}"), deadline.Token);
                     if (record == null || record.IsDeleted) continue;

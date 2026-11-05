@@ -1,7 +1,11 @@
 using System;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.IntegrationTests
@@ -124,6 +128,64 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.IntegrationTests
             RequireLive();
             var all = await _provider.LoadAllAvatarsAsync();
             Assert.IsNotNull(all);
+        }
+
+        [TestMethod]
+        public async Task BoundedCqlReturnsOnlyAdmittedLiveRows()
+        {
+            RequireLive();
+            const ProviderType authority = ProviderType.SurrealDBOASIS;
+            var actor = Guid.NewGuid();
+            var liveId = Guid.NewGuid();
+            var missingId = Guid.NewGuid();
+            var foreignId = Guid.NewGuid();
+
+            CosmicQueryPlan<Holon> Plan(Guid id, Guid? admittedId = null)
+            {
+                var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(authority).Result)
+                    .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(actor, authority, new[] { admittedId ?? id }).Result).Result
+                    .Where(row => row.Id == id).Result;
+                var plan = CosmicQueryPlanner.Plan(query, authority,
+                    new[] { new CosmicQueryTarget(authority, _provider.QueryCapabilities) });
+                Assert.IsFalse(plan.IsError, plan.Message);
+                return plan.Result;
+            }
+
+            try
+            {
+                foreach (var (id, owner) in new[] { (liveId, actor), (foreignId, Guid.NewGuid()) })
+                {
+                    var saved = await _provider.SaveHolonAsync(new Holon
+                    {
+                        Id = id, Name = "SurrealDB CQL fixture", CreatedByAvatarId = owner
+                    }, saveChildren: false);
+                    Assert.IsFalse(saved.IsError, saved.Message);
+                }
+
+                var found = await _provider.ExecuteCosmicQueryAsync(Plan(liveId));
+                Assert.IsFalse(found.IsError, found.Message + found.Exception);
+                Assert.AreEqual(liveId, found.Result.Single().Id);
+
+                var missing = await _provider.ExecuteCosmicQueryAsync(Plan(missingId));
+                Assert.IsFalse(missing.IsError, missing.Message + missing.Exception);
+                Assert.AreEqual(0, missing.Result.Count);
+
+                var foreign = await _provider.ExecuteCosmicQueryAsync(Plan(foreignId, liveId));
+                Assert.IsFalse(foreign.IsError, foreign.Message + foreign.Exception);
+                Assert.AreEqual(0, foreign.Result.Count);
+
+                var cancelled = await _provider.ExecuteCosmicQueryAsync(Plan(liveId),
+                    cancellationToken: new CancellationToken(canceled: true));
+                Assert.AreEqual("CQL_QUERY_CANCELLED", cancelled.ErrorCode);
+                Assert.IsNull(cancelled.Result);
+            }
+            finally
+            {
+                var liveCleanup = await _provider.DeleteHolonAsync(liveId);
+                var foreignCleanup = await _provider.DeleteHolonAsync(foreignId);
+                Assert.IsFalse(liveCleanup.IsError, liveCleanup.Message);
+                Assert.IsFalse(foreignCleanup.IsError, foreignCleanup.Message);
+            }
         }
 
         [TestCleanup]

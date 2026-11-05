@@ -550,3 +550,8 @@ provider bin/Debug/net10.0 and obj outputs and the shared compiler. Build
 receipt: TestResults/ProviderBuildCurrent/cosmic-surreal-cql.log. No new
 runtime, server or database. Reuse these build outputs for the next native
 gate and clean only after the provider test environment is idle.
+
+SurrealDB integration test build passed using the existing provider output.
+Receipt: TestResults/ProviderBuildCurrent/cosmic-surreal-integration.log.
+Integration project bin/Debug/net10.0 and obj are reusable generated outputs.
+The fixture was compiled only. No SurrealDB process or test records created.
