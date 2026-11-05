@@ -866,3 +866,11 @@ check returned Unauthorized. No settings, deployment or project link changed.
   Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.UnitTests/bin: 47114468 bytes.
   Providers/Storage/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS/obj: 968987 bytes.
   Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.UnitTests/obj: 1006467 bytes.
+
+- Typesense native read-only fixture build under lease cosmic-typesense-native-fixture; reuse existing .NET/NuGet. Integration bin/obj regenerable. No WSL distribution or Docker executable found; no Linux runtime/environment installed. Native fixture not dispatched.
+
+- Typesense native read-only fixture compiled successfully under the lease,
+  zero errors. No test dispatch, service, source record, native runtime download
+  or Linux installation. Retain integration outputs for pending native use.
+  Typesense integration bin: 47121393 bytes.
+  Typesense integration obj: 1018220 bytes.

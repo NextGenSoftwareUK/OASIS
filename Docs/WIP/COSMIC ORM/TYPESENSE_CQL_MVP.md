@@ -35,3 +35,25 @@ HTTP/Mongo pairing, privacy/replicas. Host enrollment must use restricted source
 credentials and explicit tariff/preset admission after native qualification.
 Wider content/search, native write correctness, conditional concurrency, children,
 history, replication and full ORM parity remain separate acceptance gates.
+
+## Native read-only fixture
+
+TypesenseCqlNativeTests requires COSMIC_TYPESENSE_CQL_SOURCE (metadata JSON:
+Endpoint, Actor, LiveIds[3], DeletedId, MissingId) and the source credential only
+in COSMIC_TYPESENSE_CQL_KEY. It accepts one explicit HTTP loopback origin and
+five distinct nonempty IDs. No source is selected implicitly. It activates the
+existing collection, independently retrieves each control, proves the deleted
+record exists and missing record is HTTP404, then checks CQL 3/2/0 and paging.
+Four native document SHA256 observations must match before/after. All calls are
+GET; no provisioning, save, cleanup mutation or sample substitution occurs.
+Native observation bodies are bounded to1MiB with15-second whole-read deadlines.
+
+Native execution remains open. No retained Typesense runtime is recorded on this
+laptop. WSL reported no installed distributions; Docker is not on PATH. Official
+[Windows installation instructions](https://typesense.org/docs/guide/install-typesense.html)
+use WSL. No Linux environment, native binary or cloud account was installed.
+Choose one reusable actual service before dispatching the explicitly filtered
+TypesenseCqlNative category. Existing old integration tests are not its runner.
+
+The leased native fixture build passed with zero errors. This is compilation
+only; no native test was dispatched and no coverage count increased.
