@@ -302,6 +302,13 @@ and three public rows. Hosted enrollment requires a qualified TLS endpoint
 and existing read-only bucket with the exact owner and three enrolled IDs.
 Keep credentials separate from the public profile JSON. WEB4 accepts a paired username/password through the private CQL_NATS_PUBLIC_SOURCE_USERNAME and CQL_NATS_PUBLIC_SOURCE_PASSWORD settings. Qualify that account against the exact bucket and its read-only permissions before enrollment.
 
+The `CQL_NATS_PUBLIC_SOURCE_JSON` contract requires exactly `schema` (value
+1), `endpoint` (a credential-free `tls://` URL), `bucket`, `sourceOwner`
+and `ids`. Use the same three distinct GUIDs in the server-side catalogue
+and the paired presets. Confirm the public records are live and belong to
+the declared owner. The retained recovery fixture is available for loopback
+tests. The hosted TLS endpoint and credential scope still need qualification.
+
 Use the same IDs for the source and server-side public catalogue. Review the
 explicit query-only tariff and four presets before running the shared hosted
 verifier with a fresh NATS-scoped journal. Keep LocalFile first. Native TLS,
