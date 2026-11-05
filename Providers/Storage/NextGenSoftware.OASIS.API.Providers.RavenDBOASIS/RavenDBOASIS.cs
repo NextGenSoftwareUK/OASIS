@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
     ///   serverUrls — one or more RavenDB server URLs (e.g. ["http://localhost:8080"])
     ///   database   — RavenDB database name (e.g. "oasis")
     /// </summary>
-    public class RavenDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class RavenDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly string[] _serverUrls;
         private readonly string _database;

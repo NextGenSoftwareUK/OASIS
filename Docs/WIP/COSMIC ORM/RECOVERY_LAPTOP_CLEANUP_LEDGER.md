@@ -790,3 +790,11 @@ check returned Unauthorized. No settings, deployment or project link changed.
   remains the single request; no competing action list was created.
 - Chroma empty-userinfo validation fix: six focused offline tests pass with
   existing Python -B; no new files outside tracked source/docs or test outputs.
+
+- RavenDB bounded CQL build planned under provider lease, owner cosmic-ravendb-cql. Reuses system .NET; may restore pinned RavenDB.Client 7.0.1 and dependencies into the shared NuGet cache. Provider/Core/Shared bin/obj are regenerable. No native server, database, credential or source write requested. Keep build output only while this scope needs it.
+
+- RavenDB.Client 7.0.1 cache: 38,691,633 bytes including SDK libraries/package.
+  First leased build failed with two SDK property errors; corrected ownership
+  to SessionOptions. Second leased no-restore build passed in 11.31 seconds,
+  zero errors/four warnings. No native process, database or network data read.
+  Core/Shared outputs were reused after the initial shared rebuild.

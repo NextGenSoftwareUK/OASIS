@@ -134,6 +134,10 @@ intersects requested IDs with the authorized catalogue before SDK reads. Native
 execution is pending because automatic review rejected local server startup.
 The original branch has historical native, restart and Mongo/browser proof. See [SurrealDB recovery and provenance](SURREALDB_CQL_MVP.md). WEB4 source enrollment and hosted acceptance remain open.
 
+RavenDB independent breadth work now has an official-SDK bounded ID reader and
+a passing leased provider/shared build. Controlled/native/manager/HTTP/Mongo
+and hosted gates remain open; counts unchanged. [Scope](RAVENDB_CQL_MVP.md).
+
 ## Constraints / wider unfinished work
 
 - Hosted Azure Cosmos/Oracle/PostgreSQL deferred by David;no account/spend re-asks.
