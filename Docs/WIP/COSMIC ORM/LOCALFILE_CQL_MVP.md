@@ -466,4 +466,12 @@ python -B Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py verify-release
 This only checks the deployment observation. Verify the persistent mount
 separately before applying any settings.
 
+Use the updated operator-side publisher for application. After matching the
+volume attachment to the reviewed deployment in the dashboard, set
+`COSMIC_CQL_REVIEWED_INSTANCE_IDS` to its active instance UUIDs, separated by
+commas. Immediately before any settings write, the publisher checks the
+reviewed release and reads mount metadata from each listed instance. Every
+instance must expose a separate writable `/data` mount. The dashboard remains
+the source for volume identity and the complete active instance list.
+
 Railway 5.62.1 accepted the exact project-scoped deployment list arguments and returned Unauthorized. Its volume list still lacks project, service and environment selectors. Use the dashboard attachment and instance-scoped SSH mount check for the reviewed service.

@@ -130,6 +130,31 @@ class LocalFileConfigurationTests(unittest.TestCase):
             mutation.assert_not_called()
 
 
+    def test_apply_requires_writable_data_mount_on_every_reviewed_instance(self):
+        before, source, bundle = self.fixture()
+        after = publisher.candidate(before, source, bundle)
+        instances = ["11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222"]
+        writable = b"42 37 8:1 / /data rw,relatime - ext4 /dev/disk rw\n"
+        for second in (writable.replace(b"/data", b"/data/child"),
+                       writable.replace(b"rw", b"ro"), writable):
+            with patch.dict(publisher.os.environ, {"COSMIC_CQL_REVIEWED_INSTANCE_IDS": ",".join(instances)}), \
+                 patch.object(publisher, "qualified_source", return_value=(source, bundle)), \
+                 patch.object(publisher.configuration, "protected_read", side_effect=[before, after]), \
+                 patch.object(publisher.configuration, "apply_values") as mutation, \
+                 patch.object(publisher, "module", return_value=SimpleNamespace(require_matching_release=lambda _: None)), \
+                 patch.object(publisher.subprocess, "run", side_effect=[
+                     SimpleNamespace(returncode=0, stdout=writable),
+                     SimpleNamespace(returncode=0, stdout=second)]) as ssh:
+                if second == writable:
+                    publisher.apply()
+                    mutation.assert_called_once_with(publisher.PREFIX, publisher.KEYS)
+                else:
+                    with self.assertRaisesRegex(RuntimeError, "writable /data"):
+                        publisher.apply()
+                    mutation.assert_not_called()
+                for call, instance in zip(ssh.call_args_list, instances, strict=True):
+                    self.assertEqual(["-d", instance, "--", "cat", "/proc/self/mountinfo"], call.args[0][-5:])
+
     def test_qualification_rejects_modified_retained_bundle(self):
         _, source, bundle = self.fixture()
         with TemporaryDirectory() as directory:
