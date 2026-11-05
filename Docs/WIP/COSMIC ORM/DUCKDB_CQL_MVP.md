@@ -171,6 +171,48 @@ tombstone `6888e38f-7d88-40bd-b599-d124b0f7e2be` outside the public catalogue.
 The recovery-laptop file still matches the qualified digest. Remote placement
 and activation remain open.
 
+Generate the four preset values for the reviewed settings using the qualified
+seed. The command prints only the public presets. Review its output as
+`CQL_HOSTED_QUERY_EXAMPLES__DuckDBOASIS` alongside the scoped grant and tariff.
+
+```powershell
+$seed = Get-Content -Raw LocalState/COSMIC/DuckDbCql/demo-seed.json | ConvertFrom-Json
+$provider = 'DuckDBOASIS'
+$presets = foreach ($count in 3, 2) {
+    $suffix = if ($count -eq 3) { 'records' } else { 'subset' }
+    $selection = @{
+        orderBy = 'None'
+        take = 25
+        includeMetadata = $true
+        filters = @(@{
+            field = 'Id'
+            scalar = 'Guid'
+            operator = 'In'
+            value = @($seed.Ids | Select-Object -First $count)
+        })
+    }
+    @{
+        id = "public-$suffix"
+        label = "DuckDB teaching records ($count)"
+        request = $selection + @{ provider = $provider }
+    }
+    @{
+        id = "mongo-public-$suffix"
+        label = "DuckDB teaching records ($count) + my Mongo snapshots"
+        operation = 'Federation'
+        request = @{
+            scope = 'Named'
+            providers = @('MongoDBOASIS', $provider)
+            source = $selection
+            identityMode = 'PreserveCopies'
+            maximumProviderAttempts = 2
+            take = 25
+        }
+    }
+}
+ConvertTo-Json -InputObject @($presets) -Depth 8 -Compress
+```
+
 The WEB4 build dependency manifest declares DuckDB.NET Bindings.Full 1.1.3
 and copies its Linux x64 and arm64 native assets. ELF headers matched their
 declared architectures. This checks build packaging. Opening the exact
