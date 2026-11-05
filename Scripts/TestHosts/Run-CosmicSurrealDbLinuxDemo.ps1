@@ -2,6 +2,11 @@ param([switch]$Federated,[switch]$Serve)
 $ErrorActionPreference='Stop'
 if(!$Federated){throw 'Use the explicit Mongo-paired teaching preset.'}
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+$distributions = & wsl --list --quiet
+if ($LASTEXITCODE -ne 0 -or 'Ubuntu' -notin @($distributions | ForEach-Object { ($_ -replace '\x00', '').Trim() })) {
+    throw 'The SurrealDB demo requires the original Ubuntu WSL environment. No build or source changes were made.'
+}
+
 $results=Join-Path $root 'TestResults/SurrealDbCqlCurrent'
 [void][IO.Directory]::CreateDirectory($results)
 & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner 'COSMIC SurrealDb paired demo' -Operation {

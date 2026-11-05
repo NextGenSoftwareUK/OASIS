@@ -152,3 +152,8 @@ original Linux runner are restored. The Windows integration build passed.
 The restored runner targets the original pinned Linux runtime and retained
 source. It has not been executed on this laptop. The demo hub route has not
 been re-enrolled on this branch.
+
+Recovery laptop inventory confirmed that WSL has no installed distributions.
+The launcher now rejects missing Ubuntu before writing outputs or starting a
+build. The original Linux runtime and data therefore require recovery before
+the original-source verification can run on this laptop.
