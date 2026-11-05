@@ -11,6 +11,14 @@ spec.loader.exec_module(publisher)
 
 
 class NatsConfigurationTests(unittest.TestCase):
+    def test_candidate_rejects_endpoints_the_hosted_profile_cannot_use(self):
+        source = dict(schema=1, bucket="cosmic_demo",
+                      ids=[f"00000000-0000-0000-0000-{n:012d}" for n in range(1, 4)],
+                      sourceOwner="00000000-0000-0000-0000-000000000123")
+        for endpoint in ("tls://127.0.0.2:4222", "tls://[::1]:4222", "tls://nats.example:65536"):
+            with self.subTest(endpoint=endpoint), self.assertRaises(ValueError):
+                publisher.candidate({}, dict(source, endpoint=endpoint))
+
     def test_free_query_only_candidate_preserves_writes_and_refuses_replacement(self):
         ids = ["00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000002", "00000000-0000-0000-0000-000000000003"]
         source = dict(schema=1,

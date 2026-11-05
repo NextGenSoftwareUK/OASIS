@@ -7,6 +7,7 @@ from pathlib import Path
 import copy
 import hashlib
 import importlib.util
+import ipaddress
 import re
 import json
 import sys
@@ -40,7 +41,14 @@ def candidate(before, source):
     if len(set(ids)) != 3 or any(uuid.UUID(id).int == 0 or str(uuid.UUID(id)) != id for id in ids):
         raise ValueError("Three distinct canonical record IDs required.")
     endpoint = urlsplit(source["endpoint"])
-    if (endpoint.scheme != "tls" or not endpoint.hostname or endpoint.hostname.rstrip(".") == "localhost"
+    host = endpoint.hostname or ""
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        address = None
+    if (endpoint.scheme != "tls" or not host or host.rstrip(".") == "localhost"
+            or (address is not None and address.is_loopback)
+            or endpoint.port == 0
             or endpoint.username is not None or endpoint.path not in ("", "/")
             or endpoint.query or endpoint.fragment or "," in source["endpoint"]):
         raise ValueError("An explicit TLS NATS endpoint without credentials is required.")
