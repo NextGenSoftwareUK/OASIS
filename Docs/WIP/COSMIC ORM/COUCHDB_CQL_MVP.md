@@ -112,6 +112,22 @@ ordinary documents as the query role are rejected. Preserve the retained demo
 source and qualify the target policy before handing the credentials to WEB4.
 [CouchDB database security](https://docs.couchdb.org/en/stable/api/database/security.html)
 
+For a dedicated role named `oasis_cql_reader`, the teaching database design
+document can enforce the restriction with this validator. Assign the role
+only to the WEB4 query account and use a separate account to seed fixtures.
+
+```javascript
+function (newDoc, oldDoc, userCtx, security) {
+    if (userCtx.roles.indexOf("oasis_cql_reader") !== -1) {
+        throw { forbidden: "The CQL demo role is read-only." };
+    }
+}
+```
+
+Review the target's existing design documents and privileges before applying
+the rule. Verify creation, update and deletion rejection through CouchDB
+itself before live enrollment.
+
 After verifying the reviewed Development deployment, check discovery before
 creating a cohort:
 
