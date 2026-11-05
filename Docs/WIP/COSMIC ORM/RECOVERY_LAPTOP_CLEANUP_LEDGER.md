@@ -621,3 +621,5 @@ Reused original DuckDB and Mongo stores. Temporary Mongo fixture cleaned,
 no pending journal or owned Mongo listener remains. Report:
 TestResults/DuckDbCqlCurrent/duckdb-mongo-federation.trx
 SHA256 D2CC28FC519744125C23181B4250D2D753D7DFDE9A78B35E2281B28C7F2216E1.
+
+DuckDB activation build reused provider bin/obj. Receipt: TestResults/DuckDbCqlCurrent/query-activation-build.log. No database opened.
