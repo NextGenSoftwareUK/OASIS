@@ -529,9 +529,14 @@ Status: missing account/configuration information,2 November2026. David approved
   verify the exact image and settings before rollout.
   [Candidate image build](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/41948106729).
 - The replacement LocalFile bundle is qualified. Sign in privately with
-  `railway login` on this laptop using the existing account with Development
-  WEB4 project access. Tell the agent when sign-in completes. Keep tokens and
-  credentials out of chat and Git.
+  Railway CLI 5.62.1 on this laptop using the existing account with Development
+  WEB4 project access. From C:/Source/OASIS2 run:
+
+  ```powershell
+  & './LocalState/COSMIC/RecoveryLaptopRailway5621/node_modules/@railway/cli/bin/railway.exe' login
+  ```
+
+  Tell the agent when sign-in completes. Keep credentials out of chat and Git.
 - [LocalFile qualification and rollout](../COSMIC%20ORM/LOCALFILE_CQL_MVP.md).
 
 ### Cloudflare D1 Worker for Development WEB4
