@@ -656,3 +656,5 @@ CouchDB activation suite passed 42/42 using the controlled HTTP fixture. Unit te
 CouchDB retained-source read-only activation fixture compiled. Integration bin/obj and TestResults/ProviderBuildCurrent/cosmic-couchdb-native-activation.log are generated outputs. No native service started.
 
 CouchDB authorized catalogue tests passed 43/43. Reused provider/test bin and obj. Receipt: TestResults/ProviderBuildCurrent/cosmic-couchdb-catalogue.log.
+
+CouchDB opt-in WEB4 build passed using existing WEB4 bin/obj. Receipt: TestResults/ProviderBuildCurrent/cosmic-couchdb-web4.log. No server started.

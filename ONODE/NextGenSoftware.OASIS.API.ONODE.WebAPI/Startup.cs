@@ -564,6 +564,21 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     new NextGenSoftware.OASIS.API.Providers.DuckDBOASIS.DuckDBOASIS(duckDbQueryConnection)));
 
+            if (Configuration["CQL_COUCHDB_QUERY_ENDPOINT"] is string couchDbQueryEndpoint)
+            {
+                if (!Uri.TryCreate(couchDbQueryEndpoint, UriKind.Absolute, out var couchDbUri) ||
+                    couchDbUri.Scheme != Uri.UriSchemeHttps || couchDbUri.IsLoopback ||
+                    couchDbUri.UserInfo.Length != 0 || couchDbUri.Query.Length != 0 ||
+                    couchDbUri.Fragment.Length != 0)
+                    throw new InvalidOperationException("CouchDB CQL requires a credential-free HTTPS endpoint.");
+                var username = Configuration["CQL_COUCHDB_QUERY_USERNAME"];
+                var password = Configuration["CQL_COUCHDB_QUERY_PASSWORD"];
+                if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+                    throw new InvalidOperationException("CouchDB CQL requires both query credentials.");
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    new NextGenSoftware.OASIS.API.Providers.CouchDBOASIS.CouchDBOASIS(couchDbUri.AbsoluteUri, username, password)));
+            }
+
             // Public country SQL reads never enroll owned ClickHouse table writes.
             if (Configuration["CQL_CLICKHOUSE_PUBLIC_SOURCE_JSON"] is string clickHousePublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
