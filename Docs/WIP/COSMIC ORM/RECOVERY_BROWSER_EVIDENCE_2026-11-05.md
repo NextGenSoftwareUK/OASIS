@@ -10,6 +10,7 @@ b1f86140-00a9-4017-9b6c-af9eade65c76. Reuse this browser session.
 | GoogleCloudOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
 | EthereumOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
 | PolygonOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
+| ArbitrumOASIS | 3/2 | 5/4 | 2 saved; reuse pending | Pending |
 
 Solana private IDs are 3066ca99-2a54-885f-afad-8b104f13b653 and
 b7f878cb-cd6d-8bf6-b075-e86856ade714. Google private IDs are
@@ -23,6 +24,9 @@ Polygon private IDs are 0629d889-f2dc-8b73-8fd1-a6335941db49 and
 passed. Both SQLite and Neo4j returned two rows with rendered name,
 description, version, ID and metadata exactly matching MongoDB. The
 independent retained visitor saw zero rows for these IDs on all three.
+Arbitrum private IDs are 346db48c-1320-8710-aa75-91ff67d210d3 and
+4460b02d-7667-8a63-9113-3ee63d70b9e0, both version 1. Reuse,
+independent privacy and rendered replica checks remain open for this pair.
 
 Solana and Google subset screenshots were emitted and inspected in the
 chat. Both show four physical rows with native and Mongo provider labels,
