@@ -433,3 +433,16 @@ authentication, instance mount confirmation and live acceptance remain open.
 The build log confirms that both the full commit tag and the isolated candidate tag were pushed to the same digest. The job did not push the shared sandbox tag.
 
 An independent registry check with the existing GitHub credential returned HTTP 403. The successful push log establishes publication at build time. Current pull access and the actual running image digest must be verified through the Development service.
+
+The image-digest guard is operator-side tooling. The built candidate's
+publisher and shared mutation code still match the task branch. Its release
+guard predates digest mode. If Railway exposes the candidate image digest
+without a commit hash, run the tested guard from e8d63b6f0 in the reviewed
+candidate checkout as an explicit, temporary change to
+Scripts/Sandbox/Prepare-TenSourcePublicBatch.py. Keep HEAD at c64adf474 and
+verify that only the guard script differs before application. Set
+COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT and
+COSMIC_CQL_EXPECTED_DEPLOYMENT_IMAGE_DIGEST to the reviewed values above.
+The guard refuses a missing digest or conflicting commit in image mode.
+Restore the script after the guarded operation. The existing commit-based
+path remains available when Railway proves the exact commit.
