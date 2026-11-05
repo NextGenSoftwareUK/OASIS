@@ -46,6 +46,13 @@ the five reviewed settings and deploy them together. Require readiness before
 creating a cohort, followed by native, Mongo, privacy and exact replica checks.
 [Qualification and rollout](LOCALFILE_CQL_MVP.md).
 
+The reviewed `c64adf474` image source contains the Hyperlane opt-in
+registration alongside LocalFile. SQL Server, DuckDB, CouchDB, NATS
+JetStream, Cloudflare D1 and QuestDB registrations are on the advancing
+task branch. Those six require a later reviewed WEB4 build as well as
+their own source qualification and settings. Keep them out of the
+first image's settings batch.
+
 Source-recovery fix published Development b718f2879;Core5415961/settings unchanged.
 Exact job33c9ef7d-b8b3-4403-9109-32ce47c4d7a8 SUCCESS;healthy/four-provider-ready.
 Live anonymous401/demo-user403 pass;59/60ready,Nostr unavailable;operator gate open.
