@@ -338,3 +338,15 @@ Railway executable is available and currently returns Unauthorized.
 $env:OASIS_RAILWAY_CLI = Join-Path $env:APPDATA 'npm/node_modules/@railway/cli/bin/railway.exe'
 & $env:OASIS_RAILWAY_CLI whoami
 ```
+
+The local demo hub invocation passed native and Mongo-paired verification,
+1/1 each, with existing build outputs and the retained recovery Mongo replica.
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider LocalFile -Federated -RecoveryMongo -VerifyOnly
+```
+
+The temporary Mongo fixture was cleaned and no test listeners remained.
+A fresh hosted readiness check using the retained visitor still reported
+LocalFile absent or unavailable. The hosted replacement bundle remains separate
+from the local demo fixture.
