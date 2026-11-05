@@ -938,3 +938,19 @@ check returned Unauthorized. No settings, deployment or project link changed.
   paired-mongo.log: 726891 bytes retained.
   paired-server.log: 0 bytes retained.
   paired-failure-reconciled-observed.json: 414 bytes retained.
+
+- Planned one separately journalled Meilisearch startup diagnostic after failed paired process was observed gone and ports closed. Same pinned binary/data/protected key and30s readiness budget; no Mongo startup, test dispatch, mutation or reseed. Capture original PID and process I/O observations to narrow empty-log startup failure. Preserve original paired failure; diagnostic is not pairing acceptance.
+
+- Meili standalone startup diagnostic completed0.687seconds, same original
+  data/key/runtime. Four original-batch documents verified, zero test/mutation
+  dispatch. PID21260stopped; port17700closed. Receipts and native log use the
+  startup-diagnostic prefix; original paired failure preserved. No database or
+  runtime copy. Three runner-stop regressions passed with temporary files
+  cleaned. Startup cause under concurrent Mongo remains unresolved.
+  startup-diagnostic-identity.json: 137 bytes retained.
+  startup-diagnostic-process-observations.json: 218 bytes retained.
+  startup-diagnostic-process-started.json: 191 bytes retained.
+  startup-diagnostic-process-stopped.json: 142 bytes retained.
+  startup-diagnostic-run.intent.json: 175 bytes retained.
+  startup-diagnostic-run.result.json: 286 bytes retained.
+  startup-diagnostic-server.log: 3266 bytes retained.

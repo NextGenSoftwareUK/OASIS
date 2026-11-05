@@ -120,3 +120,20 @@ outcomes and groups operation/stop failures so neither is lost. Three controlled
 process-boundary regression tests pass without starting a service. These fix
 failure evidence, not the unresolved native startup. Manager/Mongo/HTTP remains
 open; original native/restart acceptance and global counts are unchanged.
+
+## Read-only standalone startup diagnostic
+
+After the original paired process was observed gone and ports closed, a separate
+exclusive startup-diagnostic journal started the same pinned runtime/data/key,
+with the same30-second budget and Mongo stopped. It became ready and verified
+all four original-batch documents in0.687seconds. No mutation or test dispatch
+occurred. PID21260and process I/O observations were recorded; owned termination
+completed and port17700closed. This narrows the failed paired startup gate but
+does not establish its cause. No timeout extension, reseed or test retry occurred.
+
+The runner's diagnostic mode now captures process identity and I/O observations;
+future observations include a post-readiness sample. Diagnostic receipt writes
+cannot prevent the finally-owned stop attempt. Three process-stop regressions
+still pass. The original paired failure remains unchanged. Next compare the
+same read-only startup with the admitted Mongo process running, using separately
+named diagnostic evidence; do not relabel a diagnostic as federation acceptance.

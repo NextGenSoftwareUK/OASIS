@@ -1,5 +1,6 @@
 """Owned pinned Meilisearch fixture: journal writes once; preserve the retained source."""
 import argparse
+import ctypes
 import datetime
 import hashlib
 import importlib.util
@@ -56,13 +57,30 @@ def stop_owned_process(process, label, source_hash, failure=None):
         'method': 'owned Windows process termination after completed or failed run; not crash-durability proof'})
 
 
+def process_observation(process):
+    class IoCounters(ctypes.Structure):
+        _fields_ = [(name, ctypes.c_ulonglong) for name in
+            ('readOperations', 'writeOperations', 'otherOperations', 'readBytes', 'writeBytes', 'otherBytes')]
+    counters = IoCounters()
+    call = ctypes.WinDLL('kernel32', use_last_error=True).GetProcessIoCounters
+    call.argtypes = [ctypes.c_void_p, ctypes.POINTER(IoCounters)]
+    call.restype = ctypes.c_int
+    if not call(int(process._handle), ctypes.byref(counters)):
+        raise ctypes.WinError(ctypes.get_last_error())
+    return {'pid': process.pid, 'exitCode': process.poll(),
+        **{name: getattr(counters, name) for name, _ in counters._fields_}}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--initialize', action='store_true')
     parser.add_argument('--paired', action='store_true', help='Run the manager/Mongo/HTTP fixture against the retained source.')
+    parser.add_argument('--diagnose-startup', action='store_true', help='One read-only startup observation; no test or mutation dispatch.')
     args = parser.parse_args()
     if args.initialize and args.paired:
         raise RuntimeError('Pairing requires the already acknowledged original source.')
+    if args.diagnose_startup and (args.initialize or args.paired):
+        raise RuntimeError('Startup diagnostics cannot initialize data or dispatch paired tests.')
     raw = (STATE / 'source.json').read_bytes()
     source = json.loads(raw)
     if source['Endpoint'] != 'http://127.0.0.1:17700':
@@ -123,7 +141,7 @@ def main():
             time.sleep(.25)  # Poll the acknowledged asynchronous task; never resubmit a mutation.
 
     RESULTS.mkdir(parents=True, exist_ok=True)
-    label = 'paired' if args.paired else 'initial' if args.initialize else 'retained'
+    label = 'startup-diagnostic' if args.diagnose_startup else 'paired' if args.paired else 'initial' if args.initialize else 'retained'
     write_new(STATE / (label + '-run.intent.json'), {'sourceSha256': source_hash, 'runtimeSha256': DIGEST})
     env = dict(os.environ, MEILI_MASTER_KEY=key, MEILI_NO_ANALYTICS='true')
     with (STATE / (label + '-server.log')).open('xb') as log:
@@ -133,11 +151,14 @@ def main():
             creationflags=subprocess.CREATE_NO_WINDOW)
         failure = None
         test_dispatch_attempted = False
+        started = time.monotonic()
+        observations = []
         try:
             write_new(STATE / (label + '-process-started.json'), {'pid': process.pid,
                 'runtimeSha256': DIGEST, 'sourceSha256': source_hash})
             until = time.monotonic() + 30
             while True:
+                observations.append({'elapsedSeconds': round(time.monotonic() - started, 3), **process_observation(process)})
                 if process.poll() is not None:
                     raise RuntimeError('Owned native server exited before readiness; inspect retained log.')
                 try:
@@ -152,6 +173,8 @@ def main():
                 if health != {'status': 'available'}:
                     raise RuntimeError('Unexpected native health response.')
                 break
+            observations.append({'stage': 'ready', 'elapsedSeconds': round(time.monotonic() - started, 3),
+                **process_observation(process)})
             version = call('/version')
             if version.get('pkgVersion') != '1.56.1':
                 raise RuntimeError('Native server version differs from pinned runtime.')
@@ -171,6 +194,12 @@ def main():
                     if observed != document:
                         raise RuntimeError('Retained native payload differs from original acknowledged batch.')
             verify_original_source()
+            if args.diagnose_startup:
+                write_new(STATE / (label + '-run.result.json'), {'readySeconds': round(time.monotonic() - started, 3),
+                    'sourceSha256': source_hash, 'originalBatchSha256': original['bodySha256'],
+                    'matchedDocuments': 4, 'testDispatched': False, 'mutationsDispatched': 0})
+                print('Read-only native startup diagnostic completed; original four documents verified, no test or mutation dispatched.')
+                return
             test_env = dict(env, COSMIC_MEILISEARCH_CQL_SOURCE=str(STATE / 'source.json'), COSMIC_MEILISEARCH_CQL_KEY=key)
             project = ROOT / 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.IntegrationTests'
             category = 'MeilisearchMongoCqlNative' if args.paired else 'MeilisearchCqlNative'
@@ -196,7 +225,10 @@ def main():
                 'testReportExists': (RESULTS / (label + '.trx')).exists()})
             raise
         finally:
-            stop_owned_process(process, label, source_hash, failure)
+            try:
+                write_new(STATE / (label + '-process-observations.json'), observations)
+            finally:
+                stop_owned_process(process, label, source_hash, failure)
     print('Native Meilisearch run completed; source and original mutation receipts retained.')
 
 
