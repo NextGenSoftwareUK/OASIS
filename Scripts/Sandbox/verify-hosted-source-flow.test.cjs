@@ -9,7 +9,7 @@ const vm = require('node:vm');
 const modulePath = path.resolve(__dirname, '../../../Web4Site/cql-demo-preparation.js');
 const program = fs.readFileSync(path.join(__dirname, 'Verify-HostedSourceFlow.cjs'), 'utf8');
 
-for (const { byId, duplicateReplica, missingSnapshot } of [{ byId: false }, { byId: true }, { byId: true, duplicateReplica: true }, { byId: true, missingSnapshot: true }]) test(missingSnapshot ? "verifier rejects a missing private snapshot despite the expected row count" : duplicateReplica ? "verifier rejects duplicate replica IDs" : `verifier uses ${byId ? 'native ID unions' : 'protocol keys'} and checks both replicas`, async () => {
+for (const { byId, duplicateReplica, missingSnapshot, wrongNative } of [{ byId: false }, { byId: true }, { byId: true, duplicateReplica: true }, { byId: true, missingSnapshot: true }, { byId: true, wrongNative: true }]) test(wrongNative ? "verifier rejects a different native ID at the expected row count" : missingSnapshot ? "verifier rejects a missing private snapshot despite the expected row count" : duplicateReplica ? "verifier rejects duplicate replica IDs" : `verifier uses ${byId ? 'native ID unions' : 'protocol keys'} and checks both replicas`, async () => {
   const owner = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
   const nativeIds = ['44444444-4444-4444-8444-444444444441',
     '44444444-4444-4444-8444-444444444442', '44444444-4444-4444-8444-444444444443'];
@@ -72,7 +72,11 @@ for (const { byId, duplicateReplica, missingSnapshot } of [{ byId: false }, { by
       if (missingSnapshot && rows.length === 5)
         rows[rows.length - 1] = { ...rows.at(-1), id: '33333333-3333-4333-8333-333333333333' };
       result = { result: { rows: rows.map(row => ({
-        selected: { provider: nativeIds.includes(row.id) ? provider : 'MongoDBOASIS', row },
+        selected: {
+          provider: nativeIds.includes(row.id) ? provider : 'MongoDBOASIS',
+          row: wrongNative && row.id === nativeIds[0]
+            ? { ...row, id: '33333333-3333-4333-8333-333333333333' } : row
+        },
         copies: []
       })) } };
     } else if (route === 'data/query-cql') {
@@ -84,9 +88,9 @@ for (const { byId, duplicateReplica, missingSnapshot } of [{ byId: false }, { by
   const errors = []; const process = { exitCode: 0 };
   await vm.runInNewContext(program, { require: name => name === 'node:fs' ? memory : require(name),
     fetch, AbortSignal, setTimeout, process, console: { log() {}, error: value => errors.push(value) } });
-  if (duplicateReplica || missingSnapshot) {
+  if (duplicateReplica || missingSnapshot || wrongNative) {
     assert.equal(process.exitCode, 1);
-    assert.match(errors.join('\n'), missingSnapshot ? /Federation did not return distinct source and private snapshot IDs/ : /Neo4jOASIS did not return the exact private replica IDs/);
+    assert.match(errors.join('\n'), wrongNative ? /Federation returned native IDs outside the requested source selection/ : missingSnapshot ? /Federation did not return distinct source and private snapshot IDs/ : /Neo4jOASIS did not return the exact private replica IDs/);
     assert.equal(files.has(input.report), false);
     assert.equal(saves, 2);
     return;
