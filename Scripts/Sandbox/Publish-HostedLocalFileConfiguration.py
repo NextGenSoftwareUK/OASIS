@@ -171,8 +171,17 @@ def require_data_mount():
             raise RuntimeError("The reviewed instance must expose a separate writable /data mount")
 
 
+def verify_release():
+    guard = module("Prepare-TenSourcePublicBatch")
+    release_ref = os.environ.get("COSMIC_CQL_REVIEWED_RELEASE_REF")
+    if release_ref:
+        guard.require_matching_release(configuration, release_ref=release_ref)
+    else:
+        guard.require_matching_release(configuration)
+
+
 def verify_mount():
-    module("Prepare-TenSourcePublicBatch").require_matching_release(configuration)
+    verify_release()
     require_data_mount()
 
 
@@ -189,7 +198,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         prepare()
     elif sys.argv[1:] == ["verify-release"]:
-        module("Prepare-TenSourcePublicBatch").require_matching_release(configuration)
+        verify_release()
         print("Reviewed Development WEB4 deployment verified.")
     elif sys.argv[1:] == ["verify-mount"]:
         verify_mount()

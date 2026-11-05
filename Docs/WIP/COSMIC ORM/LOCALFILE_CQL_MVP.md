@@ -298,13 +298,13 @@ reported LocalFile unavailable before rollout. Start the LocalFile
 `--prepare` flow only after its readiness check passes. Discovery readiness
 does not replace the native, federation, privacy or replica checks.
 
-### Apply from the reviewed release checkout
+### Apply from the existing task checkout
 
-The publisher checks both local HEAD and Railway's latest Development WEB4
-deployment against the full reviewed commit. Running apply from the advancing
-COSMIC task branch will fail even after the candidate is live. Use the existing
-checkout at the exact reviewed release after coordinating its switch. Preserve
-unrelated changes and verify the manifest and gitlinks before publishing.
+The updated operator-side publisher checks the local reviewed release ref and
+Railway's latest Development WEB4 deployment against the full reviewed commit.
+Use the existing task checkout and set the explicit candidate ref. When no ref
+is set, the publisher checks local HEAD. Verify the manifest and gitlinks in
+the reviewed candidate before publishing.
 
 For the currently published candidate, the PowerShell commands below apply
 only after confirming the existing /data volume and a SUCCESS deployment of
@@ -312,7 +312,7 @@ the same commit. If Development advances, review the new candidate and use
 its exact SHA instead.
 
 ```powershell
-git rev-parse HEAD
+$env:COSMIC_CQL_REVIEWED_RELEASE_REF = 'refs/heads/codex/cosmic-localfile-release-candidate'
 $env:COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT = 'c64adf4748856b0acaae02e24a7f8edd16d2a139'
 python Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py
 python Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py apply
@@ -434,13 +434,9 @@ The build log confirms that both the full commit tag and the isolated candidate 
 
 An independent registry check with the existing GitHub credential returned HTTP 403. The successful push log establishes publication at build time. Current pull access and the actual running image digest must be verified through the Development service.
 
-The image-digest guard is operator-side tooling. The built candidate's
-publisher and shared mutation code still match the task branch. Its release
-guard predates digest mode. If Railway exposes the candidate image digest
-without a commit hash, run the tested guard from e8d63b6f0 in the reviewed
-candidate checkout as an explicit, temporary change to
-Scripts/Sandbox/Prepare-TenSourcePublicBatch.py. Keep HEAD at c64adf474 and
-verify that only the guard script differs before application. Set
+The image-digest guard is operator-side tooling. The built candidate's shared
+settings mutation code matches the task branch. Use the updated publisher and
+guard from the task checkout with the explicit reviewed release ref. Set
 COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT and
 COSMIC_CQL_EXPECTED_DEPLOYMENT_IMAGE_DIGEST to the reviewed values above.
 The guard refuses a missing digest or conflicting commit in image mode.
@@ -453,10 +449,8 @@ candidate passed manifest validation. Remote Development and candidate refs
 were b718f2879 and c64adf474 at the check. These are offline controls. They did
 not write Railway settings, create visitors or verify the live volume.
 
-For a read-only deployment check, the operator-side publisher at fabf76861
-adds a verify-release command. Use that publisher and the guard from 103b23871
-in the reviewed candidate checkout, with HEAD still at c64adf474. The shared
-settings mutation module remains byte-identical to the candidate. Set the
+For a read-only deployment check, use the updated operator-side publisher's
+verify-release command with the same candidate ref. Set the
 reviewed commit and, for image deployments, the reviewed digest. Then run:
 
 ```powershell

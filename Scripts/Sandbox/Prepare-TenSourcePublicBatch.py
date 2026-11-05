@@ -46,17 +46,18 @@ def application_keys(before,after,include_optimism=False,include_linea_scroll=Fa
         raise ValueError("Existing source enrollment requires reconciliation")
     return apply_keys
 
-def require_matching_release(configuration):
-    """No configuration writes until this exact checked-out release is live."""
+def require_matching_release(configuration, *, release_ref="HEAD"):
+    """Require the reviewed local release ref to match the live deployment."""
     expected=os.environ.get("COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT", "")
     if not re.fullmatch("[0-9a-f]{40}", expected):
         raise RuntimeError("Set the exact reviewed release SHA in COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT before application")
     digest = os.environ.get("COSMIC_CQL_EXPECTED_DEPLOYMENT_IMAGE_DIGEST")
     if digest is not None and not re.fullmatch(r"sha256:[0-9a-f]{64}", digest):
         raise RuntimeError("Expected deployment image digest must be a full SHA256 digest")
-    revision=subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True)
+    revision=subprocess.run(["git", "rev-parse", "--verify", "--end-of-options",
+        release_ref + "^{commit}"], cwd=ROOT, capture_output=True, text=True)
     if revision.returncode or revision.stdout.strip()!=expected:
-        raise RuntimeError("Checked-out release differs from the reviewed deployment SHA; no configuration mutation")
+        raise RuntimeError("Local release ref differs from the reviewed deployment SHA; no configuration mutation")
     observed=subprocess.run([str(configuration.CLI), "deployment", "list", *configuration.COMMON,
         "--limit", "1", "--json"], capture_output=True)
     if observed.returncode:
