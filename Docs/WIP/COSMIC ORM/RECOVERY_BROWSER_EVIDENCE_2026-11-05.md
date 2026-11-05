@@ -29,6 +29,12 @@ which acknowledged two saves. Full/subset pairing returned 5/4. New private
 IDs are 9edd0c0e-1397-86c4-8308-d2946e639eb5 and
 eec55e3f-654b-85d7-ae68-f846ed5034e2, both version 1. Preserve the earlier
 identity denial. Its cause remains unassigned.
+Avalanche reuse then reported zero saved and two prepared. SQLite and
+Neo4j each returned both copies with rendered contents matching MongoDB.
+Independent privacy was interrupted by HTTP 401 USER_BOUND_BEARER_REQUIRED.
+The visitor token had 64 seconds remaining by the laptop clock. The API
+edge Date header was approximately 81 seconds ahead of that clock.
+Clock offset must be accounted for when deciding when to renew.
 
 Solana private IDs are 3066ca99-2a54-885f-afad-8b104f13b653 and
 b7f878cb-cd6d-8bf6-b075-e86856ade714. Google private IDs are
