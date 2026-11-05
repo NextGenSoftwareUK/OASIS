@@ -60,6 +60,13 @@ class ResponseEvidenceTests(unittest.TestCase):
             examples[0]["available"] = "false"
             with self.assertRaisesRegex(RuntimeError, "invalid hosted preset availability"):
                 verification.ready_source(provider, "test", require_pair=False)
+            examples[0]["available"] = True
+            examples.append(dict(examples[0], available=False))
+            with self.assertRaisesRegex(RuntimeError, "duplicate hosted preset IDs"):
+                verification.ready_source(provider, "test", require_pair=False)
+            request.return_value = {"result": [source, source]}
+            with self.assertRaisesRegex(RuntimeError, "more than once"):
+                verification.ready_source(provider, "test", require_pair=False)
             self.assertTrue(all(call.kwargs["method"] == "GET" for call in request.call_args_list))
 
     def test_native_selection_requires_exact_distinct_preset_ids(self):

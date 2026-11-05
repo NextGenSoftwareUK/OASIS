@@ -136,13 +136,18 @@ def session(state, label, *, allow_create=True):
 
 def ready_source(provider, token, require_pair):
     discovery = call("data/query-cql/providers?examplesVersion=2", token, method="GET")
-    source = next((row for row in discovery["result"] if row["provider"] == provider), None)
+    matches = [row for row in discovery["result"] if row["provider"] == provider]
+    if len(matches) > 1:
+        raise RuntimeError(f"{provider} appeared more than once in hosted discovery.")
+    source = matches[0] if matches else None
     if source is None or source.get("available") is not True or (require_pair and source.get("federationAvailable") is not True):
         raise RuntimeError(f"{provider} is absent or unavailable in hosted discovery.")
     required = {"public-records", "public-subset"}
     if require_pair:
         required.update(("mongo-public-records", "mongo-public-subset"))
     examples = source["examples"]
+    if len({row["id"] for row in examples}) != len(examples):
+        raise RuntimeError(f"{provider} returned duplicate hosted preset IDs.")
     if any("available" in row and type(row["available"]) is not bool for row in examples):
         raise RuntimeError(f"{provider} returned invalid hosted preset availability.")
     available = {row["id"] for row in examples if row.get("available", True)}
