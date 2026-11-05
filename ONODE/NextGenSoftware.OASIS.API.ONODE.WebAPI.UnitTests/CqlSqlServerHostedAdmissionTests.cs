@@ -25,6 +25,7 @@ public class CqlSqlServerHostedAdmissionTests
         var rows = new List<object>();
         foreach (int count in new[] { 3, 2 })
         {
+            var suffix = count == 3 ? "records" : "subset";
             var selection = new
             {
                 orderBy = "None", take = 25, includeMetadata = true,
@@ -34,11 +35,11 @@ public class CqlSqlServerHostedAdmissionTests
                     scalar = "Guid", @operator = "In", value = keys.Take(count).ToArray()
                 } }
             };
-            rows.Add(new { id = $"native-{count}", label = "SQL Server records", request = new
+            rows.Add(new { id = $"public-{suffix}", label = "SQL Server records", request = new
             {
                 provider, selection.orderBy, selection.take, selection.includeMetadata, selection.filters
             } });
-            rows.Add(new { id = $"paired-{count}", label = "SQL Server and Mongo", operation = "Federation", request = new
+            rows.Add(new { id = $"mongo-public-{suffix}", label = "SQL Server and Mongo", operation = "Federation", request = new
             {
                 scope = "Named", providers = new[] { nameof(ProviderType.MongoDBOASIS), provider },
                 source = selection, identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 25
