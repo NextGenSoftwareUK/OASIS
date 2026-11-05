@@ -146,3 +146,4 @@ python -B Scripts/Sandbox/Audit-LocalDemoLaunchers.py --html C:/Source/Web4Site/
 
 Audit now exits0:37files present, not native execution. Never rerun
 accepted native standalone3/2 or paired queries just to rebuild evidence.
+Browser continuation, 5 November 2026. Session sandbox-ca8924da passed Solana native 3/2, paired 5/4 and reuse 0 new saves. An independent retained visitor saw zero exact private-copy IDs on MongoDB, SQLite and Neo4j. The subset table screenshot was inspected. GoogleCloudOASIS native browser full/subset returned 3/2 in the same session; Google pairing remains open. Provider browser totals await final acceptance reconciliation.
