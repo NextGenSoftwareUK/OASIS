@@ -452,3 +452,16 @@ guard, 8 publisher, 5 response-evidence and 5 client-flow tests. The immutable
 candidate passed manifest validation. Remote Development and candidate refs
 were b718f2879 and c64adf474 at the check. These are offline controls. They did
 not write Railway settings, create visitors or verify the live volume.
+
+For a read-only deployment check, the operator-side publisher at fabf76861
+adds a verify-release command. Use that publisher and the guard from 103b23871
+in the reviewed candidate checkout, with HEAD still at c64adf474. The shared
+settings mutation module remains byte-identical to the candidate. Set the
+reviewed commit and, for image deployments, the reviewed digest. Then run:
+
+```powershell
+python -B Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py verify-release
+```
+
+This only checks the deployment observation. Verify the persistent mount
+separately before applying any settings.
