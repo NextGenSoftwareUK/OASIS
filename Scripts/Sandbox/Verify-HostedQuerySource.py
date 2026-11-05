@@ -147,6 +147,23 @@ def ready_source(provider, token, require_pair):
         raise RuntimeError(f"{provider} is missing required hosted query presets.")
     return source
 
+def require_native_selection(responses, examples):
+    if len(responses) != 2 or len(examples) != 2:
+        raise RuntimeError("Two native source selections are required.")
+    for response, example, count in zip(responses, examples, (3, 2)):
+        rows = response["result"]["rows"]
+        if len(rows) != count:
+            raise RuntimeError("Native source selection count differs.")
+        filters = example["request"].get("filters", [])
+        if len(filters) == 1:
+            predicate = filters[0]
+            if (predicate.get("field"), predicate.get("scalar"), predicate.get("operator")) == ("Id", "Guid", "In"):
+                expected = {value.lower() for value in predicate["value"]}
+                actual = {row.get("id", "").lower() for row in rows}
+                if len(expected) != count or actual != expected:
+                    raise RuntimeError("Native source selection IDs differ from the reviewed preset.")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("provider", choices=["ThreeFoldOASIS", "ClickHouseOASIS", "QuestDBOASIS", "SQLServerDBOASIS", "DuckDBOASIS", "CloudflareD1OASIS", "NATSJetStreamOASIS", "ZcashOASIS", "BittensorOASIS", "AkashOASIS", "EclipseOASIS", "ENSOASIS", "BlockscoutOASIS", "CelestiaOASIS", "ChainflipOASIS", "LocalFileOASIS", "HyperlaneOASIS", "LayerZeroV2OASIS", "StargateOASIS", "deBridgeOASIS", "SynapseOASIS", "ConnextOASIS", "WormholeOASIS", "BlockStackOASIS", "MatrixOASIS", "NostrOASIS", "BlueSkyOASIS", "ChainLinkOASIS", "EOSIOOASIS", "TelosOASIS", "FilecoinOASIS", "FantomOASIS", "AzureStorageOASIS", "SOLIDOASIS", "AWSS3OASIS", "SolanaOASIS", "GoogleCloudOASIS", "EthereumOASIS", "PolygonOASIS", "ArbitrumOASIS", "CosmosBlockChainOASIS", "PolkadotOASIS", "NEAROASIS", "BaseOASIS", "AvalancheOASIS", "BNBChainOASIS", "OptimismOASIS", "LineaOASIS", "ScrollOASIS", "ZkSyncOASIS", "AbstractOASIS", "MonadOASIS", "SeiOASIS", "BerachainOASIS", "BitcoinOASIS", "XRPLOASIS", "StellarOASIS", "AlgorandOASIS", "AptosOASIS", "HashgraphOASIS", "SuiOASIS", "ElrondOASIS", "RadixOASIS", "StarknetOASIS", "CardanoOASIS", "ArweaveOASIS", "TONOASIS"])
@@ -227,16 +244,13 @@ def main():
         original = json.loads((state / continuation_folder / "original-native-http.json").read_text(encoding="utf-8-sig"))
         if original["avatar"]["id"] != avatar["id"] or original["source"]["provider"] != options.provider:
             raise RuntimeError("Original native proof belongs to a different cohort.")
-        if [len(row["result"]["rows"]) for row in original["native"]] != [3, 2]:
-            raise RuntimeError("Original native selection proof differs.")
+        require_native_selection(original["native"], leaf)
     else:
         native = []
         for row in leaf:
             evidence = results / (suffix + "-" + row["id"] + "-native-observation.json")
             native.append(call("data/query-cql", token, row["request"], evidence_path=evidence))
-        for response, count in zip(native, (3, 2)):
-            if len(response["result"]["rows"]) != count:
-                raise RuntimeError("Native source selection count differs.")
+        require_native_selection(native, leaf)
         verification.write(results / (suffix + "-native-http.json"),
                            {"avatar": avatar, "source": source, "native": native, "browserAcceptance": False})
     if options.prepare:
