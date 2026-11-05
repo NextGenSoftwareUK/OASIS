@@ -683,3 +683,5 @@ lockfile and dependencies). Reused system Node and npm cache. Keep this
 isolated runtime for the rollout. Existing 4.11 lacks the required project
 selector and stdin variable writes. New CLI help verified both. Account
 check returned Unauthorized. No settings, deployment or project link changed.
+
+- IPFS live replica privacy follow-up, 4 November 2026. LocalState/COSMIC/HostedDemoRehearsalDiscovery/foreign-replica-visibility-observed.json (232 bytes), plus four foreign-refresh-053bf8e196ccdd4b journal files (6225 bytes). Existing foreign.session.dpapi rotated in place (822 bytes). Retain with the rehearsal cohort until reviewed expiry. Three exact-ID queries, zero additional avatars or saves. No installs or build outputs.

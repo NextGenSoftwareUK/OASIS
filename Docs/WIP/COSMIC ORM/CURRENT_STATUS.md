@@ -24,6 +24,10 @@ at TestResults/HostedDemoRehearsal/ipfs-http-flow.json. Separate rehearsal sessi
 prior cohorts preserved. A second visitor saw3 public rows and0 of the private
 Mongo snapshots by exact ID. Isolation summary SHA256
 64AEEB6D8B1427DD178A9F95F698185998C78D38D8319653DB96DA6AB1904F90.
+Live follow-up used the same independent visitor and both acknowledged IPFS
+snapshot IDs. MongoDB, SQLite and Neo4j each returned zero rows. Compact
+evidence SHA256 2AADFDF1CFF5DC7C40B27C69C4CDEC6BF2DBA130ED48F4E5B78F9940A4E32F8A
+at LocalState/COSMIC/HostedDemoRehearsalDiscovery/foreign-replica-visibility-observed.json.
 LocalFile remains the first rollout. The qualified teaching bundle and isolated
 Linux image are ready. GitHub run 41948106729 published c64adf474 with digest
 sha256:11257dfebf23acfa6a321273baf98b8eefe2f83f8b430a862ab54ed9a168a6ce.
