@@ -294,6 +294,23 @@ replicas before publishing its demo. Record browser acceptance separately.
 These candidates follow the LocalFile release gate. The local SQL results
 do not add to the hosted provider count.
 
+For D1, retain the reviewed Worker URL and synthetic projection owner in
+`LocalState/COSMIC/D1WorkerHostedQualificationCurrent/source.json` with
+`schema: 1`, `endpoint`, `sourceOwner`, and `symbols` in the order
+BTC-USDT, ETH-USDT, SOL-USDT. Run the HTTPS qualification before preparing
+Railway settings:
+
+```powershell
+python -B Scripts/Sandbox/Probe-D1WorkerHostedReadiness.py
+python -B Scripts/Sandbox/Publish-HostedD1WorkerConfiguration.py
+```
+
+Continue to preparation only after the probe reports exact 3/2 reads,
+rejection of duplicate and unenrolled symbols, and POST rejection. Keep a
+failed source-bound receipt and its original intent for reconciliation. A
+successful probe qualifies the Worker. Hosted WEB4 discovery, paired
+queries, privacy and replicas remain separate gates.
+
 ### NATS JetStream
 
 The retained local JetStream cohort passed native CQL 3/2 and WEB4 HTTP
