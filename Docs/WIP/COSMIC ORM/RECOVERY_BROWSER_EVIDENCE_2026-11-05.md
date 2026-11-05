@@ -8,8 +8,11 @@ The second retained tab uses sandbox-3a2cb72c with the clock-corrected
 session module. BNB Chain native 3/2 and pairing 5/4 passed there.
 Preparation acknowledged two saves. Private IDs are
 6f56a007-7fd0-8d1e-82d7-ba53d34904b6 and
-733c0191-8ca9-8975-ac2a-a2850d7b575a, both version 1. Reuse, privacy,
-replica comparison and renewal across the lifetime boundary remain open.
+733c0191-8ca9-8975-ac2a-a2850d7b575a, both version 1. Reuse reported
+zero saved and two prepared. SQLite and Neo4j each returned both copies
+with rendered contents exactly matching MongoDB. The independent retained
+visitor saw zero rows on each provider. BNB's functional browser flow
+passed. Renewal across the lifetime boundary remains open.
 
 | Provider | Native full/subset | Mongo full/subset | Preparation/reuse | Independent exact-ID privacy |
 |---|---|---|---|---|
