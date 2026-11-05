@@ -247,7 +247,7 @@ public static class IdentityFederationApiHost
                 .Replace("Stop demo and clean fixtures", "Stop demo (keep original Typesense source)", StringComparison.Ordinal);
         if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SolrOASIS)
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
-                "Read synthetic holons from MongoDB and retained authenticated native Solr through HolonManager.", StringComparison.Ordinal)
+                "Read synthetic holons from MongoDB and retained native Solr through HolonManager.", StringComparison.Ordinal)
                 .Replace("Stop demo and clean fixtures", "Stop demo (keep original Solr source)", StringComparison.Ordinal);
         if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.ChromaOASIS)
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",

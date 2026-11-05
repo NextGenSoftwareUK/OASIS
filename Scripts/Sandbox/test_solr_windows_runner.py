@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 import tempfile
 import urllib.error
 import json
+import hashlib
 
 SPEC = importlib.util.spec_from_file_location('cosmic_solr_runner', Path(__file__).parents[1] / 'TestHosts/run-cosmic-solr-windows.py')
 RUNNER = importlib.util.module_from_spec(SPEC)
@@ -52,5 +53,24 @@ class SolrRunnerControls(TestCase):
                 with patch.object(RUNNER, 'STATE', state), patch.object(RUNNER, 'assert_port_free'), patch.object(RUNNER.subprocess, 'Popen') as launch, patch('sys.argv', ['runner', '--resume-unseeded']):
                     with self.assertRaises(RuntimeError): RUNNER.run()
                 launch.assert_not_called()
+
+    def test_original_seed_and_missing_control_are_verified_before_paired_reads(self):
+        with tempfile.TemporaryDirectory() as directory:
+            state = Path(directory)
+            source = {'MissingId':'missing'}
+            (state / 'source.json').write_text(json.dumps(source))
+            expected = {'id':'live', 'name':'original'}
+            seed = {'sourceSha256':hashlib.sha256((state / 'source.json').read_bytes()).hexdigest(), 'rows':[expected]}
+            (state / 'seed.intent.json').write_text(json.dumps(seed))
+            (state / 'seed.ack.json').write_text(json.dumps({'intentSha256':hashlib.sha256((state / 'seed.intent.json').read_bytes()).hexdigest()}))
+            for native, absent, passes in [(expected, None, True), ({'id':'live','name':'changed'}, None, False), (expected, {'id':'missing'}, False)]:
+                with self.subTest(native=native, absent=absent), patch.object(RUNNER, 'STATE', state), patch.object(RUNNER, 'call', side_effect=[{'doc':native},{'doc':absent}]):
+                    if passes: self.assertEqual(1, len(RUNNER.observe_source()))
+                    else:
+                        with self.assertRaises(RuntimeError): RUNNER.observe_source()
+            (state / 'source.json').write_text('{}')
+            with patch.object(RUNNER, 'STATE', state), patch.object(RUNNER, 'call') as call:
+                with self.assertRaises(RuntimeError): RUNNER.observe_source()
+                call.assert_not_called()
 
 if __name__ == '__main__': main()

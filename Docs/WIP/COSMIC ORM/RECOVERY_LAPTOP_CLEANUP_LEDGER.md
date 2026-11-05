@@ -1079,3 +1079,30 @@ Both native TRX runs:1passed/0failed/0skipped each; first seed exactly once, ret
 - `unseeded-resume-c75bb54aa04d47329bbdb590fbb65186-server.log`: 13800 bytes retained (failed and successful attempts distinct).
 - `retained-0d7a9085cb334bd79012c5c7fe71092b.trx`: 2857bytes; SHA25694b183d594fe7bc87057bc5298e215d968913c0316ce1736848c40d89b69a703.
 - `unseeded-resume-c75bb54aa04d47329bbdb590fbb65186.trx`: 2857bytes; SHA256afcb81655de402f459560deca34dd73480349b822fc23791acb11322d2bc20e0.
+
+## Solr Mongo/HTTP and local browser acceptance — 5 November 2026
+
+No downloads, new runtime or database environment. Reused admitted Mongo8.2 runtime/store and pinned Solr/JRE. Paired and interactive fixtures each created only their exact three journalled Mongo records in cosmic_cql_mongo_solr_demo, verified all contents, dropped database and confirmed absence. Original four Solr documents/ACK unchanged; no reseeding. Five runner controls pass; native manager/HTTP and browser5/4 verified. Interactive run0e08b8fd4142424da146fe06e2aceab7 finished1pass/0skip after browser stop. Both owned Solr/Mongo stopped;18883/17883/27029/5117 have no listener; pending/ready files absent. No screenshot artifact files. Corrected a status-table placement error from the prior commit: Solr evidence belongs to Solr, restored Algolia pending status.
+
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests/bin`: 48611244bytes retained.
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests/obj`: 1086853bytes retained.
+- `TestResults/SolrCqlNativeCurrent`: 26094bytes retained.
+- `paired-browser-evidence.json`: 817bytes retained.
+- `paired-mongo-process.json`: 125bytes retained.
+- `paired-mongo-stopped.json`: 41bytes retained.
+- `paired-mongo.log`: 98862bytes retained.
+- `paired-process.json`: 1051bytes retained.
+- `paired-run.intent.json`: 52bytes retained.
+- `paired-run.result.json`: 539bytes retained.
+- `paired-server.log`: 11700bytes retained.
+- `paired-stopped.json`: 38bytes retained.
+- `interactive-0e08b8fd4142424da146fe06e2aceab7-mongo-process.json`: 164bytes retained.
+- `interactive-0e08b8fd4142424da146fe06e2aceab7-mongo-stopped.json`: 42bytes retained.
+- `interactive-0e08b8fd4142424da146fe06e2aceab7-mongo.log`: 156040bytes retained.
+- `interactive-0e08b8fd4142424da146fe06e2aceab7-process.json`: 1050bytes retained.
+- `interactive-0e08b8fd4142424da146fe06e2aceab7-run.intent.json`: 90bytes retained.
+- `interactive-0e08b8fd4142424da146fe06e2aceab7-run.result.json`: 539bytes retained.
+- `interactive-0e08b8fd4142424da146fe06e2aceab7-server.log`: 12728bytes retained.
+- `interactive-0e08b8fd4142424da146fe06e2aceab7-stopped.json`: 37bytes retained.
+- `paired.trx`: SHA25670058347ba4fc1dce30e27136ed150fe5b7a24706f2be11836762752aa717666.
+- `interactive-0e08b8fd4142424da146fe06e2aceab7.trx`: SHA25627e93a7635dfc32eeb1c436463793177b0d858efd08ff8ec35d01af103abfee4.

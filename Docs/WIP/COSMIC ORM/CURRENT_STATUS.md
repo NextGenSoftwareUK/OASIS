@@ -8,8 +8,9 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
 Solr bounded CQL and read-only existing-collection activation now have 16 passing
 controlled tests, zero skips. Native Solr10.1.0 first seed and retained restart
-now pass3/2/0 and source preservation; four runner control tests pass. Manager,
-HTTP and browser qualification remain open. Coverage counts unchanged.
+now pass3/2/0 and source preservation; five runner control tests pass. Native
+manager/Mongo/HTTP and local browser5/4 also pass, with fixture cleanup and original
+source preservation. Solr adds one local profile; hosted enrollment remains open.
 See [scope and remaining gates](SOLR_CQL_MVP.md).
 
 ## Browser continuation gate, 5 November 2026
@@ -28,8 +29,8 @@ requires the already-recorded Railway access and persistent-mount checks.
 
 ## Verified scope
 
-- **97 local query types/profiles:**3 canonical, 57 public/source, 37 other local;
-  includes 31 recovered historical demos. Not 97 fully implemented providers.
+- **98 local query types/profiles:**3 canonical, 57 public/source, 38 other local;
+  includes 31 recovered historical demos. Not 98 fully implemented providers.
 - **60 scoped hosted HTTP proofs; 28 browser flows verified / 32 browser gates open.**
   Solana, Google Cloud public objects, Ethereum, Polygon and Arbitrum balances add native
   3/2, paired 5/4, preparation reuse, independent privacy and matching rendered
@@ -41,7 +42,9 @@ requires the already-recorded Railway access and persistent-mount checks.
 Meilisearch adds one newly verified local profile to the preserved96baseline:
 actual native/restart, manager/Mongo/HTTP and local browser5/4pass. Its explicitly
 local Windows card is published and rendered on WEB4 (site8d6d320); hosted
-Meili enrollment remains open. [Evidence](MEILISEARCH_CQL_MVP.md).
+Meili enrollment remains open. [Evidence](MEILISEARCH_CQL_MVP.md). Solr adds the
+next local profile after native/restart, manager/Mongo/HTTP and browser5/4
+acceptance. Its local WEB4 card is pending; [Solr evidence](SOLR_CQL_MVP.md).
 
 ## Current batch / exact next step
 

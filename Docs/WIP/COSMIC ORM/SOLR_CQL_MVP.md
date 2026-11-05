@@ -92,3 +92,29 @@ checksums, manifest and receipts remain. No system/PATH/service changes.
 Manager/Mongo/HTTP, local browser and hosted enrollment remain open. Counts are
 unchanged until integrated demo acceptance. Next: reuse this source and the
 existing Mongo environment to prove5/4 native/replica provenance and HTTP flow.
+
+## Integrated local acceptance — 5 November 2026
+
+Manager/Mongo/HTTP paired1/1 and interactive browser1/1 now pass, zero skips.
+Both use the admitted existing Mongo8.2 environment and the acknowledged original
+Solr source. Manager/LINQ and actual Kestrel HTTP return5/4 physical rows with
+Solr3/2 and Mongo2 in both presets; out-of-catalogue Mongo record is excluded.
+Caller actor/unknown preset return400; deactivated Solr returns503 without rows.
+The page accurately says native Solr, without claiming account authentication.
+
+Browser tab5 verified the rendered full5/subset4 JSON and MovingProviderReads,
+then used the stop button. Interactive run0e08b8fd4142424da146fe06e2aceab7 passed;
+original four Solr records remain unchanged. The exact3record Mongo fixture was
+verified/dropped, database absence checked and pending journal removed. Ready
+marker absent; all owned processes stopped and18883/17883/27029/5117 closed.
+No native seed/save replay. Compact paired-browser-evidence.json retains counts
+and TRX hashes. No standalone screenshots were generated.
+
+This adds one scoped local profile:98=3canonical+57public/source+38otherlocal,
+including31recovered historical demos. Hosted HTTP60 and hosted browser28/open32
+are unchanged. Full ORM, CRUD/storage conformance and hosted Solr remain open.
+[Local launcher guide](../../Devs/SOLR_CQL_LOCAL_DEMO.md). WEB4 card is next.
+
+- `paired.trx`: SHA256 `70058347ba4fc1dce30e27136ed150fe5b7a24706f2be11836762752aa717666`.
+
+- `interactive-0e08b8fd4142424da146fe06e2aceab7.trx`: SHA256 `27e93a7635dfc32eeb1c436463793177b0d858efd08ff8ec35d01af103abfee4`.

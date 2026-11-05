@@ -87,6 +87,25 @@ def initialize_files():
     write_once(STATE / 'seed.intent.json', dict(rows=rows, sourceSha256=hashlib.sha256((STATE / 'source.json').read_bytes()).hexdigest()))
 
 
+def observe_source():
+    source = json.loads((STATE / 'source.json').read_text())
+    seed = json.loads((STATE / 'seed.intent.json').read_text())
+    if seed['sourceSha256'] != hashlib.sha256((STATE / 'source.json').read_bytes()).hexdigest():
+        raise RuntimeError('Original source metadata differs')
+    acknowledgement = json.loads((STATE / 'seed.ack.json').read_text())
+    if acknowledgement['intentSha256'] != hashlib.sha256((STATE / 'seed.intent.json').read_bytes()).hexdigest():
+        raise RuntimeError('Original acknowledged seed intent differs')
+    hashes = []
+    for expected in seed['rows']:
+        native = call('/solr/oasis_holons/get?id=' + expected['id'] + '&wt=json&omitHeader=false')['doc']
+        if native is None or any(native.get(key) != value for key, value in expected.items()):
+            raise RuntimeError('Original Solr document differs from the acknowledged teaching record')
+        hashes.append(hashlib.sha256(json.dumps(native, sort_keys=True).encode()).hexdigest())
+    if call('/solr/oasis_holons/get?id=' + source['MissingId'] + '&wt=json&omitHeader=false')['doc'] is not None:
+        raise RuntimeError('Original Solr missing control is present')
+    return hashes
+
+
 def wait_until_ready(process):
     until = time.monotonic() + 60
     while True:
@@ -113,7 +132,15 @@ def run():
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument('--initialize', action='store_true')
     modes.add_argument('--resume-unseeded', action='store_true')
+    parser.add_argument('--paired', action='store_true')
+    parser.add_argument('--serve-run-id')
     args = parser.parse_args()
+    if args.paired and (args.initialize or args.resume_unseeded):
+        raise RuntimeError('Pairing uses only the acknowledged existing Solr source')
+    if args.serve_run_id and (not args.paired or len(args.serve_run_id) != 32 or any(c not in '0123456789abcdef' for c in args.serve_run_id)):
+        raise RuntimeError('Serve run requires paired mode and an explicit GuidN run identity')
+    if (STATE / 'mongo.pending.json').exists():
+        raise RuntimeError('Unfinished Mongo fixture requires reconciliation')
     for port in (18883, 17883):
         assert_port_free(port)
     if args.initialize:
@@ -127,7 +154,7 @@ def run():
     elif not (STATE / 'seed.ack.json').exists():
         raise RuntimeError('No acknowledged source; retained reads cannot seed')
     verify_runtime()
-    phase = 'initial' if args.initialize else ('unseeded-resume-' if args.resume_unseeded else 'retained-') + uuid.uuid4().hex
+    phase = ('interactive-' + args.serve_run_id if args.serve_run_id else 'paired') if args.paired else ('initial' if args.initialize else ('unseeded-resume-' if args.resume_unseeded else 'retained-') + uuid.uuid4().hex)
     intent = STATE / (phase + '-run.intent.json')
     write_once(intent, dict(phase=phase, seededThisRun=args.initialize or args.resume_unseeded))
     logs = STATE / 'logs'
@@ -160,10 +187,12 @@ def run():
                 response = call('/solr/oasis_holons/update/json/docs?commit=true&wt=json', seed['rows'])
                 write_once(STATE / 'seed.ack.json', dict(response=response,
                     intentSha256=hashlib.sha256((STATE / 'seed.intent.json').read_bytes()).hexdigest()))
+            before = observe_source()
             env = os.environ.copy()
             env['COSMIC_SOLR_CQL_SOURCE'] = str(STATE / 'source.json')
             env.pop('COSMIC_SOLR_CQL_USERNAME', None)
             env.pop('COSMIC_SOLR_CQL_PASSWORD', None)
+            env['OASIS_SOLR_MONGO_SERVE'] = '1' if args.serve_run_id else '0'
             results = ROOT / 'TestResults/SolrCqlNativeCurrent'
             results.mkdir(exist_ok=True)
             name = phase + '.trx'
@@ -171,7 +200,7 @@ def run():
             if target.exists():
                 raise RuntimeError('Refusing to overwrite native evidence')
             outcome = subprocess.run(['dotnet', 'test', str(ROOT / 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests.csproj'),
-                '--no-build', '--no-restore', '--filter', 'TestCategory=SolrCqlNative',
+                '--no-build', '--no-restore', '--filter', 'TestCategory=' + ('SolrMongoCqlNative' if args.paired else 'SolrCqlNative'),
                 '--logger', 'trx;LogFileName=' + name, '--results-directory', str(results),
                 '/m:2', '/nr:false', '/p:UseSharedCompilation=false', '-v:q'], env=env)
             if outcome.returncode:
@@ -181,7 +210,11 @@ def run():
             if any(counters[key] != expected for key, expected in
                 [('total','1'), ('passed','1'), ('failed','0'), ('notExecuted','0')]):
                 raise RuntimeError('Native test counters differ')
-            write_once(STATE / (phase + '-run.result.json'), dict(counters=counters,
+            if observe_source() != before:
+                raise RuntimeError('Retained Solr source changed during query qualification')
+            if args.paired and ((STATE / 'mongo.pending.json').exists() or (STATE / 'demo-ready.json').exists()):
+                raise RuntimeError('Paired fixture cleanup is incomplete')
+            write_once(STATE / (phase + '-run.result.json'), dict(counters=counters, sourceDocumentsUnchanged=True,
                 trxSha256=hashlib.sha256(target.read_bytes()).hexdigest(), seededThisRun=args.initialize or args.resume_unseeded))
         finally:
             if process.poll() is None:
