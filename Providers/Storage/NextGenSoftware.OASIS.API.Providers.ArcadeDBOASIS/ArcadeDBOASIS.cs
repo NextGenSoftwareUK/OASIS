@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
     /// Command: POST {base}/api/v1/command/{db}  {{ language:"sql", command:"UPDATE ..." }}
     /// Auth:    HTTP Basic
     /// </summary>
-    public class ArcadeDBOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
+    public partial class ArcadeDBOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -48,13 +48,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
         private const string CollAvatarDetails = "AvatarDetail";
         private const string CollHolons = "Holon";
 
-        public ArcadeDBOASIS(string baseUrl = "http://localhost:2480", string username = "root", string password = "playwithdata")
+        public ArcadeDBOASIS(string baseUrl = "http://localhost:2480", string username = "root", string password = "playwithdata", HttpClient? httpClient = null)
         {
             _baseUrl = baseUrl.TrimEnd('/');
+            ProviderName = "ArcadeDBOASIS";
+            ProviderDescription = "ArcadeDB multi-model storage provider via its SQL HTTP API";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ArcadeDBOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
-            _http = new HttpClient();
+            _http = httpClient ?? new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             var creds = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}"));
             _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", creds);

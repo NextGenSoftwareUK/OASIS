@@ -1114,3 +1114,53 @@ Website72e29ba is published/Vercel success;112client tests pass. Public HTML208,
 - Removed exact owned successful `paired-mongo.log` after process stop/ports closed: 98862bytes, SHA256300fb35dac984937f28415ab551e09d79e2c22d7b573f54d7a74d7819a158a2a. Compact TRX/result/process/cleanup receipts retained.
 - Removed exact owned successful `interactive-0e08b8fd4142424da146fe06e2aceab7-mongo.log` after process stop/ports closed: 156040bytes, SHA256bab036ad2eef03678dd76cb19dadadfb8b77f2b02f607160fc682dd6988ee549. Compact TRX/result/process/cleanup receipts retained.
 - Total successful Mongo logs freed: 254902bytes. Failed startup logs, native store, pinned runtimes and compiled demo outputs remain for continuation.
+
+## ArcadeDB bounded CQL/native qualification — 5 November 2026
+
+One reusable directory: LocalState/COSMIC/RecoveryLaptopArcade26111. Selected official stable26.11.1 base distribution (SQL/HTTP scope; optional modules not required), released4November2026. Archive86,506,630bytes, official GitHub asset SHA256f4307c06223c14efc42e526845a241d5252b36b74908b08eabf3383b9c7b6c84. Reuse the existing qualified Temurin21.0.13+9 JRE in RecoveryLaptopSolr1010; no additional Java/system/PATH/service install. Download/expansion provenance and native measurements to follow. No source/server created yet.
+
+### ArcadeDB native acceptance and archive cleanup
+
+Provider/CQL22/22, runner controls3/3, bootstrap1/1 and native initial/retained1/1each pass; no skips. One four-record SDK bootstrap, per-save intents/ACKs, no replay; native source same home. Both owned Java processes exited0 through native graceful shutdown;24800closed. Root credential stays in root-password.dpapi/local security config, never arguments/source metadata; native logs checked plaintext absent. The91 installed ArcadeDB files and reused Java prefix match pinned manifests. Removed exact verified archive86,506,630bytes; archive/runtime receipts retained. No new Java or system/PATH/service environment. Initial unit compile failed due obsolete GetProviderVersion test; caller removed/current identity metadata corrected, no native dispatch before successful build.
+
+- `LocalState/COSMIC/RecoveryLaptopArcade26111/arcadedb-26.11.1`: 132204796bytes retained.
+- `LocalState/COSMIC/RecoveryLaptopArcade26111/home`: 939144bytes retained.
+- `Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS/bin`: 8279369bytes retained.
+- `Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS/obj`: 979871bytes retained.
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS.UnitTests/bin`: 47133949bytes retained.
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS.UnitTests/obj`: 1018897bytes retained.
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS.IntegrationTests/bin`: 47145626bytes retained.
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS.IntegrationTests/obj`: 1034358bytes retained.
+- `TestResults/ArcadeDBCqlUnitCurrent`: 33818bytes retained.
+- `TestResults/ArcadeDBCqlNativeCurrent`: 8652bytes retained.
+- `archive-cleanup.json`: 290bytes retained.
+- `archive.verified.json`: 259bytes retained.
+- `bootstrap-132092fc-4e5c-4e06-b11d-a24d42539cce.ack.json`: 127bytes retained.
+- `bootstrap-132092fc-4e5c-4e06-b11d-a24d42539cce.intent.json`: 127bytes retained.
+- `bootstrap-20ef2f41-bf40-4c4b-a9d6-5513da124c75.ack.json`: 127bytes retained.
+- `bootstrap-20ef2f41-bf40-4c4b-a9d6-5513da124c75.intent.json`: 127bytes retained.
+- `bootstrap-c69c657a-1842-4ae7-9519-215c62ccaca8.ack.json`: 127bytes retained.
+- `bootstrap-c69c657a-1842-4ae7-9519-215c62ccaca8.intent.json`: 127bytes retained.
+- `bootstrap-d5252742-c68c-4852-9603-db89e060145f.ack.json`: 127bytes retained.
+- `bootstrap-d5252742-c68c-4852-9603-db89e060145f.intent.json`: 127bytes retained.
+- `bootstrap-run.result.json`: 455bytes retained.
+- `bootstrap.ack.json`: 100bytes retained.
+- `bootstrap.intent.json`: 119bytes retained.
+- `environment.lock`: 0bytes retained.
+- `initial-process.json`: 819bytes retained.
+- `initial-run.intent.json`: 116bytes retained.
+- `initial-run.result.json`: 569bytes retained.
+- `initial-server.log`: 4271bytes retained.
+- `initial-stopped.json`: 55bytes retained.
+- `native-evidence.json`: 2226bytes retained.
+- `retained-931c73452b364611b349b69ac53337d2-process.json`: 819bytes retained.
+- `retained-931c73452b364611b349b69ac53337d2-run.intent.json`: 117bytes retained.
+- `retained-931c73452b364611b349b69ac53337d2-run.result.json`: 570bytes retained.
+- `retained-931c73452b364611b349b69ac53337d2-server.log`: 3363bytes retained.
+- `retained-931c73452b364611b349b69ac53337d2-stopped.json`: 55bytes retained.
+- `root-password.dpapi`: 262bytes retained.
+- `runtime-manifest.json`: 10472bytes retained.
+- `source.json`: 354bytes retained.
+- `bootstrap.trx` SHA256b6bc6a4c80c898b20295b3cf3322eab1bd23a9b445a1a1b344bea84c72318ba3.
+- `initial.trx` SHA25625331c83c69a6290acb799bb5c17bc5f04d0b1ed4705f33aca5360265c279cd3.
+- `retained-931c73452b364611b349b69ac53337d2.trx` SHA2567d5a2f79cd4a9f1bcb889e1b58122f9b434438f521a1fb3f17c693b357abbf2b.

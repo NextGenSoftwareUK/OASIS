@@ -4,6 +4,13 @@ Updated 5 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
+## ArcadeDB native continuation, 5 November 2026
+
+ArcadeDB now has22passing provider/CQL tests and3runner controls. Actual native
+bootstrap, CQL3/2/0/paging/source preservation and retained restart pass1/1each.
+It reuses the qualified Java runtime and one owned source; no seed replay.
+Manager/Mongo/HTTP/browser remain next, counts unchanged. [Evidence](ARCADEDB_CQL_MVP.md).
+
 ## Solr adapter continuation, 5 November 2026
 
 Solr bounded CQL and read-only existing-collection activation now have 16 passing
@@ -166,13 +173,13 @@ Native Windows CQL and retained restart now pass1/1each, zero skips, with
 original-batch source preservation and no reseed on restart. Manager/LINQ and
 Manager/Mongo/HTTP now passes1/1 with5/4provenance and verified temporary Mongo
 cleanup. Original native documents match their first batch. Earlier paired
-startup failure is retained/cause unknown; hosted/browser remain open, counts
-unchanged pending reconciliation. [Scope](MEILISEARCH_CQL_MVP.md).
+startup failure is retained/cause unknown. Later local browser acceptance and
+published card are recorded in Verified scope above; hosted enrollment remains open. [Scope](MEILISEARCH_CQL_MVP.md).
 
 ## Constraints / wider unfinished work
 
 - Hosted Azure Cosmos/Oracle/PostgreSQL deferred by David;no account/spend re-asks.
-- Browser/OS control closed;HTTP/static matching is not interaction proof.
+- Browser acceptance requires observed interaction;HTTP/static matching alone is not proof.
 - Preserve denied/failed public-source outcomes and original accepted cohorts.
 - ORM children/depth/history/deltas,cutover/migration/placement and wider hosted/
   operator/transport/scale HyperDrive acceptance remain open;no uptime guarantee.
