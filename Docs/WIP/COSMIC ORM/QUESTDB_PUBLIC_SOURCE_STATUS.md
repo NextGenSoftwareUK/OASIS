@@ -1,6 +1,7 @@
 # QuestDB public demo qualification
 
-Updated2November2026. Native/CQL/hosted/browser acceptance not yet run.
+Local native REST, CQL and WEB4 HTTP/Mongo acceptance passed on the recovery
+laptop. Hosted endpoint qualification and browser acceptance remain open.
 
 ## Contract and free access
 
@@ -107,3 +108,17 @@ the endpoint's SQL permissions independently of the WEB4 profile. The
 WEB4 adapter bounds its own SQL and validates exact returned symbols.
 That does not restrict direct callers of the endpoint. Verify that
 unrelated tables and mutations are unavailable before exposing the fixture.
+
+The recovery laptop retains the pinned QuestDB 10.1.0 runtime and the
+completed fixture cleanup receipt. The previous temporary database was
+removed. For a new, isolated qualification database, seed the same table
+shape and teaching symbols with a separate provisioning account:
+
+```sql
+CREATE TABLE cql_demo_symbols (symbol SYMBOL);
+INSERT INTO cql_demo_symbols VALUES ('BTC-USDT'), ('ETH-USDT'), ('SOL-USDT');
+```
+
+Use the query endpoint to verify the `SYMBOL` column type and exact keys
+before preparing WEB4 settings. This schema is for a new fixture. Preserve
+the original hosted gateway denial and prior local evidence.
