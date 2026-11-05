@@ -71,16 +71,42 @@ def process_observation(process):
         **{name: getattr(counters, name) for name, _ in counters._fields_}}
 
 
+def validate_paired_resume(state, source_hash):
+    names = ['paired-run.intent.json', 'paired-failure-reconciled-observed.json',
+        'startup-diagnostic-run.result.json', 'concurrent-startup-diagnostic-run.result.json']
+    documents = [json.loads((state / name).read_bytes()) for name in names]
+    original, failed, *diagnostics = documents
+    if original.get('sourceSha256') != source_hash or original.get('runtimeSha256') != DIGEST:
+        raise RuntimeError('Original paired intent differs from this pinned source/runtime.')
+    if (failed.get('accepted') is not False or failed.get('testReportExists') is not False
+            or failed.get('mongoPendingExists') is not False or failed.get('seedReplayed') is not False
+            or failed.get('portListeners') != {'17700': False, '27029': False, '5116': False}
+            or (state / 'mongo.pending.json').exists() or (RESULTS / 'paired.trx').exists()):
+        raise RuntimeError('Original paired work is not proven undispatched and reconciled.')
+    for proof in diagnostics:
+        if (proof.get('sourceSha256') != source_hash or proof.get('matchedDocuments') != 4
+                or proof.get('testDispatched') is not False or proof.get('mutationsDispatched') != 0):
+            raise RuntimeError('Source-bound read-only startup diagnostics are required.')
+    return {name: hashlib.sha256((state / name).read_bytes()).hexdigest() for name in names}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--initialize', action='store_true')
     parser.add_argument('--paired', action='store_true', help='Run the manager/Mongo/HTTP fixture against the retained source.')
-    parser.add_argument('--diagnose-startup', action='store_true', help='One read-only startup observation; no test or mutation dispatch.')
+    parser.add_argument('--resume-paired', action='store_true', help='Resume only proven undispatched paired work after explicit reconciliation.')
+    parser.add_argument('--diagnose-startup', nargs='?', const='standalone', choices=['standalone', 'with-mongo'],
+        help='One read-only startup observation; no test or mutation dispatch.')
     args = parser.parse_args()
     if args.initialize and args.paired:
         raise RuntimeError('Pairing requires the already acknowledged original source.')
+    if args.resume_paired and not args.paired:
+        raise RuntimeError('Explicit paired mode is required for paired resumption.')
     if args.diagnose_startup and (args.initialize or args.paired):
         raise RuntimeError('Startup diagnostics cannot initialize data or dispatch paired tests.')
+    if args.diagnose_startup == 'with-mongo' and os.environ.get('OASIS_MONGO_REPLICA_SET_CONNECTION') != (
+            'mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000'):
+        raise RuntimeError('Concurrent diagnostic requires the admitted Mongo runner environment.')
     raw = (STATE / 'source.json').read_bytes()
     source = json.loads(raw)
     if source['Endpoint'] != 'http://127.0.0.1:17700':
@@ -141,8 +167,13 @@ def main():
             time.sleep(.25)  # Poll the acknowledged asynchronous task; never resubmit a mutation.
 
     RESULTS.mkdir(parents=True, exist_ok=True)
-    label = 'startup-diagnostic' if args.diagnose_startup else 'paired' if args.paired else 'initial' if args.initialize else 'retained'
-    write_new(STATE / (label + '-run.intent.json'), {'sourceSha256': source_hash, 'runtimeSha256': DIGEST})
+    resume_evidence = validate_paired_resume(STATE, source_hash) if args.resume_paired else None
+    label = ('paired-resumed' if args.resume_paired else
+             'concurrent-startup-diagnostic' if args.diagnose_startup == 'with-mongo' else
+             'startup-diagnostic' if args.diagnose_startup else 'paired' if args.paired else
+             'initial' if args.initialize else 'retained')
+    write_new(STATE / (label + '-run.intent.json'), {'sourceSha256': source_hash, 'runtimeSha256': DIGEST,
+        'resumeEvidence': resume_evidence})
     env = dict(os.environ, MEILI_MASTER_KEY=key, MEILI_NO_ANALYTICS='true')
     with (STATE / (label + '-server.log')).open('xb') as log:
         process = subprocess.Popen([str(executable), '--http-addr', '127.0.0.1:17700',

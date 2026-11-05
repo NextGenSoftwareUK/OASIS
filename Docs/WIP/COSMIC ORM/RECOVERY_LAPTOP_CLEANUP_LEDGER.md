@@ -954,3 +954,36 @@ check returned Unauthorized. No settings, deployment or project link changed.
   startup-diagnostic-run.intent.json: 175 bytes retained.
   startup-diagnostic-run.result.json: 286 bytes retained.
   startup-diagnostic-server.log: 3266 bytes retained.
+
+- Planned one concurrent-startup-diagnostic: same admitted Mongo8.2 source/runtime plus retained Meili1.56.1 source, no seed/test dispatch. Separate phase/logs retain original paired and standalone outcomes. Same30s readiness deadline; capture PID/I/O and verify original4documents. Owned processes stopped afterward, unrelated native services untouched.
+
+- Concurrent startup diagnostic passed0.636s with admitted Mongo running; same4original Meili documents, zero mutation/test dispatch. Both owned processes stopped,17700/27029/5116closed. Original paired startup cause remains unknown, not declared fixed. Explicit pending-test resume requires hashed original failed/undispatched reconciliation plus both source-bound diagnostics, absent Mongo journal/report and unchanged runtime/source. One paired-resumed phase will execute the never-dispatched fixture; no original evidence replacement or source reseed.
+
+- Meilisearch concurrent startup diagnostic passed0.636s, same original source,
+  no test/mutation dispatch. Explicit reconciled pending-test resume passed
+  manager/Mongo/HTTP1/1, zero skips;5/4physical copies and source-failure/input
+  rejection checked. Temporary Mongo database exact owned contents verified,
+  dropped and absence confirmed; mongo.pending removed. Original4Meili docs
+  match original batch before/after, no reseed. Native17700/Mongo27029/5116closed;
+  owned processes stopped. Preserve original failed phase/cause still unknown.
+- paired-resumed.trx:8,184bytes, SHA2563c2102ad8cac08765c6a5b12471e4953101217152da44b6ee802f481d2072f09.
+  Compact paired-manager-http-evidence.json retained with original source.
+  Five runner regressions pass; temporary controlled files cleaned. No runtime
+  download, new environment or persistent Mongo fixture left by this run.
+  concurrent-startup-diagnostic-identity.json: 137 bytes retained.
+  concurrent-startup-diagnostic-mongo.log: 767589 bytes retained.
+  concurrent-startup-diagnostic-process-observations.json: 470 bytes retained.
+  concurrent-startup-diagnostic-process-started.json: 191 bytes retained.
+  concurrent-startup-diagnostic-process-stopped.json: 142 bytes retained.
+  concurrent-startup-diagnostic-run.intent.json: 175 bytes retained.
+  concurrent-startup-diagnostic-run.result.json: 286 bytes retained.
+  concurrent-startup-diagnostic-server.log: 3266 bytes retained.
+  paired-resumed-identity.json: 137 bytes retained.
+  paired-resumed-mongo.log: 839148 bytes retained.
+  paired-resumed-original-source-verified.json: 232 bytes retained.
+  paired-resumed-process-observations.json: 467 bytes retained.
+  paired-resumed-process-started.json: 190 bytes retained.
+  paired-resumed-process-stopped.json: 141 bytes retained.
+  paired-resumed-run.intent.json: 645 bytes retained.
+  paired-resumed-run.result.json: 505 bytes retained.
+  paired-resumed-server.log: 7371 bytes retained.

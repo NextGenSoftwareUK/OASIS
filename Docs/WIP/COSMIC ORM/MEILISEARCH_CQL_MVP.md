@@ -137,3 +137,38 @@ cannot prevent the finally-owned stop attempt. Three process-stop regressions
 still pass. The original paired failure remains unchanged. Next compare the
 same read-only startup with the admitted Mongo process running, using separately
 named diagnostic evidence; do not relabel a diagnostic as federation acceptance.
+
+## Concurrent diagnostic and explicitly resumed manager acceptance
+
+A separate concurrent-startup-diagnostic with the admitted Mongo process passed
+in0.636seconds and verified all four original documents, with no mutation/test
+dispatch. PID27028/I/O observations and both owned stop outcomes were retained;
+all demo ports closed. Both standalone and concurrent conditions now work, but
+the original startup cause remains unknown. This is not reliability certification.
+
+The original pairing test had never dispatched and no Mongo fixture intent/report
+existed. Explicit resume validates that reconciliation and both source-bound
+read-only diagnostics, hashes all original evidence into a new paired-resumed
+intent, and uses the exact existing source/runtime. It does not overwrite the
+failed phase or repeat a mutation. Five controlled runner tests pass, including
+rejection of changed source, pending Mongo state, prior test dispatch or mutation.
+
+The resumed actual manager/Mongo/HTTP fixture passed1/1, zero skips. Through the
+shared expression/manager walkthrough it returned native+Mongo physical5/4rows
+with exact provider provenance, excluded an out-of-catalogue Mongo record, and
+verified the same presets over a real loopback HTTP host. Forged actor/unknown
+presets reject; deactivated native source yields503without rows. Its isolated
+Mongo database was absent before three journalled SDK saves; exact owned data
+and collection contents were verified before drop, absence confirmed, and the
+pending journal removed. This is a local teaching host, not hosted WEB4 auth.
+
+All four Meili documents matched the original acknowledged batch before/after,
+with zero reseed calls. The owned processes stopped,17700/27029/5116closed;
+the HTTP host stopped in its fixture finally. Original failed startup remains
+retained. Report paired-resumed.trx SHA256:
+3c2102ad8cac08765c6a5b12471e4953101217152da44b6ee802f481d2072f09.
+Compact paired-manager-http-evidence.json and all phase receipts are retained
+beside the single native source. Hosted enrollment, browser interaction, broader
+privacy/replication and full storage/ORM parity remain open. Existing global
+counts await explicit scope reconciliation; this milestone does not relabel
+controlled-only providers or the original failed run as complete.

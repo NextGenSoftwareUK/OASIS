@@ -32,6 +32,44 @@ class Process:
 
 
 class StopEvidenceTests(unittest.TestCase):
+    def resume_state(self, folder):
+        state = Path(folder)
+        documents = {
+            'paired-run.intent.json': {'sourceSha256': 'source-hash', 'runtimeSha256': runner.DIGEST},
+            'paired-failure-reconciled-observed.json': {'accepted': False, 'testReportExists': False,
+                'mongoPendingExists': False, 'seedReplayed': False,
+                'portListeners': {'17700': False, '27029': False, '5116': False}},
+            'startup-diagnostic-run.result.json': {'sourceSha256': 'source-hash', 'matchedDocuments': 4,
+                'testDispatched': False, 'mutationsDispatched': 0},
+            'concurrent-startup-diagnostic-run.result.json': {'sourceSha256': 'source-hash', 'matchedDocuments': 4,
+                'testDispatched': False, 'mutationsDispatched': 0}}
+        for name, value in documents.items():
+            (state / name).write_text(json.dumps(value))
+        return state
+
+    def test_resume_requires_source_bound_undispatched_reconciliation(self):
+        with tempfile.TemporaryDirectory(prefix='cosmic-meili-resume-') as folder, patch.object(runner, 'RESULTS', Path(folder) / 'reports'):
+            state = self.resume_state(folder)
+            self.assertEqual(len(runner.validate_paired_resume(state, 'source-hash')), 4)
+            with self.assertRaises(RuntimeError):
+                runner.validate_paired_resume(state, 'changed-source')
+            (state / 'mongo.pending.json').write_text('{}')
+            with self.assertRaises(RuntimeError):
+                runner.validate_paired_resume(state, 'source-hash')
+
+    def test_resume_rejects_prior_test_dispatch_or_source_mutation(self):
+        for name, field in [('paired-failure-reconciled-observed.json', 'testReportExists'),
+                            ('startup-diagnostic-run.result.json', 'testDispatched'),
+                            ('concurrent-startup-diagnostic-run.result.json', 'mutationsDispatched')]:
+            with tempfile.TemporaryDirectory(prefix='cosmic-meili-resume-') as folder, patch.object(runner, 'RESULTS', Path(folder) / 'reports'):
+                state = self.resume_state(folder)
+                path = state / name
+                value = json.loads(path.read_text())
+                value[field] = True
+                path.write_text(json.dumps(value))
+                with self.assertRaises(RuntimeError):
+                    runner.validate_paired_resume(state, 'source-hash')
+
     def test_stop_timeout_keeps_original_operation_error_and_unknown_receipt(self):
         with tempfile.TemporaryDirectory(prefix='cosmic-meili-stop-') as folder, patch.object(runner, 'STATE', Path(folder)):
             original = RuntimeError('original readiness failure')
