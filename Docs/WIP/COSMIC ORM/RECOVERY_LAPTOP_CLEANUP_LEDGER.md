@@ -881,3 +881,15 @@ check returned Unauthorized. No settings, deployment or project link changed.
   under Lxss; standard Docker binary absent. C: free 37,323,599,872 bytes.
   No feature install, BIOS change, reboot, runtime download or environment
   allocation. Device prerequisites recorded in the single owner-action list.
+
+- Meilisearch bounded CQL build/controlled tests planned under lease cosmic-meilisearch-cql. Uses existing HttpClient/.NET/shared compiler and cached MSTest; no SDK/runtime install. Provider and unit bin/obj regenerable. No native service, index, credentials or source writes.
+
+- Meilisearch provider/shared build and controlled tests completed: 16 passed,
+  zero failed/skipped. Eleven CQL/HTTP cases plus five metadata checks. Existing
+  .NET/MSTest/shared compiler reused; no native runtime/SDK download, process,
+  index, credential or external API request. Generated outputs retained only
+  for the pending native demo scope and disposable after owned use ends.
+  Providers/Storage/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS/bin: 8269954 bytes.
+  Providers/Storage/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS/obj: 969632 bytes.
+  Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.UnitTests/bin: 47118442 bytes.
+  Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.UnitTests/obj: 1012483 bytes.

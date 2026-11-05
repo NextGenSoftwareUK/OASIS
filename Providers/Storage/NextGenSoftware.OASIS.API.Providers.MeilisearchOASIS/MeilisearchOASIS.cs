@@ -20,16 +20,16 @@ using NextGenSoftware.Utilities;
 namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
 {
     /// <summary>
-    /// OASIS provider for Meilisearch — a fast, typo-tolerant, RESTful search engine.
+    /// OASIS provider for Meilisearch â€” a fast, typo-tolerant, RESTful search engine.
     ///
     /// Indexes: oasis_avatars, oasis_avatar_details, oasis_holons
     /// All documents stored with full JSON body; primary key = "id" (string form of GUID).
     ///
     /// Constructor parameters:
-    ///   host   — Meilisearch host URL, e.g. "http://localhost:7700"
-    ///   apiKey — optional master/API key
+    ///   host   â€” Meilisearch host URL, e.g. "http://localhost:7700"
+    ///   apiKey â€” optional master/API key
     /// </summary>
-    public class MeilisearchOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class MeilisearchOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -52,9 +52,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
         private const string IdxHolons = "oasis_holons";
 
         public MeilisearchOASIS(string host, string? apiKey = null)
+            : this(host, apiKey, new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })) { }
+
+        public MeilisearchOASIS(string host, string? apiKey, HttpClient httpClient)
         {
             _host = host.TrimEnd('/');
-            _http = new HttpClient();
+            _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             if (!string.IsNullOrEmpty(apiKey))
                 _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
             ProviderName = "MeilisearchOASIS";
@@ -70,7 +73,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
         {
             var body = new { uid = index, primaryKey = "id" };
             var resp = await _http.PostAsync($"{_host}/indexes", Json(body));
-            // 201 = created, 409 = already exists — both acceptable
+            // 201 = created, 409 = already exists â€” both acceptable
         }
 
         private async Task<T?> GetDocAsync<T>(string index, string id)
@@ -112,7 +115,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
                 await EnsureIndexAsync(IdxHolons);
                 IsProviderActivated = true; result.Result = true; result.IsError = false; result.Message = "MeilisearchOASIS activated.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: Error activating — {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: Error activating â€” {ex.Message}"); }
             return result;
         }
 
@@ -120,7 +123,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
         public override async Task<OASISResult<bool>> DeActivateProviderAsync() { IsProviderActivated = false; return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "MeilisearchOASIS deactivated." }); }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
-        // ─── Avatar ───────────────────────────────────────────────────────────────
+        // â”€â”€â”€ Avatar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
@@ -250,7 +253,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
             => GuidProviderKeyDeletion.DeleteAvatarAsync(pk, softDelete, DeleteAvatarAsync);
         public override OASISResult<bool> DeleteAvatar(string pk, bool softDelete = true) => DeleteAvatarAsync(pk, softDelete).Result;
 
-        // ─── AvatarDetail ─────────────────────────────────────────────────────────
+        // â”€â”€â”€ AvatarDetail â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail d)
         {
@@ -293,7 +296,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).Result;
 
-        // ─── Holons ───────────────────────────────────────────────────────────────
+        // â”€â”€â”€ Holons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
@@ -390,14 +393,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
         public async Task<OASISResult<bool>> DeleteHolonSoftAsync(string pk, bool softDelete = true) { if (Guid.TryParse(pk, out Guid id)) return await DeleteHolonSoftAsync(id, softDelete); var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, $"MeilisearchOASIS: Invalid GUID '{pk}'."); return r; }
         public OASISResult<bool> DeleteHolonSoft(string pk, bool softDelete = true) => DeleteHolonSoftAsync(pk, softDelete).Result;
 
-        // ─── Search ───────────────────────────────────────────────────────────────
+        // â”€â”€â”€ Search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 
         public string GetProviderVersion() => "1.0.0";
         public Task<string> GetProviderVersionAsync() => Task.FromResult("1.0.0");
 
-        // ─── Remaining IOASISStorageProvider surface ─────────────────────────────
+        // â”€â”€â”€ Remaining IOASISStorageProvider surface â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 
@@ -611,7 +614,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
             return await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
         }
 
-        // ─── Search ──────────────────────────────────────────────────────────────
+        // â”€â”€â”€ Search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
@@ -627,7 +630,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
                 var matchedAvatars = new Dictionary<Guid, IAvatar>();
                 var matchedHolons = new Dictionary<Guid, IHolon>();
 
-                // ── Avatars ──────────────────────────────────────────────────
+                // â”€â”€ Avatars â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 if (wantAvatars)
                 {
                     var avatars = await LoadAllAvatarsAsync(version);
@@ -649,7 +652,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
                     }
                 }
 
-                // ── Holons ───────────────────────────────────────────────────
+                // â”€â”€ Holons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 if (wantHolons)
                 {
                     var holons = await LoadAllHolonsAsync(HolonType.All, loadChildren, recursive, maxChildDepth, 0, continueOnError, false, version);

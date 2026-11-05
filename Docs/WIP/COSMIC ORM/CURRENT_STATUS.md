@@ -143,6 +143,10 @@ read-only existing-collection activation, a passing provider build and 13
 controlled tests. Native/manager/HTTP/hosted gates remain open; counts unchanged.
 [Scope](TYPESENSE_CQL_MVP.md).
 
+Meilisearch independent breadth work now has a real REST bounded ID reader,
+read-only index/primary-key activation and 16 passing controlled tests/build.
+Native and hosted gates remain open; counts unchanged. [Scope](MEILISEARCH_CQL_MVP.md).
+
 ## Constraints / wider unfinished work
 
 - Hosted Azure Cosmos/Oracle/PostgreSQL deferred by David;no account/spend re-asks.
