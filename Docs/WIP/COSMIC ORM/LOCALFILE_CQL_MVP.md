@@ -288,3 +288,13 @@ runs on master and targets staging and production. Neither satisfies the
 Development WEB4 mount gate. The published candidate contains gitlinks for
 all three private manifest pins (API Core, ONODE Core and WEB6). Use the
 candidate pins for deployment review because the task branch has newer pins.
+
+### Readiness before starting a hosted cohort
+
+After the exact settings deployment succeeds, run
+`python Scripts/Sandbox/Verify-HostedQuerySource.py LocalFileOASIS --readiness`.
+This reuses the retained rehearsal visitor and requires both native and both
+paired presets to be available. The check passed for existing ClickHouse and
+reported LocalFile unavailable before rollout. Start the LocalFile
+`--prepare` flow only after its readiness check passes. Discovery readiness
+does not replace the native, federation, privacy or replica checks.
