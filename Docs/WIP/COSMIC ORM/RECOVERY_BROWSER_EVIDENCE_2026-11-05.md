@@ -1,5 +1,13 @@
 # Development browser evidence, 5 November 2026
 
+The 23 additional verified browser profiles are Algorand, Stellar, XRPL,
+Bitcoin, Berachain, Sei, Monad, Abstract, zkSync, Scroll, BNB Chain,
+Optimism, Linea, Solana, Google Cloud, Ethereum, Polygon, Arbitrum,
+Cosmos Hub, Polkadot, NEAR, Base and Avalanche. These are already included
+in the 28 verified browser flows. The evidence below preserves the original
+request outcomes and exact private-copy comparisons. Aptos is outside
+that verified set.
+
 Aptos remains open: native browser full/subset returned 3/2 in
 sandbox-3a2cb72c. Private preparation stopped with daily-call-limit rejection.
 Rejected request key f0f11b41-8b5e-4e9a-9e09-bbe493541929; operation
