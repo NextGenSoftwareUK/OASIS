@@ -234,10 +234,7 @@ def main():
             "ownerId": owner["id"], "provider": options.provider, "operation": "explicit original native-only continuation",
             "replacementOwner": False, "replayAllowed": False}) + "\n").encode())
     avatar, token = session(state, "owner", allow_create=not (continuing or options.resume_unstarted_native))
-    discovery = call("data/query-cql/providers?examplesVersion=2", token, method="GET")
-    source = next(row for row in discovery["result"] if row["provider"] == options.provider)
-    if not source["available"] or not source["federationAvailable"]:
-        raise RuntimeError("Hosted native source is not ready; no private snapshot was created.")
+    source = ready_source(options.provider, token, require_pair=options.prepare)
     examples = source["examples"]
     leaf = [next(row for row in examples if row["id"] == key) for key in ("public-records", "public-subset")]
     if continuing:
