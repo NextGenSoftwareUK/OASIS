@@ -1,5 +1,11 @@
 # Development browser evidence, 5 November 2026
 
+Monad passed native 3/2 and pairing 5/4 in sandbox-3a2cb72c.
+Preparation acknowledged two saves. Private IDs are
+0d61a851-691d-8ab2-9111-d4cc58afcac6 and
+3bd24259-12fd-8974-8530-eddbf8aad94f, both version 1.
+Reuse, privacy and rendered replica comparison remain open.
+
 Abstract passed native 3/2 and pairing 5/4 in sandbox-3a2cb72c.
 Preparation acknowledged two saves. Private IDs are
 37f5d254-76f5-8825-95b3-12082ddd3e32 and
