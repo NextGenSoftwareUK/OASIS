@@ -6,12 +6,13 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
 ## SurrealDB Windows recovery continuation, 5 November2026
 
-Official pinned3.3.5 Windows executable admitted once and hash verified. New
-separate teaching source preserves original Linux proof. Native first CQL0/3
-failure fixed at SDK record-ID encoding; retained restart/query now1/1 with
-original source hash unchanged. Four admission controls pass. Database-reader,
-Windows manager/Mongo/HTTP/browser and existing catalogue launcher still open.
-Counts101/60/28 unchanged. [Evidence and next steps](SURREALDB_CQL_MVP.md).
+Separate official3.3.5 Windows runtime/source verified, native/restart unchanged.
+Typed SDK IDs and native database authentication scope headers fix reproduced
+query/reader failures. Database VIEWER native activation1/1 and six runner
+controls pass. Windows manager/Mongo/HTTP/browser5/4 now passes1/1, original
+native hash unchanged, exact Mongo fixture removed and both services stopped.
+Local catalogue launcher publication is next. Counts101/60/28 unchanged.
+[Evidence and next steps](SURREALDB_CQL_MVP.md).
 
 ## Algolia controlled CQL continuation, 5 November 2026
 

@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import Mock
 
 spec = importlib.util.spec_from_file_location('surreal_windows', Path(__file__).with_name('run-cosmic-surrealdb-windows.py'))
 runner = importlib.util.module_from_spec(spec)
@@ -11,6 +12,26 @@ spec.loader.exec_module(runner)
 
 
 class AdmissionTests(unittest.TestCase):
+    def test_existing_reader_cannot_be_provisioned_again(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory)
+            (source / 'reader.json').write_text('{}')
+            transport = Mock()
+            with self.assertRaisesRegex(RuntimeError, 'cannot replay'):
+                runner.reader_settings(source, True, transport, {})
+            transport.open.assert_not_called()
+
+    def test_unacknowledged_or_pending_reader_is_not_used(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory)
+            transport = Mock()
+            for name in [None, 'reader.pending.json']:
+                if name:
+                    (source / name).write_text('{}')
+                with self.assertRaisesRegex(RuntimeError, 'Acknowledged'):
+                    runner.reader_settings(source, False, transport, {})
+            transport.open.assert_not_called()
+
     def test_existing_source_cannot_be_reinitialized(self):
         with tempfile.TemporaryDirectory() as directory:
             state = Path(directory)

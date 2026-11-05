@@ -3,6 +3,7 @@
 Caller must hold the provider build lease and build the integration project first.
 """
 import argparse
+import base64
 import hashlib
 import json
 import msvcrt
@@ -52,7 +53,46 @@ def admit_source(state, initialize):
     return source
 
 
-def run(initialize):
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, request, fp, code, message, headers, url):
+        return None
+
+
+def reader_settings(source, provision, opener, root_credentials):
+    credentials = source / 'reader.json'
+    ack = source / 'reader.ack.json'
+    pending = source / 'reader.pending.json'
+    if provision:
+        if any(path.exists() for path in [credentials, ack, pending]):
+            raise RuntimeError('Existing reader/outcome; provisioning cannot replay')
+        config = {'username': 'cosmic_windows_reader', 'password': secrets.token_hex(32)}
+        durable(pending, {'username': config['username'], 'scope': 'oasis/oasis', 'role': 'VIEWER'})
+        durable(credentials, config)
+        request = urllib.request.Request('http://127.0.0.1:18001/sql', method='POST',
+            data=("DEFINE USER cosmic_windows_reader ON DATABASE PASSWORD '" + config['password'] + "' ROLES VIEWER;").encode(),
+            headers={'Authorization': 'Basic ' + base64.b64encode((root_credentials['username'] + ':' + root_credentials['password']).encode()).decode(),
+                     'surreal-ns': 'oasis', 'surreal-db': 'oasis', 'Accept': 'application/json', 'Content-Type': 'text/plain'})
+        with opener.open(request, timeout=15) as response:
+            raw = response.read(65537)
+            if len(raw) > 65536:
+                raise RuntimeError('Reader acknowledgement exceeds budget')
+        statements = json.loads(raw)
+        if len(statements) != 1 or statements[0].get('status') != 'OK':
+            raise RuntimeError('Native database reader provisioning failed; preserve pending outcome')
+        durable(ack, {'username': config['username'], 'scope': 'oasis/oasis', 'role': 'VIEWER'})
+        pending.unlink()
+    if pending.exists() or not credentials.is_file() or not ack.is_file():
+        raise RuntimeError('Acknowledged database reader required')
+    expected = {'username': 'cosmic_windows_reader', 'scope': 'oasis/oasis', 'role': 'VIEWER'}
+    if json.loads(ack.read_text(encoding='utf-8')) != expected:
+        raise RuntimeError('Reader admission differs')
+    config = json.loads(credentials.read_text(encoding='utf-8'))
+    if config.get('username') != expected['username']:
+        raise RuntimeError('Reader credential identity differs')
+    return config
+
+
+def run(initialize, reader=False, provision_reader=False, paired=False, serve=False):
     if hashlib.sha256(BINARY.read_bytes()).hexdigest() != SHA:
         raise RuntimeError('Official runtime hash differs')
     with (STATE / 'runner.lock').open('a+b') as lock:
@@ -62,8 +102,15 @@ def run(initialize):
             if probe.connect_ex(('127.0.0.1', 18001)) == 0:
                 raise RuntimeError('Existing native listener; no process adoption')
         source = admit_source(STATE, initialize)
+        if paired:
+            reader_settings(source, False, None, {})
+            if (source / 'mongo.pending.json').exists() or (source / 'demo-ready.json').exists():
+                raise RuntimeError('Unresolved previous consumer; preserve original evidence')
+            with socket.socket() as probe:
+                if probe.connect_ex(('127.0.0.1', 5140)) == 0:
+                    raise RuntimeError('Browser listener occupied')
         config = json.loads((source / 'credentials.json').read_text(encoding='utf-8'))
-        phase = ('initial-' if initialize else 'retained-') + uuid.uuid4().hex
+        phase = ('interactive-' if serve else 'paired-' if paired else 'reader-admission-' if provision_reader else 'reader-' if reader else 'initial-' if initialize else 'retained-') + uuid.uuid4().hex
         reports = STATE / phase
         reports.mkdir()
         env = dict(os.environ, SURREAL_USER=config['username'], SURREAL_PASS=config['password'],
@@ -79,7 +126,7 @@ def run(initialize):
                                     startupinfo=startup, creationflags=subprocess.CREATE_NEW_CONSOLE)
             durable(reports / 'process.json', {'pid': node.pid})
             try:
-                opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+                opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
                 deadline = time.monotonic() + 40
                 while time.monotonic() < deadline:
                     if node.poll() is not None:
@@ -92,10 +139,18 @@ def run(initialize):
                         time.sleep(.25)
                 else:
                     raise RuntimeError('Native readiness deadline')
-                test_env = dict(os.environ, COSMIC_SURREALDB_ROOT=str(source))
+                test_env = dict(os.environ, COSMIC_SURREALDB_ROOT=str(source), COSMIC_SURREALDB_WINDOWS_REPOSITORY=str(ROOT))
+                test_env['COSMIC_SURREALDB_MONGO_SERVE'] = '1' if serve else '0'
+                if reader:
+                    settings = reader_settings(source, provision_reader, opener, config)
+                    identity = json.loads((source / 'identity.json').read_text(encoding='utf-8'))
+                    values = {'ENDPOINT': 'http://127.0.0.1:18001', 'USERNAME': settings['username'],
+                              'PASSWORD': settings['password'], 'NAMESPACE': 'oasis', 'DATABASE': 'oasis',
+                              'RECORD_ID': identity['Ids'][0]}
+                    test_env.update({'SURREALDB_CQL_READER_' + key: value for key, value in values.items()})
                 with (reports / 'native.log').open('xb') as test_log:
                     subprocess.run(['dotnet', 'test', str(PROJECT), '--no-build', '--no-restore',
-                        '--filter', 'FullyQualifiedName~SurrealDbNativeCqlTests', '--results-directory', str(reports),
+                        '--filter', 'FullyQualifiedName~' + ('SurrealDbWindowsMongoCqlNativeTests' if paired else 'SurrealDbQueryActivationNativeTests' if reader else 'SurrealDbNativeCqlTests'), '--results-directory', str(reports),
                         '--logger', 'trx;LogFileName=native.trx', '/m:2', '/nr:false', '/p:UseSharedCompilation=false'],
                         cwd=ROOT, env=test_env, stdout=test_log, stderr=subprocess.STDOUT, check=True)
                 trx = reports / 'native.trx'
@@ -104,6 +159,8 @@ def run(initialize):
                     raise RuntimeError('Expected one real native pass and zero skips')
                 if list(source.glob('*.pending.json')):
                     raise RuntimeError('Unresolved native fixture outcome')
+                if (source / 'demo-ready.json').exists():
+                    raise RuntimeError('Consumer shutdown incomplete')
                 durable(reports / 'result.json', {'passed': 1, 'trxSha256': hashlib.sha256(trx.read_bytes()).hexdigest()})
             finally:
                 if node.poll() is not None:
@@ -125,5 +182,11 @@ if __name__ == '__main__':
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument('--initialize', action='store_true')
     mode.add_argument('--retained', action='store_true')
+    mode.add_argument('--reader', action='store_true')
+    mode.add_argument('--admit-reader', action='store_true')
+    mode.add_argument('--paired', action='store_true')
+    parser.add_argument('--serve', action='store_true')
     args = parser.parse_args()
-    run(args.initialize)
+    if args.serve and not args.paired:
+        parser.error('Interactive serving requires the paired mode')
+    run(args.initialize, args.reader or args.admit_reader, args.admit_reader, args.paired, args.serve)

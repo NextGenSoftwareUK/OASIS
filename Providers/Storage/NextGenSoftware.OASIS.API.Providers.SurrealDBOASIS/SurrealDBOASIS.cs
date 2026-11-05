@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Nodes;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Threading;
 using SurrealDb.Net;
@@ -76,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             {
                 Endpoint = _endpoint, Namespace = _ns, Database = _db,
                 Username = _username, Password = _password, AuthLevel = _queryProbeId.HasValue ? "Database" : "Root"
-            });
+            }, httpClientFactory: _queryProbeId.HasValue ? new DatabaseHttpClientFactory(_ns, _db) : null);
             try
             {
                 await client.Connect(cancellationToken);
@@ -86,6 +87,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             {
                 await client.DisposeAsync();
                 throw;
+            }
+        }
+
+        // The SDK's Basic HTTP transport does not emit the native authentication
+        // scope headers. Database selection headers alone still authenticate Root.
+        private sealed class DatabaseHttpClientFactory : IHttpClientFactory
+        {
+            private static readonly HttpClientHandler Transport = new() { AllowAutoRedirect = false, UseCookies = false };
+            private readonly string _namespace;
+            private readonly string _database;
+
+            public DatabaseHttpClientFactory(string ns, string db)
+            { _namespace = ns; _database = db; }
+
+            public HttpClient CreateClient(string name)
+            {
+                var client = new HttpClient(Transport, disposeHandler: false);
+                client.DefaultRequestHeaders.Add("surreal-auth-ns", _namespace);
+                client.DefaultRequestHeaders.Add("surreal-auth-db", _database);
+                return client;
             }
         }
 

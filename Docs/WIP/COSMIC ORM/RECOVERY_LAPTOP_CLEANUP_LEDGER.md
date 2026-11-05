@@ -1414,3 +1414,15 @@ retained-b41b88d4411642a69427367b0d9962741/1 with native hash unchanged. Both
 owned native processes explicitly Ctrl+C/exit0,18001listener closed. Vendor
 shutdown warning retained. Initial fixture build1139warnings/0errors; focused
 key-fix rebuild4warnings/0errors, logs retained. No unrelated cleanup.
+
+SurrealDB reader admitted once, generated private local reader.json and durable
+reader.ack.json. Original provisioning/SDK diagnostic failures retained. Native
+reader passes after SDK HTTP auth scope correction. Six admission controls pass.
+Windows interactive0d97207b677544d48e1dd766eb3bd9861/1/browser5/4 passes,
+original native hash unchanged. Exact temporary Windows Mongo database removed;
+owned MongoPID20732CtrlC12/storageClosed/shutdownComplete, SurrealDBCtrlC0,
+18001/27029/5140 listeners closed. No new downloads. Prepared intermediate
+windows-consumer.prepared.cs remains a disposable source artifact (not runtime),
+retained pending final source review; source fixture now lives in git. Original
+failed pre-save source-path check remains in interactive48268... . Logs/TRX and
+reader receipts retained in the single runtime cache. No unrelated files removed.

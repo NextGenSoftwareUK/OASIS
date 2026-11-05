@@ -26,7 +26,7 @@ public class SurrealDbQueryActivationNativeTests
         var provider = new SurrealDBOASIS(Required("ENDPOINT"), Required("USERNAME"),
             Required("PASSWORD"), Required("NAMESPACE"), Required("DATABASE"), id);
         var active = await provider.ActivateQuerySourceAsync(default);
-        Assert.IsFalse(active.IsError, active.Message);
+        Assert.IsFalse(active.IsError, active.Exception?.ToString() ?? active.Message);
         Assert.IsTrue(provider.IsProviderActivated);
 
         try

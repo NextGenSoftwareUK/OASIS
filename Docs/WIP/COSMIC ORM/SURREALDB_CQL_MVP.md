@@ -219,3 +219,36 @@ CQL correction and remain documented full-provider depth work.
 
 Recovery branch provider controls pass11/11, zero skips after the key correction;
 key-controls/controls.trx and build/test log retained in the single Windows cache.
+
+### Restricted reader and Windows browser accepted, 5 November2026
+Database VIEWER created once in reader-admission-56924a49fd4e4c6187406bc93b7759df;
+its reader.ack.json remains authoritative, no user recreation. Initial SDK
+reader failure retained; diagnostic reader-e4eb2ec5eb64403c9b9266d5be9dde8d
+revealed CBOR error during Version because native authentication defaulted to
+Root. SDK1.0.0 HTTP Basic transport emits no surreal-auth-ns/db headers.
+Supported IHttpClientFactory now supplies the native database authentication
+scope, with redirects/cookies disabled and shared transport; no privileged
+fallback, transport substitution or anonymous access. Query activation/native
+reader-bf33ca4c6cbe48c88ed71aaea4e53371 passes1/1, zero skips, TRX SHA256
+`80445e75fad11462410fd25e9c77986b0e0561d4fb22dd00be27a9e71ef6f651`.
+Six runner controls pass, including no repeated/pending reader provisioning.
+Official contract: https://surrealdb.com/docs/learn/security/best-practices/troubleshooting
+SDK source: https://github.com/surrealdb/surrealdb.net/blob/39f4910dc05372c3172d6db804f8eb89c83f5e7a/SurrealDb.Net/Internals/SurrealDbEngine.Http.cs
+
+Separate Windows consumer uses restricted reader, same retained three records,
+admitted Mongo27029 and UI5140. First attempt48268c50ef7f4262975af98c2301eb84
+failed before Mongo saves because testhost current directory is its output
+folder; fixed explicit repository/source admission, preserving original failure.
+Interactive-0d97207b677544d48e1dd766eb3bd986 passes manager/LINQ/HTTP1/1,
+zero skips, TRX SHA256
+`07dc95d5b6d4c95b5cd9ff635f091a0226a6cf2fa7a603691ccb73b9fde089e9`.
+Actual browser full5/subset4, both providers/MovingProviderReads verified.
+Native baseline hash before/after matches; exact three-record Mongo fixture
+verified/dropped, pending/ready removed. Both owned services Ctrl+C stopped,
+SurrealDB0, Mongo12/storageClosed/shutdownComplete;18001/27029/5140 closed.
+Latest consumer build0errors/8warnings. New reusable guide and Windows launcher
+are prepared for WEB4 local catalogue publication. Historical Linux proof is
+preserved separately. Counts101local/60hostedHTTP/28hostedbrowser unchanged.
+
+Final provider controls after the HTTP scope fix pass11/11, zero skips;
+scoped-auth-controls/controls.trx and log retained.
