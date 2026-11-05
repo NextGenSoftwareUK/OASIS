@@ -159,3 +159,13 @@ The WEB4 build dependency manifest declares DuckDB.NET Bindings.Full 1.1.3
 and copies its Linux x64 and arm64 native assets. ELF headers matched their
 declared architectures. This checks build packaging. Opening the exact
 retained file under the deployed Linux runtime remains an acceptance gate.
+
+The recovery laptop hub now runs the verified native and Mongo-paired demo:
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider DuckDB -Federated -RecoveryMongo -VerifyOnly
+```
+
+This invocation passed both phases and confirmed the temporary Mongo fixture
+was removed. No test listeners remained. Reused the existing source and build
+outputs in the recovery ledger. Hosted acceptance remains open.
