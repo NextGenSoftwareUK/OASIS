@@ -113,3 +113,9 @@ Core branch work/cosmic-sqlserver-admission, based on parent pin 47c3a841.
 It adds SQL Server to the explicit query-tariff allowlist. The shared Core
 checkout was untouched. Build and verify query-only admission before publishing
 the Core commit or advancing the parent manifest and gitlink.
+
+WEB4 opt-in registration, published Core admission and the parent pin are
+ready on the task branch. The four canonical verifier presets passed the
+focused admission test with no skips. Receipt:
+TestResults/SqlServerCqlCurrent/web4-preset-names.log. Reused existing test
+outputs and started no services. The hosted source is still pending.
