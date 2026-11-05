@@ -32,7 +32,7 @@ public partial class RavenDBOASIS : ICosmicQueryStorageProvider
                 return Error("CQL_QUERY_LIMIT", "Result budget must be between 1 and 10,000.");
             var admission = QueryCapabilities.AdmitPlan(plan);
             if (admission.IsError) return Error(admission.ErrorCode, admission.Message);
-            var selected = BoundedIdentityCqlCompiler.Compile(plan.Query, QueryProviderType, QueryProviderType);
+            var selected = RavenDBCqlCompiler.Compile(plan.Query, QueryProviderType);
             if (selected.IsError) return Error(selected.ErrorCode, selected.Message);
             if (IsVersionControlEnabled)
                 return Error("CQL_CAPABILITY_UNSUPPORTED", "RavenDB historical CQL reads are not implemented.");

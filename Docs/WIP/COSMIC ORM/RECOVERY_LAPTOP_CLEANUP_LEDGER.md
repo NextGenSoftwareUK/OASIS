@@ -798,3 +798,12 @@ check returned Unauthorized. No settings, deployment or project link changed.
   to SessionOptions. Second leased no-restore build passed in 11.31 seconds,
   zero errors/four warnings. No native process, database or network data read.
   Core/Shared outputs were reused after the initial shared rebuild.
+
+- RavenDB controlled CQL tests planned under provider lease cosmic-ravendb-controls. Reuse cached MSTest/.NET/SDK packages; test project bin/obj are disposable after the scope finishes. No RavenDB process or native database requested.
+
+- RavenDB controlled gate completed: 13 passed, zero failed/skipped (eight new
+  CQL cases plus five metadata checks). Existing test project configuration
+  preserved. Reused frozen outputs for final no-build run. Test bin 56,893,705
+  bytes; obj 1,028,039 bytes. Provider bin 8,256,916 and obj 970,975 bytes at
+  initial build checkpoint. All are regenerable after current scope; retain
+  while native fixture work consumes them. No native server or database.

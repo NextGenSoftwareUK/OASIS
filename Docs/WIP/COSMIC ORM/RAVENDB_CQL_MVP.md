@@ -27,3 +27,12 @@ payload (4 MiB) validation; these are accepted-payload bounds, not transport
 stream allocation guarantees. Native rows are moving reads, not a distributed
 snapshot. Wider content predicates, conditional writes/history, graphs,
 replication and full ORM parity require their own evidence.
+
+Controlled query gate: 13/13 tests pass, zero skipped, including eight new CQL
+cases and five existing metadata checks. The CQL cases capture mutable key
+arrays, intersect the authority catalogue, reject wrong provider binding and
+unsupported name/metadata/order/graph/unbounded shapes, and verify pre-cancel,
+inactive-store and invalid-plan/budget errors without a network connection.
+The shared compiler remains the single owner of bounded identity algebra.
+Native envelope/payload behavior, real-service availability and manager/HTTP
+execution still require separate tests. No server or teaching records created.
