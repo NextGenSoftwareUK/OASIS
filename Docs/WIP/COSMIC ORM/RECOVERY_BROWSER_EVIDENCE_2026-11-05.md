@@ -27,5 +27,9 @@ The same owner queried all six private IDs through the browser on MongoDB,
 SQLite and Neo4j. Each provider returned six rows, all at version 1.
 Rendered name, description, version, ID and metadata matched exactly after
 excluding the provider column. This verifies the displayed content on both
-replicas for all three pairs. Browser acceptance totals remain pending
-reconciliation. Existing accepted HTTP cohorts remain retained.
+replicas for all three pairs. These three flows satisfy native and paired
+browser execution, setup reuse, independent privacy and rendered replica
+content checks. They increase the scoped browser count from five to eight
+and reduce the open count from 55 to 52. Ethereum's standalone screenshot
+and durable browser credential export remain absent. Existing accepted
+HTTP cohorts remain retained.
