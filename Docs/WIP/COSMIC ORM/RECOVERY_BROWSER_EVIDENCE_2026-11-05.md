@@ -1,5 +1,11 @@
 # Development browser evidence, 5 November 2026
 
+Sei passed native 3/2 and pairing 5/4 in sandbox-3a2cb72c.
+Preparation acknowledged two saves. Private IDs are
+5db2cc20-227d-8d83-82fb-6d1367bf2d03 and
+ebe524a0-e52e-8031-9f4a-45cd8cac3db6, both version 1.
+Reuse, privacy and rendered replica comparison remain open.
+
 Monad passed native 3/2 and pairing 5/4 in sandbox-3a2cb72c.
 Preparation acknowledged two saves. Private IDs are
 0d61a851-691d-8ab2-9111-d4cc58afcac6 and
