@@ -15,6 +15,19 @@ spec.loader.exec_module(verification)
 
 
 class ResponseEvidenceTests(unittest.TestCase):
+    def test_native_selection_requires_exact_distinct_preset_ids(self):
+        keys = [f"11111111-1111-4111-8111-11111111111{index}" for index in range(3)]
+        examples = [{"request": {"filters": [
+            {"field": "Id", "scalar": "Guid", "operator": "In", "value": keys[:count]}
+        ]}} for count in (3, 2)]
+        responses = [{"result": {"rows": [{"id": key} for key in keys[:count]]}} for count in (3, 2)]
+        verification.require_native_selection(responses, examples)
+        for replacement in (keys[0], "22222222-2222-4222-8222-222222222222"):
+            with self.subTest(replacement=replacement):
+                responses[0]["result"]["rows"][2]["id"] = replacement
+                with self.assertRaisesRegex(RuntimeError, "IDs differ"):
+                    verification.require_native_selection(responses, examples)
+
     def test_http_failure_is_captured_before_error_is_raised_without_retry(self):
         raw = b'{"isError":true,"errorCode":"CQL_QUERY_FAILED"}'
         class Response(io.BytesIO):
