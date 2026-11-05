@@ -16,14 +16,29 @@ import xml.etree.ElementTree as ET
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--federated', action='store_true')
+parser.add_argument('--recovery-laptop', action='store_true')
+parser.add_argument('--initialize', action='store_true', help='Explicitly admit a new recovery fixture; never replay an existing identity')
 parser.add_argument('--serve', action='store_true')
 options = parser.parse_args()
 if options.serve and not options.federated: raise RuntimeError('Serve requires federation')
+if options.initialize and options.federated: raise RuntimeError('Initialize the native recovery checkpoint before federation')
 ROOT = Path(__file__).resolve().parents[2]
 STATE = ROOT / 'LocalState/COSMIC/FirebaseCql'
 RESULTS = ROOT / 'TestResults/FirebaseCqlCurrent'
 JAR = Path('C:/Users/david/.cache/firebase/emulators/firebase-database-emulator-v4.11.2.jar')
 JAVA = Path('C:/Program Files/Microsoft/jdk-21.0.12.101-hotspot/bin/java.exe')
+if options.initialize and not options.recovery_laptop:
+    raise RuntimeError('Explicit initialization is confined to the separate recovery fixture')
+if options.recovery_laptop:
+    recovery = ROOT / 'LocalState/COSMIC/RecoveryLaptopFirebaseRtdb4112'
+    STATE = recovery / 'FirebaseCql'
+    RESULTS = recovery / ('run-' + uuid.uuid4().hex)
+    JAR = recovery / 'firebase-database-emulator-v4.11.2.jar'
+    JAVA = ROOT / 'LocalState/COSMIC/RecoveryLaptopSolr1010/jdk-21.0.13+9-jre/bin/java.exe'
+    if options.initialize and STATE.exists():
+        raise RuntimeError('Recovery fixture already exists; initialization cannot replay it')
+    if not options.initialize and not (STATE / 'native-baseline.json').is_file():
+        raise RuntimeError('Retained recovery checkpoint required; initialize a new source explicitly')
 PROJECT = ROOT / 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.IntegrationTests'
 assert hashlib.sha256(JAR.read_bytes()).hexdigest() == 'b70d99344caf17c98b6f910fa8f6edf32a7c016cb1035e8915f70d38901eb97f'
 STATE.mkdir(parents=True, exist_ok=True)
@@ -70,16 +85,27 @@ def report(name, seed, test="FirebaseNativeCqlTests", extra=None):
 def owned_windows_mongo():
     daemon = Path('C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe')
     data = ROOT / 'LocalState/COSMIC/mongo-data'
-    assert (data / 'WiredTiger').is_file()
-    assert hashlib.sha256(daemon.read_bytes()).hexdigest() == 'fb5035767717c9d00ca1eada0a63be28a1758c6108dc614cd95c41465a98aabe'
+    if not options.recovery_laptop:
+        assert (data / 'WiredTiger').is_file()
+        assert hashlib.sha256(daemon.read_bytes()).hexdigest() == 'fb5035767717c9d00ca1eada0a63be28a1758c6108dc614cd95c41465a98aabe'
+    if options.recovery_laptop:
+        receipt = json.loads((ROOT / 'LocalState/COSMIC/RecoveryLaptopMongo82/replica.ready.json').read_text(encoding='utf-8-sig'))
+        daemon = Path('C:/Program Files/MongoDB/Server/8.2/bin/mongod.exe')
+        data = ROOT / 'LocalState/COSMIC/RecoveryLaptopMongo82/data'
+        assert receipt['runtime'] == daemon.as_posix() and receipt['address'] == '127.0.0.1:27029' and receipt['replica'] == 'oasisRecoveryRs'
+        assert hashlib.sha256(daemon.read_bytes()).hexdigest().upper() == receipt['sha256'].upper()
+        assert (data / 'WiredTiger').is_file()
     with socket.socket() as port: assert port.connect_ex(('127.0.0.1', 27029)) != 0
     path = RESULTS / 'mongo-service.log'
     path.write_text('')
+    startup = subprocess.STARTUPINFO()
+    startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    startup.wShowWindow = subprocess.SW_HIDE
     with (RESULTS / 'mongo-console.log').open('w') as output:
         process = subprocess.Popen([str(daemon), '--dbpath', str(data), '--bind_ip', '127.0.0.1', '--port', '27029',
                                     '--replSet', 'oasisRecoveryRs', '--wiredTigerCacheSizeGB', '0.25', '--oplogSize', '32',
                                     '--logpath', str(path), '--logappend'], stdout=output, stderr=subprocess.STDOUT,
-                                   creationflags=subprocess.CREATE_NO_WINDOW)
+                                   creationflags=subprocess.CREATE_NEW_CONSOLE, startupinfo=startup)
         try:
             deadline = time.monotonic() + 40
             while True:
@@ -91,7 +117,15 @@ def owned_windows_mongo():
                        COSMIC_FIREBASE_MONGO_SERVE='1' if options.serve else '0')
         finally:
             if process.poll() is None:
-                process.terminate(); process.wait(timeout=30)
+                signal = subprocess.run(['python', '-B', str(ROOT / 'Scripts/TestHosts/Signal-OwnedConsoleProcess.py'), '--pid', str(process.pid)], capture_output=True, text=True, check=True)
+                receipt = json.loads(signal.stdout)
+                assert receipt['ctrlCSent'] and receipt['targetPid'] == process.pid
+                process.wait(timeout=30)
+                assert process.returncode == 12, 'Mongo Windows console shutdown must use native exit 12'
+                events = [json.loads(line) for line in path.read_text(encoding='utf-8').splitlines()[-15:]]
+                assert any(e.get('id') == 4795901 for e in events) and any(e.get('id') == 8423404 for e in events)
+                assert any(e.get('id') == 23138 and e.get('attr', {}).get('exitCode') == 12 for e in events)
+                durable(RESULTS / 'mongo-stopped.json', dict(receipt, exitCode=12, storageClosed=True, shutdownComplete=True))
 
 with (STATE / 'runner.lock').open('a+b') as lock:
     lock.seek(0); msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
@@ -111,12 +145,17 @@ with (STATE / 'runner.lock').open('a+b') as lock:
             previous.rename(destination)
     fresh = not (STATE / 'identity.json').exists()
     if fresh:
+        if options.recovery_laptop and not options.initialize:
+            raise RuntimeError('Recovery source creation requires explicit initialization')
         assert {p.name for p in STATE.iterdir()} == {'runner.lock'}
         durable(STATE / 'identity.json', {'actor': str(uuid.uuid4()), 'ids': [str(uuid.uuid4()) for _ in range(4)], 'missing': str(uuid.uuid4())})
     else:
         assert (STATE / 'checkpoint.json').exists() and (STATE / 'native-baseline.json').exists(), 'Original source checkpoint missing; no reseed'
     proofs = []
-    for iteration in range(2):
+    paired_recovery = options.recovery_laptop and options.federated
+    if paired_recovery and fresh:
+        raise RuntimeError('Recovery federation requires a previously accepted native checkpoint')
+    for iteration in range(1 if paired_recovery else 2):
         with (RESULTS / ('server-' + str(iteration) + '.log')).open('w') as output:
             process = subprocess.Popen([str(JAVA), '-Xms64m', '-Xmx256m', '-XX:ActiveProcessorCount=2', '-jar', str(JAR),
                                         '--host', '127.0.0.1', '--port', '19091', '--single_project_mode', 'Error'],
@@ -146,8 +185,9 @@ with (STATE / 'runner.lock').open('a+b') as lock:
                     assert digest(restored) == digest(checkpoint) and digest(request()) == digest(checkpoint)
                     (STATE / 'restore.pending').unlink()
                 else: durable(STATE / 'seed.pending', {'records': 4})
-                proofs.append(report('native' if iteration == 0 else 'restart', fresh and iteration == 0))
-                if iteration == 1 and options.federated:
+                if not paired_recovery:
+                    proofs.append(report('native' if iteration == 0 else 'restart', fresh and iteration == 0))
+                if options.federated and (iteration == 1 or paired_recovery):
                     with owned_windows_mongo() as mongo_env:
                         proofs.append(report('mongo-federation', False, 'FirebaseMongoCqlNativeTests', mongo_env))
                         assert not (STATE / 'mongo.pending.json').exists()
@@ -167,5 +207,7 @@ with (STATE / 'runner.lock').open('a+b') as lock:
                     (STATE / 'active-process.json').unlink()
                 elif process.poll() is None:
                     print('PRESERVED live volatile emulator PID' + str(process.pid) + '; unresolved original source, do not kill/reseed')
-    print(json.dumps({'nativePassed': 1, 'exportRestorePassed': 1, 'sourceHash': source_hash, 'trxHashes': proofs,
-                      'stateBytes': sum(p.stat().st_size for p in STATE.rglob('*') if p.is_file()), 'serviceStoppedAfterCheckpoint': True}))
+    result = {'nativePassed': 0 if paired_recovery else 1, 'managerMongoHttpPassed': 1 if options.federated else 0, 'exportRestorePassed': 1, 'sourceHash': source_hash, 'trxHashes': proofs,
+                      'stateBytes': sum(p.stat().st_size for p in STATE.rglob('*') if p.is_file()), 'serviceStoppedAfterCheckpoint': True, 'recoveryLaptop': options.recovery_laptop, 'results': str(RESULTS)}
+    durable(RESULTS / 'acceptance.json', result)
+    print(json.dumps(result))

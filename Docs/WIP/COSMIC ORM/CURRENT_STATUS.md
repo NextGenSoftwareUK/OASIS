@@ -4,6 +4,16 @@ Updated 5 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
+## Firebase recovery continuation, 5 November 2026
+
+Existing Firebase RTDB CQL retained; its missing original export cannot be
+recreated from its hash. A separate34.5MB official emulator reuses admitted JRE21
+and the single Mongo8.2 store. Recovery native/export-restore, manager/Mongo/HTTP
+and actual browser5/4 pass, source unchanged, exact Mongo fixture removed and
+owned listeners closed. Four admission controls pass. Existing card32 launcher
+update is next; counts remain100local/60hostedHTTP/28hostedbrowser.
+[Exact recovery evidence](FIREBASE_CQL_MVP.md).
+
 ## OpenSearch continuation, 5 November 2026
 
 OpenSearch26unit cases,3owned-console guards and4readiness controls pass. Actual

@@ -1340,3 +1340,13 @@ Site5073f06 publishes local card43;112client tests pass, Vercel success, public 
 
 - Removed exact owned successful `interactive-f12e841b51434eef876bd81f4a4ba5fe-mongo.log` after storage/shutdown/exit12 receipts and closed listeners: 121216bytes; SHA256df3278db8b2ee6883811976912849580275c046e1df355a82d2db43fd0b92284. Compact TRX/result/signal/shutdown/cleanup receipts retained. Original paired failure/reconciliation log remains.
 - Prior recursive unit/temp cleanup rejection remains documented and untouched; no permission/owner action requested.
+
+### 2026-11-05 Firebase RTDB recovery admission
+
+- Recovery accepted: native/restart1/1each; paired1/1 and interactive paired/browser5/4 pass. Three unique run folders are listed in FIREBASE_CQL_MVP.md. Four admission controls preserve all11source files/9822bytes. Exact temporary Mongo fixture removed, both paired runs prove native console shutdown/storage closure/exit12. Ports19091/27029/5126 closed. Volatile emulator stopped only after export equality; no disk/crash durability claim. Runtime/source/compact reports retained for reuse. Build.log:0errors/1141warnings. No extra Java install or database copy.
+
+- Planned single runtime: `LocalState/COSMIC/RecoveryLaptopFirebaseRtdb4112/firebase-database-emulator-v4.11.2.jar` (34,495,935 bytes), official Google Storage Firebase emulator distribution. Expected SHA256 `b70d99344caf17c98b6f910fa8f6edf32a7c016cb1035e8915f70d38901eb97f`. Reuse the admitted Solr Temurin JRE21; no extra Java installation.
+- Original `LocalState/COSMIC/FirebaseCql` source/export is absent. This admission creates a separate recovery fixture, never reconstructs or relabels the historical cohort. Coverage remains 100 profiles. No emulator started and no source writes yet.
+- Retain the runtime while this reusable demo needs it; record all new state, native acknowledgements, reports and owned process shutdown evidence here before cleanup.
+
+- Download completed and verified exactly: 34,495,935 bytes / pinned SHA256. `runtime.receipt.json` retained. Shipped `--help` inspected without starting a listener. Build output is `build.log`; unique `run-<id>` directories will retain native/restart/paired TRXs, process logs and acceptance receipts. The new child `FirebaseCql` holds only recovery identities/export/journals; never delete it as disposable build output.

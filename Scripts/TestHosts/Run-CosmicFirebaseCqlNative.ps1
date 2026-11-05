@@ -1,7 +1,26 @@
-param([switch]$Federated,[switch]$Serve)
+param([switch]$Federated,[switch]$Serve,[switch]$RecoveryLaptop,[switch]$Initialize)
 $ErrorActionPreference='Stop'
-if(!$Federated){throw 'Use the explicit Mongo-paired Firebase teaching preset.'}
+if($Serve -and !$Federated){throw 'Serve requires the explicit Mongo-paired preset.'}
+if(!$Federated -and !$RecoveryLaptop){throw 'Use the explicit Mongo-paired Firebase teaching preset.'}
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+if ($RecoveryLaptop) {
+    $recovery = Join-Path $root 'LocalState/COSMIC/RecoveryLaptopFirebaseRtdb4112'
+    if (!(Test-Path (Join-Path $recovery 'runtime.receipt.json'))) { throw 'Verified recovery runtime admission required.' }
+    & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner 'COSMIC Firebase recovery demo' -Operation {
+        $project = Join-Path $root 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.IntegrationTests'
+        $buildLog = Join-Path $recovery ('build-' + [Guid]::NewGuid().ToString('N') + '.log')
+        & dotnet build $project /m:2 /nr:false /p:UseSharedCompilation=false /clp:ErrorsOnly -v:q *> $buildLog
+        if ($LASTEXITCODE) { throw 'Recovery build failed; preserve its log.' }
+        $runnerArgs = @('-B', (Join-Path $PSScriptRoot 'run-cosmic-firebase-native.py'), '--recovery-laptop')
+        if ($Initialize) { $runnerArgs += '--initialize' }
+        if ($Federated) { $runnerArgs += '--federated' }
+        if ($Serve) { $runnerArgs += '--serve' }
+        & python @runnerArgs
+        if ($LASTEXITCODE) { throw 'Recovery verification incomplete; preserve source, journals and reports.' }
+    }
+    return
+}
+if ($Initialize) { throw 'Initialization is confined to the explicit recovery profile.' }
 $results=Join-Path $root 'TestResults/FirebaseCqlCurrent'
 [void][IO.Directory]::CreateDirectory($results)
 & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner 'COSMIC Firebase paired demo' -Operation {
