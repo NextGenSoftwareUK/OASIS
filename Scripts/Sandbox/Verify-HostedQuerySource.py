@@ -213,8 +213,21 @@ def localfile_review(*, require_mount=False):
         publisher_spec = importlib.util.spec_from_file_location("localfile_publisher", publisher_path)
         publisher = importlib.util.module_from_spec(publisher_spec)
         publisher_spec.loader.exec_module(publisher)
-        publisher.require_mounted_record_receipt(review["source"])
+        review["mountedReceipt"] = publisher.require_mounted_record_receipt(review["source"])
     return review
+
+
+def acknowledge_localfile_http(state, owner, foreign, reviewed_mount, reports):
+    if owner == foreign:
+        raise RuntimeError("LocalFile privacy proof requires two distinct visitor identities.")
+    if localfile_review(require_mount=True)["mountedReceipt"] != reviewed_mount:
+        raise RuntimeError("The reviewed LocalFile deployment changed during acceptance.")
+    evidence = {path.name: hashlib.sha256(path.read_bytes()).hexdigest() for path in reports}
+    receipt = {"schema": 1, "provider": "LocalFileOASIS", "ownerId": owner, "foreignId": foreign,
+               "deployment": reviewed_mount["deployment"], "imageDigest": reviewed_mount["imageDigest"],
+               "nativeCounts": [3, 2], "federationCounts": [5, 4], "browserAcceptance": False,
+               "evidenceSha256": evidence}
+    write_new(state / "cql-http-acceptance.acknowledged.json", json.dumps(receipt, sort_keys=True).encode())
 
 
 def pouchdb_review(path):
@@ -325,6 +338,9 @@ def main():
             "additionalSaves": 0, "replayAllowed": False}) + "\n").encode())
     if (state / "cql-http-acceptance.acknowledged.json").exists():
         raise RuntimeError("This cohort already completed acceptance; retain its acknowledged outcome.")
+    results = ROOT / "TestResults/HostedCqlIntegrationCurrent"
+    if options.provider == "LocalFileOASIS" and (results / (suffix + "-client-http-flow.json")).exists():
+        raise RuntimeError("Original LocalFile client proof exists; reconcile it without another query or save.")
     if not continuing and (ROOT / "TestResults/HostedCqlIntegrationCurrent" / (suffix + "-client-http-flow.json.progress.json")).exists():
         raise RuntimeError("Original partial client flow exists; reconcile explicitly before another execution.")
     allow_create = not (continuing or options.resume_unstarted_native)
@@ -341,7 +357,6 @@ def main():
     elif options.provider == "LocalFileOASIS":
         reviewed_localfile = localfile_review(require_mount=True)
     state.mkdir(exist_ok=True)
-    results = ROOT / "TestResults/HostedCqlIntegrationCurrent"
     if options.resume_unstarted_native:
         if (not (state / "owner.acknowledged.json").is_file()
                 or not (state / "native-failure.observed.json").is_file()
@@ -399,14 +414,20 @@ def main():
         print(run.stdout.decode().strip())
         proof = json.loads(report.read_text())
         foreign, foreign_token = session(state, "foreign")
+        if reviewed_localfile is not None and foreign["id"] == avatar["id"]:
+            raise RuntimeError("LocalFile privacy proof requires two distinct visitor identities.")
         public = call("data/query-cql", foreign_token, leaf[0]["request"])
         require_native_rows(public, leaf[0], 3)
         private = verify_private_visibility(foreign_token, proof["ids"],
                                             ["MongoDBOASIS", *proof["replicas"]])
-        verification.write(results / (suffix + "-isolation-http.json"),
+        isolation = results / (suffix + "-isolation-http.json")
+        verification.write(isolation,
                            {"avatar": foreign, "public": public, "foreignPrivateIds": private["MongoDBOASIS"],
                             "foreignPrivateReplicaIds": {key: private[key] for key in proof["replicas"]},
                             "browserAcceptance": False})
+        if reviewed_localfile is not None:
+            acknowledge_localfile_http(state, avatar["id"], foreign["id"], reviewed_localfile["mountedReceipt"],
+                                       [results / (suffix + "-native-http.json"), report, isolation])
     print(json.dumps({"provider": options.provider, "nativeRows": [3, 2], "nativeProofReused": continuing, "browserAcceptance": False}))
 
 

@@ -63,6 +63,30 @@ class ResponseEvidenceTests(unittest.TestCase):
             ready.assert_called_once_with("LocalFileOASIS", "retained", require_pair=True)
             self.assertEqual([], list(root.iterdir()))
 
+    def test_localfile_completion_is_bound_to_distinct_visitors_and_the_current_mount(self):
+        with tempfile.TemporaryDirectory() as directory:
+            state = Path(directory)
+            reports = [state / name for name in ("native.json", "paired.json", "privacy.json")]
+            for report in reports:
+                report.write_bytes(report.name.encode())
+            mount = {"deployment": "reviewed", "imageDigest": "sha256:" + "a" * 64}
+            with patch.object(verification, "localfile_review", return_value={"mountedReceipt": mount}) as review:
+                with self.assertRaisesRegex(RuntimeError, "distinct visitor"):
+                    verification.acknowledge_localfile_http(state, "owner", "owner", mount, reports)
+                review.return_value = {"mountedReceipt": dict(mount, deployment="superseded")}
+                with self.assertRaisesRegex(RuntimeError, "deployment changed"):
+                    verification.acknowledge_localfile_http(state, "owner", "visitor", mount, reports)
+                receipt = state / "cql-http-acceptance.acknowledged.json"
+                self.assertFalse(receipt.exists())
+                review.return_value = {"mountedReceipt": mount}
+                verification.acknowledge_localfile_http(state, "owner", "visitor", mount, reports)
+                original = receipt.read_bytes()
+                self.assertEqual({path.name: hashlib.sha256(path.read_bytes()).hexdigest() for path in reports},
+                                 json.loads(original)["evidenceSha256"])
+                with self.assertRaises(FileExistsError):
+                    verification.acknowledge_localfile_http(state, "owner", "visitor", mount, reports)
+                self.assertEqual(original, receipt.read_bytes())
+
     def test_localfile_mount_refusal_precedes_cohort_creation(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

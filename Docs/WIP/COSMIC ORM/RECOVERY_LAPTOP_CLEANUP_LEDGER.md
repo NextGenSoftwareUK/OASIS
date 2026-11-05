@@ -1782,6 +1782,11 @@ fixture directories removed by the runner. They exercised receipt creation,
 idempotent observation, rejection of missing, changed or superseded evidence,
 and refusal before hosted cohort creation. No live receipt or session was created.
 
+Four focused LocalFile HTTP evidence controls passed. The completion test
+used temporary synthetic reports and verified distinct visitors, the current
+deployment, evidence hashes and refusal to overwrite. The test runner removed
+its files. No live requests, cohorts or snapshots were created.
+
 The ArcadeDB admission run completed with seven passes and zero skips.
 TRX SHA-256 `adbc578d9ed2b3903d5f64e0fa174a23915b739c5bfba4ba8341b05cafe84e3d`.
 The separate hosted fixture build uses the same lease and existing outputs.

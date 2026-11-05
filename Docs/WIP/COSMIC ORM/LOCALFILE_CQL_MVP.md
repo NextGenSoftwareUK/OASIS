@@ -604,6 +604,12 @@ bytes, an oversized record and a deployment change. The actual Railway
 inspection still requires sign-in. After it passes, run discovery and the
 native, paired, replica and privacy acceptance.
 
+After HTTP acceptance succeeds, the verifier rechecks the deployment and
+records the native, paired and privacy report hashes with both visitor IDs.
+It creates the completion receipt once. An existing completed or partial
+client proof requires reconciliation before another query or save. Browser
+acceptance remains separate.
+
 Run the same checks without preparing or applying settings:
 
 ```powershell
