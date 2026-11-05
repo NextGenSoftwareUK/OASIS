@@ -24,11 +24,14 @@ at TestResults/HostedDemoRehearsal/ipfs-http-flow.json. Separate rehearsal sessi
 prior cohorts preserved. A second visitor saw3 public rows and0 of the private
 Mongo snapshots by exact ID. Isolation summary SHA256
 64AEEB6D8B1427DD178A9F95F698185998C78D38D8319653DB96DA6AB1904F90.
-LocalFile canonical sandbox-mode fix passes 16 native profile, 13 WEB4 and
-5 publisher tests. Retained source parser check awaits the original bundle.
-Restore the four files listed by publisher preflight, verify hashes and parser
-admission, prepare the five settings, then qualify the exact Development
-deployment before applying and rehearsing native, Mongo and replica reads.
+LocalFile remains the first rollout. The replacement teaching bundle passed
+SDK export, WEB4 bootstrap parsing and publisher source-hash checks. All eight
+publisher checks passed. Remote Development still points at b718f2879 and
+the published candidate at c64adf474. Authenticate Railway and inspect the
+Development WEB4 service and /data mount before advancing the candidate.
+After the exact settings deployment, run cohort-free readiness before
+creating a LocalFile visitor cohort. Then verify native, paired Mongo, privacy
+and exact replicas. [Qualification and rollout](LOCALFILE_CQL_MVP.md).
 
 Source-recovery fix published Development b718f2879;Core5415961/settings unchanged.
 Exact job33c9ef7d-b8b3-4403-9109-32ce47c4d7a8 SUCCESS;healthy/four-provider-ready.
@@ -71,8 +74,6 @@ Configured V2 Ethereum/Polygon/Arbitrum reader+Mongo/HTTP consumer restored;
 Source recovery live;27controlled/API/schema cases pass;secure sign-in helper ready.
 See CQL_SOURCE_RECOVERY.md. Website commands remain to correct.
 Ethereum V2 artifact/ABI/cache+6deploymentcontrols pass;native operation review-blocked.
-LocalFile sandbox-setting mismatch fixed and verified on the recovery laptop.
-The replacement teaching dataset passed SDK export and WEB4 bootstrap parsing. The publisher verified both source hashes. Railway sign-in is required before hosted preparation.
 Independent breadth work: [Hyperlane](HYPERLANE_PUBLIC_SOURCE_STATUS.md) now
 passes native 3/2, four preset plans and local WEB4 HTTP federation/privacy. The task branch and Core pin are published. Hosted preparation and visitor acceptance remain open.
 Automatic review rejected the combined website-edit/consumer-build operation;
@@ -81,6 +82,11 @@ bug is fixed/tested below;no new native/browser proof or denied-operation retry.
 Independent sixth-batch shipping API/provider build and GraphQL schema guard
 pass1/1,no skips. Original hash/counts:LocalState/COSMIC/LauncherRecoveryCurrent/
 sixth-batch-shipping-schema-evidence.json. Consumer now compiles;3page regressions pass.
+
+SurrealDB bounded record-ID CQL and its integration fixture compile. The adapter
+intersects requested IDs with the authorized catalogue before SDK reads. Native
+execution is pending because automatic review rejected local server startup.
+WEB4 source enrollment and hosted acceptance remain separate gates.
 
 ## Constraints / wider unfinished work
 
