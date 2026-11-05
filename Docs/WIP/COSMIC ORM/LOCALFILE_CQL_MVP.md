@@ -446,3 +446,9 @@ COSMIC_CQL_EXPECTED_DEPLOYMENT_IMAGE_DIGEST to the reviewed values above.
 The guard refuses a missing digest or conflicting commit in image mode.
 Restore the script after the guarded operation. The existing commit-based
 path remains available when Railway proves the exact commit.
+
+Combined operator preflight passed on the recovery branch: 12 deployment
+guard, 8 publisher, 5 response-evidence and 5 client-flow tests. The immutable
+candidate passed manifest validation. Remote Development and candidate refs
+were b718f2879 and c64adf474 at the check. These are offline controls. They did
+not write Railway settings, create visitors or verify the live volume.
