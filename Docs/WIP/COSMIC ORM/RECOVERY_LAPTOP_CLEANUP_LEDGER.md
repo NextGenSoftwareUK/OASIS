@@ -893,3 +893,17 @@ check returned Unauthorized. No settings, deployment or project link changed.
   Providers/Storage/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS/obj: 969632 bytes.
   Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.UnitTests/bin: 47118442 bytes.
   Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.UnitTests/obj: 1012483 bytes.
+
+- Planned single Meilisearch community Windows v1.56.1 runtime from official GitHub release. Target LocalState/COSMIC/RecoveryLaptopMeili1561/meilisearch-windows-amd64.exe; published size 353,019,904 bytes, SHA256 ac6d2506cafe862c93a6add533e125a19852339ec21303413120bde84aad3a48. Verify digest before execution. No enterprise binary or new environment requested.
+
+- Meilisearch native read fixture build planned under lease cosmic-meili-native-fixture. Existing .NET/NuGet reused; integration bin/obj regenerable. Metadata-only source.json created once under RecoveryLaptopMeili1561. Native runtime digest verified and --version reports1.56.1; no server/index/documents/credentials created.
+
+- Meilisearch official community v1.56.1 runtime verified at353,019,904bytes,
+  matching published SHA256ac6d2506cafe862c93a6add533e125a19852339ec21303413120bde84aad3a48.
+  --version reports1.56.1; help confirms loopback address, no-analytics and
+  indexing memory/thread controls. download.json retains provenance. Source
+  metadata is364bytes. No server or index started. Leased native fixture build
+  passed zero errors; no native test dispatched. Integration outputs retained
+  for the pending actual native run, then disposable after owned use ends.
+  Meilisearch integration bin: 47123219 bytes.
+  Meilisearch integration obj: 1020024 bytes.

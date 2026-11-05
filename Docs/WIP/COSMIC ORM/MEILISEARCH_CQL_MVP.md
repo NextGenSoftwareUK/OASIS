@@ -33,3 +33,28 @@ missing/deleted controls and source preservation; follow with manager/LINQ and
 HTTP/Mongo pairing, privacy and replicas. Only then prepare WEB4 source/tariff/
 preset enrollment. Wider content/search, writes/conditional concurrency, graphs,
 history, replication, migrations and full ORM parity remain separate gates.
+
+## Recovery-laptop native runtime preparation
+
+The official community Windows v1.56.1 asset is cached once under
+LocalState/COSMIC/RecoveryLaptopMeili1561. Source release:
+https://github.com/meilisearch/meilisearch/releases/tag/v1.56.1 .
+Published size353,019,904bytes and SHA256
+ac6d2506cafe862c93a6add533e125a19852339ec21303413120bde84aad3a48
+match the downloaded executable. --version reports meilisearch1.56.1. This is
+the community asset, not the enterprise executable. The release repository
+separately identifies MIT and enterprise BUSL code; no enterprise activation or
+binding license prompt was accepted. No service, native index or documents yet.
+
+MeilisearchCqlNativeTests uses COSMIC_MEILISEARCH_CQL_SOURCE metadata plus
+COSMIC_MEILISEARCH_CQL_KEY in the process environment. It reads one existing
+loopback source, validates3live/1deleted/1missing control, tests3/2/0selection
+and paging, and requires identical document hashes before/after. Missing
+control must be HTTP404with document_not_found, not a missing index. All native
+observation bodies are bounded, and no test write or provisioning occurs.
+A364-byte source.json was created once with fixed actor/five IDs and port17700.
+Its records do not exist yet. Native bootstrap, actual test execution, manager/
+LINQ and Mongo/HTTP remain open. Runtime identity alone is not CQL acceptance.
+
+The leased native fixture build passed with zero errors. It has not run against
+a server; no native coverage count or source-mutation claim follows.
