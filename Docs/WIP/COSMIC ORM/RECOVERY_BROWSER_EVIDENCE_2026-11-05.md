@@ -14,6 +14,12 @@ with rendered contents exactly matching MongoDB. The independent retained
 visitor saw zero rows on each provider. BNB's functional browser flow
 passed. Renewal across the lifetime boundary remains open.
 
+Optimism passed native 3/2 and Mongo pairing 5/4 in sandbox-3a2cb72c.
+Preparation acknowledged two saves. Private IDs are
+01dd43a7-5ad7-86f0-87c8-6b28c1d74461 and
+027b847d-3751-82e9-95ae-bee9a5fc8661, both version 1.
+Reuse, privacy and rendered replica comparison remain open.
+
 | Provider | Native full/subset | Mongo full/subset | Preparation/reuse | Independent exact-ID privacy |
 |---|---|---|---|---|
 | SolanaOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
