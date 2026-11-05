@@ -9,7 +9,7 @@ const vm = require('node:vm');
 const modulePath = path.resolve(__dirname, '../../../Web4Site/cql-demo-preparation.js');
 const program = fs.readFileSync(path.join(__dirname, 'Verify-HostedSourceFlow.cjs'), 'utf8');
 
-for (const { byId, duplicateReplica } of [{ byId: false }, { byId: true }, { byId: true, duplicateReplica: true }]) test(duplicateReplica ? "verifier rejects duplicate replica IDs" : `verifier uses ${byId ? 'native ID unions' : 'protocol keys'} and checks both replicas`, async () => {
+for (const { byId, duplicateReplica, missingSnapshot } of [{ byId: false }, { byId: true }, { byId: true, duplicateReplica: true }, { byId: true, missingSnapshot: true }]) test(missingSnapshot ? "verifier rejects a missing private snapshot despite the expected row count" : duplicateReplica ? "verifier rejects duplicate replica IDs" : `verifier uses ${byId ? 'native ID unions' : 'protocol keys'} and checks both replicas`, async () => {
   const owner = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
   const nativeIds = ['44444444-4444-4444-8444-444444444441',
     '44444444-4444-4444-8444-444444444442', '44444444-4444-4444-8444-444444444443'];
@@ -68,7 +68,10 @@ for (const { byId, duplicateReplica } of [{ byId: false }, { byId: true }, { byI
         metadata: body.holon.metaData, version: 1, createdByAvatarId: owner, isPublic: false };
       copies.set(row.id, row); result = { isSaved: true, result: row };
     } else if (route.endsWith('/federation')) {
-      result = { result: { rows: selected([...native, ...copies.values()], body.source) } };
+      const rows = selected([...native, ...copies.values()], body.source);
+      if (missingSnapshot && rows.length === 5)
+        rows[rows.length - 1] = { ...rows.at(-1), id: '33333333-3333-4333-8333-333333333333' };
+      result = { result: { rows } };
     } else if (route === 'data/query-cql') {
       const rows = selected(body.provider === provider ? native : [...copies.values()], body);
       result = { result: { rows: duplicateReplica && body.provider === 'Neo4jOASIS' ? [rows[0], rows[0]] : rows } };
@@ -78,9 +81,9 @@ for (const { byId, duplicateReplica } of [{ byId: false }, { byId: true }, { byI
   const errors = []; const process = { exitCode: 0 };
   await vm.runInNewContext(program, { require: name => name === 'node:fs' ? memory : require(name),
     fetch, AbortSignal, setTimeout, process, console: { log() {}, error: value => errors.push(value) } });
-  if (duplicateReplica) {
+  if (duplicateReplica || missingSnapshot) {
     assert.equal(process.exitCode, 1);
-    assert.match(errors.join('\n'), /Neo4jOASIS did not return the exact private replica IDs/);
+    assert.match(errors.join('\n'), missingSnapshot ? /Federation did not return distinct source and private snapshot IDs/ : /Neo4jOASIS did not return the exact private replica IDs/);
     assert.equal(files.has(input.report), false);
     assert.equal(saves, 2);
     return;
