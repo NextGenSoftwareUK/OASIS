@@ -28,3 +28,9 @@ Compact build hash/modes/evidence path:
 LocalState/COSMIC/LauncherRecoveryCurrent/oracle-launcher-recovery-evidence.json.
 Aggregate query-profile counts stay95local/60hosted because Oracle query code
 already existed; published missing launcher paths decrease4to3.
+
+5 November documentation recovery: the content roadmap linked a missing local
+`CQL_ORACLE_DEMO_ADMISSION.md`. Restored that historical guide from original
+commit f89cf0085/blob c0527a693544d900788a9859d6fc9812349f8694 with an explicit
+historical-provenance banner and links back to current status. No native test,
+connection, service or hosted source was replayed; no acceptance count changes.
