@@ -120,6 +120,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.SupabaseOASIS => "Supabase",
         ProviderType.CouchDBOASIS => "CouchDB",
         ProviderType.PouchDBOASIS => "PouchDB",
+        ProviderType.MinIOOASIS => "MinIO",
         ProviderType.SurrealDBOASIS => "SurrealDB",
         ProviderType.ArangoDBOASIS => "ArangoDB",
         ProviderType.RavenDBOASIS => "RavenDB",

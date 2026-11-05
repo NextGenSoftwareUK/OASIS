@@ -43,6 +43,16 @@ class AdmissionTests(unittest.TestCase):
             runner.validate_source_admission(True)
         self.assertEqual('unknown', pending.read_text())
 
+    def test_reconciliation_requires_and_preserves_the_original_pending_fixture(self):
+        for name in ['source.json', 'bucket.ack.json', 'bootstrap.ack.json']:
+            (runner.STATE / name).write_text('{}')
+        with self.assertRaisesRegex(RuntimeError, 'pending consumer required'):
+            runner.validate_source_admission(False, reconcile=True)
+        pending = runner.STATE / 'mongo.pending.json'
+        pending.write_text('original')
+        runner.validate_source_admission(False, reconcile=True)
+        self.assertEqual('original', pending.read_text())
+
     def test_only_one_current_phase_native_interrupt_can_certify_shutdown(self):
         log = runner.STATE / 'server.log'
         event = json.dumps({'message': 'Exiting on signal: INTERRUPT'})

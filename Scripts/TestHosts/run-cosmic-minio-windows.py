@@ -28,13 +28,15 @@ def durable(path, value):
         os.fsync(output.fileno())
 
 
-def validate_source_admission(initialize):
+def validate_source_admission(initialize, reconcile=False):
     if initialize and any((STATE / name).exists() for name in ['source.json', 'bootstrap.intent.json', 'bootstrap.ack.json']):
         raise RuntimeError('Existing source or outcome; initialization cannot replay')
     if not initialize and not all((STATE / name).is_file() for name in ['source.json', 'bootstrap.ack.json', 'bucket.ack.json']):
         raise RuntimeError('Acknowledged retained native source required')
-    if (STATE / 'mongo.pending.json').exists():
+    if (STATE / 'mongo.pending.json').exists() and not reconcile:
         raise RuntimeError('Unresolved consumer outcome; preserve without replay')
+    if reconcile and not (STATE / 'mongo.pending.json').is_file():
+        raise RuntimeError('Explicit original pending consumer required for reconciliation')
 
 
 def native_interrupted(path):
@@ -43,11 +45,17 @@ def native_interrupted(path):
         raise RuntimeError('Current native phase did not prove graceful interrupt shutdown')
 
 
-def run(initialize):
+def run(initialize, paired=False, serve=False, reconcile=False):
     with (STATE / 'runner.lock').open('a+b') as lock:
         lock.seek(0)
         msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
-        validate_source_admission(initialize)
+        validate_source_admission(initialize, reconcile)
+        if paired:
+            if (STATE / 'demo-ready.json').exists():
+                raise RuntimeError('Unresolved previous browser session')
+            with socket.socket() as probe:
+                if probe.connect_ex(('127.0.0.1', 5142)) == 0:
+                    raise RuntimeError('Browser listener occupied')
         if hashlib.sha256(BINARY.read_bytes()).hexdigest() != SHA:
             raise RuntimeError('Official runtime SHA differs')
         ready = json.loads((STATE / 'preflight-ready.json').read_bytes())
@@ -71,7 +79,7 @@ def run(initialize):
                     raise RuntimeError('Existing listener; no process adoption')
         credentials = json.loads(credentials_bytes)
         env = dict(os.environ, MINIO_ROOT_USER=credentials['username'], MINIO_ROOT_PASSWORD=credentials['password'], MINIO_BROWSER='off', GOMAXPROCS='2')
-        reports = STATE / (('initial-' if initialize else 'retained-') + uuid.uuid4().hex)
+        reports = STATE / (('reconcile-' if reconcile else 'interactive-' if serve else 'paired-' if paired else 'initial-' if initialize else 'retained-') + uuid.uuid4().hex)
         reports.mkdir()
         command = [str(BINARY), 'server', str(STATE / 'data'), '--address', '127.0.0.1:19700', '--console-address', '127.0.0.1:19701', '--json']
         durable(reports / 'intent.json', {'command': command, 'sourceWritesRequested': initialize})
@@ -105,6 +113,7 @@ def run(initialize):
                     durable(STATE / 'source.json', {'Endpoint': 'http://127.0.0.1:19700', 'Bucket': 'cosmic-cql-minio-recovery',
                         'Actor': str(uuid.uuid4()), 'LiveIds': identities[:3], 'DeletedId': identities[3], 'MissingId': identities[4]})
                 test_env = dict(os.environ, COSMIC_MINIO_CQL_SOURCE=str(STATE / 'source.json'))
+                test_env['OASIS_MINIO_MONGO_SERVE'] = '1' if serve else '0'
                 def test(category):
                     with (reports / (category + '.log')).open('xb') as output:
                         subprocess.run(['dotnet', 'test', str(PROJECT), '--no-build', '--no-restore', '--filter', 'TestCategory=' + category,
@@ -117,9 +126,11 @@ def run(initialize):
                     return hashlib.sha256(trx.read_bytes()).hexdigest()
                 if initialize:
                     durable(reports / 'bootstrap.json', {'trxSha256': test('MinioCqlBootstrap')})
-                trx_hash = test('MinioCqlNative')
+                trx_hash = test('MinioMongoReconciliation' if reconcile else 'MinIOMongoCqlNative' if paired else 'MinioCqlNative')
                 if hashlib.sha256((STATE / 'credentials.json').read_bytes()).hexdigest() != credentials_hash:
                     raise RuntimeError('Native credential identity changed')
+                if (STATE / 'mongo.pending.json').exists() or (STATE / 'demo-ready.json').exists():
+                    raise RuntimeError('Consumer fixture cleanup incomplete')
                 durable(reports / 'result.json', {'passed': 1, 'trxSha256': trx_hash, 'sourceWritesRequested': initialize})
             finally:
                 if node.poll() is not None:
@@ -139,5 +150,10 @@ if __name__ == '__main__':
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument('--initialize', action='store_true')
     mode.add_argument('--retained', action='store_true')
+    mode.add_argument('--paired', action='store_true')
+    mode.add_argument('--reconcile-mongo', action='store_true')
+    parser.add_argument('--serve', action='store_true')
     args = parser.parse_args()
-    run(args.initialize)
+    if args.serve and not args.paired:
+        parser.error('Interactive serving requires paired mode')
+    run(args.initialize, args.paired, args.serve, args.reconcile_mongo)

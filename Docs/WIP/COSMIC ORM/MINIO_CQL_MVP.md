@@ -81,3 +81,30 @@ one cache; no new runtime/download. Reusable Run-CosmicMinioWindowsNative.ps1
 supports Initialize once or Retained with one build/consumer lease.
 Next manager/Mongo/HTTP/browser5142 and WEB4 local catalogue, then separate
 hosted scoped-reader credential/TLS/enrollment. Counts102/60/28 unchanged.
+
+## Local federation/browser accepted, 5 November2026
+First paired-fa22cb63012b497b96771831a41a1618 failed at a copied fixture assertion
+expecting anonymous access, after source checks/direct federation and page GET.
+The actual authenticated MinIO implementation was correct; no security changes
+made. Original failure/log/TRX and temporary Mongo journal retained. Explicit
+reconcile-b6367b4a72564b9bb21ab7016bf542ea1/1 verifies original database/actor/
+IDs/names/schema against the journal and removes that exact fixture with durable
+cleanup intent/ack, no new Holon saves. TRX SHA256
+`3e4d7b99936b30892bdbf53a661349018dedc1e31da68bdf1a2b9574dc03a6a2`.
+Native source not reseeded. Positive authenticated-page assertion corrected.
+
+Interactive-5921f60f71e6413993499e603ebbca4b completes1/1, zero skips, TRX SHA256
+`188d71c2b0bcb8720d1aa8200a3037e9d5a47d21bae1c64b3f57ff96c12159b9`.
+Actual browser5142 returns5full/4subset physical rows, both providers and
+MovingProviderReads. SDK/manager federation, forged actors/unknown presets400,
+inactive provider503/reactivation without partial rows pass. The shared native
+observation helper verifies original write ACK hashes/ETags/owner/deletion/
+absence before saves and after the last query. Exact temporary Mongo database
+verified/dropped/absence checked with cleanup receipts; pending/ready removed.
+MinIOPID13200CtrlC0/current native INTERRUPT receipt, MongoPID18960CtrlC12/
+storageClosed/shutdownComplete;19700/19701/27029/5142closed. No MinIO source
+writes in paired runs. Five runner admission/reconciliation/shutdown controls
+pass; latest consumer build0errors/8warnings, initial broad build1140warnings.
+Local profile103 accepted. Hosted60/browser28/open32 unchanged; local catalogue
+publication follows scoped source commit. Full storage/replication/parity and
+hosted restricted credentials/TLS/enrollment remain open.

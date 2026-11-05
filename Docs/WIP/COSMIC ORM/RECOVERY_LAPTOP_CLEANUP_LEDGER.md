@@ -1492,3 +1492,14 @@ source writes. Owned native PIDs1612/10684CtrlC0/current INTERRUPT logs;
 19700/19701closed. Four runner controls pass. Source-build4warnings/0errors,
 initial bootstrap-build1120warnings/0errors. All outputs in same cache; no
 runtime duplication/download. Retain native store/credentials for federation.
+
+MinIO first pairedfa22cb63012b497b96771831a41a1618 copied-assertion failure
+retained. Original pending Mongo cohort explicitly verified/reconciled in
+b6367b4a72564b9bb21ab7016bf542ea1/1, durable cleanup intent/ack; no new saves.
+Corrected interactive5921f60f71e6413993499e603ebbca4b1/1/browser5/4 passes.
+Original native object SHA/ETags unchanged; exact new temporary Mongo fixture
+removed and cleanup acknowledged. Owned MinIOPID13200CtrlC0/INTERRUPT and
+MongoPID18960CtrlC12/storageClosed/shutdownComplete; all four listeners closed.
+No new download/runtime or MinIO seed replay. Five runner guards pass; consumer
+8warnings/0errors, earlier broad1140warnings/0errors. Local profile103, hosted
+unchanged. Retain source, credentials, acknowledgements and compact evidence.

@@ -4,13 +4,14 @@ Updated 5 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
-## MinIO native continuation, 5 November2026
+## MinIO local profile accepted, 5 November2026
 
-16controlled SDK cases pass for bounded native object CQL/read-only activation.
-One official pinned Windows binary/hash verified; actual authenticated native
-preflight/anonymous403/health200/owned shutdown0 passes. Create-only native source and retained restart now pass1/1each, original object
-SHA/ETags preserved, four admission/shutdown guards pass. Next manager/Mongo/
-HTTP/browser5142. Counts102/60/28 unchanged. [Evidence](MINIO_CQL_MVP.md).
+16controlled SDK cases and five runner guards pass. Create-only native source,
+retained restart, manager/Mongo/HTTP and browser5/4 verified. Original object
+SHA/ETags unchanged; exact Mongo fixture removed and both services stopped.
+Preserved copied-assertion failure reconciled without replaying saves. Local
+profile103; hosted60/browser28 unchanged. WEB4 local publication is next.
+[Exact evidence and remaining gates](MINIO_CQL_MVP.md).
 
 ## PouchDB local profile accepted, 5 November2026
 
