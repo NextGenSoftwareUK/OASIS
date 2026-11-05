@@ -46,7 +46,7 @@ def validate_endpoint(url):
         if not address.is_global:
             raise ValueError("A public D1 Worker address is required.")
 
-def candidate(before, source):
+def validate_source(source):
     if (set(source) != {"schema", "endpoint", "symbols", "sourceOwner"}
             or type(source["schema"]) is not int or source["schema"] != 1
             or source["symbols"] != EXPECTED_KEYS
@@ -55,6 +55,10 @@ def candidate(before, source):
             or uuid.UUID(source["sourceOwner"]).int == 0):
         raise ValueError("The exact qualified D1 Worker symbol catalogue is required.")
     validate_endpoint(source["endpoint"])
+
+
+def candidate(before, source):
+    validate_source(source)
     if KEYS[0] in before:
         raise ValueError("Existing D1 Worker symbol enrollment requires reconciliation, never replacement.")
     dna = json.loads(before["OASIS_DNA_JSON"])

@@ -20,10 +20,17 @@ class D1WorkerConfigurationTests(unittest.TestCase):
         probe_spec.loader.exec_module(probe)
         with tempfile.TemporaryDirectory() as directory:
             state = Path(directory)
-            raw = json.dumps({"endpoint": "https://worker.example/symbols", "symbols": publisher.EXPECTED_KEYS}).encode()
-            (state / "source.json").write_bytes(raw)
+            source = {"endpoint": "https://worker.example/symbols", "symbols": publisher.EXPECTED_KEYS}
+            raw = json.dumps(dict(source, schema=1, sourceOwner="00000000-0000-0000-0000-000000000001")).encode()
+            path = state / "source.json"
+            path.write_text(json.dumps(source), encoding="utf-8")
             with patch.object(probe, "STATE", state), patch("sys.argv", ["probe"]), \
                  patch.object(probe, "qualify", side_effect=TimeoutError("private diagnostic")) as qualify:
+                with self.assertRaisesRegex(ValueError, "exact qualified"):
+                    probe.main()
+                qualify.assert_not_called()
+                self.assertFalse((state / "worker-https-qualification.intent.json").exists())
+                path.write_bytes(raw)
                 with self.assertRaises(TimeoutError):
                     probe.main()
                 with self.assertRaises(FileExistsError):

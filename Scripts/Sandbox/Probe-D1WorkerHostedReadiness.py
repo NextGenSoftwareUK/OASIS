@@ -58,9 +58,7 @@ def main():
         "d1_publisher", Path(__file__).with_name("Publish-HostedD1WorkerConfiguration.py"))
     publisher = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(publisher)
-    publisher.validate_endpoint(source["endpoint"])
-    if source["symbols"] != publisher.EXPECTED_KEYS:
-        raise ValueError("Exact D1 Worker symbol catalogue required.")
+    publisher.validate_source(source)
     digest = hashlib.sha256(raw).hexdigest()
     with (STATE / "worker-https-qualification.intent.json").open("x", encoding="utf-8") as file:
         json.dump({"schema": 1, "sourceSha256": digest}, file)
