@@ -70,6 +70,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.UnitTests
             Assert.IsFalse(_provider.IsProviderActivated);
 
             var querySource = new SurrealDBOASIS("http://127.0.0.1:1", "reader", "unused", "demo", "demo", Guid.NewGuid());
+            var provisioning = await querySource.ActivateProviderAsync();
+            Assert.AreEqual("CQL_QUERY_ONLY_SOURCE", provisioning.ErrorCode);
+            Assert.IsFalse(querySource.IsProviderActivated);
+
             var cancelled = await querySource.ActivateQuerySourceAsync(new System.Threading.CancellationToken(canceled: true));
             Assert.AreEqual("CQL_QUERY_CANCELLED", cancelled.ErrorCode);
             Assert.IsFalse(querySource.IsProviderActivated);

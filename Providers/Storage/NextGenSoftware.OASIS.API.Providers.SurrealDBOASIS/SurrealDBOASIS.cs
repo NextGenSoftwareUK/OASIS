@@ -123,6 +123,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
+            if (_queryProbeId.HasValue)
+                return new() { IsError = true, ErrorCount = 1, ErrorCode = "CQL_QUERY_ONLY_SOURCE",
+                    Message = "Use read-only activation for a SurrealDB query source." };
+
             var result = new OASISResult<bool>();
             try
             {
