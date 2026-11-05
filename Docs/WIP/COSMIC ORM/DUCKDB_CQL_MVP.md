@@ -135,3 +135,10 @@ Continue missing provider MVPs from the all-provider inventory; leave this green
 scope alone absent a reproduced bug. Full ORM/parity acceptance remains open.
 
 [Breadth reconciliation](PROVIDER_BREADTH_RECONCILIATION_2026-10-30.md) / [status](CURRENT_STATUS.md).
+
+The recovery laptop passed native and Mongo-paired DuckDB replay. Read-only
+activation passed against the retained source and WEB4 opt-in registration
+builds. Local Core candidate 6fcc2fead73f542480d30f981e24764683917b9c adds
+DuckDB query tariff admission on top of SQL Server's pin. The WEB4 admission
+fixture is ready for verification against that candidate before publication.
+Development still requires placement of a qualified read-only database.
