@@ -118,6 +118,14 @@ public class CqlCouchDbHostedAdmissionTests
         VerifyExactKeyPresets(provider, source.QueryCapabilities);
     }
 
+    [Fact]
+    public void DynamoDbExactKeyPresetsPlanNativeAndMongoQueries()
+    {
+        using var source = new NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.DynamoDbQuerySource(
+            "us-east-1", Guid.NewGuid(), "controlled-access", "controlled-secret", null);
+        VerifyExactKeyPresets(ProviderType.DynamoDBOASIS, source.QueryCapabilities);
+    }
+
     private static void VerifyExactKeyPresets(ProviderType providerType, CosmicQueryCapabilities capabilities)
     {
         var provider = providerType.ToString();

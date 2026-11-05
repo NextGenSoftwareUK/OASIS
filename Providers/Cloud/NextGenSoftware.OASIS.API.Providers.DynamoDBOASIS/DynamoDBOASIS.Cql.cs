@@ -20,6 +20,40 @@ public partial class DynamoDBOASIS : ICosmicQueryStorageProvider
     public ProviderType QueryProviderType => StorageProviderType;
     public CosmicQueryCapabilities QueryCapabilities => DynamoCqlCompiler.Capabilities;
 
+    protected async Task<OASISResult<bool>> VerifyPublicQueryProbeAsync(Guid id, CancellationToken cancellationToken)
+    {
+        IsProviderActivated = false;
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var response = await _client.GetItemAsync(new GetItemRequest
+            {
+                TableName = "OasisHolons",
+                Key = PointReadKey(id),
+                ConsistentRead = true
+            }, cancellationToken).ConfigureAwait(false);
+            if (response?.HttpStatusCode != HttpStatusCode.OK || response.Item == null)
+                throw new InvalidDataException("DynamoDB did not acknowledge the exact teaching probe.");
+            var row = ReadCanonicalIdentity<Holon>(response.Item, id);
+            if (!row.IsPublic || row.IsDeleted)
+                throw new InvalidDataException("The teaching probe must be an existing public record.");
+            cancellationToken.ThrowIfCancellationRequested();
+            IsProviderActivated = true;
+            return new(true);
+        }
+        catch (Exception cause)
+        {
+            return new()
+            {
+                IsError = true,
+                ErrorCount = 1,
+                ErrorCode = cause is OperationCanceledException ? "CQL_QUERY_CANCELLED" : "CQL_QUERY_SOURCE_UNAVAILABLE",
+                Message = "DynamoDB did not verify its public teaching probe.",
+                Exception = cause
+            };
+        }
+    }
+
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
     {

@@ -63,6 +63,11 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         { }
 
         public DynamoDBOASIS(string accessKey,string secretKey,string region,string? serviceUrl,string? sessionToken,bool useDefaultCredentials)
+            : this(accessKey, secretKey, region, serviceUrl, sessionToken, useDefaultCredentials, false)
+        { }
+
+        private protected DynamoDBOASIS(string accessKey, string secretKey, string region, string? serviceUrl,
+            string? sessionToken, bool useDefaultCredentials, bool requireRegionalEndpoint)
         {
             if(string.IsNullOrWhiteSpace(region))
                 throw new ArgumentException("A signing region is required.",nameof(region));
@@ -79,6 +84,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 ? new BasicAWSCredentials(accessKey,secretKey):new SessionAWSCredentials(accessKey,secretKey,sessionToken);
             // A retry after a lost write acknowledgement must not masquerade as a known CAS conflict.
             var config = new AmazonDynamoDBConfig { MaxErrorRetry=0 };
+            if (requireRegionalEndpoint)
+                config.IgnoreConfiguredEndpointUrls = true;
             if (string.IsNullOrWhiteSpace(serviceUrl))
                 config.RegionEndpoint = RegionEndpoint.GetBySystemName(region);
             else

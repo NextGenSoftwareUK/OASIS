@@ -14,6 +14,58 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests;
 [TestClass]
 public class DynamoCqlTests
 {
+    [DataTestMethod]
+    [DataRow("public", true, 1)]
+    [DataRow("private", false, 1)]
+    [DataRow("foreign", false, 1)]
+    [DataRow("missing", false, 1)]
+    [DataRow("alias", false, 0)]
+    [DataRow("cancelled", false, 0)]
+    public async Task HostedActivationOnlyReadsOneCanonicalPublicProbe(string shape, bool expected, int reads)
+    {
+        var id = Guid.NewGuid();
+        using var provider = new DynamoDbQuerySource("us-east-1", id, "owned", "owned", null);
+        var field = typeof(DynamoDBOASIS).GetField("_client", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        using var original = (AmazonDynamoDBClient)field.GetValue(provider)!;
+        Assert.IsTrue(original.Config.IgnoreConfiguredEndpointUrls);
+        Assert.AreEqual("us-east-1", original.Config.RegionEndpoint.SystemName);
+        var client = new ExactProbeClient(shape, id);
+        field.SetValue(provider, client);
+        if (shape == "alias") provider.ProviderType.Value = ProviderType.AWSOASIS;
+        using var cancellation = new CancellationTokenSource();
+        if (shape == "cancelled") cancellation.Cancel();
+        var result = await provider.ActivateQuerySourceAsync(cancellation.Token);
+        Assert.AreEqual(expected, provider.IsProviderActivated);
+        Assert.AreEqual(!expected, result.IsError, result.Message);
+        Assert.AreEqual(reads, client.Reads);
+    }
+
+    private sealed class ExactProbeClient(string shape, Guid id) : AmazonDynamoDBClient(
+        new BasicAWSCredentials("owned", "owned"),
+        new AmazonDynamoDBConfig { RegionEndpoint = Amazon.RegionEndpoint.USEast1, MaxErrorRetry = 0 })
+    {
+        public int Reads;
+
+        public override Task<GetItemResponse> GetItemAsync(GetItemRequest request, CancellationToken token = default)
+        {
+            Reads++;
+            Assert.AreEqual("OasisHolons", request.TableName);
+            Assert.AreEqual(1, request.Key.Count);
+            Assert.AreEqual(id.ToString("D"), request.Key["id"].S);
+            Assert.IsTrue(request.ConsistentRead);
+            var row = new Holon { Id = shape == "foreign" ? Guid.NewGuid() : id, IsPublic = shape != "private" };
+            return Task.FromResult(new GetItemResponse
+            {
+                HttpStatusCode = HttpStatusCode.OK,
+                Item = shape == "missing" ? new() : new()
+                {
+                    ["id"] = new() { S = id.ToString("D") },
+                    ["data_json"] = new() { S = OasisJson.Serialize(row) }
+                }
+            });
+        }
+    }
+
     private static CosmicQuery<Holon> Query(Guid[] ids, ProviderType authority = ProviderType.DynamoDBOASIS)
         => CosmicQuery<Holon>.Create(CosmicQueryScope.Named(authority).Result)
             .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(Guid.NewGuid(), authority, ids).Result).Result;

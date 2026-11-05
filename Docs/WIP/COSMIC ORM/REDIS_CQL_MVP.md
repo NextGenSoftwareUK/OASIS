@@ -146,5 +146,15 @@ The local Redis database 11 evidence remains separate. The hosted proof uses
 and reader scope before running it, then qualify native/paired WEB4 HTTP and
 browser evidence on the reviewed deployment. Hosted proof is pending.
 
+Publication checkpoint, 5 November 2026. Parent `efbb72e13` and Core
+`0608347443d61839cfde723875678938dc136bfc` are verified local commits. The
+normal Core push returned GitHub's `fatal error in commit_refs_rules`.
+The same account could read the repository, reported write access and
+read the previous published commit. The candidate Core ref and commit
+were absent remotely. The rules API denied visibility for this private
+repository under its current plan. The exact cause of the push error
+remains unconfirmed. Publish the Core commit and verify its remote SHA
+before pushing the dependent parent commit.
+
 [Status](CURRENT_STATUS.md) / [inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) /
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).

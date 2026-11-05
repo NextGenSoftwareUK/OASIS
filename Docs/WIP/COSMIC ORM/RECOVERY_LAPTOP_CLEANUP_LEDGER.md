@@ -1859,3 +1859,26 @@ The native TLS fixtures compiled (155 warnings, zero errors), with output in
 `TestResults/ProviderBuildCurrent/redis-family-hosted-native-fixture-build.log`.
 Both leases restored shared Core to `54159614`. No native session or database
 was started. Neither candidate changes the accepted hosted or local counts.
+
+DynamoDB hosted preparation reused the same .NET and NuGet environment.
+The initial six controlled activation cases passed. The compact report at
+`LocalState/COSMIC/HostedDynamoDbCqlQualification/activation/activation.trx`
+has SHA256 `EC00D2134808796AE719534656C8304731A484552CE71EDE869030FBA95FAAB1`.
+The regional endpoint and WEB4 checks use
+`TestResults/ProviderBuildCurrent/dynamodb-hosted-regional-activation.log`,
+`TestResults/ProviderBuildCurrent/dynamodb-hosted-api-cql.log` and the
+`api-cql-admission/` evidence directory under the same qualification root.
+The logs and shared build outputs are regenerable once their lease ends.
+No AWS requests, local emulators, downloads or new environments were needed.
+
+Regional activation passed all six cases against the DynamoDB tariff
+candidate Core `f73e719b`. The retained
+`api-cql-admission/regional-activation.trx` SHA256 is
+`05CE8C478D2BA916376CC0D86F547EBCD231A8EB8E4861633BD68220BCC023B4`.
+
+DynamoDB WEB4 admission passed 7/7 with no skips. The retained
+`api-cql-admission/admission.trx` SHA256 is
+`1EF3A9AA1036A015101FCCFF00124560021104C494C32FBB77D56D6FF0E1B01F`.
+The native AWS fixture compiled with 148 warnings and zero errors.
+Build output is `TestResults/ProviderBuildCurrent/dynamodb-hosted-native-fixture-build.log`.
+Each lease restored shared Core to `54159614`. No cloud operation was sent.

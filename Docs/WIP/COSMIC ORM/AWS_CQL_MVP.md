@@ -37,4 +37,24 @@ For the retained local demo: `Scripts/TestHosts/Run-CosmicAwsCqlNative.ps1 -Fede
 - Runtime guard: TestResults/AwsCqlCurrent/runtime-mount-guard-corrected.log, expected rejection before allocation; initial path error and initial compiler missing-import failure retained separately.
 - Historical native/SDK/HTTP/browser proof remains on branch237403a75; do not substitute it for the current native gate.
 
+## Development WEB4 DynamoDB candidate
+
+The opt-in `DynamoDBOASIS` query source uses the AWS SDK's regional endpoint.
+Configure `CQL_DYNAMODB_QUERY_REGION`, `CQL_DYNAMODB_QUERY_PROBE_ID`,
+`CQL_DYNAMODB_QUERY_ACCESS_KEY_ID`, `CQL_DYNAMODB_QUERY_SECRET_ACCESS_KEY`
+and, for session credentials, `CQL_DYNAMODB_QUERY_SESSION_TOKEN`.
+Keep credentials in protected settings. The teaching identity needs only
+`dynamodb:GetItem` and `dynamodb:BatchGetItem` on the reviewed teaching
+`OasisHolons` table. Activation performs one consistent exact-key read and
+validates the public canonical record. Query reads use the existing bounded
+batch adapter. Table provisioning is a separate operation.
+
+After confirming owned source access and authorization for AWS requests, run
+`TestCategory=DynamoDbHostedCqlNative` in the DynamoDB integration project.
+`COSMIC_DYNAMODB_HOSTED_CQL_SOURCE` points to the reviewed descriptor with
+`Actor`, three `LiveIds`, `DeletedId` and `MissingId`. Use one live ID as
+the probe. Qualify native and Mongo-paired WEB4 HTTP and browser flows after
+the real AWS source passes. Hosted proof is pending. The combined AWSOASIS
+provider and its S3 operations have their own gates.
+
 [Programme](CURRENT_STATUS.md) | [Provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) | [Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
