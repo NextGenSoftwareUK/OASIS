@@ -1,5 +1,12 @@
 # Development browser evidence, 5 November 2026
 
+Stellar passed native 3/2 and paired 5/4 in sandbox-3a2cb72c.
+Preparation saved two private version-1 copies: 639841c4-6013-8b02-857a-b7987747f04f
+and fb968617-c5f9-81b5-a78c-2e8acdfa8945. Repeat preparation reported zero
+saved and two already prepared. Exact-ID browser queries returned both copies
+with rendered contents equal across MongoDB, SQLite and Neo4j. The independent
+retained visitor returned zero rows for these IDs on all three providers.
+
 XRPL passed native 3/2 and paired 5/4 in sandbox-3a2cb72c.
 Preparation saved two private version-1 copies: 004132c7-5c90-8b72-80de-4929bf2ba893
 and 914ffe35-8854-8a89-a857-a6323c9fd39e. Repeat preparation reported zero
