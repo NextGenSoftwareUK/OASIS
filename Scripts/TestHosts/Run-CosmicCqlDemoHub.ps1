@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param(
-    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','SurrealDB','CouchDB','SQLServer','DuckDB')][string]$Provider='SQLite',
+    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','SurrealDB','CouchDB','SQLServer','DuckDB','LocalFile')][string]$Provider='SQLite',
     [switch]$VerifyOnly,
     [switch]$Federated,
     [switch]$RecoveryMongo,
@@ -10,22 +10,26 @@ param(
 )
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-if ($RecoveryMongo -and $Provider -notin @('SQLServer','DuckDB')) {
-    throw 'RecoveryMongo is available for the SQL Server and DuckDB presets.'
+if ($RecoveryMongo -and $Provider -notin @('SQLServer','DuckDB','LocalFile')) {
+    throw 'RecoveryMongo is available for the SQL Server, DuckDB and LocalFile presets.'
 }
-if ($Provider -in @('SQLServer','DuckDB')) {
+if ($Provider -in @('SQLServer','DuckDB','LocalFile')) {
     if (!$Federated -or $ArchiveCompletedDemo) {
         throw "$Provider requires -Federated and preserves its demo source."
     }
     $isSqlServer = $Provider -eq 'SQLServer'
-    $runnerName = if ($isSqlServer) {'Run-CosmicSqlServerCqlNative.ps1'} else {'Run-CosmicDuckDbCqlNative.ps1'}
-    $runner = Join-Path $PSScriptRoot $runnerName
+    $preset = switch ($Provider) {
+        'SQLServer' { @{ Runner = 'Run-CosmicSqlServerCqlNative.ps1'; Port = 5115 } }
+        'DuckDB' { @{ Runner = 'Run-CosmicDuckDbCqlNative.ps1'; Port = 5116 } }
+        'LocalFile' { @{ Runner = 'Run-CosmicLocalFileCqlNative.ps1'; Port = 5110 } }
+    }
+    $runner = Join-Path $PSScriptRoot $preset.Runner
     if ($ShowPlan) {
         [pscustomobject]@{
             Provider = $Provider
             Mode = $(if ($VerifyOnly) {'bounded verification'} else {'interactive until explicit shutdown'})
             Runner = $runner
-            Url = $(if ($isSqlServer) {'http://127.0.0.1:5115/'} else {'http://127.0.0.1:5116/'})
+            Url = "http://127.0.0.1:$($preset.Port)/"
             Scope = "$Provider and Mongo CQL federation over retained demo fixtures"
             RecoveryMongo = $RecoveryMongo.IsPresent
         }
