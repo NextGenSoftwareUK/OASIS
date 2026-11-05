@@ -11,6 +11,7 @@ b1f86140-00a9-4017-9b6c-af9eade65c76. Reuse this browser session.
 | EthereumOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
 | PolygonOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
 | ArbitrumOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
+| CosmosBlockChainOASIS | 3/2 | 5/4 | 2 saved; reuse pending | Pending |
 
 Solana private IDs are 3066ca99-2a54-885f-afad-8b104f13b653 and
 b7f878cb-cd6d-8bf6-b075-e86856ade714. Google private IDs are
@@ -36,6 +37,11 @@ two rows with rendered contents exactly matching the Mongo baseline.
 After confirming the original copies remained at version 1, explicit setup
 inspection reported zero saved and two already prepared. The earlier timeout
 remains recorded. Arbitrum now satisfies the same functional browser gates.
+
+Cosmos Hub private IDs are a67c39a0-5be5-8578-af03-04a409947241
+and fb93ec0e-6bb3-8d1f-b06d-214158ce8ac1, both version 1. Native
+full/subset and Mongo pairing passed through the visible browser controls.
+Reuse, independent privacy and rendered replica checks remain open.
 
 Solana and Google subset screenshots were emitted and inspected in the
 chat. Both show four physical rows with native and Mongo provider labels,
