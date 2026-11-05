@@ -10,7 +10,7 @@ b1f86140-00a9-4017-9b6c-af9eade65c76. Reuse this browser session.
 | GoogleCloudOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
 | EthereumOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
 | PolygonOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
-| ArbitrumOASIS | 3/2 | 5/4 | 2 saved; reuse pending | MongoDB, SQLite, Neo4j each 0 |
+| ArbitrumOASIS | 3/2 | 5/4 | 2 saved, then 0 saved/2 prepared | MongoDB, SQLite, Neo4j each 0 |
 
 Solana private IDs are 3066ca99-2a54-885f-afad-8b104f13b653 and
 b7f878cb-cd6d-8bf6-b075-e86856ade714. Google private IDs are
@@ -31,6 +31,11 @@ privacy passed on all three providers. The browser's reuse click timed out
 without a new visible preparation result. Preserve that uncertain action.
 A later exact-ID Mongo query returned both originals. Browser automation
 timeouts interrupted the replica comparison before SQLite was selected.
+The retained browser subsequently recovered. Both SQLite and Neo4j returned
+two rows with rendered contents exactly matching the Mongo baseline.
+After confirming the original copies remained at version 1, explicit setup
+inspection reported zero saved and two already prepared. The earlier timeout
+remains recorded. Arbitrum now satisfies the same functional browser gates.
 
 Solana and Google subset screenshots were emitted and inspected in the
 chat. Both show four physical rows with native and Mongo provider labels,
