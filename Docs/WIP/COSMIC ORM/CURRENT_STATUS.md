@@ -14,8 +14,10 @@ native/Mongo presets passed 23 focused admission tests, zero skips. Paired
 manager and local HTTP returned 5 full and 4 subset rows, with explicit
 provider provenance and rejection of forged actor, foreign preset and inactive
 source. Both runtimes stopped and the disposable Mongo database was removed.
-Full WEB4 image run 42103803801 is in progress at `419a41cf2`. Hosted
-verification remains open.
+Full WEB4 image run 42103803801 passed at `419a41cf2`, including the final
+PouchDB native load. Its published digest is
+`sha256:e54119f06009280f77d455de16af99ca3bf46af56205a9bf7fe2dd0f7ba1db9a`.
+Development rollout and hosted verification remain open after LocalFile.
 
 Supervision/packaging continuation:36scoped controls and5selected shared cases
 pass; real retained SDK runtime handles simulated shutdown and validation-failure

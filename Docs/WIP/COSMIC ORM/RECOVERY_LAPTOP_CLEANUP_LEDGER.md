@@ -1688,6 +1688,14 @@ Exact run 42103803801 was observed in progress. It uses the existing remote
 build and PouchDB SDK caches, and will publish only the SHA tag on success.
 No local image layers were downloaded and no Railway deployment was requested.
 
+Run 42103803801/job 127513245685 completed successfully. The final image
+loaded PouchDB 9.0.0, LevelDB and express-pouchdb, then published the exact
+commit tag with digest
+`sha256:e54119f06009280f77d455de16af99ca3bf46af56205a9bf7fe2dd0f7ba1db9a`.
+The 152,241-character job log remained remote and in tool memory.
+`full-image-419a41cf2.qualified.json` retains only the compact 1,023-byte
+evidence. No image pull, local layers or deployment.
+
 Hosted PouchDB verifier controls ran with the existing Python executable and
 `-B`. Twelve tests passed. The initial run caught two mistakes in the new
 test fixture before any live calls. Temporary fixture files were owned and
@@ -1698,3 +1706,10 @@ Node executables. It verified the retained bundle and acknowledgement, the
 six changed values, and refusal before settings mutation when the digest or
 mount was unverified. The baseline and mock observations stayed in memory.
 No live variable snapshot, protected files, settings or services were changed.
+
+Meilisearch WEB4 admission qualification reuses the existing .NET SDK,
+NuGet cache and leased provider outputs. The build log is
+`TestResults/ProviderBuildCurrent/meilisearch-hosted-api-cql.log`. Its scoped
+TRX and Core candidate receipt are under
+`LocalState/COSMIC/RecoveryLaptopMeilisearchCql/hosted-preparation/`.
+This phase uses controlled transport only and starts no native service.

@@ -236,11 +236,15 @@ receipt. The synthetic files were removed after checking their exact paths.
 ### Full WEB4 image qualification
 
 [Run 42103803801](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42103803801)
-was accepted and is in progress for source
+completed successfully for source
 `419a41cf2000cd4ebdb5a9b21e69dfc6f004eaf3`. The extra tag equals the full
-source SHA, so the workflow publishes only that commit tag. The run must
-prove the full image builds, the native SDK loads in the final stage, and
-the exact image digest is available. Deployment is separate.
+source SHA. Job 127513245685 completed the final-stage PouchDB 9.0.0,
+LevelDB and express-pouchdb load, then published only that commit tag at
+`ghcr.io/nextgensoftwareuk/oasis-web4@sha256:e54119f06009280f77d455de16af99ca3bf46af56205a9bf7fe2dd0f7ba1db9a`.
+Compact log evidence is in `hosted-preparation/full-image-419a41cf2.qualified.json`,
+SHA-256 `0b5aae6847b9c2be50b60b61d878d78d68c5741feaf5f390fa4ba695c2d93e9b`.
+This image requires scope review, registry pull authorization and a separate
+Development rollout after the qualified LocalFile image.
 
 ### Live acceptance entry point
 
