@@ -71,7 +71,7 @@ On 4 November, GitHub confirmed Core `89d39f6c2` on
 `work/cosmic-hyperlane-admission` and parent `4f8118437` on
 `work/cosmic-cql-ton-public`. Development `b718f2879` is an ancestor of
 the verified task head and has no Development-only commits in this snapshot.
-Recheck ancestry at publication time. Railway still returns Unauthorized,
-and both retained LocalFile qualification directories are absent here.
-The existing owner actions cover these inputs. Keep the qualified Hyperlane
-batch on the task branch until the hosted rollout can be prepared and observed.
+Recheck ancestry at publication time. The LocalFile qualification bundle has
+since been recovered and its candidate image published. Railway still returns
+Unauthorized. Follow the [LocalFile rollout](LOCALFILE_CQL_MVP.md) first, then
+prepare the protected Hyperlane candidate and verify its hosted acceptance.
