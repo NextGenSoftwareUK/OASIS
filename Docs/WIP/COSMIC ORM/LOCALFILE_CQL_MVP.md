@@ -308,6 +308,13 @@ verify it before discovery or cohort creation. The Railway CLI command
 `deploy` provisions a template. `redeploy --from-source` can pick up a newer
 configured source, so use the reviewed staged deployment in this sequence.
 
+Confirm a single active WEB4 instance for the initial bootstrap of this
+candidate. The candidate takes an exclusive filesystem lease and rejects an
+existing source directory without matching intent and acknowledgement
+manifests. Its bootstrap has no verified concurrent-start behavior. If the
+current topology has multiple active instances, leave settings unstaged and
+review bootstrap and volume placement for that topology first.
+
 ### Readiness before starting a hosted cohort
 
 After the exact settings deployment succeeds, run
