@@ -202,6 +202,10 @@
 <ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.PouchDBOASIS/NextGenSoftware.OASIS.API.Providers.PouchDBOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.SolrOASIS/NextGenSoftware.OASIS.API.Providers.SolrOASIS.csproj" /></ItemGroup>
+<ItemGroup>
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.csproj" />
+</ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS/NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS/NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS.csproj" /></ItemGroup>

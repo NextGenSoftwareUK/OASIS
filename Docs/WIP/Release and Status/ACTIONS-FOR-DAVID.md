@@ -643,3 +643,10 @@ and hosted federation and replication verification.
 - The qualifier requires three public live root records, one deleted record and one absent ID under the declared actor. Keep the query username and password in the process environment. Do not place credentials in chat, the descriptor or git.
 - Reason: native HTTPS proof precedes any Development settings review or hosted acceptance. The accepted Windows-local demo remains available. No new paid host or account was requested.
 - [Settings, descriptor and qualification scope](../COSMIC%20ORM/SOLR_CQL_MVP.md#web4-hosted-enrollment-preparation).
+
+## Elasticsearch and OpenSearch hosted teaching sources - 2026-11-05
+
+- Status: pending owned source access. Ten shared WEB4 checks passed and both native HTTPS qualifiers compiled.
+- Owner step: identify existing reachable HTTPS teaching services and provide restricted access privately. Elasticsearch requires an encoded read key for oasis-holons. OpenSearch requires a read account for oasis_holons. Each source needs a live probe and three public roots, one deleted record and one absent ID under its declared actor. If an owned service lacks the teaching index, provide secure provisioning access for engineering to prepare it separately.
+- Reason: each vendor's native HTTPS proof precedes Development settings review and hosted acceptance. Keep credentials in the process environment, outside chat, descriptors and git. Existing local demos remain available. No new paid resources were requested.
+- [Elasticsearch qualifier](../COSMIC%20ORM/ELASTICSEARCH_CQL_MVP.md#web4-hosted-enrollment-preparation) and [OpenSearch qualifier](../COSMIC%20ORM/OPENSEARCH_CQL_MVP.md#web4-hosted-enrollment-preparation).

@@ -2,7 +2,9 @@ using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.IntegrationTests;
 
@@ -32,14 +34,37 @@ public class ElasticsearchCqlNativeTests
         Assert.IsTrue(Uri.TryCreate(source.Endpoint, UriKind.Absolute, out var endpoint)
             && endpoint.Scheme == "http" && endpoint.IsLoopback && endpoint.UserInfo.Length == 0
             && endpoint.AbsolutePath == "/" && endpoint.Query.Length == 0 && endpoint.Fragment.Length == 0);
+        using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(15) };
+        await RunNativeAsync(source, username, password, null, http, publicSource: false);
+    }
+
+    [TestMethod]
+    [TestCategory("ElasticsearchHostedCqlNative")]
+    public async Task QualifiedHttpsSourceSupportsExactPublicQueriesWithoutWrites()
+    {
+        var path = Environment.GetEnvironmentVariable("COSMIC_ELASTICSEARCH_HOSTED_CQL_SOURCE")
+            ?? throw new InvalidOperationException("Explicit hosted teaching source is required.");
+        var key = Environment.GetEnvironmentVariable("CQL_ELASTICSEARCH_QUERY_API_KEY");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(key), "Explicit restricted API key is required.");
+        Assert.IsTrue(new FileInfo(path).Length is > 0 and <= 16384);
+        var source = JsonSerializer.Deserialize<Source>(await File.ReadAllBytesAsync(path))!;
+        Assert.IsNotNull(source);
+        Assert.IsTrue(Uri.TryCreate(source.Endpoint, UriKind.Absolute, out var endpoint)
+            && endpoint.Scheme == "https" && !endpoint.IsLoopback && endpoint.UserInfo.Length == 0
+            && endpoint.AbsolutePath == "/" && endpoint.Query.Length == 0 && endpoint.Fragment.Length == 0);
+        using var http = new HttpClient(new CqlSearchDocumentReadSources.ExactReadHandler(endpoint!, "oasis-holons",
+            NativeConnectionGuard.CreateGuardedHttpHandler())) { Timeout = TimeSpan.FromSeconds(15) };
+        await RunNativeAsync(source, null, null, key, http, publicSource: true);
+    }
+
+    private static async Task RunNativeAsync(Source source, string? username, string? password, string? apiKey, HttpClient http, bool publicSource)
+    {
         Assert.AreNotEqual(Guid.Empty, source.Actor);
         Assert.AreEqual(3, source.LiveIds.Length);
         var ids = source.LiveIds.Concat(new[] { source.DeletedId, source.MissingId }).ToArray();
         Assert.AreEqual(5, ids.Distinct().Count());
         Assert.IsFalse(ids.Contains(Guid.Empty));
-        var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-        using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(15) };
-        var provider = new ElasticsearchOASIS(source.Endpoint, username, password, source.LiveIds[0], http);
+        var provider = new ElasticsearchOASIS(source.Endpoint, username, password, source.LiveIds[0], http, apiKey);
         async Task<string[]> Observe()
         {
             var observations = new List<string>();
@@ -76,6 +101,11 @@ public class ElasticsearchCqlNativeTests
                 Assert.AreEqual(id,canonical.RootElement.GetProperty("id").GetGuid());
                 Assert.AreEqual(source.Actor,canonical.RootElement.GetProperty("createdByAvatarId").GetGuid());
                 Assert.AreEqual(id==source.DeletedId,canonical.RootElement.GetProperty("deletedDate").GetDateTime()!=DateTime.MinValue);
+                if (publicSource)
+                {
+                    Assert.IsTrue(canonical.RootElement.GetProperty("isPublic").GetBoolean());
+                    Assert.AreEqual(0, canonical.RootElement.GetProperty("children").GetArrayLength());
+                }
                 observations.Add(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(nativeJson))));
             }
             return observations.ToArray();

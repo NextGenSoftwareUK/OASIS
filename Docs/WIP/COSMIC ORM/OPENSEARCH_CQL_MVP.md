@@ -245,3 +245,23 @@ Signed-out live browser tab10 verified the local card and expanded exact command
 No hosted avatar/session, API/settings/source cohort or credentials were changed
 by publication. Counts100local/60hostedHTTP/28hostedbrowser(open32), not100fully
 implemented providers. Full ORM/HyperDrive/provider and hosted gates stay open.
+
+## WEB4 hosted enrollment preparation
+
+The opt-in read profile requires CQL_OPENSEARCH_QUERY_ORIGIN,
+CQL_OPENSEARCH_QUERY_PROBE_ID, CQL_OPENSEARCH_QUERY_USERNAME and
+CQL_OPENSEARCH_QUERY_PASSWORD. Use an existing owned HTTPS origin, a live
+teaching probe and a reader restricted to oasis_holons. The shared
+transport admits only an exact canonical GUID document GET at that origin.
+
+OpenSearchHostedCqlNative accepts COSMIC_OPENSEARCH_HOSTED_CQL_SOURCE with
+Endpoint, Actor, three LiveIds, one DeletedId and one MissingId. It uses
+the same guarded HTTP transport as WEB4 and checks public root ownership,
+native absence, full and subset reads, paging and unchanged document hashes.
+Keep credentials in the process environment. The hosted tests and deployment
+remain pending. The retained Windows proof is preserved.
+The shared WEB4 admission run passed ten focused checks with zero skips at
+Core `0205f68`, covering both providers and all native and Mongo presets.
+TRX SHA-256 `e61277ee1449a4cb2156be6a9954608f2f7543be7d697b0235315e12b0cd9edb`.
+The native HTTPS fixture compiled with 11 warnings and zero errors.
+Execution needs an owned source and restricted read credentials.

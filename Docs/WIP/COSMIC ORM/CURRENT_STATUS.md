@@ -4,6 +4,11 @@ Updated 5 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
+Elasticsearch and OpenSearch WEB4 query enrollment passed ten focused
+admission and transport checks. Both guarded HTTPS native fixtures compiled.
+Owned teaching sources and read credentials remain necessary before native
+HTTPS and deployed acceptance. No provider count changed.
+
 ## PouchDB persistent hosted-source module, 5 November 2026
 
 The .NET PouchDB adapter passed its retained-source CQL test with WEB4's

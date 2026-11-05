@@ -1737,6 +1737,27 @@ Its log is `TestResults/ProviderBuildCurrent/solr-hosted-native-fixture-build.lo
 It compiled with 1,143 warnings and zero errors. The shared Core checkout was
 restored to `54159614`. No native process started.
 
+Elasticsearch and OpenSearch WEB4 admission share one build lease and
+reuse the existing .NET SDK, NuGet cache and provider outputs. Build log:
+`TestResults/ProviderBuildCurrent/search-document-hosted-api-cql.log`.
+Candidate pin receipt and planned TRX are in the evidence-only directory
+`LocalState/COSMIC/HostedSearchDocumentsCqlQualification/`. No search
+service, runtime download or retained source copy was created.
+
+The exact shared admission run finished with ten passes and zero skips.
+TRX SHA-256 `e61277ee1449a4cb2156be6a9954608f2f7543be7d697b0235315e12b0cd9edb`.
+The separate Elasticsearch and OpenSearch native fixture builds share
+one lease, with logs under `TestResults/ProviderBuildCurrent/` named
+`Elasticsearch-hosted-native-fixture-build.log` and
+`OpenSearch-hosted-native-fixture-build.log`. These builds start no service.
+They finished with 148 and 11 warnings respectively, and zero errors.
+The lease restored the shared Core checkout to `54159614`.
+
+5 November 2026, 16:24 local. The Railway project page was checked read-only
+in a temporary in-app browser tab. It displayed Login and did not expose
+the project. No credentials, changes, screenshots or downloads were made.
+The existing LocalFile account action remains current.
+
 PouchDB mounted-source receipt verification used the retained local receipt
 and mocked instance SSH output. Two admitted shapes and four refusal cases
 passed. The first rehearsal had a command-tail assertion error, corrected

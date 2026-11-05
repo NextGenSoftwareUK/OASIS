@@ -67,6 +67,18 @@ public class CqlCouchDbHostedAdmissionTests
         Assert.False(source.IsProviderActivated);
     }
 
+    [Theory]
+    [InlineData(ProviderType.ElasticsearchOASIS)]
+    [InlineData(ProviderType.OpenSearchOASIS)]
+    public void SearchDocumentExactKeyPresetsPlanNativeAndMongoQueries(ProviderType provider)
+    {
+        using var client = new System.Net.Http.HttpClient();
+        var capabilities = provider == ProviderType.ElasticsearchOASIS
+            ? new NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.ElasticsearchOASIS("https://elastic.example.test", httpClient: client).QueryCapabilities
+            : new NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.OpenSearchOASIS("https://open.example.test", httpClient: client).QueryCapabilities;
+        VerifyExactKeyPresets(provider, capabilities);
+    }
+
     private static void VerifyExactKeyPresets(ProviderType providerType, CosmicQueryCapabilities capabilities)
     {
         var provider = providerType.ToString();

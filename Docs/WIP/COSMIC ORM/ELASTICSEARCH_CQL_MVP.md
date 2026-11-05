@@ -70,3 +70,23 @@ Hosted enrollment/TLS/authentication, general search/vector/CRUD/history,
 replication and full EF/NHibernate parity remain open. Hosted60/browser28/open32
 unchanged. See [local guide](../../Devs/ELASTICSEARCH_CQL_LOCAL_DEMO.md) and
 [cleanup ledger](RECOVERY_LAPTOP_CLEANUP_LEDGER.md).
+
+## WEB4 hosted enrollment preparation
+
+The opt-in read profile requires CQL_ELASTICSEARCH_QUERY_ORIGIN,
+CQL_ELASTICSEARCH_QUERY_PROBE_ID and CQL_ELASTICSEARCH_QUERY_API_KEY.
+Use an existing owned HTTPS origin, a live teaching probe and an encoded
+API key restricted to reads on oasis-holons. The shared transport admits
+only an exact canonical GUID document GET at that origin.
+
+ElasticsearchHostedCqlNative accepts COSMIC_ELASTICSEARCH_HOSTED_CQL_SOURCE
+with Endpoint, Actor, three LiveIds, one DeletedId and one MissingId.
+It uses the same guarded HTTP transport as WEB4 and checks public root
+ownership, native absence, full and subset reads, paging and unchanged
+document hashes. Keep the API key in the process environment. The hosted
+tests and deployment remain pending. The retained Windows proof is preserved.
+The shared WEB4 admission run passed ten focused checks with zero skips at
+Core `0205f68`, covering both providers and all native and Mongo presets.
+TRX SHA-256 `e61277ee1449a4cb2156be6a9954608f2f7543be7d697b0235315e12b0cd9edb`.
+The native HTTPS fixture compiled with 148 warnings and zero errors.
+Execution needs an owned source and restricted key.
