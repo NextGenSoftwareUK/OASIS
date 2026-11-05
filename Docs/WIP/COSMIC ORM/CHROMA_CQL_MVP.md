@@ -64,3 +64,15 @@ replication/migrations/full HyperDrive and semantic/hosted security need separat
 acceptance. Advertised demo failures remain immediate fixes, not deferred items.
 
 Subsequent user-requested reviewed cleanup removed these private bins as part of63 verified directories/4751008965B. Source/evidence/cache/obj retained; see COMPLETED_TEST_OUTPUT_CLEANUP_2026-10-31.md.
+
+## Development enrollment gate
+
+The recovered provider exposes explicit read-only CQL activation. It verifies
+the existing holon collection by name and canonical UUID using GET. The
+WEB4 project currently has no Chroma registration. Add opt-in registration
+with the guarded HTTP client, explicit HTTPS origin, tenant and database.
+Qualify the exact collection and three live teaching IDs with credentials
+restricted to that source before adding the public catalogue and zero-cost
+query tariff. Chroma's bounded reads use POST for the native collection
+query API, so qualify read permissions by operation and path. Keep native
+mutation endpoints outside the query credential's scope.
