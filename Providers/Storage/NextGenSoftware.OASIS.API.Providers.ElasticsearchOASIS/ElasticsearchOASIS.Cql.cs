@@ -41,8 +41,8 @@ public partial class ElasticsearchOASIS : ICosmicQueryStorageProvider, ICosmicRe
 
     private readonly Guid? _queryProbeId;
 
-    public ElasticsearchOASIS(string baseUrl, string? username, string? password, Guid queryProbeId, HttpClient? httpClient = null)
-        : this(baseUrl, username, password, httpClient: httpClient)
+    public ElasticsearchOASIS(string baseUrl, string? username, string? password, Guid queryProbeId, HttpClient? httpClient = null, string? apiKey = null)
+        : this(baseUrl, username, password, apiKey, httpClient)
     {
         if (queryProbeId == Guid.Empty) throw new ArgumentException("An explicit existing teaching record is required.", nameof(queryProbeId));
         _queryProbeId = queryProbeId;
@@ -83,7 +83,15 @@ public partial class ElasticsearchOASIS : ICosmicQueryStorageProvider, ICosmicRe
         RejectDuplicates(canonical.RootElement);
         if (canonical.RootElement.GetProperty("id").GetString() != id.ToString("D"))
             throw new InvalidDataException("Elasticsearch stored Holon identity differs from selected key.");
-        var row = JsonSerializer.Deserialize<Holon>(json, _jsonOpts);
+        using var projected = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(projected))
+        {
+            writer.WriteStartObject();
+            foreach (var property in canonical.RootElement.EnumerateObject())
+                if (!property.NameEquals("children")) property.WriteTo(writer);
+            writer.WriteEndObject();
+        }
+        var row = JsonSerializer.Deserialize<Holon>(projected.ToArray(), _jsonOpts);
         if (row == null || row.Id != id) throw new InvalidDataException("Elasticsearch stored Holon identity is invalid.");
         if (source.GetProperty("isDeleted").GetBoolean() != row.IsDeleted ||
             source.GetProperty("parentHolonId").GetString() != row.ParentHolonId.ToString("D") ||

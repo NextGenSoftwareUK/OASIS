@@ -1382,3 +1382,16 @@ Site5073f06 publishes local card43;112client tests pass, Vercel success, public 
 - No runtime download, installation, account creation or native request. Implement real Algolia read-only getObjects batch API against existing canonical oasis_holons records. Native owned-source access remains unprovided (no ALGOLIA environment names present). Reuse existing NuGet cache and provider/shared bin/obj under the build lease. Compact build/test output and TRX under LocalState/COSMIC/RecoveryLaptopAlgoliaCql. Keep controlled transport tests separate from native acceptance and counts.
 
 - Algolia original controlled29cases:27pass/2fail; focused graph diagnostic reproduces interface-deserialization failure at children[0]. Fixed single-record projection before materialization, tightened intended error-cause assertions. Corrected v2:29/29; credential-boundary v3:31/31,0skip. Native fixture updated build0errors/2warnings; exact source-field guard compile/precondition check follow in native-build-v3.log and credential-precondition.json. No account/native/API request, source seed or new runtime/environment. Existing owner actions file gains only the scoped Algolia access item; other agents additions remain unstaged.
+
+### 2026-11-05 Elasticsearch capacity resumption
+
+- Observed C free48338616320bytes, above the native default high-watermark minimum45666532967. Resume retained node with unchanged disk limits and no new runtime/environment. Before source bootstrap, reproduce/fix the same excluded-child materialization boundary in Elasticsearch dataJson, test API-key query activation, rebuild native fixtures under lease, then remeasure actual node capacity before generating any source IDs. Preserve all prior failed/preflight logs. New compact logs/TRXs under the existing RecoveryLaptopElasticsearch81924.
+
+### Elasticsearch accepted consumer, 2026-11-05
+Interactive12879b8cb8e645ffabe23201275bf84d completed1/1 and actual browser5/4
+at5139. Source hash/payloads/version1 unchanged; exact Mongo teaching DB removed.
+Owned Elasticsearch PID12812 exit130/nodeClosed; Mongo PID9412 exit12/storageClosed
+and shutdownComplete. Runtime/native store retained for reuse; no new download.
+Failed pre-consumer paired503 retained; root cause fixed via bounded index health
+wait, six runner controls pass. Compact logs/TRX/admission evidence retained in
+the single Elasticsearch cache. No unrelated files/processes removed.

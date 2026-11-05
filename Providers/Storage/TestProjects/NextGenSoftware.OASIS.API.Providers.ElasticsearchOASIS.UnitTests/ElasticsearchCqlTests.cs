@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.UnitTests;
 public class ElasticsearchCqlTests
 {
     private static readonly JsonSerializerOptions Options = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-    private sealed class Handler(Func<Guid,HttpResponseMessage> respond) : HttpMessageHandler
+    private sealed class Handler(Func<Guid,HttpResponseMessage> respond,string expectedScheme="Basic") : HttpMessageHandler
     {
         public List<Guid> Selected = new();
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
@@ -20,16 +20,17 @@ public class ElasticsearchCqlTests
             Assert.AreEqual(HttpMethod.Get,request.Method);
             Assert.IsTrue(request.RequestUri!.AbsolutePath.StartsWith("/oasis-holons/_doc/"));
             Assert.AreEqual("?realtime=true&_source=true",request.RequestUri.Query);
-            Assert.AreEqual("Basic",request.Headers.Authorization!.Scheme);
+            Assert.AreEqual(expectedScheme,request.Headers.Authorization!.Scheme);
             var id = Guid.ParseExact(request.RequestUri.AbsolutePath.Split('/').Last(),"D");
             Selected.Add(id); return Task.FromResult(respond(id));
         }
     }
     private static HttpResponseMessage Response(string json,HttpStatusCode code=HttpStatusCode.OK)
         => new(code) { Content = new StringContent(json) };
-    private static string Native(Guid id,Guid? storedId=null,Guid? nativeId=null,string index="oasis-holons",bool deleted=false)
+    private static string Native(Guid id,Guid? storedId=null,Guid? nativeId=null,string index="oasis-holons",bool deleted=false,bool includeChild=false)
     {
-        var row = new Holon { Id=storedId??id,Name="Elasticsearch teaching record",DeletedDate=deleted?DateTime.UtcNow:DateTime.MinValue };
+        var row = new Holon { Id=storedId??id,Name="Elasticsearch teaching record",DeletedDate=deleted?DateTime.UtcNow:DateTime.MinValue,
+            Children=includeChild?new[] {new Holon {Id=Guid.NewGuid(),Name="Excluded child"}}:Array.Empty<Holon>() };
         return JsonSerializer.Serialize(new { _index=index,_id=(nativeId??id).ToString("D"),found=true,
             _source=new { parentHolonId=row.ParentHolonId.ToString("D"),holonType=(int)row.HolonType,isDeleted=row.IsDeleted,dataJson=JsonSerializer.Serialize(row,Options) } },Options);
     }
@@ -179,6 +180,31 @@ public class ElasticsearchCqlTests
         var result = await provider.ExecuteCosmicQueryAsync(Plan(provider,Query(new[] {Guid.NewGuid()})));
         Assert.AreEqual("CQL_PROVIDER_INACTIVE",result.ErrorCode);
         Assert.AreEqual(0,handler.Selected.Count);
+    }
+
+    [TestMethod]
+    public async Task EmbeddedChildGraphIsExcludedBeforeSingleRecordMaterialization()
+    {
+        var id=Guid.NewGuid();var handler=new Handler(key=>Response(Native(key,includeChild:true)));
+        using var http=new HttpClient(handler);
+        var provider=new ElasticsearchOASIS("http://127.0.0.1:1","root","controlled",id,http);
+        var activated=await provider.ActivateQuerySourceAsync(default);
+        Assert.IsFalse(activated.IsError,activated.Message+" "+activated.Exception);
+        var result=await provider.ExecuteCosmicQueryAsync(Plan(provider,Query(new[] {id})));
+        Assert.IsFalse(result.IsError,result.Message+" "+result.Exception);
+        Assert.AreEqual(id,result.Result.Single().Id);Assert.IsFalse(result.Result.Single().Children.Any());
+    }
+
+    [TestMethod]
+    public async Task ApiKeyCredentialsCanActivateAnExistingQuerySource()
+    {
+        var id=Guid.NewGuid();var handler=new Handler(key=>Response(Native(key)),"ApiKey");
+        using var http=new HttpClient(handler);
+        var provider=new ElasticsearchOASIS("http://127.0.0.1:1",null,null,id,http,apiKey:"controlled-api-key");
+        var activated=await provider.ActivateQuerySourceAsync(default);
+        Assert.IsFalse(activated.IsError,activated.Message+" "+activated.Exception);
+        var result=await provider.ExecuteCosmicQueryAsync(Plan(provider,Query(new[] {id})));
+        Assert.IsFalse(result.IsError,result.Message);Assert.AreEqual(id,result.Result.Single().Id);
     }
 
 }

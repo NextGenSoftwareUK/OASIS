@@ -36,12 +36,12 @@ published at websiteaf74e5a; counts100/60/28 unchanged. [Evidence](QUESTDB_PUBLI
 
 ## Elasticsearch continuation, 5 November 2026
 
-Elasticsearch continuation:32controlled cases and2shutdown-lineage controls
-pass. Real Windows8.19.24 node startup/native Ctrl+C/closed/exit130 verified
-with its required bundled JDK after shared-JRE `jdk.jlink` failure. Owned520MB
-archive removed after actual qualification. Native default90% high-watermark
-capacity remains short about2.38GB; no source records/index bootstrapped, no
-profile/card increment. [Exact next steps](ELASTICSEARCH_CQL_MVP.md).
+34controlled and6runner cases pass. Actual native bootstrap/retained restart,
+manager/Mongo/HTTP and browser5/4 now pass against original version1 canonical
+records, including an embedded child. Native index-ready wait fixes the preserved
+pre-consumer503 at its source. Exact Mongo fixture removed; source unchanged;
+both owned services shut down cleanly. Local profile101; hosted60/browser28
+unchanged. WEB4 local card publication is next. [Evidence](ELASTICSEARCH_CQL_MVP.md).
 
 ## Firebase recovery continuation, 5 November 2026
 

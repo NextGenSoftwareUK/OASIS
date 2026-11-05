@@ -72,9 +72,10 @@ public class ElasticsearchCqlNativeTests
                 }
                 Assert.IsTrue(envelope.RootElement.GetProperty("found").GetBoolean());
                 var nativeJson = envelope.RootElement.GetProperty("_source").GetRawText();
-                var row = JsonSerializer.Deserialize<Holon>(envelope.RootElement.GetProperty("_source").GetProperty("dataJson").GetString()!, options)!;
-                Assert.AreEqual(id, row.Id);
-                Assert.AreEqual(id == source.DeletedId, row.IsDeleted);
+                using var canonical=JsonDocument.Parse(envelope.RootElement.GetProperty("_source").GetProperty("dataJson").GetString()!);
+                Assert.AreEqual(id,canonical.RootElement.GetProperty("id").GetGuid());
+                Assert.AreEqual(source.Actor,canonical.RootElement.GetProperty("createdByAvatarId").GetGuid());
+                Assert.AreEqual(id==source.DeletedId,canonical.RootElement.GetProperty("deletedDate").GetDateTime()!=DateTime.MinValue);
                 observations.Add(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(nativeJson))));
             }
             return observations.ToArray();

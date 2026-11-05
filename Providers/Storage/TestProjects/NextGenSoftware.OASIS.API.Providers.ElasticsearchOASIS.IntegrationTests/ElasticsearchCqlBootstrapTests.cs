@@ -38,7 +38,7 @@ public class ElasticsearchCqlBootstrapTests
             await JsonSerializer.SerializeAsync(file,value);file.Flush(true);
         }
         await WriteOnce("bootstrap.intent.json",new {sourceSha256=hash,index="oasis-holons",maximumCreates=4});
-        using(var created=await http.PutAsJsonAsync("/oasis-holons",new {settings=new {number_of_shards=1,number_of_replicas=0}}))
+        using(var created=await http.PutAsJsonAsync("/oasis-holons",new {settings=new {number_of_shards=1,number_of_replicas=0},mappings=new {properties=new {parentHolonId=new {type="keyword"},holonType=new {type="integer"},isDeleted=new {type="boolean"},dataJson=new {type="text",index=false}}}}))
         {
             created.EnsureSuccessStatusCode();
             using var body=JsonDocument.Parse(await created.Content.ReadAsStringAsync());
@@ -52,6 +52,7 @@ public class ElasticsearchCqlBootstrapTests
         {
             var row=new Holon {Id=id,Name="Elasticsearch CQL teaching " + id.ToString("N"),CreatedByAvatarId=source.Actor,
                 ParentHolonId=source.Actor,IsActive=true,IsPublic=false,
+                Children=id==source.LiveIds[0]?new[] {new Holon {Id=Guid.NewGuid(),Name="Excluded embedded teaching child"}}:Array.Empty<Holon>(),
                 DeletedDate=id==source.DeletedId?new DateTime(2026,11,5,0,0,0,DateTimeKind.Utc):DateTime.MinValue};
             var body=JsonSerializer.SerializeToUtf8Bytes(new { parentHolonId=row.ParentHolonId.ToString("D"),holonType=(int)row.HolonType,isDeleted=row.IsDeleted,dataJson=JsonSerializer.Serialize(row,options) },options);
             await WriteOnce("bootstrap-" + id.ToString("D") + ".intent.json",new {id,sourceSha256=hash,payloadSha256=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(body))});
