@@ -708,3 +708,5 @@ check returned Unauthorized. No settings, deployment or project link changed.
 - NATS connection ownership verification reused the leased SDK probe build and retained JetStream fixture. Absent-bucket activation and attempted profile save rejected; exact 3/2 reads passed and owned listener 24222 stopped. New log connection-ownership-server.log (2068 bytes), retained alongside the previous activation evidence. No new runtime, reseeding or hosted changes.
 
 - D1 Worker invalid-symbol requalification reused RecoveryLaptopD1 Miniflare with bundled Node 24.22.1. Exact native 3/2 passed. Duplicate and unenrolled inputs returned the expected HTTP 400 envelope and POST returned 405. The transient D1 database was disposed. No runtime install or separate report file.
+
+- D1 hosted probe request sequence passed against the retained Miniflare Worker on loopback HTTP. Exact BTC/ETH/SOL and BTC/ETH sets, three invalid selection HTTP 400 responses and POST 405. Owned Worker exited 0 and disposed the transient database. No download, report file, hosted call or HTTPS qualification receipt.
