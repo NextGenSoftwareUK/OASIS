@@ -122,3 +122,19 @@ INSERT INTO cql_demo_symbols VALUES ('BTC-USDT'), ('ETH-USDT'), ('SOL-USDT');
 Use the query endpoint to verify the `SYMBOL` column type and exact keys
 before preparing WEB4 settings. This schema is for a new fixture. Preserve
 the original hosted gateway denial and prior local evidence.
+
+With a reviewed HTTPS source configuration, run the guarded shipping
+profile qualification from this checkout:
+
+```powershell
+$env:OASIS_QUESTDB_HOSTED_SOURCE_CONFIG = $reviewedSourceConfigPath
+$project = 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.IntegrationTests'
+Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmic-questdb-https -Operation {
+    dotnet test $project --filter 'FullyQualifiedName~HostedProfileReturnsExactFullAndSubsetKeys' /m:2 /nr:false /p:UseSharedCompilation=false
+    if ($LASTEXITCODE -ne 0) { throw 'QuestDB HTTPS qualification failed' }
+}
+```
+
+Require one passed test with zero skips before preparing Development
+settings. The test activates the configured source and queries the exact
+full and subset symbol sets through the guarded HTTPS adapter.

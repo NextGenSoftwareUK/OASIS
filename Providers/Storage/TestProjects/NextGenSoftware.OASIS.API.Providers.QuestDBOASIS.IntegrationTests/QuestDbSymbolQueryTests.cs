@@ -29,8 +29,23 @@ public class QuestDbSymbolQueryTests
 
         using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
         var keys = new[] { "BTC-USDT", "ETH-USDT", "SOL-USDT" };
-        var source = new QuestDbSymbolQuerySource(http, new Uri(endpoint), Guid.NewGuid(), keys);
-        using var profile = source;
+        using var source = new QuestDbSymbolQuerySource(http, new Uri(endpoint), Guid.NewGuid(), keys);
+        await VerifyExactSelections(source, keys);
+    }
+
+    [TestMethod]
+    public async Task HostedProfileReturnsExactFullAndSubsetKeys()
+    {
+        var configurationPath = Environment.GetEnvironmentVariable("OASIS_QUESTDB_HOSTED_SOURCE_CONFIG");
+        if (string.IsNullOrWhiteSpace(configurationPath))
+            Assert.Inconclusive("Provide the reviewed QuestDB HTTPS source configuration file.");
+
+        using var source = QuestDbSymbolQuerySource.FromJson(await File.ReadAllTextAsync(configurationPath));
+        await VerifyExactSelections(source, new[] { "BTC-USDT", "ETH-USDT", "SOL-USDT" });
+    }
+
+    private static async Task VerifyExactSelections(QuestDbSymbolQuerySource source, string[] keys)
+    {
         var activation = await source.ActivateQuerySourceAsync();
         Assert.IsTrue(activation.Result, activation.Exception?.ToString() ?? activation.Message);
         var scope = CosmicQueryScope.Named(ProviderType.QuestDBOASIS).Result;

@@ -710,3 +710,6 @@ check returned Unauthorized. No settings, deployment or project link changed.
 - D1 Worker invalid-symbol requalification reused RecoveryLaptopD1 Miniflare with bundled Node 24.22.1. Exact native 3/2 passed. Duplicate and unenrolled inputs returned the expected HTTP 400 envelope and POST returned 405. The transient D1 database was disposed. No runtime install or separate report file.
 
 - D1 hosted probe request sequence passed against the retained Miniflare Worker on loopback HTTP. Exact BTC/ETH/SOL and BTC/ETH sets, three invalid selection HTTP 400 responses and POST 405. Owned Worker exited 0 and disposed the transient database. No download, report file, hosted call or HTTPS qualification receipt.
+
+- QuestDB guarded HTTPS qualification fixture build, owner cosmic-questdb-hosted-qualification. Regenerates the QuestDB provider and integration-test bin/obj and shared project outputs under the build lease, using the existing NuGet cache. No listener, database, runtime install or hosted request.
+  The fixture build completed successfully with zero errors. Two offline endpoint rejection cases passed.
