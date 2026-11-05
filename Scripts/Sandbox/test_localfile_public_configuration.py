@@ -172,8 +172,14 @@ class LocalFileConfigurationTests(unittest.TestCase):
             publisher.apply()
             self.assertEqual(2, release.call_count)
             ssh.assert_called_once()
-            mutation.assert_called_once_with(publisher.PREFIX, publisher.KEYS, reviewed_snapshots=(before, after))
+            self.assertEqual((publisher.PREFIX, publisher.KEYS), mutation.call_args.args)
+            self.assertEqual((before, after), mutation.call_args.kwargs["reviewed_snapshots"])
+            guard = mutation.call_args.kwargs["before_mutation"]
+            guard()
+            with self.assertRaisesRegex(RuntimeError, "changed before LocalFile settings staging"):
+                guard()
             mutation.reset_mock()
+            release.side_effect = ["first", "second"]
             with self.assertRaisesRegex(RuntimeError, "deployment changed"):
                 publisher.apply()
             mutation.assert_not_called()

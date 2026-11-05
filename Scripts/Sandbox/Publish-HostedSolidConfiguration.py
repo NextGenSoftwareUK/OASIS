@@ -145,7 +145,7 @@ def prepare():
     print("Protected SOLID candidate prepared: six values, four public presets; no service mutation.")
 
 
-def apply_values(prefix, keys, *, reviewed_snapshots=None):
+def apply_values(prefix, keys, *, reviewed_snapshots=None, before_mutation=None):
     """One mutation/observation owner shared by explicit hosted source publishers."""
     before = protected_read(prefix + "-before-variables.dpapi")
     after = protected_read(prefix + "-candidate-variables.dpapi")
@@ -158,6 +158,8 @@ def apply_values(prefix, keys, *, reviewed_snapshots=None):
             raise RuntimeError("Existing mutation intent; reconcile instead of replaying.")
         if variables() != expected:
             raise RuntimeError("Configuration changed concurrently; no mutation sent.")
+        if before_mutation is not None:
+            before_mutation()
         digest = hashlib.sha256(after[name].encode()).hexdigest()
         write_new(intent, compact({"key": name, "sha256": digest, "skipDeploys": True}).encode())
         try:

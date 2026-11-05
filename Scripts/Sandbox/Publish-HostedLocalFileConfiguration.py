@@ -198,8 +198,14 @@ def apply():
     after = configuration.protected_read(PREFIX + "-candidate-variables.dpapi")
     if candidate(before, *qualified_source()) != after:
         raise RuntimeError("Reviewed source/candidate differs;no mutation allowed.")
-    verify_mount(initial_bootstrap=True)
-    configuration.apply_values(PREFIX, KEYS, reviewed_snapshots=(before, after))
+    deployment = verify_mount(initial_bootstrap=True)
+
+    def require_original_deployment():
+        if verify_release() != deployment:
+            raise RuntimeError("Reviewed Railway deployment changed before LocalFile settings staging")
+
+    configuration.apply_values(PREFIX, KEYS, reviewed_snapshots=(before, after),
+                               before_mutation=require_original_deployment)
 
 
 def verify_settings():

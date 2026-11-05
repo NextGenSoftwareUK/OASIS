@@ -1914,3 +1914,8 @@ The published preparation module was fetched into memory for an exact Git
 blob comparison. The 20-preset controlled check reused the existing Node
 and Python runtimes. The temporary synthetic catalogue was automatically
 removed. No assets, credentials or live query results were written to disk.
+
+LocalFile per-setting deployment verification passed 13 publisher and eight
+shared settings tests. The tests simulated a deployment change after one
+acknowledged setting and reused the existing Python runtime with bytecode
+output suppressed. No Railway settings were changed.

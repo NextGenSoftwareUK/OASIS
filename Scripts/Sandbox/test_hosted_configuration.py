@@ -87,6 +87,10 @@ class ConfigurationOwnerTests(unittest.TestCase):
             self.assertNotIn(file.name, records)
             records[file.name] = data
 
+        def guard():
+            if mode == "release-changed" and sent:
+                raise RuntimeError("Reviewed release changed")
+
         with patch.object(configuration, "STATE", State(records)), \
              patch.object(configuration, "protected_read", side_effect=lambda name: copy.deepcopy(before if "before" in name else after)), \
              patch.object(configuration, "variables", side_effect=observe), \
@@ -99,11 +103,14 @@ class ConfigurationOwnerTests(unittest.TestCase):
                 self.assertTrue(all("s3-public-" + key + ".acknowledged.json" in records for key in sent))
             else:
                 with self.assertRaises(RuntimeError):
-                    configuration.apply_values("s3-public", ["ONE", "TWO"])
+                    configuration.apply_values("s3-public", ["ONE", "TWO"], before_mutation=guard)
                 self.assertEqual(sent, ["ONE"])
                 self.assertNotIn("s3-public-TWO.intent.json", records)
                 if mode in ("unknown", "timeout"):
                     self.assertNotIn("s3-public-ONE.acknowledged.json", records)
+                elif mode == "release-changed":
+                    self.assertIn("s3-public-ONE.acknowledged.json", records)
+                    self.assertEqual(before["TWO"], current["TWO"])
                 else:
                     self.assertEqual(current["KEEP"], "another-owner")
                 with self.assertRaises(RuntimeError):
@@ -118,6 +125,9 @@ class ConfigurationOwnerTests(unittest.TestCase):
 
     def test_timed_out_mutation_keeps_intent_and_blocks_replay(self):
         self.exercise("timeout")
+
+    def test_changed_release_stops_before_next_intent_and_mutation(self):
+        self.exercise("release-changed")
 
     def test_concurrent_configuration_change_stops_before_next_mutation(self):
         self.exercise("concurrent")

@@ -579,6 +579,9 @@ commas. Immediately before any settings write, the publisher checks the
 reviewed release and reads mount metadata from each listed instance. Every
 instance must expose a separate writable `/data` mount. The dashboard remains
 the source for volume identity and the complete active instance list.
+Before each settings write, the publisher rechecks that the exact deployment
+inspected for the mount is still current. If it changes mid-batch, completed
+settings keep their original acknowledgements and the next write stays unstaged.
 
 The candidate's bootstrap checks that the source parent directory exists.
 The existence check alone cannot distinguish the attached volume from a
