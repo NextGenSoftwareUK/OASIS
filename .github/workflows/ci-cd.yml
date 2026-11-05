@@ -354,6 +354,11 @@ jobs:
               output.write(f"{variable}={key}\n")
           PY
 
+      - name: Verify the CouchDB CQL reader policy
+        if: matrix.backend.name == 'CouchDB'
+        working-directory: OASIS
+        run: python3 -B Scripts/TestHosts/Test-CouchDbCqlReaderPolicy.py
+
       - name: Run the integration tests
         working-directory: OASIS
         run: dotnet test "${{ matrix.backend.project }}" --configuration Release ${{ matrix.backend.filter && format('--filter "{0}"', matrix.backend.filter) || '' }} --logger "console;verbosity=normal"
