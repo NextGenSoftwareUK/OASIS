@@ -287,6 +287,10 @@ runs on master and targets staging and production. Neither satisfies the
 Development WEB4 mount gate. The published candidate contains gitlinks for
 all three private manifest pins (API Core, ONODE Core and WEB6). Use the
 candidate pins for deployment review because the task branch has newer pins.
+The current remote Development commit `b718f2879` is an ancestor of
+`c64adf474`. The candidate includes both opt-in LocalFile and Hyperlane
+runtime changes. Recheck ancestry against the remote immediately before any
+source change so an intervening Development commit stays in the rollout.
 
 ### First deployment and settings deployment
 
