@@ -4,6 +4,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { createRequire } = require('node:module');
+const { setTimeout: delay } = require('node:timers/promises');
 const guid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 const empty = '00000000-0000-0000-0000-000000000000';
 const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
@@ -198,9 +199,13 @@ async function close(prepared) {
   return handles.length;
 }
 
-async function serve(prepared, { port = 13800, instance } = {}) {
+function listenerConfiguration(port, instance) {
   if (!Number.isInteger(port) || port < 0 || port > 65535 || typeof instance !== 'string' || !/^[a-f0-9]{32}$/.test(instance))
     throw Error('Explicit owned PouchDB listener instance required.');
+}
+
+async function serve(prepared, { port = 13800, instance } = {}) {
+  listenerConfiguration(port, instance);
   const app = prepared.load('express')();
   app.disable('x-powered-by');
   app.use((request, response, next) => {
@@ -223,17 +228,120 @@ async function serve(prepared, { port = 13800, instance } = {}) {
     const listener = app.listen(port, '127.0.0.1', () => resolve(listener));
     listener.once('error', reject);
   });
+  const terminal = new Promise(resolve => {
+    server.once('error', error => resolve({ error }));
+    server.once('close', () => resolve({ closed: true }));
+  });
   return {
     origin: 'http://127.0.0.1:' + server.address().port,
+    terminal,
     async stop() {
-      const closed = new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
-      server.closeIdleConnections();
-      await closed;
-      await middleware.daemonManager.stop(prepared.PouchDB);
-      await verify(prepared, prepared.receipts);
-      return close(prepared);
+      const errors = []; let handles = 0;
+      try {
+        const closed = new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+        server.closeIdleConnections();
+        await closed;
+      } catch (error) { errors.push(error); }
+      try { await middleware.daemonManager.stop(prepared.PouchDB); } catch (error) { errors.push(error); }
+      try { await verify(prepared, prepared.receipts); } catch (error) { errors.push(error); }
+      try { handles = await close(prepared); } catch (error) { errors.push(error); }
+      if (errors.length) throw new AggregateError(errors, 'Owned PouchDB shutdown did not complete cleanly.');
+      return handles;
     }
   };
 }
 
-module.exports = { captureBundle, prepare, verify, close, serve, canonical, nativeHash };
+async function run({ bundle, directory, runtimeRoot, instance, port = 13800, signals = process, log = value => console.log(JSON.stringify(value)) }) {
+  listenerConfiguration(port, instance);
+  let stop, interrupted = false, prepared, server, failure, closedHandles = 0;
+  const stopping = new Promise(resolve => { stop = resolve; });
+  const signal = () => { interrupted = true; stop({ stopped: true }); };
+  signals.on('SIGTERM', signal); signals.on('SIGINT', signal);
+  try {
+    // Await the owning initialization even when shutdown is requested mid-startup.
+    prepared = await prepare({ bundle, directory, runtimeRoot });
+    if (!interrupted) {
+      server = await serve(prepared, { port, instance });
+      log({ ready: true, pid: process.pid, origin: server.origin, digest: bundle.digest, instance, version: '9.0.0' });
+      const outcome = await Promise.race([stopping, server.terminal]);
+      if (outcome.error) throw outcome.error;
+      if (outcome.closed && !interrupted) throw Error('Owned PouchDB listener stopped unexpectedly.');
+    }
+  } catch (error) { failure = error; }
+  finally {
+    signals.removeListener('SIGTERM', signal); signals.removeListener('SIGINT', signal);
+    try {
+      if (server) closedHandles = await server.stop();
+      else if (prepared) closedHandles = await close(prepared);
+    } catch (error) { failure = failure ? new AggregateError([failure, error], 'PouchDB runtime and shutdown failed.') : error; }
+  }
+  if (failure) throw failure;
+  log({ stopped: true, pid: process.pid, digest: bundle.digest, closedHandles });
+  return 0;
+}
+
+async function waitForNative(signal, digest, instance, probe = fetch) {
+  const deadline = Date.now() + 15000;
+  while (Date.now() < deadline) {
+    signal.throwIfAborted();
+    const request = new AbortController();
+    const abort = () => request.abort(signal.reason);
+    signal.addEventListener('abort', abort, { once: true });
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; request.abort(Error('PouchDB readiness request timed out.')); }, 1000);
+    let response;
+    try {
+      response = await probe('http://127.0.0.1:13800/oasis_holons', { method: 'GET', redirect: 'error', signal: request.signal });
+      if (!response.ok || response.headers.get('X-OASIS-PouchDB-Source') !== digest ||
+          response.headers.get('X-OASIS-PouchDB-Instance') !== instance || response.headers.get('X-OASIS-PouchDB-Version') !== '9.0.0')
+        throw Error('Owned PouchDB readiness identity differs.');
+      const reader = response.body.getReader(); let count = 0; const chunks = [];
+      try {
+        for (;;) {
+          const item = await reader.read(); if (item.done) break;
+          count += item.value.length;
+          if (count > 16384) { await reader.cancel(); throw Error('PouchDB readiness response exceeds its budget.'); }
+          chunks.push(Buffer.from(item.value));
+        }
+      } finally { reader.releaseLock(); }
+      const info = strictJson(Buffer.concat(chunks).toString('utf8'));
+      if (info.db_name !== 'oasis_holons' || info.doc_count !== 3 || info.adapter !== 'leveldb')
+        throw Error('Owned PouchDB native database identity differs.');
+      return;
+    } catch (error) {
+      signal.throwIfAborted();
+      // Only an unconnected/timed-out startup health request may be polled again.
+      if (response || (!timedOut && !['ECONNREFUSED', 'ECONNRESET', 'UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_SOCKET'].includes(error.cause?.code))) throw error;
+    } finally {
+      clearTimeout(timer); signal.removeEventListener('abort', abort); request.abort();
+    }
+    await delay(100, undefined, { signal });
+  }
+  throw Error('Owned PouchDB readiness deadline expired.');
+}
+
+function serviceConfiguration(environment) {
+  if (environment.OASIS_SANDBOX_POUCHDB !== 'true') throw Error('Explicit PouchDB sandbox runtime flag required.');
+  const bundle = captureBundle(environment.OASIS_SANDBOX_POUCHDB_BOOTSTRAP_JSON);
+  const instance = crypto.randomBytes(16).toString('hex');
+  return { command: process.execPath, args: [path.join(__dirname, 'host-sandbox-pouchdb.cjs')],
+    env: { ...environment, OASIS_SANDBOX_POUCHDB_INSTANCE: instance },
+    check: signal => waitForNative(signal, bundle.digest, instance) };
+}
+
+module.exports = { captureBundle, prepare, verify, close, serve, canonical, nativeHash, run, waitForNative, serviceConfiguration };
+if (require.main === module) {
+  Promise.resolve().then(async () => {
+    require('./host-sandbox-ipfs.cjs').assertSandbox(process.env.OASIS_DNA_JSON);
+    if (process.env.OASIS_SANDBOX_POUCHDB !== 'true') throw Error('Explicit PouchDB sandbox runtime flag required.');
+    const bundle = captureBundle(process.env.OASIS_SANDBOX_POUCHDB_BOOTSTRAP_JSON);
+    listenerConfiguration(13800, process.env.OASIS_SANDBOX_POUCHDB_INSTANCE);
+    const data = await fs.lstat('/data');
+    if (!data.isDirectory() || data.isSymbolicLink()) throw Error('Explicit owned sandbox data root required.');
+    const parent = await exists('/data/COSMIC');
+    if (parent && (!parent.isDirectory() || parent.isSymbolicLink())) throw Error('Owned sandbox source parent differs.');
+    if (!parent) await fs.mkdir('/data/COSMIC', { mode: 0o700 });
+    return run({ bundle,
+      directory: '/data/COSMIC/SandboxPouchDB', runtimeRoot: '/opt/pouchdb', instance: process.env.OASIS_SANDBOX_POUCHDB_INSTANCE });
+  }).then(code => { process.exitCode = code; }, error => { console.error(error); process.exitCode = 1; });
+}

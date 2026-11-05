@@ -6,6 +6,12 @@ Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
 ## PouchDB persistent hosted-source module, 5 November 2026
 
+Supervision/packaging continuation:36scoped controls and5selected shared cases
+pass; real retained SDK runtime handles simulated shutdown and validation-failure
+cleanup. Exact registry checksums filled without version changes or package
+downloads. Opt-in supervisor, Docker target and small Linux SDK CI prepared;
+actual Linux probe, CQL enrollment/full image and deployment remain open.
+
 Write-once public teaching source and vendor read-only loopback HTTP runtime
 prepared using the existing Node/PouchDB cache. Nineteen pure guards pass;
 original three SDK write receipts preserved. Discovery/close failures fixed at

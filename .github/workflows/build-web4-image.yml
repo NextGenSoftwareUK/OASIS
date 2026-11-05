@@ -85,7 +85,9 @@ jobs:
           tags: ${{ steps.names.outputs.tags }}
           build-args: |
             GITHUB_PAT=${{ secrets.PRIVATE_SUBMODULE_PAT }}
-          cache-from: type=gha
+          cache-from: |
+            type=gha
+            type=gha,scope=pouch-native
           cache-to: type=gha,mode=max
 
       - name: Summary

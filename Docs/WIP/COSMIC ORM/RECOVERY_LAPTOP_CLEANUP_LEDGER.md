@@ -1579,3 +1579,23 @@ native-source-qualified.json has exact hashes/audit; see
 POUCHDB_HOSTED_RUNTIME_PREPARATION.md. No installs/downloads, new API avatars,
 Mongo records, cloud resources or deletion. Accepted local data/ and its receipts
 untouched. Complete fresh-container startup and hosted acceptance remain open.
+
+PouchDB supervision/packaging,5November2026: no new local runtime/database or
+SDK install. The four dependency versions and247package paths are unchanged;
+one extraneous parent lock entry removed. Local lock-only npm attempt used the
+existing10.9.4tool/cache and installed no node_modules. Official registry metadata
+capture cached244responses/666309bytes (intent+response files under existing
+hosted-preparation/registry-metadata), zero package archives. Keep registry-pins
+receipt/logs and those bounded metadata caches for exact integrity verification.
+36scoped controls pass; original34/35packaging failure retained. Five selected
+shared supervisor/DNA cases pass; unrelated native IPFS source was not replayed.
+Existing Git sh validates entrypoint syntax; no shell/Node installation.
+Retained supervision-e9403cc3686644a1951a4229ed979a13 and validation-failure
+supervision-55e674da43e44ec39193e09871651cf5 preserve source receipts, zero record
+writes, two native stores closed/zero handles left. Both owned processes absent,
+13800closed. Windows signal was simulated in-process; Linux OS proof remains
+pending. Native source/CQL count unchanged. Linux CI will use the existing Node
+image and an owned disposable build-stage /data only after proving it absent;
+it must stop both native children and verify ownership before removal. No local
+image/layers downloaded and no new service/account/deployment. Build/test outputs
+are in ProviderBuildCurrent/pouchdb-* and the existing candidate phases.

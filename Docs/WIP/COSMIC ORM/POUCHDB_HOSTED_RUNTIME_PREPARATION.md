@@ -1,7 +1,8 @@
 # PouchDB persistent WEB4 source preparation
 
-5 November 2026. Native source/runtime module verified on Windows; Docker,
-shipping CQL enrollment and hosted/browser acceptance remain open. Counts stay
+5 November 2026. Native source/runtime and supervision verified on Windows;
+Docker packaging is prepared, Linux SDK qualification is next. Shipping CQL
+enrollment and hosted/browser acceptance remain open. Counts stay
 103 local/60 hosted HTTP/28 hosted browser. First LocalFile rollout remains the
 priority; its existing Railway session still returns Unauthorized.
 
@@ -9,7 +10,7 @@ priority; its existing Railway session still returns Unauthorized.
 
 Prepare the real PouchDB teaching source for the existing WEB4 Node runtime and
 persistent volume. No new service, account or paid resource is provisioned.
-Deployment packaging/flags are not wired yet. The module uses PouchDB9.0.0,
+Deployment packaging/flags are opt-in and not enabled. The module uses PouchDB9.0.0,
 express-pouchdb4.2.0, express4.21.2 and its pinned allDbs1.1.1 SDK plugin. Native
 LevelDB stores are used; vendor middleware serves document data.
 
@@ -84,10 +85,8 @@ failed initial HTTP run as success.
 
 ## Next implementation
 
-1. Connect the owned source to the existing process supervisor with explicit
-   sandbox-only configuration, listener ownership/readiness and graceful shutdown.
-2. Package the pinned SDK in the WEB4 image and verify its actual Linux native
-   adapter/fresh bootstrap. Reuse the existing image build workflow and resources.
+1. Run the prepared Linux SDK qualification target. Process supervisor integration
+   and packaging are now implemented; exact evidence and scope are below.
 3. Add explicit query-only Core tariff and WEB4 read-profile/four-preset admission;
    advance the parent gitlink and manifest together. Verify native CQL3/2/paging,
    manager/Mongo/HTTP behavior and the exact dependency/image.
@@ -98,3 +97,58 @@ failed initial HTTP run as success.
 [Native module](../../../Docker/host-sandbox-pouchdb.cjs) ·
 [Explicit source qualifier](../../../Scripts/TestHosts/Qualify-HostedPouchDbSource.cjs) ·
 [Existing accepted local source](POUCHDB_CQL_MVP.md).
+
+## Process supervision and packaging preparation
+
+The existing native supervisor now supports explicit `OASIS_SANDBOX_POUCHDB=true`
+and `OASIS_SANDBOX_POUCHDB_BOOTSTRAP_JSON`. It generates a per-child instance ID;
+readiness verifies source digest, instance, SDK9, database, count3 and LevelDB.
+Only bounded startup connection failures may be polled, not HTTP/authentication,
+identity, malformed data or user queries. WEB4 starts only after native readiness;
+unexpected source exit stops the API. The default flag remains false.
+
+The child requires the authoritative sandbox DNA flag and complete listener
+ownership before any native initialization. Its fixed production location is
+`/data/COSMIC/SandboxPouchDB`; `/data` must already exist as an actual directory,
+and a symlinked data root/parent rejects. This check is not mount qualification;
+the existing operator volume/mount gate still applies. Parent creation does not
+adopt an unacknowledged source. Shutdown observes the HTTP listener and vendor
+daemon, verifies source, then closes native handles even if validation fails.
+
+36 scoped bundle/readiness/supervisor/package/CLI controls pass (zero skips).
+Five selected shared-supervisor/DNA regressions pass; five unrelated cases were
+outside that filter and were not rerun. Entrypoint shell syntax passes using
+existing Git sh. Logs: `TestResults/ProviderBuildCurrent/pouchdb-hosted-supervision-*`
+and `pouchdb-shared-supervisor-regression.log`.
+
+Retained real-SDK supervision-e9403cc3686644a1951a4229ed979a13 passes ready/foreign
+instance refusal and graceful shutdown, with two native stores closed. It uses an
+in-process simulated SIGTERM on Windows, not proof of Linux OS signal delivery.
+ACK SHA256 `c6186f2e588dab5ac0e0c341a911f08691b93db0c80ecf318ef551f57adbbde0`.
+Separate supervision-55e674da43e44ec39193e09871651cf5 injects a wrong receipt in
+memory only; shutdown reports exactly that validation error and still closes all
+native handles. Disk/source receipts remain unchanged. ACK SHA256
+`ca03f9041146d548b570d6996b8ba3c9fdd85501befbea8ecd43019138c36368`.
+Both processes are absent;13800 is closed. No record writes or new datastore.
+
+The copied Windows lock had no registry archive integrity fields. Initial package
+control failed34/35, retained in the original controls log. A lock-only npm
+attempt did not fill those fields. The dedicated metadata capture fetched244
+official exact-version responses (666309bytes), no archives/installations.
+All247 package paths/versions remain unchanged; every entry now has an official
+HTTPS archive URL and integrity. One extraneous parent-package metadata entry
+was removed; allDbs1.1.1 is explicit. Source lock SHA256
+`66127b293295e7b62286d9e5e583e0da602f409637e35acd5ec9685d89481912`.
+Metadata request/response receipts and registry-pins.ack.json stay in the existing
+candidate cache. No second local node_modules/runtime was installed.
+
+WEB4's `provider_pouch` Docker target reuses its existing pinned official Node
+image, installs that exact SDK graph, runs36controls and the real Linux source
+probe. The probe refuses an existing /data, claims an owned disposable build
+directory, runs the actual production child CLI twice, checks native records and
+unchanged receipts, delivers real SIGTERM, awaits child/stdout closure and native
+close ACKs, then removes only its verified owned directory. It publishes no image
+or deployment. Source SDK CI is path-filtered on this task branch, with reusable
+GHA cache. The later full WEB4 image reuses that cache and checks final-stage
+native module loading; CQL enrollment must be included before that full build.
+Linux execution is pending at this checkpoint; do not infer it from Windows tests.

@@ -1,0 +1,47 @@
+name: Qualify native PouchDB runtime
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-pouchdb-native.yml'
+      - 'Docker/Dockerfile.web4'
+      - 'Docker/PouchDbRuntime/**'
+      - 'Docker/host-sandbox-pouchdb.cjs'
+      - 'Docker/host-sandbox-ipfs.cjs'
+      - 'Docker/verify-pouchdb-runtime.cjs'
+      - 'Scripts/Sandbox/test_hosted_pouchdb_runtime.cjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pouchdb-native-qualification
+  cancel-in-progress: false
+
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - name: Verify parent dependency publication contract
+        run: python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+      - uses: docker/setup-buildx-action@v3
+      - name: Qualify exact Node and native PouchDB SDK with fresh source, restart and shutdown
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Docker/Dockerfile.web4
+          target: provider_pouch
+          push: false
+          cache-from: type=gha,scope=pouch-native
+          cache-to: type=gha,scope=pouch-native,mode=max
+      - name: Record qualification scope
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          printf 'Source: `%s`\n\n36 pure controls and the actual Linux SDK fresh/restart/SIGTERM probe passed. No image publication or deployment. Full WEB4 final-stage load, CQL enrollment and hosted acceptance remain separate.\n' "$SOURCE_SHA" >> "$GITHUB_STEP_SUMMARY"
