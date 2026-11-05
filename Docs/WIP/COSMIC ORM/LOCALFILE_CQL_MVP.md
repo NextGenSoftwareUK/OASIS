@@ -524,6 +524,13 @@ HTTP 401. Before changing the Development WEB4 source, verify the existing
 registry credentials grant that service pull access to the reviewed digest.
 The anonymous check downloaded no image layers.
 
+Live discovery using the retained rehearsal visitor still reported LocalFile
+absent or unavailable. Chroma, CouchDB, QuestDB, DuckDB, Cloudflare D1 and
+NATS JetStream returned the same readiness result. ClickHouse advertised
+both native and paired presets in the same check, confirming discovery was
+reachable. No cohort was created. Discovery establishes preset availability
+only. The LocalFile rollout still requires deployment and mount verification.
+
 The image-digest guard is operator-side tooling. The built candidate's shared
 settings mutation code matches the task branch. Use the updated publisher and
 guard from the task checkout with the explicit reviewed release ref. Set
