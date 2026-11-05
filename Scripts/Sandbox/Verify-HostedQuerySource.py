@@ -167,6 +167,13 @@ def require_native_rows(response, example, count):
             actual = {row.get("id", "").lower() for row in rows}
             if len(expected) != count or actual != expected:
                 raise RuntimeError("Native source selection IDs differ from the reviewed preset.")
+        elif (example["request"].get("provider") == "HyperlaneOASIS"
+              and predicate.get("metadataPath") == ["HyperlaneMessageId"]
+              and (predicate.get("scalar"), predicate.get("operator")) == ("String", "In")):
+            expected = set(predicate["value"])
+            actual = {(row.get("metadata") or {}).get("HyperlaneMessageId") for row in rows}
+            if len(expected) != count or actual != expected:
+                raise RuntimeError("Native Hyperlane message IDs differ from the reviewed preset.")
 
 
 def require_reviewed_localfile_presets(source, review):
