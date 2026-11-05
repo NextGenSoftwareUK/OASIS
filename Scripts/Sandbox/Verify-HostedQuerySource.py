@@ -7,6 +7,7 @@ from pathlib import Path
 import argparse
 import base64
 import datetime
+import hashlib
 import importlib.util
 import json
 import os
@@ -178,9 +179,11 @@ def require_native_rows(response, example, count):
                 raise RuntimeError("Native source metadata keys differ from the reviewed preset.")
 
 
-def require_reviewed_localfile_presets(source, review):
+def require_reviewed_presets(provider, source, review):
     expected = {row["id"]: row for row in review["presets"]}
     actual = {row["id"]: row for row in source["examples"]}
+    if len(actual) != len(source["examples"]) or len(expected) != len(review["presets"]):
+        raise RuntimeError(f"Hosted {provider} preset IDs must be unique.")
     for key in ("public-records", "public-subset", "mongo-public-records", "mongo-public-subset"):
         observed = actual.get(key, {}).get("request", {})
         reviewed = expected.get(key, {}).get("request", {})
@@ -197,7 +200,7 @@ def require_reviewed_localfile_presets(source, review):
                        for field in ("field", "scalar", "operator", "value", "metadataPath"))
                 or observed.get("providers" if paired else "provider")
                 != reviewed.get("providers" if paired else "provider")):
-            raise RuntimeError(f"Hosted LocalFile preset {key} differs from the reviewed rollout.")
+            raise RuntimeError(f"Hosted {provider} preset {key} differs from the reviewed rollout.")
 
 
 def localfile_review():
@@ -205,6 +208,33 @@ def localfile_review():
     if not path.is_file():
         raise RuntimeError("Prepare and review the LocalFile rollout before verifying its advertised catalogue.")
     return json.loads(path.read_bytes())
+
+
+def pouchdb_review(path):
+    if path is None or not path.is_file() or not 0 < path.stat().st_size <= 256 * 1024:
+        raise RuntimeError("An explicit reviewed PouchDB settings patch is required.")
+    settings = json.loads(path.read_bytes())
+    proof_path = ROOT / "LocalState/COSMIC/RecoveryLaptopPouchDBCql/hosted-preparation/native-source-qualified.json"
+    proof = json.loads(proof_path.read_bytes())
+    digest = proof["sourceBundleSha256"].lower()
+    bundle = settings["OASIS_SANDBOX_POUCHDB_BOOTSTRAP_JSON"].encode()
+    if (settings["OASIS_SANDBOX_POUCHDB"] != "true" or settings["CQL_POUCHDB_QUERY_SOURCE_DIGEST"] != digest
+            or hashlib.sha256(bundle).hexdigest() != digest):
+        raise RuntimeError("Reviewed PouchDB settings differ from the qualified source.")
+    ids = [row["id"] for row in json.loads(bundle)["records"]]
+    presets = json.loads(settings["CQL_HOSTED_QUERY_EXAMPLES__PouchDBOASIS"])
+    expected = {}
+    for suffix, count in (("records", 3), ("subset", 2)):
+        selection = {"filters": [{"field": "Id", "scalar": "Guid", "operator": "In", "value": ids[:count]}]}
+        expected["public-" + suffix] = {"id": "public-" + suffix, "request": dict(selection, provider="PouchDBOASIS")}
+        key = "mongo-public-" + suffix
+        expected[key] = {"id": key, "operation": "Federation", "request": {
+            "scope": "Named", "identityMode": "PreserveCopies", "providers": ["MongoDBOASIS", "PouchDBOASIS"],
+            "source": selection}}
+    if len(presets) != len(expected):
+        raise RuntimeError("Four reviewed PouchDB presets are required.")
+    require_reviewed_presets("PouchDBOASIS", {"examples": presets}, {"presets": list(expected.values())})
+    return {"presets": presets}
 
 
 def require_native_selection(responses, examples):
@@ -229,9 +259,10 @@ def verify_private_visibility(token, ids, providers):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("provider", choices=["ThreeFoldOASIS", "ClickHouseOASIS", "QuestDBOASIS", "SQLServerDBOASIS", "DuckDBOASIS", "CouchDBOASIS", "ChromaOASIS", "CloudflareD1OASIS", "NATSJetStreamOASIS", "ZcashOASIS", "BittensorOASIS", "AkashOASIS", "EclipseOASIS", "ENSOASIS", "BlockscoutOASIS", "CelestiaOASIS", "ChainflipOASIS", "LocalFileOASIS", "HyperlaneOASIS", "LayerZeroV2OASIS", "StargateOASIS", "deBridgeOASIS", "SynapseOASIS", "ConnextOASIS", "WormholeOASIS", "BlockStackOASIS", "MatrixOASIS", "NostrOASIS", "BlueSkyOASIS", "ChainLinkOASIS", "EOSIOOASIS", "TelosOASIS", "FilecoinOASIS", "FantomOASIS", "AzureStorageOASIS", "SOLIDOASIS", "AWSS3OASIS", "SolanaOASIS", "GoogleCloudOASIS", "EthereumOASIS", "PolygonOASIS", "ArbitrumOASIS", "CosmosBlockChainOASIS", "PolkadotOASIS", "NEAROASIS", "BaseOASIS", "AvalancheOASIS", "BNBChainOASIS", "OptimismOASIS", "LineaOASIS", "ScrollOASIS", "ZkSyncOASIS", "AbstractOASIS", "MonadOASIS", "SeiOASIS", "BerachainOASIS", "BitcoinOASIS", "XRPLOASIS", "StellarOASIS", "AlgorandOASIS", "AptosOASIS", "HashgraphOASIS", "SuiOASIS", "ElrondOASIS", "RadixOASIS", "StarknetOASIS", "CardanoOASIS", "ArweaveOASIS", "TONOASIS"])
+    parser.add_argument("provider", choices=["ThreeFoldOASIS", "ClickHouseOASIS", "QuestDBOASIS", "SQLServerDBOASIS", "DuckDBOASIS", "CouchDBOASIS", "PouchDBOASIS", "ChromaOASIS", "CloudflareD1OASIS", "NATSJetStreamOASIS", "ZcashOASIS", "BittensorOASIS", "AkashOASIS", "EclipseOASIS", "ENSOASIS", "BlockscoutOASIS", "CelestiaOASIS", "ChainflipOASIS", "LocalFileOASIS", "HyperlaneOASIS", "LayerZeroV2OASIS", "StargateOASIS", "deBridgeOASIS", "SynapseOASIS", "ConnextOASIS", "WormholeOASIS", "BlockStackOASIS", "MatrixOASIS", "NostrOASIS", "BlueSkyOASIS", "ChainLinkOASIS", "EOSIOOASIS", "TelosOASIS", "FilecoinOASIS", "FantomOASIS", "AzureStorageOASIS", "SOLIDOASIS", "AWSS3OASIS", "SolanaOASIS", "GoogleCloudOASIS", "EthereumOASIS", "PolygonOASIS", "ArbitrumOASIS", "CosmosBlockChainOASIS", "PolkadotOASIS", "NEAROASIS", "BaseOASIS", "AvalancheOASIS", "BNBChainOASIS", "OptimismOASIS", "LineaOASIS", "ScrollOASIS", "ZkSyncOASIS", "AbstractOASIS", "MonadOASIS", "SeiOASIS", "BerachainOASIS", "BitcoinOASIS", "XRPLOASIS", "StellarOASIS", "AlgorandOASIS", "AptosOASIS", "HashgraphOASIS", "SuiOASIS", "ElrondOASIS", "RadixOASIS", "StarknetOASIS", "CardanoOASIS", "ArweaveOASIS", "TONOASIS"])
     parser.add_argument("--prepare", action="store_true")
     parser.add_argument("--readiness", action="store_true", help="Check discovery using the retained rehearsal visitor; create no cohort.")
+    parser.add_argument("--pouchdb-reviewed-settings", type=Path, help="Explicit reviewed settings patch for the qualified PouchDB source.")
     parser.add_argument("--resume-unstarted-native", action="store_true",
                         help="One explicit same-owner continuation before any client preparation/save; original failure must be recorded.")
     parser.add_argument("--cohort", choices=["current", "fixed-client", "post-startup-fix"], default="current",
@@ -243,6 +274,10 @@ def main():
     parser.add_argument("--continue-snapshot-observation-change", action="store_true",
                         help="Finish original acknowledged snapshots after a proved changing-observation reuse defect; no writes.")
     options = parser.parse_args()
+    is_pouchdb = options.provider == "PouchDBOASIS"
+    if options.pouchdb_reviewed_settings is not None and not is_pouchdb:
+        parser.error("--pouchdb-reviewed-settings applies only to PouchDBOASIS.")
+    reviewed_pouchdb = pouchdb_review(options.pouchdb_reviewed_settings) if is_pouchdb else None
     continuing = options.continue_settled_read or options.continue_native_read_failure or options.continue_snapshot_observation_change
     continuation_folder = "snapshot-reuse-completion" if options.continue_snapshot_observation_change else "native-read-completion" if options.continue_native_read_failure else "settlement-continuation"
     if sum((options.continue_settled_read, options.continue_native_read_failure, options.continue_snapshot_observation_change)) > 1:
@@ -258,7 +293,9 @@ def main():
         try:
             source = ready_source(options.provider, token, require_pair=True)
             if options.provider == "LocalFileOASIS":
-                require_reviewed_localfile_presets(source, localfile_review())
+                require_reviewed_presets("LocalFile", source, localfile_review())
+            if is_pouchdb:
+                require_reviewed_presets(options.provider, source, reviewed_pouchdb)
         except RuntimeError as error:
             raise SystemExit(str(error)) from None
         print(f"{options.provider} advertises native and paired presets; no cohort created.")
@@ -284,11 +321,14 @@ def main():
     if not continuing and (ROOT / "TestResults/HostedCqlIntegrationCurrent" / (suffix + "-client-http-flow.json.progress.json")).exists():
         raise RuntimeError("Original partial client flow exists; reconcile explicitly before another execution.")
     allow_create = not (continuing or options.resume_unstarted_native)
-    if options.provider == "LocalFileOASIS" and allow_create and not (state / "owner.acknowledged.json").exists():
+    if (options.provider == "LocalFileOASIS" or is_pouchdb) and allow_create and not (state / "owner.acknowledged.json").exists():
         _, visitor_token = session(ROOT / "LocalState/COSMIC/HostedDemoRehearsalDiscovery",
                                    "visitor", allow_create=False)
         source = ready_source(options.provider, visitor_token, require_pair=True)
-        require_reviewed_localfile_presets(source, localfile_review())
+        if is_pouchdb:
+            require_reviewed_presets(options.provider, source, reviewed_pouchdb)
+        else:
+            require_reviewed_presets("LocalFile", source, localfile_review())
     state.mkdir(exist_ok=True)
     results = ROOT / "TestResults/HostedCqlIntegrationCurrent"
     if options.resume_unstarted_native:
@@ -305,7 +345,9 @@ def main():
             "ownerId": owner["id"], "provider": options.provider, "operation": "explicit original native-only continuation",
             "replacementOwner": False, "replayAllowed": False}) + "\n").encode())
     avatar, token = session(state, "owner", allow_create=allow_create)
-    source = ready_source(options.provider, token, require_pair=options.prepare)
+    source = ready_source(options.provider, token, require_pair=options.prepare or is_pouchdb)
+    if is_pouchdb:
+        require_reviewed_presets(options.provider, source, reviewed_pouchdb)
     examples = source["examples"]
     leaf = [next(row for row in examples if row["id"] == key) for key in ("public-records", "public-subset")]
     if continuing:

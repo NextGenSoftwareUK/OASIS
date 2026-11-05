@@ -1,5 +1,6 @@
 """Query-only raw response retention before interpretation, no live requests."""
 import base64
+import hashlib
 import importlib.util
 import json
 import io
@@ -29,21 +30,24 @@ class ResponseEvidenceTests(unittest.TestCase):
         review = {"presets": presets}
         source = {"examples": json.loads(json.dumps(presets))}
         source["examples"][0]["request"]["skip"] = 0
-        verification.require_reviewed_localfile_presets(source, review)
+        verification.require_reviewed_presets("LocalFile", source, review)
+        source["examples"].append(source["examples"][0])
+        with self.assertRaisesRegex(RuntimeError, "preset IDs must be unique"):
+            verification.require_reviewed_presets("LocalFile", source, review)
         for field, value in (("scope", "All"), ("identityMode", "Deduplicate")):
             with self.subTest(field=field):
                 source = {"examples": json.loads(json.dumps(presets))}
                 source["examples"][3]["request"][field] = value
                 with self.assertRaisesRegex(RuntimeError, "mongo-public-subset differs"):
-                    verification.require_reviewed_localfile_presets(source, review)
+                    verification.require_reviewed_presets("LocalFile", source, review)
         source = {"examples": json.loads(json.dumps(presets))}
         source["examples"][3]["operation"] = "Rows"
         with self.assertRaisesRegex(RuntimeError, "mongo-public-subset differs"):
-            verification.require_reviewed_localfile_presets(source, review)
+            verification.require_reviewed_presets("LocalFile", source, review)
         source = {"examples": json.loads(json.dumps(presets))}
         source["examples"][3]["request"]["source"]["filters"][0]["value"][1] = "different"
         with self.assertRaisesRegex(RuntimeError, "mongo-public-subset differs"):
-            verification.require_reviewed_localfile_presets(source, review)
+            verification.require_reviewed_presets("LocalFile", source, review)
 
     def test_unavailable_localfile_does_not_create_a_cohort(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -57,6 +61,57 @@ class ResponseEvidenceTests(unittest.TestCase):
             session.assert_called_once_with(root / "LocalState/COSMIC/HostedDemoRehearsalDiscovery",
                                             "visitor", allow_create=False)
             ready.assert_called_once_with("LocalFileOASIS", "retained", require_pair=True)
+            self.assertEqual([], list(root.iterdir()))
+
+    def test_pouchdb_review_binds_presets_to_the_qualified_source(self):
+        ids = ["11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8222-222222222222",
+               "33333333-3333-4333-8333-333333333333"]
+        bundle = json.dumps({"records": [{"id": identity} for identity in ids]})
+        digest = hashlib.sha256(bundle.encode()).hexdigest()
+        presets = []
+        for suffix, count in (("records", 3), ("subset", 2)):
+            selection = {"filters": [{"field": "Id", "scalar": "Guid", "operator": "In", "value": ids[:count]}]}
+            presets.extend([
+                {"id": "public-" + suffix, "request": dict(selection, provider="PouchDBOASIS")},
+                {"id": "mongo-public-" + suffix, "operation": "Federation", "request": {
+                    "source": selection, "providers": ["MongoDBOASIS", "PouchDBOASIS"],
+                    "scope": "Named", "identityMode": "PreserveCopies"}}])
+        settings = {"OASIS_SANDBOX_POUCHDB": "true", "CQL_POUCHDB_QUERY_SOURCE_DIGEST": digest,
+                    "OASIS_SANDBOX_POUCHDB_BOOTSTRAP_JSON": bundle,
+                    "CQL_HOSTED_QUERY_EXAMPLES__PouchDBOASIS": json.dumps(presets)}
+        with tempfile.TemporaryDirectory() as directory, patch.object(verification, "ROOT", Path(directory)):
+            proof = Path(directory) / "LocalState/COSMIC/RecoveryLaptopPouchDBCql/hosted-preparation/native-source-qualified.json"
+            proof.parent.mkdir(parents=True)
+            proof.write_text(json.dumps({"sourceBundleSha256": digest}), encoding="utf-8")
+            review = Path(directory) / "review.json"
+            review.write_text(json.dumps(settings), encoding="utf-8")
+            self.assertEqual({"presets": presets}, verification.pouchdb_review(review))
+            settings["CQL_POUCHDB_QUERY_SOURCE_DIGEST"] = "0" * 64
+            review.write_text(json.dumps(settings), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "qualified source"):
+                verification.pouchdb_review(review)
+            settings["CQL_POUCHDB_QUERY_SOURCE_DIGEST"] = digest
+            presets = json.loads(json.dumps(presets))
+            presets[3]["request"]["source"]["filters"][0]["value"] = ids[1:]
+            settings["CQL_HOSTED_QUERY_EXAMPLES__PouchDBOASIS"] = json.dumps(presets)
+            review.write_text(json.dumps(settings), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "mongo-public-subset differs"):
+                verification.pouchdb_review(review)
+
+    def test_pouchdb_discovery_mismatch_does_not_create_a_cohort(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with (
+                patch.object(verification, "ROOT", root),
+                patch("sys.argv", ["verify", "PouchDBOASIS", "--pouchdb-reviewed-settings", "review.json"]),
+                patch.object(verification, "pouchdb_review", return_value={"presets": []}),
+                patch.object(verification, "session", return_value=({}, "retained")) as session,
+                patch.object(verification, "ready_source", return_value={"examples": []}),
+            ):
+                with self.assertRaisesRegex(RuntimeError, "differs from the reviewed rollout"):
+                    verification.main()
+            session.assert_called_once_with(root / "LocalState/COSMIC/HostedDemoRehearsalDiscovery",
+                                            "visitor", allow_create=False)
             self.assertEqual([], list(root.iterdir()))
 
     def test_foreign_visibility_rejects_replica_leak(self):

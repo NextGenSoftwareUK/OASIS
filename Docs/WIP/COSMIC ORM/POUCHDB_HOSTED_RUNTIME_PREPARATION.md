@@ -232,3 +232,31 @@ Live settings review requires the actual Development snapshot after LocalFile.
 The CLI produced the same digest with the real qualification receipt. It
 refused to replace the existing output and produced no output with an invalid
 receipt. The synthetic files were removed after checking their exact paths.
+
+### Full WEB4 image qualification
+
+[Run 42103803801](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42103803801)
+was accepted and is in progress for source
+`419a41cf2000cd4ebdb5a9b21e69dfc6f004eaf3`. The extra tag equals the full
+source SHA, so the workflow publishes only that commit tag. The run must
+prove the full image builds, the native SDK loads in the final stage, and
+the exact image digest is available. Deployment is separate.
+
+### Live acceptance entry point
+
+After the LocalFile rollout and the separate PouchDB image, settings and
+persistent mount review, use the reviewed PouchDB patch with the existing
+hosted verifier:
+
+```powershell
+python -B Scripts/Sandbox/Verify-HostedQuerySource.py PouchDBOASIS --pouchdb-reviewed-settings $reviewedPatch --readiness
+```
+
+Readiness uses the retained visitor. The verifier binds the reviewed patch to
+the native qualification digest and the exact source IDs, compares all four
+discovered presets and refuses duplicate IDs. After readiness succeeds, use
+`--prepare` in place of `--readiness` for the scoped HTTP acceptance.
+That run verifies native rows, private Mongo snapshots, 5/4 paired rows, SQLite
+and Neo4j replicas and independent visitor privacy. Browser verification is a
+separate gate. Twelve focused local controls passed, including refusal before
+cohort creation when discovery differs. No hosted acceptance has run.

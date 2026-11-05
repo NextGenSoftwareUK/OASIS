@@ -1680,3 +1680,15 @@ were closed. The test verified and dropped only
 `cosmic_cql_mongo_pouchdb_hosted`, acknowledged cleanup and cleared its
 pending journal. The retained source receipt and shared Core checkout were
 verified unchanged. No new runtime, cache, database copy or image download.
+
+Full WEB4 image workflow dispatched once with existing GitHub authentication.
+Intent and HTTP 204 receipts are `full-image-419a41cf2.intent.json` and
+`full-image-419a41cf2.dispatch.json` in `hosted-preparation/`.
+Exact run 42103803801 was observed in progress. It uses the existing remote
+build and PouchDB SDK caches, and will publish only the SHA tag on success.
+No local image layers were downloaded and no Railway deployment was requested.
+
+Hosted PouchDB verifier controls ran with the existing Python executable and
+`-B`. Twelve tests passed. The initial run caught two mistakes in the new
+test fixture before any live calls. Temporary fixture files were owned and
+removed by the test runner. No hosted session, runtime or cache was created.
