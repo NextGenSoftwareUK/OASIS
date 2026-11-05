@@ -100,16 +100,18 @@ class ResponseEvidenceTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, "IDs differ"):
                     verification.require_native_selection(responses, examples)
 
-    def test_hyperlane_native_rows_require_exact_message_ids(self):
-        example = {"request": {"provider": "HyperlaneOASIS", "filters": [
-            {"metadataPath": ["HyperlaneMessageId"], "scalar": "String", "operator": "In", "value": ["a", "b"]}
-        ]}}
-        rows = [{"metadata": {"HyperlaneMessageId": key}} for key in ("a", "b")]
-        response = {"result": {"rows": rows}}
-        verification.require_native_rows(response, example, 2)
-        rows[1]["metadata"]["HyperlaneMessageId"] = "c"
-        with self.assertRaisesRegex(RuntimeError, "Hyperlane message IDs differ"):
-            verification.require_native_rows(response, example, 2)
+    def test_native_rows_require_exact_metadata_keys(self):
+        for key in ("HyperlaneMessageId", "QuestDbSymbol", "D1Symbol"):
+            with self.subTest(key=key):
+                example = {"request": {"includeMetadata": True, "filters": [
+                    {"metadataPath": [key], "scalar": "String", "operator": "In", "value": ["a", "b"]}
+                ]}}
+                rows = [{"metadata": {key: value}} for value in ("a", "b")]
+                response = {"result": {"rows": rows}}
+                verification.require_native_rows(response, example, 2)
+                rows[1]["metadata"][key] = "c"
+                with self.assertRaisesRegex(RuntimeError, "metadata keys differ"):
+                    verification.require_native_rows(response, example, 2)
 
     def test_http_failure_is_captured_before_error_is_raised_without_retry(self):
         raw = b'{"isError":true,"errorCode":"CQL_QUERY_FAILED"}'
