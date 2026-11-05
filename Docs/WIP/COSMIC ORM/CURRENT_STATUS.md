@@ -35,6 +35,10 @@ One authenticated discovery request with the existing rehearsal visitor
 confirmed that LocalFile, Hyperlane, DuckDB, SQL Server, CouchDB, Cloudflare
 D1, QuestDB and NATS JetStream were absent. ClickHouse was available for
 native and federated queries in the same response. No cohort was created.
+The exact metadata verifier also passed both live ClickHouse native presets
+with the retained rehearsal visitor. It matched all three full-selection
+keys and both subset keys. This was a read-only verifier compatibility check,
+with no new cohort or snapshot preparation.
 The current cohort-free discovery check passed for ClickHouse and reported
 LocalFile unavailable. Railway still rejects the local session. Authenticate,
 inspect the Development WEB4 /data attachment and exact deployment, then apply
