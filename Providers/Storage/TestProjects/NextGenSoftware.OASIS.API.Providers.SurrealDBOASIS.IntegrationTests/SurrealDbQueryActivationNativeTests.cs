@@ -14,6 +14,10 @@ public class SurrealDbQueryActivationNativeTests
     [TestMethod]
     public async Task DatabaseReaderActivatesAndReadsTheAdmittedTeachingRecord()
     {
+        var settings = new[] { "ENDPOINT", "USERNAME", "PASSWORD", "NAMESPACE", "DATABASE", "RECORD_ID" };
+        if (settings.All(suffix => Environment.GetEnvironmentVariable("SURREALDB_CQL_READER_" + suffix) == null))
+            Assert.Inconclusive("No dedicated SurrealDB query reader is configured.");
+
         static string Required(string suffix) =>
             Environment.GetEnvironmentVariable("SURREALDB_CQL_READER_" + suffix)
             ?? throw new InvalidOperationException($"Set the dedicated reader setting {suffix}.");
