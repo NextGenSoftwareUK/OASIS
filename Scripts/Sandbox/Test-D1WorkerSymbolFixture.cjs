@@ -32,10 +32,15 @@ async function main() {
     const subset = await read([keys[0], keys[2]]);
     const endpoint = new URL("/symbols", await mf.ready);
     const invalid = await fetch(new URL("?symbol=BTC-USDT&symbol=BTC-USDT", endpoint));
+    const unenrolled = await fetch(new URL("?symbol=BTC-USDT&symbol=UNENROLLED", endpoint));
     const write = await fetch(endpoint, {method:"POST"});
     assert.equal(invalid.status, 400);
+    assert.equal(unenrolled.status, 400);
+    assert.deepEqual(await invalid.json(), {error:"Invalid symbol selection"});
+    assert.deepEqual(await unenrolled.json(), {error:"Invalid symbol selection"});
     assert.equal(write.status, 405);
-    console.log(JSON.stringify({full, subset, duplicateStatus:invalid.status, writeStatus:write.status}));
+    console.log(JSON.stringify({full, subset, duplicateStatus:invalid.status,
+      unenrolledStatus:unenrolled.status, writeStatus:write.status}));
     if (serve) {
       console.log(JSON.stringify({endpoint: endpoint.href}));
       // The parent test owns the process and closes stdin when it finishes.
