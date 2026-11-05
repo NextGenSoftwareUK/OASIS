@@ -169,3 +169,7 @@ Then run the native full and subset reads with the same login and record the
 exact returned IDs before enrolling them. The LocalDB files on the recovery
 laptop are local evidence. The permissions and query results from a reachable
 Development source still need verification.
+
+The cohort-free Development discovery check using the retained rehearsal
+visitor reported SQLServerDBOASIS absent or unavailable. Source qualification
+and enrollment remain prerequisites for the hosted query and browser runs.

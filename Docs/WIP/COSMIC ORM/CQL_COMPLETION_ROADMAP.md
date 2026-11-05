@@ -29,7 +29,8 @@ task checkout. Runtime qualification remains separate.
    remains open for the unavailable source.
    Recover the published launcher runtime/configuration gaps and their reviewed
    source dependencies from retained sandbox-integration pin 237403a75. DuckDB
-   and LocalFile are restored with controlled tests/builds, no native replay.
+   now has a passing retained native and Mongo-paired replay on the recovery
+   laptop. Its Development file placement and activation remain open.
    ThreeFold's hosted audit and card/static assets now pass at website2170b67;
    preserve its original cohort/settings/ACKs. Do not replay accepted gates.
 2. Preserve 60 scoped hosted HTTP proofs and 96 local integrated query types.
