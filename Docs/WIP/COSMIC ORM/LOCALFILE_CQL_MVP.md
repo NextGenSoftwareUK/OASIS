@@ -537,6 +537,11 @@ NATS JetStream returned the same readiness result. ClickHouse advertised
 both native and paired presets in the same check, confirming discovery was
 reachable. No cohort was created. Discovery establishes preset availability
 only. The LocalFile rollout still requires deployment and mount verification.
+The live ClickHouse discovery response also confirms the shared WEB4 preset
+format used by the LocalFile verifier. Native presets report `Rows`.
+Paired presets report `Federation` with scope `Named` and identity mode
+`PreserveCopies`. This confirms the response format while LocalFile's
+own four presets remain unverified on Development.
 
 The image-digest guard is operator-side tooling. The built candidate's shared
 settings mutation code matches the task branch. Use the updated publisher and
