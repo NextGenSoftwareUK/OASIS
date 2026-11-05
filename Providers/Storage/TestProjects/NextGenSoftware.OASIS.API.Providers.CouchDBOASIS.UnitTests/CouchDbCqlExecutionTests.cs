@@ -16,10 +16,16 @@ public class CouchDbCqlExecutionTests
     private sealed class Handler:HttpMessageHandler
     {
         public string Mode="valid"; public List<Guid> Reads=new();
+        public int DatabaseLookups;
         public TaskCompletionSource Started=new(TaskCreationOptions.RunContinuationsAsynchronously);
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
         {
             Assert.AreEqual(HttpMethod.Get,request.Method,"CQL cannot write or scan");
+            if (request.RequestUri!.AbsolutePath == "/oasis_holons")
+            {
+                DatabaseLookups++;
+                return new(Mode == "missing" ? HttpStatusCode.NotFound : HttpStatusCode.OK);
+            }
             Assert.AreEqual("?conflicts=true",request.RequestUri!.Query);
             var id=Guid.Parse(request.RequestUri.Segments.Last());Reads.Add(id);
             if(Mode=="cancel"){Started.SetResult();await Task.Delay(Timeout.Infinite,token);}
@@ -47,6 +53,22 @@ public class CouchDbCqlExecutionTests
     }
     private static CosmicQueryPlan<Holon> Plan(CouchDBOASIS p,CosmicQuery<Holon> q)
         => CosmicQueryPlanner.Plan(q,ProviderType.CouchDBOASIS,new[]{new CosmicQueryTarget(ProviderType.CouchDBOASIS,p.QueryCapabilities)}).Result;
+    [TestMethod]
+    public async Task ReadOnlyActivationChecksExistingDatabaseAndClearsStaleState()
+    {
+        var (provider, handler, _, _) = Setup();
+        var ready = await provider.ActivateQuerySourceAsync(default);
+        Assert.IsFalse(ready.IsError, ready.Message);
+        Assert.IsTrue(provider.IsProviderActivated);
+
+        handler.Mode = "missing";
+        var missing = await provider.ActivateQuerySourceAsync(default);
+        Assert.AreEqual("CQL_QUERY_SOURCE_UNAVAILABLE", missing.ErrorCode);
+        Assert.IsFalse(provider.IsProviderActivated);
+        Assert.AreEqual(2, handler.DatabaseLookups);
+        Assert.AreEqual(0, handler.Reads.Count);
+    }
+
     [TestMethod]
     public async Task ThreeRecordCatalogueSelectsTwoNativeReads()
     {
