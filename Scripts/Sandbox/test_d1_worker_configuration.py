@@ -75,7 +75,7 @@ class D1WorkerConfigurationTests(unittest.TestCase):
             (state / "worker-https-qualified.acknowledged.json").write_text(json.dumps(dict(
                 schema=1, sourceSha256=hashlib.sha256(raw).hexdigest(),
                 fullSymbols=publisher.EXPECTED_KEYS, subsetSymbols=publisher.EXPECTED_KEYS[:2],
-                duplicateStatus=400, unenrolledStatus=400, writeStatus=405)), encoding="utf-8")
+                duplicateStatus=400, unenrolledStatus=400, unboundedStatus=400, writeStatus=405)), encoding="utf-8")
             self.assertEqual(source, publisher.qualified_source())
             path.write_bytes(raw + b"\n")
             with self.assertRaisesRegex(RuntimeError, "Source-bound"):

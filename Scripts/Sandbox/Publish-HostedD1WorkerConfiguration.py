@@ -114,7 +114,7 @@ def qualified_source():
             or proof.get("fullSymbols") != EXPECTED_KEYS
             or proof.get("subsetSymbols") != EXPECTED_KEYS[:2]
             or proof.get("duplicateStatus") != 400 or proof.get("unenrolledStatus") != 400
-            or proof.get("writeStatus") != 405):
+            or proof.get("unboundedStatus") != 400 or proof.get("writeStatus") != 405):
         raise RuntimeError("Source-bound HTTPS qualification is required before D1 enrollment.")
     return json.loads(raw)
 
