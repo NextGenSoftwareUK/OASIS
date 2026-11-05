@@ -168,3 +168,13 @@ explicit teaching record and checking its native and decoded IDs. An empty
 query result alone cannot establish that the dataset is present. Keep
 ordinary storage activation for provisioning, then verify the read-only
 path against the native source before enrolling it in WEB4.
+
+The database-scoped query profile and dedicated reader fixture are now in the
+recovery branch. Run the fixture against an existing demo database with a
+database-scoped reader authorized for the teaching record. Set the
+SURREALDB_CQL_READER_ environment settings ENDPOINT, USERNAME, PASSWORD,
+NAMESPACE, DATABASE and RECORD_ID privately. Use the normal provider build
+lease and filter the integration test to SurrealDbQueryActivationNativeTests.
+Require one pass with zero skips before treating native activation as proven.
+The fixture only reads the admitted record. The unconfigured run skipped
+as expected, and native execution remains pending.
