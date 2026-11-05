@@ -201,7 +201,12 @@ def apply():
 
 
 def verify_settings():
+    expected_deployment = os.environ.get("COSMIC_CQL_SETTINGS_DEPLOYMENT_ID")
+    if not expected_deployment:
+        raise RuntimeError("Set the deployment ID created by the reviewed LocalFile settings change")
     deployment = verify_mount()
+    if deployment != expected_deployment:
+        raise RuntimeError("Current deployment is not the reviewed LocalFile settings deployment")
     expected = configuration.protected_read(PREFIX + "-candidate-variables.dpapi")
     observed = configuration.variables()
     if any(key not in expected or observed.get(key) != expected[key] for key in KEYS):

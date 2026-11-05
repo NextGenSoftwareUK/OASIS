@@ -181,12 +181,17 @@ class LocalFileConfigurationTests(unittest.TestCase):
     def test_verify_settings_rejects_drift_without_writing(self):
         before, source, bundle = self.fixture()
         after = publisher.candidate(before, source, bundle)
-        with patch.object(publisher, "verify_mount", return_value="deployment"), \
+        with patch.dict(publisher.os.environ, {"COSMIC_CQL_SETTINGS_DEPLOYMENT_ID": "deployment"}), \
+             patch.object(publisher, "verify_mount", return_value="deployment") as mount, \
              patch.object(publisher, "verify_release", return_value="deployment"), \
              patch.object(publisher.configuration, "protected_read", return_value=after), \
              patch.object(publisher.configuration, "variables", return_value=after) as variables, \
              patch.object(publisher.configuration, "apply_values") as mutation:
             self.assertEqual("deployment", publisher.verify_settings())
+            mount.return_value = "earlier-deployment-of-same-image"
+            with self.assertRaisesRegex(RuntimeError, "not the reviewed LocalFile settings deployment"):
+                publisher.verify_settings()
+            mount.return_value = "deployment"
             variables.return_value = dict(after, **{publisher.KEYS[0]: "different"})
             with self.assertRaisesRegex(RuntimeError, "settings differ"):
                 publisher.verify_settings()

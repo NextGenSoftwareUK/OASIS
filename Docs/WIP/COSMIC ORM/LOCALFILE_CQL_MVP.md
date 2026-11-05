@@ -368,7 +368,8 @@ SHA, reconcile that state before continuing. The publisher sets each value with 
 acknowledgements exist, inspect the staged settings and trigger one Development
 WEB4 deployment of the same reviewed commit. Verify SUCCESS and the commit
 hash before running readiness. An apply receipt confirms settings only.
-After the staged deployment succeeds, update the reviewed instance IDs and
+After the staged deployment succeeds, set `COSMIC_CQL_SETTINGS_DEPLOYMENT_ID`
+to the new deployment ID from the staged settings release, update the reviewed instance IDs and
 run `python -B Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py verify-settings`.
 It compares the five observed service settings with the protected candidate
 without printing their values. Runtime discovery and the native and paired
