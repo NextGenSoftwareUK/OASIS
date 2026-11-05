@@ -350,3 +350,10 @@ The temporary Mongo fixture was cleaned and no test listeners remained.
 A fresh hosted readiness check using the retained visitor still reported
 LocalFile absent or unavailable. The hosted replacement bundle remains separate
 from the local demo fixture.
+
+A Git-only release preflight reconfirmed that the published candidate remains
+a fast-forward from current remote Development. Its API Core a9a238371,
+ONODE Core 308a7860b and WEB6 b7f4d7aa7 gitlinks all equal their manifest pins
+in the same committed tree. The candidate includes opt-in Hyperlane code.
+The Railway service, persistent volume and deployed settings are separate
+checks and remain pending.
