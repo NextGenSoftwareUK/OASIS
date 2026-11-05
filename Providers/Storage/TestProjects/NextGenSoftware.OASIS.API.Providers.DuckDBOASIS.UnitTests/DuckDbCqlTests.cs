@@ -8,6 +8,20 @@ namespace NextGenSoftware.OASIS.API.Providers.DuckDBOASIS.UnitTests;
 [TestClass]
 public class DuckDbCqlTests
 {
+    [DataTestMethod]
+    [DataRow("relative.duckdb")]
+    [DataRow(":memory:")]
+    public async Task ReadOnlyActivationRejectsNonAbsoluteSources(string source)
+    {
+        var provider = new DuckDBOASIS($"Data Source={source};access_mode=READ_ONLY");
+        var result = await provider.ActivateQuerySourceAsync(CancellationToken.None);
+
+        Assert.IsTrue(result.IsError);
+        Assert.AreEqual("CQL_QUERY_SOURCE_UNAVAILABLE", result.ErrorCode);
+        Assert.AreEqual("DuckDB query activation requires an existing absolute database file.",
+            result.Exception?.Message);
+    }
+
     private static CosmicQuery<Holon> Query(Guid[] ids)
         => CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.DuckDBOASIS).Result)
             .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(
