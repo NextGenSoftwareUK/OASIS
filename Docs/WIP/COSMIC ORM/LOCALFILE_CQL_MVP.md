@@ -565,6 +565,10 @@ each remote `sha256sum` result:
 $source = Get-Content -Raw LocalState/COSMIC/HostedLocalFilePublicDatasetCurrent/source-config.json | ConvertFrom-Json
 foreach ($record in $source.records) {
     $file = "/data/cql-local-file-demo/Holons/$($record.id).json"
+    $resolved = & $env:OASIS_RAILWAY_CLI ssh -p 712f50f6-3b7b-46d4-b229-44b49922f16b -e dev -s 5123199a-43c4-4439-9921-e10e2aec7841 -d $reviewedInstanceId -- realpath -e $file
+    if ($LASTEXITCODE -ne 0 -or $resolved -cne $file) {
+        throw "LocalFile teaching record does not resolve to the reviewed path for $($record.id)."
+    }
     $digest = & $env:OASIS_RAILWAY_CLI ssh -p 712f50f6-3b7b-46d4-b229-44b49922f16b -e dev -s 5123199a-43c4-4439-9921-e10e2aec7841 -d $reviewedInstanceId -- sha256sum $file
     if ($LASTEXITCODE -ne 0 -or ($digest -split '\s+')[0] -cne $record.sha256) {
         throw "LocalFile teaching record digest differs for $($record.id)."
