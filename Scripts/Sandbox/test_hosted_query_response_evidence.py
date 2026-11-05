@@ -15,6 +15,18 @@ spec.loader.exec_module(verification)
 
 
 class ResponseEvidenceTests(unittest.TestCase):
+    def test_paired_readiness_rejects_an_unavailable_preset(self):
+        provider = "LocalFileOASIS"
+        examples = [{"id": key, "available": key != "mongo-public-subset"} for key in (
+            "public-records", "public-subset", "mongo-public-records", "mongo-public-subset"
+        )]
+        source = {"provider": provider, "available": True, "federationAvailable": True, "examples": examples}
+        with patch.object(verification, "call", return_value={"result": [source]}) as request:
+            self.assertIs(source, verification.ready_source(provider, "test", require_pair=False))
+            with self.assertRaisesRegex(RuntimeError, "missing required hosted query presets"):
+                verification.ready_source(provider, "test", require_pair=True)
+            self.assertTrue(all(call.kwargs["method"] == "GET" for call in request.call_args_list))
+
     def test_native_selection_requires_exact_distinct_preset_ids(self):
         keys = [f"11111111-1111-4111-8111-11111111111{index}" for index in range(3)]
         examples = [{"request": {"filters": [
