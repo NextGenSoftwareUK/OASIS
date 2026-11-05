@@ -147,11 +147,13 @@ def prepare():
     print("Protected LocalFile candidate prepared:five values/four presets,no service mutation or deployment.")
 
 
-def require_data_mount():
+def require_data_mount(*, initial_bootstrap=False):
     instances = os.environ.get("COSMIC_CQL_REVIEWED_INSTANCE_IDS", "").split(",")
     if any(not re.fullmatch(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}", instance)
            for instance in instances) or len(set(instances)) != len(instances):
         raise RuntimeError("Set the active instance IDs from the reviewed Development deployment")
+    if initial_bootstrap and len(instances) != 1:
+        raise RuntimeError("Initial LocalFile bootstrap requires one reviewed active instance")
     for instance in instances:
         try:
             result = subprocess.run(
@@ -180,9 +182,9 @@ def verify_release():
         guard.require_matching_release(configuration)
 
 
-def verify_mount():
+def verify_mount(*, initial_bootstrap=False):
     verify_release()
-    require_data_mount()
+    require_data_mount(initial_bootstrap=initial_bootstrap)
 
 
 def apply():
@@ -190,7 +192,7 @@ def apply():
     after = configuration.protected_read(PREFIX + "-candidate-variables.dpapi")
     if candidate(before, *qualified_source()) != after:
         raise RuntimeError("Reviewed source/candidate differs;no mutation allowed.")
-    verify_mount()
+    verify_mount(initial_bootstrap=True)
     configuration.apply_values(PREFIX, KEYS)
 
 

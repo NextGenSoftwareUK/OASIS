@@ -130,7 +130,7 @@ class LocalFileConfigurationTests(unittest.TestCase):
             mutation.assert_not_called()
 
 
-    def test_apply_requires_writable_data_mount_on_every_reviewed_instance(self):
+    def test_preflight_checks_every_instance_and_apply_refuses_multi_instance_bootstrap(self):
         before, source, bundle = self.fixture()
         after = publisher.candidate(before, source, bundle)
         instances = ["11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222"]
@@ -147,14 +147,16 @@ class LocalFileConfigurationTests(unittest.TestCase):
                      SimpleNamespace(returncode=0, stdout=writable),
                      SimpleNamespace(returncode=0, stdout=second)]) as ssh:
                 if second == writable:
-                    publisher.apply()
-                    mutation.assert_called_once_with(publisher.PREFIX, publisher.KEYS)
+                    publisher.verify_mount()
                 else:
                     with self.assertRaisesRegex(RuntimeError, "writable /data"):
-                        publisher.apply()
-                    mutation.assert_not_called()
+                        publisher.verify_mount()
                 for call, instance in zip(ssh.call_args_list, instances, strict=True):
                     self.assertEqual(["-d", instance, "--", "cat", "/proc/self/mountinfo"], call.args[0][-5:])
+                with self.assertRaisesRegex(RuntimeError, "requires one reviewed active instance"):
+                    publisher.apply()
+                self.assertEqual(2, ssh.call_count)
+                mutation.assert_not_called()
 
     def test_qualification_rejects_modified_retained_bundle(self):
         _, source, bundle = self.fixture()
