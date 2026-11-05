@@ -27,6 +27,11 @@ public partial class CouchDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOnly
             using var response = await _http.GetAsync($"{_baseUrl}/{DbHolons}",
                 HttpCompletionOption.ResponseHeadersRead, cancellationToken);
             response.EnsureSuccessStatusCode();
+            await response.Content.LoadIntoBufferAsync(64 * 1024, cancellationToken);
+            await using var body = await response.Content.ReadAsStreamAsync(cancellationToken);
+            using var database = await JsonDocument.ParseAsync(body, cancellationToken: cancellationToken);
+            if (database.RootElement.GetProperty("db_name").GetString() != DbHolons)
+                throw new InvalidDataException("CouchDB returned a different database identity.");
             cancellationToken.ThrowIfCancellationRequested();
             IsProviderActivated = true;
             return new(true);

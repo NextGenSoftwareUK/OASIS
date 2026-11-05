@@ -660,3 +660,5 @@ CouchDB authorized catalogue tests passed 43/43. Reused provider/test bin and ob
 CouchDB opt-in WEB4 build passed using existing WEB4 bin/obj. Receipt: TestResults/ProviderBuildCurrent/cosmic-couchdb-web4.log. No server started.
 
 CouchDB, DuckDB and SQL Server WEB4 admission passed 3/3 against Core 79708cc4. Receipt: TestResults/ProviderBuildCurrent/cosmic-couchdb-web4-admission.log. Reused build outputs and restored shared Core.
+
+CouchDB database identity probe suite passed 43/43. Reused existing outputs. Receipt: TestResults/ProviderBuildCurrent/cosmic-couchdb-database-proof.log. No server started.

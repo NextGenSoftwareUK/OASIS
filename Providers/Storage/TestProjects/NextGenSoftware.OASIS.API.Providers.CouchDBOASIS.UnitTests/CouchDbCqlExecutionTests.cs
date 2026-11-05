@@ -24,7 +24,13 @@ public class CouchDbCqlExecutionTests
             if (request.RequestUri!.AbsolutePath == "/oasis_holons")
             {
                 DatabaseLookups++;
-                return new(Mode == "missing" ? HttpStatusCode.NotFound : HttpStatusCode.OK);
+                return new(Mode == "missing" ? HttpStatusCode.NotFound : HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(new
+                    {
+                        db_name = Mode == "wrongDatabase" ? "other_database" : "oasis_holons"
+                    }))
+                };
             }
             Assert.AreEqual("?conflicts=true",request.RequestUri!.Query);
             var id=Guid.Parse(request.RequestUri.Segments.Last());Reads.Add(id);
@@ -65,7 +71,11 @@ public class CouchDbCqlExecutionTests
         var missing = await provider.ActivateQuerySourceAsync(default);
         Assert.AreEqual("CQL_QUERY_SOURCE_UNAVAILABLE", missing.ErrorCode);
         Assert.IsFalse(provider.IsProviderActivated);
-        Assert.AreEqual(2, handler.DatabaseLookups);
+        handler.Mode = "wrongDatabase";
+        var wrong = await provider.ActivateQuerySourceAsync(default);
+        Assert.AreEqual("CQL_QUERY_SOURCE_UNAVAILABLE", wrong.ErrorCode);
+        Assert.IsFalse(provider.IsProviderActivated);
+        Assert.AreEqual(3, handler.DatabaseLookups);
         Assert.AreEqual(0, handler.Reads.Count);
     }
 
