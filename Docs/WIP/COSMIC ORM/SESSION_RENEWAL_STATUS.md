@@ -40,6 +40,15 @@ Updated 1 November 2026. **Live HTTP lifecycle and frontend publication verified
 
 ## Next
 
+Web4Site candidate `26d2e30` on `codex/cql-session-clock-offset`
+schedules expiry from the JWT's issued lifetime (`exp - iat`) anchored at
+the authentication request start. Authentication and renewal use this
+deadline, so network time consumes the lifetime and the client clock's
+absolute offset does not extend access. Tokens require an issued-at claim.
+Thirteen session tests passed, including clocks 81 seconds behind and five
+minutes ahead. All 109 website tests passed. Publication and live renewal
+verification remain open.
+
 Recovery browser observation, 5 November 2026. Session sandbox-ca8924da
 completed several CQL provider flows, then Avalanche preparation received
 USER_BOUND_BEARER_REQUIRED with request key
