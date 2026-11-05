@@ -85,3 +85,25 @@ separate red gates. A local catalogue card does not certify those requirements.
 [Preserved history](Archive/SQLSERVER_CQL_MVP_PRESERVED_2026-10-30.md) ·
 [Current status](CURRENT_STATUS.md) · [After-demo backlog](AFTER_DEMO_BACKLOG.md) ·
 [Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+## Recovery laptop verification and Development gate
+
+The retained synthetic LocalDB source now passes native identity/restart,
+native content and Mongo-paired SDK/HTTP tests on the recovery laptop. Read-only
+activation checks existing table access and column types without provisioning.
+Cancellation and source fingerprint preservation passed in the native suite.
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SQLServer -Federated -RecoveryMongo -VerifyOnly
+```
+
+For Development, use an explicitly configured SQL Server query source with an
+already provisioned synthetic dataset, a reachable endpoint and a SELECT-only
+credential. LocalDB on this laptop is local evidence. WEB4 needs an opt-in
+CqlReadSourceProfile for SQLServerDBOASIS and public catalogue grants limited
+to the admitted IDs. Update both the API CQL compiler's hosted-source admission
+and Core PreparedStorageExecution's explicit query-tariff allowlist. Pin the
+reviewed Core commit with the matching Railway manifest. Verify no enrollment
+without configuration and no storage write tariff for the query-only profile.
+Then verify discovery, native and Mongo-paired presets, isolation and replicas
+through the live Development service. LocalFile remains the first rollout.
