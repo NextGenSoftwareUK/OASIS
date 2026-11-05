@@ -339,6 +339,13 @@ both Mongo-paired presets. Capture provider provenance and the 3/2 and 5/4 row
 counts before describing the hosted flow as browser verified. Keep the local
 runner instructions available for the retained offline demo.
 
+The published playground and preparation JavaScript both matched the exact
+committed Web4Site `2170b67` blobs in read-only HTTP checks. SHA256 values:
+`cql-playground.js` `7cb6210b9adda1e83630fc966926772f8338c43163c24d1abd88c626ad1ad649`
+and `cql-demo-preparation.js`
+`c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a`.
+These identify the client assets for the eventual browser proof.
+
 ### Apply from the existing task checkout
 
 The updated operator-side publisher checks the local reviewed release ref and
