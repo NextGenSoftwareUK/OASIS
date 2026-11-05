@@ -147,21 +147,25 @@ def ready_source(provider, token, require_pair):
         raise RuntimeError(f"{provider} is missing required hosted query presets.")
     return source
 
+def require_native_rows(response, example, count):
+    rows = response["result"]["rows"]
+    if len(rows) != count:
+        raise RuntimeError("Native source selection count differs.")
+    filters = example["request"].get("filters", [])
+    if len(filters) == 1:
+        predicate = filters[0]
+        if (predicate.get("field"), predicate.get("scalar"), predicate.get("operator")) == ("Id", "Guid", "In"):
+            expected = {value.lower() for value in predicate["value"]}
+            actual = {row.get("id", "").lower() for row in rows}
+            if len(expected) != count or actual != expected:
+                raise RuntimeError("Native source selection IDs differ from the reviewed preset.")
+
+
 def require_native_selection(responses, examples):
     if len(responses) != 2 or len(examples) != 2:
         raise RuntimeError("Two native source selections are required.")
     for response, example, count in zip(responses, examples, (3, 2)):
-        rows = response["result"]["rows"]
-        if len(rows) != count:
-            raise RuntimeError("Native source selection count differs.")
-        filters = example["request"].get("filters", [])
-        if len(filters) == 1:
-            predicate = filters[0]
-            if (predicate.get("field"), predicate.get("scalar"), predicate.get("operator")) == ("Id", "Guid", "In"):
-                expected = {value.lower() for value in predicate["value"]}
-                actual = {row.get("id", "").lower() for row in rows}
-                if len(expected) != count or actual != expected:
-                    raise RuntimeError("Native source selection IDs differ from the reviewed preset.")
+        require_native_rows(response, example, count)
 
 
 def main():
@@ -276,7 +280,8 @@ def main():
         public = call("data/query-cql", foreign_token, leaf[0]["request"])
         private = call("data/query-cql", foreign_token, {"provider": "MongoDBOASIS", "orderBy": "Id", "take": 2,
                        "filters": [{"field": "Id", "scalar": "Guid", "operator": "In", "value": proof["ids"]}]})
-        if len(public["result"]["rows"]) != 3 or private["result"]["rows"]:
+        require_native_rows(public, leaf[0], 3)
+        if private["result"]["rows"]:
             raise RuntimeError("Independent visitor visibility differs.")
         verification.write(results / (suffix + "-isolation-http.json"),
                            {"avatar": foreign, "public": public, "foreignPrivateIds": private, "browserAcceptance": False})
