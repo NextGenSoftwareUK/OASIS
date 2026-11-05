@@ -1,5 +1,11 @@
 # Development browser evidence, 5 November 2026
 
+Abstract passed native 3/2 and pairing 5/4 in sandbox-3a2cb72c.
+Preparation acknowledged two saves. Private IDs are
+37f5d254-76f5-8825-95b3-12082ddd3e32 and
+f6dfea8e-2f79-8fab-a6fc-1921e505b320, both version 1.
+Reuse, privacy and rendered replica comparison remain open.
+
 zkSync passed native 3/2 and pairing 5/4 in sandbox-3a2cb72c.
 Preparation acknowledged two saves. Private IDs are
 24046998-11d0-8807-accf-e1d0af47d6c9 and
