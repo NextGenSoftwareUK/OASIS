@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
+using StackExchange.Redis;
 
 namespace NextGenSoftware.OASIS.API.Providers.RedisOASIS;
 
@@ -24,6 +25,11 @@ public partial class RedisOASIS : KeyValueStorageProviderBase, IDisposable
         :this(configuration,()=>PersistedPrivateKeyValueBackend.ResolveEnvironmentKey(StorageKeyEnvironmentVariable)){}
     public RedisOASIS(string configuration,Func<byte[]> storageKeyResolver,string keyPrefix=DefaultPrefix)
         :this(new RedisConnectionOwner(configuration),storageKeyResolver,keyPrefix){}
+    public RedisOASIS(ConfigurationOptions configuration, Func<byte[]> storageKeyResolver, Guid queryProbeId)
+        : this(configuration, storageKeyResolver, queryProbeId, DefaultPrefix) { }
+
+    protected RedisOASIS(ConfigurationOptions configuration, Func<byte[]> storageKeyResolver, Guid queryProbeId, string keyPrefix)
+        : this(new RedisConnectionOwner(configuration), storageKeyResolver, keyPrefix) => BindQueryProbe(queryProbeId);
     private RedisOASIS(RedisConnectionOwner owner,Func<byte[]> resolver,string prefix)
         :this(new RedisKeyValueBackend(owner.DatabaseAsync,owner.PrimariesAsync,PrivatePhysicalPrefix){VerifyAdmission=owner.RequireReviewedLayoutAsync},resolver,prefix)
         =>_owner=owner;

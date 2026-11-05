@@ -1773,6 +1773,13 @@ The fixture build uses the same lease and outputs. Its log is
 The fixture compiled with 147 warnings and zero errors. The lease restored
 shared Core to `54159614`. No native process started.
 
+Redis and Valkey read-only activation preparation reuses the existing .NET
+SDK, NuGet cache and build lease. The Redis controlled test log is
+`TestResults/ProviderBuildCurrent/redis-family-hosted-read-activation.log`.
+The planned TRX is under evidence-only
+`LocalState/COSMIC/HostedRedisFamilyCqlQualification/`. No native server,
+secret, runtime, database copy or retained source was changed.
+
 LocalFile mounted-record verification ran one focused Python test with five
 cases, using mocked instance SSH and in-memory bytes. No files, credentials,
 deployment, runtime or cache were created by the test.
@@ -1826,7 +1833,29 @@ in a temporary in-app browser tab. It displayed Login and did not expose
 the project. No credentials, changes, screenshots or downloads were made.
 The existing LocalFile account action remains current.
 
+Redis and Valkey hosted preparation reused the existing .NET SDK, NuGet cache
+and shared provider build outputs. The first activation build logged a missing
+test namespace in `TestResults/ProviderBuildCurrent/redis-family-hosted-read-activation.log`.
+The corrected run logged to `TestResults/ProviderBuildCurrent/redis-family-hosted-read-activation-typed.log`
+and passed five controlled encrypted-probe cases. Retain the compact
+`LocalState/COSMIC/HostedRedisFamilyCqlQualification/activation-typed/activation.trx`
+with SHA256 `CA64513AFC137B406468C142BE53B377FB575E8869C17F8932F2BD84CB8D19C3`.
+WEB4 uses the same build outputs, with
+`TestResults/ProviderBuildCurrent/redis-family-hosted-api-cql.log` and
+`LocalState/COSMIC/HostedRedisFamilyCqlQualification/api-cql-admission/` for
+the candidate pin and test report. No new runtime, native database or download
+was requested for either run. Generated build outputs and verbose logs are
+regenerable after the owner releases the build lease.
+
 PouchDB mounted-source receipt verification used the retained local receipt
 and mocked instance SSH output. Two admitted shapes and four refusal cases
 passed. The first rehearsal had a command-tail assertion error, corrected
 before verification. Nothing was written to Railway or to the source.
+
+Redis/Valkey hosted WEB4 admission passed 12/12, no skips. The retained
+`api-cql-admission/admission.trx` SHA256 is
+`42EF8F83D9DFDDDAC9119D7528FACD8C7E88CA716BC083EE9FB11024C6419C3A`.
+The native TLS fixtures compiled (155 warnings, zero errors), with output in
+`TestResults/ProviderBuildCurrent/redis-family-hosted-native-fixture-build.log`.
+Both leases restored shared Core to `54159614`. No native session or database
+was started. Neither candidate changes the accepted hosted or local counts.

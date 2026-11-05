@@ -671,3 +671,10 @@ and hosted federation and replication verification.
 - Owner step: identify an existing reachable HTTPS Qdrant service for synthetic teaching records and make a key restricted to reads on oasis_holons available privately. If the teaching collection does not exist, provide secure provisioning access so engineering can prepare it separately.
 - The source needs three public live roots, one deleted point and one absent ID under its declared actor. Use a live record as the probe. Keep the key in the process environment, outside chat, descriptors and git. No new paid resource was requested.
 - Reason: native HTTPS proof precedes settings review and hosted acceptance. [Settings and fixture](../COSMIC%20ORM/QDRANT_CQL_MVP.md#web4-hosted-enrollment-preparation).
+
+## Redis and Valkey hosted teaching sources - 2026-11-05
+
+- Status: pending owned TLS sources. Five controlled encrypted-probe and twelve WEB4 admission checks passed. The two native TLS qualifiers compiled and require reviewed teaching sources.
+- Owner step: identify existing dedicated standalone Redis and Valkey teaching instances reachable from Development WEB4, with public IP endpoints and matching TLS certificate hostnames. Make the restricted reader credentials and existing teaching encryption key available through protected settings. If an owned instance lacks a teaching catalogue, make separate secure provisioning access available for engineering.
+- Each source uses database zero and needs three public live roots, one deleted record and one absent ID under the declared actor. Choose a live root as the probe. Restrict the reader to the required native SDK handshake and encrypted teaching-record reads. No new host or paid resource is requested.
+- Reason: native TLS proof for each product precedes WEB4 settings review and hosted acceptance. [Redis settings and fixture](../COSMIC%20ORM/REDIS_CQL_MVP.md#development-web4-candidate) and [Valkey settings and fixture](../COSMIC%20ORM/VALKEY_CQL_MVP.md#development-web4-candidate).

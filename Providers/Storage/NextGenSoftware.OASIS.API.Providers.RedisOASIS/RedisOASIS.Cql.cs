@@ -14,8 +14,9 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.RedisOASIS;
 
-public partial class RedisOASIS : ICosmicQueryStorageProvider
+public partial class RedisOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
 {
+    private Guid? _queryProbeId;
     public ProviderType QueryProviderType => ProviderType.Value;
     private static readonly CosmicQueryCapabilities UnsupportedAliasCapabilities = new(CosmicQueryFeatures.None,
         Array.Empty<CosmicQueryFieldCapability>());
@@ -27,6 +28,46 @@ public partial class RedisOASIS : ICosmicQueryStorageProvider
 
     public CosmicQueryCapabilities QueryCapabilities => QueryProviderType == CqlAuthority
         ? RedisCqlCompiler.Capabilities : UnsupportedAliasCapabilities;
+
+    protected void BindQueryProbe(Guid probe)
+    {
+        if (probe == Guid.Empty)
+            throw new ArgumentException("An existing public teaching probe is required.", nameof(probe));
+        if (_queryProbeId.HasValue)
+            throw new InvalidOperationException("The query probe is already bound.");
+        _queryProbeId = probe;
+    }
+
+    public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
+    {
+        IsProviderActivated = false;
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (QueryProviderType != CqlAuthority || _queryProbeId is not Guid id)
+                throw new InvalidOperationException("An explicit source authority and teaching probe are required.");
+            var json = await Backend.GetAsync(RecordKey("holon", id), cancellationToken).ConfigureAwait(false);
+            if (json == null || Encoding.UTF8.GetByteCount(json) > 1024 * 1024)
+                throw new InvalidDataException("The existing teaching probe is missing or exceeds the payload limit.");
+            var row = OasisJson.DeserializeStored<Holon>(json);
+            if (row == null || row.Id != id || !row.IsPublic || row.IsDeleted)
+                throw new InvalidDataException("The teaching probe must be an existing public record.");
+            cancellationToken.ThrowIfCancellationRequested();
+            IsProviderActivated = true;
+            return new(true);
+        }
+        catch (Exception cause)
+        {
+            return new()
+            {
+                IsError = true,
+                ErrorCount = 1,
+                ErrorCode = cause is OperationCanceledException ? "CQL_QUERY_CANCELLED" : "CQL_QUERY_SOURCE_UNAVAILABLE",
+                Message = "The encrypted query source did not verify its teaching probe.",
+                Exception = cause
+            };
+        }
+    }
 
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100,

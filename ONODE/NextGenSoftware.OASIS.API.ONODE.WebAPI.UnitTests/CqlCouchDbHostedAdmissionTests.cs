@@ -105,6 +105,19 @@ public class CqlCouchDbHostedAdmissionTests
         VerifyExactKeyPresets(provider, capabilities);
     }
 
+    [Theory]
+    [InlineData(ProviderType.RedisOASIS)]
+    [InlineData(ProviderType.ValKeyOASIS)]
+    public void RedisFamilyExactKeyPresetsPlanNativeAndMongoQueries(ProviderType provider)
+    {
+        var options = StackExchange.Redis.ConfigurationOptions.Parse("localhost:6379");
+        static byte[] UnusedKey() => throw new InvalidOperationException("Planning must not resolve a storage key.");
+        using NextGenSoftware.OASIS.API.Providers.RedisOASIS.RedisOASIS source = provider == ProviderType.RedisOASIS
+            ? new NextGenSoftware.OASIS.API.Providers.RedisOASIS.RedisOASIS(options, UnusedKey, Guid.NewGuid())
+            : new NextGenSoftware.OASIS.API.Providers.ValKeyOASIS.ValKeyOASIS(options, UnusedKey, Guid.NewGuid());
+        VerifyExactKeyPresets(provider, source.QueryCapabilities);
+    }
+
     private static void VerifyExactKeyPresets(ProviderType providerType, CosmicQueryCapabilities capabilities)
     {
         var provider = providerType.ToString();

@@ -127,5 +127,24 @@ Generated outputs are regenerable; native source stays outside TestResults.
 Continue other red provider MVPs. Production BootLoader registration and Redis-family
 aliases remain separate gaps; this direct-registration demo does not certify them.
 
+## Development WEB4 candidate
+
+The opt-in registration uses StackExchange.Redis with TLS certificate
+validation. Configure `CQL_REDIS_QUERY_` settings for `ADDRESS` (reviewed public
+IP), `PORT`, `TLS_HOST` (certificate DNS name), `USERNAME`, `PASSWORD`,
+`STORAGE_KEY` (the existing canonical base64 32-byte encryption key) and
+`PROBE_ID` (an existing public teaching holon). Provide credentials and key
+through protected settings. The reviewed source must be a dedicated standalone
+Redis teaching instance using database zero, with a reader limited to the
+required SDK handshake and encrypted teaching-record reads. Activation reads
+one exact existing encrypted record through the shipping adapter.
+
+The local Redis database 11 evidence remains separate. The hosted proof uses
+`TestCategory=RedisHostedCqlNative` in the Redis integration project and
+`COSMIC_REDIS_HOSTED_CQL_SOURCE` pointing to a protected catalogue with
+`Actor`, three `LiveIds`, `DeletedId` and `MissingId`. Confirm native product
+and reader scope before running it, then qualify native/paired WEB4 HTTP and
+browser evidence on the reviewed deployment. Hosted proof is pending.
+
 [Status](CURRENT_STATUS.md) / [inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) /
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).

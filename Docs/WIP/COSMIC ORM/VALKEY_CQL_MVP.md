@@ -76,6 +76,21 @@ cluster failover/replication, public hosting, central factory enrollment and ful
 HyperDrive/ORM parity remain separate red gates. Protocol compatibility does not
 certify another provider or any of these broader requirements.
 
+## Development WEB4 candidate
+
+Use a dedicated standalone native Valkey teaching instance with a restricted
+reader and the protected `CQL_VALKEY_QUERY_` settings. The seven setting
+suffixes and TLS requirements match the [Redis candidate](REDIS_CQL_MVP.md),
+with Valkey's own endpoint, encrypted source key, record namespace and public
+probe. WEB4 activates the source through one exact authenticated record read
+using StackExchange.Redis and the Valkey authority.
+
+The hosted proof uses `TestCategory=ValkeyHostedCqlNative` in the Redis
+integration project and `COSMIC_VALKEY_HOSTED_CQL_SOURCE` with the same
+catalogue schema. Confirm the source is native Valkey and the reader has only
+the required handshake and encrypted teaching-record permissions before
+running it. Hosted native, paired HTTP and browser evidence are pending.
+
 [Preserved history](Archive/VALKEY_CQL_MVP_PRESERVED_2026-10-30.md) ·
 [Current status](CURRENT_STATUS.md) · [After-demo backlog](AFTER_DEMO_BACKLOG.md) ·
 [Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
