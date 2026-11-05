@@ -134,10 +134,24 @@ def session(state, label, *, allow_create=True):
     return recorded, avatar["jwtToken"]
 
 
+def ready_source(provider, token, require_pair):
+    discovery = call("data/query-cql/providers?examplesVersion=2", token, method="GET")
+    source = next((row for row in discovery["result"] if row["provider"] == provider), None)
+    if source is None or not source.get("available") or not source.get("federationAvailable"):
+        raise RuntimeError(f"{provider} is absent or unavailable in hosted discovery.")
+    required = {"public-records", "public-subset"}
+    if require_pair:
+        required.update(("mongo-public-records", "mongo-public-subset"))
+    available = {row["id"] for row in source["examples"] if row.get("available") is not False}
+    if not required.issubset(available):
+        raise RuntimeError(f"{provider} is missing required hosted query presets.")
+    return source
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("provider", choices=["ThreeFoldOASIS", "ClickHouseOASIS", "QuestDBOASIS", "CloudflareD1OASIS", "NATSJetStreamOASIS", "ZcashOASIS", "BittensorOASIS", "AkashOASIS", "EclipseOASIS", "ENSOASIS", "BlockscoutOASIS", "CelestiaOASIS", "ChainflipOASIS", "LocalFileOASIS", "HyperlaneOASIS", "LayerZeroV2OASIS", "StargateOASIS", "deBridgeOASIS", "SynapseOASIS", "ConnextOASIS", "WormholeOASIS", "BlockStackOASIS", "MatrixOASIS", "NostrOASIS", "BlueSkyOASIS", "ChainLinkOASIS", "EOSIOOASIS", "TelosOASIS", "FilecoinOASIS", "FantomOASIS", "AzureStorageOASIS", "SOLIDOASIS", "AWSS3OASIS", "SolanaOASIS", "GoogleCloudOASIS", "EthereumOASIS", "PolygonOASIS", "ArbitrumOASIS", "CosmosBlockChainOASIS", "PolkadotOASIS", "NEAROASIS", "BaseOASIS", "AvalancheOASIS", "BNBChainOASIS", "OptimismOASIS", "LineaOASIS", "ScrollOASIS", "ZkSyncOASIS", "AbstractOASIS", "MonadOASIS", "SeiOASIS", "BerachainOASIS", "BitcoinOASIS", "XRPLOASIS", "StellarOASIS", "AlgorandOASIS", "AptosOASIS", "HashgraphOASIS", "SuiOASIS", "ElrondOASIS", "RadixOASIS", "StarknetOASIS", "CardanoOASIS", "ArweaveOASIS", "TONOASIS"])
     parser.add_argument("--prepare", action="store_true")
+    parser.add_argument("--readiness", action="store_true", help="Check discovery using the retained rehearsal visitor; create no cohort.")
     parser.add_argument("--resume-unstarted-native", action="store_true",
                         help="One explicit same-owner continuation before any client preparation/save; original failure must be recorded.")
     parser.add_argument("--cohort", choices=["current", "fixed-client", "post-startup-fix"], default="current",
@@ -157,6 +171,16 @@ def main():
         parser.error("--continue-settled-read requires --prepare for the original client-flow gate")
     if options.resume_unstarted_native and (not options.prepare or continuing):
         parser.error("Unstarted-native continuation requires --prepare and cannot resume settled writes.")
+    if options.readiness:
+        if options.prepare or continuing or options.resume_unstarted_native or options.cohort != "current":
+            parser.error("--readiness cannot be combined with cohort execution.")
+        _, token = session(ROOT / "LocalState/COSMIC/HostedDemoRehearsalDiscovery", "visitor", allow_create=False)
+        try:
+            ready_source(options.provider, token, require_pair=True)
+        except RuntimeError as error:
+            raise SystemExit(str(error)) from None
+        print(f"{options.provider} advertises native and paired presets; no cohort created.")
+        return
     suffix = options.provider + ("" if options.cohort == "current" else "-" + options.cohort)
     if options.prepare:
         frontend = ROOT.parent / "Web4Site"
