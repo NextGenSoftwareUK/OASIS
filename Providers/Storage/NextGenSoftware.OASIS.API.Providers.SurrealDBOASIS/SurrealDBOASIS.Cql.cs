@@ -16,6 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS;
 
 public partial class SurrealDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
 {
+    private const int MaximumHolonPayloadBytes = 1024 * 1024;
     private readonly Guid? _queryProbeId;
 
     public SurrealDBOASIS(string endpoint, string username, string password, string ns, string db, Guid queryProbeId)
@@ -39,6 +40,8 @@ public partial class SurrealDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOn
             var record = await client.Select<HolonRecord>(key, cancellationToken);
             if (record == null || record.IsDeleted || record.Id?.ToString() != key.ToString())
                 throw new InvalidOperationException("The native teaching record identity was not verified.");
+            if (record.DataJson == null || Encoding.UTF8.GetByteCount(record.DataJson) > MaximumHolonPayloadBytes)
+                throw new InvalidOperationException("The teaching record payload exceeds the activation budget or is missing.");
             var row = Des<Holon>(record.DataJson);
             if (row == null || row.IsDeleted || row.Id != id)
                 throw new InvalidOperationException("The decoded teaching record identity was not verified.");
@@ -103,7 +106,7 @@ public partial class SurrealDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOn
                     if (record.DataJson == null)
                         return Error("CQL_QUERY_FAILED", "Native holon payload is missing.");
                     var bytes = Encoding.UTF8.GetByteCount(record.DataJson);
-                    if (bytes > 1024 * 1024 || payloadBytes + bytes > 4 * 1024 * 1024)
+                    if (bytes > MaximumHolonPayloadBytes || payloadBytes + bytes > 4 * 1024 * 1024)
                         return Error("CQL_QUERY_LIMIT", "Native payload exceeds the admitted byte budget.");
                     payloadBytes += bytes;
 

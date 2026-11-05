@@ -666,3 +666,5 @@ CouchDB database identity probe suite passed 43/43. Reused existing outputs. Rec
 SurrealDB database-scoped query activation build passed using existing outputs. Receipt: TestResults/ProviderBuildCurrent/cosmic-surreal-read-activation.log. No native process started.
 
 SurrealDB query activation controls passed 11/11. Reused unit test bin/obj. Receipt: TestResults/ProviderBuildCurrent/cosmic-surreal-query-controls.log. No native process started.
+
+SurrealDB activation payload-bound build passed using existing outputs. Receipt: TestResults/ProviderBuildCurrent/cosmic-surreal-activation-bound.log.
