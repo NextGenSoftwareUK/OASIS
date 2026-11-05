@@ -415,3 +415,10 @@ digest. Its exact shell step passed a local check with a valid digest and
 rejected missing and malformed digests without writing a summary. This is
 local shell evidence. The workflow still needs a successful GitHub run for
 the exact candidate to produce a real digest.
+
+The isolated candidate image build was dispatched with source
+c64adf4748856b0acaae02e24a7f8edd16d2a139 and extra tag
+localfile-candidate-c64adf474. GitHub accepted the dispatch (HTTP 204) and
+reported [run 41948106729](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/41948106729)
+in progress. Reuse that run for observation. This image build does not
+apply Railway settings or promote a deployment.
