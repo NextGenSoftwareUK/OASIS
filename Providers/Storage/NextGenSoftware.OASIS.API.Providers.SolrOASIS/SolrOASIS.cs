@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
     /// Search:  GET  {base}/solr/{collection}/query?q=field:"value"&wt=json&rows=1
     /// List:    GET  {base}/solr/{collection}/query?q=*:*&wt=json&rows=1000
     /// </summary>
-    public class SolrOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class SolrOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -56,10 +56,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
         private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
         private StringContent Json(object obj) => new StringContent(Ser(obj), Encoding.UTF8, "application/json");
 
-        public SolrOASIS(string host = "http://localhost:8983", string? username = null, string? password = null)
+        public SolrOASIS(string host = "http://localhost:8983", string? username = null, string? password = null, HttpClient? httpClient = null)
         {
             _baseUrl = host.TrimEnd('/');
-            _http = new HttpClient();
+            _http = httpClient ?? new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             if (username != null && password != null)
             {

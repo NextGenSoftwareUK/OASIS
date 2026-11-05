@@ -4,6 +4,13 @@ Updated 5 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
+## Solr adapter continuation, 5 November 2026
+
+Solr bounded CQL and read-only existing-collection activation now have 16 passing
+controlled tests, zero skips. Native fixture is prepared; runtime/schema, native,
+manager and browser qualification remain open. Coverage counts unchanged.
+See [scope and remaining gates](SOLR_CQL_MVP.md).
+
 ## Browser continuation gate, 5 November 2026
 
 Aptos native browser queries passed 3/2; private preparation reached the

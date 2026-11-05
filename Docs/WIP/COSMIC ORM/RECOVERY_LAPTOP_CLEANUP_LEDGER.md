@@ -1013,3 +1013,23 @@ check returned Unauthorized. No settings, deployment or project link changed.
   expanded launch command verified without creating a hosted avatar/session.
   No server startup, package/environment or data write. No standalone screenshots
   or downloaded verification artifacts retained; HTTP comparisons ran in memory.
+
+## Solr CQL adapter — 5 November 2026
+
+No runtime/package archive or new environment installed. Existing Java metadata inspected read-only; no native Solr process/source created. Both scoped builds held the provider lease with bounded workers. Unit TRX:16 passed/0failed/0skipped; integration fixture build:0errors/4warnings. Shared Core/Shared outputs reused; no separate build environment.
+
+Unit TRX SHA256:9c2ba8a35c97c424d6e62b26f598320d388fda7e0e5f9edd7307d264b8dcee2f. Retain compact evidence until native acceptance; disposable build outputs may be removed after owned builds stop.
+
+- `TestResults/SolrCqlUnitCurrent/solr-cql-unit.trx`: 24827 bytes.
+
+- `Providers/Storage/NextGenSoftware.OASIS.API.Providers.SolrOASIS/bin`: 8266161 bytes.
+
+- `Providers/Storage/NextGenSoftware.OASIS.API.Providers.SolrOASIS/obj`: 963254 bytes.
+
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.UnitTests/bin`: 47114809 bytes.
+
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.UnitTests/obj`: 1009894 bytes.
+
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests/bin`: 47118406 bytes.
+
+- `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests/obj`: 1016251 bytes.
