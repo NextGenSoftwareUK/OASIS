@@ -309,6 +309,12 @@ and the paired presets. Confirm the public records are live and belong to
 the declared owner. The retained recovery fixture is available for loopback
 tests. The hosted TLS endpoint and credential scope still need qualification.
 
+The shipping JSON path rejects loopback endpoints and passes no custom CA
+override to NATS.NET. Qualify the target with a non-loopback DNS name and a
+certificate chain trusted by the WEB4 runtime. The pinned SDK treats the
+`tls://` scheme as TLS required. The retained plaintext loopback fixture
+establishes native read behavior only. [Pinned NATS TLS options](https://github.com/nats-io/nats.net/blob/v3.2.0/src/NATS.Client.Core/NatsTlsOpts.cs)
+
 Use the same IDs for the source and server-side public catalogue. Review the
 explicit query-only tariff and four presets before running the shared hosted
 verifier with a fresh NATS-scoped journal. Keep LocalFile first. Native TLS,
