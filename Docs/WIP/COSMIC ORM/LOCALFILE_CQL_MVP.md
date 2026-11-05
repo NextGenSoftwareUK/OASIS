@@ -431,3 +431,5 @@ Use that immutable digest when reviewing the Development image. Railway
 authentication, instance mount confirmation and live acceptance remain open.
 
 The build log confirms that both the full commit tag and the isolated candidate tag were pushed to the same digest. The job did not push the shared sandbox tag.
+
+An independent registry check with the existing GitHub credential returned HTTP 403. The successful push log establishes publication at build time. Current pull access and the actual running image digest must be verified through the Development service.
