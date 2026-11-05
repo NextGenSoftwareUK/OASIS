@@ -317,6 +317,9 @@ paired presets to be available. The check passed for existing ClickHouse and
 reported LocalFile unavailable before rollout. Start the LocalFile
 `--prepare` flow only after its readiness check passes. Discovery readiness
 does not replace the native, federation, privacy or replica checks.
+The LocalFile verifier also enforces this check before creating a new owner.
+A live Development invocation of `--prepare` rejected the unavailable source
+and left the LocalFile cohort directory absent.
 The hosted verifier checks the two exact saved IDs from a second visitor on
 MongoDB and both verified replica targets, SQLite and Neo4j. The isolation
 report retains separate observations for each target.
