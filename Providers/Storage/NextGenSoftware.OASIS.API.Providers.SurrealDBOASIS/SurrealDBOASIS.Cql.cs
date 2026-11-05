@@ -101,7 +101,10 @@ public partial class SurrealDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOn
                 var payloadBytes = 0;
                 foreach (var id in admittedIds)
                 {
-                    var record = await client.Select<HolonRecord>(new StringRecordId($"oasis_holons:{id:D}"), deadline.Token);
+                    var key = new StringRecordId($"oasis_holons:{id:D}");
+                    var record = await client.Select<HolonRecord>(key, deadline.Token);
+                    if (record != null && record.Id?.ToString() != key.ToString())
+                        return Error("CQL_QUERY_FAILED", "Native SurrealDB record identity differs from the admitted key.");
                     if (record == null || record.IsDeleted) continue;
                     if (record.DataJson == null)
                         return Error("CQL_QUERY_FAILED", "Native holon payload is missing.");

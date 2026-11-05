@@ -670,3 +670,5 @@ SurrealDB query activation controls passed 11/11. Reused unit test bin/obj. Rece
 SurrealDB activation payload-bound build passed using existing outputs. Receipt: TestResults/ProviderBuildCurrent/cosmic-surreal-activation-bound.log.
 
 SurrealDB query-profile provisioning guard passed 11/11 offline tests. Reused existing outputs. Receipt: TestResults/ProviderBuildCurrent/cosmic-surreal-provisioning-guard.log.
+
+SurrealDB native identity validation build passed using existing outputs. Receipt: TestResults/ProviderBuildCurrent/cosmic-surreal-native-id.log.
