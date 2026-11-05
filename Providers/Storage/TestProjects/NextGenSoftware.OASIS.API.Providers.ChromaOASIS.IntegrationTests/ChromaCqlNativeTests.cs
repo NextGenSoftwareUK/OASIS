@@ -44,7 +44,6 @@ public class ChromaCqlNativeTests
         var collectionPath = collections + "/" + collectionId;
         using var rest = new HttpClient();
         var provider = new ChromaOASIS(rest, "http://127.0.0.1:18002");
-        Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
         Seed seed;
         if (!File.Exists(manifest))
         {
@@ -79,8 +78,10 @@ public class ChromaCqlNativeTests
             seed = JsonSerializer.Deserialize<Seed>(await File.ReadAllTextAsync(manifest))!;
             using var indices = await Get(collections);
             CollectionAssert.AreEquivalent(new[] { "oasis_holons", "oasis_avatars", "oasis_avatar_details" }, indices.RootElement.EnumerateArray().Select(v => v.GetProperty("name").GetString()).ToArray());
-            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
         }
+        var queryActivation = await provider.ActivateQuerySourceAsync(default);
+        Assert.IsFalse(queryActivation.IsError, queryActivation.Message + queryActivation.Exception);
+        Assert.IsTrue(provider.IsProviderActivated);
         Assert.AreEqual(3, seed.Ids.Distinct().Count());
         string SchemaHash(JsonElement value)
         {

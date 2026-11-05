@@ -646,3 +646,5 @@ Chroma read-only activation provider build passed. Generated Chroma bin/obj, rec
 Chroma unit suite passed 51/51 including read-only activation. Test bin/obj and TestResults/ProviderBuildCurrent/cosmic-chroma-activation-tests.log are generated outputs. No Chroma process or database.
 
 Chroma catalogue-filter build and unit suite passed 51/51. Reused existing outputs. Receipt: TestResults/ProviderBuildCurrent/cosmic-chroma-catalogue.log.
+
+Chroma native activation fixture compiled. Integration bin/obj and TestResults/ProviderBuildCurrent/cosmic-chroma-native-activation.log are generated outputs. No server started.
