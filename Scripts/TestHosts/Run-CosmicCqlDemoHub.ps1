@@ -1,14 +1,38 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param(
-    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','SurrealDB','CouchDB')][string]$Provider='SQLite',
+    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','SurrealDB','CouchDB','SQLServer')][string]$Provider='SQLite',
     [switch]$VerifyOnly,
     [switch]$Federated,
+    [switch]$RecoveryMongo,
     [switch]$ArchiveCompletedDemo,
     [switch]$ShowPlan
 )
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+if ($RecoveryMongo -and $Provider -ne 'SQLServer') {
+    throw 'RecoveryMongo is available for the SQL Server preset.'
+}
+if ($Provider -eq 'SQLServer') {
+    if (!$Federated -or $ArchiveCompletedDemo) {
+        throw 'SQL Server requires -Federated and preserves its demo source.'
+    }
+    $runner = Join-Path $PSScriptRoot 'Run-CosmicSqlServerCqlNative.ps1'
+    if ($ShowPlan) {
+        [pscustomobject]@{
+            Provider = $Provider
+            Mode = $(if ($VerifyOnly) {'bounded verification'} else {'interactive until explicit shutdown'})
+            Runner = $runner
+            Url = 'http://127.0.0.1:5115/'
+            Scope = 'SQL Server and Mongo content query federation over retained demo fixtures'
+            RecoveryMongo = $RecoveryMongo.IsPresent
+        }
+        return
+    }
+    & $runner -Content -Federated -RecoveryMongo:$RecoveryMongo -Serve:(!$VerifyOnly)
+    return
+}
+
 if ($Provider -in @('SurrealDB','CouchDB')) {
     if (!$Federated -or $ArchiveCompletedDemo) {
         throw "$Provider requires the Mongo-paired preset and preserves its original source. Use -Federated without -ArchiveCompletedDemo."
