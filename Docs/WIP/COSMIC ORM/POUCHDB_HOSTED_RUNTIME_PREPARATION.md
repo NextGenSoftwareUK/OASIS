@@ -86,12 +86,11 @@ failed initial HTTP run as success.
 ## Next implementation
 
 1. Add explicit query-only Core tariff and WEB4 read-profile/four-preset admission;
-   verify native CQL3/2/paging and manager/Mongo/HTTP against the owned source.
-   Process supervisor, packaging and Linux SDK qualification now pass below.
-3. Add explicit query-only Core tariff and WEB4 read-profile/four-preset admission;
-   advance the parent gitlink and manifest together. Verify native CQL3/2/paging,
-   manager/Mongo/HTTP behavior and the exact dependency/image.
-4. After the first LocalFile mount/image gate is resolved, review PouchDB source
+   advance the parent gitlink and manifest together. Process supervisor, packaging
+   and Linux SDK qualification already pass below.
+2. Verify native CQL3/2/paging and manager/Mongo/HTTP against the owned source,
+   then the full WEB4 final-stage load and exact dependency/image.
+3. After the first LocalFile mount/image gate is resolved, review PouchDB source
    placement/settings separately, then readiness and live native/federation/
    privacy/replica/browser acceptance. Local runtime proof is not hosted coverage.
 
