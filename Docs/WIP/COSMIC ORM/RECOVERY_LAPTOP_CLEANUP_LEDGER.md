@@ -685,3 +685,6 @@ selector and stdin variable writes. New CLI help verified both. Account
 check returned Unauthorized. No settings, deployment or project link changed.
 
 - IPFS live replica privacy follow-up, 4 November 2026. LocalState/COSMIC/HostedDemoRehearsalDiscovery/foreign-replica-visibility-observed.json (232 bytes), plus four foreign-refresh-053bf8e196ccdd4b journal files (6225 bytes). Existing foreign.session.dpapi rotated in place (822 bytes). Retain with the rehearsal cohort until reviewed expiry. Three exact-ID queries, zero additional avatars or saves. No installs or build outputs.
+
+- DuckDB read-only path validation build, owner cosmic-duckdb-path. Uses the existing .NET SDK and NuGet cache with provider build lease. Restore and test can regenerate bin/obj in DuckDBOASIS and DuckDBOASIS.UnitTests and their Core/Shared project references. Reuse shared outputs while builds need them. Remove only inventoried disposable outputs after the leased operation ends. No database copy or runtime install requested.
+  The leased run completed with 14 passed, zero skipped and zero failures. No separate test report was generated.

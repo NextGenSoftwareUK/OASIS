@@ -1,5 +1,6 @@
 using System;
 using System.Data.Common;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using DuckDB.NET.Data;
@@ -19,6 +20,9 @@ public partial class DuckDBOASIS : ICosmicReadOnlyQueryActivation
             if (!options.TryGetValue("access_mode", out var mode) ||
                 !string.Equals(mode?.ToString(), "READ_ONLY", StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException("DuckDB query activation requires access_mode=READ_ONLY.");
+            if (!options.TryGetValue("Data Source", out var source) ||
+                source is not string path || !Path.IsPathFullyQualified(path) || !File.Exists(path))
+                throw new InvalidOperationException("DuckDB query activation requires an existing absolute database file.");
 
             await using var connection = new DuckDBConnection(_connectionString);
             await connection.OpenAsync(cancellationToken);
