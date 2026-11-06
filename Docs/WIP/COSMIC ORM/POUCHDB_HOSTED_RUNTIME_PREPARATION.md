@@ -331,3 +331,16 @@ tariff only, with the parent manifest and gitlink advanced together.
 The recovered laptop passed all 36 existing Node runtime controls using the
 installed Node. The original three publisher inputs are still absent.
 No runtime was installed and no hosted setting or teaching record changed.
+
+### Scoped PouchDB candidate assembled
+
+Candidate `e02e1d1b` descends from the Decentraland release `d31713be`.
+Its 18 changed paths carry the previously qualified PouchDB runtime,
+provider, explicit loopback enrollment, compiler policy and test input.
+It preserves LocalFile and Decentraland registration. Candidate Core
+`534c505b` adds only the PouchDB read tariff to the preceding Core pin.
+The gitlink and manifest agree. Both refs are published on
+`work/cosmic-pouchdb-release-candidate`. The new candidate itself still
+needs image qualification, and the original three source files are still
+needed before staging settings. No Development or hosted settings changed
+for PouchDB.

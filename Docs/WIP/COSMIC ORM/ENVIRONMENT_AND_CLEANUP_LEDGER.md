@@ -5057,3 +5057,7 @@ Disk recovery: 354 generated bin/obj targets removed under lease, 6597624139 log
 6 November Decentraland isolated build 42311038805 failed CS0246 missing shared BoundedPublicKeyValueQuery. Reused existing exact helper blob; scoped candidate advanced to d31713be, Core unchanged. Temporary index removed. Reused cloud WEB4 build for exact revised ref, run 42311827689, isolated tag decentraland-candidate-d31713be. Intent and ack under Decentraland original qualification directory. No local build, image pull or live settings changes.
 
 6 November Decentraland candidate cloud build 42311827689 succeeded. Existing Git, GitHub CLI, Railway and DPAPI reused. Development advanced to d31713be, exact job 61ed6138 queued. Publication intent/ack retained under original Decentraland qualification directory. Regenerable job status in TestResults/DecentralandCqlCurrent/development-deployment.json. No local build, new instance allocation or hosted settings change.
+
+6 November PouchDB scoped candidate prep. Reuse existing Git objects, no source checkout or native runtime. Temporary indexes under TestResults/DecentralandCqlCurrent removed after composing local candidate refs. Existing PouchDB image evidence stays separate. No package installs, cloud build, deployment or settings mutation during assembly.
+
+6 November scoped PouchDB candidate assembly complete. Parent e02e1d1b and Core 534c505b published and remote verified. Temporary indexes removed, no new worktree, package, service, build or rollout. Original three source files still absent here.
