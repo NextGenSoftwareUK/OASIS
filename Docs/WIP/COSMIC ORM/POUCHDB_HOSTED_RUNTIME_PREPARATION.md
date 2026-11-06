@@ -344,3 +344,9 @@ The gitlink and manifest agree. Both refs are published on
 needs image qualification, and the original three source files are still
 needed before staging settings. No Development or hosted settings changed
 for PouchDB.
+
+The exact scoped candidate `e02e1d1b` is in the
+[isolated WEB4 image build](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42313910942).
+The candidate tag is `pouchdb-candidate-e02e1d1b`. It leaves the shared
+sandbox tag and Development deployment unchanged. The old laptop's three
+qualified source files remain necessary for hosted configuration.
