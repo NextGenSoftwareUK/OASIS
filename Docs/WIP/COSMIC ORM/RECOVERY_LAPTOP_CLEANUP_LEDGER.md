@@ -1754,6 +1754,25 @@ the native probe's existing build directory. It retained `garnet-cql-build.log`,
 receipts. The CQL 3/2/0 and write-denial tests passed. Ports 54861–54864
 were clear, Core was restored and the run directory contained only logs.
 
+The Dapr WEB4 loopback HTTP test reuses the same Garnet and sidecar fixture.
+`verify-garnet-web4.ps1` holds the shared build lease, records
+`garnet-web4-core-pin.txt` and writes `garnet-web4-build.log` in the Dapr
+qualification directory. The original run `garnet-reader-cd67cd7732ab3aa8/`
+and the no-build repository fixture verification
+`garnet-reader-798616469d951450/` each passed one HTTP test without skips.
+Both runs retained `web4.trx`, `web4.log` and compact sidecar logs. All
+owned listeners stopped, temporary credentials were removed and no database
+file remained. The original build restored Core.
+The portable version is in `Scripts/TestHosts/Run-CosmicDaprWeb4Native.ps1`
+and `Scripts/TestHosts/run-cosmic-dapr-web4-windows.py`. It accepts existing
+runtime executables and does not install dependencies.
+
+Workers KV and migrated Vercel KV admission drafts use the existing
+`HostedCloudflareKvCqlQualification/` and `HostedVercelKvCqlQualification/`
+directories. The registration and test `.cs` drafts are outside the active
+Dapr WEB4 build inputs. The protected-settings suite passed 24 tests with
+bytecode output disabled. No new runtime, credentials or hosted changes.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt

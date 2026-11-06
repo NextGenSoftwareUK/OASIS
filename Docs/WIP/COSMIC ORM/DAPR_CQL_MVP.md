@@ -64,3 +64,20 @@ were unchanged. The native CQL log SHA-256 is
 The actual Development backing store, sidecar and visitor route still require
 verification.
 [Dapr Redis component](https://docs.dapr.io/reference/components-reference/supported-state-stores/setup-redis/).
+
+The loopback HTTP acceptance passed. It runs the shipping CQL
+endpoint with the real Dapr registration, profile registry, protected public
+catalogue and prepared read execution. The fixture supplies controlled bearer
+authentication and usage authorization. The test checks exact public IDs and
+provider receipts for both the three-record and two-record requests. The
+initial run and the repository fixture runner each passed one test without
+skips. The repository runner TRX SHA-256 is
+`e93ac939be51b939ba9768498799fe229a51f5f6805eeeecfae10019eb7c8471`.
+Hosted authentication, browser verification and federation remain open.
+
+The repository runner is
+`Scripts/TestHosts/Run-CosmicDaprWeb4Native.ps1 -Daprd <exe> -Garnet <exe>`.
+It validates the pinned Dapr 1.18.9 and Garnet 2.2.5 binaries, builds under
+the shared lease, and verifies that the native HTTP test ran and passed
+without skipping. It uses synthetic loopback data and leaves compact logs
+in this checkout's qualification directory.
