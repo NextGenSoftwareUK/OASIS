@@ -26,7 +26,7 @@ zero skips. The 7,479-byte TRX SHA-256 is
 The first test project compile found two outdated legacy test
 assertions. The focused consumer passed against the same compiled
 provider after the assertions were aligned with its current enum
-metadata. WEB4 admission passed. Local federation remains open. Protected
+metadata. WEB4 admission and local federation passed. Protected
 Pinata pin management and canonical storage acceptance are separate.
 
 [Pinata gateway guidance](https://knowledge.pinata.cloud/en/articles/6297294-public-gateways-vs-dedicated-gateways) ·
@@ -54,7 +54,7 @@ The source error was unavailable in the initial client log. The failing TRX
 SHA-256 is `72bcaed7eae1e5c22fe11ad7576df4b22c992b104542530630b07c862608079c`.
 The original synthetic database and write acknowledgements are retained.
 Continuation reconciles both acknowledged records by identity and version
-before reading.
+before federating the private copies.
 
 The first read-only continuation stopped in the preliminary native
 selection with a `TaskCanceledException` while the guarded TLS connection
@@ -73,3 +73,16 @@ native 3/2 and a controlled test that requires all three independent
 reads to start before any response is released. The 8,978-byte TRX
 SHA-256 is `ea5f69d2d5063d56929caf6c73e6860db3f694fc9bd290c8f54af00ce34f2132`.
 The exact local HTTP continuation still needs its rebuilt WEB4 producer.
+
+## Local WEB4 and Mongo federation
+
+At Core `2324c21cfe680f465907e8dd1175b7229d7ef5d3`, WEB4 HTTP
+returned native 3/2, paired 5/4, foreign-private 0 and foreign public 3.
+The shared run passed three provider cases with zero skips. The
+6,208-byte TRX SHA-256 is
+`ce187305a3ebafd94bf5fd2fbe2734fb097153f258ebdc5231752f8c869bf6eb`.
+The fixture confirmed its exact owned database was absent after cleanup.
+Hosted HTTP and browser acceptance remain open.
+
+Pinata reused both acknowledged version-one saves and verified their
+identities before federation. The runner issued no repeat saves.

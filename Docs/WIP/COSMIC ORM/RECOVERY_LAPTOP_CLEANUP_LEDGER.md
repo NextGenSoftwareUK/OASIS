@@ -3522,3 +3522,14 @@ installed. The existing `LocalState/COSMIC/PushProtocolPublicCqlQualification/`
 retains the 41,744-byte admission TRX, 1,015,596-byte build log and
 889-byte producer receipt. Free space was 33,923,899,392 bytes before
 and 37,881,139,200 bytes after the lease.
+
+### Push Protocol, LayerZero v1 and Pinata local HTTP, 6 November 2026
+
+The frozen producer ran without rebuild or restore. The shared loopback
+Mongo environment removed only its three exact owned databases
+`cosmic_cql_pushprotocoloasis_http`, `cosmic_cql_layerzerooasis_http`
+and `cosmic_cql_pinataoasis_http`. Each has its own cleanup receipt.
+The owned Mongo process confirmed storage and port shutdown. Retained
+evidence under `LocalState/COSMIC/PushProtocolPublicCqlQualification/network-federation/`
+is the 6,208-byte TRX, 534-byte test log, 458,501-byte service log and
+compact process and shutdown receipts. The ENS fixture remains retained.

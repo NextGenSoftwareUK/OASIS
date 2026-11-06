@@ -37,6 +37,9 @@ using NextGenSoftware.OASIS.API.Providers.ProofOfHumanityOASIS;
 using NextGenSoftware.OASIS.API.Providers.SafeOASIS;
 using NextGenSoftware.OASIS.API.Providers.DiscordOASIS;
 using NextGenSoftware.OASIS.API.Providers.LivepeerOASIS;
+using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
+using NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS;
+using NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 using IoFile = System.IO.File;
 
@@ -100,6 +103,22 @@ public sealed class CqlReviewedPublicMongoHttpTests
     [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_NETWORK_NATIVE")]
     public Task LivepeerNativeHttp() => VerifyHttpAsync(ProviderType.LivepeerOASIS);
 
+    [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_NETWORK_NATIVE")]
+    public Task PinataNativeHttp() => VerifyHttpAsync(ProviderType.PinataOASIS);
+
+    [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_NETWORK_NATIVE")]
+    public Task PushProtocolNativeHttp() => VerifyHttpAsync(ProviderType.PushProtocolOASIS);
+
+    [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_NETWORK_NATIVE")]
+    public Task LayerZeroV1NativeHttp() => VerifyHttpAsync(ProviderType.LayerZeroOASIS);
+
+    [ReviewedPublicMongoNativeFact("COSMIC_PINATA_NATIVE_READ_CONTINUATION")]
+    public Task PinataNativeHttpContinuation()
+    {
+        Assert.Equal("owned-loopback", Environment.GetEnvironmentVariable("COSMIC_PINATA_NATIVE_READ_CONTINUATION"));
+        return VerifyHttpAsync(ProviderType.PinataOASIS, resume: true);
+    }
+
     [ReviewedPublicMongoNativeFact("CQL_ENS_OFFCHAIN_QUERY_API_KEY")]
     public Task EnsOffchainNativeHttpContinuation() => VerifyHttpAsync(ProviderType.ENSOffchainOASIS, resume: true);
 
@@ -121,6 +140,20 @@ public sealed class CqlReviewedPublicMongoHttpTests
             if (trace.EventName == "RequestStop" && trace.Payload is { Count: 1 } && trace.Payload[0] is int status)
                 Statuses?.Enqueue(status);
         }
+    }
+
+    private sealed class NativeFailureTrace : ILoggerProvider, ILogger
+    {
+        public ConcurrentQueue<string> Events { get; } = new();
+        public ILogger CreateLogger(string categoryName) => this;
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public bool IsEnabled(LogLevel logLevel) => logLevel == LogLevel.Warning;
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            if (eventId.Id == 4831) Events.Enqueue(formatter(state, null));
+        }
+        public void Dispose() { }
     }
 
     private static async Task VerifyHttpAsync(ProviderType provider, bool resume = false)
@@ -256,6 +289,8 @@ public sealed class CqlReviewedPublicMongoHttpTests
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> {
             [CqlPublicReadCatalogue.ConfigurationKey] = JsonSerializer.Serialize(new Dictionary<string, Guid[]> { [provider.ToString()] = allowed }) });
         builder.Logging.ClearProviders(); builder.WebHost.UseUrls("http://127.0.0.1:0");
+        using var failureTrace = provider == ProviderType.PinataOASIS && resume ? new NativeFailureTrace() : null;
+        if (failureTrace != null) builder.Logging.AddProvider(failureTrace);
         builder.Services.AddControllers();
         builder.Services.AddConfiguredCqlReadAccessPolicy(builder.Configuration);
         await using var app = builder.Build();
@@ -328,13 +363,18 @@ public sealed class CqlReviewedPublicMongoHttpTests
                 var requestId = Guid.NewGuid().ToString("D");
                 http.DefaultRequestHeaders.Add("Idempotency-Key", requestId);
                 statusTrace?.Statuses.Clear();
+                failureTrace?.Events.Clear();
+                var started = System.Diagnostics.Stopwatch.GetTimestamp();
                 using var response = await http.PostAsJsonAsync(route, request);
                 using var body = JsonDocument.Parse(await response.Content.ReadAsByteArrayAsync());
                 if (!response.IsSuccessStatusCode)
                 {
                     var error = body.RootElement.TryGetProperty("errorCode", out var field) ? field.GetString() : "missing";
                     var statuses = statusTrace is null ? "disabled" : string.Join(",", statusTrace.Statuses);
-                    Assert.Fail($"{name} returned HTTP {(int)response.StatusCode} ({error}) for {requestId}. Outbound HTTP status sequence: {statuses}.");
+                    var nativeFailure = failureTrace == null ? "disabled" : string.Join(", ", failureTrace.Events);
+                    var elapsed = System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds;
+                    Assert.Fail($"{name} returned HTTP {(int)response.StatusCode} ({error}) for {requestId} after {elapsed:F0} ms. " +
+                        $"Outbound HTTP status sequence: {statuses}. Native failure evidence: {nativeFailure}.");
                 }
                 var rows = body.RootElement.GetProperty("result").GetProperty("rows");
                 Assert.Equal(expected.Length, rows.GetArrayLength());
@@ -440,6 +480,29 @@ public sealed class CqlReviewedPublicMongoHttpTests
                     "0x4f4758f7167b18e1f5b3c1a7575e3eb584894dbc" };
                 return (LivepeerOrchestratorQuerySource.ForReviewedTeachingCatalogue(owner),
                     addresses.Select(address => LivepeerOrchestratorQuerySource.LogicalId(owner, address)).ToArray());
+            }
+            case ProviderType.PinataOASIS:
+            {
+                Assert.Equal("owned-loopback", Environment.GetEnvironmentVariable("COSMIC_REVIEWED_NETWORK_NATIVE"));
+                string[] blocks = { "QmP4eZj61tDxCmtb6aqSwQsrxRQAN2gwxTEXkTed9TujHh",
+                    "QmeBt6f2Dem8QnZuZ8PDRT1iuWpphmza3gP17en2ZoReYR", "Qmb733sded7TRm8U8bM4FHif89jUVKd8yQiurKCKgCLyQk" };
+                return (new PinataPublicBlockQuerySource(owner),
+                    blocks.Select(cid => PinataPublicBlockQuerySource.LogicalId(owner, cid)).ToArray());
+            }
+            case ProviderType.PushProtocolOASIS:
+            {
+                Assert.Equal("owned-loopback", Environment.GetEnvironmentVariable("COSMIC_REVIEWED_NETWORK_NATIVE"));
+                string[] channels = { "0xb88460bb2696cab9d66013a05dff29a28330689d",
+                    "0x90a48d5cf7343b08da12e067680b4c6dbfe551be", "0xdbc5936e4daae94f415c39d284f6a69c4d553f2f" };
+                return (new PushProtocolPublicChannelQuerySource(owner),
+                    channels.Select(channel => PushProtocolPublicChannelQuerySource.LogicalId(owner, channel)).ToArray());
+            }
+            case ProviderType.LayerZeroOASIS:
+            {
+                Assert.Equal("owned-loopback", Environment.GetEnvironmentVariable("COSMIC_REVIEWED_NETWORK_NATIVE"));
+                string[] networks = { "ethereum", "polygon", "arbitrum" };
+                return (new LayerZeroV1EndpointQuerySource(owner),
+                    networks.Select(network => LayerZeroV1EndpointQuerySource.LogicalId(owner, network)).ToArray());
             }
             case ProviderType.SafeOASIS:
             {

@@ -11,7 +11,7 @@ HTTPS and deployed acceptance. No provider count changed.
 
 ## Recent WEB4 preparation, 5–6 November 2026
 
-Acceptance is 113 scoped local, 60 live HTTP and 28 live browser.
+Acceptance is 116 scoped local, 60 live HTTP and 28 live browser.
 LocalFile remains first. The immutable candidate image is published and its
 actual Railway deployment, persistent mount and protected settings still
 need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
@@ -40,6 +40,12 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
 - Discord and Livepeer independently passed native CQL 3/2 and local
   WEB4/Mongo 5/4 with foreign-private 0. Hosted acceptance remains open.
   [Discord evidence](DISCORD_GUILD_CQL_MVP.md) · [Livepeer evidence](LIVEPEER_ORCHESTRATOR_CQL_MVP.md).
+- Push Protocol, LayerZero v1 and Pinata passed native CQL 3/2 and local
+  WEB4/Mongo 5/4 with foreign-private 0. Pinata reused its original
+  acknowledged saves. Hosted acceptance remains open.
+  [Push evidence](PUSH_PROTOCOL_CHANNEL_CQL_MVP.md) ·
+  [LayerZero evidence](LAYERZERO_V1_ENDPOINT_CQL_MVP.md) ·
+  [Pinata evidence](PINATA_PUBLIC_BLOCK_CQL_MVP.md).
 - The ENS Offchain local federation diagnostic captured upstream HTTP 429
   after successful public and paired reads. The two acknowledged private
   Mongo copies are retained for authenticated continuation.

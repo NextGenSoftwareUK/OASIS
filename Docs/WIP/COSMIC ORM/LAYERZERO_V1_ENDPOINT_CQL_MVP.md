@@ -30,9 +30,18 @@ At Core `2324c21cfe680f465907e8dd1175b7229d7ef5d3`, all 23 admission checks
 passed with zero skips. The 41,744-byte admission TRX SHA-256 is
 `b51d80c1903740dddf00ad219da9a9deea541cae29630dab236f0b87e069b2b2`.
 The protected publisher passed 39 settings and 21 evidence tests.
-Local federation and hosted acceptance remain open.
 This profile covers deployed v1 endpoint configuration. Its contracts
 and acceptance are separate from message delivery and LayerZero v2.
 [Published v1 deployments and ABI](https://github.com/LayerZero-Labs/endpoint-v1-solidity-examples/tree/cdc93994911829b1348f6ac18000000a43432ef1/constants) ·
 [Archived v1 endpoint source](https://github.com/LayerZero-Labs/LayerZero-v1/blob/main/contracts/Endpoint.sol) ·
 [Official v1 support update](https://layerzero.network/blog/ongoing-security-updates-3).
+
+## Local WEB4 and Mongo federation
+
+At Core `2324c21cfe680f465907e8dd1175b7229d7ef5d3`, WEB4 HTTP
+returned native 3/2, paired 5/4, foreign-private 0 and foreign public 3.
+The shared run passed three provider cases with zero skips. The
+6,208-byte TRX SHA-256 is
+`ce187305a3ebafd94bf5fd2fbe2734fb097153f258ebdc5231752f8c869bf6eb`.
+The fixture confirmed its exact owned database was absent after cleanup.
+Hosted HTTP and browser acceptance remain open.

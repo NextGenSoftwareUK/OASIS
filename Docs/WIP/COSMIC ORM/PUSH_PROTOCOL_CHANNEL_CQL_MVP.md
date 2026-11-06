@@ -23,6 +23,15 @@ At Core `2324c21cfe680f465907e8dd1175b7229d7ef5d3`, all 23 admission checks
 passed with zero skips. The 41,744-byte admission TRX SHA-256 is
 `b51d80c1903740dddf00ad219da9a9deea541cae29630dab236f0b87e069b2b2`.
 The protected publisher passed 39 settings and 21 evidence tests.
-Local federation and hosted acceptance remain open.
 [Official SDK route](https://github.com/pushchain/push-notifications-sdk/blob/bdcdb9948c8696fc691d2cd38624d75979677f58/packages/restapi/src/lib/channels/getChannel.ts) ·
 [Push Core verification documentation](https://comms.push.org/docs/notifications/push-smart-contracts/core-smart-contract/).
+
+## Local WEB4 and Mongo federation
+
+At Core `2324c21cfe680f465907e8dd1175b7229d7ef5d3`, WEB4 HTTP
+returned native 3/2, paired 5/4, foreign-private 0 and foreign public 3.
+The shared run passed three provider cases with zero skips. The
+6,208-byte TRX SHA-256 is
+`ce187305a3ebafd94bf5fd2fbe2734fb097153f258ebdc5231752f8c869bf6eb`.
+The fixture confirmed its exact owned database was absent after cleanup.
+Hosted HTTP and browser acceptance remain open.
