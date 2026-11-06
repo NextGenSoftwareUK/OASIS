@@ -612,6 +612,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             Services.Cql.CqlMilvusReadSourceRegistration.AddMilvusReadSource(services, Configuration);
             Services.Cql.CqlCloudinaryReadSourceRegistration.AddCloudinaryReadSource(services, Configuration);
             Services.Cql.CqlPgVectorReadSourceRegistration.AddPgVectorReadSource(services, Configuration);
+            Services.Cql.CqlRegistryAndObjectReadSourceRegistration.AddRegistryAndObjectReadSources(services, Configuration);
             Services.Cql.CqlLanceDbReadSourceRegistration.AddLanceDbReadSource(services, Configuration);
             Services.Cql.CqlPostgresFamilyReadSourceRegistration.AddNeonReadSource(services, Configuration);
             Services.Cql.CqlPostgresFamilyReadSourceRegistration.AddNileReadSource(services, Configuration);

@@ -32,7 +32,7 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
   [Cloudinary evidence](CLOUDINARY_CQL_MVP.md).
 - Proof of Humanity and Oracle Object Storage passed native CQL 3/2.
   The first verifies both finalized registries. The second uses three
-  documented object HEADs. WEB4 admission is in preparation.
+  documented object HEADs. Opt-in WEB4 admission passed.
   [Registry evidence](PROOF_OF_HUMANITY_PUBLIC_SOURCE_STATUS.md) ·
   [Oracle evidence](ORACLE_OBJECT_STORAGE_PUBLIC_CQL.md).
 - Appwrite passed 19 provider checks and nine WEB4 admission checks. Its

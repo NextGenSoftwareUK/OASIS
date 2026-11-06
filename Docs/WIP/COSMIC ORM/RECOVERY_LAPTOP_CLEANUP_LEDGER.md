@@ -2069,6 +2069,8 @@ passed and the eight Cloudinary tests passed again.
 The WEB4 batch passed 22 admission and regression cases with no skips.
 The shared Core checkout was restored. The exact report hashes are in
 the Cloudinary evidence note.
+Removed the two local WEB4 registration draft copies after confirming
+their SHA-256 values matched the published source files.
 
 Proof of Humanity read qualification reused the existing PowerShell,
 Nethereum DLLs in the NuGet cache and Python. It checked two public
@@ -2090,6 +2092,28 @@ Storage tests, compiled the pgvector hosted verifier and restored the
 shared Core checkout. The Oracle workspace retains `provider.trx` and
 `provider-core-pin.txt`. The Oracle log is
 `TestResults/ProviderBuildCurrent/oracle-object-storage-public-cql.log`.
+
+Proof of Humanity and Oracle Object Storage WEB4 admission reuses the
+same provider projects and lease. The runner is
+`LocalProofOfHumanityCqlQualification/verify-hosted-cql.ps1`. It stores
+`web4-core-pin.txt`, `hosted-provider.trx` and `admission.trx` there.
+The logs under `TestResults/ProviderBuildCurrent/` have the `poh-` prefix.
+All 74 offline hosted tooling tests passed.
+The four Proof of Humanity tests and 19 WEB4 admission and regression
+checks passed without skips. The shared checkout was restored. The
+local HTTP runner's `frozen-output.json` contains the exact Core, WEB4,
+MongoDB and three native provider binary hashes.
+
+The local public-source HTTP batch prepares one reusable workspace at
+`LocalState/COSMIC/ReviewedPublicMongoHttpQualification/` and uses the
+admitted MongoDB 8.2 loopback replica at `RecoveryLaptopMongo82`. It will
+verify frozen Core and WEB4 binary hashes inside the build lease before
+compiling the test consumer. The three provider directories retain the
+intent, two save receipts, HTTP summary and exact synthetic-database
+cleanup receipt. `verify-http.ps1` retains the build and TRX logs and
+the native Mongo process and shutdown records. The reviewed test source
+draft is in `LocalProofOfHumanityCqlQualification/` until the admission
+build releases. No database, runtime or image has been copied.
 
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive

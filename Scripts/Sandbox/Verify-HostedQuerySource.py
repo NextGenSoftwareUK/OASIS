@@ -27,7 +27,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -350,6 +350,15 @@ def reviewed_exact_key_source(provider, path):
     try:
         names_only = provider == "ENSOffchainOASIS"
         fields = {"Actor", "Names"} if names_only else {"Actor", "LiveIds", "DeletedId", "MissingId"}
+        public_keys = {
+            "ProofOfHumanityOASIS": ("Addresses", "CQL_PROOF_OF_HUMANITY_QUERY_SOURCE_JSON",
+                                    "proof-of-humanity-v2/cross-chain", r"0x[0-9a-f]{40}"),
+            "OracleObjectStorageOASIS": ("Keys", "CQL_ORACLE_OBJECT_STORAGE_QUERY_SOURCE_JSON",
+                                         "objectstorage.us-phoenix-1.oraclecloud.com/n/oraclebigdatadb/b/workshop-data/o",
+                                         r"bds-livelabs/[a-z0-9][a-z0-9-]{0,79}\.sh"),
+        }.get(provider)
+        if public_keys:
+            fields = {"Actor", public_keys[0]}
         if provider == "CloudinaryOASIS":
             fields = {"Actor", "Assets"}
         if provider == "PgVectorOASIS":
@@ -523,6 +532,14 @@ def reviewed_exact_key_source(provider, path):
             ids = [native_logical_id(catalogue["Actor"], provider, "res.cloudinary.com/demo/image/upload", asset)
                    for asset in assets]
             record_ids = ids
+        elif public_keys:
+            key_field, _, source_name, pattern = public_keys
+            logical_keys = catalogue[key_field]
+            if (not isinstance(logical_keys, list) or len(logical_keys) != 3
+                    or any(not isinstance(key, str) or not re.fullmatch(pattern, key) for key in logical_keys)):
+                raise ValueError("Three canonical public source keys are required.")
+            ids = [native_logical_id(catalogue["Actor"], provider, source_name, key) for key in logical_keys]
+            record_ids = ids
         else:
             ids = catalogue["LiveIds"]
             if not isinstance(ids, list) or len(ids) != 3:
@@ -651,6 +668,10 @@ def reviewed_exact_key_source(provider, path):
                                    "CQL_PGVECTOR_QUERY_DATABASE": catalogue["Database"],
                                    "CQL_PGVECTOR_QUERY_READER_USERNAME": catalogue["ReaderUsername"],
                                    "CQL_PGVECTOR_QUERY_PROBE_ID": ids[0]}
+    elif public_keys:
+        key_field, setting, _, _ = public_keys
+        source = {"owner": catalogue["Actor"], key_field.lower(): logical_keys, "probe": logical_keys[0]}
+        review["sourceBinding"] = {setting: json.dumps(source, separators=(",", ":"))}
     elif provider in ("WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS"):
         product = provider.removesuffix("OASIS").upper()
         review["sourceBinding"] = {f"CQL_{product}_QUERY_PROBE_ID": ids[0]}

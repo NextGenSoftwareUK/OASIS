@@ -25,6 +25,19 @@ def exact_key_catalogue(provider):
         first, second, third = ("8aee1458-13a7-8822-bfc3-670a6383d512", "12043da4-2792-8476-9786-7089dce330b8",
                                 "b2b331e8-2252-8910-b5bd-f56954d50e04")
         catalogue = {"Actor": actor, "Assets": ["sample.jpg", "lady.jpg", "woman.jpg"]}
+    elif provider == "ProofOfHumanityOASIS":
+        actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
+        first, second, third = ("34f0383f-8729-8509-b64b-59a39fa08dbd", "1c7b7bd9-cfc1-8266-938c-e74b622523b1",
+                                "e74b484b-7e05-8e32-98e8-5fb0c649f389")
+        catalogue = {"Actor": actor, "Addresses": ["0x16044e1063c08670f8653055a786b7cc2034d2b0",
+                                                   "0xa478095886659168e8812154fb0de39f103e74b2",
+                                                   "0xc5e9ddebb09cd64dfacab4011a0d5cedaf7c9bdb"]}
+    elif provider == "OracleObjectStorageOASIS":
+        actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
+        first, second, third = ("912fbb3f-1022-85df-bb65-8dde05c94d6d", "f7ab669f-496d-851b-a14b-5166a97011cf",
+                                "4d68cf50-9505-8de5-91bc-d149d4404145")
+        catalogue = {"Actor": actor, "Keys": ["bds-livelabs/env.sh", "bds-livelabs/download-all-hdfs-data.sh",
+                                            "bds-livelabs/download-all-objstore.sh"]}
     else:
         catalogue = {"Actor": actor, "LiveIds": [first, second, third], "DeletedId": deleted, "MissingId": missing}
     fields = {
@@ -183,6 +196,19 @@ class ExactKeyConfigurationTests(unittest.TestCase):
     def test_pgvector_candidate_binds_host_database_and_reader(self):
         self.check_candidate("PgVectorOASIS")
 
+    def test_public_registry_and_object_candidates_bind_stable_identities(self):
+        for provider, field, invalid in (("ProofOfHumanityOASIS", "Addresses", "0xA" + "0" * 39),
+                                         ("OracleObjectStorageOASIS", "Keys", "bds-livelabs/../env.sh")):
+            with self.subTest(provider=provider):
+                self.check_candidate(provider)
+                with tempfile.TemporaryDirectory() as directory:
+                    descriptor = Path(directory) / "catalogue.json"
+                    catalogue, _ = exact_key_catalogue(provider)
+                    catalogue[field][0] = invalid
+                    descriptor.write_text(json.dumps(catalogue))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                        configuration.verifier.reviewed_exact_key_source(provider, descriptor)
+
     def check_candidate(self, provider):
         partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
         baseline = {
@@ -325,7 +351,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -413,6 +439,14 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                 elif provider == "CloudinaryOASIS":
                     key, value = next(iter(review["sourceBinding"].items()))
                     self.assertEqual({"owner": actor, "assets": catalogue["Assets"], "probe": "sample.jpg"}, json.loads(value))
+                    with self.assertRaisesRegex(ValueError, "do not match"):
+                        configuration.candidate(baseline | {key: "{}"}, provider, review)
+                    baseline[key] = value
+                elif provider in ("ProofOfHumanityOASIS", "OracleObjectStorageOASIS"):
+                    field = "Addresses" if provider == "ProofOfHumanityOASIS" else "Keys"
+                    key, value = next(iter(review["sourceBinding"].items()))
+                    self.assertEqual({"owner": actor, field.lower(): catalogue[field], "probe": catalogue[field][0]},
+                                     json.loads(value))
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {key: "{}"}, provider, review)
                     baseline[key] = value

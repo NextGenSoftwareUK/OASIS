@@ -25,5 +25,9 @@ query on both public registries, with zero skips at Core
 
 The scoped source publishes the reviewed addresses, registry Booleans
 and block identities. The existing provider owns its separate identity
-operations. WEB4 enrollment and live verification remain open.
-LocalFile remains first for live rollout.
+operations. The combined opt-in WEB4 admission passed seven new profile
+checks and 12 Cloudinary and pgvector regressions at Core
+`c2a8b2303264bd159ac55d71b684c712647c6d3b`. The admission TRX SHA-256 is
+`a9d49e94de9b6223950850dbeae8df7c1dfdfb6b6d8e31140ab53689e49f3da8`.
+The public registry tests also passed again. Live verification remains
+open. LocalFile remains first for live rollout.

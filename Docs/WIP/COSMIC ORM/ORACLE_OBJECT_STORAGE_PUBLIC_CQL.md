@@ -22,5 +22,7 @@ object keys through HEAD. Eight controlled cases and one real CQL 3/2
 test passed at Core `e400afd53cef4997e8bfcabc4b34b3f84a854626`.
 The TRX SHA-256 is
 `ef955952294fb29ffa205baa95ae8c205fef7bab063ba011651e2f590c5475a5`.
-WEB4 enrollment and live verification remain open. LocalFile remains
-first for live rollout.
+The combined opt-in WEB4 admission passed seven new profile checks and
+12 Cloudinary and pgvector regressions at Core
+`c2a8b2303264bd159ac55d71b684c712647c6d3b`. Live verification remains
+open. LocalFile remains first for live rollout.
