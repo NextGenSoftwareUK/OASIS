@@ -26,3 +26,16 @@ controls passed for an absent requested parcel or absent base parcel.
 Three checks passed with zero skips. The 5,848-byte TRX SHA-256 is
 `f25f800b3680763f12460f2d2a33f635c7afbeb0bcbfd76239ea6732afd41bdf`.
 WEB4 admission, local federation and hosted acceptance remain open.
+
+### Core read admission verified
+
+Core `f182d82` allows an explicit Decentraland query tariff. The focused
+Core test passed 1/1. It accepted a read tariff with permission, rejected
+it without permission, and rejected a write tariff. The parent gitlink
+and manifest now pin that exact Core commit.
+
+The wider WEB4 test run stopped during cached restore. `Temporalio` 1.20.0
+and `NATS.Net` 3.2.0 were absent from this laptop's package cache. No WEB4
+tests or local Mongo federation were run in that attempt. Evidence is
+`TestResults/DecentralandCqlCurrent/core-admission.trx` and
+`admission-restore.log`. Hosted enrollment remains open.
