@@ -25,6 +25,7 @@ REQUIRED_SOURCE_TOKENS = {
     "DenoDeployOASIS": "CQL_DENO_KV_QUERY_READER_TOKEN",
     "AppwriteOASIS": "CQL_APPWRITE_QUERY_READER_TOKEN",
     "ConvexOASIS": "CQL_CONVEX_QUERY_READER_TOKEN",
+    "TursoOASIS": "CQL_TURSO_QUERY_READER_TOKEN",
 }
 
 
@@ -37,7 +38,7 @@ def candidate(before, provider, review):
         raise ValueError("Protected source settings do not match the reviewed teaching catalogue.")
     if provider in REQUIRED_SOURCE_TOKENS:
         token = before.get(REQUIRED_SOURCE_TOKENS[provider])
-        maximum_length = 8192 if provider == "DenoDeployOASIS" else 1024
+        maximum_length = 8192 if provider in ("DenoDeployOASIS", "TursoOASIS") else 1024
         if (not isinstance(token, str) or not 1 <= len(token) <= maximum_length
                 or any(not 33 <= ord(character) <= 126 for character in token)):
             raise ValueError("A valid protected source token is required.")

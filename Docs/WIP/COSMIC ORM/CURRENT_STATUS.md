@@ -16,6 +16,15 @@ LocalFile remains first. The immutable candidate image is published and its
 actual Railway deployment, persistent mount and protected settings still
 need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
 
+- Appwrite passed 19 provider checks and nine WEB4 admission checks. Its
+  credentialed HTTPS verifier compiled and awaits a reviewed project.
+  [Appwrite evidence](APPWRITE_CQL_MVP.md).
+- Convex passed the recreated native Windows teaching probe, 20 provider
+  checks and nine WEB4 admission checks. Its hosted verifier compiled.
+  [Convex evidence](CONVEX_CQL_MVP.md).
+- Turso passed ten provider checks, the real Linux libSQL CQL 3/2/0 and
+  private denial test, and nine WEB4 admission checks. The managed teaching
+  database still needs verification. [Turso evidence](TURSO_CQL_MVP.md).
 - ArangoDB and CockroachDB WEB4 read profiles are published on the task
   branch. Their scoped admission runs passed 11 and nine tests respectively.
   Live verification requires approved hosted teaching sources after the

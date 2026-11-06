@@ -1876,6 +1876,27 @@ digest, stops the owned server, removes the archive and fixture, and
 retains only the report and server log for seven days. No local runtime
 or database is involved.
 
+The Turso native CI job passed. Retained only the 2,088-byte report ZIP
+`LocalTursoCqlQualification/native-ci-42226352790.zip`, verified at
+SHA-256 `46d150161a871c826c3ad73ac7f051c58dda789ffd47b88193cd93d8735b8d19`.
+The archive was inspected in memory. No extract directory was created.
+The leased Turso WEB4 build uses `verify-hosted-cql.ps1` in that workspace,
+its Core pin and admission TRX, and the log
+`TestResults/ProviderBuildCurrent/turso-hosted-api-cql.log`. All 18 cases
+passed and the lease restored the original Core checkout.
+
+The Railway access recheck reused the installed CLI and existing Edge
+profile. The CLI returned Unauthorized and the dashboard showed a sign-in
+screen. No additional browser profile, credential, settings export or
+deployment was created.
+
+ENS Offchain preparation uses the existing .NET SDK. The source and test
+drafts are in `LocalState/COSMIC/LocalEnsOffchainCqlQualification/` and
+their normal projects. Three exact-name API reads returned matching public
+records. The requests retained only status summaries. The leased .NET
+test runner is prepared there. No runtime, credential or database was
+created.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt

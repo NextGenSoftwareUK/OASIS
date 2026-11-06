@@ -754,3 +754,10 @@ and hosted federation and replication verification.
 - Owner step: identify an existing dedicated Convex teaching project and its approved HTTPS site. Arrange project access to deploy the tracked teaching companion and set the dedicated reader token in the Convex deployment and protected WEB4 settings. Keep the token and deployment credentials private. No new paid resource is requested.
 - Engineering owns seeding three public roots, a tombstone and a private control, reserving one absent key, verifying the native CQL 3/2/0 and unchanged public responses, and reviewing the exact settings before WEB4 enrollment.
 - Reason: the existing Convex deployment must be approved for the standalone teaching schema and synthetic data. [Convex evidence](../COSMIC%20ORM/CONVEX_CQL_MVP.md).
+
+## Turso libSQL teaching database access - 2026-11-06
+
+- Status: ten controlled checks and one real Linux libSQL CQL check passed. Managed HTTPS acceptance remains open and follows LocalFile.
+- Owner step: identify an existing dedicated Turso libSQL teaching database and approved HTTPS origin. Arrange a database-scoped read-only token through protected `CQL_TURSO_QUERY_READER_TOKEN` settings. No new paid resource is requested.
+- Engineering owns verifying the reviewed actor, three public roots, tombstone and absent ID with the managed endpoint, then confirming WEB4 results before enrollment.
+- Reason: the local libSQL result does not identify or authorize a managed database. [Turso evidence](../COSMIC%20ORM/TURSO_CQL_MVP.md) · [Turso database token scopes](https://docs.turso.tech/api-reference/databases/create-token).

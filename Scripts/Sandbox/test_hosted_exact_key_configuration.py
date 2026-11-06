@@ -97,6 +97,9 @@ class ExactKeyConfigurationTests(unittest.TestCase):
     def test_convex_candidate_preserves_existing_providers(self):
         self.check_candidate("ConvexOASIS")
 
+    def test_turso_candidate_preserves_existing_providers(self):
+        self.check_candidate("TursoOASIS")
+
     def check_candidate(self, provider):
         partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
         baseline = {
@@ -161,6 +164,13 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                 for site in ("http://teaching.convex.site/", "https://user@teaching.convex.site/",
                              "https://teaching.convex.site/foreign", "https://127.0.0.1/"):
                     descriptor.write_text(json.dumps(catalogue | {"Site": site}))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                        configuration.verifier.reviewed_exact_key_source(provider, descriptor)
+            if provider == "TursoOASIS":
+                catalogue["Origin"] = "https://teaching.turso.io/"
+                for origin in ("http://teaching.turso.io/", "https://user@teaching.turso.io/",
+                               "https://teaching.turso.io/foreign", "https://teaching.turso.io.example/"):
+                    descriptor.write_text(json.dumps(catalogue | {"Origin": origin}))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "NetlifyBlobsOASIS":
@@ -244,7 +254,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -323,7 +333,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         with self.assertRaisesRegex(ValueError, "source token"):
                             configuration.candidate(baseline | {"CQL_DAPR_QUERY_SIDECAR_TOKEN": token}, provider, review)
                     baseline["CQL_DAPR_QUERY_SIDECAR_TOKEN"] = "fixture-token"
-                elif provider in ("CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS"):
+                elif provider in ("CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS"):
                     baseline.update(review["sourceBinding"])
                     token_key = configuration.REQUIRED_SOURCE_TOKENS[provider]
                     with self.assertRaisesRegex(ValueError, "source token"):

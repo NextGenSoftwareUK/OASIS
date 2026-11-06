@@ -27,7 +27,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -428,6 +428,12 @@ def reviewed_exact_key_source(provider, path):
             if (len(site) > 262
                     or not re.fullmatch(r"https://(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,62}/", site)):
                 raise ValueError("Unexpected Convex teaching site.")
+        if provider == "TursoOASIS":
+            fields.add("Origin")
+            origin = catalogue["Origin"]
+            if (len(origin) > 262
+                    or not re.fullmatch(r"https://(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+turso\.io/", origin)):
+                raise ValueError("Unexpected Turso teaching database origin.")
         if provider == "ScyllaDBOASIS":
             fields |= {"Ip", "Host", "CaSha256"}
             address = ipaddress.ip_address(catalogue["Ip"])
@@ -570,6 +576,9 @@ def reviewed_exact_key_source(provider, path):
     elif provider == "ConvexOASIS":
         review["sourceBinding"] = {"CQL_CONVEX_QUERY_SITE": catalogue["Site"],
                                    "CQL_CONVEX_QUERY_PROBE_ID": ids[0]}
+    elif provider == "TursoOASIS":
+        review["sourceBinding"] = {"CQL_TURSO_QUERY_ORIGIN": catalogue["Origin"],
+                                   "CQL_TURSO_QUERY_PROBE_ID": ids[0]}
     elif provider in ("WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS"):
         product = provider.removesuffix("OASIS").upper()
         review["sourceBinding"] = {f"CQL_{product}_QUERY_PROBE_ID": ids[0]}
