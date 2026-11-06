@@ -2667,3 +2667,12 @@ unchanged. The probe log SHA-256 is
 `98432b09733c612520dfa9ac7b77a777748575af04318690589a7e69245ee248`.
 The owned process exited, port 24224 closed, and the disposable store,
 configuration and certificates and keys were removed.
+
+Nile qualification reuses the existing Npgsql package cache and Git for
+Windows OpenSSL. Both official endpoint TLS checks ran without credentials
+or output files. The leased provider runner is
+`LocalState/COSMIC/HostedNileCqlQualification/verify-provider.ps1`.
+Its Core pin, build/test log and TRX use the `nile-` prefix in
+`TestResults/ProviderBuildCurrent/`. No new environment was created.
+Nile and PostgreSQL family tests passed 25 cases with zero skips. The
+shared Core checkout was restored, and the TRX hash is in the evidence note.
