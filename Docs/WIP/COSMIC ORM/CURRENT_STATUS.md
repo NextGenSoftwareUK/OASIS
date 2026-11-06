@@ -40,6 +40,12 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
   admission passed all five tests. The original Linux replication and restore evidence
   is retained. The hosted path needs a reviewed restore on the WEB4 volume.
   [Litestream evidence](LITESTREAM_CQL_MVP.md).
+- Pinecone passed 60 provider tests, 15 protected-settings tests and eight
+  WEB4 admission tests. Native and visitor verification require an approved
+  teaching index and a restricted reader. [Pinecone evidence](PINECONE_CQL_MVP.md).
+- LanceDB passed 69 provider wire tests, 16 protected-settings tests and 11
+  WEB4 admission tests. Live verification needs an approved Arrow teaching
+  source and reader. [LanceDB evidence](LANCEDB_CQL_MVP.md).
 - Weaviate uses the official pinned gRPC protocol over a guarded WEB4 channel.
   Eight provider and nine WEB4 checks passed. The approved public source
   and live visitor run are open. [Weaviate evidence](WEAVIATE_CQL_MVP.md).

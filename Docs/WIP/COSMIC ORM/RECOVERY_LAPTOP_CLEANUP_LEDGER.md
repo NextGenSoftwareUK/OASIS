@@ -2524,3 +2524,30 @@ package, account or credential was created for these drafts.
 
 Pinecone WEB4 admission passed eight tests with no skips. The Core
 checkout was restored and the exact TRX hash is in the evidence note.
+
+The LanceDB draft files moved into the WEB4 projects after Pinecone
+finished. The shared-lease runner, Core pin and eventual TRX reports are
+in `LocalState/COSMIC/HostedLanceDbCqlQualification/`. Provider and WEB4
+logs are `TestResults/ProviderBuildCurrent/lancedb-wire-provider.log`
+and `lancedb-hosted-api-cql.log`. The 16 protected-settings tests passed
+and removed their temporary files.
+LanceDB passed 69 provider wire and 11 WEB4 admission tests with zero skips.
+Both TRX hashes are in the LanceDB evidence note. The temporary
+`lancedb-settings.patch` separates LanceDB staging from the Neon changes
+and is disposable once staging succeeds.
+
+Neon uses the existing Npgsql cache and shared build lease. The provider
+runner is `LocalState/COSMIC/HostedNeonCqlQualification/verify-provider.ps1`.
+Its Core pin, log and TRX use the `neon-` prefix in
+`TestResults/ProviderBuildCurrent/`. No account or database was created.
+
+The Neon WEB4 registration and configuration tests are drafted under
+`LocalState/COSMIC/HostedNeonCqlQualification/`, outside the running
+LanceDB build. They reuse the PostgreSQL-family registration and its
+dedicated reader, TLS and probe configuration.
+
+Neon's 17 protected-settings tests passed and removed their temporary files.
+The WEB4 lease runner is `LocalState/COSMIC/HostedNeonCqlQualification/verify-hosted-cql.ps1`.
+It will retain the Core pin and admission TRX there, with its log in
+`TestResults/ProviderBuildCurrent/neon-hosted-api-cql.log`. No additional
+environment was created.

@@ -27,7 +27,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -355,6 +355,13 @@ def reviewed_exact_key_source(provider, path):
             if (len(origin) > 261 or ".svc." not in origin
                     or not re.fullmatch(r"https://(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+pinecone\.io", origin)):
                 raise ValueError("Unexpected Pinecone index origin.")
+        if provider == "LanceDBOASIS":
+            fields |= {"Origin", "Database"}
+            origin = catalogue["Origin"]
+            if (len(origin) > 261
+                    or not re.fullmatch(r"https://(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+api\.lancedb\.com", origin)
+                    or not re.fullmatch(r"[a-z][a-z0-9_-]{0,62}", catalogue["Database"])):
+                raise ValueError("Unexpected LanceDB origin or database.")
         if provider == "ScyllaDBOASIS":
             fields |= {"Ip", "Host", "CaSha256"}
             address = ipaddress.ip_address(catalogue["Ip"])
@@ -452,6 +459,10 @@ def reviewed_exact_key_source(provider, path):
     elif provider == "PineconeOASIS":
         review["sourceBinding"] = {"CQL_PINECONE_QUERY_ORIGIN": catalogue["Origin"],
                                    "CQL_PINECONE_QUERY_PROBE_ID": ids[0]}
+    elif provider == "LanceDBOASIS":
+        review["sourceBinding"] = {"CQL_LANCEDB_QUERY_ORIGIN": catalogue["Origin"],
+                                   "CQL_LANCEDB_QUERY_DATABASE": catalogue["Database"],
+                                   "CQL_LANCEDB_QUERY_PROBE_ID": ids[0]}
     elif provider in ("WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS"):
         product = provider.removesuffix("OASIS").upper()
         review["sourceBinding"] = {f"CQL_{product}_QUERY_PROBE_ID": ids[0]}

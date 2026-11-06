@@ -162,3 +162,35 @@ table remain open.
 
 All 69 provider tests passed at Core ac21b28d7c9950afdc882c708f6fdd9ea72c396b, including the public and
 private activation probes. Provider TRX SHA256 30ca9817a40b33c463dea328ee1e9b3a55d41bc1c860cc77036431491f853a43.
+
+LanceDB's Python SDK documents Enterprise API-key principals and catalog
+ACLs. The hosted gate requires evidence that the chosen principal is
+restricted to reading the teaching table and that the endpoint accepts
+the provider's Arrow query contract. The legacy Cloud key alone does
+not establish those permissions.
+[LanceDB authorization contract](https://lancedb.github.io/lancedb/python/python/#authorization).
+
+The upstream native client confirmed the bounded query needs an empty
+vector and a null version for current-record retrieval. The C# request
+and guard now use that shape, with tests rejecting a nonempty similarity
+vector or pinned version. The query route's Arrow file framing remains
+the selected response contract.
+[Upstream remote query implementation](https://github.com/lancedb/lancedb/blob/b3c1e58fe7e53092f2d23836480d1428939e52bc/rust/lancedb/src/remote/table.rs#L1366).
+
+### Development WEB4 admission candidate
+
+The protected `CQL_LANCEDB_QUERY_` settings are `ORIGIN`, `DATABASE`,
+`READER_KEY` and `PROBE_ID`. The reviewed catalogue binds the exact
+vendor endpoint, database and first live teaching UUID. WEB4 admits only
+the bounded Arrow query route for `oasis_holons`. The request guard checks
+the database header, projection, empty vector, current version and
+distinct UUID filter before sending it to the approved HTTPS endpoint.
+
+All 16 protected-settings tests and all 69 provider wire tests passed. The
+11 WEB4 admission tests passed at the same Core
+`69b81d68655e42ab090995cad541bc0703d58cf3`. Both .NET runs had zero skips.
+The provider TRX SHA-256 is
+`10643844fa8bc41f69af47a66004f768318413d813a2133ab9c92377158b57d3`.
+The WEB4 TRX SHA-256 is
+`1c75ea7e6bb7d85bf0ec8f3d36bf459a804f0ca716ace92bec6ce3cb760b98ef`.
+A reviewed hosted table, principal with read access and live proof remain open.

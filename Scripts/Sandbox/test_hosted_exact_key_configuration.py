@@ -61,6 +61,9 @@ class ExactKeyConfigurationTests(unittest.TestCase):
     def test_pinecone_candidate_preserves_existing_providers(self):
         self.check_candidate("PineconeOASIS")
 
+    def test_lancedb_candidate_preserves_existing_providers(self):
+        self.check_candidate("LanceDBOASIS")
+
     def check_candidate(self, provider):
         partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
         baseline = {
@@ -78,6 +81,12 @@ class ExactKeyConfigurationTests(unittest.TestCase):
             descriptor = Path(directory) / "catalogue.json"
             actor, first, second, third, deleted, missing = [str(uuid.UUID(int=i)) for i in range(1, 7)]
             catalogue = {"Actor": actor, "LiveIds": [first, second, third], "DeletedId": deleted, "MissingId": missing}
+            if provider == "LanceDBOASIS":
+                catalogue.update(Origin="https://teaching.api.lancedb.com", Database="oasis")
+                for invalid in ({"Origin": "https://api.lancedb.com"}, {"Database": "oasis/foreign"}):
+                    descriptor.write_text(json.dumps(catalogue | invalid))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                        configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "PineconeOASIS":
                 catalogue["Origin"] = "https://teaching.svc.pinecone.io"
                 for origin in ("https://api.pinecone.io", catalogue["Origin"] + ".invalid"):
@@ -128,7 +137,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -168,6 +177,11 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     baseline.update(CQL_PINECONE_QUERY_ORIGIN=catalogue["Origin"], CQL_PINECONE_QUERY_PROBE_ID=first)
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {"CQL_PINECONE_QUERY_ORIGIN": "https://other.svc.pinecone.io"}, provider, review)
+                elif provider == "LanceDBOASIS":
+                    baseline.update(CQL_LANCEDB_QUERY_ORIGIN=catalogue["Origin"],
+                                    CQL_LANCEDB_QUERY_DATABASE=catalogue["Database"], CQL_LANCEDB_QUERY_PROBE_ID=first)
+                    with self.assertRaisesRegex(ValueError, "do not match"):
+                        configuration.candidate(baseline | {"CQL_LANCEDB_QUERY_DATABASE": "foreign"}, provider, review)
                 else:
                     product = provider.removesuffix("OASIS").upper()
                     baseline[f"CQL_{product}_QUERY_PROBE_ID"] = first

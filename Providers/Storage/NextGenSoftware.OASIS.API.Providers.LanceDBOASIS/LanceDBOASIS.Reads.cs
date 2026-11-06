@@ -25,10 +25,11 @@ public partial class LanceDBOASIS
         if (maximumRows < 1 || maximumRows > 1000) throw new NativePayloadLimitException();
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(15));
-        var body = new Dictionary<string, object>
+        var body = new Dictionary<string, object?>
         {
             ["k"] = maximumRows + 1, ["offset"] = 0,
-            ["columns"] = new[] { "id", "doc" }, ["prefilter"] = true
+            ["columns"] = new[] { "id", "doc" }, ["prefilter"] = true,
+            ["vector"] = System.Array.Empty<float>(), ["version"] = null
         };
         if (predicate != null) body["filter"] = predicate;
         using var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/v1/table/{Uri.EscapeDataString(table)}/query/")
