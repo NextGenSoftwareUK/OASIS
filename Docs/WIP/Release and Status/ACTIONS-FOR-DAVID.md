@@ -520,6 +520,12 @@ Status: missing account/configuration information,2 November2026. David approved
 
 ## Railway access for Development WEB4 rollout from this laptop
 
+- Resolved for the recovered laptop on 2026-11-06. Its existing Railway
+  session reads Development settings and deployment metadata. Its registered
+  SSH identity verified a writable `/data` mount on the prior deployment.
+  No sign-in action is needed for this rollout. The older laptop steps below
+  are historical. [LocalFile rollout](../COSMIC%20ORM/LOCALFILE_CQL_MVP.md).
+
 - Update 2026-11-06: the old laptop's read-only Railway check returned
   Unauthorized. At that check Development was at
   `b718f287933b7e79e862edbcf7d3bc13c37ba559`. See the LocalFile runbook

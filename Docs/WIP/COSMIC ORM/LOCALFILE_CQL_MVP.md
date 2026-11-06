@@ -692,3 +692,10 @@ fast-forward and the remote ref was verified. Railway queued exact deployment
 verify the actual instance mount and the five-value candidate against the
 current hosted baseline before making any settings change. The retained
 original candidate matched the live baseline before release.
+
+The recovered laptop inspected `/proc/self/mountinfo` over Railway SSH on
+prior deployment `33c9ef7d`, instance `8d1c4040`. It found exactly one
+writable `/data` mount. The actual mount must be checked again on `ef66367e`
+after its build completes. The current publisher passed 14 tests and
+independently reconstructed the exact protected candidate. The live
+settings still matched the protected baseline.
