@@ -117,3 +117,10 @@ matched its baseline immediately before promotion. Development advanced
 by fast-forward to the verified candidate. Railway queued code deployment
 `61ed6138-45ba-4f7d-ad6e-9a39479888ef`. Follow that exact job before
 staging the four reviewed settings. No hosted values have been applied.
+
+Code deployment `61ed6138` succeeded and returned HTTP health 200. The
+shared publisher independently reproduced the protected settings, matched
+the live baseline and acknowledged all four values with deploys skipped.
+The same release was then redeployed with those settings as
+`b9cb7f79-e9f8-407c-b3ff-30f9bc9945c1`. Observe that exact job and verify
+settings before creating the deployment-scoped readiness visitor.

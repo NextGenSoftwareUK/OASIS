@@ -5063,3 +5063,5 @@ Disk recovery: 354 generated bin/obj targets removed under lease, 6597624139 log
 6 November scoped PouchDB candidate assembly complete. Parent e02e1d1b and Core 534c505b published and remote verified. Temporary indexes removed, no new worktree, package, service, build or rollout. Original three source files still absent here.
 
 6 November PouchDB scoped cloud qualification. Exact run 42313910942 for e02e1d1b, isolated tag pouchdb-candidate-e02e1d1b. Reused existing GitHub CLI and workflow. Retain small PouchDbScopedReleaseCurrent.build.intent.json and .build.ack.json in LocalState/COSMIC. No local build, download, dependency install, service or hosted mutation.
+
+6 November Decentraland code rollout 61ed6138 succeeded and health 200. Existing protected snapshots and Railway CLI reused. Four settings matched after per-key writes, with intents/acks under LocalState/COSMIC/HostedSourceRolloutCurrent. Exact settings deployment b9cb7f79 intent/ack in original Decentraland qualification directory. No local build, image pull, new service, volume or test data.
