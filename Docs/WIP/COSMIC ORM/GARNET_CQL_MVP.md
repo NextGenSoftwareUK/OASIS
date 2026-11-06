@@ -86,3 +86,36 @@ uses Lua and LuaTransactionMode; protocol compatibility alone certifies none of 
 [Historical proof](Archive/GARNET_CQL_MVP_PRESERVED_2026-10-30.md),
 [first-source failure](Archive/GARNET_CQL_PRE_GENERATION2_2026-10-29.md),
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md), [later work](AFTER_DEMO_BACKLOG.md).
+
+## WEB4 query profile preparation
+
+The opt-in WEB4 source uses CQL_GARNET_QUERY_ settings with suffixes
+ADDRESS, PORT, TLS_HOST, USERNAME, PASSWORD, STORAGE_KEY and PROBE_ID.
+Use the owned source's public TLS endpoint, existing encryption key and a
+command-restricted reader on a dedicated teaching-only instance. The probe must be the first ID
+in the reviewed public catalogue. Keep credentials in protected settings.
+The provider keeps its own encrypted key namespace and rejects a live
+record whose public flag has been removed. The shared SDK profile permits
+socket connections only to the configured address and port.
+
+The shared native test category GarnetHostedCqlNative uses the WEB4 registration with
+COSMIC_GARNET_HOSTED_CQL_SOURCE and the same protected settings. It
+checks public 3/2, paging, missing/deleted exclusion and unchanged returned
+records. The protected settings preparer validated the public catalogue
+shape and probe binding. WEB4 admission and native fixture compilation are
+running locally. The actual product still needs an approved TLS/ACL source
+before hosted visitor acceptance.
+
+The pinned Microsoft Garnet 2.2.5 Windows executable passed a loopback
+TLS 1.3 and RESP test with hostname verification, anonymous-read denial,
+an authenticated GET and write denial. This version rejected the
+key-specific ACL rule at startup and a command-restricted reader could
+GET a second synthetic key. Use a dedicated Garnet instance with only
+teaching data and a reader ACL that denies writes. The live hosted test
+must also verify that the SDK can connect with the restricted reader and
+perform the scoped CQL reads. [Pinned ACL implementation](https://github.com/microsoft/garnet/blob/8d007138208ce030eb10a50c80e636b1678b83e4/libs/server/ACL/ACLParser.cs).
+
+The shared WEB4 admission run passed 13/13 against Core
+`0561f11287d7913b235106cfc261484ae73db41c`. The native TLS fixture compiled
+with zero errors. The admission tests covered distinct authority, settings
+validation and rejecting an SDK connection to a different endpoint.

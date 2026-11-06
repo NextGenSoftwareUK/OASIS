@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -19,34 +20,50 @@ public class CqlRedisFamilyHostedConfigurationTests
     };
 
     [Fact]
-    public void EnrollmentIsOptInAndBothSourcesRetainTheirOwnAuthority()
+    public void EnrollmentIsOptInAndEachSourceRetainsItsOwnAuthority()
     {
         var services = new ServiceCollection();
         services.AddRedisFamilyReadSources(new ConfigurationBuilder().Build());
         Assert.Empty(services);
         services.AddRedisFamilyReadSources(new ConfigurationBuilder()
-            .AddInMemoryCollection(Settings("REDIS").Concat(Settings("VALKEY"))).Build());
+            .AddInMemoryCollection(new[] { "REDIS", "VALKEY", "GARNET", "KEYDB" }.SelectMany(Settings)).Build());
         using var container = services.BuildServiceProvider();
         var profiles = container.GetServices<CqlReadSourceProfile>().ToArray();
-        Assert.Equal(new[] { ProviderType.RedisOASIS, ProviderType.ValKeyOASIS },
+        Assert.Equal(new[] { ProviderType.RedisOASIS, ProviderType.ValKeyOASIS, ProviderType.GarnetOASIS, ProviderType.KeyDBOASIS },
             profiles.Select(profile => profile.Storage.ProviderType.Value).ToArray());
         Assert.All(profiles, profile => Assert.False(profile.Storage.IsProviderActivated));
     }
 
-    [Theory]
-    [InlineData("PASSWORD", null)]
-    [InlineData("ADDRESS", "127.0.0.1")]
-    [InlineData("ADDRESS", "::ffff:127.0.0.1")]
-    [InlineData("ADDRESS", "redis.example.test")]
-    [InlineData("PORT", "65536")]
-    [InlineData("TLS_HOST", "https://redis.example.test")]
-    [InlineData("USERNAME", "invalid\nuser")]
-    [InlineData("STORAGE_KEY", "invalid")]
-    [InlineData("PROBE_ID", "00000000-0000-0000-0000-000000000000")]
-    public void InvalidConfigurationRefusesEnrollment(string field, string? value)
+    [Fact]
+    public void EndpointChangesAreRejectedBeforeSocketConnect()
     {
-        var settings = Settings("VALKEY");
-        settings["CQL_VALKEY_QUERY_" + field] = value;
+        var address = IPAddress.Parse("1.1.1.1");
+        var pinned = new IPEndPoint(address, 6380);
+        CqlRedisFamilyReadSources.RequirePinnedEndpoint(pinned, new IPEndPoint(address, 6380));
+        Assert.Throws<InvalidOperationException>(() =>
+            CqlRedisFamilyReadSources.RequirePinnedEndpoint(pinned, new IPEndPoint(address, 6381)));
+        Assert.Throws<InvalidOperationException>(() =>
+            CqlRedisFamilyReadSources.RequirePinnedEndpoint(pinned, new IPEndPoint(IPAddress.Loopback, 6380)));
+        Assert.Throws<InvalidOperationException>(() =>
+            CqlRedisFamilyReadSources.RequirePinnedEndpoint(pinned, new DnsEndPoint("redis.example.test", 6380)));
+    }
+
+    [Theory]
+    [InlineData("GARNET", "PASSWORD", null)]
+    [InlineData("KEYDB", "ADDRESS", "127.0.0.1")]
+    [InlineData("VALKEY", "PASSWORD", null)]
+    [InlineData("VALKEY", "ADDRESS", "127.0.0.1")]
+    [InlineData("VALKEY", "ADDRESS", "::ffff:127.0.0.1")]
+    [InlineData("VALKEY", "ADDRESS", "redis.example.test")]
+    [InlineData("VALKEY", "PORT", "65536")]
+    [InlineData("VALKEY", "TLS_HOST", "https://redis.example.test")]
+    [InlineData("VALKEY", "USERNAME", "invalid\nuser")]
+    [InlineData("VALKEY", "STORAGE_KEY", "invalid")]
+    [InlineData("VALKEY", "PROBE_ID", "00000000-0000-0000-0000-000000000000")]
+    public void InvalidConfigurationRefusesEnrollment(string product, string field, string? value)
+    {
+        var settings = Settings(product);
+        settings[$"CQL_{product}_QUERY_" + field] = value;
         var services = new ServiceCollection();
         Assert.Throws<InvalidOperationException>(() => services.AddRedisFamilyReadSources(
             new ConfigurationBuilder().AddInMemoryCollection(Settings("REDIS").Concat(settings)).Build()));

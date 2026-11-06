@@ -23,6 +23,14 @@ public class RedisFamilyHostedCqlNativeTests
     [TestCategory("ValkeyHostedCqlNative")]
     public Task ValkeyRestrictedReaderUsesWeb4Registration() => ReadCatalogue("VALKEY", ProviderType.ValKeyOASIS);
 
+    [TestMethod]
+    [TestCategory("GarnetHostedCqlNative")]
+    public Task GarnetRestrictedReaderUsesWeb4Registration() => ReadCatalogue("GARNET", ProviderType.GarnetOASIS);
+
+    [TestMethod]
+    [TestCategory("KeyDbHostedCqlNative")]
+    public Task KeyDbRestrictedReaderUsesWeb4Registration() => ReadCatalogue("KEYDB", ProviderType.KeyDBOASIS);
+
     private static async Task ReadCatalogue(string product, ProviderType authority)
     {
         var path = Environment.GetEnvironmentVariable($"COSMIC_{product}_HOSTED_CQL_SOURCE")

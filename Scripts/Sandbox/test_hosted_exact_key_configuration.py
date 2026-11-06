@@ -23,6 +23,11 @@ class ExactKeyConfigurationTests(unittest.TestCase):
     def test_tigris_candidate_preserves_existing_providers(self):
         self.check_candidate("TigrisOASIS")
 
+    def test_redis_family_candidates_preserve_existing_providers(self):
+        for provider in ("GarnetOASIS", "KeyDBOASIS"):
+            with self.subTest(provider=provider):
+                self.check_candidate(provider)
+
     def check_candidate(self, provider):
         partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
         baseline = {
@@ -51,7 +56,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -60,7 +65,8 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {"CQL_TIGRIS_QUERY_BUCKET": "foreign"}, provider, review)
                 else:
-                    baseline["CQL_WEAVIATE_QUERY_PROBE_ID"] = first
+                    product = provider.removesuffix("OASIS").upper()
+                    baseline[f"CQL_{product}_QUERY_PROBE_ID"] = first
             after = configuration.candidate(baseline, provider, review)
             self.assertEqual({configuration.ADMISSION, configuration.GRANTS, partition},
                              {key for key, value in after.items() if baseline.get(key) != value})

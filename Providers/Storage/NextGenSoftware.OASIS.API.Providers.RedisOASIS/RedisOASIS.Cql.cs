@@ -107,6 +107,8 @@ public partial class RedisOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQu
                 if (row == null || row.Id != id || !plan.Query.ReadAccess.CanRead(row))
                     throw new InvalidDataException("Native Redis record differs from the authorized identity.");
                 if (row.IsDeleted) continue;
+                if (_queryProbeId.HasValue && !row.IsPublic)
+                    throw new InvalidDataException("Native teaching record is no longer public.");
                 row.Children = Array.Empty<IHolon>();
                 rows.Add(row);
             }

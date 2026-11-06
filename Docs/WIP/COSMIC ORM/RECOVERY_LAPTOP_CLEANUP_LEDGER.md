@@ -2112,3 +2112,48 @@ Retained logs: `TestResults/ProviderBuildCurrent/tigris-public-native-fixture.lo
 and `tigris-public-native-fixture-discovery.log` in the same directory.
 Both modes were discovered without execution. The leases restored shared
 Core to `54159614`.
+
+Garnet and KeyDB hosted preparation shares the Redis-family SDK build and
+one producer/consumer lease. No new SDK or product runtime was installed.
+Receipts use `LocalState/COSMIC/HostedGarnetKeyDbCqlQualification/`.
+Logs use `TestResults/ProviderBuildCurrent/garnet-keydb-public-profile.log`,
+`garnet-keydb-native-fixture.log`, and `garnet-keydb-hosted-api-cql.log`
+in the same directory. Four protected-settings tests passed, including
+both new products, with temporary files removed by the tests.
+
+The Redis-family provider suite passed 14/14. provider.trx SHA256:
+F91663F5E983F9F741AAFCBD7BF79A01B2BAF993AB39701F5B0ABCD52341DE40. The native fixture compiled with 35 warnings and zero errors.
+The WEB4 admission run is still in progress under the same lease.
+
+Garnet Windows native preparation uses Microsoft's v2.2.5 ready-to-run ZIP
+(26,186,101 bytes, SHA256
+`48103d4e02a90081d6050bc932227c0908947568ce1caed208e2daf095a798c3`).
+Release commit `8d007138208ce030eb10a50c80e636b1678b83e4`.
+Download and extract under
+`LocalState/COSMIC/HostedGarnetKeyDbCqlQualification/garnet-win-x64-2.2.5/`.
+Reuse that runtime for the scoped Windows test. No system service or PATH
+change is required.
+
+The Garnet ZIP matched the pinned digest. Extracted 85 files totaling
+84,250,142 bytes and removed the verified 26,186,101-byte archive.
+`runtime-receipt.json` identifies the retained executable and its SHA256.
+The disposable Windows TLS smoke test kept only its script, logs and
+`tls-acl-smoke-standalone/proof.json`. The two earlier startup logs were
+preserved. The owned process exited and the loopback port closed. Exact
+temporary certificate, private key, PFX and ACL files were removed after
+the process exited. Existing Git OpenSSL and .NET installations were reused.
+
+The Windows Garnet encrypted CQL fixture will reuse the verified Windows
+runtime and its opt-in integration project. The local launcher is
+`garnet-win-x64-2.2.5/run-encrypted-cql.py` under the qualification directory.
+It uses a new disposable loopback store and retains reports in
+`garnet-win-x64-2.2.5/encrypted-cql-native/`. Its process-scoped certificate,
+key, PFX and ACL are removed after the owned process exits. The prior TLS
+smoke proof SHA256 is
+`3BDA5205DB98568F992E862E08B281D1C91DE94EF7FC9246665D9451B8400AD9`.
+
+The Garnet and KeyDB WEB4 admission run passed 13/13. admission.trx SHA256:
+`5ABEA8030142EA3E1B0BB18F5BAAE259B1B44E58991DEAF0DFF8951A5427B4E5`.
+The WEB4 qualification lease restored shared Core to `54159614`.
+The subsequent Windows native batch build log is
+`TestResults/ProviderBuildCurrent/garnet-windows-encrypted-cql-build.log`.

@@ -33,6 +33,28 @@ public class RedisCqlTests
         CollectionAssert.AreEqual(before, store.Items.ToArray());
     }
 
+    [TestMethod]
+    public async Task PublicQueryRefusesAChangedVisibilityWithoutPublishingAnyRows()
+    {
+        var ids = new[] { Guid.NewGuid(), Guid.NewGuid() }.OrderBy(id => id.ToString("D"), StringComparer.Ordinal).ToArray();
+        var store = new RedisControlledStore();
+        using var provider = new QueryProvider(store, ids[0]);
+        await provider.StoreProbe(ids[0], new Holon { Id = ids[0], IsPublic = true });
+        await provider.StoreProbe(ids[1], new Holon { Id = ids[1], IsPublic = true });
+        Assert.IsFalse((await provider.ActivateQuerySourceAsync(default)).IsError);
+        var plan = CosmicQueryPlanner.Plan(Query(ids), ProviderType.RedisOASIS, new[]
+        {
+            new CosmicQueryTarget(ProviderType.RedisOASIS, provider.QueryCapabilities)
+        });
+        Assert.IsFalse(plan.IsError, plan.Message);
+        Assert.AreEqual(2, (await provider.ExecuteCosmicQueryAsync(plan.Result)).Result.Count);
+
+        await provider.StoreProbe(ids[1], new Holon { Id = ids[1], IsPublic = false });
+        var result = await provider.ExecuteCosmicQueryAsync(plan.Result);
+        Assert.IsTrue(result.IsError);
+        Assert.IsNull(result.Result);
+    }
+
     private sealed class QueryProvider : RedisOASIS
     {
         internal QueryProvider(RedisControlledStore store, Guid probe)

@@ -2,6 +2,7 @@ using System;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
+using StackExchange.Redis;
 using SharedRedis=NextGenSoftware.OASIS.API.Providers.RedisOASIS.RedisOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.KeyDBOASIS;
@@ -15,6 +16,8 @@ public partial class KeyDBOASIS : SharedRedis
         :this(configuration,()=>PersistedPrivateKeyValueBackend.ResolveEnvironmentKey(StorageKeyEnvironmentVariable)){}
     public KeyDBOASIS(string configuration,Func<byte[]> storageKeyResolver)
         :base(configuration,storageKeyResolver,Prefix)=>SetIdentity();
+    public KeyDBOASIS(ConfigurationOptions configuration, Func<byte[]> storageKeyResolver, Guid queryProbeId)
+        : base(configuration, storageKeyResolver, queryProbeId, Prefix) => SetIdentity();
     internal KeyDBOASIS(IKeyValueBackend backend,Func<byte[]> storageKeyResolver)
         :base(backend,storageKeyResolver,Prefix)=>SetIdentity();
     private void SetIdentity()

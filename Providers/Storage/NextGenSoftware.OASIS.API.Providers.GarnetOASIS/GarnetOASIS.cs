@@ -2,6 +2,7 @@ using System;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
+using StackExchange.Redis;
 using SharedRedis=NextGenSoftware.OASIS.API.Providers.RedisOASIS.RedisOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.GarnetOASIS;
@@ -15,6 +16,8 @@ public partial class GarnetOASIS : SharedRedis
         :this(connectionString,()=>PersistedPrivateKeyValueBackend.ResolveEnvironmentKey(StorageKeyEnvironmentVariable)){}
     public GarnetOASIS(string connectionString,Func<byte[]> storageKeyResolver)
         :base(connectionString,storageKeyResolver,Prefix)=>SetIdentity();
+    public GarnetOASIS(ConfigurationOptions configuration, Func<byte[]> storageKeyResolver, Guid queryProbeId)
+        : base(configuration, storageKeyResolver, queryProbeId, Prefix) => SetIdentity();
     internal GarnetOASIS(IKeyValueBackend backend,Func<byte[]> storageKeyResolver)
         :base(backend,storageKeyResolver,Prefix)=>SetIdentity();
     private void SetIdentity()

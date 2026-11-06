@@ -5,6 +5,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using StackExchange.Redis;
+using GarnetProvider = NextGenSoftware.OASIS.API.Providers.GarnetOASIS.GarnetOASIS;
+using KeyDbProvider = NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.KeyDBOASIS;
 using RedisProvider = NextGenSoftware.OASIS.API.Providers.RedisOASIS.RedisOASIS;
 using ValkeyProvider = NextGenSoftware.OASIS.API.Providers.ValKeyOASIS.ValKeyOASIS;
 
@@ -18,12 +20,20 @@ public static class CqlRedisFamilyReadSources
     {
         var redis = ReadSettings(configuration, "REDIS");
         var valkey = ReadSettings(configuration, "VALKEY");
+        var garnet = ReadSettings(configuration, "GARNET");
+        var keyDb = ReadSettings(configuration, "KEYDB");
         if (redis != null)
             services.AddSingleton<CqlReadSourceProfile>(_ => new CqlReadSourceProfile(new RedisProvider(
                 redis.Connection, redis.ResolveStorageKey, redis.Probe)));
         if (valkey != null)
             services.AddSingleton<CqlReadSourceProfile>(_ => new CqlReadSourceProfile(new ValkeyProvider(
                 valkey.Connection, valkey.ResolveStorageKey, valkey.Probe)));
+        if (garnet != null)
+            services.AddSingleton<CqlReadSourceProfile>(_ => new CqlReadSourceProfile(new GarnetProvider(
+                garnet.Connection, garnet.ResolveStorageKey, garnet.Probe)));
+        if (keyDb != null)
+            services.AddSingleton<CqlReadSourceProfile>(_ => new CqlReadSourceProfile(new KeyDbProvider(
+                keyDb.Connection, keyDb.ResolveStorageKey, keyDb.Probe)));
     }
 
     private sealed class Source(ConfigurationOptions connection, string encodedKey, Guid probe)
@@ -53,12 +63,20 @@ public static class CqlRedisFamilyReadSources
             throw new InvalidOperationException(provider + " CQL requires the source's existing canonical 32-byte encryption key.");
         if (!Guid.TryParseExact(values[6], "D", out var probe) || probe == Guid.Empty)
             throw new InvalidOperationException(provider + " CQL requires an existing public teaching probe.");
+        var endpoint = new IPEndPoint(address, port);
         var options = new ConfigurationOptions
         {
             Ssl = true, SslHost = values[2], User = values[3], Password = values[4],
-            AllowAdmin = false, TieBreaker = "", DefaultDatabase = 0
+            AllowAdmin = false, TieBreaker = "", DefaultDatabase = 0,
+            BeforeSocketConnect = (destination, _, _) => RequirePinnedEndpoint(endpoint, destination)
         };
-        options.EndPoints.Add(address, port);
+        options.EndPoints.Add(endpoint);
         return new Source(options, values[5], probe);
+    }
+
+    internal static void RequirePinnedEndpoint(IPEndPoint expected, EndPoint destination)
+    {
+        if (!expected.Equals(destination))
+            throw new InvalidOperationException("The query SDK attempted to connect outside the configured endpoint.");
     }
 }
