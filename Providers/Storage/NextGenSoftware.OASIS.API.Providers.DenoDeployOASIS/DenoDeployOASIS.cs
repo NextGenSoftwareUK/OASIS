@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS
         /// <param name="accessToken">A Deno Deploy access token with access to the database.</param>
         /// <param name="databaseId">The Deno KV database id (shown in the Deno Deploy dashboard).</param>
         public DenoDeployOASIS(string accessToken, string databaseId)
-            : this(new DenoKvConnectBackend($"https://api.deno.com/databases/{RequireId(databaseId)}/connect", accessToken, null))
+            : this(new DenoKvConnectBackend(BuildConnectUrl(databaseId), accessToken, null))
         {
         }
 
@@ -47,6 +47,9 @@ namespace NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS
 
         private static string RequireId(string databaseId)
             => string.IsNullOrWhiteSpace(databaseId) ? throw new ArgumentException("A Deno KV database id is required.", nameof(databaseId)) : Uri.EscapeDataString(databaseId);
+
+        internal static string BuildConnectUrl(string databaseId) =>
+            $"https://api.deno.com/v2/databases/{RequireId(databaseId)}/connect";
     }
 
     internal sealed class DenoKvConnectBackend : IKeyValueBackend, IDisposable
@@ -185,7 +188,10 @@ namespace NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS
                     .FirstOrDefault(e => e.GetProperty("consistency").GetString() == "strong");
                 if (endpoint.ValueKind == JsonValueKind.Undefined) throw new HttpRequestException("Deno KV returned no strongly consistent endpoint.");
 
-                _metadata = new Metadata(version, root.GetProperty("uuid").GetString(), endpoint.GetProperty("url").GetString().TrimEnd('/'),
+                var endpointUrl = endpoint.GetProperty("url").GetString();
+                if (version >= 2)
+                    endpointUrl = new Uri(response.RequestMessage?.RequestUri ?? new Uri(_connectUrl), endpointUrl).AbsoluteUri;
+                _metadata = new Metadata(version, root.GetProperty("uuid").GetString(), endpointUrl.TrimEnd('/'),
                     root.GetProperty("token").GetString(), root.GetProperty("expiresAt").GetDateTimeOffset());
                 return _metadata;
             }

@@ -209,7 +209,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests
         {
             _service = new FakeService((req, body) =>
             {
-                if (req.RequestUri.AbsolutePath == "/databases/db-1/connect")
+                if (req.RequestUri.AbsolutePath == "/v2/databases/db-1/connect")
                 {
                     _metadataCalls++;
                     Assert.AreEqual("deploy-token", req.Headers.Authorization.Parameter);
@@ -217,19 +217,19 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests
                     return FakeService.Json(new
                     {
                         version = 2, uuid = "uuid-1", token = "data-token", expiresAt = DateTimeOffset.UtcNow.AddHours(1),
-                        endpoints = new[] { new { url = "https://kv.example/eventual", consistency = "eventual" }, new { url = "https://kv.example/strong", consistency = "strong" } }
+                        endpoints = new[] { new { url = "https://kv.example/eventual", consistency = "eventual" }, new { url = "../strong", consistency = "strong" } }
                     });
                 }
 
-                Assert.AreEqual("kv.example", req.RequestUri.Host);
-                Assert.IsTrue(req.RequestUri.AbsolutePath.StartsWith("/strong/"), "data path must use the strong endpoint");
+                Assert.AreEqual("api.deno.com", req.RequestUri.Host);
+                Assert.IsTrue(req.RequestUri.AbsolutePath.StartsWith("/v2/databases/strong/"), "data path must resolve the relative strong endpoint");
                 Assert.AreEqual("data-token", req.Headers.Authorization.Parameter);
                 Assert.AreEqual("2", req.Headers.GetValues("x-denokv-version").Single());
                 Assert.AreEqual("uuid-1", req.Headers.GetValues("x-denokv-database-id").Single());
                 Assert.AreEqual("application/x-protobuf", req.Content.Headers.ContentType.MediaType);
                 var bytes = req.Content.ReadAsByteArrayAsync().Result;
 
-                if (req.RequestUri.AbsolutePath == "/strong/atomic_write")
+                if (req.RequestUri.AbsolutePath == "/v2/databases/strong/atomic_write")
                 {
                     var write = DenoDeployOASIS.Datapath.AtomicWrite.Parser.ParseFrom(bytes);
                     foreach (var m in write.Mutations)
@@ -254,7 +254,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests
                 }
                 return Proto(output);
             });
-            _provider = new DenoDeployOASIS.DenoDeployOASIS(new DenoKvConnectBackend("https://api.deno.com/databases/db-1/connect", "deploy-token", _service));
+            var connectUrl = DenoDeployOASIS.DenoDeployOASIS.BuildConnectUrl("db-1");
+            _provider = new DenoDeployOASIS.DenoDeployOASIS(new DenoKvConnectBackend(connectUrl, "deploy-token", _service));
         }
 
         private static HttpResponseMessage Proto(Google.Protobuf.IMessage message)

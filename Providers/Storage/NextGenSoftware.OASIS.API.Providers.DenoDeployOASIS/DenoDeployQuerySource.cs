@@ -36,7 +36,7 @@ public sealed class DenoDeployQuerySource : DenoDeployOASIS, ICosmicQueryStorage
             reviewedEndpoint.Query.Length != 0 || reviewedEndpoint.Fragment.Length != 0)
             throw new ArgumentException("A reviewed Deno KV database, HTTPS endpoint, reader and existing teaching probe are required.");
 
-        var connectUrl = $"https://api.deno.com/v2/databases/{databaseId:D}/connect";
+        var connectUrl = BuildConnectUrl(databaseId.ToString("D"));
         return new DenoKvConnectBackend(connectUrl, readerToken, handler, reviewedEndpoint, databaseId);
     }
 

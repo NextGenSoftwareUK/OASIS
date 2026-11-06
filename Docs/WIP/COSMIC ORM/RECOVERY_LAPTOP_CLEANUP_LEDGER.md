@@ -1670,6 +1670,18 @@ in `LocalState/COSMIC/HostedFastlyCqlQualification/native-ffa6ad11c9494141b431b5
 The probe reuses `bin/Debug/net10.0` and `obj` under the same qualification
 directory. No new runtime, account, credential or hosted store was used.
 
+Deno KV native verifier build-only runs retained `build.log` and `core-pin.txt`
+in `native-9a0bed03dd114ad3acbad62781caf13f/` and
+`native-bfd080d37f324501b79e897aabcb99e7/` under
+`LocalState/COSMIC/HostedDenoKvCqlQualification/`. The final run compiled
+the current managed connector and restored the existing Core checkout.
+Both runs reused `bin/Debug/net10.0` and `obj` in that qualification
+directory. `provider-0be4bcd09.trx` retains the first test receipt separately
+from the updated `TestResults/ProviderBuildCurrent/deno-kv-provider.trx`.
+No new runtime or account was used. A subsequent C: reading of one free
+byte was transient. The Windows volume API and PowerShell agreed on 41.6 GB
+free, and no files were removed in response.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt

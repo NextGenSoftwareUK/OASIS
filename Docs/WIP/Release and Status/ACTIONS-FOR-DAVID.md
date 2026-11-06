@@ -719,3 +719,10 @@ and hosted federation and replication verification.
 - Owner step: identify an existing dedicated Fastly teaching account and store. Review whether a read-only token can access the KV item route within the approved account boundary. Fastly notes that service restrictions do not constrain non-service endpoints, so service restriction alone is insufficient. If the boundary is approved, arrange the token through the protected `CQL_FASTLY_QUERY_READER_TOKEN` setting.
 - The reviewed catalogue requires three public live roots, one deleted record and one absent ID under the declared actor. Use a live root as the probe. No new paid resource is requested.
 - Reason: native 3/2/0 and unchanged item generation checks precede Development enrollment. [Fastly evidence](../COSMIC%20ORM/FASTLY_KV_CQL_MVP.md) · [Token scopes](https://www.fastly.com/documentation/reference/api/auth-tokens/user/).
+
+## Deno KV managed teaching database access - 2026-11-06
+
+- Status: 11 bounded CQL profile checks passed and the native verifier compiled. The current managed connector returned HTTP 401 to the unauthenticated probe. No credentialed request has run.
+- Owner step: identify an existing dedicated managed Deno KV teaching database in Deno Deploy and its database UUID. Confirm the allowed scope of the personal or organization credential before placing an approved token in `CQL_DENO_KV_QUERY_READER_TOKEN` through protected settings. Deno's guide documents credential types, so the actual privileges still need review.
+- The catalogue needs three public live roots, one deleted record and one absent ID under the declared actor. Engineering owns confirming the strong data endpoint, exact probe, native counts and protected WEB4 admission. No new paid resource is requested.
+- Reason: credentialed native proof is required before Development enrollment. [Deno KV evidence](../COSMIC%20ORM/DENO_KV_CQL_MVP.md) · [Managed connection guide](https://docs.deno.com/deploy/reference/deno_kv/#connect-from-outside-deno-deploy).
