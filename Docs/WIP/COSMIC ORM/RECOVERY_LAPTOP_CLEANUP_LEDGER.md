@@ -3335,3 +3335,8 @@ Temporal's pinned CLI 1.10.0 server and .NET SDK restore run only on the
 disposable Linux CI runner. The laptop queried the public image manifest
 in memory. No Temporal image, CLI, package, worker or database was
 downloaded or started on this laptop.
+
+The passing Temporal run retained a 1,686-byte artifact on GitHub.
+Its three test workflows were terminated and the runner removed its
+owned container and volumes. No Temporal runtime or output was
+downloaded to the laptop.

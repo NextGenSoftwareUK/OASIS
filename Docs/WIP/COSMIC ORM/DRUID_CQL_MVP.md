@@ -60,3 +60,6 @@ WEB4 TRX SHA-256
 `e9292152d178c976b5f28fe4d8915fc5368fb9a15165ba4f0bc1ed0f93f7150f`.
 All 36 protected exact-key configuration tests passed.
 [Apache Druid authorization](https://druid.apache.org/docs/latest/operations/security-user-auth/).
+
+The Linux 3/2/0 test also passed after adding the protected reader path.
+[Native regression run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42264837608).

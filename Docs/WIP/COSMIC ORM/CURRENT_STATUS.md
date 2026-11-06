@@ -31,6 +31,9 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
 - Apache Pinot 1.6.0 passed native exact-key CQL 3/2/0 on the Linux
   runner. WEB4 admission and federation remain open.
   [Pinot evidence](PINOT_CQL_MVP.md).
+- Temporal passed official SDK exact workflow-run CQL 3/2/0 on the
+  Linux runner. WEB4 admission and federation remain open.
+  [Temporal evidence](TEMPORAL_CQL_MVP.md).
 - The ENS Offchain local federation diagnostic captured upstream HTTP 429
   after successful public and paired reads. The two acknowledged private
   Mongo copies are retained for authenticated continuation.
