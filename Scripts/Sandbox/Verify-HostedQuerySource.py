@@ -27,7 +27,29 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "TenderlyOASIS", "QuickNodeOASIS",
+)
+FIXED_PUBLIC_CATALOGUES = {
+    "DiscordOASIS": (
+        "CQL_DISCORD_PUBLIC_GUILD_QUERY_SOURCE_OWNER", "discord-public-guild",
+        ("267624335836053506", "1235157165589794909", "212250894228652034"),
+    ),
+    "LivepeerOASIS": (
+        "CQL_LIVEPEER_ORCHESTRATOR_QUERY_SOURCE_OWNER", "livepeer-bonding-manager/arbitrum-one",
+        ("0x525419ff5707190389bfb5c87c375d710f5fcb0e", "0xac2e50c8f7ac0f82923a7df9d9903f6ec4741919",
+         "0x4f4758f7167b18e1f5b3c1a7575e3eb584894dbc"),
+    ),
+}
+POLYGON_GATEWAY_CATALOGUES = {
+    "TenderlyOASIS": ("CQL_TENDERLY_POLYGON_QUERY_SOURCE_OWNER", "tenderlypolygon-public-accounts:0x89",
+                     "TenderlyPolygonAccountAddress"),
+    "QuickNodeOASIS": ("CQL_QUICKNODE_POLYGON_QUERY_SOURCE_OWNER", "quicknodepolygon-public-accounts:0x89",
+                       "QuickNodePolygonAccountAddress"),
+}
+POLYGON_GATEWAY_KEYS = (
+    "0x0000000000000000000000000000000000000000",
+    "0x000000000000000000000000000000000000dead",
+    "0x0000000000000000000000000000000000001010",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -165,10 +187,12 @@ def ready_source(provider, token, require_pair):
         raise RuntimeError(f"{provider} is missing required hosted query presets.")
     return source
 
-def require_native_rows(response, example, count):
+def require_native_rows(response, example, count, public_ids=None):
     rows = response["result"]["rows"]
     if len(rows) != count:
         raise RuntimeError("Native source selection count differs.")
+    if public_ids is not None and {row.get("id") for row in rows} != set(public_ids[:count]):
+        raise RuntimeError("Native source row IDs differ from the reviewed public authority.")
     filters = example["request"].get("filters", [])
     if len(filters) == 1:
         predicate = filters[0]
@@ -185,6 +209,10 @@ def require_native_rows(response, example, count):
             actual = {(row.get("metadata") or {}).get(key) for row in rows}
             if len(expected) != count or actual != expected:
                 raise RuntimeError("Native source metadata keys differ from the reviewed preset.")
+            if public_ids is not None:
+                expected_ids = dict(zip(predicate["value"], public_ids[:count]))
+                if any(row.get("id") != expected_ids[(row.get("metadata") or {}).get(key)] for row in rows):
+                    raise RuntimeError("Native source row identities differ from their reviewed metadata keys.")
 
 
 def normalized_preset_request(request, paired):
@@ -349,6 +377,8 @@ def reviewed_exact_key_source(provider, path):
     catalogue = json.loads(path.read_bytes())
     try:
         names_only = provider == "ENSOffchainOASIS"
+        fixed_public = FIXED_PUBLIC_CATALOGUES.get(provider)
+        polygon_gateway = POLYGON_GATEWAY_CATALOGUES.get(provider)
         fields = {"Actor", "Names"} if names_only else {"Actor", "LiveIds", "DeletedId", "MissingId"}
         public_keys = {
             "SafeOASIS": ("Networks", "CQL_SAFE_INDEXING_QUERY_SOURCE_JSON",
@@ -359,7 +389,9 @@ def reviewed_exact_key_source(provider, path):
                                          "objectstorage.us-phoenix-1.oraclecloud.com/n/oraclebigdatadb/b/workshop-data/o",
                                          r"bds-livelabs/[a-z0-9][a-z0-9-]{0,79}\.sh"),
         }.get(provider)
-        if public_keys:
+        if fixed_public or polygon_gateway:
+            fields = {"Actor"}
+        elif public_keys:
             fields = {"Actor", public_keys[0]}
         if provider == "CloudinaryOASIS":
             fields = {"Actor", "Assets"}
@@ -525,7 +557,15 @@ def reviewed_exact_key_source(provider, path):
             raise ValueError("Unexpected Tigris source address.")
         if set(catalogue) != fields:
             raise ValueError("Unexpected teaching catalogue shape.")
-        if names_only:
+        if polygon_gateway:
+            _, namespace, _ = polygon_gateway
+            ids = [native_logical_id(catalogue["Actor"], provider, namespace, key) for key in POLYGON_GATEWAY_KEYS]
+            record_ids = ids
+        elif fixed_public:
+            _, namespace, keys = fixed_public
+            ids = [native_logical_id(catalogue["Actor"], provider, namespace, key) for key in keys]
+            record_ids = ids
+        elif names_only:
             names = catalogue["Names"]
             if (not isinstance(names, list) or len(names) != 3
                     or any(not isinstance(name, str) or len(name) > 253
@@ -587,13 +627,17 @@ def reviewed_exact_key_source(provider, path):
         raise RuntimeError("The reviewed teaching catalogue requires canonical, distinct record identities"
                            " and any provider-specific original receipts.") from error
     presets = []
-    for suffix, selected in (("records", ids), ("subset", ids[:2])):
-        selection = {"orderBy": "None", "take": 25, "includeMetadata": True,
-                     "filters": [{"field": "Id", "scalar": "Guid", "operator": "In", "value": selected}]}
+    for suffix, count in (("records", 3), ("subset", 2)):
+        if polygon_gateway:
+            predicate = {"metadataPath": [polygon_gateway[2]], "scalar": "String", "operator": "In",
+                         "value": list(POLYGON_GATEWAY_KEYS[:count])}
+        else:
+            predicate = {"field": "Id", "scalar": "Guid", "operator": "In", "value": ids[:count]}
+        selection = {"orderBy": "None", "take": 25, "includeMetadata": True, "filters": [predicate]}
         presets.extend([
-            {"id": "public-" + suffix, "label": f"{provider} public teaching records ({len(selected)})",
+            {"id": "public-" + suffix, "label": f"{provider} public teaching records ({count})",
              "request": dict(selection, provider=provider, maximumDurationMilliseconds=30000)},
-            {"id": "mongo-public-" + suffix, "label": f"MongoDB + {provider} ({len(selected)} source records)",
+            {"id": "mongo-public-" + suffix, "label": f"MongoDB + {provider} ({count} source records)",
              "operation": "Federation", "request": {
                 "scope": "Named", "providers": ["MongoDBOASIS", provider], "source": selection,
                 "identityMode": "PreserveCopies", "maximumProviderAttempts": 2,
@@ -677,6 +721,12 @@ def reviewed_exact_key_source(provider, path):
     elif provider == "TursoOASIS":
         review["sourceBinding"] = {"CQL_TURSO_QUERY_ORIGIN": catalogue["Origin"],
                                    "CQL_TURSO_QUERY_PROBE_ID": ids[0]}
+    elif fixed_public or polygon_gateway:
+        setting, _, _ = fixed_public or polygon_gateway
+        review["sourceBinding"] = {setting: catalogue["Actor"]}
+        if polygon_gateway:
+            review["publicIds"] = ids
+            review["requiredQueryableMetadataKey"] = polygon_gateway[2]
     elif provider == "TemporalOASIS":
         source = {"owner": catalogue["Actor"], "namespace": namespace,
                   "runs": [{"workflowId": run["WorkflowId"], "runId": run["RunId"]} for run in runs],
@@ -714,11 +764,11 @@ def reviewed_exact_key_source(provider, path):
     return review
 
 
-def require_native_selection(responses, examples):
+def require_native_selection(responses, examples, public_ids=None):
     if len(responses) != 2 or len(examples) != 2:
         raise RuntimeError("Two native source selections are required.")
     for response, example, count in zip(responses, examples, (3, 2)):
-        require_native_rows(response, example, count)
+        require_native_rows(response, example, count, public_ids)
 
 
 def verify_private_visibility(token, ids, providers):
@@ -893,13 +943,13 @@ def main():
         original = json.loads((state / continuation_folder / "original-native-http.json").read_text(encoding="utf-8-sig"))
         if original["avatar"]["id"] != avatar["id"] or original["source"]["provider"] != options.provider:
             raise RuntimeError("Original native proof belongs to a different cohort.")
-        require_native_selection(original["native"], leaf)
+        require_native_selection(original["native"], leaf, (reviewed_source or {}).get("publicIds"))
     else:
         native = []
         for row in leaf:
             evidence = results / (suffix + "-" + row["id"] + "-native-observation.json")
             native.append(call("data/query-cql", token, row["request"], evidence_path=evidence))
-        require_native_selection(native, leaf)
+        require_native_selection(native, leaf, (reviewed_source or {}).get("publicIds"))
         verification.write(results / (suffix + "-native-http.json"),
                            {"avatar": avatar, "source": source, "native": native, "browserAcceptance": False})
     if options.prepare:
@@ -928,7 +978,7 @@ def main():
         if reviewed_localfile is not None and foreign["id"] == avatar["id"]:
             raise RuntimeError("LocalFile privacy proof requires two distinct visitor identities.")
         public = call("data/query-cql", foreign_token, leaf[0]["request"])
-        require_native_rows(public, leaf[0], 3)
+        require_native_rows(public, leaf[0], 3, (reviewed_source or {}).get("publicIds"))
         private = verify_private_visibility(foreign_token, proof["ids"],
                                             ["MongoDBOASIS", *proof["replicas"]])
         isolation = results / (suffix + "-isolation-http.json")

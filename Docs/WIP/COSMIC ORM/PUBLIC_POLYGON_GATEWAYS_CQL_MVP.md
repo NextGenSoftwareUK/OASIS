@@ -59,3 +59,12 @@ controlled test admission layer. The 4,655-byte TRX SHA-256 is
 Both owned Mongo fixture databases were verified absent after exact
 cleanup. The local service reported WiredTiger shutdown and port 27029
 closed. Development HTTP and browser acceptance follow LocalFile.
+
+## Reviewed rollout settings
+
+The protected settings preparer and hosted verifier accept the reviewed
+gateway descriptor with a single `Actor` field. The verifier derives
+the gateway-specific logical IDs separately from the address-set presets,
+and checks each returned address is paired with its reviewed logical ID.
+Settings preparation checks the exact queryable-key list if encryption is
+enabled. The 39 settings and 21 response-evidence checks passed locally.

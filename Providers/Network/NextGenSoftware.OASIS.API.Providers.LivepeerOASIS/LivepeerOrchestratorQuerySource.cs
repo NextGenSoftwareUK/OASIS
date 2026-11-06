@@ -30,6 +30,9 @@ public sealed class LivepeerOrchestratorQuerySource : KeyValueStorageProviderBas
     private readonly OrchestratorBackend backend;
     private readonly string probe;
 
+    public static LivepeerOrchestratorQuerySource ForReviewedTeachingCatalogue(Guid owner) =>
+        new(owner, Reviewed, "0x525419ff5707190389bfb5c87c375d710f5fcb0e");
+
     public LivepeerOrchestratorQuerySource(Guid owner, IEnumerable<string> addresses, string probe)
         : this(CreateBackend(owner, addresses, probe, null), probe) { }
 
@@ -78,7 +81,7 @@ public sealed class LivepeerOrchestratorQuerySource : KeyValueStorageProviderBas
             deadline.CancelAfter(TimeSpan.FromSeconds(20));
             await backend.VerifyChainAsync(deadline.Token);
             await backend.ReadAsync(new[] { probe }, deadline.Token);
-            cancellationToken.ThrowIfCancellationRequested();
+            deadline.Token.ThrowIfCancellationRequested();
             IsProviderActivated = true;
             return new(true);
         }
@@ -92,7 +95,7 @@ public sealed class LivepeerOrchestratorQuerySource : KeyValueStorageProviderBas
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
     {
-        OASISResult<IReadOnlyList<IHolon>> Error(string code, string message, Exception? error = null) =>
+        OASISResult<IReadOnlyList<IHolon>> Error(string? code, string message, Exception? error = null) =>
             Failure<IReadOnlyList<IHolon>>(code, message, error);
 
         try
@@ -126,7 +129,7 @@ public sealed class LivepeerOrchestratorQuerySource : KeyValueStorageProviderBas
         }
     }
 
-    private static OASISResult<T> Failure<T>(string code, string message, Exception? error) =>
+    private static OASISResult<T> Failure<T>(string? code, string message, Exception? error) =>
         new() { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message, Exception = error };
 
     public void Dispose()

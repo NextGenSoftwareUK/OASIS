@@ -41,8 +41,16 @@ REQUIRED_SOURCE_TOKENS = {
 def candidate(before, provider, review):
     if provider not in verifier.REVIEWED_EXACT_KEY_PROVIDERS:
         raise ValueError("An explicitly prepared provider is required.")
-    if json.loads(before["OASIS_DNA_JSON"])["OASIS"]["Sandbox"]["Enabled"] is not True:
+    dna = json.loads(before["OASIS_DNA_JSON"])["OASIS"]
+    if dna["Sandbox"]["Enabled"] is not True:
         raise ValueError("An enabled WEB4 sandbox baseline is required.")
+    metadata_key = review.get("requiredQueryableMetadataKey")
+    encryption = (dna.get("Security") or {}).get("HolonDataEncryption") or {}
+    queryable_keys = encryption.get("AdditionalQueryableKeys")
+    if (metadata_key is not None
+            and (encryption.get("Rijndael256EncryptionEnabled") is True or encryption.get("QuantumEncryptionEnabled") is True)
+            and (not isinstance(queryable_keys, list) or metadata_key not in queryable_keys)):
+        raise ValueError("The encrypted Mongo metadata key must be explicitly queryable.")
     if any(before.get(key) != value for key, value in review.get("sourceBinding", {}).items()):
         raise ValueError("Protected source settings do not match the reviewed teaching catalogue.")
     if provider in REQUIRED_SOURCE_TOKENS:
@@ -73,7 +81,7 @@ def candidate(before, provider, review):
     full = next(row for row in presets if row["id"] == "public-records")
     admission["queryOnlyProviders"].append(provider)
     admission["queryTariffs"].append(dict(free[0], provider=provider))
-    grants[provider] = full["request"]["filters"][0]["value"]
+    grants[provider] = review["publicIds"] if metadata_key is not None else full["request"]["filters"][0]["value"]
     updates = {ADMISSION: configuration.compact(admission), GRANTS: configuration.compact(grants),
                partition: configuration.compact(presets)}
     if any(len(value.encode()) > 32768 for value in updates.values()):

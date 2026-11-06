@@ -20,6 +20,21 @@ def exact_key_catalogue(provider):
         first, second, third = ("2d8b5e78-3137-8c0d-ba70-bdaa880dcdad", "e29d23d8-4c2c-8e0a-9fde-5b92d31135c0",
                                 "ffab761f-bf16-8e02-88e4-1e8a7b6cccd9")
         catalogue = {"Actor": actor, "Names": ["vitalik.eth", "nick.eth", "luc.eth"]}
+    elif provider in ("DiscordOASIS", "LivepeerOASIS"):
+        actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
+        fixed_ids = {
+            "DiscordOASIS": ("ca36c2c9-350d-8603-ab00-1c8e1f2a9d4f", "d5c8ecfd-cc3e-8ec7-9697-0e2ea2c96ab2",
+                             "9b9fe5bf-0664-8175-a1d7-4da37799db4f"),
+            "LivepeerOASIS": ("083bc10d-dcca-860f-ae09-71c4d986966c", "64a23e52-84b0-8115-a142-3ba828e40a40",
+                              "292de706-63f2-8d28-b209-cf7e0fb55534"),
+        }
+        first, second, third = fixed_ids[provider]
+        catalogue = {"Actor": actor}
+    elif provider in ("TenderlyOASIS", "QuickNodeOASIS"):
+        first, second, third = ("0x0000000000000000000000000000000000000000",
+                                "0x000000000000000000000000000000000000dead",
+                                "0x0000000000000000000000000000000000001010")
+        catalogue = {"Actor": actor}
     elif provider == "TemporalOASIS":
         actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
         first, second, third = ("6bef46ce-5f1e-8506-93fe-40f019780879", "2ac8bd1a-cd32-847f-acd4-b34a7ac373e9",
@@ -188,6 +203,68 @@ class ExactKeyConfigurationTests(unittest.TestCase):
 
     def test_temporal_candidate_binds_exact_workflow_runs_and_protected_key(self):
         self.check_candidate("TemporalOASIS")
+
+    def test_fixed_public_network_candidates_bind_only_the_reviewed_owner(self):
+        for provider in ("DiscordOASIS", "LivepeerOASIS"):
+            with self.subTest(provider=provider):
+                self.check_candidate(provider)
+                catalogue, _ = exact_key_catalogue(provider)
+                with tempfile.TemporaryDirectory() as directory:
+                    descriptor = Path(directory) / "catalogue.json"
+                    descriptor.write_text(json.dumps(catalogue | {"Keys": ["foreign"]}))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                        configuration.verifier.reviewed_exact_key_source(provider, descriptor)
+
+    def test_polygon_gateway_presets_use_addresses_and_separate_logical_authority(self):
+        actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
+        gateways = {
+            "TenderlyOASIS": ("CQL_TENDERLY_POLYGON_QUERY_SOURCE_OWNER", "TenderlyPolygonAccountAddress",
+                             ["c732827d-bd7d-8bca-b4ae-fcdd85e5fd1f", "7894d368-40af-8bd4-bb06-dc7ad2221ac2",
+                              "c24a2017-5ab6-8c17-8237-6fd566f83df7"]),
+            "QuickNodeOASIS": ("CQL_QUICKNODE_POLYGON_QUERY_SOURCE_OWNER", "QuickNodePolygonAccountAddress",
+                               ["bc0eda6d-cd8b-82eb-9f6f-d0b2462b1696", "afdf8c23-f1cc-80b6-9249-50a32c36c9cc",
+                                "9aff6b7e-66b8-8b21-82bf-ea37e8400bcf"]),
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            descriptor = Path(directory) / "gateway.json"
+            descriptor.write_text(json.dumps({"Actor": actor}))
+            for provider, (setting, metadata, ids) in gateways.items():
+                with self.subTest(provider=provider):
+                    review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
+                    self.assertEqual({setting: actor}, review["sourceBinding"])
+                    self.assertEqual(ids, review["publicIds"])
+                    self.assertEqual(metadata, review["requiredQueryableMetadataKey"])
+                    for row in review["presets"]:
+                        selection = row["request"].get("source", row["request"])
+                        count = 2 if row["id"].endswith("-subset") else 3
+                        self.assertEqual([{"metadataPath": [metadata], "scalar": "String", "operator": "In",
+                                           "value": list(configuration.verifier.POLYGON_GATEWAY_KEYS[:count])}],
+                                         selection["filters"])
+                    native = {"result": {"rows": [{"id": logical_id, "metadata": {metadata: key}}
+                              for logical_id, key in zip(ids, configuration.verifier.POLYGON_GATEWAY_KEYS)]}}
+                    configuration.verifier.require_native_rows(native, review["presets"][0], 3, ids)
+                    rows = native["result"]["rows"]
+                    rows[0]["id"], rows[1]["id"] = rows[1]["id"], rows[0]["id"]
+                    with self.assertRaisesRegex(RuntimeError, "reviewed metadata keys"):
+                        configuration.verifier.require_native_rows(native, review["presets"][0], 3, ids)
+                    rows[0]["id"] = str(uuid.UUID(int=2))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed public authority"):
+                        configuration.verifier.require_native_rows(native, review["presets"][0], 3, ids)
+                    encryption = {"Rijndael256EncryptionEnabled": True}
+                    dna = {"OASIS": {"Sandbox": {"Enabled": True}, "Security": {"HolonDataEncryption": encryption}}}
+                    baseline = {setting: actor, "OASIS_DNA_JSON": json.dumps(dna), configuration.ADMISSION: json.dumps({
+                        "queryOnlyProviders": ["IPFSOASIS"], "ordinaryProviders": ["MongoDBOASIS"],
+                        "nativeProviders": [], "queryTariffs": [{"provider": "IPFSOASIS", "costUsd": 0}]
+                    })}
+                    with self.assertRaisesRegex(ValueError, "explicitly queryable"):
+                        configuration.candidate(baseline, provider, review)
+                    encryption["AdditionalQueryableKeys"] = [metadata]
+                    baseline["OASIS_DNA_JSON"] = json.dumps(dna)
+                    with self.assertRaisesRegex(ValueError, "do not match"):
+                        configuration.candidate(baseline | {setting: str(uuid.UUID(int=2))}, provider, review)
+                    prepared = configuration.candidate(baseline, provider, review)
+                    self.assertEqual(ids, json.loads(prepared[configuration.GRANTS])[provider])
+                    self.assertEqual(baseline["OASIS_DNA_JSON"], prepared["OASIS_DNA_JSON"])
 
     def test_safe_indexing_candidate_binds_reviewed_networks_and_protected_key(self):
         self.check_candidate("SafeOASIS")
@@ -377,7 +454,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -473,6 +550,13 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {key: "{}"}, provider, review)
                     baseline[key] = value
+                elif provider in ("DiscordOASIS", "LivepeerOASIS"):
+                    setting = {"DiscordOASIS": "CQL_DISCORD_PUBLIC_GUILD_QUERY_SOURCE_OWNER",
+                               "LivepeerOASIS": "CQL_LIVEPEER_ORCHESTRATOR_QUERY_SOURCE_OWNER"}[provider]
+                    self.assertEqual({setting: actor}, review["sourceBinding"])
+                    with self.assertRaisesRegex(ValueError, "do not match"):
+                        configuration.candidate(baseline | {setting: str(uuid.UUID(int=2))}, provider, review)
+                    baseline[setting] = actor
                 elif provider == "TemporalOASIS":
                     key, value = next(iter(review["sourceBinding"].items()))
                     runs = catalogue["Runs"]

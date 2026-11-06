@@ -3429,3 +3429,13 @@ Livepeer provider and UnitTests generated 9,232,929 and 48,142,242 bytes.
 The provider paths are under `Providers/Social/` and
 `Providers/Network/` respectively. Reuse these outputs and remove
 generated files under the lease when their consumers have stopped.
+
+Discord and Livepeer WEB4 admission reused the same package cache and
+generated outputs. In `LocalState/COSMIC/DiscordPublicCqlQualification/`,
+the exact producer build retained its 1,014,425-byte log, 26,040-byte
+admission TRX and 628-byte frozen receipt. The 3,346-byte settings log
+and 236-byte evidence log record the passing Python suites. The initial
+3,145-byte evidence log preserves the missing controlled descriptor
+fixture, which was corrected before the passing run. The before and
+after free-space receipts recorded 38,307,598,336 and 38,243,614,720 bytes.
+No new package version, runtime, database or secret was created.

@@ -35,6 +35,9 @@ public sealed class DiscordPublicGuildQuerySource : KeyValueStorageProviderBase,
     private readonly BoundedPublicKeyValueQuery query;
     private readonly Guid probeId;
 
+    public static DiscordPublicGuildQuerySource ForReviewedTeachingCatalogue(Guid owner) =>
+        new(owner, Invites.Keys, "267624335836053506");
+
     public DiscordPublicGuildQuerySource(Guid owner, IEnumerable<string> guildIds, string probe)
         : this(owner, guildIds, probe, handler: null) { }
 

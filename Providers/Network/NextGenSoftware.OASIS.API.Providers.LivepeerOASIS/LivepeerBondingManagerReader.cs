@@ -56,7 +56,7 @@ internal sealed class LivepeerBondingManagerReader : IDisposable
             var at = new { blockHash = hash, requireCanonical = true };
             var reply = await CallAsync("eth_call", new object[] { call, at }, 2048, deadline.Token);
             var result = reply.GetString();
-            if (!IsHex(result, 64) || result!.AsSpan(2, 63).ContainsAnyExcept('0') || result[^1] is not ('0' or '1'))
+            if (result is null || !IsHex(result, 64) || result.AsSpan(2, 63).ContainsAnyExcept('0') || result[^1] is not ('0' or '1'))
                 throw new InvalidDataException("Livepeer BondingManager must return one ABI Boolean.");
 
             rows.Add(new Observation(address, result[^1] == '1', number, hash));
