@@ -2692,6 +2692,15 @@ Nile WEB4 passed nine admission and 25 PostgreSQL-family regression tests.
 The shared Core checkout was restored, and the exact admission TRX hash
 is in the Nile evidence note.
 
+The Nile native probe compiled after correcting a stream API parameter.
+Its successful build is in `HostedNileCqlQualification/native-c5faa4024a484f65bc72a7e8a35a350d/`.
+The failed build log was retained separately. Neither attempt used
+credentials or made a database request. Netlify provider tests started
+after the Nile probe released the shared build lease.
+
+Netlify passed all nine focused provider protocol tests. Its TRX hash is in
+the evidence note, and the shared Core checkout was restored.
+
 Netlify Blobs CQL uses the existing .NET, HTTP transport and edge-storage
 protocol test project. The leased runner is
 `LocalState/COSMIC/HostedNetlifyBlobsCqlQualification/verify-provider.ps1`.

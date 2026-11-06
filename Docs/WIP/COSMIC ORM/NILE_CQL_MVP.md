@@ -38,4 +38,6 @@ permission check uses read-only SQL to verify table SELECT and reject
 table write or public-schema create grants. It then checks the exact
 three live records, deleted record and missing key, exercises CQL 3/2/0,
 and compares native row hashes before and after. The missing-credentials
-preflight passed. Probe compilation and live execution remain open.
+preflight passed. The first probe build found a mismatched stream method
+parameter name. The corrected probe compiled at the exact WEB4 Core pin.
+Live execution requires the approved Nile teaching database and reader.
