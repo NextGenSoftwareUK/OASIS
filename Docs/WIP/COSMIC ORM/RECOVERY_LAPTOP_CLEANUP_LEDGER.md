@@ -1965,6 +1965,21 @@ The native HTTPS fixture compiled with 146 warnings and zero errors.
 Log: `TestResults/ProviderBuildCurrent/firebase-hosted-native-fixture-build.log`.
 Both leases restored shared Core to `54159614`. No native request was sent.
 
+6 November UTC disk review. The recovery drive reported 39,756,967,936 bytes
+free. Three completed integration builds have untracked, regenerable outputs
+under `C:/Source/OASIS2/Providers/Cloud/TestProjects/`:
+
+| Project output directory | Logical bytes |
+| --- | ---: |
+| `NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.IntegrationTests/bin/Debug/net10.0` | 48,644,638 |
+| `NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests/bin/Debug/net10.0` | 48,656,242 |
+| `NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests/bin/Debug/net10.0` | 48,652,472 |
+
+The execution policy rejected the leased recursive cleanup command before it
+ran. All 145,953,352 logical bytes remain. Revalidate the exact paths and
+process ownership under the provider lease before later cleanup. Keep the
+compact reports, source and shared build cache.
+
 Weaviate's pinned SDK source was inspected in memory from the official
 repository. Its public-probe fixture reused existing build inputs and writes
 `TestResults/ProviderBuildCurrent/weaviate-public-probe-native-fixture.log`.
