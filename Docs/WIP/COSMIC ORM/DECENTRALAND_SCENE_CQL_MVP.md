@@ -101,3 +101,12 @@ the retained Decentraland descriptor. Then use `--prepare` with the same
 visitor flag and descriptor. Readiness creates the deployment-scoped
 visitor. Preparation reuses it and refuses stale deployment evidence.
 The 23 response-evidence and 39 exact-key configuration tests passed.
+
+The first isolated build failed with CS0246 because its scoped tree omitted
+`BoundedPublicKeyValueQuery.cs`. The revised candidate `d31713be` adds that
+exact shared helper from the locally qualified source. The helper's existing
+identity compiler and serializer are byte-identical to the task branch.
+The Core pin remains `72be1b4e`. Follow the revised
+[isolated build](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42311827689).
+The failed run remains recorded. Development and hosted settings are still
+on the accepted LocalFile baseline.
