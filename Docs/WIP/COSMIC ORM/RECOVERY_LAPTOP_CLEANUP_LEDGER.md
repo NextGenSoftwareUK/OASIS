@@ -1954,6 +1954,17 @@ Weaviate activation passed 7/7 with no skips. The retained TRX SHA256 is
 `63FBDAA908D3976351A3A7F8BBE3EAD8C0453FBC334560E4F615B36734AA975D`.
 The lease restored shared Core to `54159614`.
 
+Firebase WEB4 admission uses the same build lease and cache. Its log is
+`TestResults/ProviderBuildCurrent/firebase-hosted-api-cql.log`, and the pin
+and TRX use `LocalState/COSMIC/HostedFirebaseCqlQualification/api-cql-admission/`.
+No native credential or service is used by the controlled checks.
+
+Firebase WEB4 admission passed 8/8. Retained admission TRX SHA256
+`A561362C9DF4457709916BED9BCB8D50AD4E7855C416D0365747317A6A1C90D6`.
+The native HTTPS fixture compiled with 146 warnings and zero errors.
+Log: `TestResults/ProviderBuildCurrent/firebase-hosted-native-fixture-build.log`.
+Both leases restored shared Core to `54159614`. No native request was sent.
+
 Weaviate's pinned SDK source was inspected in memory from the official
 repository. Its public-probe fixture reused existing build inputs and writes
 `TestResults/ProviderBuildCurrent/weaviate-public-probe-native-fixture.log`.

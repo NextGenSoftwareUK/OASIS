@@ -214,6 +214,7 @@
   <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.csproj" />
   <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS/NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.csproj" />
   <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.csproj" />
 </ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS/NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.csproj" /></ItemGroup>

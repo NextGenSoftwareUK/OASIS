@@ -153,6 +153,15 @@ public class CqlCouchDbHostedAdmissionTests
         VerifyExactKeyPresets(ProviderType.SupabaseOASIS, source.QueryCapabilities);
     }
 
+    [Fact]
+    public void FirebaseExactKeyPresetsPlanNativeAndMongoQueries()
+    {
+        using var client = new System.Net.Http.HttpClient();
+        var source = new NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.FirebaseQuerySource(
+            "https://teaching-default-rtdb.firebaseio.com", "controlled-reader", client, Guid.NewGuid());
+        VerifyExactKeyPresets(ProviderType.FirebaseOASIS, source.QueryCapabilities);
+    }
+
     private static void VerifyExactKeyPresets(ProviderType providerType, CosmicQueryCapabilities capabilities)
     {
         var provider = providerType.ToString();

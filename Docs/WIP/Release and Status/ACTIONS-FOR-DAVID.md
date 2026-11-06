@@ -705,3 +705,10 @@ and hosted federation and replication verification.
 - Owner step: identify an existing dedicated Supabase teaching project. Provide its HTTPS origin and public gateway key, and arrange a separate restricted authenticated reader JWT in protected settings. Review the token's expiry and row policies for the dedicated teaching principal.
 - The catalogue requires three public live roots, one deleted row and one absent ID under the declared actor. Use a live record as the probe. No new paid service or account is requested.
 - Reason: native gateway and row-policy qualification precede Development settings and browser acceptance. [Settings and qualification](../COSMIC%20ORM/SUPABASE_CQL_MVP.md#development-web4-candidate).
+
+## Firebase hosted teaching source access - 2026-11-06 UTC
+
+- Status: 16 provider and eight WEB4 admission checks passed. The native HTTPS qualifier compiled.
+- Owner step: identify an existing dedicated Realtime Database teaching source and its Firebase project ID. Arrange a restricted Firebase Authentication ID token for the teaching reader through protected settings. Review token expiry, database Security Rules and deployed request instrumentation before use.
+- The catalogue needs three public live roots, one deleted record and one absent ID under the declared actor. Choose a live root as the probe. No new paid service or account is requested.
+- Reason: native HTTPS and rules qualification precede Development settings and browser acceptance. [Firebase configuration and fixture](../COSMIC%20ORM/FIREBASE_CQL_MVP.md#development-web4-preparation).
