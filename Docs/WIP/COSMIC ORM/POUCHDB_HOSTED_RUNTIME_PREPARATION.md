@@ -282,13 +282,15 @@ receipts. Live receipt and HTTP acceptance remain pending.
 Use the public review with the existing hosted verifier:
 
 ```powershell
-python -B Scripts/Sandbox/Verify-HostedQuerySource.py PouchDBOASIS --pouchdb-reviewed-settings $reviewedPatch --readiness
+python -B Scripts/Sandbox/Verify-HostedQuerySource.py PouchDBOASIS --pouchdb-reviewed-settings $reviewedPatch --pouchdb-deployment-visitor --readiness
 ```
 
-Readiness uses the retained visitor. The verifier binds the reviewed patch to
+With the explicit deployment visitor flag, readiness creates or reuses the
+visitor assigned to that verified settings deployment. The verifier binds the reviewed patch to
 the native qualification digest and the exact source IDs, compares all four
 discovered presets and refuses duplicate IDs. After readiness succeeds, use
-`--prepare` in place of `--readiness` for the scoped HTTP acceptance.
+`--prepare` in place of `--readiness` for the scoped HTTP acceptance. Keep
+the deployment visitor flag so preparation reuses the readiness visitor.
 That run verifies native rows, private Mongo snapshots, 5/4 paired rows, SQLite
 and Neo4j replicas and independent visitor privacy. Browser verification is a
 separate gate. Twelve focused local controls passed, including refusal before

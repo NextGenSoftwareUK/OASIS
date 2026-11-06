@@ -255,10 +255,13 @@ def localfile_review(*, require_mount=False):
 
 def localfile_deployment_visitor():
     review = localfile_review(require_mount=True)
-    deployment = review["mountedReceipt"]["deployment"]
+    return deployment_visitor("LocalFile", review["mountedReceipt"]["deployment"]), review
+
+
+def deployment_visitor(provider, deployment):
     if str(uuid.UUID(deployment)) != deployment:
-        raise RuntimeError("Canonical LocalFile settings deployment ID required.")
-    return ROOT / "LocalState/COSMIC" / ("HostedLocalFileReadiness-" + deployment), review
+        raise RuntimeError(f"Canonical {provider} settings deployment ID required.")
+    return ROOT / "LocalState/COSMIC" / f"Hosted{provider}Readiness-{deployment}"
 
 
 def acknowledge_localfile_http(state, owner, foreign, reviewed_mount, evidence):
@@ -316,13 +319,14 @@ def pouchdb_review(path, *, require_deployment=False):
     if len(presets) != len(expected):
         raise RuntimeError("Four reviewed PouchDB presets are required.")
     require_reviewed_presets("PouchDBOASIS", {"examples": presets}, {"presets": list(expected.values())})
+    review = {"presets": presets}
     if require_deployment:
         publisher_path = Path(__file__).with_name("Publish-HostedPouchDbConfiguration.py")
         publisher_spec = importlib.util.spec_from_file_location("pouchdb_publisher", publisher_path)
         publisher = importlib.util.module_from_spec(publisher_spec)
         publisher_spec.loader.exec_module(publisher)
-        publisher.verify_settings(settings)
-    return {"presets": presets}
+        review["deployment"] = publisher.verify_settings(settings)
+    return review
 
 
 def reviewed_exact_key_source(provider, path):
@@ -396,6 +400,8 @@ def main():
     parser.add_argument("--readiness", action="store_true", help="Check discovery using the retained rehearsal visitor; create no cohort.")
     parser.add_argument("--localfile-deployment-visitor", action="store_true",
                         help="Use a separate visitor for the verified LocalFile settings deployment.")
+    parser.add_argument("--pouchdb-deployment-visitor", action="store_true",
+                        help="Use a separate visitor for the verified PouchDB settings deployment.")
     parser.add_argument("--recover-localfile-receipt", action="store_true",
                         help="Finalize the original completed LocalFile reports without sessions, queries or saves.")
     parser.add_argument("--reviewed-exact-key-source", type=Path, help="Reviewed native teaching catalogue for the prepared exact-key providers.")
@@ -416,6 +422,9 @@ def main():
     if options.localfile_deployment_visitor and (options.provider != "LocalFileOASIS"
             or not (options.readiness or options.prepare)):
         parser.error("--localfile-deployment-visitor requires LocalFileOASIS with --readiness or --prepare.")
+    if options.pouchdb_deployment_visitor and (options.provider != "PouchDBOASIS"
+            or not (options.readiness or options.prepare)):
+        parser.error("--pouchdb-deployment-visitor requires PouchDBOASIS with --readiness or --prepare.")
     if options.recover_localfile_receipt:
         if (options.provider != "LocalFileOASIS" or options.prepare or options.readiness
                 or options.resume_unstarted_native or options.continue_settled_read
@@ -434,6 +443,9 @@ def main():
     if options.pouchdb_reviewed_settings is not None and not is_pouchdb:
         parser.error("--pouchdb-reviewed-settings applies only to PouchDBOASIS.")
     reviewed_pouchdb = pouchdb_review(options.pouchdb_reviewed_settings, require_deployment=True) if is_pouchdb else None
+    rehearsal = ROOT / "LocalState/COSMIC/HostedDemoRehearsalDiscovery"
+    if options.pouchdb_deployment_visitor:
+        rehearsal = deployment_visitor("PouchDB", reviewed_pouchdb["deployment"])
     is_reviewed_exact_key = options.provider in REVIEWED_EXACT_KEY_PROVIDERS
     if options.reviewed_exact_key_source is not None and not is_reviewed_exact_key:
         parser.error("--reviewed-exact-key-source applies only to the prepared exact-key providers.")
@@ -459,12 +471,13 @@ def main():
     if options.readiness:
         if options.prepare or continuing or options.resume_unstarted_native or options.cohort != "current":
             parser.error("--readiness cannot be combined with cohort execution.")
-        rehearsal = ROOT / "LocalState/COSMIC/HostedDemoRehearsalDiscovery"
         reviewed_localfile = None
         if options.localfile_deployment_visitor:
             rehearsal, reviewed_localfile = localfile_deployment_visitor()
+        create_readiness_visitor = options.localfile_deployment_visitor or options.pouchdb_deployment_visitor
+        if create_readiness_visitor:
             rehearsal.mkdir(exist_ok=True)
-        _, token = session(rehearsal, "visitor", allow_create=options.localfile_deployment_visitor)
+        _, token = session(rehearsal, "visitor", allow_create=create_readiness_visitor)
         try:
             source = ready_source(options.provider, token, require_pair=True)
             if options.provider == "LocalFileOASIS":
@@ -501,7 +514,6 @@ def main():
     allow_create = not (continuing or options.resume_unstarted_native)
     reviewed_localfile = None
     if (options.provider == "LocalFileOASIS" or reviewed_source is not None) and allow_create and not (state / "owner.acknowledged.json").exists():
-        rehearsal = ROOT / "LocalState/COSMIC/HostedDemoRehearsalDiscovery"
         if options.localfile_deployment_visitor:
             rehearsal, reviewed_localfile = localfile_deployment_visitor()
         _, visitor_token = session(rehearsal, "visitor", allow_create=False)

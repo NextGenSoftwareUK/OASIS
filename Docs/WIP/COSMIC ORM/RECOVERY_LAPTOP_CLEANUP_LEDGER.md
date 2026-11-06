@@ -1984,6 +1984,11 @@ PouchDB's deployment-bound HTTP preflight passed 20 response-evidence and
 eight shared settings tests with the existing Python interpreter. Temporary
 fixtures were removed. No Railway service or visitor was contacted.
 
+The PouchDB deployment visitor passed the 21 response-evidence tests.
+An actual readiness run keeps its protected journal in
+`LocalState/COSMIC/HostedPouchDBReadiness-<deployment-id>/`. Tests removed
+their temporary state and made no live session requests.
+
 LocalFile candidate ancestry verification passed 14 focused Python tests
 and a live read-only Git ref check. It reused the current checkout and
 created no Git objects, runtime downloads or Railway state.

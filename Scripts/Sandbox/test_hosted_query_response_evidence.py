@@ -286,12 +286,14 @@ class ResponseEvidenceTests(unittest.TestCase):
             review.write_text(json.dumps(settings), encoding="utf-8")
             self.assertEqual({"presets": presets}, verification.pouchdb_review(review))
             publisher = Mock()
+            publisher.verify_settings.return_value = "reviewed-deployment"
             loader = Mock()
             with (
                 patch.object(verification.importlib.util, "spec_from_file_location", return_value=Mock(loader=loader)),
                 patch.object(verification.importlib.util, "module_from_spec", return_value=publisher),
             ):
-                self.assertEqual({"presets": presets}, verification.pouchdb_review(review, require_deployment=True))
+                self.assertEqual({"presets": presets, "deployment": "reviewed-deployment"},
+                                 verification.pouchdb_review(review, require_deployment=True))
             publisher.verify_settings.assert_called_once_with(settings)
             settings["CQL_POUCHDB_QUERY_SOURCE_DIGEST"] = "0" * 64
             review.write_text(json.dumps(settings), encoding="utf-8")
@@ -346,6 +348,34 @@ class ResponseEvidenceTests(unittest.TestCase):
             self.assertEqual("deployment", publisher.verify_settings(public))
             variables.assert_called_once()
             receipt.assert_called_once_with("reviewed")
+
+    def test_pouchdb_deployment_visitor_is_created_only_by_readiness_and_reused(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            root = base / "OASIS"
+            (root / "LocalState/COSMIC").mkdir(parents=True)
+            site = base / "Web4Site"
+            site.mkdir()
+            for name in ("cql-demo-preparation.js", "cql-playground.js"):
+                (site / name).touch()
+            deployment = str(uuid.UUID(int=1))
+            visitor = root / "LocalState/COSMIC" / ("HostedPouchDBReadiness-" + deployment)
+            args = ["verify", "PouchDBOASIS", "--pouchdb-reviewed-settings", "review.json",
+                    "--pouchdb-deployment-visitor"]
+            with (
+                patch.object(verification, "ROOT", root),
+                patch.object(verification, "pouchdb_review", return_value={"deployment": deployment}),
+                patch.object(verification, "session", return_value=({}, "retained")) as session,
+                patch.object(verification, "ready_source", side_effect=RuntimeError("unavailable")),
+            ):
+                with patch("sys.argv", args + ["--readiness"]), self.assertRaisesRegex(SystemExit, "unavailable"):
+                    verification.main()
+                session.assert_called_once_with(visitor, "visitor", allow_create=True)
+                session.reset_mock()
+                with patch("sys.argv", args + ["--prepare"]), self.assertRaisesRegex(RuntimeError, "unavailable"):
+                    verification.main()
+                session.assert_called_once_with(visitor, "visitor", allow_create=False)
+                self.assertFalse((visitor.parent / "HostedQueryAcceptance-PouchDBOASIS").exists())
 
     def test_pouchdb_discovery_mismatch_does_not_create_a_cohort(self):
         with tempfile.TemporaryDirectory() as directory:
