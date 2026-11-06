@@ -180,6 +180,7 @@
     <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ChainflipOASIS/NextGenSoftware.OASIS.API.Providers.ChainflipOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS/NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Maps/NextGenSoftware.OASIS.API.Providers.DecentralandOASIS/NextGenSoftware.OASIS.API.Providers.DecentralandOASIS.csproj" />
   </ItemGroup>
   <ItemGroup><ProjectReference Include="../../Providers/AI/NextGenSoftware.OASIS.API.Providers.BittensorOASIS/NextGenSoftware.OASIS.API.Providers.BittensorOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ZcashOASIS/NextGenSoftware.OASIS.API.Providers.ZcashOASIS.csproj" /></ItemGroup>
