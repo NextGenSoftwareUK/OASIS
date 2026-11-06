@@ -761,3 +761,9 @@ and hosted federation and replication verification.
 - Owner step: identify an existing dedicated Turso libSQL teaching database and approved HTTPS origin. Arrange a database-scoped read-only token through protected `CQL_TURSO_QUERY_READER_TOKEN` settings. No new paid resource is requested.
 - Engineering owns verifying the reviewed actor, three public roots, tombstone and absent ID with the managed endpoint, then confirming WEB4 results before enrollment.
 - Reason: the local libSQL result does not identify or authorize a managed database. [Turso evidence](../COSMIC%20ORM/TURSO_CQL_MVP.md) · [Turso database token scopes](https://docs.turso.tech/api-reference/databases/create-token).
+
+## Milvus hosted teaching collection access - 2026-11-06
+
+- Status: native Milvus 2.6.26 returned 3/2/0 and denied the private record. Six guarded provider and ten WEB4 admission checks passed. The hosted verifier compiled. No credentialed hosted request has run.
+- Owner step: identify an existing dedicated Milvus HTTPS teaching deployment. Arrange a dedicated reader with Query access limited to `oasis_holons` in the default teaching database and provide its token privately through `CQL_MILVUS_QUERY_READER_TOKEN`. Keep credentials out of chat and Git. No new paid deployment or admin token is requested.
+- Reason: engineering will review the scoped grant, bind the reviewed synthetic fixtures and verify exact native reads and private denial before Development enrollment. LocalFile remains first. [Milvus evidence](../COSMIC%20ORM/MILVUS_CQL_MVP.md) · [Milvus grants](https://milvus.io/docs/grant_privileges.md).

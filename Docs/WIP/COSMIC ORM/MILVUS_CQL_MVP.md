@@ -33,3 +33,11 @@ The reviewed `CQL_MILVUS_QUERY_ORIGIN`, protected
 `CQL_MILVUS_QUERY_PROBE_ID` enable the profile. Owned source qualification,
 live Mongo federation and browser acceptance remain open. LocalFile remains
 first for live rollout.
+
+The `MilvusHostedCqlNative` verifier compiled. It takes the reviewed
+descriptor through `COSMIC_MILVUS_HOSTED_CQL_SOURCE`, a protected
+`CQL_MILVUS_QUERY_READER_TOKEN` and the synthetic private probe ID through
+`COSMIC_MILVUS_HOSTED_PRIVATE_ID`. It verifies 3/2/0, private denial and
+descriptor stability without writing the source. The build log SHA-256 is
+`d2ff02ae9f8a1d39fecf61d75f577568c4091d803fcd75643660455b1de07cf6`.
+Credentialed execution remains open.
