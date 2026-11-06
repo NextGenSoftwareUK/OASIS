@@ -70,3 +70,16 @@ Decentraland task branch has a shared registration for eight additional
 source profiles. Carry the Decentraland registration, explicit provider
 compiler policy and read tariff into a scoped release and qualify that
 release before staging the source owner, grant, tariff and presets.
+
+### Scoped Development candidate in qualification
+
+Candidate `89bb110f066da87ce82c259f24c435f46e45c011` descends directly from
+accepted Development `c64adf474`. Its eight changed paths add only the
+Decentraland adapter, explicit WEB4 registration and compiler admission,
+project reference, and matching Core pin. Candidate Core
+`72be1b4e89b8e8dc0a45907c157c43eb03158282` adds only the Decentraland read
+tariff to deployed Core. Both exact refs are published on
+`work/cosmic-decentraland-release-candidate`. All seven manifest/gitlink
+pairs match. The isolated [image build](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42311038805)
+uses the candidate SHA and its own tag. Development and live settings
+remain at the accepted LocalFile baseline during qualification.
