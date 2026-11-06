@@ -39,3 +39,19 @@ and `NATS.Net` 3.2.0 were absent from this laptop's package cache. No WEB4
 tests or local Mongo federation were run in that attempt. Evidence is
 `TestResults/DecentralandCqlCurrent/core-admission.trx` and
 `admission-restore.log`. Hosted enrollment remains open.
+
+### Local WEB4 and MongoDB acceptance
+
+The configured NuGet restore resolved the two missing dependencies. All 32
+focused WEB4 admission cases passed. The exact Decentraland native HTTP
+case passed with both fixture gates enabled. It read the reviewed public
+Catalyst source at 3/2, returned 5/4 through MongoDB federation, and checked
+foreign-private 0 and foreign-public 3. Two SDK saves were acknowledged.
+The fixture database was verified absent and the owned listener stopped.
+
+- `TestResults/DecentralandCqlCurrent/admission.trx` SHA-256 `1d848a36a214d9ee2a5d36d4b1b28d67cdec5b03d7f826222e94adebc86e7b0c`
+- `TestResults/DecentralandCqlCurrent/native-http-gated.trx` SHA-256 `87710c05f793b33b8a6eaf8663a67d9854aeaa677190fed18e7ae3c7a66751ee`
+- The original `native-http.trx` was skipped before fixture creation due to
+  a missing opt-in variable and is preserved as a separate outcome.
+
+Hosted enrollment, replica delivery and browser checks remain open.

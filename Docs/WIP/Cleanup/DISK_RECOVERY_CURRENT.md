@@ -195,3 +195,8 @@ including Cosmos and TRON. Local launchers also bind to retained container
 identities. Retiring those environments requires separating their original
 state from recreatable runtimes and updating the launchers before deleting
 anything. Personal Miniforge and model data remain covered by the KEEP decision.
+
+After the Decentraland WEB4 and MongoDB checks, 353 generated directories
+from that build batch were removed and verified absent. Free space rose from
+66,907,435,008 to 70,073,081,856 bytes. The exact plan and result are under
+`TestResults/DecentralandCqlCurrent/build-cleanup-*`. The 107GB target remains open.
