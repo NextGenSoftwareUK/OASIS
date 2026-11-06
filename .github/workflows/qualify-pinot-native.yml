@@ -1,0 +1,103 @@
+name: Qualify native Apache Pinot CQL
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-pinot-native.yml'
+      - 'Scripts/TestHosts/Write-PinotCqlFixture.py'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.PinotOASIS/**'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PinotOASIS.UnitTests/*.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          persist-credentials: false
+      - name: Read reviewed dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|OASIS_API_CORE_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/OASIS-API-Core
+          ref: ${{ steps.dependency.outputs.OASIS_API_CORE_COMMIT }}
+          path: OASIS/OASIS Architecture/NextGenSoftware.OASIS.API.Core
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify the pinned Pinot broker and exact public reads
+        working-directory: OASIS
+        shell: bash
+        env:
+          COSMIC_PINOT_VERIFY_PUBLIC: owned-linux-8000
+        run: |
+          set -euo pipefail
+          container="oasis-pinot-$GITHUB_RUN_ID"
+          work=$(mktemp -d "$RUNNER_TEMP/oasis-pinot.XXXXXXXX")
+          [[ "$work" == "$RUNNER_TEMP"/oasis-pinot.* ]]
+          report="$PWD/TestResults/PinotNative"
+          mkdir -p "$report"
+          python3 -B Scripts/TestHosts/Write-PinotCqlFixture.py "$work"
+          chmod 755 "$work"
+          image='apachepinot/pinot:1.6.0@sha256:a87cd2ba3dc10a08620a8a7414ef0ea161bca3d8fb73adc5cb5aefef8e255655'
+          docker run -d --name "$container" --publish 127.0.0.1:8000:8000 --publish 127.0.0.1:9000:9000             --mount "type=bind,src=$work,dst=/qualification,readonly" "$image" QuickStart -type batch
+          cleanup() {
+            docker logs "$container" 2>&1 | tail -n 100 > "$report/runtime-tail.log" || true
+            docker rm -f -v "$container" >/dev/null
+          }
+          trap cleanup EXIT
+          query() {
+            curl --fail --silent --show-error --max-time 10 -H 'Content-Type: application/json'               --data "$1" http://127.0.0.1:8000/query/sql
+          }
+          ready_query='{"sql":"SELECT COUNT(*) FROM baseballStats"}'
+          for attempt in {1..90}; do
+            if query "$ready_query" 2>/dev/null | jq -e '.exceptions == [] and .resultTable.rows[0][0] > 0' >/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          query "$ready_query" | jq -e '.exceptions == [] and .resultTable.rows[0][0] > 0' >/dev/null
+          docker exec "$container" /opt/pinot/bin/pinot-admin.sh AddTable -schemaFile /qualification/schema.json             -tableConfigFile /qualification/table.json -controllerHost 127.0.0.1 -controllerPort 9000 -exec
+          curl --fail --silent --show-error --max-time 60 -F "file=@$work/records.json"             'http://127.0.0.1:9000/ingestFromFile?tableNameWithType=oasis_cql_public_holons_OFFLINE&batchConfigMapStr=%7B%22inputFormat%22%3A%22json%22%7D'             > "$work/ingestion.json"
+          count_query='{"sql":"SELECT COUNT(*) AS total, SUM(is_public) AS public_count FROM oasis_cql_public_holons"}'
+          for attempt in {1..60}; do
+            if query "$count_query" 2>/dev/null | jq -e '.exceptions == [] and .resultTable.rows == [[5,4]]' >/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          query "$count_query" | jq -e '.exceptions == [] and .resultTable.rows == [[5,4]]' >/dev/null
+          printf '%s\n' "$image" 'Verified five source records and four public flags.' > "$report/runtime.txt"
+          pwsh -NoProfile -Command '
+            $ErrorActionPreference = "Stop"
+            & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner pinot-native-ci -Operation {
+              $test = "NextGenSoftware.OASIS.API.Providers.PinotOASIS.UnitTests"
+              dotnet test "Providers/Storage/TestProjects/$test/$test.csproj" /m:2 /nr:false /p:UseSharedCompilation=false --filter "TestCategory=PinotPublicCqlNative" --results-directory TestResults/PinotNative --logger "trx;LogFileName=native.trx"
+              if ($LASTEXITCODE) { throw "Native Pinot qualification failed" }
+            }'
+          grep -q 'total="1" executed="1" passed="1"' "$report/native.trx"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: pinot-native-cql
+          path: OASIS/TestResults/PinotNative/
+          retention-days: 7

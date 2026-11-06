@@ -48,6 +48,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinotOASIS
             _baseUrl = brokerUrl.TrimEnd('/');
             _controllerUrl = controllerUrl.TrimEnd('/');
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PinotOASIS);
+            ProviderName = nameof(PinotOASIS);
+            ProviderDescription = "Apache Pinot analytical storage provider";
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
             _http = new HttpClient();

@@ -3314,3 +3314,8 @@ The passing 2,090-byte artifact is retained on GitHub only. The initial
 847-byte compiler-failure artifact and later tombstone-failure evidence
 also remain on GitHub. No artifacts or Druid runtime were downloaded
 to this laptop.
+
+Pinot 1.6.0 qualification is isolated on the Linux CI runner. The laptop
+queried the public registry for the image manifest and retains the
+source fixtures in the task branch. No container, runtime, fixture
+database or image was downloaded or started on this laptop.
