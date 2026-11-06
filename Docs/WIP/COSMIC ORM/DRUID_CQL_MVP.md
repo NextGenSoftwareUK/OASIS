@@ -63,3 +63,8 @@ All 36 protected exact-key configuration tests passed.
 
 The Linux 3/2/0 test also passed after adding the protected reader path.
 [Native regression run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42264837608).
+
+The same native 3/2/0 check passed after the shared protected SQL reader
+change. The 2,089-byte artifact SHA-256 is
+`ec2dd7bbe8240c3297d954d86d7d3915b41db067f1c3cf5b904cf2554c25cd12`.
+[Shared reader native regression](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42268028453).

@@ -44,3 +44,8 @@ The WEB4 TRX SHA-256 is
 Authenticated hosted acceptance remains open after LocalFile.
 [Pinot broker ACLs](https://docs.pinot.apache.org/operate-pinot/security/authentication/basic-auth-access-control)
 and [row-level security](https://docs.pinot.apache.org/operate-pinot/security/access-control).
+
+The native 3/2/0 check passed after the shared protected SQL reader
+change. The 84,024-byte artifact SHA-256 is
+`c2f38179f505d5ce67896a4ef64a5c13812d1b849a34e3d190944b8b76878ead`.
+[Shared reader native regression](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42268028673).
