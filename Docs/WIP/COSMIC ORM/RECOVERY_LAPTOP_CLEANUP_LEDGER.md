@@ -3533,3 +3533,15 @@ The owned Mongo process confirmed storage and port shutdown. Retained
 evidence under `LocalState/COSMIC/PushProtocolPublicCqlQualification/network-federation/`
 is the 6,208-byte TRX, 534-byte test log, 458,501-byte service log and
 compact process and shutdown receipts. The ENS fixture remains retained.
+
+### World ID v4 native protocol, 6 November 2026
+
+The existing .NET installation built the World ID v4 source and
+focused test project under the shared build lease. Provider `bin`
+and `obj` are 8,282,910 and 944,941 bytes. The test project equivalents
+are 47,135,150 and 1,014,736 bytes. Both projects are under
+`Providers/Social` (test project under `TestProjects`). Retained
+`LocalState/COSMIC/WorldIdPublicCqlQualification/` holds the
+5,770-byte TRX, 391,662-byte log, and 652-byte native observation.
+No provider service or separate runtime was installed. Free space
+was 37,883,932,672 bytes before and 37,824,708,608 bytes after.
