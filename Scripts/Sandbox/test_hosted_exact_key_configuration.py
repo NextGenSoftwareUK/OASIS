@@ -20,13 +20,15 @@ def exact_key_catalogue(provider):
         first, second, third = ("2d8b5e78-3137-8c0d-ba70-bdaa880dcdad", "e29d23d8-4c2c-8e0a-9fde-5b92d31135c0",
                                 "ffab761f-bf16-8e02-88e4-1e8a7b6cccd9")
         catalogue = {"Actor": actor, "Names": ["vitalik.eth", "nick.eth", "luc.eth"]}
-    elif provider in ("DiscordOASIS", "LivepeerOASIS"):
+    elif provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS"):
         actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
         fixed_ids = {
             "DiscordOASIS": ("ca36c2c9-350d-8603-ab00-1c8e1f2a9d4f", "d5c8ecfd-cc3e-8ec7-9697-0e2ea2c96ab2",
                              "9b9fe5bf-0664-8175-a1d7-4da37799db4f"),
             "LivepeerOASIS": ("083bc10d-dcca-860f-ae09-71c4d986966c", "64a23e52-84b0-8115-a142-3ba828e40a40",
                               "292de706-63f2-8d28-b209-cf7e0fb55534"),
+            "PinataOASIS": ("222a3496-a5a9-8781-8106-8e45fa4b9139", "54d558da-603a-8928-abe8-274107216614",
+                            "08782187-82e4-8387-9b33-7504c5c31fcf"),
         }
         first, second, third = fixed_ids[provider]
         catalogue = {"Actor": actor}
@@ -205,7 +207,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
         self.check_candidate("TemporalOASIS")
 
     def test_fixed_public_network_candidates_bind_only_the_reviewed_owner(self):
-        for provider in ("DiscordOASIS", "LivepeerOASIS"):
+        for provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS"):
             with self.subTest(provider=provider):
                 self.check_candidate(provider)
                 catalogue, _ = exact_key_catalogue(provider)
@@ -454,7 +456,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "PinataOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -550,9 +552,10 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {key: "{}"}, provider, review)
                     baseline[key] = value
-                elif provider in ("DiscordOASIS", "LivepeerOASIS"):
+                elif provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS"):
                     setting = {"DiscordOASIS": "CQL_DISCORD_PUBLIC_GUILD_QUERY_SOURCE_OWNER",
-                               "LivepeerOASIS": "CQL_LIVEPEER_ORCHESTRATOR_QUERY_SOURCE_OWNER"}[provider]
+                               "LivepeerOASIS": "CQL_LIVEPEER_ORCHESTRATOR_QUERY_SOURCE_OWNER",
+                               "PinataOASIS": "CQL_PINATA_PUBLIC_BLOCK_QUERY_SOURCE_OWNER"}[provider]
                     self.assertEqual({setting: actor}, review["sourceBinding"])
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {setting: str(uuid.UUID(int=2))}, provider, review)

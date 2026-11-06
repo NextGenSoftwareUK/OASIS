@@ -3465,3 +3465,10 @@ Generated `bin` and `obj` outputs in the Pinata provider and its UnitTests
 under `Providers/Network/` total 9,745,984 and 49,066,589 bytes.
 Keep the verified outputs while they have consumers and use the shared
 lease for cleanup.
+
+Pinata WEB4 admission reused the same .NET and IPFS outputs. The
+1,014,873-byte build log, 31,278-byte TRX, 501-byte frozen receipt
+and Python settings and response-evidence logs are in
+`LocalState/COSMIC/PinataPublicCqlQualification/`. Available space
+changed from 38,149,763,072 to 34,041,745,408 bytes during the build.
+No new package version, runtime, data or credential was created.
