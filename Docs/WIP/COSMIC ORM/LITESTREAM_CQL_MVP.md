@@ -86,3 +86,32 @@ separate red work. Linux success does not certify those requirements.
 [Preserved history](Archive/LITESTREAM_CQL_MVP_PRESERVED_2026-10-30.md) ·
 [Current status](CURRENT_STATUS.md) · [After-demo backlog](AFTER_DEMO_BACKLOG.md) ·
 [Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+### Recovery WEB4 read-only snapshot preparation
+
+The original Linux replication, restore and browser evidence stays with
+its original run. The recovery candidate reuses the native SQLite query
+compiler and opens only a reviewed Litestream restore in read-only mode
+without connection pooling. A publishable restore is a standalone SQLite
+file in DELETE journal mode with no WAL, SHM or rollback-journal sidecar.
+Normalize journal mode before computing the approved SHA256 and keep the
+published copy immutable. The candidate verifies the digest around
+activation and each result-bearing native read. Activation requires a
+public probe from the restored file.
+
+A temporary SQLite control is queued to verify read-only activation, a
+bounded query and rejection after the approved bytes change. It does not
+replay the old Windows replication probe or create a Litestream restore.
+WEB4 registration, restore placement and live visitor proof remain open.
+
+All 16 provider tests passed at Core 87b0fb211377fd90e45979da8a01e6fd05efa7b6. The temporary SQLite
+control verified one bounded public read, byte preservation and rejection
+after an external change. It removed the temporary file and directory.
+Provider TRX SHA256 6cd8d98c9533dcaffb6798aa767216d80349aed3121e3778546b137d9962b192.
+
+WEB4 registration uses the fixed volume path
+/data/cql-litestream/restore.db and the protected settings
+CQL_LITESTREAM_QUERY_RESTORE_SHA256 and CQL_LITESTREAM_QUERY_PROBE_ID.
+All 14 protected-settings tests passed. WEB4 admission is building against
+Core ac21b28d7c9950afdc882c708f6fdd9ea72c396b. Native restore receipt, reviewed volume placement and
+live Development verification remain open.

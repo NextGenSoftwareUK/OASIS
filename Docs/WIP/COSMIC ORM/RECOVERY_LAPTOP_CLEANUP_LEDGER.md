@@ -2480,3 +2480,10 @@ ScyllaDB WEB4 admission passed all seven tests. The Core checkout was
 restored and the TRX hash is in its evidence note. Two temporary settings
 source copies used for scoped staging were removed. The Litestream
 settings changes remain in the worktree for their own verification batch.
+
+The Litestream provider suite passed all 16 tests. The controlled SQLite
+fixture was deleted and restore reported no package installations.
+WEB4 admission now uses the shared build lease. The runner, Core pin and
+eventual TRX are in the existing Litestream qualification directory.
+The log is `TestResults/ProviderBuildCurrent/litestream-hosted-api-cql.log`.
+The 14 protected-settings tests cleaned their temporary files.

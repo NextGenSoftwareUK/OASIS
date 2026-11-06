@@ -16,6 +16,30 @@ namespace NextGenSoftware.OASIS.API.Providers.LitestreamOASIS;
 
 public partial class LitestreamOASIS : ICosmicQueryStorageProvider
 {
+    protected virtual bool RequiresPublicQueryRecords => false;
+    protected virtual Task ValidateQuerySourceAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+    protected async Task VerifyPublicReplicaProbeAsync(Guid id, CancellationToken cancellationToken)
+    {
+        await using var connection = new Microsoft.Data.Sqlite.SqliteConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "PRAGMA journal_mode";
+        if (await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false) is not "delete")
+            throw new InvalidDataException("The approved Litestream restore must use standalone DELETE journal mode.");
+        command.CommandText = "SELECT id,data_json,is_deleted FROM oasis_holons WHERE id=$id";
+        command.Parameters.AddWithValue("$id", id.ToString("D"));
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false) ||
+            reader.GetString(0) != id.ToString("D") || reader.GetBoolean(2))
+            throw new InvalidDataException("The approved Litestream teaching record was not found.");
+        var json = reader.GetString(1);
+        if (Encoding.UTF8.GetByteCount(json) > 1024 * 1024 ||
+            Des<Holon>(json) is not { IsPublic: true, IsDeleted: false } row || row.Id != id ||
+            await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            throw new InvalidDataException("The Litestream probe must be one existing public holon.");
+    }
+
     public ProviderType QueryProviderType => ProviderType.Value;
     private static readonly CosmicQueryCapabilities UnsupportedAliasCapabilities = new(CosmicQueryFeatures.None,
         Array.Empty<CosmicQueryFieldCapability>());
@@ -46,6 +70,7 @@ public partial class LitestreamOASIS : ICosmicQueryStorageProvider
             if (plan.Query.Limit == 0 || selection.Result.Count == 0)
                 return new(Array.AsReadOnly(Array.Empty<IHolon>())) { IsLoaded = true, LoadedCount = 0 };
 
+            await ValidateQuerySourceAsync(cancellationToken).ConfigureAwait(false);
             // Query the same local SQLite tables used by Save/Load. Litestream
             // sidecar replication is a separate service/acceptance responsibility.
             await using var connection = new Microsoft.Data.Sqlite.SqliteConnection(_connectionString);
@@ -71,6 +96,8 @@ public partial class LitestreamOASIS : ICosmicQueryStorageProvider
                 var row = Des<Holon>(json);
                 if (row == null || row.Id != id || !plan.Query.ReadAccess.CanRead(row) || row.IsDeleted != reader.GetBoolean(2))
                     throw new InvalidDataException("Native Litestream columns differ from the authorized canonical record.");
+                if (RequiresPublicQueryRecords && !row.IsPublic)
+                    throw new InvalidDataException("Native Litestream teaching record is no longer public.");
                 row.Children = Array.Empty<IHolon>();
                 row.ProviderUniqueStorageKey[QueryProviderType] = id.ToString("D");
                 rows.Add(row);
@@ -80,6 +107,7 @@ public partial class LitestreamOASIS : ICosmicQueryStorageProvider
             // The native provider owns statement isolation. Federation observes
             // providers separately; no distributed snapshot is claimed.
             var page = rows.ToArray();
+            await ValidateQuerySourceAsync(cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
             return new(Array.AsReadOnly<IHolon>(page)) { IsLoaded = true, LoadedCount = page.Length };
         }
