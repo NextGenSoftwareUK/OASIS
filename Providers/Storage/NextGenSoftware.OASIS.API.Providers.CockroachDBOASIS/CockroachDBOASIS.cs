@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS;
 using NextGenSoftware.OASIS.Common;
-using Npgsql;
 
 namespace NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS;
 
@@ -24,7 +23,7 @@ public sealed class CockroachDbQuerySource : CockroachDBOASIS, ICosmicReadOnlyQu
     private readonly Guid _probe;
 
     public CockroachDbQuerySource(string connectionString, Guid probe)
-        : base(RequireVerifiedConnection(connectionString))
+        : base(RequireVerifiedQueryConnection(connectionString))
     {
         if (probe == Guid.Empty) throw new ArgumentException("An existing teaching probe is required.", nameof(probe));
         _probe = probe;
@@ -40,14 +39,4 @@ public sealed class CockroachDbQuerySource : CockroachDBOASIS, ICosmicReadOnlyQu
 
     public Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken) =>
         VerifyPublicQueryProbeAsync(_probe, cancellationToken);
-
-    private static string RequireVerifiedConnection(string connectionString)
-    {
-        var settings = new NpgsqlConnectionStringBuilder(connectionString);
-        if (settings.SslMode != SslMode.VerifyFull || string.IsNullOrWhiteSpace(settings.Host) ||
-            settings.Host.Contains(',') || string.IsNullOrWhiteSpace(settings.Database) ||
-            string.IsNullOrWhiteSpace(settings.Username))
-            throw new ArgumentException("A single certificate-verified CockroachDB host, database and reader are required.", nameof(connectionString));
-        return settings.ConnectionString;
-    }
 }

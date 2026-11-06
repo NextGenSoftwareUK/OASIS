@@ -2367,3 +2367,21 @@ writes `timescale-core-pin.txt`, `timescale-provider.log` and
 The recovered TimescaleDB provider tests finished with 12 passed and
 zero skipped. The shared Core checkout was restored. No native download
 or database creation was needed for this recovery.
+
+TimescaleDB WEB4 admission reuses the shared build environment with one
+lease. The runner, exact Core pin and eventual TRX are under
+`LocalState/COSMIC/HostedTimescaleDbCqlQualification/`. Build output is in
+`TestResults/ProviderBuildCurrent/timescale-hosted-api-cql.log`.
+Ten protected-settings tests passed and cleaned their temporary files.
+
+Cassandra recovery preserves the original native and browser evidence.
+The provider verification runner is
+`LocalState/COSMIC/HostedCassandraCqlQualification/verify-recovered-provider.ps1`.
+It will use one shared lease after the TimescaleDB build and write the exact
+Core pin, log and TRX with the `cassandra-` prefix in
+`TestResults/ProviderBuildCurrent/`. No separate Cassandra environment or
+server download is needed for this step.
+
+The TimescaleDB WEB4 build completed with 17 passed and zero skipped,
+including the CockroachDB regression. The exact report hash is in the
+TimescaleDB evidence note. The original Core checkout was restored.

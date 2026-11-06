@@ -43,6 +43,9 @@ class ExactKeyConfigurationTests(unittest.TestCase):
     def test_cockroachdb_candidate_preserves_existing_providers(self):
         self.check_candidate("CockroachDBOASIS")
 
+    def test_timescaledb_candidate_preserves_existing_providers(self):
+        self.check_candidate("TimescaleDBOASIS")
+
     def check_candidate(self, provider):
         partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
         baseline = {
@@ -60,6 +63,12 @@ class ExactKeyConfigurationTests(unittest.TestCase):
             descriptor = Path(directory) / "catalogue.json"
             actor, first, second, third, deleted, missing = [str(uuid.UUID(int=i)) for i in range(1, 7)]
             catalogue = {"Actor": actor, "LiveIds": [first, second, third], "DeletedId": deleted, "MissingId": missing}
+            if provider == "TimescaleDBOASIS":
+                catalogue.update(Host="service.tsdb.cloud.tigerdata.com", Port=32625)
+                for invalid in ({"Port": True}, {"Port": "32625"}, {"Port": 65536}, {"Host": "localhost"}):
+                    descriptor.write_text(json.dumps(catalogue | invalid))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                        configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "CockroachDBOASIS":
                 catalogue["Host"] = "oasis-demo.aws-us-east-1.cockroachlabs.cloud"
                 descriptor.write_text(json.dumps(catalogue | {"Host": "other.cockroachlabs.cloud.invalid"}))
@@ -76,7 +85,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -88,6 +97,11 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     baseline.update(CQL_COCKROACHDB_QUERY_HOST=catalogue["Host"], CQL_COCKROACHDB_QUERY_PROBE_ID=first)
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {"CQL_COCKROACHDB_QUERY_HOST": "other.cockroachlabs.cloud"}, provider, review)
+                elif provider == "TimescaleDBOASIS":
+                    baseline.update(CQL_TIMESCALEDB_QUERY_HOST=catalogue["Host"],
+                                    CQL_TIMESCALEDB_QUERY_PORT=str(catalogue["Port"]), CQL_TIMESCALEDB_QUERY_PROBE_ID=first)
+                    with self.assertRaisesRegex(ValueError, "do not match"):
+                        configuration.candidate(baseline | {"CQL_TIMESCALEDB_QUERY_PORT": "5432"}, provider, review)
                 else:
                     product = provider.removesuffix("OASIS").upper()
                     baseline[f"CQL_{product}_QUERY_PROBE_ID"] = first

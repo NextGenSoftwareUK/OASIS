@@ -1,6 +1,6 @@
 # COSMIC ORM / CQL current status
 
-Updated 5 November 2026. Goal active and incomplete.
+Updated 6 November 2026. Goal active and incomplete.
 Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
 Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
@@ -9,13 +9,22 @@ admission and transport checks. Both guarded HTTPS native fixtures compiled.
 Owned teaching sources and read credentials remain necessary before native
 HTTPS and deployed acceptance. No provider count changed.
 
-## Recent WEB4 preparation, 5 November 2026
+## Recent WEB4 preparation, 5–6 November 2026
 
 Acceptance remains 103 scoped local, 60 live HTTP and 28 live browser.
 LocalFile remains first. The immutable candidate image is published and its
 actual Railway deployment, persistent mount and protected settings still
 need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
 
+- ArangoDB and CockroachDB WEB4 read profiles are published on the task
+  branch. Their scoped admission runs passed 11 and nine tests respectively.
+  Live verification requires approved hosted teaching sources after the
+  LocalFile rollout. [ArangoDB evidence](ARANGODB_CQL_MVP.md) ·
+  [CockroachDB evidence](COCKROACHDB_CQL_MVP.md).
+- TimescaleDB's original native and browser evidence is carried forward.
+  Twelve recovered provider tests and ten protected-settings tests passed.
+  Eight WEB4 admission and nine CockroachDB regression tests passed.
+  [TimescaleDB evidence](TIMESCALEDB_CQL_MVP.md).
 - Weaviate uses the official pinned gRPC protocol over a guarded WEB4 channel.
   Eight provider and nine WEB4 checks passed. The approved public source
   and live visitor run are open. [Weaviate evidence](WEAVIATE_CQL_MVP.md).

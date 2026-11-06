@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using Npgsql;
 
 namespace NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS;
 
@@ -22,6 +23,16 @@ public partial class PostgreSQLOASIS : ICosmicQueryStorageProvider
     // A product opts in explicitly; changing a provider enum cannot inherit certification.
     protected virtual ProviderType NativeBoundedQueryAuthority => Core.Enums.ProviderType.PostgreSQLOASIS;
     protected virtual bool RequiresPublicQueryRecords => false;
+
+    protected static string RequireVerifiedQueryConnection(string connectionString)
+    {
+        var settings = new NpgsqlConnectionStringBuilder(connectionString);
+        if (settings.SslMode != SslMode.VerifyFull || string.IsNullOrWhiteSpace(settings.Host) ||
+            settings.Host.Contains(',') || string.IsNullOrWhiteSpace(settings.Database) ||
+            string.IsNullOrWhiteSpace(settings.Username))
+            throw new ArgumentException("A single certificate-verified SQL host, database and reader are required.", nameof(connectionString));
+        return settings.ConnectionString;
+    }
 
     protected async Task<OASISResult<bool>> VerifyPublicQueryProbeAsync(Guid id, CancellationToken cancellationToken)
     {

@@ -26,7 +26,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -340,13 +340,20 @@ def reviewed_exact_key_source(provider, path):
             fields |= {"Endpoint", "Bucket", "Originals"}
         if provider == "MinIOOASIS":
             fields.add("Region")
-        if provider == "CockroachDBOASIS":
+        if provider in ("CockroachDBOASIS", "TimescaleDBOASIS"):
             fields.add("Host")
             host = catalogue["Host"]
-            if (not isinstance(host, str) or len(host) > 253 or not host.endswith(".cockroachlabs.cloud")
+            domains = (".cockroachlabs.cloud",) if provider == "CockroachDBOASIS" else (
+                ".tsdb.cloud.timescale.com", ".tsdb.cloud.tigerdata.com")
+            if (not isinstance(host, str) or len(host) > 253 or not host.endswith(domains)
                     or any(not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", label)
                            for label in host.split("."))):
-                raise ValueError("Unexpected CockroachDB Cloud host.")
+                raise ValueError("Unexpected managed database host.")
+            if provider == "TimescaleDBOASIS":
+                fields.add("Port")
+                port = catalogue["Port"]
+                if type(port) is not int or not 1 <= port <= 65535:
+                    raise ValueError("Unexpected managed database port.")
         if provider == "TigrisOASIS" and (
                 catalogue["Endpoint"] not in ("https://t3.storage.dev", "https://fly.storage.tigris.dev")
                 or not re.fullmatch(r"[a-z0-9][a-z0-9-]{1,61}[a-z0-9]", catalogue["Bucket"])):
@@ -392,6 +399,10 @@ def reviewed_exact_key_source(provider, path):
     elif provider == "CockroachDBOASIS":
         review["sourceBinding"] = {"CQL_COCKROACHDB_QUERY_HOST": catalogue["Host"],
                                    "CQL_COCKROACHDB_QUERY_PROBE_ID": ids[0]}
+    elif provider == "TimescaleDBOASIS":
+        review["sourceBinding"] = {"CQL_TIMESCALEDB_QUERY_HOST": catalogue["Host"],
+                                   "CQL_TIMESCALEDB_QUERY_PORT": str(catalogue["Port"]),
+                                   "CQL_TIMESCALEDB_QUERY_PROBE_ID": ids[0]}
     elif provider in ("WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS"):
         product = provider.removesuffix("OASIS").upper()
         review["sourceBinding"] = {f"CQL_{product}_QUERY_PROBE_ID": ids[0]}
