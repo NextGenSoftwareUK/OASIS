@@ -1953,3 +1953,8 @@ No server, runtime or database copy was created.
 Weaviate activation passed 7/7 with no skips. The retained TRX SHA256 is
 `63FBDAA908D3976351A3A7F8BBE3EAD8C0453FBC334560E4F615B36734AA975D`.
 The lease restored shared Core to `54159614`.
+
+Weaviate's pinned SDK source was inspected in memory from the official
+repository. Its public-probe fixture reused existing build inputs and writes
+`TestResults/ProviderBuildCurrent/weaviate-public-probe-native-fixture.log`.
+No source, TLS trust store or SDK install was changed.

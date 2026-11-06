@@ -101,3 +101,19 @@ the existing Weaviate gRPC SDK adapter. It requires a public canonical
 object and rejects private, deleted, absent, duplicate and mismatched
 records. Seven controlled activation cases passed. Host-owned TLS client
 configuration, WEB4 admission and native hosted qualification remain open.
+
+The pinned Weaviate.Client 1.2.0 applies its custom HTTP handler to the REST
+client. Its gRPC client constructs a separate channel without that handler.
+The gRPC channel also takes its message size from server metadata. A reviewed
+WEB4 transport must enforce the destination and receive bound on that channel
+before enrollment. See the pinned [REST construction](https://github.com/weaviate/csharp-client/blob/90ffbe6634db13a8c8bfbce963e2f9c3f437c3f1/src/Weaviate.Client/WeaviateClient.cs)
+and [gRPC construction](https://github.com/weaviate/csharp-client/blob/90ffbe6634db13a8c8bfbce963e2f9c3f437c3f1/src/Weaviate.Client/gRPC/Client.cs).
+
+The local `TestCategory=WeaviatePublicProbeNative` fixture uses the real
+SDK against the retained Linux TLS ports and process-scoped CA. It requires
+`OASIS_WEAVIATE_CQL_STATE`, a restricted reader in
+`COSMIC_WEAVIATE_PUBLIC_CQL_API_KEY` and an existing public catalogue in
+`COSMIC_WEAVIATE_PUBLIC_CQL_CATALOGUE`. It reads the exact probe, checks 3/2
+selection and excludes deleted/absent IDs. The retained private demonstration
+records keep their original visibility. Native execution awaits a reviewed
+public source and the Linux host.
