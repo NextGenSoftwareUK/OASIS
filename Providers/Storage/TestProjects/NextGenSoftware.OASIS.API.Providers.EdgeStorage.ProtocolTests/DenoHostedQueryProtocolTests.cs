@@ -62,6 +62,23 @@ public class DenoHostedQueryProtocolTests
     }
 
     [TestMethod]
+    public async Task Metadata_with_two_identity_fields_is_rejected_before_any_snapshot()
+    {
+        using var service = new FakeService((_, _) => FakeService.Json(new
+        {
+            version = 3,
+            databaseId = DatabaseId,
+            uuid = DatabaseId,
+            token = "ephemeral-token",
+            expiresAt = DateTimeOffset.UtcNow.AddHours(1),
+            endpoints = new[] { new { url = Endpoint.AbsoluteUri, consistency = "strong" } }
+        }));
+        using var backend = Backend(service);
+        await Assert.ThrowsExceptionAsync<HttpRequestException>(() => backend.GetAsync(Key));
+        Assert.AreEqual(1, service.Requests.Count);
+    }
+
+    [TestMethod]
     [DataRow("foreign-key")]
     [DataRow("duplicate")]
     [DataRow("eventual")]
@@ -129,7 +146,7 @@ public class DenoHostedQueryProtocolTests
     private static HttpResponseMessage Metadata(Guid databaseId, string url) => FakeService.Json(new
     {
         version = 3,
-        uuid = databaseId,
+        databaseId,
         token = "ephemeral-token",
         expiresAt = DateTimeOffset.UtcNow.AddHours(1),
         endpoints = new[] { new { url, consistency = "strong" } }

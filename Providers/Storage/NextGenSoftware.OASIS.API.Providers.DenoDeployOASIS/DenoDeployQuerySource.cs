@@ -22,8 +22,13 @@ public sealed class DenoDeployQuerySource : DenoDeployOASIS, ICosmicQueryStorage
         : this(databaseId, reviewedEndpoint, readerToken, probeId, null) { }
 
     internal DenoDeployQuerySource(Guid databaseId, Uri reviewedEndpoint, string readerToken, Guid probeId, HttpMessageHandler handler)
-        : base(CreateBackend(databaseId, reviewedEndpoint, readerToken, probeId, handler))
+        : this(CreateBackend(databaseId, reviewedEndpoint, readerToken, probeId, handler), probeId) { }
+
+    internal DenoDeployQuerySource(DenoKvConnectBackend backend, Guid probeId)
+        : base(backend)
     {
+        if (!backend.QueryOnly || probeId == Guid.Empty)
+            throw new ArgumentException("A read-only backend and an existing teaching probe are required.");
         this.probeId = probeId;
         query = new(QueryProviderType, (id, token) => Backend.GetAsync(RecordKey("holon", id), token));
     }

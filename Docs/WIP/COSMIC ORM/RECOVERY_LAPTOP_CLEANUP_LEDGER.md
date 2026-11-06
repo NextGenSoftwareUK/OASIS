@@ -1789,8 +1789,12 @@ The archive was verified and removed. The retained `denokv.exe` is
 `inspect-standalone.py` ran against in-memory storage on loopback 54865.
 It retained only non-secret metadata and a server log in
 `standalone-metadata/`. The owned process stopped and the port cleared.
-`verify-standalone.ps1` will build the native test under the shared lease
-after the edge KV WEB4 build finishes. No persistent database was created.
+The repository runner `Scripts/TestHosts/Run-CosmicDenoKvNative.ps1` reused
+that executable and the existing provider test build directory. It retained
+`standalone-core-pin.txt`, `standalone-build.log` and the compact receipt
+directory `standalone-native-edfa425f42cad96a/` in the Deno qualification
+directory. The run passed all 15 checks and restored Core. The native
+process stopped, port 54865 cleared and no persistent database was created.
 
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive

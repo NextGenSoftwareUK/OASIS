@@ -91,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS
 
         private sealed record Metadata(int Version, string DatabaseId, string Endpoint, string Token, DateTimeOffset ExpiresAt);
 
-        private bool QueryOnly => _reviewedEndpoint != null;
+        internal bool QueryOnly => _reviewedEndpoint != null;
 
         public void Dispose()
         {
@@ -191,7 +191,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS
                 var endpointUrl = endpoint.GetProperty("url").GetString();
                 if (version >= 2)
                     endpointUrl = new Uri(response.RequestMessage?.RequestUri ?? new Uri(_connectUrl), endpointUrl).AbsoluteUri;
-                _metadata = new Metadata(version, root.GetProperty("uuid").GetString(), endpointUrl.TrimEnd('/'),
+                _metadata = new Metadata(version, ReadDatabaseId(root), endpointUrl.TrimEnd('/'),
                     root.GetProperty("token").GetString(), root.GetProperty("expiresAt").GetDateTimeOffset());
                 return _metadata;
             }
@@ -200,7 +200,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS
 
         private Metadata ReadReviewedMetadata(JsonElement root, int version)
         {
-            var databaseId = root.GetProperty("uuid").GetString();
+            var databaseId = ReadDatabaseId(root);
             var token = root.GetProperty("token").GetString();
             var expiresAt = root.GetProperty("expiresAt").GetDateTimeOffset();
             if (!Guid.TryParseExact(databaseId, "D", out var parsedId) || parsedId != _reviewedDatabaseId ||
@@ -215,6 +215,16 @@ namespace NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS
                     return new Metadata(version, databaseId, _reviewedEndpoint.AbsoluteUri.TrimEnd('/'), token, expiresAt);
             }
             throw new HttpRequestException("Deno KV did not return the reviewed strongly consistent endpoint.");
+        }
+
+        private static string ReadDatabaseId(JsonElement metadata)
+        {
+            // The current protocol implementation uses databaseId. Older metadata calls it uuid.
+            var identities = metadata.EnumerateObject().Where(property => property.Name is "databaseId" or "uuid").ToArray();
+            if (identities.Length != 1 || identities[0].Value.ValueKind != JsonValueKind.String ||
+                string.IsNullOrWhiteSpace(identities[0].Value.GetString()))
+                throw new HttpRequestException("Deno KV metadata must identify exactly one database.");
+            return identities[0].Value.GetString();
         }
 
         private async Task<(TOut Output, int Version)> CallAsync<TOut>(string method, IMessage input, MessageParser<TOut> parser, CancellationToken ct) where TOut : IMessage<TOut>

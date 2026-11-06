@@ -40,3 +40,27 @@ managed Deno KV database and confirm its connector authority, UUID and
 strong data endpoint. [Owner actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md#deno-kv-managed-teaching-database-access---2026-11-06).
 Hosted HTTP and browser counts remain open. LocalFile retains the first live
 Development WEB4 rollout slot.
+
+## Standalone KV Connect qualification
+
+The checksum-verified Windows `denokv` 0.14.0 runtime returned protocol
+v3 metadata with `databaseId` and a relative `/v2` strong endpoint. The
+current upstream client also uses `databaseId`. The provider now parses
+one database identity from either that field or the older `uuid` form and
+rejects ambiguous metadata before any snapshot read. The managed source
+still requires a reviewed nonempty database UUID and HTTPS endpoint.
+[Current metadata model](https://github.com/denoland/denokv/blob/0.14.0/proto/interface.rs).
+
+The standalone test passed CQL 3/2/0 on an isolated in-memory database and
+verified identical native payloads and versionstamps before and after. The
+run passed one native test, 12 hosted protocol controls and two storage
+regressions with zero skips at Core `4d6cfb6071ce76025f6ccff6a37ce0125f78680e`.
+TRX SHA-256 is `25d7a4083184ec94e8d4097b2ffaac8459c73ec44ea6060a59d7677d27ef822f`.
+Run it using `Scripts/TestHosts/Run-CosmicDenoKvNative.ps1 -DenoKv <exe>`.
+Managed Deno Deploy verification remains separate.
+
+A direct loopback wire check confirmed `application/json` metadata and a
+200 `application/x-protobuf` response for an absent exact key. The v3
+response contained one empty range, strong consistency and success. The
+check also verified that the standalone process stopped and released its
+port. It did not exercise the C# query profile.
