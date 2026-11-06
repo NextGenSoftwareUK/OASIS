@@ -520,6 +520,11 @@ Status: missing account/configuration information,2 November2026. David approved
 
 ## Railway access for Development WEB4 rollout from this laptop
 
+- Update 2026-11-06: the old laptop's read-only Railway check returned
+  Unauthorized. At that check Development was at
+  `b718f287933b7e79e862edbcf7d3bc13c37ba559`. See the LocalFile runbook
+  for the separate read-only observation using the recovered session.
+
 - Status 2026-11-04: the installed Railway CLI returned Unauthorized on the
   read-only account check. The LocalFile publisher needs authenticated access
   to read the current Development WEB4 settings and verify the exact release.
