@@ -85,3 +85,22 @@ bulk atomicity, central registration, hosted row policies/auth/gateway acceptanc
 HyperDrive/failover/load-balancing and distributed snapshots remain separate work.
 [Historical proof](Archive/SUPABASE_CQL_MVP_PRESERVED_2026-10-30.md),
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md), [later work](AFTER_DEMO_BACKLOG.md).
+
+## Development WEB4 candidate
+
+The hosted profile uses `CQL_SUPABASE_QUERY_ORIGIN` for the dedicated HTTPS
+project, `CQL_SUPABASE_QUERY_GATEWAY_KEY` for the publishable or legacy
+anonymous gateway key, `CQL_SUPABASE_QUERY_READER_TOKEN` for a separate
+restricted authenticated JWT, and `CQL_SUPABASE_QUERY_PROBE_ID` for an
+existing public teaching record. Review the table's row-level policies for
+the teaching principal and scope access to the reviewed rows. Keep the
+reader token in protected settings and review its expiry before use.
+[Supabase API keys](https://supabase.com/docs/guides/getting-started/api-keys) ·
+[Row-level security](https://supabase.com/docs/guides/database/postgres/row-level-security).
+
+The native HTTPS fixture uses `TestCategory=SupabaseHostedCqlNative` with
+`COSMIC_SUPABASE_HOSTED_CQL_SOURCE` pointing to the reviewed catalogue
+with `Actor`, three `LiveIds`, `DeletedId` and `MissingId`. Use one live ID
+as the probe. All 36 controlled provider and eight WEB4 admission tests
+passed. The native HTTPS fixture compiled and awaits the reviewed source.
+The retained local gateway evidence is separate.

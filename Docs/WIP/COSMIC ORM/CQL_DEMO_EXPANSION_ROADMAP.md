@@ -341,7 +341,7 @@ hosted replicas and browser interaction remain unverified.
 After the LocalFile rollout and each provider's native qualification, use the
 same reviewed teaching catalogue with the Development WEB4 verifier. This
 applies to Meilisearch, Solr, Elasticsearch, OpenSearch, ArcadeDB, SurrealDB,
-Qdrant, Redis, Valkey, DynamoDB, Typesense, MinIO and PocketBase. Confirm the reviewed settings deployment
+Qdrant, Redis, Valkey, DynamoDB, Typesense, MinIO, PocketBase and Supabase. Confirm the reviewed settings deployment
 and existing source authorization before running either command.
 
 ```powershell

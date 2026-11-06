@@ -58,6 +58,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             : this(supabaseUrl, apiKey, new HttpClient()) { }
 
         public SupabaseOASIS(string supabaseUrl, string apiKey, HttpClient httpClient, string restApiPath = "/rest/v1")
+            : this(supabaseUrl, apiKey, httpClient, restApiPath, apiKey)
+        { }
+
+        protected SupabaseOASIS(string supabaseUrl, string apiKey, HttpClient httpClient, string restApiPath, string bearer)
         {
             // Hosted Supabase uses /rest/v1; a directly hosted PostgREST service
             // explicitly selects an empty path. Never guess or retry another route.
@@ -66,7 +70,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             _baseUrl = supabaseUrl.TrimEnd('/') + restApiPath.TrimEnd('/');
             _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _http.DefaultRequestHeaders.Add("apikey", apiKey);
-            _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+            _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {bearer}");
             _http.DefaultRequestHeaders.Add("Prefer", "return=representation");
             ProviderName = "SupabaseOASIS";
             ProviderDescription = "Supabase provider (PostgREST REST API over PostgreSQL)";

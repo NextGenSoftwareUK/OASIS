@@ -1983,3 +1983,21 @@ The leases restored shared Core to `54159614`. No native requests were sent.
 LocalFile candidate ancestry verification passed 14 focused Python tests
 and a live read-only Git ref check. It reused the current checkout and
 created no Git objects, runtime downloads or Railway state.
+
+Supabase hosted activation uses the existing .NET and NuGet environment.
+Its output is `TestResults/ProviderBuildCurrent/supabase-hosted-read-activation.log`
+and `LocalState/COSMIC/HostedSupabaseCqlQualification/activation/`.
+The provider tests use controlled credentials and a simulated PostgREST
+response. No Supabase project or runtime was created.
+
+Supabase provider tests passed 36/36. The retained activation TRX SHA256 is
+`6A937203D44B70D943E29FA03F25357A8EBCE9461A3601958ECF094E689497E3`.
+WEB4 admission uses the same cache under the shared lease. Its log is
+`TestResults/ProviderBuildCurrent/supabase-hosted-api-cql.log`, with pin
+and TRX in `LocalState/COSMIC/HostedSupabaseCqlQualification/api-cql-admission/`.
+
+Supabase WEB4 admission passed 8/8, with retained TRX SHA256
+`EC1AED788FEDE1C945792DE7B274C13E57F1D272CC7C519BA5AFA8C6FBF70080`.
+The native HTTPS fixture compiled with 147 warnings and zero errors.
+Log: `TestResults/ProviderBuildCurrent/supabase-hosted-native-fixture-build.log`.
+The leases restored shared Core to `54159614`. No native requests were sent.

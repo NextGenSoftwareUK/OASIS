@@ -144,6 +144,15 @@ public class CqlCouchDbHostedAdmissionTests
         VerifyExactKeyPresets(ProviderType.PocketBaseOASIS, source.QueryCapabilities);
     }
 
+    [Fact]
+    public void SupabaseExactKeyPresetsPlanNativeAndMongoQueries()
+    {
+        using var client = new System.Net.Http.HttpClient();
+        var source = new NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.SupabaseQuerySource(
+            "https://supabase.example.test", "controlled-gateway", "controlled-reader", client, Guid.NewGuid());
+        VerifyExactKeyPresets(ProviderType.SupabaseOASIS, source.QueryCapabilities);
+    }
+
     private static void VerifyExactKeyPresets(ProviderType providerType, CosmicQueryCapabilities capabilities)
     {
         var provider = providerType.ToString();

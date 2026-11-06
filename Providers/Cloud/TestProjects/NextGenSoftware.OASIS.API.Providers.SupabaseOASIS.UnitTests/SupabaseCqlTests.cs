@@ -36,9 +36,9 @@ public class SupabaseCqlTests
         if (range != null) result.Content.Headers.TryAddWithoutValidation("Content-Range", range);
         return result;
     }
-    private static object Row(Guid id, Guid? payloadId = null, bool deleted = false)
+    private static object Row(Guid id, Guid? payloadId = null, bool deleted = false, bool isPublic = false)
         => new { id, parent_holon_id = (string?)null, holon_type = (int)HolonType.Holon, is_deleted = false,
-            data_json = JsonSerializer.Serialize(new { id = payloadId ?? id, name = "native fixture",
+            data_json = JsonSerializer.Serialize(new { id = payloadId ?? id, name = "native fixture", isPublic,
                 deletedDate = deleted ? DateTime.UtcNow : DateTime.MinValue }) };
     private static string Rows(params object[] rows) => JsonSerializer.Serialize(rows);
     private static CosmicQuery<Holon> Query(Guid[]? ids = null)
@@ -49,6 +49,34 @@ public class SupabaseCqlTests
         var plan = CosmicQueryPlanner.Plan(query, ProviderType.SupabaseOASIS,
             new[] { new CosmicQueryTarget(ProviderType.SupabaseOASIS, provider.QueryCapabilities) });
         Assert.IsFalse(plan.IsError, plan.Message); return plan.Result;
+    }
+
+    [DataTestMethod]
+    [DataRow("public", true)]
+    [DataRow("private", false)]
+    [DataRow("missing", false)]
+    [DataRow("foreign", false)]
+    [DataRow("partial", false)]
+    public async Task QueryActivationUsesSeparateCredentialsAndOneExactPublicRead(string shape, bool expected)
+    {
+        var transport = new Reply((request, _) =>
+        {
+            Assert.AreEqual(HttpMethod.Get, request.Method);
+            Assert.AreEqual("gateway-key", request.Headers.GetValues("apikey").Single());
+            Assert.AreEqual("reader-token", request.Headers.Authorization?.Parameter);
+            Assert.AreEqual("/rest/v1/oasis_holons", request.RequestUri!.AbsolutePath);
+            Assert.AreEqual($"?id=in.({One:D})&is_deleted=eq.false&order=id.asc&limit=100", request.RequestUri.Query);
+            return shape == "missing" ? Response("[]", "*/0")
+                : Response(Rows(Row(shape == "foreign" ? Two : One, isPublic: shape != "private")),
+                    shape == "partial" ? "0-0/2" : "0-0/1");
+        });
+        using var client = new HttpClient(transport);
+        var source = new SupabaseQuerySource("https://supabase.example.test", "gateway-key", "reader-token", client, One);
+        var result = await source.ActivateQuerySourceAsync(default);
+        Assert.AreEqual(expected, source.IsProviderActivated);
+        Assert.AreEqual(!expected, result.IsError, result.Message);
+        Assert.AreEqual(1, transport.Reads.Count);
+        Assert.IsNull(transport.Mutation);
     }
 
     [TestMethod]

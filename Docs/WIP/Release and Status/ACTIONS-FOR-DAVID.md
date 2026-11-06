@@ -698,3 +698,10 @@ and hosted federation and replication verification.
 - Owner step: identify an existing dedicated PocketBase HTTPS teaching service and provide a restricted record reader token privately. Scope its collection rules to the teaching objects in oasis_holons. Keep administrator credentials and the original local demo separate.
 - The catalogue needs three public live roots, one deleted object and one absent ID under the declared actor. Use a live root as the probe. No new paid service or account is requested.
 - Reason: native HTTPS qualification precedes Development settings and browser acceptance. [Settings and qualification](../COSMIC%20ORM/POCKETBASE_CQL_MVP.md#development-web4-candidate).
+
+## Supabase hosted teaching source access - 2026-11-06 UTC
+
+- Status: 36 provider and eight WEB4 admission checks passed. The native HTTPS qualifier compiled.
+- Owner step: identify an existing dedicated Supabase teaching project. Provide its HTTPS origin and public gateway key, and arrange a separate restricted authenticated reader JWT in protected settings. Review the token's expiry and row policies for the dedicated teaching principal.
+- The catalogue requires three public live roots, one deleted row and one absent ID under the declared actor. Use a live record as the probe. No new paid service or account is requested.
+- Reason: native gateway and row-policy qualification precede Development settings and browser acceptance. [Settings and qualification](../COSMIC%20ORM/SUPABASE_CQL_MVP.md#development-web4-candidate).
