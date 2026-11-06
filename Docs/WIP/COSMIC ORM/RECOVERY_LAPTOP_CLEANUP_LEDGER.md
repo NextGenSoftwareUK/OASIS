@@ -1851,6 +1851,12 @@ The leased build writes `TestResults/ProviderBuildCurrent/convex-hosted-api-cql.
 The 27 protected-settings tests passed with bytecode disabled. The leased
 WEB4 run passed all 18 cases and restored the original Core checkout.
 
+The leased Convex hosted verifier build reused the existing SDK. The
+integration test project owns its `bin/obj`. The pin is
+`LocalConvexCqlQualification/native-build-core-pin.txt` and the log is
+`TestResults/ProviderBuildCurrent/convex-native-verifier-build.log`.
+It compiled with zero errors without opening a network connection.
+
 Turso CQL drafts are in `LocalState/COSMIC/LocalTursoCqlQualification/`.
 The upstream release check used metadata only. The Windows CLI's
 sync server uses the sync protocol. The official libSQL server assets

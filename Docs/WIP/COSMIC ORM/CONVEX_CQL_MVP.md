@@ -27,5 +27,14 @@ The admission TRX SHA-256 is
 
 Hosted acceptance needs a reviewed dedicated teaching deployment with
 three public rows, a tombstone, an absent key and a private control.
+The `ConvexHostedCqlNative` integration test compiled at the same Core
+pin. Its build log SHA-256 is
+`c918f63ae69705b23d4e0d54c23f894e3571854470b0fd2fee7b455191681caa`.
+Use `COSMIC_CONVEX_HOSTED_CQL_SOURCE` for a reviewed descriptor with
+`Site`, `Actor`, `LiveIds`, `DeletedId`, and `MissingId`. Use
+`COSMIC_CONVEX_HOSTED_PRIVATE_ID` for the private control and the
+protected reader setting for authorization. The test exercises CQL
+3/2/0 and compares public response bytes across both passes.
+
 General holon and avatar companion functions remain open. The LocalFile
 deployment remains first for the live WEB4 rollout.
