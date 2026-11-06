@@ -46,7 +46,9 @@ def seed():
     for number in range(1, 6):
         key = f"10000000-0000-4000-8000-{number:012d}"
         doc = {"id": key, "name": f"Druid teaching record {number}", "createdByAvatarId": ACTOR,
-               "isPublic": number != 5, "isActive": True, "isDeleted": number == 4}
+               "isPublic": number != 5, "isActive": True}
+        if number == 4:
+            doc["deletedDate"] = "2026-01-01T00:00:00Z"
         records.append({"timestamp": "2026-01-01T00:00:00Z", "id": key,
                         "is_public": int(doc["isPublic"]), "doc": json.dumps(doc, separators=(",", ":"))})
     result = request("/druid/indexer/v1/task", {

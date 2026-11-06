@@ -28,3 +28,9 @@ method and prevented test compilation. The provider now initializes its
 name and description, and the identity suite tests the supported category
 contract. The Linux fixture checks the native version through Druid's
 `/status` API. [First Linux run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42259837438).
+
+The second Linux run reached CQL and observed four rows. The fixture had
+written the derived `isDeleted` Boolean instead of the stored
+`deletedDate` field that defines a canonical holon tombstone. The seed
+now uses `deletedDate`, and a controlled check covers tombstone and
+absent-key omission. [Second Linux run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42260416387).

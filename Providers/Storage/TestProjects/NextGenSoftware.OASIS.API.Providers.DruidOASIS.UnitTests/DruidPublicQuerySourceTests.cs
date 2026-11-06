@@ -49,6 +49,16 @@ public sealed class DruidPublicQuerySourceTests
         CollectionAssert.AreEqual(new[] { Ids[0], Ids[0], Ids[1] }, transport.Reads.ToArray());
     }
 
+    [TestMethod]
+    public async Task CanonicalTombstoneAndAbsentKeyAreOmitted()
+    {
+        using var transport = new Reply(id => id == Ids[5] ? Array.Empty<string>() :
+            new[] { Doc(id, deleted: id == Ids[3]) });
+        using var source = new DruidPublicQuerySource(Origin, Ids[0], transport);
+        Assert.IsFalse((await source.ActivateQuerySourceAsync()).IsError);
+        Check(await Query(source, new[] { Ids[3], Ids[5] }), Array.Empty<Guid>());
+    }
+
     [TestMethod, TestCategory("DruidPublicCqlNative")]
     public async Task RealDruidDatasourceProvidesThreeTwoAndZeroPublicRows()
     {
@@ -66,8 +76,9 @@ public sealed class DruidPublicQuerySourceTests
         Check(await Query(source, Ids[3..]), Array.Empty<Guid>());
     }
 
-    private static string Doc(Guid id, bool isPublic = true) => StoredRecordJson.Serialize<IHolon>(
-        new Holon { Id = id, Name = "Druid teaching record", IsPublic = isPublic, IsActive = true, CreatedByAvatarId = Actor });
+    private static string Doc(Guid id, bool isPublic = true, bool deleted = false) => StoredRecordJson.Serialize<IHolon>(
+        new Holon { Id = id, Name = "Druid teaching record", IsPublic = isPublic, IsActive = true, CreatedByAvatarId = Actor,
+            DeletedDate = deleted ? new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) : default });
 
     private static Task<OASISResult<IReadOnlyList<IHolon>>> Query(DruidPublicQuerySource source, Guid[] ids)
     {
