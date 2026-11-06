@@ -767,3 +767,9 @@ and hosted federation and replication verification.
 - Status: native Milvus 2.6.26 returned 3/2/0 and denied the private record. Six guarded provider and ten WEB4 admission checks passed. The hosted verifier compiled. No credentialed hosted request has run.
 - Owner step: identify an existing dedicated Milvus HTTPS teaching deployment. Arrange a dedicated reader with Query access limited to `oasis_holons` in the default teaching database and provide its token privately through `CQL_MILVUS_QUERY_READER_TOKEN`. Keep credentials out of chat and Git. No new paid deployment or admin token is requested.
 - Reason: engineering will review the scoped grant, bind the reviewed synthetic fixtures and verify exact native reads and private denial before Development enrollment. LocalFile remains first. [Milvus evidence](../COSMIC%20ORM/MILVUS_CQL_MVP.md) · [Milvus grants](https://milvus.io/docs/grant_privileges.md).
+
+## pgvector hosted teaching database access - 2026-11-06
+
+- Status: native PostgreSQL 17.11 and pgvector 0.8.7 passed 3/2/0, private denial, and checks rejecting an overprivileged role or non-vector table. Opt-in WEB4 admission passed. The hosted verifier compiled. No credentialed hosted request has run.
+- Owner step: identify an existing dedicated pgvector teaching database at a trusted TLS hostname on port 5432. Arrange a dedicated role with SELECT on `public.oasis_holons` ID and document columns and no write or schema-creation privileges. Provide its password privately through `CQL_PGVECTOR_QUERY_READER_PASSWORD`. No paid service or admin credentials are requested.
+- Reason: engineering will bind the reviewed database and role to the catalogue and verify its TLS identity, vector schema and effective grants before Development enrollment. LocalFile remains first. [pgvector evidence](../COSMIC%20ORM/PGVECTOR_CQL_MVP.md) · [PostgreSQL privilege functions](https://www.postgresql.org/docs/17/functions-info.html).

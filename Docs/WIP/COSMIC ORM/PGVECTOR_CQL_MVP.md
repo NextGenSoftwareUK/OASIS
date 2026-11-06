@@ -43,3 +43,10 @@ and ten Milvus regressions at Core `e400afd53cef4997e8bfcabc4b34b3f84a854626`.
 The reviewed host, database and restricted reader use PostgreSQL TLS
 hostname verification and the public schema. The hosted teaching
 database and protected password still require qualification.
+
+The `PgVectorHostedCqlNative` verifier compiled. It takes the reviewed
+descriptor through `COSMIC_PGVECTOR_HOSTED_CQL_SOURCE`, the protected
+`CQL_PGVECTOR_QUERY_READER_PASSWORD` and the synthetic private probe ID
+through `COSMIC_PGVECTOR_HOSTED_PRIVATE_ID`. The build log SHA-256 is
+`e9cf7e24eb945b8e0b8223042aca2a73f215cb2aa7dfef07be0ec6863c5db4ed`.
+Credentialed execution remains open.

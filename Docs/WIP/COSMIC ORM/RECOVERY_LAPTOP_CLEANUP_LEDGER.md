@@ -2083,9 +2083,13 @@ reports under `TestResults/ProviderBuildCurrent/`.
 Oracle Object Storage public preparation used three bounded anonymous
 HEAD requests and one listing request that returned 404. The sole
 workspace is `LocalState/COSMIC/LocalOracleObjectStorageCqlQualification/`.
-It holds the provider and test source drafts until the WEB4 lease
-releases. No workshop script, object body, runtime or credential was
-downloaded.
+The drafts moved into their normal projects after the WEB4 lease
+released. No workshop script, object body, runtime or credential was
+downloaded. The leased batch passed four PoH and nine Oracle Object
+Storage tests, compiled the pgvector hosted verifier and restored the
+shared Core checkout. The Oracle workspace retains `provider.trx` and
+`provider-core-pin.txt`. The Oracle log is
+`TestResults/ProviderBuildCurrent/oracle-object-storage-public-cql.log`.
 
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive

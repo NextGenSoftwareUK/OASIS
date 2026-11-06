@@ -30,6 +30,11 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
 - Cloudinary passed seven controlled checks, a real public metadata CQL
   3/2 test and opt-in WEB4 admission.
   [Cloudinary evidence](CLOUDINARY_CQL_MVP.md).
+- Proof of Humanity and Oracle Object Storage passed native CQL 3/2.
+  The first verifies both finalized registries. The second uses three
+  documented object HEADs. WEB4 admission is in preparation.
+  [Registry evidence](PROOF_OF_HUMANITY_PUBLIC_SOURCE_STATUS.md) ·
+  [Oracle evidence](ORACLE_OBJECT_STORAGE_PUBLIC_CQL.md).
 - Appwrite passed 19 provider checks and nine WEB4 admission checks. Its
   credentialed HTTPS verifier compiled and awaits a reviewed project.
   [Appwrite evidence](APPWRITE_CQL_MVP.md).
