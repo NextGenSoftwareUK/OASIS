@@ -2456,3 +2456,7 @@ Core pin, log and TRX with the `scylla-` prefix in
 The RavenDB WEB4 build completed with eight passed and zero skipped.
 The generated PFX test fixture was removed, the original Core checkout
 was restored and the exact report hash is in the RavenDB evidence note.
+
+The ScyllaDB recovery build passed all 23 provider tests and restored
+the original Core checkout. The restore reported no package installations.
+The ScyllaDB evidence note records the exact test report hash.
