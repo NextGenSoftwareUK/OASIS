@@ -119,3 +119,26 @@ fixes prevent a failed client initialization from leaving a readable-looking
 store handle. Four new controls plus the prior suite pass 23/23, zero skipped:
 valid/failed probe transitions, missing/pre-cancelled probe, deactivation and
 failed SDK initialization. Actual native activation is not yet verified.
+
+## Original laptop TLS and browser evidence recovered
+
+The original task branch records native TLS, source restart and Mongo-paired
+HTTP/browser acceptance at `f40b053a9`. Its archived native evidence belongs
+to the original local server and retained database. The recovery checkout
+carries forward the caller-owned certificate support from `8f3d528d4` and
+keeps its current payload and activation controls. The copied certificate
+tests are queued against the current Core pin.
+[Original evidence](https://github.com/NextGenSoftwareUK/OASIS/commit/f40b053a9).
+
+This machine's native license gate remains open. A hosted teaching source,
+restricted client certificate, WEB4 admission and live visitor evidence are
+separate gates.
+
+The next hosted profile uses one certificate-authenticated HTTPS origin
+and one database. It disables SDK topology discovery and topology caching,
+requires a public probe, and rejects teaching rows that become private.
+The certificate suite also checks that caller edits to the original URL
+array cannot change the validated HTTPS destination.
+
+All 28 provider tests passed at Core 439098484a74d8c84990fc1bbeb2b1228d5320d9.
+Provider TRX SHA256 cd24ef3a24cc13060b953ccbd6f11e2c8d809458c155b885a52d892ad767c2cd.

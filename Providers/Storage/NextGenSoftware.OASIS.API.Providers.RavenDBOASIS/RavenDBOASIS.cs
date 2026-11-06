@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -36,6 +37,7 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
     {
         private readonly string[] _serverUrls;
         private readonly string _database;
+        private readonly X509Certificate2? _clientCertificate;
         private IDocumentStore? _store;
 
         private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
@@ -46,7 +48,25 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
         };
 
         public RavenDBOASIS(string[] serverUrls, string database = "oasis")
+            : this(serverUrls, database, null)
         {
+        }
+
+        /// <summary>Use caller-owned client credentials with normal HTTPS server validation.</summary>
+        public RavenDBOASIS(string[] serverUrls, string database, X509Certificate2? clientCertificate)
+        {
+            if (clientCertificate != null)
+            {
+                if (!clientCertificate.HasPrivateKey)
+                    throw new ArgumentException("A client certificate requires its private key.", nameof(clientCertificate));
+                if (serverUrls == null || serverUrls.Length == 0)
+                    throw new ArgumentException("Certificate authentication requires explicit HTTPS server URLs.", nameof(serverUrls));
+                serverUrls = (string[])serverUrls.Clone();
+                if (serverUrls.Any(url =>
+                    !Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps))
+                    throw new ArgumentException("Certificate authentication requires explicit HTTPS server URLs.", nameof(serverUrls));
+            }
+            _clientCertificate = clientCertificate;
             _serverUrls = serverUrls;
             _database = database;
             ProviderName = "RavenDBOASIS";
@@ -58,7 +78,13 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
         private IDocumentStore GetStore()
         {
             if (_store != null) return _store;
-            var store = new DocumentStore { Urls = _serverUrls, Database = _database };
+            var store = new DocumentStore { Urls = _serverUrls, Database = _database, Certificate = _clientCertificate };
+            store.Conventions.DisposeCertificate = false;
+            if (RequiresPublicQueryRecords)
+            {
+                store.Conventions.DisableTopologyUpdates = true;
+                store.Conventions.DisableTopologyCache = true;
+            }
             try { store.Initialize(); }
             catch { store.Dispose(); throw; }
             _store = store;

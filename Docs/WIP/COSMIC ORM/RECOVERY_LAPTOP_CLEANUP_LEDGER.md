@@ -2433,3 +2433,7 @@ after Cassandra admission passes.
 
 Cassandra WEB4 admission passed six tests with no skips on the corrected
 test build. The evidence note records the final admission TRX hash.
+
+The RavenDB provider suite passed all 28 tests in the shared Cassandra
+recheck lease. The restore reported no new package installations.
+The build restored the original Core checkout.

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,8 +18,15 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS;
 public partial class RavenDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
 {
     private readonly Guid? _queryProbeId;
+    protected virtual bool RequiresPublicQueryRecords => false;
 
-    public RavenDBOASIS(string[] serverUrls, string database, Guid queryProbeId) : this(serverUrls, database)
+    public RavenDBOASIS(string[] serverUrls, string database, Guid queryProbeId)
+        : this(serverUrls, database, queryProbeId, null)
+    {
+    }
+
+    public RavenDBOASIS(string[] serverUrls, string database, Guid queryProbeId, X509Certificate2? clientCertificate)
+        : this(serverUrls, database, clientCertificate)
     {
         if (queryProbeId == Guid.Empty) throw new ArgumentException("An explicit teaching record is required.", nameof(queryProbeId));
         _queryProbeId = queryProbeId;
@@ -52,7 +60,10 @@ public partial class RavenDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOnly
             { NoTracking = true, NoCaching = true });
             var key = "OasisHolons/" + id.ToString("D");
             var rows = await session.LoadAsync<HolonDoc>(new[] { key }, deadline.Token);
-            if (!rows.TryGetValue(key, out var envelope) || envelope == null || DecodeQueryEnvelope(envelope, id).IsDeleted)
+            if (!rows.TryGetValue(key, out var envelope) || envelope == null)
+                throw new InvalidDataException("The existing RavenDB teaching record was not verified.");
+            var row = DecodeQueryEnvelope(envelope, id);
+            if (row.IsDeleted || (RequiresPublicQueryRecords && !row.IsPublic))
                 throw new InvalidDataException("The existing RavenDB teaching record was not verified.");
             cancellationToken.ThrowIfCancellationRequested();
             IsProviderActivated = true;
@@ -113,6 +124,8 @@ public partial class RavenDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOnly
                     if (!plan.Query.ReadAccess.CanRead(row))
                         return Error("CQL_QUERY_FAILED", "Native RavenDB holon differs from read authority.");
                     if (row.IsDeleted) continue;
+                    if (RequiresPublicQueryRecords && !row.IsPublic)
+                        return Error("CQL_QUERY_FAILED", "Native RavenDB teaching record is no longer public.");
                     row.Children = Array.Empty<IHolon>();
                     rows.Add(row);
                 }
