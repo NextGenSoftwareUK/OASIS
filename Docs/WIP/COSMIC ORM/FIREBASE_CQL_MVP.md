@@ -133,3 +133,14 @@ atomic concurrency, avatar/detail ownership, central registration, full storage
 conformance and HyperDrive/failover/load-balancing remain separate acceptance work.
 [Historical proof](Archive/FIREBASE_CQL_MVP_PRESERVED_2026-10-30.md),
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md), [later work](AFTER_DEMO_BACKLOG.md).
+
+## Development WEB4 preparation
+
+An explicit query source now activates through one exact native Realtime
+Database key read using the existing REST adapter. Activation verifies a
+public canonical record and refuses missing, deleted, private or mismatched
+rows. The canonical storage provider and CQL query keep their existing
+entry points. Hosted credential scoping, logging review, WEB4 enrollment
+and native hosted qualification remain open.
+[Firebase REST authentication](https://firebase.google.com/docs/database/rest/auth) ·
+[Realtime Database rules](https://firebase.google.com/docs/database/security/rules-conditions).

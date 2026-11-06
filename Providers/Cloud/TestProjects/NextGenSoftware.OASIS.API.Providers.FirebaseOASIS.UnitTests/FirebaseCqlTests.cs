@@ -17,12 +17,14 @@ public class FirebaseCqlTests
     private sealed class Reply(Func<Guid, HttpResponseMessage> reply) : HttpMessageHandler
     {
         public List<Guid> Reads { get; } = new();
+        public string? ReaderToken { get; private set; }
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
         {
             if (request.RequestUri!.AbsolutePath.EndsWith(Guid.Empty.ToString("D") + ".json"))
                 return Task.FromResult(Response("null"));
             var query = request.RequestUri.Query.TrimStart('?').Split('&').Select(part => part.Split('=', 2))
                 .ToDictionary(part => part[0], part => Uri.UnescapeDataString(part[1]));
+            ReaderToken = query.GetValueOrDefault("auth");
             Assert.AreEqual("$key", JsonSerializer.Deserialize<string>(query["orderBy"]));
             var id = Guid.Parse(JsonSerializer.Deserialize<string>(query["equalTo"])!);
             Reads.Add(id);
@@ -31,9 +33,9 @@ public class FirebaseCqlTests
     }
     private static HttpResponseMessage Response(string json, HttpStatusCode status = HttpStatusCode.OK)
         => new(status) { Content = new StringContent(json, Encoding.UTF8, "application/json") };
-    private static string Row(Guid key, Guid? payload = null, bool deleted = false)
+    private static string Row(Guid key, Guid? payload = null, bool deleted = false, bool isPublic = false)
         => JsonSerializer.Serialize(new Dictionary<string, object> { [key.ToString("D")] = new {
-            id = payload ?? key, name = "Firebase native row", deletedDate = deleted ? DateTime.UtcNow : DateTime.MinValue } });
+            id = payload ?? key, name = "Firebase native row", isPublic, deletedDate = deleted ? DateTime.UtcNow : DateTime.MinValue } });
     private static CosmicQuery<Holon> Query(Guid[]? ids = null)
         => CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.FirebaseOASIS).Result)
             .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(Guid.NewGuid(), ProviderType.FirebaseOASIS, ids ?? new[] { One, Two, Three }).Result).Result;
@@ -42,6 +44,25 @@ public class FirebaseCqlTests
         var plan = CosmicQueryPlanner.Plan(query, ProviderType.FirebaseOASIS,
             new[] { new CosmicQueryTarget(ProviderType.FirebaseOASIS, provider.QueryCapabilities) });
         Assert.IsFalse(plan.IsError, plan.Message); return plan.Result;
+    }
+
+    [DataTestMethod]
+    [DataRow("public", true)]
+    [DataRow("private", false)]
+    [DataRow("missing", false)]
+    [DataRow("deleted", false)]
+    [DataRow("foreign", false)]
+    public async Task QueryActivationRequiresOneExactPublicFirebaseRecord(string shape, bool expected)
+    {
+        using var reply = new Reply(id => Response(shape == "missing" ? "null" :
+            Row(shape == "foreign" ? Two : id, deleted: shape == "deleted", isPublic: shape != "private")));
+        using var http = new HttpClient(reply);
+        var provider = new FirebaseQuerySource("https://firebase.example.test", "controlled-reader", http, One);
+        var activation = await provider.ActivateQuerySourceAsync(default);
+        Assert.AreEqual(expected, provider.IsProviderActivated);
+        Assert.AreEqual(!expected, activation.IsError, activation.Message);
+        CollectionAssert.AreEqual(new[] { One }, reply.Reads);
+        Assert.AreEqual("controlled-reader", reply.ReaderToken);
     }
     [TestMethod]
     public void CompilerFreezesSelectionAndCannotChangeAuthorityOrEscapeCatalogue()

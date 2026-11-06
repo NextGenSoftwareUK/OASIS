@@ -24,6 +24,63 @@ public partial class FirebaseOASIS : ICosmicQueryStorageProvider
     public CosmicQueryCapabilities QueryCapabilities => QueryProviderType == Core.Enums.ProviderType.FirebaseOASIS
         ? BoundedIdentityCqlCompiler.Capabilities : UnsupportedAlias;
 
+    private const int MaximumQueryBytes = 4 * 1024 * 1024;
+    private sealed class QueryPayloadLimitException : IOException { }
+
+    private async Task<(Holon? Row, int Bytes)> ReadExactQueryRecordAsync(Guid id, int maximumBytes, CancellationToken token)
+    {
+        var key = id.ToString("D");
+        using var response = await _http.GetAsync(QueryUrl("oasis_holons", "$key", key),
+            HttpCompletionOption.ResponseHeadersRead, token);
+        response.EnsureSuccessStatusCode();
+        if (response.Content.Headers.ContentLength > maximumBytes) throw new QueryPayloadLimitException();
+        await using var stream = await response.Content.ReadAsStreamAsync(token);
+        using var buffer = new MemoryStream();
+        var block = new byte[16384];
+        for (var read = await stream.ReadAsync(block, token); read != 0; read = await stream.ReadAsync(block, token))
+        {
+            if (buffer.Length + read > maximumBytes) throw new QueryPayloadLimitException();
+            buffer.Write(block, 0, read);
+        }
+        using var document = JsonDocument.Parse(new UTF8Encoding(false, true).GetString(buffer.ToArray()));
+        var count = (int)buffer.Length;
+        if (document.RootElement.ValueKind == JsonValueKind.Null) return (null, count);
+        if (document.RootElement.ValueKind != JsonValueKind.Object)
+            throw new InvalidDataException("Firebase key query must return an object or null.");
+        var records = document.RootElement.EnumerateObject().ToArray();
+        if (records.Length == 0) return (null, count);
+        if (records.Length != 1 || records[0].Name != key || records[0].Value.ValueKind != JsonValueKind.Object)
+            throw new InvalidDataException("Firebase key equality returned a foreign or malformed row.");
+        var row = ParseFirebaseHolon(id, records[0].Value.GetRawText());
+        if (row == null || row.Id != id)
+            throw new InvalidDataException("Firebase key/payload identity differs.");
+        return (row, count);
+    }
+
+    protected async Task<OASISResult<bool>> VerifyPublicQueryProbeAsync(Guid id, CancellationToken cancellationToken)
+    {
+        IsProviderActivated = false;
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (id == Guid.Empty || QueryProviderType != Core.Enums.ProviderType.FirebaseOASIS)
+                throw new InvalidOperationException("An explicit Firebase teaching probe is required.");
+            var (row, _) = await ReadExactQueryRecordAsync(id, 1024 * 1024, cancellationToken);
+            if (row == null || !row.IsPublic || row.IsDeleted)
+                throw new InvalidDataException("Firebase did not return one exact public teaching record.");
+            cancellationToken.ThrowIfCancellationRequested();
+            IsProviderActivated = true;
+            return new(true);
+        }
+        catch (Exception cause)
+        {
+            return new() { IsError = true, ErrorCount = 1,
+                ErrorCode = cause is OperationCanceledException && cancellationToken.IsCancellationRequested
+                    ? "CQL_QUERY_CANCELLED" : "CQL_QUERY_SOURCE_UNAVAILABLE",
+                Message = "Firebase did not verify its public teaching record.", Exception = cause };
+        }
+    }
+
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100,
         CancellationToken cancellationToken = default) where T : IHolon
@@ -48,35 +105,14 @@ public partial class FirebaseOASIS : ICosmicQueryStorageProvider
             // union of exact indexed $key equality queries (at most100 requests),
             // never a whole-collection download followed by managed filtering.
             var rows = new List<IHolon>();
-            long bytes = 0;
+            int bytes = 0;
             foreach (var id in selection.Result.OrderBy(value => value.ToString("D"), StringComparer.Ordinal))
             {
-                using var response = await _http.GetAsync(QueryUrl("oasis_holons", "$key", id.ToString("D")),
-                    HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-                response.EnsureSuccessStatusCode();
-                await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-                using var buffer = new MemoryStream();
-                var block = new byte[16384];
-                for (var read = await stream.ReadAsync(block, cancellationToken); read != 0; read = await stream.ReadAsync(block, cancellationToken))
-                {
-                    bytes += read;
-                    if (bytes > 4 * 1024 * 1024)
-                        return Error("CQL_QUERY_LIMIT", "Firebase aggregate native response exceeds4MiB; no partial result.");
-                    buffer.Write(block, 0, read);
-                }
-                using var document = JsonDocument.Parse(new UTF8Encoding(false, true).GetString(buffer.ToArray()));
-                if (document.RootElement.ValueKind == JsonValueKind.Null) continue;
-                if (document.RootElement.ValueKind != JsonValueKind.Object)
-                    throw new InvalidDataException("Firebase key query must return an object or null.");
-                var records = document.RootElement.EnumerateObject().ToArray();
-                if (records.Length > 1) throw new InvalidDataException("Firebase key equality returned multiple records.");
-                if (records.Length == 0) continue;
-                var record = records[0];
-                if (record.Name != id.ToString("D") || record.Value.ValueKind != JsonValueKind.Object)
-                    throw new InvalidDataException("Firebase key equality returned a foreign or malformed row.");
-                var row = ParseFirebaseHolon(id, record.Value.GetRawText());
-                if (row == null || row.Id != id || !plan.Query.ReadAccess.CanRead(row))
-                    throw new InvalidDataException("Firebase key/payload identity or authorization mismatch.");
+                var (row, received) = await ReadExactQueryRecordAsync(id, MaximumQueryBytes - bytes, cancellationToken);
+                bytes += received;
+                if (row == null) continue;
+                if (!plan.Query.ReadAccess.CanRead(row))
+                    throw new InvalidDataException("Firebase record does not match the read authority.");
                 if (row.IsDeleted) continue;
                 row.Children = Array.Empty<IHolon>();
                 rows.Add(row);
@@ -91,6 +127,8 @@ public partial class FirebaseOASIS : ICosmicQueryStorageProvider
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         { return Error("CQL_QUERY_CANCELLED", "Firebase query cancelled; no partial result published.", new OperationCanceledException(cancellationToken)); }
+        catch (QueryPayloadLimitException)
+        { return Error("CQL_QUERY_LIMIT", "Firebase aggregate native response exceeds4MiB; no partial result."); }
         catch (Exception cause)
         { return Error("CQL_QUERY_FAILED", "Native Firebase key-query union failed; no partial result published.", cause); }
     }

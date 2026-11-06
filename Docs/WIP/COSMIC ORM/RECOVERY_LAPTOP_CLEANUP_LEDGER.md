@@ -1989,6 +1989,16 @@ An actual readiness run keeps its protected journal in
 `LocalState/COSMIC/HostedPouchDBReadiness-<deployment-id>/`. Tests removed
 their temporary state and made no live session requests.
 
+Firebase hosted probe preparation reuses the existing .NET SDK and NuGet
+cache under the shared lease. Its test output is
+`TestResults/ProviderBuildCurrent/firebase-hosted-read-activation.log`
+and `LocalState/COSMIC/HostedFirebaseCqlQualification/activation/`.
+No emulator, hosted project, credential or data copy was created.
+
+Firebase's focused provider tests passed. Retained activation TRX SHA256
+`A26A514CCFA61730525448694ABB68B2F71F0E64E875FC3D5E1C655A2B61C74A`.
+The lease restored shared Core to `54159614`.
+
 LocalFile candidate ancestry verification passed 14 focused Python tests
 and a live read-only Git ref check. It reused the current checkout and
 created no Git objects, runtime downloads or Railway state.
