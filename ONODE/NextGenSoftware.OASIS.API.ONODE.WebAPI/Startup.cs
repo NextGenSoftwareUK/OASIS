@@ -617,6 +617,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             Services.Cql.CqlDaprReadSourceRegistration.AddDaprReadSource(services, Configuration);
             Services.Cql.CqlCloudflareKvReadSourceRegistration.AddCloudflareKvReadSource(services, Configuration);
             Services.Cql.CqlVercelKvReadSourceRegistration.AddVercelKvReadSource(services, Configuration);
+            Services.Cql.CqlDenoKvReadSourceRegistration.AddDenoKvReadSource(services, Configuration);
             Services.Cql.CqlAlgoliaReadSourceRegistration.AddAlgoliaReadSource(services, Configuration);
 
             if (Configuration["CQL_CHROMA_QUERY_ORIGIN"] is string chromaOrigin)

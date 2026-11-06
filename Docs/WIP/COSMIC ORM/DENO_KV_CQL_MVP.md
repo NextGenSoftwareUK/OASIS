@@ -35,9 +35,9 @@ descriptor contains `DatabaseId`, `ReviewedEndpoint`, `Actor`, `LiveIds`,
 `DeletedId` and `MissingId`. The credential is supplied privately as
 `CQL_DENO_KV_QUERY_READER_TOKEN`.
 
-Before admitting the source to WEB4, run the verifier against a dedicated
-managed Deno KV database and confirm its connector authority, UUID and
-strong data endpoint. [Owner actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md#deno-kv-managed-teaching-database-access---2026-11-06).
+Before enabling this source on Development WEB4, run the verifier against
+a dedicated managed Deno KV database and confirm its connector authority,
+UUID and strong data endpoint. [Owner actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md#deno-kv-managed-teaching-database-access---2026-11-06).
 Hosted HTTP and browser counts remain open. LocalFile retains the first live
 Development WEB4 rollout slot.
 
@@ -64,3 +64,15 @@ A direct loopback wire check confirmed `application/json` metadata and a
 response contained one empty range, strong consistency and success. The
 check also verified that the standalone process stopped and released its
 port. It did not exercise the C# query profile.
+
+## Development WEB4 candidate
+
+The opt-in registration uses `CQL_DENO_KV_QUERY_DATABASE_ID`,
+`CQL_DENO_KV_QUERY_DATA_ENDPOINT`, `CQL_DENO_KV_QUERY_PROBE_ID` and the
+protected `CQL_DENO_KV_QUERY_READER_TOKEN`. The catalogue binds the first
+three values, and the protected baseline must contain a valid reader token.
+All 25 settings tests passed, including mismatched source identities and
+unreviewed endpoints. Nine Deno WEB4 admission checks and 14 edge KV
+regressions passed with zero skips at Core
+`fdb333a34365a9c6b93f58825c137e2ca3560122`. TRX SHA-256 is
+`84da0210325e842e01cfb7bdaeed75fea5edbf9ec8da8d6a06233cf96b79e2c0`.

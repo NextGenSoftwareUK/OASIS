@@ -35,15 +35,18 @@ public sealed class DenoDeployQuerySource : DenoDeployOASIS, ICosmicQueryStorage
 
     private static DenoKvConnectBackend CreateBackend(Guid databaseId, Uri reviewedEndpoint, string readerToken, Guid probeId, HttpMessageHandler handler)
     {
-        if (databaseId == Guid.Empty || probeId == Guid.Empty || !IsValidToken(readerToken) ||
-            reviewedEndpoint is not { IsAbsoluteUri: true, Scheme: "https", HostNameType: UriHostNameType.Dns } ||
-            !reviewedEndpoint.IsDefaultPort || reviewedEndpoint.UserInfo.Length != 0 ||
-            reviewedEndpoint.Query.Length != 0 || reviewedEndpoint.Fragment.Length != 0)
+        if (!IsValidConfiguration(databaseId, reviewedEndpoint, readerToken, probeId))
             throw new ArgumentException("A reviewed Deno KV database, HTTPS endpoint, reader and existing teaching probe are required.");
 
         var connectUrl = BuildConnectUrl(databaseId.ToString("D"));
         return new DenoKvConnectBackend(connectUrl, readerToken, handler, reviewedEndpoint, databaseId);
     }
+
+    public static bool IsValidConfiguration(Guid databaseId, Uri reviewedEndpoint, string readerToken, Guid probeId) =>
+        databaseId != Guid.Empty && probeId != Guid.Empty && IsValidToken(readerToken) &&
+        reviewedEndpoint is { IsAbsoluteUri: true, Scheme: "https", HostNameType: UriHostNameType.Dns, IsDefaultPort: true } &&
+        reviewedEndpoint.Host.Contains('.') && reviewedEndpoint.UserInfo.Length == 0 &&
+        reviewedEndpoint.Query.Length == 0 && reviewedEndpoint.Fragment.Length == 0;
 
     internal static bool IsValidToken(string token) =>
         token is { Length: > 0 and <= 8192 } && token.All(character => character > ' ' && character <= '~');

@@ -1796,6 +1796,21 @@ directory `standalone-native-edfa425f42cad96a/` in the Deno qualification
 directory. The run passed all 15 checks and restored Core. The native
 process stopped, port 54865 cleared and no persistent database was created.
 
+Deno WEB4 admission reuses `HostedDenoKvCqlQualification/` and the existing
+WEB4 test projects. Its leased `verify-hosted-cql.ps1` writes
+`web4-core-pin.txt` and `admission.trx` there, with the build log at
+`TestResults/ProviderBuildCurrent/deno-kv-hosted-api-cql.log`. All 23 WEB4
+checks passed and the lease restored Core. The 25 protected-settings tests
+passed with bytecode disabled.
+No new download, credential or hosted resource was used.
+
+Appwrite uses the existing .NET runtime and provider test project. Its
+leased runner is `LocalState/COSMIC/HostedAppwriteCqlQualification/verify-provider.ps1`.
+The Core pin, log and TRX will use the `appwrite-` prefix under
+`TestResults/ProviderBuildCurrent/`. Start it after the Deno WEB4 build
+releases the shared lease. No runtime, credential or Appwrite project was
+created.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt
