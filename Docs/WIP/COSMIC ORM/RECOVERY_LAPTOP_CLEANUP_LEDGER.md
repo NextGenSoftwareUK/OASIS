@@ -2743,6 +2743,15 @@ Netlify WEB4 passed all nine admission checks with zero skips. The shared
 Core checkout was restored, and the admission TRX hash is in its evidence
 note. The temporary settings patch can be removed after staging.
 
+The Netlify settings patch was removed after its scoped commit. Its
+native verifier compiled in
+`HostedNetlifyBlobsCqlQualification/native-73563824dc16421caafcf3396bc73ad6/`
+with no database, credential or network request. The shared query code
+and Fastly provider/test drafts then moved into their normal projects.
+The combined provider run is active under the shared lease.
+That run passed all 16 cases with zero skips and restored the shared Core
+checkout. The exact report hash is in the Fastly evidence note.
+
 A transient C: report showed 1 byte free and interrupted a ledger update.
 The next readings from PowerShell and the Windows volume API agreed on
 approximately 41.6 GB free. The ledger diff confirmed intact prior entries.

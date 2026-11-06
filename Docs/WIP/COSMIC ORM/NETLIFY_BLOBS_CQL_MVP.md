@@ -36,7 +36,8 @@ The native verifier draft is
 It checks the four existing keys and the absent key using exact Netlify
 HEAD requests, confirms the tombstone, and runs CQL 3/2/0. It requires the
 same ETags before and after the reads. The missing-token preflight passed.
-Probe compilation and live execution remain open.
+The native probe compiled at the exact WEB4 Core pin. Live execution
+requires an approved teaching store and reviewed reader credential.
 
 Review the credential's actual project and role permissions separately.
 The native verifier establishes exact reads and unchanged ETags.
