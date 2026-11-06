@@ -2034,6 +2034,10 @@ failure receipt is `LocalPgVectorCqlQualification/native-ci-42241366067.zip`,
 SHA-256 `8c2b13f79d5d29760e801b2cf051e5a0f94ebc43b86b0798ed17bd123fc193aa`.
 The stack trace was read in memory. The fixture now requests a Boolean
 instead of asking Npgsql to decode an untyped PostgreSQL catalogue value.
+The revised job passed with PostgreSQL 17.11 and pgvector 0.8.7. Retained
+the 1,496-byte report `LocalPgVectorCqlQualification/native-ci-42241735749.zip`,
+SHA-256 `61861a1d9a6bf947d46da5402f772197472fa6ffd9fa75c1e646332d0c07456b`.
+Both entries were read in memory without extraction.
 
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive

@@ -24,6 +24,9 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
 - Milvus passed five controlled CQL checks and native Milvus 2.6.26
   exact-key CQL 3/2/0 with private denial. Opt-in WEB4 admission is in
   verification. [Milvus evidence](MILVUS_CQL_MVP.md).
+- pgvector passed the restricted-reader 3/2/0 and private-denial checks
+  on PostgreSQL 17.11 with pgvector 0.8.7. WEB4 enrollment remains open.
+  [pgvector evidence](PGVECTOR_CQL_MVP.md).
 - Appwrite passed 19 provider checks and nine WEB4 admission checks. Its
   credentialed HTTPS verifier compiled and awaits a reviewed project.
   [Appwrite evidence](APPWRITE_CQL_MVP.md).

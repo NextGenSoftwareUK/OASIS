@@ -32,3 +32,27 @@ nine ENS regressions at Core `10e464dcf58f4624a27e19f12738978ecf0fcb07`.
 Placement of the co-located reader and live federation remain open.
 General OrbitDB document storage and multi-peer convergence
 are separate scope. LocalFile remains first for the live rollout.
+
+## WEB4 runtime settings
+
+Build the reviewed WEB4 image with `OASIS_INCLUDE_TEACHING_SIDECARS=true`
+when either sidecar is needed. Set the runtime flag only after the exact
+image and its persistent mount have been verified.
+
+| Setting | OrbitDB | GUN |
+| --- | --- | --- |
+| Runtime flag | `OASIS_SANDBOX_ORBITDB=true` | `OASIS_SANDBOX_GUN=true` |
+| Existing volume directory | `/data/COSMIC/SandboxOrbitDB` | `/data/COSMIC/SandboxGUN` |
+| Native identity | `OASIS_SANDBOX_ORBITDB_ADDRESS` from the reviewed manifest | Existing Radisk teaching marker |
+| Reviewed loopback origin | `CQL_ORBITDB_QUERY_SIDECAR` | `CQL_GUN_QUERY_SIDECAR` |
+| Protected reader | `CQL_ORBITDB_QUERY_READER_TOKEN` | `CQL_GUN_QUERY_READER_TOKEN` |
+| Existing public probe | `CQL_ORBITDB_QUERY_PROBE_ID` | `CQL_GUN_QUERY_PROBE_ID` |
+
+Place the reviewed native fixture on the attached volume with its owner
+process stopped. Keep the database directory and the accepted cohort on
+subsequent deploys. The supervisor checks the startup process identity
+and public probe before starting WEB4. After settings and mounted
+records are verified, use the existing exact-key settings and acceptance
+scripts for native 3/2, Mongo 5/4, repeat reuse, visitor isolation, matching
+SQLite and Neo4j replicas, and browser verification.
+[Acceptance roadmap](SANDBOX_PROVIDER_DEMO_ROADMAP.md)

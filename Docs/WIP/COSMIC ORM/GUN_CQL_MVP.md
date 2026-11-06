@@ -29,3 +29,5 @@ nine ENS regressions at Core `10e464dcf58f4624a27e19f12738978ecf0fcb07`.
 Live acceptance needs a co-located sidecar, protected reader and approved
 persistent teaching data. General GUN CRUD and peer replication remain
 open. LocalFile remains first for live rollout.
+
+[Shared WEB4 runtime settings](ORBITDB_CQL_MVP.md#web4-runtime-settings).
