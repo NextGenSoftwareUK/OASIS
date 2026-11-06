@@ -2217,3 +2217,51 @@ Upstash WEB4 admission passed 10/10, zero failures or skips.
 `admission.trx` SHA256:
 `B2427A636B5B00D37EBCC3CE89E6E7A80B7A6E3253E347B85F7A3DB0292FE4D5`.
 The shared build lease restored Core to `54159614`.
+
+InfluxDB public profile validation uses the existing .NET environment and
+the shared producer/consumer lease. The provider results use
+`LocalState/COSMIC/HostedInfluxCqlQualification/`. The log is
+`TestResults/ProviderBuildCurrent/influx-public-profile.log`.
+No native database or service was started for this run.
+
+InfluxDB provider controls passed 35/35. The provider TRX SHA256 is
+`A7E78E1EF7F6DDECBA2D87A90B049DEF835D26498222F4BE26F8470503C023D9`.
+The restored package cache additions were CsvHelper 33.1.0, InfluxDB.Client
+5.1.0, InfluxDB.Client.Core 5.1.0, JsonSubTypes 2.0.1,
+Microsoft.Extensions.ObjectPool 10.0.8, NodaTime 3.3.2,
+NodaTime.Serialization.JsonNet 3.1.0, RestSharp 113.1.0 and System.Reactive
+6.0.1, under the existing user NuGet package cache. The leased WEB4 run
+writes `TestResults/ProviderBuildCurrent/influx-hosted-api-cql.log`.
+
+InfluxDB Windows qualification downloads the pinned v2.7.12 archive to
+`LocalState/COSMIC/HostedInfluxCqlQualification/influxdb-win-x64-2.7.12/`.
+The 48,484,663-byte archive must match vendor SHA256
+`adb952c67eaeea742d81899367ec95defa26b47a0fa99dc773ab4de822e9072d`.
+Keep the server executable and its receipt for reuse. No system install.
+
+The verified InfluxDB archive was removed after extracting only influxd.exe.
+The retained executable is 113998336 bytes, SHA256
+A222A5C080019EAF92E527A5A89B2702878C87C4EB41C9438E7530E67DE2141C. The version command reported v2.7.12, git ec9dcde5d6.
+No server process or database was started. The runtime receipt is in the
+same qualification directory.
+
+The InfluxDB Windows fixture launcher is
+`influxdb-win-x64-2.7.12/run-public-native.py` within the qualification
+directory. It uses the pinned executable, Git OpenSSL, a process-scoped
+test certificate and an isolated `public-native/native-data/` directory.
+The runner stops its owned process before removing the exact database and
+certificate paths. It keeps the catalogue, seed receipts, server log and
+native test evidence. The fixture is prepared and has not executed yet.
+
+InfluxDB corrected WEB4 admission passed 8/8. Two initial assertions
+used the wrong test-framework method and were corrected. Logs:
+`influx-hosted-api-cql.log`, `influx-hosted-api-cql-corrected.log`,
+`influx-windows-public-fixture.log` under `TestResults/ProviderBuildCurrent/`.
+Admission TRX SHA256 `127768A45C1F0C9621A762DDC3A525947C456F944A735FC3303EC02F37F2C128`.
+Native fixture compiled with 154 warnings and zero errors. The three
+Windows run directories `public-native/`, `public-native-corrected/` and
+`public-native-final/` retain the original observation failures and final
+1/1. All owned database directories and temporary TLS files were removed.
+The final proof verifies the listener closed and identical native points.
+TRX SHA256 `69c7090531263272fea65e574ceacc030ebde1da59bb5d93fde942b6c285b1ad`.
+The lease restored shared Core to `54159614`.

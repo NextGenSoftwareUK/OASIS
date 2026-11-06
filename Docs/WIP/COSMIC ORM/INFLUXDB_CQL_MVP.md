@@ -91,3 +91,44 @@ avatar/legacy lookup/delete audit, hosted configuration and HyperDrive/failover/
 load-balancing/distributed snapshots remain separate work. Retention must be checked.
 [Historical proof](Archive/INFLUXDB_CQL_MVP_PRESERVED_2026-10-30.md),
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md), [later work](AFTER_DEMO_BACKLOG.md).
+
+## WEB4 public query profile preparation
+
+All 35 provider tests passed, including a public probe and rejection of
+a selected record whose public flag was removed. The official InfluxDB
+SDK uses the configured HTTP transport for the public profile. WEB4
+accepts the exact generated Flux identity query for the configured bucket,
+using the configured HTTPS origin and organization. The guard applies an
+8 MiB wire limit before SDK CSV parsing. The provider retains its decoded
+4 MiB limit. This profile targets InfluxDB 2.x with Flux enabled.
+
+Protected settings use `CQL_INFLUXDB_QUERY_` with suffixes ORIGIN,
+ORGANIZATION, BUCKET, READER_TOKEN and PROBE_ID. The token must have read
+access to the teaching bucket. The protected settings preparer binds the
+probe to the first reviewed live ID. All six settings tests passed.
+The WEB4 transport tests are running.
+[Official SDK query path](https://github.com/influxdata/influxdb-client-csharp/blob/v5.1.0/Client/QueryApi.cs).
+
+A separate disposable Windows native fixture is prepared for the pinned
+InfluxDB OSS 2.7.12 executable. It will test the actual WEB4 query guard,
+Flux parser and read-only bucket token over hostname-verified loopback
+TLS, including full/subset/paging, missing and deleted records, and
+unchanged original points. This fixture uses new synthetic data. The
+retained Linux source is separate.
+
+The corrected WEB4 admission passed 8/8 at Core
+`514b3296db9322a1c8e19094415c11013b620fb4`. The official SDK used the
+guard on activation and reactivation. The Windows native fixture passed
+1/1 against InfluxDB 2.7.12. It checked full/subset/paging, missing and
+deleted exclusion, a denied native write with the scoped reader and
+unchanged native points. The first observation combined different Flux
+field types. The next used a moving time range. The final observer
+separates fields and uses a fixed range. Original run logs remain
+in the ledger paths. Native TRX SHA256
+`69c7090531263272fea65e574ceacc030ebde1da59bb5d93fde942b6c285b1ad`.
+
+To repeat from the repository root, build the integration project with
+`/p:EnableInfluxDbWindowsPublicCqlNativeTests=true` under the shared
+build lease, then run `python -B Scripts/TestHosts/run-cosmic-influx-windows-public.py`.
+It expects the verified runtime receipt and refuses to reuse the evidence
+directory. Hosted source and live visitor qualification remain open.

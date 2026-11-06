@@ -48,6 +48,7 @@ namespace NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS
         private readonly string _org;
         private readonly string _bucket;
         private InfluxDBClient? _client;
+        private readonly Func<InfluxDBClient> _createClient;
 
         private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
         {
@@ -58,6 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS
         public InfluxDBOASIS(string url, string token, string org, string bucket)
         {
             _url = url; _token = token; _org = org; _bucket = bucket;
+            _createClient = () => InfluxDBClientFactory.Create(_url, _token.ToCharArray());
             ProviderName = "InfluxDBOASIS";
             ProviderDescription = "InfluxDB time-series database provider (InfluxDB.Client SDK — OASIS data as tagged measurement points)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.InfluxDBOASIS);
@@ -67,7 +69,7 @@ namespace NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);
         private static T? Des<T>(string? json) => json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOpts);
 
-        private InfluxDBClient GetClient() => _client ??= InfluxDBClientFactory.Create(_url, _token.ToCharArray());
+        private InfluxDBClient GetClient() => _client ??= _createClient();
 
         // ─── Flux helpers ─────────────────────────────────────────────────────────
 

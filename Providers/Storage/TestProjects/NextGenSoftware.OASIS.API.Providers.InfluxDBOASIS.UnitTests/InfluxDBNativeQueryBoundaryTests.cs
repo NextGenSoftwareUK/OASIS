@@ -16,7 +16,9 @@ public class InfluxDBNativeQueryBoundaryTests
         public int Calls;
         public int Produced;
         public Action? BeforeRead;
+        public Guid? PrivateId;
         public Reader() : base("http://127.0.0.1:1", "fixture", "fixture", "fixture") { IsProviderActivated = true; }
+        public Reader(HttpClient transport, Guid probe) : base("https://influx.example.test", "fixture", "fixture", "fixture", transport, probe) { }
         protected override async IAsyncEnumerable<NativeCqlDocument> ReadNativeCqlAsync(IReadOnlyList<Guid> ids, [EnumeratorCancellation] CancellationToken token)
         {
             Calls++;
@@ -30,7 +32,7 @@ public class InfluxDBNativeQueryBoundaryTests
                     Key = key.ToString("D"), Id = Mode == "identity" && index == 1 ? Guid.NewGuid().ToString("D") : key.ToString("D"),
                     IsDeleted = Mode == "deleted" && index == 0,
                     DataJson = Mode == "budget" ? new string(' ', 4 * 1024 * 1024 + 1) :
-                        JsonSerializer.Serialize(new Holon { Id = Mode == "payload" && index == 1 ? Guid.NewGuid() : key },
+                        JsonSerializer.Serialize(new Holon { Id = Mode == "payload" && index == 1 ? Guid.NewGuid() : key, IsPublic = key != PrivateId },
                             new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })
                 };
             }).ToArray();
@@ -46,6 +48,28 @@ public class InfluxDBNativeQueryBoundaryTests
         if (page) query = query.Skip(1).Result.Take(1).Result;
         return CosmicQueryPlanner.Plan(query, ProviderType.InfluxDBOASIS,
             new[] { new CosmicQueryTarget(ProviderType.InfluxDBOASIS, provider.QueryCapabilities) }).Result;
+    }
+
+    [TestMethod]
+    public async Task PublicProbeAndAllSelectedRecordsMustRemainPublic()
+    {
+        var ids = new[] { Guid.NewGuid(), Guid.NewGuid() };
+        using var transport = new HttpClient();
+        var provider = new Reader(transport, ids[0]) { PrivateId = ids[0] };
+        Assert.IsTrue((await provider.ActivateQuerySourceAsync(default)).IsError);
+        Assert.IsFalse(provider.IsProviderActivated);
+
+        provider.PrivateId = null;
+        Assert.IsFalse((await provider.ActivateQuerySourceAsync(default)).IsError);
+        var plan = Plan(provider, ids);
+        var accepted = await provider.ExecuteCosmicQueryAsync(plan);
+        Assert.IsFalse(accepted.IsError, accepted.Message);
+        Assert.AreEqual(2, accepted.Result.Count);
+
+        provider.PrivateId = ids[1];
+        var rejected = await provider.ExecuteCosmicQueryAsync(plan);
+        Assert.IsTrue(rejected.IsError);
+        Assert.IsNull(rejected.Result);
     }
 
     [TestMethod]

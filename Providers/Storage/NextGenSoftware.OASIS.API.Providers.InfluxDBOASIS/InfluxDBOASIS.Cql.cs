@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
+using InfluxDB.Client;
 using InfluxDB.Client.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -15,8 +17,68 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS;
 
-public partial class InfluxDBOASIS : ICosmicQueryStorageProvider
+public partial class InfluxDBOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
 {
+    private readonly Guid? _queryProbeId;
+
+    /// <summary>Explicit public profile with an HTTP transport supplied by its caller.</summary>
+    public InfluxDBOASIS(string url, string token, string org, string bucket, HttpClient transport, Guid queryProbeId)
+        : this(url, token, org, bucket)
+    {
+        ArgumentNullException.ThrowIfNull(transport);
+        if (queryProbeId == Guid.Empty)
+            throw new ArgumentException("An existing public teaching probe is required.", nameof(queryProbeId));
+        _queryProbeId = queryProbeId;
+        _createClient = () => InfluxDBClientFactory.Create(new InfluxDBClientOptions.Builder()
+            .Url(url).AuthenticateToken(token.ToCharArray()).SetHttpClient(transport).Build());
+    }
+
+    public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
+    {
+        IsProviderActivated = false;
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (_queryProbeId is not Guid probe)
+                throw new InvalidOperationException("An explicit teaching probe is required.");
+            var verified = false;
+            await foreach (var record in ReadNativeCqlAsync(new[] { probe }, cancellationToken).WithCancellation(cancellationToken))
+            {
+                if (verified || record.Key != probe.ToString("D") || record.Id != record.Key)
+                    throw new InvalidDataException("InfluxDB did not return exactly the configured probe.");
+                var row = ReadQueryRecord(record, probe);
+                if (record.IsDeleted || row.IsDeleted || !row.IsPublic)
+                    throw new InvalidDataException("The teaching probe must be an existing public record.");
+                verified = true;
+            }
+            if (!verified) throw new InvalidDataException("The teaching probe was missing.");
+            cancellationToken.ThrowIfCancellationRequested();
+            IsProviderActivated = true;
+            return new(true);
+        }
+        catch (Exception cause)
+        {
+            return new()
+            {
+                IsError = true,
+                ErrorCount = 1,
+                ErrorCode = cause is OperationCanceledException ? "CQL_QUERY_CANCELLED" : "CQL_QUERY_SOURCE_UNAVAILABLE",
+                Message = "The native InfluxDB query source did not verify its teaching probe.",
+                Exception = cause
+            };
+        }
+    }
+
+    private static Holon ReadQueryRecord(NativeCqlDocument record, Guid id)
+    {
+        if (!record.IsComplete)
+            throw new InvalidDataException("Native latest record lacks required fields.");
+        var row = Des<Holon>(record.DataJson);
+        if (row == null || row.Id != id)
+            throw new InvalidDataException("Native InfluxDB record differs from the requested identity.");
+        return row;
+    }
+
     public ProviderType QueryProviderType => Core.Enums.ProviderType.InfluxDBOASIS;
     public CosmicQueryCapabilities QueryCapabilities => InfluxDBCqlCompiler.Capabilities;
 
@@ -76,17 +138,18 @@ public partial class InfluxDBOASIS : ICosmicQueryStorageProvider
                 await foreach (var record in ReadNativeCqlAsync(selected.Result, cancellationToken).WithCancellation(cancellationToken))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    if (!record.IsComplete) throw new InvalidDataException("Native latest record lacks required fields.");
                     if (!Guid.TryParseExact(record.Key, "D", out var id) || record.Key != id.ToString("D") ||
                         record.Id != record.Key || !selected.Result.Contains(id) || !seen.Add(id))
                         throw new InvalidDataException("Native key/identity differs from admitted catalogue.");
                     bytes = checked(bytes + Encoding.UTF8.GetByteCount(record.DataJson));
                     if (bytes > 4 * 1024 * 1024)
                         return Error("CQL_QUERY_LIMIT", "Complete decoded payload exceeds 4 MiB.");
-                    var row = Des<Holon>(record.DataJson);
-                    if (row == null || row.Id != id || !plan.Query.ReadAccess.CanRead(row))
+                    var row = ReadQueryRecord(record, id);
+                    if (!plan.Query.ReadAccess.CanRead(row))
                         throw new InvalidDataException("Native holon differs from read authority.");
                     if (record.IsDeleted || row.IsDeleted) continue;
+                    if (_queryProbeId.HasValue && !row.IsPublic)
+                        throw new InvalidDataException("Native teaching record is no longer public.");
                     row.Children = Array.Empty<IHolon>();
                     rows.Add(id, row);
                 }
