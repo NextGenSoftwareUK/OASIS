@@ -14,6 +14,11 @@ children. The controlled and native TRX SHA-256 values are
 and `bb787252b08e2367dc53c6dda91bd9985ca61c0c145587e159c7e48920aa5f4a`.
 [Companion and verification](../../../Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/CqlTeachingCompanion/README.md).
 
+The shared loopback reader now checks the companion's provider identity.
+All 11 OrbitDB controls and the native CQL case passed again at the
+same Core pin. The provider-bound native TRX SHA-256 is
+`effa968cbed534d2a31ddfc553dded83f69f39ab0e811a9bd0d8a0d2816c0ae3`.
+
 WEB4 admission, placement of the co-located reader and live federation
 remain open. General OrbitDB document storage and multi-peer convergence
 are separate scope. LocalFile remains first for the live rollout.

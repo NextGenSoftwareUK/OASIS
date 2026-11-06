@@ -15,7 +15,8 @@ const canonicalId = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/;
 const emptyId = "00000000-0000-0000-0000-000000000000";
 const server = createServer(async (request, response) => {
   const reply = (status, body) => {
-    response.writeHead(status, { "Content-Type": "application/json", "Cache-Control": "no-store" });
+    response.writeHead(status, { "Content-Type": "application/json", "Cache-Control": "no-store",
+      "X-OASIS-Teaching-Provider": "OrbitDBOASIS" });
     response.end(body);
   };
   try {

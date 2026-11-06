@@ -1,0 +1,51 @@
+name: Qualify native teaching companions
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-native-teaching-companions.yml'
+      - 'Docker/Dockerfile.web4'
+      - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/CqlTeachingCompanion/**'
+      - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/CqlTeachingCompanion/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        provider: [OrbitDBOASIS, GUNOASIS]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Verify the native source inside the pinned WEB4 Node runtime
+        shell: bash
+        env:
+          PROVIDER: ${{ matrix.provider }}
+        run: |
+          image=$(awk '$1 == "FROM" && $4 == "provider_node" { print $2 }' Docker/Dockerfile.web4)
+          [[ "$image" =~ ^node:[0-9.]+-bookworm-slim@sha256:[a-f0-9]{64}$ ]]
+          fixture=$(mktemp -d "$RUNNER_TEMP/oasis-node-teaching.XXXXXXXX")
+          [[ "$fixture" == "$RUNNER_TEMP"/oasis-node-teaching.* ]]
+          trap 'rm -rf -- "$fixture"' EXIT
+          source="Providers/Other/NextGenSoftware.OASIS.API.Providers.$PROVIDER/CqlTeachingCompanion"
+          cp -- "$source"/package.json "$source"/package-lock.json "$source"/*.mjs "$fixture/"
+          mkdir -p TestResults/NativeTeaching
+          docker run --rm --user "$(id -u):$(id -g)" --mount "type=bind,src=$fixture,dst=/work" \
+            --workdir /work --env npm_config_cache=/work/npm-cache "$image" \
+            sh -ec 'node --version; npm ci --ignore-scripts --no-audit --no-fund; node verify-teaching.mjs /work/f' \
+            2>&1 | tee "TestResults/NativeTeaching/$PROVIDER.log"
+          grep -q '^PASS:' "TestResults/NativeTeaching/$PROVIDER.log"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: native-teaching-${{ matrix.provider }}
+          path: TestResults/NativeTeaching/
+          retention-days: 7

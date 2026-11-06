@@ -9,7 +9,8 @@ database directory and a protected `OASIS_ORBITDB_CQL_READER_TOKEN`.
 `127.0.0.1`. The sole read route is
 `GET /oasis/cql/holon?id=<canonical-guid>` with the bearer reader token.
 It returns public live payloads without embedded children, 403 for
-private records and JSON null for deleted or missing records.
+private records and JSON null for deleted or missing records. The
+response identifies OrbitDBOASIS.
 
 Use Node 22 or later and the pinned npm lock. Install dependencies with
 `npm ci --ignore-scripts` in one dedicated workspace. On Windows, choose

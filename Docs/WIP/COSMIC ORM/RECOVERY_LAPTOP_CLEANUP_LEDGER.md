@@ -1943,7 +1943,7 @@ The leased run passed all 11 provider controls and one native CQL case.
 The lease restored the original Core checkout and the owned sidecar
 released port 54869.
 
-GUN preparation reuses the bundled Node and npm CLI. The only planned
+GUN preparation reuses the bundled Node and npm CLI. The pinned
 install is `gun@0.2020.1241` in
 `LocalState/COSMIC/LocalGunCqlQualification/`, with `npm-cache` contained
 there. No global install or hosted data was involved. It added 11
@@ -1952,6 +1952,27 @@ is 4,919,135 bytes and the synthetic fixture `f` is 1,318 bytes.
 The native `probe-radisk.cjs` seed and read processes exited. The probe
 verified persistence and rejected the standard relay's absent legacy
 HTTP graph route.
+
+The GUN and OrbitDB shared reader and provider identity checks reused
+their existing workspaces, Node and .NET SDK. The leased runners are
+`verify-provider-batch.ps1` and `verify-provider-binding.ps1` in the GUN
+qualification folder. They retained separate `*-adapter` TRX directories
+and provider/native logs under `TestResults/ProviderBuildCurrent/`.
+The disposable GUN fixtures are `f2`, `f3` and `f4`. OrbitDB adds
+`f4` and `f5`. All owned processes exited and the shared Core checkout
+was restored. No additional dependency install was used.
+
+The combined WEB4 admission uses `verify-hosted-cql.ps1` in the GUN
+qualification folder. It records its candidate Core pin, `admission.trx`
+and `TestResults/ProviderBuildCurrent/orbitdb-gun-hosted-api-cql.log`.
+All 70 offline hosted tooling tests passed without writing bytecode.
+The leased WEB4 build is active.
+
+The Linux companion qualification uses the existing pinned WEB4 Node
+image and each tracked package lock on disposable GitHub runners.
+Its npm cache and generated native fixtures live in each runner's
+`oasis-node-teaching.*` directory, which the job removes. The job keeps
+only compact log artifacts for seven days.
 
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
