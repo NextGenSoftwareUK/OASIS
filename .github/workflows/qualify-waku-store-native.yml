@@ -1,0 +1,37 @@
+name: Qualify native Waku Store
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-waku-store-native.yml'
+      - 'Scripts/TestHosts/Verify-WakuStoreFixture.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  store:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Verify isolated loopback relay and exact Store hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          work=$(mktemp -d "$RUNNER_TEMP/oasis-waku.XXXXXXXX")
+          [[ "$work" == "$RUNNER_TEMP"/oasis-waku.* ]]
+          trap 'rm -rf -- "$work"' EXIT
+          url='https://github.com/logos-messaging/logos-delivery/releases/download/v0.39.2/waku-v0.39.2-amd64-linux.tar.gz'
+          digest='063d4386623e3dcfa6e59908dd57bbc2a420f26875ea50f7adb3c5b348ba9b87'
+          curl --fail --silent --show-error --location --max-time 90 --output "$work/waku.tar.gz" "$url"
+          printf '%s  %s\n' "$digest" "$work/waku.tar.gz" | sha256sum --check
+          tar -xzf "$work/waku.tar.gz" -C "$work"
+          rm -- "$work/waku.tar.gz"
+          binary="$work/build/logosdeliverynode"
+          [[ -x "$binary" ]]
+          python3 -B Scripts/TestHosts/Verify-WakuStoreFixture.py "$binary" "$work"

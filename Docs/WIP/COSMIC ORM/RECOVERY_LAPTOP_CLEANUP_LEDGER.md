@@ -3558,3 +3558,13 @@ Provider `bin` and `obj` measure 8,242,925 and 888,413 bytes. Test
 5,914-byte TRX, 58,357-byte passing log and 394,438-byte initial
 compile log. No provider service or separate runtime was installed.
 Free space was 37,798,748,160 before and 37,737,385,984 bytes after.
+
+### Waku Store Linux fixture, 6 November 2026
+
+The scoped Linux workflow uses the official Waku v0.39.2 release
+archive, 31,112,893 bytes, under a single runner-owned
+`RUNNER_TEMP/oasis-waku.*` directory. It verifies the pinned SHA-256
+before extraction, removes the archive after extraction and removes
+the exact workspace after both loopback nodes stop. Only bounded
+node log tails reach the workflow log. No local archive, binary,
+database, Docker image or WSL distribution was installed.
