@@ -2437,3 +2437,22 @@ test build. The evidence note records the final admission TRX hash.
 The RavenDB provider suite passed all 28 tests in the shared Cassandra
 recheck lease. The restore reported no new package installations.
 The build restored the original Core checkout.
+
+RavenDB WEB4 admission reuses the shared build environment with one lease.
+The runner, Core pin and eventual TRX are in
+`LocalState/COSMIC/HostedRavenDbCqlQualification/`.
+The build log is `TestResults/ProviderBuildCurrent/raven-hosted-api-cql.log`.
+The 12 protected-settings tests passed and cleaned their temporary files.
+The WEB4 certificate test creates and deletes an ephemeral test PFX.
+No licensed server, cloud account or deployment certificate was created.
+
+ScyllaDB recovery preserves the original native and browser evidence.
+The provider runner is
+`LocalState/COSMIC/HostedScyllaDbCqlQualification/verify-recovered-provider.ps1`.
+It will use one shared lease after the RavenDB WEB4 build and write its
+Core pin, log and TRX with the `scylla-` prefix in
+`TestResults/ProviderBuildCurrent/`. No new server setup is needed.
+
+The RavenDB WEB4 build completed with eight passed and zero skipped.
+The generated PFX test fixture was removed, the original Core checkout
+was restored and the exact report hash is in the RavenDB evidence note.

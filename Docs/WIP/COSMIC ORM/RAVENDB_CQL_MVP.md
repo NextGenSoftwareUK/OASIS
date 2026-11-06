@@ -142,3 +142,25 @@ array cannot change the validated HTTPS destination.
 
 All 28 provider tests passed at Core 439098484a74d8c84990fc1bbeb2b1228d5320d9.
 Provider TRX SHA256 cd24ef3a24cc13060b953ccbd6f11e2c8d809458c155b885a52d892ad767c2cd.
+
+### Development WEB4 admission candidate
+
+The source uses RavenDB.Client 7.0.1 against one canonical RavenDB Cloud
+HTTPS origin and the `oasis` database. Place the dedicated database
+Read Only client certificate at `/data/cql-secrets/ravendb/reader.pfx` on
+the existing WEB4 persistent volume. The service verifies the exact PFX
+SHA256 and loads its key into process memory. The service owns disposal
+of the client certificate after the source closes.
+
+Protected settings use the `CQL_RAVENDB_QUERY_` prefix with `ORIGIN`,
+`CERTIFICATE_SHA256`, optional `CERTIFICATE_PASSWORD` and `PROBE_ID`.
+The reviewed catalogue binds the origin, PFX digest and first live UUID
+before protected settings can be prepared. The PFX and password belong in
+protected deployment state.
+[RavenDB client connection](https://docs.ravendb.net/guides/connecting-c-application-to-ravendb-cloud) ·
+[Read Only authorization](https://docs.ravendb.net/7.2/studio/server/certificates/read-only-access-level).
+
+All 12 protected-settings tests passed. All eight WEB4 admission tests passed at Core
+`fec1c1953b341c8439a08cff0a66779c92acadd3`. The approved RavenDB source,
+restricted certificate, volume placement and live visitor proof remain open.
+Admission TRX SHA256 1a5dc50b1a3723a5d0622cb967f53590d6390ef83568f3ad31c5e5e6fbee835b.

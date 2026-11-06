@@ -49,6 +49,9 @@ class ExactKeyConfigurationTests(unittest.TestCase):
     def test_cassandra_candidate_preserves_existing_providers(self):
         self.check_candidate("CassandraOASIS")
 
+    def test_ravendb_candidate_preserves_existing_providers(self):
+        self.check_candidate("RavenDBOASIS")
+
     def check_candidate(self, provider):
         partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
         baseline = {
@@ -66,6 +69,12 @@ class ExactKeyConfigurationTests(unittest.TestCase):
             descriptor = Path(directory) / "catalogue.json"
             actor, first, second, third, deleted, missing = [str(uuid.UUID(int=i)) for i in range(1, 7)]
             catalogue = {"Actor": actor, "LiveIds": [first, second, third], "DeletedId": deleted, "MissingId": missing}
+            if provider == "RavenDBOASIS":
+                catalogue.update(Origin="https://a.free.teaching.ravendb.cloud", CertificateSha256="a" * 64)
+                for invalid in ({"Origin": catalogue["Origin"] + ":443"}, {"CertificateSha256": "invalid"}):
+                    descriptor.write_text(json.dumps(catalogue | invalid))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                        configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "CassandraOASIS":
                 catalogue["BundleSha256"] = "a" * 64
                 descriptor.write_text(json.dumps(catalogue | {"BundleSha256": "A" * 64}))
@@ -93,7 +102,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -115,6 +124,11 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                                     CQL_CASSANDRA_QUERY_PROBE_ID=first)
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {"CQL_CASSANDRA_QUERY_BUNDLE_SHA256": "b" * 64}, provider, review)
+                elif provider == "RavenDBOASIS":
+                    baseline.update(CQL_RAVENDB_QUERY_ORIGIN=catalogue["Origin"],
+                                    CQL_RAVENDB_QUERY_CERTIFICATE_SHA256=catalogue["CertificateSha256"], CQL_RAVENDB_QUERY_PROBE_ID=first)
+                    with self.assertRaisesRegex(ValueError, "do not match"):
+                        configuration.candidate(baseline | {"CQL_RAVENDB_QUERY_ORIGIN": "https://other.ravendb.cloud"}, provider, review)
                 else:
                     product = provider.removesuffix("OASIS").upper()
                     baseline[f"CQL_{product}_QUERY_PROBE_ID"] = first

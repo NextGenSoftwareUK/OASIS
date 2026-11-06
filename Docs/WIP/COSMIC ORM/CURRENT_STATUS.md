@@ -25,6 +25,14 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
   Twelve recovered provider tests and ten protected-settings tests passed.
   Eight WEB4 admission and nine CockroachDB regression tests passed.
   [TimescaleDB evidence](TIMESCALEDB_CQL_MVP.md).
+- Cassandra's original restart and browser evidence is retained. All 23
+  recovered provider tests and six WEB4 admission tests passed. Its published
+  read path awaits an approved Astra database, restricted token, secure bundle
+  placement on the WEB4 volume and live verification.
+  [Cassandra evidence](CASSANDRA_CQL_MVP.md).
+- RavenDB's certificate-backed provider passed 28 tests. Twelve protected
+  settings and eight WEB4 admission tests passed. Live verification is open.
+  [RavenDB evidence](RAVENDB_CQL_MVP.md).
 - Weaviate uses the official pinned gRPC protocol over a guarded WEB4 channel.
   Eight provider and nine WEB4 checks passed. The approved public source
   and live visitor run are open. [Weaviate evidence](WEAVIATE_CQL_MVP.md).

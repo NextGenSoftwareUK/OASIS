@@ -605,6 +605,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             Services.Cql.CqlPostgresFamilyReadSourceRegistration.AddCockroachDbReadSource(services, Configuration);
             Services.Cql.CqlPostgresFamilyReadSourceRegistration.AddTimescaleDbReadSource(services, Configuration);
             Services.Cql.CqlCassandraReadSourceRegistration.AddCassandraReadSource(services, Configuration);
+            Services.Cql.CqlRavenDbReadSourceRegistration.AddRavenDbReadSource(services, Configuration);
 
             if (Configuration["CQL_CHROMA_QUERY_ORIGIN"] is string chromaOrigin)
             {

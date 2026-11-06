@@ -226,6 +226,7 @@
   <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS/NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS.csproj" />
   <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.TimescaleDBOASIS/NextGenSoftware.OASIS.API.Providers.TimescaleDBOASIS.csproj" />
   <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.CassandraOASIS/NextGenSoftware.OASIS.API.Providers.CassandraOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.RavenDBOASIS/NextGenSoftware.OASIS.API.Providers.RavenDBOASIS.csproj" />
   <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.csproj" />
 </ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.csproj" /></ItemGroup>
