@@ -802,3 +802,19 @@ and hosted federation and replication verification.
 - Engineering owns the reviewed network catalogue, admission, usage bounds,
   authenticated verification and the hosted demo.
   [Safe indexing qualification](../COSMIC%20ORM/SAFE_INDEXING_CQL_MVP.md).
+
+## Apache Druid protected datasource access for Development WEB4
+
+- Status 2026-11-06: open after LocalFile. Druid 38.0.0 passed native
+  3/2/0 against the disposable teaching datasource. Hosted qualification
+  needs a separate approved Druid HTTPS endpoint and scoped reader.
+- Identify an existing approved Druid deployment for this demo. On its
+  Basic Security authorizer, grant a dedicated reader only
+  `DATASOURCE READ` for `^oasis_cql_public_holons$`. Install the reader
+  username and password in the protected Development settings
+  `CQL_DRUID_QUERY_READER_USERNAME` and `CQL_DRUID_QUERY_READER_PASSWORD`
+  when scheduled. Share only the approved HTTPS origin and readiness.
+  [Druid authorization](https://druid.apache.org/docs/latest/operations/security-user-auth/).
+- Engineering owns the synthetic dataset, reader denial checks, source
+  enrollment and the end-to-end WEB4 test.
+  [Druid qualification](../COSMIC%20ORM/DRUID_CQL_MVP.md).

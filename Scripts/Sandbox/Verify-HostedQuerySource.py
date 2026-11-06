@@ -27,7 +27,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -363,6 +363,13 @@ def reviewed_exact_key_source(provider, path):
             fields = {"Actor", public_keys[0]}
         if provider == "CloudinaryOASIS":
             fields = {"Actor", "Assets"}
+        if provider == "DruidOASIS":
+            fields |= {"Origin", "ReaderUsername"}
+            origin = catalogue["Origin"]
+            if (len(origin) > 261 or not re.fullmatch(
+                    r"https://(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?", origin)
+                    or not re.fullmatch(r"[a-z][a-z0-9_-]{0,62}", catalogue["ReaderUsername"])):
+                raise ValueError("Unexpected Druid HTTPS origin or restricted reader identity.")
         if provider == "PgVectorOASIS":
             fields |= {"Host", "Database", "ReaderUsername"}
             host = catalogue["Host"]
@@ -665,6 +672,10 @@ def reviewed_exact_key_source(provider, path):
     elif provider == "CloudinaryOASIS":
         source = {"owner": catalogue["Actor"], "assets": assets, "probe": assets[0]}
         review["sourceBinding"] = {"CQL_CLOUDINARY_QUERY_SOURCE_JSON": json.dumps(source, separators=(",", ":"))}
+    elif provider == "DruidOASIS":
+        review["sourceBinding"] = {"CQL_DRUID_QUERY_ORIGIN": catalogue["Origin"],
+                                   "CQL_DRUID_QUERY_READER_USERNAME": catalogue["ReaderUsername"],
+                                   "CQL_DRUID_QUERY_PROBE_ID": ids[0]}
     elif provider == "PgVectorOASIS":
         review["sourceBinding"] = {"CQL_PGVECTOR_QUERY_HOST": catalogue["Host"],
                                    "CQL_PGVECTOR_QUERY_DATABASE": catalogue["Database"],

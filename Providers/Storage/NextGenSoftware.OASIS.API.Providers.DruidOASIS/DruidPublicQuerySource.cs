@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,6 +32,31 @@ public sealed class DruidPublicQuerySource : KeyValueStorageProviderBase, ICosmi
 
     internal DruidPublicQuerySource(Uri origin, Guid probeId, HttpMessageHandler handler)
         : this(new DruidBackend(origin, probeId, handler), probeId) { }
+
+    public DruidPublicQuerySource(Uri origin, Guid probeId, string username, string password)
+        : this(origin, probeId, username, password, handler: null) { }
+
+    internal DruidPublicQuerySource(Uri origin, Guid probeId, string username, string password, HttpMessageHandler? handler)
+        : this(CreateHostedBackend(origin, probeId, username, password, handler), probeId) { }
+
+    public static bool IsValidHostedConfiguration(Uri origin, Guid probeId, string username, string password) =>
+        origin is { IsAbsoluteUri: true, Scheme: "https", HostNameType: UriHostNameType.Dns, IsDefaultPort: true, IsLoopback: false } &&
+        origin.AbsolutePath == "/" && origin.UserInfo.Length == 0 && origin.Query.Length == 0 && origin.Fragment.Length == 0 &&
+        origin.Host.Length <= 253 && origin.Host.Contains('.') && origin.OriginalString == origin.GetLeftPart(UriPartial.Authority) &&
+        origin.Host.Split('.').All(label => label.Length is >= 1 and <= 63 && label[0] != '-' && label[^1] != '-' &&
+            label.All(c => char.IsAsciiLetterLower(c) || char.IsAsciiDigit(c) || c == '-')) &&
+        char.IsAsciiLetterLower(origin.Host.Split('.')[^1][0]) &&
+        probeId != Guid.Empty && username is { Length: >= 1 and <= 63 } && char.IsAsciiLetterLower(username[0]) &&
+        username.All(c => char.IsAsciiLetterLower(c) || char.IsAsciiDigit(c) || c is '_' or '-') &&
+        password is { Length: >= 1 and <= 1024 } && password.All(c => c is >= '!' and <= '~');
+
+    private static DruidBackend CreateHostedBackend(Uri origin, Guid probeId, string username, string password, HttpMessageHandler? handler)
+    {
+        if (!IsValidHostedConfiguration(origin, probeId, username, password))
+            throw new ArgumentException("A reviewed Druid HTTPS origin, restricted reader and public probe are required.");
+        var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(username + ":" + password));
+        return new DruidBackend(origin, probeId, handler, new AuthenticationHeaderValue("Basic", credentials));
+    }
 
     private DruidPublicQuerySource(DruidBackend backend, Guid probeId) : base(backend, "druid-public:")
     {
@@ -68,8 +96,9 @@ public sealed class DruidPublicQuerySource : KeyValueStorageProviderBase, ICosmi
         private const string Sql = "SELECT \"doc\" FROM \"oasis_cql_public_holons\" WHERE \"id\" = ? AND \"is_public\" = 1 LIMIT 2";
         private readonly Uri endpoint;
         private readonly HttpClient client;
+        private readonly AuthenticationHeaderValue? authorization;
 
-        public DruidBackend(Uri origin, Guid probeId, HttpMessageHandler? handler)
+        public DruidBackend(Uri origin, Guid probeId, HttpMessageHandler? handler, AuthenticationHeaderValue? authorization = null)
         {
             if (origin is not { IsAbsoluteUri: true } || origin.AbsolutePath != "/" ||
                 origin.Query.Length != 0 || origin.Fragment.Length != 0 || origin.UserInfo.Length != 0 || probeId == Guid.Empty)
@@ -90,6 +119,7 @@ public sealed class DruidPublicQuerySource : KeyValueStorageProviderBase, ICosmi
                 handler = transport;
             }
             endpoint = new Uri(origin, "/druid/v2/sql");
+            this.authorization = authorization;
             client = new HttpClient(handler);
         }
 
@@ -97,6 +127,7 @@ public sealed class DruidPublicQuerySource : KeyValueStorageProviderBase, ICosmi
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             request.Headers.Accept.ParseAdd("application/json");
+            request.Headers.Authorization = authorization;
             request.Content = JsonContent.Create(new
             {
                 query = Sql,

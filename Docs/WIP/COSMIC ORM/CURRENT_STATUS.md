@@ -26,8 +26,8 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
   Mongo federation 5/4 with private-row isolation. Hosted access remains
   open after LocalFile. [Safe evidence](SAFE_INDEXING_CQL_MVP.md).
 - Apache Druid 38.0.0 passed native exact-key CQL 3/2/0 on the Linux
-  runner after the canonical tombstone fix. WEB4 admission and federation
-  remain open. [Druid evidence](DRUID_CQL_MVP.md).
+  runner after the canonical tombstone fix. Protected WEB4 admission also
+  passed. Hosted access and federation remain open. [Druid evidence](DRUID_CQL_MVP.md).
 - Apache Pinot 1.6.0 passed native exact-key CQL 3/2/0 on the Linux
   runner. WEB4 admission and federation remain open.
   [Pinot evidence](PINOT_CQL_MVP.md).

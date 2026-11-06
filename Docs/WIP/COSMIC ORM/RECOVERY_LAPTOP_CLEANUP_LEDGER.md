@@ -3324,3 +3324,9 @@ The passing Pinot 1.6.0 run retains an 84,075-byte CI artifact on GitHub.
 No image, runtime, database or artifact was downloaded to this laptop.
 The local controlled-build runner is
 `LocalState/COSMIC/PinotPublicCqlQualification/verify.ps1`.
+
+Druid's Windows build logs, Core pin and TRXs remain in
+`LocalState/COSMIC/DruidPublicCqlQualification/`. The controlled provider
+and WEB4 admission runs used the existing .NET SDK and build lease. No
+Druid service or reader secret was created locally. The Goldsky public
+HTTP 429 probe ran in memory and left no output files.

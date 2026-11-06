@@ -13,7 +13,7 @@ and one private row. The test also requests an absent key and expects
 3/2/0 results. The retained report will distinguish the SQL source count
 from the visible CQL row count.
 
-WEB4 admission, Mongo federation and hosted acceptance are separate.
+Mongo federation and hosted acceptance remain open.
 Append-only write reconciliation and the provider's complete interfaces
 remain open.
 
@@ -41,3 +41,22 @@ excluding the private row, tombstone and absent key. The single test
 passed with zero skips. The retained CI artifact is 2,090 bytes, SHA-256
 `eb843cdd3d97485d006bf913d54ff7cd3ad0c808bc43528d7444f368357ece0b`.
 [Passing Linux run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42261110911).
+
+## WEB4 read-only admission
+
+Set the reviewed origin and probe in `CQL_DRUID_QUERY_ORIGIN` and
+`CQL_DRUID_QUERY_PROBE_ID`. Keep the restricted Basic credentials in
+`CQL_DRUID_QUERY_READER_USERNAME` and `CQL_DRUID_QUERY_READER_PASSWORD`.
+The HTTPS transport sends credentials only to `/druid/v2/sql` at that
+origin. The Druid reader must have only `DATASOURCE READ` on
+`oasis_cql_public_holons`. Verify denial against a separate test table
+before hosted use.
+
+The provider passed 11 checks. WEB4 passed 22 checks including the
+Safe, Proof of Humanity and Oracle Object Storage regressions. Both
+ran at Core `ac8c6409421017f80f40242a50482029df11ea20`. Provider TRX
+SHA-256 `124b31dcd751b35143358186dc3d863a406a61d4675d8e802368939b6ebd3fef`.
+WEB4 TRX SHA-256
+`e9292152d178c976b5f28fe4d8915fc5368fb9a15165ba4f0bc1ed0f93f7150f`.
+All 36 protected exact-key configuration tests passed.
+[Apache Druid authorization](https://druid.apache.org/docs/latest/operations/security-user-auth/).

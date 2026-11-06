@@ -29,6 +29,20 @@ public sealed class DruidPublicQuerySourceTests
         CollectionAssert.AreEqual(new[] { Ids[0], Ids[0], Ids[1], Ids[2] }, transport.Reads.ToArray());
     }
 
+    [TestMethod]
+    public async Task HostedReaderSendsBasicCredentialsOnlyToItsSqlEndpoint()
+    {
+        var origin = new Uri("https://druid.example.com");
+        using var transport = new Reply(id => new[] { Doc(id) }, origin, "Basic cmVhZGVyOnByb3RlY3RlZA==");
+        using var source = new DruidPublicQuerySource(origin, Ids[0], "reader", "protected", transport);
+        Assert.IsFalse((await source.ActivateQuerySourceAsync()).IsError);
+        Check(await Query(source, new[] { Ids[0] }), new[] { Ids[0] });
+        Assert.AreEqual(2, transport.Reads.Count);
+        Assert.ThrowsException<ArgumentException>(() =>
+            new DruidPublicQuerySource(Origin, Ids[0], "reader", "protected", transport));
+        Assert.AreEqual(2, transport.Reads.Count);
+    }
+
     [DataTestMethod]
     [DataRow("duplicate")]
     [DataRow("private")]
@@ -98,14 +112,15 @@ public sealed class DruidPublicQuerySourceTests
         Assert.IsTrue(result.Result.All(row => row.IsPublic && row.CreatedByAvatarId == Actor));
     }
 
-    private sealed class Reply(Func<Guid, string[]> records) : HttpMessageHandler
+    private sealed class Reply(Func<Guid, string[]> records, Uri? expectedOrigin = null, string? authorization = null) : HttpMessageHandler
     {
         public List<Guid> Reads { get; } = new();
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
         {
             Assert.AreEqual(HttpMethod.Post, request.Method);
-            Assert.AreEqual(new Uri(Origin, "/druid/v2/sql"), request.RequestUri);
+            Assert.AreEqual(new Uri(expectedOrigin ?? Origin, "/druid/v2/sql"), request.RequestUri);
+            Assert.AreEqual(authorization, request.Headers.Authorization?.ToString());
             using var json = JsonDocument.Parse(await request.Content!.ReadAsByteArrayAsync(token));
             var root = json.RootElement;
             Assert.AreEqual("SELECT \"doc\" FROM \"oasis_cql_public_holons\" WHERE \"id\" = ? AND \"is_public\" = 1 LIMIT 2",
