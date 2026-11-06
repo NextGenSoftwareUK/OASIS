@@ -75,6 +75,26 @@ and explicit hosted enrollment separately. Legacy storage activation, mutation
 acknowledgements, conditional writes, graph/history, index/search configuration
 and full ORM parity remain outside this controlled read acceptance.
 
+## Development WEB4 preparation
+
+The explicit hosted profile uses `CQL_ALGOLIA_QUERY_APP_ID`,
+`CQL_ALGOLIA_QUERY_READER_KEY` and `CQL_ALGOLIA_QUERY_PROBE_ID`. The
+settings reviewer binds the application ID and first public teaching UUID
+to the reviewed catalogue. All 18 settings checks passed, including
+rejection of a changed application ID.
+
+The WEB4 transport guard uses the application's fixed HTTPS DSN
+origin and native getObjects route. It limits each batch to 100 distinct
+canonical UUIDs in `oasis_holons`. The hosted adapter requires a public
+probe and rejects a batch containing a live private record. All 33 provider
+tests passed without skips at Core `2b1b991d070c3c90c1ade36c6b4ab4309d6e655a`.
+The provider TRX SHA-256 is
+`9bab106daa0ecd1803ac68748c1cd269303b443fd313365c71f3a04682773d56`.
+All 14 WEB4 admission and transport checks passed without skips at Core
+`2abc7100acbdf2e4e6d8249c24f7cf5746daba34`. The WEB4 TRX SHA-256 is
+`dc7c62ecd5c17803112782df398d4156a85e7bfa91eac0f1b0b22e4364bbe5ab`.
+The approved native teaching source and live visitor verification remain open.
+
 Primary contract: [Algolia getObjects](https://www.algolia.com/doc/rest-api/search/get-objects)
 documents request-order results, null missing objects, native index status and
 the required search ACL. [Recovery cleanup ledger](RECOVERY_LAPTOP_CLEANUP_LEDGER.md).

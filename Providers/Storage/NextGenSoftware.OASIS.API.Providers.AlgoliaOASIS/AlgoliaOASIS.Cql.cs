@@ -20,6 +20,7 @@ public partial class AlgoliaOASIS : ICosmicQueryStorageProvider, ICosmicReadOnly
 {
     public ProviderType QueryProviderType => Core.Enums.ProviderType.AlgoliaOASIS;
     public CosmicQueryCapabilities QueryCapabilities => BoundedIdentityCqlCompiler.Capabilities;
+    protected virtual bool RequiresPublicQueryRecords => false;
     private sealed class QueryPayloadLimitException : IOException { }
 
     private static async Task<byte[]> ReadQueryBodyAsync(HttpResponseMessage response, int maximumBytes, CancellationToken token)
@@ -117,7 +118,7 @@ public partial class AlgoliaOASIS : ICosmicQueryStorageProvider, ICosmicReadOnly
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             deadline.CancelAfter(TimeSpan.FromSeconds(15));
             var observed = await ReadQueryRecordsAsync(new[] { id }, deadline.Token);
-            if (observed.Count != 1 || observed[0].IsDeleted)
+            if (observed.Count != 1 || observed[0].IsDeleted || (RequiresPublicQueryRecords && !observed[0].IsPublic))
                 throw new InvalidDataException("The existing live Algolia teaching record was not verified.");
             cancellationToken.ThrowIfCancellationRequested();
             IsProviderActivated = true;
@@ -159,6 +160,8 @@ public partial class AlgoliaOASIS : ICosmicQueryStorageProvider, ICosmicReadOnly
                 if (!plan.Query.ReadAccess.CanRead(row))
                     throw new InvalidDataException("Native Algolia holon differs from read authority.");
                 if (row.IsDeleted) continue;
+                if (RequiresPublicQueryRecords && !row.IsPublic)
+                    throw new InvalidDataException("The Algolia teaching index returned a private record.");
                 rows.Add(row);
             }
             var page = rows.Skip(plan.Query.Offset).Take(plan.Query.Limit ?? rows.Count).ToArray();

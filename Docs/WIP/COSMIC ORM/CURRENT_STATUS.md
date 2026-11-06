@@ -50,6 +50,9 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
   WEB4 admission tests. All 17 CockroachDB and TimescaleDB regressions
   passed. Native and visitor verification need a reviewed direct Neon
   endpoint and dedicated SQL reader. [Neon evidence](NEON_CQL_MVP.md).
+- Algolia passed 33 provider tests, 18 protected-settings checks and 14 WEB4
+  admission tests. Native and visitor verification need a reviewed public
+  index and a restricted search key. [Algolia evidence](ALGOLIA_CQL_MVP.md).
 - Weaviate uses the official pinned gRPC protocol over a guarded WEB4 channel.
   Eight provider and nine WEB4 checks passed. The approved public source
   and live visitor run are open. [Weaviate evidence](WEAVIATE_CQL_MVP.md).

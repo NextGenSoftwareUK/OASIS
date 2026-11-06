@@ -2578,3 +2578,23 @@ and is disposable after the WEB4 project wiring is applied.
 Neon WEB4 qualification passed eight admission tests and 17 PostgreSQL
 family regression tests. The shared Core checkout was restored. The
 temporary Neon staging patch is disposable after the scoped commit.
+
+The Neon settings patch and Algolia wiring patch were removed after use.
+Algolia passed all 33 provider controls with zero skips and the shared Core
+checkout was restored. Its two WEB4 drafts moved into the normal project
+paths. Its WEB4 admission run now uses the shared build lease.
+
+Memcached recovery preflight confirmed missing Ubuntu path resolution exits
+before the shared build lease. Existing test outputs were unchanged. The
+checkout path and CI test selection checks ran without creating artifacts,
+installing a runtime or starting a service.
+
+TRON's recovered and adapted test-only candidate, import targets and lease
+runner are in `LocalState/COSMIC/HostedTronAuthenticatedQualification/`.
+The runner will use the `tron-authenticated-` prefix in
+`TestResults/ProviderBuildCurrent/`. MSBuild source evaluation selected
+only the intended three inputs. No new package, runtime, credential or
+remote TRON resource was created.
+
+Algolia WEB4 passed all 14 admission and transport checks with zero skips.
+The shared Core checkout was restored and the TRX hash is in the evidence note.

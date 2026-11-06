@@ -45,6 +45,38 @@ public class AlgoliaCqlTests
         =>CosmicQueryPlanner.Plan(query,ProviderType.AlgoliaOASIS,new[] {new CosmicQueryTarget(ProviderType.AlgoliaOASIS,provider.QueryCapabilities)}).Result;
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task HostedSourceRejectsPrivateRecordsBeforeReturningRows(bool publicProbe)
+    {
+        var probeId = Guid.NewGuid();
+        var privateId = Guid.NewGuid();
+        var deletedId = Guid.NewGuid();
+        var handler = new Handler(ids => Response(Batch(ids.Select(id =>
+        {
+            var record = Native(id, deleted: id == deletedId);
+            record["isPublic"] = id == probeId && publicProbe;
+            return record;
+        }))));
+        using var client = new HttpClient(handler);
+        var source = new AlgoliaQuerySource("APPID", "CONTROLLED", probeId, client);
+
+        var activation = await source.ActivateQuerySourceAsync(default);
+        Assert.AreEqual(publicProbe, !activation.IsError);
+        if (publicProbe)
+        {
+            var publicResult = await source.ExecuteCosmicQueryAsync(Plan(source, Query(new[] { probeId, deletedId })));
+            Assert.IsFalse(publicResult.IsError, publicResult.Message);
+            Assert.AreEqual(probeId, publicResult.Result.Single().Id);
+
+            var result = await source.ExecuteCosmicQueryAsync(Plan(source, Query(new[] { probeId, privateId })));
+            Assert.IsTrue(result.IsError);
+            Assert.IsNull(result.Result);
+            Assert.IsInstanceOfType<InvalidDataException>(result.Exception);
+        }
+    }
+
+    [TestMethod]
     public async Task NativeBatchReturnsThreeTwoZeroPagingAndExcludesChildren()
     {
         var ids=Enumerable.Range(0,5).Select(_=>Guid.NewGuid()).OrderBy(id=>id.ToString("D"),StringComparer.Ordinal).ToArray();
