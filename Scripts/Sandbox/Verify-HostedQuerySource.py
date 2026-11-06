@@ -11,6 +11,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import subprocess
 import urllib.error
 import urllib.request
@@ -24,7 +25,7 @@ BROWSER_ORIGIN = "https://web4.oasisomniverse.one"
 REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
-    "DynamoDBOASIS", "TypesenseOASIS",
+    "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -323,7 +324,10 @@ def reviewed_exact_key_source(provider, path):
         raise RuntimeError("An explicit reviewed native teaching catalogue is required.")
     catalogue = json.loads(path.read_bytes())
     try:
-        if (set(catalogue) != {"Actor", "LiveIds", "DeletedId", "MissingId"}
+        fields = {"Actor", "LiveIds", "DeletedId", "MissingId"}
+        if provider == "MinIOOASIS":
+            fields |= {"Endpoint", "Bucket", "Region", "Originals"}
+        if (set(catalogue) != fields
                 or not isinstance(catalogue["LiveIds"], list) or len(catalogue["LiveIds"]) != 3):
             raise ValueError("Unexpected teaching catalogue shape.")
         ids = catalogue["LiveIds"]
@@ -331,8 +335,18 @@ def reviewed_exact_key_source(provider, path):
         if any(str(uuid.UUID(value)) != value or uuid.UUID(value).int == 0
                for value in [catalogue["Actor"], *record_ids]) or len(set(record_ids)) != 5:
             raise ValueError("Invalid teaching identities.")
+        if provider == "MinIOOASIS":
+            originals = catalogue["Originals"]
+            if (not isinstance(originals, list) or len(originals) != 4
+                    or any(set(row) != {"Id", "Sha256", "ETag"}
+                           or not re.fullmatch(r"[0-9a-fA-F]{64}", row["Sha256"])
+                           or not isinstance(row["ETag"], str) or not row["ETag"].strip()
+                           for row in originals)
+                    or {row["Id"] for row in originals} != set(record_ids[:-1])):
+                raise ValueError("MinIO descriptor requires exact original object receipts.")
     except (AttributeError, KeyError, TypeError, ValueError) as error:
-        raise RuntimeError("The reviewed teaching catalogue requires canonical, distinct record identities.") from error
+        raise RuntimeError("The reviewed teaching catalogue requires canonical, distinct record identities"
+                           " and any provider-specific original receipts.") from error
     presets = []
     for suffix, selected in (("records", ids), ("subset", ids[:2])):
         selection = {"orderBy": "None", "take": 25, "includeMetadata": True,

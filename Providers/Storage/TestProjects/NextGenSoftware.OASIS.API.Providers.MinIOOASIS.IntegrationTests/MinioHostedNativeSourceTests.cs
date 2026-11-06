@@ -134,6 +134,9 @@ public class MinioHostedNativeSourceTests
             Assert.AreEqual(original.Id, record.RootElement.GetProperty("Id").GetGuid());
             Assert.AreEqual(source.Actor, record.RootElement.GetProperty("CreatedByAvatarId").GetGuid());
             Assert.AreEqual(original.Id == source.DeletedId, record.RootElement.GetProperty("IsDeleted").GetBoolean());
+            if (original.Id != source.DeletedId)
+                Assert.IsTrue(record.RootElement.GetProperty("IsPublic").GetBoolean(),
+                    "Only public live teaching objects may enter the hosted read catalogue.");
             observations.Add(original.Id.ToString("N") + ":" + hash + ":" + response.ETag);
         }
         using var missingDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));

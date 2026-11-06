@@ -90,6 +90,12 @@ class ResponseEvidenceTests(unittest.TestCase):
             descriptor.write_text(json.dumps(catalogue))
             for provider in verification.REVIEWED_EXACT_KEY_PROVIDERS:
                 with self.subTest(provider=provider):
+                    if provider == "MinIOOASIS":
+                        originals = [{"Id": value, "Sha256": "a" * 64, "ETag": "retained"}
+                                     for value in (first, second, third, deleted)]
+                        native = dict(catalogue, Endpoint="https://minio.example.test", Bucket="teaching",
+                                      Region="us-east-1", Originals=originals)
+                        descriptor.write_text(json.dumps(native))
                     reviewed = verification.reviewed_exact_key_source(provider, descriptor)
                     presets = reviewed["presets"]
                     self.assertEqual([first, second, third], presets[0]["request"]["filters"][0]["value"])
@@ -108,6 +114,12 @@ class ResponseEvidenceTests(unittest.TestCase):
                     session.assert_called_once_with(root / "LocalState/COSMIC/HostedDemoRehearsalDiscovery",
                                                     "visitor", allow_create=False)
                     self.assertEqual([descriptor], list(root.iterdir()))
+                    if provider == "MinIOOASIS":
+                        originals[0]["Id"] = missing
+                        descriptor.write_text(json.dumps(native))
+                        with self.assertRaisesRegex(RuntimeError, "original receipts"):
+                            verification.reviewed_exact_key_source(provider, descriptor)
+                        descriptor.write_text(json.dumps(catalogue))
             descriptor.write_text(json.dumps(dict(catalogue, DeletedId=first)))
             with self.assertRaisesRegex(RuntimeError, "distinct record identities"):
                 verification.reviewed_exact_key_source("DynamoDBOASIS", descriptor)

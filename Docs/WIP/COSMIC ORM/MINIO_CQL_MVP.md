@@ -186,6 +186,12 @@ After source qualification, the reviewed settings also need:
 Source/credentials/TLS, code publication, settings review, readiness and the live
 native/Mongo/privacy/replica/browser flow remain separate acceptance gates.
 
+After native qualification, use the original MinIO descriptor with the
+[shared WEB4 settings and acceptance commands](CQL_DEMO_EXPANSION_ROADMAP.md#hosted-acceptance-for-prepared-exact-key-providers).
+They validate that its four original object receipts cover the three live
+IDs and the deleted ID before preparing the three public grants and four
+presets. The native qualifier requires the live teaching objects to be public.
+
 ### Exact preparation evidence
 
 Core `ece17341fa3cea3e2c36dae08fec106effa12b76` adds only MinIO to the explicit

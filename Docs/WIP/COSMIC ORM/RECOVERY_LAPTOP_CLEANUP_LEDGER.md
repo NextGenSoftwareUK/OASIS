@@ -1958,3 +1958,9 @@ Weaviate's pinned SDK source was inspected in memory from the official
 repository. Its public-probe fixture reused existing build inputs and writes
 `TestResults/ProviderBuildCurrent/weaviate-public-probe-native-fixture.log`.
 No source, TLS trust store or SDK install was changed.
+
+MinIO catalogue acceptance reused the existing Python interpreter and
+removed its temporary descriptor. The updated native public-object check
+compiled with zero errors in the existing .NET build environment.
+The build log is `TestResults/ProviderBuildCurrent/minio-public-catalogue-fixture.log`.
+No MinIO service was contacted and shared Core was restored to `54159614`.
