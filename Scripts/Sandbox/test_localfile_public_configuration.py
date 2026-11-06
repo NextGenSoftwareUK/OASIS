@@ -294,6 +294,19 @@ class LocalFileConfigurationTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, "live deployment"):
                     publisher.require_mounted_record_receipt(source)
 
+    def test_mounted_receipt_accepts_git_release_and_rejects_invalid_image_digest(self):
+        _, source, _ = self.fixture()
+        deployment = "11111111-1111-4111-8111-111111111111"
+        env = {"COSMIC_CQL_REVIEWED_INSTANCE_IDS": "22222222-2222-4222-8222-222222222222",
+               "COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT": "b" * 40}
+        with patch.dict(publisher.os.environ, env, clear=True):
+            _, receipt = publisher.mounted_record_receipt(deployment, source)
+            self.assertEqual(env["COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT"], receipt["commit"])
+            self.assertIsNone(receipt["imageDigest"])
+            publisher.os.environ["COSMIC_CQL_EXPECTED_DEPLOYMENT_IMAGE_DIGEST"] = ""
+            with self.assertRaisesRegex(RuntimeError, "full SHA256 digest"):
+                publisher.mounted_record_receipt(deployment, source)
+
     def test_qualification_rejects_modified_retained_bundle(self):
         _, source, bundle = self.fixture()
         with TemporaryDirectory() as directory:

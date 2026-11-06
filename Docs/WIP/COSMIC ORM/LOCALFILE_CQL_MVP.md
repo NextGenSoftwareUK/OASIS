@@ -714,3 +714,12 @@ that ID, then verify its mount and mounted records before starting HTTP
 acceptance. Publication, mount and settings receipts are in
 `LocalState/COSMIC/HostedLocalFileSourceCurrent` and the per-key journal
 is in `LocalState/COSMIC/HostedSourceRolloutCurrent`.
+
+Settings deployment `c8ba177c` succeeded at `c64adf474`. Instance `f169fb1e`
+passed the exact settings and writable mount checks, and all three bounded
+file hashes matched. The operator receipt now supports the Git release mode
+already supported by the release guard. An explicitly configured image
+digest still requires a full SHA-256. All 15 publisher controls passed.
+Discovery advertised two LocalFile and two MongoDB federation presets for
+the deployment-scoped readiness visitor. Hosted query acceptance follows
+this observation.

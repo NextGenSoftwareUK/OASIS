@@ -296,11 +296,13 @@ def mounted_record_receipt(deployment, source):
     uuid_pattern = r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}"
     if not isinstance(deployment, str) or not re.fullmatch(uuid_pattern, deployment) or not identity(deployment):
         raise RuntimeError("A canonical settings deployment ID is required.")
-    image = os.environ.get("COSMIC_CQL_EXPECTED_DEPLOYMENT_IMAGE_DIGEST", "")
+    image = os.environ.get("COSMIC_CQL_EXPECTED_DEPLOYMENT_IMAGE_DIGEST")
     commit = os.environ.get("COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT", "")
     instance = os.environ.get("COSMIC_CQL_REVIEWED_INSTANCE_IDS", "")
-    if not re.fullmatch(r"sha256:[0-9a-f]{64}", image) or not re.fullmatch(r"[0-9a-f]{40}", commit):
-        raise RuntimeError("Exact reviewed image and commit are required for mounted record evidence.")
+    if not re.fullmatch(r"[0-9a-f]{40}", commit):
+        raise RuntimeError("Exact reviewed commit is required for mounted record evidence.")
+    if image is not None and not re.fullmatch(r"sha256:[0-9a-f]{64}", image):
+        raise RuntimeError("The reviewed image digest must be a full SHA256 digest.")
     if not re.fullmatch(uuid_pattern, instance) or not identity(instance):
         raise RuntimeError("One canonical reviewed instance ID is required.")
     path = ROOT / "TestResults/HostedLocalFileSourceCurrent" / f"mounted-records-{deployment}.json"
