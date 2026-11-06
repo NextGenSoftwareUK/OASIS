@@ -3439,3 +3439,15 @@ and 236-byte evidence log record the passing Python suites. The initial
 fixture, which was corrected before the passing run. The before and
 after free-space receipts recorded 38,307,598,336 and 38,243,614,720 bytes.
 No new package version, runtime, database or secret was created.
+
+Discord and Livepeer federation reused the same existing loopback Mongo
+replica set and frozen WEB4 binaries. The verified test assembly ran
+without an additional build. Exact cleanup removed
+`cosmic_cql_discordoasis_http` and `cosmic_cql_livepeeroasis_http`.
+The owned process confirmed a clean shutdown and port 27029 closed.
+
+`LocalState/COSMIC/DiscordPublicCqlQualification/network-http/` contains
+the 4,679-byte TRX, 239,090-byte Mongo log and the compact process and
+shutdown receipts. Under `LocalState/COSMIC/ReviewedPublicMongoHttpQualification/`,
+the `DiscordOASIS/` and `LivepeerOASIS/` directories contain synthetic
+fixture journals and cleanup evidence totalling 1,088 and 1,089 bytes.

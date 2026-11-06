@@ -24,7 +24,7 @@ passed. A malformed response publishes zero partial rows. Three passed
 with zero skips. The 5,847-byte TRX SHA-256 is
 `d5463133d5d3dea6d638adf3a387a3c865488b27e9f1c1ca68b7e75e442f6e1d`.
 
-WEB4 admission passed. Local federation and hosted acceptance remain open. This
+WEB4 admission and local federation passed. Hosted acceptance remains open. This
 source covers public orchestrator activity metadata. Studio and compute
 operations have separate contracts and acceptance.
 
@@ -47,3 +47,14 @@ checks and seven Polygon gateway regression checks at Core
 SHA-256 is `a4b9c0d872d508be606b816d04b1afa601e91865f3e42eee910245bf955b4346`.
 The settings and query evidence suites passed 39 and 21 checks.
 Development activation follows LocalFile.
+
+## Local WEB4 and Mongo federation
+
+The two loopback HTTP cases passed at Core
+`cec62ced64ddb5b913f595e4ffc901e95f4c86dd`. Each returned native 3/2,
+paired 5/4, foreign-private 0 and foreign-public 3. Each acknowledged
+two version-one private Mongo saves, checked exact row identities and
+recorded nine receipts from the controlled admission layer. Both
+owned databases were verified absent after cleanup and the reused
+Mongo process shut down cleanly. The 4,679-byte TRX SHA-256 is
+`b31cc2e3f8e197ad069c50cd6c4293bbb40b5642a114c70363bcf6b859013d41`.

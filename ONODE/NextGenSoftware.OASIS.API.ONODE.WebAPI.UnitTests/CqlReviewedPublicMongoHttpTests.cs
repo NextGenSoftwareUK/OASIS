@@ -35,6 +35,8 @@ using NextGenSoftware.OASIS.API.Providers.ENSOffchainOASIS;
 using NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS;
 using NextGenSoftware.OASIS.API.Providers.ProofOfHumanityOASIS;
 using NextGenSoftware.OASIS.API.Providers.SafeOASIS;
+using NextGenSoftware.OASIS.API.Providers.DiscordOASIS;
+using NextGenSoftware.OASIS.API.Providers.LivepeerOASIS;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 using IoFile = System.IO.File;
 
@@ -91,6 +93,12 @@ public sealed class CqlReviewedPublicMongoHttpTests
 
     [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_PUBLIC_SAFE_NATIVE")]
     public Task SafeNativeHttp() => VerifyHttpAsync(ProviderType.SafeOASIS);
+
+    [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_NETWORK_NATIVE")]
+    public Task DiscordNativeHttp() => VerifyHttpAsync(ProviderType.DiscordOASIS);
+
+    [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_NETWORK_NATIVE")]
+    public Task LivepeerNativeHttp() => VerifyHttpAsync(ProviderType.LivepeerOASIS);
 
     [ReviewedPublicMongoNativeFact("CQL_ENS_OFFCHAIN_QUERY_API_KEY")]
     public Task EnsOffchainNativeHttpContinuation() => VerifyHttpAsync(ProviderType.ENSOffchainOASIS, resume: true);
@@ -417,6 +425,21 @@ public sealed class CqlReviewedPublicMongoHttpTests
                 return (new EnsOffchainQuerySource(owner, keys, keys[0],
                     Environment.GetEnvironmentVariable("CQL_ENS_OFFCHAIN_QUERY_API_KEY")),
                     keys.Select(key => EnsOffchainQuerySource.LogicalId(owner, key)).ToArray());
+            }
+            case ProviderType.DiscordOASIS:
+            {
+                Assert.Equal("owned-loopback", Environment.GetEnvironmentVariable("COSMIC_REVIEWED_NETWORK_NATIVE"));
+                string[] guilds = { "267624335836053506", "1235157165589794909", "212250894228652034" };
+                return (DiscordPublicGuildQuerySource.ForReviewedTeachingCatalogue(owner),
+                    guilds.Select(guild => DiscordPublicGuildQuerySource.LogicalId(owner, guild)).ToArray());
+            }
+            case ProviderType.LivepeerOASIS:
+            {
+                Assert.Equal("owned-loopback", Environment.GetEnvironmentVariable("COSMIC_REVIEWED_NETWORK_NATIVE"));
+                string[] addresses = { "0x525419ff5707190389bfb5c87c375d710f5fcb0e", "0xac2e50c8f7ac0f82923a7df9d9903f6ec4741919",
+                    "0x4f4758f7167b18e1f5b3c1a7575e3eb584894dbc" };
+                return (LivepeerOrchestratorQuerySource.ForReviewedTeachingCatalogue(owner),
+                    addresses.Select(address => LivepeerOrchestratorQuerySource.LogicalId(owner, address)).ToArray());
             }
             case ProviderType.SafeOASIS:
             {

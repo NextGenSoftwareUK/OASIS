@@ -19,7 +19,7 @@ projection controls passed. Three passed with zero skips. The
 5,740-byte TRX SHA-256 is
 `99ea3edd1ac8492d436a689219469d87f94c15c767797e8957995b0d24cc4df1`.
 
-WEB4 admission passed. Local federation and hosted acceptance remain open.
+WEB4 admission and local federation passed. Hosted acceptance remains open.
 [Discord Get Invite](https://docs.discord.com/developers/resources/invite#get-invite) ·
 [Discord rate limits](https://docs.discord.com/developers/topics/rate-limits) ·
 [Python Discord's published invite](https://www.pythondiscord.com/timeline/) ·
@@ -40,3 +40,14 @@ checks and seven Polygon gateway regression checks at Core
 SHA-256 is `a4b9c0d872d508be606b816d04b1afa601e91865f3e42eee910245bf955b4346`.
 The settings and query evidence suites passed 39 and 21 checks.
 Development activation follows LocalFile.
+
+## Local WEB4 and Mongo federation
+
+The two loopback HTTP cases passed at Core
+`cec62ced64ddb5b913f595e4ffc901e95f4c86dd`. Each returned native 3/2,
+paired 5/4, foreign-private 0 and foreign-public 3. Each acknowledged
+two version-one private Mongo saves, checked exact row identities and
+recorded nine receipts from the controlled admission layer. Both
+owned databases were verified absent after cleanup and the reused
+Mongo process shut down cleanly. The 4,679-byte TRX SHA-256 is
+`b31cc2e3f8e197ad069c50cd6c4293bbb40b5642a114c70363bcf6b859013d41`.
