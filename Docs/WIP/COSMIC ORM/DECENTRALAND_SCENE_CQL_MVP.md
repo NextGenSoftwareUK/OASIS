@@ -55,3 +55,18 @@ The fixture database was verified absent and the owned listener stopped.
   a missing opt-in variable and is preserved as a separate outcome.
 
 Hosted enrollment, replica delivery and browser checks remain open.
+
+### Hosted presets prepared from accepted identities
+
+The original native fixture receipt identifies the reviewed teaching owner
+and three scene IDs. Recomputing those IDs from the current WEB4 verifier
+matched the original fixture exactly. The public descriptor is
+`LocalState/COSMIC/ReviewedPublicMongoHttpQualification/DecentralandOASIS/hosted-source-descriptor.json`.
+The four generated presets are in `TestResults/DecentralandCqlCurrent/hosted-presets.json`, SHA-256 `ead5e382079e9ae08e29b028139eb22c6d021af82620013f3c9243f691bf9455`.
+No scene source or Mongo fixture was queried again.
+
+Development remains at the accepted LocalFile source `c64adf474`. The
+Decentraland task branch has a shared registration for eight additional
+source profiles. Carry the Decentraland registration, explicit provider
+compiler policy and read tariff into a scoped release and qualify that
+release before staging the source owner, grant, tariff and presets.
