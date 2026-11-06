@@ -1693,6 +1693,18 @@ The probe's reusable outputs are `bin/Debug/net10.0` and `obj` under the
 qualification directory. Both leased runs restored the existing Core checkout.
 No Worker, namespace, token or new runtime was created.
 
+Migrated Vercel KV CQL reuses the existing .NET runtime and edge-storage
+protocol test project. The leased runner is
+`LocalState/COSMIC/HostedVercelKvCqlQualification/verify-provider.ps1`.
+The Core pin, log and TRX use `vercel-kv-` under
+`TestResults/ProviderBuildCurrent/`. `provider-first-run.trx` preserves the
+first result in the qualification directory. The corrected run passed four
+checks. The native build-only receipt is in
+`LocalState/COSMIC/HostedVercelKvCqlQualification/native-6193eef638b545b2a78979b53e792178/`.
+The verifier reuses that qualification directory's `bin/Debug/net10.0` and
+`obj`. Both provider runs and the verifier build restored the existing Core
+checkout. No new account, database, credential or runtime was created.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt

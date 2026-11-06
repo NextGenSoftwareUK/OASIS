@@ -733,3 +733,10 @@ and hosted federation and replication verification.
 - Owner step: identify an existing dedicated Workers KV teaching namespace containing only public demo records. Confirm the account scope of a token with Workers KV Storage Read and provide the approved token through `CQL_CLOUDFLARE_KV_QUERY_READER_TOKEN` in protected settings. No Worker, paid resource or new account is requested.
 - Engineering owns confirming the exact account and namespace IDs, three stable public records, one deleted record, one absent key and native 3/2/0 results before WEB4 enrollment.
 - Reason: verify native access and missing-key behavior in the reviewed account. [Cloudflare Workers KV evidence](../COSMIC%20ORM/CLOUDFLARE_KV_CQL_MVP.md) · [Read permission](https://developers.cloudflare.com/api/resources/kv/subresources/namespaces/subresources/values/methods/get/).
+
+## Migrated Vercel KV teaching store access - 2026-11-06
+
+- Status: two CQL profile checks and two storage regressions passed. The native verifier compiled. No credentialed request has run.
+- Owner step: if an existing dedicated Vercel KV teaching store was migrated to Upstash, identify its approved HTTPS endpoint and arrange its read-only token through `CQL_VERCEL_KV_QUERY_READER_TOKEN` in protected settings. No new store or paid resource is requested.
+- Engineering owns checking the original `oasis/holon/{id:N}` layout, three public roots, one deleted record, one absent key and native 3/2/0 before Development enrollment.
+- Reason: this provider identity uses a separate layout from the accepted Upstash cohort. [Migrated Vercel KV evidence](../COSMIC%20ORM/VERCEL_KV_CQL_MVP.md) · [Upstash read-only token](https://upstash.com/docs/redis/features/restapi).

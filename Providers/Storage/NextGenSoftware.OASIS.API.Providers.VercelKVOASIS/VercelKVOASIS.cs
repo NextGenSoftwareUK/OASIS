@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
@@ -9,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
@@ -37,31 +40,64 @@ namespace NextGenSoftware.OASIS.API.Providers.VercelKVOASIS
         }
     }
 
-    internal sealed class UpstashRestBackend : IKeyValueBackend
+    internal sealed class UpstashRestBackend : IKeyValueBackend, IDisposable
     {
         private readonly HttpClient _http;
+        private readonly bool _queryOnly;
 
-        public UpstashRestBackend(string restApiUrl, string restApiToken, HttpMessageHandler handler)
+        public UpstashRestBackend(string restApiUrl, string restApiToken, HttpMessageHandler handler, bool queryOnly = false)
         {
             if (string.IsNullOrWhiteSpace(restApiUrl)) throw new ArgumentException("KV_REST_API_URL is required.", nameof(restApiUrl));
             if (string.IsNullOrWhiteSpace(restApiToken)) throw new ArgumentException("KV_REST_API_TOKEN is required.", nameof(restApiToken));
-            _http = handler == null ? new HttpClient() : new HttpClient(handler, disposeHandler: false);
+            _queryOnly = queryOnly;
+            if (queryOnly && handler == null)
+            {
+                var transport = (SocketsHttpHandler)NativeConnectionGuard.CreateGuardedHttpHandler();
+                transport.UseCookies = false;
+                transport.UseProxy = false;
+                _http = new HttpClient(transport);
+            }
+            else
+                _http = handler == null ? new HttpClient() : new HttpClient(handler, disposeHandler: false);
             _http.BaseAddress = new Uri(restApiUrl.TrimEnd('/') + "/");
             _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", restApiToken);
         }
 
         private async Task<JsonElement> CommandAsync(CancellationToken ct, params string[] command)
         {
-            using var content = new StringContent(JsonSerializer.Serialize(command), Encoding.UTF8, "application/json");
-            using var response = await _http.PostAsync(string.Empty, content, ct);
+            if (_queryOnly && (command.Length != 2 || command[0] != "GET" ||
+                !command[1].StartsWith("oasis/holon/", StringComparison.Ordinal) ||
+                !Guid.TryParseExact(command[1].AsSpan(12), "N", out var id) || command[1] != $"oasis/holon/{id:N}"))
+                throw new InvalidOperationException("The migrated Vercel KV query source permits only exact Holon GET commands.");
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, _http.BaseAddress)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(command), Encoding.UTF8, "application/json")
+            };
+            using var response = await _http.SendAsync(request, _queryOnly
+                ? HttpCompletionOption.ResponseHeadersRead : HttpCompletionOption.ResponseContentRead, ct);
+            if (_queryOnly)
+            {
+                if (response.StatusCode != HttpStatusCode.OK)
+                    throw new HttpRequestException("Upstash exact read failed.", null, response.StatusCode);
+                await response.Content.LoadIntoBufferAsync(1024 * 1024, ct);
+            }
+
             var body = await response.Content.ReadAsStringAsync(ct);
             using var doc = JsonDocument.Parse(string.IsNullOrWhiteSpace(body) ? "{}" : body);
+            if (_queryOnly && (doc.RootElement.ValueKind != JsonValueKind.Object ||
+                doc.RootElement.EnumerateObject().Count() != 1 ||
+                !doc.RootElement.TryGetProperty("result", out var result) ||
+                result.ValueKind is not (JsonValueKind.String or JsonValueKind.Null)))
+                throw new HttpRequestException("Upstash returned an invalid exact read result.");
             if (doc.RootElement.TryGetProperty("error", out var error))
                 throw new HttpRequestException($"Vercel KV {command[0]} failed: {error.GetString()}");
             if (!response.IsSuccessStatusCode)
                 throw new HttpRequestException($"Vercel KV {command[0]} failed: {(int)response.StatusCode} {response.ReasonPhrase} {body}");
             return doc.RootElement.GetProperty("result").Clone();
         }
+
+        public void Dispose() => _http.Dispose();
 
         public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
         {
