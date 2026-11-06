@@ -1682,6 +1682,17 @@ No new runtime or account was used. A subsequent C: reading of one free
 byte was transient. The Windows volume API and PowerShell agreed on 41.6 GB
 free, and no files were removed in response.
 
+Cloudflare Workers KV uses the existing .NET runtime and its existing provider
+test project. The leased runner is
+`LocalState/COSMIC/HostedCloudflareKvCqlQualification/verify-provider.ps1`.
+The Core pin, log and TRX use the `cloudflare-kv-` prefix under
+`TestResults/ProviderBuildCurrent/`. The two focused checks passed. The
+build-only native probe retained `build.log` and `core-pin.txt` in
+`LocalState/COSMIC/HostedCloudflareKvCqlQualification/native-3fa1f46226394bc9bba64547b25c5668/`.
+The probe's reusable outputs are `bin/Debug/net10.0` and `obj` under the
+qualification directory. Both leased runs restored the existing Core checkout.
+No Worker, namespace, token or new runtime was created.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt

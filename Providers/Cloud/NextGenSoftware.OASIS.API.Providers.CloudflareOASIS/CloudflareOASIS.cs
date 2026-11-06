@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -42,6 +45,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CloudflareOASIS
     {
         private readonly HttpClient _http;
         private readonly string _baseUrl;
+        private readonly bool _queryOnly;
+        private static readonly UTF8Encoding StrictUtf8 = new(false, true);
 
         private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
         {
@@ -51,10 +56,16 @@ namespace NextGenSoftware.OASIS.API.Providers.CloudflareOASIS
         };
 
         public CloudflareOASIS(string accountId, string namespaceId, string apiToken)
+            : this(accountId, namespaceId, apiToken, new HttpClient(), queryOnly: false)
+        {
+        }
+
+        internal CloudflareOASIS(string accountId, string namespaceId, string apiToken, HttpClient http, bool queryOnly)
         {
             _baseUrl = $"https://api.cloudflare.com/client/v4/accounts/{accountId}/storage/kv/namespaces/{namespaceId}";
-            _http = new HttpClient();
-            _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiToken}");
+            _http = http;
+            _queryOnly = queryOnly;
+            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
             ProviderName = "CloudflareOASIS";
             ProviderDescription = "Cloudflare Workers KV provider (Cloudflare REST API)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CloudflareOASIS);
@@ -92,6 +103,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CloudflareOASIS
 
         private async Task KvPutAsync(string key, string value)
         {
+            RequireStorageMode();
             using var content = new MultipartFormDataContent();
             content.Add(new StringContent(value), "value");
             content.Add(new StringContent(""), "metadata");
@@ -100,16 +112,39 @@ namespace NextGenSoftware.OASIS.API.Providers.CloudflareOASIS
                 throw new Exception($"KV PUT '{key}': HTTP {(int)response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
         }
 
-        private async Task<string?> KvGetAsync(string key)
+        internal async Task<string?> KvGetAsync(string key, CancellationToken cancellationToken = default)
         {
-            var response = await _http.GetAsync($"{_baseUrl}/values/{Uri.EscapeDataString(key)}");
-            if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
+            if (_queryOnly && (!key.StartsWith("holon:", StringComparison.Ordinal) ||
+                !Guid.TryParseExact(key.AsSpan(6), "D", out var id) || key != HolonKey(id)))
+                throw new InvalidOperationException("The Cloudflare KV query source permits only canonical Holon reads.");
+            using var response = await _http.GetAsync($"{_baseUrl}/values/{Uri.EscapeDataString(key)}",
+                _queryOnly ? HttpCompletionOption.ResponseHeadersRead : HttpCompletionOption.ResponseContentRead,
+                cancellationToken);
+            if (response.StatusCode == HttpStatusCode.NotFound) return null;
+            if (_queryOnly)
+            {
+                if (response.StatusCode != HttpStatusCode.OK)
+                    throw new HttpRequestException("Cloudflare KV exact read failed.", null, response.StatusCode);
+                await response.Content.LoadIntoBufferAsync(1024 * 1024, cancellationToken);
+                return StrictUtf8.GetString(await response.Content.ReadAsByteArrayAsync(cancellationToken));
+            }
             if (!response.IsSuccessStatusCode) throw new Exception($"KV GET '{key}': HTTP {(int)response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
             return await response.Content.ReadAsStringAsync();
         }
 
+        internal void DisposeTransport() => _http.Dispose();
+
+        internal static string HolonKey(Guid id) => $"holon:{id:D}";
+
+        private void RequireStorageMode()
+        {
+            if (_queryOnly)
+                throw new InvalidOperationException("The Cloudflare KV query source permits only exact reads.");
+        }
+
         private async Task KvDeleteAsync(string key)
         {
+            RequireStorageMode();
             var response = await _http.DeleteAsync($"{_baseUrl}/values/{Uri.EscapeDataString(key)}");
             if (!response.IsSuccessStatusCode && response.StatusCode != System.Net.HttpStatusCode.NotFound)
                 throw new Exception($"KV DELETE '{key}': HTTP {(int)response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
@@ -118,6 +153,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CloudflareOASIS
         // List all keys with optional prefix. Returns list of key names.
         private async Task<List<string>> KvListKeysAsync(string prefix = "")
         {
+            RequireStorageMode();
             var keys = new List<string>();
             string? cursor = null;
             while (true)
@@ -385,7 +421,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CloudflareOASIS
                     holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.CloudflareOASIS] = holon.Id.ToString();
 
-                await KvPutAsync($"holon:{holon.Id}", Serialize(holon));
+                await KvPutAsync(HolonKey(holon.Id), Serialize(holon));
 
                 if (holon.ParentHolonId != Guid.Empty)
                     await KvPutAsync($"index:holon:parent:{holon.ParentHolonId}:{holon.Id}", "1");
@@ -425,7 +461,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CloudflareOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var json = await KvGetAsync($"holon:{id}");
+                var json = await KvGetAsync(HolonKey(id));
                 if (json == null) { OASISErrorHandling.HandleError(ref result, $"CloudflareOASIS: No holon found with ID '{id}'."); return result; }
                 var holon = Deserialize<Holon>(json);
                 if (holon == null || holon.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"CloudflareOASIS: Holon '{id}' not found or deleted."); return result; }

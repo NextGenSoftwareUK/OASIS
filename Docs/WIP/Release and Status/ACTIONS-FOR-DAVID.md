@@ -726,3 +726,10 @@ and hosted federation and replication verification.
 - Owner step: identify an existing dedicated managed Deno KV teaching database in Deno Deploy and its database UUID. Confirm the allowed scope of the personal or organization credential before placing an approved token in `CQL_DENO_KV_QUERY_READER_TOKEN` through protected settings. Deno's guide documents credential types, so the actual privileges still need review.
 - The catalogue needs three public live roots, one deleted record and one absent ID under the declared actor. Engineering owns confirming the strong data endpoint, exact probe, native counts and protected WEB4 admission. No new paid resource is requested.
 - Reason: credentialed native proof is required before Development enrollment. [Deno KV evidence](../COSMIC%20ORM/DENO_KV_CQL_MVP.md) · [Managed connection guide](https://docs.deno.com/deploy/reference/deno_kv/#connect-from-outside-deno-deploy).
+
+## Cloudflare Workers KV teaching namespace access - 2026-11-06
+
+- Status: two bounded provider tests passed and the native verifier compiled. No credentialed request has run.
+- Owner step: identify an existing dedicated Workers KV teaching namespace containing only public demo records. Confirm the account scope of a token with Workers KV Storage Read and provide the approved token through `CQL_CLOUDFLARE_KV_QUERY_READER_TOKEN` in protected settings. No Worker, paid resource or new account is requested.
+- Engineering owns confirming the exact account and namespace IDs, three stable public records, one deleted record, one absent key and native 3/2/0 results before WEB4 enrollment.
+- Reason: verify native access and missing-key behavior in the reviewed account. [Cloudflare Workers KV evidence](../COSMIC%20ORM/CLOUDFLARE_KV_CQL_MVP.md) · [Read permission](https://developers.cloudflare.com/api/resources/kv/subresources/namespaces/subresources/values/methods/get/).
