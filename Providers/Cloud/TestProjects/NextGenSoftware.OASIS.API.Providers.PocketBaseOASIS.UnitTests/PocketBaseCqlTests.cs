@@ -21,10 +21,14 @@ public class PocketBaseCqlTests
     {
         public List<Uri> Reads { get; } = new();
         public string? Mutation;
+        public int AdminLogins;
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
         {
             if (request.RequestUri!.AbsolutePath.EndsWith("/_superusers/auth-with-password"))
+            {
+                AdminLogins++;
                 return Response("{\"token\":\"synthetic-token\"}");
+            }
             var body = request.Content == null ? null : await request.Content.ReadAsStringAsync(token);
             if (request.Method == HttpMethod.Get) Reads.Add(request.RequestUri);
             else Mutation = body;
@@ -34,9 +38,9 @@ public class PocketBaseCqlTests
     private static HttpResponseMessage Response(string body, HttpStatusCode status = HttpStatusCode.OK)
         => new(status) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
 
-    private static object Row(Guid id, Guid? payloadId = null, bool deleted = false)
+    private static object Row(Guid id, Guid? payloadId = null, bool deleted = false, bool isPublic = false)
         => new { id = "pb" + id.ToString("N")[19..], oasis_id = id.ToString("D"), is_deleted = false,
-            data_json = JsonSerializer.Serialize(new { id = payloadId ?? id, name = "native fixture",
+            data_json = JsonSerializer.Serialize(new { id = payloadId ?? id, name = "native fixture", isPublic,
                 deletedDate = deleted ? DateTime.UtcNow : DateTime.MinValue }) };
     private static string Page(object[] rows, int? total = null, int perPage = 100)
         => JsonSerializer.Serialize(new { page = 1, perPage, totalItems = total ?? rows.Length,
@@ -49,6 +53,36 @@ public class PocketBaseCqlTests
         var result = CosmicQueryPlanner.Plan(query, ProviderType.PocketBaseOASIS,
             new[] { new CosmicQueryTarget(ProviderType.PocketBaseOASIS, provider.QueryCapabilities) });
         Assert.IsFalse(result.IsError, result.Message); return result.Result;
+    }
+
+    [DataTestMethod]
+    [DataRow("public", true)]
+    [DataRow("private", false)]
+    [DataRow("missing", false)]
+    [DataRow("foreign", false)]
+    public async Task RestrictedQueryProfileUsesExactPublicProbeWithoutAdminLogin(string shape, bool expected)
+    {
+        var handler = new Reply((request, _) =>
+        {
+            Assert.AreEqual(HttpMethod.Get, request.Method);
+            Assert.AreEqual("restricted-token", request.Headers.GetValues("Authorization").Single());
+            Assert.IsTrue(Uri.UnescapeDataString(request.RequestUri!.Query).EndsWith(
+                $"filter=(oasis_id='{One:D}')&&is_deleted=false", StringComparison.Ordinal));
+            var rows = shape == "missing" ? Array.Empty<object>() : new[] {
+                Row(shape == "foreign" ? Two : One, isPublic: shape != "private") };
+            return Response(Page(rows));
+        });
+        using var http = new HttpClient(handler);
+        var provider = new PocketBaseQuerySource("https://pocketbase.example.test", http, "restricted-token", One);
+        var active = await provider.ActivateQuerySourceAsync(default);
+        Assert.AreEqual(expected, provider.IsProviderActivated);
+        Assert.AreEqual(!expected, active.IsError, active.Message);
+        Assert.AreEqual(1, handler.Reads.Count);
+        if (expected)
+            Assert.IsFalse((await provider.ExecuteCosmicQueryAsync(Plan(provider, Query(new[] { One })))).IsError);
+        Assert.IsTrue((await provider.ActivateProviderAsync()).IsError);
+        Assert.AreEqual(0, handler.AdminLogins);
+        Assert.IsNull(handler.Mutation);
     }
 
     [TestMethod]

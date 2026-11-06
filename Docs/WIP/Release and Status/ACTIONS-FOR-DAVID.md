@@ -691,3 +691,10 @@ and hosted federation and replication verification.
 - Status: 17 WEB4 admission checks passed. The guarded native HTTPS fixture compiled and awaits an existing reviewed source.
 - Owner step: if there is already an owned Typesense teaching service, identify its HTTPS origin and make a restricted key available privately for collection metadata and exact document reads on oasis_holons. Use a dedicated teaching collection with three public roots, one deleted record and one absent ID under the declared actor.
 - Reason: real Typesense qualification precedes WEB4 settings review. The existing WSL device action remains separate. No cloud account or new paid service is requested. [Typesense settings and fixture](../COSMIC%20ORM/TYPESENSE_CQL_MVP.md#development-web4-candidate).
+
+## PocketBase hosted teaching source access - 2026-11-06 UTC
+
+- Status: 26 provider and eight WEB4 admission checks passed. The native HTTPS qualifier compiled.
+- Owner step: identify an existing dedicated PocketBase HTTPS teaching service and provide a restricted record reader token privately. Scope its collection rules to the teaching objects in oasis_holons. Keep administrator credentials and the original local demo separate.
+- The catalogue needs three public live roots, one deleted object and one absent ID under the declared actor. Use a live root as the probe. No new paid service or account is requested.
+- Reason: native HTTPS qualification precedes Development settings and browser acceptance. [Settings and qualification](../COSMIC%20ORM/POCKETBASE_CQL_MVP.md#development-web4-candidate).

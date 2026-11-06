@@ -42,6 +42,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
         private readonly string _adminEmail;
         private readonly string _adminPassword;
         private string? _adminToken;
+        private readonly string? _queryToken;
 
         private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
         {
@@ -65,10 +66,19 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
+        protected PocketBaseOASIS(string baseUrl, HttpClient httpClient, string queryToken)
+            : this(baseUrl, string.Empty, string.Empty, httpClient)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(queryToken);
+            _queryToken = queryToken;
+        }
+
         // ─── Auth ─────────────────────────────────────────────────────────────────
 
         private async Task EnsureAuthAsync()
         {
+            if (_queryToken != null)
+                throw new InvalidOperationException("The PocketBase query profile cannot authenticate as an administrator.");
             if (_adminToken != null) return;
             var payload = new { identity = _adminEmail, password = _adminPassword };
             using var response = await _http.PostAsync($"{_baseUrl}/api/collections/_superusers/auth-with-password",

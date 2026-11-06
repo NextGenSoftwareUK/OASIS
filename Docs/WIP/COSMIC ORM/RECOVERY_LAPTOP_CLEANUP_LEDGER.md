@@ -1964,3 +1964,18 @@ removed its temporary descriptor. The updated native public-object check
 compiled with zero errors in the existing .NET build environment.
 The build log is `TestResults/ProviderBuildCurrent/minio-public-catalogue-fixture.log`.
 No MinIO service was contacted and shared Core was restored to `54159614`.
+
+PocketBase hosted preparation reused the existing .NET and NuGet cache.
+The provider suite passed 26/26 with no skips. Its
+`LocalState/COSMIC/HostedPocketBaseCqlQualification/activation/activation.trx`
+SHA256 is `999D9F5E321191A32C1A5FD41E2AF8532C37380DB3FDE9A8249DC6F472F547E4`.
+Build logs are `TestResults/ProviderBuildCurrent/pocketbase-hosted-read-activation.log`
+and `pocketbase-hosted-api-cql.log` in the same directory. The WEB4 pin and
+TRX use the `api-cql-admission/` directory under the qualification root.
+No PocketBase server, runtime or data directory was created.
+
+PocketBase WEB4 admission passed 8/8. Retained TRX SHA256
+`6104A9C19023D3841353B0F1B2BB507A75D7593C3931A9108ED8E56D0B38D75C`.
+The native HTTPS fixture compiled with 145 warnings and zero errors.
+Build log: `TestResults/ProviderBuildCurrent/pocketbase-hosted-native-fixture-build.log`.
+The leases restored shared Core to `54159614`. No native requests were sent.

@@ -85,3 +85,19 @@ HyperDrive replication/failover/load-balancing and distributed snapshots remain
 separate acceptance work. Read-time restart proves this retained fixture, not the
 full failure matrix. [Historical evidence](Archive/POCKETBASE_CQL_MVP_PRESERVED_2026-10-30.md),
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md), [later work](AFTER_DEMO_BACKLOG.md).
+
+## Development WEB4 candidate
+
+Set the explicit HTTPS `CQL_POCKETBASE_QUERY_ORIGIN`, a protected restricted
+`CQL_POCKETBASE_QUERY_TOKEN` and an existing public
+`CQL_POCKETBASE_QUERY_PROBE_ID`. The guarded route sends only bounded
+filtered GETs to the dedicated teaching collection `oasis_holons`.
+The native reader uses its own token and collection access rules. Keep the
+existing administrator credentials and retained source separate.
+
+Use `TestCategory=PocketBaseHostedCqlNative` after a reviewed HTTPS source
+is available, with `COSMIC_POCKETBASE_HOSTED_CQL_SOURCE` pointing to the
+catalogue with `Actor`, three `LiveIds`, `DeletedId` and `MissingId`.
+Use one live ID as the probe. All 26 controlled provider checks and eight
+WEB4 admission checks passed. The native HTTPS fixture compiled and awaits
+the reviewed service.

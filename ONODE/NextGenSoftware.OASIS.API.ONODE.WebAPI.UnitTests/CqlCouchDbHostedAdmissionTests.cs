@@ -135,6 +135,15 @@ public class CqlCouchDbHostedAdmissionTests
         VerifyExactKeyPresets(ProviderType.TypesenseOASIS, source.QueryCapabilities);
     }
 
+    [Fact]
+    public void PocketBaseExactKeyPresetsPlanNativeAndMongoQueries()
+    {
+        using var client = new System.Net.Http.HttpClient();
+        var source = new NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.PocketBaseQuerySource(
+            "https://pocketbase.example.test", client, "controlled-reader-token", Guid.NewGuid());
+        VerifyExactKeyPresets(ProviderType.PocketBaseOASIS, source.QueryCapabilities);
+    }
+
     private static void VerifyExactKeyPresets(ProviderType providerType, CosmicQueryCapabilities capabilities)
     {
         var provider = providerType.ToString();
