@@ -3375,3 +3375,16 @@ Core pin, package inventory, before/after disk readings, the 35,618-byte
 TRX and the 1,010,065-byte build log. Available space changed from
 35,861,872,640 to 35,002,396,672 bytes during the build. No local Temporal
 server, container or native data copy was created.
+
+### Tenderly and QuickNode native Polygon CQL, 6 November 2026
+
+The two official public RPCs used the existing .NET SDK and shared
+package cache. No new package directory, environment, node, database
+or credential was created. In `LocalState/COSMIC/PublicPolygonGatewaysCqlQualification/`,
+retain the runner, pin, 7,960-byte TRX and 392,303-byte build log.
+Generated provider `bin` and `obj` outputs under `Providers/Network/`
+total 9,820,949 bytes for QuickNode and 9,829,858 for Tenderly.
+The `NextGenSoftware.OASIS.API.Providers.PublicPolygonGateways.UnitTests`
+project under `Providers/Network/TestProjects/` has 51,959,741 bytes
+in `bin` and `obj`. Validate exact paths and use the shared build lease
+when these outputs can be removed.
