@@ -3282,3 +3282,10 @@ cleanup proof. The owned Mongo database is absent, both services stopped,
 ports 54869 and 27029 closed, and the original descriptor SHA-256 stayed
 `844a4ac5a54a3e738c829736db780d878ed38ad0966c6b0ab7c6e4056ed81688`.
 No runtime or database copy was installed.
+
+The Safe indexing probes used the existing Python, .NET SDK and package
+cache. `LocalState/COSMIC/SafeIndexingCqlQualification/` contains the
+lease runner, Core pin, 390,655-byte build log and 5,665-byte TRX.
+Only the existing Safe project build outputs and the selected test
+outputs were generated. The public gateway needed no credentials,
+database, runtime install or local listener.
