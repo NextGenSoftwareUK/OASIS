@@ -740,3 +740,10 @@ and hosted federation and replication verification.
 - Owner step: if an existing dedicated Vercel KV teaching store was migrated to Upstash, identify its approved HTTPS endpoint and arrange its read-only token through `CQL_VERCEL_KV_QUERY_READER_TOKEN` in protected settings. No new store or paid resource is requested.
 - Engineering owns checking the original `oasis/holon/{id:N}` layout, three public roots, one deleted record, one absent key and native 3/2/0 before Development enrollment.
 - Reason: this provider identity uses a separate layout from the accepted Upstash cohort. [Migrated Vercel KV evidence](../COSMIC%20ORM/VERCEL_KV_CQL_MVP.md) · [Upstash read-only token](https://upstash.com/docs/redis/features/restapi).
+
+## Appwrite DocumentsDB teaching project access - 2026-11-06
+
+- Status: five CQL profile checks and 14 storage regressions passed. The native HTTPS verifier compiled. No credentialed request has run.
+- Owner step: identify an existing dedicated Appwrite teaching project and its HTTPS endpoint, project ID and database ID. Review the current `documentsdb.documents.read` scope and arrange a reader key through protected `CQL_APPWRITE_QUERY_READER_TOKEN` settings. No new project or paid resource is requested.
+- Engineering owns verifying the unique `oasis_id` index, three public roots, one tombstone, one absent key and the native 3/2/0 and unchanged payload checks before Development enrollment.
+- Reason: the key is scoped to document reads in its project, so the reviewed teaching project and exact catalogue must be confirmed. [Appwrite evidence](../COSMIC%20ORM/APPWRITE_CQL_MVP.md) · [API key scopes](https://appwrite.io/docs/partners/project/api-keys#scopes).

@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -45,6 +46,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
         private readonly HttpClient _http;
         private readonly string _baseUrl;
         private readonly string _databaseId;
+        private readonly bool _queryOnly;
+        private HttpClient StorageHttp => !_queryOnly ? _http : throw new InvalidOperationException("The Appwrite query source permits only exact Holon reads.");
 
         private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
         {
@@ -57,13 +60,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
             : this(appwriteUrl, projectId, apiKey, databaseId, new HttpClient()) { }
 
         public AppwriteOASIS(string appwriteUrl, string projectId, string apiKey, string databaseId, HttpClient httpClient)
+            : this(appwriteUrl, projectId, apiKey, databaseId, httpClient, queryOnly: false) { }
+
+        internal AppwriteOASIS(string appwriteUrl, string projectId, string apiKey, string databaseId, HttpClient httpClient, bool queryOnly)
         {
             _baseUrl = appwriteUrl.TrimEnd('/');
             _databaseId = databaseId;
             _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _queryOnly = queryOnly;
             _http.DefaultRequestHeaders.Add("X-Appwrite-Project", projectId);
             _http.DefaultRequestHeaders.Add("X-Appwrite-Key", apiKey);
-            _http.DefaultRequestHeaders.Add("X-Appwrite-Response-Format", "1.0.0");
+            if (!queryOnly) _http.DefaultRequestHeaders.Add("X-Appwrite-Response-Format", "1.0.0");
             ProviderName = "AppwriteOASIS";
             ProviderDescription = "Appwrite provider (Databases REST API)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AppwriteOASIS);
@@ -77,7 +84,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
             var result = new OASISResult<bool>();
             try
             {
-                var response = await _http.GetAsync($"{_baseUrl}/databases/{_databaseId}");
+                var response = await StorageHttp.GetAsync($"{_baseUrl}/databases/{_databaseId}");
                 if (!response.IsSuccessStatusCode) throw new Exception($"HTTP {(int)response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
                 result.Result = true; result.IsError = false; result.Message = "AppwriteOASIS activated — connected to Appwrite Databases API.";
             }
@@ -95,7 +102,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
         private static T? Des<T>(string? json) => json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOpts);
         private StringContent JsonBody(object obj) => new StringContent(Ser(obj), Encoding.UTF8, "application/json");
 
-        private string CollUrl(string collection) => $"{_baseUrl}/databases/{_databaseId}/collections/{collection}/documents";
+        private string CollUrl(string collection) =>
+            $"{_baseUrl}/{(_queryOnly ? "documentsdb" : "databases")}/{_databaseId}/collections/{collection}/documents";
 
         // Appwrite document list response
         private class AppwriteList { [JsonRequired, JsonPropertyName("documents")] public List<AppwriteDoc>? Documents { get; set; } [JsonRequired, JsonPropertyName("total")] public int Total { get; set; } }
@@ -104,15 +112,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
             [JsonPropertyName("$id")] public string Id { get; set; } = "";
             [JsonPropertyName("oasis_id")] public string? OasisId { get; set; }
             [JsonPropertyName("data_json")] public string? DataJson { get; set; }
-            [JsonPropertyName("is_deleted")] public bool IsDeleted { get; set; }
+            [JsonPropertyName("is_deleted")] public bool? IsDeleted { get; set; }
         }
 
         private async Task<AppwriteDoc?> GetFirstAsync(string collection, string[] queries)
         {
-            var qParams = string.Join("&", queries.Select(q => $"queries[]={Uri.EscapeDataString(q)}"));
-            using var response = await _http.GetAsync($"{CollUrl(collection)}?limit=1&{qParams}");
-            response.EnsureSuccessStatusCode();
-            var list = ReadList(await response.Content.ReadAsStringAsync());
+            var list = await ReadPageAsync(StorageHttp, collection, queries.Append(Limit(1)), default);
             if (list.Documents!.Count == 0 && list.Total != 0) throw new JsonException("Appwrite point selector returned an incomplete page.");
             return list.Documents.FirstOrDefault();
         }
@@ -123,10 +128,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
             int offset = 0;
             while (true)
             {
-                var qParams = queries != null ? "&" + string.Join("&", queries.Select(q => $"queries[]={Uri.EscapeDataString(q)}")) : "";
-                using var response = await _http.GetAsync($"{CollUrl(collection)}?limit=100&offset={offset}{qParams}");
-                response.EnsureSuccessStatusCode();
-                var list = ReadList(await response.Content.ReadAsStringAsync());
+                var page = (queries ?? Array.Empty<string>()).Append(Limit(100)).Append(JsonSerializer.Serialize(new { method = "offset", values = new[] { offset } }));
+                var list = await ReadPageAsync(StorageHttp, collection, page, default);
                 if (list.Documents!.Count == 0)
                 {
                     if (all.Count < list.Total) throw new JsonException("Appwrite collection ended before its declared total.");
@@ -139,6 +142,31 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
             return all;
         }
 
+        internal async Task<string?> ReadExactHolonAsync(Guid id, CancellationToken cancellationToken)
+        {
+            var expected = id.ToString("D");
+            var page = await ReadPageAsync(_http, "oasis_holons", new[] { Q("oasis_id", expected), Limit(2) }, cancellationToken);
+            if (page.Total != page.Documents!.Count || page.Total > 1)
+                throw new JsonException("Appwrite did not return a complete unique exact Holon result.");
+            var doc = page.Documents.SingleOrDefault();
+            if (doc == null) return null;
+            if (doc.OasisId != expected || doc.IsDeleted == null || string.IsNullOrWhiteSpace(doc.DataJson))
+                throw new JsonException("Appwrite returned an invalid exact Holon record.");
+            return doc.IsDeleted == true ? null : doc.DataJson;
+        }
+
+        internal void DisposeTransport() => _http.Dispose();
+
+        private async Task<AppwriteList> ReadPageAsync(HttpClient client, string collection, IEnumerable<string> queries, CancellationToken cancellationToken)
+        {
+            var parameters = string.Join("&", queries.Select(query => $"queries[]={Uri.EscapeDataString(query)}"));
+            using var response = await client.GetAsync($"{CollUrl(collection)}?{parameters}", _queryOnly
+                ? HttpCompletionOption.ResponseHeadersRead : HttpCompletionOption.ResponseContentRead, cancellationToken);
+            response.EnsureSuccessStatusCode();
+            if (_queryOnly) await response.Content.LoadIntoBufferAsync(1024 * 1024, cancellationToken);
+            return ReadList(await response.Content.ReadAsStringAsync(cancellationToken));
+        }
+
         private static AppwriteList ReadList(string json)
         {
             var list = Des<AppwriteList>(json);
@@ -147,9 +175,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
             return list;
         }
 
-        // Appwrite query helpers — Appwrite Query syntax: Query.equal("field", ["value"])
-        private static string Q(string field, string value) => $"equal(\"{field}\", [\"{value}\"])";
-        private static string QBool(string field, bool value) => $"equal(\"{field}\", [{(value ? "true" : "false")}])";
+        private static string Q<T>(string field, T value) => JsonSerializer.Serialize(new { method = "equal", attribute = field, values = new[] { value } });
+        private static string Limit(int value) => JsonSerializer.Serialize(new { method = "limit", values = new[] { value } });
 
         private async Task<string> UpsertDocAsync(string collection, string oasisId, object data)
         {
@@ -158,12 +185,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
             HttpResponseMessage response;
             if (existing != null)
             {
-                response = await _http.PatchAsync($"{CollUrl(collection)}/{existing.Id}", JsonBody(data));
+                response = await StorageHttp.PatchAsync($"{CollUrl(collection)}/{existing.Id}", JsonBody(data));
             }
             else
             {
                 // Use oasisId as document ID (Appwrite allows custom IDs)
-                response = await _http.PostAsync(CollUrl(collection), JsonBody(new Dictionary<string, object> { ["documentId"] = oasisId }.Concat(((JsonElement)JsonSerializer.SerializeToElement(data, _jsonOpts)).EnumerateObject().Select(p => new KeyValuePair<string, object>(p.Name, p.Value))).ToDictionary(k => k.Key, v => v.Value)));
+                response = await StorageHttp.PostAsync(CollUrl(collection), JsonBody(new Dictionary<string, object> { ["documentId"] = oasisId }.Concat(((JsonElement)JsonSerializer.SerializeToElement(data, _jsonOpts)).EnumerateObject().Select(p => new KeyValuePair<string, object>(p.Name, p.Value))).ToDictionary(k => k.Key, v => v.Value)));
             }
             if (!response.IsSuccessStatusCode) throw new Exception($"Appwrite upsert failed: {await response.Content.ReadAsStringAsync()}");
             var doc = Des<AppwriteDoc>(await response.Content.ReadAsStringAsync());
@@ -185,9 +212,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
                 var doc = new { oasis_id = avatar.Id.ToString(), username = avatar.Username ?? "", email = avatar.Email ?? "", is_deleted = avatar.IsDeleted, data_json = Ser(avatar) };
                 HttpResponseMessage response;
                 if (existing != null)
-                    response = await _http.PatchAsync($"{CollUrl("oasis_avatars")}/{existing.Id}", JsonBody(doc));
+                    response = await StorageHttp.PatchAsync($"{CollUrl("oasis_avatars")}/{existing.Id}", JsonBody(doc));
                 else
-                    response = await _http.PostAsync(CollUrl("oasis_avatars"), JsonBody(new { documentId = avatar.Id.ToString(), data = doc }));
+                    response = await StorageHttp.PostAsync(CollUrl("oasis_avatars"), JsonBody(new { documentId = avatar.Id.ToString(), data = doc }));
                 if (!response.IsSuccessStatusCode) throw new Exception(await response.Content.ReadAsStringAsync());
                 result.Result = avatar; result.IsError = false; result.Message = $"AppwriteOASIS: Avatar '{avatar.Username}' saved.";
             }
@@ -199,14 +226,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
 
         // ─── Avatar loading ───────────────────────────────────────────────────────
 
-        private Avatar? ParseAvatar(AppwriteDoc? doc) => doc == null || doc.IsDeleted ? null : Des<Avatar>(doc.DataJson);
+        private Avatar? ParseAvatar(AppwriteDoc? doc) => doc == null || doc.IsDeleted == true ? null : Des<Avatar>(doc.DataJson);
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
             try
             {
-                var doc = await GetFirstAsync("oasis_avatars", new[] { Q("oasis_id", id.ToString()), QBool("is_deleted", false) });
+                var doc = await GetFirstAsync("oasis_avatars", new[] { Q("oasis_id", id.ToString()), Q("is_deleted", false) });
                 var avatar = ParseAvatar(doc);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"AppwriteOASIS: No avatar found for ID '{id}'."); return result; }
                 result.Result = avatar; result.IsError = false; result.Message = $"AppwriteOASIS: Avatar loaded for ID '{id}'.";
@@ -222,7 +249,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var doc = await GetFirstAsync("oasis_avatars", new[] { Q("username", username), QBool("is_deleted", false) });
+                var doc = await GetFirstAsync("oasis_avatars", new[] { Q("username", username), Q("is_deleted", false) });
                 var avatar = ParseAvatar(doc);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"AppwriteOASIS: No avatar found for username '{username}'."); return result; }
                 result.Result = avatar; result.IsError = false; result.Message = $"AppwriteOASIS: Avatar loaded for username '{username}'.";
@@ -238,7 +265,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var doc = await GetFirstAsync("oasis_avatars", new[] { Q("email", avatarEmail), QBool("is_deleted", false) });
+                var doc = await GetFirstAsync("oasis_avatars", new[] { Q("email", avatarEmail), Q("is_deleted", false) });
                 var avatar = ParseAvatar(doc);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"AppwriteOASIS: No avatar found for email '{avatarEmail}'."); return result; }
                 result.Result = avatar; result.IsError = false; result.Message = $"AppwriteOASIS: Avatar loaded for email '{avatarEmail}'.";
@@ -262,7 +289,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
-                var docs = await GetAllAsync("oasis_avatars", new[] { QBool("is_deleted", false) });
+                var docs = await GetAllAsync("oasis_avatars", new[] { Q("is_deleted", false) });
                 var avatars = docs.Select(ParseAvatar).Where(a => a != null).Cast<IAvatar>().ToList();
                 result.Result = avatars; result.IsError = false; result.Message = $"AppwriteOASIS: Loaded {avatars.Count} avatar(s).";
             }
@@ -283,9 +310,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
                 if (doc == null) { OASISErrorHandling.HandleError(ref result, $"AppwriteOASIS: Avatar '{id}' not found."); return result; }
                 HttpResponseMessage response;
                 if (softDelete)
-                    response = await _http.PatchAsync($"{CollUrl("oasis_avatars")}/{doc.Id}", JsonBody(new { is_deleted = true }));
+                    response = await StorageHttp.PatchAsync($"{CollUrl("oasis_avatars")}/{doc.Id}", JsonBody(new { is_deleted = true }));
                 else
-                    response = await _http.DeleteAsync($"{CollUrl("oasis_avatars")}/{doc.Id}");
+                    response = await StorageHttp.DeleteAsync($"{CollUrl("oasis_avatars")}/{doc.Id}");
                 result.Result = response.IsSuccessStatusCode; result.IsError = !result.Result;
                 result.Message = result.Result ? $"AppwriteOASIS: Avatar '{id}' {(softDelete ? "soft" : "hard")}-deleted." : "AppwriteOASIS: Delete failed.";
             }
@@ -330,9 +357,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
                 var doc = new { oasis_id = avatarDetail.Id.ToString(), username = avatarDetail.Username ?? "", email = avatarDetail.Email ?? "", data_json = Ser(avatarDetail) };
                 HttpResponseMessage response;
                 if (existing != null)
-                    response = await _http.PatchAsync($"{CollUrl("oasis_avatar_details")}/{existing.Id}", JsonBody(doc));
+                    response = await StorageHttp.PatchAsync($"{CollUrl("oasis_avatar_details")}/{existing.Id}", JsonBody(doc));
                 else
-                    response = await _http.PostAsync(CollUrl("oasis_avatar_details"), JsonBody(new { documentId = avatarDetail.Id.ToString(), data = doc }));
+                    response = await StorageHttp.PostAsync(CollUrl("oasis_avatar_details"), JsonBody(new { documentId = avatarDetail.Id.ToString(), data = doc }));
                 if (!response.IsSuccessStatusCode) throw new Exception(await response.Content.ReadAsStringAsync());
                 result.Result = avatarDetail; result.IsError = false; result.Message = "AppwriteOASIS: AvatarDetail saved.";
             }
@@ -417,9 +444,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
                 var doc = new { oasis_id = holon.Id.ToString(), parent_holon_id = holon.ParentHolonId == Guid.Empty ? "" : holon.ParentHolonId.ToString(), holon_type = (int)holon.HolonType, is_deleted = holon.IsDeleted, data_json = Ser(holon) };
                 HttpResponseMessage response;
                 if (existing != null)
-                    response = await _http.PatchAsync($"{CollUrl("oasis_holons")}/{existing.Id}", JsonBody(doc));
+                    response = await StorageHttp.PatchAsync($"{CollUrl("oasis_holons")}/{existing.Id}", JsonBody(doc));
                 else
-                    response = await _http.PostAsync(CollUrl("oasis_holons"), JsonBody(new { documentId = holon.Id.ToString(), data = doc }));
+                    response = await StorageHttp.PostAsync(CollUrl("oasis_holons"), JsonBody(new { documentId = holon.Id.ToString(), data = doc }));
                 if (!response.IsSuccessStatusCode) throw new Exception(await response.Content.ReadAsStringAsync());
                 result.Result = holon; result.IsError = false; result.Message = $"AppwriteOASIS: Holon '{holon.Name}' saved.";
             }
@@ -444,14 +471,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
 
         // ─── Holon loading ────────────────────────────────────────────────────────
 
-        private Holon? ParseHolon(AppwriteDoc? doc) => doc == null || doc.IsDeleted ? null : Des<Holon>(doc.DataJson);
+        private Holon? ParseHolon(AppwriteDoc? doc) => doc == null || doc.IsDeleted == true ? null : Des<Holon>(doc.DataJson);
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IHolon>();
             try
             {
-                var doc = await GetFirstAsync("oasis_holons", new[] { Q("oasis_id", id.ToString()), QBool("is_deleted", false) });
+                var doc = await GetFirstAsync("oasis_holons", new[] { Q("oasis_id", id.ToString()), Q("is_deleted", false) });
                 var holon = ParseHolon(doc);
                 if (holon == null) { OASISErrorHandling.HandleError(ref result, $"AppwriteOASIS: No holon found for ID '{id}'."); return result; }
                 result.Result = holon; result.IsError = false; result.Message = $"AppwriteOASIS: Holon loaded for ID '{id}'.";
@@ -477,7 +504,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                var queries = type == HolonType.All ? new[] { QBool("is_deleted", false) } : new[] { QBool("is_deleted", false), Q("holon_type", ((int)type).ToString()) };
+                var queries = type == HolonType.All ? new[] { Q("is_deleted", false) } : new[] { Q("is_deleted", false), Q("holon_type", (int)type) };
                 var docs = await GetAllAsync("oasis_holons", queries);
                 var holons = docs.Select(ParseHolon).Where(h => h != null).Cast<IHolon>().ToList();
                 result.Result = holons; result.IsError = false; result.Message = $"AppwriteOASIS: Loaded {holons.Count} holon(s).";
@@ -494,7 +521,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                var queries = type == HolonType.All ? new[] { Q("parent_holon_id", id.ToString()), QBool("is_deleted", false) } : new[] { Q("parent_holon_id", id.ToString()), QBool("is_deleted", false), Q("holon_type", ((int)type).ToString()) };
+                var queries = type == HolonType.All ? new[] { Q("parent_holon_id", id.ToString()), Q("is_deleted", false) } : new[] { Q("parent_holon_id", id.ToString()), Q("is_deleted", false), Q("holon_type", (int)type) };
                 var docs = await GetAllAsync("oasis_holons", queries);
                 var holons = docs.Select(ParseHolon).Where(h => h != null).Cast<IHolon>().ToList();
                 result.Result = holons; result.IsError = false; result.Message = $"AppwriteOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
@@ -525,7 +552,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
                 var doc = await GetFirstAsync("oasis_holons", new[] { Q("oasis_id", id.ToString()) });
                 if (doc == null) { OASISErrorHandling.HandleError(ref result, $"AppwriteOASIS: No holon found with ID '{id}'."); return result; }
                 var holon = ParseHolon(doc) ?? Des<Holon>(doc.DataJson);
-                await _http.PatchAsync($"{CollUrl("oasis_holons")}/{doc.Id}", JsonBody(new { is_deleted = true }));
+                await StorageHttp.PatchAsync($"{CollUrl("oasis_holons")}/{doc.Id}", JsonBody(new { is_deleted = true }));
                 result.Result = holon; result.IsError = false; result.Message = $"AppwriteOASIS: Holon '{id}' soft-deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }

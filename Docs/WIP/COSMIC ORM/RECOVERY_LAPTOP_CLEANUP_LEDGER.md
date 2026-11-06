@@ -1806,10 +1806,14 @@ No new download, credential or hosted resource was used.
 
 Appwrite uses the existing .NET runtime and provider test project. Its
 leased runner is `LocalState/COSMIC/HostedAppwriteCqlQualification/verify-provider.ps1`.
-The Core pin, log and TRX will use the `appwrite-` prefix under
-`TestResults/ProviderBuildCurrent/`. Start it after the Deno WEB4 build
-releases the shared lease. No runtime, credential or Appwrite project was
-created.
+The Core pin, log and TRX use the `appwrite-` prefix under
+`TestResults/ProviderBuildCurrent/`. Both runs passed 19 cases and restored
+Core. `provider-first-run.trx` retains the first result. The final
+`verify-provider-and-native.ps1` runner built the native probe under the
+same lease. Its `appwrite-native-build.log` is in the same results directory.
+The verifier reuses `bin/Debug/net10.0` and `obj` under the Appwrite
+qualification directory. No runtime, credential or Appwrite project was
+created and no native request was sent.
 
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive

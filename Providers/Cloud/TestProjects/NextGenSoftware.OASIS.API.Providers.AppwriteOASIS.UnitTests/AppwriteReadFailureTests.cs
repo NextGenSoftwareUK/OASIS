@@ -74,11 +74,12 @@ public class AppwriteReadFailureTests
         using var http = new HttpClient(reply);
         var provider = new AppwriteOASIS("https://synthetic.invalid", "synthetic", "synthetic", "synthetic", http);
         await provider.LoadAllHolonsAsync(loadChildren: false);
-        var query = reply.LastUri!.Query.TrimStart('?').Split('&').Where(x => x.StartsWith("queries[]="))
-            .Select(x => Uri.UnescapeDataString(x.Split('=', 2)[1])).Single();
-        using var values = System.Text.Json.JsonDocument.Parse(query[(query.IndexOf(',') + 1)..^1]);
-        Assert.AreEqual(System.Text.Json.JsonValueKind.Array, values.RootElement.ValueKind);
-        Assert.AreEqual(1, values.RootElement.GetArrayLength());
-        Assert.IsFalse(values.RootElement[0].GetBoolean());
+        var queries = reply.LastUri!.Query.TrimStart('?').Split('&')
+            .Select(x => System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(Uri.UnescapeDataString(x.Split('=', 2)[1]))).ToArray();
+        var selector = queries.Single(query => query.GetProperty("method").GetString() == "equal");
+        Assert.AreEqual("is_deleted", selector.GetProperty("attribute").GetString());
+        Assert.IsFalse(selector.GetProperty("values").EnumerateArray().Single().GetBoolean());
+        Assert.AreEqual(100, queries.Single(query => query.GetProperty("method").GetString() == "limit").GetProperty("values")[0].GetInt32());
+        Assert.AreEqual(0, queries.Single(query => query.GetProperty("method").GetString() == "offset").GetProperty("values")[0].GetInt32());
     }
 }
