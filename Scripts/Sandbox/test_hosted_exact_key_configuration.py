@@ -58,6 +58,9 @@ class ExactKeyConfigurationTests(unittest.TestCase):
     def test_litestream_candidate_preserves_existing_providers(self):
         self.check_candidate("LitestreamOASIS")
 
+    def test_pinecone_candidate_preserves_existing_providers(self):
+        self.check_candidate("PineconeOASIS")
+
     def check_candidate(self, provider):
         partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
         baseline = {
@@ -75,6 +78,12 @@ class ExactKeyConfigurationTests(unittest.TestCase):
             descriptor = Path(directory) / "catalogue.json"
             actor, first, second, third, deleted, missing = [str(uuid.UUID(int=i)) for i in range(1, 7)]
             catalogue = {"Actor": actor, "LiveIds": [first, second, third], "DeletedId": deleted, "MissingId": missing}
+            if provider == "PineconeOASIS":
+                catalogue["Origin"] = "https://teaching.svc.pinecone.io"
+                for origin in ("https://api.pinecone.io", catalogue["Origin"] + ".invalid"):
+                    descriptor.write_text(json.dumps(catalogue | {"Origin": origin}))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                        configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "LitestreamOASIS":
                 catalogue["RestoreSha256"] = "a" * 64
                 descriptor.write_text(json.dumps(catalogue | {"RestoreSha256": "A" * 64}))
@@ -119,7 +128,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -155,6 +164,10 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     baseline.update(CQL_LITESTREAM_QUERY_RESTORE_SHA256=catalogue["RestoreSha256"], CQL_LITESTREAM_QUERY_PROBE_ID=first)
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {"CQL_LITESTREAM_QUERY_RESTORE_SHA256": "b" * 64}, provider, review)
+                elif provider == "PineconeOASIS":
+                    baseline.update(CQL_PINECONE_QUERY_ORIGIN=catalogue["Origin"], CQL_PINECONE_QUERY_PROBE_ID=first)
+                    with self.assertRaisesRegex(ValueError, "do not match"):
+                        configuration.candidate(baseline | {"CQL_PINECONE_QUERY_ORIGIN": "https://other.svc.pinecone.io"}, provider, review)
                 else:
                     product = provider.removesuffix("OASIS").upper()
                     baseline[f"CQL_{product}_QUERY_PROBE_ID"] = first

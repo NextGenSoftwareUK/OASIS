@@ -27,7 +27,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -349,6 +349,12 @@ def reviewed_exact_key_source(provider, path):
             fields.add("RestoreSha256")
             if not re.fullmatch(r"[0-9a-f]{64}", catalogue["RestoreSha256"]):
                 raise ValueError("Unexpected Litestream restore digest.")
+        if provider == "PineconeOASIS":
+            fields.add("Origin")
+            origin = catalogue["Origin"]
+            if (len(origin) > 261 or ".svc." not in origin
+                    or not re.fullmatch(r"https://(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+pinecone\.io", origin)):
+                raise ValueError("Unexpected Pinecone index origin.")
         if provider == "ScyllaDBOASIS":
             fields |= {"Ip", "Host", "CaSha256"}
             address = ipaddress.ip_address(catalogue["Ip"])
@@ -443,6 +449,9 @@ def reviewed_exact_key_source(provider, path):
     elif provider == "LitestreamOASIS":
         review["sourceBinding"] = {"CQL_LITESTREAM_QUERY_RESTORE_SHA256": catalogue["RestoreSha256"],
                                    "CQL_LITESTREAM_QUERY_PROBE_ID": ids[0]}
+    elif provider == "PineconeOASIS":
+        review["sourceBinding"] = {"CQL_PINECONE_QUERY_ORIGIN": catalogue["Origin"],
+                                   "CQL_PINECONE_QUERY_PROBE_ID": ids[0]}
     elif provider in ("WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS"):
         product = provider.removesuffix("OASIS").upper()
         review["sourceBinding"] = {f"CQL_{product}_QUERY_PROBE_ID": ids[0]}

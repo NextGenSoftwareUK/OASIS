@@ -109,3 +109,15 @@ Enterprise, so an approved qualifying project is a live gate.
 
 All 60 provider tests passed at Core ac21b28d7c9950afdc882c708f6fdd9ea72c396b, including the public and
 private activation probes. Provider TRX SHA256 e968aca3f8438372fdf9ec039b7337517d7d578f61b277521805e70407d33a34.
+
+### Development WEB4 admission candidate
+
+The protected CQL_PINECONE_QUERY_ settings are ORIGIN, READER_KEY and
+PROBE_ID. The reviewed catalogue binds the exact data-plane origin and
+first public UUID. WEB4 admits only GET /vectors/fetch in the holons
+namespace with up to 100 distinct canonical UUIDs. The guarded transport
+uses the configured index only and refuses redirects, writes and scans.
+
+All 15 protected-settings tests passed. All eight WEB4 admission tests passed at Core eb4124a7d750f8cfb0e02bb7113b17c3d556fc7d. An approved dense teaching index, a DataPlaneViewer key and
+live visitor evidence remain open.
+Admission TRX SHA256 2dc57789595a44b063af1bfa75dfef77d179b47cd21b9ad084f994090521de73.

@@ -2508,3 +2508,19 @@ Apache.Arrow.Scalars 23.0.0 into the existing global package cache, totaling
 2306719 bytes. The exact paths, versions and hashes are in
 LocalState/COSMIC/HostedPineconeCqlQualification/lancedb-nuget-restore-receipt.json.
 Pinecone's restore reported no new package installations.
+
+Pinecone WEB4 admission uses the shared build lease and existing .NET
+environment. The runner, exact Core pin and eventual TRX are in
+`LocalState/COSMIC/HostedPineconeCqlQualification/`. Its build log is
+`TestResults/ProviderBuildCurrent/pinecone-hosted-api-cql.log`.
+All 15 protected-settings tests passed and removed their temporary files.
+No Pinecone project, index or credential was created.
+
+LanceDB WEB4 admission drafts are in
+`LocalState/COSMIC/HostedLanceDbCqlQualification/`. The two source files
+stay outside the running Pinecone build and will move into the normal
+WEB4 projects after that build releases the lease. No new runtime,
+package, account or credential was created for these drafts.
+
+Pinecone WEB4 admission passed eight tests with no skips. The Core
+checkout was restored and the exact TRX hash is in the evidence note.
