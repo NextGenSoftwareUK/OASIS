@@ -1705,6 +1705,23 @@ The verifier reuses that qualification directory's `bin/Debug/net10.0` and
 `obj`. Both provider runs and the verifier build restored the existing Core
 checkout. No new account, database, credential or runtime was created.
 
+Dapr CQL reuses the .NET SDK and existing edge-storage test project. The
+leased runner is `LocalState/COSMIC/LocalDaprCqlQualification/verify-provider.ps1`.
+Its Core pin, log and TRX use `dapr-` under `TestResults/ProviderBuildCurrent/`.
+The native fixture uses a single pinned portable Dapr runtime under
+`LocalState/COSMIC/LocalDaprCqlQualification/runtime-1.18.9/`. The official
+Windows x64 archive is 63,361,109 bytes and its published SHA-256 is
+`7e3261708e5f645f771aa37784972c740a6b729f9e7aac27cb75cded7314568b`.
+The archive was verified and removed after extraction. The retained
+`daprd.exe` is 234,339,840 bytes with SHA-256
+`1013629f8224e73d64aaa45a122e16c54638ccc07c3e9d5178f5e6d575a61897`.
+The six provider controls passed. The native runner, probe project and
+component YAML are in `LocalState/COSMIC/LocalDaprCqlQualification/`, with
+reusable `bin/Debug/net10.0` and `obj` outputs. The passing receipt is in
+`native-9112a665fdc8404ba21b0243d386a107/` under that directory. The ephemeral
+token was process-only, the sidecar stopped, ports 54861–54863 cleared and
+no database file or hosted resource was created. Both leases restored Core.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt
