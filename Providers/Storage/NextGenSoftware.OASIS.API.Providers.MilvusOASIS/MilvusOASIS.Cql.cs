@@ -19,7 +19,7 @@ public partial class MilvusOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQ
     public MilvusOASIS(string baseUrl, string? token, Guid publicProbeId)
         : this(baseUrl, token, publicProbeId, null) { }
 
-    internal MilvusOASIS(string baseUrl, string? token, Guid publicProbeId, HttpMessageHandler? transport)
+    protected internal MilvusOASIS(string baseUrl, string? token, Guid publicProbeId, HttpMessageHandler? transport)
         : this(baseUrl, token, transport)
     {
         if (publicProbeId == Guid.Empty)
@@ -53,4 +53,10 @@ public partial class MilvusOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQ
         IsError = true, ErrorCount = 1, ErrorCode = "CQL_SOURCE_UNAVAILABLE",
         Message = "Configure an existing public Milvus probe before activating the query source."
     };
+
+    protected void DisposeQueryTransport()
+    {
+        IsProviderActivated = false;
+        _http.Dispose();
+    }
 }

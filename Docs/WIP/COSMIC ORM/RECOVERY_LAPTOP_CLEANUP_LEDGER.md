@@ -2022,6 +2022,9 @@ Milvus guarded WEB4 admission reuses the same workspace and lease.
 `guarded-provider.trx` and `admission.trx` there. The two logs in
 `TestResults/ProviderBuildCurrent/` use the `milvus-` prefix.
 All 71 offline hosted tooling tests passed with bytecode writes disabled.
+The leased batch passed six guarded provider tests and 19 WEB4 admission
+and regression checks at Core `67c54b4199187a44c369002b13b188808525cf98`.
+It restored the original Core checkout.
 
 pgvector qualification uses the existing source and pinned Npgsql dependency.
 The native job uses the official pgvector 0.8.7 PostgreSQL 17 image on a
@@ -2038,6 +2041,20 @@ The revised job passed with PostgreSQL 17.11 and pgvector 0.8.7. Retained
 the 1,496-byte report `LocalPgVectorCqlQualification/native-ci-42241735749.zip`,
 SHA-256 `61861a1d9a6bf947d46da5402f772197472fa6ffd9fa75c1e646332d0c07456b`.
 Both entries were read in memory without extraction.
+The revised privilege-gate run also passed. Its 1,494-byte ZIP is
+`LocalPgVectorCqlQualification/native-ci-42243096441.zip`, SHA-256
+`3ad1a221c38c18baf4384ded9916abb5a1fff8229540aab0d59cf114327d440e`.
+
+Cloudinary public CQL reuses the installed .NET SDK, NuGet cache and
+existing provider test project. The three native Cloudinary metadata
+responses totaled 354 bytes and were inspected in memory. The sole
+workspace is `LocalState/COSMIC/LocalCloudinaryCqlQualification/`.
+`verify-provider-batch.ps1` is the leased runner and records
+`provider-core-pin.txt` and `provider.trx`. Its log is
+`TestResults/ProviderBuildCurrent/cloudinary-cql.log`. The same batch
+compiles the separate Milvus hosted verifier into its normal project
+outputs and records `milvus-hosted-native-build.log`. No images or new
+runtime dependencies were downloaded.
 
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive

@@ -21,9 +21,9 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
   admission run passed 18 checks including the ENS regression suite.
   Live data, federation and browser acceptance remain open.
   [GUN evidence](GUN_CQL_MVP.md) · [OrbitDB evidence](ORBITDB_CQL_MVP.md).
-- Milvus passed five controlled CQL checks and native Milvus 2.6.26
-  exact-key CQL 3/2/0 with private denial. Opt-in WEB4 admission is in
-  verification. [Milvus evidence](MILVUS_CQL_MVP.md).
+- Milvus passed six guarded provider checks, native Milvus 2.6.26
+  exact-key CQL 3/2/0 with private denial, and ten opt-in WEB4 checks.
+  The hosted source still requires qualification. [Milvus evidence](MILVUS_CQL_MVP.md).
 - pgvector passed the restricted-reader 3/2/0 and private-denial checks
   on PostgreSQL 17.11 with pgvector 0.8.7. WEB4 enrollment remains open.
   [pgvector evidence](PGVECTOR_CQL_MVP.md).

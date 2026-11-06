@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.Providers.MilvusOASIS;
 using MilvusProvider = NextGenSoftware.OASIS.API.Providers.MilvusOASIS.MilvusOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests;
@@ -77,6 +78,38 @@ public class MilvusCqlTests
         Assert.IsTrue((await provider.ActivateQuerySourceAsync()).IsError);
         Assert.AreEqual("CQL_PROVIDER_INACTIVE",
             (await provider.ExecuteCosmicQueryAsync(Plan(provider, Query(id)))).ErrorCode);
+    }
+
+    [TestMethod]
+    public async Task HostedTransportOnlyDispatchesTheExactTeachingRequest()
+    {
+        const string origin = "https://milvus.example.com";
+        const string read = "/v2/vectordb/entities/get";
+        var probe = Guid.NewGuid();
+        using var service = new FakeService((_, _) => Entity(probe));
+        using var guard = new MilvusQuerySource.ExactReadHandler(new Uri(origin), service);
+        var provider = new MilvusProvider(origin, "reader", probe, guard);
+        var activated = await provider.ActivateQuerySourceAsync();
+        Assert.IsFalse(activated.IsError, activated.Exception?.ToString());
+        Assert.AreEqual(1, service.Requests.Count);
+
+        using var client = new HttpClient(guard, disposeHandler: false);
+        foreach (var (url, collection, id) in new[]
+        {
+            (origin + "/v2/vectordb/entities/upsert", "oasis_holons", probe),
+            (origin + read, "oasis_avatars", probe),
+            ("https://other.example.com" + read, "oasis_holons", probe),
+            (origin + read, "oasis_holons", Guid.Empty)
+        })
+        {
+            using var body = new StringContent(JsonSerializer.Serialize(new
+            {
+                collectionName = collection, id = new[] { id }, outputFields = new[] { "id", "doc" },
+                consistencyLevel = "Strong"
+            }), System.Text.Encoding.UTF8, "application/json");
+            await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => client.PostAsync(url, body));
+        }
+        Assert.AreEqual(1, service.Requests.Count);
     }
 
     private static HttpResponseMessage Entity(Guid id, bool isPublic = true, bool deleted = false) =>

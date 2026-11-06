@@ -19,5 +19,17 @@ and projected out embedded children. The native TRX SHA-256 is
 `2524f094e4b063ffb3d0fb23df08709a49251147bdb9a07bb2530f2544eaa85c`.
 [Native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42239734505/job/127966535849)
 
-WEB4 enrollment, owned source qualification, live Mongo federation and
-browser acceptance remain open. LocalFile remains first for live rollout.
+Opt-in WEB4 admission passed ten Milvus checks and nine GUN/OrbitDB
+regressions at Core `67c54b4199187a44c369002b13b188808525cf98`.
+The six controlled provider checks include a transport that rejects a
+foreign origin, write route, wrong collection and invalid key. The admission
+TRX SHA-256 is
+`aede9f225427bb69b53a61de08e5a250315ea419140e3edf2abcf80dd58394d4`.
+The guarded provider TRX SHA-256 is
+`b54df99b824fff884ab1c37773ad98640f5b67501e37ed1461eea221efdee3da`.
+
+The reviewed `CQL_MILVUS_QUERY_ORIGIN`, protected
+`CQL_MILVUS_QUERY_READER_TOKEN` and public
+`CQL_MILVUS_QUERY_PROBE_ID` enable the profile. Owned source qualification,
+live Mongo federation and browser acceptance remain open. LocalFile remains
+first for live rollout.
