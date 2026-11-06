@@ -1656,6 +1656,14 @@ bundle in memory. Six settings, four presets and four refusal cases passed
 against a synthetic WEB4 baseline. No settings file, runtime, database, image
 or download was created.
 
+Deno KV uses the existing .NET runtime, protobuf packages and edge-storage
+protocol tests. Its leased runner is
+`LocalState/COSMIC/HostedDenoKvCqlQualification/verify-provider.ps1`.
+The Core pin, log and TRX will use the `deno-kv-` prefix under
+`TestResults/ProviderBuildCurrent/`. Start it after the active Fastly build
+releases the shared build lease. No runtime or hosted
+database was installed, and no access token was created.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt
@@ -2751,6 +2759,10 @@ and Fastly provider/test drafts then moved into their normal projects.
 The combined provider run is active under the shared lease.
 That run passed all 16 cases with zero skips and restored the shared Core
 checkout. The exact report hash is in the Fastly evidence note.
+
+The Fastly wiring patch was applied and removed. The registration and
+tests moved to their normal projects. The leased Fastly and Netlify WEB4
+test run passed all 16 cases and restored the existing Core checkout.
 
 A transient C: report showed 1 byte free and interrupted a ledger update.
 The next readings from PowerShell and the Windows volume API agreed on

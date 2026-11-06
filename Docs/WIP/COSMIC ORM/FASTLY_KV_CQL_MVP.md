@@ -13,7 +13,7 @@ absence versus denial and oversized payloads. Seven Fastly provider tests
 and nine Netlify regressions passed without skips at Core
 `77d943944552f188e0aaccf128ba2c8cc2f4ef9d`. The TRX SHA-256 is
 `cd3a4c2af324eac9d68d0d7a8598f4e894485b459ad48bce7916de07c57e79f1`.
-WEB4 admission and native qualification remain open.
+Native qualification remains open.
 
 Fastly and Netlify share public probe verification, canonical payload
 validation and paging. Each provider keeps its own guarded HTTP transport.
@@ -24,7 +24,10 @@ The WEB4 settings draft uses `CQL_FASTLY_QUERY_STORE_ID`,
 `CQL_FASTLY_QUERY_READER_TOKEN` and `CQL_FASTLY_QUERY_PROBE_ID`. The
 protected-settings reviewer binds the exact store and first public UUID.
 All 21 settings checks passed, including rejection of a substituted store.
-The WEB4 registration and tests remain outside the running Netlify build.
+The WEB4 admission run passed seven Fastly checks and nine Netlify
+regressions without skips at Core `79405fdb497834f275ef10edeb7d4b3b2c47ee38`.
+The admission TRX SHA-256 is
+`39ac5f02935c023c5218a67863a083c0ee9bd4560e1c07cc8186b827150a4bfa`.
 
 The native verifier draft checks the exact live, deleted and absent keys,
 runs CQL 3/2/0 and compares Fastly generation markers and object hashes

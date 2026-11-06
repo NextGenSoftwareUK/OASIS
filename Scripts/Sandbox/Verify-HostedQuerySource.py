@@ -27,7 +27,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -386,6 +386,10 @@ def reviewed_exact_key_source(provider, path):
                     or len(origin) > 261
                     or not re.fullmatch(r"https://(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]", origin)):
                 raise ValueError("Unexpected Netlify site, store or object origin.")
+        if provider == "FastlyOASIS":
+            fields.add("StoreId")
+            if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", catalogue["StoreId"]):
+                raise ValueError("Unexpected Fastly KV store ID.")
         if provider == "ScyllaDBOASIS":
             fields |= {"Ip", "Host", "CaSha256"}
             address = ipaddress.ip_address(catalogue["Ip"])
@@ -502,6 +506,9 @@ def reviewed_exact_key_source(provider, path):
                                    "CQL_NETLIFY_BLOBS_QUERY_STORE": catalogue["Store"],
                                    "CQL_NETLIFY_BLOBS_QUERY_OBJECT_ORIGIN": catalogue["ObjectOrigin"],
                                    "CQL_NETLIFY_BLOBS_QUERY_PROBE_ID": ids[0]}
+    elif provider == "FastlyOASIS":
+        review["sourceBinding"] = {"CQL_FASTLY_QUERY_STORE_ID": catalogue["StoreId"],
+                                   "CQL_FASTLY_QUERY_PROBE_ID": ids[0]}
     elif provider in ("WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS"):
         product = provider.removesuffix("OASIS").upper()
         review["sourceBinding"] = {f"CQL_{product}_QUERY_PROBE_ID": ids[0]}

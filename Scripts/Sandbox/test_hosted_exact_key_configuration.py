@@ -76,6 +76,9 @@ class ExactKeyConfigurationTests(unittest.TestCase):
     def test_netlify_blobs_candidate_preserves_existing_providers(self):
         self.check_candidate("NetlifyBlobsOASIS")
 
+    def test_fastly_candidate_preserves_existing_providers(self):
+        self.check_candidate("FastlyOASIS")
+
     def check_candidate(self, provider):
         partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
         baseline = {
@@ -93,6 +96,12 @@ class ExactKeyConfigurationTests(unittest.TestCase):
             descriptor = Path(directory) / "catalogue.json"
             actor, first, second, third, deleted, missing = [str(uuid.UUID(int=i)) for i in range(1, 7)]
             catalogue = {"Actor": actor, "LiveIds": [first, second, third], "DeletedId": deleted, "MissingId": missing}
+            if provider == "FastlyOASIS":
+                catalogue["StoreId"] = "teachingStore"
+                for store in ("", "../foreign", "foreign?key=1", "s" * 65):
+                    descriptor.write_text(json.dumps(catalogue | {"StoreId": store}))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                        configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "NetlifyBlobsOASIS":
                 catalogue.update(SiteId=str(uuid.UUID(int=7)), Store="oasis", ObjectOrigin="https://objects.example")
                 for invalid in ({"SiteId": str(uuid.UUID(int=0))}, {"Store": "foreign/store"},
@@ -174,7 +183,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -239,6 +248,10 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                                     CQL_NETLIFY_BLOBS_QUERY_PROBE_ID=first)
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {"CQL_NETLIFY_BLOBS_QUERY_OBJECT_ORIGIN": "https://foreign.example"}, provider, review)
+                elif provider == "FastlyOASIS":
+                    baseline.update(CQL_FASTLY_QUERY_STORE_ID=catalogue["StoreId"], CQL_FASTLY_QUERY_PROBE_ID=first)
+                    with self.assertRaisesRegex(ValueError, "do not match"):
+                        configuration.candidate(baseline | {"CQL_FASTLY_QUERY_STORE_ID": "foreignStore"}, provider, review)
                 else:
                     product = provider.removesuffix("OASIS").upper()
                     baseline[f"CQL_{product}_QUERY_PROBE_ID"] = first
