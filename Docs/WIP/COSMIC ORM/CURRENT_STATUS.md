@@ -12,9 +12,9 @@ HTTPS and deployed acceptance. No provider count changed.
 ## Recent WEB4 preparation, 5–6 November 2026
 
 Acceptance is 118 scoped local, 60 live HTTP and 28 live browser.
-LocalFile remains first. Development `c64adf474` is building as Railway
-`ef66367e`. The prior instance has a writable `/data` mount. Verify the new
-instance mount before applying the matched settings. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
+LocalFile `c64adf474` is healthy with a verified writable `/data` mount.
+Five settings matched the reviewed candidate. Exact settings deployment
+`c8ba177c` is building. Hosted acceptance follows its mount and file checks. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
 
 - GUN and OrbitDB passed native exact-key CQL and Linux restart checks.
   Their optional WEB4 runtime passed the Linux package check. The combined

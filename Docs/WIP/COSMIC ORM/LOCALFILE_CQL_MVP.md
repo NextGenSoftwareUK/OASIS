@@ -699,3 +699,18 @@ writable `/data` mount. The actual mount must be checked again on `ef66367e`
 after its build completes. The current publisher passed 14 tests and
 independently reconstructed the exact protected candidate. The live
 settings still matched the protected baseline.
+
+### Code deployment verified and settings rollout started
+
+Railway `ef66367e-a041-4d47-9f71-17bf31950d2c` succeeded at `c64adf474`.
+The exact running instance `9a3735bf` returned HTTP health 200 and had one
+writable `/data` mount on the reviewed volume. The bootstrap directory was
+absent and the protected live settings baseline matched. The publisher
+observed all five reviewed settings exactly with deploys skipped.
+
+Redeploying the existing service release created
+`c8ba177c-c29f-4999-bfa7-7362216d4315` at the same source commit. Observe
+that ID, then verify its mount and mounted records before starting HTTP
+acceptance. Publication, mount and settings receipts are in
+`LocalState/COSMIC/HostedLocalFileSourceCurrent` and the per-key journal
+is in `LocalState/COSMIC/HostedSourceRolloutCurrent`.
