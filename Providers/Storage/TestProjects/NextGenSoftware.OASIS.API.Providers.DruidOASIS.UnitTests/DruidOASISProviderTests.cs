@@ -29,8 +29,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DruidOASIS.UnitTests
             => Assert.IsFalse(string.IsNullOrWhiteSpace(_provider.ProviderDescription));
 
         [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
-            => Assert.IsFalse(string.IsNullOrWhiteSpace(_provider.GetProviderVersion()));
+        public void ProviderCategory_ShouldBeStorageLocalAndNetwork()
+            => Assert.AreEqual(ProviderCategory.StorageLocalAndNetwork, _provider.ProviderCategory.Value);
 
         [TestCleanup]
         public void Cleanup()

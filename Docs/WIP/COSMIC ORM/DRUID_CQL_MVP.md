@@ -20,3 +20,11 @@ remain open.
 [Apache Druid 38.0.0](https://druid.apache.org/downloads/) ·
 [Druid SQL API](https://druid.apache.org/docs/latest/api-reference/sql-api/) ·
 [Native batch ingestion](https://druid.apache.org/docs/latest/ingestion/native-batch/).
+
+The first Linux run verified the pinned Druid 38.0.0 version, completed
+ingestion and confirmed all five source records and four public flags.
+The pre-existing provider test referenced a removed `GetProviderVersion`
+method and prevented test compilation. The provider now initializes its
+name and description, and the identity suite tests the supported category
+contract. The Linux fixture checks the native version through Druid's
+`/status` API. [First Linux run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42259837438).

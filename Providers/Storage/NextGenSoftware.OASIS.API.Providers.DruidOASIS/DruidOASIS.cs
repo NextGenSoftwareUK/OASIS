@@ -48,6 +48,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DruidOASIS
         {
             _baseUrl = baseUrl.TrimEnd('/');
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.DruidOASIS);
+            ProviderName = nameof(DruidOASIS);
+            ProviderDescription = "Apache Druid analytical storage provider";
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
             _http = new HttpClient();
