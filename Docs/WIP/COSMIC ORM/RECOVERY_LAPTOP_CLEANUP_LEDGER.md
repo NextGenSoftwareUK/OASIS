@@ -3409,3 +3409,23 @@ Mongo log and compact process, signal and shutdown receipts.
 Sibling `TenderlyOASIS/` and `QuickNodeOASIS/` directories preserve
 synthetic fixture intent, acknowledgements, summary and cleanup receipts
 totalling 1,071 and 1,072 bytes, respectively.
+
+### Discord and Livepeer native CQL, 6 November 2026
+
+The combined leased run `LocalState/COSMIC/verify-discord-livepeer-native.ps1`
+reused the installed .NET SDK and package cache. It added no package
+version, provider runtime, database, node or credential. The official
+API and contract preflights ran in memory. A 587-byte Livepeer observation
+file records the finalized block and three reviewed public addresses.
+
+| Local directory under `LocalState/COSMIC/` | TRX bytes | Build log bytes |
+| --- | ---: | ---: |
+| `DiscordPublicCqlQualification/` | 5,740 | 393,693 |
+| `LivepeerPublicCqlQualification/` | 5,847 | 391,952 |
+
+The existing Discord provider and its UnitTests generated 9,213,283 and
+48,132,104 bytes under their respective `bin` and `obj` directories.
+Livepeer provider and UnitTests generated 9,232,929 and 48,142,242 bytes.
+The provider paths are under `Providers/Social/` and
+`Providers/Network/` respectively. Reuse these outputs and remove
+generated files under the lease when their consumers have stopped.
