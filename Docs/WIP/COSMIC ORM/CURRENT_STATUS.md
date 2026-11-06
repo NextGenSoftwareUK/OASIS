@@ -16,6 +16,14 @@ LocalFile remains first. The immutable candidate image is published and its
 actual Railway deployment, persistent mount and protected settings still
 need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
 
+- GUN and OrbitDB passed native exact-key CQL and Linux restart checks.
+  Their optional WEB4 runtime passed the Linux package check. The combined
+  admission run passed 18 checks including the ENS regression suite.
+  Live data, federation and browser acceptance remain open.
+  [GUN evidence](GUN_CQL_MVP.md) · [OrbitDB evidence](ORBITDB_CQL_MVP.md).
+- Milvus passed five controlled CQL checks and native Milvus 2.6.26
+  exact-key CQL 3/2/0 with private denial. Opt-in WEB4 admission is in
+  verification. [Milvus evidence](MILVUS_CQL_MVP.md).
 - Appwrite passed 19 provider checks and nine WEB4 admission checks. Its
   credentialed HTTPS verifier compiled and awaits a reviewed project.
   [Appwrite evidence](APPWRITE_CQL_MVP.md).

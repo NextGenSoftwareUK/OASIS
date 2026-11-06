@@ -1990,7 +1990,8 @@ native qualification directories and bundled Node. Three startup controls
 passed locally. GUN's new disposable `f9` fixture passed the native
 process identity, read and restart checks. Both OrbitDB Windows seed attempts
 timed out before creating a receipt. The empty disposable paths are `f9` and
-`f10` under its qualification directory.
+`f10` under its qualification directory. The command policy rejected the
+verified empty-directory cleanup request, so both paths remain.
 The Linux image-stage qualification uses disposable GitHub runners and
 the existing pinned WEB4 Node image. It checks the default package excludes
 native Node dependencies and the explicitly enabled package loads both SDKs.
@@ -2011,6 +2012,23 @@ The native CI job keeps the official Compose download, container data
 and synthetic collection in one temporary runner directory. It stops
 the three containers before removing the directory and keeps only the
 test report and container listing for seven days.
+The native CI test passed. Retained the 1,697-byte ZIP
+`LocalMilvusCqlQualification/native-ci-42239734505.zip` at SHA-256
+`0179ecc9215bbf65d4cef6cce576d320b10c598b9882ddab8414ab08eaeef961`.
+The TRX was verified in memory.
+
+Milvus guarded WEB4 admission reuses the same workspace and lease.
+`verify-hosted-cql.ps1` captures `web4-core-pin.txt`,
+`guarded-provider.trx` and `admission.trx` there. The two logs in
+`TestResults/ProviderBuildCurrent/` use the `milvus-` prefix.
+All 71 offline hosted tooling tests passed with bytecode writes disabled.
+
+pgvector qualification uses the existing source and pinned Npgsql dependency.
+The native job uses the official pgvector 0.8.7 PostgreSQL 17 image on a
+disposable runner, bound to loopback, with a temporary container and database
+volume. The job removes both and retains only a compact runtime listing and
+TRX for seven days. No database binaries, image layers or fixture data are
+downloaded to this laptop.
 
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive

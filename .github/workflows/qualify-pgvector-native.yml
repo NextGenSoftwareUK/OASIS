@@ -1,0 +1,81 @@
+name: Qualify native pgvector CQL
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-pgvector-native.yml'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.PgVectorOASIS/**'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PgVectorOASIS.IntegrationTests/PgVectorCql*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          persist-credentials: false
+      - name: Read reviewed dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|OASIS_API_CORE_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/OASIS-API-Core
+          ref: ${{ steps.dependency.outputs.OASIS_API_CORE_COMMIT }}
+          path: OASIS/OASIS Architecture/NextGenSoftware.OASIS.API.Core
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify CQL through a disposable pgvector database
+        working-directory: OASIS
+        shell: bash
+        env:
+          COSMIC_PGVECTOR_DISPOSABLE: '1'
+        run: |
+          container="oasis-pgvector-$GITHUB_RUN_ID"
+          cleanup() { docker rm -f -v "$container"; }
+          mkdir -p TestResults/PgVectorNative
+          docker run -d --name "$container" --publish 127.0.0.1:55439:5432 \
+            --env POSTGRES_PASSWORD=disposable-owner --env POSTGRES_DB=oasis_teaching \
+            pgvector/pgvector:0.8.7-pg17@sha256:7d0a41464797aeb9862dfdc0bbf1526b82cfd324cdd8036df19e3545f4a9ccb8
+          trap cleanup EXIT
+          for attempt in {1..30}; do
+            if docker exec "$container" pg_isready --host 127.0.0.1 --username postgres --dbname oasis_teaching; then break; fi
+            sleep 1
+          done
+          docker exec "$container" pg_isready --host 127.0.0.1 --username postgres --dbname oasis_teaching
+          docker exec --env PGPASSWORD=disposable-owner "$container" psql -XAt --host 127.0.0.1 \
+            --username postgres --dbname oasis_teaching --command "SELECT version(), default_version FROM pg_available_extensions WHERE name = 'vector'" \
+            > TestResults/PgVectorNative/runtime.txt
+          grep -q '|0.8.7$' TestResults/PgVectorNative/runtime.txt
+          pwsh -NoProfile -Command '
+            $ErrorActionPreference = "Stop"
+            & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner pgvector-native-ci -Operation {
+              $test = "NextGenSoftware.OASIS.API.Providers.PgVectorOASIS.IntegrationTests"
+              dotnet test "Providers/Storage/TestProjects/$test/$test.csproj" /m:2 /nr:false /p:UseSharedCompilation=false /p:EnablePgVectorCqlNativeTests=true --filter "TestCategory=PgVectorNativeCql" --results-directory TestResults/PgVectorNative --logger "trx;LogFileName=native.trx"
+              if ($LASTEXITCODE) { throw "Native pgvector qualification failed" }
+            }'
+          grep -q 'total="1" executed="1" passed="1"' TestResults/PgVectorNative/native.trx
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: pgvector-native-cql
+          path: OASIS/TestResults/PgVectorNative/
+          retention-days: 7

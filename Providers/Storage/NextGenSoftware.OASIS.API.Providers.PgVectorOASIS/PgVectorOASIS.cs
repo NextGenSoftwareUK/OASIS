@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Npgsql;
+using NpgsqlTypes;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -28,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
     /// OASIS itself stores and retrieves the document via the JSONB `doc` column, with
     /// btree indexes on the lookup columns.
     /// </summary>
-    public class PgVectorOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
+    public partial class PgVectorOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -51,6 +54,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
+            if (_publicQuery != null)
+                return await ActivateQuerySourceAsync();
             var result = new OASISResult<bool>();
             try
             {
@@ -534,12 +539,25 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
 
         private async Task<T?> GetDocAsync<T>(string table, string id) where T : class
         {
-            await using var conn = new NpgsqlConnection(_connectionString);
-            await conn.OpenAsync();
-            await using var cmd = new NpgsqlCommand($"SELECT doc FROM {table} WHERE id = @id LIMIT 1", conn);
-            cmd.Parameters.AddWithValue("id", Guid.Parse(id));
-            var raw = await cmd.ExecuteScalarAsync() as string;
+            var raw = await ReadExactDocumentAsync(table, Guid.Parse(id), null, CancellationToken.None);
             return string.IsNullOrEmpty(raw) ? null : JsonSerializer.Deserialize<T>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+
+        private async Task<string?> ReadExactDocumentAsync(string table, Guid id, int? maximumBytes, CancellationToken cancellationToken)
+        {
+            await using var conn = new NpgsqlConnection(_connectionString);
+            await conn.OpenAsync(cancellationToken);
+            await using var cmd = new NpgsqlCommand($"""
+                SELECT CASE WHEN @maximum_bytes IS NULL OR octet_length(doc::text) <= @maximum_bytes
+                            THEN doc::text END
+                FROM {table} WHERE id = @id LIMIT 1
+                """, conn);
+            cmd.Parameters.AddWithValue("id", id);
+            cmd.Parameters.AddWithValue("maximum_bytes", NpgsqlDbType.Integer, (object?)maximumBytes ?? DBNull.Value);
+            var raw = await cmd.ExecuteScalarAsync(cancellationToken);
+            if (maximumBytes != null && raw is DBNull)
+                throw new InvalidDataException("The pgvector document exceeds the admitted byte budget.");
+            return raw as string;
         }
 
         private async Task UpsertDocAsync<T>(string table, string id, T obj)

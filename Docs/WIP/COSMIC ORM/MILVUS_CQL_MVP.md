@@ -13,9 +13,11 @@ membership, paging, tombstones and removal of embedded children.
 Five controlled cases passed at Core
 `10e464dcf58f4624a27e19f12738978ecf0fcb07`. The TRX SHA-256 is
 `1470dc8b22db5ebb4b125ae9a92ea6b5efefc01e68dda6792e38552117444331`.
-The qualification workflow runs a separate CQL test against Milvus 2.6.26
-with fresh synthetic data on a disposable Linux runner.
-[Native qualification workflow](../../../.github/workflows/qualify-milvus-native.yml)
+The native Milvus 2.6.26 test passed with fresh synthetic data on a
+disposable Linux runner. It returned 3/2/0 rows, denied the private row
+and projected out embedded children. The native TRX SHA-256 is
+`2524f094e4b063ffb3d0fb23df08709a49251147bdb9a07bb2530f2544eaa85c`.
+[Native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42239734505/job/127966535849)
 
 WEB4 enrollment, owned source qualification, live Mongo federation and
 browser acceptance remain open. LocalFile remains first for live rollout.
