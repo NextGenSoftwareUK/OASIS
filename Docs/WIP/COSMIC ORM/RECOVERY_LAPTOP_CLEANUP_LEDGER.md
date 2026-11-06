@@ -3615,3 +3615,14 @@ Provider `bin` and `obj` are 8,272,785 and 931,387 bytes. Test
 5,848-byte TRX, 390,806-byte log and 832-byte observation. No
 provider service, scene asset or separate runtime was installed.
 Free space was 37,497,409,536 before and 37,675,700,224 bytes after.
+
+### New-laptop handoff, 6 November 2026
+
+The last old-laptop Decentraland preparation reused the system Python.
+Its 3,797-byte protected settings log and 236-byte response evidence
+log remain under `LocalState/COSMIC/DecentralandSceneCqlQualification/`.
+No additional .NET producer build was started. The owned Mongo port
+27029 was confirmed closed and the shared Core checkout was restored
+to its original clean detached revision. The separate handoff branch
+carries only source and documentation. LocalState, old-laptop runtime
+and cache state, and the pending ENS fixture remain on this machine.

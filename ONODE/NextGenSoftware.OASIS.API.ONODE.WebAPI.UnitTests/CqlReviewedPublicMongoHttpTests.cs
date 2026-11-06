@@ -40,6 +40,7 @@ using NextGenSoftware.OASIS.API.Providers.LivepeerOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
 using NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS;
 using NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS;
+using NextGenSoftware.OASIS.API.Providers.DecentralandOASIS;
 using NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS;
 using NextGenSoftware.OASIS.API.Providers.WorldIDOASIS;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
@@ -119,6 +120,9 @@ public sealed class CqlReviewedPublicMongoHttpTests
 
     [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_NETWORK_NATIVE")]
     public Task ReclaimVerifierNativeHttp() => VerifyHttpAsync(ProviderType.ReclaimProtocolOASIS);
+
+    [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_NETWORK_NATIVE")]
+    public Task DecentralandSceneNativeHttp() => VerifyHttpAsync(ProviderType.DecentralandOASIS);
 
     [ReviewedPublicMongoNativeFact("COSMIC_PINATA_NATIVE_READ_CONTINUATION")]
     public Task PinataNativeHttpContinuation()
@@ -525,6 +529,13 @@ public sealed class CqlReviewedPublicMongoHttpTests
                 string[] networks = { "base", "arbitrum", "polygon" };
                 return (new ReclaimVerifierQuerySource(owner),
                     networks.Select(network => ReclaimVerifierQuerySource.LogicalId(owner, network)).ToArray());
+            }
+            case ProviderType.DecentralandOASIS:
+            {
+                Assert.Equal("owned-loopback", Environment.GetEnvironmentVariable("COSMIC_REVIEWED_NETWORK_NATIVE"));
+                string[] parcels = { "0,0", "-53,71", "-100,-50" };
+                return (new DecentralandSceneQuerySource(owner),
+                    parcels.Select(parcel => DecentralandSceneQuerySource.LogicalId(owner, parcel)).ToArray());
             }
             case ProviderType.SafeOASIS:
             {

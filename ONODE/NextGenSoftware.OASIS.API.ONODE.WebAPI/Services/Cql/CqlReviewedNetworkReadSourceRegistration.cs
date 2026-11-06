@@ -2,6 +2,7 @@ using System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.DecentralandOASIS;
 using NextGenSoftware.OASIS.API.Providers.DiscordOASIS;
 using NextGenSoftware.OASIS.API.Providers.LivepeerOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
@@ -30,6 +31,8 @@ public static class CqlReviewedNetworkReadSourceRegistration
             owner => new WorldIdProtocolQuerySource(owner));
         Register(services, configuration["CQL_RECLAIM_VERIFIER_QUERY_SOURCE_OWNER"], "Reclaim",
             owner => new ReclaimVerifierQuerySource(owner));
+        Register(services, configuration["CQL_DECENTRALAND_SCENE_QUERY_SOURCE_OWNER"], "Decentraland",
+            owner => new DecentralandSceneQuerySource(owner));
     }
 
     private static void Register(IServiceCollection services, string ownerText, string provider,

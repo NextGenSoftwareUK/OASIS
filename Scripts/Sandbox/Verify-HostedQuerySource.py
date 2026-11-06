@@ -28,7 +28,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
     "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "TenderlyOASIS", "QuickNodeOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS",
-    "WorldIDOASIS", "ReclaimProtocolOASIS",
+    "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS",
 )
 FIXED_PUBLIC_CATALOGUES = {
     "DiscordOASIS": (
@@ -61,6 +61,10 @@ FIXED_PUBLIC_CATALOGUES = {
     "ReclaimProtocolOASIS": (
         "CQL_RECLAIM_VERIFIER_QUERY_SOURCE_OWNER", "reclaim-verifier",
         ("base", "arbitrum", "polygon"),
+    ),
+    "DecentralandOASIS": (
+        "CQL_DECENTRALAND_SCENE_QUERY_SOURCE_OWNER", "decentraland-genesis-city-parcel",
+        ("0,0", "-53,71", "-100,-50"),
     ),
 }
 POLYGON_GATEWAY_CATALOGUES = {
