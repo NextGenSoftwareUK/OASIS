@@ -1943,3 +1943,13 @@ Typesense WEB4 admission passed 17/17. Retained admission TRX SHA256
 The native fixture compiled with 141 warnings and zero errors, logged in
 `TestResults/ProviderBuildCurrent/typesense-hosted-native-fixture-build.log`.
 Both leases restored shared Core to `54159614`. No native service was contacted.
+
+Weaviate hosted probe work uses the installed Weaviate .NET SDK and existing
+provider build cache. The focused run logs to
+`TestResults/ProviderBuildCurrent/weaviate-hosted-read-activation.log`
+and keeps its report under `LocalState/COSMIC/HostedWeaviateCqlQualification/activation/`.
+No server, runtime or database copy was created.
+
+Weaviate activation passed 7/7 with no skips. The retained TRX SHA256 is
+`63FBDAA908D3976351A3A7F8BBE3EAD8C0453FBC334560E4F615B36734AA975D`.
+The lease restored shared Core to `54159614`.

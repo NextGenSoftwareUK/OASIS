@@ -71,6 +71,46 @@ public partial class WeaviateOASIS : ICosmicQueryStorageProvider
 
     private sealed class NativePayloadLimitException : IOException { }
 
+    protected async Task<OASISResult<bool>> VerifyPublicQueryProbeAsync(Guid id, CancellationToken cancellationToken)
+    {
+        IsProviderActivated = false;
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (id == Guid.Empty || ProviderType.Value != QueryProviderType || IsVersionControlEnabled)
+                throw new InvalidOperationException("An explicit current Weaviate teaching probe is required.");
+            bool found = false;
+            await foreach (var record in ReadNativeCqlAsync(new[] { id }, cancellationToken).WithCancellation(cancellationToken))
+            {
+                var key = id.ToString("D");
+                if (found || record.Key != key || record.Id != key || record.IsDeleted ||
+                    Encoding.UTF8.GetByteCount(record.DataJson) > 1024 * 1024)
+                    throw new InvalidDataException("Weaviate did not return one bounded teaching object.");
+                var row = Des<Holon>(record.DataJson);
+                if (row == null || row.Id != id || !row.IsPublic || row.IsDeleted)
+                    throw new InvalidDataException("The Weaviate teaching object must be public and canonical.");
+                found = true;
+            }
+            if (!found)
+                throw new InvalidDataException("The Weaviate teaching object was not found.");
+            cancellationToken.ThrowIfCancellationRequested();
+            IsProviderActivated = true;
+            return new(true);
+        }
+        catch (Exception cause)
+        {
+            return new()
+            {
+                IsError = true,
+                ErrorCount = 1,
+                ErrorCode = cause is OperationCanceledException && cancellationToken.IsCancellationRequested
+                    ? "CQL_QUERY_CANCELLED" : "CQL_QUERY_SOURCE_UNAVAILABLE",
+                Message = "Weaviate did not verify its public teaching object.",
+                Exception = cause
+            };
+        }
+    }
+
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100,
         CancellationToken cancellationToken = default) where T : IHolon

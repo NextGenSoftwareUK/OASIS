@@ -93,3 +93,11 @@ metadata predicates, central client registration, hosted configuration, SDK wire
 semantic search and full HyperDrive/failover/load-balancing/distributed snapshots
 remain separate work. [Historical proof](Archive/WEAVIATE_CQL_MVP_PRESERVED_2026-10-30.md),
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md), [later work](AFTER_DEMO_BACKLOG.md).
+
+## Development WEB4 preparation
+
+The explicit query source now activates through one exact object read using
+the existing Weaviate gRPC SDK adapter. It requires a public canonical
+object and rejects private, deleted, absent, duplicate and mismatched
+records. Seven controlled activation cases passed. Host-owned TLS client
+configuration, WEB4 admission and native hosted qualification remain open.

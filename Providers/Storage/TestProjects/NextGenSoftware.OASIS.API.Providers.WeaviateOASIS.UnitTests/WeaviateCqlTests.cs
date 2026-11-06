@@ -1,4 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -9,6 +11,54 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.UnitTests;
 [TestClass]
 public class WeaviateCqlTests
 {
+    [DataTestMethod]
+    [DataRow("public", true, 1)]
+    [DataRow("private", false, 1)]
+    [DataRow("deleted", false, 1)]
+    [DataRow("missing", false, 1)]
+    [DataRow("duplicate", false, 1)]
+    [DataRow("foreign", false, 1)]
+    [DataRow("cancelled", false, 0)]
+    public async Task QueryActivationUsesOnePublicSdkObject(string shape, bool expected, int reads)
+    {
+        using var rest = new HttpClient();
+        var probe = Guid.NewGuid();
+        var provider = new ControlledProbe(rest, probe, shape);
+        using var cancellation = new CancellationTokenSource();
+        if (shape == "cancelled") cancellation.Cancel();
+        var result = await provider.Verify(cancellation.Token);
+        Assert.AreEqual(expected, provider.IsProviderActivated);
+        Assert.AreEqual(!expected, result.IsError, result.Message);
+        Assert.AreEqual(reads, provider.Reads);
+    }
+
+    private sealed class ControlledProbe(HttpClient rest, Guid probe, string shape)
+        : WeaviateOASIS(rest, "https://weaviate.example.test")
+    {
+        public int Reads { get; private set; }
+
+        public Task<NextGenSoftware.OASIS.Common.OASISResult<bool>> Verify(CancellationToken token)
+            => VerifyPublicQueryProbeAsync(probe, token);
+
+        protected override async IAsyncEnumerable<NativeCqlDocument> ReadNativeCqlAsync(
+            IReadOnlyList<Guid> ids, [EnumeratorCancellation] CancellationToken cancellation)
+        {
+            Reads++;
+            CollectionAssert.AreEqual(new[] { probe }, ids.ToArray());
+            await Task.CompletedTask;
+            cancellation.ThrowIfCancellationRequested();
+            if (shape == "missing") yield break;
+            var row = new Holon { Id = shape == "foreign" ? Guid.NewGuid() : probe, IsPublic = shape != "private" };
+            var record = new NativeCqlDocument
+            {
+                Key = probe.ToString("D"), Id = probe.ToString("D"), IsDeleted = shape == "deleted",
+                DataJson = JsonSerializer.Serialize(row, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })
+            };
+            yield return record;
+            if (shape == "duplicate") yield return record;
+        }
+    }
+
     private static CosmicQuery<Holon> Query(Guid[] ids)
         => CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.WeaviateOASIS).Result)
             .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(
