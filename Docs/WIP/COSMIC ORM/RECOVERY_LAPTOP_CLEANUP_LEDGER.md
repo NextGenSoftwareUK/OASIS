@@ -1992,6 +1992,16 @@ package generates internal protobuf types. The log retains the exact
 compiler error. No TRX was produced. The tested provider source was restored
 and the lease returned shared Core to `54159614`.
 
+The next Weaviate transport candidate retained 46,468 bytes of pinned
+official protocol and license files in the provider's `Protocol/` directory.
+Each upstream Git blob was verified before writing. These are source inputs.
+The candidate reuses cached Grpc.Tools 2.67.0. Generated protobuf build
+outputs are regenerable. Tests log to
+`TestResults/ProviderBuildCurrent/weaviate-official-protocol.log` and the
+native fixture build logs to `weaviate-official-protocol-fixture.log` there.
+The compact wire report uses
+`LocalState/COSMIC/HostedWeaviateCqlQualification/official-protocol/`.
+
 Weaviate's pinned SDK source was inspected in memory from the official
 repository. Its public-probe fixture reused existing build inputs and writes
 `TestResults/ProviderBuildCurrent/weaviate-public-probe-native-fixture.log`.
@@ -2058,3 +2068,14 @@ Supabase WEB4 admission passed 8/8, with retained TRX SHA256
 The native HTTPS fixture compiled with 147 warnings and zero errors.
 Log: `TestResults/ProviderBuildCurrent/supabase-hosted-native-fixture-build.log`.
 The leases restored shared Core to `54159614`. No native requests were sent.
+
+Weaviate official protocol qualification reused cached Grpc.Tools 2.67.0 and
+the existing build outputs. The 46,468 bytes of pinned vendor source are
+tracked inputs. Retained logs are
+`TestResults/ProviderBuildCurrent/weaviate-official-protocol.log` and
+`TestResults/ProviderBuildCurrent/weaviate-official-protocol-fixture.log`.
+The 8/8 TRX is
+`LocalState/COSMIC/HostedWeaviateCqlQualification/official-protocol/wire.trx`
+(SHA256 `B804FF6474B394E5251C4DBBBC6A3610C52910914EDA84440889F3EA973352B3`).
+The native fixture compiled with 24 warnings and zero errors. The lease
+restored shared Core to `54159614`. No native service was started.

@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
-using Weaviate.Client;
+using Grpc.Net.Client;
 
 namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.IntegrationTests;
 
@@ -34,11 +34,12 @@ public class WeaviatePublicProbeNativeTests
         Assert.AreEqual(5, ids.Distinct().Count());
         Assert.IsFalse(ids.Contains(Guid.Empty));
 
-        using var client = await WeaviateClientBuilder.Local(credentials: Auth.ApiKey(key!),
-            hostname: "localhost", restPort: 18080, grpcPort: 15051, useSsl: true)
-            .WithoutRetries().WithQueryTimeout(TimeSpan.FromSeconds(15)).BuildAsync();
+        using var channel = GrpcChannel.ForAddress("https://localhost:15051", new GrpcChannelOptions
+        {
+            MaxReceiveMessageSize = 4 * 1024 * 1024
+        });
         using var rest = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
-        var provider = new WeaviateQuerySource(rest, "https://localhost:18080", client, catalogue.LiveIds[0]);
+        var provider = new WeaviateQuerySource(rest, "https://localhost:18080", channel.CreateCallInvoker(), key!, catalogue.LiveIds[0]);
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var activated = await provider.ActivateQuerySourceAsync(deadline.Token);
         Assert.IsFalse(activated.IsError, activated.Message);

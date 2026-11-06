@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package weaviate.v1;
+option csharp_namespace = "Weaviate.Client.Grpc.Protobuf.V1";
+
+import "v1/aggregate.proto";
+import "v1/batch.proto";
+import "v1/batch_delete.proto";
+import "v1/search_get.proto";
+import "v1/tenants.proto";
+
+option go_package = "github.com/weaviate/weaviate/grpc/generated;protocol";
+option java_package = "io.weaviate.client.grpc.protocol.v1";
+option java_outer_classname = "WeaviateProto";
+
+service Weaviate {
+  rpc Search(SearchRequest) returns (SearchReply) {};
+  rpc BatchObjects(BatchObjectsRequest) returns (BatchObjectsReply) {};
+  rpc BatchReferences(BatchReferencesRequest) returns (BatchReferencesReply) {};
+  rpc BatchDelete(BatchDeleteRequest) returns (BatchDeleteReply) {};
+  rpc TenantsGet(TenantsGetRequest) returns (TenantsGetReply) {};
+  rpc Aggregate(AggregateRequest) returns (AggregateReply) {};
+  rpc BatchStream(stream BatchStreamRequest) returns (stream BatchStreamReply) {};
+}

@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package weaviate.v1;
+option csharp_namespace = "Weaviate.Client.Grpc.Protobuf.V1";
+
+option go_package = "github.com/weaviate/weaviate/grpc/generated;protocol";
+option java_package = "io.weaviate.client.grpc.protocol.v1";
+option java_outer_classname = "WeaviateProtoTenants";
+
+enum TenantActivityStatus {
+  TENANT_ACTIVITY_STATUS_UNSPECIFIED = 0;
+  TENANT_ACTIVITY_STATUS_HOT = 1;
+  TENANT_ACTIVITY_STATUS_COLD = 2;
+  // Originally TENANT_ACTIVITY_STATUS_WARM = 3;
+  reserved 3; 
+  TENANT_ACTIVITY_STATUS_FROZEN = 4;
+  TENANT_ACTIVITY_STATUS_UNFREEZING = 5;
+  TENANT_ACTIVITY_STATUS_FREEZING = 6;
+  // not used yet - added to let the clients already add code to handle this in the future
+  TENANT_ACTIVITY_STATUS_ACTIVE = 7;
+  TENANT_ACTIVITY_STATUS_INACTIVE = 8;
+  TENANT_ACTIVITY_STATUS_OFFLOADED = 9;
+  TENANT_ACTIVITY_STATUS_OFFLOADING = 10;
+  TENANT_ACTIVITY_STATUS_ONLOADING = 11;
+}
+
+message TenantsGetRequest {
+  string collection = 1;
+  // we might need to add a tenant-cursor api at some point, make this easily extendable
+  oneof params {
+    TenantNames names = 2;
+  };
+}
+
+message TenantNames {
+  repeated string values = 1;
+
+}
+
+message TenantsGetReply {
+  float took = 1;
+  repeated Tenant tenants = 2;
+}
+
+message Tenant {
+  string name = 1;
+  TenantActivityStatus activity_status = 2;
+}

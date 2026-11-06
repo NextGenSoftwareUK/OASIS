@@ -125,3 +125,11 @@ The experiment stopped at CS0122 and the tested SDK path was restored.
 The remaining transport work is an SDK-supported custom channel or a
 separately generated client from the pinned official protocol, followed by
 real wire qualification. [Pinned SDK project](https://github.com/weaviate/csharp-client/blob/90ffbe6634db13a8c8bfbce963e2f9c3f437c3f1/src/Weaviate.Client/Weaviate.Client.csproj).
+
+The query-only source now uses a generated client built from the exact
+official protocol at that pin. It takes a caller-owned gRPC channel, sends
+only the bounded ID search, and decodes the typed reply. The controlled
+HTTP/2 test checked the actual gRPC method, bearer header, protobuf envelope,
+query bounds and typed result. The targeted run passed 8/8, and the native
+fixture compiled with zero errors. WEB4 still needs to register the guarded
+channel, and live qualification requires an approved public source.

@@ -36,6 +36,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Weaviate.Client" Version="1.2.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.67.0" PrivateAssets="All" />
+    <Protobuf Include="Protocol/v1/*.proto" ProtoRoot="Protocol" GrpcServices="None" Access="Internal" />
+    <Protobuf Update="Protocol/v1/weaviate.proto" GrpcServices="Client" />
+    <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.UnitTests" />
     <ProjectReference Include="../../Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
   </ItemGroup>
 </Project>

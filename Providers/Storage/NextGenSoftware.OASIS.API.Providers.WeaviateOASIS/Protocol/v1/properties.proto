@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package weaviate.v1;
+option csharp_namespace = "Weaviate.Client.Grpc.Protobuf.V1";
+
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/weaviate/weaviate/grpc/generated;protocol";
+option java_package = "io.weaviate.client.grpc.protocol.v1";
+option java_outer_classname = "WeaviateProtoProperties";
+
+message Properties {
+  map<string, Value> fields = 1;
+}
+
+message Value {
+  oneof kind {
+    double number_value = 1;
+    //dont reuse 2, old field that has been removed; Was "string string_value = 2;"
+    bool bool_value = 3;
+    Properties object_value = 4;
+    ListValue list_value = 5;
+    string date_value = 6;
+    string uuid_value = 7;
+    int64 int_value = 8;
+    GeoCoordinate geo_value = 9;
+    string blob_value = 10;
+    PhoneNumber phone_value = 11;
+    google.protobuf.NullValue null_value = 12;
+    string text_value = 13;
+  }
+}
+
+message ListValue {
+  reserved 1;  // was values
+  oneof kind {
+    NumberValues number_values = 2;
+    BoolValues bool_values = 3;
+    ObjectValues object_values = 4;
+    DateValues date_values = 5;
+    UuidValues uuid_values = 6;
+    IntValues int_values = 7;
+    TextValues text_values = 8;
+  }
+}
+
+message NumberValues {
+  /**
+    * The values are stored as a byte array, where each 8 bytes represent a single float64 value.
+    * The byte array is stored in little-endian order using uint64 encoding.
+    */
+  bytes values = 1;
+}
+
+message TextValues {
+  repeated string values = 1;
+}
+
+message BoolValues {
+  repeated bool values = 1;
+}
+
+message ObjectValues {
+  repeated Properties values = 1;
+}
+
+message DateValues {
+  repeated string values = 1;
+}
+
+message UuidValues {
+  repeated string values = 1;
+}
+
+message IntValues {
+  /**
+    * The values are stored as a byte array, where each 8 bytes represent a single int64 value.
+    * The byte array is stored in little-endian order using uint64 encoding.
+    */
+  bytes values = 1;
+}
+
+message GeoCoordinate {
+  float longitude = 1;
+  float latitude = 2;
+}
+
+message PhoneNumber {
+  uint64 country_code = 1;
+  string default_country = 2;
+  string input = 3;
+  string international_formatted = 4;
+  uint64 national = 5;
+  string national_formatted = 6;
+  bool valid = 7;
+}
