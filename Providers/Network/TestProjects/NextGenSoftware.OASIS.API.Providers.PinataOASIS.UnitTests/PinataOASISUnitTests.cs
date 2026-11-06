@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS.UnitTests
         public void ProviderType_ShouldBePinataOASIS()
         {
             // Arrange & Act
-            var providerType = _provider.ProviderType;
+            var providerType = _provider.ProviderType.Value;
 
             // Assert
             Assert.AreEqual(ProviderType.PinataOASIS, providerType);
@@ -89,14 +89,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS.UnitTests
         }
 
         [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
+        public void ProviderCategory_ShouldBeStorageAndNetwork()
         {
-            // Arrange & Act
-            var version = _provider.GetProviderVersion();
-
-            // Assert
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
+            Assert.AreEqual(ProviderCategory.StorageAndNetwork, _provider.ProviderCategory.Value);
         }
 
         [TestCleanup]

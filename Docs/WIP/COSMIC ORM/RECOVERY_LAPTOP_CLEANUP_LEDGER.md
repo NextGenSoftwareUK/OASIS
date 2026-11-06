@@ -3451,3 +3451,17 @@ the 4,679-byte TRX, 239,090-byte Mongo log and the compact process and
 shutdown receipts. Under `LocalState/COSMIC/ReviewedPublicMongoHttpQualification/`,
 the `DiscordOASIS/` and `LivepeerOASIS/` directories contain synthetic
 fixture journals and cleanup evidence totalling 1,088 and 1,089 bytes.
+
+### Pinata public block CQL, 6 November 2026
+
+The Pinata native test reused the existing .NET SDK, NuGet cache and
+vendored IPFS library. The bounded remote raw blocks were verified in
+memory. The 585-byte observation receipt, 7,479-byte passing TRX,
+391,203-byte producer log and 1,956-byte consumer log are under
+`LocalState/COSMIC/PinataPublicCqlQualification/`. No Pinata credential,
+gateway runtime, pinned object or local block copy was created.
+
+Generated `bin` and `obj` outputs in the Pinata provider and its UnitTests
+under `Providers/Network/` total 9,745,984 and 49,066,589 bytes.
+Keep the verified outputs while they have consumers and use the shared
+lease for cleanup.
