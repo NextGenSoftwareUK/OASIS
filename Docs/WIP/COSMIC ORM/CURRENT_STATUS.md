@@ -53,6 +53,10 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
 - Algolia passed 33 provider tests, 18 protected-settings checks and 14 WEB4
   admission tests. Native and visitor verification need a reviewed public
   index and a restricted search key. [Algolia evidence](ALGOLIA_CQL_MVP.md).
+- Nile passed seven provider checks, 19 protected-settings tests and nine
+  WEB4 admission checks. All 25 PostgreSQL-family WEB4 regression tests
+  passed. Native CQL and live verification need a reviewed database and
+  restricted reader. [Nile evidence](NILE_CQL_MVP.md).
 - NATS JetStream now validates public visibility before paging. An isolated
   native test reproduced the old behavior and verified that the same
   request fails when a selected row becomes private, even if it would fall

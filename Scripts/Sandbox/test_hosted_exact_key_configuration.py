@@ -70,6 +70,9 @@ class ExactKeyConfigurationTests(unittest.TestCase):
     def test_algolia_candidate_preserves_existing_providers(self):
         self.check_candidate("AlgoliaOASIS")
 
+    def test_nile_candidate_preserves_existing_providers(self):
+        self.check_candidate("NileOASIS")
+
     def check_candidate(self, provider):
         partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
         baseline = {
@@ -87,6 +90,12 @@ class ExactKeyConfigurationTests(unittest.TestCase):
             descriptor = Path(directory) / "catalogue.json"
             actor, first, second, third, deleted, missing = [str(uuid.UUID(int=i)) for i in range(1, 7)]
             catalogue = {"Actor": actor, "LiveIds": [first, second, third], "DeletedId": deleted, "MissingId": missing}
+            if provider == "NileOASIS":
+                catalogue.update(Host="us-west-2.db.thenile.dev", Database="oasis_teaching")
+                for invalid in ({"Host": "api.thenile.dev"}, {"Database": "foreign/db"}):
+                    descriptor.write_text(json.dumps(catalogue | invalid))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                        configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "AlgoliaOASIS":
                 catalogue["AppId"] = "Teaching123"
                 for application in ("teaching/foreign", "teaching.example", "a" * 51):
@@ -155,7 +164,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -208,6 +217,11 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     baseline.update(CQL_ALGOLIA_QUERY_APP_ID=catalogue["AppId"], CQL_ALGOLIA_QUERY_PROBE_ID=first)
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {"CQL_ALGOLIA_QUERY_APP_ID": "Foreign123"}, provider, review)
+                elif provider == "NileOASIS":
+                    baseline.update(CQL_NILE_QUERY_HOST=catalogue["Host"], CQL_NILE_QUERY_DATABASE=catalogue["Database"],
+                                    CQL_NILE_QUERY_PROBE_ID=first)
+                    with self.assertRaisesRegex(ValueError, "do not match"):
+                        configuration.candidate(baseline | {"CQL_NILE_QUERY_DATABASE": "foreign"}, provider, review)
                 else:
                     product = provider.removesuffix("OASIS").upper()
                     baseline[f"CQL_{product}_QUERY_PROBE_ID"] = first

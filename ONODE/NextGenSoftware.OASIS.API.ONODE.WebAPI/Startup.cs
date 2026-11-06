@@ -611,6 +611,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             Services.Cql.CqlPineconeReadSourceRegistration.AddPineconeReadSource(services, Configuration);
             Services.Cql.CqlLanceDbReadSourceRegistration.AddLanceDbReadSource(services, Configuration);
             Services.Cql.CqlPostgresFamilyReadSourceRegistration.AddNeonReadSource(services, Configuration);
+            Services.Cql.CqlPostgresFamilyReadSourceRegistration.AddNileReadSource(services, Configuration);
             Services.Cql.CqlAlgoliaReadSourceRegistration.AddAlgoliaReadSource(services, Configuration);
 
             if (Configuration["CQL_CHROMA_QUERY_ORIGIN"] is string chromaOrigin)

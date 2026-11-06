@@ -27,7 +27,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -372,6 +372,11 @@ def reviewed_exact_key_source(provider, path):
             fields.add("AppId")
             if not re.fullmatch(r"[A-Za-z0-9]{1,50}", catalogue["AppId"]):
                 raise ValueError("Unexpected Algolia application ID.")
+        if provider == "NileOASIS":
+            fields |= {"Host", "Database"}
+            if (not re.fullmatch(r"(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)?db\.thenile\.dev", catalogue["Host"])
+                    or not re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,62}", catalogue["Database"])):
+                raise ValueError("Unexpected Nile database address.")
         if provider == "ScyllaDBOASIS":
             fields |= {"Ip", "Host", "CaSha256"}
             address = ipaddress.ip_address(catalogue["Ip"])
@@ -479,6 +484,10 @@ def reviewed_exact_key_source(provider, path):
     elif provider == "AlgoliaOASIS":
         review["sourceBinding"] = {"CQL_ALGOLIA_QUERY_APP_ID": catalogue["AppId"],
                                    "CQL_ALGOLIA_QUERY_PROBE_ID": ids[0]}
+    elif provider == "NileOASIS":
+        review["sourceBinding"] = {"CQL_NILE_QUERY_HOST": catalogue["Host"],
+                                   "CQL_NILE_QUERY_DATABASE": catalogue["Database"],
+                                   "CQL_NILE_QUERY_PROBE_ID": ids[0]}
     elif provider in ("WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS"):
         product = provider.removesuffix("OASIS").upper()
         review["sourceBinding"] = {f"CQL_{product}_QUERY_PROBE_ID": ids[0]}

@@ -2676,3 +2676,25 @@ Its Core pin, build/test log and TRX use the `nile-` prefix in
 `TestResults/ProviderBuildCurrent/`. No new environment was created.
 Nile and PostgreSQL family tests passed 25 cases with zero skips. The
 shared Core checkout was restored, and the TRX hash is in the evidence note.
+
+Nile's 19 protected-settings checks passed and removed their temporary
+files. The WEB4 runner is `HostedNileCqlQualification/verify-hosted-cql.ps1`
+under `LocalState/COSMIC/`. It retains the Core pin and admission TRX
+there and writes `TestResults/ProviderBuildCurrent/nile-hosted-api-cql.log`.
+It reuses the shared build lease and existing runtime.
+
+Nile's native verifier draft and probe project are in the same machine-local
+directory. They use the existing Npgsql cache. Future builds and executions
+write to unique `native-*` subdirectories. Missing-credential preflight
+created no output and made no request.
+
+Nile WEB4 passed nine admission and 25 PostgreSQL-family regression tests.
+The shared Core checkout was restored, and the exact admission TRX hash
+is in the Nile evidence note.
+
+Netlify Blobs CQL uses the existing .NET, HTTP transport and edge-storage
+protocol test project. The leased runner is
+`LocalState/COSMIC/HostedNetlifyBlobsCqlQualification/verify-provider.ps1`.
+Its Core pin, log and TRX use the `netlify-blobs-` prefix under
+`TestResults/ProviderBuildCurrent/`. No token, account, store, runtime
+or download was created.
