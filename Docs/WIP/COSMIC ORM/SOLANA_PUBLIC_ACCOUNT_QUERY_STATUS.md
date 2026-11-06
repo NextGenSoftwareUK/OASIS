@@ -72,3 +72,9 @@ Browser native reads, 5 November 2026. The live Development CQL Playground sessi
 Browser pairing continuation, 5 November 2026. Same sandbox-ca8924da session saved two private Mongo records. Full federation returned five rows from MongoDBOASIS and SolanaOASIS; subset returned four. Repeated preparation reported zero saved and two already prepared. Browser session remains retained. Independent browser privacy and screenshot capture remain open.
 Privacy follow-up, 5 November 2026. Browser table identifies owner b1f86140-00a9-4017-9b6c-af9eade65c76 and private Mongo IDs 3066ca99-2a54-885f-afad-8b104f13b653 and b7f878cb-cd6d-8bf6-b075-e86856ade714, both version 1. The independent retained rehearsal visitor queried those exact IDs through HTTP on MongoDB, SQLite and Neo4j and saw zero rows on each. This is HTTP privacy evidence for the browser-created copies. Screenshot showed selection controls but did not capture the result table; result screenshot remains open.
 Result capture, 5 November 2026. The browser screenshot now shows the four-row subset table with two MongoDBOASIS version-1 copies and two SolanaOASIS version-0 native accounts, alongside the zero-save/two-reused preparation status. Screenshot emitted in the chat; no standalone image file was retained.
+
+Current verification: the November 5 browser session passed native 3/2,
+MongoDB federation 5/4 and repeat preparation with zero new saves. The
+subset table was inspected and an independent visitor's privacy check
+passed over HTTP. Earlier open browser notes are historical. The proof
+applies to the reviewed public-account demo. Canonical ORM parity remains open.
