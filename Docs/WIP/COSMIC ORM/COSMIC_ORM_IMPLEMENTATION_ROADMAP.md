@@ -23,6 +23,12 @@ Updated 2 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CUR
 4. Reconcile original ORM requirements against provider-specific evidence: change tracking, save-state ownership, atomic cross-client conditional writes, child load/save/query parameters and depth, rollback, version/history, per-save deltas, migration and placement.
 5. Define and implement primary-authority cutover with authority epochs and in-flight ownership; replica baseline delivery alone is not authority migration.
 6. Resume deferred EF/NHibernate parity, unrestricted POCO mapping and migration tooling only after demo priorities. Work red checklist rows; freeze green rows/cursors absent a reproduced bug.
+7. Finish the full implementation of every provider after the breadth-first WEB4
+   demo and CQL/COSMIC ORM/HyperDrive MVP. Use each provider's real SDK, client,
+   or documented API. Replace shipping-path placeholders and TODOs with working
+   implementations and record native verification for every provider. Track
+   CQL parity with Entity Framework and NHibernate across the provider inventory,
+   with explicit capability evidence and remaining gaps in the parity checklist.
 
 Only HyperDrive V2 receives implementation changes; document legacy gaps without fixing legacy code. Preserve root-cause-only policy and explicit capability errors. No overall completion percentage follows from focused demos.
 
