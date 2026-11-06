@@ -1,6 +1,6 @@
 #Requires -Version 7.0
 [CmdletBinding()]
-param([switch]$BuildOnly)
+param([switch]$BuildOnly, [switch]$PublicCatalogue)
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 if (!$BuildOnly) {
@@ -11,7 +11,8 @@ if (!$BuildOnly) {
     if ($descriptor.PSIsContainer -or $descriptor.Length -lt 1 -or $descriptor.Length -gt 16384) { throw 'Bounded source descriptor required.' }
 }
 $state = Join-Path $taskRoot 'LocalState/COSMIC/RecoveryLaptopTigrisCql'
-$phasePrefix = if ($BuildOnly) { 'build-' } else { 'native-' }
+$phasePrefix = if ($BuildOnly) { 'build-' } elseif ($PublicCatalogue) { 'public-native-' } else { 'native-' }
+$category = if ($PublicCatalogue) { 'TigrisPublicCqlNative' } else { 'TigrisCqlNative' }
 $phase = Join-Path $state ($phasePrefix + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $phase | Out-Null
 & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner cosmic-tigris-native -Operation {
@@ -22,15 +23,15 @@ New-Item -ItemType Directory -Path $phase | Out-Null
         if ($LASTEXITCODE) { throw "Native fixture build failed; preserve $phase" }
         if (!$BuildOnly) {
             $sourceHash = (Get-FileHash -LiteralPath $env:COSMIC_TIGRIS_CQL_SOURCE -Algorithm SHA256).Hash
-            @{ sourceSha256 = $sourceHash; startedUtc = [DateTime]::UtcNow.ToString('O'); operation = 'read-only-existing-source' } |
+            @{ sourceSha256 = $sourceHash; startedUtc = [DateTime]::UtcNow.ToString('O'); operation = 'read-only-existing-source'; publicCatalogue = [bool]$PublicCatalogue } |
                 ConvertTo-Json | Set-Content -LiteralPath (Join-Path $phase 'intent.json')
-            dotnet test $project --no-build /p:EnableTigrisCqlNativeTests=true --filter 'FullyQualifiedName~TigrisCqlNativeTests' /m:2 /nr:false /p:UseSharedCompilation=false --results-directory $phase --logger 'trx;LogFileName=native.trx' *> (Join-Path $phase 'test.log')
+            dotnet test $project --no-build /p:EnableTigrisCqlNativeTests=true --filter "TestCategory=$category" /m:2 /nr:false /p:UseSharedCompilation=false --results-directory $phase --logger 'trx;LogFileName=native.trx' *> (Join-Path $phase 'test.log')
             if ($LASTEXITCODE) { throw "Native qualification failed; preserve $phase" }
             [xml]$report = Get-Content -LiteralPath (Join-Path $phase 'native.trx') -Raw
             $counters = $report.TestRun.ResultSummary.Counters
             if ($counters.total -ne '1' -or $counters.passed -ne '1' -or $counters.failed -ne '0' -or $counters.notExecuted -ne '0') { throw 'Exactly one native pass, zero skips required.' }
             if ((Get-FileHash -LiteralPath $env:COSMIC_TIGRIS_CQL_SOURCE -Algorithm SHA256).Hash -ne $sourceHash) { throw 'Source admission descriptor changed.' }
-            @{ sourceSha256 = $sourceHash; trxSha256 = (Get-FileHash -LiteralPath (Join-Path $phase 'native.trx') -Algorithm SHA256).Hash; passed = 1; finishedUtc = [DateTime]::UtcNow.ToString('O') } |
+            @{ sourceSha256 = $sourceHash; trxSha256 = (Get-FileHash -LiteralPath (Join-Path $phase 'native.trx') -Algorithm SHA256).Hash; passed = 1; publicCatalogue = [bool]$PublicCatalogue; finishedUtc = [DateTime]::UtcNow.ToString('O') } |
                 ConvertTo-Json | Set-Content -LiteralPath (Join-Path $phase 'ack.json')
         }
     }

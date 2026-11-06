@@ -2093,3 +2093,22 @@ The WEB4 Weaviate admission run finished 9/9, zero failures or skips.
 `admission.trx` SHA256:
 `56CE9A74F2B053DB8AD91DA6F83319194C25232A0A5B035D41A44CBB07AE008C`.
 The shared Core checkout was restored to `54159614` on completion.
+
+Tigris public query profile reused the existing .NET and AWS SDK caches and
+EdgeStorage protocol test outputs. The 15/15 report is
+`LocalState/COSMIC/RecoveryLaptopTigrisCql/public-query-profile/controls.trx`
+(SHA256 `B3F50A02B07F4EBFB2DFCAC7206FF9DFF52EFA53527FD4A1ADFB3AC556460DE0`).
+Log: `TestResults/ProviderBuildCurrent/tigris-public-query-profile.log`.
+The subsequent WEB4 batch uses the same shared lease and records its Core
+pin in `LocalState/COSMIC/RecoveryLaptopTigrisCql/api-cql-admission/`.
+Log: `TestResults/ProviderBuildCurrent/tigris-hosted-api-cql.log`.
+All three Python settings tests passed and cleaned their temporary files.
+No native service was contacted.
+
+The Tigris WEB4 run passed 10/10. Its `admission.trx` SHA256 is
+`F6EE2D441F9C098C1327FE988F96EE67EC452A7D2ADAED07D376A482096BF309`.
+The opt-in native fixture compiled with 146 warnings and zero errors.
+Retained logs: `TestResults/ProviderBuildCurrent/tigris-public-native-fixture.log`
+and `tigris-public-native-fixture-discovery.log` in the same directory.
+Both modes were discovered without execution. The leases restored shared
+Core to `54159614`.

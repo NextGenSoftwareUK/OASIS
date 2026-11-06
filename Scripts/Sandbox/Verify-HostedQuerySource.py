@@ -26,7 +26,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS",
+    "WeaviateOASIS", "TigrisOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -336,8 +336,14 @@ def reviewed_exact_key_source(provider, path):
     catalogue = json.loads(path.read_bytes())
     try:
         fields = {"Actor", "LiveIds", "DeletedId", "MissingId"}
+        if provider in ("MinIOOASIS", "TigrisOASIS"):
+            fields |= {"Endpoint", "Bucket", "Originals"}
         if provider == "MinIOOASIS":
-            fields |= {"Endpoint", "Bucket", "Region", "Originals"}
+            fields.add("Region")
+        if provider == "TigrisOASIS" and (
+                catalogue["Endpoint"] not in ("https://t3.storage.dev", "https://fly.storage.tigris.dev")
+                or not re.fullmatch(r"[a-z0-9][a-z0-9-]{1,61}[a-z0-9]", catalogue["Bucket"])):
+            raise ValueError("Unexpected Tigris source address.")
         if (set(catalogue) != fields
                 or not isinstance(catalogue["LiveIds"], list) or len(catalogue["LiveIds"]) != 3):
             raise ValueError("Unexpected teaching catalogue shape.")
@@ -346,7 +352,7 @@ def reviewed_exact_key_source(provider, path):
         if any(str(uuid.UUID(value)) != value or uuid.UUID(value).int == 0
                for value in [catalogue["Actor"], *record_ids]) or len(set(record_ids)) != 5:
             raise ValueError("Invalid teaching identities.")
-        if provider == "MinIOOASIS":
+        if provider in ("MinIOOASIS", "TigrisOASIS"):
             originals = catalogue["Originals"]
             if (not isinstance(originals, list) or len(originals) != 4
                     or any(set(row) != {"Id", "Sha256", "ETag"}
@@ -354,7 +360,7 @@ def reviewed_exact_key_source(provider, path):
                            or not isinstance(row["ETag"], str) or not row["ETag"].strip()
                            for row in originals)
                     or {row["Id"] for row in originals} != set(record_ids[:-1])):
-                raise ValueError("MinIO descriptor requires exact original object receipts.")
+                raise ValueError("Object-store descriptor requires exact original object receipts.")
     except (AttributeError, KeyError, TypeError, ValueError) as error:
         raise RuntimeError("The reviewed teaching catalogue requires canonical, distinct record identities"
                            " and any provider-specific original receipts.") from error
@@ -371,7 +377,14 @@ def reviewed_exact_key_source(provider, path):
                 "identityMode": "PreserveCopies", "maximumProviderAttempts": 2,
                 "maximumDurationMilliseconds": 30000, "take": 25}},
         ])
-    return {"presets": presets}
+    review = {"presets": presets}
+    if provider == "TigrisOASIS":
+        review["sourceBinding"] = {"CQL_TIGRIS_QUERY_ORIGIN": catalogue["Endpoint"],
+                                   "CQL_TIGRIS_QUERY_BUCKET": catalogue["Bucket"],
+                                   "CQL_TIGRIS_QUERY_PROBE_ID": ids[0]}
+    elif provider == "WeaviateOASIS":
+        review["sourceBinding"] = {"CQL_WEAVIATE_QUERY_PROBE_ID": ids[0]}
+    return review
 
 
 def require_native_selection(responses, examples):

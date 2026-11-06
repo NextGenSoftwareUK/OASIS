@@ -90,3 +90,41 @@ David need not write records manually. Do not create a paid account implicitly.
 After native qualification: manager/Mongo/HTTP and browser 5/4, exact temporary
 fixture cleanup, and only then an accepted local catalogue card. Hosted sandbox
 quota, LocalFile deployment access and existing owner decisions remain unchanged.
+
+## WEB4 public query profile
+
+The public profile requires a live public probe and fails the whole query if
+a selected live record has become private. The owned query constructor keeps
+its existing behavior. WEB4 accepts the two native service origins above and
+uses only the configured virtual-hosted bucket. The guarded AWS transport
+admits exact canonical Holon GETs and disables redirects, proxies and cookies.
+
+Set `CQL_TIGRIS_QUERY_ORIGIN`, `CQL_TIGRIS_QUERY_BUCKET`,
+`CQL_TIGRIS_QUERY_PROBE_ID`, `CQL_TIGRIS_QUERY_ACCESS_KEY` and
+`CQL_TIGRIS_QUERY_SECRET_KEY` privately after qualifying the existing source.
+The probe must be the first reviewed live ID. All three live teaching records
+must have the canonical `IsPublic` flag. Keep the bucket credentials
+restricted to reading the teaching objects.
+
+The protected settings preparer accepts the same Tigris descriptor, including
+the original SHA256 and ETag receipts. It adds the explicit query tariff,
+public grants and named single/MongoDB-paired presets. The Tigris settings
+control verifies preservation of other providers and rejects a foreign origin
+or missing receipt. Native and hosted runs still depend on the existing owner
+access action.
+
+Provider and SDK controls passed 15/15 against Core `fff798eb`. They covered
+the virtual-hosted signed read and the private-probe/private-record rejection.
+The WEB4 admission run has started under the shared build lease.
+
+For a source intended for WEB4, run
+`Scripts/TestHosts/Run-CosmicTigrisNative.ps1 -PublicCatalogue`. It uses the
+same original-object checks, additionally verifies native visibility for each
+live record and records the public qualification mode in the receipt. The
+protected settings preparer requires the origin, bucket and first live probe
+to match that reviewed descriptor before preparing the public grants.
+
+WEB4 admission passed 10/10 against Core
+`7cb7241b0ba261d6975183a19b77634ceffd4ff4`. The opt-in fixture built
+with zero errors. Test discovery identified both the owned and public modes.
+These checks made no request to the bucket.

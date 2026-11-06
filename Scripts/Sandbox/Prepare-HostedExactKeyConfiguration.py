@@ -24,6 +24,8 @@ def candidate(before, provider, review):
         raise ValueError("An explicitly prepared provider is required.")
     if json.loads(before["OASIS_DNA_JSON"])["OASIS"]["Sandbox"]["Enabled"] is not True:
         raise ValueError("An enabled WEB4 sandbox baseline is required.")
+    if any(before.get(key) != value for key, value in review.get("sourceBinding", {}).items()):
+        raise ValueError("Protected source settings do not match the reviewed teaching catalogue.")
     admission = json.loads(before[ADMISSION])
     grants = json.loads(before.get(GRANTS, "{}"))
     partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider

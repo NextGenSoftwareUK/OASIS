@@ -87,6 +87,29 @@ public class TigrisCqlTests
         Assert.IsFalse(page.IsError, page.Message); Assert.AreEqual(ids[1], page.Result.Single().Id);
     }
 
+    [TestMethod]
+    public async Task PublicQueryRefusesPrivateProbeAndPrivateRowsWithoutPublishingPartialResults()
+    {
+        var ids = Enumerable.Range(0, 2).Select(_ => Guid.NewGuid())
+            .OrderBy(id => id.ToString("D"), StringComparer.Ordinal).ToArray();
+        var probePublic = false;
+        using var client = new Client(id => Response(JsonSerializer.Serialize(new Holon
+        {
+            Id = id,
+            Name = "Native record",
+            IsPublic = id == ids[0] && probePublic
+        })));
+        var provider = new TigrisProvider(new S3ObjectBackend(client, "teaching"), ids[0], requirePublicQueryRecords: true);
+        Assert.IsTrue((await provider.ActivateQuerySourceAsync(default)).IsError);
+        Assert.IsFalse(provider.IsProviderActivated);
+        probePublic = true;
+        Assert.IsFalse((await provider.ActivateQuerySourceAsync(default)).IsError);
+        var result = await provider.ExecuteCosmicQueryAsync(Plan(provider, Query(ids)));
+        Assert.IsTrue(result.IsError);
+        Assert.IsNull(result.Result);
+        CollectionAssert.AreEqual(new[] { ids[0], ids[0], ids[0], ids[1] }, client.ReadIds.ToArray());
+    }
+
     [DataTestMethod]
     [DataRow("NoSuchBucket")]
     [DataRow("AccessDenied")]

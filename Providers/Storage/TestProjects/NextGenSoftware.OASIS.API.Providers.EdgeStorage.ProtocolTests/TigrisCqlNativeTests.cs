@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.Providers.TigrisOASIS;
 using TigrisProvider = NextGenSoftware.OASIS.API.Providers.TigrisOASIS.TigrisOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests;
@@ -29,7 +30,15 @@ public class TigrisCqlNativeTests
 
     [TestMethod]
     [TestCategory("TigrisCqlNative")]
-    public async Task ExistingOwnedNativeSourceSupportsThreeTwoExcludedPagingAndUnchangedOriginals()
+    public Task ExistingOwnedNativeSourceSupportsThreeTwoExcludedPagingAndUnchangedOriginals()
+        => VerifyNativeSourceAsync(requirePublic: false);
+
+    [TestMethod]
+    [TestCategory("TigrisPublicCqlNative")]
+    public Task ExistingPublicNativeSourceSupportsThreeTwoExcludedPagingAndUnchangedOriginals()
+        => VerifyNativeSourceAsync(requirePublic: true);
+
+    private static async Task VerifyNativeSourceAsync(bool requirePublic)
     {
         string Required(string name) => Environment.GetEnvironmentVariable(name) is string value && !string.IsNullOrWhiteSpace(value)
             ? value : throw new InvalidOperationException("Required native source configuration is absent: " + name);
@@ -58,8 +67,10 @@ public class TigrisCqlNativeTests
         var secret = Required("COSMIC_TIGRIS_CQL_SECRET_KEY");
         using var observer = new AmazonS3Client(access, secret, new AmazonS3Config {
             ServiceURL = source.Endpoint, ForcePathStyle = false, AuthenticationRegion = "auto", MaxErrorRetry = 0 });
-        var before = await Observe(source, observer);
-        var provider = new TigrisProvider(access, secret, source.Bucket, source.Endpoint, source.LiveIds[0]);
+        var before = await Observe(source, observer, requirePublic);
+        using var queryClient = TigrisProvider.CreateClient(access, secret, source.Endpoint, boundedQuery: true);
+        var provider = new TigrisProvider(new S3ObjectBackend(queryClient, source.Bucket),
+            source.LiveIds[0], requirePublicQueryRecords: requirePublic);
         try
         {
             var activated = await provider.ActivateQuerySourceAsync(default);
@@ -83,7 +94,7 @@ public class TigrisCqlNativeTests
             var excluded = new[] { source.DeletedId, source.MissingId };
             Assert.AreEqual(0, (await Read(Query().Where(row => excluded.Contains(row.Id)).Result)).Length);
             CollectionAssert.AreEqual(new[] { ordered[1] }, await Read(Query().Skip(1).Result.Take(1).Result));
-            CollectionAssert.AreEqual(before, await Observe(source, observer));
+            CollectionAssert.AreEqual(before, await Observe(source, observer, requirePublic));
             CollectionAssert.AreEqual(sourceBytes, await File.ReadAllBytesAsync(sourcePath));
         }
         finally { await provider.DeActivateProviderAsync(); }
@@ -101,7 +112,7 @@ public class TigrisCqlNativeTests
             foreach (var item in element.EnumerateArray()) ValidateUniqueProperties(item);
     }
 
-    private static async Task<string[]> Observe(Source source, IAmazonS3 observer)
+    private static async Task<string[]> Observe(Source source, IAmazonS3 observer, bool requirePublic)
     {
         var observations = new List<string>();
         foreach (var original in source.Originals)
@@ -121,6 +132,8 @@ public class TigrisCqlNativeTests
             Assert.AreEqual(original.Id, record.RootElement.GetProperty("Id").GetGuid());
             Assert.AreEqual(source.Actor, record.RootElement.GetProperty("CreatedByAvatarId").GetGuid());
             Assert.AreEqual(original.Id == source.DeletedId, record.RootElement.GetProperty("IsDeleted").GetBoolean());
+            if (requirePublic && original.Id != source.DeletedId)
+                Assert.IsTrue(record.RootElement.GetProperty("IsPublic").GetBoolean(), "Live teaching object is private.");
             observations.Add(original.Id.ToString("N") + ":" + hash + ":" + response.ETag);
         }
         using var missingDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));

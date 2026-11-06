@@ -16,6 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TigrisOASIS;
 public partial class TigrisOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
 {
     private readonly Guid? _queryProbeId;
+    private readonly bool _requirePublicQueryRecords;
     public Core.Enums.ProviderType QueryProviderType => Core.Enums.ProviderType.TigrisOASIS;
     public CosmicQueryCapabilities QueryCapabilities => BoundedIdentityCqlCompiler.Capabilities;
 
@@ -23,10 +24,18 @@ public partial class TigrisOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQ
         : this(new S3ObjectBackend(CreateClient(accessKey, secretKey, endpoint, boundedQuery: true), bucketName), queryProbeId)
     { }
 
-    internal TigrisOASIS(S3ObjectBackend backend, Guid queryProbeId) : this(backend)
+    public TigrisOASIS(string accessKey, string secretKey, string bucketName, string endpoint, Guid queryProbeId,
+        Amazon.Runtime.HttpClientFactory publicQueryTransport)
+        : this(new S3ObjectBackend(CreateClient(accessKey, secretKey, endpoint, boundedQuery: true,
+            httpClientFactory: publicQueryTransport ?? throw new ArgumentNullException(nameof(publicQueryTransport))), bucketName),
+            queryProbeId, requirePublicQueryRecords: true)
+    { }
+
+    internal TigrisOASIS(S3ObjectBackend backend, Guid queryProbeId, bool requirePublicQueryRecords = false) : this(backend)
     {
         if (queryProbeId == Guid.Empty) throw new ArgumentException("Explicit existing live probe required.");
         _queryProbeId = queryProbeId;
+        _requirePublicQueryRecords = requirePublicQueryRecords;
     }
 
     private async Task<Holon?> ReadQueryRecordAsync(Guid id, Action<int> accountBytes, CancellationToken token)
@@ -61,7 +70,8 @@ public partial class TigrisOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQ
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             deadline.CancelAfter(TimeSpan.FromSeconds(15));
             var row = await ReadQueryRecordAsync(probe, _ => { }, deadline.Token);
-            if (row == null || row.IsDeleted) throw new InvalidDataException("The existing live teaching record was not verified.");
+            if (row == null || row.IsDeleted || (_requirePublicQueryRecords && !row.IsPublic))
+                throw new InvalidDataException("The existing live teaching record was not verified.");
             cancellationToken.ThrowIfCancellationRequested();
             IsProviderActivated = true;
             return new(true);
@@ -99,7 +109,10 @@ public partial class TigrisOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQ
                 var row = await ReadQueryRecordAsync(id, count => { bytes = checked(bytes + count); if (bytes > 4 * 1024 * 1024) throw new S3ObjectBackend.ObjectPayloadLimitException(); }, deadline.Token);
                 if (row == null) continue;
                 if (!plan.Query.ReadAccess.CanRead(row)) throw new InvalidDataException("Native canonical row differs from read authority.");
-                if (!row.IsDeleted) rows.Add(row);
+                if (row.IsDeleted) continue;
+                if (_requirePublicQueryRecords && !row.IsPublic)
+                    throw new InvalidDataException("Native teaching record is no longer public.");
+                rows.Add(row);
             }
             var page = rows.Skip(plan.Query.Offset).Take(plan.Query.Limit ?? rows.Count).ToArray();
             if (page.Length > maximumResults) return Error("CQL_QUERY_LIMIT", "Complete native page exceeds result budget.");
