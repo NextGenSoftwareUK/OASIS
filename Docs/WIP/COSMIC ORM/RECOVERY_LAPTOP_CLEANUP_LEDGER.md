@@ -2460,3 +2460,23 @@ was restored and the exact report hash is in the RavenDB evidence note.
 The ScyllaDB recovery build passed all 23 provider tests and restored
 the original Core checkout. The restore reported no package installations.
 The ScyllaDB evidence note records the exact test report hash.
+
+ScyllaDB WEB4 admission uses the existing .NET environment under one lease.
+The runner, exact Core pin and eventual TRX are under
+`LocalState/COSMIC/HostedScyllaDbCqlQualification/`.
+The log is `TestResults/ProviderBuildCurrent/scylla-hosted-api-cql.log`.
+Thirteen protected-settings tests passed and cleaned their temporary files.
+The certificate used in the WEB4 test is generated in memory.
+No server, account or additional runtime was created.
+
+Litestream verification reuses the recovered provider and original Linux
+receipts. Its provider-category test was recovered from the published
+original scope. The shared-lease runner is
+`LocalState/COSMIC/HostedLitestreamCqlQualification/verify-recovered-provider.ps1`.
+It will write the Core pin, log and TRX with the `litestream-` prefix in
+`TestResults/ProviderBuildCurrent/` after the ScyllaDB build. The new read-only control uses one unique temporary SQLite file under the OS temp directory with prefix oasis-litestream-query-. The test deletes its file and directory. It starts no sidecar and does not access an original replica.
+
+ScyllaDB WEB4 admission passed all seven tests. The Core checkout was
+restored and the TRX hash is in its evidence note. Two temporary settings
+source copies used for scoped staging were removed. The Litestream
+settings changes remain in the worktree for their own verification batch.

@@ -83,6 +83,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
 
         private ISession GetSession()
         {
+            if (RequiresPublicQueryRecords)
+                throw new InvalidOperationException("The ScyllaDB teaching source only accepts bounded CQL reads.");
             if (_session != null) return _session;
             var builder = Cluster.Builder().AddContactPoints(_contactPoints).WithPort(_port);
             if (_username != null && _password != null)

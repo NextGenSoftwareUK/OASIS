@@ -9,6 +9,7 @@ import base64
 import datetime
 import hashlib
 import importlib.util
+import ipaddress
 import json
 import os
 import re
@@ -26,7 +27,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -344,6 +345,15 @@ def reviewed_exact_key_source(provider, path):
             fields.add("BundleSha256")
             if not re.fullmatch(r"[0-9a-f]{64}", catalogue["BundleSha256"]):
                 raise ValueError("Unexpected Cassandra secure connection bundle digest.")
+        if provider == "ScyllaDBOASIS":
+            fields |= {"Ip", "Host", "CaSha256"}
+            address = ipaddress.ip_address(catalogue["Ip"])
+            host = catalogue["Host"]
+            if (str(address) != catalogue["Ip"] or not address.is_global or address.is_multicast
+                    or len(host) > 253
+                    or not re.fullmatch(r"(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+clusters\.scylla\.cloud", host)
+                    or not re.fullmatch(r"[0-9a-f]{64}", catalogue["CaSha256"])):
+                raise ValueError("Unexpected ScyllaDB Cloud node or CA digest.")
         if provider == "RavenDBOASIS":
             fields |= {"Origin", "CertificateSha256"}
             origin = catalogue["Origin"]
@@ -421,6 +431,11 @@ def reviewed_exact_key_source(provider, path):
         review["sourceBinding"] = {"CQL_RAVENDB_QUERY_ORIGIN": catalogue["Origin"],
                                    "CQL_RAVENDB_QUERY_CERTIFICATE_SHA256": catalogue["CertificateSha256"],
                                    "CQL_RAVENDB_QUERY_PROBE_ID": ids[0]}
+    elif provider == "ScyllaDBOASIS":
+        review["sourceBinding"] = {"CQL_SCYLLADB_QUERY_IP": catalogue["Ip"],
+                                   "CQL_SCYLLADB_QUERY_HOST": catalogue["Host"],
+                                   "CQL_SCYLLADB_QUERY_CA_SHA256": catalogue["CaSha256"],
+                                   "CQL_SCYLLADB_QUERY_PROBE_ID": ids[0]}
     elif provider in ("WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS"):
         product = provider.removesuffix("OASIS").upper()
         review["sourceBinding"] = {f"CQL_{product}_QUERY_PROBE_ID": ids[0]}

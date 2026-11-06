@@ -124,3 +124,27 @@ verification remain separate gates.
 
 All 23 recovered provider tests passed at Core fec1c1953b341c8439a08cff0a66779c92acadd3.
 Recovery TRX SHA256 f58d189f5794534fac1611ff82a67ed217cec13b001478e4a48b3935722339e3.
+
+### Development WEB4 admission candidate
+
+The read profile uses CassandraCSharpDriver 3.21.0 against one reviewed
+public ScyllaDB Cloud node on TLS port 9142. The fixed IP is the only
+accepted socket destination and the TLS server name must match the
+certificate. The client verifies the chain against the reviewed cluster CA
+without modifying the host trust store. The dedicated `cosmic_reader`
+role needs SELECT on `oasis.oasis_holons`. Activation verifies an existing
+public UUID, and query execution excludes deleted or missing records and
+rejects rows that became private.
+
+The protected `CQL_SCYLLADB_QUERY_` settings are `IP`, `HOST`,
+`CA_DER_BASE64`, `CA_SHA256`, `READER_PASSWORD` and `PROBE_ID`. The
+reviewed catalogue binds the IP, TLS name, CA digest and first live ID.
+This candidate is scoped to a dedicated public node that presents the
+reviewed DNS identity. Native connectivity to that source must be proven
+before live admission.
+[ScyllaDB direct TLS connection contract](https://java-driver.docs.scylladb.com/stable/manual/core/connectivity/vpc_peering/index.html).
+
+All 13 protected-settings tests passed. All seven WEB4 admission tests passed at Core
+`87b0fb211377fd90e45979da8a01e6fd05efa7b6`. The approved node, cluster CA,
+restricted reader and live visitor proof remain open.
+Admission TRX SHA256 ed33a323aef6af120018caec6eadb57970d4a916cb35a976ce906cee2fd5305c.
