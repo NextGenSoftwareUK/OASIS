@@ -723,3 +723,14 @@ digest still requires a full SHA-256. All 15 publisher controls passed.
 Discovery advertised two LocalFile and two MongoDB federation presets for
 the deployment-scoped readiness visitor. Hosted query acceptance follows
 this observation.
+
+### Hosted HTTP acceptance passed
+
+Deployment `c8ba177c` served LocalFile native **3/2** and LocalFile plus
+MongoDB **5/4**. The first preparation saved two private MongoDB copies.
+The repeat reused both and made zero saves. The verifier checked foreign
+visitor isolation and found both exact replicas on SQLite and Neo4j.
+The completion receipt is `LocalState/COSMIC/HostedQueryAcceptance-LocalFileOASIS/cql-http-acceptance.acknowledged.json`. Its SHA-256 is
+`00236c8e213278dfd9047d52ae45940365d19f2ebba0c316574ff449e8a10b74`. It binds the original
+native, paired and isolation report hashes to the deployment. Browser
+interaction remains open.
