@@ -110,3 +110,10 @@ The Core pin remains `72be1b4e`. Follow the revised
 [isolated build](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42311827689).
 The failed run remains recorded. Development and hosted settings are still
 on the accepted LocalFile baseline.
+
+The revised image build passed for `d31713be`. The existing exact-key
+publisher reproduced the protected candidate, and the live settings
+matched its baseline immediately before promotion. Development advanced
+by fast-forward to the verified candidate. Railway queued code deployment
+`61ed6138-45ba-4f7d-ad6e-9a39479888ef`. Follow that exact job before
+staging the four reviewed settings. No hosted values have been applied.
