@@ -1999,6 +1999,19 @@ passed both native jobs and the package job at
 `ef6d7b3d62ff941205794251661d2e5af230171d`. The job receipts were read
 online, with no additional downloads or Windows runtime installs.
 
+Milvus CQL uses the existing .NET SDK, NuGet cache and provider build
+lease. The single workspace is `LocalState/COSMIC/LocalMilvusCqlQualification/`
+with `verify-provider.ps1`, `provider-core-pin.txt` and `provider.trx`.
+The five controlled tests passed and restored the original Core checkout.
+The native test was moved into the existing protocol test project. The build log is
+`TestResults/ProviderBuildCurrent/milvus-cql.log`. The published 2.6.26
+Compose file was inspected in memory and its SHA-256 checked. No Milvus
+server, Docker images or native fixtures were installed on this laptop.
+The native CI job keeps the official Compose download, container data
+and synthetic collection in one temporary runner directory. It stops
+the three containers before removing the directory and keeps only the
+test report and container listing for seven days.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt

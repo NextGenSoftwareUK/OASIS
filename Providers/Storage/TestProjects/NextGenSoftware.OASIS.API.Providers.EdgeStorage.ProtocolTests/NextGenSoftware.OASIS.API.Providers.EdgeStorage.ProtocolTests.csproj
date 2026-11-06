@@ -7,6 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="TigrisCqlNativeTests.cs" Condition="'$(EnableTigrisCqlNativeTests)' != 'true'" />
+    <Compile Remove="MilvusCqlNativeTests.cs" Condition="'$(EnableMilvusCqlNativeTests)' != 'true'" />
     <Using Include="NextGenSoftware.OASIS.Providers.TestSupport" />
     <Compile Include="../../../Shared/TestSupport/SdkHandlerHttpClientFactory.cs" Link="Shared/SdkHandlerHttpClientFactory.cs" />
     <Compile Include="../../../Shared/TestSupport/ConditionalObjectTransportAcceptance.cs" Link="Shared/ConditionalObjectTransportAcceptance.cs" />
@@ -28,5 +29,6 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.TigrisOASIS\NextGenSoftware.OASIS.API.Providers.TigrisOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.VercelKVOASIS\NextGenSoftware.OASIS.API.Providers.VercelKVOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.NetlifyBlobsOASIS\NextGenSoftware.OASIS.API.Providers.NetlifyBlobsOASIS.csproj" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.MilvusOASIS/NextGenSoftware.OASIS.API.Providers.MilvusOASIS.csproj" />
   </ItemGroup>
 </Project>

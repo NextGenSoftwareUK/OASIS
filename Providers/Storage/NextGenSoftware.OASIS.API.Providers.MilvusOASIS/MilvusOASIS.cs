@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -34,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
     /// Delete:  POST {base}/v2/vectordb/entities/delete  { collectionName, filter }
     /// Auth:    Authorization: Bearer {token}
     /// </summary>
-    public class MilvusOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
+    public partial class MilvusOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -50,12 +52,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
         private const string CollHolons = "oasis_holons";
 
         public MilvusOASIS(string baseUrl = "http://localhost:19530", string? token = null)
+            : this(baseUrl, token, null) { }
+
+        private MilvusOASIS(string baseUrl, string? token, HttpMessageHandler? transport)
         {
             _baseUrl = baseUrl.TrimEnd('/');
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.MilvusOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
-            _http = new HttpClient();
+            _http = new HttpClient(transport ?? new SocketsHttpHandler { AllowAutoRedirect = false, UseCookies = false });
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             if (!string.IsNullOrEmpty(token))
                 _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -63,6 +68,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
+            if (_publicQuery != null)
+                return await ActivateQuerySourceAsync();
             var result = new OASISResult<bool>();
             try
             {
@@ -586,13 +593,33 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
 
         private async Task<T?> GetDocAsync<T>(string collection, string id) where T : class
         {
-            var resp = await _http.PostAsync($"{_baseUrl}/v2/vectordb/entities/get",
-                Json(new { collectionName = collection, id = new[] { id }, outputFields = new[] { "doc" } }));
-            if (!resp.IsSuccessStatusCode) return null;
-            var json = await resp.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
-            var list = ParseData<T>(doc.RootElement);
-            return list.Count > 0 ? list[0] : null;
+            var json = await ReadExactDocumentAsync(collection, id, CancellationToken.None);
+            return json == null ? null : JsonSerializer.Deserialize<T>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+
+        private async Task<string?> ReadExactDocumentAsync(string collection, string key, CancellationToken cancellationToken)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/v2/vectordb/entities/get")
+            {
+                Content = Json(new { collectionName = collection, id = new[] { key }, outputFields = new[] { "id", "doc" },
+                    consistencyLevel = "Strong" })
+            };
+            using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            response.EnsureSuccessStatusCode();
+            await response.Content.LoadIntoBufferAsync(512 * 1024, cancellationToken);
+            using var document = JsonDocument.Parse(await response.Content.ReadAsByteArrayAsync(cancellationToken));
+            var envelope = document.RootElement;
+            if (envelope.GetProperty("code").GetInt32() != 0)
+                throw new InvalidDataException("Milvus rejected the exact entity read.");
+            var rows = envelope.GetProperty("data");
+            if (rows.GetArrayLength() == 0) return null;
+            if (rows.GetArrayLength() != 1 || rows[0].GetProperty("id").GetString() != key)
+                throw new InvalidDataException("Milvus returned an entity outside the requested primary key.");
+            var payload = rows[0].GetProperty("doc").GetString();
+            if (string.IsNullOrEmpty(payload) || Encoding.UTF8.GetByteCount(payload) > 65535)
+                throw new InvalidDataException("Milvus returned an invalid stored document.");
+            return payload;
         }
 
         private async Task UpsertDocAsync<T>(string collection, string id, T obj)

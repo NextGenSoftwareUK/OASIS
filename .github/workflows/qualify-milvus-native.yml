@@ -1,0 +1,85 @@
+name: Qualify native Milvus CQL
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-milvus-native.yml'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MilvusOASIS/**'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests/MilvusCql*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          persist-credentials: false
+      - name: Read reviewed dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|OASIS_API_CORE_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/OASIS-API-Core
+          ref: ${{ steps.dependency.outputs.OASIS_API_CORE_COMMIT }}
+          path: OASIS/OASIS Architecture/NextGenSoftware.OASIS.API.Core
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify CQL through a disposable native Milvus collection
+        working-directory: OASIS
+        shell: bash
+        env:
+          COSMIC_MILVUS_DISPOSABLE: '1'
+        run: |
+          fixture=$(mktemp -d "$RUNNER_TEMP/oasis-milvus.XXXXXXXX")
+          [[ "$fixture" == "$RUNNER_TEMP"/oasis-milvus.* ]]
+          asset="$fixture/official.yml"
+          file="$fixture/compose.yml"
+          export DOCKER_VOLUME_DIRECTORY="$fixture"
+          compose=(docker compose --project-name "oasis-milvus-$GITHUB_RUN_ID" -f "$file")
+          cleanup() {
+            if [ -f "$file" ]; then "${compose[@]}" down --volumes; fi
+            sudo rm -rf -- "$fixture"
+          }
+          trap cleanup EXIT
+          curl --fail --silent --show-error --location --max-time 90 \
+            'https://github.com/milvus-io/milvus/releases/download/v2.6.26/milvus-standalone-docker-compose.yml' \
+            --output "$asset"
+          printf '34d428ce5513b8c17230b830fa6eb352c37e2ad209f18421823955d7562213fd  %s\n' "$asset" | sha256sum --check
+          sed -E 's/"(9000|9001|19530|9091):/"127.0.0.1:\1:/' "$asset" > "$file"
+          mkdir -p TestResults/MilvusNative
+          "${compose[@]}" up -d --wait --wait-timeout 300
+          "${compose[@]}" ps > TestResults/MilvusNative/containers.txt
+          curl --fail --silent --show-error --max-time 5 http://127.0.0.1:9091/healthz
+          pwsh -NoProfile -Command '
+            $ErrorActionPreference = "Stop"
+            & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner milvus-native-ci -Operation {
+              $test = "NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests"
+              dotnet test "Providers/Storage/TestProjects/$test/$test.csproj" /m:2 /nr:false /p:UseSharedCompilation=false /p:EnableMilvusCqlNativeTests=true --filter "TestCategory=MilvusNativeCql" --results-directory TestResults/MilvusNative --logger "trx;LogFileName=native.trx"
+              if ($LASTEXITCODE) { throw "Native Milvus qualification failed" }
+            }'
+          grep -q 'total="1" executed="1" passed="1"' TestResults/MilvusNative/native.trx
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: milvus-native-cql
+          path: OASIS/TestResults/MilvusNative/
+          retention-days: 7
