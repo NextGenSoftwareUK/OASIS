@@ -17,7 +17,7 @@ failed at the first RPC. Four passed with zero skips. The 7,960-byte
 TRX SHA-256 is
 `cee431fd17a01bf6fc6d61ef5d5df46d11ed5d016ebcdb378967c4842e91f088`.
 
-Mongo federation, hosted HTTP and browser acceptance
+Hosted HTTP and browser acceptance
 remain open. Tenderly simulation and QuickNode's general node APIs are
 outside this balance demo.
 
@@ -45,3 +45,17 @@ IDs, examples and an independent receipt for each provider. If the
 approved WEB4 policy uses encrypted Mongo metadata, the matching
 `TenderlyPolygonAccountAddress` and `QuickNodePolygonAccountAddress`
 keys must be queryable under that policy before enrollment.
+
+## Local WEB4 and Mongo federation
+
+The two independent loopback HTTP tests passed at Core
+`ddd996a55d41c2cd38711b08effc305ff5fd83a3`. Each returned native 3/2,
+paired 5/4, foreign-private 0 and foreign-public 3. Each asserted exact
+selected IDs and provider attribution, acknowledged two private
+version-one Mongo saves and recorded nine usage receipts from the
+controlled test admission layer. The 4,655-byte TRX SHA-256 is
+`b88af4ebae47e0f6b0853548dc5c638bb26cacb5e1d24ed02018a75f4f3d9b06`.
+
+Both owned Mongo fixture databases were verified absent after exact
+cleanup. The local service reported WiredTiger shutdown and port 27029
+closed. Development HTTP and browser acceptance follow LocalFile.

@@ -1,8 +1,8 @@
 # COSMIC ORM / CQL current status
 
 Updated 6 November 2026. Goal active and incomplete.
-Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
-Work only red scopes or reproduced bugs. Legacy issues documentation-only.
+Priority is the Development WEB4 rollout and breadth-first provider demos. Depth follows the MVP.
+During the breadth phase, focus on unverified scopes and reproduced bugs.
 
 Elasticsearch and OpenSearch WEB4 query enrollment passed ten focused
 admission and transport checks. Both guarded HTTPS native fixtures compiled.
@@ -11,7 +11,7 @@ HTTPS and deployed acceptance. No provider count changed.
 
 ## Recent WEB4 preparation, 5–6 November 2026
 
-Acceptance is 109 scoped local, 60 live HTTP and 28 live browser.
+Acceptance is 111 scoped local, 60 live HTTP and 28 live browser.
 LocalFile remains first. The immutable candidate image is published and its
 actual Railway deployment, persistent mount and protected settings still
 need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
@@ -34,6 +34,9 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
 - Temporal passed official SDK exact workflow-run CQL 3/2/0 on the
   Linux runner. WEB4 admission passed. Cloud access and federation remain open.
   [Temporal evidence](TEMPORAL_CQL_MVP.md).
+- Tenderly and QuickNode independently passed native CQL 3/2 and local
+  WEB4/Mongo 5/4 with foreign-private 0. Hosted acceptance remains open.
+  [Gateway evidence](PUBLIC_POLYGON_GATEWAYS_CQL_MVP.md).
 - The ENS Offchain local federation diagnostic captured upstream HTTP 429
   after successful public and paired reads. The two acknowledged private
   Mongo copies are retained for authenticated continuation.

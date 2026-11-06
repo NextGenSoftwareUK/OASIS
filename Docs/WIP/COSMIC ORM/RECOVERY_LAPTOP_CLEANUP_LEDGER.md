@@ -3395,3 +3395,17 @@ producer log and 50,388-byte consumer log are in
 `LocalState/COSMIC/PublicPolygonGatewaysCqlQualification/`. The
 consumer compiled against verified unchanged API and Core assemblies.
 No new package version, runtime, data or credential was created.
+
+Gateway federation reused the existing loopback Mongo replica set and
+frozen WEB4 producer under the shared build lease. The
+`cosmic_cql_tenderlyoasis_http` and `cosmic_cql_quicknodeoasis_http`
+databases were dropped after exact ownership and record checks. The
+owned process stopped cleanly and port 27029 closed. No environment,
+package, credential, database copy or local provider node was installed.
+
+`LocalState/COSMIC/PublicPolygonGatewaysCqlQualification/gateway-http/`
+holds the 4,655-byte TRX, 99,672-byte consumer build log, 228,169-byte
+Mongo log and compact process, signal and shutdown receipts.
+Sibling `TenderlyOASIS/` and `QuickNodeOASIS/` directories preserve
+synthetic fixture intent, acknowledgements, summary and cleanup receipts
+totalling 1,071 and 1,072 bytes, respectively.

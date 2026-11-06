@@ -28,6 +28,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
 using PolygonSource = NextGenSoftware.OASIS.API.Providers.PolygonOASIS.PolygonPublicAccountMetadataSource;
+using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 using IoFile = System.IO.File;
 
@@ -35,9 +36,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
 public sealed class PolygonMongoNativeFactAttribute : FactAttribute
 {
-    public PolygonMongoNativeFactAttribute()
+    public PolygonMongoNativeFactAttribute(string gate = "COSMIC_REPLICA_REPAIR_NATIVE")
     {
-        if (Environment.GetEnvironmentVariable("COSMIC_REPLICA_REPAIR_NATIVE") != "owned-local-27029")
+        if (Environment.GetEnvironmentVariable(gate) != "owned-local-27029")
             Skip = "Explicit public Polygon/Mongo native gate; reported separately from controlled API tests.";
     }
 }
@@ -47,84 +48,124 @@ public sealed class PolygonMongoNativeFactAttribute : FactAttribute
 /// test infrastructure, not production signup/billing or replication proof.</summary>
 public sealed class CqlPolygonMongoNativeTests
 {
-    private const string Database = "cosmic_cql_polygon_http_demo";
     private const string Owner = "cosmic-cql-polygon-http-v1";
-    private static readonly ProviderType[] Types = { ProviderType.MongoDBOASIS, ProviderType.PolygonOASIS };
-    private sealed class Sources(IOASISStorageProvider mongo, IOASISStorageProvider polygon,
+    private static readonly string[] GatewayAddresses =
+    {
+        "0x0000000000000000000000000000000000000000",
+        "0x000000000000000000000000000000000000dead",
+        "0x0000000000000000000000000000000000001010"
+    };
+
+    private sealed class Sources(IOASISStorageProvider mongo, IOASISStorageProvider polygon, ProviderType provider,
         OASISDNA dna, ProviderManager registry) : ICqlV1Providers
     {
-        public IOASISStorageProvider Resolve(ProviderType? requested) => requested switch {
-            null or ProviderType.MongoDBOASIS => mongo,
-            ProviderType.PolygonOASIS => polygon,
-            _ => throw new InvalidOperationException("Only the two explicitly enrolled native fixture providers are available.") };
+        public IOASISStorageProvider Resolve(ProviderType? requested)
+        {
+            if (requested is null or ProviderType.MongoDBOASIS) return mongo;
+            if (requested == provider) return polygon;
+            throw new InvalidOperationException("Only the two explicitly enrolled native fixture providers are available.");
+        }
+
         public HolonManager CreateManager(IOASISStorageProvider provider) => new(null, dna, registry);
     }
+
+    private static string RepositoryRoot => Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
 
     [PolygonMongoNativeFact]
     public async Task NativePolygonMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
     {
-        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
-        Assert.True(Directory.Exists(Path.Combine(root, "LocalState/COSMIC/HostedPolygonPublicSourceCurrent")));
+        var root = RepositoryRoot;
+        var configPath = Path.Combine(root, "LocalState/COSMIC/HostedPolygonPublicSourceCurrent/source.json");
+        var configJson = await IoFile.ReadAllTextAsync(configPath);
+        using var config = JsonDocument.Parse(configJson);
+        var allowed = config.RootElement.GetProperty("addresses").EnumerateArray().Select(key => key.GetString()!).ToArray();
+        using var polygon = PolygonSource.FromJson(configJson);
+        await VerifyHttpAsync(polygon, ProviderType.PolygonOASIS, allowed, "cosmic_cql_polygon_http_demo",
+            Path.Combine(root, "LocalState/COSMIC/PolygonMongoHttpCurrent"),
+            Path.Combine(root, "TestResults/PolygonPublicSourceCandidateCurrent/polygon-mongo-native-summary.json"),
+            async () => Assert.Equal(configJson, await IoFile.ReadAllTextAsync(configPath)));
+    }
+
+    [PolygonMongoNativeFact("COSMIC_PUBLIC_POLYGON_GATEWAYS_MONGO_NATIVE")]
+    public Task TenderlyNativeHttp() => VerifyGatewayAsync(ProviderType.TenderlyOASIS, "CQL_TENDERLY_POLYGON_QUERY_SOURCE_OWNER");
+
+    [PolygonMongoNativeFact("COSMIC_PUBLIC_POLYGON_GATEWAYS_MONGO_NATIVE")]
+    public Task QuickNodeNativeHttp() => VerifyGatewayAsync(ProviderType.QuickNodeOASIS, "CQL_QUICKNODE_POLYGON_QUERY_SOURCE_OWNER");
+
+    private static async Task VerifyGatewayAsync(ProviderType provider, string ownerSetting)
+    {
+        var services = new ServiceCollection();
+        services.AddPublicPolygonGatewayReadSources(new ConfigurationBuilder().AddInMemoryCollection(
+            new Dictionary<string, string?> { [ownerSetting] = Guid.NewGuid().ToString("D") }).Build());
+        using var container = services.BuildServiceProvider();
+        var profile = Assert.Single(container.GetServices<CqlReadSourceProfile>());
+        var gateway = Assert.IsAssignableFrom<EvmPublicAccountMetadataSource>(profile.Storage);
+        var state = Path.Combine(RepositoryRoot, "LocalState/COSMIC/PublicPolygonGatewaysCqlQualification", provider.ToString());
+        await VerifyHttpAsync(gateway, provider, GatewayAddresses, "cosmic_cql_" + provider.ToString().ToLowerInvariant() + "_http",
+            state, Path.Combine(state, "native-summary.json"));
+    }
+
+    private static async Task VerifyHttpAsync(EvmPublicAccountMetadataSource polygon, ProviderType provider,
+        string[] allowed, string database, string state, string summaryPath, Func<Task>? verifyConfiguration = null)
+    {
+        var root = RepositoryRoot;
+        var providerName = provider.ToString();
+        var types = new[] { ProviderType.MongoDBOASIS, provider };
+        var metadataKey = polygon.QueryCapabilities.StringKeySetLookup.MetadataKey;
         const string mongoConnection = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs";
         var mongoUrl = new MongoUrl(mongoConnection);
         Assert.Equal("127.0.0.1", Assert.Single(mongoUrl.Servers).Host);
         Assert.Equal(27029, Assert.Single(mongoUrl.Servers).Port);
         Assert.Equal("oasisRecoveryRs", mongoUrl.ReplicaSetName);
-        var state = Path.Combine(root, "LocalState/COSMIC/PolygonMongoHttpCurrent");
         Directory.CreateDirectory(state);
         var intent = Path.Combine(state, "fixture.intent.json");
         Assert.False(IoFile.Exists(intent), "Preserve the original fixture outcome; never reseed/replay it.");
         Assert.Empty(Directory.EnumerateFiles(state));
-        var configPath = Path.Combine(root, "LocalState/COSMIC/HostedPolygonPublicSourceCurrent/source.json");
-        var configJson = await IoFile.ReadAllTextAsync(configPath);
-        using var config = JsonDocument.Parse(configJson);
-        var allowed = config.RootElement.GetProperty("addresses").EnumerateArray().Select(key => key.GetString()!).ToArray();
         Assert.Equal(3, allowed.Length);
         var actor = Guid.NewGuid();
         var foreignActor = Guid.NewGuid();
         var nonce = Guid.NewGuid().ToString("D");
         var identities = CqlHostedDemoIdentities.Create(new CqlDemoIdentityRequest {
-            Provider = "PolygonOASIS", Keys = allowed.Take(2).ToArray() }, actor);
+            Provider = providerName, Keys = allowed.Take(2).ToArray() }, actor);
         var copies = identities.Records.Select(record => record.Id).ToArray();
         var operations = new[] { Guid.NewGuid(), Guid.NewGuid() };
         var client = new MongoClient(mongoConnection);
         using (var names = await client.ListDatabaseNamesAsync())
-            Assert.DoesNotContain(Database, await names.ToListAsync());
+            Assert.DoesNotContain(database, await names.ToListAsync());
         await using (var file = new FileStream(intent, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
         {
-            await JsonSerializer.SerializeAsync(file, new { Owner, nonce, Database, actor, foreignActor, allowed, copies, operations });
+            await JsonSerializer.SerializeAsync(file, new { Owner, nonce, Database = database, actor, foreignActor, allowed, copies, operations });
             file.Flush(true);
         }
 
-        using var polygon = PolygonSource.FromJson(configJson);
         Assert.False((await polygon.ActivateQuerySourceAsync(default)).IsError);
-        var nativeQuery = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.PolygonOASIS).Result)
+        var nativeQuery = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(provider).Result)
             .WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result)
-            .Where(row => allowed.Contains(CosmicQueryMetadata.Value<string>(row, PolygonSource.AddressMetadata)));
+            .Where(row => allowed.Contains(CosmicQueryMetadata.Value<string>(row, metadataKey)));
         Assert.False(nativeQuery.IsError, nativeQuery.ErrorCode);
-        var plan = CosmicQueryPlanner.Plan(nativeQuery.Result, ProviderType.PolygonOASIS,
-            new[] { new CosmicQueryTarget(ProviderType.PolygonOASIS, polygon.QueryCapabilities) });
+        var plan = CosmicQueryPlanner.Plan(nativeQuery.Result, provider,
+            new[] { new CosmicQueryTarget(provider, polygon.QueryCapabilities) });
         Assert.False(plan.IsError, plan.ErrorCode);
         var source = await polygon.ExecuteCosmicQueryAsync(plan.Result);
         Assert.False(source.IsError, source.ErrorCode);
         Assert.Equal(3, source.Result.Count);
 
-        var native = client.GetDatabase(Database);
+        var native = client.GetDatabase(database);
         await native.GetCollection<BsonDocument>("CosmicOwnedFixture").InsertOneAsync(
             new BsonDocument { { "_id", nonce }, { "owner", Owner } });
-        var mongo = new MongoSource(mongoConnection, Database);
+        var mongo = new MongoSource(mongoConnection, database);
         Assert.False((await mongo.ActivateProviderAsync()).IsError);
         var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS { HyperDriveMode = HyperDriveModes.V2 } };
         dna.OASIS.SubscriptionConfig.PlanType = "Gold";
         var registry = new ProviderManager(null, dna) {
             IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false };
         registry.RegisterProvider(mongo);
-        var providers = new Sources(mongo, polygon, dna, registry);
+        var providers = new Sources(mongo, polygon, provider, dna, registry);
         var manager = providers.CreateManager(mongo);
         for (var index = 0; index < identities.Records.Count; index++)
         {
             var identity = identities.Records[index];
-            var original = source.Result.Single(row => (string)row.MetaData[PolygonSource.AddressMetadata] == identity.NativeKey);
+            var original = source.Result.Single(row => (string)row.MetaData[metadataKey] == identity.NativeKey);
             var metadata = original.MetaData.ToDictionary(pair => pair.Key, pair => pair.Value);
             foreach (var pair in identity.Metadata) metadata[pair.Key] = pair.Value;
             metadata["COSMIC.Demo.Dataset"] = "COSMIC.CQL.Demo.v1";
@@ -144,7 +185,7 @@ public sealed class CqlPolygonMongoNativeTests
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { Args = Array.Empty<string>(), ContentRootPath = root });
         builder.Configuration.Sources.Clear();
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> {
-            [CqlPublicReadCatalogue.ConfigurationKey] = JsonSerializer.Serialize(new Dictionary<string, Guid[]> { ["PolygonOASIS"] = source.Result.Select(row => row.Id).ToArray() }) });
+            [CqlPublicReadCatalogue.ConfigurationKey] = JsonSerializer.Serialize(new Dictionary<string, Guid[]> { [providerName] = source.Result.Select(row => row.Id).ToArray() }) });
         builder.Logging.ClearProviders(); builder.WebHost.UseUrls("http://127.0.0.1:0");
         builder.Services.AddControllers();
         builder.Services.AddConfiguredCqlReadAccessPolicy(builder.Configuration);
@@ -185,8 +226,8 @@ public sealed class CqlPolygonMongoNativeTests
         {
             var handle = (UsageExecutionHandle)http.Items[Web4UsageMeasurement.ExecutionKey]!;
             var admission = new PreparedStorageExecution(handle, "native-polygon-query", new Dictionary<ProviderType, string>(),
-                Types, Types.Select(type => new StorageQueryTariff(type, 0, "native-test")),
-                null!, false, null!, new[] { ProviderType.PolygonOASIS });
+                types, types.Select(type => new StorageQueryTariff(type, 0, "native-test")),
+                null!, false, null!, new[] { provider });
             IActionResult action;
             if (federation)
             {
@@ -209,8 +250,11 @@ public sealed class CqlPolygonMongoNativeTests
             using var http = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(20) };
             var counts = new Dictionary<string, int>();
             object Selection(IEnumerable<string> selected) => new { orderBy = "None", take = 8, includeMetadata = true,
-                filters = new[] { new { metadataPath = new[] { PolygonSource.AddressMetadata }, scalar = "String", @operator = "In", value = selected.ToArray() } } };
-            async Task Check(string name, string token, string route, object request, int expected)
+                filters = new[] { new { metadataPath = new[] { metadataKey }, scalar = "String", @operator = "In", value = selected.ToArray() } } };
+            Guid[] PublicIds(IEnumerable<string> addresses) => source.Result
+                .Where(row => addresses.Contains((string)row.MetaData[metadataKey], StringComparer.Ordinal))
+                .Select(row => row.Id).ToArray();
+            async Task Check(string name, string token, string route, object request, IReadOnlyCollection<Guid> expected)
             {
                 http.DefaultRequestHeaders.Authorization = new("Bearer", token);
                 http.DefaultRequestHeaders.Remove("Idempotency-Key");
@@ -219,7 +263,7 @@ public sealed class CqlPolygonMongoNativeTests
                 Assert.True(response.IsSuccessStatusCode, name + ": HTTP " + (int)response.StatusCode);
                 using var body = JsonDocument.Parse(await response.Content.ReadAsByteArrayAsync());
                 var rows = body.RootElement.GetProperty("result").GetProperty("rows");
-                Assert.Equal(expected, rows.GetArrayLength()); counts.Add(name, rows.GetArrayLength());
+                Assert.Equal(expected.Count, rows.GetArrayLength()); counts.Add(name, rows.GetArrayLength());
                 // Counts alone could hide duplicate or substituted records. Check every
                 // selected copy against its server-derived identity and visibility.
                 var selectedIds = new HashSet<Guid>();
@@ -232,7 +276,7 @@ public sealed class CqlPolygonMongoNativeTests
                     Assert.True(selectedIds.Add(id), "Each preserved physical copy must be unique.");
                     var isMongo = copies.Contains(id);
                     Assert.True(isMongo || source.Result.Any(original => original.Id == id));
-                    if (paired) Assert.Equal(isMongo ? "MongoDBOASIS" : "PolygonOASIS", selected.GetProperty("provider").GetString());
+                    if (paired) Assert.Equal(isMongo ? "MongoDBOASIS" : providerName, selected.GetProperty("provider").GetString());
                     Assert.Equal(!isMongo, row.GetProperty("isPublic").GetBoolean());
                     if (isMongo)
                     {
@@ -240,25 +284,26 @@ public sealed class CqlPolygonMongoNativeTests
                         Assert.Equal(actor, row.GetProperty("createdByAvatarId").GetGuid());
                     }
                 }
+                Assert.Equal(expected.Order(), selectedIds.Order());
             }
             foreach (var count in new[] { 3, 2 })
             {
                 var selected = allowed.Take(count).ToArray();
-                await Check("polygon-" + count, ownerToken, "/api/data/query-cql", new { provider = "PolygonOASIS",
+                await Check("polygon-" + count, ownerToken, "/api/data/query-cql", new { provider = providerName,
                     orderBy = "None", take = 8, includeMetadata = true,
-                    filters = new[] { new { metadataPath = new[] { PolygonSource.AddressMetadata }, scalar = "String", @operator = "In", value = selected } } }, count);
+                    filters = new[] { new { metadataPath = new[] { metadataKey }, scalar = "String", @operator = "In", value = selected } } }, PublicIds(selected));
                 await Check("paired-" + count, ownerToken, "/api/data/query-cql/federation", new { scope = "Named",
-                    providers = new[] { "MongoDBOASIS", "PolygonOASIS" }, source = Selection(selected),
-                    identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8 }, count + 2);
+                    providers = new[] { "MongoDBOASIS", providerName }, source = Selection(selected),
+                    identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8 }, PublicIds(selected).Concat(copies).ToArray());
             }
             await Check("foreign-private", foreignToken, "/api/data/query-cql", new { provider = "MongoDBOASIS",
-                orderBy = "Id", take = 8, filters = new[] { new { field = "Id", scalar = "Guid", @operator = "In", value = copies } } }, 0);
+                orderBy = "Id", take = 8, filters = new[] { new { field = "Id", scalar = "Guid", @operator = "In", value = copies } } }, Array.Empty<Guid>());
             await Check("foreign-public-pair", foreignToken, "/api/data/query-cql/federation", new { scope = "Named",
-                providers = new[] { "MongoDBOASIS", "PolygonOASIS" }, source = Selection(allowed),
-                identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8 }, 3);
-            Assert.Equal(configJson, await IoFile.ReadAllTextAsync(configPath));
+                providers = new[] { "MongoDBOASIS", providerName }, source = Selection(allowed),
+                identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8 }, PublicIds(allowed));
+            if (verifyConfiguration != null) await verifyConfiguration();
             Assert.Equal(9, receipts.Count);
-            await IoFile.WriteAllTextAsync(Path.Combine(root, "TestResults/PolygonPublicSourceCandidateCurrent/polygon-mongo-native-summary.json"),
+            await IoFile.WriteAllTextAsync(summaryPath,
                 JsonSerializer.Serialize(new { counts, sdkOwnedSaves = 2,
                     receiptCount = receipts.Count, productionBilling = false, replicationAcceptance = false, browserAcceptance = false }));
         }
@@ -269,9 +314,9 @@ public sealed class CqlPolygonMongoNativeTests
         var marker = await native.GetCollection<BsonDocument>("CosmicOwnedFixture").Find(new BsonDocument("_id", nonce)).SingleAsync();
         Assert.Equal(Owner, marker["owner"].AsString);
         await mongo.DeActivateProviderAsync();
-        await client.DropDatabaseAsync(Database);
+        await client.DropDatabaseAsync(database);
         using var remaining = await client.ListDatabaseNamesAsync();
-        Assert.DoesNotContain(Database, await remaining.ToListAsync());
+        Assert.DoesNotContain(database, await remaining.ToListAsync());
         await IoFile.WriteAllTextAsync(Path.Combine(state, "fixture.cleaned.json"), JsonSerializer.Serialize(new { nonce, databaseAbsent = true }));
     }
 }
