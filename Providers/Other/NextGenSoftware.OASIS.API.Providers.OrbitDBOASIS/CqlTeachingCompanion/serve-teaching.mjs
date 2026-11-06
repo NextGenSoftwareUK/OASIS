@@ -5,8 +5,10 @@ import { openTeachingStore } from "./teaching-store.mjs";
 const [directory, address, portText] = process.argv.slice(2);
 const port = Number(portText);
 const reader = process.env.OASIS_ORBITDB_CQL_READER_TOKEN;
+const instance = process.env.OASIS_CQL_TEACHING_INSTANCE;
 if (!directory || !address || !/^\d{4,5}$/.test(portText) || port < 1024 || port > 65535
-  || !reader || !/^[A-Za-z0-9_-]{32,256}$/.test(reader))
+  || !reader || reader.length < 32 || reader.length > 256 || /[^A-Za-z0-9_-]/.test(reader)
+  || (instance !== undefined && (instance.length !== 32 || /[^0-9a-f]/.test(instance))))
   throw new Error("A reviewed OrbitDB source, loopback port and protected reader are required.");
 
 const expected = Buffer.from(`Bearer ${reader}`);
@@ -16,7 +18,8 @@ const emptyId = "00000000-0000-0000-0000-000000000000";
 const server = createServer(async (request, response) => {
   const reply = (status, body) => {
     response.writeHead(status, { "Content-Type": "application/json", "Cache-Control": "no-store",
-      "X-OASIS-Teaching-Provider": "OrbitDBOASIS" });
+      "X-OASIS-Teaching-Provider": "OrbitDBOASIS",
+      ...(instance ? { "X-OASIS-Teaching-Instance": instance } : {}) });
     response.end(body);
   };
   try {

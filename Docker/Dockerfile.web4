@@ -24,6 +24,18 @@ COPY Scripts/Sandbox/test_hosted_pouchdb_runtime.cjs /qualification/Scripts/Sand
 RUN node --test /qualification/Scripts/Sandbox/test_hosted_pouchdb_runtime.cjs
 RUN node /qualification/Docker/verify-pouchdb-runtime.cjs /opt/pouchdb
 
+FROM provider_node AS provider_teaching_sidecars
+ARG OASIS_INCLUDE_TEACHING_SIDECARS=false
+COPY ["Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/CqlTeachingCompanion/package.json", "Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/CqlTeachingCompanion/package-lock.json", "Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/CqlTeachingCompanion/serve-teaching.mjs", "Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/CqlTeachingCompanion/teaching-store.mjs", "/opt/teaching/orbitdb/"]
+COPY ["Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/CqlTeachingCompanion/package.json", "Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/CqlTeachingCompanion/package-lock.json", "Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/CqlTeachingCompanion/serve-teaching.mjs", "Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/CqlTeachingCompanion/teaching-store.mjs", "/opt/teaching/gun/"]
+RUN case "$OASIS_INCLUDE_TEACHING_SIDECARS" in \
+      false) ;; \
+      true) npm ci --prefix /opt/teaching/orbitdb --cache /tmp/oasis-teaching-npm --ignore-scripts --no-audit --no-fund \
+        && npm ci --prefix /opt/teaching/gun --cache /tmp/oasis-teaching-npm --ignore-scripts --no-audit --no-fund \
+        && rm -rf /tmp/oasis-teaching-npm ;; \
+      *) echo "Invalid optional teaching runtime build flag" >&2; exit 1 ;; \
+    esac
+
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 EXPOSE 8080
@@ -76,6 +88,7 @@ COPY --from=provider_node /usr/local/bin/node /usr/local/bin/node
 COPY --from=provider_ipfs /usr/local/bin/ipfs /usr/local/bin/ipfs
 COPY --from=provider_solid /community-server /opt/solid
 COPY --from=build /opt/pouchdb /opt/pouchdb
+COPY --from=provider_teaching_sidecars /opt/teaching /opt/teaching
 RUN node --version
 RUN node -e "const load=require('node:module').createRequire('/opt/pouchdb/package.json');if(load('pouchdb').version!=='9.0.0'||typeof load('leveldown')!=='function')throw Error('PouchDB native runtime differs');load('express-pouchdb')"
 RUN ipfs version --enc=json
@@ -85,6 +98,7 @@ COPY Docker/entrypoint.onode.sh /entrypoint.sh
 COPY Docker/host-sandbox-ipfs.cjs /app/host-sandbox-ipfs.cjs
 COPY Docker/host-sandbox-solid.cjs /app/host-sandbox-solid.cjs
 COPY Docker/host-sandbox-pouchdb.cjs /app/host-sandbox-pouchdb.cjs
+COPY Docker/host-sandbox-teaching.cjs /app/host-sandbox-teaching.cjs
 RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 ENV ASPNETCORE_ENVIRONMENT=Production

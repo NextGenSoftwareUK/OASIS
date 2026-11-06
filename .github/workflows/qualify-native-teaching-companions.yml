@@ -6,6 +6,10 @@ on:
     paths:
       - '.github/workflows/qualify-native-teaching-companions.yml'
       - 'Docker/Dockerfile.web4'
+      - 'Docker/entrypoint.onode.sh'
+      - 'Docker/host-sandbox-ipfs.cjs'
+      - 'Docker/host-sandbox-teaching.cjs'
+      - 'Scripts/Sandbox/test_hosted_teaching_runtime.cjs'
       - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/CqlTeachingCompanion/**'
       - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/CqlTeachingCompanion/**'
   workflow_dispatch:
@@ -49,3 +53,20 @@ jobs:
           name: native-teaching-${{ matrix.provider }}
           path: TestResults/NativeTeaching/
           retention-days: 7
+
+  runtime-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Verify the default and explicit WEB4 runtime package
+        shell: bash
+        run: |
+          docker build -f Docker/Dockerfile.web4 --target provider_teaching_sidecars --tag oasis-teaching-disabled .
+          docker run --rm oasis-teaching-disabled sh -ec 'test ! -e /opt/teaching/orbitdb/node_modules; test ! -e /opt/teaching/gun/node_modules'
+          docker build -f Docker/Dockerfile.web4 --target provider_teaching_sidecars \
+            --build-arg OASIS_INCLUDE_TEACHING_SIDECARS=true --tag oasis-teaching-enabled .
+          docker run --rm --mount "type=bind,src=$PWD,dst=/qualification,readonly" oasis-teaching-enabled \
+            sh -ec 'sh -n /qualification/Docker/entrypoint.onode.sh; node --test /qualification/Scripts/Sandbox/test_hosted_teaching_runtime.cjs; node --input-type=module -e "await import(\"/opt/teaching/orbitdb/teaching-store.mjs\"); await import(\"/opt/teaching/gun/teaching-store.mjs\")"'

@@ -191,6 +191,13 @@ async function main() {
     const pouch = require('./host-sandbox-pouchdb.cjs');
     services.push(pouch.serviceConfiguration(process.env));
   }
+  if (process.env.OASIS_SANDBOX_ORBITDB === 'true' || process.env.OASIS_SANDBOX_GUN === 'true') {
+    const teaching = require('./host-sandbox-teaching.cjs');
+    if (process.env.OASIS_SANDBOX_ORBITDB === 'true')
+      services.push(await teaching.serviceConfiguration(process.env, 'OrbitDBOASIS'));
+    if (process.env.OASIS_SANDBOX_GUN === 'true')
+      services.push(await teaching.serviceConfiguration(process.env, 'GUNOASIS'));
+  }
   if (!services.length) throw Error('No native sandbox source was explicitly enabled.');
   return supervise({ services });
 }

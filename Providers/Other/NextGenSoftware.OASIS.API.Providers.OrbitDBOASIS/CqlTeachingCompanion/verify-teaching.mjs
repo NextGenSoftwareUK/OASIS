@@ -18,9 +18,10 @@ const server = fileURLToPath(new URL("./serve-teaching.mjs", import.meta.url));
 await run(process.execPath, [probe, "seed", directory], { timeout: 30000, windowsHide: true });
 const { address, actor, ids } = JSON.parse(await readFile(join(directory, "fixture.json"), "utf8"));
 const reader = randomBytes(32).toString("hex");
+const instance = randomBytes(16).toString("hex");
 const port = 54869;
 const child = fork(server, [directory, address, String(port)], {
-  env: { ...process.env, OASIS_ORBITDB_CQL_READER_TOKEN: reader },
+  env: { ...process.env, OASIS_ORBITDB_CQL_READER_TOKEN: reader, OASIS_CQL_TEACHING_INSTANCE: instance },
   windowsHide: true,
 });
 const exited = once(child, "exit");
@@ -40,6 +41,7 @@ try {
   for (const id of ids.slice(0, 3)) {
     const response = await get(id);
     assert.equal(response.status, 200);
+    assert.equal(response.headers.get("X-OASIS-Teaching-Instance"), instance);
     publicRows.push(await response.json());
   }
   assert.deepEqual(publicRows, ids.slice(0, 3).map(id => ({
