@@ -3268,3 +3268,17 @@ readiness after 9.9 seconds and exited with code zero on IPC shutdown.
 The fixture receipt remained byte-identical and port 54869 closed.
 The `ReviewedPublicMongoHttpQualification/orbit-*.log` files are the
 compact diagnostic receipts. No service install or fixture copy was made.
+
+The first `orbit-http` batch launched the retained companion and Mongo
+successfully, but compiled before the new exact test was present. The
+TRX found zero matching cases. No fixture intent or private save was
+created. The companion exited with code zero and Mongo acknowledged
+clean shutdown. Preserve that output separately from `orbit-http-verified`.
+
+The verified OrbitDB `orbit-http-verified` run reused pinned Node, the
+retained `f5` store, frozen WEB4 producer assemblies and the same Mongo
+replica. Retain its TRX, logs, two acknowledgement receipts and exact
+cleanup proof. The owned Mongo database is absent, both services stopped,
+ports 54869 and 27029 closed, and the original descriptor SHA-256 stayed
+`844a4ac5a54a3e738c829736db780d878ed38ad0966c6b0ab7c6e4056ed81688`.
+No runtime or database copy was installed.

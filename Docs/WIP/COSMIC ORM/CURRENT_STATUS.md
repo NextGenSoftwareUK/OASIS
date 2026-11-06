@@ -11,7 +11,7 @@ HTTPS and deployed acceptance. No provider count changed.
 
 ## Recent WEB4 preparation, 5–6 November 2026
 
-Acceptance is 107 scoped local, 60 live HTTP and 28 live browser.
+Acceptance is 108 scoped local, 60 live HTTP and 28 live browser.
 LocalFile remains first. The immutable candidate image is published and its
 actual Railway deployment, persistent mount and protected settings still
 need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
@@ -19,9 +19,8 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
 - GUN and OrbitDB passed native exact-key CQL and Linux restart checks.
   Their optional WEB4 runtime passed the Linux package check. The combined
   admission run passed 18 checks including the ENS regression suite.
-  GUN also passed local WEB4 and Mongo federation 5/4. The Windows OrbitDB
-  HTTP rehearsal produced no readiness receipt. Live data, federation and
-  browser acceptance remain open.
+  Both also passed local WEB4 and Mongo federation 5/4 with private-row
+  isolation. Hosted federation and browser acceptance remain open.
   [GUN evidence](GUN_CQL_MVP.md) · [OrbitDB evidence](ORBITDB_CQL_MVP.md).
 - The ENS Offchain local federation diagnostic captured upstream HTTP 429
   after successful public and paired reads. The two acknowledged private

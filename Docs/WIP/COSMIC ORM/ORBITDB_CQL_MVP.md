@@ -56,3 +56,15 @@ records are verified, use the existing exact-key settings and acceptance
 scripts for native 3/2, Mongo 5/4, repeat reuse, visitor isolation, matching
 SQLite and Neo4j replicas, and browser verification.
 [Acceptance roadmap](SANDBOX_PROVIDER_DEMO_ROADMAP.md)
+
+## Local WEB4 and MongoDB federation
+
+On 6 November 2026 the retained OrbitDB teaching fixture passed local
+WEB4 HTTP and MongoDB 8.2 at parent `369e93679` and Core
+`c2a8b2303264bd159ac55d71b684c712647c6d3b`. The exact native queries
+returned 3/2 and federation returned 5/4. The foreign actor saw zero
+private rows and three public rows. Both SDK-acknowledged private
+copies were removed after ownership and count checks. Both owned
+services stopped and the original fixture descriptor was byte-identical.
+TRX SHA-256
+`433eb5ed60d19a5cadcf619a5867e5fed0dc7d9289ee057e894b8f52eeb03774`.

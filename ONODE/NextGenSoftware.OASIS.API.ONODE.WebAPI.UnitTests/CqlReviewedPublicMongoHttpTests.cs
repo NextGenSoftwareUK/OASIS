@@ -30,6 +30,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.CloudinaryOASIS;
 using NextGenSoftware.OASIS.API.Providers.GUNOASIS;
+using NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.ENSOffchainOASIS;
 using NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS;
 using NextGenSoftware.OASIS.API.Providers.ProofOfHumanityOASIS;
@@ -81,10 +82,13 @@ public sealed class CqlReviewedPublicMongoHttpTests
     public Task ReviewedPublicRowsAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp(ProviderType provider) =>
         VerifyHttpAsync(provider);
 
-    [ReviewedPublicMongoNativeFact]
+    [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_PUBLIC_SIDECAR_TOKEN")]
     public Task GunNativeHttp() => VerifyHttpAsync(ProviderType.GUNOASIS);
 
-    [ReviewedPublicMongoNativeFact]
+    [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_PUBLIC_SIDECAR_TOKEN")]
+    public Task OrbitDbNativeHttp() => VerifyHttpAsync(ProviderType.OrbitDBOASIS);
+
+    [ReviewedPublicMongoNativeFact("CQL_ENS_OFFCHAIN_QUERY_API_KEY")]
     public Task EnsOffchainNativeHttpContinuation() => VerifyHttpAsync(ProviderType.ENSOffchainOASIS, resume: true);
 
     private sealed record FixtureIntent(string Owner, string nonce, string database, Guid actor,
@@ -411,6 +415,7 @@ public sealed class CqlReviewedPublicMongoHttpTests
                     keys.Select(key => EnsOffchainQuerySource.LogicalId(owner, key)).ToArray());
             }
             case ProviderType.GUNOASIS:
+            case ProviderType.OrbitDBOASIS:
             {
                 var fixture = Environment.GetEnvironmentVariable("COSMIC_REVIEWED_PUBLIC_SIDECAR_FIXTURE");
                 var token = Environment.GetEnvironmentVariable("COSMIC_REVIEWED_PUBLIC_SIDECAR_TOKEN");
@@ -419,7 +424,9 @@ public sealed class CqlReviewedPublicMongoHttpTests
                 var ids = descriptor.RootElement.GetProperty("ids").EnumerateArray().Take(3).Select(value => value.GetGuid()).ToArray();
                 Assert.Equal(3, ids.Distinct().Count());
                 Assert.DoesNotContain(Guid.Empty, ids);
-                return (new GunQuerySource(new Uri("http://127.0.0.1:54870/"), token!, ids[0]), ids);
+                return provider == ProviderType.GUNOASIS
+                    ? (new GunQuerySource(new Uri("http://127.0.0.1:54870/"), token!, ids[0]), ids)
+                    : (new OrbitDbQuerySource(new Uri("http://127.0.0.1:54869/"), token!, ids[0]), ids);
             }
             default:
                 throw new ArgumentException("Use one reviewed public native fixture.", nameof(provider));
