@@ -1665,6 +1665,11 @@ WEB4 build released the shared build lease and restored the existing Core
 checkout. No runtime or hosted database was installed, and no access token
 was created.
 
+Fastly's native probe build-only run retained `build.log` and `core-pin.txt`
+in `LocalState/COSMIC/HostedFastlyCqlQualification/native-ffa6ad11c9494141b431b5d6cf20a9c4/`.
+The probe reuses `bin/Debug/net10.0` and `obj` under the same qualification
+directory. No new runtime, account, credential or hosted store was used.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt

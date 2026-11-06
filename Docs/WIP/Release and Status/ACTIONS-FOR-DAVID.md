@@ -712,3 +712,10 @@ and hosted federation and replication verification.
 - Owner step: identify an existing dedicated Realtime Database teaching source and its Firebase project ID. Arrange a restricted Firebase Authentication ID token for the teaching reader through protected settings. Review token expiry, database Security Rules and deployed request instrumentation before use.
 - The catalogue needs three public live roots, one deleted record and one absent ID under the declared actor. Choose a live root as the probe. No new paid service or account is requested.
 - Reason: native HTTPS and rules qualification precede Development settings and browser acceptance. [Firebase configuration and fixture](../COSMIC%20ORM/FIREBASE_CQL_MVP.md#development-web4-preparation).
+
+## Fastly KV hosted teaching store access - 2026-11-06
+
+- Status: seven Fastly provider and seven WEB4 admission checks passed. The native verifier compiled. No credentialed request has run.
+- Owner step: identify an existing dedicated Fastly teaching account and store. Review whether a read-only token can access the KV item route within the approved account boundary. Fastly notes that service restrictions do not constrain non-service endpoints, so service restriction alone is insufficient. If the boundary is approved, arrange the token through the protected `CQL_FASTLY_QUERY_READER_TOKEN` setting.
+- The reviewed catalogue requires three public live roots, one deleted record and one absent ID under the declared actor. Use a live root as the probe. No new paid resource is requested.
+- Reason: native 3/2/0 and unchanged item generation checks precede Development enrollment. [Fastly evidence](../COSMIC%20ORM/FASTLY_KV_CQL_MVP.md) · [Token scopes](https://www.fastly.com/documentation/reference/api/auth-tokens/user/).

@@ -32,12 +32,15 @@ The admission TRX SHA-256 is
 The native verifier draft checks the exact live, deleted and absent keys,
 runs CQL 3/2/0 and compares Fastly generation markers and object hashes
 before and after. It stops before the build lease if the reviewed catalogue
-or reader token is missing. The C# probe still needs to compile.
+or reader token is missing. The C# probe compiled at Core
+`79405fdb497834f275ef10edeb7d4b3b2c47ee38` with zero build errors. The build
+log SHA-256 is `a238190f6239db9081b916f53f774687a182a08ae468baca85af8f46376b1fbe`.
+The build-only run made no native requests.
 [Fastly generation markers](https://www.fastly.com/documentation/reference/api/services/resources/kv-store-item/).
 
 Fastly documents a `global:read` scope and notes that service restrictions
 do not constrain non-service endpoints. Before native verification,
 confirm that the reviewed teaching account and token can read the KV
-route with the required access boundary. No credential has been requested
-for this candidate.
+route with the required access boundary. The access review is recorded in
+the [owner actions list](../Release%20and%20Status/ACTIONS-FOR-DAVID.md#fastly-kv-hosted-teaching-store-access---2026-11-06).
 [Fastly user token scopes](https://www.fastly.com/documentation/reference/api/auth-tokens/user/).
