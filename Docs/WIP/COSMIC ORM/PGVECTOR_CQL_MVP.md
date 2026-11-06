@@ -18,3 +18,9 @@ shipping schema, creates a reader with column-level access, and checks
 Native verification is pending. WEB4 enrollment, federation, browser
 acceptance and vector similarity queries remain open. LocalFile remains
 first for live rollout.
+
+The first Linux run started the pinned PostgreSQL image, then failed
+before fixture creation. Npgsql could not materialize the catalogue's
+`regclass` result as an untyped scalar. The fixture now checks existence
+inside PostgreSQL and reads the resulting Boolean.
+[First native run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42241366067/job/127972185063)

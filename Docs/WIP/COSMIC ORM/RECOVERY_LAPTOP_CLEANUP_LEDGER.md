@@ -2029,6 +2029,11 @@ disposable runner, bound to loopback, with a temporary container and database
 volume. The job removes both and retains only a compact runtime listing and
 TRX for seven days. No database binaries, image layers or fixture data are
 downloaded to this laptop.
+The first pgvector run reached the native database. Its 1,973-byte
+failure receipt is `LocalPgVectorCqlQualification/native-ci-42241366067.zip`,
+SHA-256 `8c2b13f79d5d29760e801b2cf051e5a0f94ebc43b86b0798ed17bd123fc193aa`.
+The stack trace was read in memory. The fixture now requests a Boolean
+instead of asking Npgsql to decode an untyped PostgreSQL catalogue value.
 
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive

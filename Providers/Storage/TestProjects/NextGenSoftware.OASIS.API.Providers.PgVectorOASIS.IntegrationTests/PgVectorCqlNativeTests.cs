@@ -20,8 +20,8 @@ public class PgVectorCqlNativeTests
         const ProviderType type = ProviderType.PgVectorOASIS;
         await using var setup = new NpgsqlConnection(owner);
         await setup.OpenAsync();
-        await using (var fresh = new NpgsqlCommand("SELECT to_regclass('public.oasis_holons')", setup))
-            Assert.AreEqual(DBNull.Value, await fresh.ExecuteScalarAsync());
+        await using (var fresh = new NpgsqlCommand("SELECT to_regclass('public.oasis_holons') IS NULL", setup))
+            Assert.AreEqual(true, await fresh.ExecuteScalarAsync());
         var initialized = await new PgVectorOASIS(owner).ActivateProviderAsync();
         Assert.IsFalse(initialized.IsError, initialized.Exception?.ToString() ?? initialized.Message);
 
