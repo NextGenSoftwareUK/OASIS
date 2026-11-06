@@ -2501,3 +2501,10 @@ The exact LanceDB Core pin, log and TRX use the `lancedb-` prefix in
 
 Litestream WEB4 admission passed all five tests. The original Core
 checkout was restored and the TRX hash is in the evidence note.
+
+Pinecone passed all 60 provider tests and LanceDB passed all 69 under one
+lease. The Core checkout was restored. LanceDB restored Apache.Arrow and
+Apache.Arrow.Scalars 23.0.0 into the existing global package cache, totaling
+2306719 bytes. The exact paths, versions and hashes are in
+LocalState/COSMIC/HostedPineconeCqlQualification/lancedb-nuget-restore-receipt.json.
+Pinecone's restore reported no new package installations.
