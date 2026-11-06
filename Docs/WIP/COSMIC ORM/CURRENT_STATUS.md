@@ -56,7 +56,10 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
 - NATS JetStream now validates public visibility before paging. An isolated
   native test reproduced the old behavior and verified that the same
   request fails when a selected row becomes private, even if it would fall
-  outside the page. Hosted TLS and visitor verification remain open.
+  outside the page. A local JetStream 2.15.2 TLS probe with NATS.Net 3.2.0
+  confirmed that a restricted reader can open and read one approved bucket.
+  It rejected writes, access to another bucket and an untrusted certificate.
+  The approved hosted endpoint and live visitor verification remain open.
 - Weaviate uses the official pinned gRPC protocol over a guarded WEB4 channel.
   Eight provider and nine WEB4 checks passed. The approved public source
   and live visitor run are open. [Weaviate evidence](WEAVIATE_CQL_MVP.md).

@@ -2653,3 +2653,17 @@ SHA-256 values are
 Both owned processes stopped, port 24223 closed, and the two disposable
 stores (7350 bytes each) were removed. Retain the probe sources and compact
 run logs. The probe project bin and obj are regenerable.
+
+The NATS TLS permission probe reuses the same SDK probe project, pinned
+server executable and Git for Windows OpenSSL. No runtime was installed.
+Its unique `tls-*` run directory holds a loopback-only store, throwaway
+credentials and certificates, and build/server/probe logs. Remove the
+disposable store, server configuration and keys after verifying shutdown.
+The TLS run `tls-77857e7473c44562a294e6da694bd56d` passed. The reader used
+only stream-info and direct-get subjects for the approved bucket, and
+subscribed to reply inboxes. The server recorded publish denials for both
+the write and the other bucket. The source value and revision stayed
+unchanged. The probe log SHA-256 is
+`98432b09733c612520dfa9ac7b77a777748575af04318690589a7e69245ee248`.
+The owned process exited, port 24224 closed, and the disposable store,
+configuration and certificates and keys were removed.
