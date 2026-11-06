@@ -1980,6 +1980,18 @@ ran. All 145,953,352 logical bytes remain. Revalidate the exact paths and
 process ownership under the provider lease before later cleanup. Keep the
 compact reports, source and shared build cache.
 
+The Weaviate generated gRPC transport uses the existing Weaviate.Client
+package and shared .NET environment. The official pinned protocol sources
+were inspected in memory. Build log
+`TestResults/ProviderBuildCurrent/weaviate-generated-grpc.log` and TRX under
+`LocalState/COSMIC/HostedWeaviateCqlQualification/generated-grpc/` retain
+the controlled wire evidence. No native server or SDK package was installed.
+
+The Weaviate generated-client build stopped at CS0122 because the pinned
+package generates internal protobuf types. The log retains the exact
+compiler error. No TRX was produced. The tested provider source was restored
+and the lease returned shared Core to `54159614`.
+
 Weaviate's pinned SDK source was inspected in memory from the official
 repository. Its public-probe fixture reused existing build inputs and writes
 `TestResults/ProviderBuildCurrent/weaviate-public-probe-native-fixture.log`.

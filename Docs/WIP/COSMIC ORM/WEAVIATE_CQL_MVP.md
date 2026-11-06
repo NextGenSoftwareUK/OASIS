@@ -117,3 +117,11 @@ SDK against the retained Linux TLS ports and process-scoped CA. It requires
 selection and excludes deleted/absent IDs. The retained private demonstration
 records keep their original visibility. Native execution awaits a reviewed
 public source and the Linux host.
+
+The direct generated-client qualification reached a compile-time access
+boundary. Weaviate.Client 1.2.0 generates the service and protobuf types as
+internal, so external code cannot construct its stub with a guarded channel.
+The experiment stopped at CS0122 and the tested SDK path was restored.
+The remaining transport work is an SDK-supported custom channel or a
+separately generated client from the pinned official protocol, followed by
+real wire qualification. [Pinned SDK project](https://github.com/weaviate/csharp-client/blob/90ffbe6634db13a8c8bfbce963e2f9c3f437c3f1/src/Weaviate.Client/Weaviate.Client.csproj).
