@@ -119,3 +119,18 @@ The shared WEB4 admission run passed 13/13 against Core
 `0561f11287d7913b235106cfc261484ae73db41c`. The native TLS fixture compiled
 with zero errors. The admission tests covered distinct authority, settings
 validation and rejecting an SDK connection to a different endpoint.
+
+The disposable Windows fixture then passed one real CQL test through
+StackExchange.Redis with a TLS-verified restricted reader. It used the
+normal provider saves to create the encrypted records and checked 3/2,
+one-row paging, deleted and absent exclusion, public flags, and identical
+native ciphertext hashes before and after. Native TRX SHA256
+`03b1f5b609baef1c3aa9287938794d9b1c21fc13511d03774d96b34d46025c6b`.
+The fixture used loopback only. It does not qualify a hosted instance.
+
+From the repository root, build the Garnet integration project and run
+`python -B Scripts/TestHosts/run-cosmic-garnet-windows-public.py` within
+the same shared build lease. The launcher expects the verified runtime
+receipt in the recovery-laptop qualification directory and refuses to
+reuse the evidence directory. Archive the completed evidence before
+a deliberate new fixture run.

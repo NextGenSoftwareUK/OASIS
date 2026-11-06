@@ -2157,3 +2157,11 @@ The Garnet and KeyDB WEB4 admission run passed 13/13. admission.trx SHA256:
 The WEB4 qualification lease restored shared Core to `54159614`.
 The subsequent Windows native batch build log is
 `TestResults/ProviderBuildCurrent/garnet-windows-encrypted-cql-build.log`.
+
+The Windows Garnet encrypted CQL fixture compiled with 150 warnings and
+zero errors, then passed 1/1 against the actual pinned executable.
+The native TRX and cleanup proof are under `encrypted-cql-native/`.
+TRX SHA256 `03b1f5b609baef1c3aa9287938794d9b1c21fc13511d03774d96b34d46025c6b`.
+The owned loopback process exited, its port closed, and its four exact
+credential files were removed. Core returned to `54159614`.
+The launcher is preserved at `Scripts/TestHosts/run-cosmic-garnet-windows-public.py`.
