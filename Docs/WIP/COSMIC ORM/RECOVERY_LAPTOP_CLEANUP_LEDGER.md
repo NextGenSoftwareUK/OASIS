@@ -3472,3 +3472,40 @@ and Python settings and response-evidence logs are in
 `LocalState/COSMIC/PinataPublicCqlQualification/`. Available space
 changed from 38,149,763,072 to 34,041,745,408 bytes during the build.
 No new package version, runtime, data or credential was created.
+
+The first Pinata local WEB4 federation attempt left
+`cosmic_cql_pinataoasis_http` in the existing loopback Mongo replica set.
+`LocalState/COSMIC/ReviewedPublicMongoHttpQualification/PinataOASIS/`
+holds the 552-byte fixture intent and both 108-byte version-one save
+receipts. The owned process shut down cleanly after the failed native
+HTTP read. Logs, TRX and stop evidence are in
+`LocalState/COSMIC/PinataPublicCqlQualification/pinata-http/`.
+Retain the exact database and journals until a successful read-only
+continuation reconciles both records and verifies their cleanup.
+
+`LocalState/COSMIC/PinataPublicCqlQualification/pinata-read-continuation/`
+contains the frozen-consumer build, timeout TRX and clean Mongo shutdown
+receipt from the read-only continuation. It reused the existing Mongo
+instance and did not create or replay private records. The original
+fixture database and both acknowledgements remain reserved for the
+verified continuation.
+
+### Push Protocol, LayerZero v1 and related native checks, 6 November 2026
+
+The leased batch `LocalState/COSMIC/verify-push-layerzero-v1-native.ps1`
+reused the existing SDK and NuGet cache. The API, address book and RPC
+preflights ran in memory. The owned output directories under
+`LocalState/COSMIC/` retain the compact evidence below.
+
+| Scope | Directory | Passing TRX bytes | Build log bytes |
+| --- | --- | ---: | ---: |
+| Push Protocol | `PushProtocolPublicCqlQualification/` | 7,664 | 390,835 |
+| LayerZero v1 | `LayerZeroV1PublicCqlQualification/` | 5,870 | 58,635 |
+| Livepeer transport regression | `LivepeerPublicCqlQualification/` | 5,847 | 4,745 |
+| Pinata bounded read batch | `PinataPublicCqlQualification/` | 8,978 | 4,962 |
+
+LayerZero v1 also retains the original 6,397-byte TRX and 5,623-byte
+log. Push Protocol and LayerZero v1 provider `bin` and `obj` outputs
+under `Providers/Network/` total 9,188,353 and 9,200,101 bytes.
+Their existing UnitTests output directories total 48,127,355 and
+48,134,811 bytes. There are no new packages, nodes or credentials.

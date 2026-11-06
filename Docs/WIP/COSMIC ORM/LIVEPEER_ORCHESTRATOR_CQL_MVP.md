@@ -58,3 +58,9 @@ recorded nine receipts from the controlled admission layer. Both
 owned databases were verified absent after cleanup and the reused
 Mongo process shut down cleanly. The 4,679-byte TRX SHA-256 is
 `b31cc2e3f8e197ad069c50cd6c4293bbb40b5642a114c70363bcf6b859013d41`.
+
+The LayerZero v1 provider reuses the finalized unsigned RPC transport.
+Livepeer passed the same three native and controlled tests after that
+extraction at Core `06a4363e1c26e616eddda34c2959acadab8dbba8`.
+The 5,847-byte TRX SHA-256 is
+`d815ee4016257e1f6b428cf20e1ca6dcc417aeca9a1adc6405717993f35358d8`.

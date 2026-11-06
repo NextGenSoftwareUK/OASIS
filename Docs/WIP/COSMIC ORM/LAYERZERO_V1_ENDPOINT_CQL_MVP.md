@@ -1,0 +1,33 @@
+# LayerZero v1 deployed endpoint CQL MVP
+
+The profile reads three published LayerZero v1 endpoint deployments
+through fixed public Ethereum, Polygon and Arbitrum RPCs. Each
+read verifies the EVM chain and genesis, then uses one finalized
+block hash and EIP-1898 canonical selectors for the endpoint chain
+ID and default send and receive library versions.
+
+| Network | Deployed contract chain ID | Published v1 chain ID |
+| --- | ---: | ---: |
+| Ethereum | 1 | 101 |
+| Polygon | 9 | 109 |
+| Arbitrum | 10 | 110 |
+
+The contract-returned and published identifiers are distinct fields.
+The initial native projection failed because OASIS metadata requires
+normalization of native unsigned integers. The provider now validates
+the exact ABI `uint16` and projects it as an OASIS integer.
+
+At Core `06a4363e1c26e616eddda34c2959acadab8dbba8`, the native
+contracts returned exact 3/2 rows. The wrong-genesis and wrong
+contract-identity controls passed. Three passed with zero skips.
+The 5,870-byte passing TRX SHA-256 is
+`56e17257988ef887e92459423be308c9f96794f3cea5a9cb42b140bbf1cae52a`.
+The original failing 6,397-byte TRX SHA-256 is
+`50709d42fbfbe5c4412e6c8083ee371330d3fa3975ef5966a0e4221605827272`.
+
+WEB4 admission, federation and hosted acceptance remain open.
+This profile covers deployed v1 endpoint configuration. Its contracts
+and acceptance are separate from message delivery and LayerZero v2.
+[Published v1 deployments and ABI](https://github.com/LayerZero-Labs/endpoint-v1-solidity-examples/tree/cdc93994911829b1348f6ac18000000a43432ef1/constants) ·
+[Archived v1 endpoint source](https://github.com/LayerZero-Labs/LayerZero-v1/blob/main/contracts/Endpoint.sol) ·
+[Official v1 support update](https://layerzero.network/blog/ongoing-security-updates-3).

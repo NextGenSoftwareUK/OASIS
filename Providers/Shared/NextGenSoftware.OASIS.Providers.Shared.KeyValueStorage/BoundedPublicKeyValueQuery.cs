@@ -15,8 +15,15 @@ using NextGenSoftware.OASIS.Common;
 namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 /// <summary>Bounded reads of public canonical holons through a provider's exact native key reader.</summary>
-public sealed class BoundedPublicKeyValueQuery(ProviderType provider, Func<Guid, CancellationToken, Task<string>> read)
+public sealed class BoundedPublicKeyValueQuery(ProviderType provider, Func<Guid, CancellationToken, Task<string>> read,
+    int maximumConcurrentReads)
 {
+    private readonly int concurrentReads = maximumConcurrentReads is >= 1 and <= 4
+        ? maximumConcurrentReads : throw new ArgumentOutOfRangeException(nameof(maximumConcurrentReads));
+
+    public BoundedPublicKeyValueQuery(ProviderType provider, Func<Guid, CancellationToken, Task<string>> read)
+        : this(provider, read, 1) { }
+
     public async Task<OASISResult<bool>> VerifyProbeAsync(Guid probe, CancellationToken cancellationToken)
     {
         try
@@ -59,16 +66,20 @@ public sealed class BoundedPublicKeyValueQuery(ProviderType provider, Func<Guid,
             using var deadline = CreateDeadline(cancellationToken);
             var rows = new List<IHolon>();
             var bytes = 0;
-            foreach (var id in selection.Result)
+            foreach (var batch in selection.Result.Chunk(concurrentReads))
             {
                 deadline.Token.ThrowIfCancellationRequested();
-                var row = await ReadRecordAsync(id, deadline.Token, count => bytes += count);
+                var loaded = await Task.WhenAll(batch.Select(id => ReadRecordAsync(id, deadline.Token,
+                    count => Interlocked.Add(ref bytes, count))));
                 if (bytes > 4 * 1024 * 1024)
                     return Error("CQL_QUERY_LIMIT", "The complete native response exceeds 4 MiB.");
-                if (row == null || row.IsDeleted) continue;
-                if (!row.IsPublic || !plan.Query.ReadAccess.CanRead(row))
-                    throw new InvalidDataException("A teaching holon differs from the admitted read authority.");
-                rows.Add(row);
+                foreach (var row in loaded)
+                {
+                    if (row == null || row.IsDeleted) continue;
+                    if (!row.IsPublic || !plan.Query.ReadAccess.CanRead(row))
+                        throw new InvalidDataException("A teaching holon differs from the admitted read authority.");
+                    rows.Add(row);
+                }
             }
 
             var page = rows.Skip(plan.Query.Offset).Take(plan.Query.Limit ?? rows.Count).ToArray();

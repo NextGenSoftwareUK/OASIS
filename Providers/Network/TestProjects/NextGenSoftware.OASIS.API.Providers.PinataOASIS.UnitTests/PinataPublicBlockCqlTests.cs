@@ -4,6 +4,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.Core.Serialization;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS.UnitTests;
 
@@ -69,6 +71,37 @@ public sealed class PinataPublicBlockCqlTests
                 Assert.AreEqual("dag-pb", row.MetaData["PinataBlockCodec"].ToString());
             }
         }
+    }
+
+    [TestMethod]
+    public async Task IndependentReviewedBlocksStartWithinOneBoundedReadBatch()
+    {
+        const ProviderType provider = ProviderType.PinataOASIS;
+        var ids = Blocks.Select(block => PinataPublicBlockQuerySource.LogicalId(Owner, block.Cid)).ToArray();
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        int observed = 0;
+        var reader = new BoundedPublicKeyValueQuery(provider, async (id, token) =>
+        {
+            if (Interlocked.Increment(ref observed) == ids.Length) started.TrySetResult();
+            await release.Task.WaitAsync(token);
+            return StoredRecordJson.Serialize(new Holon { Id = id, IsPublic = true, CreatedByAvatarId = Owner });
+        }, maximumConcurrentReads: ids.Length);
+        var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(provider).Result)
+            .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(Owner, provider, ids).Result).Result
+            .Where(row => ids.Contains(row.Id));
+        Assert.IsFalse(query.IsError, query.Message);
+        var plan = CosmicQueryPlanner.Plan(query.Result, provider,
+            new[] { new CosmicQueryTarget(provider, BoundedIdentityCqlCompiler.Capabilities) });
+        Assert.IsFalse(plan.IsError, plan.Message);
+
+        var resultTask = reader.ExecuteAsync(plan.Result, ids.Length, active: true, versioned: false, CancellationToken.None);
+        var reachedBatch = await Task.WhenAny(started.Task, Task.Delay(TimeSpan.FromSeconds(5)));
+        release.TrySetResult();
+        var result = await resultTask;
+        Assert.AreSame(started.Task, reachedBatch);
+        Assert.IsFalse(result.IsError, result.Exception?.Message);
+        CollectionAssert.AreEquivalent(ids, result.Result.Select(row => row.Id).ToArray());
     }
 
     private sealed class InvalidBlock(string mediaType, int bytes) : HttpMessageHandler

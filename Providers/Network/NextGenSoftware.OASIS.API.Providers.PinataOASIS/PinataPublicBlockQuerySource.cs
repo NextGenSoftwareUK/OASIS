@@ -47,7 +47,7 @@ public sealed class PinataPublicBlockQuerySource : KeyValueStorageProviderBase, 
         ProviderName = QueryProviderType.ToString();
         ProviderDescription = "Verified public Pinata IPFS block metadata";
         ProviderCategory = new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.Storage);
-        query = new(QueryProviderType, backend.ReadAsync);
+        query = new(QueryProviderType, backend.ReadAsync, maximumConcurrentReads: Reviewed.Count);
     }
 
     private Guid ProbeId { get; }

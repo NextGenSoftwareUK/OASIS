@@ -46,3 +46,30 @@ regressions with zero skips. The 31,278-byte TRX SHA-256 is
 `e4c52591653685f7ee7bdf880b4baa002e5ed3cdbd572832d36b1984ff2a2df3`.
 The settings and response-evidence suites passed 39 and 21 checks.
 Development activation follows LocalFile.
+
+The first Pinata local HTTP attempt passed activation and the preliminary
+native selection. Mongo acknowledged both private version-one saves, then
+the native WEB4 three-row query returned HTTP 503 with `CQL_QUERY_FAILED`.
+The source error was unavailable in the initial client log. The failing TRX
+SHA-256 is `72bcaed7eae1e5c22fe11ad7576df4b22c992b104542530630b07c862608079c`.
+The original synthetic database and write acknowledgements are retained.
+Continuation reconciles both acknowledged records by identity and version
+before reading.
+
+The first read-only continuation stopped in the preliminary native
+selection with a `TaskCanceledException` while the guarded TLS connection
+was waiting for a Pinata response. The independent CID fetches had been
+running serially under the shared 15-second query deadline. The 22-second
+test included activation and the bounded native selection. No original
+write was repeated. The continuation TRX SHA-256 is
+`b9430cac7ad8e195c71be4920075978bdb6e9c71125cec2f4bd72b047a1a8c60`.
+
+The repair permits three independent verified block reads to overlap
+under the same deadline and row and response budgets. The shared
+query helper continues to read serially for its existing profiles.
+
+The bounded read batch passed all five Pinata provider checks, including
+native 3/2 and a controlled test that requires all three independent
+reads to start before any response is released. The 8,978-byte TRX
+SHA-256 is `ea5f69d2d5063d56929caf6c73e6860db3f694fc9bd290c8f54af00ce34f2132`.
+The exact local HTTP continuation still needs its rebuilt WEB4 producer.
