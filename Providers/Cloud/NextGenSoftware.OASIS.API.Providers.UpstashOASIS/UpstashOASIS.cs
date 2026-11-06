@@ -55,9 +55,12 @@ namespace NextGenSoftware.OASIS.API.Providers.UpstashOASIS
         };
 
         public UpstashOASIS(string restUrl, string token)
+            : this(restUrl, token, new HttpClient()) { }
+
+        private UpstashOASIS(string restUrl, string token, HttpClient client)
         {
             _restUrl = restUrl.TrimEnd('/');
-            _http = new HttpClient();
+            _http = client ?? throw new ArgumentNullException(nameof(client));
             _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             ProviderName = "UpstashOASIS";

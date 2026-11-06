@@ -598,6 +598,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             Services.Cql.CqlFirebaseReadSourceRegistration.AddFirebaseReadSource(services, Configuration);
             Services.Cql.CqlWeaviateReadSourceRegistration.AddWeaviateReadSource(services, Configuration);
             Services.Cql.CqlTigrisReadSourceRegistration.AddTigrisReadSource(services, Configuration);
+            Services.Cql.CqlUpstashReadSourceRegistration.AddUpstashReadSource(services, Configuration);
 
             if (Configuration["CQL_CHROMA_QUERY_ORIGIN"] is string chromaOrigin)
             {

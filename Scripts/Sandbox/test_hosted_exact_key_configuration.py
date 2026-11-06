@@ -28,6 +28,9 @@ class ExactKeyConfigurationTests(unittest.TestCase):
             with self.subTest(provider=provider):
                 self.check_candidate(provider)
 
+    def test_upstash_candidate_preserves_existing_providers(self):
+        self.check_candidate("UpstashOASIS")
+
     def check_candidate(self, provider):
         partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
         baseline = {
@@ -56,7 +59,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":

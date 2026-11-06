@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,8 +16,74 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.UpstashOASIS;
 
-public partial class UpstashOASIS : ICosmicQueryStorageProvider
+public partial class UpstashOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
 {
+    private readonly Guid? _queryProbe;
+
+    /// <summary>Explicit public query source with a caller-owned, bounded HTTP client.</summary>
+    public UpstashOASIS(string restUrl, string token, HttpClient client, Guid queryProbe)
+        : this(restUrl, token, client)
+    {
+        if (queryProbe == Guid.Empty) throw new ArgumentException("An existing public teaching probe is required.", nameof(queryProbe));
+        _queryProbe = queryProbe;
+    }
+
+    public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
+    {
+        IsProviderActivated = false;
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (_queryProbe is not Guid id || QueryProviderType != Core.Enums.ProviderType.UpstashOASIS)
+                throw new InvalidOperationException("An explicit source authority and teaching probe are required.");
+            var values = await ReadQueryValuesAsync(new[] { id }, cancellationToken).ConfigureAwait(false);
+            var payload = ReadQueryPayload(values[0]);
+            var row = payload == null ? null : ReadQueryRecord(payload, id);
+            if (row == null || row.IsDeleted || !row.IsPublic)
+                throw new InvalidDataException("The teaching probe must be an existing public record.");
+            cancellationToken.ThrowIfCancellationRequested();
+            IsProviderActivated = true;
+            return new(true);
+        }
+        catch (Exception cause)
+        {
+            return new()
+            {
+                IsError = true,
+                ErrorCount = 1,
+                ErrorCode = cause is OperationCanceledException ? "CQL_QUERY_CANCELLED" : "CQL_QUERY_SOURCE_UNAVAILABLE",
+                Message = "The native Upstash query source did not verify its teaching probe.",
+                Exception = cause
+            };
+        }
+    }
+
+    private async Task<JsonElement> ReadQueryValuesAsync(IReadOnlyList<Guid> ids, CancellationToken cancellationToken)
+    {
+        // Exact canonical Holon keys. The native result is positional.
+        var command = new object[] { "MGET" }.Concat(ids.Select(id => (object)("holon:" + id.ToString("D")))).ToArray();
+        var response = await ExecAsync(cancellationToken, command).ConfigureAwait(false);
+        if (!response.TryGetProperty("result", out var values) || values.ValueKind != JsonValueKind.Array ||
+            values.GetArrayLength() != ids.Count)
+            throw new InvalidDataException("Upstash MGET must return one positional value per requested identity.");
+        return values;
+    }
+
+    private static string? ReadQueryPayload(JsonElement value) => value.ValueKind switch
+    {
+        JsonValueKind.Null => null,
+        JsonValueKind.String => value.GetString(),
+        _ => throw new InvalidDataException("Upstash MGET record must be a string or null.")
+    };
+
+    private static Holon ReadQueryRecord(string payload, Guid id)
+    {
+        var row = Des<Holon>(payload);
+        if (row == null || row.Id != id)
+            throw new InvalidDataException("Native Upstash record differs from the requested identity.");
+        return row;
+    }
+
     public ProviderType QueryProviderType => ProviderType.Value;
     private static readonly CosmicQueryCapabilities UnsupportedAliasCapabilities = new(CosmicQueryFeatures.None,
         Array.Empty<CosmicQueryFieldCapability>());
@@ -47,29 +115,22 @@ public partial class UpstashOASIS : ICosmicQueryStorageProvider
             var payloadBytes = 0;
             if (selection.Result.Count == 0 || plan.Query.Limit == 0)
                 return new(Array.AsReadOnly(Array.Empty<IHolon>())) { IsLoaded = true, LoadedCount = 0 };
-            // One bounded native MGET uses exactly the same holon:{GUID-D}
-            // keys as Save/Load. No keyspace scan or managed predicate execution.
-            var command = new object[] { "MGET" }.Concat(selection.Result.Select(id => (object)("holon:" + id.ToString("D")))).ToArray();
-            var response = await ExecAsync(cancellationToken, command).ConfigureAwait(false);
-            if (!response.TryGetProperty("result", out var values) || values.ValueKind != System.Text.Json.JsonValueKind.Array
-                || values.GetArrayLength() != selection.Result.Count)
-                throw new InvalidDataException("Upstash MGET must return one positional value per requested identity.");
+            var values = await ReadQueryValuesAsync(selection.Result, cancellationToken).ConfigureAwait(false);
             for (var index = 0; index < selection.Result.Count; index++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var id = selection.Result[index];
-                var value = values[index];
-                if (value.ValueKind == System.Text.Json.JsonValueKind.Null) continue;
-                if (value.ValueKind != System.Text.Json.JsonValueKind.String)
-                    throw new InvalidDataException("Upstash MGET record must be a string or null.");
-                var json = value.GetString();
+                var json = ReadQueryPayload(values[index]);
+                if (json == null) continue;
                 payloadBytes = checked(payloadBytes + Encoding.UTF8.GetByteCount(json));
                 if (payloadBytes > 4 * 1024 * 1024)
                     return Error("CQL_QUERY_LIMIT", "The complete canonical response exceeds 4 MiB.");
-                var row = Des<Holon>(json);
-                if (row == null || row.Id != id || !plan.Query.ReadAccess.CanRead(row))
+                var row = ReadQueryRecord(json, id);
+                if (!plan.Query.ReadAccess.CanRead(row))
                     throw new InvalidDataException("Native Upstash record differs from the authorized identity.");
                 if (row.IsDeleted) continue;
+                if (_queryProbe.HasValue && !row.IsPublic)
+                    throw new InvalidDataException("Native teaching record is no longer public.");
                 row.Children = Array.Empty<IHolon>();
                 row.ProviderUniqueStorageKey[QueryProviderType] = id.ToString("D");
                 rows.Add(row);

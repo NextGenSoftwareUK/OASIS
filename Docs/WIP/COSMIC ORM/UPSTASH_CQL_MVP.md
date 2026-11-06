@@ -148,3 +148,49 @@ until expiry; do not harden green rows absent a reproduced bug. Broader correctn
 replication, migration and parity acceptance remain unchanged.
 
 [Breadth reconciliation](PROVIDER_BREADTH_RECONCILIATION_2026-10-30.md) / [status](CURRENT_STATUS.md).
+
+## Public query profile preparation
+
+The query-only constructor takes a caller-owned HTTP client and an exact
+public probe ID. Activation uses the same native MGET body as the normal
+bounded query, with exactly one key. The public profile requires that all
+returned live records remain public. The existing owned constructor and
+its activation path retain their behavior.
+
+The protected WEB4 registration and tests are the next step. They need a
+dedicated HTTPS source with a restricted REST token, an exact MGET request
+guard and a response size limit. The expired scratch remains historical.
+[Upstash REST command and ACL token contract](https://upstash.com/docs/redis/features/restapi).
+
+WEB4 takes protected `CQL_UPSTASH_QUERY_ORIGIN`,
+`CQL_UPSTASH_QUERY_READER_TOKEN` and `CQL_UPSTASH_QUERY_PROBE_ID`. It
+admits only the configured native HTTPS origin and a JSON MGET request for
+1–100 canonical Holon keys. The client buffers up to 8 MiB of wire response
+within its deadline. The provider checks the decoded 4 MiB result budget.
+The public probe must match the first ID in the reviewed catalogue.
+
+The opt-in integration fixture is enabled with
+`/p:EnableUpstashHostedCqlNativeTests=true` and selected with
+`TestCategory=UpstashHostedCqlNative`. It requires
+`COSMIC_UPSTASH_HOSTED_CQL_SOURCE` and the same three protected settings.
+The five protected-settings tests pass. Provider, fixture compilation and
+WEB4 admission tests are running. No new scratch has been provisioned.
+
+A separate free disposable Upstash scratch passed the native CQL fixture
+through the shipping WEB4 registration. The reader credential uses
+Upstash's `ACL GENTOKEN` and permits only MGET on the five reviewed keys.
+The native service denied an out-of-scope MGET and a write. Four synthetic
+records were created once with SET NX. The fixture confirmed public 3/2,
+paging, missing/deleted exclusion and identical original payload hashes.
+Native TRX SHA256
+`62d1a977c0d00c95e2e24d54209d0d196813c355d1f5250aa49417f5c2d81ab2`.
+The vendor lists 9 November 2026 as scratch expiry. Use the retained
+allocation timestamp and 72-hour limit as the local guard. The original
+expired cohort was preserved. Live Development acceptance still needs
+a stable approved source.
+[Native credential creation](https://upstash.com/docs/redis/commands/server/acl-gentoken).
+
+All 10 WEB4 admission tests passed against Core
+`29354e39c8bbf740a916819ed2e4553a910a98ca`. The 18 provider tests and
+the native scratch qualification also passed. The task branch includes
+the query-only profile and the paired Railway dependency pin.

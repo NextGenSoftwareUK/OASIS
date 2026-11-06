@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -12,6 +13,56 @@ public class UpstashCqlTests
         => CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.UpstashOASIS).Result)
             .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(
                 Guid.NewGuid(), ProviderType.UpstashOASIS, ids).Result).Result;
+
+    [TestMethod]
+    public async Task PublicProfileChecksProbeAndEveryReturnedRecordThroughTheSameNativeCommand()
+    {
+        var ids = new[] { Guid.NewGuid(), Guid.NewGuid() }.OrderBy(id => id.ToString("D"), StringComparer.Ordinal).ToArray();
+        var probePublic = false;
+        var secondPublic = true;
+        var expected = new Queue<Guid[]>(new[] { new[] { ids[0] }, new[] { ids[0] }, ids, ids });
+        using var client = new HttpClient(new QueryTransport(keys =>
+        {
+            CollectionAssert.AreEqual(expected.Dequeue().Select(id => "holon:" + id.ToString("D")).ToArray(), keys);
+            return JsonSerializer.Serialize(new
+            {
+                result = keys.Select(key =>
+                {
+                    var id = Guid.ParseExact(key[6..], "D");
+                    return JsonSerializer.Serialize(new Holon { Id = id, IsPublic = id == ids[0] ? probePublic : secondPublic }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                }).ToArray()
+            });
+        }));
+        var provider = new UpstashOASIS("https://upstash.example.test", "controlled-reader", client, ids[0]);
+        Assert.IsTrue((await provider.ActivateQuerySourceAsync(default)).IsError);
+        probePublic = true;
+        Assert.IsFalse((await provider.ActivateQuerySourceAsync(default)).IsError);
+        var plan = CosmicQueryPlanner.Plan(Query(ids), ProviderType.UpstashOASIS,
+            new[] { new CosmicQueryTarget(ProviderType.UpstashOASIS, provider.QueryCapabilities) });
+        Assert.IsFalse(plan.IsError, plan.Message);
+        var good = await provider.ExecuteCosmicQueryAsync(plan.Result);
+        Assert.IsFalse(good.IsError, good.Exception?.ToString() ?? good.Message);
+        Assert.AreEqual(2, good.Result.Count);
+
+        secondPublic = false;
+        var rejected = await provider.ExecuteCosmicQueryAsync(plan.Result);
+        Assert.IsTrue(rejected.IsError);
+        Assert.IsNull(rejected.Result);
+        Assert.AreEqual(0, expected.Count);
+    }
+
+    private sealed class QueryTransport(Func<string[], string> response) : HttpMessageHandler
+    {
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            Assert.AreEqual(HttpMethod.Post, request.Method);
+            Assert.AreEqual("https://upstash.example.test/", request.RequestUri?.AbsoluteUri);
+            Assert.AreEqual("controlled-reader", request.Headers.Authorization?.Parameter);
+            var command = JsonSerializer.Deserialize<string[]>(await request.Content!.ReadAsStringAsync(cancellationToken))!;
+            Assert.AreEqual("MGET", command[0]);
+            return new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = new StringContent(response(command[1..])) };
+        }
+    }
 
     [TestMethod]
     public void CapturedBusinessKeysCannotEscapeOrMutateAuthorityCatalogue()

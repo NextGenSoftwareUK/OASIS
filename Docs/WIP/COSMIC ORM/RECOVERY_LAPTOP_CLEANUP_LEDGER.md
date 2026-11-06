@@ -2179,3 +2179,41 @@ Dragonfly WEB4 admission passed 14/14, zero failures or skips.
 `5C44556C7DCE8C6CBC9A9F0FB41AF4580F313D4B1B57C2AEC14906225BA09054`.
 The native fixture compiled with 1,154 warnings and zero errors.
 Shared Core was restored to `54159614`. No native connection was opened.
+
+Upstash hosted qualification uses the existing .NET runtime and cached
+dependencies under one shared lease. Results go to
+`LocalState/COSMIC/HostedUpstashCqlQualification/`. Logs use
+`TestResults/ProviderBuildCurrent/upstash-public-profile.log`,
+`upstash-hosted-native-fixture.log`, and `upstash-hosted-api-cql.log`.
+Five protected-settings tests passed and removed their temporary files.
+No product runtime was downloaded or remote scratch allocated.
+
+Upstash provider tests passed 18/18. provider.trx SHA256: EFEBE89F9E60F6606B3539D479B639CF925DFA5B710BB15A587544975698BFBE.
+The opt-in native fixture compiled with 27 warnings and zero errors.
+WEB4 admission tests continue under the same lease.
+
+Upstash native qualification allocated one distinct free disposable database
+through the vendor's no-account scratch endpoint. The existing expired
+cohort was preserved. The response and reader ACL intent are DPAPI protected
+under `LocalState/COSMIC/HostedUpstashCqlQualification/fresh-native-scratch/`.
+The server rejected the restricted-reader ACL write. No teaching records
+were seeded and no WEB4 settings were applied. Keep the allocation and ACL
+evidence until reconciliation. The allocation expires automatically after
+72 hours under the vendor's scratch policy. No paid account was used.
+
+The Upstash scratch reader was reconciled on the same database. The first
+failed write left a disabled user with no password, commands or keys.
+The native error identified the GENTOKEN requirement. The resulting
+command-restricted reader denied an unrelated GET selection and a write.
+Four create-only record acknowledgements, policy receipts and DPAPI
+credentials are under `fresh-native-scratch/`. Native CQL passed 1/1
+using already-frozen integration outputs and no rebuild. Original native
+payload hashes matched before and after. Native TRX SHA256:
+`62d1a977c0d00c95e2e24d54209d0d196813c355d1f5250aa49417f5c2d81ab2`.
+Keep the compact evidence and remove expired protected credentials after
+the source is no longer used. No WEB4 deployment or settings changed.
+
+Upstash WEB4 admission passed 10/10, zero failures or skips.
+`admission.trx` SHA256:
+`B2427A636B5B00D37EBCC3CE89E6E7A80B7A6E3253E347B85F7A3DB0292FE4D5`.
+The shared build lease restored Core to `54159614`.
