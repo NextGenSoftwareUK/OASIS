@@ -165,3 +165,33 @@ Protected prepared hosted baseline/candidate remain pending deployment, not
 removable installation archives.120GBtarget remains unmet. Personal ML kept;
 previous rejected removals not retried. Outputs regenerate with cached SDK and
 packages; do not replay native qualification/acceptance to recreate evidence.
+
+## 6 November recovery against the 107GB Windows target
+
+Windows reports **66.86GB free** (71,789,510,656 bytes). The target remains
+open. The November 3 cleanup began at 61,142,249,472 bytes free (56.94GB in
+Windows). Free space fluctuated between measurements.
+
+| Reviewed resource | Logical bytes removed | Lifecycle and recreation |
+|---|---:|---|
+| Assigned worktree .NET bin/obj | 6,597,624,139 | 354 generated directories. Rebuild with existing SDK and package cache. |
+| Visual Studio staging `C:/Users/david/AppData/Local/Temp/m54u4uwi` | 3,400,114,380 | Installer can regenerate it. Six locked items remain. |
+| .NET workload download staging `C:/Users/david/AppData/Local/Temp/bc1sz23v.ykm/dotnet-sdk-advertising-temp` | 1,667,940,090 | Removed and checked absent. Workload installer can recreate it. |
+| Unused WSL Cosmos emulator image `77f8a39f5c39` | 1.69GB reported image size | No referencing container. Image verified absent. Registry digest and image metadata retained in root-only WSL state. |
+
+The Windows removals total 11,665,678,609 logical bytes. Build result wrapper
+counted zero due to PowerShell scope. The per-target log confirms 354 removals
+and supplies the reconciled byte total. Log SHA256 `262300a7f3f131024765d13ffab84211bb0f5079b7a73e874a3297a23bf86f7e`.
+Exact paths are in [the cleanup ledger](CLEANUP_LEDGER.md). Raw records are in
+`TestResults/DiskInventoryCurrent/nov3-build-cleanup-*`.
+
+Ubuntu VHD length is 112,050,831,360 bytes and the filesystem reports
+107,947,298,816 bytes used. The difference is about 4.1 billion bytes before
+compaction overhead. An interactive Ubuntu session was present. Windows admin
+compaction is still pending and cannot close the remaining gap on its own.
+The read-only container audit is `TestResults/DiskInventoryCurrent/nov6-container-lifecycle-inventory.jsonl`.
+It identified original database, chain, and credential state in container layers,
+including Cosmos and TRON. Local launchers also bind to retained container
+identities. Retiring those environments requires separating their original
+state from recreatable runtimes and updating the launchers before deleting
+anything. Personal Miniforge and model data remain covered by the KEEP decision.

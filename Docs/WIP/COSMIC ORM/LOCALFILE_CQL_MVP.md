@@ -667,3 +667,12 @@ ID is still current after inspecting the mount. Settings application also
 requires exactly one reviewed active instance for initial bootstrap.
 
 Railway 5.62.1 accepted the exact project-scoped deployment list arguments and returned Unauthorized. Its volume list still lacks project, service and environment selectors. Use the dashboard attachment and instance-scoped SSH mount check for the reviewed service.
+
+### 6 November read-only Development observation from OASIS-cosmic
+
+The existing Railway session on this laptop could read deployment metadata.
+Deployment `33c9ef7d-b8b3-4403-9109-32ce47c4d7a8` is `SUCCESS` at
+`b718f287933b7e79e862edbcf7d3bc13c37ba559`. Its metadata lists `/data`.
+The active deployment does not show the reviewed LocalFile candidate digest.
+This leaves registry pull access, the exact running candidate and an
+instance-level writable mount check open. No source or variable changed.
