@@ -55,6 +55,9 @@ class ExactKeyConfigurationTests(unittest.TestCase):
     def test_scylladb_candidate_preserves_existing_providers(self):
         self.check_candidate("ScyllaDBOASIS")
 
+    def test_litestream_candidate_preserves_existing_providers(self):
+        self.check_candidate("LitestreamOASIS")
+
     def check_candidate(self, provider):
         partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
         baseline = {
@@ -72,6 +75,11 @@ class ExactKeyConfigurationTests(unittest.TestCase):
             descriptor = Path(directory) / "catalogue.json"
             actor, first, second, third, deleted, missing = [str(uuid.UUID(int=i)) for i in range(1, 7)]
             catalogue = {"Actor": actor, "LiveIds": [first, second, third], "DeletedId": deleted, "MissingId": missing}
+            if provider == "LitestreamOASIS":
+                catalogue["RestoreSha256"] = "a" * 64
+                descriptor.write_text(json.dumps(catalogue | {"RestoreSha256": "A" * 64}))
+                with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                    configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "ScyllaDBOASIS":
                 catalogue.update(Ip="8.8.8.8", Host="node.teaching.clusters.scylla.cloud", CaSha256="a" * 64)
                 for invalid in ({"Ip": "169.254.169.254"}, {"Host": "other.invalid"}, {"CaSha256": "invalid"}):
@@ -111,7 +119,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -143,6 +151,10 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                                     CQL_SCYLLADB_QUERY_CA_SHA256=catalogue["CaSha256"], CQL_SCYLLADB_QUERY_PROBE_ID=first)
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {"CQL_SCYLLADB_QUERY_IP": "1.1.1.1"}, provider, review)
+                elif provider == "LitestreamOASIS":
+                    baseline.update(CQL_LITESTREAM_QUERY_RESTORE_SHA256=catalogue["RestoreSha256"], CQL_LITESTREAM_QUERY_PROBE_ID=first)
+                    with self.assertRaisesRegex(ValueError, "do not match"):
+                        configuration.candidate(baseline | {"CQL_LITESTREAM_QUERY_RESTORE_SHA256": "b" * 64}, provider, review)
                 else:
                     product = provider.removesuffix("OASIS").upper()
                     baseline[f"CQL_{product}_QUERY_PROBE_ID"] = first

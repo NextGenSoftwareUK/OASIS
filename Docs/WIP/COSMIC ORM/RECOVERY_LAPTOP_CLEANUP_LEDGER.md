@@ -2487,3 +2487,17 @@ WEB4 admission now uses the shared build lease. The runner, Core pin and
 eventual TRX are in the existing Litestream qualification directory.
 The log is `TestResults/ProviderBuildCurrent/litestream-hosted-api-cql.log`.
 The 14 protected-settings tests cleaned their temporary files.
+
+Pinecone recovery reuses the published provider and controls. Its runner is
+`LocalState/COSMIC/HostedPineconeCqlQualification/verify-recovered-provider.ps1`.
+After Litestream's WEB4 build it will use the shared lease and record the
+Core pin, log and TRX with the `pinecone-` prefix under
+`TestResults/ProviderBuildCurrent/`. No Pinecone index or account was created.
+
+The same recovery runner will verify LanceDB's original Arrow and bounded
+query controls after Pinecone, under the same lease and Core pin.
+The exact LanceDB Core pin, log and TRX use the `lancedb-` prefix in
+`TestResults/ProviderBuildCurrent/`. No LanceDB account or table was created.
+
+Litestream WEB4 admission passed all five tests. The original Core
+checkout was restored and the TRX hash is in the evidence note.

@@ -33,6 +33,13 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
 - RavenDB's certificate-backed provider passed 28 tests. Twelve protected
   settings and eight WEB4 admission tests passed. Live verification is open.
   [RavenDB evidence](RAVENDB_CQL_MVP.md).
+- ScyllaDB passed 23 recovered provider and seven WEB4 admission tests.
+  It awaits native connectivity to an approved TLS node and live verification.
+  [ScyllaDB evidence](SCYLLADB_CQL_MVP.md).
+- Litestream passed 16 provider tests and 14 protected-settings tests. WEB4
+  admission passed all five tests. The original Linux replication and restore evidence
+  is retained. The hosted path needs a reviewed restore on the WEB4 volume.
+  [Litestream evidence](LITESTREAM_CQL_MVP.md).
 - Weaviate uses the official pinned gRPC protocol over a guarded WEB4 channel.
   Eight provider and nine WEB4 checks passed. The approved public source
   and live visitor run are open. [Weaviate evidence](WEAVIATE_CQL_MVP.md).

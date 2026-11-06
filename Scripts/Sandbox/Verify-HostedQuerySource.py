@@ -27,7 +27,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -345,6 +345,10 @@ def reviewed_exact_key_source(provider, path):
             fields.add("BundleSha256")
             if not re.fullmatch(r"[0-9a-f]{64}", catalogue["BundleSha256"]):
                 raise ValueError("Unexpected Cassandra secure connection bundle digest.")
+        if provider == "LitestreamOASIS":
+            fields.add("RestoreSha256")
+            if not re.fullmatch(r"[0-9a-f]{64}", catalogue["RestoreSha256"]):
+                raise ValueError("Unexpected Litestream restore digest.")
         if provider == "ScyllaDBOASIS":
             fields |= {"Ip", "Host", "CaSha256"}
             address = ipaddress.ip_address(catalogue["Ip"])
@@ -436,6 +440,9 @@ def reviewed_exact_key_source(provider, path):
                                    "CQL_SCYLLADB_QUERY_HOST": catalogue["Host"],
                                    "CQL_SCYLLADB_QUERY_CA_SHA256": catalogue["CaSha256"],
                                    "CQL_SCYLLADB_QUERY_PROBE_ID": ids[0]}
+    elif provider == "LitestreamOASIS":
+        review["sourceBinding"] = {"CQL_LITESTREAM_QUERY_RESTORE_SHA256": catalogue["RestoreSha256"],
+                                   "CQL_LITESTREAM_QUERY_PROBE_ID": ids[0]}
     elif provider in ("WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS"):
         product = provider.removesuffix("OASIS").upper()
         review["sourceBinding"] = {f"CQL_{product}_QUERY_PROBE_ID": ids[0]}

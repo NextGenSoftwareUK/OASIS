@@ -112,6 +112,7 @@ Provider TRX SHA256 6cd8d98c9533dcaffb6798aa767216d80349aed3121e3778546b137d9962
 WEB4 registration uses the fixed volume path
 /data/cql-litestream/restore.db and the protected settings
 CQL_LITESTREAM_QUERY_RESTORE_SHA256 and CQL_LITESTREAM_QUERY_PROBE_ID.
-All 14 protected-settings tests passed. WEB4 admission is building against
+All 14 protected-settings tests passed. All five WEB4 admission tests passed against
 Core ac21b28d7c9950afdc882c708f6fdd9ea72c396b. Native restore receipt, reviewed volume placement and
 live Development verification remain open.
+Admission TRX SHA256 6b7c9111a4c51c117086ae31f72fa2d41e2699431d6e379a5378e14215788611.
