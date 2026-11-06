@@ -1897,6 +1897,15 @@ records. The requests retained only status summaries. The leased .NET
 test runner is prepared there. No runtime, credential or database was
 created.
 
+The leased batch compiled the Turso hosted verifier and ran six ENS
+Offchain cases, including one live native source test. All passed and
+the shared Core checkout was restored. The Turso log is
+`TestResults/ProviderBuildCurrent/turso-native-verifier-build.log`.
+ENS retains `provider-native.trx` and `provider-core-pin.txt` in its
+qualification folder and the log
+`TestResults/ProviderBuildCurrent/ens-offchain-provider-cql.log`.
+The provider and test `bin/obj` outputs are in their normal projects.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt

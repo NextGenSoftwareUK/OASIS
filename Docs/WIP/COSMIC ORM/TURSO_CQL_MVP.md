@@ -30,3 +30,11 @@ TRX SHA-256 is
 `30d25a9237605c294a046270a65ea33f267afbd61c8e413602f68b796398a9e4`.
 Managed Turso and live federation remain open. LocalFile remains first
 for the live rollout.
+
+The `TursoHostedCqlNative` integration test compiled at that Core pin.
+Build log SHA-256 is
+`2be0504a2ecb62856193bd894f97d8ee39fbc626fc8c8a80f92dda80cab8d3a3`.
+Set `COSMIC_TURSO_HOSTED_CQL_SOURCE` to the reviewed descriptor with
+`Origin`, `Actor`, `LiveIds`, `DeletedId` and `MissingId`. The test
+uses the protected reader to check managed CQL 3/2/0 and descriptor
+stability. Credentialed execution remains open.
