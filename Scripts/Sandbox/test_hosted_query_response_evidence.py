@@ -11,6 +11,8 @@ import unittest
 import uuid
 from unittest.mock import patch, Mock
 
+from test_hosted_exact_key_configuration import exact_key_catalogue
+
 spec = importlib.util.spec_from_file_location("query_verification", Path(__file__).with_name("Verify-HostedQuerySource.py"))
 verification = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(verification)
@@ -85,17 +87,10 @@ class ResponseEvidenceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             descriptor = root / "catalogue.json"
-            actor, first, second, third, deleted, missing = [str(uuid.UUID(int=i)) for i in range(1, 7)]
-            catalogue = {"Actor": actor, "LiveIds": [first, second, third], "DeletedId": deleted, "MissingId": missing}
-            descriptor.write_text(json.dumps(catalogue))
             for provider in verification.REVIEWED_EXACT_KEY_PROVIDERS:
                 with self.subTest(provider=provider):
-                    if provider == "MinIOOASIS":
-                        originals = [{"Id": value, "Sha256": "a" * 64, "ETag": "retained"}
-                                     for value in (first, second, third, deleted)]
-                        native = dict(catalogue, Endpoint="https://minio.example.test", Bucket="teaching",
-                                      Region="us-east-1", Originals=originals)
-                        descriptor.write_text(json.dumps(native))
+                    catalogue, (_, first, second, third, _, missing) = exact_key_catalogue(provider)
+                    descriptor.write_text(json.dumps(catalogue))
                     reviewed = verification.reviewed_exact_key_source(provider, descriptor)
                     presets = reviewed["presets"]
                     self.assertEqual([first, second, third], presets[0]["request"]["filters"][0]["value"])
@@ -115,11 +110,11 @@ class ResponseEvidenceTests(unittest.TestCase):
                                                     "visitor", allow_create=False)
                     self.assertEqual([descriptor], list(root.iterdir()))
                     if provider == "MinIOOASIS":
-                        originals[0]["Id"] = missing
-                        descriptor.write_text(json.dumps(native))
+                        catalogue["Originals"][0]["Id"] = missing
+                        descriptor.write_text(json.dumps(catalogue))
                         with self.assertRaisesRegex(RuntimeError, "original receipts"):
                             verification.reviewed_exact_key_source(provider, descriptor)
-                        descriptor.write_text(json.dumps(catalogue))
+            catalogue, (_, first, _, _, _, _) = exact_key_catalogue("DynamoDBOASIS")
             descriptor.write_text(json.dumps(dict(catalogue, DeletedId=first)))
             with self.assertRaisesRegex(RuntimeError, "distinct record identities"):
                 verification.reviewed_exact_key_source("DynamoDBOASIS", descriptor)

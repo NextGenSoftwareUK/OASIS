@@ -27,7 +27,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -331,12 +331,21 @@ def pouchdb_review(path, *, require_deployment=False):
     return review
 
 
+def ens_offchain_logical_id(actor, name):
+    # Match NativeRecordHolonMapper's version-eight .NET Guid byte layout.
+    digest = bytearray(hashlib.sha256(f"oasis-native-import\n{actor}\nENSOffchainOASIS\nweb3.bio/ens\n{name}".encode()).digest()[:16])
+    digest[7] = (digest[7] & 0x0f) | 0x80
+    digest[8] = (digest[8] & 0x3f) | 0x80
+    return str(uuid.UUID(bytes_le=bytes(digest)))
+
+
 def reviewed_exact_key_source(provider, path):
     if path is None or not path.is_file() or not 0 < path.stat().st_size <= 16384:
         raise RuntimeError("An explicit reviewed native teaching catalogue is required.")
     catalogue = json.loads(path.read_bytes())
     try:
-        fields = {"Actor", "LiveIds", "DeletedId", "MissingId"}
+        names_only = provider == "ENSOffchainOASIS"
+        fields = {"Actor", "Names"} if names_only else {"Actor", "LiveIds", "DeletedId", "MissingId"}
         if provider in ("MinIOOASIS", "TigrisOASIS"):
             fields |= {"Endpoint", "Bucket", "Originals"}
         if provider == "MinIOOASIS":
@@ -468,13 +477,24 @@ def reviewed_exact_key_source(provider, path):
                 catalogue["Endpoint"] not in ("https://t3.storage.dev", "https://fly.storage.tigris.dev")
                 or not re.fullmatch(r"[a-z0-9][a-z0-9-]{1,61}[a-z0-9]", catalogue["Bucket"])):
             raise ValueError("Unexpected Tigris source address.")
-        if (set(catalogue) != fields
-                or not isinstance(catalogue["LiveIds"], list) or len(catalogue["LiveIds"]) != 3):
+        if set(catalogue) != fields:
             raise ValueError("Unexpected teaching catalogue shape.")
-        ids = catalogue["LiveIds"]
-        record_ids = [*ids, catalogue["DeletedId"], catalogue["MissingId"]]
+        if names_only:
+            names = catalogue["Names"]
+            if (not isinstance(names, list) or len(names) != 3
+                    or any(not isinstance(name, str) or len(name) > 253
+                           or not re.fullmatch(r"(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+eth", name)
+                           for name in names)):
+                raise ValueError("Three canonical ASCII ENS names are required.")
+            ids = [ens_offchain_logical_id(catalogue["Actor"], name) for name in names]
+            record_ids = ids
+        else:
+            ids = catalogue["LiveIds"]
+            if not isinstance(ids, list) or len(ids) != 3:
+                raise ValueError("Three teaching identities are required.")
+            record_ids = [*ids, catalogue["DeletedId"], catalogue["MissingId"]]
         if any(str(uuid.UUID(value)) != value or uuid.UUID(value).int == 0
-               for value in [catalogue["Actor"], *record_ids]) or len(set(record_ids)) != 5:
+               for value in [catalogue["Actor"], *record_ids]) or len(set(record_ids)) != len(record_ids):
             raise ValueError("Invalid teaching identities.")
         if provider in ("MinIOOASIS", "TigrisOASIS"):
             originals = catalogue["Originals"]
@@ -579,6 +599,9 @@ def reviewed_exact_key_source(provider, path):
     elif provider == "TursoOASIS":
         review["sourceBinding"] = {"CQL_TURSO_QUERY_ORIGIN": catalogue["Origin"],
                                    "CQL_TURSO_QUERY_PROBE_ID": ids[0]}
+    elif provider == "ENSOffchainOASIS":
+        source = {"owner": catalogue["Actor"], "names": names, "probe": names[0]}
+        review["sourceBinding"] = {"CQL_ENS_OFFCHAIN_QUERY_SOURCE_JSON": json.dumps(source, separators=(",", ":"))}
     elif provider in ("WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS"):
         product = provider.removesuffix("OASIS").upper()
         review["sourceBinding"] = {f"CQL_{product}_QUERY_PROBE_ID": ids[0]}

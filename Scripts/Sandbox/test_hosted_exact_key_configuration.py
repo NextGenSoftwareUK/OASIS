@@ -13,6 +13,46 @@ configuration = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(configuration)
 
 
+def exact_key_catalogue(provider):
+    actor, first, second, third, deleted, missing = [str(uuid.UUID(int=i)) for i in range(1, 7)]
+    if provider == "ENSOffchainOASIS":
+        actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
+        first, second, third = ("2d8b5e78-3137-8c0d-ba70-bdaa880dcdad", "e29d23d8-4c2c-8e0a-9fde-5b92d31135c0",
+                                "ffab761f-bf16-8e02-88e4-1e8a7b6cccd9")
+        catalogue = {"Actor": actor, "Names": ["vitalik.eth", "nick.eth", "luc.eth"]}
+    else:
+        catalogue = {"Actor": actor, "LiveIds": [first, second, third], "DeletedId": deleted, "MissingId": missing}
+    fields = {
+        "FastlyOASIS": {"StoreId": "teachingStore"},
+        "DaprOASIS": {"Store": "cosmic-teaching", "GrpcEndpoint": "http://127.0.0.1:54862/"},
+        "CloudflareOASIS": {"AccountId": "a" * 32, "NamespaceId": "b" * 32},
+        "VercelKVOASIS": {"Endpoint": "https://teaching.upstash.io/"},
+        "DenoDeployOASIS": {"DatabaseId": str(uuid.UUID(int=7)), "DataEndpoint": "https://api.deno.com/v2/teaching"},
+        "AppwriteOASIS": {"Endpoint": "https://appwrite.example/v1", "ProjectId": "teaching", "DatabaseId": "records"},
+        "ConvexOASIS": {"Site": "https://teaching.convex.site/"},
+        "TursoOASIS": {"Origin": "https://teaching.turso.io/"},
+        "NetlifyBlobsOASIS": {"SiteId": str(uuid.UUID(int=7)), "Store": "oasis", "ObjectOrigin": "https://objects.example"},
+        "NileOASIS": {"Host": "us-west-2.db.thenile.dev", "Database": "oasis_teaching"},
+        "AlgoliaOASIS": {"AppId": "Teaching123"},
+        "NeonOASIS": {"Host": "ep-demo.us-east-2.aws.neon.tech"},
+        "LanceDBOASIS": {"Origin": "https://teaching.api.lancedb.com", "Database": "oasis"},
+        "PineconeOASIS": {"Origin": "https://teaching.svc.pinecone.io"},
+        "LitestreamOASIS": {"RestoreSha256": "a" * 64},
+        "ScyllaDBOASIS": {"Ip": "8.8.8.8", "Host": "node.teaching.clusters.scylla.cloud", "CaSha256": "a" * 64},
+        "RavenDBOASIS": {"Origin": "https://a.free.teaching.ravendb.cloud", "CertificateSha256": "a" * 64},
+        "CassandraOASIS": {"BundleSha256": "a" * 64},
+        "TimescaleDBOASIS": {"Host": "service.tsdb.cloud.tigerdata.com", "Port": 32625},
+        "CockroachDBOASIS": {"Host": "oasis-demo.aws-us-east-1.cockroachlabs.cloud"},
+        "TigrisOASIS": {"Endpoint": "https://t3.storage.dev", "Bucket": "teaching"},
+        "MinIOOASIS": {"Endpoint": "https://minio.example.test", "Bucket": "teaching", "Region": "us-east-1"},
+    }
+    catalogue.update(fields.get(provider, {}))
+    if provider in ("TigrisOASIS", "MinIOOASIS"):
+        catalogue["Originals"] = [{"Id": key, "Sha256": "a" * 64, "ETag": "controlled-etag"}
+                                  for key in (first, second, third, deleted)]
+    return catalogue, (actor, first, second, third, deleted, missing)
+
+
 class ExactKeyConfigurationTests(unittest.TestCase):
     def test_candidate_preserves_existing_providers_and_refuses_replacement(self):
         self.check_candidate("QdrantOASIS")
@@ -100,6 +140,9 @@ class ExactKeyConfigurationTests(unittest.TestCase):
     def test_turso_candidate_preserves_existing_providers(self):
         self.check_candidate("TursoOASIS")
 
+    def test_ens_offchain_candidate_binds_the_native_name_identities(self):
+        self.check_candidate("ENSOffchainOASIS")
+
     def check_candidate(self, provider):
         partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
         baseline = {
@@ -115,36 +158,36 @@ class ExactKeyConfigurationTests(unittest.TestCase):
         }
         with tempfile.TemporaryDirectory() as directory:
             descriptor = Path(directory) / "catalogue.json"
-            actor, first, second, third, deleted, missing = [str(uuid.UUID(int=i)) for i in range(1, 7)]
-            catalogue = {"Actor": actor, "LiveIds": [first, second, third], "DeletedId": deleted, "MissingId": missing}
+            catalogue, (actor, first, second, third, deleted, missing) = exact_key_catalogue(provider)
+            if provider == "ENSOffchainOASIS":
+                for names in (["VITALIK.eth", "nick.eth", "luc.eth"], ["vitalik.eth", "nick.eth", "nick.eth"],
+                              ["vitalik.eth", "nick.eth", "other/foreign.eth"], ["vitalik.eth"]):
+                    descriptor.write_text(json.dumps(catalogue | {"Names": names}))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                        configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "FastlyOASIS":
-                catalogue["StoreId"] = "teachingStore"
                 for store in ("", "../foreign", "foreign?key=1", "s" * 65):
                     descriptor.write_text(json.dumps(catalogue | {"StoreId": store}))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "DaprOASIS":
-                catalogue.update(Store="cosmic-teaching", GrpcEndpoint="http://127.0.0.1:54862/")
                 for invalid in ({"Store": "../foreign"}, {"GrpcEndpoint": "http://localhost:54862/"},
                                 {"GrpcEndpoint": "http://127.0.0.1:65536/"}, {"GrpcEndpoint": "http://127.0.0.1:80/"}):
                     descriptor.write_text(json.dumps(catalogue | invalid))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "CloudflareOASIS":
-                catalogue.update(AccountId="a" * 32, NamespaceId="b" * 32)
                 for invalid in ({"AccountId": "A" * 32}, {"NamespaceId": "b" * 31}, {"NamespaceId": "../foreign"}):
                     descriptor.write_text(json.dumps(catalogue | invalid))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "VercelKVOASIS":
-                catalogue["Endpoint"] = "https://teaching.upstash.io/"
                 for endpoint in ("http://teaching.upstash.io/", "https://upstash.io/", "https://teaching.upstash.io.example/",
                                  "https://teaching.upstash.io/path", "https://user@teaching.upstash.io/"):
                     descriptor.write_text(json.dumps(catalogue | {"Endpoint": endpoint}))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "DenoDeployOASIS":
-                catalogue.update(DatabaseId=str(uuid.UUID(int=7)), DataEndpoint="https://api.deno.com/v2/teaching")
                 for invalid in ({"DatabaseId": str(uuid.UUID(int=0))}, {"DataEndpoint": "http://api.deno.com/v2/teaching"},
                                 {"DataEndpoint": "https://127.0.0.1/v2"}, {"DataEndpoint": "https://user@api.deno.com/v2"},
                                 {"DataEndpoint": "https://api.deno.com/v2/../v3"}, {"DataEndpoint": "https://api.deno.com/v2?secret=bad"}):
@@ -152,7 +195,6 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "AppwriteOASIS":
-                catalogue.update(Endpoint="https://appwrite.example/v1", ProjectId="teaching", DatabaseId="records")
                 for invalid in ({"Endpoint": "http://appwrite.example/v1"}, {"Endpoint": "https://user@appwrite.example/v1"},
                                 {"Endpoint": "https://appwrite.example/v1/"}, {"Endpoint": "https://127.0.0.1/v1"},
                                 {"ProjectId": "../foreign"}, {"DatabaseId": "a" * 37}):
@@ -160,93 +202,76 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "ConvexOASIS":
-                catalogue["Site"] = "https://teaching.convex.site/"
                 for site in ("http://teaching.convex.site/", "https://user@teaching.convex.site/",
                              "https://teaching.convex.site/foreign", "https://127.0.0.1/"):
                     descriptor.write_text(json.dumps(catalogue | {"Site": site}))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "TursoOASIS":
-                catalogue["Origin"] = "https://teaching.turso.io/"
                 for origin in ("http://teaching.turso.io/", "https://user@teaching.turso.io/",
                                "https://teaching.turso.io/foreign", "https://teaching.turso.io.example/"):
                     descriptor.write_text(json.dumps(catalogue | {"Origin": origin}))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "NetlifyBlobsOASIS":
-                catalogue.update(SiteId=str(uuid.UUID(int=7)), Store="oasis", ObjectOrigin="https://objects.example")
                 for invalid in ({"SiteId": str(uuid.UUID(int=0))}, {"Store": "foreign/store"},
                                 {"ObjectOrigin": "https://objects.example/foreign"}, {"ObjectOrigin": "https://127.0.0.1"}):
                     descriptor.write_text(json.dumps(catalogue | invalid))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "NileOASIS":
-                catalogue.update(Host="us-west-2.db.thenile.dev", Database="oasis_teaching")
                 for invalid in ({"Host": "api.thenile.dev"}, {"Database": "foreign/db"}):
                     descriptor.write_text(json.dumps(catalogue | invalid))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "AlgoliaOASIS":
-                catalogue["AppId"] = "Teaching123"
                 for application in ("teaching/foreign", "teaching.example", "a" * 51):
                     descriptor.write_text(json.dumps(catalogue | {"AppId": application}))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "NeonOASIS":
-                catalogue["Host"] = "ep-demo.us-east-2.aws.neon.tech"
                 for host in ("ep-demo-pooler.us-east-2.aws.neon.tech", "pg.neon.tech", "ep-demo.neon.tech.invalid"):
                     descriptor.write_text(json.dumps(catalogue | {"Host": host}))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "LanceDBOASIS":
-                catalogue.update(Origin="https://teaching.api.lancedb.com", Database="oasis")
                 for invalid in ({"Origin": "https://api.lancedb.com"}, {"Database": "oasis/foreign"}):
                     descriptor.write_text(json.dumps(catalogue | invalid))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "PineconeOASIS":
-                catalogue["Origin"] = "https://teaching.svc.pinecone.io"
                 for origin in ("https://api.pinecone.io", catalogue["Origin"] + ".invalid"):
                     descriptor.write_text(json.dumps(catalogue | {"Origin": origin}))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "LitestreamOASIS":
-                catalogue["RestoreSha256"] = "a" * 64
                 descriptor.write_text(json.dumps(catalogue | {"RestoreSha256": "A" * 64}))
                 with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                     configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "ScyllaDBOASIS":
-                catalogue.update(Ip="8.8.8.8", Host="node.teaching.clusters.scylla.cloud", CaSha256="a" * 64)
                 for invalid in ({"Ip": "169.254.169.254"}, {"Host": "other.invalid"}, {"CaSha256": "invalid"}):
                     descriptor.write_text(json.dumps(catalogue | invalid))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "RavenDBOASIS":
-                catalogue.update(Origin="https://a.free.teaching.ravendb.cloud", CertificateSha256="a" * 64)
                 for invalid in ({"Origin": catalogue["Origin"] + ":443"}, {"CertificateSha256": "invalid"}):
                     descriptor.write_text(json.dumps(catalogue | invalid))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "CassandraOASIS":
-                catalogue["BundleSha256"] = "a" * 64
                 descriptor.write_text(json.dumps(catalogue | {"BundleSha256": "A" * 64}))
                 with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                     configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "TimescaleDBOASIS":
-                catalogue.update(Host="service.tsdb.cloud.tigerdata.com", Port=32625)
                 for invalid in ({"Port": True}, {"Port": "32625"}, {"Port": 65536}, {"Host": "localhost"}):
                     descriptor.write_text(json.dumps(catalogue | invalid))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "CockroachDBOASIS":
-                catalogue["Host"] = "oasis-demo.aws-us-east-1.cockroachlabs.cloud"
                 descriptor.write_text(json.dumps(catalogue | {"Host": "other.cockroachlabs.cloud.invalid"}))
                 with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                     configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "TigrisOASIS":
-                catalogue.update(Endpoint="https://t3.storage.dev", Bucket="teaching", Originals=[
-                    {"Id": identifier, "Sha256": "a" * 64, "ETag": "controlled-etag"}
-                    for identifier in (first, second, third, deleted)])
                 for invalid in (catalogue | {"Originals": catalogue["Originals"][:-1]},
                                 catalogue | {"Endpoint": "https://t3.storage.dev.other.example"}):
                     descriptor.write_text(json.dumps(invalid))
@@ -254,7 +279,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -333,6 +358,12 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         with self.assertRaisesRegex(ValueError, "source token"):
                             configuration.candidate(baseline | {"CQL_DAPR_QUERY_SIDECAR_TOKEN": token}, provider, review)
                     baseline["CQL_DAPR_QUERY_SIDECAR_TOKEN"] = "fixture-token"
+                elif provider == "ENSOffchainOASIS":
+                    key, value = next(iter(review["sourceBinding"].items()))
+                    self.assertEqual({"owner": actor, "names": catalogue["Names"], "probe": "vitalik.eth"}, json.loads(value))
+                    with self.assertRaisesRegex(ValueError, "do not match"):
+                        configuration.candidate(baseline | {key: "{}"}, provider, review)
+                    baseline[key] = value
                 elif provider in ("CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS"):
                     baseline.update(review["sourceBinding"])
                     token_key = configuration.REQUIRED_SOURCE_TOKENS[provider]
