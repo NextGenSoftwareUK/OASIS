@@ -350,3 +350,10 @@ The exact scoped candidate `e02e1d1b` is in the
 The candidate tag is `pouchdb-candidate-e02e1d1b`. It leaves the shared
 sandbox tag and Development deployment unchanged. The old laptop's three
 qualified source files remain necessary for hosted configuration.
+
+The scoped image build succeeded for `e02e1d1b`, including the packaged
+PouchDB runtime checks. Both the exact commit tag and candidate tag point
+to `sha256:d40b77b5d8699579baddc43119dd954f8248339637218964f969527d4bbb1fc2`.
+The compact proof is `LocalState/COSMIC/PouchDbScopedReleaseCurrent.build.qualified.json`.
+Code rollout and settings application remain pending Decentraland acceptance
+and the original PouchDB source transfer.
