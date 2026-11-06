@@ -17,6 +17,39 @@ spec.loader.exec_module(verification)
 
 
 class ResponseEvidenceTests(unittest.TestCase):
+    def test_localfile_deployment_visitor_requires_mount_and_prepare_reuses_it(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            root = base / "OASIS"
+            (root / "LocalState/COSMIC").mkdir(parents=True)
+            site = base / "Web4Site"
+            site.mkdir()
+            for name in ("cql-demo-preparation.js", "cql-playground.js"):
+                (site / name).touch()
+            deployment = str(uuid.UUID(int=1))
+            visitor = root / "LocalState/COSMIC" / ("HostedLocalFileReadiness-" + deployment)
+            args = ["verify", "LocalFileOASIS", "--localfile-deployment-visitor"]
+            with (
+                patch.object(verification, "ROOT", root),
+                patch.object(verification, "localfile_review", side_effect=RuntimeError("unverified mount")) as review,
+                patch.object(verification, "session", return_value=({}, "retained")) as session,
+                patch.object(verification, "ready_source", side_effect=RuntimeError("unavailable")),
+            ):
+                with patch("sys.argv", args + ["--readiness"]), self.assertRaisesRegex(RuntimeError, "unverified mount"):
+                    verification.main()
+                session.assert_not_called()
+                self.assertFalse(visitor.exists())
+                review.side_effect = None
+                review.return_value = {"mountedReceipt": {"deployment": deployment}}
+                with patch("sys.argv", args + ["--readiness"]), self.assertRaisesRegex(SystemExit, "unavailable"):
+                    verification.main()
+                session.assert_called_once_with(visitor, "visitor", allow_create=True)
+                session.reset_mock()
+                with patch("sys.argv", args + ["--prepare"]), self.assertRaisesRegex(RuntimeError, "unavailable"):
+                    verification.main()
+                session.assert_called_once_with(visitor, "visitor", allow_create=False)
+                self.assertFalse((visitor.parent / "HostedQueryAcceptance-LocalFileOASIS").exists())
+
     def test_exact_key_preset_fragment_is_exclusive_and_uses_the_acceptance_catalogue(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

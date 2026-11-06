@@ -252,6 +252,14 @@ def localfile_review(*, require_mount=False):
     return review
 
 
+def localfile_deployment_visitor():
+    review = localfile_review(require_mount=True)
+    deployment = review["mountedReceipt"]["deployment"]
+    if str(uuid.UUID(deployment)) != deployment:
+        raise RuntimeError("Canonical LocalFile settings deployment ID required.")
+    return ROOT / "LocalState/COSMIC" / ("HostedLocalFileReadiness-" + deployment), review
+
+
 def acknowledge_localfile_http(state, owner, foreign, reviewed_mount, evidence):
     if owner == foreign:
         raise RuntimeError("LocalFile privacy proof requires two distinct visitor identities.")
@@ -366,6 +374,8 @@ def main():
     parser.add_argument("provider", choices=["ThreeFoldOASIS", "ClickHouseOASIS", "QuestDBOASIS", "SQLServerDBOASIS", "DuckDBOASIS", "CouchDBOASIS", "PouchDBOASIS", "ChromaOASIS", "CloudflareD1OASIS", "NATSJetStreamOASIS", "ZcashOASIS", "BittensorOASIS", "AkashOASIS", "EclipseOASIS", "ENSOASIS", "BlockscoutOASIS", "CelestiaOASIS", "ChainflipOASIS", "LocalFileOASIS", "HyperlaneOASIS", "LayerZeroV2OASIS", "StargateOASIS", "deBridgeOASIS", "SynapseOASIS", "ConnextOASIS", "WormholeOASIS", "BlockStackOASIS", "MatrixOASIS", "NostrOASIS", "BlueSkyOASIS", "ChainLinkOASIS", "EOSIOOASIS", "TelosOASIS", "FilecoinOASIS", "FantomOASIS", "AzureStorageOASIS", "SOLIDOASIS", "AWSS3OASIS", "SolanaOASIS", "GoogleCloudOASIS", "EthereumOASIS", "PolygonOASIS", "ArbitrumOASIS", "CosmosBlockChainOASIS", "PolkadotOASIS", "NEAROASIS", "BaseOASIS", "AvalancheOASIS", "BNBChainOASIS", "OptimismOASIS", "LineaOASIS", "ScrollOASIS", "ZkSyncOASIS", "AbstractOASIS", "MonadOASIS", "SeiOASIS", "BerachainOASIS", "BitcoinOASIS", "XRPLOASIS", "StellarOASIS", "AlgorandOASIS", "AptosOASIS", "HashgraphOASIS", "SuiOASIS", "ElrondOASIS", "RadixOASIS", "StarknetOASIS", "CardanoOASIS", "ArweaveOASIS", "TONOASIS", *REVIEWED_EXACT_KEY_PROVIDERS])
     parser.add_argument("--prepare", action="store_true")
     parser.add_argument("--readiness", action="store_true", help="Check discovery using the retained rehearsal visitor; create no cohort.")
+    parser.add_argument("--localfile-deployment-visitor", action="store_true",
+                        help="Use a separate visitor for the verified LocalFile settings deployment.")
     parser.add_argument("--recover-localfile-receipt", action="store_true",
                         help="Finalize the original completed LocalFile reports without sessions, queries or saves.")
     parser.add_argument("--reviewed-exact-key-source", type=Path, help="Reviewed native teaching catalogue for the prepared exact-key providers.")
@@ -383,6 +393,9 @@ def main():
     parser.add_argument("--continue-snapshot-observation-change", action="store_true",
                         help="Finish original acknowledged snapshots after a proved changing-observation reuse defect; no writes.")
     options = parser.parse_args()
+    if options.localfile_deployment_visitor and (options.provider != "LocalFileOASIS"
+            or not (options.readiness or options.prepare)):
+        parser.error("--localfile-deployment-visitor requires LocalFileOASIS with --readiness or --prepare.")
     if options.recover_localfile_receipt:
         if (options.provider != "LocalFileOASIS" or options.prepare or options.readiness
                 or options.resume_unstarted_native or options.continue_settled_read
@@ -426,16 +439,21 @@ def main():
     if options.readiness:
         if options.prepare or continuing or options.resume_unstarted_native or options.cohort != "current":
             parser.error("--readiness cannot be combined with cohort execution.")
-        _, token = session(ROOT / "LocalState/COSMIC/HostedDemoRehearsalDiscovery", "visitor", allow_create=False)
+        rehearsal = ROOT / "LocalState/COSMIC/HostedDemoRehearsalDiscovery"
+        reviewed_localfile = None
+        if options.localfile_deployment_visitor:
+            rehearsal, reviewed_localfile = localfile_deployment_visitor()
+            rehearsal.mkdir(exist_ok=True)
+        _, token = session(rehearsal, "visitor", allow_create=options.localfile_deployment_visitor)
         try:
             source = ready_source(options.provider, token, require_pair=True)
             if options.provider == "LocalFileOASIS":
-                require_reviewed_presets("LocalFile", source, localfile_review())
+                require_reviewed_presets("LocalFile", source, reviewed_localfile or localfile_review())
             if reviewed_source is not None:
                 require_reviewed_presets(options.provider, source, reviewed_source)
         except RuntimeError as error:
             raise SystemExit(str(error)) from None
-        print(f"{options.provider} advertises native and paired presets; no cohort created.")
+        print(f"{options.provider} advertises native and paired presets; no acceptance cohort created.")
         return
     suffix = options.provider + ("" if options.cohort == "current" else "-" + options.cohort)
     if options.prepare:
@@ -463,13 +481,16 @@ def main():
     allow_create = not (continuing or options.resume_unstarted_native)
     reviewed_localfile = None
     if (options.provider == "LocalFileOASIS" or reviewed_source is not None) and allow_create and not (state / "owner.acknowledged.json").exists():
-        _, visitor_token = session(ROOT / "LocalState/COSMIC/HostedDemoRehearsalDiscovery",
-                                   "visitor", allow_create=False)
+        rehearsal = ROOT / "LocalState/COSMIC/HostedDemoRehearsalDiscovery"
+        if options.localfile_deployment_visitor:
+            rehearsal, reviewed_localfile = localfile_deployment_visitor()
+        _, visitor_token = session(rehearsal, "visitor", allow_create=False)
         source = ready_source(options.provider, visitor_token, require_pair=True)
         if reviewed_source is not None:
             require_reviewed_presets(options.provider, source, reviewed_source)
         else:
-            reviewed_localfile = localfile_review(require_mount=True)
+            if reviewed_localfile is None:
+                reviewed_localfile = localfile_review(require_mount=True)
             require_reviewed_presets("LocalFile", source, reviewed_localfile)
     elif options.provider == "LocalFileOASIS":
         reviewed_localfile = localfile_review(require_mount=True)

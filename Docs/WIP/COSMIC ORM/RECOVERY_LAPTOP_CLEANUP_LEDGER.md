@@ -1925,3 +1925,8 @@ response in `LocalState/COSMIC/HostedDemoRehearsalDiscovery/` under the
 `visitor-refresh-81eced6f118856d6` prefix. Retain both as reconciliation
 evidence. The response carried no new cookie. No cohort or build output
 was created.
+
+Deployment-specific readiness visitor behavior passed 18 Python tests with
+temporary mocked state. A live invocation after mount review would keep
+its protected visitor journal in `LocalState/COSMIC/HostedLocalFileReadiness-<deployment-id>/`.
+No new visitor or deployment was created in the rehearsal.

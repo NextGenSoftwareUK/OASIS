@@ -553,6 +553,19 @@ Discovery did not run. Preserve the original sealed response and pending
 rotation; reconcile the server-side owner lookup before another attempt.
 The LocalFile cohort remains absent.
 
+The pinned Development code returns that message when the authoritative
+refresh-token lookup supplies no avatar. Its default demo retention is
+24 hours, and the retained rehearsal acknowledgement is older than that.
+This is consistent with expiry. The actual Development retention and
+deletion history still require service evidence.
+
+After the verified settings deployment has a mounted-record receipt, use
+`--readiness --localfile-deployment-visitor` on the LocalFile verifier to
+establish a separate readiness visitor for that deployment. Then use
+`--prepare --localfile-deployment-visitor` to reuse its acknowledgement.
+The original rehearsal and any prior acceptance evidence stay in their
+own directories.
+
 The image-digest guard is operator-side tooling. The built candidate's shared
 settings mutation code matches the task branch. Use the updated publisher and
 guard from the task checkout with the explicit reviewed release ref. Set
