@@ -42,3 +42,14 @@ All 22 WEB4 tests passed, including ten ENS regressions, at Core
 `ea467861182fe77d32f64cbd958ca857b9fb96110d70dbe141618735a34ee6bd`.
 All 35 protected exact-key configuration tests passed.
 Authenticated live WEB4 remains open after LocalFile.
+
+## Local WEB4 and MongoDB federation
+
+The real Safe gateway and MongoDB 8.2 passed local WEB4 at parent
+`8dfbdff41` and Core `db5de536e5eb690bbae7635208bc7836a3655fa1`.
+Native queries returned 3/2 and federation 5/4. The foreign visitor saw
+zero private rows and three public rows. The two SDK-acknowledged private
+copies were removed after ownership and count checks and Mongo stopped
+cleanly. The run used the gateway's anonymous evaluation allowance.
+TRX SHA-256
+`1e97467e2e5df4c5daa53d1f5912449d4f3bbb214b0adb3a8a4ae4345eec8795`.

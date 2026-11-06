@@ -3302,3 +3302,15 @@ Safe WEB4 admission reused the same workspace and pinned SDK. Its
 `web4-admission.log` and `admission.trx`. The 35 protected-settings
 checks used temporary Python fixtures. No Safe key, paid account,
 local service or additional runtime was created.
+
+Safe local federation reused frozen WEB4 producer assemblies and the
+existing Mongo 8.2 replica. `ReviewedPublicMongoHttpQualification/safe-http`
+holds the TRX, build logs and clean shutdown receipt. The two acknowledged
+private copies were removed with exact ownership and count checks, and
+port 27029 closed. No runtime or database copy was installed.
+
+Druid Linux CI used the pinned 38.0.0 archive and ephemeral fixture.
+The passing 2,090-byte artifact is retained on GitHub only. The initial
+847-byte compiler-failure artifact and later tombstone-failure evidence
+also remain on GitHub. No artifacts or Druid runtime were downloaded
+to this laptop.

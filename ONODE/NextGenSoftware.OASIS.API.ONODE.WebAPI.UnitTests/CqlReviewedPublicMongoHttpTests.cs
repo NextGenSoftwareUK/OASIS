@@ -34,6 +34,7 @@ using NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.ENSOffchainOASIS;
 using NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS;
 using NextGenSoftware.OASIS.API.Providers.ProofOfHumanityOASIS;
+using NextGenSoftware.OASIS.API.Providers.SafeOASIS;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 using IoFile = System.IO.File;
 
@@ -87,6 +88,9 @@ public sealed class CqlReviewedPublicMongoHttpTests
 
     [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_PUBLIC_SIDECAR_TOKEN")]
     public Task OrbitDbNativeHttp() => VerifyHttpAsync(ProviderType.OrbitDBOASIS);
+
+    [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_PUBLIC_SAFE_NATIVE")]
+    public Task SafeNativeHttp() => VerifyHttpAsync(ProviderType.SafeOASIS);
 
     [ReviewedPublicMongoNativeFact("CQL_ENS_OFFCHAIN_QUERY_API_KEY")]
     public Task EnsOffchainNativeHttpContinuation() => VerifyHttpAsync(ProviderType.ENSOffchainOASIS, resume: true);
@@ -413,6 +417,14 @@ public sealed class CqlReviewedPublicMongoHttpTests
                 return (new EnsOffchainQuerySource(owner, keys, keys[0],
                     Environment.GetEnvironmentVariable("CQL_ENS_OFFCHAIN_QUERY_API_KEY")),
                     keys.Select(key => EnsOffchainQuerySource.LogicalId(owner, key)).ToArray());
+            }
+            case ProviderType.SafeOASIS:
+            {
+                Assert.Equal("owned-loopback", Environment.GetEnvironmentVariable("COSMIC_REVIEWED_PUBLIC_SAFE_NATIVE"));
+                string[] networks = { "eth", "base", "arb1" };
+                return (new SafeIndexingQuerySource(owner, networks, networks[0],
+                    Environment.GetEnvironmentVariable("CQL_SAFE_INDEXING_QUERY_API_KEY")),
+                    networks.Select(network => SafeIndexingQuerySource.LogicalId(owner, network)).ToArray());
             }
             case ProviderType.GUNOASIS:
             case ProviderType.OrbitDBOASIS:

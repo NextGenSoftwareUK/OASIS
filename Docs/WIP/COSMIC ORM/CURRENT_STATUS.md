@@ -11,7 +11,7 @@ HTTPS and deployed acceptance. No provider count changed.
 
 ## Recent WEB4 preparation, 5–6 November 2026
 
-Acceptance is 108 scoped local, 60 live HTTP and 28 live browser.
+Acceptance is 109 scoped local, 60 live HTTP and 28 live browser.
 LocalFile remains first. The immutable candidate image is published and its
 actual Railway deployment, persistent mount and protected settings still
 need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
@@ -22,6 +22,12 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
   Both also passed local WEB4 and Mongo federation 5/4 with private-row
   isolation. Hosted federation and browser acceptance remain open.
   [GUN evidence](GUN_CQL_MVP.md) · [OrbitDB evidence](ORBITDB_CQL_MVP.md).
+- Safe passed the native public network-status source and local WEB4
+  Mongo federation 5/4 with private-row isolation. Hosted access remains
+  open after LocalFile. [Safe evidence](SAFE_INDEXING_CQL_MVP.md).
+- Apache Druid 38.0.0 passed native exact-key CQL 3/2/0 on the Linux
+  runner after the canonical tombstone fix. WEB4 admission and federation
+  remain open. [Druid evidence](DRUID_CQL_MVP.md).
 - The ENS Offchain local federation diagnostic captured upstream HTTP 429
   after successful public and paired reads. The two acknowledged private
   Mongo copies are retained for authenticated continuation.

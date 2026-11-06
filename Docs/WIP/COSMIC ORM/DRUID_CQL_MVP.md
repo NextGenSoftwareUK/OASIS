@@ -6,7 +6,7 @@ only the document column for the exact ID and public flag. Duplicate
 public rows or an inconsistent payload reject the entire query. The
 canonical public record boundary suppresses tombstones and children.
 
-The first native qualification is pending. The task-branch job uses the
+The task-branch native job uses the
 Apache Druid 38.0.0 binary release and pinned SHA-512 on an isolated Linux
 runner. It ingests three synthetic live public rows, one public tombstone
 and one private row. The test also requests an absent key and expects
@@ -34,3 +34,10 @@ written the derived `isDeleted` Boolean instead of the stored
 `deletedDate` field that defines a canonical holon tombstone. The seed
 now uses `deletedDate`, and a controlled check covers tombstone and
 absent-key omission. [Second Linux run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42260416387).
+
+The third Linux run passed. Druid 38.0.0 ingested exactly five source
+records and four public flags. The real CQL query returned 3/2/0 after
+excluding the private row, tombstone and absent key. The single test
+passed with zero skips. The retained CI artifact is 2,090 bytes, SHA-256
+`eb843cdd3d97485d006bf913d54ff7cd3ad0c808bc43528d7444f368357ece0b`.
+[Passing Linux run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42261110911).
