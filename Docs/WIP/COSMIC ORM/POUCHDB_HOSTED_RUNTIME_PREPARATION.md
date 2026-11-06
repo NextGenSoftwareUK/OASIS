@@ -293,3 +293,8 @@ That run verifies native rows, private Mongo snapshots, 5/4 paired rows, SQLite
 and Neo4j replicas and independent visitor privacy. Browser verification is a
 separate gate. Twelve focused local controls passed, including refusal before
 cohort creation when discovery differs. No hosted acceptance has run.
+
+The verifier now checks the mounted source receipt and complete protected
+settings on the exact reviewed deployment before opening a visitor session.
+The public patch must match the protected candidate. The settings publisher
+also rechecks the original deployment before each staged write.

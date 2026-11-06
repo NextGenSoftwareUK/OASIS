@@ -292,7 +292,7 @@ def recover_localfile_http(state, native, paired, isolation):
     acknowledge_localfile_http(state, owner, foreign, binding["mount"], evidence)
 
 
-def pouchdb_review(path):
+def pouchdb_review(path, *, require_deployment=False):
     if path is None or not path.is_file() or not 0 < path.stat().st_size <= 256 * 1024:
         raise RuntimeError("An explicit reviewed PouchDB settings patch is required.")
     settings = json.loads(path.read_bytes())
@@ -316,6 +316,12 @@ def pouchdb_review(path):
     if len(presets) != len(expected):
         raise RuntimeError("Four reviewed PouchDB presets are required.")
     require_reviewed_presets("PouchDBOASIS", {"examples": presets}, {"presets": list(expected.values())})
+    if require_deployment:
+        publisher_path = Path(__file__).with_name("Publish-HostedPouchDbConfiguration.py")
+        publisher_spec = importlib.util.spec_from_file_location("pouchdb_publisher", publisher_path)
+        publisher = importlib.util.module_from_spec(publisher_spec)
+        publisher_spec.loader.exec_module(publisher)
+        publisher.verify_settings(settings)
     return {"presets": presets}
 
 
@@ -427,7 +433,7 @@ def main():
     is_pouchdb = options.provider == "PouchDBOASIS"
     if options.pouchdb_reviewed_settings is not None and not is_pouchdb:
         parser.error("--pouchdb-reviewed-settings applies only to PouchDBOASIS.")
-    reviewed_pouchdb = pouchdb_review(options.pouchdb_reviewed_settings) if is_pouchdb else None
+    reviewed_pouchdb = pouchdb_review(options.pouchdb_reviewed_settings, require_deployment=True) if is_pouchdb else None
     is_reviewed_exact_key = options.provider in REVIEWED_EXACT_KEY_PROVIDERS
     if options.reviewed_exact_key_source is not None and not is_reviewed_exact_key:
         parser.error("--reviewed-exact-key-source applies only to the prepared exact-key providers.")

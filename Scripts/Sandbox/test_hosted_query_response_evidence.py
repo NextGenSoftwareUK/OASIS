@@ -285,6 +285,14 @@ class ResponseEvidenceTests(unittest.TestCase):
             review = Path(directory) / "review.json"
             review.write_text(json.dumps(settings), encoding="utf-8")
             self.assertEqual({"presets": presets}, verification.pouchdb_review(review))
+            publisher = Mock()
+            loader = Mock()
+            with (
+                patch.object(verification.importlib.util, "spec_from_file_location", return_value=Mock(loader=loader)),
+                patch.object(verification.importlib.util, "module_from_spec", return_value=publisher),
+            ):
+                self.assertEqual({"presets": presets}, verification.pouchdb_review(review, require_deployment=True))
+            publisher.verify_settings.assert_called_once_with(settings)
             settings["CQL_POUCHDB_QUERY_SOURCE_DIGEST"] = "0" * 64
             review.write_text(json.dumps(settings), encoding="utf-8")
             with self.assertRaisesRegex(RuntimeError, "qualified source"):
@@ -296,6 +304,48 @@ class ResponseEvidenceTests(unittest.TestCase):
             review.write_text(json.dumps(settings), encoding="utf-8")
             with self.assertRaisesRegex(RuntimeError, "mongo-public-subset differs"):
                 verification.pouchdb_review(review)
+
+    def test_pouchdb_mount_refusal_precedes_discovery_and_cohort_creation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with (
+                patch.object(verification, "ROOT", root),
+                patch("sys.argv", ["verify", "PouchDBOASIS", "--pouchdb-reviewed-settings", "review.json"]),
+                patch.object(verification, "pouchdb_review", side_effect=RuntimeError("Mount unavailable")) as review,
+                patch.object(verification, "session") as session,
+                patch.object(verification, "ready_source") as discover,
+            ):
+                with self.assertRaisesRegex(RuntimeError, "Mount unavailable"):
+                    verification.main()
+                review.assert_called_once_with(Path("review.json"), require_deployment=True)
+                session.assert_not_called()
+                discover.assert_not_called()
+            self.assertEqual([], list(root.iterdir()))
+
+    def test_pouchdb_public_review_must_match_the_protected_candidate(self):
+        publisher_spec = importlib.util.spec_from_file_location("pouchdb_publisher_test",
+            Path(__file__).with_name("Publish-HostedPouchDbConfiguration.py"))
+        publisher = importlib.util.module_from_spec(publisher_spec)
+        publisher_spec.loader.exec_module(publisher)
+        candidate = dict.fromkeys(publisher.REVIEW_KEYS, "reviewed") | {"unrelated": "protected"}
+        public = {key: candidate[key] for key in publisher.REVIEW_KEYS}
+        with (
+            patch.dict(publisher.os.environ, {"COSMIC_CQL_SETTINGS_DEPLOYMENT_ID": "deployment"}),
+            patch.object(publisher, "verify_mount", return_value="deployment"),
+            patch.object(publisher.configuration, "protected_read", return_value=candidate),
+            patch.object(publisher.configuration, "variables", return_value=candidate) as variables,
+            patch.object(publisher, "verify_source_receipt") as receipt,
+            patch.object(publisher.mount, "verify_release", return_value="deployment"),
+        ):
+            drifted = dict(public)
+            drifted[publisher.REVIEW_KEYS[0]] = "different"
+            with self.assertRaisesRegex(RuntimeError, "differs from the protected settings"):
+                publisher.verify_settings(drifted)
+            variables.assert_not_called()
+            receipt.assert_not_called()
+            self.assertEqual("deployment", publisher.verify_settings(public))
+            variables.assert_called_once()
+            receipt.assert_called_once_with("reviewed")
 
     def test_pouchdb_discovery_mismatch_does_not_create_a_cohort(self):
         with tempfile.TemporaryDirectory() as directory:

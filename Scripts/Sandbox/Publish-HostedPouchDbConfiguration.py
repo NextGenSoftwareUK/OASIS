@@ -81,8 +81,14 @@ def apply():
     after = configuration.protected_read(f"{PREFIX}-candidate-variables.dpapi")
     if candidate(before) != after:
         raise RuntimeError("Protected PouchDB settings differ from the qualified candidate.")
-    verify_mount()
-    configuration.apply_values(PREFIX, KEYS, reviewed_snapshots=(before, after))
+    deployment = verify_mount()
+
+    def require_original_deployment():
+        if mount.verify_release() != deployment:
+            raise RuntimeError("Reviewed Railway deployment changed before PouchDB settings staging.")
+
+    configuration.apply_values(PREFIX, KEYS, reviewed_snapshots=(before, after),
+                               before_mutation=require_original_deployment)
 
 
 def verify_source_receipt(digest):
@@ -124,12 +130,15 @@ def verify_source_receipt(digest):
         raise RuntimeError("The live PouchDB records differ from the qualified teaching source.")
 
 
-def verify_settings():
+def verify_settings(reviewed_public_settings=None):
     expected = os.environ.get("COSMIC_CQL_SETTINGS_DEPLOYMENT_ID")
     if not expected:
         raise RuntimeError("Set the reviewed Development PouchDB settings deployment ID.")
     deployment = verify_mount(expected)
     candidate_settings = configuration.protected_read(f"{PREFIX}-candidate-variables.dpapi")
+    if reviewed_public_settings is not None and reviewed_public_settings != {
+            key: candidate_settings[key] for key in REVIEW_KEYS}:
+        raise RuntimeError("The public PouchDB review differs from the protected settings candidate.")
     if configuration.variables() != candidate_settings:
         raise RuntimeError("Development WEB4 settings differ from the protected PouchDB review.")
     verify_source_receipt(candidate_settings[REVIEW_KEYS[2]])

@@ -1980,6 +1980,10 @@ The native HTTPS fixture compiled with 145 warnings and zero errors.
 Build log: `TestResults/ProviderBuildCurrent/pocketbase-hosted-native-fixture-build.log`.
 The leases restored shared Core to `54159614`. No native requests were sent.
 
+PouchDB's deployment-bound HTTP preflight passed 20 response-evidence and
+eight shared settings tests with the existing Python interpreter. Temporary
+fixtures were removed. No Railway service or visitor was contacted.
+
 LocalFile candidate ancestry verification passed 14 focused Python tests
 and a live read-only Git ref check. It reused the current checkout and
 created no Git objects, runtime downloads or Railway state.
