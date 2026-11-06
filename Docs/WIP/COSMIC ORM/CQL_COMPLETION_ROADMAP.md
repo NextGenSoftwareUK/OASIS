@@ -36,7 +36,7 @@ task checkout. Runtime qualification remains separate.
    laptop. Its Development file placement and activation remain open.
    ThreeFold's hosted audit and card/static assets now pass at website2170b67;
    preserve its original cohort/settings/ACKs. Do not replay accepted gates.
-2. Preserve 60 scoped hosted HTTP proofs and 100 local integrated query types.
+2. Preserve the accepted hosted and local scopes in the [provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md).
    ClickHouse is the latest accepted hosted addition; its sandbox card, guide/C#
    links and exact public static bytes are verified. Counts are demo scopes,
    not full provider or ORM certification. Meilisearch adds the new Windows-local

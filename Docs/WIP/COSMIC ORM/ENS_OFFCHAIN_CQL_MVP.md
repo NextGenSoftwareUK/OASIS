@@ -21,3 +21,30 @@ is `bfad70cf91531abe7e00b2cb2f1797cc4280931cbd2d7ecb104506c09d33b9e7`.
 All 69 offline hosted tooling tests passed. Live federation remains open.
 
 [Web3.bio Profile API](https://api.web3.bio/).
+
+## Local WEB4 federation and upstream quota
+
+On 6 November 2026, the public index returned HTTP 429 on the final
+foreign-actor public federation check. The outbound status sequence was
+200, 200, 429, then WEB4 HTTP 503 with `CQL_QUERY_FAILED`. Earlier native
+and paired queries in that diagnostic run completed. The failure returned
+no partial query result. Two previously acknowledged version-one Mongo
+copies were read and verified without replaying their writes. Their
+original receipts remain available for authenticated continuation.
+The diagnostic TRX SHA-256 is
+`341985eba4b1c484947e2039ae36a6a0983bfa93c893ce7f9a5e871b4eefb92b`.
+
+Use the separate protected `CQL_ENS_OFFCHAIN_QUERY_API_KEY` setting for
+the hosted profile. The adapter sends the key as `X-API-KEY: Bearer ...`
+only on the fixed Web3.bio HTTPS origin, with redirects disabled. The
+protected configuration preparation checks the key before admitting the
+profile. The catalogue and visitor-facing presets carry no secret.
+Authenticated native and live WEB4 acceptance remain open.
+[Web3.bio authentication](https://api.web3.bio/#api-key-and-authentication).
+
+Seven controlled provider tests, ten WEB4 registration tests and all
+34 protected exact-key configuration tests passed. Both .NET suites ran
+at Core `c2a8b2303264bd159ac55d71b684c712647c6d3b`. Provider TRX SHA-256
+`3498d481ff7e0618f626df777273ed16cb03feafec082997c4991ae9345380b5`
+and WEB4 TRX SHA-256
+`e569b99ce5dd94611cf5fe858167c7a213e6849ad896c7980daf66283ffa4343`.

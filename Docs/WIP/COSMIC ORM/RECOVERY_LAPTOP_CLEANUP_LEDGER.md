@@ -3251,3 +3251,20 @@ TRX and clean Mongo shutdown receipt. The retained
 copies acknowledged before the response failure. Preserve the intent and
 save receipts for read-only diagnosis before cleanup. Do not replay saves.
 Alchemy public endpoint probes ran in memory and left no output files.
+
+The ENS read-only continuations reuse the same replica and save receipts.
+`ReviewedPublicMongoHttpQualification/ens-continuation` and
+`ens-status-diagnostic` retain the TRXs, exact shutdown receipts and
+logs. Both diagnostic runs stopped the owned Mongo process cleanly. The
+second run recorded upstream HTTP 429 without retaining response bodies
+or credentials. The protected API-key checks use the existing SDK and the
+`LocalEnsOffchainCqlQualification/verify-api-key.ps1` lease runner with
+`api-key-provider.*` and `api-key-web4.*` logs and TRXs. No new runtime,
+download or database copy was required.
+
+The OrbitDB readiness diagnostic reused the retained `f5` fixture.
+A standalone module import took 20.8 seconds. A subsequent startup sent
+readiness after 9.9 seconds and exited with code zero on IPC shutdown.
+The fixture receipt remained byte-identical and port 54869 closed.
+The `ReviewedPublicMongoHttpQualification/orbit-*.log` files are the
+compact diagnostic receipts. No service install or fixture copy was made.

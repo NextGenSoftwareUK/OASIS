@@ -773,3 +773,17 @@ and hosted federation and replication verification.
 - Status: native PostgreSQL 17.11 and pgvector 0.8.7 passed 3/2/0, private denial, and checks rejecting an overprivileged role or non-vector table. Opt-in WEB4 admission passed. The hosted verifier compiled. No credentialed hosted request has run.
 - Owner step: identify an existing dedicated pgvector teaching database at a trusted TLS hostname on port 5432. Arrange a dedicated role with SELECT on `public.oasis_holons` ID and document columns and no write or schema-creation privileges. Provide its password privately through `CQL_PGVECTOR_QUERY_READER_PASSWORD`. No paid service or admin credentials are requested.
 - Reason: engineering will bind the reviewed database and role to the catalogue and verify its TLS identity, vector schema and effective grants before Development enrollment. LocalFile remains first. [pgvector evidence](../COSMIC%20ORM/PGVECTOR_CQL_MVP.md) · [PostgreSQL privilege functions](https://www.postgresql.org/docs/17/functions-info.html).
+
+## Web3.bio protected access for the ENS Offchain CQL teaching source
+
+- Status 2026-11-06: open after LocalFile. The local WEB4 federation rehearsal
+  recorded a real upstream HTTP 429 on the anonymous public index. Two
+  acknowledged private Mongo records are retained for read-only continuation.
+- Use an existing Web3.bio API key if the project has one. Otherwise request a
+  free key through the provider's published support channels. Keep the value in
+  the approved secret store and install it as the protected Development WEB4
+  setting `CQL_ENS_OFFCHAIN_QUERY_API_KEY` when the ENS rollout is scheduled.
+  Share only confirmation that access is ready. [Web3.bio authentication](https://api.web3.bio/#api-key-and-authentication).
+- Engineering owns the authenticated native reads, retained fixture
+  reconciliation, and hosted privacy and federation checks.
+  [ENS qualification](../COSMIC%20ORM/ENS_OFFCHAIN_CQL_MVP.md).

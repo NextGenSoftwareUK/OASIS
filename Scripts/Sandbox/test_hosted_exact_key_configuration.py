@@ -436,6 +436,11 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {key: "{}"}, provider, review)
                     baseline[key] = value
+                    secret = "CQL_ENS_OFFCHAIN_QUERY_API_KEY"
+                    for invalid in (None, "", "invalid key", "invalid,key", "x" * 1025):
+                        with self.assertRaisesRegex(ValueError, "source token"):
+                            configuration.candidate(baseline | {secret: invalid}, provider, review)
+                    baseline[secret] = "fixture-web3bio-key"
                 elif provider == "CloudinaryOASIS":
                     key, value = next(iter(review["sourceBinding"].items()))
                     self.assertEqual({"owner": actor, "assets": catalogue["Assets"], "probe": "sample.jpg"}, json.loads(value))

@@ -13,6 +13,7 @@ public static class CqlEnsOffchainReadSourceRegistration
     public static void AddEnsOffchainReadSource(this IServiceCollection services, IConfiguration configuration)
     {
         var source = configuration["CQL_ENS_OFFCHAIN_QUERY_SOURCE_JSON"];
+        var apiKey = configuration["CQL_ENS_OFFCHAIN_QUERY_API_KEY"];
         if (source == null) return;
         if (Encoding.UTF8.GetByteCount(source) > 4096)
             throw new InvalidOperationException("A bounded ENS offchain catalogue is required.");
@@ -33,7 +34,7 @@ public static class CqlEnsOffchainReadSourceRegistration
                 names.Select(name => EnsOffchainQuerySource.LogicalId(owner, name)).Distinct().Count() != names.Length)
                 throw new ArgumentException("Unique canonical names and an enrolled probe are required.");
             services.AddSingleton<CqlReadSourceProfile>(_ =>
-                new CqlReadSourceProfile(new EnsOffchainQuerySource(owner, names, probe)));
+                new CqlReadSourceProfile(new EnsOffchainQuerySource(owner, names, probe, apiKey)));
         }
         catch (Exception error) when (error is JsonException or ArgumentException or InvalidOperationException)
         {

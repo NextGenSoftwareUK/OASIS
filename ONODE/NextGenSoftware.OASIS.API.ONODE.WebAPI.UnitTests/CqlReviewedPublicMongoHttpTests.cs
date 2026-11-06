@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.Diagnostics.Tracing;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -28,6 +30,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.CloudinaryOASIS;
 using NextGenSoftware.OASIS.API.Providers.GUNOASIS;
+using NextGenSoftware.OASIS.API.Providers.ENSOffchainOASIS;
 using NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS;
 using NextGenSoftware.OASIS.API.Providers.ProofOfHumanityOASIS;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
@@ -46,10 +49,12 @@ public sealed class ReviewedPublicMongoNativeTheoryAttribute : TheoryAttribute
 
 public sealed class ReviewedPublicMongoNativeFactAttribute : FactAttribute
 {
-    public ReviewedPublicMongoNativeFactAttribute()
+    public ReviewedPublicMongoNativeFactAttribute(string? requiredSetting = null)
     {
         if (Environment.GetEnvironmentVariable("COSMIC_REVIEWED_PUBLIC_MONGO_NATIVE") != "owned-local-27029")
             Skip = "Explicit public exact-key source/Mongo native gate; reported separately from controlled API tests.";
+        else if (requiredSetting is not null && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(requiredSetting)))
+            Skip = "The reviewed source requires its protected native setting.";
     }
 }
 
@@ -79,7 +84,30 @@ public sealed class CqlReviewedPublicMongoHttpTests
     [ReviewedPublicMongoNativeFact]
     public Task GunNativeHttp() => VerifyHttpAsync(ProviderType.GUNOASIS);
 
-    private static async Task VerifyHttpAsync(ProviderType provider)
+    [ReviewedPublicMongoNativeFact]
+    public Task EnsOffchainNativeHttpContinuation() => VerifyHttpAsync(ProviderType.ENSOffchainOASIS, resume: true);
+
+    private sealed record FixtureIntent(string Owner, string nonce, string database, Guid actor,
+        Guid foreignActor, Guid[] allowed, Guid[] copies, Guid[] operations);
+
+    private sealed class HttpStatusTrace : EventListener
+    {
+        public ConcurrentQueue<int> Statuses { get; } = new();
+
+        protected override void OnEventSourceCreated(EventSource source)
+        {
+            if (source.Name == "System.Net.Http")
+                EnableEvents(source, EventLevel.Informational);
+        }
+
+        protected override void OnEventWritten(EventWrittenEventArgs trace)
+        {
+            if (trace.EventName == "RequestStop" && trace.Payload is { Count: 1 } && trace.Payload[0] is int status)
+                Statuses?.Enqueue(status);
+        }
+    }
+
+    private static async Task VerifyHttpAsync(ProviderType provider, bool resume = false)
     {
         var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
         const string mongoConnection = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=10000";
@@ -92,18 +120,46 @@ public sealed class CqlReviewedPublicMongoHttpTests
         var state = Path.Combine(root, "LocalState", "COSMIC", "ReviewedPublicMongoHttpQualification", provider.ToString());
         Directory.CreateDirectory(state);
         var intent = Path.Combine(state, "fixture.intent.json");
-        Assert.False(IoFile.Exists(intent), "Preserve the original fixture outcome; never reseed/replay it.");
-        Assert.Empty(Directory.EnumerateFiles(state));
-        var actor = Guid.NewGuid();
-        var foreignActor = Guid.NewGuid();
-        var nonce = Guid.NewGuid().ToString("D");
+        FixtureIntent? retained = null;
+        if (resume)
+        {
+            retained = JsonSerializer.Deserialize<FixtureIntent>(await IoFile.ReadAllBytesAsync(intent));
+            Assert.NotNull(retained);
+            Assert.Equal(Owner, retained.Owner);
+            Assert.Equal(database, retained.database);
+            Assert.True(Guid.TryParseExact(retained.nonce, "D", out _));
+            Assert.NotEqual(Guid.Empty, retained.actor);
+            Assert.NotEqual(Guid.Empty, retained.foreignActor);
+            Assert.NotEqual(retained.actor, retained.foreignActor);
+            Assert.False(IoFile.Exists(Path.Combine(state, "fixture.cleaned.json")));
+        }
+        else
+        {
+            Assert.False(IoFile.Exists(intent), "Preserve the original fixture outcome; never reseed/replay it.");
+            Assert.Empty(Directory.EnumerateFiles(state));
+        }
+
+        var actor = retained?.actor ?? Guid.NewGuid();
+        var foreignActor = retained?.foreignActor ?? Guid.NewGuid();
+        var nonce = retained?.nonce ?? Guid.NewGuid().ToString("D");
         var (storage, allowed) = CreateReviewedSource(provider, actor);
         using var sourceLifetime = (IDisposable)storage;
-        var copies = new[] { Guid.NewGuid(), Guid.NewGuid() };
-        var operations = new[] { Guid.NewGuid(), Guid.NewGuid() };
+        var copies = retained?.copies ?? new[] { Guid.NewGuid(), Guid.NewGuid() };
+        var operations = retained?.operations ?? new[] { Guid.NewGuid(), Guid.NewGuid() };
         var client = new MongoClient(mongoConnection);
         using (var names = await client.ListDatabaseNamesAsync())
-            Assert.DoesNotContain(database, await names.ToListAsync());
+            Assert.Equal(resume, (await names.ToListAsync()).Contains(database));
+        if (retained is not null)
+        {
+            Assert.Equal(allowed, retained.allowed);
+            Assert.Equal(2, copies.Length);
+            Assert.Equal(2, copies.Distinct().Count());
+            Assert.DoesNotContain(Guid.Empty, copies);
+            Assert.Equal(2, operations.Length);
+            Assert.Equal(2, operations.Distinct().Count());
+            Assert.DoesNotContain(Guid.Empty, operations);
+        }
+
         var activation = await ((ICosmicReadOnlyQueryActivation)storage).ActivateQuerySourceAsync(default);
         Assert.False(activation.IsError, activation.Exception?.ToString());
         var querySource = (ICosmicQueryStorageProvider)storage;
@@ -118,14 +174,23 @@ public sealed class CqlReviewedPublicMongoHttpTests
         Assert.False(source.IsError, source.Exception?.ToString() ?? source.ErrorCode);
         Assert.Equal(allowed.Order(), source.Result.Select(row => row.Id).Order());
 
-        await using (var file = new FileStream(intent, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
-        {
-            await JsonSerializer.SerializeAsync(file, new { Owner, nonce, database, actor, foreignActor, allowed, copies, operations });
-            file.Flush(true);
-        }
         var native = client.GetDatabase(database);
-        await native.GetCollection<BsonDocument>("CosmicOwnedFixture").InsertOneAsync(
-            new BsonDocument { { "_id", nonce }, { "owner", Owner } });
+        var ownership = native.GetCollection<BsonDocument>("CosmicOwnedFixture");
+        var markerFilter = new BsonDocument { { "_id", nonce }, { "owner", Owner } };
+        if (resume)
+        {
+            Assert.Equal(1, await ownership.CountDocumentsAsync(markerFilter));
+            Assert.Equal(1, await ownership.CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+            Assert.Equal(2, await native.GetCollection<BsonDocument>("Holon").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+        }
+        else
+        {
+            await using var file = new FileStream(intent, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
+            await JsonSerializer.SerializeAsync(file, new FixtureIntent(Owner, nonce, database, actor, foreignActor, allowed, copies, operations));
+            file.Flush(true);
+            await ownership.InsertOneAsync(markerFilter);
+        }
+
         var mongo = new MongoSource(mongoConnection, database);
         Assert.False((await mongo.ActivateProviderAsync()).IsError);
         var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS { HyperDriveMode = HyperDriveModes.V2 } };
@@ -137,6 +202,23 @@ public sealed class CqlReviewedPublicMongoHttpTests
         var manager = providers.CreateManager(mongo);
         for (var index = 0; index < copies.Length; index++)
         {
+            if (resume)
+            {
+                var receiptPath = Path.Combine(state, "save-" + index + ".acknowledged.json");
+                using var receipt = JsonDocument.Parse(await IoFile.ReadAllBytesAsync(receiptPath));
+                Assert.Equal(copies[index], receipt.RootElement.GetProperty("id").GetGuid());
+                Assert.Equal(operations[index], receipt.RootElement.GetProperty("operation").GetGuid());
+                Assert.Equal(1, receipt.RootElement.GetProperty("version").GetInt32());
+                var existing = await mongo.LoadHolonAsync(copies[index], loadChildren: false, version: 1);
+                Assert.False(existing.IsError, existing.ErrorCode);
+                Assert.NotNull(existing.Result);
+                Assert.Equal(copies[index], existing.Result.Id);
+                Assert.Equal(actor, existing.Result.CreatedByAvatarId);
+                Assert.False(existing.Result.IsPublic);
+                Assert.Equal(1, existing.Result.Version);
+                Assert.Equal(allowed[index].ToString("D"), existing.Result.MetaData["COSMIC.Demo.SourceHolonId"]);
+                continue;
+            }
             var original = source.Result.Single(row => row.Id == allowed[index]);
             var metadata = original.MetaData.ToDictionary(pair => pair.Key, pair => pair.Value);
             metadata["COSMIC.Demo.Dataset"] = "COSMIC.CQL.Demo.v1";
@@ -214,6 +296,7 @@ public sealed class CqlReviewedPublicMongoHttpTests
         }
         app.MapPost("/api/data/query-cql", (HttpContext http) => Execute(http, false));
         app.MapPost("/api/data/query-cql/federation", (HttpContext http) => Execute(http, true));
+        using var statusTrace = resume ? new HttpStatusTrace() : null;
         await app.StartAsync();
         try
         {
@@ -228,12 +311,14 @@ public sealed class CqlReviewedPublicMongoHttpTests
                 http.DefaultRequestHeaders.Remove("Idempotency-Key");
                 var requestId = Guid.NewGuid().ToString("D");
                 http.DefaultRequestHeaders.Add("Idempotency-Key", requestId);
+                statusTrace?.Statuses.Clear();
                 using var response = await http.PostAsJsonAsync(route, request);
                 using var body = JsonDocument.Parse(await response.Content.ReadAsByteArrayAsync());
                 if (!response.IsSuccessStatusCode)
                 {
                     var error = body.RootElement.TryGetProperty("errorCode", out var field) ? field.GetString() : "missing";
-                    Assert.Fail($"{name} returned HTTP {(int)response.StatusCode} ({error}) for {requestId}.");
+                    var statuses = statusTrace is null ? "disabled" : string.Join(",", statusTrace.Statuses);
+                    Assert.Fail($"{name} returned HTTP {(int)response.StatusCode} ({error}) for {requestId}. Outbound HTTP status sequence: {statuses}.");
                 }
                 var rows = body.RootElement.GetProperty("result").GetProperty("rows");
                 Assert.Equal(expected.Length, rows.GetArrayLength());
@@ -279,7 +364,7 @@ public sealed class CqlReviewedPublicMongoHttpTests
                 identityMode = "PreserveCopies", maximumProviderAttempts = 2, maximumDurationMilliseconds = 30000, take = 8 }, allowed);
             Assert.Equal(9, receipts.Count);
             await IoFile.WriteAllTextAsync(Path.Combine(state, "mongo-http-native-summary.json"),
-                JsonSerializer.Serialize(new { counts, sdkOwnedSaves = 2,
+                JsonSerializer.Serialize(new { counts, sdkOwnedSaves = resume ? 0 : 2, reusedPrivateCopies = resume ? 2 : 0,
                     receiptCount = receipts.Count, productionBilling = false, replicationAcceptance = false, browserAcceptance = false }));
         }
         finally { await app.StopAsync(); await storage.DeActivateProviderAsync(); }
@@ -317,6 +402,13 @@ public sealed class CqlReviewedPublicMongoHttpTests
                     "0xc5e9ddebb09cd64dfacab4011a0d5cedaf7c9bdb" };
                 return (new ProofOfHumanityRegistryQuerySource(owner, keys, keys[0]),
                     keys.Select(key => ProofOfHumanityRegistryQuerySource.LogicalId(owner, key)).ToArray());
+            }
+            case ProviderType.ENSOffchainOASIS:
+            {
+                string[] keys = { "vitalik.eth", "nick.eth", "luc.eth" };
+                return (new EnsOffchainQuerySource(owner, keys, keys[0],
+                    Environment.GetEnvironmentVariable("CQL_ENS_OFFCHAIN_QUERY_API_KEY")),
+                    keys.Select(key => EnsOffchainQuerySource.LogicalId(owner, key)).ToArray());
             }
             case ProviderType.GUNOASIS:
             {

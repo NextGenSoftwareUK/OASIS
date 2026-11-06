@@ -25,6 +25,21 @@ public class CqlEnsOffchainHostedConfigurationTests
         Assert.False(profile.Storage.IsProviderActivated);
     }
 
+    [Fact]
+    public void ReadsTheApiKeyFromItsSeparateProtectedSetting()
+    {
+        var services = new ServiceCollection();
+        services.AddEnsOffchainReadSource(Settings(Valid, "test-web3bio-key"));
+        using var container = services.BuildServiceProvider();
+        Assert.False(Assert.Single(container.GetServices<CqlReadSourceProfile>()).Storage.IsProviderActivated);
+
+        var malformed = new ServiceCollection();
+        malformed.AddEnsOffchainReadSource(Settings(Valid, "malformed key"));
+        using var invalid = malformed.BuildServiceProvider();
+        var error = Assert.Throws<ArgumentException>(() => invalid.GetServices<CqlReadSourceProfile>().ToArray());
+        Assert.DoesNotContain("malformed key", error.Message);
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("""{"owner":"a5808c3e-7031-47e7-92de-48a659568f1b","names":["vitalik.eth","vitalik.eth"],"probe":"vitalik.eth"}""")]
@@ -54,6 +69,10 @@ public class CqlEnsOffchainHostedConfigurationTests
             EnsOffchainQuerySource.LogicalId(Guid.Parse(Owner), "vitalik.eth"));
     }
 
-    private static IConfiguration Settings(string value) =>
-        new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { [Setting] = value }).Build();
+    private static IConfiguration Settings(string value, string? apiKey = null) =>
+        new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            [Setting] = value,
+            ["CQL_ENS_OFFCHAIN_QUERY_API_KEY"] = apiKey
+        }).Build();
 }

@@ -26,6 +26,31 @@ public class EnsOffchainQuerySourceTests
         Assert.AreEqual(6, transport.Requests);
     }
 
+    [TestMethod]
+    public async Task AuthenticatedActivationAndReadUseTheFixedIndexWithTheDocumentedHeader()
+    {
+        const string apiKey = "test-web3bio-key";
+        using var transport = new Reply((request, name) =>
+        {
+            Assert.AreEqual("Bearer " + apiKey, request.Headers.GetValues("X-API-KEY").Single());
+            return new { identity = name, address = Address, platform = "ens" };
+        });
+        using var source = new EnsOffchainQuerySource(Owner, Names, Names[0], transport, apiKey);
+        Assert.IsFalse((await source.ActivateQuerySourceAsync()).IsError);
+        var id = EnsOffchainQuerySource.LogicalId(Owner, Names[0]);
+        await QueryAsync(source, new[] { id }, new[] { id });
+        Assert.AreEqual(2, transport.Requests);
+    }
+
+    [TestMethod]
+    public void MalformedKeyIsRejectedBeforeAnyRequest()
+    {
+        using var transport = new Reply((_, _) => throw new AssertFailedException("Unexpected request."));
+        Assert.ThrowsException<ArgumentException>(() =>
+            new EnsOffchainQuerySource(Owner, Names, Names[0], transport, "malformed\r\nkey"));
+        Assert.AreEqual(0, transport.Requests);
+    }
+
     [DataTestMethod]
     [DataRow("identity")]
     [DataRow("platform")]

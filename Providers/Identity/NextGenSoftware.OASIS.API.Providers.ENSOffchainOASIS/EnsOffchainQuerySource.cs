@@ -32,10 +32,13 @@ public sealed class EnsOffchainQuerySource : KeyValueStorageProviderBase, ICosmi
     private readonly Guid probeId;
 
     public EnsOffchainQuerySource(Guid owner, IEnumerable<string> names, string probe)
-        : this(CreateBackend(owner, names, probe, null), LogicalId(owner, probe)) { }
+        : this(owner, names, probe, apiKey: null) { }
 
-    internal EnsOffchainQuerySource(Guid owner, IEnumerable<string> names, string probe, HttpMessageHandler handler)
-        : this(CreateBackend(owner, names, probe, handler), LogicalId(owner, probe)) { }
+    public EnsOffchainQuerySource(Guid owner, IEnumerable<string> names, string probe, string apiKey)
+        : this(owner, names, probe, handler: null, apiKey: apiKey) { }
+
+    internal EnsOffchainQuerySource(Guid owner, IEnumerable<string> names, string probe, HttpMessageHandler handler, string apiKey = null)
+        : this(CreateBackend(owner, names, probe, handler, apiKey), LogicalId(owner, probe)) { }
 
     private EnsOffchainQuerySource(IndexBackend backend, Guid probeId) : base(backend, "ens-offchain:")
     {
@@ -58,13 +61,16 @@ public sealed class EnsOffchainQuerySource : KeyValueStorageProviderBase, ICosmi
         name.All(character => character is >= 'a' and <= 'z' or >= '0' and <= '9' or '-' or '.') &&
         NamePattern.IsMatch(name);
 
-    private static IndexBackend CreateBackend(Guid owner, IEnumerable<string> names, string probe, HttpMessageHandler handler)
+    private static IndexBackend CreateBackend(Guid owner, IEnumerable<string> names, string probe, HttpMessageHandler handler, string apiKey)
     {
         var catalogue = names?.Take(9).ToArray() ?? Array.Empty<string>();
         if (owner == Guid.Empty || catalogue.Length is < 1 or > 8 || catalogue.Any(name => !IsCanonicalName(name)) ||
             catalogue.Distinct(StringComparer.Ordinal).Count() != catalogue.Length ||
             !catalogue.Contains(probe, StringComparer.Ordinal))
             throw new ArgumentException("A source owner, bounded ENS name catalogue and a catalogue probe are required.");
+        if (apiKey != null && (apiKey.Length is < 1 or > 1024 ||
+            apiKey.Any(character => character is < '!' or > '~' || character == ',')))
+            throw new ArgumentException("A valid Web3.bio API key is required.", nameof(apiKey));
         if (handler == null)
         {
             var transport = (SocketsHttpHandler)NativeConnectionGuard.CreateGuardedHttpHandler();
@@ -72,7 +78,7 @@ public sealed class EnsOffchainQuerySource : KeyValueStorageProviderBase, ICosmi
             transport.UseProxy = false;
             handler = transport;
         }
-        return new IndexBackend(owner, catalogue, new HttpClient(handler));
+        return new IndexBackend(owner, catalogue, new HttpClient(handler), apiKey);
     }
 
     public PType QueryProviderType => PType.ENSOffchainOASIS;
@@ -97,7 +103,7 @@ public sealed class EnsOffchainQuerySource : KeyValueStorageProviderBase, ICosmi
         backend.Dispose();
     }
 
-    private sealed class IndexBackend(Guid owner, IEnumerable<string> catalogue, HttpClient client) : IKeyValueBackend, IDisposable
+    private sealed class IndexBackend(Guid owner, IEnumerable<string> catalogue, HttpClient client, string apiKey) : IKeyValueBackend, IDisposable
     {
         private readonly Dictionary<Guid, string> names = catalogue.ToDictionary(name => LogicalId(owner, name));
 
@@ -108,6 +114,8 @@ public sealed class EnsOffchainQuerySource : KeyValueStorageProviderBase, ICosmi
             using var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.web3.bio/ns/ens/{name}");
             request.Headers.Accept.ParseAdd("application/json");
             request.Headers.UserAgent.ParseAdd("OASISAPI/1.0");
+            if (apiKey != null)
+                request.Headers.Add("X-API-KEY", "Bearer " + apiKey);
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
             response.EnsureSuccessStatusCode();
