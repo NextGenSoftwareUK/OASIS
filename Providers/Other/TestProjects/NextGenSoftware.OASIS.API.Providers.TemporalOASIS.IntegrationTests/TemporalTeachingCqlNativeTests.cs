@@ -20,6 +20,22 @@ public sealed class TemporalTeachingCqlNativeTests
     private static readonly Guid Owner = Guid.Parse("a5808c3e-7031-47e7-92de-48a659568f1b");
 
     [TestMethod, TestCategory("TemporalTeachingCqlNative")]
+    public void CloudProfileOnlyDerivesItsTargetFromACanonicalNamespaceAndAccount()
+    {
+        var run = new TemporalTeachingRun("oasis-teaching-control", Guid.NewGuid());
+        var accepted = TemporalTeachingQuerySource.ForCloud("oasis-cql.exampleaccount", "fixture-key", Owner,
+            new[] { run }, run);
+        Assert.IsFalse(accepted.IsProviderActivated);
+        Assert.AreNotEqual(TemporalTeachingQuerySource.LogicalId(Owner, "oasis-cql", run),
+            TemporalTeachingQuerySource.LogicalId(Owner, "oasis-cql.exampleaccount", run));
+        foreach (var invalid in new[] { "oasis-cql", "https://other.example", "127.0.0.1", "oasis-cql.-other", "oasis-cql.account.extra" })
+            Assert.ThrowsException<ArgumentException>(() =>
+                TemporalTeachingQuerySource.ForCloud(invalid, "fixture-key", Owner, new[] { run }, run));
+        Assert.ThrowsException<ArgumentException>(() =>
+            TemporalTeachingQuerySource.ForCloud("oasis-cql.exampleaccount", "fixture key", Owner, new[] { run }, run));
+    }
+
+    [TestMethod, TestCategory("TemporalTeachingCqlNative")]
     public async Task OfficialServerProvidesThreeTwoAndZeroExactRunDescriptions()
     {
         if (Environment.GetEnvironmentVariable("COSMIC_TEMPORAL_VERIFY_PUBLIC") != "owned-linux-7233")

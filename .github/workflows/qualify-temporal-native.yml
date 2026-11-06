@@ -76,7 +76,7 @@ jobs:
               dotnet test "Providers/Other/TestProjects/$test/$test.csproj" /m:2 /nr:false /p:UseSharedCompilation=false --filter "TestCategory=TemporalTeachingCqlNative" --results-directory TestResults/TemporalNative --logger "trx;LogFileName=native.trx"
               if ($LASTEXITCODE) { throw "Native Temporal qualification failed" }
             }'
-          grep -q 'total="1" executed="1" passed="1"' "$report/native.trx"
+          grep -q 'total="2" executed="2" passed="2"' "$report/native.trx"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:

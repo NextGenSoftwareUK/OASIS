@@ -30,6 +30,22 @@ public sealed class TemporalTeachingQuerySource : KeyValueStorageProviderBase, I
     public TemporalTeachingQuerySource(ITemporalClient client, Guid owner, IEnumerable<TemporalTeachingRun> runs, TemporalTeachingRun probe)
         : this(new WorkflowBackend(client, owner, runs, probe), probe) { }
 
+    public static TemporalTeachingQuerySource ForCloud(string workflowNamespace, string apiKey, Guid owner,
+        IEnumerable<TemporalTeachingRun> runs, TemporalTeachingRun probe)
+    {
+        if (!IsNamespace(workflowNamespace) || !workflowNamespace.Contains('.') ||
+            apiKey is not { Length: >= 1 and <= 4096 } || apiKey.Any(c => c is < '!' or > '~' || c == ','))
+            throw new ArgumentException("A reviewed Temporal Cloud namespace and protected API key are required.");
+
+        var client = TemporalClient.CreateLazy(new TemporalClientConnectOptions(workflowNamespace + ".tmprl.cloud:7233")
+        {
+            Namespace = workflowNamespace,
+            ApiKey = apiKey,
+            Tls = new TlsOptions()
+        });
+        return new TemporalTeachingQuerySource(client, owner, runs, probe);
+    }
+
     private TemporalTeachingQuerySource(WorkflowBackend backend, TemporalTeachingRun probe)
         : base(backend, "temporal-teaching:")
     {
@@ -43,7 +59,7 @@ public sealed class TemporalTeachingQuerySource : KeyValueStorageProviderBase, I
 
     public static Guid LogicalId(Guid owner, string workflowNamespace, TemporalTeachingRun run)
     {
-        if (owner == Guid.Empty || !IsSafeKey(workflowNamespace, 32) || !IsTeachingRun(run))
+        if (owner == Guid.Empty || !IsNamespace(workflowNamespace) || !IsTeachingRun(run))
             throw new ArgumentException("A source owner, bounded namespace and exact teaching run are required.");
         return NativeRecordHolonMapper.StableHolonId(owner, PType.TemporalOASIS, Source, NativeKey(workflowNamespace, run));
     }
@@ -51,6 +67,14 @@ public sealed class TemporalTeachingQuerySource : KeyValueStorageProviderBase, I
     private static bool IsSafeKey(string key, int limit) =>
         key is { Length: > 0 } && key.Length <= limit &&
         key.All(c => char.IsAsciiLetterLower(c) || char.IsAsciiDigit(c) || c == '-');
+
+    private static bool IsNamespace(string value)
+    {
+        if (value is not { Length: >= 1 and <= 64 }) return false;
+        var labels = value.Split('.');
+        return labels.Length <= 2 && labels.All(label =>
+            IsSafeKey(label, 63) && label[0] != '-' && label[^1] != '-');
+    }
 
     private static bool IsTeachingRun(TemporalTeachingRun run) =>
         run is not null && run.RunId != Guid.Empty && IsSafeKey(run.WorkflowId, 55) &&
@@ -88,7 +112,7 @@ public sealed class TemporalTeachingQuerySource : KeyValueStorageProviderBase, I
             this.owner = owner;
             workflowNamespace = client.Options.Namespace;
             var catalogue = selected?.Take(9).ToArray() ?? Array.Empty<TemporalTeachingRun>();
-            if (owner == Guid.Empty || !IsSafeKey(workflowNamespace, 32) || catalogue.Length is < 1 or > 8 ||
+            if (owner == Guid.Empty || !IsNamespace(workflowNamespace) || catalogue.Length is < 1 or > 8 ||
                 catalogue.Any(run => !IsTeachingRun(run)) || catalogue.Distinct().Count() != catalogue.Length ||
                 !catalogue.Contains(probe))
                 throw new ArgumentException("Use a bounded set of unique reviewed Temporal teaching runs and an enrolled probe.");
