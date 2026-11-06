@@ -2639,3 +2639,17 @@ The browser run then passed in
 The page stop closed both services, with no ready or pending files left.
 The original recovery seed and checkpoint hashes matched. Retain the
 independent checkpoint and JAR for the reusable local demo.
+
+NATS visibility testing reuses the retained JetStream 2.15.2 executable.
+The probe project and bounded build runner live under
+`RecoveryLaptopNats2152/visibility-probe/`. Each run creates its own
+disposable store on loopback 24223, with build, probe, server and stop logs.
+The first probe reproduced a private row being hidden by paging. Its process
+stopped and the existing teaching bucket was never opened for this test.
+The corrected build passed against a second isolated store. Probe log
+SHA-256 values are
+`c2dd89b70d0d12ffc53c7ae8beed86957a8d2d885cf57dfa265ed9180d6be177` and
+`3859fbe311a6c7aaf9f58098535931dacdd52d58a67a160fae1a0365f37b0264`.
+Both owned processes stopped, port 24223 closed, and the two disposable
+stores (7350 bytes each) were removed. Retain the probe sources and compact
+run logs. The probe project bin and obj are regenerable.

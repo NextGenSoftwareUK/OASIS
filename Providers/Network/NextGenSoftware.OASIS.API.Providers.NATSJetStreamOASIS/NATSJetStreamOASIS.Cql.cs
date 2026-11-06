@@ -19,6 +19,8 @@ public partial class NATSJetStreamOASIS : ICosmicQueryStorageProvider
     public ProviderType QueryProviderType => Core.Enums.ProviderType.NATSJetStreamOASIS;
     public CosmicQueryCapabilities QueryCapabilities => BoundedIdentityCqlCompiler.Capabilities;
 
+    protected virtual bool IsCqlRecordVisible(IHolon row) => true;
+
     public virtual async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100,
         CancellationToken cancellationToken = default) where T : IHolon
@@ -54,6 +56,8 @@ public partial class NATSJetStreamOASIS : ICosmicQueryStorageProvider
                 if (row == null || row.Id != id || !plan.Query.ReadAccess.CanRead(row))
                     throw new InvalidDataException("Native NATS JetStream record differs from the authorized identity.");
                 if (row.IsDeleted) continue;
+                if (!IsCqlRecordVisible(row))
+                    return Error("CQL_SOURCE_VISIBILITY_CHANGED", "An enrolled NATS row is no longer public.");
                 row.Children = Array.Empty<IHolon>();
                 rows.Add(row);
             }

@@ -93,18 +93,18 @@ public sealed class NatsPublicCqlProfile : NATSJetStreamOASIS, ICosmicReadOnlyQu
         }
     }
 
-    public override async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
+    public override Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100, CancellationToken cancellationToken = default)
     {
         var selected = BoundedIdentityCqlCompiler.Compile(plan?.Query, QueryProviderType, QueryProviderType);
         if (selected.IsError)
-            return Failure(selected.ErrorCode, selected.Message);
+            return Task.FromResult(Failure(selected.ErrorCode, selected.Message));
         if (selected.Result.Any(id => !catalogue.Contains(id)))
-            return Failure("CQL_INVALID_SOURCE_KEY", "Only enrolled NATS identities are available.");
-        var result = await base.ExecuteCosmicQueryAsync(plan, maximumResults, cancellationToken);
-        return !result.IsError && result.Result.Any(row => !IsPublicRecord(row))
-            ? Failure("CQL_SOURCE_VISIBILITY_CHANGED", "An enrolled NATS row is no longer public.") : result;
+            return Task.FromResult(Failure("CQL_INVALID_SOURCE_KEY", "Only enrolled NATS identities are available."));
+        return base.ExecuteCosmicQueryAsync(plan, maximumResults, cancellationToken);
     }
+
+    protected override bool IsCqlRecordVisible(IHolon row) => IsPublicRecord(row);
 
     private bool IsPublicRecord(IHolon row) => row.IsPublic && !row.IsDeleted && row.CreatedByAvatarId == owner;
 
