@@ -2298,3 +2298,49 @@ Log: `TestResults/ProviderBuildCurrent/arango-public-profile.log`.
 Report: `LocalState/COSMIC/HostedArangoDbCqlQualification/provider.trx`,
 SHA256 `4BECBEA4644B1DE6046AB4B965BC255B2C8827B4AF68959F58AED5EFD6F5A12B`.
 Shared Core was restored to `54159614`. No server was started or contacted.
+
+ArangoDB WEB4 admission reuses the existing .NET environment under one
+shared lease. The exact Core candidate and admission report use
+`LocalState/COSMIC/HostedArangoDbCqlQualification/`. Logs use
+`TestResults/ProviderBuildCurrent/arango-hosted-native-fixture.log` and
+`arango-hosted-api-cql.log`. All eight protected-settings tests passed and
+cleaned their temporary files. No server download or native connection.
+
+CockroachDB local qualification uses the vendor's experimental Windows
+v26.2.2 ZIP, 162,650,332 bytes, SHA256
+`802208ed890e7c16d8b270fd9a1c0a3e03e8e9cae68b49e4dd98a1c42f9d12f5`.
+Download path `LocalState/COSMIC/HostedCockroachCqlQualification/cockroach-win-x64-26.2.2/`.
+Extract only the executable, retain its receipt and remove the archive.
+No system installation, service, PATH change or cloud account.
+
+2026-11-06: Verified the archive size and vendor checksum, extracted
+`cockroach.exe` (535,407,217 bytes) and removed the ZIP. The same runtime
+directory holds `runtime-receipt.json`, `run-native-cql.py` and
+`native-server.log`. The readiness run started the native process with
+loopback-only TLS and returned CockroachDB v26.2.2 from SQL. Its temporary
+database and generated certificates were removed after the owned process
+stopped. Reuse the executable for the restricted CQL run, then remove it
+when no longer needed and retain the compact receipts.
+
+The CockroachDB build runner is
+`LocalState/COSMIC/HostedCockroachCqlQualification/build-and-run-native-cql.ps1`.
+It uses the shared build lease and records the exact Core pin, provider test
+report and native fixture build in `TestResults/ProviderBuildCurrent/` with
+the `cockroach-` prefix. The native TRX goes next to the runtime receipt.
+
+2026-11-06: The original task branch has published CockroachDB native and
+paired browser evidence at `537b35c23`. Retired the recovery laptop's
+duplicate qualification before compiling it. Removed the exact 535,407,217
+byte executable after confirming its process was gone. No build or native
+CQL report was produced by that runner. The receipt, readiness log and
+small archived fixture draft remain in the CockroachDB qualification
+directory. The original laptop ledger and source were untouched.
+
+The recovered CockroachDB provider check uses
+`LocalState/COSMIC/HostedCockroachCqlQualification/verify-recovered-provider.ps1`.
+It reuses the shared build environment and writes only the CockroachDB
+provider log, TRX and Core pin to `TestResults/ProviderBuildCurrent/`.
+
+ArangoDB WEB4 verification finished with 11 passed and 0 skipped.
+The fixture compiled with 0 errors. `admission.trx` is in the ArangoDB
+qualification directory, and the build restored the original Core checkout.

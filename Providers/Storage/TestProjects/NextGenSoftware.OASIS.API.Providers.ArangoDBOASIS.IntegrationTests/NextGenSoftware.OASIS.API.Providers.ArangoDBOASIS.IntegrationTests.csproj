@@ -7,6 +7,15 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="ArangoDbHostedCqlNativeTests.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(EnableArangoDbHostedCqlNativeTests)' == 'true'">
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Compile Include="ArangoDbHostedCqlNativeTests.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadSourceProfile.cs" Link="Hosted/CqlReadSourceProfile.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlArangoDbReadSourceRegistration.cs" Link="Hosted/CqlArangoDbReadSourceRegistration.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
