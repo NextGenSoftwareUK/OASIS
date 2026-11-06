@@ -300,3 +300,20 @@ The verifier now checks the mounted source receipt and complete protected
 settings on the exact reviewed deployment before opening a visitor session.
 The public patch must match the protected candidate. The settings publisher
 also rechecks the original deployment before each staged write.
+
+### Recovered laptop input check
+
+The existing publisher inputs are absent on the recovered laptop. Transfer
+these three files from the old laptop's
+`LocalState/COSMIC/RecoveryLaptopPouchDBCql/hosted-preparation/` to the same
+relative path in `C:/Source/OASIS-cosmic`:
+
+- `bundle.json`
+- `native-source-qualified.json`
+- `source/bootstrap.acknowledged.json`
+
+Keep their exact bytes. The publisher compares the bundle and receipt hashes
+with the native qualification before computing settings. The original
+LevelDB directory and protected configuration stay on the old laptop.
+The separate PouchDB release still needs a scoped delta on top of the
+accepted LocalFile release.

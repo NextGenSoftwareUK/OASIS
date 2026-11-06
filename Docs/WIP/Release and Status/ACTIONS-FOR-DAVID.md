@@ -861,3 +861,12 @@ and hosted federation and replication verification.
   and [API key connection](https://docs.temporal.io/cli/cloud).
 - Engineering owns the synthetic run catalogue, scope and denial checks,
   admission and live federation. [Temporal evidence](../COSMIC%20ORM/TEMPORAL_CQL_MVP.md).
+
+## Transfer the qualified PouchDB source files from the old laptop
+
+- Open 2026-11-06. The recovered laptop lacks the three original PouchDB
+  publisher inputs. Copy the bundle, qualification and bootstrap receipt
+  using the exact relative paths in the [PouchDB handoff instructions](../COSMIC%20ORM/POUCHDB_HOSTED_RUNTIME_PREPARATION.md#recovered-laptop-input-check).
+- This transfer enables the next Development demo after LocalFile. Keep
+  credentials, protected settings and the database on the old laptop.
+  Engineering will verify the original hashes before preparing settings.
