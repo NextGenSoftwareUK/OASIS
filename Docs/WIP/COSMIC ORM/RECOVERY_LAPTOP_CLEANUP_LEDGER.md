@@ -1838,6 +1838,13 @@ exited, the synthetic database, local storage, and CLI-generated `.env.local`
 were removed. Retained the three compact logs in `native-fixture` and the
 reusable CLI and backend for the adapter qualification.
 
+The Convex adapter run reused the existing .NET SDK and build lease.
+Provider and test `bin/obj` outputs use their normal project locations.
+`verify-provider.ps1`, `provider-core-pin.txt` and `provider.trx` are in the
+same qualification directory. The log is
+`TestResults/ProviderBuildCurrent/convex-provider-cql.log`.
+All 20 checks passed and the shared Core checkout was restored.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt
