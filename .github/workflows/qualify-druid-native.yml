@@ -1,0 +1,94 @@
+name: Qualify native Apache Druid CQL
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-druid-native.yml'
+      - 'Scripts/TestHosts/Seed-DruidCqlFixture.py'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.DruidOASIS/**'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.DruidOASIS.UnitTests/DruidPublicQuerySourceTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          persist-credentials: false
+      - name: Read reviewed dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|OASIS_API_CORE_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/OASIS-API-Core
+          ref: ${{ steps.dependency.outputs.OASIS_API_CORE_COMMIT }}
+          path: OASIS/OASIS Architecture/NextGenSoftware.OASIS.API.Core
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify the official Druid distribution and qualify the exact SQL reads
+        working-directory: OASIS
+        shell: bash
+        env:
+          COSMIC_DRUID_VERIFY_PUBLIC: owned-linux-8888
+        run: |
+          set -euo pipefail
+          work=$(mktemp -d "$RUNNER_TEMP/oasis-druid.XXXXXXXX")
+          [[ "$work" == "$RUNNER_TEMP"/oasis-druid.* ]]
+          report="$PWD/TestResults/DruidNative"
+          mkdir -p "$report"
+          archive="$work/apache-druid-38.0.0-bin.tar.gz"
+          curl --fail --silent --show-error --proto '=https' --max-time 300             --output "$archive" https://dlcdn.apache.org/druid/38.0.0/apache-druid-38.0.0-bin.tar.gz
+          echo "aafbc2696d97ddc7f760a6a10b367fa0228a28642b11e1db6eed541eb3a5f5bbcd874144ffafa0dd8e1135dbdec39372c9072025e5e3fb76b88e48088cab47a0  $archive" | sha512sum --check
+          tar -xzf "$archive" -C "$work"
+          export JAVA_HOME="$JAVA_HOME_21_X64"
+          export PATH="$JAVA_HOME/bin:$PATH"
+          setsid bash -c 'cd "$1"; exec bin/start-nano-quickstart' _ "$work/apache-druid-38.0.0" > "$work/runtime.log" 2>&1 &
+          owned_pid=$!
+          cleanup() {
+            kill -TERM -- "-$owned_pid" 2>/dev/null || true
+            wait "$owned_pid" 2>/dev/null || true
+            tail -n 100 "$work/runtime.log" > "$report/runtime-tail.log"
+          }
+          trap cleanup EXIT
+          ready_query='{"query":"SELECT 1 AS ready","resultFormat":"object"}'
+          for attempt in {1..60}; do
+            kill -0 "$owned_pid"
+            if curl --fail --silent --max-time 3 -H 'Content-Type: application/json'               --data "$ready_query" http://127.0.0.1:8888/druid/v2/sql | jq -e '.[0].ready == 1' >/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          python3 -B Scripts/TestHosts/Seed-DruidCqlFixture.py | tee "$report/runtime.txt"
+          pwsh -NoProfile -Command '
+            $ErrorActionPreference = "Stop"
+            & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner druid-native-ci -Operation {
+              $test = "NextGenSoftware.OASIS.API.Providers.DruidOASIS.UnitTests"
+              dotnet test "Providers/Storage/TestProjects/$test/$test.csproj" /m:2 /nr:false /p:UseSharedCompilation=false --filter "TestCategory=DruidPublicCqlNative" --results-directory TestResults/DruidNative --logger "trx;LogFileName=native.trx"
+              if ($LASTEXITCODE) { throw "Native Druid qualification failed" }
+            }'
+          grep -q 'total="1" executed="1" passed="1"' "$report/native.trx"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: druid-native-cql
+          path: OASIS/TestResults/DruidNative/
+          retention-days: 7

@@ -3289,3 +3289,10 @@ lease runner, Core pin, 390,655-byte build log and 5,665-byte TRX.
 Only the existing Safe project build outputs and the selected test
 outputs were generated. The public gateway needed no credentials,
 database, runtime install or local listener.
+
+Druid qualification uses the existing .NET SDK on this laptop for
+controlled tests. The official Apache binary and synthetic datasource
+run on the disposable Linux CI runner. The laptop workspace
+`LocalState/COSMIC/DruidPublicCqlQualification/` holds the lease runner
+and will retain compact logs and TRXs. No Druid runtime or test data
+was downloaded to this laptop.
