@@ -20,6 +20,11 @@ def exact_key_catalogue(provider):
         first, second, third = ("2d8b5e78-3137-8c0d-ba70-bdaa880dcdad", "e29d23d8-4c2c-8e0a-9fde-5b92d31135c0",
                                 "ffab761f-bf16-8e02-88e4-1e8a7b6cccd9")
         catalogue = {"Actor": actor, "Names": ["vitalik.eth", "nick.eth", "luc.eth"]}
+    elif provider == "SafeOASIS":
+        actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
+        first, second, third = ("64ed5973-5b49-88b2-81ae-159cb2d12859", "ce0eac74-96b1-8d63-893b-c8bb9adfa0a5",
+                                "54614170-6ac0-86aa-a522-d4b1ecc08359")
+        catalogue = {"Actor": actor, "Networks": ["eth", "base", "arb1"]}
     elif provider == "CloudinaryOASIS":
         actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
         first, second, third = ("8aee1458-13a7-8822-bfc3-670a6383d512", "12043da4-2792-8476-9786-7089dce330b8",
@@ -165,6 +170,9 @@ class ExactKeyConfigurationTests(unittest.TestCase):
 
     def test_ens_offchain_candidate_binds_the_native_name_identities(self):
         self.check_candidate("ENSOffchainOASIS")
+
+    def test_safe_indexing_candidate_binds_reviewed_networks_and_protected_key(self):
+        self.check_candidate("SafeOASIS")
 
     def test_loopback_teaching_candidates_bind_each_sidecar(self):
         for provider in ("OrbitDBOASIS", "GUNOASIS"):
@@ -351,7 +359,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -447,6 +455,17 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {key: "{}"}, provider, review)
                     baseline[key] = value
+                elif provider == "SafeOASIS":
+                    key, value = next(iter(review["sourceBinding"].items()))
+                    self.assertEqual({"owner": actor, "networks": ["eth", "base", "arb1"], "probe": "eth"}, json.loads(value))
+                    with self.assertRaisesRegex(ValueError, "do not match"):
+                        configuration.candidate(baseline | {key: "{}"}, provider, review)
+                    baseline[key] = value
+                    secret = "CQL_SAFE_INDEXING_QUERY_API_KEY"
+                    for invalid in (None, "", "invalid key", "invalid/key", "x" * 4097):
+                        with self.assertRaisesRegex(ValueError, "source token"):
+                            configuration.candidate(baseline | {secret: invalid}, provider, review)
+                    baseline[secret] = "fixture.safe-key"
                 elif provider in ("ProofOfHumanityOASIS", "OracleObjectStorageOASIS"):
                     field = "Addresses" if provider == "ProofOfHumanityOASIS" else "Keys"
                     key, value = next(iter(review["sourceBinding"].items()))

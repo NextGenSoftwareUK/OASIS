@@ -3296,3 +3296,9 @@ run on the disposable Linux CI runner. The laptop workspace
 `LocalState/COSMIC/DruidPublicCqlQualification/` holds the lease runner
 and will retain compact logs and TRXs. No Druid runtime or test data
 was downloaded to this laptop.
+
+Safe WEB4 admission reused the same workspace and pinned SDK. Its
+`verify-web4.ps1` leased build produced `web4-core-pin.txt`,
+`web4-admission.log` and `admission.trx`. The 35 protected-settings
+checks used temporary Python fixtures. No Safe key, paid account,
+local service or additional runtime was created.

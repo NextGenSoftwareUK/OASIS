@@ -28,3 +28,17 @@ legacy wallet provider's full interfaces are open.
 
 [Safe Transaction Service](https://docs.safe.global/core-api/api-safe-transaction-service) ·
 [Safe authentication and limits](https://docs.safe.global/core-api/how-to-use-api-keys).
+
+## WEB4 read-only admission
+
+Configure the reviewed network catalogue through
+`CQL_SAFE_INDEXING_QUERY_SOURCE_JSON` and provide the separate protected
+`CQL_SAFE_INDEXING_QUERY_API_KEY`. The profile requires its own read-only
+permission and tariff. Wallet storage routing and write tariffs are
+excluded. The protected candidate uses the same stable IDs as the adapter.
+
+All 22 WEB4 tests passed, including ten ENS regressions, at Core
+`db5de536e5eb690bbae7635208bc7836a3655fa1`. Admission TRX SHA-256
+`ea467861182fe77d32f64cbd958ca857b9fb96110d70dbe141618735a34ee6bd`.
+All 35 protected exact-key configuration tests passed.
+Authenticated live WEB4 remains open after LocalFile.

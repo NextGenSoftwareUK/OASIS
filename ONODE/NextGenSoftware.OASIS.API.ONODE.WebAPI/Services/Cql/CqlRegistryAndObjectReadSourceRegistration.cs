@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS;
 using NextGenSoftware.OASIS.API.Providers.ProofOfHumanityOASIS;
+using NextGenSoftware.OASIS.API.Providers.SafeOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
@@ -20,6 +21,15 @@ public static class CqlRegistryAndObjectReadSourceRegistration
         Add(services, configuration["CQL_ORACLE_OBJECT_STORAGE_QUERY_SOURCE_JSON"], "keys",
             OracleObjectStoragePublicMetadataQuerySource.LogicalId,
             (owner, keys, probe) => new OracleObjectStoragePublicMetadataQuerySource(owner, keys, probe));
+        var safeCatalogue = configuration["CQL_SAFE_INDEXING_QUERY_SOURCE_JSON"];
+        if (safeCatalogue is not null)
+        {
+            var apiKey = configuration["CQL_SAFE_INDEXING_QUERY_API_KEY"];
+            if (string.IsNullOrWhiteSpace(apiKey))
+                throw new InvalidOperationException("The Safe indexing profile requires a protected API key.");
+            Add(services, safeCatalogue, "networks", SafeIndexingQuerySource.LogicalId,
+                (owner, keys, probe) => new SafeIndexingQuerySource(owner, keys, probe, apiKey));
+        }
     }
 
     private static void Add(IServiceCollection services, string json, string keyField, Func<Guid, string, Guid> logicalId,

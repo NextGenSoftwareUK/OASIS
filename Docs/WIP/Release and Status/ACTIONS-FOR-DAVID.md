@@ -787,3 +787,18 @@ and hosted federation and replication verification.
 - Engineering owns the authenticated native reads, retained fixture
   reconciliation, and hosted privacy and federation checks.
   [ENS qualification](../COSMIC%20ORM/ENS_OFFCHAIN_CQL_MVP.md).
+
+## Safe Transaction Service protected key for the Development teaching profile
+
+- Status 2026-11-06: open after LocalFile. The anonymous native test passed
+  exact 3/2 CQL reads against Ethereum, Base and Arbitrum. The public source
+  reports index synchronization and does not need a wallet or signing key.
+- Use an existing approved Safe API key for Development, or create one
+  through the Safe developer dashboard on the free Builder plan. Store it
+  only as the protected `CQL_SAFE_INDEXING_QUERY_API_KEY` setting when the
+  Safe Development rollout is scheduled. Confirm only that access is ready.
+  [Authentication](https://docs.safe.global/core-api/how-to-use-api-keys) and
+  [Safe Builder plan](https://safe.global/plans).
+- Engineering owns the reviewed network catalogue, admission, usage bounds,
+  authenticated verification and the hosted demo.
+  [Safe indexing qualification](../COSMIC%20ORM/SAFE_INDEXING_CQL_MVP.md).
