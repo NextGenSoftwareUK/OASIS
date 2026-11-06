@@ -2551,3 +2551,30 @@ The WEB4 lease runner is `LocalState/COSMIC/HostedNeonCqlQualification/verify-ho
 It will retain the Core pin and admission TRX there, with its log in
 `TestResults/ProviderBuildCurrent/neon-hosted-api-cql.log`. No additional
 environment was created.
+
+LanceDB's temporary settings patch was removed after its scoped commit.
+Neon passed all 15 provider tests using the shared environment. The two WEB4
+draft files moved to their shipping project paths and the shared-lease WEB4
+run is active.
+
+Algolia's WEB4 registration and request-guard test drafts are in
+`LocalState/COSMIC/HostedAlgoliaCqlQualification/`, outside the active Neon
+build. Its public-source adapter and provider controls are in the Algolia
+projects, which the Neon run does not reference. No package, runtime or
+remote resource was created.
+The Algolia provider lease runner is in the same directory. Its Core pin,
+log and TRX will use the `algolia-` prefix in `TestResults/ProviderBuildCurrent/`.
+
+Algolia's 18 protected-settings checks passed and removed their temporary
+files. The Algolia WEB4 lease runner is in the same qualification directory.
+It retains the admission TRX and Core pin there. Its build log goes to
+`TestResults/ProviderBuildCurrent/algolia-hosted-api-cql.log`.
+The temporary `neon-settings.patch` in the Neon qualification directory
+isolates Neon settings staging. It is disposable after Neon staging.
+Algolia's temporary `algolia-web4-wiring.patch` is in its qualification
+directory. It passed the apply check against Neon's working-tree changes
+and is disposable after the WEB4 project wiring is applied.
+
+Neon WEB4 qualification passed eight admission tests and 17 PostgreSQL
+family regression tests. The shared Core checkout was restored. The
+temporary Neon staging patch is disposable after the scoped commit.

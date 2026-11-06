@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS;
+using NextGenSoftware.OASIS.API.Providers.NeonOASIS;
 using NextGenSoftware.OASIS.API.Providers.TimescaleDBOASIS;
 using Npgsql;
 
@@ -20,8 +21,14 @@ public static class CqlPostgresFamilyReadSourceRegistration
             new[] { ".tsdb.cloud.timescale.com", ".tsdb.cloud.tigerdata.com" },
             (connection, id) => new TimescaleDbQuerySource(connection, id));
 
+    public static void AddNeonReadSource(this IServiceCollection services, IConfiguration configuration) =>
+        AddReadSource(services, configuration, "NEON", "oasis", 5432,
+            new[] { ".neon.tech" }, (connection, id) => new NeonQuerySource(connection, id),
+            NeonQuerySource.IsDirectEndpoint);
+
     private static void AddReadSource(IServiceCollection services, IConfiguration configuration,
-        string product, string database, int? fixedPort, string[] domains, Func<string, Guid, IOASISStorageProvider> create)
+        string product, string database, int? fixedPort, string[] domains, Func<string, Guid, IOASISStorageProvider> create,
+        Func<string, bool> admitHost = null)
     {
         var prefix = $"CQL_{product}_QUERY_";
         var host = configuration[prefix + "HOST"];
@@ -32,6 +39,7 @@ public static class CqlPostgresFamilyReadSourceRegistration
         var port = fixedPort.GetValueOrDefault();
         if (host is not { Length: > 0 and <= 253 } ||
             !domains.Any(domain => host.EndsWith(domain, StringComparison.Ordinal)) ||
+            (admitHost != null && !admitHost(host)) ||
             host.Split('.').Any(label => label.Length is < 1 or > 63 ||
                 label[0] == '-' || label[^1] == '-' ||
                 label.Any(character => !(char.IsAsciiLetterLower(character) || char.IsAsciiDigit(character) || character == '-'))) ||
