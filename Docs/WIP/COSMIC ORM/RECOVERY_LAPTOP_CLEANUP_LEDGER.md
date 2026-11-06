@@ -3388,3 +3388,10 @@ The `NextGenSoftware.OASIS.API.Providers.PublicPolygonGateways.UnitTests`
 project under `Providers/Network/TestProjects/` has 51,959,741 bytes
 in `bin` and `obj`. Validate exact paths and use the shared build lease
 when these outputs can be removed.
+
+Gateway WEB4 admission reused the same package versions and generated
+WEB4 outputs. The frozen receipt, 25,973-byte TRX, 1,010,051-byte
+producer log and 50,388-byte consumer log are in
+`LocalState/COSMIC/PublicPolygonGatewaysCqlQualification/`. The
+consumer compiled against verified unchanged API and Core assemblies.
+No new package version, runtime, data or credential was created.
