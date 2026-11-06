@@ -27,6 +27,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.CloudinaryOASIS;
+using NextGenSoftware.OASIS.API.Providers.GUNOASIS;
 using NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS;
 using NextGenSoftware.OASIS.API.Providers.ProofOfHumanityOASIS;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
@@ -37,6 +38,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 public sealed class ReviewedPublicMongoNativeTheoryAttribute : TheoryAttribute
 {
     public ReviewedPublicMongoNativeTheoryAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("COSMIC_REVIEWED_PUBLIC_MONGO_NATIVE") != "owned-local-27029")
+            Skip = "Explicit public exact-key source/Mongo native gate; reported separately from controlled API tests.";
+    }
+}
+
+public sealed class ReviewedPublicMongoNativeFactAttribute : FactAttribute
+{
+    public ReviewedPublicMongoNativeFactAttribute()
     {
         if (Environment.GetEnvironmentVariable("COSMIC_REVIEWED_PUBLIC_MONGO_NATIVE") != "owned-local-27029")
             Skip = "Explicit public exact-key source/Mongo native gate; reported separately from controlled API tests.";
@@ -63,7 +73,13 @@ public sealed class CqlReviewedPublicMongoHttpTests
     [InlineData(ProviderType.CloudinaryOASIS)]
     [InlineData(ProviderType.OracleObjectStorageOASIS)]
     [InlineData(ProviderType.ProofOfHumanityOASIS)]
-    public async Task ReviewedPublicRowsAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp(ProviderType provider)
+    public Task ReviewedPublicRowsAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp(ProviderType provider) =>
+        VerifyHttpAsync(provider);
+
+    [ReviewedPublicMongoNativeFact]
+    public Task GunNativeHttp() => VerifyHttpAsync(ProviderType.GUNOASIS);
+
+    private static async Task VerifyHttpAsync(ProviderType provider)
     {
         var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
         const string mongoConnection = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=10000";
@@ -210,10 +226,15 @@ public sealed class CqlReviewedPublicMongoHttpTests
             {
                 http.DefaultRequestHeaders.Authorization = new("Bearer", token);
                 http.DefaultRequestHeaders.Remove("Idempotency-Key");
-                http.DefaultRequestHeaders.Add("Idempotency-Key", Guid.NewGuid().ToString("D"));
+                var requestId = Guid.NewGuid().ToString("D");
+                http.DefaultRequestHeaders.Add("Idempotency-Key", requestId);
                 using var response = await http.PostAsJsonAsync(route, request);
-                Assert.True(response.IsSuccessStatusCode, name + ": HTTP " + (int)response.StatusCode);
                 using var body = JsonDocument.Parse(await response.Content.ReadAsByteArrayAsync());
+                if (!response.IsSuccessStatusCode)
+                {
+                    var error = body.RootElement.TryGetProperty("errorCode", out var field) ? field.GetString() : "missing";
+                    Assert.Fail($"{name} returned HTTP {(int)response.StatusCode} ({error}) for {requestId}.");
+                }
                 var rows = body.RootElement.GetProperty("result").GetProperty("rows");
                 Assert.Equal(expected.Length, rows.GetArrayLength());
                 counts.Add(name, rows.GetArrayLength());
@@ -296,6 +317,17 @@ public sealed class CqlReviewedPublicMongoHttpTests
                     "0xc5e9ddebb09cd64dfacab4011a0d5cedaf7c9bdb" };
                 return (new ProofOfHumanityRegistryQuerySource(owner, keys, keys[0]),
                     keys.Select(key => ProofOfHumanityRegistryQuerySource.LogicalId(owner, key)).ToArray());
+            }
+            case ProviderType.GUNOASIS:
+            {
+                var fixture = Environment.GetEnvironmentVariable("COSMIC_REVIEWED_PUBLIC_SIDECAR_FIXTURE");
+                var token = Environment.GetEnvironmentVariable("COSMIC_REVIEWED_PUBLIC_SIDECAR_TOKEN");
+                Assert.False(string.IsNullOrWhiteSpace(fixture) || string.IsNullOrWhiteSpace(token));
+                using var descriptor = JsonDocument.Parse(IoFile.ReadAllBytes(fixture!));
+                var ids = descriptor.RootElement.GetProperty("ids").EnumerateArray().Take(3).Select(value => value.GetGuid()).ToArray();
+                Assert.Equal(3, ids.Distinct().Count());
+                Assert.DoesNotContain(Guid.Empty, ids);
+                return (new GunQuerySource(new Uri("http://127.0.0.1:54870/"), token!, ids[0]), ids);
             }
             default:
                 throw new ArgumentException("Use one reviewed public native fixture.", nameof(provider));

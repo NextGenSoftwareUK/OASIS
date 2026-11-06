@@ -3231,3 +3231,23 @@ protocol test project. The leased runner is
 Its Core pin, log and TRX use the `netlify-blobs-` prefix under
 `TestResults/ProviderBuildCurrent/`. No token, account, store, runtime
 or download was created.
+
+### 6 November 2026 — additional local WEB4 public reads
+
+Reused bundled Node v24.22.1, the pinned GUN and OrbitDB installs, and the
+existing MongoDB 8.2 replica. No new runtime, database copy or download.
+The `ReviewedPublicMongoHttpQualification/sidecars` folder holds the
+GUN TRX, build and service logs, and the Mongo shutdown receipt. The GUN
+private fixture was removed after two acknowledged saves and exact cleanup.
+The GUN descriptor SHA-256 stayed unchanged. The OrbitDB Windows attempt
+produced no ready receipt or test result. The local launcher also timed out
+waiting for shutdown. A subsequent check found no owned sidecar process
+and ports 54869, 54870 and 27029 were closed. Its retained store is unchanged
+by cleanup. The earlier Linux OrbitDB evidence remains the native baseline.
+
+`ReviewedPublicMongoHttpQualification/additional` holds the ENS HTTP 503
+TRX and clean Mongo shutdown receipt. The retained
+`cosmic_cql_ensoffchainoasis_http` database holds exactly the two synthetic
+copies acknowledged before the response failure. Preserve the intent and
+save receipts for read-only diagnosis before cleanup. Do not replay saves.
+Alchemy public endpoint probes ran in memory and left no output files.

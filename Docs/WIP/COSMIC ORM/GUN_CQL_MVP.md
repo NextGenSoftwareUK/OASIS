@@ -31,3 +31,12 @@ persistent teaching data. General GUN CRUD and peer replication remain
 open. LocalFile remains first for live rollout.
 
 [Shared WEB4 runtime settings](ORBITDB_CQL_MVP.md#web4-runtime-settings).
+
+On 6 November 2026 the retained GUN fixture passed local WEB4 HTTP with
+MongoDB 8.2 at parent `9559c75f0` and Core
+`c2a8b2303264bd159ac55d71b684c712647c6d3b`. Native reads returned 3/2
+and federated reads returned 5/4. The foreign actor saw zero private rows
+and three public rows. The two SDK-acknowledged private copies were removed
+after exact ownership and count checks. Both owned services stopped and the
+GUN fixture descriptor was unchanged. TRX SHA-256
+`c2a9f0382fa5b3ecf3ece404471e9a0c39ad82bcb1695356c50eb7b0c48238e7`.
