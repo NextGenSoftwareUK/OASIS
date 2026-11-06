@@ -126,6 +126,15 @@ public class CqlCouchDbHostedAdmissionTests
         VerifyExactKeyPresets(ProviderType.DynamoDBOASIS, source.QueryCapabilities);
     }
 
+    [Fact]
+    public void TypesenseExactKeyPresetsPlanNativeAndMongoQueries()
+    {
+        using var client = new System.Net.Http.HttpClient();
+        var source = new NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.TypesenseOASIS(
+            "https://typesense.example.test", "controlled-reader-key", client);
+        VerifyExactKeyPresets(ProviderType.TypesenseOASIS, source.QueryCapabilities);
+    }
+
     private static void VerifyExactKeyPresets(ProviderType providerType, CosmicQueryCapabilities capabilities)
     {
         var provider = providerType.ToString();

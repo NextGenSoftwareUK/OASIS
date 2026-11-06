@@ -1930,3 +1930,16 @@ Deployment-specific readiness visitor behavior passed 18 Python tests with
 temporary mocked state. A live invocation after mount review would keep
 its protected visitor journal in `LocalState/COSMIC/HostedLocalFileReadiness-<deployment-id>/`.
 No new visitor or deployment was created in the rehearsal.
+
+The Typesense hosted WEB4 build uses the existing .NET runtime and NuGet
+cache under the shared build lease. Its output is
+`TestResults/ProviderBuildCurrent/typesense-hosted-api-cql.log` and its
+candidate pin and TRX use
+`LocalState/COSMIC/HostedTypesenseCqlQualification/api-cql-admission/`.
+No Typesense runtime, data directory, account or credential was created.
+
+Typesense WEB4 admission passed 17/17. Retained admission TRX SHA256
+`F844A32F50716E6909C80C531BBBE13CD32E922CA08A38B22D06C7EA70779BF4`.
+The native fixture compiled with 141 warnings and zero errors, logged in
+`TestResults/ProviderBuildCurrent/typesense-hosted-native-fixture-build.log`.
+Both leases restored shared Core to `54159614`. No native service was contacted.

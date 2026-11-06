@@ -592,6 +592,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             Services.Cql.CqlQdrantReadSourceRegistration.AddQdrantReadSource(services, Configuration);
             Services.Cql.CqlRedisFamilyReadSources.AddRedisFamilyReadSources(services, Configuration);
             Services.Cql.CqlDynamoDbReadSourceRegistration.AddDynamoDbReadSource(services, Configuration);
+            Services.Cql.CqlTypesenseReadSourceRegistration.AddTypesenseReadSource(services, Configuration);
 
             if (Configuration["CQL_CHROMA_QUERY_ORIGIN"] is string chromaOrigin)
             {

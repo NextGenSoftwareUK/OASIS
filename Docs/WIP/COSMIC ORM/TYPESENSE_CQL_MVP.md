@@ -75,3 +75,18 @@ boot setting, reboot or distribution installation was performed. Follow
 [Microsoft's WSL2 prerequisites](https://learn.microsoft.com/en-us/windows/wsl/install-manual#step-3---enable-virtual-machine-feature)
 when the owner is ready for the device step. Keep native Typesense acceptance
 open; controlled Windows tests and compilation are not a Linux service.
+
+## Development WEB4 candidate
+
+The query-only registration uses `CQL_TYPESENSE_QUERY_ORIGIN` and
+`CQL_TYPESENSE_QUERY_API_KEY` for an explicit HTTPS teaching origin and
+restricted key. The guarded HTTP client admits collection metadata and exact
+document GETs on `oasis_holons`. Use a dedicated existing teaching collection
+and keep the key in protected settings.
+
+The native HTTPS fixture uses `TestCategory=TypesenseHostedCqlNative` and
+`COSMIC_TYPESENSE_HOSTED_CQL_SOURCE` pointing to a reviewed catalogue with
+`Actor`, three `LiveIds`, `DeletedId` and `MissingId`. Run it after a reviewed
+source is available. The existing loopback fixture and its WSL prerequisites
+remain separate. Development WEB4 rollout follows LocalFile and real
+Typesense qualification.

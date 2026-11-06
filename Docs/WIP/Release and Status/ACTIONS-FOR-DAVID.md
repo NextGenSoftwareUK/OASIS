@@ -685,3 +685,9 @@ and hosted federation and replication verification.
 - Owner step: identify the region of an existing isolated DynamoDB teaching table named OasisHolons, confirm the approved scope for billable reads and arrange an IAM reader restricted to GetItem and BatchGetItem on that table. Make credentials available through protected settings. If the teaching records are absent, make separate reviewed provisioning access available for engineering.
 - The catalogue needs three public live roots, one deleted record and one absent ID under the declared actor. Use one live ID as the exact activation probe. Keep access keys and session tokens outside chat, descriptors and git.
 - Reason: the real regional SDK proof precedes Development settings review and hosted acceptance. The retained DynamoDB Local evidence is separate. No new table, account or paid resource was requested. [Settings and fixture](../COSMIC%20ORM/AWS_CQL_MVP.md#development-web4-dynamodb-candidate).
+
+## Typesense hosted teaching source access - 2026-11-06 UTC
+
+- Status: 17 WEB4 admission checks passed. The guarded native HTTPS fixture compiled and awaits an existing reviewed source.
+- Owner step: if there is already an owned Typesense teaching service, identify its HTTPS origin and make a restricted key available privately for collection metadata and exact document reads on oasis_holons. Use a dedicated teaching collection with three public roots, one deleted record and one absent ID under the declared actor.
+- Reason: real Typesense qualification precedes WEB4 settings review. The existing WSL device action remains separate. No cloud account or new paid service is requested. [Typesense settings and fixture](../COSMIC%20ORM/TYPESENSE_CQL_MVP.md#development-web4-candidate).

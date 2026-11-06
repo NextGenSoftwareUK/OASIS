@@ -201,6 +201,7 @@
 <ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.ChromaOASIS/NextGenSoftware.OASIS.API.Providers.ChromaOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.PouchDBOASIS/NextGenSoftware.OASIS.API.Providers.PouchDBOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.SolrOASIS/NextGenSoftware.OASIS.API.Providers.SolrOASIS.csproj" /></ItemGroup>
 <ItemGroup>
   <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.csproj" />
