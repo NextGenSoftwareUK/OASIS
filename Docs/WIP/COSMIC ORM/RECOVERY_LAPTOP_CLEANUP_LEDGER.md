@@ -2292,3 +2292,9 @@ Couchbase WEB4 admission passed 10/10. TRX SHA256
 The native fixture compiled with 156 warnings and zero errors, logged in
 `TestResults/ProviderBuildCurrent/couchbase-hosted-native-fixture.log`.
 Both leases restored shared Core to `54159614`. No server was contacted.
+
+ArangoDB provider tests passed 13/13 with no new runtime or SDK package.
+Log: `TestResults/ProviderBuildCurrent/arango-public-profile.log`.
+Report: `LocalState/COSMIC/HostedArangoDbCqlQualification/provider.trx`,
+SHA256 `4BECBEA4644B1DE6046AB4B965BC255B2C8827B4AF68959F58AED5EFD6F5A12B`.
+Shared Core was restored to `54159614`. No server was started or contacted.

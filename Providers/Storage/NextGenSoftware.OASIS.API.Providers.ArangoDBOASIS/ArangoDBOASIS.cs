@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
     /// AQL search: POST /_db/oasis/_api/cursor
     ///   body: {"query":"FOR d IN collection FILTER d.field == @val LIMIT 1 RETURN d","bindVars":{"val":"..."}}
     /// </summary>
-    public class ArangoDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class ArangoDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -59,9 +59,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
         private StringContent Json(object obj) => new StringContent(Ser(obj), Encoding.UTF8, "application/json");
 
         public ArangoDBOASIS(string host = "http://localhost:8529", string username = "root", string password = "")
+            : this(host, username, password, new HttpClient()) { }
+
+        private ArangoDBOASIS(string host, string username, string password, HttpClient client)
         {
             _baseUrl = host.TrimEnd('/');
-            _http = new HttpClient();
+            _http = client ?? throw new ArgumentNullException(nameof(client));
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             var creds = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}"));
             _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", creds);
