@@ -18,6 +18,14 @@ The shared loopback reader now checks the companion's provider identity.
 All 11 OrbitDB controls and the native CQL case passed again at the
 same Core pin. The provider-bound native TRX SHA-256 is
 `effa968cbed534d2a31ddfc553dded83f69f39ab0e811a9bd0d8a0d2816c0ae3`.
+The same native companion passed in the pinned WEB4 Linux Node 24.19.0
+image. [Linux qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42236158067/job/127954184713).
+
+The packaged companion passed Linux native process identity and restart
+checks. The image-stage job verified both the default and opt-in packages.
+Two Windows seed attempts during the WEB4 build timed out before reaching
+the revised reader. [Native job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42238165351/job/127961168369) ·
+[Package job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42238165351/job/127961168833).
 
 WEB4 admission, placement of the co-located reader and live federation
 remain open. General OrbitDB document storage and multi-peer convergence

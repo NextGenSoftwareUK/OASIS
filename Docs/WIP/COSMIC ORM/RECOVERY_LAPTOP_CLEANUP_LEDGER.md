@@ -1974,6 +1974,28 @@ Its npm cache and generated native fixtures live in each runner's
 `oasis-node-teaching.*` directory, which the job removes. The job keeps
 only compact log artifacts for seven days.
 
+Both Linux companion jobs passed in the pinned Node 24.19.0 image.
+Retained `native-ci-42236158067.zip` in each existing qualification
+folder. OrbitDB is 657 bytes with SHA-256
+`544159bbfc028264d852a9ec4d8bdd936049977adb15cb3751d2963fb467db6e`.
+GUN is 739 bytes with SHA-256
+`615de1eda87c3c87fdf3f323e3b36a300f0ad9e236fb142422e8c0095e7729af`.
+The archive contents were checked in memory without extracting.
+
+The optional WEB4 image packaging and process identity checks reuse both
+native qualification directories and bundled Node. Three startup controls
+passed locally. GUN's new disposable `f9` fixture passed the native
+process identity, read and restart checks. Both OrbitDB Windows seed attempts
+timed out before creating a receipt. The empty disposable paths are `f9` and
+`f10` under its qualification directory.
+The Linux image-stage qualification uses disposable GitHub runners and
+the existing pinned WEB4 Node image. It checks the default package excludes
+native Node dependencies and the explicitly enabled package loads both SDKs.
+Run [42238165351](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42238165351)
+passed both native jobs and the package job at
+`ef6d7b3d62ff941205794251661d2e5af230171d`. The job receipts were read
+online, with no additional downloads or Windows runtime installs.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt

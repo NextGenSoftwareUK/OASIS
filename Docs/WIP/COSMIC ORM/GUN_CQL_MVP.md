@@ -16,7 +16,15 @@ and `2b1ea8c349e831e6948c3dfd423415a3e23c4f61aadbf0fbb6e87d01698d7f14`.
 
 [Companion and verification](../../../Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/CqlTeachingCompanion/README.md).
 
-The Linux companion verification and WEB4 admission are separate checks.
-Live acceptance needs a co-located sidecar, protected reader and approved
+The native companion also passed in the pinned WEB4 Linux Node 24.19.0
+image. [Linux qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42236158067/job/127954184240).
+
+The packaged WEB4 companion also passed Linux native process identity and
+restart checks. The image-stage job verified both the default and opt-in
+packages. [Native job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42238165351/job/127961168696) ·
+[Package job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42238165351/job/127961168833).
+
+WEB4 admission is building. Live acceptance needs a co-located sidecar,
+protected reader and approved
 persistent teaching data. General GUN CRUD and peer replication remain
 open. LocalFile remains first for live rollout.
