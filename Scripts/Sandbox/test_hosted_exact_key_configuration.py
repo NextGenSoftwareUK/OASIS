@@ -91,6 +91,9 @@ class ExactKeyConfigurationTests(unittest.TestCase):
     def test_deno_kv_candidate_preserves_existing_providers(self):
         self.check_candidate("DenoDeployOASIS")
 
+    def test_appwrite_candidate_preserves_existing_providers(self):
+        self.check_candidate("AppwriteOASIS")
+
     def check_candidate(self, provider):
         partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
         baseline = {
@@ -139,6 +142,14 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                 for invalid in ({"DatabaseId": str(uuid.UUID(int=0))}, {"DataEndpoint": "http://api.deno.com/v2/teaching"},
                                 {"DataEndpoint": "https://127.0.0.1/v2"}, {"DataEndpoint": "https://user@api.deno.com/v2"},
                                 {"DataEndpoint": "https://api.deno.com/v2/../v3"}, {"DataEndpoint": "https://api.deno.com/v2?secret=bad"}):
+                    descriptor.write_text(json.dumps(catalogue | invalid))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                        configuration.verifier.reviewed_exact_key_source(provider, descriptor)
+            if provider == "AppwriteOASIS":
+                catalogue.update(Endpoint="https://appwrite.example/v1", ProjectId="teaching", DatabaseId="records")
+                for invalid in ({"Endpoint": "http://appwrite.example/v1"}, {"Endpoint": "https://user@appwrite.example/v1"},
+                                {"Endpoint": "https://appwrite.example/v1/"}, {"Endpoint": "https://127.0.0.1/v1"},
+                                {"ProjectId": "../foreign"}, {"DatabaseId": "a" * 37}):
                     descriptor.write_text(json.dumps(catalogue | invalid))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
@@ -223,7 +234,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -302,7 +313,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         with self.assertRaisesRegex(ValueError, "source token"):
                             configuration.candidate(baseline | {"CQL_DAPR_QUERY_SIDECAR_TOKEN": token}, provider, review)
                     baseline["CQL_DAPR_QUERY_SIDECAR_TOKEN"] = "fixture-token"
-                elif provider in ("CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS"):
+                elif provider in ("CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS"):
                     baseline.update(review["sourceBinding"])
                     token_key = configuration.REQUIRED_SOURCE_TOKENS[provider]
                     with self.assertRaisesRegex(ValueError, "source token"):

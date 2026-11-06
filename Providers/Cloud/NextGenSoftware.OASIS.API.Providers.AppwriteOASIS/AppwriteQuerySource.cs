@@ -33,14 +33,19 @@ public sealed class AppwriteQuerySource : AppwriteOASIS, ICosmicQueryStorageProv
         query = new(QueryProviderType, ReadExactHolonAsync);
     }
 
-    private static HttpClient CreateClient(Uri endpoint, string projectId, string databaseId, string readerToken, Guid probeId, HttpMessageHandler? handler)
+    public static bool IsValidConfiguration(Uri endpoint, string projectId, string databaseId, string readerToken, Guid probeId)
     {
         static bool IsIdentifier(string value) => value is { Length: > 0 and <= 36 } &&
             char.IsAsciiLetterOrDigit(value[0]) && value.All(c => char.IsAsciiLetterOrDigit(c) || c is '.' or '-' or '_');
-        if (endpoint is not { IsAbsoluteUri: true, Scheme: "https", HostNameType: UriHostNameType.Dns, IsDefaultPort: true } ||
-            endpoint.UserInfo.Length != 0 || endpoint.Query.Length != 0 || endpoint.Fragment.Length != 0 ||
-            endpoint.AbsolutePath.TrimEnd('/') != "/v1" || !IsIdentifier(projectId) || !IsIdentifier(databaseId) ||
-            probeId == Guid.Empty || readerToken is not { Length: > 0 and <= 1024 } || readerToken.Any(c => c <= ' ' || c > '~'))
+        return endpoint is { IsAbsoluteUri: true, Scheme: "https", HostNameType: UriHostNameType.Dns, IsDefaultPort: true } &&
+            endpoint.UserInfo.Length == 0 && endpoint.Query.Length == 0 && endpoint.Fragment.Length == 0 &&
+            endpoint.AbsolutePath.TrimEnd('/') == "/v1" && IsIdentifier(projectId) && IsIdentifier(databaseId) &&
+            probeId != Guid.Empty && readerToken is { Length: > 0 and <= 1024 } && readerToken.All(c => c > ' ' && c <= '~');
+    }
+
+    private static HttpClient CreateClient(Uri endpoint, string projectId, string databaseId, string readerToken, Guid probeId, HttpMessageHandler? handler)
+    {
+        if (!IsValidConfiguration(endpoint, projectId, databaseId, readerToken, probeId))
             throw new ArgumentException("A reviewed Appwrite HTTPS endpoint, project, database, reader and public probe are required.");
         if (handler != null) return new HttpClient(handler, disposeHandler: false);
         var transport = (SocketsHttpHandler)NativeConnectionGuard.CreateGuardedHttpHandler();

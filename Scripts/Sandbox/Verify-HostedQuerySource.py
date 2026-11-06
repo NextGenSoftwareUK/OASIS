@@ -27,7 +27,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -414,6 +414,14 @@ def reviewed_exact_key_source(provider, path):
                     or not re.fullmatch(r"https://(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,62}/[A-Za-z0-9._~/-]*", endpoint)
                     or any(part in (".", "..") for part in endpoint.split("/"))):
                 raise ValueError("Unexpected Deno KV database identity or HTTPS data endpoint.")
+        if provider == "AppwriteOASIS":
+            fields |= {"Endpoint", "ProjectId", "DatabaseId"}
+            origin = catalogue["Endpoint"]
+            if (len(origin) > 264
+                    or not re.fullmatch(r"https://(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,62}/v1", origin)
+                    or any(not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,35}", catalogue[field])
+                           for field in ("ProjectId", "DatabaseId"))):
+                raise ValueError("Unexpected Appwrite endpoint, project or database.")
         if provider == "ScyllaDBOASIS":
             fields |= {"Ip", "Host", "CaSha256"}
             address = ipaddress.ip_address(catalogue["Ip"])
@@ -548,6 +556,11 @@ def reviewed_exact_key_source(provider, path):
         review["sourceBinding"] = {"CQL_DENO_KV_QUERY_DATABASE_ID": catalogue["DatabaseId"],
                                    "CQL_DENO_KV_QUERY_DATA_ENDPOINT": catalogue["DataEndpoint"],
                                    "CQL_DENO_KV_QUERY_PROBE_ID": ids[0]}
+    elif provider == "AppwriteOASIS":
+        review["sourceBinding"] = {"CQL_APPWRITE_QUERY_ENDPOINT": catalogue["Endpoint"],
+                                   "CQL_APPWRITE_QUERY_PROJECT_ID": catalogue["ProjectId"],
+                                   "CQL_APPWRITE_QUERY_DATABASE_ID": catalogue["DatabaseId"],
+                                   "CQL_APPWRITE_QUERY_PROBE_ID": ids[0]}
     elif provider in ("WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS"):
         product = provider.removesuffix("OASIS").upper()
         review["sourceBinding"] = {f"CQL_{product}_QUERY_PROBE_ID": ids[0]}

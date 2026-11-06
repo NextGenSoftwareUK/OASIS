@@ -31,3 +31,16 @@ It also checks that the descriptor stayed identical. Its build can run
 without a token. The credentialed run requires a reviewed descriptor and
 the protected `CQL_APPWRITE_QUERY_READER_TOKEN` setting.
 [Owner actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md#appwrite-documentsdb-teaching-project-access---2026-11-06).
+
+## Development WEB4 candidate
+
+The opt-in source uses `CQL_APPWRITE_QUERY_ENDPOINT`,
+`CQL_APPWRITE_QUERY_PROJECT_ID`, `CQL_APPWRITE_QUERY_DATABASE_ID`,
+`CQL_APPWRITE_QUERY_PROBE_ID` and a protected reader token. The catalogue
+binds the HTTPS `/v1` endpoint, project, database and first public ID.
+All 26 protected-settings tests passed, including rejected substitutions
+and missing credentials. Nine WEB4 admission tests and nine Deno
+regressions passed with zero skips at Core
+`687295bdc99b85382aa5256e97ccdc0996051664`. The TRX SHA-256 is
+`b1c25c87edb9b2f0c09f0e66964186df865b84c17dce11fdc884da091b87c061`.
+Credentialed native and live Development acceptance remain open.

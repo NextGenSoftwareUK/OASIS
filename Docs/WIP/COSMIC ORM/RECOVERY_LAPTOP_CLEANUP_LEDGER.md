@@ -1818,8 +1818,10 @@ created and no native request was sent.
 Appwrite WEB4 admission reuses the same qualification directory. Its
 `verify-hosted-cql.ps1` records `web4-core-pin.txt` and `admission.trx` there,
 with build log `TestResults/ProviderBuildCurrent/appwrite-hosted-api-cql.log`.
-The build is active. The 26 protected-settings tests passed with Python
-bytecode disabled. No new runtime or credential was used for Appwrite.
+The leased WEB4 run passed all 18 admission and regression tests, restored
+the existing Core checkout and retained the TRX. The 26 protected-settings
+tests passed with Python bytecode disabled. No new runtime or credential
+was used for Appwrite.
 
 Convex native preparation reuses the bundled Node v24.22.1. The single
 qualification directory is `LocalState/COSMIC/LocalConvexCqlQualification/`.
