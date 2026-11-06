@@ -1,0 +1,85 @@
+name: Qualify native Temporal workflow CQL
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-temporal-native.yml'
+      - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.TemporalOASIS/**'
+      - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.TemporalOASIS.IntegrationTests/TemporalTeachingCqlNativeTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          persist-credentials: false
+      - name: Read reviewed dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|OASIS_API_CORE_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/OASIS-API-Core
+          ref: ${{ steps.dependency.outputs.OASIS_API_CORE_COMMIT }}
+          path: OASIS/OASIS Architecture/NextGenSoftware.OASIS.API.Core
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Qualify exact run descriptions on the pinned Temporal development server
+        working-directory: OASIS
+        shell: bash
+        env:
+          COSMIC_TEMPORAL_VERIFY_PUBLIC: owned-linux-7233
+        run: |
+          set -euo pipefail
+          container="oasis-temporal-$GITHUB_RUN_ID"
+          report="$PWD/TestResults/TemporalNative"
+          mkdir -p "$report"
+          image='temporalio/temporal:1.10.0@sha256:982e53357ed4a8bdfcb5e3593620120834a71a9cbec4d78d99ff7f64010efb9c'
+          docker run -d --name "$container" --publish 127.0.0.1:7233:7233 "$image"             server start-dev --ip 0.0.0.0 --headless --namespace oasis-cql
+          cleanup() {
+            docker logs "$container" 2>&1 | tail -n 100 > "$report/runtime-tail.log" || true
+            docker rm -f -v "$container" >/dev/null
+          }
+          trap cleanup EXIT
+          docker exec "$container" temporal --version > "$report/runtime.txt"
+          grep -q '1\.10\.0' "$report/runtime.txt"
+          for attempt in {1..30}; do
+            if docker exec "$container" temporal operator namespace describe --namespace oasis-cql               --command-timeout 3s >/dev/null 2>&1; then
+              break
+            fi
+            sleep 2
+          done
+          docker exec "$container" temporal operator namespace describe --namespace oasis-cql --command-timeout 3s >/dev/null
+          pwsh -NoProfile -Command '
+            $ErrorActionPreference = "Stop"
+            & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner temporal-native-ci -Operation {
+              $test = "NextGenSoftware.OASIS.API.Providers.TemporalOASIS.IntegrationTests"
+              dotnet test "Providers/Other/TestProjects/$test/$test.csproj" /m:2 /nr:false /p:UseSharedCompilation=false --filter "TestCategory=TemporalTeachingCqlNative" --results-directory TestResults/TemporalNative --logger "trx;LogFileName=native.trx"
+              if ($LASTEXITCODE) { throw "Native Temporal qualification failed" }
+            }'
+          grep -q 'total="1" executed="1" passed="1"' "$report/native.trx"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: temporal-native-cql
+          path: OASIS/TestResults/TemporalNative/
+          retention-days: 7

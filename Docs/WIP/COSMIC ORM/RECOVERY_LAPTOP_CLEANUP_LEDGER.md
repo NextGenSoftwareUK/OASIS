@@ -3330,3 +3330,8 @@ Druid's Windows build logs, Core pin and TRXs remain in
 and WEB4 admission runs used the existing .NET SDK and build lease. No
 Druid service or reader secret was created locally. The Goldsky public
 HTTP 429 probe ran in memory and left no output files.
+
+Temporal's pinned CLI 1.10.0 server and .NET SDK restore run only on the
+disposable Linux CI runner. The laptop queried the public image manifest
+in memory. No Temporal image, CLI, package, worker or database was
+downloaded or started on this laptop.
