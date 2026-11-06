@@ -78,8 +78,19 @@ public class PgVectorCqlNativeTests
         Assert.IsTrue(denied.IsError);
         Assert.IsNull(denied.Result);
 
+        await using (var copy = new NpgsqlCommand("""
+            INSERT INTO foreign_fixture.oasis_holons (id, doc)
+            SELECT id, doc FROM public.oasis_holons WHERE id = @id
+            """, setup))
+        {
+            copy.Parameters.AddWithValue("id", ids[0]);
+            Assert.AreEqual(1, await copy.ExecuteNonQueryAsync());
+        }
         var foreign = new PgVectorOASIS(reader + ";Search Path=foreign_fixture", ids[0]);
         Assert.IsTrue((await foreign.ActivateQuerySourceAsync()).IsError);
         Assert.IsFalse(foreign.IsProviderActivated);
+        var writer = new PgVectorOASIS(owner, ids[0]);
+        Assert.IsTrue((await writer.ActivateQuerySourceAsync()).IsError);
+        Assert.IsFalse(writer.IsProviderActivated);
     }
 }

@@ -38,8 +38,8 @@ public partial class PgVectorOASIS : ICosmicQueryStorageProvider, ICosmicReadOnl
         {
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             deadline.CancelAfter(TimeSpan.FromSeconds(15));
-            if (!await VerifyVectorColumnAsync(deadline.Token))
-                throw new InvalidDataException("The configured holon table lacks its pgvector embedding column.");
+            if (!await VerifyReadAuthorityAsync(deadline.Token))
+                throw new InvalidDataException("The configured pgvector table or reader grant differs from the teaching contract.");
             var result = await _publicQuery.VerifyProbeAsync(_queryProbeId, deadline.Token);
             IsProviderActivated = !result.IsError && result.Result;
             return result;
@@ -50,7 +50,7 @@ public partial class PgVectorOASIS : ICosmicQueryStorageProvider, ICosmicReadOnl
         }
     }
 
-    private async Task<bool> VerifyVectorColumnAsync(CancellationToken cancellationToken)
+    private async Task<bool> VerifyReadAuthorityAsync(CancellationToken cancellationToken)
     {
         await using var conn = new NpgsqlConnection(_connectionString);
         await conn.OpenAsync(cancellationToken);
@@ -60,8 +60,15 @@ public partial class PgVectorOASIS : ICosmicQueryStorageProvider, ICosmicReadOnl
                 FROM pg_catalog.pg_extension AS e
                 JOIN pg_catalog.pg_type AS t ON t.typnamespace = e.extnamespace AND t.typname = 'vector'
                 JOIN pg_catalog.pg_attribute AS a ON a.atttypid = t.oid
-                WHERE e.extname = 'vector' AND a.attrelid = pg_catalog.to_regclass('oasis_holons')
+                JOIN pg_catalog.pg_class AS c ON c.oid = a.attrelid
+                WHERE e.extname = 'vector' AND c.oid = pg_catalog.to_regclass('oasis_holons')
                       AND a.attname = 'embedding' AND NOT a.attisdropped AND a.atttypmod = 1536
+                      AND c.relkind IN ('r', 'p')
+                      AND pg_catalog.has_column_privilege(c.oid, 'id', 'SELECT')
+                      AND pg_catalog.has_column_privilege(c.oid, 'doc', 'SELECT')
+                      AND NOT pg_catalog.has_any_column_privilege(c.oid, 'INSERT, UPDATE, REFERENCES')
+                      AND NOT pg_catalog.has_table_privilege(c.oid, 'DELETE, TRUNCATE, TRIGGER')
+                      AND NOT pg_catalog.has_schema_privilege(c.relnamespace, 'CREATE')
             )
             """, conn);
         return await verify.ExecuteScalarAsync(cancellationToken) is true;

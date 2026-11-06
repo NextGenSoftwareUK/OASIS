@@ -28,3 +28,9 @@ The native TRX SHA-256 is
 
 WEB4 enrollment, federation, browser acceptance and vector similarity
 queries remain open. LocalFile remains first for live rollout.
+
+The hosted preparation adds native grant checks. Activation verifies
+SELECT on the exact ID and document columns, and rejects write or
+schema-creation privileges. The next isolated run checks the restricted
+reader, an overprivileged owner and a non-vector table containing the
+same public record. [PostgreSQL privilege functions](https://www.postgresql.org/docs/17/functions-info.html)
