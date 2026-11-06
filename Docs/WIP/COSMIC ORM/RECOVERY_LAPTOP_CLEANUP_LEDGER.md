@@ -3545,3 +3545,16 @@ are 47,135,150 and 1,014,736 bytes. Both projects are under
 5,770-byte TRX, 391,662-byte log, and 652-byte native observation.
 No provider service or separate runtime was installed. Free space
 was 37,883,932,672 bytes before and 37,824,708,608 bytes after.
+
+### Reclaim verifier native profile, 6 November 2026
+
+The existing .NET installation built the scoped provider and test
+projects under the provider build lease. Their directories are
+`Providers/Network/NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS`
+and `Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS.UnitTests`.
+Provider `bin` and `obj` measure 8,242,925 and 888,413 bytes. Test
+`bin` and `obj` measure 47,874,035 and 1,041,464 bytes. The existing
+`LocalState/COSMIC/ReclaimProtocolPublicCqlQualification/` contains the
+5,914-byte TRX, 58,357-byte passing log and 394,438-byte initial
+compile log. No provider service or separate runtime was installed.
+Free space was 37,798,748,160 before and 37,737,385,984 bytes after.
