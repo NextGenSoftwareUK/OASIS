@@ -19,6 +19,48 @@ spec.loader.exec_module(verification)
 
 
 class ResponseEvidenceTests(unittest.TestCase):
+    def test_decentraland_visitor_refuses_stale_deployment(self):
+        deployment = str(uuid.UUID(int=1))
+        release = Mock()
+        with (
+            patch.dict(verification.os.environ, {"COSMIC_CQL_SETTINGS_DEPLOYMENT_ID": deployment}),
+            patch.object(verification.importlib.util, "spec_from_file_location", return_value=Mock()),
+            patch.object(verification.importlib.util, "module_from_spec", return_value=release),
+        ):
+            release.verify_release.return_value = str(uuid.UUID(int=2))
+            with self.assertRaisesRegex(RuntimeError, "must be current"):
+                verification.decentraland_deployment_visitor()
+            release.verify_release.return_value = deployment
+            self.assertEqual(verification.deployment_visitor("Decentraland", deployment),
+                             verification.decentraland_deployment_visitor())
+
+    def test_decentraland_readiness_creates_visitor_and_prepare_reuses_it(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            root = base / "OASIS"
+            (root / "LocalState/COSMIC").mkdir(parents=True)
+            site = base / "Web4Site"
+            site.mkdir()
+            for name in ("cql-demo-preparation.js", "cql-playground.js"):
+                (site / name).touch()
+            visitor = root / "LocalState/COSMIC/HostedDecentralandReadiness-verified"
+            args = ["verify", "DecentralandOASIS", "--decentraland-deployment-visitor"]
+            with (
+                patch.object(verification, "ROOT", root),
+                patch.object(verification, "reviewed_exact_key_source", return_value={"presets": []}),
+                patch.object(verification, "decentraland_deployment_visitor", return_value=visitor),
+                patch.object(verification, "session", return_value=({}, "retained")) as session,
+                patch.object(verification, "ready_source", side_effect=RuntimeError("unavailable")),
+            ):
+                with patch("sys.argv", args + ["--readiness"]), self.assertRaisesRegex(SystemExit, "unavailable"):
+                    verification.main()
+                session.assert_called_once_with(visitor, "visitor", allow_create=True)
+                session.reset_mock()
+                with patch("sys.argv", args + ["--prepare"]), self.assertRaisesRegex(RuntimeError, "unavailable"):
+                    verification.main()
+                session.assert_called_once_with(visitor, "visitor", allow_create=False)
+                self.assertFalse((visitor.parent / "HostedQueryAcceptance-DecentralandOASIS").exists())
+
     def test_localfile_deployment_visitor_requires_mount_and_prepare_reuses_it(self):
         with tempfile.TemporaryDirectory() as directory:
             base = Path(directory)

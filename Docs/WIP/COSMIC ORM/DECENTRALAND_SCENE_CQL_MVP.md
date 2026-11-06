@@ -92,3 +92,12 @@ were preserved. No hosted values were written. The public review is
 DPAPI baseline and candidate are under `LocalState/COSMIC/HostedSourceRolloutCurrent`
 with the `decentraland-public` prefix. Review the exact deployed release
 and full live baseline before applying through the shared journal.
+
+The recovered laptop has no generic rehearsal visitor. Once the settings
+deployment is verified, set `COSMIC_CQL_SETTINGS_DEPLOYMENT_ID` and the
+exact commit and release ref as for LocalFile. Use `--readiness
+--decentraland-deployment-visitor` with `--reviewed-exact-key-source` and
+the retained Decentraland descriptor. Then use `--prepare` with the same
+visitor flag and descriptor. Readiness creates the deployment-scoped
+visitor. Preparation reuses it and refuses stale deployment evidence.
+The 23 response-evidence and 39 exact-key configuration tests passed.

@@ -315,6 +315,17 @@ def localfile_deployment_visitor():
     return deployment_visitor("LocalFile", review["mountedReceipt"]["deployment"]), review
 
 
+def decentraland_deployment_visitor():
+    publisher = ROOT / "Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py"
+    spec = importlib.util.spec_from_file_location("reviewed_release", publisher)
+    release = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(release)
+    deployment = os.environ.get("COSMIC_CQL_SETTINGS_DEPLOYMENT_ID", "")
+    if not deployment or release.verify_release() != deployment:
+        raise RuntimeError("The reviewed Decentraland settings deployment must be current.")
+    return deployment_visitor("Decentraland", deployment)
+
+
 def deployment_visitor(provider, deployment):
     if str(uuid.UUID(deployment)) != deployment:
         raise RuntimeError(f"Canonical {provider} settings deployment ID required.")
@@ -820,6 +831,8 @@ def main():
                         help="Use a separate visitor for the verified LocalFile settings deployment.")
     parser.add_argument("--pouchdb-deployment-visitor", action="store_true",
                         help="Use a separate visitor for the verified PouchDB settings deployment.")
+    parser.add_argument("--decentraland-deployment-visitor", action="store_true",
+                        help="Use a separate visitor for the verified Decentraland settings deployment.")
     parser.add_argument("--recover-localfile-receipt", action="store_true",
                         help="Finalize the original completed LocalFile reports without sessions, queries or saves.")
     parser.add_argument("--reviewed-exact-key-source", type=Path, help="Reviewed native teaching catalogue for the prepared exact-key providers.")
@@ -837,6 +850,9 @@ def main():
     parser.add_argument("--continue-snapshot-observation-change", action="store_true",
                         help="Finish original acknowledged snapshots after a proved changing-observation reuse defect; no writes.")
     options = parser.parse_args()
+    if options.decentraland_deployment_visitor and (options.provider != "DecentralandOASIS"
+            or not (options.readiness or options.prepare)):
+        parser.error("--decentraland-deployment-visitor requires DecentralandOASIS with --readiness or --prepare.")
     if options.localfile_deployment_visitor and (options.provider != "LocalFileOASIS"
             or not (options.readiness or options.prepare)):
         parser.error("--localfile-deployment-visitor requires LocalFileOASIS with --readiness or --prepare.")
@@ -869,6 +885,8 @@ def main():
         parser.error("--reviewed-exact-key-source applies only to the prepared exact-key providers.")
     reviewed_source = (reviewed_exact_key_source(options.provider, options.reviewed_exact_key_source)
                        if is_reviewed_exact_key else reviewed_pouchdb)
+    if options.decentraland_deployment_visitor:
+        rehearsal = decentraland_deployment_visitor()
     continuing = options.continue_settled_read or options.continue_native_read_failure or options.continue_snapshot_observation_change
     if options.prepare_exact_key_presets is not None:
         if (not is_reviewed_exact_key or options.prepare or options.readiness or continuing
@@ -892,7 +910,8 @@ def main():
         reviewed_localfile = None
         if options.localfile_deployment_visitor:
             rehearsal, reviewed_localfile = localfile_deployment_visitor()
-        create_readiness_visitor = options.localfile_deployment_visitor or options.pouchdb_deployment_visitor
+        create_readiness_visitor = (options.localfile_deployment_visitor or options.pouchdb_deployment_visitor
+                                    or options.decentraland_deployment_visitor)
         if create_readiness_visitor:
             rehearsal.mkdir(exist_ok=True)
         _, token = session(rehearsal, "visitor", allow_create=create_readiness_visitor)
