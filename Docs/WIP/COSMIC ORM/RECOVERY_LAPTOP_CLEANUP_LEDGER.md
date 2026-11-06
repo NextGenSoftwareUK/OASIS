@@ -1659,10 +1659,11 @@ or download was created.
 Deno KV uses the existing .NET runtime, protobuf packages and edge-storage
 protocol tests. Its leased runner is
 `LocalState/COSMIC/HostedDenoKvCqlQualification/verify-provider.ps1`.
-The Core pin, log and TRX will use the `deno-kv-` prefix under
-`TestResults/ProviderBuildCurrent/`. Start it after the active Fastly build
-releases the shared build lease. No runtime or hosted
-database was installed, and no access token was created.
+The Core pin, log and TRX use the `deno-kv-` prefix under
+`TestResults/ProviderBuildCurrent/`. The run passed 13 cases after the Fastly
+WEB4 build released the shared build lease and restored the existing Core
+checkout. No runtime or hosted database was installed, and no access token
+was created.
 
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
