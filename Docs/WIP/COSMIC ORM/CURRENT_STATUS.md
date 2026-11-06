@@ -14,7 +14,8 @@ HTTPS and deployed acceptance. No provider count changed.
 Acceptance is 118 scoped local, 61 live HTTP and 28 live browser.
 LocalFile settings deployment `c8ba177c` succeeded. The writable mount,
 three file hashes and all four advertised presets are verified. Hosted
-LocalFile 3/2 and MongoDB federation 5/4 passed. Browser proof remains open. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
+LocalFile 3/2 and MongoDB federation 5/4 passed. The sandbox card is live
+at Web4Site `3229dd7`. Browser interaction proof remains open. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
 
 - GUN and OrbitDB passed native exact-key CQL and Linux restart checks.
   Their optional WEB4 runtime passed the Linux package check. The combined

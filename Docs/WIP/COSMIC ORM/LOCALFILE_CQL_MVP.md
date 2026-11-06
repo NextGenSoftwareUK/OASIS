@@ -734,3 +734,12 @@ The completion receipt is `LocalState/COSMIC/HostedQueryAcceptance-LocalFileOASI
 `00236c8e213278dfd9047d52ae45940365d19f2ebba0c316574ff449e8a10b74`. It binds the original
 native, paired and isolation report hashes to the deployment. Browser
 interaction remains open.
+
+### Hosted sandbox instructions published
+
+Web4Site `3229dd7` gives visitors the hosted LocalFile and MongoDB steps
+while keeping the local launcher. The paired presets had the same label.
+The picker now adds their IDs when labels collide, so visitors can tell
+the full and subset choices apart. All 93 focused Node tests passed.
+The live HTML and versioned JavaScript matched the published Git blobs.
+Browser interaction remains open.
