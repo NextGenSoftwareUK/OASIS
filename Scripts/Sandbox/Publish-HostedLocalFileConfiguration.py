@@ -181,6 +181,31 @@ def verify_release():
     return guard.require_matching_release(configuration)
 
 
+def verify_candidate_base():
+    release_ref = os.environ.get("COSMIC_CQL_REVIEWED_RELEASE_REF", "")
+    expected = os.environ.get("COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT", "")
+    if not release_ref or not re.fullmatch("[0-9a-f]{40}", expected):
+        raise RuntimeError("Set the explicit reviewed release ref and commit.")
+
+    def git(*args):
+        return subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, timeout=30)
+
+    release = git("rev-parse", "--verify", "--end-of-options", release_ref + "^{commit}")
+    if release.returncode or release.stdout.strip() != expected:
+        raise RuntimeError("Local release ref differs from the reviewed deployment SHA.")
+    development = git("ls-remote", "--exit-code", "origin", "refs/heads/Development")
+    match = re.fullmatch(r"([0-9a-f]{40})\trefs/heads/Development\s*", development.stdout)
+    if development.returncode or match is None:
+        raise RuntimeError("Could not verify the current remote Development ref.")
+    base = match[1]
+    ancestry = git("merge-base", "--is-ancestor", base, expected)
+    if ancestry.returncode == 1:
+        raise RuntimeError("The reviewed candidate does not contain current Development.")
+    if ancestry.returncode:
+        raise RuntimeError("Candidate ancestry could not be verified. Fetch and inspect current Development.")
+    return base, expected
+
+
 def verify_mount(*, initial_bootstrap=False, expected_deployment=None):
     deployment = verify_release()
     if not isinstance(deployment, str) or not deployment:
@@ -310,6 +335,9 @@ if __name__ == "__main__":
     elif sys.argv[1:] == ["verify-release"]:
         verify_release()
         print("Reviewed Development WEB4 deployment verified.")
+    elif sys.argv[1:] == ["verify-candidate-base"]:
+        base, candidate_sha = verify_candidate_base()
+        print(f"Reviewed LocalFile candidate {candidate_sha} contains current Development {base}.")
     elif sys.argv[1:] == ["verify-mount"]:
         deployment = verify_mount()
         print(f"Reviewed Development WEB4 deployment {deployment} and writable /data mounts verified.")
@@ -323,4 +351,5 @@ if __name__ == "__main__":
         write_mounted_record_receipt(deployment, source)
         print(f"Reviewed LocalFile settings, mount and three teaching records verified for deployment {deployment}.")
     else:
-        raise SystemExit("Use no arguments to prepare, verify-release, verify-mount, verify-settings or verify-records to inspect, or apply after exact code deployment.")
+        raise SystemExit("Use no arguments to prepare, verify-candidate-base before rollout, verify-release, "
+                         "verify-mount, verify-settings or verify-records to inspect, or apply after exact code deployment.")

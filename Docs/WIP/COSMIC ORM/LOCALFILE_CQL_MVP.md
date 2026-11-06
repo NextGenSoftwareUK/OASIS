@@ -520,6 +520,18 @@ tariffs. The manifest validator passed for all seven Dockerfiles and the
 candidate gitlinks. Repeat the ancestry check immediately before rollout
 if Development advances.
 
+Before changing the service's image, set the reviewed release ref and
+commit, then run:
+
+```powershell
+python -B Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py verify-candidate-base
+```
+
+This checks the current remote Development SHA and requires it to be an
+ancestor of the reviewed candidate. The 6 November UTC check still found
+Development `b718f2879` in candidate `c64adf474`. Railway sign-in is still
+required for the separate running image and volume review.
+
 An independent registry check with the existing GitHub credential returned HTTP 403. The successful push log establishes publication at build time. Current pull access and the actual running image digest must be verified through the Development service.
 The anonymous registry manifest request returned a bearer challenge, and
 the anonymous token exchange for this repository's pull scope returned

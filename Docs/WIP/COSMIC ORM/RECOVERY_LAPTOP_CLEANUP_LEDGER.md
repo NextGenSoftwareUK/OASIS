@@ -1979,3 +1979,7 @@ PocketBase WEB4 admission passed 8/8. Retained TRX SHA256
 The native HTTPS fixture compiled with 145 warnings and zero errors.
 Build log: `TestResults/ProviderBuildCurrent/pocketbase-hosted-native-fixture-build.log`.
 The leases restored shared Core to `54159614`. No native requests were sent.
+
+LocalFile candidate ancestry verification passed 14 focused Python tests
+and a live read-only Git ref check. It reused the current checkout and
+created no Git objects, runtime downloads or Railway state.

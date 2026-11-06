@@ -117,6 +117,22 @@ class LocalFileConfigurationTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, "preparation differs"):
                     publisher.prepare()
 
+    def test_candidate_base_uses_live_development_and_refuses_a_stale_candidate(self):
+        base, candidate = "a" * 40, "b" * 40
+        environment = {"COSMIC_CQL_REVIEWED_RELEASE_REF": "refs/heads/codex/reviewed",
+                       "COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT": candidate}
+        for exit_code in (0, 1, 128):
+            with patch.dict(publisher.os.environ, environment), patch.object(publisher.subprocess, "run",
+                side_effect=[SimpleNamespace(returncode=0, stdout=candidate + "\n"),
+                             SimpleNamespace(returncode=0, stdout=base + "\trefs/heads/Development\n"),
+                             SimpleNamespace(returncode=exit_code)]) as command:
+                if exit_code:
+                    with self.assertRaisesRegex(RuntimeError, "current Development"):
+                        publisher.verify_candidate_base()
+                else:
+                    self.assertEqual((base, candidate), publisher.verify_candidate_base())
+                self.assertEqual(["git", "merge-base", "--is-ancestor", base, candidate], command.call_args.args[0])
+
     def test_apply_cannot_mutate_before_exact_release_gate(self):
         before, source, bundle = self.fixture()
         after = publisher.candidate(before, source, bundle)
