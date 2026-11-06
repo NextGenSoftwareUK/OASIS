@@ -40,9 +40,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
     /// </summary>
     public partial class CouchbaseOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
-        private readonly string _connectionString;
-        private readonly string _username;
-        private readonly string _password;
+        private readonly string? _connectionString;
+        private readonly string? _username;
+        private readonly string? _password;
         private readonly string _bucketName;
         private ICluster? _cluster;
         private IBucket? _bucket;
@@ -54,12 +54,18 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
         };
 
         public CouchbaseOASIS(string connectionString, string username, string password, string bucketName = "oasis")
+            : this(bucketName)
+        {
+            _connectionString = connectionString; _username = username; _password = password;
+        }
+
+        protected CouchbaseOASIS(string bucketName)
         {
             if (string.IsNullOrEmpty(bucketName) || bucketName.Length > 100 || bucketName[0] == '.' ||
                 bucketName.Any(c => !((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
                     (c >= '0' && c <= '9') || c == '_' || c == '-' || c == '.' || c == '%')))
                 throw new ArgumentException("Use a valid Couchbase bucket identifier, at most 100 characters.", nameof(bucketName));
-            _connectionString = connectionString; _username = username; _password = password; _bucketName = bucketName;
+            _bucketName = bucketName;
             ProviderName = "CouchbaseOASIS";
             ProviderDescription = "Couchbase document database provider (CouchbaseNetClient SDK and SQL++ queries)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CouchbaseOASIS);
@@ -69,10 +75,16 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);
         private static T? Des<T>(string? json) => json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOpts);
 
+        private async Task<ICluster> GetClusterAsync()
+        {
+            if (_connectionString == null)
+                throw new InvalidOperationException("The explicit Couchbase query profile has no storage cluster connection.");
+            return _cluster ??= await Couchbase.Cluster.ConnectAsync(_connectionString, _username!, _password!);
+        }
+
         private async Task<IBucket> GetBucketAsync()
         {
-            if (_cluster == null) _cluster = await Couchbase.Cluster.ConnectAsync(_connectionString, _username, _password);
-            if (_bucket == null) _bucket = await _cluster.BucketAsync(_bucketName);
+            if (_bucket == null) _bucket = await (await GetClusterAsync()).BucketAsync(_bucketName);
             return _bucket;
         }
 
@@ -85,10 +97,10 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
 
         private async Task<List<T>> N1qlAsync<T>(string query, Dictionary<string, object>? args = null)
         {
-            if (_cluster == null) _cluster = await Couchbase.Cluster.ConnectAsync(_connectionString, _username, _password);
+            var cluster = await GetClusterAsync();
             var options = new QueryOptions();
             if (args != null) foreach (var kv in args) options.Parameter(kv.Key, kv.Value);
-            var result = await _cluster.QueryAsync<T>(query, options);
+            var result = await cluster.QueryAsync<T>(query, options);
             var rows = new List<T>();
             await foreach (var row in result.Rows)
                 rows.Add(row);

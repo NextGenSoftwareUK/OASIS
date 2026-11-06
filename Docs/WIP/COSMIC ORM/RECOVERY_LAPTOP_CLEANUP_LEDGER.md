@@ -2265,3 +2265,17 @@ Windows run directories `public-native/`, `public-native-corrected/` and
 The final proof verifies the listener closed and identical native points.
 TRX SHA256 `69c7090531263272fea65e574ceacc030ebde1da59bb5d93fde942b6c285b1ad`.
 The lease restored shared Core to `54159614`.
+
+Couchbase public profile validation uses the existing .NET runtime under
+the shared build lease. The provider report and Core pin are planned in
+`LocalState/COSMIC/HostedCouchbaseCqlQualification/`. Build and test log:
+`TestResults/ProviderBuildCurrent/couchbase-public-profile.log`.
+No Couchbase server runtime was downloaded or started for this run.
+
+The Couchbase provider run passed 32/32 and restored shared Core to
+`54159614`. TRX SHA256
+`F38FCA8F79F9C5A3F986885DE5E0E20B585E6959A92AAC168B7E5534552CEDF3`.
+The shared user NuGet cache added CouchbaseNetClient 3.7.1, DnsClient
+1.8.0, Google.Api.CommonProtos 2.13.0, Grpc.Core.Api 2.50.0,
+Grpc.Net.Client 2.50.0, Grpc.Net.ClientFactory 2.50.0, Grpc.Net.Common
+2.50.0 and Microsoft.Extensions.ObjectPool 6.0.0.

@@ -90,3 +90,20 @@ recovery, migrations, central registration, hosted/TLS/mobile-sync and HyperDriv
 replication/failover/load-balancing/distributed snapshots remain separate work.
 [Historical proof](Archive/COUCHBASE_CQL_MVP_PRESERVED_2026-10-30.md),
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md), [later work](AFTER_DEMO_BACKLOG.md).
+
+## WEB4 public profile preparation
+
+The public adapter uses Couchbase's native HTTPS Query Service and shares
+the existing bounded SQL++ statement with the owned .NET SDK path.
+The public profile sends one read-only statement with explicit keys and
+checks the entire response status before publishing rows. It checks an
+existing public probe and rejects a selected live record that has become
+private. The wire response is bounded to 8 MiB with a 15-second deadline.
+This profile requires a Couchbase Server Query Service origin and a
+restricted reader. WEB4 registration and live qualification are open.
+[Couchbase Query Service API](https://docs.couchbase.com/server/7.6/n1ql-rest-query/index.html).
+
+Provider tests passed 32/32. The HTTP boundary test inspected the actual
+JSON statement, keys, read-only setting and Basic authentication header,
+then checked private probe rejection and no partial result when a row
+became private. Core pin `514b3296db9322a1c8e19094415c11013b620fb4`.

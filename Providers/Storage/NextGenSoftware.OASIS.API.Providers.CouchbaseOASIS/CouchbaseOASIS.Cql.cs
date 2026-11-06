@@ -20,6 +20,16 @@ public partial class CouchbaseOASIS : ICosmicQueryStorageProvider
     public ProviderType QueryProviderType => Core.Enums.ProviderType.CouchbaseOASIS;
     public CosmicQueryCapabilities QueryCapabilities => CouchbaseCqlCompiler.Capabilities;
 
+    protected virtual bool RequiresPublicCqlRecords => false;
+
+    protected static Holon ReadQueryRecord(NativeCqlDocument record, Guid id)
+    {
+        var row = Des<Holon>(record.DataJson);
+        if (row == null || row.Id != id)
+            throw new InvalidDataException("Native Couchbase record differs from the requested identity.");
+        return row;
+    }
+
     protected sealed class NativeCqlDocument
     {
         public NativeCqlDocument() { }
@@ -36,8 +46,7 @@ public partial class CouchbaseOASIS : ICosmicQueryStorageProvider
             .CancellationToken(cancellation).Parameter("keys", ids.Select(id => id.ToString("D")).ToArray());
         // USE KEYS is a native key-constrained SQL++ read, independent of a primary-index scan.
         using var response = await _cluster!.QueryAsync<NativeCqlDocument>(
-            $"SELECT META(h).id AS `Key`, h.id AS `Id`, h.isDeleted AS `IsDeleted`, h.dataJson AS `DataJson` " +
-            $"FROM `{_bucketName}`.`_default`.`holons` AS h USE KEYS $keys", options);
+            CouchbaseCqlCompiler.NativeIdentityStatement(_bucketName), options);
         await foreach (var record in response.Rows.WithCancellation(cancellation))
             yield return record;
         if (response.MetaData.Status != QueryStatus.Success)
@@ -77,10 +86,12 @@ public partial class CouchbaseOASIS : ICosmicQueryStorageProvider
                     bytes = checked(bytes + Encoding.UTF8.GetByteCount(record.DataJson));
                     if (bytes > 4 * 1024 * 1024)
                         return Error("CQL_QUERY_LIMIT", "Complete decoded payload exceeds 4 MiB.");
-                    var row = Des<Holon>(record.DataJson);
-                    if (row == null || row.Id != id || !plan.Query.ReadAccess.CanRead(row))
+                    var row = ReadQueryRecord(record, id);
+                    if (!plan.Query.ReadAccess.CanRead(row))
                         throw new InvalidDataException("Native holon differs from read authority.");
                     if (record.IsDeleted || row.IsDeleted) continue;
+                    if (RequiresPublicCqlRecords && !row.IsPublic)
+                        throw new InvalidDataException("Native teaching record is no longer public.");
                     row.Children = Array.Empty<IHolon>();
                     rows.Add(id, row);
                 }
