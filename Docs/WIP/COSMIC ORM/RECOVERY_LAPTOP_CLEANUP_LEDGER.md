@@ -2634,4 +2634,8 @@ The new run directory is
 Seed and checkpoint hashes match the first run. The temporary Mongo
 database was dropped, the journal cleared, and both owned processes
 stopped. Mongo logged WiredTiger closure and clean shutdown with exit 12.
-Keep the independent checkpoint and JAR for further browser qualification.
+The browser run then passed in
+`RecoveryLaptopFirestore1220/native-089fb7e787b04a3f8b0783e158478973/`.
+The page stop closed both services, with no ready or pending files left.
+The original recovery seed and checkpoint hashes matched. Retain the
+independent checkpoint and JAR for the reusable local demo.

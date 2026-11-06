@@ -36,7 +36,15 @@ and shutdown. All fixture ports closed. Native restart and federation
 TRX SHA-256 values are
 `a10024e9b3cfd3c5997e55baade57b2d824ab90a750f6ed280c1da8edf475e60` and
 `df1af7635d2da54f62c4073a7596d5e75588f46a097ad8735802298147c218e5`.
-Recovery-laptop browser and hosted Firestore verification remain open.
+The recovery browser run returned five full rows (Firestore 3, MongoDB 2)
+and four subset rows (Firestore 2, MongoDB 2), with matching physical IDs
+across both providers for Espresso and Latte. The stop button acknowledged
+shutdown. The final federation test passed without skips, removed its
+temporary Mongo database and cleared the fixture journal. Both services
+stopped and the source hashes matched the earlier runs. Browser-run
+federation TRX SHA-256 is
+`3054fbf279271ef11583ca7baadf8b21051714cb3c600b2efc864d468575bc0d`.
+Hosted Firestore verification remains open.
 
 Verified30 October2026. GoogleCloudOASIS generic CQL adapter against retained Firestore emulator1.22.0. This is not hosted Google Cloud.
 
