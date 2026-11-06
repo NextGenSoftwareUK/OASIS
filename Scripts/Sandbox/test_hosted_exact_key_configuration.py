@@ -82,6 +82,12 @@ class ExactKeyConfigurationTests(unittest.TestCase):
     def test_dapr_candidate_preserves_existing_providers(self):
         self.check_candidate("DaprOASIS")
 
+    def test_cloudflare_kv_candidate_preserves_existing_providers(self):
+        self.check_candidate("CloudflareOASIS")
+
+    def test_migrated_vercel_kv_candidate_preserves_existing_providers(self):
+        self.check_candidate("VercelKVOASIS")
+
     def check_candidate(self, provider):
         partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
         baseline = {
@@ -110,6 +116,19 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                 for invalid in ({"Store": "../foreign"}, {"GrpcEndpoint": "http://localhost:54862/"},
                                 {"GrpcEndpoint": "http://127.0.0.1:65536/"}, {"GrpcEndpoint": "http://127.0.0.1:80/"}):
                     descriptor.write_text(json.dumps(catalogue | invalid))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                        configuration.verifier.reviewed_exact_key_source(provider, descriptor)
+            if provider == "CloudflareOASIS":
+                catalogue.update(AccountId="a" * 32, NamespaceId="b" * 32)
+                for invalid in ({"AccountId": "A" * 32}, {"NamespaceId": "b" * 31}, {"NamespaceId": "../foreign"}):
+                    descriptor.write_text(json.dumps(catalogue | invalid))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                        configuration.verifier.reviewed_exact_key_source(provider, descriptor)
+            if provider == "VercelKVOASIS":
+                catalogue["Endpoint"] = "https://teaching.upstash.io/"
+                for endpoint in ("http://teaching.upstash.io/", "https://upstash.io/", "https://teaching.upstash.io.example/",
+                                 "https://teaching.upstash.io/path", "https://user@teaching.upstash.io/"):
+                    descriptor.write_text(json.dumps(catalogue | {"Endpoint": endpoint}))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "NetlifyBlobsOASIS":
@@ -193,7 +212,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -269,9 +288,18 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         with self.assertRaisesRegex(ValueError, "do not match"):
                             configuration.candidate(baseline | changed, provider, review)
                     for token in (None, "", "invalid token", "x" * 1025):
-                        with self.assertRaisesRegex(ValueError, "sidecar token"):
+                        with self.assertRaisesRegex(ValueError, "source token"):
                             configuration.candidate(baseline | {"CQL_DAPR_QUERY_SIDECAR_TOKEN": token}, provider, review)
                     baseline["CQL_DAPR_QUERY_SIDECAR_TOKEN"] = "fixture-token"
+                elif provider in ("CloudflareOASIS", "VercelKVOASIS"):
+                    baseline.update(review["sourceBinding"])
+                    token_key = configuration.REQUIRED_SOURCE_TOKENS[provider]
+                    with self.assertRaisesRegex(ValueError, "source token"):
+                        configuration.candidate(baseline, provider, review)
+                    baseline[token_key] = "fixture-token"
+                    for key in review["sourceBinding"]:
+                        with self.assertRaisesRegex(ValueError, "do not match"):
+                            configuration.candidate(baseline | {key: "foreign"}, provider, review)
                 else:
                     product = provider.removesuffix("OASIS").upper()
                     baseline[f"CQL_{product}_QUERY_PROBE_ID"] = first

@@ -1771,7 +1771,26 @@ Workers KV and migrated Vercel KV admission drafts use the existing
 `HostedCloudflareKvCqlQualification/` and `HostedVercelKvCqlQualification/`
 directories. The registration and test `.cs` drafts are outside the active
 Dapr WEB4 build inputs. The protected-settings suite passed 24 tests with
-bytecode output disabled. No new runtime, credentials or hosted changes.
+bytecode output disabled. After the Dapr HTTP tests finished, the admission
+drafts moved into their normal WEB4 projects. The leased edge KV admission
+run uses `HostedCloudflareKvCqlQualification/verify-hosted-cql.ps1`,
+`web4-core-pin.txt` and `admission.trx` in that directory and logs to
+`TestResults/ProviderBuildCurrent/edge-kv-hosted-api-cql.log`. All 21 cases
+passed and the lease restored the existing Core checkout. No new runtime,
+credentials or hosted changes.
+
+Deno KV standalone qualification uses the official Windows x64 `denokv`
+0.14.0 archive under `HostedDenoKvCqlQualification/runtime-0.14.0/`.
+The archive is 6,846,509 bytes and its published SHA-256 is
+`544898784549c141e655a92b53b69cfcdbb935e3fe8c12524c8ec2cab2cdf258`.
+The archive was verified and removed. The retained `denokv.exe` is
+16,557,056 bytes, SHA-256
+`60ab2492e9fcea10db590c825c9242f9475600a6a6f729a6bd53d6032813a6b6`.
+`inspect-standalone.py` ran against in-memory storage on loopback 54865.
+It retained only non-secret metadata and a server log in
+`standalone-metadata/`. The owned process stopped and the port cleared.
+`verify-standalone.ps1` will build the native test under the shared lease
+after the edge KV WEB4 build finishes. No persistent database was created.
 
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive

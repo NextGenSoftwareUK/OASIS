@@ -17,6 +17,11 @@ verifier = load("Verify-HostedQuerySource")
 ADMISSION = "PREPARED_STORAGE_ADMISSION_JSON"
 GRANTS = "CQL_PUBLIC_READ_CATALOGUES_JSON"
 EXAMPLES = "CQL_HOSTED_QUERY_EXAMPLES_JSON"
+REQUIRED_SOURCE_TOKENS = {
+    "DaprOASIS": "CQL_DAPR_QUERY_SIDECAR_TOKEN",
+    "CloudflareOASIS": "CQL_CLOUDFLARE_KV_QUERY_READER_TOKEN",
+    "VercelKVOASIS": "CQL_VERCEL_KV_QUERY_READER_TOKEN",
+}
 
 
 def candidate(before, provider, review):
@@ -26,11 +31,11 @@ def candidate(before, provider, review):
         raise ValueError("An enabled WEB4 sandbox baseline is required.")
     if any(before.get(key) != value for key, value in review.get("sourceBinding", {}).items()):
         raise ValueError("Protected source settings do not match the reviewed teaching catalogue.")
-    if provider == "DaprOASIS":
-        token = before.get("CQL_DAPR_QUERY_SIDECAR_TOKEN")
+    if provider in REQUIRED_SOURCE_TOKENS:
+        token = before.get(REQUIRED_SOURCE_TOKENS[provider])
         if (not isinstance(token, str) or not 1 <= len(token) <= 1024
                 or any(not 33 <= ord(character) <= 126 for character in token)):
-            raise ValueError("A valid protected Dapr sidecar token is required.")
+            raise ValueError("A valid protected source token is required.")
     admission = json.loads(before[ADMISSION])
     grants = json.loads(before.get(GRANTS, "{}"))
     partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider

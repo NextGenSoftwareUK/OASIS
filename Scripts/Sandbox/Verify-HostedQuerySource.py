@@ -27,7 +27,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -396,6 +396,16 @@ def reviewed_exact_key_source(provider, path):
             if (not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", catalogue["Store"])
                     or not port or int(port[1]) == 80 or int(port[1]) > 65535):
                 raise ValueError("Unexpected Dapr component or loopback endpoint.")
+        if provider == "CloudflareOASIS":
+            fields |= {"AccountId", "NamespaceId"}
+            if any(not re.fullmatch(r"[0-9a-f]{32}", catalogue[field]) for field in ("AccountId", "NamespaceId")):
+                raise ValueError("Unexpected Workers KV account or namespace ID.")
+        if provider == "VercelKVOASIS":
+            fields.add("Endpoint")
+            endpoint = catalogue["Endpoint"]
+            if (len(endpoint) > 262 or
+                    not re.fullmatch(r"https://(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+upstash\.io/", endpoint)):
+                raise ValueError("Unexpected migrated Vercel KV HTTPS endpoint.")
         if provider == "ScyllaDBOASIS":
             fields |= {"Ip", "Host", "CaSha256"}
             address = ipaddress.ip_address(catalogue["Ip"])
@@ -519,6 +529,13 @@ def reviewed_exact_key_source(provider, path):
         review["sourceBinding"] = {"CQL_DAPR_QUERY_STORE": catalogue["Store"],
                                    "CQL_DAPR_QUERY_GRPC_ENDPOINT": catalogue["GrpcEndpoint"],
                                    "CQL_DAPR_QUERY_PROBE_ID": ids[0]}
+    elif provider == "CloudflareOASIS":
+        review["sourceBinding"] = {"CQL_CLOUDFLARE_KV_QUERY_ACCOUNT_ID": catalogue["AccountId"],
+                                   "CQL_CLOUDFLARE_KV_QUERY_NAMESPACE_ID": catalogue["NamespaceId"],
+                                   "CQL_CLOUDFLARE_KV_QUERY_PROBE_ID": ids[0]}
+    elif provider == "VercelKVOASIS":
+        review["sourceBinding"] = {"CQL_VERCEL_KV_QUERY_ENDPOINT": catalogue["Endpoint"],
+                                   "CQL_VERCEL_KV_QUERY_PROBE_ID": ids[0]}
     elif provider in ("WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS"):
         product = provider.removesuffix("OASIS").upper()
         review["sourceBinding"] = {f"CQL_{product}_QUERY_PROBE_ID": ids[0]}

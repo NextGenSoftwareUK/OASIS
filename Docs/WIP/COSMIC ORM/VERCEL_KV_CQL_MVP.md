@@ -28,3 +28,12 @@ teaching store, its dedicated read-only token and a reviewed catalogue.
 [Owner actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md#migrated-vercel-kv-teaching-store-access---2026-11-06).
 This evidence is separate from `UpstashOASIS`, whose records use different
 native keys. LocalFile remains first for live Development WEB4 rollout.
+
+The protected settings draft binds `CQL_VERCEL_KV_QUERY_ENDPOINT` and
+`CQL_VERCEL_KV_QUERY_PROBE_ID` to the reviewed catalogue. It requires the
+protected read-only token in the baseline and rejects foreign origins.
+The combined WEB4 run passed seven checks each for Workers KV, migrated
+Vercel KV and Dapr, with zero skips, at Core
+`4d6cfb6071ce76025f6ccff6a37ce0125f78680e`. The TRX SHA-256 is
+`ee3bb7c276927b2a703f33181d5c27d387cfc7d26e9c4e9eeba5313c531d924c`.
+Credentialed native and live Development WEB4 verification remain open.
