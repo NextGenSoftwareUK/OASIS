@@ -61,10 +61,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
 
         protected CouchbaseOASIS(string bucketName)
         {
-            if (string.IsNullOrEmpty(bucketName) || bucketName.Length > 100 || bucketName[0] == '.' ||
-                bucketName.Any(c => !((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
-                    (c >= '0' && c <= '9') || c == '_' || c == '-' || c == '.' || c == '%')))
-                throw new ArgumentException("Use a valid Couchbase bucket identifier, at most 100 characters.", nameof(bucketName));
+            CouchbaseCqlCompiler.ValidateBucketName(bucketName);
             _bucketName = bucketName;
             ProviderName = "CouchbaseOASIS";
             ProviderDescription = "Couchbase document database provider (CouchbaseNetClient SDK and SQL++ queries)";

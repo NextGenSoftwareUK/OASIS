@@ -2279,3 +2279,16 @@ The shared user NuGet cache added CouchbaseNetClient 3.7.1, DnsClient
 1.8.0, Google.Api.CommonProtos 2.13.0, Grpc.Core.Api 2.50.0,
 Grpc.Net.Client 2.50.0, Grpc.Net.ClientFactory 2.50.0, Grpc.Net.Common
 2.50.0 and Microsoft.Extensions.ObjectPool 6.0.0.
+
+Couchbase WEB4 admission reuses the existing .NET environment and cached
+SDK under the shared lease. Results and exact candidate Core pin use
+`LocalState/COSMIC/HostedCouchbaseCqlQualification/`. Log:
+`TestResults/ProviderBuildCurrent/couchbase-hosted-api-cql.log`.
+All seven protected-settings tests passed and cleaned their temporary
+files. The opt-in native fixture is prepared. No server was started.
+
+Couchbase WEB4 admission passed 10/10. TRX SHA256
+`EC0E469C8CD083D62257A0751A278B0F4C00DBBE59DDD803AB35B0FF7F34F42E`.
+The native fixture compiled with 156 warnings and zero errors, logged in
+`TestResults/ProviderBuildCurrent/couchbase-hosted-native-fixture.log`.
+Both leases restored shared Core to `54159614`. No server was contacted.

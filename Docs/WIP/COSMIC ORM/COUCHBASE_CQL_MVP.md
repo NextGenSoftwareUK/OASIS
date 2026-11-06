@@ -107,3 +107,30 @@ Provider tests passed 32/32. The HTTP boundary test inspected the actual
 JSON statement, keys, read-only setting and Basic authentication header,
 then checked private probe rejection and no partial result when a row
 became private. Core pin `514b3296db9322a1c8e19094415c11013b620fb4`.
+
+WEB4 registration uses protected `CQL_COUCHBASE_QUERY_` settings with
+suffixes ORIGIN, BUCKET, READER_USERNAME, READER_PASSWORD and PROBE_ID.
+Use the approved Couchbase Server HTTPS Query Service and a restricted
+SQL++ reader for the teaching collection. The HTTP guard requires the
+exact compiled statement, read-only flag, 15-second timeout and 1–100
+distinct canonical keys. The first reviewed live ID must match the probe.
+
+The protected-settings suite passed all seven tests including Couchbase.
+The WEB4 build is in progress. The opt-in integration category
+`CouchbaseHostedCqlNative` links the same registration and accepts
+`COSMIC_COUCHBASE_HOSTED_CQL_SOURCE` plus the protected settings. Enable
+it with `/p:EnableCouchbaseHostedCqlNativeTests=true`. Native and live
+acceptance still require an approved TLS source.
+
+For the restricted hosted source, use a reviewed Enterprise Couchbase
+Server and a Query Select role limited to the teaching collection.
+Community Edition has coarser roles and does not establish that role
+boundary. The supported Windows installation uses a system service.
+This laptop has no existing Couchbase service or reusable executable,
+so native qualification remains tied to an approved source.
+[Couchbase role availability](https://docs.couchbase.com/server/7.6/learn/security/authorization-overview.html).
+
+All 10 WEB4 admission tests passed at Core
+`0492cec40a87a7ab84ac2ec7718e017ae4463871`. The opt-in native fixture
+compiled with zero errors. The native server and live visitor checks
+still require the approved teaching source.

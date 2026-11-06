@@ -600,6 +600,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             Services.Cql.CqlTigrisReadSourceRegistration.AddTigrisReadSource(services, Configuration);
             Services.Cql.CqlUpstashReadSourceRegistration.AddUpstashReadSource(services, Configuration);
             Services.Cql.CqlInfluxDbReadSourceRegistration.AddInfluxDbReadSource(services, Configuration);
+            Services.Cql.CqlCouchbaseReadSourceRegistration.AddCouchbaseReadSource(services, Configuration);
 
             if (Configuration["CQL_CHROMA_QUERY_ORIGIN"] is string chromaOrigin)
             {
