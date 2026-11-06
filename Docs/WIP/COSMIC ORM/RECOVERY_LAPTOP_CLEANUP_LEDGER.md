@@ -2358,3 +2358,12 @@ Nine protected-settings tests passed and cleaned their temporary files.
 CockroachDB WEB4 admission finished with nine passed and zero skipped.
 The build restored the original Core checkout. The exact TRX hash is in
 the CockroachDB MVP note.
+
+TimescaleDB recovery reuses the original proof and existing .NET build
+environment. The scoped provider verification uses the shared lease and
+writes `timescale-core-pin.txt`, `timescale-provider.log` and
+`timescale-provider.trx` under `TestResults/ProviderBuildCurrent/`.
+
+The recovered TimescaleDB provider tests finished with 12 passed and
+zero skipped. The shared Core checkout was restored. No native download
+or database creation was needed for this recovery.
