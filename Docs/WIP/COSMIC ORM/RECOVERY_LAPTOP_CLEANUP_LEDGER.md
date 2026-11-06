@@ -3602,3 +3602,16 @@ port shutdown. The retained directory
 contains the 4,724-byte TRX, 525-byte test log, 193,332-byte service
 log and compact process and shutdown receipts. The ENS fixture remains
 retained for its authorized continuation.
+
+### Decentraland Catalyst native scene profile, 6 November 2026
+
+The existing .NET runtime built the provider and focused test
+projects under the provider lease. Their directories are
+`Providers/Maps/NextGenSoftware.OASIS.API.Providers.DecentralandOASIS`
+and `Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.DecentralandOASIS.UnitTests`.
+Provider `bin` and `obj` are 8,272,785 and 931,387 bytes. Test
+`bin` and `obj` are 47,116,385 and 1,003,866 bytes. Retained
+`LocalState/COSMIC/DecentralandSceneCqlQualification/` contains the
+5,848-byte TRX, 390,806-byte log and 832-byte observation. No
+provider service, scene asset or separate runtime was installed.
+Free space was 37,497,409,536 before and 37,675,700,224 bytes after.
