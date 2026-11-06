@@ -39,4 +39,13 @@ ran against the unchanged producer. The 52,144-byte final TRX
 SHA-256 is
 `887bf56bef6798423c9d1383ad47b84796df95a9e1b1bc62d34cf54d392dd29c`.
 Protected configuration passed 39 tests and response evidence passed 21.
-Local federation and hosted acceptance remain open.
+
+## Local WEB4 and Mongo federation
+
+At Core `c1354d87da2add7720f9c40d4e502195c01a3f41`, local
+WEB4 HTTP returned native 3/2, paired 5/4, foreign-private 0 and
+foreign public 3. The combined run passed both cases with zero
+skips. The 4,724-byte TRX SHA-256 is
+`55846eda17f2707263b62c42502c1e6faac38094b859e70e812136dd441d9e7a`.
+The exact synthetic database was removed after verification.
+Hosted HTTP and browser acceptance remain open.

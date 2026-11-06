@@ -3590,3 +3590,15 @@ Removed five exact verified working duplicates after source
 publication. The three World ID C# drafts, Reclaim C# draft and
 Waku C# draft totaled 40,106 bytes. The tracked source and logs
 were preserved.
+
+### World ID and Reclaim local federation, 6 November 2026
+
+Reused the exact frozen WEB4 and Mongo environment. The runner removed
+only the two verified databases `cosmic_cql_worldidoasis_http` and
+`cosmic_cql_reclaimprotocoloasis_http`. Both cleanup receipts confirm
+database absence and the owned Mongo process confirmed storage and
+port shutdown. The retained directory
+`LocalState/COSMIC/WorldIdPublicCqlQualification/network-federation/`
+contains the 4,724-byte TRX, 525-byte test log, 193,332-byte service
+log and compact process and shutdown receipts. The ENS fixture remains
+retained for its authorized continuation.

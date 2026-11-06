@@ -40,6 +40,8 @@ using NextGenSoftware.OASIS.API.Providers.LivepeerOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
 using NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS;
 using NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS;
+using NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS;
+using NextGenSoftware.OASIS.API.Providers.WorldIDOASIS;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 using IoFile = System.IO.File;
 
@@ -111,6 +113,12 @@ public sealed class CqlReviewedPublicMongoHttpTests
 
     [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_NETWORK_NATIVE")]
     public Task LayerZeroV1NativeHttp() => VerifyHttpAsync(ProviderType.LayerZeroOASIS);
+
+    [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_NETWORK_NATIVE")]
+    public Task WorldIdProtocolNativeHttp() => VerifyHttpAsync(ProviderType.WorldIDOASIS);
+
+    [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_NETWORK_NATIVE")]
+    public Task ReclaimVerifierNativeHttp() => VerifyHttpAsync(ProviderType.ReclaimProtocolOASIS);
 
     [ReviewedPublicMongoNativeFact("COSMIC_PINATA_NATIVE_READ_CONTINUATION")]
     public Task PinataNativeHttpContinuation()
@@ -503,6 +511,20 @@ public sealed class CqlReviewedPublicMongoHttpTests
                 string[] networks = { "ethereum", "polygon", "arbitrum" };
                 return (new LayerZeroV1EndpointQuerySource(owner),
                     networks.Select(network => LayerZeroV1EndpointQuerySource.LogicalId(owner, network)).ToArray());
+            }
+            case ProviderType.WorldIDOASIS:
+            {
+                Assert.Equal("owned-loopback", Environment.GetEnvironmentVariable("COSMIC_REVIEWED_NETWORK_NATIVE"));
+                string[] components = { "registry", "verifier", "issuer-registry" };
+                return (new WorldIdProtocolQuerySource(owner),
+                    components.Select(component => WorldIdProtocolQuerySource.LogicalId(owner, component)).ToArray());
+            }
+            case ProviderType.ReclaimProtocolOASIS:
+            {
+                Assert.Equal("owned-loopback", Environment.GetEnvironmentVariable("COSMIC_REVIEWED_NETWORK_NATIVE"));
+                string[] networks = { "base", "arbitrum", "polygon" };
+                return (new ReclaimVerifierQuerySource(owner),
+                    networks.Select(network => ReclaimVerifierQuerySource.LogicalId(owner, network)).ToArray());
             }
             case ProviderType.SafeOASIS:
             {

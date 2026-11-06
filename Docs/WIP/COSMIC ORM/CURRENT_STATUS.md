@@ -11,7 +11,7 @@ HTTPS and deployed acceptance. No provider count changed.
 
 ## Recent WEB4 preparation, 5–6 November 2026
 
-Acceptance is 116 scoped local, 60 live HTTP and 28 live browser.
+Acceptance is 118 scoped local, 60 live HTTP and 28 live browser.
 LocalFile remains first. The immutable candidate image is published and its
 actual Railway deployment, persistent mount and protected settings still
 need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
@@ -46,6 +46,12 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
   [Push evidence](PUSH_PROTOCOL_CHANNEL_CQL_MVP.md) ·
   [LayerZero evidence](LAYERZERO_V1_ENDPOINT_CQL_MVP.md) ·
   [Pinata evidence](PINATA_PUBLIC_BLOCK_CQL_MVP.md).
+- World ID v4 and Reclaim passed native CQL 3/2 and local
+  WEB4/Mongo 5/4 with foreign-private 0. Hosted acceptance remains open.
+  [World ID evidence](WORLD_ID_PROTOCOL_CQL_MVP.md) ·
+  [Reclaim evidence](RECLAIM_VERIFIER_CQL_MVP.md).
+- Waku Store v3 passed native REST and CQL 3/2/0 with two isolated
+  Linux peers. WEB4 admission remains open. [Waku evidence](WAKU_STORE_CQL_MVP.md).
 - The ENS Offchain local federation diagnostic captured upstream HTTP 429
   after successful public and paired reads. The two acknowledged private
   Mongo copies are retained for authenticated continuation.
