@@ -25,10 +25,10 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
   exact-key CQL 3/2/0 with private denial, and ten opt-in WEB4 checks.
   The hosted source still requires qualification. [Milvus evidence](MILVUS_CQL_MVP.md).
 - pgvector passed the restricted-reader 3/2/0 and private-denial checks
-  on PostgreSQL 17.11 with pgvector 0.8.7. WEB4 enrollment remains open.
+  on PostgreSQL 17.11 with pgvector 0.8.7 and opt-in WEB4 admission.
   [pgvector evidence](PGVECTOR_CQL_MVP.md).
-- Cloudinary passed seven controlled checks and one real public metadata
-  CQL 3/2 test. WEB4 admission is in verification.
+- Cloudinary passed seven controlled checks, a real public metadata CQL
+  3/2 test and opt-in WEB4 admission.
   [Cloudinary evidence](CLOUDINARY_CQL_MVP.md).
 - Appwrite passed 19 provider checks and nine WEB4 admission checks. Its
   credentialed HTTPS verifier compiled and awaits a reviewed project.

@@ -2055,6 +2055,37 @@ workspace is `LocalState/COSMIC/LocalCloudinaryCqlQualification/`.
 compiles the separate Milvus hosted verifier into its normal project
 outputs and records `milvus-hosted-native-build.log`. No images or new
 runtime dependencies were downloaded.
+The batch passed eight Cloudinary tests, including one live public
+metadata test. It compiled the Milvus hosted verifier and restored the
+shared Core checkout. The report hashes are in the two provider notes.
+
+The Cloudinary and pgvector WEB4 batch uses
+`LocalCloudinaryCqlQualification/verify-hosted-cql.ps1`, the existing
+build lease and two reports in that workspace. Its log names are
+`cloudinary-hosted-provider-cql.log` and
+`cloudinary-pgvector-hosted-api-cql.log` under
+`TestResults/ProviderBuildCurrent/`. All 73 protected tooling tests
+passed and the eight Cloudinary tests passed again.
+The WEB4 batch passed 22 admission and regression cases with no skips.
+The shared Core checkout was restored. The exact report hashes are in
+the Cloudinary evidence note.
+
+Proof of Humanity read qualification reused the existing PowerShell,
+Nethereum DLLs in the NuGet cache and Python. It checked two public
+RPCs in memory with the three exact public contract addresses. No wallet,
+credential, transaction, fixture database or runtime installation was used.
+The PoH leased runner is
+`LocalState/COSMIC/LocalProofOfHumanityCqlQualification/verify-provider.ps1`.
+It records `provider.trx`, `provider-core-pin.txt` and the
+`proof-of-humanity-cql.log` and `pgvector-hosted-native-build.log`
+reports under `TestResults/ProviderBuildCurrent/`.
+
+Oracle Object Storage public preparation used three bounded anonymous
+HEAD requests and one listing request that returned 404. The sole
+workspace is `LocalState/COSMIC/LocalOracleObjectStorageCqlQualification/`.
+It holds the provider and test source drafts until the WEB4 lease
+releases. No workshop script, object body, runtime or credential was
+downloaded.
 
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive

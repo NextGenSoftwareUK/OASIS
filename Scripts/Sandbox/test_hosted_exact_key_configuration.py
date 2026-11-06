@@ -20,6 +20,11 @@ def exact_key_catalogue(provider):
         first, second, third = ("2d8b5e78-3137-8c0d-ba70-bdaa880dcdad", "e29d23d8-4c2c-8e0a-9fde-5b92d31135c0",
                                 "ffab761f-bf16-8e02-88e4-1e8a7b6cccd9")
         catalogue = {"Actor": actor, "Names": ["vitalik.eth", "nick.eth", "luc.eth"]}
+    elif provider == "CloudinaryOASIS":
+        actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
+        first, second, third = ("8aee1458-13a7-8822-bfc3-670a6383d512", "12043da4-2792-8476-9786-7089dce330b8",
+                                "b2b331e8-2252-8910-b5bd-f56954d50e04")
+        catalogue = {"Actor": actor, "Assets": ["sample.jpg", "lady.jpg", "woman.jpg"]}
     else:
         catalogue = {"Actor": actor, "LiveIds": [first, second, third], "DeletedId": deleted, "MissingId": missing}
     fields = {
@@ -34,6 +39,8 @@ def exact_key_catalogue(provider):
         "OrbitDBOASIS": {"Sidecar": "http://127.0.0.1:54869/"},
         "GUNOASIS": {"Sidecar": "http://127.0.0.1:54870/"},
         "MilvusOASIS": {"Origin": "https://milvus.example.com"},
+        "PgVectorOASIS": {"Host": "teaching.pgvector.example", "Database": "oasis_teaching",
+                          "ReaderUsername": "cosmic_reader"},
         "NetlifyBlobsOASIS": {"SiteId": str(uuid.UUID(int=7)), "Store": "oasis", "ObjectOrigin": "https://objects.example"},
         "NileOASIS": {"Host": "us-west-2.db.thenile.dev", "Database": "oasis_teaching"},
         "AlgoliaOASIS": {"AppId": "Teaching123"},
@@ -161,6 +168,20 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     descriptor.write_text(json.dumps(catalogue | {"Origin": origin}))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source("MilvusOASIS", descriptor)
+
+    def test_cloudinary_candidate_binds_the_native_image_identities(self):
+        self.check_candidate("CloudinaryOASIS")
+        with tempfile.TemporaryDirectory() as directory:
+            descriptor = Path(directory) / "catalogue.json"
+            catalogue, _ = exact_key_catalogue("CloudinaryOASIS")
+            for assets in (["sample.jpg", "sample.jpg", "woman.jpg"], ["../sample.jpg", "lady.jpg", "woman.jpg"]):
+                with self.subTest(assets=assets):
+                    descriptor.write_text(json.dumps(catalogue | {"Assets": assets}))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                        configuration.verifier.reviewed_exact_key_source("CloudinaryOASIS", descriptor)
+
+    def test_pgvector_candidate_binds_host_database_and_reader(self):
+        self.check_candidate("PgVectorOASIS")
 
     def check_candidate(self, provider):
         partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
@@ -304,7 +325,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -389,7 +410,13 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {key: "{}"}, provider, review)
                     baseline[key] = value
-                elif provider in ("CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS"):
+                elif provider == "CloudinaryOASIS":
+                    key, value = next(iter(review["sourceBinding"].items()))
+                    self.assertEqual({"owner": actor, "assets": catalogue["Assets"], "probe": "sample.jpg"}, json.loads(value))
+                    with self.assertRaisesRegex(ValueError, "do not match"):
+                        configuration.candidate(baseline | {key: "{}"}, provider, review)
+                    baseline[key] = value
+                elif provider in ("CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "PgVectorOASIS"):
                     baseline.update(review["sourceBinding"])
                     token_key = configuration.REQUIRED_SOURCE_TOKENS[provider]
                     with self.assertRaisesRegex(ValueError, "source token"):

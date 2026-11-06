@@ -27,7 +27,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -332,8 +332,12 @@ def pouchdb_review(path, *, require_deployment=False):
 
 
 def ens_offchain_logical_id(actor, name):
+    return native_logical_id(actor, "ENSOffchainOASIS", "web3.bio/ens", name)
+
+
+def native_logical_id(actor, provider, source, key):
     # Match NativeRecordHolonMapper's version-eight .NET Guid byte layout.
-    digest = bytearray(hashlib.sha256(f"oasis-native-import\n{actor}\nENSOffchainOASIS\nweb3.bio/ens\n{name}".encode()).digest()[:16])
+    digest = bytearray(hashlib.sha256(f"oasis-native-import\n{actor}\n{provider}\n{source}\n{key}".encode()).digest()[:16])
     digest[7] = (digest[7] & 0x0f) | 0x80
     digest[8] = (digest[8] & 0x3f) | 0x80
     return str(uuid.UUID(bytes_le=bytes(digest)))
@@ -346,6 +350,16 @@ def reviewed_exact_key_source(provider, path):
     try:
         names_only = provider == "ENSOffchainOASIS"
         fields = {"Actor", "Names"} if names_only else {"Actor", "LiveIds", "DeletedId", "MissingId"}
+        if provider == "CloudinaryOASIS":
+            fields = {"Actor", "Assets"}
+        if provider == "PgVectorOASIS":
+            fields |= {"Host", "Database", "ReaderUsername"}
+            host = catalogue["Host"]
+            if (len(host) > 253 or not re.fullmatch(
+                    r"(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?", host)
+                    or any(not re.fullmatch(r"[a-z][a-z0-9_]{0,62}", catalogue[key])
+                           for key in ("Database", "ReaderUsername"))):
+                raise ValueError("Unexpected pgvector database address or reader identity.")
         if provider in ("MinIOOASIS", "TigrisOASIS"):
             fields |= {"Endpoint", "Bucket", "Originals"}
         if provider == "MinIOOASIS":
@@ -500,6 +514,15 @@ def reviewed_exact_key_source(provider, path):
                 raise ValueError("Three canonical ASCII ENS names are required.")
             ids = [ens_offchain_logical_id(catalogue["Actor"], name) for name in names]
             record_ids = ids
+        elif provider == "CloudinaryOASIS":
+            assets = catalogue["Assets"]
+            if (not isinstance(assets, list) or len(assets) != 3
+                    or any(not isinstance(asset, str) or not re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,79}\.jpg", asset)
+                           for asset in assets)):
+                raise ValueError("Three canonical Cloudinary demo JPEG assets are required.")
+            ids = [native_logical_id(catalogue["Actor"], provider, "res.cloudinary.com/demo/image/upload", asset)
+                   for asset in assets]
+            record_ids = ids
         else:
             ids = catalogue["LiveIds"]
             if not isinstance(ids, list) or len(ids) != 3:
@@ -620,6 +643,14 @@ def reviewed_exact_key_source(provider, path):
     elif provider == "MilvusOASIS":
         review["sourceBinding"] = {"CQL_MILVUS_QUERY_ORIGIN": catalogue["Origin"],
                                    "CQL_MILVUS_QUERY_PROBE_ID": ids[0]}
+    elif provider == "CloudinaryOASIS":
+        source = {"owner": catalogue["Actor"], "assets": assets, "probe": assets[0]}
+        review["sourceBinding"] = {"CQL_CLOUDINARY_QUERY_SOURCE_JSON": json.dumps(source, separators=(",", ":"))}
+    elif provider == "PgVectorOASIS":
+        review["sourceBinding"] = {"CQL_PGVECTOR_QUERY_HOST": catalogue["Host"],
+                                   "CQL_PGVECTOR_QUERY_DATABASE": catalogue["Database"],
+                                   "CQL_PGVECTOR_QUERY_READER_USERNAME": catalogue["ReaderUsername"],
+                                   "CQL_PGVECTOR_QUERY_PROBE_ID": ids[0]}
     elif provider in ("WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS"):
         product = provider.removesuffix("OASIS").upper()
         review["sourceBinding"] = {f"CQL_{product}_QUERY_PROBE_ID": ids[0]}

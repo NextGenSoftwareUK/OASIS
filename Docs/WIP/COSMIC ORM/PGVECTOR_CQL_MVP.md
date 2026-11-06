@@ -26,11 +26,20 @@ The native TRX SHA-256 is
 `e221b3a094c34c55c733e13ade73046e4bed6cbc4c42fdc2c432cfb17f9b3e4c`.
 [Passing native run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42241735749/job/127973473203)
 
-WEB4 enrollment, federation, browser acceptance and vector similarity
-queries remain open. LocalFile remains first for live rollout.
+Live federation, browser acceptance and vector similarity queries remain
+open. LocalFile remains first for live rollout.
 
 The hosted preparation adds native grant checks. Activation verifies
 SELECT on the exact ID and document columns, and rejects write or
-schema-creation privileges. The next isolated run checks the restricted
-reader, an overprivileged owner and a non-vector table containing the
-same public record. [PostgreSQL privilege functions](https://www.postgresql.org/docs/17/functions-info.html)
+schema-creation privileges. The isolated run passed with the restricted
+reader, rejected an overprivileged owner and rejected a non-vector table
+containing the same public record. The native TRX SHA-256 is
+`f88680670193113e9b702366d519c422f08a7a9f556dbd54389e2848d43a45f9`.
+[Restricted-reader native run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42243096441) ·
+[PostgreSQL privilege functions](https://www.postgresql.org/docs/17/functions-info.html)
+
+The combined Cloudinary and pgvector WEB4 admission passed 12 checks
+and ten Milvus regressions at Core `e400afd53cef4997e8bfcabc4b34b3f84a854626`.
+The reviewed host, database and restricted reader use PostgreSQL TLS
+hostname verification and the public schema. The hosted teaching
+database and protected password still require qualification.

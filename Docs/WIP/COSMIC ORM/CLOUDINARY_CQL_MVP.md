@@ -20,5 +20,10 @@ The final provider source repeated all eight checks successfully at the
 WEB4 candidate Core `e400afd53cef4997e8bfcabc4b34b3f84a854626`, with TRX
 SHA-256 `e5ae49306ae76042dd0b2a5e61256bc61ba5a01430ac833d8a179dd0d3e9f5b3`.
 
-WEB4 enrollment and live federation remain open. LocalFile remains
-first for the live rollout.
+The combined Cloudinary and pgvector WEB4 admission passed 12 checks and
+ten Milvus regressions at Core `e400afd53cef4997e8bfcabc4b34b3f84a854626`.
+The admission TRX SHA-256 is
+`a4f42b2da21a43a0a310e922b2e98c15f6bbe11ed4cc64b0597f7aa1fcfc94ca`.
+The reviewed `CQL_CLOUDINARY_QUERY_SOURCE_JSON` binds the owner, exact
+assets and existing public probe. Live federation and browser acceptance
+remain open. LocalFile remains first for the live rollout.

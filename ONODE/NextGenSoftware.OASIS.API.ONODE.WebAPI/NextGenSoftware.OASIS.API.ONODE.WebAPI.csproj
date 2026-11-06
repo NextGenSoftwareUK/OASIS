@@ -246,6 +246,8 @@
   <ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS.csproj" />
   <ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/NextGenSoftware.OASIS.API.Providers.GUNOASIS.csproj" />
   <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.MilvusOASIS/NextGenSoftware.OASIS.API.Providers.MilvusOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.CloudinaryOASIS/NextGenSoftware.OASIS.API.Providers.CloudinaryOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.PgVectorOASIS/NextGenSoftware.OASIS.API.Providers.PgVectorOASIS.csproj" />
   <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.AlgoliaOASIS/NextGenSoftware.OASIS.API.Providers.AlgoliaOASIS.csproj" />
   <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.csproj" />
 </ItemGroup>
