@@ -2079,3 +2079,17 @@ The 8/8 TRX is
 (SHA256 `B804FF6474B394E5251C4DBBBC6A3610C52910914EDA84440889F3EA973352B3`).
 The native fixture compiled with 24 warnings and zero errors. The lease
 restored shared Core to `54159614`. No native service was started.
+
+Weaviate WEB4 admission uses the existing .NET install and caches under
+the shared `cosmic-weaviate-web4` lease. The build/test log is
+`TestResults/ProviderBuildCurrent/weaviate-hosted-api-cql.log`, with the
+tested Core pin and planned TRX in
+`LocalState/COSMIC/HostedWeaviateCqlQualification/api-cql-admission/`.
+The two Python settings controls passed and removed their temporary
+catalogue and DPAPI files. No server install or native request was needed
+for these controls.
+
+The WEB4 Weaviate admission run finished 9/9, zero failures or skips.
+`admission.trx` SHA256:
+`56CE9A74F2B053DB8AD91DA6F83319194C25232A0A5B035D41A44CBB07AE008C`.
+The shared Core checkout was restored to `54159614` on completion.

@@ -133,3 +133,26 @@ HTTP/2 test checked the actual gRPC method, bearer header, protobuf envelope,
 query bounds and typed result. The targeted run passed 8/8, and the native
 fixture compiled with zero errors. WEB4 still needs to register the guarded
 channel, and live qualification requires an approved public source.
+
+WEB4 takes three protected settings for the query source:
+`CQL_WEAVIATE_QUERY_ORIGIN` (the bare TLS gRPC origin),
+`CQL_WEAVIATE_QUERY_READER_API_KEY` (the scoped reader), and
+`CQL_WEAVIATE_QUERY_PROBE_ID` (the first approved public teaching ID).
+The channel uses the native connection guard and accepts only HTTP/2
+`POST /weaviate.v1.Weaviate/Search` at that origin, with a 4 MiB receive
+limit. REST, redirects, proxies and cookies are disabled on the query
+profile. Review the reader's actual Weaviate permissions before installing
+the settings. An API key's format does not identify its privileges.
+
+After native qualification, use the existing protected exact-key settings
+preparer for the reviewed catalogue, followed by the same-provider,
+MongoDB-paired, and independent-visitor checks. Keep the channel settings
+in the protected baseline. The preparer changes the admission tariff,
+catalogue grants and the provider preset partition. Its controlled Weaviate
+test preserved the baseline and refused to overwrite an existing enrollment.
+
+The WEB4 admission run passed all 9 tests against Core
+`fff798eb979f2c7c5b5fb496d4cc1e4a86263766`. It covered explicit enrollment,
+the valid HTTP/2 search route and rejection before transport for other
+origins, routes, verbs, content types, protocol versions and Host overrides.
+Native public-source execution and hosted visitor acceptance remain open.

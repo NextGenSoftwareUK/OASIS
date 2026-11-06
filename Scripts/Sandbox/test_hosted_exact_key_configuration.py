@@ -15,7 +15,12 @@ spec.loader.exec_module(configuration)
 
 class ExactKeyConfigurationTests(unittest.TestCase):
     def test_candidate_preserves_existing_providers_and_refuses_replacement(self):
-        provider = "QdrantOASIS"
+        self.check_candidate("QdrantOASIS")
+
+    def test_weaviate_candidate_preserves_existing_providers(self):
+        self.check_candidate("WeaviateOASIS")
+
+    def check_candidate(self, provider):
         partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
         baseline = {
             "OASIS_DNA_JSON": '{"OASIS":{"Sandbox":{"Enabled":true}}}',
