@@ -1906,6 +1906,33 @@ qualification folder and the log
 `TestResults/ProviderBuildCurrent/ens-offchain-provider-cql.log`.
 The provider and test `bin/obj` outputs are in their normal projects.
 
+ENS Offchain WEB4 admission reuses its qualification folder and the .NET
+lease. Its runner, candidate Core pin and admission TRX stay there. The
+log is `TestResults/ProviderBuildCurrent/ens-offchain-hosted-api-cql.log`.
+All 69 hosted tooling tests, including 29 protected-settings tests,
+passed with bytecode disabled. The leased WEB4 run passed all 18 cases
+and restored the original Core checkout.
+
+OrbitDB native preparation uses the existing bundled Node v24.22.1 and
+one qualification directory at
+`LocalState/COSMIC/LocalOrbitDbCqlQualification/`. Keep npm downloads
+and package outputs in that folder. The planned exact packages are
+`@orbitdb/core@4.0.0`, `helia@6.0.22`, `blockstore-level@3.0.2`,
+`libp2p@3.5.1`, `@libp2p/gossipsub@15.0.16` and
+`@libp2p/identify@4.1.18`. The install added 596 packages and used no
+global install. The local `node_modules` is 280,765,470 bytes and
+`npm-cache` is 169,743,860 bytes. The 264,248-byte package lock SHA-256 is
+`670695c919978bfa7acaa2f4c71fe9ebb6d9840d177c5ccd2dc0e89fa4ba09e0`.
+The failed 1,633-byte `native-b5edaa0038e4445785ce25e979efcc61` fixture
+hit LevelDB's Windows limit at a 262-character file path. The shorter
+`fixture` (10,532 bytes) passed a restart. The reusable native HTTP
+probe passed using `fixture2`. Its owned processes exited. A cleanup
+attempt for the failed fixture was rejected by the command policy.
+The verified failed directory and other disposable fixtures remain
+listed here for cleanup when permitted. The earlier Convex npm cache
+removal was also rejected by the command policy and the cache remains
+at `LocalConvexCqlQualification/npm-cache`.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt

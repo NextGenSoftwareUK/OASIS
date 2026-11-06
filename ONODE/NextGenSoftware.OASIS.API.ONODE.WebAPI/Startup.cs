@@ -621,6 +621,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             Services.Cql.CqlAppwriteReadSourceRegistration.AddAppwriteReadSource(services, Configuration);
             Services.Cql.CqlConvexReadSourceRegistration.AddConvexReadSource(services, Configuration);
             Services.Cql.CqlTursoReadSourceRegistration.AddTursoReadSource(services, Configuration);
+            Services.Cql.CqlEnsOffchainReadSourceRegistration.AddEnsOffchainReadSource(services, Configuration);
             Services.Cql.CqlAlgoliaReadSourceRegistration.AddAlgoliaReadSource(services, Configuration);
 
             if (Configuration["CQL_CHROMA_QUERY_ORIGIN"] is string chromaOrigin)
