@@ -2385,3 +2385,15 @@ server download is needed for this step.
 The TimescaleDB WEB4 build completed with 17 passed and zero skipped,
 including the CockroachDB regression. The exact report hash is in the
 TimescaleDB evidence note. The original Core checkout was restored.
+
+The Cassandra test restore added eight NuGet package versions to the
+existing shared global package cache, 18,222,736 bytes measured after
+restore. This includes CassandraCSharpDriver 3.21.0. Exact versions, paths,
+sizes and content hashes are recorded in
+`LocalState/COSMIC/HostedCassandraCqlQualification/nuget-restore-receipt.json`.
+Keep these versions while the provider work needs them. The receipt records
+shared cache entries separately from disposable test outputs.
+
+The recovered Cassandra provider suite passed all 23 tests. The build
+restored the original Core checkout. The TRX hash is in the Cassandra
+evidence note.

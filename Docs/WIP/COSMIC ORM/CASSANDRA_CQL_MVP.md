@@ -1,0 +1,120 @@
+# Cassandra CQL MVP — native/restart/Mongo-paired demo verified
+
+Updated 30 October 2026. Scoped native/C#/HTTP/browser demo acceptance passes; full parity remains open.
+
+## Implemented
+
+CassandraOASIS now explicitly implements the shared COSMIC query interface.
+The shared bounded identity compiler admits a complete trusted catalogue of at
+most100 GUIDs, identity equality/membership/Boolean composition and local paging.
+The native statement uses prepared partition-key `WHERE id IN ?`; no table scan,
+ALLOW FILTERING, arbitrary content predicate or secondary-index assumption.
+Native IN order is unspecified, so materialized rows follow the compiler's stable
+catalogue order before paging. Read authority, native/payload identity agreement,
+duplicate IDs, deleted rows, result budget and4MiB decoded payload budget are checked.
+Errors and cancellation publish no partial rows. Driver I/O has no cancellation
+parameter here: cancellation is checked before/after I/O and during materialization;
+active network-operation cancellation and transport-byte bounds remain open.
+
+Activation sets active state only after successful session/schema initialization;
+deactivation clears it before disposal. Constructor rejects noncanonical keyspace
+identifiers and invalid replication factors before interpolated schema statements.
+No alias capability is inferred for ScyllaDB or Amazon Keyspaces.
+
+## Proving controls
+
+23passed/0failed/0skipped across the complete unit project: save ownership/batch5, metadata5, bounded
+compiler/admission/lifecycle/budget controls and identifier rejection4.
+Proving file: Providers/Storage/TestProjects/
+NextGenSoftware.OASIS.API.Providers.CassandraOASIS.UnitTests/CassandraCqlTests.cs.
+Evidence TestResults/CassandraCqlCurrent/controls.trx SHA256 `b78c691c3400393ae363cfbe661ba55c2489fc796500ea16c60c2f18b60139b3`.
+Provider/unit builds pass with bounded workers and cached project references.
+CassandraCSharpDriver3.21.0 was missing and restored from official NuGet once.
+
+## Exact next step and remaining gates
+
+One retained authenticated Apache Cassandra4.1.12 environment is now verified;
+original cluster/schema/actor/IDs were recorded before acknowledged writes. SaveHolon acknowledgement ownership is fixed and unit-tested: staged payload/ID/keys
+publish only after native write completion, IsSaved/SavedCount count acknowledgements,
+and batches stop or continue as requested. Failed writes preserve caller identity.
+HolonManager retains tracking acceptance ownership. Native3/filter2/missing0/page1, budget rejection and JSON/write-time preservation
+across an actual restart pass. Mongo-paired C#/HTTP/browser5/4 and hub registration also pass. Native acceptance has separate real-server evidence below. Original source/runtime/container are retained and the node is stopped.
+
+TLS configuration, arbitrary predicates, graph/children, conditional writes,
+replication/history/migration and EF/NHibernate parity remain unverified/open.
+Shared HyperDrive or other provider proof does not certify this adapter.
+[Current status](CURRENT_STATUS.md) / [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+
+## Native runtime and original-source proof
+
+Official Apache Cassandra4.1.12 Linuxamd64 image pinned to
+`sha256:57b251cede6ebb8402c9cfc8ee8931438086ce2640a5657e80ecebc9f4cf3bbd`,
+expanded339,932,214B. Source `/var/tmp/oasis-cassandra-cql`34,030,704B logical,
+container oasis-cassandra-cql, localhost19042,2CPU/2GiB/512MiBheap. Original host
+1390c422-56dd-4ee7-93d7-9cfe01579174/cluster COSMIC CQL Cassandra survives restart.
+PasswordAuthenticator/CassandraAuthorizer enabled before boot; random private
+local role replaces the default role. Credentials remain in private source files,
+never argv/docs/logs. Native transport is local plaintext: no TLS/hosted claim.
+
+Initial setup wrongly expected exit0; JVM SIGTERM exits143 after drain hooks.
+Read-only `--verify-original` reconciled exact original identity/role acknowledgements
+without replay/reset. Correct teardown requires143, stoppedByUser, noOOM/noError.
+Original intent/receipts retained. cqlsh cannot write its home history; the warning
+is retained in original identity evidence, no history directory/environment added.
+
+Native initial1/restart1 pass; original3records/JSON hashes/write timestamps match,
+source-loss/orphan baselines reject. Own node stopped after each phase, runner0.
+Raw evidence TestResults/CassandraCqlCurrent/native-run.log and native-*.trx:
+- native-first: `fbdf47e0c9d049f35b415bd0aead40c5a6c01f5d7a83bed0a24c40d6a5d535db`
+- native-restart: `2ac6eb5f18b352d2c89cb74d56c38ffb53670cb5ecb5fb500010ac9b8851b6d4`
+
+Run `Scripts/TestHosts/Run-CosmicCassandraLinuxDemo.ps1` for bounded native/restart
+checks (retained environment required). Setup script refuses an existing source;
+do not rerun it or replace seeds to recover test failures.
+Proving native fixture: CassandraCqlNativeTests.cs in the integration project.
+[Official image/configuration](https://hub.docker.com/_/cassandra).
+
+
+## Mongo-paired teaching preset
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Cassandra -Federated
+# Add -VerifyOnly for bounded native/restart/C#/HTTP checks.
+```
+
+Browser http://127.0.0.1:5138 shows5physical rows (Cassandra3+Mongo2), then4
+for the two-ID subset, preserving each provider copy/provenance and excluding Tea.
+C#/HTTP tests also reject forged/unknown presets and return503/no partial rows
+when the native provider is inactive. This is bounded identity filtering, not
+arbitrary content predicates, cross-provider snapshot or HyperDrive replication.
+
+Bounded and interactive runs each passed five phases/one test each. Interactive
+shutdown verified originalJSON/write timestamps, exact temporary Mongo database
+cosmic_cql_mongo_cassandra_demo removal, cleared journals/ready file and stopped
+native19042/Mongo27039/demo5138. Original source34,005,057B logical retained;
+JVM stop143 validated, runner terminal0. Screenshot TestResults/CassandraCqlCurrent/
+browser.jpg50,041B; UI5/4 checked before stop. An early browser open preceded
+readiness and refused connection; opening the ready service succeeded, no restart.
+Hub checks8single/16plans,47paired/94plans,80paired and3archive rejections pass;
+listeners unchanged. No other provider's native acceptance is inferred.
+
+Current interactive TRX hashes under TestResults/CassandraCqlCurrent:
+- native-first: `a523300f65864598942b7bb4f6dd0989d6e64e35325142b26826c3b341642328`
+- native-restart: `e757681223041b9c425714f540b430bff9c3ec4eb49faae8efb8ca530a71a411`
+- mongo-init: `5e3bb2735e90a9f40735dc0cd171cd0af07240f0f3d716456acfe48ed15d21f6`
+- mongo-federation: `f85d6aad2e630d279deb67c785b389d343d0a7b9ecd38a7d85fb3b568486c996`
+- native-postpair: `1239f011c834bb7c405180e3ee0a762f71c61615cb89875a32b48ae59c90c1ad`
+
+Next red provider: ScyllaDB; deepen green Cassandra only for a reproduced bug.
+
+## Recovery laptop handoff
+
+Native restart and Mongo-paired browser evidence is preserved at
+`7173987de` and `50daedf3a` on the original task branch. The recovery branch
+carries forward the provider implementation and its scoped tests. The original
+database and browser session are historical evidence. Development WEB4
+admission and live verification are separate gates.
+
+The recovered provider suite passed all 23 tests against Core 6eb8d7dd444b2196c7e2bc598e9a21925cf75750.
+Recovery TRX SHA256 8dfba90def037c17c90a26718bea24cdf909c9a88e70c150c519673e2d83acb3.

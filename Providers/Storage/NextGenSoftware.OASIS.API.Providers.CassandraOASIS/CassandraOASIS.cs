@@ -38,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
     ///   password      — optional CQL credentials
     ///   replication   — replication factor for keyspace creation (default 1)
     /// </summary>
-    public class CassandraOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class CassandraOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly string[] _contactPoints;
         private readonly int _port;
@@ -59,6 +59,13 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
 
         public CassandraOASIS(string[] contactPoints, int port = 9042, string keyspace = "oasis", string? username = null, string? password = null, int replication = 1)
         {
+            // Keyspace identifiers are interpolated into schema statements, never values.
+            // Keep one canonical unquoted identifier contract at the constructor boundary.
+            if (string.IsNullOrEmpty(keyspace) || keyspace.Length > 48 ||
+                !((keyspace[0] >= 'a' && keyspace[0] <= 'z')) ||
+                keyspace.Any(c => !((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_')))
+                throw new ArgumentException("Use a lowercase Cassandra keyspace identifier, at most 48 characters.", nameof(keyspace));
+            if (replication < 1) throw new ArgumentOutOfRangeException(nameof(replication));
             _contactPoints = contactPoints;
             _port = port;
             _keyspace = keyspace;
@@ -105,7 +112,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
-            try { GetSession(); result.Result = true; result.IsError = false; result.Message = "CassandraOASIS activated."; }
+            IsProviderActivated = false;
+            try { GetSession(); IsProviderActivated = true; result.Result = true; result.IsError = false; result.Message = "CassandraOASIS activated."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: {ex.Message}"); }
             return await Task.FromResult(result);
         }
@@ -114,6 +122,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
+            IsProviderActivated = false;
             _session?.Dispose(); _session = null;
             _cluster?.Dispose(); _cluster = null;
             return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "CassandraOASIS deactivated." });
@@ -334,15 +343,38 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.CassandraOASIS] = holon.Id.ToString();
-                var s = GetSession();
-                s.Execute(s.Prepare($"INSERT INTO {_keyspace}.oasis_holons (id, parent_holon_id, holon_type, is_deleted, data_json) VALUES (?, ?, ?, ?, ?)").Bind(holon.Id, holon.ParentHolonId, (int)holon.HolonType, holon.IsDeleted, Ser(holon)));
-                result.Result = holon; result.IsError = false; result.Message = $"CassandraOASIS: Holon '{holon.Name}' saved.";
+                if (holon == null) throw new ArgumentNullException(nameof(holon));
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var keys = holon.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.CassandraOASIS] = id.ToString("D");
+                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = id;
+                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                await PersistHolonAsync(id, holon.ParentHolonId, (int)holon.HolonType,
+                    holon.IsDeleted, payload.ToJsonString(_jsonOpts));
+
+                // Publish storage-owned identity only after the driver acknowledges the write.
+                // HolonManager remains the owner of change-tracking acceptance.
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.CassandraOASIS] = id.ToString("D");
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: {ex.Message}"); }
             return await Task.FromResult(result);
+        }
+
+        /// <summary>The single native write boundary; completion acknowledges the staged payload.</summary>
+        protected virtual async Task PersistHolonAsync(Guid id, Guid parentId, int holonType, bool deleted, string json)
+        {
+            var session = GetSession();
+            var prepared = await session.PrepareAsync(
+                $"INSERT INTO {_keyspace}.oasis_holons (id, parent_holon_id, holon_type, is_deleted, data_json) VALUES (?, ?, ?, ?, ?)");
+            await session.ExecuteAsync(prepared.Bind(id, parentId, holonType, deleted, json));
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
@@ -351,8 +383,22 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>(); var errors = new List<string>();
-            foreach (var h in holons) { var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (r.IsError) errors.Add(r.Message ?? ""); else if (r.Result != null) saved.Add(r.Result); }
-            result.Result = saved; result.IsError = errors.Count > 0; result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"CassandraOASIS: {saved.Count} holon(s) saved.";
+            foreach (var h in holons)
+            {
+                var write = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (write.IsError)
+                {
+                    errors.Add(write.Message);
+                    if (!continueOnError) break;
+                }
+                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+            }
+            result.Result = saved;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0;
+            result.SavedCount = saved.Count;
+            result.Message = string.Join("; ", errors);
             return result;
         }
 
