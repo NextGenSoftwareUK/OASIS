@@ -82,13 +82,18 @@ def node(executable, work, name, rest, tcp, *configuration):
 
 
 def stored(hashes=None):
-    query = {"includeData": "true", "pubsubTopic": PUBSUB, "contentTopics": CONTENT, "pageSize": 8}
-    if hashes is not None:
+    query = {"includeData": "true", "pageSize": 8}
+    if hashes is None:
+        query.update(pubsubTopic=PUBSUB, contentTopics=CONTENT)
+    else:
         query["hashes"] = ",".join(hashes)
     result = request(STORE + "/store/v3/messages?" + urlencode(query))
     if result["statusCode"] != 200 or result.get("paginationCursor"):
         raise RuntimeError("Waku did not return a complete Store result")
-    return result["messages"]
+    rows = result["messages"]
+    if any(row["pubsubTopic"] != PUBSUB or row["message"]["contentTopic"] != CONTENT for row in rows):
+        raise RuntimeError("Waku returned a message outside the owned fixture topics")
+    return rows
 
 
 def main():
