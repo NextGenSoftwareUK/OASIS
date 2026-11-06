@@ -317,3 +317,17 @@ with the native qualification before computing settings. The original
 LevelDB directory and protected configuration stay on the old laptop.
 The separate PouchDB release still needs a scoped delta on top of the
 accepted LocalFile release.
+
+### Scope check against accepted Development
+
+Live Development source `c64adf474` includes the accepted LocalFile release.
+The PouchDB image source `419a41cf2` differs in 385 files. Only 32 changed
+paths have PouchDB in the name, so the release also needs review of shared
+Docker, entrypoint, compiler and startup changes. The candidate Core pin
+`c8f8278d` adds 20 query tariff providers against the deployed Core
+`a9a23837`, including PouchDB. The next candidate should carry the PouchDB
+tariff only, with the parent manifest and gitlink advanced together.
+
+The recovered laptop passed all 36 existing Node runtime controls using the
+installed Node. The original three publisher inputs are still absent.
+No runtime was installed and no hosted setting or teaching record changed.
