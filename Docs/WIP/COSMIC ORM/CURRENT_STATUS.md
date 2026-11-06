@@ -57,6 +57,10 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
   WEB4 admission checks. All 25 PostgreSQL-family WEB4 regression tests
   passed. Native CQL and live verification need a reviewed database and
   restricted reader. [Nile evidence](NILE_CQL_MVP.md).
+- Netlify Blobs passed nine provider protocol, 20 protected-settings and
+  nine WEB4 admission checks. Native and live verification need an
+  approved teaching store and reviewed credential.
+  [Netlify Blobs evidence](NETLIFY_BLOBS_CQL_MVP.md).
 - NATS JetStream now validates public visibility before paging. An isolated
   native test reproduced the old behavior and verified that the same
   request fails when a selected row becomes private, even if it would fall

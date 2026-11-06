@@ -22,3 +22,22 @@ Native Netlify qualification requires an approved teaching store,
 reviewed signed object origin and appropriately scoped access. The
 official off-platform flow documents a personal access token, so the
 available access scope needs explicit verification before hosted use.
+
+WEB4 reads `CQL_NETLIFY_BLOBS_QUERY_SITE_ID`, `STORE`, `OBJECT_ORIGIN`,
+`READER_TOKEN` and `PROBE_ID` with that prefix. The protected-settings
+review binds the site, store, object origin and first public UUID. All 20
+review checks passed, including invalid and substituted object origins.
+All nine WEB4 admission tests passed without skips at Core
+`77d943944552f188e0aaccf128ba2c8cc2f4ef9d`. The admission TRX SHA-256 is
+`a776a5ded2542ba84831c454de11901f936afbcc981fb55d8381903cc616e9b6`.
+
+The native verifier draft is
+`LocalState/COSMIC/HostedNetlifyBlobsCqlQualification/verify-native.ps1`.
+It checks the four existing keys and the absent key using exact Netlify
+HEAD requests, confirms the tombstone, and runs CQL 3/2/0. It requires the
+same ETags before and after the reads. The missing-token preflight passed.
+Probe compilation and live execution remain open.
+
+Review the credential's actual project and role permissions separately.
+The native verifier establishes exact reads and unchanged ETags.
+[Netlify token settings](https://docs.netlify.com/manage/accounts-and-billing/user-settings/).

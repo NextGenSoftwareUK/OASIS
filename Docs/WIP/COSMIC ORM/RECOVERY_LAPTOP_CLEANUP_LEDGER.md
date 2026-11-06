@@ -2701,6 +2701,53 @@ after the Nile probe released the shared build lease.
 Netlify passed all nine focused provider protocol tests. Its TRX hash is in
 the evidence note, and the shared Core checkout was restored.
 
+Netlify's 20 protected-settings tests passed and removed their temporary
+files. Its WEB4 lease runner is `verify-hosted-cql.ps1` in the same
+qualification directory. It retains the Core pin and admission TRX there.
+The log is `TestResults/ProviderBuildCurrent/netlify-blobs-hosted-api-cql.log`.
+
+The Netlify native verifier draft and probe project are in the same
+qualification directory. Future outputs use unique `native-*` directories
+there. The missing-token preflight created no run files and made no
+request. Probe compilation awaits the current shared WEB4 build.
+
+Fastly KV's exact-read transport controls reuse the existing edge-storage
+test project and .NET environment. The leased runner is
+`LocalState/COSMIC/HostedFastlyCqlQualification/verify-provider.ps1`.
+Its Core pin, log and TRX use the `fastly-kv-` prefix under
+`TestResults/ProviderBuildCurrent/`. No download, account or store was created.
+
+The Fastly profile, shared bounded public-query implementation, Netlify
+adapter update and Fastly CQL regression test are drafted under
+`LocalState/COSMIC/HostedFastlyCqlQualification/`. They remain outside
+the running Netlify build. The leased provider runner is set to verify both
+Fastly and Netlify after the drafts move into their normal projects.
+
+Fastly's WEB4 registration and settings tests are drafted under the same
+qualification directory. The 21 protected-settings checks passed and
+cleaned their temporary files. The Netlify qualification directory holds
+`netlify-settings.patch`, which isolates Netlify's verified settings
+edits from the Fastly working-tree edits. It passed the staging check and
+can be removed after Netlify's scoped commit.
+
+Fastly's temporary `fastly-web4-wiring.patch` passed an apply check against
+the Netlify working-tree changes. Its WEB4 runner is
+`verify-hosted-cql.ps1` under the Fastly qualification directory. It retains
+the Core pin and admission TRX there. The log is
+`TestResults/ProviderBuildCurrent/fastly-kv-hosted-api-cql.log`.
+The Fastly native probe and runner are in the same directory. The missing
+inputs check created no native output. Future runs use unique `native-*`
+directories. No account, token, store or additional runtime was created.
+
+Netlify WEB4 passed all nine admission checks with zero skips. The shared
+Core checkout was restored, and the admission TRX hash is in its evidence
+note. The temporary settings patch can be removed after staging.
+
+A transient C: report showed 1 byte free and interrupted a ledger update.
+The next readings from PowerShell and the Windows volume API agreed on
+approximately 41.6 GB free. The ledger diff confirmed intact prior entries.
+No file removal was needed.
+
 Netlify Blobs CQL uses the existing .NET, HTTP transport and edge-storage
 protocol test project. The leased runner is
 `LocalState/COSMIC/HostedNetlifyBlobsCqlQualification/verify-provider.ps1`.
