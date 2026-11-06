@@ -27,6 +27,8 @@ Two Windows seed attempts during the WEB4 build timed out before reaching
 the revised reader. [Native job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42238165351/job/127961168369) ·
 [Package job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42238165351/job/127961168833).
 
-WEB4 admission, placement of the co-located reader and live federation
-remain open. General OrbitDB document storage and multi-peer convergence
+Opt-in WEB4 admission passed nine combined OrbitDB and GUN checks and
+nine ENS regressions at Core `10e464dcf58f4624a27e19f12738978ecf0fcb07`.
+Placement of the co-located reader and live federation remain open.
+General OrbitDB document storage and multi-peer convergence
 are separate scope. LocalFile remains first for the live rollout.

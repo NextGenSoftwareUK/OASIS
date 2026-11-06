@@ -31,6 +31,8 @@ def exact_key_catalogue(provider):
         "AppwriteOASIS": {"Endpoint": "https://appwrite.example/v1", "ProjectId": "teaching", "DatabaseId": "records"},
         "ConvexOASIS": {"Site": "https://teaching.convex.site/"},
         "TursoOASIS": {"Origin": "https://teaching.turso.io/"},
+        "OrbitDBOASIS": {"Sidecar": "http://127.0.0.1:54869/"},
+        "GUNOASIS": {"Sidecar": "http://127.0.0.1:54870/"},
         "NetlifyBlobsOASIS": {"SiteId": str(uuid.UUID(int=7)), "Store": "oasis", "ObjectOrigin": "https://objects.example"},
         "NileOASIS": {"Host": "us-west-2.db.thenile.dev", "Database": "oasis_teaching"},
         "AlgoliaOASIS": {"AppId": "Teaching123"},
@@ -143,6 +145,11 @@ class ExactKeyConfigurationTests(unittest.TestCase):
     def test_ens_offchain_candidate_binds_the_native_name_identities(self):
         self.check_candidate("ENSOffchainOASIS")
 
+    def test_loopback_teaching_candidates_bind_each_sidecar(self):
+        for provider in ("OrbitDBOASIS", "GUNOASIS"):
+            with self.subTest(provider=provider):
+                self.check_candidate(provider)
+
     def check_candidate(self, provider):
         partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
         baseline = {
@@ -213,6 +220,12 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     descriptor.write_text(json.dumps(catalogue | {"Origin": origin}))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
+            if provider in ("OrbitDBOASIS", "GUNOASIS"):
+                for address in ("http://localhost:54869/", "http://127.0.0.1:65536/",
+                                "http://127.0.0.1:1023/", "http://127.0.0.1:54869/foreign"):
+                    descriptor.write_text(json.dumps(catalogue | {"Sidecar": address}))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                        configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "NetlifyBlobsOASIS":
                 for invalid in ({"SiteId": str(uuid.UUID(int=0))}, {"Store": "foreign/store"},
                                 {"ObjectOrigin": "https://objects.example/foreign"}, {"ObjectOrigin": "https://127.0.0.1"}):
@@ -279,7 +292,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -364,16 +377,16 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {key: "{}"}, provider, review)
                     baseline[key] = value
-                elif provider in ("CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS"):
+                elif provider in ("CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "OrbitDBOASIS", "GUNOASIS"):
                     baseline.update(review["sourceBinding"])
                     token_key = configuration.REQUIRED_SOURCE_TOKENS[provider]
                     with self.assertRaisesRegex(ValueError, "source token"):
                         configuration.candidate(baseline, provider, review)
-                    if provider == "ConvexOASIS":
+                    if provider in ("ConvexOASIS", "OrbitDBOASIS", "GUNOASIS"):
                         for token in ("fixture-token", "a" * 257, "a" * 32 + "/"):
                             with self.assertRaisesRegex(ValueError, "source token"):
                                 configuration.candidate(baseline | {token_key: token}, provider, review)
-                    baseline[token_key] = "fixture-token" * 3 if provider == "ConvexOASIS" else "fixture-token"
+                    baseline[token_key] = "fixture-token" * 3 if provider in ("ConvexOASIS", "OrbitDBOASIS", "GUNOASIS") else "fixture-token"
                     for key in review["sourceBinding"]:
                         with self.assertRaisesRegex(ValueError, "do not match"):
                             configuration.candidate(baseline | {key: "foreign"}, provider, review)

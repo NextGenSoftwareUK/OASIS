@@ -24,7 +24,8 @@ restart checks. The image-stage job verified both the default and opt-in
 packages. [Native job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42238165351/job/127961168696) ·
 [Package job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42238165351/job/127961168833).
 
-WEB4 admission is building. Live acceptance needs a co-located sidecar,
-protected reader and approved
+Opt-in WEB4 admission passed nine combined GUN and OrbitDB checks and
+nine ENS regressions at Core `10e464dcf58f4624a27e19f12738978ecf0fcb07`.
+Live acceptance needs a co-located sidecar, protected reader and approved
 persistent teaching data. General GUN CRUD and peer replication remain
 open. LocalFile remains first for live rollout.

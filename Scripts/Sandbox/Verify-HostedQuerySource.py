@@ -27,7 +27,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -405,6 +405,11 @@ def reviewed_exact_key_source(provider, path):
             if (not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", catalogue["Store"])
                     or not port or int(port[1]) == 80 or int(port[1]) > 65535):
                 raise ValueError("Unexpected Dapr component or loopback endpoint.")
+        if provider in ("OrbitDBOASIS", "GUNOASIS"):
+            fields.add("Sidecar")
+            port = re.fullmatch(r"http://127\.0\.0\.1:([1-9][0-9]{3,4})/", catalogue["Sidecar"])
+            if not port or not 1024 <= int(port[1]) <= 65535:
+                raise ValueError("Unexpected co-located teaching sidecar.")
         if provider == "CloudflareOASIS":
             fields |= {"AccountId", "NamespaceId"}
             if any(not re.fullmatch(r"[0-9a-f]{32}", catalogue[field]) for field in ("AccountId", "NamespaceId")):
@@ -602,6 +607,9 @@ def reviewed_exact_key_source(provider, path):
     elif provider == "ENSOffchainOASIS":
         source = {"owner": catalogue["Actor"], "names": names, "probe": names[0]}
         review["sourceBinding"] = {"CQL_ENS_OFFCHAIN_QUERY_SOURCE_JSON": json.dumps(source, separators=(",", ":"))}
+    elif provider in ("OrbitDBOASIS", "GUNOASIS"):
+        prefix = "CQL_" + provider.removesuffix("OASIS").upper() + "_QUERY_"
+        review["sourceBinding"] = {prefix + "SIDECAR": catalogue["Sidecar"], prefix + "PROBE_ID": ids[0]}
     elif provider in ("WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS"):
         product = provider.removesuffix("OASIS").upper()
         review["sourceBinding"] = {f"CQL_{product}_QUERY_PROBE_ID": ids[0]}

@@ -1966,7 +1966,10 @@ The combined WEB4 admission uses `verify-hosted-cql.ps1` in the GUN
 qualification folder. It records its candidate Core pin, `admission.trx`
 and `TestResults/ProviderBuildCurrent/orbitdb-gun-hosted-api-cql.log`.
 All 70 offline hosted tooling tests passed without writing bytecode.
-The leased WEB4 build is active.
+The leased WEB4 run passed 18 checks with zero skips at Core
+`10e464dcf58f4624a27e19f12738978ecf0fcb07`. The TRX SHA-256 is
+`27df1c3c4c1567bc688ec27a834ff1cd2fcb2406e676b5a71d454823e3ab0809`.
+The run restored the shared Core checkout.
 
 The Linux companion qualification uses the existing pinned WEB4 Node
 image and each tracked package lock on disposable GitHub runners.

@@ -26,6 +26,8 @@ REQUIRED_SOURCE_TOKENS = {
     "AppwriteOASIS": "CQL_APPWRITE_QUERY_READER_TOKEN",
     "ConvexOASIS": "CQL_CONVEX_QUERY_READER_TOKEN",
     "TursoOASIS": "CQL_TURSO_QUERY_READER_TOKEN",
+    "OrbitDBOASIS": "CQL_ORBITDB_QUERY_READER_TOKEN",
+    "GUNOASIS": "CQL_GUN_QUERY_READER_TOKEN",
 }
 
 
@@ -42,7 +44,7 @@ def candidate(before, provider, review):
         if (not isinstance(token, str) or not 1 <= len(token) <= maximum_length
                 or any(not 33 <= ord(character) <= 126 for character in token)):
             raise ValueError("A valid protected source token is required.")
-        if provider == "ConvexOASIS" and not re.fullmatch(r"[A-Za-z0-9_-]{32,256}", token):
+        if provider in ("ConvexOASIS", "OrbitDBOASIS", "GUNOASIS") and not re.fullmatch(r"[A-Za-z0-9_-]{32,256}", token):
             raise ValueError("A valid protected source token is required.")
     admission = json.loads(before[ADMISSION])
     grants = json.loads(before.get(GRANTS, "{}"))
