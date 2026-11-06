@@ -88,9 +88,11 @@ public static class PostgreSqlCqlCompiler
                 _ => throw new ArgumentException("Only admitted PostgreSQL native content predicates are supported.")
             };
             var conditions = query.BusinessPredicates.Select(Predicate).ToArray();
+            // Native UUID order matches the canonical key order without a text collation.
+            var keyOrder = requiredAuthority == ProviderType.CockroachDBOASIS ? "id" : "id::text COLLATE \"C\"";
             command.CommandText = "SELECT id,data_json,is_deleted FROM oasis_holons WHERE id=ANY(@ids) AND is_deleted=FALSE" +
                 (conditions.Length == 0 ? "" : " AND (" + string.Join(" AND ", conditions) + ")") +
-                " ORDER BY id::text COLLATE \"C\" LIMIT @take OFFSET @skip";
+                " ORDER BY " + keyOrder + " LIMIT @take OFFSET @skip";
             command.Parameters.AddWithValue("ids", NpgsqlDbType.Array | NpgsqlDbType.Uuid, keys.Result.ToArray());
             command.Parameters.AddWithValue("take", query.Limit ?? keys.Result.Count);
             command.Parameters.AddWithValue("skip", query.Offset);

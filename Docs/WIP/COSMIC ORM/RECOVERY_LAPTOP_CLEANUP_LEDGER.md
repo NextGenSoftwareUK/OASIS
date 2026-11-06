@@ -2344,3 +2344,7 @@ provider log, TRX and Core pin to `TestResults/ProviderBuildCurrent/`.
 ArangoDB WEB4 verification finished with 11 passed and 0 skipped.
 The fixture compiled with 0 errors. `admission.trx` is in the ArangoDB
 qualification directory, and the build restored the original Core checkout.
+
+The recovered CockroachDB provider run finished with 13 passed and 0 skipped.
+The Core checkout was restored. The provider TRX hash is in the CockroachDB
+MVP note and the log and TRX are retained under the recorded paths.
