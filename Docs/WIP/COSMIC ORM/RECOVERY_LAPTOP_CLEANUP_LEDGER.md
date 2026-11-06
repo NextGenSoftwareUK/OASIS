@@ -3340,3 +3340,7 @@ The passing Temporal run retained a 1,686-byte artifact on GitHub.
 Its three test workflows were terminated and the runner removed its
 owned container and volumes. No Temporal runtime or output was
 downloaded to the laptop.
+
+Temporal Cloud namespace-binding and native regression CI retained one
+additional 1,871-byte artifact on GitHub. No image, package, secret or
+artifact was downloaded to this laptop.

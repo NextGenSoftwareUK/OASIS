@@ -26,3 +26,13 @@ exact workflow and run IDs. One test passed with zero skips. The
 1,686-byte CI artifact SHA-256 is
 `81118258f1447da523b80bc3611fa604cf710073ebbbee2c8d67a211561f53dc`.
 [Passing Linux run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42266007330).
+
+The cloud reader factory derives the TLS target from an exact
+`namespace.account` name and accepts a protected API key. The key never
+appears in catalogue identities or query output. The cloud binding
+control and the real local native test both passed with zero skips.
+The 1,871-byte CI artifact SHA-256 is
+`fa3778434fc938158b2eb069dfb7c44d92b72c985d28b0ec131d2ce2ac611466`.
+Actual Temporal Cloud credentials and WEB4 admission are still open.
+[Cloud binding checks](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42266619694) and
+[Temporal Cloud connection guidance](https://docs.temporal.io/cli/cloud).
