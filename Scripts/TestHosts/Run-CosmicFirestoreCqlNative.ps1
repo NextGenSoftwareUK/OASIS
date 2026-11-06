@@ -1,15 +1,26 @@
 #Requires -Version 7.5
-param([switch]$Federated,[switch]$Serve)
+param([switch]$Federated,[switch]$Serve,[switch]$RecoveryLaptop)
 if ($Serve -and !$Federated) { throw 'Serve requires explicit federation.' }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner cosmic-firestore-cql -Operation {
     $state = Join-Path $root 'LocalState/COSMIC/FirestoreCql'
     $results = Join-Path $root 'TestResults/FirestoreCqlCurrent'
+    $jar = Join-Path $env:USERPROFILE '.cache/firebase/emulators/cloud-firestore-emulator-v1.22.0.jar'
+    $originalCore = $null
+    if ($RecoveryLaptop) {
+        $runtime = Join-Path $root 'LocalState/COSMIC/RecoveryLaptopFirestore1220'
+        $state = Join-Path $runtime 'independent-cql-source'
+        $results = Join-Path $runtime ('native-' + [Guid]::NewGuid().ToString('N'))
+        $jar = Join-Path $runtime 'cloud-firestore-emulator-v1.22.0.jar'
+        $java = Join-Path $root 'LocalState/COSMIC/RecoveryLaptopSolr1010/jdk-21.0.13+9-jre/bin/java.exe'
+        $core = Join-Path $root 'OASIS Architecture/NextGenSoftware.OASIS.API.Core'
+    }
     New-Item -ItemType Directory -Force -Path $state,$results | Out-Null
     $lease = [IO.File]::Open((Join-Path $state 'environment.lock'),'OpenOrCreate','ReadWrite','None')
     $owned = $null
     $ownedMongo = $null
+    $mongoLog = Join-Path $results 'mongo-service.log'
     $oldMongo = $env:OASIS_MONGO_REPLICA_SET_CONNECTION
     $oldServe = $env:OASIS_FIRESTORE_MONGO_SERVE
     $safeToStop = $true
@@ -26,10 +37,11 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
         if (Get-NetTCPConnection -State Listen -LocalPort 18084,18085,18086 -ErrorAction SilentlyContinue) {
             throw 'CQL emulator ports occupied; no unrelated process adopted or stopped.'
         }
-        $jar = Join-Path $env:USERPROFILE '.cache/firebase/emulators/cloud-firestore-emulator-v1.22.0.jar'
         if (!(Test-Path -LiteralPath $jar) -or (Get-FileHash $jar).Hash -ne '9B6498B7F62714D67F48F59B3818883CD682DBCD46B9F59511DE81C97BB5166C') {
             throw 'Pinned cached Firestore1.22.0 runtime required. No automatic download.'
         }
+        if ($RecoveryLaptop -and !(Test-Path -LiteralPath $java -PathType Leaf)) { throw 'Admitted recovery Java runtime required.' }
+        if (!$RecoveryLaptop) { $java = (Get-Command java.exe).Source }
         if (Test-Path -LiteralPath $checkpoint) {
             $proof = Get-Content -LiteralPath $checkpoint -Raw | ConvertFrom-Json
             if ($proof.Project -ne 'oasis-cql-demo' -or !(Test-Path -LiteralPath $seed) -or
@@ -47,7 +59,7 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
             throw 'Unacknowledged original checkpoint/seed exists; reconcile instead of resetting.'
         }
         $project = Join-Path $root 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.IntegrationTests.csproj'
-        if ($Federated) {
+        if ($Federated -and !$RecoveryLaptop) {
             $assets = Join-Path (Split-Path $project) 'obj/project.assets.json'
             if (!(Test-Path $assets) -or (Get-Content $assets -Raw) -notmatch 'NextGenSoftware.OASIS.API.Providers.MongoDBOASIS') {
                 & dotnet restore $project --source C:/Users/david/.nuget/packages /m:2 /nr:false /p:NuGetAudit=false -v:q
@@ -56,15 +68,29 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
             & dotnet build (Join-Path $root 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj') --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
             if ($LASTEXITCODE) { throw 'Mongo producer build failed.' }
         }
-        foreach ($build in @((Join-Path $root 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.csproj'),$project)) {
-            & dotnet build $build --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
-            if ($LASTEXITCODE) { throw 'Bounded Firestore build failed.' }
+        if ($RecoveryLaptop) {
+            $pin = git -C $root rev-parse 'HEAD:OASIS Architecture/NextGenSoftware.OASIS.API.Core'
+            if ($LASTEXITCODE) { throw 'Parent Core pin unavailable.' }
+            $currentCore = git -C $core rev-parse HEAD
+            if ($LASTEXITCODE -or (git -C $core status --porcelain)) { throw 'Core must start clean.' }
+            $originalCore = $currentCore
+            git -C $core switch --detach $pin
+            if ($LASTEXITCODE) { throw 'Could not select the parent Core pin.' }
+            $pin | Set-Content -LiteralPath (Join-Path $results 'core-pin.txt')
+            dotnet build $project /m:2 /nr:false /p:UseSharedCompilation=false -v:q *> (Join-Path $results 'build.log')
+            if ($LASTEXITCODE) { throw "Recovery Firestore build failed. See $results." }
+        }
+        else {
+            foreach ($build in @((Join-Path $root 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.csproj'),$project)) {
+                & dotnet build $build --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+                if ($LASTEXITCODE) { throw 'Bounded Firestore build failed.' }
+            }
         }
         $arguments = @('-Xmx256m','-jar',$jar,'--host','127.0.0.1','--port','18084',
             '--webchannel_port','18085','--websocket_port','18086','--project_id','oasis-cql-demo',
             '--single_project_mode','--single_project_mode_error')
         if (Test-Path -LiteralPath $checkpoint) { $arguments += @('--import-data',$metadata) }
-        $owned = Start-Process -FilePath (Get-Command java.exe).Source -ArgumentList $arguments -WorkingDirectory $state -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $results 'firestore-service.log') -RedirectStandardError (Join-Path $results 'firestore-service.err')
+        $owned = Start-Process -FilePath $java -ArgumentList $arguments -WorkingDirectory $state -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $results 'firestore-service.log') -RedirectStandardError (Join-Path $results 'firestore-service.err')
         $ready = $false
         $deadline = [DateTime]::UtcNow.AddSeconds(30)
         do {
@@ -104,12 +130,12 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
         # original checkpoint is imported and hash-verified, never overwritten.
         $safeToStop = $true
         if ($Federated) {
-            $mongoRuntime='C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe'
-            $mongoData=Join-Path $root 'LocalState/COSMIC/mongo-data'
-            if(!(Test-Path (Join-Path $mongoData 'WiredTiger'))){throw 'Existing Mongo environment is missing; no reset.'}
-            if(Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue){throw 'Mongo demo port occupied.'}
-            if(((& $mongoRuntime --version)-join ' ') -notmatch 'v8\.3\.11\b'){throw 'Pinned Mongo runtime differs.'}
-            $ownedMongo=Start-Process $mongoRuntime -ArgumentList @('--dbpath',$mongoData,'--bind_ip','127.0.0.1','--port','27029','--replSet','oasisRecoveryRs','--wiredTigerCacheSizeGB','0.25','--oplogSize','32','--logpath',(Join-Path $results 'mongo-service.log'),'--logappend') -WindowStyle Hidden -PassThru
+            if (Test-Path -LiteralPath (Join-Path $state 'mongo.pending.json')) { throw 'Pending Mongo fixture requires reconciliation.' }
+            if (Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue) { throw 'Mongo demo port occupied.' }
+            $mongoSource = & (Join-Path $PSScriptRoot 'Get-CosmicMongoDemoSource.ps1') -Root $root -RecoveryMongo:$RecoveryLaptop
+            $ownedMongo = Start-Process $mongoSource.Runtime -ArgumentList @('--dbpath',$mongoSource.Data,
+                '--bind_ip','127.0.0.1','--port','27029','--replSet','oasisRecoveryRs','--wiredTigerCacheSizeGB','0.25',
+                '--oplogSize','32','--logpath',$mongoLog,'--logappend') -WindowStyle Hidden -PassThru
             $ready=$false
             for($i=0;$i -lt 40;$i++){
                 if($ownedMongo.HasExited){throw 'Owned Mongo exited during startup.'}
@@ -144,7 +170,21 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
         finally {
           try {
             if ($ownedMongo) {
-                if (!$ownedMongo.HasExited) { $ownedMongo.Kill();if (!$ownedMongo.WaitForExit(30000)) { throw 'Owned Mongo teardown incomplete.' } }
+                if (!$ownedMongo.HasExited) {
+                    $signal = & python -B (Join-Path $PSScriptRoot 'Signal-OwnedConsoleProcess.py') --pid $ownedMongo.Id
+                    $signalCode = $LASTEXITCODE
+                    $signal | Set-Content -LiteralPath (Join-Path $results 'mongo-stop-signal.log')
+                    if ($signalCode) { throw 'Owned Mongo console signal failed. Preserve the process for reconciliation.' }
+                    $receipt = ($signal -join "`n") | ConvertFrom-Json
+                    if ($receipt.ctrlCSent -ne $true -or $receipt.targetPid -ne $ownedMongo.Id -or
+                        !$ownedMongo.WaitForExit(30000) -or $ownedMongo.ExitCode -ne 12) {
+                        throw 'Owned Mongo did not confirm its native console shutdown.'
+                    }
+                    $events = @(Get-Content -LiteralPath $mongoLog -Tail 15 | ForEach-Object { $_ | ConvertFrom-Json })
+                    if (!($events | Where-Object id -eq 4795901) -or !($events | Where-Object id -eq 8423404)) {
+                        throw 'Owned Mongo did not confirm storage closure and shutdown.'
+                    }
+                }
                 $ownedMongo.Dispose()
             }
           }
@@ -154,6 +194,10 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
             $env:FIRESTORE_EMULATOR_HOST = $oldHost
             $env:OASIS_FIRESTORE_CQL_STATE = $oldState
             $lease.Dispose()
+            if ($originalCore) {
+                git -C $core switch --detach $originalCore
+                if ($LASTEXITCODE) { throw 'Could not restore the original Core checkout.' }
+            }
           }
         }
     }

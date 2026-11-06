@@ -2598,3 +2598,40 @@ remote TRON resource was created.
 
 Algolia WEB4 passed all 14 admission and transport checks with zero skips.
 The shared Core checkout was restored and the TRX hash is in the evidence note.
+
+TRON's isolated run passed all 38 controlled cases without skips. The
+shared Core checkout was restored. Its exact TRX hash is in the TRON public
+source evidence note. No native service was contacted.
+
+TRON's independent public header catalogue and native verifier are in
+`LocalState/COSMIC/HostedTronAuthenticatedQualification/`. The verifier
+uses the existing compiled test and Core DLLs. Future native evidence goes
+in unique `native-*` directories there. Missing-key and catalogue-shape
+checks created no run output or network traffic.
+
+Firestore recovery will use one official Firebase emulator 1.22.0 JAR in
+`LocalState/COSMIC/RecoveryLaptopFirestore1220/` and the existing Temurin 21
+runtime under `RecoveryLaptopSolr1010/`. The vendor object is 136707194 bytes
+and the retained JAR SHA-256 is
+`9b6498b7f62714d67f48f59b3818883cd682dbcd46b9f59511de81c97bb5166c`.
+The temporary download uses a distinct partial filename. No original
+Firestore checkpoint is available here, and this download leaves it alone.
+The downloaded JAR matched both size and SHA-256. The partial file was moved
+to its final name. The native run is active under the shared lease, with its
+build, logs and TRX under a unique `native-*` directory. Only the independent
+fixture directory may receive the new export and seed acknowledgement.
+
+The first Firestore recovery run passed, exported the independent fixture
+and stopped the owned emulator. The fixture is under
+`RecoveryLaptopFirestore1220/independent-cql-source/`, with an approximately
+9 KiB export plus its seed and checkpoint receipts. The next run imports
+that checkpoint and reuses the admitted Mongo 8.2 replica. No second Java,
+Mongo store or Firestore JAR was installed.
+
+Firestore checkpoint restart and Mongo manager/HTTP tests both passed.
+The new run directory is
+`RecoveryLaptopFirestore1220/native-d4d4a0548b5f4ffdb594924440850c4d/`.
+Seed and checkpoint hashes match the first run. The temporary Mongo
+database was dropped, the journal cleared, and both owned processes
+stopped. Mongo logged WiredTiger closure and clean shutdown with exit 12.
+Keep the independent checkpoint and JAR for further browser qualification.
