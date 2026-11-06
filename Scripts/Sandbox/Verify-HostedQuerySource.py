@@ -28,6 +28,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
     "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "TenderlyOASIS", "QuickNodeOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS",
+    "WorldIDOASIS", "ReclaimProtocolOASIS",
 )
 FIXED_PUBLIC_CATALOGUES = {
     "DiscordOASIS": (
@@ -52,6 +53,14 @@ FIXED_PUBLIC_CATALOGUES = {
     "LayerZeroOASIS": (
         "CQL_LAYERZERO_V1_ENDPOINT_QUERY_SOURCE_OWNER", "layerzero-v1-endpoint",
         ("ethereum", "polygon", "arbitrum"),
+    ),
+    "WorldIDOASIS": (
+        "CQL_WORLD_ID_PROTOCOL_QUERY_SOURCE_OWNER", "world-id-v4-protocol/world-chain",
+        ("registry", "verifier", "issuer-registry"),
+    ),
+    "ReclaimProtocolOASIS": (
+        "CQL_RECLAIM_VERIFIER_QUERY_SOURCE_OWNER", "reclaim-verifier",
+        ("base", "arbitrum", "polygon"),
     ),
 }
 POLYGON_GATEWAY_CATALOGUES = {

@@ -25,6 +25,8 @@ public sealed class CqlReviewedNetworkHostedConfigurationTests
     [InlineData("CQL_PINATA_PUBLIC_BLOCK_QUERY_SOURCE_OWNER", ProviderType.PinataOASIS)]
     [InlineData("CQL_PUSH_PUBLIC_CHANNEL_QUERY_SOURCE_OWNER", ProviderType.PushProtocolOASIS)]
     [InlineData("CQL_LAYERZERO_V1_ENDPOINT_QUERY_SOURCE_OWNER", ProviderType.LayerZeroOASIS)]
+    [InlineData("CQL_WORLD_ID_PROTOCOL_QUERY_SOURCE_OWNER", ProviderType.WorldIDOASIS)]
+    [InlineData("CQL_RECLAIM_VERIFIER_QUERY_SOURCE_OWNER", ProviderType.ReclaimProtocolOASIS)]
     public void ConfiguringOneNetworkSourceRegistersItsOwnReadProfile(string setting, ProviderType provider)
     {
         var services = new ServiceCollection();
@@ -43,6 +45,8 @@ public sealed class CqlReviewedNetworkHostedConfigurationTests
     [InlineData("CQL_PINATA_PUBLIC_BLOCK_QUERY_SOURCE_OWNER", "QmP4eZj61tDxCmtb6aqSwQsrxRQAN2gwxTEXkTed9TujHh")]
     [InlineData("CQL_PUSH_PUBLIC_CHANNEL_QUERY_SOURCE_OWNER", "0xb88460bb2696cab9d66013a05dff29a28330689d")]
     [InlineData("CQL_LAYERZERO_V1_ENDPOINT_QUERY_SOURCE_OWNER", "https://foreign.example")]
+    [InlineData("CQL_WORLD_ID_PROTOCOL_QUERY_SOURCE_OWNER", "registry")]
+    [InlineData("CQL_RECLAIM_VERIFIER_QUERY_SOURCE_OWNER", "00000000-0000-0000-0000-000000000000")]
     public void InvalidTeachingOwnerFailsClosed(string setting, string owner)
     {
         var services = new ServiceCollection();
@@ -56,6 +60,8 @@ public sealed class CqlReviewedNetworkHostedConfigurationTests
     [InlineData(ProviderType.PinataOASIS)]
     [InlineData(ProviderType.PushProtocolOASIS)]
     [InlineData(ProviderType.LayerZeroOASIS)]
+    [InlineData(ProviderType.WorldIDOASIS)]
+    [InlineData(ProviderType.ReclaimProtocolOASIS)]
     public void NetworkSourceRequiresIndependentReadOnlyTariff(ProviderType provider)
     {
         Assert.Equal(provider, CqlV1Compiler.RequestedProvider(provider.ToString(), includeCloudReadProfile: true));

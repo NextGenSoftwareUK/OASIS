@@ -23,4 +23,16 @@ selection. The wrong-genesis and wrong-verifier topology controls
 passed, including complete query failure without partial rows.
 Three checks passed with zero skips. The 5,770-byte TRX SHA-256 is
 `b08a7abf39d63aa28b80991fb1460579f4d5b0200dda950500255a1f9cae17a4`.
-WEB4 admission, local federation and hosted acceptance remain open.
+
+## WEB4 admission
+
+The protected profile requires the canonical teaching owner setting
+`CQL_WORLD_ID_PROTOCOL_QUERY_SOURCE_OWNER`. It uses its own read permission
+and tariff. At Core `c1354d87da2add7720f9c40d4e502195c01a3f41`, all 29 combined admission
+checks passed with zero skips. The initial 27 passed, and the count
+guard exposed two absent invalid-owner cases. The expanded consumer
+ran against the unchanged producer. The 52,144-byte final TRX
+SHA-256 is
+`887bf56bef6798423c9d1383ad47b84796df95a9e1b1bc62d34cf54d392dd29c`.
+Protected configuration passed 39 tests and response evidence passed 21.
+Local federation and hosted acceptance remain open.

@@ -24,7 +24,19 @@ passed. Three passed with zero skips. The 5,914-byte TRX SHA-256 is
 `6de150892bcb761ebe3afdc0363d23d4f06b480e5b19d68f3c1a49693393ab17`.
 The original test project compile lacked explicit framework imports.
 The corrected consumer passed against the same pinned provider source.
-WEB4 admission, federation and hosted acceptance remain open.
 
 [Official verifier deployments](https://docs.reclaimprotocol.org/onchain/solidity/supported-networks) ·
 [Reclaim verifier ABI source](https://github.com/reclaimprotocol/reclaim-solidity-sdk/blob/3326a4e4b7d747b3f06d027a7c40ec8612bd0b5a/contracts/Reclaim.sol).
+
+## WEB4 admission
+
+The protected profile requires the canonical teaching owner setting
+`CQL_RECLAIM_VERIFIER_QUERY_SOURCE_OWNER`. It uses its own read permission
+and tariff. At Core `c1354d87da2add7720f9c40d4e502195c01a3f41`, all 29 combined admission
+checks passed with zero skips. The initial 27 passed, and the count
+guard exposed two absent invalid-owner cases. The expanded consumer
+ran against the unchanged producer. The 52,144-byte final TRX
+SHA-256 is
+`887bf56bef6798423c9d1383ad47b84796df95a9e1b1bc62d34cf54d392dd29c`.
+Protected configuration passed 39 tests and response evidence passed 21.
+Local federation and hosted acceptance remain open.

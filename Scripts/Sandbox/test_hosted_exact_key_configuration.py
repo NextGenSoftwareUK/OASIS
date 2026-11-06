@@ -20,7 +20,7 @@ def exact_key_catalogue(provider):
         first, second, third = ("2d8b5e78-3137-8c0d-ba70-bdaa880dcdad", "e29d23d8-4c2c-8e0a-9fde-5b92d31135c0",
                                 "ffab761f-bf16-8e02-88e4-1e8a7b6cccd9")
         catalogue = {"Actor": actor, "Names": ["vitalik.eth", "nick.eth", "luc.eth"]}
-    elif provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS"):
+    elif provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS"):
         actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
         fixed_ids = {
             "DiscordOASIS": ("ca36c2c9-350d-8603-ab00-1c8e1f2a9d4f", "d5c8ecfd-cc3e-8ec7-9697-0e2ea2c96ab2",
@@ -33,6 +33,10 @@ def exact_key_catalogue(provider):
                                   "9d4be1b3-f70c-8592-b6a6-430b8db24cc5"),
             "LayerZeroOASIS": ("47781bed-c8a3-87e6-bf48-55748f3394fd", "171ea793-8d0e-8d1b-b01b-b7d4ed1a322d",
                               "8a3da627-e33b-8baf-9c62-9e254b9ba743"),
+            "WorldIDOASIS": ("442492b5-6f60-8889-a9b5-b50c92699abd", "7e46076e-5290-81eb-a5b8-6769d51ed6bc",
+                             "f280265a-092b-873a-8a08-cb0b310a78ee"),
+            "ReclaimProtocolOASIS": ("fce17b97-a4ac-89fb-9aef-3f142df2e283", "69b8526d-4393-8806-8eb3-ca6db9216b61",
+                                     "b3e84f9d-d919-84ea-9c26-7bf7e7dbd880"),
         }
         first, second, third = fixed_ids[provider]
         catalogue = {"Actor": actor}
@@ -211,7 +215,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
         self.check_candidate("TemporalOASIS")
 
     def test_fixed_public_network_candidates_bind_only_the_reviewed_owner(self):
-        for provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS"):
+        for provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS"):
             with self.subTest(provider=provider):
                 self.check_candidate(provider)
                 catalogue, _ = exact_key_catalogue(provider)
@@ -460,7 +464,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -556,12 +560,14 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {key: "{}"}, provider, review)
                     baseline[key] = value
-                elif provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS"):
+                elif provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS"):
                     setting = {"DiscordOASIS": "CQL_DISCORD_PUBLIC_GUILD_QUERY_SOURCE_OWNER",
                                "LivepeerOASIS": "CQL_LIVEPEER_ORCHESTRATOR_QUERY_SOURCE_OWNER",
                                "PinataOASIS": "CQL_PINATA_PUBLIC_BLOCK_QUERY_SOURCE_OWNER",
                                "PushProtocolOASIS": "CQL_PUSH_PUBLIC_CHANNEL_QUERY_SOURCE_OWNER",
-                               "LayerZeroOASIS": "CQL_LAYERZERO_V1_ENDPOINT_QUERY_SOURCE_OWNER"}[provider]
+                               "LayerZeroOASIS": "CQL_LAYERZERO_V1_ENDPOINT_QUERY_SOURCE_OWNER",
+                               "WorldIDOASIS": "CQL_WORLD_ID_PROTOCOL_QUERY_SOURCE_OWNER",
+                               "ReclaimProtocolOASIS": "CQL_RECLAIM_VERIFIER_QUERY_SOURCE_OWNER"}[provider]
                     self.assertEqual({setting: actor}, review["sourceBinding"])
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {setting: str(uuid.UUID(int=2))}, provider, review)

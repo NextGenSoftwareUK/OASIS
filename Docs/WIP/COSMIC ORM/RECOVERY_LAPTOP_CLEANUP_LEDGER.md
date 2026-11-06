@@ -3573,3 +3573,20 @@ The expanded Waku workflow reused the same runner-owned archive and
 SQLite fixture. It staged the pinned Core and shared library checkouts,
 .NET 10 test build and TRX only on the disposable Actions runner.
 No output from that build was downloaded to this laptop.
+
+### World ID and Reclaim WEB4 admission, 6 November 2026
+
+Reused the two existing ONODE WEB4 net10.0 build outputs under
+the provider lease. WEB4 measures 952,893,528 bytes and its test
+consumer 942,309,633 bytes. No additional NuGet version directory
+or runtime was installed. The task evidence directory
+`LocalState/COSMIC/WorldIdPublicCqlQualification/` retains the
+48,628-byte initial and 52,144-byte final admission TRX, the
+1,017,333-byte producer and 50,383-byte consumer logs, and the
+766-byte frozen receipt. Free space was 37,737,480,192 before
+the producer build and 37,500,907,520 bytes after it.
+
+Removed five exact verified working duplicates after source
+publication. The three World ID C# drafts, Reclaim C# draft and
+Waku C# draft totaled 40,106 bytes. The tracked source and logs
+were preserved.

@@ -7,6 +7,8 @@ using NextGenSoftware.OASIS.API.Providers.LivepeerOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
 using NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS;
 using NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS;
+using NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS;
+using NextGenSoftware.OASIS.API.Providers.WorldIDOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
@@ -24,6 +26,10 @@ public static class CqlReviewedNetworkReadSourceRegistration
             owner => new PushProtocolPublicChannelQuerySource(owner));
         Register(services, configuration["CQL_LAYERZERO_V1_ENDPOINT_QUERY_SOURCE_OWNER"], "LayerZero v1",
             owner => new LayerZeroV1EndpointQuerySource(owner));
+        Register(services, configuration["CQL_WORLD_ID_PROTOCOL_QUERY_SOURCE_OWNER"], "World ID v4",
+            owner => new WorldIdProtocolQuerySource(owner));
+        Register(services, configuration["CQL_RECLAIM_VERIFIER_QUERY_SOURCE_OWNER"], "Reclaim",
+            owner => new ReclaimVerifierQuerySource(owner));
     }
 
     private static void Register(IServiceCollection services, string ownerText, string provider,
