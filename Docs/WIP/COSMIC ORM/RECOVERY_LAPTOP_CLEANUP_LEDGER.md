@@ -3344,3 +3344,9 @@ downloaded to the laptop.
 Temporal Cloud namespace-binding and native regression CI retained one
 additional 1,871-byte artifact on GitHub. No image, package, secret or
 artifact was downloaded to this laptop.
+
+Pinot's protected WEB4 verification reused the existing SDK and lease.
+`LocalState/COSMIC/PinotPublicCqlQualification/` contains the runner,
+Core pin, provider regression logs and TRXs, and WEB4 admission log
+and TRX. No Pinot runtime, hosted credential or native data copy was
+created on this laptop.

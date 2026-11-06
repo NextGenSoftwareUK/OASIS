@@ -24,3 +24,23 @@ with zero skips and verified omission of the private row, canonical
 tombstone and absent key. The 84,075-byte CI artifact SHA-256 is
 `5db76972fe4693965fabd217aeb0ae4807ab305224cc791a2dea216f42b4ec8d`.
 [Passing Linux run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42262964991).
+
+## WEB4 read-only admission
+
+Set the approved broker origin and public probe through
+`CQL_PINOT_QUERY_ORIGIN` and `CQL_PINOT_QUERY_PROBE_ID`. Store the
+restricted reader in `CQL_PINOT_QUERY_READER_USERNAME` and
+`CQL_PINOT_QUERY_READER_PASSWORD`. The broker role is limited to the
+teaching table and its `is_public = 1` row policy. Hosted verification
+includes the policy marker and denial against a separate test table.
+
+The shared protected SQL path passed 13 Pinot provider, 11 Druid
+provider and 13 WEB4 checks at Core
+`f3730a52d04ad8e19ce4889e4fa9dc39e50f5ad1`. All 36 protected
+exact-key configuration checks passed. The Pinot provider TRX SHA-256
+is `1d6e980574d714b4f203d1e22c3db3755642588523cbafd2f9e23f38b8f3dcd3`.
+The WEB4 TRX SHA-256 is
+`9807691ed548a68ec2f0292a53b8da44243c902c262385a3628363cecb7c23ed`.
+Authenticated hosted acceptance remains open after LocalFile.
+[Pinot broker ACLs](https://docs.pinot.apache.org/operate-pinot/security/authentication/basic-auth-access-control)
+and [row-level security](https://docs.pinot.apache.org/operate-pinot/security/access-control).

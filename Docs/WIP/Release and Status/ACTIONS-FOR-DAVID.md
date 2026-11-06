@@ -818,3 +818,20 @@ and hosted federation and replication verification.
 - Engineering owns the synthetic dataset, reader denial checks, source
   enrollment and the end-to-end WEB4 test.
   [Druid qualification](../COSMIC%20ORM/DRUID_CQL_MVP.md).
+
+## Apache Pinot protected broker access for Development WEB4
+
+- Status 2026-11-06: open after LocalFile. The official Pinot 1.6.0
+  runner passed public exact-key CQL 3/2/0. Hosted verification needs
+  an existing approved HTTPS broker and a scoped reader.
+- Identify the approved Pinot deployment. Assign a dedicated broker
+  principal to only `oasis_cql_public_holons` and set its row-level
+  predicate for that table to `is_public = 1`. Put the username and
+  password in protected `CQL_PINOT_QUERY_READER_USERNAME` and
+  `CQL_PINOT_QUERY_READER_PASSWORD` when the rollout is scheduled.
+  Share only the approved HTTPS broker origin and readiness.
+  [Pinot broker authentication](https://docs.pinot.apache.org/operate-pinot/security/authentication/basic-auth-access-control)
+  and [row-level security](https://docs.pinot.apache.org/operate-pinot/security/access-control).
+- Engineering owns the teaching fixture, ACL and private-row denial
+  verification, admission and the hosted demo.
+  [Pinot qualification](../COSMIC%20ORM/PINOT_CQL_MVP.md).

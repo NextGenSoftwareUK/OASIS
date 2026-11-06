@@ -47,6 +47,7 @@ def exact_key_catalogue(provider):
         catalogue = {"Actor": actor, "LiveIds": [first, second, third], "DeletedId": deleted, "MissingId": missing}
     fields = {
         "DruidOASIS": {"Origin": "https://druid.example.com", "ReaderUsername": "cql_reader"},
+        "PinotOASIS": {"Origin": "https://pinot.example.com", "ReaderUsername": "cql_reader"},
         "FastlyOASIS": {"StoreId": "teachingStore"},
         "DaprOASIS": {"Store": "cosmic-teaching", "GrpcEndpoint": "http://127.0.0.1:54862/"},
         "CloudflareOASIS": {"AccountId": "a" * 32, "NamespaceId": "b" * 32},
@@ -172,8 +173,10 @@ class ExactKeyConfigurationTests(unittest.TestCase):
     def test_ens_offchain_candidate_binds_the_native_name_identities(self):
         self.check_candidate("ENSOffchainOASIS")
 
-    def test_druid_candidate_binds_dedicated_https_origin_and_reader(self):
-        self.check_candidate("DruidOASIS")
+    def test_protected_sql_candidates_bind_dedicated_https_origin_and_reader(self):
+        for provider in ("DruidOASIS", "PinotOASIS"):
+            with self.subTest(provider=provider):
+                self.check_candidate(provider)
 
     def test_safe_indexing_candidate_binds_reviewed_networks_and_protected_key(self):
         self.check_candidate("SafeOASIS")
@@ -363,7 +366,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -478,7 +481,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {key: "{}"}, provider, review)
                     baseline[key] = value
-                elif provider in ("CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "PgVectorOASIS", "DruidOASIS"):
+                elif provider in ("CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "PgVectorOASIS", "DruidOASIS", "PinotOASIS"):
                     baseline.update(review["sourceBinding"])
                     token_key = configuration.REQUIRED_SOURCE_TOKENS[provider]
                     with self.assertRaisesRegex(ValueError, "source token"):

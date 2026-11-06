@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,6 +30,13 @@ public sealed class PinotPublicQuerySource : KeyValueStorageProviderBase, ICosmi
 
     internal PinotPublicQuerySource(Uri origin, Guid probeId, HttpMessageHandler handler)
         : this(new PinotBackend(origin, probeId, handler), probeId) { }
+
+    public PinotPublicQuerySource(Uri origin, Guid probeId, string username, string password)
+        : this(origin, probeId, username, password, handler: null) { }
+
+    internal PinotPublicQuerySource(Uri origin, Guid probeId, string username, string password, HttpMessageHandler? handler)
+        : this(new PinotBackend(origin, probeId, handler,
+            HostedBasicSqlQueryReader.CreateAuthorization(origin, probeId, username, password)), probeId) { }
 
     private PinotPublicQuerySource(PinotBackend backend, Guid probeId) : base(backend, "pinot-public:")
     {
@@ -67,8 +75,9 @@ public sealed class PinotPublicQuerySource : KeyValueStorageProviderBase, ICosmi
     {
         private readonly Uri endpoint;
         private readonly HttpClient client;
+        private readonly AuthenticationHeaderValue? authorization;
 
-        public PinotBackend(Uri origin, Guid probeId, HttpMessageHandler? handler)
+        public PinotBackend(Uri origin, Guid probeId, HttpMessageHandler? handler, AuthenticationHeaderValue? authorization = null)
         {
             if (origin is not { IsAbsoluteUri: true } || origin.AbsolutePath != "/" ||
                 origin.Query.Length != 0 || origin.Fragment.Length != 0 || origin.UserInfo.Length != 0 || probeId == Guid.Empty)
@@ -89,6 +98,7 @@ public sealed class PinotPublicQuerySource : KeyValueStorageProviderBase, ICosmi
                 handler = transport;
             }
             endpoint = new Uri(origin, "/query/sql");
+            this.authorization = authorization;
             client = new HttpClient(handler);
         }
 
@@ -96,6 +106,7 @@ public sealed class PinotPublicQuerySource : KeyValueStorageProviderBase, ICosmi
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             request.Headers.Accept.ParseAdd("application/json");
+            request.Headers.Authorization = authorization;
             // The only SQL literal comes from a strongly typed GUID, never request text.
             request.Content = JsonContent.Create(new
             {

@@ -29,6 +29,21 @@ public sealed class PinotPublicQuerySourceTests
         CollectionAssert.AreEqual(new[] { Ids[0], Ids[0], Ids[1], Ids[2] }, transport.Reads.ToArray());
     }
 
+    [TestMethod]
+    public async Task HostedReaderSendsBasicCredentialsOnlyToThePinnedBrokerRoute()
+    {
+        var origin = new Uri("https://pinot.example.com");
+        using var transport = new Reply(id => new[] { Doc(id) }, expectedOrigin: origin,
+            authorization: "Basic cmVhZGVyOnByb3RlY3RlZA==");
+        using var source = new PinotPublicQuerySource(origin, Ids[0], "reader", "protected", transport);
+        Assert.IsFalse((await source.ActivateQuerySourceAsync()).IsError);
+        Check(await Query(source, new[] { Ids[0] }), new[] { Ids[0] });
+        Assert.AreEqual(2, transport.Reads.Count);
+        Assert.ThrowsException<ArgumentException>(() =>
+            new PinotPublicQuerySource(Origin, Ids[0], "reader", "protected", transport));
+        Assert.AreEqual(2, transport.Reads.Count);
+    }
+
     [DataTestMethod]
     [DataRow("duplicate")]
     [DataRow("private")]
@@ -101,14 +116,16 @@ public sealed class PinotPublicQuerySourceTests
         Assert.IsTrue(result.Result.All(row => row.IsPublic && row.CreatedByAvatarId == Actor));
     }
 
-    private sealed class Reply(Func<Guid, string[]> records, Func<Guid, string?>? mode = null) : HttpMessageHandler
+    private sealed class Reply(Func<Guid, string[]> records, Func<Guid, string?>? mode = null,
+        Uri? expectedOrigin = null, string? authorization = null) : HttpMessageHandler
     {
         public List<Guid> Reads { get; } = new();
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
         {
             Assert.AreEqual(HttpMethod.Post, request.Method);
-            Assert.AreEqual(new Uri(Origin, "/query/sql"), request.RequestUri);
+            Assert.AreEqual(new Uri(expectedOrigin ?? Origin, "/query/sql"), request.RequestUri);
+            Assert.AreEqual(authorization, request.Headers.Authorization?.ToString());
             using var json = JsonDocument.Parse(await request.Content!.ReadAsByteArrayAsync(token));
             var sql = json.RootElement.GetProperty("sql").GetString()!;
             var id = Guid.ParseExact(sql.Split('\'')[1], "D");

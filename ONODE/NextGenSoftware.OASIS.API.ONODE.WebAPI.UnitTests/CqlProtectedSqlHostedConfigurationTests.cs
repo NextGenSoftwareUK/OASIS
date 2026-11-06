@@ -6,20 +6,22 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
-public sealed class CqlDruidHostedConfigurationTests
+public sealed class CqlProtectedSqlHostedConfigurationTests
 {
     private const string Prefix = "CQL_DRUID_QUERY_";
 
-    [Fact]
-    public void ExplicitSettingsRegisterAnInactiveReadProfile()
+    [Theory]
+    [InlineData("DRUID", ProviderType.DruidOASIS)]
+    [InlineData("PINOT", ProviderType.PinotOASIS)]
+    public void ExplicitSettingsRegisterAnInactiveReadProfile(string product, ProviderType provider)
     {
         var services = new ServiceCollection();
-        services.AddDruidReadSource(new ConfigurationBuilder().Build());
+        AddSource(product, services, new ConfigurationBuilder().Build());
         Assert.Empty(services);
-        services.AddDruidReadSource(Configuration(Valid()));
+        AddSource(product, services, Configuration(Valid(product)));
         using var container = services.BuildServiceProvider();
         var profile = Assert.Single(container.GetServices<CqlReadSourceProfile>());
-        Assert.Equal(ProviderType.DruidOASIS, profile.Storage.ProviderType.Value);
+        Assert.Equal(provider, profile.Storage.ProviderType.Value);
         Assert.False(profile.Storage.IsProviderActivated);
     }
 
@@ -41,12 +43,13 @@ public sealed class CqlDruidHostedConfigurationTests
         Assert.Empty(services);
     }
 
-    [Fact]
-    public void DruidRequiresReadOnlyPermissionAndExplicitTariff()
+    [Theory]
+    [InlineData(ProviderType.DruidOASIS)]
+    [InlineData(ProviderType.PinotOASIS)]
+    public void ProtectedSqlProvidersRequireReadOnlyPermissionAndExplicitTariff(ProviderType provider)
     {
-        const ProviderType provider = ProviderType.DruidOASIS;
-        Assert.Equal(provider, CqlV1Compiler.RequestedProvider("DruidOASIS", includeCloudReadProfile: true));
-        Assert.Throws<ArgumentException>(() => CqlV1Compiler.RequestedProvider("DruidOASIS"));
+        Assert.Equal(provider, CqlV1Compiler.RequestedProvider(provider.ToString(), includeCloudReadProfile: true));
+        Assert.Throws<ArgumentException>(() => CqlV1Compiler.RequestedProvider(provider.ToString()));
         var ordinary = new[] { ProviderType.MongoDBOASIS };
         var tariffs = new[] { new StorageQueryTariff(ordinary[0], 0, "demo-read-v1"),
             new StorageQueryTariff(provider, 0, "demo-read-v1") };
@@ -63,11 +66,31 @@ public sealed class CqlDruidHostedConfigurationTests
     private static IConfiguration Configuration(Dictionary<string, string?> settings) =>
         new ConfigurationBuilder().AddInMemoryCollection(settings).Build();
 
-    private static Dictionary<string, string?> Valid() => new()
+    [Fact]
+    public void PinotRejectsAMissingProtectedReaderPassword()
     {
-        [Prefix + "ORIGIN"] = "https://druid.example.com",
-        [Prefix + "READER_USERNAME"] = "cql_reader",
-        [Prefix + "READER_PASSWORD"] = "fixture-password",
-        [Prefix + "PROBE_ID"] = "10000000-0000-4000-8000-000000000001"
-    };
+        var services = new ServiceCollection();
+        var settings = Valid("PINOT");
+        settings.Remove("CQL_PINOT_QUERY_READER_PASSWORD");
+        Assert.Throws<InvalidOperationException>(() => services.AddPinotReadSource(Configuration(settings)));
+        Assert.Empty(services);
+    }
+
+    private static void AddSource(string product, IServiceCollection services, IConfiguration configuration)
+    {
+        if (product == "DRUID") services.AddDruidReadSource(configuration);
+        else services.AddPinotReadSource(configuration);
+    }
+
+    private static Dictionary<string, string?> Valid(string product = "DRUID")
+    {
+        var prefix = "CQL_" + product + "_QUERY_";
+        return new()
+        {
+            [prefix + "ORIGIN"] = "https://query.example.com",
+            [prefix + "READER_USERNAME"] = "cql_reader",
+            [prefix + "READER_PASSWORD"] = "fixture-password",
+            [prefix + "PROBE_ID"] = "10000000-0000-4000-8000-000000000001"
+        };
+    }
 }
