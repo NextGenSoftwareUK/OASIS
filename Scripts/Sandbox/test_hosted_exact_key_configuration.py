@@ -79,6 +79,9 @@ class ExactKeyConfigurationTests(unittest.TestCase):
     def test_fastly_candidate_preserves_existing_providers(self):
         self.check_candidate("FastlyOASIS")
 
+    def test_dapr_candidate_preserves_existing_providers(self):
+        self.check_candidate("DaprOASIS")
+
     def check_candidate(self, provider):
         partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
         baseline = {
@@ -100,6 +103,13 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                 catalogue["StoreId"] = "teachingStore"
                 for store in ("", "../foreign", "foreign?key=1", "s" * 65):
                     descriptor.write_text(json.dumps(catalogue | {"StoreId": store}))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                        configuration.verifier.reviewed_exact_key_source(provider, descriptor)
+            if provider == "DaprOASIS":
+                catalogue.update(Store="cosmic-teaching", GrpcEndpoint="http://127.0.0.1:54862/")
+                for invalid in ({"Store": "../foreign"}, {"GrpcEndpoint": "http://localhost:54862/"},
+                                {"GrpcEndpoint": "http://127.0.0.1:65536/"}, {"GrpcEndpoint": "http://127.0.0.1:80/"}):
+                    descriptor.write_text(json.dumps(catalogue | invalid))
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             if provider == "NetlifyBlobsOASIS":
@@ -183,7 +193,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -252,6 +262,16 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     baseline.update(CQL_FASTLY_QUERY_STORE_ID=catalogue["StoreId"], CQL_FASTLY_QUERY_PROBE_ID=first)
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {"CQL_FASTLY_QUERY_STORE_ID": "foreignStore"}, provider, review)
+                elif provider == "DaprOASIS":
+                    baseline.update(CQL_DAPR_QUERY_STORE=catalogue["Store"],
+                                    CQL_DAPR_QUERY_GRPC_ENDPOINT=catalogue["GrpcEndpoint"], CQL_DAPR_QUERY_PROBE_ID=first)
+                    for changed in ({"CQL_DAPR_QUERY_STORE": "foreign"}, {"CQL_DAPR_QUERY_GRPC_ENDPOINT": "http://127.0.0.1:54863/"}):
+                        with self.assertRaisesRegex(ValueError, "do not match"):
+                            configuration.candidate(baseline | changed, provider, review)
+                    for token in (None, "", "invalid token", "x" * 1025):
+                        with self.assertRaisesRegex(ValueError, "sidecar token"):
+                            configuration.candidate(baseline | {"CQL_DAPR_QUERY_SIDECAR_TOKEN": token}, provider, review)
+                    baseline["CQL_DAPR_QUERY_SIDECAR_TOKEN"] = "fixture-token"
                 else:
                     product = provider.removesuffix("OASIS").upper()
                     baseline[f"CQL_{product}_QUERY_PROBE_ID"] = first

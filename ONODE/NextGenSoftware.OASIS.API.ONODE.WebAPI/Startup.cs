@@ -614,6 +614,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             Services.Cql.CqlPostgresFamilyReadSourceRegistration.AddNileReadSource(services, Configuration);
             Services.Cql.CqlNetlifyBlobsReadSourceRegistration.AddNetlifyBlobsReadSource(services, Configuration);
             Services.Cql.CqlFastlyReadSourceRegistration.AddFastlyReadSource(services, Configuration);
+            Services.Cql.CqlDaprReadSourceRegistration.AddDaprReadSource(services, Configuration);
             Services.Cql.CqlAlgoliaReadSourceRegistration.AddAlgoliaReadSource(services, Configuration);
 
             if (Configuration["CQL_CHROMA_QUERY_ORIGIN"] is string chromaOrigin)

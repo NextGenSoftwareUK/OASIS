@@ -31,17 +31,19 @@ public sealed class DaprQuerySource : DaprOASIS, ICosmicQueryStorageProvider, IC
         query = new(QueryProviderType, (id, token) => Backend.GetAsync(RecordKey("holon", id), token));
     }
 
+    public static bool IsValidConfiguration(string storeName, Uri sidecar, string readerToken, Guid probeId) =>
+        storeName is { Length: > 0 and <= 63 } &&
+        char.IsAsciiLetterOrDigit(storeName[0]) && char.IsAsciiLetterOrDigit(storeName[^1]) &&
+        storeName.All(c => char.IsAsciiLetterOrDigit(c) || c == '-') && storeName == storeName.ToLowerInvariant() &&
+        probeId != Guid.Empty && readerToken is { Length: > 0 and <= 1024 } &&
+        readerToken.All(c => c > ' ' && c <= '~') &&
+        sidecar is { IsAbsoluteUri: true, Scheme: "http", Port: > 0 and not 80 } &&
+        sidecar.Host == IPAddress.Loopback.ToString() && sidecar.UserInfo.Length == 0 &&
+        sidecar.AbsolutePath == "/" && sidecar.Query.Length == 0 && sidecar.Fragment.Length == 0;
+
     private static DaprClientStateApi CreateClient(string storeName, Uri sidecar, string readerToken, Guid probeId)
     {
-        if (storeName is not { Length: > 0 and <= 63 } ||
-            !char.IsAsciiLetterOrDigit(storeName[0]) || !char.IsAsciiLetterOrDigit(storeName[^1]) ||
-            storeName.Any(c => !char.IsAsciiLetterOrDigit(c) && c != '-') || storeName != storeName.ToLowerInvariant() ||
-            probeId == Guid.Empty || readerToken is not { Length: > 0 and <= 1024 } ||
-            readerToken.Any(c => c <= ' ' || c > '~') ||
-            sidecar is not { IsAbsoluteUri: true, Scheme: "http" } ||
-            sidecar.Host != IPAddress.Loopback.ToString() || sidecar.Port is <= 0 or 80 ||
-            sidecar.UserInfo.Length != 0 || sidecar.AbsolutePath != "/" ||
-            sidecar.Query.Length != 0 || sidecar.Fragment.Length != 0)
+        if (!IsValidConfiguration(storeName, sidecar, readerToken, probeId))
             throw new ArgumentException("An explicit loopback sidecar, state component, token and teaching probe are required.");
 
         var handler = new SocketsHttpHandler { AllowAutoRedirect = false, UseProxy = false, UseCookies = false };

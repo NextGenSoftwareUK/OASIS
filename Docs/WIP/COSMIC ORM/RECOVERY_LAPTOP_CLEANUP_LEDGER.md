@@ -1722,6 +1722,32 @@ reusable `bin/Debug/net10.0` and `obj` outputs. The passing receipt is in
 token was process-only, the sidecar stopped, ports 54861–54863 cleared and
 no database file or hosted resource was created. Both leases restored Core.
 
+Dapr WEB4 admission reuses that qualification directory. The leased runner
+`verify-hosted-cql.ps1` recorded the candidate in `web4-core-pin.txt` and
+passed all 14 tests in `admission.trx`; its build log is
+`TestResults/ProviderBuildCurrent/dapr-hosted-api-cql.log`. The lease restored
+Core. Protected-settings tests ran with Python bytecode output disabled.
+
+The local Dapr backing-store permission probe `verify-readonly.ps1` reused
+the same portable runtime. It retained component configuration and sidecar
+logs in `readonly-f728a6b9b9894ccca68ee8d4baef04de/`,
+`readonly-91372abd5d2148fcb69162a71c5004f7/` and
+`readonly-280ee480bcaf49999539db4827cd20a7/` under the qualification directory.
+All three sidecar runs ended, and only their exact generated SQLite database,
+WAL and SHM files were removed after listener checks. No hosted settings or
+credentials were used. The final test reproduced a component startup failure
+in read-only mode before any credentialed state read or mutation attempt in
+that mode.
+
+The local Dapr/Garnet permission probe `verify-garnet-reader.py` reuses the
+verified Dapr 1.18.9 and Garnet 2.2.5 executables. It starts an isolated
+in-memory Garnet instance and two successive Dapr sidecars. The first run
+`garnet-reader-b2b696a83c7aee8b/` stopped after a probe import-name collision.
+The corrected run `garnet-reader-fcfe93575aa74712/` passed read/write-denial
+and unchanged value/ETag checks. Both directories under the Dapr qualification
+retain compact logs only. The temporary ACL and component files were removed,
+and ports 54861–54864 cleared. No downloads or database files were created.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt
