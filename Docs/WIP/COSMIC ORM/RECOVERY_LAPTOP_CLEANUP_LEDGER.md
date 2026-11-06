@@ -1815,6 +1815,27 @@ The verifier reuses `bin/Debug/net10.0` and `obj` under the Appwrite
 qualification directory. No runtime, credential or Appwrite project was
 created and no native request was sent.
 
+Appwrite WEB4 admission reuses the same qualification directory. Its
+`verify-hosted-cql.ps1` records `web4-core-pin.txt` and `admission.trx` there,
+with build log `TestResults/ProviderBuildCurrent/appwrite-hosted-api-cql.log`.
+The build is active. The 26 protected-settings tests passed with Python
+bytecode disabled. No new runtime or credential was used for Appwrite.
+
+Convex native preparation reuses the bundled Node v24.22.1. The single
+qualification directory is `LocalState/COSMIC/LocalConvexCqlQualification/`.
+The pinned Convex CLI 1.49.0 was installed into the workspace's
+`node_modules` with a private `npm-cache`. The Windows backend archive was the official
+`precompiled-2026-10-30-8a68c03` release (50,149,159 bytes, SHA-256
+`dc3d447359166e501c28cc6d66531c60b8d7702cb8e17e8a5d57d3bd98e53143`).
+The verified archive was removed after extraction. The reusable backend is
+`runtime-precompiled-2026-10-30-8a68c03/convex-local-backend.exe`
+(135,415,296 bytes, SHA-256
+`922c3b674cd2bb12209a0d509db1ab2342b4818f9c20572db794bc6601ef42d8`).
+The tracked runner passed with a fresh local database. After the owned process
+exited, the synthetic database, local storage, and CLI-generated `.env.local`
+were removed. Retained the three compact logs in `native-fixture` and the
+reusable CLI and backend for the adapter qualification.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt
