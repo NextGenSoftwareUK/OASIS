@@ -27,7 +27,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -363,6 +363,8 @@ def reviewed_exact_key_source(provider, path):
             fields = {"Actor", public_keys[0]}
         if provider == "CloudinaryOASIS":
             fields = {"Actor", "Assets"}
+        if provider == "TemporalOASIS":
+            fields = {"Actor", "Namespace", "Runs"}
         if provider in ("DruidOASIS", "PinotOASIS"):
             fields |= {"Origin", "ReaderUsername"}
             origin = catalogue["Origin"]
@@ -532,6 +534,21 @@ def reviewed_exact_key_source(provider, path):
                 raise ValueError("Three canonical ASCII ENS names are required.")
             ids = [ens_offchain_logical_id(catalogue["Actor"], name) for name in names]
             record_ids = ids
+        elif provider == "TemporalOASIS":
+            namespace = catalogue["Namespace"]
+            runs = catalogue["Runs"]
+            label = r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?"
+            if (len(namespace) > 64 or not re.fullmatch(label + r"\." + label, namespace)
+                    or not isinstance(runs, list) or len(runs) != 3
+                    or any(not isinstance(run, dict) or set(run) != {"WorkflowId", "RunId"}
+                           or not re.fullmatch(r"oasis-teaching-[a-z0-9-]{1,40}", run["WorkflowId"])
+                           or str(uuid.UUID(run["RunId"])) != run["RunId"] or uuid.UUID(run["RunId"]).int == 0
+                           for run in runs)
+                    or len({run["RunId"] for run in runs}) != 3):
+                raise ValueError("Three exact Temporal teaching runs in the reviewed cloud namespace are required.")
+            ids = [native_logical_id(catalogue["Actor"], provider, "temporal/workflow-description",
+                                     f"{namespace}/{run['WorkflowId']}/{run['RunId']}") for run in runs]
+            record_ids = ids
         elif provider == "CloudinaryOASIS":
             assets = catalogue["Assets"]
             if (not isinstance(assets, list) or len(assets) != 3
@@ -660,6 +677,11 @@ def reviewed_exact_key_source(provider, path):
     elif provider == "TursoOASIS":
         review["sourceBinding"] = {"CQL_TURSO_QUERY_ORIGIN": catalogue["Origin"],
                                    "CQL_TURSO_QUERY_PROBE_ID": ids[0]}
+    elif provider == "TemporalOASIS":
+        source = {"owner": catalogue["Actor"], "namespace": namespace,
+                  "runs": [{"workflowId": run["WorkflowId"], "runId": run["RunId"]} for run in runs],
+                  "probeRunId": runs[0]["RunId"]}
+        review["sourceBinding"] = {"CQL_TEMPORAL_QUERY_SOURCE_JSON": json.dumps(source, separators=(",", ":"))}
     elif provider == "ENSOffchainOASIS":
         source = {"owner": catalogue["Actor"], "names": names, "probe": names[0]}
         review["sourceBinding"] = {"CQL_ENS_OFFCHAIN_QUERY_SOURCE_JSON": json.dumps(source, separators=(",", ":"))}

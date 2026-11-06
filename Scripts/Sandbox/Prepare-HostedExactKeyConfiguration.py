@@ -30,6 +30,7 @@ REQUIRED_SOURCE_TOKENS = {
     "SafeOASIS": "CQL_SAFE_INDEXING_QUERY_API_KEY",
     "DruidOASIS": "CQL_DRUID_QUERY_READER_PASSWORD",
     "PinotOASIS": "CQL_PINOT_QUERY_READER_PASSWORD",
+    "TemporalOASIS": "CQL_TEMPORAL_QUERY_API_KEY",
     "OrbitDBOASIS": "CQL_ORBITDB_QUERY_READER_TOKEN",
     "GUNOASIS": "CQL_GUN_QUERY_READER_TOKEN",
     "MilvusOASIS": "CQL_MILVUS_QUERY_READER_TOKEN",
@@ -46,11 +47,11 @@ def candidate(before, provider, review):
         raise ValueError("Protected source settings do not match the reviewed teaching catalogue.")
     if provider in REQUIRED_SOURCE_TOKENS:
         token = before.get(REQUIRED_SOURCE_TOKENS[provider])
-        maximum_length = {"DenoDeployOASIS": 8192, "TursoOASIS": 8192, "SafeOASIS": 4096}.get(provider, 1024)
+        maximum_length = {"DenoDeployOASIS": 8192, "TursoOASIS": 8192, "SafeOASIS": 4096, "TemporalOASIS": 4096}.get(provider, 1024)
         if (not isinstance(token, str) or not 1 <= len(token) <= maximum_length
                 or any(not 33 <= ord(character) <= 126 for character in token)):
             raise ValueError("A valid protected source token is required.")
-        if provider == "ENSOffchainOASIS" and "," in token:
+        if provider in ("ENSOffchainOASIS", "TemporalOASIS") and "," in token:
             raise ValueError("A valid protected source token is required.")
         if provider == "SafeOASIS" and not re.fullmatch(r"[A-Za-z0-9._-]{1,4096}", token):
             raise ValueError("A valid protected source token is required.")

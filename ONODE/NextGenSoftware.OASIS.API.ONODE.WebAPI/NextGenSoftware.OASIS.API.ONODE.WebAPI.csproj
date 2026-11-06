@@ -242,6 +242,7 @@
   <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AppwriteOASIS/NextGenSoftware.OASIS.API.Providers.AppwriteOASIS.csproj" />
   <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.ConvexOASIS/NextGenSoftware.OASIS.API.Providers.ConvexOASIS.csproj" />
   <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.TursoOASIS/NextGenSoftware.OASIS.API.Providers.TursoOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.TemporalOASIS/NextGenSoftware.OASIS.API.Providers.TemporalOASIS.csproj" />
   <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.PinotOASIS/NextGenSoftware.OASIS.API.Providers.PinotOASIS.csproj" />
   <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.DruidOASIS/NextGenSoftware.OASIS.API.Providers.DruidOASIS.csproj" />
   <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.SafeOASIS/NextGenSoftware.OASIS.API.Providers.SafeOASIS.csproj" />

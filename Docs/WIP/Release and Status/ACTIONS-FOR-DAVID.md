@@ -835,3 +835,18 @@ and hosted federation and replication verification.
 - Engineering owns the teaching fixture, ACL and private-row denial
   verification, admission and the hosted demo.
   [Pinot qualification](../COSMIC%20ORM/PINOT_CQL_MVP.md).
+
+## Temporal Cloud read access for Development WEB4
+
+- Status 2026-11-06: open after LocalFile. The official SDK passed the
+  native exact-run test, and the Cloud namespace binding passed its
+  control. Hosted acceptance needs a dedicated approved teaching namespace.
+- Identify an existing approved Temporal Cloud namespace in
+  `namespace.account` format. Use a service account with read-only
+  access scoped to that namespace and store its API key in protected
+  `CQL_TEMPORAL_QUERY_API_KEY` when the rollout is scheduled. Share only
+  the approved namespace and readiness.
+  [Temporal account access](https://docs.temporal.io/cloud/manage-access)
+  and [API key connection](https://docs.temporal.io/cli/cloud).
+- Engineering owns the synthetic run catalogue, scope and denial checks,
+  admission and live federation. [Temporal evidence](../COSMIC%20ORM/TEMPORAL_CQL_MVP.md).

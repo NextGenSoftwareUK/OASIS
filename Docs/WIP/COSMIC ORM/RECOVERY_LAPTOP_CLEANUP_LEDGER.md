@@ -3350,3 +3350,28 @@ Pinot's protected WEB4 verification reused the existing SDK and lease.
 Core pin, provider regression logs and TRXs, and WEB4 admission log
 and TRX. No Pinot runtime, hosted credential or native data copy was
 created on this laptop.
+
+### Temporal WEB4 admission, 6 November 2026
+
+The existing SDK restore added four shared package versions under
+`C:/Users/David/.nuget/packages/`:
+
+| Version path | Files | Bytes |
+| --- | ---: | ---: |
+| `temporalio/1.20.0` | 22 | 349,988,847 |
+| `google.protobuf/3.26.1` | 17 | 6,438,331 |
+| `microsoft.extensions.logging.abstractions/2.2.0` | 7 | 166,877 |
+| `nexusrpc/0.4.0` | 12 | 409,277 |
+
+The existing WEB4 and WEB4 UnitTests projects each hold 238,504,056
+bytes of Temporal assemblies and native libraries in their
+`bin/Debug/net10.0` output. The Temporal provider output contains
+114,269 bytes of matching files. Keep these shared outputs while
+needed. Clean generated outputs under the provider build lease after
+their consumers stop and validate the exact paths first.
+
+`LocalState/COSMIC/TemporalPublicCqlQualification/` contains the runner,
+Core pin, package inventory, before/after disk readings, the 35,618-byte
+TRX and the 1,010,065-byte build log. Available space changed from
+35,861,872,640 to 35,002,396,672 bytes during the build. No local Temporal
+server, container or native data copy was created.

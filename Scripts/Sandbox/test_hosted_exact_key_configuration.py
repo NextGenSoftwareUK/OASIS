@@ -20,6 +20,14 @@ def exact_key_catalogue(provider):
         first, second, third = ("2d8b5e78-3137-8c0d-ba70-bdaa880dcdad", "e29d23d8-4c2c-8e0a-9fde-5b92d31135c0",
                                 "ffab761f-bf16-8e02-88e4-1e8a7b6cccd9")
         catalogue = {"Actor": actor, "Names": ["vitalik.eth", "nick.eth", "luc.eth"]}
+    elif provider == "TemporalOASIS":
+        actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
+        first, second, third = ("6bef46ce-5f1e-8506-93fe-40f019780879", "2ac8bd1a-cd32-847f-acd4-b34a7ac373e9",
+                                "2a70632f-2884-8b80-baad-0e94175be318")
+        catalogue = {"Actor": actor, "Namespace": "oasis-cql.exampleaccount", "Runs": [
+            {"WorkflowId": "oasis-teaching-" + name, "RunId": f"30000000-0000-4000-8000-{position:012d}"}
+            for position, name in enumerate(("first", "second", "third"), 1)
+        ]}
     elif provider == "SafeOASIS":
         actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
         first, second, third = ("64ed5973-5b49-88b2-81ae-159cb2d12859", "ce0eac74-96b1-8d63-893b-c8bb9adfa0a5",
@@ -177,6 +185,9 @@ class ExactKeyConfigurationTests(unittest.TestCase):
         for provider in ("DruidOASIS", "PinotOASIS"):
             with self.subTest(provider=provider):
                 self.check_candidate(provider)
+
+    def test_temporal_candidate_binds_exact_workflow_runs_and_protected_key(self):
+        self.check_candidate("TemporalOASIS")
 
     def test_safe_indexing_candidate_binds_reviewed_networks_and_protected_key(self):
         self.check_candidate("SafeOASIS")
@@ -366,7 +377,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -462,6 +473,20 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {key: "{}"}, provider, review)
                     baseline[key] = value
+                elif provider == "TemporalOASIS":
+                    key, value = next(iter(review["sourceBinding"].items()))
+                    runs = catalogue["Runs"]
+                    self.assertEqual({"owner": actor, "namespace": catalogue["Namespace"],
+                                      "runs": [{"workflowId": run["WorkflowId"], "runId": run["RunId"]} for run in runs],
+                                      "probeRunId": runs[0]["RunId"]}, json.loads(value))
+                    with self.assertRaisesRegex(ValueError, "do not match"):
+                        configuration.candidate(baseline | {key: "{}"}, provider, review)
+                    baseline[key] = value
+                    secret = "CQL_TEMPORAL_QUERY_API_KEY"
+                    for invalid in (None, "", "invalid key", "invalid,key", "x" * 4097):
+                        with self.assertRaisesRegex(ValueError, "source token"):
+                            configuration.candidate(baseline | {secret: invalid}, provider, review)
+                    baseline[secret] = "fixture-temporal-key"
                 elif provider == "SafeOASIS":
                     key, value = next(iter(review["sourceBinding"].items()))
                     self.assertEqual({"owner": actor, "networks": ["eth", "base", "arb1"], "probe": "eth"}, json.loads(value))

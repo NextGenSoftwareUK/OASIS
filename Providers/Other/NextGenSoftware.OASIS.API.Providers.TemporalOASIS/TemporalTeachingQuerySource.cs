@@ -78,6 +78,7 @@ public sealed class TemporalTeachingQuerySource : KeyValueStorageProviderBase, I
 
     private static bool IsTeachingRun(TemporalTeachingRun run) =>
         run is not null && run.RunId != Guid.Empty && IsSafeKey(run.WorkflowId, 55) &&
+        run.WorkflowId.Length > "oasis-teaching-".Length &&
         run.WorkflowId.StartsWith("oasis-teaching-", StringComparison.Ordinal);
 
     private static string NativeKey(string workflowNamespace, TemporalTeachingRun run) =>
