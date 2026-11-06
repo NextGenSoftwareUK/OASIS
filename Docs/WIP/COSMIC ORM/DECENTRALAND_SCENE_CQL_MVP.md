@@ -83,3 +83,12 @@ tariff to deployed Core. Both exact refs are published on
 pairs match. The isolated [image build](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42311038805)
 uses the candidate SHA and its own tag. Development and live settings
 remain at the accepted LocalFile baseline during qualification.
+
+The protected Development settings candidate changes four values. It adds
+the qualified source owner, four presets, the exact three public ID grants
+and a zero-cost read-only tariff. The LocalFile grant and other settings
+were preserved. No hosted values were written. The public review is
+`TestResults/DecentralandCqlCurrent/protected-settings-review.json`. The
+DPAPI baseline and candidate are under `LocalState/COSMIC/HostedSourceRolloutCurrent`
+with the `decentraland-public` prefix. Review the exact deployed release
+and full live baseline before applying through the shared journal.
