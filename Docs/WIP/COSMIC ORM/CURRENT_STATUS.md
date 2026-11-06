@@ -11,7 +11,7 @@ HTTPS and deployed acceptance. No provider count changed.
 
 ## Recent WEB4 preparation, 5–6 November 2026
 
-Acceptance remains 103 scoped local, 60 live HTTP and 28 live browser.
+Acceptance is 106 scoped local, 60 live HTTP and 28 live browser.
 LocalFile remains first. The immutable candidate image is published and its
 actual Railway deployment, persistent mount and protected settings still
 need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
@@ -28,11 +28,12 @@ need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
   on PostgreSQL 17.11 with pgvector 0.8.7 and opt-in WEB4 admission.
   [pgvector evidence](PGVECTOR_CQL_MVP.md).
 - Cloudinary passed seven controlled checks, a real public metadata CQL
-  3/2 test and opt-in WEB4 admission.
+  3/2 test, opt-in WEB4 admission and local Mongo federation 5/4.
   [Cloudinary evidence](CLOUDINARY_CQL_MVP.md).
 - Proof of Humanity and Oracle Object Storage passed native CQL 3/2.
   The first verifies both finalized registries. The second uses three
-  documented object HEADs. Opt-in WEB4 admission passed.
+  documented object HEADs. Opt-in WEB4 admission and local Mongo
+  federation 5/4 passed for both.
   [Registry evidence](PROOF_OF_HUMANITY_PUBLIC_SOURCE_STATUS.md) ·
   [Oracle evidence](ORACLE_OBJECT_STORAGE_PUBLIC_CQL.md).
 - Appwrite passed 19 provider checks and nine WEB4 admission checks. Its

@@ -27,3 +27,9 @@ The admission TRX SHA-256 is
 The reviewed `CQL_CLOUDINARY_QUERY_SOURCE_JSON` binds the owner, exact
 assets and existing public probe. Live federation and browser acceptance
 remain open. LocalFile remains first for the live rollout.
+
+The reviewed local WEB4 HTTP batch verified native 3/2, paired MongoDB
+5/4, and visitor isolation. The owned two-record Mongo fixture was
+removed after checking the exact rows. The test used controlled local
+identity and metering with real Cloudinary reads and MongoDB writes.
+[Local acceptance scope](PROVIDER_CQL_AND_SANDBOX_STATUS.md#reviewed-public-source-http-on-6-november-2026)

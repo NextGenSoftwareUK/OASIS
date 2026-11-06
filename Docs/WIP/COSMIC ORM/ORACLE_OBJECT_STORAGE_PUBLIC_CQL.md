@@ -26,3 +26,8 @@ The combined opt-in WEB4 admission passed seven new profile checks and
 12 Cloudinary and pgvector regressions at Core
 `c2a8b2303264bd159ac55d71b684c712647c6d3b`. Live verification remains
 open. LocalFile remains first for live rollout.
+
+The reviewed local WEB4 HTTP batch verified native 3/2, paired MongoDB
+5/4, and visitor isolation. OCI provided native HEAD metadata and the
+owned two-record Mongo fixture was removed after verification.
+[Local acceptance scope](PROVIDER_CQL_AND_SANDBOX_STATUS.md#reviewed-public-source-http-on-6-november-2026)

@@ -31,3 +31,8 @@ checks and 12 Cloudinary and pgvector regressions at Core
 `a9d49e94de9b6223950850dbeae8df7c1dfdfb6b6d8e31140ab53689e49f3da8`.
 The public registry tests also passed again. Live verification remains
 open. LocalFile remains first for live rollout.
+
+The reviewed local WEB4 HTTP batch verified native 3/2, paired MongoDB
+5/4, and visitor isolation. Both native registry sources supplied
+the selected rows. The owned two-record Mongo fixture was removed.
+[Local acceptance scope](PROVIDER_CQL_AND_SANDBOX_STATUS.md#reviewed-public-source-http-on-6-november-2026)

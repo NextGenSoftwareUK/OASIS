@@ -2112,8 +2112,13 @@ compiling the test consumer. The three provider directories retain the
 intent, two save receipts, HTTP summary and exact synthetic-database
 cleanup receipt. `verify-http.ps1` retains the build and TRX logs and
 the native Mongo process and shutdown records. The reviewed test source
-draft is in `LocalProofOfHumanityCqlQualification/` until the admission
-build releases. No database, runtime or image has been copied.
+draft moved into the existing WEB4 unit test project after the admission
+build released. No database, runtime or image was copied. The consumer
+build used the frozen outputs, had zero errors and passed all three
+native tests with zero skips. All three fixture cleanup receipts confirm
+the synthetic databases are absent. Mongo PID 5256 released port 27029
+and recorded clean WiredTiger closure and exit 12. Retain the compact
+receipts and reports in the same workspace.
 
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive

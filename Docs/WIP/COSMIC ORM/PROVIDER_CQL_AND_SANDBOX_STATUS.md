@@ -1,5 +1,21 @@
 # Provider implementation, CQL and live demo status
 
+## Reviewed public source HTTP on 6 November 2026
+
+The exact WEB4 build at parent `6479ebca024c8cbd786adc4c9777cd9b093a9ff9`
+and Core `c2a8b2303264bd159ac55d71b684c712647c6d3b` passed the local
+Cloudinary, Proof of Humanity and Oracle Object Storage HTTP tests.
+Each returned native 3/2, Mongo-paired 5/4, foreign-private 0 and
+foreign-public 3. The tests checked exact row IDs and provider labels,
+used controlled local identity and metering, and created two
+MongoDB version-one private records per provider. All three synthetic
+databases were removed after verifying their ownership markers and
+exact record counts. The retained MongoDB replica shut down cleanly.
+TRX SHA-256
+`e921e8516fd8c2116e643d58bf072f7bec83072fc4a3cb4470afb306f58de22c`.
+Current coverage is **106 scoped local, 60 live HTTP and 28 live browser**.
+LocalFile remains first for live rollout.
+
 5 November MinIO hosted preparation: explicit HTTPS query registration,
 reactivation/disposal and exact Core/API admission verified (13 provider and
 17 WEB4 checks); native hosted qualifier compiles. Owned TLS source, deployment,
@@ -42,7 +58,7 @@ ChainLink hosted acceptance is complete at parent09c66998c/Core990c1c7, code215b
 
 EOSIO hosted acceptance is complete at parent4d3e0b7cd/Core86e38a3, code68db832f/settings20b3a558 SUCCESS. Native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3 and matching replicas2/2 each pass; two version1 saves/no pending. Website72dee68/pinned setup/C#/HTTP links and96client tests pass; public HTML/scripts match exact git blobs. Original cohort frozen. Per-account latest native state, not a shared finalized snapshot. [Evidence](EOSIO_PUBLIC_SOURCE_STATUS.md).
 
-There are **103 currently integrated query types/profiles**: 3 canonical adapters, 57 bounded public/source profiles and 43 other local implementations, including31recovered historical demos. These are scoped query profiles, not103fully implemented providers. Meilisearch, Solr, ArcadeDB, OpenSearch, Elasticsearch, PouchDB and MinIO add native/restart, manager/Mongo/HTTP and local browser5/4 proof to the preserved96baseline. PostgreSQL content and AWS DynamoDB Local identity queries pass native and local Mongo/HTTP checks; hosted PostgreSQL/owned AWS remain open. Azure Blob public properties pass SDK, manager/LINQ, local and hosted HTTP/Mongo checks. Hosted60/browser28/open32; tariff depth is separately scoped. Preserved broad-branch prototypes are not silently counted as current hosted coverage. Full ORM/EF parity/HyperDrive certification remains incomplete.
+The prior baseline contained 103 scoped query profiles: 3 canonical adapters, 57 bounded public/source profiles and 43 other local implementations, including 31 recovered historical demos. The three 6 November local HTTP passes above bring the scoped count to 106. Meilisearch, Solr, ArcadeDB, OpenSearch, Elasticsearch, PouchDB and MinIO add native/restart, manager/Mongo/HTTP and local browser5/4 proof to the preserved96baseline. PostgreSQL content and AWS DynamoDB Local identity queries pass native and local Mongo/HTTP checks; hosted PostgreSQL/owned AWS remain open. Azure Blob public properties pass SDK, manager/LINQ, local and hosted HTTP/Mongo checks. Hosted60/browser28/open32; tariff depth is separately scoped. Preserved broad-branch prototypes are not silently counted as current hosted coverage. Full ORM/EF parity/HyperDrive certification remains incomplete.
 
 
 Provider inventory snapshot: 1 November 2026; hosted functional checkpoint updated2November2026. This is a report, not a claim of full production readiness.
