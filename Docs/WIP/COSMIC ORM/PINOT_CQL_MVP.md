@@ -17,3 +17,10 @@ remain open.
 [Apache Pinot release](https://pinot.apache.org/download/) ·
 [Broker Query API](https://docs.pinot.apache.org/reference/api-reference/query-api) ·
 [Batch ingestion](https://docs.pinot.apache.org/build-with-pinot/ingestion/batch-ingestion/batch-ingestion).
+
+The official broker passed 3/2/0 through the .NET CQL adapter after
+ingesting five source records with four public flags. The test passed
+with zero skips and verified omission of the private row, canonical
+tombstone and absent key. The 84,075-byte CI artifact SHA-256 is
+`5db76972fe4693965fabd217aeb0ae4807ab305224cc791a2dea216f42b4ec8d`.
+[Passing Linux run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42262964991).
