@@ -676,3 +676,19 @@ Deployment `33c9ef7d-b8b3-4403-9109-32ce47c4d7a8` is `SUCCESS` at
 The active deployment does not show the reviewed LocalFile candidate digest.
 This leaves registry pull access, the exact running candidate and an
 instance-level writable mount check open. No source or variable changed.
+
+### Development Git release queued
+
+Scoped Railway status confirmed that Development WEB4 uses the OASIS Git
+repository and tracks `Development`. The service has one ready `/data`
+volume attachment in service metadata. The authenticated GHCR manifest HEAD
+returned HTTP 404 on this machine. The existing Git deploy path was used.
+
+The reviewed candidate `c64adf474` passed the seven manifest/gitlink
+comparisons. The exact Core pin was fetched from its remote. GitHub image
+build run `41948106729` reports success. `Development` advanced by a normal
+fast-forward and the remote ref was verified. Railway queued exact deployment
+`ef66367e-a041-4d47-9f71-17bf31950d2c`. Follow that job. After it succeeds,
+verify the actual instance mount and the five-value candidate against the
+current hosted baseline before making any settings change. The retained
+original candidate matched the live baseline before release.
