@@ -2,6 +2,7 @@
 import argparse
 import importlib.util
 import json
+import re
 from pathlib import Path
 
 
@@ -23,6 +24,7 @@ REQUIRED_SOURCE_TOKENS = {
     "VercelKVOASIS": "CQL_VERCEL_KV_QUERY_READER_TOKEN",
     "DenoDeployOASIS": "CQL_DENO_KV_QUERY_READER_TOKEN",
     "AppwriteOASIS": "CQL_APPWRITE_QUERY_READER_TOKEN",
+    "ConvexOASIS": "CQL_CONVEX_QUERY_READER_TOKEN",
 }
 
 
@@ -38,6 +40,8 @@ def candidate(before, provider, review):
         maximum_length = 8192 if provider == "DenoDeployOASIS" else 1024
         if (not isinstance(token, str) or not 1 <= len(token) <= maximum_length
                 or any(not 33 <= ord(character) <= 126 for character in token)):
+            raise ValueError("A valid protected source token is required.")
+        if provider == "ConvexOASIS" and not re.fullmatch(r"[A-Za-z0-9_-]{32,256}", token):
             raise ValueError("A valid protected source token is required.")
     admission = json.loads(before[ADMISSION])
     grants = json.loads(before.get(GRANTS, "{}"))

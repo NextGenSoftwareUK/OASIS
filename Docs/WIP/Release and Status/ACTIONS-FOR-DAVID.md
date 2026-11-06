@@ -743,7 +743,14 @@ and hosted federation and replication verification.
 
 ## Appwrite DocumentsDB teaching project access - 2026-11-06
 
-- Status: five CQL profile checks and 14 storage regressions passed. The native HTTPS verifier compiled. No credentialed request has run.
+- Status: five CQL profile checks, 14 storage regressions and nine WEB4 admission checks passed. The native HTTPS verifier compiled. Credentialed verification is open.
 - Owner step: identify an existing dedicated Appwrite teaching project and its HTTPS endpoint, project ID and database ID. Review the current `documentsdb.documents.read` scope and arrange a reader key through protected `CQL_APPWRITE_QUERY_READER_TOKEN` settings. No new project or paid resource is requested.
 - Engineering owns verifying the unique `oasis_id` index, three public roots, one tombstone, one absent key and the native 3/2/0 and unchanged payload checks before Development enrollment.
 - Reason: the key is scoped to document reads in its project, so the reviewed teaching project and exact catalogue must be confirmed. [Appwrite evidence](../COSMIC%20ORM/APPWRITE_CQL_MVP.md) · [API key scopes](https://appwrite.io/docs/partners/project/api-keys#scopes).
+
+## Convex teaching deployment access - 2026-11-06
+
+- Status: the isolated Windows backend passed the companion HTTP probe. All 20 adapter and Function API tests passed. Hosted proof is open and follows LocalFile.
+- Owner step: identify an existing dedicated Convex teaching project and its approved HTTPS site. Arrange project access to deploy the tracked teaching companion and set the dedicated reader token in the Convex deployment and protected WEB4 settings. Keep the token and deployment credentials private. No new paid resource is requested.
+- Engineering owns seeding three public roots, a tombstone and a private control, reserving one absent key, verifying the native CQL 3/2/0 and unchanged public responses, and reviewing the exact settings before WEB4 enrollment.
+- Reason: the existing Convex deployment must be approved for the standalone teaching schema and synthetic data. [Convex evidence](../COSMIC%20ORM/CONVEX_CQL_MVP.md).

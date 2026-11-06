@@ -1845,6 +1845,18 @@ same qualification directory. The log is
 `TestResults/ProviderBuildCurrent/convex-provider-cql.log`.
 All 20 checks passed and the shared Core checkout was restored.
 
+Convex WEB4 admission reuses the same qualification workspace.
+`verify-hosted-cql.ps1` records its candidate Core pin and `admission.trx`.
+The leased build writes `TestResults/ProviderBuildCurrent/convex-hosted-api-cql.log`.
+The 27 protected-settings tests passed with bytecode disabled. The leased
+WEB4 run passed all 18 cases and restored the original Core checkout.
+
+Turso CQL drafts are in `LocalState/COSMIC/LocalTursoCqlQualification/`.
+The upstream release check used metadata only. The Windows CLI's
+sync server uses the sync protocol. The official libSQL server assets
+target Linux and macOS, and WSL2 is unavailable on this machine. No
+runtime download, environment install or fixture database was created.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt
