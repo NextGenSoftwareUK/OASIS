@@ -1933,6 +1933,26 @@ listed here for cleanup when permitted. The earlier Convex npm cache
 removal was also rejected by the command policy and the cache remains
 at `LocalConvexCqlQualification/npm-cache`.
 
+OrbitDB .NET controls and native sidecar qualification use
+`LocalOrbitDbCqlQualification/verify-provider.ps1`. The output paths are
+`provider.trx`, `provider-native.trx`, `provider-core-pin.txt` and fixture
+`f3` under that folder, plus the `orbitdb-provider-cql.log` and
+`orbitdb-native-cql.log` under `TestResults/ProviderBuildCurrent/`.
+The provider and test binaries use normal project `bin/obj` directories.
+The leased run passed all 11 provider controls and one native CQL case.
+The lease restored the original Core checkout and the owned sidecar
+released port 54869.
+
+GUN preparation reuses the bundled Node and npm CLI. The only planned
+install is `gun@0.2020.1241` in
+`LocalState/COSMIC/LocalGunCqlQualification/`, with `npm-cache` contained
+there. No global install or hosted data was involved. It added 11
+packages. The local `node_modules` is 5,168,622 bytes, `npm-cache`
+is 4,919,135 bytes and the synthetic fixture `f` is 1,318 bytes.
+The native `probe-radisk.cjs` seed and read processes exited. The probe
+verified persistence and rejected the standard relay's absent legacy
+HTTP graph route.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt
