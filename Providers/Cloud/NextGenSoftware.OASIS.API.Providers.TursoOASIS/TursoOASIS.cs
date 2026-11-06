@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -35,6 +37,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
     {
         private readonly HttpClient _http;
         private readonly string _pipelineUrl;
+        private readonly bool _queryOnly;
+        private const string ExactHolonSql = "SELECT id, is_deleted, data_json FROM oasis_holons WHERE id=? LIMIT 2";
 
         private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
         {
@@ -48,10 +52,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
         {
         }
 
-        internal TursoOASIS(string url, string authToken, HttpMessageHandler handler)
+        internal TursoOASIS(string url, string authToken, HttpMessageHandler handler, bool queryOnly = false)
         {
             _pipelineUrl = url.TrimEnd('/') + "/v2/pipeline";
             _http = new HttpClient(handler);
+            _queryOnly = queryOnly;
             _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {authToken}");
             ProviderName = "TursoOASIS";
             ProviderDescription = "Turso (libSQL) provider via libSQL HTTP pipeline API";
@@ -75,8 +80,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
         private static LibSqlArg Arg(string? value) => new LibSqlArg { Type = value == null ? "null" : "text", Value = value };
         private static LibSqlArg ArgInt(long? value) => new LibSqlArg { Type = value == null ? "null" : "integer", Value = value?.ToString() };
 
-        private async Task<LibSqlResult?> ExecuteSqlAsync(string sql, List<LibSqlArg>? args = null)
+        private async Task<LibSqlResult?> ExecuteSqlAsync(string sql, List<LibSqlArg>? args = null,
+            CancellationToken cancellationToken = default)
         {
+            if (_queryOnly && sql != ExactHolonSql)
+                throw new NotSupportedException("The Turso teaching profile exposes exact CQL reads.");
             var payload = new PipelineRequest
             {
                 Requests = new List<PipelineStmt>
@@ -85,9 +93,19 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                     new PipelineStmt { Type = "close" }
                 }
             };
-            using var content = new StringContent(JsonSerializer.Serialize(payload, _jsonOpts), Encoding.UTF8, "application/json");
-            using var response = await _http.PostAsync(_pipelineUrl, content);
-            var json = await response.Content.ReadAsStringAsync();
+            using var request = new HttpRequestMessage(HttpMethod.Post, _pipelineUrl)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(payload, _jsonOpts), Encoding.UTF8, "application/json")
+            };
+            using var response = await _http.SendAsync(request,
+                _queryOnly ? HttpCompletionOption.ResponseHeadersRead : HttpCompletionOption.ResponseContentRead,
+                cancellationToken);
+            if (_queryOnly)
+            {
+                response.EnsureSuccessStatusCode();
+                await response.Content.LoadIntoBufferAsync(2 * 1024 * 1024, cancellationToken);
+            }
+            var json = await response.Content.ReadAsStringAsync(cancellationToken);
             if (!response.IsSuccessStatusCode) throw new Exception($"TursoOASIS HTTP {(int)response.StatusCode}: {json}");
             var pr = JsonSerializer.Deserialize<PipelineResponse>(json, _jsonOpts);
             if (pr?.Results is not { Count: 2 } results)
@@ -98,6 +116,24 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                 throw new InvalidOperationException("Turso did not acknowledge closing the SQL stream.");
             return result;
         }
+
+        internal async Task<string> ReadExactTeachingHolonAsync(Guid id, CancellationToken cancellationToken)
+        {
+            var key = id.ToString("D");
+            var result = await ExecuteSqlAsync(ExactHolonSql, new List<LibSqlArg> { Arg(key) }, cancellationToken);
+            if (result?.Cols is not [{ Name: "id" }, { Name: "is_deleted" }, { Name: "data_json" }] ||
+                result.Rows is not { Count: <= 1 } rows)
+                throw new InvalidDataException("Unexpected Turso exact-ID projection.");
+            if (rows.Count == 0) return null!;
+            if (rows[0] is not [{ Type: "text" } identity, { Type: "integer" } deletion, var data] ||
+                identity.Value != key || deletion.Value is not ("0" or "1"))
+                throw new InvalidDataException("Unexpected Turso exact-ID row.");
+            if (deletion.Value == "1") return null!;
+            return data is { Type: "text", Value: { } json } ? json :
+                throw new InvalidDataException("The live Turso row has no holon payload.");
+        }
+
+        internal void DisposeTransport() => _http.Dispose();
 
         private async Task ExecAsync(string sql, List<LibSqlArg>? args = null) => await ExecuteSqlAsync(sql, args);
 

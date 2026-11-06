@@ -1,0 +1,104 @@
+name: Qualify native Turso libSQL CQL
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-turso-native.yml'
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.TursoOASIS/**'
+      - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.TursoOASIS.UnitTests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: turso-native-qualification
+  cancel-in-progress: false
+
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          persist-credentials: false
+      - name: Read reviewed dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|OASIS_API_CORE_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/OASIS-API-Core
+          ref: ${{ steps.dependency.outputs.OASIS_API_CORE_COMMIT }}
+          path: OASIS/OASIS Architecture/NextGenSoftware.OASIS.API.Core
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Run the real libSQL pipeline on a disposable loopback database
+        working-directory: OASIS
+        shell: bash
+        env:
+          COSMIC_TURSO_FIXTURE_PORT: '54868'
+        run: |
+          fixture=$(mktemp -d "${RUNNER_TEMP}/turso-cql.XXXXXXXX")
+          [[ "$fixture" == "$RUNNER_TEMP"/turso-cql.* ]]
+          pid=
+          cleanup() {
+            if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+              kill "$pid"
+              wait "$pid" || true
+            fi
+            rm -rf -- "$fixture"
+          }
+          trap cleanup EXIT
+          mkdir -p TestResults/TursoNative
+          asset=libsql-server-x86_64-unknown-linux-gnu.tar.xz
+          curl --fail --silent --show-error --location --max-time 90 \
+            "https://github.com/tursodatabase/libsql/releases/download/libsql-server-v0.24.32/$asset" \
+            --output "$fixture/$asset"
+          printf '71720fc8648c19efef416efebd47145ef59b62e198770533530a858e1336879f  %s\n' "$fixture/$asset" | sha256sum --check
+          tar -xJf "$fixture/$asset" -C "$fixture"
+          mapfile -t executables < <(find "$fixture" -type f -name sqld)
+          test "${#executables[@]}" -eq 1
+          "${executables[0]}" --http-listen-addr "127.0.0.1:$COSMIC_TURSO_FIXTURE_PORT" \
+            --db-path "$fixture/db" > TestResults/TursoNative/sqld.log 2>&1 &
+          pid=$!
+          endpoint="http://127.0.0.1:$COSMIC_TURSO_FIXTURE_PORT/v2"
+          for attempt in {1..30}; do
+            kill -0 "$pid"
+            if curl --fail --silent --max-time 2 "$endpoint" >/dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent --show-error --max-time 2 "$endpoint" >/dev/null
+          pwsh -NoProfile -Command '
+            $ErrorActionPreference = "Stop"
+            & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner turso-native-ci -Operation {
+              $test = "NextGenSoftware.OASIS.API.Providers.TursoOASIS.UnitTests"
+              dotnet test "Providers/Cloud/TestProjects/$test/$test.csproj" /m:2 /nr:false /p:UseSharedCompilation=false --filter "TestCategory=TursoNativeCql" --results-directory TestResults/TursoNative --logger "trx;LogFileName=native.trx"
+              if ($LASTEXITCODE -ne 0) { throw "Native Turso CQL test failed" }
+            }'
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          counters = ET.parse("TestResults/TursoNative/native.trx").find(".//{*}Counters")
+          if counters is None or counters.get("total") != "1" or counters.get("passed") != "1":
+              raise SystemExit("Exactly one real native Turso test must pass.")
+          PY
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: turso-native-qualification
+          path: OASIS/TestResults/TursoNative/
+          retention-days: 7

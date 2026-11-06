@@ -1863,6 +1863,19 @@ sync server uses the sync protocol. The official libSQL server assets
 target Linux and macOS, and WSL2 is unavailable on this machine. No
 runtime download, environment install or fixture database was created.
 
+Turso provider verification reused the existing .NET SDK and lease.
+`LocalTursoCqlQualification/provider.trx`, `provider-core-pin.txt` and
+`verify-provider-batch.ps1` retain the controlled run. Its log is
+`TestResults/ProviderBuildCurrent/turso-provider-cql.log`.
+Provider and test outputs are in their existing project `bin/obj` paths.
+Ten checks passed and the shared Core checkout was restored.
+
+The Turso native CI job downloads only the 10,990,112-byte official Linux
+libSQL archive to its disposable runner directory. The job verifies the
+digest, stops the owned server, removes the archive and fixture, and
+retains only the report and server log for seven days. No local runtime
+or database is involved.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt
