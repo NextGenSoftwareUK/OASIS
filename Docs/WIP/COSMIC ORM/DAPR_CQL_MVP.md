@@ -57,6 +57,10 @@ A second sidecar used a restricted Redis ACL principal and read the record
 with its ETag. The attempted update returned Redis `NOPERM` through the
 sidecar, and the value and ETag remained identical. The result SHA-256 is
 `78db3be203f637125ae4cf0c37ad3e19ccad926c03c1d135870f58932a811e04`.
-This qualifies the local permission model. The actual Development backing
-store, sidecar, gRPC CQL results and visitor route still require verification.
+The follow-up run passed native gRPC CQL 3/2/0 through that same restricted
+sidecar at Core `7ee05c39f2415d3da7ed41acb6514ff6dc2db87d`. Values and ETags
+were unchanged. The native CQL log SHA-256 is
+`b0e5e321d3df08f010ffa7fd2a874b13aa1d24fb25deed43c906fd09c0ba1489`.
+The actual Development backing store, sidecar and visitor route still require
+verification.
 [Dapr Redis component](https://docs.dapr.io/reference/components-reference/supported-state-stores/setup-redis/).

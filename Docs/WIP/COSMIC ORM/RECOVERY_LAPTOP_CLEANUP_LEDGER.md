@@ -1748,6 +1748,12 @@ and unchanged value/ETag checks. Both directories under the Dapr qualification
 retain compact logs only. The temporary ACL and component files were removed,
 and ports 54861–54864 cleared. No downloads or database files were created.
 
+The combined Dapr/Garnet CQL run used `verify-garnet-cql.ps1` and reused
+the native probe's existing build directory. It retained `garnet-cql-build.log`,
+`garnet-cql-core-pin.txt` and the compact `garnet-reader-e28cf7166670dd05/`
+receipts. The CQL 3/2/0 and write-denial tests passed. Ports 54861–54864
+were clear, Core was restored and the run directory contained only logs.
+
 The separate settings CLI rehearsal
 `settings-rehearsal-be124372401d4c7baf1274b862046f70` verified that exclusive
 output preserves an existing patch and an invalid qualification receipt
