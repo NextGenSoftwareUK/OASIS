@@ -8,6 +8,13 @@ closed-port failure checks or ephemeral loopback HTTP stubs, not original native
 services/credentials/fixtures. Prior native/browser acceptance below is historical;
 current runtime availability and hosted Memcached were not reverified.
 
+The recovery launcher resolves the test assembly and output directory from
+its own checkout. On this laptop, missing Ubuntu path resolution stops it
+before acquiring the build lease or changing existing evidence. The regular
+CI Memcached job selects standalone service tests. The retained CQL and
+Mongo tests still run through the dedicated launcher with their ownership
+and pending-generation checks. The launcher path and CI selection were
+checked locally. A live recovery-laptop daemon and CI execution remain open.
 
 Updated30 October2026. Current native/C#/HTTP/browser integration verified;
 persistence, atomic shared indexes and full parity remain incomplete.

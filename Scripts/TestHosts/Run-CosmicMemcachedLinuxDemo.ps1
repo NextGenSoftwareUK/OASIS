@@ -2,6 +2,10 @@ param([switch]$Federated,[switch]$Serve)
 $ErrorActionPreference='Stop'
 if(!$Federated){throw 'Use the explicit Mongo-paired Linux teaching preset.'}
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+$scriptPath=(Join-Path $root 'Scripts/TestHosts/run-cosmic-memcached-linux.py').Replace('\','/')
+$linuxPath=& wsl -d Ubuntu -- wslpath -u $scriptPath
+if($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($linuxPath)){throw 'Worktree Linux path resolution failed.'}
+$linuxPath=$linuxPath.Trim()
 $results=Join-Path $root 'TestResults/MemcachedCqlCurrent'
 [void][IO.Directory]::CreateDirectory($results)
 & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner 'COSMIC Memcached Linux paired demo' -Operation {
@@ -14,9 +18,6 @@ $results=Join-Path $root 'TestResults/MemcachedCqlCurrent'
     }
     & dotnet build $project --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false *> (Join-Path $results 'paired-build.log')
     if($LASTEXITCODE){throw 'Paired consumer build failed.'}
-    $scriptPath=(Join-Path $root 'Scripts/TestHosts/run-cosmic-memcached-linux.py').Replace('\','/')
-    $linuxPath=(& wsl -d Ubuntu -- wslpath -u $scriptPath).Trim()
-    if($LASTEXITCODE){throw 'Worktree Linux path resolution failed.'}
     if($Serve){& wsl -d Ubuntu -- python3 $linuxPath --federated --serve}
     else{& wsl -d Ubuntu -- python3 $linuxPath --federated}
     if($LASTEXITCODE){throw 'Linux native/replica/paired verification incomplete; inspect original journals.'}

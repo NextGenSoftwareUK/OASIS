@@ -144,6 +144,8 @@ jobs:
             image: memcached:1.6-alpine
             ports: 11211:11211
             wait: 11211
+            # The CQL generation and Mongo tests require separately owned fixtures.
+            filter: FullyQualifiedName~MemcachedOASISIntegrationTests
 
           # Document and graph stores.
           - name: MongoDB

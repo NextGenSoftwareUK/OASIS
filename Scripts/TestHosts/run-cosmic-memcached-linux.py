@@ -21,7 +21,7 @@ if options.serve and not options.federated:
 sys.dont_write_bytecode = True
 from cosmic_linux_mongo_service import owned_linux_mongo
 
-ROOT = Path("/mnt/c/Source/OASIS-cosmic")
+ROOT = Path(__file__).resolve().parents[2]
 STATE = Path("/var/tmp/oasis-memcached-cql")
 RESULTS = ROOT / "TestResults/MemcachedCqlCurrent"
 DAEMON = Path("/var/tmp/oasis-runtimes/memcached-1.6.40/usr/bin/memcached")
