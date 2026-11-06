@@ -2397,3 +2397,39 @@ shared cache entries separately from disposable test outputs.
 The recovered Cassandra provider suite passed all 23 tests. The build
 restored the original Core checkout. The TRX hash is in the Cassandra
 evidence note.
+
+Cassandra WEB4 admission uses one shared build lease. The runner, Core
+pin and eventual TRX are under `LocalState/COSMIC/HostedCassandraCqlQualification/`.
+The log is `TestResults/ProviderBuildCurrent/cassandra-hosted-api-cql.log`.
+Eleven protected-settings tests passed and cleaned their temporary files.
+No Astra account, secure connection bundle or native server was created.
+
+RavenDB certificate recovery reuses the existing .NET environment and
+prior native evidence. The runner is
+`LocalState/COSMIC/HostedRavenDbCqlQualification/verify-recovered-provider.ps1`.
+It is queued after Cassandra's WEB4 build. Its Core pin, log and TRX use
+the `raven-certificate-` prefix in `TestResults/ProviderBuildCurrent/`.
+No RavenDB server or license change is needed for this run.
+
+The first Cassandra WEB4 build reached the provider compiler and reported
+CS1729 for the driver retry-policy constructor. The pinned driver assembly
+exposes `FallthroughRetryPolicy.Instance`, which the code now uses.
+The existing candidate will be checked using `recheck-hosted-cql.ps1`
+in the same Cassandra qualification directory. It reuses the original
+Core pin and writes `cassandra-hosted-api-cql-recheck.log` beside the first log.
+
+The Cassandra recheck now runs the RavenDB certificate provider suite
+after successful WEB4 admission, using the same lease and Core pin.
+It writes RavenDB's separate evidence to the previously recorded paths.
+The standalone RavenDB runner remains available for a provider-only run.
+
+The corrected Cassandra provider and WEB4 application compiled on recheck.
+The test project then reported CS0117 because its `File` name referred to
+a different type. The test now explicitly uses `System.IO.File`.
+`recheck-hosted-tests.ps1` rebuilds the tests against the already-built
+WEB4 binaries at the same Core pin under one lease. It writes
+`cassandra-hosted-api-cql-final.log` and runs the RavenDB provider suite
+after Cassandra admission passes.
+
+Cassandra WEB4 admission passed six tests with no skips on the corrected
+test build. The evidence note records the final admission TRX hash.

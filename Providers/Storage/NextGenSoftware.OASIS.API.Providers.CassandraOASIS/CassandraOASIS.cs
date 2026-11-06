@@ -83,6 +83,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
 
         private ISession GetSession()
         {
+            if (RequiresPublicQueryRecords)
+                throw new InvalidOperationException("The Cassandra teaching source only accepts bounded CQL reads.");
             if (_session != null) return _session;
             var builder = Cluster.Builder().AddContactPoints(_contactPoints).WithPort(_port);
             if (!string.IsNullOrEmpty(_username)) builder = builder.WithCredentials(_username, _password);

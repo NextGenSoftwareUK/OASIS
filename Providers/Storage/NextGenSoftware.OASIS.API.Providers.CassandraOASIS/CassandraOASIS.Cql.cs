@@ -18,6 +18,56 @@ public partial class CassandraOASIS : ICosmicQueryStorageProvider
 {
     public ProviderType QueryProviderType => Core.Enums.ProviderType.CassandraOASIS;
     public CosmicQueryCapabilities QueryCapabilities => CassandraCqlCompiler.Capabilities;
+    protected virtual bool RequiresPublicQueryRecords => false;
+
+    protected async Task<OASISResult<bool>> ActivatePublicQuerySourceAsync(
+        Func<ICluster> connect, Guid probe, CancellationToken cancellationToken)
+    {
+        ICluster? cluster = null;
+        ISession? session = null;
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (IsProviderActivated && _session != null) return new(true);
+
+            cluster = connect();
+            cancellationToken.ThrowIfCancellationRequested();
+            session = await cluster.ConnectAsync(_keyspace).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            var statement = new SimpleStatement(
+                $"SELECT id, is_deleted, data_json FROM {_keyspace}.oasis_holons WHERE id = ?", probe);
+            var rows = await session.ExecuteAsync(statement).ConfigureAwait(false);
+            var row = rows.SingleOrDefault();
+            if (row == null || row.GetValue<Guid>("id") != probe || row.GetValue<bool>("is_deleted"))
+                throw new InvalidDataException("The configured live teaching row was not returned.");
+            var json = row.GetValue<string>("data_json");
+            if (json == null || Encoding.UTF8.GetByteCount(json) > 1024 * 1024 ||
+                Des<Holon>(json) is not { IsPublic: true, IsDeleted: false } holon || holon.Id != probe)
+                throw new InvalidDataException("The Cassandra probe must be an existing public holon.");
+            cancellationToken.ThrowIfCancellationRequested();
+            _cluster = cluster;
+            _session = session;
+            cluster = null;
+            session = null;
+            IsProviderActivated = true;
+            return new(true);
+        }
+        catch (Exception cause)
+        {
+            return new()
+            {
+                IsError = true, ErrorCount = 1,
+                ErrorCode = cause is OperationCanceledException ? "CQL_QUERY_CANCELLED" : "CQL_QUERY_SOURCE_UNAVAILABLE",
+                Message = "The Cassandra teaching source did not verify its probe.",
+                Exception = cause
+            };
+        }
+        finally
+        {
+            try { session?.Dispose(); }
+            finally { cluster?.Dispose(); }
+        }
+    }
 
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100,
@@ -67,6 +117,8 @@ public partial class CassandraOASIS : ICosmicQueryStorageProvider
                     if (row == null || row.Id != id || !plan.Query.ReadAccess.CanRead(row))
                         throw new InvalidDataException("Native holon differs from read authority.");
                     if (record.GetValue<bool>("is_deleted") || row.IsDeleted) continue;
+                    if (RequiresPublicQueryRecords && !row.IsPublic)
+                        throw new InvalidDataException("Native Cassandra teaching record is no longer public.");
                     row.Children = Array.Empty<IHolon>();
                     materialized.Add(id, row);
                 }

@@ -118,3 +118,30 @@ admission and live verification are separate gates.
 
 The recovered provider suite passed all 23 tests against Core 6eb8d7dd444b2196c7e2bc598e9a21925cf75750.
 Recovery TRX SHA256 8dfba90def037c17c90a26718bea24cdf909c9a88e70c150c519673e2d83acb3.
+
+### Development WEB4 admission candidate
+
+The opt-in source uses CassandraCSharpDriver 3.21.0 and Astra's native
+secure connection bundle. Place the approved bundle at
+`/data/cql-secrets/cassandra/secure-connect.zip` on the same persistent
+WEB4 volume required by LocalFile, with access restricted to the service
+and its operator. The source verifies the bundle SHA256 before invoking
+the driver. It uses a dedicated application token with SELECT on
+`oasis.oasis_holons` and verifies one existing public UUID before activation.
+The canonical provisioning path remains separate.
+
+The protected `CQL_CASSANDRA_QUERY_` settings are `BUNDLE_SHA256`,
+`READER_TOKEN` and `PROBE_ID`. The digest must match the reviewed
+catalogue's `BundleSha256`, and the probe must match its first live ID.
+The bundle and token belong in protected deployment state.
+[Native driver connection contract](https://docs.datastax.com/en/astra-db-serverless/databases/csharp-driver.html) ·
+[Railway volume contract](https://docs.railway.com/volumes/reference).
+
+Eleven protected-settings tests passed. The first WEB4 build reported that
+the pinned driver's retry policy is exposed as a shared instance. The call
+now uses that instance and will be verified at the same Core pin
+`439098484a74d8c84990fc1bbeb2b1228d5320d9`. The approved Astra teaching
+database, restricted token, bundle placement and live visitor proof remain open.
+
+Final WEB4 admission passed all six tests with no skips at Core 439098484a74d8c84990fc1bbeb2b1228d5320d9.
+Admission TRX SHA256 5cbb33767e28155454521ad2105029734d4e10ed540333d78e4923398217d035.

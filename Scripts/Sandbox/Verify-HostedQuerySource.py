@@ -26,7 +26,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -340,6 +340,10 @@ def reviewed_exact_key_source(provider, path):
             fields |= {"Endpoint", "Bucket", "Originals"}
         if provider == "MinIOOASIS":
             fields.add("Region")
+        if provider == "CassandraOASIS":
+            fields.add("BundleSha256")
+            if not re.fullmatch(r"[0-9a-f]{64}", catalogue["BundleSha256"]):
+                raise ValueError("Unexpected Cassandra secure connection bundle digest.")
         if provider in ("CockroachDBOASIS", "TimescaleDBOASIS"):
             fields.add("Host")
             host = catalogue["Host"]
@@ -403,6 +407,9 @@ def reviewed_exact_key_source(provider, path):
         review["sourceBinding"] = {"CQL_TIMESCALEDB_QUERY_HOST": catalogue["Host"],
                                    "CQL_TIMESCALEDB_QUERY_PORT": str(catalogue["Port"]),
                                    "CQL_TIMESCALEDB_QUERY_PROBE_ID": ids[0]}
+    elif provider == "CassandraOASIS":
+        review["sourceBinding"] = {"CQL_CASSANDRA_QUERY_BUNDLE_SHA256": catalogue["BundleSha256"],
+                                   "CQL_CASSANDRA_QUERY_PROBE_ID": ids[0]}
     elif provider in ("WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS"):
         product = provider.removesuffix("OASIS").upper()
         review["sourceBinding"] = {f"CQL_{product}_QUERY_PROBE_ID": ids[0]}
