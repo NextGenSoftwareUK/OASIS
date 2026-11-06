@@ -602,6 +602,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             Services.Cql.CqlInfluxDbReadSourceRegistration.AddInfluxDbReadSource(services, Configuration);
             Services.Cql.CqlCouchbaseReadSourceRegistration.AddCouchbaseReadSource(services, Configuration);
             Services.Cql.CqlArangoDbReadSourceRegistration.AddArangoDbReadSource(services, Configuration);
+            Services.Cql.CqlCockroachDbReadSourceRegistration.AddCockroachDbReadSource(services, Configuration);
 
             if (Configuration["CQL_CHROMA_QUERY_ORIGIN"] is string chromaOrigin)
             {

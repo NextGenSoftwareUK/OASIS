@@ -21,6 +21,47 @@ public partial class PostgreSQLOASIS : ICosmicQueryStorageProvider
         Array.Empty<CosmicQueryFieldCapability>());
     // A product opts in explicitly; changing a provider enum cannot inherit certification.
     protected virtual ProviderType NativeBoundedQueryAuthority => Core.Enums.ProviderType.PostgreSQLOASIS;
+    protected virtual bool RequiresPublicQueryRecords => false;
+
+    protected async Task<OASISResult<bool>> VerifyPublicQueryProbeAsync(Guid id, CancellationToken cancellationToken)
+    {
+        IsProviderActivated = false;
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (id == Guid.Empty || QueryProviderType != NativeBoundedQueryAuthority)
+                throw new InvalidOperationException("An explicit query authority and teaching probe are required.");
+            await using var connection = new Npgsql.NpgsqlConnection(_connectionString);
+            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = new Npgsql.NpgsqlCommand(
+                "SELECT id,data_json,is_deleted FROM oasis_holons WHERE id=@id", connection) { CommandTimeout = 15 };
+            command.Parameters.AddWithValue("id", NpgsqlTypes.NpgsqlDbType.Uuid, id);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false) || reader.GetGuid(0) != id || reader.GetBoolean(2))
+                throw new InvalidDataException("The configured live teaching row was not returned.");
+            var json = reader.GetString(1);
+            if (Encoding.UTF8.GetByteCount(json) > 1024 * 1024)
+                throw new InvalidDataException("The teaching row exceeds the probe payload budget.");
+            var row = await ReadKeyedStoredRecordAsync<Holon>(id, json, 0).ConfigureAwait(false);
+            if (row == null || row.Id != id || row.IsDeleted || !row.IsPublic ||
+                await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                throw new InvalidDataException("The teaching probe must be a single existing public row.");
+            cancellationToken.ThrowIfCancellationRequested();
+            IsProviderActivated = true;
+            return new(true);
+        }
+        catch (Exception cause)
+        {
+            return new()
+            {
+                IsError = true, ErrorCount = 1,
+                ErrorCode = cause is OperationCanceledException ? "CQL_QUERY_CANCELLED" : "CQL_QUERY_SOURCE_UNAVAILABLE",
+                Message = "The native query source did not verify its teaching probe.",
+                Exception = cause
+            };
+        }
+    }
+
     public CosmicQueryCapabilities QueryCapabilities => QueryProviderType == NativeBoundedQueryAuthority
         ? PostgreSqlCqlCompiler.CapabilitiesFor(NativeBoundedQueryAuthority) : UnsupportedAliasCapabilities;
 
@@ -51,6 +92,7 @@ public partial class PostgreSQLOASIS : ICosmicQueryStorageProvider
             await using var connection = new Npgsql.NpgsqlConnection(_connectionString);
             await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
             command.Connection = connection;
+            if (RequiresPublicQueryRecords) command.CommandTimeout = 15;
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             var rows = new List<IHolon>();
             var payloadBytes = 0;
@@ -64,6 +106,8 @@ public partial class PostgreSQLOASIS : ICosmicQueryStorageProvider
                 var row = await ReadKeyedStoredRecordAsync<Holon>(id, json, 0).ConfigureAwait(false);
                 if (row == null || row.Id != id || !plan.Query.ReadAccess.CanRead(row) || row.IsDeleted != reader.GetBoolean(2))
                     throw new InvalidDataException("Native PostgreSQL columns differ from the authorized canonical record.");
+                if (RequiresPublicQueryRecords && !row.IsPublic)
+                    throw new InvalidDataException("Native teaching record is no longer public.");
                 row.Children = Array.Empty<IHolon>();
                 row.ProviderUniqueStorageKey[QueryProviderType] = id.ToString("D");
                 rows.Add(row);

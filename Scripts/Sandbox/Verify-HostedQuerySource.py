@@ -26,7 +26,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS",
 )
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
@@ -340,6 +340,13 @@ def reviewed_exact_key_source(provider, path):
             fields |= {"Endpoint", "Bucket", "Originals"}
         if provider == "MinIOOASIS":
             fields.add("Region")
+        if provider == "CockroachDBOASIS":
+            fields.add("Host")
+            host = catalogue["Host"]
+            if (not isinstance(host, str) or len(host) > 253 or not host.endswith(".cockroachlabs.cloud")
+                    or any(not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", label)
+                           for label in host.split("."))):
+                raise ValueError("Unexpected CockroachDB Cloud host.")
         if provider == "TigrisOASIS" and (
                 catalogue["Endpoint"] not in ("https://t3.storage.dev", "https://fly.storage.tigris.dev")
                 or not re.fullmatch(r"[a-z0-9][a-z0-9-]{1,61}[a-z0-9]", catalogue["Bucket"])):
@@ -382,6 +389,9 @@ def reviewed_exact_key_source(provider, path):
         review["sourceBinding"] = {"CQL_TIGRIS_QUERY_ORIGIN": catalogue["Endpoint"],
                                    "CQL_TIGRIS_QUERY_BUCKET": catalogue["Bucket"],
                                    "CQL_TIGRIS_QUERY_PROBE_ID": ids[0]}
+    elif provider == "CockroachDBOASIS":
+        review["sourceBinding"] = {"CQL_COCKROACHDB_QUERY_HOST": catalogue["Host"],
+                                   "CQL_COCKROACHDB_QUERY_PROBE_ID": ids[0]}
     elif provider in ("WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS"):
         product = provider.removesuffix("OASIS").upper()
         review["sourceBinding"] = {f"CQL_{product}_QUERY_PROBE_ID": ids[0]}

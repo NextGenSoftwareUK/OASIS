@@ -2348,3 +2348,13 @@ qualification directory, and the build restored the original Core checkout.
 The recovered CockroachDB provider run finished with 13 passed and 0 skipped.
 The Core checkout was restored. The provider TRX hash is in the CockroachDB
 MVP note and the log and TRX are retained under the recorded paths.
+
+CockroachDB WEB4 admission reuses the shared build environment and one lease.
+The runner, exact candidate Core pin and eventual TRX use
+`LocalState/COSMIC/HostedCockroachCqlQualification/`. The build log is
+`TestResults/ProviderBuildCurrent/cockroach-hosted-api-cql.log`.
+Nine protected-settings tests passed and cleaned their temporary files.
+
+CockroachDB WEB4 admission finished with nine passed and zero skipped.
+The build restored the original Core checkout. The exact TRX hash is in
+the CockroachDB MVP note.

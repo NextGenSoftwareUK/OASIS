@@ -173,3 +173,21 @@ The shared PostgreSQL compiler now selects native UUID order for CockroachDB
 while preserving the existing PostgreSQL SQL. The new command test checks
 native ordering and typed UUID array binding.
 Recovery provider TRX SHA256 649822b66ef29abe272e1d5b63edf52168487058a7b2759a31a7e73833034737.
+
+### Development WEB4 admission candidate
+
+The profile uses Npgsql and verified TLS to a single vendor-managed
+`.cockroachlabs.cloud` DNS name on port 26257. It uses only the protected
+`CQL_COCKROACHDB_QUERY_HOST`, `READER_PASSWORD` and `PROBE_ID` settings,
+with the same prefix on all three. Configure the fixed `cosmic_reader`
+account for SELECT on `oasis.public.oasis_holons`. The protected host must
+match the reviewed catalogue's `Host`, and the probe must be the first
+catalogue ID. Activation reads that UUID and checks the
+public record. The source remains inactive if the probe fails.
+[Vendor connection contract](https://www.cockroachlabs.com/docs/stable/build-a-python-app-with-cockroachdb-psycopg3).
+
+All nine protected configuration tests and all nine WEB4 admission tests passed.
+An approved hosted teaching source and live verification are still required.
+
+WEB4 admission tested at Core 68743893cb8ab0f0fc3671f7d7c483cb97df2e8e.
+Admission TRX SHA256 9390561c6525b9b016261e484ba61d6848356e79de2f2dc7f6d091d1eb1db6be.
