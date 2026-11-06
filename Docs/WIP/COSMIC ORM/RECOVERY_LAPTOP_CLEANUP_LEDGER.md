@@ -2165,3 +2165,17 @@ TRX SHA256 `03b1f5b609baef1c3aa9287938794d9b1c21fc13511d03774d96b34d46025c6b`.
 The owned loopback process exited, its port closed, and its four exact
 credential files were removed. Core returned to `54159614`.
 The launcher is preserved at `Scripts/TestHosts/run-cosmic-garnet-windows-public.py`.
+
+Dragonfly WEB4 preparation reuses the Redis-family SDK, build outputs and
+shared test lease. No product runtime was downloaded. Results use
+`LocalState/COSMIC/HostedDragonflyCqlQualification/`. Logs are
+`TestResults/ProviderBuildCurrent/dragonfly-hosted-native-fixture.log`
+and `dragonfly-hosted-api-cql.log` in that directory. The protected
+settings suite passed its four tests, including the Dragonfly case,
+and removed its temporary files.
+
+Dragonfly WEB4 admission passed 14/14, zero failures or skips.
+`admission.trx` SHA256:
+`5C44556C7DCE8C6CBC9A9F0FB41AF4580F313D4B1B57C2AEC14906225BA09054`.
+The native fixture compiled with 1,154 warnings and zero errors.
+Shared Core was restored to `54159614`. No native connection was opened.

@@ -26,10 +26,10 @@ public class CqlRedisFamilyHostedConfigurationTests
         services.AddRedisFamilyReadSources(new ConfigurationBuilder().Build());
         Assert.Empty(services);
         services.AddRedisFamilyReadSources(new ConfigurationBuilder()
-            .AddInMemoryCollection(new[] { "REDIS", "VALKEY", "GARNET", "KEYDB" }.SelectMany(Settings)).Build());
+            .AddInMemoryCollection(new[] { "REDIS", "VALKEY", "GARNET", "KEYDB", "DRAGONFLY" }.SelectMany(Settings)).Build());
         using var container = services.BuildServiceProvider();
         var profiles = container.GetServices<CqlReadSourceProfile>().ToArray();
-        Assert.Equal(new[] { ProviderType.RedisOASIS, ProviderType.ValKeyOASIS, ProviderType.GarnetOASIS, ProviderType.KeyDBOASIS },
+        Assert.Equal(new[] { ProviderType.RedisOASIS, ProviderType.ValKeyOASIS, ProviderType.GarnetOASIS, ProviderType.KeyDBOASIS, ProviderType.DragonflyOASIS },
             profiles.Select(profile => profile.Storage.ProviderType.Value).ToArray());
         Assert.All(profiles, profile => Assert.False(profile.Storage.IsProviderActivated));
     }
@@ -49,6 +49,7 @@ public class CqlRedisFamilyHostedConfigurationTests
     }
 
     [Theory]
+    [InlineData("DRAGONFLY", "PASSWORD", null)]
     [InlineData("GARNET", "PASSWORD", null)]
     [InlineData("KEYDB", "ADDRESS", "127.0.0.1")]
     [InlineData("VALKEY", "PASSWORD", null)]

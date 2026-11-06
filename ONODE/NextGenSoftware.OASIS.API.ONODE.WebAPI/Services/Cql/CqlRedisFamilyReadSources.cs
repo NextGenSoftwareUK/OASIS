@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using StackExchange.Redis;
+using DragonflyProvider = NextGenSoftware.OASIS.API.Providers.DragonflyOASIS.DragonflyOASIS;
 using GarnetProvider = NextGenSoftware.OASIS.API.Providers.GarnetOASIS.GarnetOASIS;
 using KeyDbProvider = NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.KeyDBOASIS;
 using RedisProvider = NextGenSoftware.OASIS.API.Providers.RedisOASIS.RedisOASIS;
@@ -22,6 +23,7 @@ public static class CqlRedisFamilyReadSources
         var valkey = ReadSettings(configuration, "VALKEY");
         var garnet = ReadSettings(configuration, "GARNET");
         var keyDb = ReadSettings(configuration, "KEYDB");
+        var dragonfly = ReadSettings(configuration, "DRAGONFLY");
         if (redis != null)
             services.AddSingleton<CqlReadSourceProfile>(_ => new CqlReadSourceProfile(new RedisProvider(
                 redis.Connection, redis.ResolveStorageKey, redis.Probe)));
@@ -34,6 +36,9 @@ public static class CqlRedisFamilyReadSources
         if (keyDb != null)
             services.AddSingleton<CqlReadSourceProfile>(_ => new CqlReadSourceProfile(new KeyDbProvider(
                 keyDb.Connection, keyDb.ResolveStorageKey, keyDb.Probe)));
+        if (dragonfly != null)
+            services.AddSingleton<CqlReadSourceProfile>(_ => new CqlReadSourceProfile(new DragonflyProvider(
+                dragonfly.Connection, dragonfly.ResolveStorageKey, dragonfly.Probe)));
     }
 
     private sealed class Source(ConfigurationOptions connection, string encodedKey, Guid probe)

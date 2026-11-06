@@ -24,7 +24,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
         self.check_candidate("TigrisOASIS")
 
     def test_redis_family_candidates_preserve_existing_providers(self):
-        for provider in ("GarnetOASIS", "KeyDBOASIS"):
+        for provider in ("GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS"):
             with self.subTest(provider=provider):
                 self.check_candidate(provider)
 
@@ -56,7 +56,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":

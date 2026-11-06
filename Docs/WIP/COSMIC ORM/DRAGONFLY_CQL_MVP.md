@@ -79,3 +79,26 @@ registration, active replication/cluster/failover, public hosting, AOF/per-save 
 durability/PITR and distributed snapshots remain unverified for this scope.
 [Historical proof/failure review](Archive/DRAGONFLY_CQL_MVP_PRESERVED_2026-10-30.md),
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md), [later work](AFTER_DEMO_BACKLOG.md).
+
+## WEB4 query profile preparation
+
+The opt-in source uses the `CQL_DRAGONFLY_QUERY_` settings ADDRESS, PORT,
+TLS_HOST, USERNAME, PASSWORD, STORAGE_KEY and PROBE_ID. Use the approved
+native TLS endpoint, a read-restricted ACL, the existing encryption key
+and the first reviewed live probe. The shared Redis SDK checks the exact
+socket endpoint and the Dragonfly provider retains its own authority and
+encrypted key namespace. The query profile rejects a selected live record
+that has become private.
+
+The protected settings preparer binds the catalogue to the configured
+probe. Its controlled Dragonfly case preserved the existing provider
+settings. The linked native category `DragonflyHostedCqlNative` uses
+`COSMIC_DRAGONFLY_HOSTED_CQL_SOURCE` and the same protected source settings.
+It checks public 3/2, paging, deletion and absence, and unchanged returned
+records on the actual product. Review the live ACL against the exact deployed
+Dragonfly version before enrollment.
+[Dragonfly ACL key support](https://github.com/dragonflydb/dragonfly/discussions/2451).
+
+All 14 WEB4 Redis-family admission tests passed against Core
+`79b52a7f8bc9bfd06c1317956ad5d4855df2a379`. The native fixture compiled
+with zero errors. Live Dragonfly source and visitor proof remain open.

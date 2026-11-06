@@ -31,6 +31,10 @@ public class RedisFamilyHostedCqlNativeTests
     [TestCategory("KeyDbHostedCqlNative")]
     public Task KeyDbRestrictedReaderUsesWeb4Registration() => ReadCatalogue("KEYDB", ProviderType.KeyDBOASIS);
 
+    [TestMethod]
+    [TestCategory("DragonflyHostedCqlNative")]
+    public Task DragonflyRestrictedReaderUsesWeb4Registration() => ReadCatalogue("DRAGONFLY", ProviderType.DragonflyOASIS);
+
     private static async Task ReadCatalogue(string product, ProviderType authority)
     {
         var path = Environment.GetEnvironmentVariable($"COSMIC_{product}_HOSTED_CQL_SOURCE")

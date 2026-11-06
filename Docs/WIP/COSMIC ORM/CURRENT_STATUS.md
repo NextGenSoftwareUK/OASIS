@@ -9,6 +9,23 @@ admission and transport checks. Both guarded HTTPS native fixtures compiled.
 Owned teaching sources and read credentials remain necessary before native
 HTTPS and deployed acceptance. No provider count changed.
 
+## Recent WEB4 preparation, 5 November 2026
+
+Acceptance remains 103 scoped local, 60 live HTTP and 28 live browser.
+LocalFile remains first. The immutable candidate image is published and its
+actual Railway deployment, persistent mount and protected settings still
+need verification. [LocalFile rollout](LOCALFILE_CQL_MVP.md).
+
+- Weaviate uses the official pinned gRPC protocol over a guarded WEB4 channel.
+  Eight provider and nine WEB4 checks passed. The approved public source
+  and live visitor run are open. [Weaviate evidence](WEAVIATE_CQL_MVP.md).
+- Tigris passed 15 provider and ten WEB4 checks. The public native fixture
+  compiled and requires the approved teaching bucket. [Tigris evidence](TIGRIS_CQL_MVP.md).
+- Garnet and KeyDB passed 13 WEB4 checks together. Garnet separately passed
+  the real Windows TLS and encrypted CQL fixture. The hosted profile needs
+  a dedicated Garnet teaching instance. KeyDB needs its approved TLS source.
+  [Garnet evidence](GARNET_CQL_MVP.md) · [KeyDB evidence](KEYDB_CQL_MVP.md).
+
 ## PouchDB persistent hosted-source module, 5 November 2026
 
 The .NET PouchDB adapter passed its retained-source CQL test with WEB4's
