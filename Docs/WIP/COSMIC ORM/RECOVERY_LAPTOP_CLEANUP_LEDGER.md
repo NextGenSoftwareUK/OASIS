@@ -3568,3 +3568,8 @@ before extraction, removes the archive after extraction and removes
 the exact workspace after both loopback nodes stop. Only bounded
 node log tails reach the workflow log. No local archive, binary,
 database, Docker image or WSL distribution was installed.
+
+The expanded Waku workflow reused the same runner-owned archive and
+SQLite fixture. It staged the pinned Core and shared library checkouts,
+.NET 10 test build and TRX only on the disposable Actions runner.
+No output from that build was downloaded to this laptop.
