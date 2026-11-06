@@ -4,6 +4,7 @@ import argparse
 import base64
 import contextlib
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -100,6 +101,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("executable", type=Path)
     parser.add_argument("workspace", type=Path)
+    parser.add_argument("cql_command", nargs=argparse.REMAINDER)
     args = parser.parse_args()
     executable = args.executable.resolve(strict=True)
     work = args.workspace.resolve(strict=True)
@@ -128,6 +130,9 @@ def main():
                 if {row["messageHash"] for row in found} != hashes.intersection(selected):
                     raise RuntimeError("Waku Store did not honor its exact hash filter")
             print("Verified native Waku Store 3/2/0 via two isolated loopback peers.")
+            if args.cql_command:
+                env = dict(os.environ, COSMIC_WAKU_STORE_HASHES=",".join(sorted(hashes)))
+                subprocess.run(args.cql_command, env=env, check=True, timeout=420)
 
 
 if __name__ == "__main__":

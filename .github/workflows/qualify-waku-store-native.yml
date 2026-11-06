@@ -6,6 +6,8 @@ on:
     paths:
       - '.github/workflows/qualify-waku-store-native.yml'
       - 'Scripts/TestHosts/Verify-WakuStoreFixture.py'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.WakuOASIS/**'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.WakuOASIS.UnitTests/**'
   workflow_dispatch:
 
 permissions:
@@ -14,12 +16,36 @@ permissions:
 jobs:
   store:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          path: OASIS
           persist-credentials: false
+      - name: Read reviewed dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|OASIS_API_CORE_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/OASIS-API-Core
+          ref: ${{ steps.dependency.outputs.OASIS_API_CORE_COMMIT }}
+          path: OASIS/OASIS Architecture/NextGenSoftware.OASIS.API.Core
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
       - name: Verify isolated loopback relay and exact Store hashes
+        working-directory: OASIS
         shell: bash
         run: |
           set -euo pipefail
@@ -34,4 +60,16 @@ jobs:
           rm -- "$work/waku.tar.gz"
           binary="$work/build/logosdeliverynode"
           [[ -x "$binary" ]]
-          python3 -B Scripts/TestHosts/Verify-WakuStoreFixture.py "$binary" "$work"
+          python3 -B Scripts/TestHosts/Verify-WakuStoreFixture.py "$binary" "$work" pwsh -NoProfile -Command '
+            $ErrorActionPreference = "Stop"
+            & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner waku-store-native-ci -Operation {
+              $test = "NextGenSoftware.OASIS.API.Providers.WakuOASIS.UnitTests"
+              $report = "TestResults/WakuStoreNative"
+              dotnet test "Providers/Network/TestProjects/$test/$test.csproj" /m:2 /nr:false /p:UseSharedCompilation=false --filter "FullyQualifiedName~WakuStoreCqlTests" --results-directory $report --logger "trx;LogFileName=native.trx"
+              if ($LASTEXITCODE) { throw "Waku Store CQL qualification failed" }
+              [xml]$trx = Get-Content "$report/native.trx"
+              if ($trx.TestRun.ResultSummary.Counters.passed -ne "2" -or $trx.TestRun.ResultSummary.Counters.total -ne "2") {
+                throw "Both focused Waku Store CQL checks must pass"
+              }
+              Get-FileHash "$report/native.trx" -Algorithm SHA256
+            }'
