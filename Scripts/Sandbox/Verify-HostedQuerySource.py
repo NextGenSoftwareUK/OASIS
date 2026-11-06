@@ -27,7 +27,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "TenderlyOASIS", "QuickNodeOASIS", "PinataOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "TenderlyOASIS", "QuickNodeOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS",
 )
 FIXED_PUBLIC_CATALOGUES = {
     "DiscordOASIS": (
@@ -43,6 +43,15 @@ FIXED_PUBLIC_CATALOGUES = {
         "CQL_PINATA_PUBLIC_BLOCK_QUERY_SOURCE_OWNER", "pinata-public-ipfs-block",
         ("QmP4eZj61tDxCmtb6aqSwQsrxRQAN2gwxTEXkTed9TujHh", "QmeBt6f2Dem8QnZuZ8PDRT1iuWpphmza3gP17en2ZoReYR",
          "Qmb733sded7TRm8U8bM4FHif89jUVKd8yQiurKCKgCLyQk"),
+    ),
+    "PushProtocolOASIS": (
+        "CQL_PUSH_PUBLIC_CHANNEL_QUERY_SOURCE_OWNER", "push-protocol-public-channel/eip155:1",
+        ("0xb88460bb2696cab9d66013a05dff29a28330689d", "0x90a48d5cf7343b08da12e067680b4c6dbfe551be",
+         "0xdbc5936e4daae94f415c39d284f6a69c4d553f2f"),
+    ),
+    "LayerZeroOASIS": (
+        "CQL_LAYERZERO_V1_ENDPOINT_QUERY_SOURCE_OWNER", "layerzero-v1-endpoint",
+        ("ethereum", "polygon", "arbitrum"),
     ),
 }
 POLYGON_GATEWAY_CATALOGUES = {

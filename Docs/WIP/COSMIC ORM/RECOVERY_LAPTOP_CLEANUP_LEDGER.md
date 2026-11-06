@@ -3509,3 +3509,16 @@ log. Push Protocol and LayerZero v1 provider `bin` and `obj` outputs
 under `Providers/Network/` total 9,188,353 and 9,200,101 bytes.
 Their existing UnitTests output directories total 48,127,355 and
 48,134,811 bytes. There are no new packages, nodes or credentials.
+
+### Push Protocol and LayerZero v1 WEB4 admission, 6 November 2026
+
+The existing WEB4 producer and test consumer directories
+`ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/bin/Debug/net10.0` and
+`ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/bin/Debug/net10.0`
+were refreshed in place under the provider build lease. Their measured
+sizes are 952,710,690 and 942,102,317 bytes. Keep them for the frozen
+federation run. No additional NuGet package directory or runtime was
+installed. The existing `LocalState/COSMIC/PushProtocolPublicCqlQualification/`
+retains the 41,744-byte admission TRX, 1,015,596-byte build log and
+889-byte producer receipt. Free space was 33,923,899,392 bytes before
+and 37,881,139,200 bytes after the lease.

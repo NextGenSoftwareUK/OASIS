@@ -25,7 +25,12 @@ The 5,870-byte passing TRX SHA-256 is
 The original failing 6,397-byte TRX SHA-256 is
 `50709d42fbfbe5c4412e6c8083ee371330d3fa3975ef5966a0e4221605827272`.
 
-WEB4 admission, federation and hosted acceptance remain open.
+The explicit WEB4 read profile requires the protected setting `CQL_LAYERZERO_V1_ENDPOINT_QUERY_SOURCE_OWNER`.
+At Core `2324c21cfe680f465907e8dd1175b7229d7ef5d3`, all 23 admission checks
+passed with zero skips. The 41,744-byte admission TRX SHA-256 is
+`b51d80c1903740dddf00ad219da9a9deea541cae29630dab236f0b87e069b2b2`.
+The protected publisher passed 39 settings and 21 evidence tests.
+Local federation and hosted acceptance remain open.
 This profile covers deployed v1 endpoint configuration. Its contracts
 and acceptance are separate from message delivery and LayerZero v2.
 [Published v1 deployments and ABI](https://github.com/LayerZero-Labs/endpoint-v1-solidity-examples/tree/cdc93994911829b1348f6ac18000000a43432ef1/constants) ·

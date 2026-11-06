@@ -23,6 +23,8 @@ public sealed class CqlReviewedNetworkHostedConfigurationTests
     [InlineData("CQL_DISCORD_PUBLIC_GUILD_QUERY_SOURCE_OWNER", ProviderType.DiscordOASIS)]
     [InlineData("CQL_LIVEPEER_ORCHESTRATOR_QUERY_SOURCE_OWNER", ProviderType.LivepeerOASIS)]
     [InlineData("CQL_PINATA_PUBLIC_BLOCK_QUERY_SOURCE_OWNER", ProviderType.PinataOASIS)]
+    [InlineData("CQL_PUSH_PUBLIC_CHANNEL_QUERY_SOURCE_OWNER", ProviderType.PushProtocolOASIS)]
+    [InlineData("CQL_LAYERZERO_V1_ENDPOINT_QUERY_SOURCE_OWNER", ProviderType.LayerZeroOASIS)]
     public void ConfiguringOneNetworkSourceRegistersItsOwnReadProfile(string setting, ProviderType provider)
     {
         var services = new ServiceCollection();
@@ -39,6 +41,8 @@ public sealed class CqlReviewedNetworkHostedConfigurationTests
     [InlineData("CQL_DISCORD_PUBLIC_GUILD_QUERY_SOURCE_OWNER", "https://foreign.example")]
     [InlineData("CQL_LIVEPEER_ORCHESTRATOR_QUERY_SOURCE_OWNER", "00000000-0000-0000-0000-000000000000")]
     [InlineData("CQL_PINATA_PUBLIC_BLOCK_QUERY_SOURCE_OWNER", "QmP4eZj61tDxCmtb6aqSwQsrxRQAN2gwxTEXkTed9TujHh")]
+    [InlineData("CQL_PUSH_PUBLIC_CHANNEL_QUERY_SOURCE_OWNER", "0xb88460bb2696cab9d66013a05dff29a28330689d")]
+    [InlineData("CQL_LAYERZERO_V1_ENDPOINT_QUERY_SOURCE_OWNER", "https://foreign.example")]
     public void InvalidTeachingOwnerFailsClosed(string setting, string owner)
     {
         var services = new ServiceCollection();
@@ -50,6 +54,8 @@ public sealed class CqlReviewedNetworkHostedConfigurationTests
     [InlineData(ProviderType.DiscordOASIS)]
     [InlineData(ProviderType.LivepeerOASIS)]
     [InlineData(ProviderType.PinataOASIS)]
+    [InlineData(ProviderType.PushProtocolOASIS)]
+    [InlineData(ProviderType.LayerZeroOASIS)]
     public void NetworkSourceRequiresIndependentReadOnlyTariff(ProviderType provider)
     {
         Assert.Equal(provider, CqlV1Compiler.RequestedProvider(provider.ToString(), includeCloudReadProfile: true));

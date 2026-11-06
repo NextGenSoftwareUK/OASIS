@@ -5,6 +5,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.DiscordOASIS;
 using NextGenSoftware.OASIS.API.Providers.LivepeerOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
+using NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS;
+using NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
@@ -18,6 +20,10 @@ public static class CqlReviewedNetworkReadSourceRegistration
             LivepeerOrchestratorQuerySource.ForReviewedTeachingCatalogue);
         Register(services, configuration["CQL_PINATA_PUBLIC_BLOCK_QUERY_SOURCE_OWNER"], "Pinata",
             owner => new PinataPublicBlockQuerySource(owner));
+        Register(services, configuration["CQL_PUSH_PUBLIC_CHANNEL_QUERY_SOURCE_OWNER"], "Push Protocol",
+            owner => new PushProtocolPublicChannelQuerySource(owner));
+        Register(services, configuration["CQL_LAYERZERO_V1_ENDPOINT_QUERY_SOURCE_OWNER"], "LayerZero v1",
+            owner => new LayerZeroV1EndpointQuerySource(owner));
     }
 
     private static void Register(IServiceCollection services, string ownerText, string provider,

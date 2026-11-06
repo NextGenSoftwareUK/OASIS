@@ -18,6 +18,11 @@ key outside the reviewed catalogue. All four passed with zero skips.
 The 7,664-byte TRX SHA-256 is
 `857babb7896c5f685e2d43a70495da5a5a34633d964fd82129d717928983cc11`.
 
-WEB4 admission, federation and hosted acceptance remain open.
+The explicit WEB4 read profile requires the protected setting `CQL_PUSH_PUBLIC_CHANNEL_QUERY_SOURCE_OWNER`.
+At Core `2324c21cfe680f465907e8dd1175b7229d7ef5d3`, all 23 admission checks
+passed with zero skips. The 41,744-byte admission TRX SHA-256 is
+`b51d80c1903740dddf00ad219da9a9deea541cae29630dab236f0b87e069b2b2`.
+The protected publisher passed 39 settings and 21 evidence tests.
+Local federation and hosted acceptance remain open.
 [Official SDK route](https://github.com/pushchain/push-notifications-sdk/blob/bdcdb9948c8696fc691d2cd38624d75979677f58/packages/restapi/src/lib/channels/getChannel.ts) ·
 [Push Core verification documentation](https://comms.push.org/docs/notifications/push-smart-contracts/core-smart-contract/).
