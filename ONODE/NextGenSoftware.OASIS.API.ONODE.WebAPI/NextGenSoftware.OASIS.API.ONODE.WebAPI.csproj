@@ -200,4 +200,5 @@
   <ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/NextGenSoftware.OASIS.API.Providers.GUNOASIS.csproj" />
   <ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS.csproj" />
 </ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Social/NextGenSoftware.OASIS.API.Providers.TheGraphOASIS/NextGenSoftware.OASIS.API.Providers.TheGraphOASIS.csproj" /></ItemGroup>
 </Project>
