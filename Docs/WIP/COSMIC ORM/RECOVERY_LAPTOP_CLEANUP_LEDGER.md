@@ -4309,3 +4309,9 @@ receipts/helpers retained; no source files or unrelated checkout changes altered
 Only corrected refs normally published. API42404033534 active, exact image
 42404062685 queued with one dispatch intent/204ACK. No local SDK build/install,
 new environment/image download, original fixture replay or live settings writes.
+
+Five-reader exact admission42404033534 SUCCESS19/19,0skip. Compact receipt
+cross-chain-five-admission-qualified.json retained. Remote TRX13586577758,
+3689B SHA256c68e9b07ba9d326020a3c086a12342e30f7cb65cd21be765ef7dbef380512a25
+retained30days, no local download. Image42404062685 remains building; no
+local install/build/image or live batch mutation occurred.

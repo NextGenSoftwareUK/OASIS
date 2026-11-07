@@ -52,3 +52,10 @@ five new public admissions plus14 retained NATS boundary cases. Image run
 dispatch intent/204ACK retained. Do not resubmit while these jobs are active.
 No Development push or11-setting apply occurred. Next inspect these exact jobs
 and act on terminal evidence; native/local fixtures remain unreplayed.
+
+Exact API run42404033534/job128497787898 SUCCESS at15eb48673:
+19 passed,0failed,0skipped (five public admissions plus14NATS boundary cases).
+Retained TRX artifact13586577758,3689B,
+SHA256c68e9b07ba9d326020a3c086a12342e30f7cb65cd21be765ef7dbef380512a25,
+expires7December2026. Compact source-bound receipt retained, no local artifact
+download. Image42404062685 remains active; no deployment or batch apply.

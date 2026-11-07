@@ -60,7 +60,7 @@ Synapse and Connext. Original source/local HTTP receipts are available; one
 11-value protected candidate preserves the live Hyperlane/NATS baseline.
 Four composition guards pass. No batch settings applied. Exact candidate
 15eb48673/Core85278a4 is published on the reused candidate refs. API42404033534
-is active; image42404062685 is queued. Follow those exact jobs before rollout.
+passed19/19 with zero skips; image42404062685 is building. Follow those exact jobs before rollout.
 Current82428c7a6 lacks these five registrations. See [five-reader batch](CROSS_CHAIN_FIVE_HOSTED_BATCH.md).
 
 
