@@ -191,6 +191,10 @@ async function main() {
     const pouch = require('./host-sandbox-pouchdb.cjs');
     services.push(pouch.serviceConfiguration(process.env));
   }
+  if (process.env.OASIS_SANDBOX_WAKU === 'true') {
+    const waku = require('./host-sandbox-waku.cjs');
+    services.push(await waku.serviceConfiguration(process.env));
+  }
   if (process.env.OASIS_SANDBOX_ORBITDB === 'true' || process.env.OASIS_SANDBOX_GUN === 'true') {
     const teaching = require('./host-sandbox-teaching.cjs');
     if (process.env.OASIS_SANDBOX_ORBITDB === 'true')
