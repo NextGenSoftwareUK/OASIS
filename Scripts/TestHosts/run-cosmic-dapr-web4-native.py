@@ -15,6 +15,7 @@ import uuid
 from urllib.parse import quote
 import xml.etree.ElementTree as ET
 from DaprNativeRuntimes import require_runtime, process_diagnostic
+from DaprNativePorts import require_free
 
 ROOT = Path(__file__).resolve().parents[2]
 parser = argparse.ArgumentParser(description='Run native Dapr CQL over the loopback WEB4 HTTP test host.')
@@ -46,12 +47,6 @@ def teaching_records():
              'value': json.dumps({'id': prefix + suffix, 'isPublic': True, 'createdByAvatarId': prefix + '0',
                                   'deletedDate': '2026-11-01T00:00:00Z' if suffix == '3' else '0001-01-01T00:00:00'})}
             for suffix in ('e', '1', '2', '3')]
-
-
-def require_free(ports):
-    for port in ports:
-        with socket.socket() as probe:
-            probe.bind(('127.0.0.1', port))
 
 
 @contextlib.contextmanager

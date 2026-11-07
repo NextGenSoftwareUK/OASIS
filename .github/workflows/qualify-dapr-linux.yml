@@ -9,6 +9,8 @@ on:
       - 'Scripts/TestHosts/dapr-linux-runtime-pins.json'
       - 'Scripts/TestHosts/run-cosmic-dapr-web4-native.py'
       - 'Scripts/TestHosts/test_dapr_native_runtimes.py'
+      - 'Scripts/TestHosts/DaprNativePorts.py'
+      - 'Scripts/TestHosts/test_dapr_native_ports.py'
       - 'Docker/DaprRuntime/**'
       - 'Scripts/Sandbox/test_hosted_dapr_configuration.cjs'
       - 'Scripts/Sandbox/test_hosted_dapr_runtime.cjs'
@@ -62,6 +64,7 @@ jobs:
       - name: Check runtime archive boundaries
         working-directory: OASIS
         run: |
+          python3 -B Scripts/TestHosts/test_dapr_native_ports.py
           python3 -B Scripts/TestHosts/test_dapr_native_runtimes.py
           node --test Scripts/Sandbox/test_hosted_dapr_configuration.cjs Scripts/Sandbox/test_hosted_dapr_runtime.cjs Scripts/Sandbox/test_dapr_seed.cjs Scripts/Sandbox/test_dapr_provisioning.cjs
       - name: Install mandatory native storage OS dependencies

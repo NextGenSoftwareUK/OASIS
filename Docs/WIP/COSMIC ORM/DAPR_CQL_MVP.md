@@ -369,3 +369,12 @@ One protected plan is now retained under LocalState/COSMIC/HostedDaprSourceCurre
 ### Scoped candidate preparation
 
 Fresh remote inspection confirms parent Development and reused candidate at88b896815, Core candidate944d380. Dapr needs provider/read registration/compiler/admission/project reference plus native package; do not copy the broad task compiler/Startup wholesale. A private release-scope record tracks exact gates. Native qualification now accepts an explicit dispatch ref so the eventual scoped candidate can be tested directly. Companion regression jobs42420810315 (PouchDB) and42420810261 (all3teaching jobs) areSUCCESS. Provisioner jobs42420695067 and42420810266 remain active. No candidate publication/deployment yet.
+
+
+### Provisioner qualification: TCP port probe correction
+
+Runs42420695067/job128548278396 and42420810266/job128548630883 failed at the first external recovery port probe, after the actual provisioner returned its source acknowledgement. Node successfully rebound all ports before returning; Python then rejected a bare bind with EADDRINUSE. The probe must test native listener ownership using the same Linux SO_REUSEADDR semantics, not reject closed-connection TIME_WAIT. DaprNativePorts.py now owns that check; active listeners still fail. Two native TCP controls were added: active-listener rejection passes on Windows; Linux closed-connection reuse is explicitly pending CI, not claimed from Windows. No accepted fixture or failed source is replayed.
+
+Failure artifacts:13593447685/2081bytes/SHA256a0f23bc1310fb0c0805ff71e83431f3b478160edbb2cc3db7153a80530aa206b;13594085872/2080bytes/SHA25687c92bbfdb8543d4f2157a51a1ea4444cda1b8bf3ccd00cb39b8755522cb1734. Logs inspected in memory; archives not downloaded.
+
+A scoped candidate was assembled locally as5aff049b3e2a3b4590b924ceca2ae2f262efa6a0/Coreec7d440ce5212da7683cb7579f0b9139bbadd5a1 with matching gitlink/manifest validation. It is unpublished and superseded for qualification by this pending probe correction. Preserve its assembly receipt; do not deploy or publish it as qualified. No checkout/worktree switch or local build occurred.

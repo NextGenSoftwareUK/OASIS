@@ -4531,3 +4531,5 @@ SDK/env/build/download/live source operation. New exact helper qualification nex
 7 November: retained one DPAPI-protected Dapr source plan under HostedDaprSourceCurrent/source-plan.dpapi; preserve until source lifecycle is explicitly retired. Read-only Railway stdin probe created no remote files; compact public receipt under RecoveryLaptopResume20261107/dapr-railway-stdin-probe.json. Three Python receipt controls produce no outputs/cache (-B). No source creation or new runtime install.
 
 7 November: fetched existing parent/Core candidate refs only; no branch switch/worktree/build. Compact dapr-release-scope.json retained in existing recovery state. Companion CI results inspected through fresh REST; no artifacts downloaded.
+
+7 November: scoped candidate used two temporary Git indexes under RecoveryLaptopResume20261107 and removed both in finally; retained compact assembly JSON/script and Git objects only. No worktree/runtime/build. Failed native fixture logs inspected in memory;2081/2080byte artifacts remain on GitHub30days. Local port controls left no listener/process/output; Linux TIME_WAIT test is explicitly skipped on Windows.

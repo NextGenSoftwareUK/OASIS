@@ -68,8 +68,10 @@ actual helper verified recovered values/ETags and original writer was rejected.
 The shared one-shot seed journal (aee489ed3) has3additional lifecycle controls
 and passed real native engines in42419910853. Both helper and shared-seed
 gates areSUCCESS. The explicit Linux provisioner is implemented with3boundary
-controls; its native process lifecycle has not run yet. Provisioning/image/
-enrollment stay open. Coverage is119local/
+controls. Actual provisioner runs42420695067/42420810266 returned creation
+acknowledgements but failed the subsequent Python recovery port probe; Linux
+SO_REUSEADDR ownership correction now awaits qualification. Full provisioner
+WEB4/image/enrollment stay open. Coverage is119local/
 91live HTTP/28functional browser. Source88b896815/Core944d380, settings
 8783d8eb-1d65-474f-8bdd-081615d4794a SUCCESS, instance5e85e983.
 All13settings and active configuration verified before six first hosted cohorts.
