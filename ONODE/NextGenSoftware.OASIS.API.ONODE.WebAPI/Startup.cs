@@ -686,6 +686,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.GoogleCloudPublicMetadataSource.FromJson(googlePublicSource)));
             Services.Cql.CqlReviewedNetworkReadSourceRegistration.AddReviewedNetworkReadSources(services, Configuration);
+            Services.Cql.CqlCloudinaryReadSourceRegistration.AddCloudinaryReadSource(services, Configuration);
+            Services.Cql.CqlRegistryAndObjectReadSourceRegistration.AddRegistryAndObjectReadSources(services, Configuration);
             Services.Cql.LocalFileCqlRegistration.AddConfigured(services, Configuration,
                 NextGenSoftware.OASIS.API.Core.Managers.SandboxOptions.Enabled);
             services.AddSingleton<Services.Cql.ICqlHostedSourceRegistry, Services.Cql.CqlHostedSourceRegistry>();
