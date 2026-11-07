@@ -152,3 +152,16 @@ or deployed. No startup flag, source seed or visitor enrollment is enabled.
 Hosted source creation must be an explicit journalled provisioning operation;
 normal startup must only recover existing acknowledged records. Preserve the
 live six-reader release and source generations while implementing that contract.
+
+Restart qualification42413413865/j128526185779 FAILED at Garnet initial startup,
+after a successful host build. Trace reached `backing_store('initial')` before
+the writer sidecar or seed call; no native record mutation or HTTP proof occurred.
+The prior passing nonpersistent Linux proof remains valid in its narrower scope.
+No TRX/result artifact existed for the failed restart attempt. Do not call this
+restart certified or silently remove its failure.
+
+The fixture now retains a bounded native diagnostic with all generated credentials
+redacted before tail truncation. Six offline integrity/diagnostic controls pass.
+A startup-only preflight runs before the expensive host build and performs no
+seed, sidecar call or WEB4 query. This next run diagnoses the actual server error;
+no persistence flags are guessed or removed to bypass the failed invariant.

@@ -69,6 +69,18 @@ class RuntimeTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'budget'):
             runtime.archive_members(archive, 'daprd')
 
+    def test_native_diagnostics_redact_before_tail_truncation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'native.log'
+            secret = 'sensitive-token-' + 'a' * 64
+            log.write_text('prefix' * 1000 + secret + 'x' * 4070)
+            result = runtime.process_diagnostic(log, 1, (secret,))
+            self.assertNotIn(secret, result['tail'])
+            self.assertNotIn('aaaa', result['tail'])
+            self.assertLessEqual(len(result['tail']), 4096)
+            self.assertEqual(1, result['exitCode'])
+            self.assertIn(secret, log.read_text())
+
     def test_laptop_installer_refuses_download_before_network_access(self):
         with patch.object(runtime.sys, 'platform', 'win32'), patch.object(runtime.urllib.request, 'urlopen') as network:
             with self.assertRaisesRegex(RuntimeError, 'restricted'):

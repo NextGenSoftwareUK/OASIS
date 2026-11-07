@@ -4439,3 +4439,9 @@ Dapr/Garnet Docker stage prepared from shared exact archive pins; final copy
 excludes Python and compressed archives. No local Docker/native download/build
 or live deploy. Restart qualification42413413865 remains running. Future image
 qualification required before this packaging can enter a Development rollout.
+
+Dapr restart42413413865 FAILED before initial Garnet readiness/seed/HTTP;
+compact failed receipt retained, prior narrower passing artifact unchanged.
+No restart artifact existed. Added startup-only no-seed preflight and bounded
+credential-redacted diagnostics,6offline controls pass. Next cloud run will
+diagnose native startup before rebuilding host. No local runtime/env/build.

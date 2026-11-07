@@ -10,7 +10,7 @@ import subprocess
 import time
 from urllib.parse import quote
 import xml.etree.ElementTree as ET
-from DaprNativeRuntimes import require_runtime
+from DaprNativeRuntimes import require_runtime, process_diagnostic
 
 ROOT = Path(__file__).resolve().parents[2]
 parser = argparse.ArgumentParser(description='Run native Dapr CQL over the loopback WEB4 HTTP test host.')
@@ -18,6 +18,7 @@ parser.add_argument('--daprd', required=True, type=Path)
 parser.add_argument('--garnet', required=True, type=Path)
 parser.add_argument('--results-directory', required=True, type=Path)
 parser.add_argument('--runtime-directory', type=Path, help='Pinned Linux archives and extracted runtimes')
+parser.add_argument('--startup-only', action='store_true', help='Diagnose backing-store startup without seed or HTTP test')
 arguments = parser.parse_args()
 DAPR = arguments.daprd.resolve(strict=True)
 GARNET = arguments.garnet.resolve(strict=True)
@@ -49,6 +50,7 @@ def launch(args, name, env=None):
     with (RUN / f'{name}.log').open('wb') as log:
         process = subprocess.Popen(args, cwd=RUN, env=env, stdout=log, stderr=subprocess.STDOUT,
                                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+        process.cosmic_log_path = RUN / f'{name}.log'
         try:
             yield process
         finally:
@@ -66,7 +68,10 @@ def await_ready(process, check):
         except (ConnectionError, TimeoutError):
             pass
         time.sleep(.2)
-    raise RuntimeError('Owned fixture process did not become ready')
+    diagnostic = process_diagnostic(process.cosmic_log_path, process.poll(), (TOKEN, ADMIN, READER))
+    with (RUN / 'diagnostic.json').open('x') as output:
+        json.dump(diagnostic, output)
+    raise RuntimeError('Owned fixture process did not become ready: ' + json.dumps(diagnostic))
 
 
 def http(method, path, body=None):
@@ -179,6 +184,12 @@ def verify_reader(stage, records, expected=None):
 
 try:
     (RUN / 'store').mkdir()
+    if arguments.startup_only:
+        with backing_store('startup', recover=False):
+            pass
+        (RUN / 'startup.json').write_text(json.dumps({'backingStoreStartup': True, 'seedExecuted': False}))
+        print('PASS: backing-store startup only; no seed, sidecar or WEB4 query.')
+        raise SystemExit(0)
     records = teaching_records()
     with backing_store('initial', recover=False):
         with sidecar('writer', 'default', ADMIN):

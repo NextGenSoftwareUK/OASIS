@@ -11,6 +11,18 @@ PINS = Path(__file__).with_name('dapr-linux-runtime-pins.json')
 WINDOWS_HASHES = {'daprd': '1013629f8224e73d64aaa45a122e16c54638ccc07c3e9d5178f5e6d575a61897',
                   'garnet': '0ce799cff60409b3cfd64a85fa19669474eef157d9b369ecc31c41e456c4f2a5'}
 
+def process_diagnostic(log_path, exit_code, secrets):
+    if log_path.stat().st_size > 8 * 1024 * 1024:
+        text = 'Native log exceeds diagnostic size budget; original log retained on runner'
+    else:
+        text = log_path.read_text(errors='replace')
+        for secret in secrets:
+            if not secret:
+                raise ValueError('Explicit nonempty diagnostic secrets required')
+            text = text.replace(secret, '[redacted]')
+        text = text[-4096:]
+    return {'process': log_path.name, 'exitCode': exit_code, 'tail': text}
+
 def digest(path):
     with path.open('rb') as stream:
         return hashlib.file_digest(stream, 'sha256').hexdigest()
