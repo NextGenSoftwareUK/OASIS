@@ -142,7 +142,7 @@ async function supervise({ launch = spawn, ready, services, signals = process, s
     for (const owned of children) if (!owned.finished) owned.process.kill('SIGKILL');
     // Do not leave an unobserved child after escalation.
     let terminalTimer;
-    try { await Promise.race([all, new Promise((_, reject) => { terminalTimer = setTimeout(() => reject(Error('Owned IPFS/API process remains unconfirmed after stop.')), stopMilliseconds); })]); }
+    try { await Promise.race([all, new Promise((_, reject) => { terminalTimer = setTimeout(() => reject(Error('Owned native/API process remains unconfirmed after stop.')), stopMilliseconds); })]); }
     finally { clearTimeout(terminalTimer); }
   }
 }
@@ -168,7 +168,7 @@ function assertSandbox(text) {
   let dna;
   try { dna = JSON.parse(text); }
   catch { throw Error('Sandbox DNA could not be parsed.'); }
-  if (dna?.OASIS?.Sandbox?.Enabled !== true) throw Error('Owned IPFS demo runtime requires OASIS.Sandbox.Enabled.');
+  if (dna?.OASIS?.Sandbox?.Enabled !== true) throw Error('Owned native sandbox runtime requires OASIS.Sandbox.Enabled.');
 }
 
 async function main() {
@@ -186,6 +186,10 @@ async function main() {
     const bundle = solid.captureBundle(process.env.OASIS_SANDBOX_SOLID_BOOTSTRAP_JSON);
     const native = await solid.prepare({ bundle, directory: '/data/COSMIC/SandboxSOLID' });
     services.push({ ...native, check: signal => solid.verify(native, signal, Parser) });
+  }
+  if (process.env.OASIS_SANDBOX_POUCHDB === 'true') {
+    const pouch = require('./host-sandbox-pouchdb.cjs');
+    services.push(pouch.serviceConfiguration(process.env));
   }
   if (process.env.OASIS_SANDBOX_ORBITDB === 'true' || process.env.OASIS_SANDBOX_GUN === 'true') {
     const teaching = require('./host-sandbox-teaching.cjs');
