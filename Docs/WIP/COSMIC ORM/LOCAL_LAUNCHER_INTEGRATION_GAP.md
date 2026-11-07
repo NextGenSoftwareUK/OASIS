@@ -377,3 +377,11 @@ missing metadata does not satisfy ordering. Console and hub HTTP reruns pass.
 HTTP health ready, filtered2 rows, shutdown200, owned database removed.
 TestResults/CosmicCqlDemo/api-demo-result.json SHA256 9D8EF07493AD42E45A5F7B2B5859BEB62903CC10238D565F92F1EBB3715CCD4A.
 This is local HTTP evidence. Hosted coverage counts are unchanged.
+
+### 6 November published catalogue audit
+
+Web4Site `46df63d` references 46 distinct PowerShell launchers. All 46
+exist in this checkout and all 46 parse without errors using PowerShell's
+AST parser. No launchers were executed. The regenerable reports are
+`TestResults/LauncherRecoveryCurrent/nov6-published-local-launcher-audit.json`
+and `nov6-published-launcher-syntax.json` in the same directory.

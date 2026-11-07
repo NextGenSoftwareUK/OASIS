@@ -32,7 +32,7 @@ two exact replicas each in SQLite and Neo4j, and zero private rows visible to
 a second visitor. The rehearsal used the public client over HTTP. See
 [Current status](CURRENT_STATUS.md) for evidence and the LocalFile rollout gate.
 
-**Current launcher coverage:** All37published launcher paths now exist; the original audit found35missing. Source/build/controlled recovery does not prove all services/configurations/native executions ready. [Exact scope and recovery](LOCAL_LAUNCHER_INTEGRATION_GAP.md).
+**Current launcher coverage:** All 46 published PowerShell launcher paths exist and parse successfully against Web4Site `46df63d`. Runtime readiness still varies by provider. [Exact scope and recovery](LOCAL_LAUNCHER_INTEGRATION_GAP.md).
 
 **LocalFile next hosted scope,3November:** Public CQL profile/readonly activation,explicit configuration and write-once sandbox public-data bootstrap implemented;16profile+41API/bootstrap/discovery/schema checks pass without touching retained cohorts. Sourcebundle/rollout/HTTP/Mongo/replica/card gates remain open;no coverage count increase. Partial/changed data is never automatically overwritten or reseeded. Legacy template unit compile gaps remain documented unchanged. [Scope/evidence](LOCALFILE_CQL_MVP.md#hosted-public-profile-preparation3november2026).
 
