@@ -70,11 +70,16 @@ async function phase(directory, name, token, operation) {
   }
 }
 
-async function provision(plan, directory = '/data/COSMIC/SandboxDapr') {
+async function provision(plan, directory = '/data/COSMIC/SandboxDapr', binaries = { garnet: '/opt/garnet/GarnetServer', daprd: '/opt/dapr/daprd' }) {
   const records = review(plan);
   if (process.platform !== 'linux') throw Error('Dapr hosted source provisioning requires Linux.');
   if (!path.isAbsolute(directory) || await fs.realpath(path.dirname(directory)) !== path.dirname(directory))
     throw Error('Dapr source parent must exist without redirection.');
+  for (const binary of [binaries.garnet, binaries.daprd]) {
+    if (typeof binary !== 'string' || !path.isAbsolute(binary) || await fs.realpath(binary) !== binary || !(await fs.stat(binary)).isFile())
+      throw Error('Exact native Dapr runtime executable required.');
+    await fs.access(binary, 1);
+  }
   await requireFreePorts();
   // Exclusive source ownership: an interrupted or existing source is never reseeded.
   await fs.mkdir(directory, { mode: 0o700 });
@@ -91,8 +96,8 @@ async function provision(plan, directory = '/data/COSMIC/SandboxDapr') {
   await privateWrite(writerAcl, config.writerAcl(admin, plan.readerPassword));
   await privateWrite(component, config.component(admin, 'default'));
   const observations = await phase(directory, 'provision', plan.sidecarToken, async (start, signal) => {
-    await start('/opt/garnet/GarnetServer', config.garnetArguments(directory, writerAcl, 'provision'), s => runtime.waitForRedis(plan.readerPassword, s));
-    await start('/opt/dapr/daprd', config.daprArguments(directory), s => runtime.waitForSidecar(plan.sidecarToken, s));
+    await start(binaries.garnet, config.garnetArguments(directory, writerAcl, 'provision'), s => runtime.waitForRedis(plan.readerPassword, s));
+    await start(binaries.daprd, config.daprArguments(directory), s => runtime.waitForSidecar(plan.sidecarToken, s));
     await seedOnce(directory, plan.prefix, records.map(row => ({ key: 'oasis/holon/' + row.id.replaceAll('-', ''), value: row.value })), plan.sidecarToken, signal);
     return runtime.observeRows(records, plan.sidecarToken, signal);
   });
@@ -105,8 +110,8 @@ async function provision(plan, directory = '/data/COSMIC/SandboxDapr') {
     sidecarTokenSha256: hash(plan.sidecarToken), records: observations,
     configurationSha256: { 'reader.acl': hash(aclText), 'components/redis.yaml': hash(componentText) } };
   await phase(directory, 'recovery', plan.sidecarToken, async (start, signal) => {
-    await start('/opt/garnet/GarnetServer', config.garnetArguments(directory, path.join(directory, 'reader.acl'), 'recover'), s => runtime.waitForRedis(plan.readerPassword, s));
-    await start('/opt/dapr/daprd', config.daprArguments(directory), s => runtime.waitForSidecar(plan.sidecarToken, s));
+    await start(binaries.garnet, config.garnetArguments(directory, path.join(directory, 'reader.acl'), 'recover'), s => runtime.waitForRedis(plan.readerPassword, s));
+    await start(binaries.daprd, config.daprArguments(directory), s => runtime.waitForSidecar(plan.sidecarToken, s));
     await runtime.verifyRows(source, plan.sidecarToken, signal);
     const denied = await fetch(`http://127.0.0.1:${config.contract.ports.http}/v1.0/state/${config.contract.store}`, {
       method: 'POST', headers: { 'content-type': 'application/json', 'dapr-api-token': plan.sidecarToken },

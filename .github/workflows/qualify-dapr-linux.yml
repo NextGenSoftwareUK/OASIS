@@ -14,6 +14,8 @@ on:
       - 'Scripts/Sandbox/test_hosted_dapr_runtime.cjs'
       - 'Scripts/Sandbox/test_dapr_seed.cjs'
       - 'Docker/host-sandbox-dapr.cjs'
+      - 'Docker/provision-sandbox-dapr.cjs'
+      - 'Scripts/Sandbox/test_dapr_provisioning.cjs'
   workflow_dispatch:
 
 permissions:
@@ -55,7 +57,7 @@ jobs:
         working-directory: OASIS
         run: |
           python3 -B Scripts/TestHosts/test_dapr_native_runtimes.py
-          node --test Scripts/Sandbox/test_hosted_dapr_configuration.cjs Scripts/Sandbox/test_hosted_dapr_runtime.cjs Scripts/Sandbox/test_dapr_seed.cjs
+          node --test Scripts/Sandbox/test_hosted_dapr_configuration.cjs Scripts/Sandbox/test_hosted_dapr_runtime.cjs Scripts/Sandbox/test_dapr_seed.cjs Scripts/Sandbox/test_dapr_provisioning.cjs
       - name: Install mandatory native storage OS dependencies
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libaio1t64 liburing2 libaio-dev liburing-dev build-essential cmake git uuid-dev
       - name: Install exact Linux runtimes on the ephemeral runner
@@ -79,7 +81,7 @@ jobs:
             dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false -v:q
             if ($LASTEXITCODE) { throw 'Dapr native HTTP host build failed' }
             $runtimes = Get-Content LocalState/COSMIC/DaprLinuxQualification/runtime-paths.json | ConvertFrom-Json
-            python3 -B Scripts/TestHosts/run-cosmic-dapr-web4-native.py --daprd $runtimes.daprd --garnet $runtimes.garnet --runtime-directory "$env:RUNNER_TEMP/cosmic-dapr-runtimes" --results-directory LocalState/COSMIC/DaprLinuxQualification
+            python3 -B Scripts/TestHosts/run-cosmic-dapr-web4-native.py --daprd $runtimes.daprd --garnet $runtimes.garnet --runtime-directory "$env:RUNNER_TEMP/cosmic-dapr-runtimes" --results-directory LocalState/COSMIC/DaprLinuxQualification --provisioner
             if ($LASTEXITCODE) { throw 'Dapr Linux native qualification failed' }
           }
       - uses: actions/upload-artifact@v7

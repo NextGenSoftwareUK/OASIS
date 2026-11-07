@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import secrets
+import signal
 import socket
 import subprocess
 import time
@@ -23,6 +24,7 @@ parser.add_argument('--results-directory', required=True, type=Path)
 parser.add_argument('--runtime-directory', type=Path, help='Pinned Linux archives and extracted runtimes')
 parser.add_argument('--startup-only', action='store_true', help='Diagnose backing-store startup without seed or HTTP test')
 parser.add_argument('--storage-probe-only', action='store_true', help='Diagnose one journalled native AOF write without Dapr or WEB4')
+parser.add_argument('--provisioner', action='store_true', help='Qualify the shipping explicit Linux provisioner before two WEB4 recovery checks')
 arguments = parser.parse_args()
 DAPR = arguments.daprd.resolve(strict=True)
 GARNET = arguments.garnet.resolve(strict=True)
@@ -246,6 +248,44 @@ def storage_probe():
 
 
 try:
+    if arguments.provisioner:
+        if sys.platform != 'linux':
+            raise RuntimeError('Shipping provisioner qualification requires Linux')
+        script = "const fs=require('node:fs'),p=require(process.argv[1]);const i=JSON.parse(fs.readFileSync(0,'utf8'));p.provision(i.plan,i.directory,i.binaries).then(result=>process.stdout.write(JSON.stringify(result))).catch(error=>{process.stderr.write(error.message);process.exitCode=1;});"
+        source_root = RUN / 'source'
+        payload = json.dumps({'plan': {'schema': 1, 'prefix': PREFIX, 'readerPassword': READER, 'sidecarToken': TOKEN},
+            'directory': str(source_root), 'binaries': {'garnet': str(GARNET), 'daprd': str(DAPR)}}).encode()
+        with subprocess.Popen(['node', '-e', script, str(ROOT / 'Docker/provision-sandbox-dapr.cjs')],
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True) as creator:
+            try:
+                stdout, stderr = creator.communicate(payload, timeout=120)
+            except subprocess.TimeoutExpired:
+                # This isolated process group contains only this fixture's creator and its native children.
+                os.killpg(creator.pid, signal.SIGTERM)
+                try:
+                    creator.communicate(timeout=10)
+                except subprocess.TimeoutExpired:
+                    os.killpg(creator.pid, signal.SIGKILL)
+                    creator.communicate(timeout=5)
+                raise RuntimeError('Shipping provisioner deadline expired; preserve original source intent, never resend')
+            if creator.returncode:
+                raise RuntimeError('Shipping provisioner failed: ' + stderr.decode(errors='replace')[-2048:])
+        receipt = json.loads(stdout)
+        if receipt.get('recoveryVerified') is not True or receipt.get('records') != 4:
+            raise RuntimeError('Shipping provisioner acknowledgement differs')
+        RUN = source_root
+        acl = RUN / 'reader.acl'
+        source = json.loads((RUN / 'source.acknowledged.json').read_text(encoding='utf-8'))
+        records = [{'key': 'oasis/holon/' + row['id'].replace('-', ''), 'value': row['value']} for row in source['records']]
+        with backing_store('first-recovery', recover=True):
+            original = verify_reader('initial', records)
+        with backing_store('second-recovery', recover=True):
+            verify_reader('restart', records, expected=original)
+        require_free(PORTS)
+        result = 'PASS: shipping Dapr provisioner created once, verified durable reader-only recovery; two WEB4 recoveries preserved original values and ETags.\n'
+        (RUN / 'result.log').write_text(result, encoding='utf-8')
+        print(result, end='')
+        raise SystemExit(0)
     (RUN / 'store').mkdir()
     if arguments.storage_probe_only:
         with backing_store('storage-probe', recover=False):
