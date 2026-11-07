@@ -99,3 +99,25 @@ activation flags remain off until the separate native source qualification.
 Immutable plans are retained under LocalState/COSMIC/HostedTeachingSourceCurrent.
 Deployment-bound readiness visitors are admitted; all25 response-evidence
 checks passed including both new provider cases. No live query acceptance yet.
+
+## Guarded native provisioning command
+
+`Scripts/Sandbox/Provision-HostedTeachingSource.py` performs exactly one
+explicit `create` or `verify` operation for GUNOASIS or OrbitDBOASIS.
+Set COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT and COSMIC_CQL_REVIEWED_RELEASE_REF
+to the qualified release, and COSMIC_CQL_REVIEWED_INSTANCE_IDS to its one
+observed active replica. Pass the same --deployment-id and --instance-id
+to the command. It reuses the existing release and writable-mount guards.
+Both native reader flags must remain off while provisioning.
+
+The command reads the immutable provider source-plan.json, reserves a
+local operation intent, checks deployment/replica identity inside Node,
+and invokes the tracked native helper through structured SSH arguments.
+Each outcome is retained with DPAPI protection. A timeout, missing receipt,
+failed native operation or existing intent requires read-only diagnosis;
+never resend the create operation. `verify` runs in a separate native
+process and must pass before activating the managed reader.
+Four command-contract tests passed, including wrong deployment, active
+reader, mismatched/ambiguous receipts and the successful command envelope.
+Run `python -B -m unittest discover -s Scripts/Sandbox -p test_hosted_teaching_provisioning.py`.
+These checks use controlled local processes; real hosted native acceptance remains open.
