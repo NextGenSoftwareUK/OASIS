@@ -24,14 +24,15 @@ parser.add_argument('--storage-probe-only', action='store_true', help='Diagnose 
 arguments = parser.parse_args()
 DAPR = arguments.daprd.resolve(strict=True)
 GARNET = arguments.garnet.resolve(strict=True)
-PORTS = (54861, 54862, 54863, 54864)
+CONTRACT = json.loads((ROOT / 'Docker/DaprRuntime/contract.json').read_text())
+PORTS = tuple(CONTRACT['ports'][name] for name in ('http', 'grpc', 'internalGrpc', 'redis'))
 TOKEN = secrets.token_hex(32)
 ADMIN = secrets.token_hex(32)
 READER = secrets.token_hex(32)
 PREFIX = str(uuid.uuid4())[:-1]
 KEY = 'oasis/holon/' + (PREFIX + 'e').replace('-', '')
 PROCESSES = []
-STORE = '/v1.0/state/cosmic-teaching'
+STORE = '/v1.0/state/' + CONTRACT['store']
 RUN = arguments.results_directory.resolve(strict=True) / ('garnet-reader-' + secrets.token_hex(8))
 
 
@@ -90,32 +91,22 @@ def http(method, path, body=None):
         connection.close()
 
 
+def native_configuration(function, *values):
+    script = "const fs=require('node:fs'),config=require(process.argv[1]);const input=JSON.parse(fs.readFileSync(0,'utf8'));process.stdout.write(JSON.stringify(config[input.function](...input.values)));"
+    result = subprocess.run(['node', '-e', script, str(ROOT / 'Docker/DaprRuntime/configuration.cjs')],
+        input=json.dumps({'function': function, 'values': values}).encode(), capture_output=True, timeout=10)
+    if result.returncode:
+        raise RuntimeError('Shared native configuration generation failed; no native source mutation')
+    return json.loads(result.stdout)
+
+
 @contextlib.contextmanager
 def sidecar(name, username, password):
     require_free(PORTS[:3])
     component = RUN / 'components' / 'redis.yaml'
-    component.write_text(f'''apiVersion: dapr.io/v1alpha1
-kind: Component
-metadata:
-  name: cosmic-teaching
-spec:
-  type: state.redis
-  version: v1
-  metadata:
-  - name: redisHost
-    value: "127.0.0.1:{PORTS[3]}"
-  - name: redisUsername
-    value: "{username}"
-  - name: redisPassword
-    value: "{password}"
-scopes:
-- cosmic-dapr-teaching
-''', encoding='utf-8')
+    component.write_text(native_configuration('component', password, username), encoding='utf-8')
     try:
-        with launch([str(DAPR), '--app-id', 'cosmic-dapr-teaching', '--dapr-listen-addresses', '127.0.0.1',
-                     '--dapr-http-port', str(PORTS[0]), '--dapr-grpc-port', str(PORTS[1]),
-                     '--dapr-internal-grpc-port', str(PORTS[2]), '--enable-metrics=false',
-                     '--resources-path', str(component.parent)], name, os.environ | {'DAPR_API_TOKEN': TOKEN}) as process:
+        with launch([str(DAPR), *native_configuration('daprArguments', str(RUN))], name, os.environ | {'DAPR_API_TOKEN': TOKEN}) as process:
             await_ready(process, lambda: http('GET', '/v1.0/healthz')[0] == 204)
             yield
             if http('POST', '/v1.0/shutdown')[0] != 204 or process.wait(10) != 0:
@@ -124,10 +115,11 @@ scopes:
         component.unlink()
 
 
-def garnet_ready():
+def garnet_ready(username='default', secret=ADMIN):
     with socket.create_connection(('127.0.0.1', PORTS[3]), timeout=1) as connection:
-        password = ADMIN.encode()
-        connection.sendall(b'*3\r\n$4\r\nAUTH\r\n$7\r\ndefault\r\n$64\r\n' + password + b'\r\n')
+        password = secret.encode()
+        principal = username.encode()
+        connection.sendall(b'*3\r\n$4\r\nAUTH\r\n$' + str(len(principal)).encode() + b'\r\n' + principal + b'\r\n$64\r\n' + password + b'\r\n')
         return connection.makefile('rb').readline() == b'+OK\r\n'
 
 
@@ -136,8 +128,8 @@ require_runtime('garnet', GARNET, arguments.runtime_directory)
 require_free(PORTS)
 (RUN / 'components').mkdir(parents=True)
 acl = RUN / 'users.acl'
-acl.write_text(f'user default on >{ADMIN} ~* +@all\n'
-               f'user reader on >{READER} ~* +@read +@connection +command +info\n', encoding='utf-8')
+acl.write_text(native_configuration('writerAcl', ADMIN, READER), encoding='utf-8')
+
 def run_http(stage):
     output = RUN / stage
     output.mkdir()
@@ -155,15 +147,11 @@ def run_http(stage):
 
 @contextlib.contextmanager
 def backing_store(stage, recover):
-    arguments = [str(GARNET), '--bind', '127.0.0.1', '--port', str(PORTS[3]), '--auth', 'ACL',
-        '--acl-file', str(acl), '--memory', '64m', '--page', '4k', '--lua', '--aof', '--aof-commit-freq', '0',
-        '--aof-commit-wait', '--aof-memory', '16m', '--aof-page-size', '8k', '--aof-segment-size', '1m',
-        '--checkpointdir', str(RUN / 'store')]
-    if recover:
-        arguments += ['--recover', '--fail-on-recovery-error']
+    acl.write_text(native_configuration('readerAcl', READER) if recover else native_configuration('writerAcl', ADMIN, READER), encoding='utf-8')
+    arguments = [str(GARNET), *native_configuration('garnetArguments', str(RUN), str(acl), 'recover' if recover else 'provision')]
     require_free(PORTS)
     with launch(arguments, 'garnet-' + stage) as process:
-        await_ready(process, garnet_ready)
+        await_ready(process, lambda: garnet_ready('reader', READER) if recover else garnet_ready())
         yield
     require_free(PORTS)
 

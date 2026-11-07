@@ -4486,3 +4486,10 @@ Dapr source-build42416692352 FAILED on missing UUID header before probe/save.
 Added uuid-dev only to cloud/native build dependencies; no local install.
 Future compact artifact includes native-build-receipt.json (source/byte hash),
 excluding SDK source/compiler/binary archives. Original failures remain retained.
+
+Dapr rebuilt native IO in42416939381 loads and AOF probe passes; full native
+restart step remains running. Shared Docker/DaprRuntime configuration added;
+6cached-Node controls pass without creating fixtures/files. Native fixture now
+consumes the same generators and disables writer on recovery. No local SDK
+download/install/build/native source operation. Stronger source requires its own
+exact cloud qualification; no Development or accepted cohort mutation.

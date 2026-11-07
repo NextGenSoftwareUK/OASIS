@@ -58,8 +58,9 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 Qualify Dapr hosting on Linux with a restricted backing store, while advancing
 other independent provider scopes whose retained evidence and access are ready.
 Dapr Linux read/write-denial/HTTP proof passes; durable restart remains open.
-The native AOF diagnostic identified a missing mandatory Garnet storage library;
-packaging and OS dependencies are corrected in task source, qualification pending. Coverage is119local/
+The mandatory Garnet native library is rebuilt from pinned upstream source for
+the target OS; its load and synchronous AOF write probe pass. Full restart and
+shared reader-only hosting configuration remain under qualification. Coverage is119local/
 91live HTTP/28functional browser. Source88b896815/Core944d380, settings
 8783d8eb-1d65-474f-8bdd-081615d4794a SUCCESS, instance5e85e983.
 All13settings and active configuration verified before six first hosted cohorts.
@@ -115,9 +116,9 @@ Stage named files. Development pushes authorized for live sandbox verification.
 Fetch before integration. Validate pins with Scripts/validate_railway_dependency_manifest.py.
 Observe only the exact deployment with Scripts/Sandbox/Observe-HostedDeployment.py.
 
-[Parity](CQL_PARITY_CHECKLIST.md) · [CQL roadmap](CQL_COMPLETION_ROADMAP.md) ·
-[ORM roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md) · [Status](IMPLEMENTATION_STATUS.md) ·
-[Manual](CQL_MANUAL.md) · [Architecture](CQL_ARCHITECTURE.md) ·
-[Resources](ENVIRONMENT_AND_CLEANUP_LEDGER.md) ·
-[David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md) ·
+[Parity](CQL_PARITY_CHECKLIST.md) Â· [CQL roadmap](CQL_COMPLETION_ROADMAP.md) Â·
+[ORM roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md) Â· [Status](IMPLEMENTATION_STATUS.md) Â·
+[Manual](CQL_MANUAL.md) Â· [Architecture](CQL_ARCHITECTURE.md) Â·
+[Resources](ENVIRONMENT_AND_CLEANUP_LEDGER.md) Â·
+[David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md) Â·
 [Previous status](Archive/CURRENT_STATUS_history_2026-11-07.md).

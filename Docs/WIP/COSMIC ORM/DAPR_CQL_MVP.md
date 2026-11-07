@@ -1,5 +1,12 @@
 # Dapr CQL MVP
 
+Current7November: Linux restricted-read/write-denial/WEB4 native proof passed.
+Rebuilt upstream native IO now loads and passes the synchronous AOF write probe
+in42416939381. Full durable restart remains pending. Shared runtime configuration
+and reader-only recovery qualification are being added; no hosted Dapr source,
+startup flag, visitor enrollment or public card is enabled. Coverage119/91/28.
+
+
 The read-only profile uses the existing Dapr .NET SDK to request strongly
 consistent reads of `oasis/holon/{id:N}` from one named state component. It
 uses an explicit IPv4 loopback sidecar endpoint, authenticates with a sidecar
@@ -18,7 +25,7 @@ dedicated in-memory SQLite state component. The synthetic fixture returned
 3/2/0 and its values and ETags were identical before and after the reads.
 The native log SHA-256 is
 `eeb88d1f7b32f6b76564d8ffafc8bde3993a10b0d2a8332ddfcb1230c904269f`.
-The sidecar stopped, ports 54861–54863 were clear and no database file remained.
+The sidecar stopped, ports 54861â€“54863 were clear and no database file remained.
 Hosted WEB4 enrollment
 requires a co-located sidecar and a reviewed state component and remains open.
 LocalFile keeps the first live Development rollout slot.
@@ -82,7 +89,7 @@ the shared lease, and verifies that the native HTTP test ran and passed
 without skipping. It uses synthetic loopback data and leaves compact logs
 in this checkout's qualification directory.
 
-## Linux hosting qualification — 7 November 2026
+## Linux hosting qualification â€” 7 November 2026
 
 The six-reader batch is accepted/published; Dapr is the next independent native
 hosting gate. Existing Windows runner pins Windows executable hashes and uses
@@ -250,3 +257,16 @@ The native build's source/SHA256 receipt is now included in compact qualificatio
 artifacts, alongside the separate native results. This does not include source
 checkouts, compiler outputs, runtime archives or credentials. Native and image
 qualification remain open until the corrected build and tests pass.
+
+## Shared hosted lifecycle configuration
+
+`Docker/DaprRuntime/contract.json` owns native ports and AOF parameters.
+`configuration.cjs` generates the actual Garnet arguments, Dapr arguments,
+component YAML and separate provisioning/reader ACLs. Six configuration controls
+pass: strict durable recovery, explicit lifecycle selection, reader-only permissions,
+credential-injection rejection, loopback endpoints and distinct writer credentials.
+The native fixture now consumes these same generators through Node stdin/stdout;
+credentials stay out of command arguments and console output. During recovery
+it disables the default writer and authenticates readiness as the reader.
+This stronger reader-only recovery is pending cloud execution. The final image
+copies the shared configuration, but no startup path invokes Dapr yet.

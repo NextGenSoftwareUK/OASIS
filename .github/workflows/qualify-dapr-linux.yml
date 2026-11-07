@@ -9,6 +9,8 @@ on:
       - 'Scripts/TestHosts/dapr-linux-runtime-pins.json'
       - 'Scripts/TestHosts/run-cosmic-dapr-web4-native.py'
       - 'Scripts/TestHosts/test_dapr_native_runtimes.py'
+      - 'Docker/DaprRuntime/**'
+      - 'Scripts/Sandbox/test_hosted_dapr_configuration.cjs'
   workflow_dispatch:
 
 permissions:
@@ -48,7 +50,9 @@ jobs:
           dotnet-version: 10.0.x
       - name: Check runtime archive boundaries
         working-directory: OASIS
-        run: python3 -B Scripts/TestHosts/test_dapr_native_runtimes.py
+        run: |
+          python3 -B Scripts/TestHosts/test_dapr_native_runtimes.py
+          node --test Scripts/Sandbox/test_hosted_dapr_configuration.cjs
       - name: Install mandatory native storage OS dependencies
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libaio1t64 liburing2 libaio-dev liburing-dev build-essential cmake git uuid-dev
       - name: Install exact Linux runtimes on the ephemeral runner
