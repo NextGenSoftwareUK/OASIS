@@ -84,8 +84,8 @@ values/revisions/TLS identity and no seed/save. Task API42397587804 passed14/14.
 Parent candidate82428c7a6441e6088cfdd6960f899641dae54dd1 and
 Core2a09c9be620b3f3c2b1bae05bf62758bc5b13983 are published on the reused
 candidate branches. All seven exact dependency pins are advertised remotely;
-manifest/gitlinks pass. Exact candidate API42398316205 and image42398318179
-are in progress. Eight settings are prepared only in protected local snapshots;
+manifest/gitlinks pass. Exact candidate API42398316205 passed14/14 with
+zero skips; image42398318179 is still in progress. Eight settings are prepared only in protected local snapshots;
 four presets/source bindings agree with original IDs. Next inspect those same
 jobs and preserve terminal evidence before scoped Development rollout and
 one-shot settings activation. Mounted/live HTTP gates remain open.

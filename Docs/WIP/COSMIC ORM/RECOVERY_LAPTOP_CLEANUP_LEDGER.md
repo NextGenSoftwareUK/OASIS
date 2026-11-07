@@ -4228,3 +4228,9 @@ no Railway setting write/deployment/native mutation. Four reviewed presets
 and exact original-ID source binding checked offline from protected snapshots.
 Preserve these files for the one-shot enrollment journals; do not replace or
 regenerate credentials. Exact remote candidate publication ACK retained.
+
+Exact NATS candidate API42398316205 passed14/14,0skip; compact source-bound
+receipt retained as nats-candidate-boundary-qualified.json. Remote TRX artifact
+13583863128 (3114B) retained30days; no local download. All seven exact private
+pins independently read-verified on remote refs, compact receipt retained.
+Image42398318179 still running; no new local build/install or live mutation.

@@ -228,3 +228,12 @@ binding comparison against the HTTP verifier passes. Parent/Core candidate
 remote refs were read back exactly and a publication ACK retained. Both
 candidate jobs remain in progress; do not apply settings or resubmit jobs
 based solely on prepared configuration.
+
+Exact candidate82428c7a6 API run42398316205/job128480401927 SUCCESS:
+14 passed,0 failed,0 skipped. Retained TRX artifact13583863128,3114B,
+SHA256e1cd31ab6e934fa5907690ecef31fe14b0650e51dd315bf184d026ae26d72693,
+expires7December2026. Compact qualification receipt retained in the old-laptop
+state folder; no local artifact download. Image42398318179 remains active.
+All seven exact private pins also verified on advertised remote refs and
+recorded in nats-candidate-dependency-refs.acknowledged.json. Deployment and
+live settings are still unchanged; image terminal proof is required next.
