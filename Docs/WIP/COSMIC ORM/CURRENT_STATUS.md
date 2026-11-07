@@ -20,6 +20,10 @@ Railway settings deployment ecdabdbb succeeded. Push Protocol passed hosted
 3/2 native, 5/4 MongoDB federation, reuse, visitor isolation and both replicas.
 Sandbox card fac8274 is live with a local C# link. Browser interaction remains open.
 
+LayerZero v1 and Reclaim share a scoped candidate, 2cd6ef3d. Six protected
+settings and eight presets are prepared. Await [CI 42328208850](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42328208850)
+before promoting the exact candidate and applying settings.
+
 ## Recent WEB4 preparation, 5–6 November 2026
 
 Decentraland passed 32 WEB4 admission tests and native 3/2, MongoDB 5/4

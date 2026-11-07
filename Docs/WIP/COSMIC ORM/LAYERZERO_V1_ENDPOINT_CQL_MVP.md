@@ -45,3 +45,16 @@ The shared run passed three provider cases with zero skips. The
 `ce187305a3ebafd94bf5fd2fbe2734fb097153f258ebdc5231752f8c869bf6eb`.
 The fixture confirmed its exact owned database was absent after cleanup.
 Hosted HTTP and browser acceptance remain open.
+
+## Joint Development candidate
+
+LayerZero v1 and Reclaim share a scoped WEB4 image candidate
+2cd6ef3d6b002d45fba0909f4f250f88614490c2 with Core
+cb99792e65854c4152e4a89e7fb7b827ebe8133e. Both refs are published on
+work/cosmic-layerzero-reclaim-release-candidate. All Railway gitlinks
+and dependency pins matched, and the provider files match the tested
+task branch. The [image gate](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42328208850)
+runs against the exact candidate. The six-value protected candidate under
+LocalState/COSMIC/HostedSourceRolloutCurrent uses the layerzero-reclaim-public
+prefix. It includes four presets per provider and preserves the existing
+Push Protocol enrollment. Hosted settings have not been applied.
