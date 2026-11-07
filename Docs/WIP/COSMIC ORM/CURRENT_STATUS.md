@@ -24,7 +24,7 @@ LayerZero v1 and Reclaim image CI passed. Development advanced to f9d77e9dc.
 Code deployment 24c2dab0 succeeded and all six settings were acknowledged.
 Settings job e8a57bf6 succeeded. Both providers passed live native 3/2,
 MongoDB federation 5/4, reuse, visitor isolation and both replica checks.
-Next, publish both sandbox cards with their local C# examples.
+Both sandbox cards and local C# links are live at 6c95279. Browser interaction remains open.
 
 ## Recent WEB4 preparation, 5–6 November 2026
 

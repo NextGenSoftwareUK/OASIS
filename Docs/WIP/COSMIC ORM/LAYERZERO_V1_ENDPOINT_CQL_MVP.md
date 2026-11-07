@@ -101,3 +101,11 @@ Evidence under TestResults/HostedCqlIntegrationCurrent, SHA-256:
 - LayerZeroOASIS-native-http.json 947d809d41a7e71470e9a18420103f319a450b5af83c67c9154be3413ac66d45
 - LayerZeroOASIS-client-http-flow.json 8af900c308dba957901410291df617dd4415d357885195d27283aec1ae9343b6
 - LayerZeroOASIS-isolation-http.json 20bf219e2264faf9a4f3213ab0ac2815fcc1f790e17bccb432a09d5f8ff6fc13
+
+## Sandbox publication
+
+The [sandbox card](https://web4.oasisomniverse.one/web4-sandbox.html#cql-layerzero-v1-catalogue)
+is live at Web4Site 6c95279 with native and MongoDB instructions and a local
+C# query example. All 114 website tests passed. The live 230,997-byte HTML
+matched Git SHA-256 272edabde09f1ad5eb7936c47e33c28561e413abff40f74ba6e6c1eb5bf3b285.
+Interactive browser acceptance remains open.

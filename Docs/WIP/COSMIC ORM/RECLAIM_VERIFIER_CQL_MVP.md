@@ -96,3 +96,11 @@ Evidence under TestResults/HostedCqlIntegrationCurrent, SHA-256:
 - ReclaimProtocolOASIS-native-http.json 75feba3952eb7a96ee08aac231c275dae0e36a06a5c7aa2ae779e20ca75e6659
 - ReclaimProtocolOASIS-client-http-flow.json fdf1e7d8319ac7b9ebcd3dab9dffec9db99be1ef020b05eee16d27bb99049ece
 - ReclaimProtocolOASIS-isolation-http.json 3ea8e1e12dd1724d0958124028f9b0ed8712d5d2994f57a5040e9301c73572df
+
+## Sandbox publication
+
+The [sandbox card](https://web4.oasisomniverse.one/web4-sandbox.html#cql-reclaim-catalogue)
+is live at Web4Site 6c95279 with native and MongoDB instructions and a local
+C# query example. All 114 website tests passed. The live 230,997-byte HTML
+matched Git SHA-256 272edabde09f1ad5eb7936c47e33c28561e413abff40f74ba6e6c1eb5bf3b285.
+Interactive browser acceptance remains open.
