@@ -165,3 +165,12 @@ redacted before tail truncation. Six offline integrity/diagnostic controls pass.
 A startup-only preflight runs before the expensive host build and performs no
 seed, sidecar call or WEB4 query. This next run diagnoses the actual server error;
 no persistence flags are guessed or removed to bypass the failed invariant.
+
+Startup diagnostic42414093417/job128528313952 identified the root cause:
+`LogDir specified without enabling tiered storage (UseStorage)`. Garnet exited0
+without opening its listener. The preflight stopped before host build or seed.
+The fixture incorrectly supplied the main-store `LogDir` while using an in-memory
+main store with durable AOF. The correction removes only that invalid setting;
+explicit `CheckpointDir` still owns AOF persistence. Synchronous commit waiting,
+strict recovery and original-value/ETag comparisons remain required. No source
+is recreated in recovery. The redacted diagnostic artifact is retained remotely.

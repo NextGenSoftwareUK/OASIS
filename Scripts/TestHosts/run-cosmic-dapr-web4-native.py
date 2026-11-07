@@ -153,7 +153,7 @@ def backing_store(stage, recover):
     arguments = [str(GARNET), '--bind', '127.0.0.1', '--port', str(PORTS[3]), '--auth', 'ACL',
         '--acl-file', str(acl), '--memory', '64m', '--page', '4k', '--lua', '--aof', '--aof-commit-freq', '0',
         '--aof-commit-wait', '--aof-memory', '16m', '--aof-page-size', '8k', '--aof-segment-size', '1m',
-        '--logdir', str(RUN / 'store'), '--checkpointdir', str(RUN / 'store')]
+        '--checkpointdir', str(RUN / 'store')]
     if recover:
         arguments += ['--recover', '--fail-on-recovery-error']
     require_free(PORTS)

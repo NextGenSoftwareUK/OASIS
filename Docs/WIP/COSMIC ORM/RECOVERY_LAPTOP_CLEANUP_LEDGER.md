@@ -4445,3 +4445,9 @@ compact failed receipt retained, prior narrower passing artifact unchanged.
 No restart artifact existed. Added startup-only no-seed preflight and bounded
 credential-redacted diagnostics,6offline controls pass. Next cloud run will
 diagnose native startup before rebuilding host. No local runtime/env/build.
+
+Dapr startup diagnostic42414093417 FAILED before host build/seed; exact cause
+invalid LogDir without tiered storage. Compact root-cause receipt retained;
+redacted diagnostic artifact remote. Removed invalid main-store LogDir only;
+explicit AOF CheckpointDir/synchronous ACK/strict recovery retained. No local
+runtime/download/build or accepted cohort mutation. Corrected native proof next.
