@@ -114,12 +114,18 @@ RUN ipfs version --enc=json
 RUN /opt/waku/logosdeliverynode --version
 RUN node -e "if(require('/opt/solid/package.json').version!=='7.1.8')throw Error('CSS version differs');require('/opt/solid/dist/init/AppRunner');require('/opt/solid/node_modules/n3')"
 COPY --from=build /app/publish .
+RUN test -s /app/runtimes/linux-x64/native/libduckdb.so \
+    && ldd /app/runtimes/linux-x64/native/libduckdb.so > /tmp/duckdb-libraries.txt \
+    && cat /tmp/duckdb-libraries.txt \
+    && ! grep -F 'not found' /tmp/duckdb-libraries.txt \
+    && rm /tmp/duckdb-libraries.txt
 COPY Docker/entrypoint.onode.sh /entrypoint.sh
 COPY Docker/host-sandbox-ipfs.cjs /app/host-sandbox-ipfs.cjs
 COPY Docker/host-sandbox-solid.cjs /app/host-sandbox-solid.cjs
 COPY Docker/host-sandbox-pouchdb.cjs /app/host-sandbox-pouchdb.cjs
 COPY Docker/host-sandbox-teaching.cjs /app/host-sandbox-teaching.cjs
 COPY Docker/host-sandbox-waku.cjs /app/host-sandbox-waku.cjs
+COPY Docker/host-sandbox-duckdb.cjs /app/host-sandbox-duckdb.cjs
 RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 ENV ASPNETCORE_ENVIRONMENT=Production

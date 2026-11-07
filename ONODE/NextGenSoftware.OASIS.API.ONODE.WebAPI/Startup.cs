@@ -685,6 +685,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_GCS_PUBLIC_SOURCE_JSON"] is string googlePublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.GoogleCloudPublicMetadataSource.FromJson(googlePublicSource)));
+            if (Configuration["CQL_DUCKDB_QUERY_CONNECTION_STRING"] is string duckDbQueryConnection)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    new NextGenSoftware.OASIS.API.Providers.DuckDBOASIS.DuckDBOASIS(duckDbQueryConnection)));
+
             Services.Cql.CqlReviewedNetworkReadSourceRegistration.AddReviewedNetworkReadSources(services, Configuration,
                 NextGenSoftware.OASIS.API.Core.Managers.SandboxOptions.Enabled);
             Services.Cql.CqlPouchDbReadSourceRegistration.AddPouchDbReadSource(services, Configuration);
