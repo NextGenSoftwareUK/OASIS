@@ -100,3 +100,12 @@ The verifier emits the descriptor only after checking the SHA-256, file
 length, SQLite header and three distinct canonical hashes. Local smoke
 checks passed for a valid receipt, archive tampering, a duplicate receipt
 field and duplicate hashes. The native readiness gate is separate.
+
+The export passed. Artifact 13552413276 contains the exact archive and
+receipt from the passing native, restart, and WEB4/MongoDB run. The
+downloaded SQLite file is 12,288 bytes and matches CI SHA-256
+0bd3c388c5662d3f73a6239555013d4526dd801e8746b58e38c4921f55ec9880.
+The offline verifier produced three canonical reviewed hashes. The
+archive and receipt are retained outside Git in
+LocalState/COSMIC/WakuQualifiedSourceCurrent. The online artifact
+expires on 2026-11-10 at 00:54:44 UTC.
