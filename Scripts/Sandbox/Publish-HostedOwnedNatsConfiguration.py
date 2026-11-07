@@ -105,13 +105,85 @@ def apply():
     configuration.apply_values(PREFIX, KEYS, reviewed_snapshots=(before, after), before_mutation=require_deployment)
 
 
+def verify_settings():
+    expected = os.environ.get('COSMIC_CQL_SETTINGS_DEPLOYMENT_ID')
+    instance = os.environ.get('COSMIC_CQL_REVIEWED_INSTANCE_IDS', '')
+    if not expected or not re.fullmatch(r'[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}', instance):
+        raise RuntimeError('One exact NATS settings deployment and active instance are required.')
+    deployment = verify_mount()
+    if deployment != expected:
+        raise RuntimeError('The active NATS settings deployment differs.')
+    before = configuration.protected_read(PREFIX + '-before-variables.dpapi')
+    after = configuration.protected_read(PREFIX + '-candidate-variables.dpapi')
+    if candidate(before, after[EXTRA[3]]) != after:
+        raise RuntimeError('Protected NATS settings no longer match qualification.')
+    for key in KEYS:
+        ack = json.loads((configuration.STATE / f'{PREFIX}-{key}.acknowledged.json').read_bytes())
+        if (ack.get('key') != key or ack.get('verified') is not True or ack.get('deploymentTriggered') is not False
+                or ack.get('sha256') != hashlib.sha256(after[key].encode()).hexdigest()):
+            raise RuntimeError('A NATS setting acknowledgement differs.')
+    if configuration.variables() != after:
+        raise RuntimeError('Live NATS configuration differs from the complete protected candidate.')
+    # Credentials travel only through private stdin; they are never shell arguments
+    # or inspection output. This reader cannot initialize or repair mounted state.
+    inspection = r"""
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const expected=JSON.parse(fs.readFileSync(0,'utf8')),root='/data/COSMIC/SandboxNATS';
+const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+for(const [key,value] of Object.entries(expected))if(process.env[key]!==value)throw Error('Active NATS environment differs');
+if(fs.realpathSync(root)!==root)throw Error('NATS source redirected');
+const runtime=require('/app/host-sandbox-nats.cjs');
+const bundle=runtime.captureBundle(expected.OASIS_SANDBOX_NATS_BOOTSTRAP_JSON,expected.CQL_NATS_PUBLIC_SOURCE_JSON);
+function read(name,max=16384){const file=path.join(root,name),stat=fs.lstatSync(file);
+if(!stat.isFile()||stat.isSymbolicLink()||stat.size>max)throw Error('NATS mounted file differs');return fs.readFileSync(file);}
+const receipt=JSON.parse(read('bootstrap.acknowledged.json'));
+if(JSON.stringify(receipt)!==JSON.stringify({schema:1,version:'2.15.2',digest:bundle.digest,sourceSha256:bundle.sourceSha256}))throw Error('NATS source receipt differs');
+for(const entry of bundle.files){const file=path.join(root,'store',entry.path);
+if(fs.realpathSync(file)!==file||!fs.lstatSync(file).isFile())throw Error('NATS native source missing or redirected');}
+const configuration=JSON.stringify(runtime.serverConfiguration(root,expected.CQL_NATS_PUBLIC_SOURCE_PASSWORD));
+if(read('server.conf').toString()!==configuration)throw Error('NATS reader permissions differ');
+const tls=JSON.parse(read('tls.acknowledged.json'));
+if(tls.schema!==1||!tls.hashes||Object.keys(tls.hashes).sort().join(',')!=='ca.pem,server.conf,server.key')throw Error('NATS TLS receipt differs');
+for(const file of ['ca.pem','server.key','server.conf']){
+if(sha(read(file))!==tls.hashes[file])throw Error('NATS TLS identity changed');
+if(file!=='ca.pem'&&(fs.statSync(path.join(root,file)).mode&0o077)!==0)throw Error('NATS private file permissions differ');}
+const cert=new crypto.X509Certificate(read('ca.pem'));
+if(!cert.checkIP('127.0.0.1')||!cert.verify(crypto.createPublicKey(read('server.key')))||Date.parse(cert.validTo)<Date.now()+86400000)throw Error('NATS certificate differs');
+if(require('node:child_process').execFileSync('/usr/local/bin/nats-server',['--version'],{encoding:'utf8'}).trim()!=='nats-server: v2.15.2')throw Error('NATS native version differs');
+process.stdout.write(JSON.stringify({schema:1,digest:bundle.digest,sourceSha256:bundle.sourceSha256,tlsCertificateSha256:sha(read('ca.pem')),verified:true}));
+"""
+    result = subprocess.run([str(configuration.CLI), 'ssh', *configuration.COMMON, '-d', instance,
+        '--', 'node', '-e', inspection], input=configuration.compact({key: after[key] for key in KEYS}).encode(),
+        capture_output=True, timeout=30)
+    if result.returncode or len(result.stdout) > 2048:
+        raise RuntimeError('Mounted NATS source inspection failed; no source repair was attempted.')
+    observed = json.loads(result.stdout)
+    if (observed.get('schema') != 1 or observed.get('verified') is not True
+            or observed.get('digest') != hashlib.sha256(after[EXTRA[1]].encode()).hexdigest()
+            or observed.get('sourceSha256') != hashlib.sha256(after[native.KEYS[0]].encode()).hexdigest()
+            or not re.fullmatch(r'[a-f0-9]{64}', observed.get('tlsCertificateSha256', ''))):
+        raise RuntimeError('Mounted NATS source binding differs from qualification.')
+    if mount.verify_release() != deployment:
+        raise RuntimeError('Reviewed NATS deployment changed during inspection.')
+    receipt_name = f'{PREFIX}-{deployment}-mounted-source.acknowledged.json'
+    receipt_path = configuration.STATE / receipt_name
+    if receipt_path.exists():
+        if json.loads(receipt_path.read_bytes()) != observed:
+            raise RuntimeError('Previously verified NATS mounted identity changed.')
+    else:
+        configuration.write_new(receipt_path, configuration.compact(observed).encode())
+    return deployment
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('operation', choices=('prepare', 'apply', 'verify-mount'))
+    parser.add_argument('operation', choices=('prepare', 'apply', 'verify-mount', 'verify-settings'))
     action = parser.parse_args().operation
     if action == 'prepare':
         prepare()
     elif action == 'apply':
         apply()
-    else:
+    elif action == 'verify-mount':
         print('Reviewed NATS deployment/mount verified', verify_mount())
+    else:
+        print('Reviewed NATS settings/mounted source verified', verify_settings())

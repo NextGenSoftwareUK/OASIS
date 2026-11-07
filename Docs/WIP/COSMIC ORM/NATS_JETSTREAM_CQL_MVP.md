@@ -166,3 +166,16 @@ guard and deployment recheck before each write. Six controlled guards pass;
 no prepare/apply or live settings mutation has been executed. Post-activation
 mounted-source verification and HTTP verifier integration remain to implement
 before enrollment can be treated as accepted.
+
+Owned publisher post-activation verification now checks all eight per-key
+ACKs and the complete live candidate before read-only mounted inspection.
+The exact deployment/instance and image/mount are required. Inspection checks
+active environment, original source receipt/paths, restricted server config,
+TLS file hashes/private permissions, certificate/key and pinned native version.
+Credentials travel through private stdin, never command arguments or output.
+The compact mounted-identity receipt pins the first observed certificate and
+refuses later drift. Deployment is rechecked before recording acceptance.
+Ten controlled publisher guards pass, including stale ACK/config drift,
+certificate identity change and deployment change. No live inspection or
+settings mutation has yet occurred. HTTP verifier integration and exact
+candidate image qualification remain open.

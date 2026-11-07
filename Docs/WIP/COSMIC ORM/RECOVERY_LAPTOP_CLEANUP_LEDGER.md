@@ -4197,3 +4197,10 @@ open, source generation/save, environment install, remote call or mutation.
 Refactored qualified bundle converter into an importable pure builder; CLI
 transport is unchanged. Publisher preparation/apply has not been executed,
 so no additional real reader credential/configuration snapshot exists yet.
+
+Owned NATS publisher10 controlled guards pass with existing Python/Node.
+Small temporary mock setting ACKs/mounted receipts cleaned by test-owned
+TemporaryDirectory lifecycle; no real credentials, native execution or live
+Railway calls. Mounted verification implementation reads only existing files
+and native binary version; credentials use private stdin, compact output only.
+It has not been executed against a live service. No settings/deployment writes.
