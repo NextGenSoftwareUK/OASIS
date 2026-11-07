@@ -31,3 +31,24 @@ for accepted scopes. Keep browser and full provider/ORM gates separate.
 
 Coverage stays119local/80liveHTTP/28browser. Existing NATS/Hyperlane and other
 accepted cohorts remain sealed; all owner deferrals remain unchanged.
+
+## Exact code candidate published
+
+Accepted base82428c7a6, task source29bb8c9ad. Corrected parent candidate
+15eb486735a3eb80cae25142f1f0a839918abff5 and Core
+85278a427acea95c64829d4cf34ec7d8f9254d6b are published by normal fast-forward
+on the existing work/cosmic-teaching-release-candidate refs. No dirty checkout
+switch or unrelated source integration. Core adds five free public read tariffs;
+parent adds scoped existing client/profile files, five project references,
+compiler authorization, five admission suites and exactly20 Startup lines.
+Manifest/gitlink and diff checks pass. Initial unpublished candidate d781fa13
+was rejected because blank-line extraction copied unrelated registrations;
+statement-bound extraction fixed it before publication. Retain its rejected
+receipt for audit; never deploy that abandoned object.
+
+Exact-candidate API run42404033534 is active, requiring19 passes/zero skips:
+five new public admissions plus14 retained NATS boundary cases. Image run
+42404062685 is queued for exact15eb48673, teaching_sidecars=true. One image
+dispatch intent/204ACK retained. Do not resubmit while these jobs are active.
+No Development push or11-setting apply occurred. Next inspect these exact jobs
+and act on terminal evidence; native/local fixtures remain unreplayed.

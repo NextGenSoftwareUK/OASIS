@@ -4300,3 +4300,12 @@ pair retained under HostedSourceRolloutCurrent/cross-chain-five-public-* for11
 settings/five sources; no five separate snapshot pairs/environments created.
 No batch settings/service mutation. Exact code/image qualification is still
 required because current82428c7a6 lacks these five API registrations.
+
+Five-reader scoped candidate assembly reused temporary Git indexes and existing
+worktree. Initial unpublished d781fa13 object rejected on diff review (oversized
+registration extraction); corrected statement-bound extraction yields15eb48673/
+Core85278a4, manifest/gitlinks pass. Small original/rejected/corrected assembly
+receipts/helpers retained; no source files or unrelated checkout changes altered.
+Only corrected refs normally published. API42404033534 active, exact image
+42404062685 queued with one dispatch intent/204ACK. No local SDK build/install,
+new environment/image download, original fixture replay or live settings writes.
