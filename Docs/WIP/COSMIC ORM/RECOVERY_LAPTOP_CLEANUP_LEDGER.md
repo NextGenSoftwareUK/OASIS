@@ -4408,3 +4408,9 @@ abd3efdbb8e298ae71dc9faad9f7a0715f256521a24ed1bcbc9bfda9fdf17119
 verified byte-exact in memory. Compact public-cards receipt retained; no HTML
 file/download/environment/browser operation/source or cohort replay. Twelve
 pinned links verified at backendaddb3f1d2. Original source/ACKs remain retained.
+
+Dapr Linux preparation: official release metadata only retained in compact
+dapr-linux-runtime-assets-observed.json; no runtime archive downloaded. Source
+pins record Dapr1.18.9 archive64024904B and Garnet2.2.5 archive5694440B for
+future ephemeral cloud-runner use. Existing Windows runner/native fixture
+untouched; Linux native/hosting/restart/write-denial proof remains open.

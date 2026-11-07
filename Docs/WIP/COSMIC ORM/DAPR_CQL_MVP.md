@@ -81,3 +81,22 @@ It validates the pinned Dapr 1.18.9 and Garnet 2.2.5 binaries, builds under
 the shared lease, and verifies that the native HTTP test ran and passed
 without skipping. It uses synthetic loopback data and leaves compact logs
 in this checkout's qualification directory.
+
+## Linux hosting qualification — 7 November 2026
+
+The six-reader batch is accepted/published; Dapr is the next independent native
+hosting gate. Existing Windows runner pins Windows executable hashes and uses
+Windows process creation, so its native result cannot certify Linux deployment.
+Keep that original result intact. No native Dapr fixture has been replayed here.
+
+[Linux runtime pins](../../../Scripts/TestHosts/dapr-linux-runtime-pins.json)
+record the official Dapr1.18.9 Linux amd64 archive (64024904B) and Garnet2.2.5
+Linux x64 framework-dependent archive (5694440B), including release digests.
+These were read from official GitHub release metadata, without downloading
+archives or creating a local runtime environment. Native Linux execution remains
+unverified. Next: one pinned cloud-runner fixture proving restricted reads,
+write denial, unchanged values/ETags, WEB4 native3/2 and clean owned shutdown;
+then durable hosted source/restart and Mongo federation before enrollment.
+
+[Dapr release](https://github.com/dapr/dapr/releases/tag/v1.18.9),
+[Garnet release](https://github.com/microsoft/garnet/releases/tag/v2.2.5).

@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "platform": "linux-x64",
+  "runtimes": {
+    "daprd": {
+      "version": "1.18.9",
+      "archive": "daprd_linux_amd64.tar.gz",
+      "bytes": 64024904,
+      "sha256": "8e75d1a96b3e1ebf4eb45391187573d259cdb6938b6e88aae37cfe5594584781",
+      "url": "https://github.com/dapr/dapr/releases/download/v1.18.9/daprd_linux_amd64.tar.gz",
+      "executable": "daprd",
+      "release": "https://github.com/dapr/dapr/releases/tag/v1.18.9"
+    },
+    "garnet": {
+      "version": "2.2.5",
+      "archive": "linux-x64-based.tar.xz",
+      "bytes": 5694440,
+      "sha256": "f397cf0da94697ebd2fa17e7d3bc448fa5d62578f2c9693698a104a88d91c626",
+      "url": "https://github.com/microsoft/garnet/releases/download/v2.2.5/linux-x64-based.tar.xz",
+      "executable": "GarnetServer",
+      "release": "https://github.com/microsoft/garnet/releases/tag/v2.2.5"
+    }
+  }
+}
