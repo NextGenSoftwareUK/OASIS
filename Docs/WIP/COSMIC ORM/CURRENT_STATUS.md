@@ -22,7 +22,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - PouchDB settings/live acceptance job2045b41e succeeded.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
-- Website C:/Source/Web4Site, branch work/cosmic-cql, publishede7dce1b.
+- Website C:/Source/Web4Site, branch work/cosmic-cql, published698e102.
 - Dedicated Railway key cosmic-cql-recovery-laptop-20261107 was created on
   this laptop for mounted-source inspection. Its eventual revocation is in
   the old-laptop cleanup ledger. Private key remains outside Git.
@@ -73,9 +73,10 @@ after; no WAL exists. Original hosted cohort is sealed under
 HostedQueryAcceptance-DuckDBOASIS/cql-http-acceptance.acknowledged.json.
 Never replay it or recreate the accepted Windows fixture.
 
-Publish the hosted path on existing DuckDB card22, preserving local5116
-launcher and real C# example. Then investigate the next eligible native
-hosting scope from the provider matrix; NATS JetStream already has real
+DuckDB card22 is published at698e102 with the hosted path, preserved local5116
+launcher and real C# example. Public HTML matches the exact committed blob;
+all119 client controls pass. Next investigate the eligible native hosting
+scope from the provider matrix; NATS JetStream already has real
 SDK/local3/2 and HTTP5/4, with its hosted read-only TLS fixture still open.
 Do not replace its existing implementation or bypass the preserved QuestDB
 public403. Chroma's reviewed HTTPS endpoint/credential gate remains open.

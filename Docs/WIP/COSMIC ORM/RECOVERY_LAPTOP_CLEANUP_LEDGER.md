@@ -4111,3 +4111,12 @@ privacy0/3 and exactSQLite/Neo4j replicas2/2. Original hosted cohort sealed;
 reports8974/27377/3816B and hashes retained in its receipt and DuckDB evidence.
 Protected sessions/refresh/setting/deployment journals retained. No original
 Windows native fixture replay, local SDK open, download or new environment.
+
+DuckDB public card22 publication698e102 preserves its local5116 launcher
+and adds the accepted hosted native/federated steps and pinned real C# example.
+Existing website branches work/cosmic-cql/main normally pushed after shared
+ancestry checks. All119 client controls pass in duckdb-website-client-controls.log.
+Public HTML245724B, SHA256eec1271ac6348716c32771bca66d4d8d229e31e1e1d251b00557d179cc229a09,
+matched exact Git bytes on first observation; compact receipt retained. No
+HTML download file, new environment/install/native replay or browser input.
+Native SDK/source/token/configuration and sealed cohort journals preserved.

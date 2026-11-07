@@ -368,3 +368,11 @@ Windows source and save ACKs remain unchanged. No new local environment,
 runtime, database copy or native launch was used. Coverage119local/78liveHTTP/
 28functional browser. Card22 hosted publication and browser verification
 follow. This proves the bounded read profile, not full DuckDB ORM parity.
+
+Existing public card22 now includes the hosted path, retaining local5116
+launcher/stop instructions. Web4Site698e102 pushed normally to existing
+work/cosmic-cql/main; all119 client controls pass. Public HTML245724B,
+SHA256eec1271ac6348716c32771bca66d4d8d229e31e1e1d251b00557d179cc229a09,
+is byte-identical to the committed blob. Guide and real C# read-only
+example are pinned to backend8e7931835. Browser interaction remains open.
+[Hosted/local demo](https://web4.oasisomniverse.one/web4-sandbox.html#cql-duckdb-catalogue).
