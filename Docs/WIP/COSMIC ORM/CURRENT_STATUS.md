@@ -63,10 +63,12 @@ the target OS; native AOF writes and full durable restart pass in42416939381.
 Shared configuration/default-writer-disabled recovery also passes in42417629733.
 The recovery-only hosted helper has13controlled checks. Run42418683499 failed
 in the fixture before helper verification because its ACL filename differed from
-the shipping contract; corrected inea3d78835, qualifying in42419782648.
+the shipping contract; corrected inea3d78835. Run42419782648 isSUCCESS:
+actual helper verified recovered values/ETags and original writer was rejected.
 The shared one-shot seed journal (aee489ed3) has3additional lifecycle controls
 and is qualifying against real native engines in42419910853. Both runs were
-observed active; neither is accepted evidence yet. Provisioning/image/enrollment stay open. Coverage is119local/
+observed active previously; helper gate has since passed and seed gate remains
+active. Provisioning/image/enrollment stay open. Coverage is119local/
 91live HTTP/28functional browser. Source88b896815/Core944d380, settings
 8783d8eb-1d65-474f-8bdd-081615d4794a SUCCESS, instance5e85e983.
 All13settings and active configuration verified before six first hosted cohorts.

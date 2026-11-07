@@ -335,3 +335,8 @@ Docker/DaprRuntime/seed.cjs now owns the single Dapr bulk-save path used by the 
 ### Recovery startup wiring (not deployed)
 
 The entrypoint now validates OASIS_SANDBOX_DAPR as an explicit boolean and routes it to the existing process supervisor. Its two services are ordered Garnet recovery, then Dapr exact-source verification, before WEB4 starts. Default remains disabled; no source is created or seeded by startup. Nine supervisor controls pass (fresh Windows IPFS bootstrap deliberately excluded because its retained directory exists);16 Dapr controls pass on cached Node24.22.1. Shell syntax passes. Initial broader test invocation failed safely on the retained IPFS bootstrap directory before mutation; directory preserved. Image and native wiring acceptance remain open.
+
+
+### Hosted recovery helper native gate passed
+
+Run42419782648/job128545514411 (ea3d7883510fd01090646475527560be54853fa6) isSUCCESS by fresh REST. Terminal job logs confirm one seed, denied writes and WEB4 query success before/after native restart with original values/ETags unchanged. This fixture invokes the actual hosted helper against the recovered source and rejects original admin authentication. Artifact13593286107 is5188bytes, SHA256651593b1d39a829bfab7e90865f0a916ee1baaa7edf8ba49f54afd6a96c87f35; archive inspection remains pending. The newer shared-seed gate42419910853 is still active. No Dapr live activation.
