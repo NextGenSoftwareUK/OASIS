@@ -3918,3 +3918,18 @@ by integration. After observing original attempt1 still failed, the existing
 Git-authenticated Actions API acknowledged the same bounded request201.
 Intent/response and source publication acknowledgements remain in the recovery
 directory. No new local environment or native source was created.
+
+Final Waku timestamp image42368952565 passed with exact257404f8 and teaching
+runtimes enabled. Digest9671e1f694c02f1e6f26b84e7d705ee0585e41c49393be46dd0de822bf585226,
+compact receipt waku-exact-release-qualified.json. Native regression
+42368859021 attempt2 passed5 provider/1WEB4 Mongo case and removed its owned
+Mongo container/volume. Its new temporary regression archive is separate;
+the original hosted input remains untouched. Local NuGet metadata scan in
+the exact red/green build window found0 newly created package metadata files.
+
+Live settings matched the original Waku baseline. Manifest, advertised Core
+candidate and Development ancestry checks passed. Exact code target257404f8
+was fast-forwarded to Development. Job3fcf6d34-e591-4e24-a377-599a33022a4c
+is queued. Durable push intent retained. No Waku settings were applied or
+hosted source archive/cohort created yet. The blocked57MB cleanup remains
+retained, with no retry. Last free24395542528B.

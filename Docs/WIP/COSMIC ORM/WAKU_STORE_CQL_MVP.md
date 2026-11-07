@@ -194,3 +194,16 @@ preserve9007199254740993 exactly. The regression failed before the fix with
 Expected String/Actual Number. All four controlled Waku C# cases now pass,
 zero skips. No native fixture or account was opened for these tests. The
 updated native CI gate requires five provider cases and one WEB4/Mongo case.
+
+Timestamp-corrected image42368952565 passed for257404f8, digest
+sha256:9671e1f694c02f1e6f26b84e7d705ee0585e41c49393be46dd0de822bf585226.
+The source-preserved native regression42368859021 attempt2 passed all five
+provider cases and the WEB4/Mongo case, zero skips. Native Store3/2/0,
+restart/seal and exact owned Mongo container cleanup passed. Its freshly
+created runner fixture is a separate regression input. The hosted source
+continues using the original archiveSHA256 0bd3c388c5662d3f73a6239555013d4526dd801e8746b58e38c4921f55ec9880.
+
+After fresh live baseline, dependency manifest, source ref and ancestry
+checks, Development advanced normally to257404f8. Code deployment
+3fcf6d34-e591-4e24-a377-599a33022a4c is queued. The six protected Waku
+settings are prepared and await exact deployment/mount verification.

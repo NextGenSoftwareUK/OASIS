@@ -13,7 +13,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Resumed on the old laptop at C:/Source/OASIS2 on 7 November after the
   recovered laptop failed again. Branch work/cosmic-cql-ton-public.
 - Core task branch work/cosmic-cql-decentraland; preserve independent pins.
-- Development ref028d342e, accepted identical-tree runtimefcb76069/Core b98220a7.
+- Development257404f8, Waku code rollout queued. Accepted prior runtimefcb76069/Core b98220a7.
 - PouchDB settings/live acceptance job2045b41e succeeded.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
@@ -60,22 +60,25 @@ work/cosmic-teaching-release-candidate refs. It preserves all accepted sources.
 Native ABI/image42367817374 passed fore0ea3d57. A controlled regression then
 caught browser numeric rounding of nanosecond metadata. The projection now
 emits exact decimal text. Red1failed, corrected4 C# controls pass, zero skips.
-The timestamp-corrected exact image is requested and journalled.
+Timestamp-corrected image42368952565 passed, digest
+sha256:9671e1f694c02f1e6f26b84e7d705ee0585e41c49393be46dd0de822bf585226.
 Native regression42368859021 first failed during checkout because the
 already committed task ONODE pin9f5ad9df was unpublished. Its one ONET
 source commit was advertised on the same agreed task branch, preserving
 Development308a7860. No ONET functional acceptance is claimed. One exact
-native CI recovery was acknowledged after publication, before native work.
+native CI recovery passed after publication, five provider cases and one
+WEB4/Mongo case. The owned runner Mongo container/volume was removed.
 
 Six protected Waku settings were prepared with205 preserved settings, prefix
 waku-public under HostedSourceRolloutCurrent. The original archive, receipt
 and actual cloud qualification are under WakuQualifiedSourceCurrent.
-After exact image success, recheck remote source refs and live baseline,
-advance Development normally, observe the exact code job and verify its
-active instance/image and writable mount. Apply the existing six-key guarded
-publisher once, request one settings deployment, then verify its original
-source receipt before the first hosted readiness/acceptance. No Waku setting
-or new Waku hosted cohort has been created yet.
+The exact image/native gates passed. Fresh live baseline and source checks
+passed. Development advanced normally to257404f8. Code deployment
+3fcf6d34-e591-4e24-a377-599a33022a4c is queued. Observe that exact job,
+then verify its active instance/image and writable mount. Apply the existing
+six-key guarded publisher once, request one settings deployment, and verify
+its original source receipt before the first hosted readiness/acceptance.
+Waku settings and hosted cohort remain uncreated.
 
 ## Source and rollout journals
 
