@@ -114,3 +114,21 @@ the same native writer-shutdown/restricted-reader/write-denial/unchanged-ETag
 and WEB4 assertions. It retains only compact TRX/result evidence for30days,
 not archives, ACL credentials or runtime logs. No Development rollout is wired
 to this qualification job. Terminal native proof remains required.
+
+## Linux native qualification passed
+
+Exact task source02b15cc56 passed the [Linux qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42412751967),
+job128524212961. Actual pinned Dapr1.18.9 and Garnet2.2.5 archives installed
+and verified. Build succeeded with0errors (3201existing warnings). Native reader
+ACL allowed reads, denied a write with NOPERM, and retained identical value/ETag.
+The fixture required its single actual WEB4 HTTP test to pass1/1without skips.
+It exercised registered Dapr native3/2 through the shipping endpoint with
+controlled test authentication/metering. Owned processes stopped and ports cleared.
+
+Remote compact artifact13590146953:1698B, SHA256
+`f006ad2632e1b1605c6780638bd044e582a2d4a5118686e86209d1c62ceb1f41`,
+expires7December2026. No artifact/runtime archive downloaded to this laptop.
+Durable restart, live visitor authentication, Mongo federation and actual hosted
+sidecar enrollment remain open. Counts119local/91live HTTP/28browser unchanged.
+Next: extend the dedicated native fixture to persist acknowledged records and
+verify a backing-store/sidecar restart without another seed operation.

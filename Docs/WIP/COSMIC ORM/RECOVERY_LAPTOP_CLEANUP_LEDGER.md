@@ -4422,3 +4422,10 @@ download/native fixture execution/build. Qualification workflow prepared for
 one ephemeral Linux runner: pinned archives under RUNNER_TEMP/cosmic-dapr-runtimes,
 source reports under LocalState/COSMIC/DaprLinuxQualification; only TRX/result
 artifacts30days. No credentials/runtime archives uploaded. Native proof pending.
+
+Dapr Linux native42412751967/job128524212961 passed pinned install, build,
+restricted reads/NOPERM/unchanged value+ETag and1/1WEB4 native HTTP test.
+Owned fixture shutdown/ports verified. Cloud archives/runtimes remain ephemeral;
+compact artifact13590146953 1698B SHA256f006ad2632e1b1605c6780638bd044e582a2d4a5118686e86209d1c62ceb1f41
+retained30days; no local download. Compact native-qualified receipt retained.
+No Development/settings/accepted cohort mutation. Durable restart still open.
