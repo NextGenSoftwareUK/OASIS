@@ -3933,3 +3933,21 @@ was fast-forwarded to Development. Job3fcf6d34-e591-4e24-a377-599a33022a4c
 is queued. Durable push intent retained. No Waku settings were applied or
 hosted source archive/cohort created yet. The blocked57MB cleanup remains
 retained, with no retry. Last free24395542528B.
+
+2026-11-07 Waku activation/recovery receipts: all six settings ACKs retained.
+Native archive bootstrap completed once. Activation28a381bd crashed in the
+API's16-provider catalogue guard;17 catalogues are configured. Official
+rollback to the successful code deployment3fcf6d34 was acknowledged once.
+Recoverya6688a2e isSUCCESS and public health200/CORS verified. Current
+control-plane variables remain the209-key Waku candidate; running rollback
+uses its earlier snapshot. Do not repeat the six configuration writes.
+Protected crash logs, preceding snapshot, rollback intent/response and
+current variable capture are under RecoveryLaptopResume20261107. One
+502 readiness auth response is protected in its original readiness journal;
+no replay or replacement avatar/cohort has occurred.
+
+Catalogue regression uses the existing WEB4 test environment under the
+exclusive provider build lease, bounded2workers/no reusable nodes/shared
+compiler. Output catalogue-test.log and CqlPublicReadCatalogueCurrent TRX
+are retained for qualification. No runtime/database installation. Existing
+blocked cleanup outputs remain untouched; no removal retried.

@@ -207,3 +207,26 @@ After fresh live baseline, dependency manifest, source ref and ancestry
 checks, Development advanced normally to257404f8. Code deployment
 3fcf6d34-e591-4e24-a377-599a33022a4c is queued. The six protected Waku
 settings are prepared and await exact deployment/mount verification.
+
+2026-11-07 Waku activation recovery: code deployment
+3fcf6d34-e591-4e24-a377-599a33022a4c succeeded. The six original Waku
+configuration writes were acknowledged once. Activation28a381bd-187f-4214-9b4d-aa91d6a45860
+restored the original three-record archive but the API crashed during policy
+enrollment: CqlPublicReadCatalogue imposed a global16-provider limit and
+Waku is the17th catalogue. No Waku hosted acceptance is claimed.
+
+Railway rollback to the preceding successful deployment was acknowledged
+once; recovery deploymenta6688a2e-84d1-4b83-a88b-cb30616395e3 reachedSUCCESS.
+Public health returned200 with the expected browser origin/credentials
+headers. The running rollback uses the previous configuration snapshot;
+current service variables still match the protected Waku candidate with17
+catalogues. Preserve the six write ACKs and bootstrap ACK; do not reapply
+or recreate their source. A corrected code deployment must consume that
+staged configuration after image and regression qualification.
+
+The first Waku readiness session request received a502 gateway response.
+Its original operation7eacfd75-2949-4e5e-b7e7-7d7df5865ca8 and encrypted
+response are retained in HostedWakuReadiness-28a381bd-187f-4214-9b4d-aa91d6a45860.
+No replacement visitor or private import cohort has been created. Resolve
+this response or explicitly reuse an acknowledged existing visitor before
+further readiness work. Browser proof remains open.
