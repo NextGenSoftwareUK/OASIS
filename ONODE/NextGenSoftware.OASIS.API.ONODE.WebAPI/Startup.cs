@@ -705,6 +705,30 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextPublicOriginMetadataSource.FromJson(connextPublicSource)));
 
+            if (Configuration["CQL_MIDEN_PUBLIC_SOURCE_JSON"] is string midenPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.MidenOASIS.MidenPublicBlockHeaderSource.FromJson(midenPublicSource)));
+
+            if (Configuration["CQL_ESPRESSO_PUBLIC_SOURCE_JSON"] is string espressoPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS.EspressoPublicBlockHeaderSource.FromJson(espressoPublicSource)));
+
+            if (Configuration["CQL_EIGENLAYER_PUBLIC_SOURCE_JSON"] is string eigenLayerPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS.EigenLayerPublicOperatorSource.FromJson(eigenLayerPublicSource)));
+
+            if (Configuration["CQL_FHENIX_PUBLIC_SOURCE_JSON"] is string fhenixPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.FhenixOASIS.FhenixPublicTaskManagerSource.FromJson(fhenixPublicSource)));
+
+            if (Configuration["CQL_AXELAR_PUBLIC_SOURCE_JSON"] is string axelarPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.AxelarOASIS.AxelarPublicBlockSource.FromJson(axelarPublicSource)));
+
+            if (Configuration["CQL_RITUAL_PUBLIC_SOURCE_JSON"] is string ritualPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.RitualOASIS.RitualPublicBlockSource.FromJson(ritualPublicSource)));
+
             if (Configuration["CQL_NATS_PUBLIC_SOURCE_JSON"] is string natsPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.NatsPublicCqlProfile.FromConfiguredJson(natsPublicSource,
