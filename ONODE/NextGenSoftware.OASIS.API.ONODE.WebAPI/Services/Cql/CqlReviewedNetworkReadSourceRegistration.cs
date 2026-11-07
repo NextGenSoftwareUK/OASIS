@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.DecentralandOASIS;
+using NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
@@ -12,6 +13,8 @@ public static class CqlReviewedNetworkReadSourceRegistration
     {
         Register(services, configuration["CQL_DECENTRALAND_SCENE_QUERY_SOURCE_OWNER"], "Decentraland",
             owner => new DecentralandSceneQuerySource(owner));
+        Register(services, configuration["CQL_PUSH_PUBLIC_CHANNEL_QUERY_SOURCE_OWNER"], "Push Protocol",
+            owner => new PushProtocolPublicChannelQuerySource(owner));
     }
 
     private static void Register(IServiceCollection services, string ownerText, string provider,
