@@ -4380,3 +4380,10 @@ Six-reader image42408951517 SUCCESS, digest e705f5cf4d1345d85ce8e4d1de970e1e3765
 exact image receipt retained, no local image download. Guarded one-shot scoped
 Development push intent/ACK retained after complete settings/baseline equality.
 Code88dcff57 QUEUED; no settings application/activation/cohort/source replay.
+
+Six-reader code88dcff57 SUCCESS, actual runtime proof retained (six DLLs, two
+retained script hashes, unchanged settings). Thirteen writes staged once with
+original per-key intent/exact ACKs under HostedSourceRolloutCurrent. One settings
+activation intent/protected response/ACK retained;8783d8eb BUILDING. No runtime
+install/image download/native fixture replay/cohort/source write. Original
+protected settings snapshots and first-cohort preflight retained for recovery.

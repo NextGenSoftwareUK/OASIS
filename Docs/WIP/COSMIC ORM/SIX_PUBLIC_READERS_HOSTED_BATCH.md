@@ -53,3 +53,19 @@ complete settings/baseline checks. Code deployment
 `88dcff57-010b-4ab5-9dee-db96f1328cb7` observed QUEUED for88b896815.
 No thirteen-setting application, activation or first cohort yet. Next: terminal
 code deployment and actual runtime verification before settings enrollment.
+
+## Runtime verified and activation requested
+
+Code88dcff57 SUCCESS, instance02dda788-3bae-4bd7-95f5-dcc5581aaabb,
+actual image `sha256:555b490bbe9ff788a5f2e6f124b9f8cca72de08a7f0e314a13347d651d6365a6`.
+Read-only SSH verified all six nonempty provider DLLs, accepted NATS/IPFS
+runtime hashes and absence of the six newly enabled source settings; complete
+baseline settings unchanged before/after. No source data was opened or written.
+
+All13settings were then staged once through the guarded shared publisher.
+Every write has its original intent and exact-readback ACK; no per-key deployment.
+One activation intent/protected response/ACK retained. Settings deployment
+`8783d8eb-1d65-474f-8bdd-081615d4794a` observed BUILDING, same source88b896815.
+Next: terminal activation proof and exact active settings before first cohorts.
+The first-cohort preflight found all six original qualifications available and
+no existing hosted cohort or reports; it created no identity/query/save.
