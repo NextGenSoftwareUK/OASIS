@@ -40,6 +40,18 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 EXPOSE 8080
 
+FROM base AS provider_waku
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl \
+    && mkdir /opt/waku \
+    && curl --fail --silent --show-error --location --max-time 90 \
+       https://github.com/logos-messaging/logos-delivery/releases/download/v0.39.2/waku-v0.39.2-amd64-linux.tar.gz \
+       --output /tmp/waku.tar.gz \
+    && echo '063d4386623e3dcfa6e59908dd57bbc2a420f26875ea50f7adb3c5b348ba9b87  /tmp/waku.tar.gz' | sha256sum --check \
+    && tar -xzf /tmp/waku.tar.gz -C /opt/waku --strip-components=1 build/logosdeliverynode \
+    && /opt/waku/logosdeliverynode --version \
+    && rm /tmp/waku.tar.gz \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 COPY --from=provider_node /usr/local/ /usr/local/
 
@@ -86,12 +98,14 @@ FROM base AS final
 WORKDIR /app
 COPY --from=provider_node /usr/local/bin/node /usr/local/bin/node
 COPY --from=provider_ipfs /usr/local/bin/ipfs /usr/local/bin/ipfs
+COPY --from=provider_waku /opt/waku /opt/waku
 COPY --from=provider_solid /community-server /opt/solid
 COPY --from=build /opt/pouchdb /opt/pouchdb
 COPY --from=provider_teaching_sidecars /opt/teaching /opt/teaching
 RUN node --version
 RUN node -e "const load=require('node:module').createRequire('/opt/pouchdb/package.json');if(load('pouchdb').version!=='9.0.0'||typeof load('leveldown')!=='function')throw Error('PouchDB native runtime differs');load('express-pouchdb')"
 RUN ipfs version --enc=json
+RUN /opt/waku/logosdeliverynode --version
 RUN node -e "if(require('/opt/solid/package.json').version!=='7.1.8')throw Error('CSS version differs');require('/opt/solid/dist/init/AppRunner');require('/opt/solid/node_modules/n3')"
 COPY --from=build /app/publish .
 COPY Docker/entrypoint.onode.sh /entrypoint.sh
@@ -99,6 +113,7 @@ COPY Docker/host-sandbox-ipfs.cjs /app/host-sandbox-ipfs.cjs
 COPY Docker/host-sandbox-solid.cjs /app/host-sandbox-solid.cjs
 COPY Docker/host-sandbox-pouchdb.cjs /app/host-sandbox-pouchdb.cjs
 COPY Docker/host-sandbox-teaching.cjs /app/host-sandbox-teaching.cjs
+COPY Docker/host-sandbox-waku.cjs /app/host-sandbox-waku.cjs
 RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 ENV ASPNETCORE_ENVIRONMENT=Production
