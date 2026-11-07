@@ -54,14 +54,18 @@ Artifact13571766234 retains the proof, original source and logs for90days.
 Fourteen focused runtime controls and66 combined controlled cases pass.
 Seven publisher controls,26 response-evidence and39 preset controls pass.
 
-Scoped Waku parente0ea3d578362237241d09d31223a6060f50f6558 with
+Scoped Waku parent257404f8f86df9fb34f7dc27c4499d8c1840fe67 with
 Core2fdd3e40183e8a5ed81bccee1f30660c91135eb1 is published on the reused
-work/cosmic-teaching-release-candidate refs. It preserves Graph, PouchDB,
-GUN/OrbitDB and all earlier accepted sources. Core adds only Waku read tariff.
-Image42367817374 is in progress with teaching runtimes enabled. Prior image
-failures caught the tar extraction path and native libpq dependency. Both
-are corrected in the candidate. Its complete runtime base includes the
-upstream PostgreSQL-client/OpenMP/C++/GCC shared-library contract.
+work/cosmic-teaching-release-candidate refs. It preserves all accepted sources.
+Native ABI/image42367817374 passed fore0ea3d57. A controlled regression then
+caught browser numeric rounding of nanosecond metadata. The projection now
+emits exact decimal text. Red1failed, corrected4 C# controls pass, zero skips.
+The timestamp-corrected exact image is requested and journalled.
+Native regression42368859021 first failed during checkout because the
+already committed task ONODE pin9f5ad9df was unpublished. Its one ONET
+source commit was advertised on the same agreed task branch, preserving
+Development308a7860. No ONET functional acceptance is claimed. One exact
+native CI recovery was acknowledged after publication, before native work.
 
 Six protected Waku settings were prepared with205 preserved settings, prefix
 waku-public under HostedSourceRolloutCurrent. The original archive, receipt

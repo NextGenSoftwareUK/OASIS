@@ -3900,3 +3900,21 @@ bin47131335B/obj1019333B, total57356777B. Core/Shared outputs were reused,
 size unmeasured/shared, and concurrent enum edits preserved. No remaining
 local dotnet/MSBuild/testhost processes were observed after both operations.
 These four Waku-only generated scopes are eligible for exact-path cleanup.
+
+The validated four-directory Waku output cleanup was rejected before execution by automatic approval review, reason only blocked by policy. No deletion or bypass retry. All57356777 bytes remain in the four measured bin/obj scopes above. Native input, source, shared outputs and compact test evidence remain intact. This cleanup gate must be disclosed at the next user handoff.
+
+Timestamp-corrected scoped Waku candidate257404f8/Core2fdd3e40 is published
+normally on the existing teaching candidate refs. Temporary index removed.
+One new exact image request is journalled, preserving accepted sources.
+
+Native CQL regression42368859021 stopped during checkout before native work.
+The existing committed task ONODE pin9f5ad9df was absent remotely. It is one
+ordinary ONET source change descending from advertised308a7860. Published
+that exact existing commit to work/cosmic-cql-ton-public in ONODE Core and
+verified the advertised SHA. Its local dirty work and Development308a7860
+were preserved. This is source availability, with ONET behavior unverified.
+The GitHub integration rejected job recovery with403 Resource not accessible
+by integration. After observing original attempt1 still failed, the existing
+Git-authenticated Actions API acknowledged the same bounded request201.
+Intent/response and source publication acknowledgements remain in the recovery
+directory. No new local environment or native source was created.
