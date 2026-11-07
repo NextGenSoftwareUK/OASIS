@@ -31,20 +31,37 @@ def claims(token):
     return json.loads(base64.urlsafe_b64decode(token.split(".")[1] + "==="))
 
 
-def bundle(owner, token, cookies):
+def bundle(owner, token, cookies, *, requested_at=None):
     parsed = claims(token)
-    if parsed.get("sub") != owner or parsed.get("exp", 0) <= time.time():
+    issued, expires = parsed.get("iat"), parsed.get("exp")
+    if (parsed.get("sub") != owner or type(issued) is not int or type(expires) is not int
+            or expires <= issued):
         raise RuntimeError("Issued access token must match the acknowledged owner and remain unexpired.")
-    return {"schema": 1, "ownerId": owner, "jwtToken": token, "cookieHeader": refresh_cookie(cookies)}
+    deadline = (time.time() if requested_at is None else requested_at) + expires - issued
+    if deadline <= time.time():
+        raise RuntimeError("Authentication response arrived after the issued token lifetime.")
+    return {"schema": 2, "ownerId": owner, "jwtToken": token,
+            "cookieHeader": refresh_cookie(cookies), "expiresAtLocal": deadline}
 
 
 def validate(value, owner):
-    if (set(value) != {"schema", "ownerId", "jwtToken", "cookieHeader"} or value["schema"] != 1
+    fields = {"schema", "ownerId", "jwtToken", "cookieHeader"}
+    if value.get("schema") == 2:
+        fields.add("expiresAtLocal")
+    if (set(value) != fields or value["schema"] not in (1, 2)
+            or (value["schema"] == 2 and (type(value["expiresAtLocal"]) not in (int, float)
+                                        or not 0 < value["expiresAtLocal"] < float("inf")))
             or value["ownerId"] != owner or claims(value["jwtToken"]).get("sub") != owner
             or not value["cookieHeader"].startswith("refreshToken=")
             or any(char in value["cookieHeader"] for char in "\r\n;")):
         raise RuntimeError("The original typed session credential bundle differs.")
     return value
+
+
+def needs_renewal(value):
+    # Legacy bundles lack a recorded local deadline. Rotate once with the
+    # retained refresh credential to establish one for the same avatar.
+    return value["schema"] == 1 or value["expiresAtLocal"] - time.time() <= 60
 
 
 def no_pending_rotation(state, label):
@@ -72,13 +89,14 @@ def rotate(state, label, original, transport, protect, write_new):
         captured.append((status, cookies))
 
     captured = []
+    requested_at = time.time()
     result = transport("avatar/refresh-token", body={}, cookie_header=original["cookieHeader"], capture_auth=capture)
     if len(captured) != 1 or captured[0][0] != 200:
         raise RuntimeError("Refresh acknowledgement missing; preserve original intent.")
     avatar = result["result"]
     if result.get("isError") or avatar.get("id") != original["ownerId"]:
         raise RuntimeError("A refresh cannot replace the acknowledged avatar.")
-    updated = bundle(original["ownerId"], avatar["jwtToken"], captured[0][1])
+    updated = bundle(original["ownerId"], avatar["jwtToken"], captured[0][1], requested_at=requested_at)
     if updated["cookieHeader"] == original["cookieHeader"]:
         raise RuntimeError("Refresh credential was not rotated.")
     write_new(state / (prefix + ".before.dpapi"), protect(json.dumps(original).encode()))
