@@ -54,3 +54,23 @@ Image CI 42336260220 passed for the exact candidate. Published image digest:
 Dependency pins, remote Core and live settings baseline were verified.
 Development advanced to dcae58d97. Railway code job
 900d0fe7-9dc9-489c-a12b-7df8ef84fea8 is queued; settings remain unapplied.
+
+## Hosted HTTP acceptance
+
+Verified on settings deployment `fb589d55-f737-4622-9160-6e63e0e55099`,
+parent `dcae58d976d2af04800d1670fc1e4fe3979b5608`, Core
+`f695b1cd8880b3009b7b14190ab41867fb38ee65`. Native selections returned
+3/2 exact records. MongoDB federation returned 5/4. First preparation saved
+two version-one private records; repeat preparation saved zero and reused two.
+SQLite and Neo4j each returned both replicas. An independent visitor saw
+three public records and zero private copies on all three storage providers.
+The original cohort and save receipts are retained; acceptance must not be replayed.
+Browser interaction remains unverified.
+
+Evidence under `TestResults/HostedCqlIntegrationCurrent/`:
+
+| Report suffix | SHA-256 |
+| --- | --- |
+| `CloudinaryOASIS-native-http.json` | `91140eab9e4891a9d2eeb6d0200f3b064816bd627e9dcbd492a421d776177867` |
+| `CloudinaryOASIS-client-http-flow.json` | `88d21133b01b2f60cb7ad39cbea3ea3d3cf430ad7d76884f060716cb796151af` |
+| `CloudinaryOASIS-isolation-http.json` | `11aa6c31ab0d35f47c3b2da76b3b93dcce8db809c2c23c50ea31ab02e026bee6` |

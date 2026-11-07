@@ -14,12 +14,12 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Core branch work/cosmic-cql-decentraland. Preserve independent dependency pins.
 - Website C:/Source/Web4Site, branch work/cosmic-cql, published 0e320a5.
 - Development and successful code release dcae58d97, Core f695b1cd.
-- Registry/object settings deployment fb589d55-f737-4622-9160-6e63e0e55099 is building.
+- Successful settings deployment fb589d55-f737-4622-9160-6e63e0e55099.
 - Unknown root logs and Docs/WIP/Cleanup/CLEANUP_LEDGER.md are outside this task.
 
 ## Verified
 
-Coverage is **118 scoped local, 69 live HTTP and 28 functional browser**.
+Coverage is **118 scoped local, 72 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -37,9 +37,8 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 1. Finish open browser gates using retained cohorts and journals.
    Static publication and HTTP results are separate evidence.
-2. Finish Oracle Object Storage, Cloudinary and Proof of Humanity hosted
-   enrollment after exact image qualification. World ID, Pinata, Discord
-   and Livepeer have already passed hosted HTTP acceptance.
+2. Publish the verified Oracle Object Storage, Cloudinary and Proof of Humanity
+   cards from website task commit f088964 to main, then verify public bytes.
 3. Finish Waku managed Store packaging and lifecycle. The earlier local
    supervisor-writing command was rejected by automatic tool policy.
 4. Complete PouchDB hosted rollout after its original three source files
@@ -56,9 +55,11 @@ cards and local examples are live at 0e320a5. Browser interaction remains open.
 Oracle Object Storage, Cloudinary and Proof of Humanity image CI 42336260220
 passed for dcae58d97. Its image digest is recorded in the provider reports.
 Code job 900d0fe7 succeeded. All eight settings were observed exactly.
-Same-release settings job fb589d55-f737-4622-9160-6e63e0e55099 is building.
-Next observe that exact job, check discovery and verify all three scopes.
-Three website cards are prepared locally; 114 website tests passed. Publication awaits live acceptance.
+Settings job fb589d55 succeeded. All three passed native3/2, Mongo5/4,
+repeat0new/2existing, independent private0/public3 and both replicas2/2.
+Original cohorts and reports are retained. Browser interaction remains open.
+Three website cards are prepared at f088964; 114 website tests passed.
+Next update their evidence links and publish the verified cards to main.
 Subscription protocol CI exposed a missing SandboxSubscriptionRules source link.
 The project dependency is fixed locally: bounded build and 22 pure tests passed.
 Include that test-project-only correction in the next verified Development batch.
