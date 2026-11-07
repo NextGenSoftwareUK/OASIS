@@ -685,6 +685,26 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_GCS_PUBLIC_SOURCE_JSON"] is string googlePublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.GoogleCloudPublicMetadataSource.FromJson(googlePublicSource)));
+            if (Configuration["CQL_LAYERZERO_V2_PUBLIC_SOURCE_JSON"] is string layerZeroPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS.LayerZeroPublicMessageMetadataSource.FromJson(layerZeroPublicSource)));
+
+            if (Configuration["CQL_STARGATE_PUBLIC_SOURCE_JSON"] is string stargatePublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.StargateOASIS.StargatePublicMessageMetadataSource.FromJson(stargatePublicSource)));
+
+            if (Configuration["CQL_DEBRIDGE_PUBLIC_SOURCE_JSON"] is string deBridgePublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.deBridgeOASIS.DeBridgePublicOrderMetadataSource.FromJson(deBridgePublicSource)));
+
+            if (Configuration["CQL_SYNAPSE_PUBLIC_SOURCE_JSON"] is string synapsePublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.SynapseOASIS.SynapsePublicTransactionMetadataSource.FromJson(synapsePublicSource)));
+
+            if (Configuration["CQL_CONNEXT_PUBLIC_SOURCE_JSON"] is string connextPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextPublicOriginMetadataSource.FromJson(connextPublicSource)));
+
             if (Configuration["CQL_NATS_PUBLIC_SOURCE_JSON"] is string natsPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.NatsPublicCqlProfile.FromConfiguredJson(natsPublicSource,
