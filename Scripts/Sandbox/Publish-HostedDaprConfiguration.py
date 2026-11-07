@@ -37,6 +37,18 @@ def qualified_source():
     if ack.get('planSha256') != digest or ack.get('replayAllowed') is not False or ack.get('provider') != PROVIDER:
         raise RuntimeError('The original Dapr creation acknowledgement is required.')
     creation.receipt(creation.MARKER + json.dumps(ack['native']).encode(), plan, digest, ack['deployment'], ack['instance'])
+    if 'reconciliation' in ack:
+        recovery = load('Reconcile-HostedDaprSource')
+        proof = recovery.receipt(recovery.MARKER + json.dumps(ack['reconciliation']).encode(), 'acknowledge', plan,
+                                 digest, ack['deployment'], ack['instance'])
+        original_bytes = (creation.STATE / 'create.intent.json').read_bytes()
+        original = json.loads(original_bytes)
+        inspection = json.loads((creation.STATE / 'inspect.acknowledged.json').read_bytes())
+        if (ack.get('originalCreationIntentSha256') != hashlib.sha256(original_bytes).hexdigest()
+                or ack.get('originalCreationDeployment') != original['deployment']
+                or ack.get('originalCreationInstance') != original['instance']
+                or any(proof[key] != inspection['native'][key] for key in ('originalOperation', 'inspectionSha256', 'originalStorageSha256'))):
+            raise RuntimeError('Dapr recovered outcome is not bound to the original creation and inspection.')
     descriptor = {'Actor': plan['prefix'] + '0', 'LiveIds': [plan['prefix'] + suffix for suffix in ('e', '1', '2')],
                   'DeletedId': plan['prefix'] + '3', 'MissingId': plan['prefix'] + '4',
                   'Store': 'cosmic-teaching', 'GrpcEndpoint': 'http://127.0.0.1:54862/'}
