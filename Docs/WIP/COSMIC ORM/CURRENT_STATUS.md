@@ -55,6 +55,14 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
+Prepare the five-public-reader code batch: LayerZeroV2, Stargate, deBridge,
+Synapse and Connext. Original source/local HTTP receipts are available; one
+11-value protected candidate preserves the live Hyperlane/NATS baseline.
+Four composition guards pass. No batch settings applied. Current82428c7a6
+lacks their registrations, so assemble/qualify the exact provider/API/Core
+candidate before rollout. See [five-reader batch](CROSS_CHAIN_FIVE_HOSTED_BATCH.md).
+
+
 Hyperlane hosted HTTP is accepted oncf69f1ba, instancef7e77b49, exact
 82428c7a6/Core2a09c9be. Native3/2, Mongo5/4, first2private saves/repeat0new2existing,
 privacy0/public3 and exactSQLite/Neo4j replicas2/2 passed with unchanged release

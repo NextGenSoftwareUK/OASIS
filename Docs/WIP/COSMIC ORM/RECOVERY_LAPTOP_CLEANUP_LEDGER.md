@@ -4291,3 +4291,12 @@ SHA256e98bb31b143f81791ff94faa96b6459da5ed79bf63adecf9139f7827b2708848
 verified in memory against Git; only compact hyperlane-public-card-qualified.json
 retained. No HTML download, install, browser action, native replay or cohort save.
 Website source/evidence links checked against pinned backendcc95932bd.
+
+Next five-reader batch reuses original source/native/local receipts with no
+native fixture replay or owner access request. Compact current-baseline review
+cross-chain-next-batch-review.json retained. Composer4 controls pass, no install
+or network native query. One shared protected before300854B/candidate316230B
+pair retained under HostedSourceRolloutCurrent/cross-chain-five-public-* for11
+settings/five sources; no five separate snapshot pairs/environments created.
+No batch settings/service mutation. Exact code/image qualification is still
+required because current82428c7a6 lacks these five API registrations.
