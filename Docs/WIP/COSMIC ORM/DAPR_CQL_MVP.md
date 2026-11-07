@@ -325,3 +325,8 @@ open. No live Development settings or existing source/cohort was changed.
 Run42418683499/job128542212746 failed before the hosted-helper/restart gate: the fixture wrote users.acl while the shipping contract hashes and opens reader.acl. Initial native source save was acknowledged and initial WEB4 query passed; this is not a completed recovery proof. Corrected the fixture to use reader.acl throughout. A new run uses a unique source prefix and does not replay the prior source. The helper now shares bounded observation/startup functions for subsequent explicit provisioning;13 controlled configuration/runtime checks pass. Native qualification remains required.
 
 Failure artifact13592882298:4903 bytes, SHA256 8d2c88f4a309703eedd2623b6b85744ae1864df7f0448afcfd53432caf915fe1.
+
+
+### Explicit creation journal shared with native qualification
+
+Docker/DaprRuntime/seed.cjs now owns the single Dapr bulk-save path used by the native fixture: validated four-record authority, exclusive intent, payload hash, file sync (plus directory sync on Linux) before one bounded POST, exclusive acknowledgement only on204. An existing intent prevents resend after both success and unknown outcome. Three focused controls pass; these are lifecycle controls, not real SDK proof. Sourceea3d78835 is currently qualifying the preceding ACL correction in run42419782648. The shared seed path requires its own exact-source native qualification. Full hosted provisioning/process lifecycle/image/enrollment remain open.

@@ -261,13 +261,10 @@ try:
     records = teaching_records()
     with backing_store('initial', recover=False):
         with sidecar('writer', 'default', ADMIN):
-            with (RUN / 'seed.intent.json').open('x') as intent:
-                json.dump({'operation': str(uuid.uuid4()), 'prefix': PREFIX, 'keys': [row['key'] for row in records],
-                           'source': str(RUN / 'store'), 'replayAllowed': False}, intent)
-            if http('POST', STORE, records)[0] != 204:
-                raise RuntimeError('Dapr seed failed; original intent requires reconciliation')
-            with (RUN / 'seed.acknowledged.json').open('x') as ack:
-                json.dump({'prefix': PREFIX, 'acknowledged': True, 'count': len(records)}, ack)
+            script = "const fs=require('node:fs'),seed=require(process.argv[1]);const input=JSON.parse(fs.readFileSync(0,'utf8'));seed.seedOnce(input.directory,input.prefix,input.records,input.token,new AbortController().signal).catch(()=>{process.stderr.write('Dapr source creation failed; reconcile original intent, never resend.');process.exitCode=1;});"
+            subprocess.run(['node', '-e', script, str(ROOT / 'Docker/DaprRuntime/seed.cjs')],
+                input=json.dumps({'directory': str(RUN), 'prefix': PREFIX, 'records': records, 'token': TOKEN}).encode(),
+                capture_output=True, check=True, timeout=15)
         original = verify_reader('initial', records)
     files = [file for file in (RUN / 'store').rglob('*') if file.is_file()]
     if not files or not any(file.stat().st_size for file in files):

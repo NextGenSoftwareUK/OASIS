@@ -12,6 +12,7 @@ on:
       - 'Docker/DaprRuntime/**'
       - 'Scripts/Sandbox/test_hosted_dapr_configuration.cjs'
       - 'Scripts/Sandbox/test_hosted_dapr_runtime.cjs'
+      - 'Scripts/Sandbox/test_dapr_seed.cjs'
       - 'Docker/host-sandbox-dapr.cjs'
   workflow_dispatch:
 
@@ -54,7 +55,7 @@ jobs:
         working-directory: OASIS
         run: |
           python3 -B Scripts/TestHosts/test_dapr_native_runtimes.py
-          node --test Scripts/Sandbox/test_hosted_dapr_configuration.cjs Scripts/Sandbox/test_hosted_dapr_runtime.cjs
+          node --test Scripts/Sandbox/test_hosted_dapr_configuration.cjs Scripts/Sandbox/test_hosted_dapr_runtime.cjs Scripts/Sandbox/test_dapr_seed.cjs
       - name: Install mandatory native storage OS dependencies
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libaio1t64 liburing2 libaio-dev liburing-dev build-essential cmake git uuid-dev
       - name: Install exact Linux runtimes on the ephemeral runner
