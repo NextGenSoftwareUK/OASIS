@@ -84,8 +84,14 @@ value on top of e33b2b4c2. The original history was preserved locally.
 Image qualification42360929659 passed with teaching runtimes enabled,
 digest sha256:6480c4fa98311e1176fa8625439243dafb4e938a9c21a943d2fada8086e2210b.
 Fresh settings and source checks passed. Development advanced normally to
-028d342e. Code job773422d6-48aa-43b7-8457-2899bed9c8d1 is BUILDING.
-Observe that exact job before writable-mount verification and PouchDB settings.
+028d342e. Code job773422d6-48aa-43b7-8457-2899bed9c8d1 succeeded, actual image
+sha256:5bdc89c172b89232a31ae30bb116bbd568b2b4d9797dc49bb7b22a56a371b88d.
+Instance4feb83e2-4b94-43bd-8253-e6057e531845 exposes a separate writable
+/data mount. This laptop needed one dedicated SSH identity, created with
+built-in OpenSSH and registered as cosmic-cql-recovery-laptop-20261107.
+All six guarded PouchDB settings are acknowledged and observed exactly.
+One settings deployment request is journalled. Follow its exact job before
+source-receipt inspection and original hosted readiness/acceptance.
 The harness cleanup bug was reproduced and fixed locally: durable owner/write
 journals now reject fresh execution before sessions/queries; all26 tests pass.
 Do not rerun accepted HTTP schedules. Browser gates remain open.

@@ -3778,3 +3778,24 @@ Development advanced normally, job773422d6-48aa-43b7-8457-2899bed9c8d1
 is BUILDING. The task parent gitlink/manifest are also aligned to the
 identical rewritten STAR commit, preserving dirty nested work. No checkout
 change or local producer build. The six staged settings remain unapplied.
+
+PouchDB code773422d6 succeeded, actual image5bdc89c172b89232a31ae30bb116bbd568b2b4d9797dc49bb7b22a56a371b88d and running instance4feb83e2. Mount inspection stopped before settings because this laptop has no SSH identity. The previously registered cosmic-cql-demo-inspection key belongs to the other laptop. Planned reuse of built-in Windows OpenSSH to create one recovery-laptop identity under C:/Users/David/.ssh/id_ed25519 and register only its public key with the existing authenticated Railway account as cosmic-cql-recovery-laptop-20261107. No runtime installation. Retain private identity outside Git. Remove/revoke this specific registered key only when this laptop no longer needs access, after all owned inspection sessions end.
+
+Recovery-laptop public SSH key registration succeeded under
+cosmic-cql-recovery-laptop-20261107, fingerprint
+SHA256:S/rMfNszirK1saCKbGV3BCYdP4/5+4bzF2gcZ2kWFUE. The first key-add
+request used the private-file path and was rejected before registration.
+The public-file path was then registered once. The private key stays only
+in C:/Users/David/.ssh/id_ed25519, public file118 bytes. No contents logged.
+An initial SSH inspection waited for first-host trust, and its timed-out
+parent left one child. Only that owned read-only child24128 was stopped.
+A bounded OpenSSH connection to the documented ssh.railway.com gateway
+accepted its first ED25519 host key into known_hosts. Subsequent default
+SSH checks verify it. No global SSH checking setting changed.
+
+The exact active instance4feb83e2 exposes a writable separate /data mount.
+The existing publisher applied all six settings once with per-key durable
+intents and acknowledgements. Full protected candidate read-back matched.
+One settings-deploy request intent/response is retained. Native PouchDB
+startup remains pending that deployment, and original local LevelDB data
+was not touched.

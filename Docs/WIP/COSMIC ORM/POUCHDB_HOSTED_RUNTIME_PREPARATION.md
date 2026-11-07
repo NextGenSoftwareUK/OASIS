@@ -405,3 +405,11 @@ identical to the qualified old tree. Scoped candidate
 manifest value. Both refs and tree identity were checked without a new clone.
 Image qualification42360929659 is in progress with teaching runtimes enabled.
 The six protected PouchDB settings remain unapplied.
+
+Corrected image qualification42360929659 passed. Development advanced to
+028d342e and code773422d6 succeeded with actual runtime image
+5bdc89c172b89232a31ae30bb116bbd568b2b4d9797dc49bb7b22a56a371b88d.
+The exact active instance4feb83e2 has a separate writable /data mount.
+All six guarded settings were applied and observed exactly, preserving
+the existing sources. One same-source settings deployment is requested.
+Inspect its native first-generation receipt before the first hosted cohort.
