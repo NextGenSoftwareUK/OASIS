@@ -397,3 +397,8 @@ Fresh observations: task42421434378/job128550494850 and scoped candidate42421572
 ### Exact candidate compiled; fixture private-file creation corrected
 
 Candidate native42421572256/job128550926747 built with0errors but failed in second recovery helper verification: fixture sidecar removed its component after first recovery and recreated it with default0644 permissions. Shipping provisioner creates0600; helper correctly refuses broad permissions. The fixture now creates component files using os.open(...,0600), preserving the shipping invariant rather than weakening validation. Prior source generation is not replayed. Failure artifact13593453745:4950bytes SHA25609411d5683657a65e9f2c575de566ac8cc2b877a64cb7b9e16a9416ff175be84. No live changes; image42421574240 remains building.
+
+
+### Private-component candidate correction published
+
+Candidatec9f6ac65df440986fab0ad99c270801e84265828 advanceseba699888 by the fixture private-file creation change only; Core remains ec7d440ce5212da7683cb7579f0b9139bbadd5a1. Manifest/gitlink and diff checks pass. Published by normal fast-forward to the existing candidate branch; one exact native qualification dispatch acknowledged204. No second image build was dispatched yet: await native result before paying for a new exact-image qualification. Development/live remain unchanged. Exclusive candidate/native dispatch receipts are under RecoveryLaptopResume20261107/dapr-candidate-private-component-*.
