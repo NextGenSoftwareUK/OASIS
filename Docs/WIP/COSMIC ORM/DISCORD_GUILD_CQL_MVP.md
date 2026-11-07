@@ -85,3 +85,18 @@ Code deployment 052ece00 succeeded. The guarded publisher applied and
 read back all eight batch settings. Same-source settings job
 0ab0d7c9-45b7-4fcc-b1ea-c79c9d6c0eae is building at parent 8645794bb.
 Observe the exact job before live readiness and provider acceptance.
+
+## Development HTTP acceptance
+
+Settings deployment 0ab0d7c9-45b7-4fcc-b1ea-c79c9d6c0eae succeeded and
+matched the protected batch. Startup activation completed before acceptance.
+Native queries returned 3/2 and MongoDB federation 5/4. First prep saved
+two private copies. Repeat saved zero and reused both. Both replicas
+held two copies. The independent visitor saw three public records and
+zero private copies on MongoDB, SQLite and Neo4j. Sandbox card and
+interactive browser verification remain open.
+
+Evidence under TestResults/HostedCqlIntegrationCurrent, SHA-256:
+- DiscordOASIS-native-http.json 7ff580766caec9e2c570320b1fb2606314593d0c77265ef8f2c31870214b4e1c
+- DiscordOASIS-client-http-flow.json ee2afd75e086407203fa9b2d37f316e0ce3abeee1dcbc9437159604c0d46413f
+- DiscordOASIS-isolation-http.json e64cba39d316575787a14f7b197ad1145112d52e29bf2d6996b21f4d6cecd78c

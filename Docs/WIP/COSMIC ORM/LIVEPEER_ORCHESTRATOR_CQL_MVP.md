@@ -98,3 +98,18 @@ Code deployment 052ece00 succeeded. The guarded publisher applied and
 read back all eight batch settings. Same-source settings job
 0ab0d7c9-45b7-4fcc-b1ea-c79c9d6c0eae is building at parent 8645794bb.
 Observe the exact job before live readiness and provider acceptance.
+
+## Development HTTP acceptance
+
+Settings deployment 0ab0d7c9-45b7-4fcc-b1ea-c79c9d6c0eae succeeded and
+matched the protected batch. Startup activation completed before acceptance.
+Native queries returned 3/2 and MongoDB federation 5/4. First prep saved
+two private copies. Repeat saved zero and reused both. Both replicas
+held two copies. The independent visitor saw three public records and
+zero private copies on MongoDB, SQLite and Neo4j. Sandbox card and
+interactive browser verification remain open.
+
+Evidence under TestResults/HostedCqlIntegrationCurrent, SHA-256:
+- LivepeerOASIS-native-http.json 43000831e7e8c9bab079366c29cd2f814ea2d1cde946585bc9fab9393ae5b7db
+- LivepeerOASIS-client-http-flow.json cc6be3a86ce349fa5f8dd08c86b3813c2ca415956ed3429cb9870eb1b0af303b
+- LivepeerOASIS-isolation-http.json 610dc6ca69216f9a4eab0cd11e57bc135f1fa3a4766dee0e4c99466208cf38a5

@@ -13,13 +13,13 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Worktree C:/Source/OASIS-cosmic, branch work/cosmic-cql-ton-public.
 - Core branch work/cosmic-cql-decentraland. Preserve independent dependency pins.
 - Website C:/Source/Web4Site, branch work/cosmic-cql, published e87fbba.
-- Development 8645794bb. Current live release 48c532584, Core 7bc3d5a.
-- Successful Railway settings deployment 34802005-bbc6-467e-836f-d716fadbbc72.
+- Development 8645794bb. Current live release 8645794bb, Core 4585be1.
+- Successful Railway settings deployment 0ab0d7c9-45b7-4fcc-b1ea-c79c9d6c0eae.
 - Unknown root logs and Docs/WIP/Cleanup/CLEANUP_LEDGER.md are outside this task.
 
 ## Verified
 
-Coverage is **118 scoped local, 66 live HTTP and 28 functional browser**.
+Coverage is **118 scoped local, 69 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -49,9 +49,9 @@ World ID image qualification passed and Development advanced to 48c532584.
 World ID settings job 34802005 succeeded. Native 3/2, MongoDB 5/4, reuse,
 visitor isolation and both replicas passed. Its sandbox card and local example are live at e87fbba; browser interaction remains open.
 Discord/Livepeer/Pinata image qualification passed. Development is 8645794bb.
-Code job 052ece00 succeeded. All eight settings were applied and observed.
-Observe settings job 0ab0d7c9-45b7-4fcc-b1ea-c79c9d6c0eae, then verify
-live settings and separate visitor readiness/acceptance for all three providers.
+Settings job 0ab0d7c9 succeeded. Discord, Livepeer and Pinata each passed
+native 3/2, MongoDB 5/4, reuse, isolation and both replicas. Next, publish
+all three sandbox cards with local C# links.
 
 ## Constraints and unfinished roadmap
 

@@ -120,3 +120,18 @@ Code deployment 052ece00 succeeded. The guarded publisher applied and
 read back all eight batch settings. Same-source settings job
 0ab0d7c9-45b7-4fcc-b1ea-c79c9d6c0eae is building at parent 8645794bb.
 Observe the exact job before live readiness and provider acceptance.
+
+## Development HTTP acceptance
+
+Settings deployment 0ab0d7c9-45b7-4fcc-b1ea-c79c9d6c0eae succeeded and
+matched the protected batch. Startup activation completed before acceptance.
+Native queries returned 3/2 and MongoDB federation 5/4. First prep saved
+two private copies. Repeat saved zero and reused both. Both replicas
+held two copies. The independent visitor saw three public records and
+zero private copies on MongoDB, SQLite and Neo4j. Sandbox card and
+interactive browser verification remain open.
+
+Evidence under TestResults/HostedCqlIntegrationCurrent, SHA-256:
+- PinataOASIS-native-http.json d5aab48282bc9b8ee90d0db5f62fcf3461df7bffe10e436d2f772e07a95677d6
+- PinataOASIS-client-http-flow.json 8e5d67a2c336b173ce34cba51016097a87c1101b8f6b5829b4ee3501ab5a5074
+- PinataOASIS-isolation-http.json b4e9faac38ee37cebfdda351a137eb1dc3630cbd967f277d8af652abbbeecc54
