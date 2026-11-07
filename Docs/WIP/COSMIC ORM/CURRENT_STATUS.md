@@ -13,11 +13,12 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Resumed on the old laptop at C:/Source/OASIS2 on 7 November after the
   recovered laptop failed again. Branch work/cosmic-cql-ton-public.
 - Core task branch work/cosmic-cql-decentraland; preserve independent pins.
-- Development3cc1ab108/Core9fac20cd; DuckDB code deployment858ac680 isBUILDING.
-  Accepted Waku runtime3cdeaf40 at7672cd5ea/Core2fdd3e40 remains the prior good release.
-  Waku hosted HTTP acceptance passed on this exact release. Its17th catalogue
-  exposed the obsolete16-provider startup limit, now fixed and covered by5 tests.
-  Original Waku archive/configuration ACKs remain; no settings or source replay.
+- Development3cc1ab108/Core9fac20cd; DuckDB settings deployment32b26f74 isSUCCESS.
+  DuckDB hosted HTTP acceptance passed with the original qualified database,
+  unchanged mounted file hash and no WAL before/after the full flow.
+- Waku accepted on7672cd5ea/3cdeaf40; PouchDB accepted on2045b41e.
+  Both remain included in the current scoped release. Original sources and
+  acceptance journals are preserved; the catalogue-cap fix remains covered.
 - PouchDB settings/live acceptance job2045b41e succeeded.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
@@ -29,7 +30,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **119 scoped local, 77 live HTTP and 28 functional browser**.
+Coverage is **119 scoped local, 78 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -63,27 +64,22 @@ retained; discovery explicitly reused the acknowledged PouchDB visitor.
 Browser verification remains open: the updated Windows helper stopped when
 it could not determine the browser URL reliably; no browser input occurred.
 
-Continue DuckDB hosted preparation. Reuse its existing
-read-only provider/registration and qualified original database. Linux run
-42385940278 passed native3/2/0 across two read-only activations, unchanged
-source/no WAL. Artifact13579442161 retains that source/seed/TRX for90days.
-Owned source-placement runtime and82 shared controls pass. Six guarded
-settings are privately prepared, none applied. Publisher6, response28 and
-preset39 controls pass; publisher coverage is now9/9 including live-file,
-ACK and deployment-drift checks. Scoped parent3cc1ab108/Core9fac20cd is
-published on the reused candidate refs. Exact admission CI42388149011 passed
-6/6,0skips. Image42388244083 passed native-library/ABI checks, digest81d462e1.
-All seven dependency retention refs and the full live baseline were rechecked.
-Development advanced normally to3cc1ab108; code deployment858ac680-3f46-4b5e-a4f8-491573304bfc
-isBUILDING. Observe that exact job, verify its active image/instance/mount and
-confirm the new source destination is unoccupied before staging settings.
-Then apply the original six-key publisher once, request one settings deployment,
-verify the mounted source hash/receipt/no-WAL and perform first readiness/HTTP
-acceptance with an acknowledged existing discovery visitor. Settings/source
-remain unapplied. Never resubmit a deployment or a save solely after a timeout. Do not
-recreate or replay the accepted Windows fixture. Shared website navigation
-now opens provider-card/panel hash links,119client controls pass, and public
-HTML plus new navigation script match committed e7dce1b bytes.
+DuckDB hosted HTTP acceptance is complete on32b26f74-01b7-4ce2-a84e-08959ff46468,
+instance36653fc7-c5f3-4dbc-86c6-0af48bc96f5a, exact3cc1ab108/Core9fac20cd.
+Native3/2, Mongo5/4, first2 saves/repeat0new2existing, foreign-private0/public3
+and exactSQLite/Neo4j replicas2/2 passed. Full protected settings, all six
+original write ACKs and mounted database/receipt hashes matched before and
+after; no WAL exists. Original hosted cohort is sealed under
+HostedQueryAcceptance-DuckDBOASIS/cql-http-acceptance.acknowledged.json.
+Never replay it or recreate the accepted Windows fixture.
+
+Publish the hosted path on existing DuckDB card22, preserving local5116
+launcher and real C# example. Then investigate the next eligible native
+hosting scope from the provider matrix; NATS JetStream already has real
+SDK/local3/2 and HTTP5/4, with its hosted read-only TLS fixture still open.
+Do not replace its existing implementation or bypass the preserved QuestDB
+public403. Chroma's reviewed HTTPS endpoint/credential gate remains open.
+Keep browser acceptance separate: its URL-policy helper failure persists.
 [Waku evidence](WAKU_STORE_CQL_MVP.md) · [DuckDB evidence](DUCKDB_CQL_MVP.md).
 
 ## Source and rollout journals

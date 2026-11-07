@@ -329,3 +329,42 @@ drift refuse inspection, and a matching bootstrap receipt cannot excuse a
 changed native file hash or deployment. These tests are fully controlled;
 no live source/SDK query or original cohort was replayed. Verify the exact
 new deployment and absent destination before applying the six prepared keys.
+
+## Live Development HTTP acceptance — 7 November 2026
+
+Settings deployment32b26f74-01b7-4ce2-a84e-08959ff46468 isSUCCESS at exact
+3cc1ab108ef082b9aa7e00224eb895ad01060434/Core9fac20cdd4e8158e730b00785d4b39721ed691d7.
+Instance36653fc7-c5f3-4dbc-86c6-0af48bc96f5a, deployed image
+sha256:0ca5d349772e2ff41bdf17d7c12eee2baed73d0164b4e6cb6599809046e387d3.
+Prior code858ac680 succeeded. Its actual runtime script matched the qualified
+Git blob, native library57260168B/SDK1.1.3 was verified, destination absent
+and volume writable before settings were staged. All six original writes
+were acknowledged exactly once with no deployment triggered. A single
+activation was requested; source placement occurred once under its own
+intent/ACK protocol. No original local fixture/SDK was replayed.
+
+The original database was copied to/data/COSMIC/SandboxDuckDB/source.duckdb.
+Its exact hashDB649A3DD1A2FCE1694CBA1F9E303505596A3D3289B01F8166A6D232D3FFCA19,
+byte count1323008, bootstrap receipt and absent WAL matched before and after
+live acceptance. Full protected configuration and all six ACKs also matched.
+The profile uses access_mode=READ_ONLY. The tombstone stays unenrolled.
+
+First hosted cohort: native3/2, first2private Mongo saves, paired5/4,
+repeat0new/2existing, exactSQLite/Neo4j replicas2/2. Independent visitor
+saw public3 and private0 on Mongo and both replicas. Two save ACKs and an
+empty pending-intent object remain. Receipt sealed in
+LocalState/COSMIC/HostedQueryAcceptance-DuckDBOASIS/cql-http-acceptance.acknowledged.json.
+Discovery explicitly reused the acknowledged PouchDB visitor; no replacement
+readiness account. Preserve these sessions/receipts and never replay them.
+
+| HTTP report | Bytes | SHA256 |
+|---|---:|---|
+| DuckDBOASIS-native-http.json |8974|c46059c9957919f9e185f0c45e5d91b98d8b8c3d6b34573e88fe67be8f08d65b|
+| DuckDBOASIS-client-http-flow.json |27377|d0f199c40ca8721d5aa1b5dc787ed147806a9a13a958d599448d9e9431284633|
+| DuckDBOASIS-isolation-http.json |3816|94cbe132f10871e2ab20ad954585060c6772559ddbfe779e095f4540c06917df|
+
+Reports are under TestResults/HostedCqlIntegrationCurrent. The original
+Windows source and save ACKs remain unchanged. No new local environment,
+runtime, database copy or native launch was used. Coverage119local/78liveHTTP/
+28functional browser. Card22 hosted publication and browser verification
+follow. This proves the bounded read profile, not full DuckDB ORM parity.

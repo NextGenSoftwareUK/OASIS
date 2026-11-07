@@ -4096,3 +4096,18 @@ ACK/configuration/file-hash/deployment drift. No new local runtime/restore/
 SDK database open/download. Official QuestDB REST/demo docs were read only;
 its preserved403 native gate was not retried, bypassed or relabelled. Existing
 QuestDB source/adapter and Chroma HTTPS/account gates remain intact.
+
+DuckDB code858ac680 succeeded. Actual instance9988af8b runtime script SHA
+matched3cc1ab108, SDK1.1.3/native library57260168B verified and source
+destination absent before activation. Writable mount verified. Six settings
+writes acknowledged once, exact full configuration readback; no automatic
+deploy per write. One manual activation32b26f74 request acknowledged and
+nowSUCCESS. Native source placed once through exclusive intent/ACK.
+
+Final instance36653fc7-c5f3-4dbc-86c6-0af48bc96f5a, image0ca5d349772e2ff41bdf17d7c12eee2baed73d0164b4e6cb6599809046e387d3.
+The original1323008B database hash/receipt and no-WAL condition verified before
+and after native3/2, Mongo5/4, initial2private saves/repeat0new2existing,
+privacy0/3 and exactSQLite/Neo4j replicas2/2. Original hosted cohort sealed;
+reports8974/27377/3816B and hashes retained in its receipt and DuckDB evidence.
+Protected sessions/refresh/setting/deployment journals retained. No original
+Windows native fixture replay, local SDK open, download or new environment.
