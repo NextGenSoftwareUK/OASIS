@@ -77,3 +77,10 @@ python -B Scripts/Sandbox/Publish-HostedFixedPublicCatalogue.py PushProtocolOASI
 
 Four focused publisher tests passed. The live preflight confirmed the
 release is still queued and stopped before changing settings.
+
+Code deployment e60449de succeeded. The guarded publisher applied and
+read back all four settings. The live candidate matched the protected
+snapshot before the same-release redeploy. Observe settings deployment
+ecdabdbb-09ed-4240-9c89-2fe437525f0d at commit 907fe855c before running
+the deployment-scoped visitor checks. The redeploy intent and acknowledgement
+are retained alongside the protected settings.

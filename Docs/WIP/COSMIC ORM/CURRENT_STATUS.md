@@ -16,8 +16,9 @@ private-copy isolation. All three records survived restart and the standalone SQ
 [CI 42317536191](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42317536191).
 
 Push Protocol image qualification passed and Development advanced to 907fe855c.
-Railway code deployment e60449de-117a-4d78-8878-d607144e2044 moved from queued to building.
-Four protected settings are prepared. Apply only after the exact deployment passes.
+Railway code deployment e60449de succeeded. Four protected settings were
+acknowledged. Settings deployment ecdabdbb-09ed-4240-9c89-2fe437525f0d is building.
+Verify that exact deployment before visitor readiness and federation.
 
 ## Recent WEB4 preparation, 5–6 November 2026
 
