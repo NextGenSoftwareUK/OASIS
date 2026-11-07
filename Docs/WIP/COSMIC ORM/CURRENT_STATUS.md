@@ -22,8 +22,9 @@ Sandbox card fac8274 is live with a local C# link. Browser interaction remains o
 
 LayerZero v1 and Reclaim image CI passed. Development advanced to f9d77e9dc.
 Code deployment 24c2dab0 succeeded and all six settings were acknowledged.
-Same-release settings job e8a57bf6-5a96-42c5-a41f-ce350711f272 is building.
-Verify the live settings and both provider readiness gates before HTTP acceptance.
+Settings job e8a57bf6 succeeded. Both providers passed live native 3/2,
+MongoDB federation 5/4, reuse, visitor isolation and both replica checks.
+Next, publish both sandbox cards with their local C# examples.
 
 ## Recent WEB4 preparation, 5–6 November 2026
 
@@ -32,7 +33,7 @@ through local WEB4. Hosted deployment `b9cb7f79` passed the same counts,
 visitor isolation and replica checks. Sandbox card `46df63d` is live.
 Interactive browser proof remains open.
 
-Acceptance is 118 scoped local, 63 live HTTP and 28 live browser.
+Acceptance is 118 scoped local, 65 live HTTP and 28 live browser.
 LocalFile settings deployment `c8ba177c` succeeded. The writable mount,
 three file hashes and all four advertised presets are verified. Hosted
 LocalFile 3/2 and MongoDB federation 5/4 passed. The sandbox card is live

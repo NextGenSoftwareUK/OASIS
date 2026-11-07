@@ -86,3 +86,18 @@ Code deployment 24c2dab0 succeeded. The guarded batch applied and read
 back all six settings. A same-release redeploy is building as
 e8a57bf6-5a96-42c5-a41f-ce350711f272. The exact deployment must succeed
 before testing the two live catalogues and MongoDB federation.
+
+## Development HTTP acceptance
+
+The exact settings deployment e8a57bf6 succeeded and matched the protected
+candidate. Discovery reached activation generation 1. Hosted native
+queries returned 3/2 and MongoDB federation returned 5/4. First prep
+saved two private copies. Repeat saved zero and reused both. Both replicas
+held two owned copies, and the second visitor saw all three public records
+and zero private copies on MongoDB, SQLite and Neo4j. Sandbox card and
+interactive browser verification remain open.
+
+Evidence under TestResults/HostedCqlIntegrationCurrent, SHA-256:
+- LayerZeroOASIS-native-http.json 947d809d41a7e71470e9a18420103f319a450b5af83c67c9154be3413ac66d45
+- LayerZeroOASIS-client-http-flow.json 8af900c308dba957901410291df617dd4415d357885195d27283aec1ae9343b6
+- LayerZeroOASIS-isolation-http.json 20bf219e2264faf9a4f3213ab0ac2815fcc1f790e17bccb432a09d5f8ff6fc13
