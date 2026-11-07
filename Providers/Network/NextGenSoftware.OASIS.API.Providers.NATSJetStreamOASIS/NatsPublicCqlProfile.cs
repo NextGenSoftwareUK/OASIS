@@ -43,6 +43,15 @@ public sealed class NatsPublicCqlProfile : NATSJetStreamOASIS, ICosmicReadOnlyQu
     public static NatsPublicCqlProfile FromJson(string json, string? username = null, string? password = null)
         => Parse(json, username, password, ownedSandbox: false);
 
+    public static NatsPublicCqlProfile FromConfiguredJson(string json, string? username, string? password,
+        string? ownedRuntimeFlag, bool sandboxEnabled)
+        => ownedRuntimeFlag switch
+        {
+            null or "false" => FromJson(json, username, password),
+            "true" => FromOwnedSandboxJson(json, username!, password!, sandboxEnabled),
+            _ => throw new ArgumentException("The NATS owned runtime flag must be true or false.")
+        };
+
     public static NatsPublicCqlProfile FromOwnedSandboxJson(string json, string username, string password, bool sandboxEnabled)
     {
         if (!sandboxEnabled)

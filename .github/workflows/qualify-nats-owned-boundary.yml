@@ -7,6 +7,7 @@ on:
       - '.github/workflows/qualify-nats-owned-boundary.yml'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS/**'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlNatsHostedAdmissionTests.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs'
   workflow_dispatch:
 
 permissions:
@@ -52,8 +53,8 @@ jobs:
             dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlNatsHostedAdmissionTests' --results-directory TestResults/NatsOwnedBoundaryCurrent --logger 'trx;LogFileName=boundary.trx'
             if ($LASTEXITCODE) { throw 'NATS source boundary qualification failed' }
             [xml]$report = Get-Content TestResults/NatsOwnedBoundaryCurrent/boundary.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '9' -or $report.TestRun.ResultSummary.Counters.total -ne '9') {
-              throw 'All nine NATS boundary/admission cases must pass without skips'
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '14' -or $report.TestRun.ResultSummary.Counters.total -ne '14') {
+              throw 'All fourteen NATS boundary/admission cases must pass without skips'
             }
           }
       - uses: actions/upload-artifact@v7

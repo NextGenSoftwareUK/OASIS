@@ -547,9 +547,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 
             if (Configuration["CQL_NATS_PUBLIC_SOURCE_JSON"] is string natsPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.NatsPublicCqlProfile.FromJson(natsPublicSource,
+                    NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.NatsPublicCqlProfile.FromConfiguredJson(natsPublicSource,
                         Configuration["CQL_NATS_PUBLIC_SOURCE_USERNAME"],
-                        Configuration["CQL_NATS_PUBLIC_SOURCE_PASSWORD"])));
+                        Configuration["CQL_NATS_PUBLIC_SOURCE_PASSWORD"], Configuration["OASIS_SANDBOX_NATS"],
+                        NextGenSoftware.OASIS.API.Core.Managers.SandboxOptions.Enabled)));
 
             if (Configuration["CQL_D1_WORKER_SYMBOL_SOURCE_JSON"] is string d1WorkerSymbols)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(

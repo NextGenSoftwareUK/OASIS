@@ -10,6 +10,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
 public class CqlNatsHostedAdmissionTests
 {
+    [Fact]
+    public void ConfiguredOwnedModeRequiresExplicitFlagAndSandbox()
+    {
+        var json = OwnedSource();
+        using var source = NatsPublicCqlProfile.FromConfiguredJson(json, "cql_reader", new string('x', 43), "true", true);
+        Assert.False(source.IsProviderActivated);
+        Assert.Throws<InvalidOperationException>(() => NatsPublicCqlProfile.FromConfiguredJson(
+            json, "cql_reader", new string('x', 43), "true", false));
+    }
+
+    [Fact]
+    public void ConfiguredRemoteModeNeverAdmitsOwnedLoopback()
+    {
+        foreach (var flag in new string?[] { null, "false" })
+            Assert.Throws<ArgumentException>(() => NatsPublicCqlProfile.FromConfiguredJson(
+                OwnedSource(), "cql_reader", new string('x', 43), flag, true));
+    }
+
+    [Theory]
+    [InlineData("TRUE")]
+    [InlineData("yes")]
+    [InlineData("")]
+    public void ConfiguredModeRejectsInvalidRuntimeFlag(string flag)
+        => Assert.Throws<ArgumentException>(() => NatsPublicCqlProfile.FromConfiguredJson(
+            OwnedSource(), "cql_reader", new string('x', 43), flag, true));
+
     private static string OwnedSource(string? endpoint = null, string? bucket = null) => JsonSerializer.Serialize(new
     {
         schema = 1, endpoint = endpoint ?? NatsPublicCqlProfile.OwnedEndpoint,

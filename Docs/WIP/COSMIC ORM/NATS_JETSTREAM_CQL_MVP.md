@@ -140,3 +140,16 @@ LocalState/COSMIC/RecoveryLaptopResume20261107/nats-owned-restart-ci-qualified.j
 Remaining gates: exact shipping image packaging, explicit sandbox API
 registration, protected publisher, candidate admission/image qualification,
 then scoped Development rollout and native/Mongo/privacy/replica HTTP checks.
+
+WEB4 image/startup integration is prepared: native2.15.2 Linux archive is
+SHA-pinned in its own build stage; only the verified binary enters the final
+image, which also checks its exact version and existing OpenSSL. The shared
+supervisor starts NATS only with explicit OASIS_SANDBOX_NATS=true and gates
+API startup on authenticated TLS readiness. API registration selects the
+explicit owned factory only for that exact flag plus enabled sandbox; remote
+mode retains its TLS/nonloopback contract. Invalid mode flags fail explicitly.
+
+All101 shared runtime controls passed using cached Node24, shell syntax and
+HEAD manifest/gitlink checks passed. Expanded API boundary suite now14 cases;
+its CI and the exact candidate image are not yet qualified. No deployment or
+live configuration change has occurred. Unrelated working changes excluded.

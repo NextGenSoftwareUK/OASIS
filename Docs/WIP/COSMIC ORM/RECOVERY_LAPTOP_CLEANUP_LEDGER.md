@@ -4182,3 +4182,11 @@ starts, read-only SDK3/2+explicit denial proof, unchanged revisions/values/TLS.
 No seed/save or local install/build/native execution. Private TLS configuration,
 key and raw native logs excluded from retained artifacts; ephemeral runner
 owns their disposal. Image/live HTTP gates remain open.
+
+NATS image/API integration:101 shared controlled runtime tests pass with
+cached Node24 (accepted native IPFS import fixture excluded), no failures.
+Temporary runtime test files/certificates cleaned by validated test ownership.
+Existing Git Bash shell syntax and HEAD dependency manifest checks pass.
+No local image, runtime install, native source replay or live settings write.
+Future cloud image build will download SHA-pinned NATS2.15.2 once in its build
+stage and remove that stage's archive/extraction after binary installation.
