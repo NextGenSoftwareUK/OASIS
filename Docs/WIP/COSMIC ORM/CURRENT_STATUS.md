@@ -13,7 +13,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Worktree C:/Source/OASIS-cosmic, branch work/cosmic-cql-ton-public.
 - Core branch work/cosmic-cql-decentraland. Preserve independent dependency pins.
 - Website C:/Source/Web4Site, branch work/cosmic-cql, published 0e320a5.
-- Development 8645794bb. Current live release 8645794bb, Core 4585be1.
+- Development dcae58d97. Last healthy live release 8645794bb, Core 4585be1.
 - Successful Railway settings deployment 0ab0d7c9-45b7-4fcc-b1ea-c79c9d6c0eae.
 - Unknown root logs and Docs/WIP/Cleanup/CLEANUP_LEDGER.md are outside this task.
 
@@ -53,10 +53,11 @@ Discord/Livepeer/Pinata image qualification passed. Development is 8645794bb.
 Settings job 0ab0d7c9 succeeded. Discord, Livepeer and Pinata each passed
 native 3/2, MongoDB 5/4, reuse, isolation and both replicas. All three
 cards and local examples are live at 0e320a5. Browser interaction remains open.
-Oracle Object Storage, Cloudinary and Proof of Humanity candidate dcae58d9
-is in [image CI 42336260220](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42336260220).
-Eight protected settings/twelve presets are prepared under registry-object-public.
-Next verify that image, fetch Development and recheck live baseline before promotion.
+Oracle Object Storage, Cloudinary and Proof of Humanity image CI 42336260220
+passed for dcae58d97. Its image digest is recorded in the provider reports.
+Development promotion created Railway job 900d0fe7-9dc9-489c-a12b-7df8ef84fea8.
+Eight protected settings/twelve presets remain unapplied under registry-object-public.
+Next observe that exact job, apply the guarded settings and verify all three scopes.
 
 ## Constraints and unfinished roadmap
 

@@ -48,3 +48,9 @@ must pass before promotion and hosted acceptance.
 The eight-value protected candidate and twelve presets use prefix
 registry-object-public under LocalState/COSMIC/HostedSourceRolloutCurrent.
 No hosted settings were applied. Oracle database hosting remains deferred.
+
+Image CI 42336260220 passed for the exact candidate. Published image digest:
+`sha256:90636c35d33788eeab3d2993a04ad551aacd4398bc11db91029925af46277692`.
+Dependency pins, remote Core and live settings baseline were verified.
+Development advanced to dcae58d97. Railway code job
+900d0fe7-9dc9-489c-a12b-7df8ef84fea8 is queued; settings remain unapplied.
