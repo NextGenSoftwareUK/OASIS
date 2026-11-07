@@ -57,12 +57,16 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 Qualify Dapr hosting on Linux with a restricted backing store, while advancing
 other independent provider scopes whose retained evidence and access are ready.
-Dapr Linux read/write-denial/HTTP proof passes; durable restart remains open.
+Dapr Linux read/write-denial/HTTP and durable restart proofs pass.
 The mandatory Garnet native library is rebuilt from pinned upstream source for
 the target OS; native AOF writes and full durable restart pass in42416939381.
 Shared configuration/default-writer-disabled recovery also passes in42417629733.
-The recovery-only hosted helper is implemented with13controlled checks and is
-being qualified against the real source. Provisioning/image/enrollment stay open. Coverage is119local/
+The recovery-only hosted helper has13controlled checks. Run42418683499 failed
+in the fixture before helper verification because its ACL filename differed from
+the shipping contract; corrected inea3d78835, qualifying in42419782648.
+The shared one-shot seed journal (aee489ed3) has3additional lifecycle controls
+and is qualifying against real native engines in42419910853. Both runs were
+observed active; neither is accepted evidence yet. Provisioning/image/enrollment stay open. Coverage is119local/
 91live HTTP/28functional browser. Source88b896815/Core944d380, settings
 8783d8eb-1d65-474f-8bdd-081615d4794a SUCCESS, instance5e85e983.
 All13settings and active configuration verified before six first hosted cohorts.
