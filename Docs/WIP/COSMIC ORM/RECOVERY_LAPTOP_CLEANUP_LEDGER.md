@@ -4537,3 +4537,5 @@ SDK/env/build/download/live source operation. New exact helper qualification nex
 7 November: corrected candidate preparation reused existing state and retained Core object; temporary index files removed. Published only existing candidate refs, without checkout/worktree changes. Two cloud dispatch intents/ACKs retained; no local image/build/runtime download. Ephemeral native/image runners own their outputs. No Development deployment or source creation.
 
 7 November:3 Dapr enrollment controls used automatically removed owned temporary catalogue folders and -B/no cache. No live settings reads/writes or runtime install required for these controls. Retain qualification handles42421434378,42421572256 and42421574240; no redispatch.
+
+7 November: candidate failure logs inspected in memory;4950byte artifact13593453745 remains GitHub30days. Python AST validation generated no cache. Fixture private-file creation correction requires a new uniquely identified cloud source, never replay of failed source. No local build/download.
