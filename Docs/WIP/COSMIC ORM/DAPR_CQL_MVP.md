@@ -402,3 +402,12 @@ Candidate native42421572256/job128550926747 built with0errors but failed in seco
 ### Private-component candidate correction published
 
 Candidatec9f6ac65df440986fab0ad99c270801e84265828 advanceseba699888 by the fixture private-file creation change only; Core remains ec7d440ce5212da7683cb7579f0b9139bbadd5a1. Manifest/gitlink and diff checks pass. Published by normal fast-forward to the existing candidate branch; one exact native qualification dispatch acknowledged204. No second image build was dispatched yet: await native result before paying for a new exact-image qualification. Development/live remain unchanged. Exclusive candidate/native dispatch receipts are under RecoveryLaptopResume20261107/dapr-candidate-private-component-*.
+
+
+### Exact scoped provisioner/native WEB4 gate passed
+
+Candidatec9f6ac65df440986fab0ad99c270801e84265828/Coreec7d440ce5212da7683cb7579f0b9139bbadd5a1 passes42422065811/job128552421093. Actual shipping provisioner creates4records once, verifies denied writes and durable recovery, then both external WEB4 recovery stages pass1/1/0skips with unchanged original values/ETags. Actual hosted helper verifies all4 originals. Boundary controls, including Linux listener/TIME_WAIT semantics, pass. Task-source run42422012395 is alsoSUCCESS; no broader provider claim.
+
+Artifact13593759142:5209bytes SHA25627630b488f15f69aa709eb77f2f78a3cecc2762c6fb9f332b422d18ec8f7e735. Inspected entirely in memory: exact ZIP hash, two passing TRX, one4record seed intent/ACK with matching original prefix/no replay, one actual helper proof. No downloaded archive/extraction retained. Compact evidence dapr-exact-candidate-native-qualified.json.
+
+One exactc9f6ac65d teaching-enabled image request acknowledged204 after native acceptance. Earlier image42421574240 covers earlier candidateeba699888 and cannot certify the corrected commit. Exact current image remains pending. Development/live and original protected source plan unchanged; no Railway create operation yet.
