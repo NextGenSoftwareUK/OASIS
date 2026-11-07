@@ -32,7 +32,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **119 scoped local, 79 live HTTP and 28 functional browser**.
+Coverage is **119 scoped local, 80 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -55,15 +55,14 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-Hyperlane is the next hosted scope. Original native/local HTTP receipts are
-reused; deployed82428c7a6/Core2a09c9be already contains its reader and tariff.
-Three protected settings staged once with exact ACK/readback, preserving all
-existing values. One activationcf69f1ba-2a18-4389-b658-4ab31d7bee71 isBUILDING.
-Follow that exact job, then verify first hosted native/Mongo/reuse/privacy/
-replica acceptance. No new source writes or fixture replay. See
-[Hyperlane state](HYPERLANE_PUBLIC_SOURCE_STATUS.md). Coverage stays119/79/28
-until its live acceptance passes. NATS card64 and sealed cohort are complete.
-
+Hyperlane hosted HTTP is accepted oncf69f1ba, instancef7e77b49, exact
+82428c7a6/Core2a09c9be. Native3/2, Mongo5/4, first2private saves/repeat0new2existing,
+privacy0/public3 and exactSQLite/Neo4j replicas2/2 passed with unchanged release
+and complete settings. Its original cohort is sealed; never replay it.
+Coverage119local/80liveHTTP/28functional browser. Next publish the Hyperlane
+sandbox card with explorer-reported-delivery-state scope and pinned native
+example. [Hyperlane evidence](HYPERLANE_PUBLIC_SOURCE_STATUS.md). NATS card64
+and original accepted cohort remain preserved; owner deferrals stay unchanged.
 
 Waku card63 is published atf854fc2 with its real C# example and scoped
 evidence. Public HTML matches the exact Git blob. The live HTTP gate is complete: native3/2, Mongo5/4, first2 saves, repeat0new/2existing,

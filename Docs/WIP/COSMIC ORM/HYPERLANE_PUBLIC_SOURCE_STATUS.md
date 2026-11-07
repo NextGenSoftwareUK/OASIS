@@ -114,3 +114,29 @@ laptop state folder. Next follow that exact job, verify current source/settings
 and first hosted native/Mongo/reuse/privacy/replica HTTP scope. No hosted cohort
 has been created, no native source writes/wallet/transaction actions occurred.
 NATS original acceptance cohort and all owner deferrals remain preserved.
+
+## Hosted HTTP accepted - 7 November 2026
+
+Activationcf69f1ba-2a18-4389-b658-4ab31d7bee71 SUCCESS, instance
+f7e77b49-8889-480d-987c-a62e5c537668, source82428c7a6/Core2a09c9be,
+image sha256:87d32708257cc79d05959d63d2e629eab205b536681e61824c8e333b261000da.
+Exact release, complete settings and all3original ACKs verified before the
+first hosted flow; release/settings unchanged afterwards. Native3/2,
+Mongo5/4, first2private saves, repeat0new2existing, foreign-private0/public3
+and exactSQLite/Neo4j replicas2/2 passed. Original owner/foreign sessions,
+2save ACKs, empty pending intents and report-bound acceptance receipt are
+sealed under LocalState/COSMIC/HostedQueryAcceptance-HyperlaneOASIS.
+Never replay the accepted cohort. Source API reads report explorer delivery
+state; no independent finality proof, wallet/transaction or source writes.
+
+Reports in TestResults/HostedCqlIntegrationCurrent:
+- HyperlaneOASIS-native-http.json:13401B,
+  f8a4a2f3eaad7647c0ce94577d72529cc201e1b5d3fa8fa1d0c538f21e6fbc0b.
+- HyperlaneOASIS-client-http-flow.json:35961B,
+  0bc7013704835018769687aa338b15541fcf70a6822c9c7829a86ce3f5748306.
+- HyperlaneOASIS-isolation-http.json:6065B,
+  75a8c69a90d3639c66da2f7053dc52cdc03c95cc4496a0928864a1385f94949e.
+Receipt sealing used the normalized discovery operation Rows, not the
+configuration default Query label; only report validation was corrected,
+without replaying HTTP or saves. Coverage119local/80liveHTTP/28browser.
+Next publish the scoped hosted demo card and retain browser as an open gate.

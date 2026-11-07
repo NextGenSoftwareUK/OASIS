@@ -4276,3 +4276,11 @@ Three settings writes acknowledged once with original per-key journals; one
 activation intent/ACK/protected CLI response retained, cf69f1ba BUILDING. No
 new local runtime/environment/native fixture/source saves or wallet actions.
 Existing NATS settings/source preserved; no new owner access request.
+
+Hyperlane cf69f1ba SUCCESS image87d32708257cc79d05959d63d2e629eab205b536681e61824c8e333b261000da.
+Compact live settings/release proof retained; original HTTP reports13401/35961/
+6065B retained and cohort sealed under HostedQueryAcceptance-HyperlaneOASIS,
+including original protected owner/foreign sessions,2save ACKs and empty pending
+intents. Report sealing corrected normalized Rows operation filtering without
+HTTP/save replay. No source writes/wallet actions/new runtime/environment.
+Exact release/full settings checked after flow. Coverage119/80/28; card pending.
