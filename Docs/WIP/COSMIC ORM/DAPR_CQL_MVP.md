@@ -364,3 +364,8 @@ The image now includes provision-sandbox-dapr.cjs. Its standalone command consum
 Provision-HostedDaprSource.py prepares a DPAPI-protected plan and performs only one explicitly selected create operation. It requires reviewed release/mount/instance/settings, records an exclusive local intent, checks six deployed implementation hashes against canonical reviewed Git objects, transmits the plan over SSH stdin and protects raw outcomes. Exact native receipt is required; unknown outcomes cannot be resent. Three receipt controls pass. A read-only probe on current deployment8783d8eb/instance5e85e983 verified Railway stdin forwarding with a harmless64byte hash receipt (no source writes).
 
 One protected plan is now retained under LocalState/COSMIC/HostedDaprSourceCurrent/source-plan.dpapi for source owner ccafac97-66c2-411e-ba20-29cc6bf6faa0. Do not regenerate it or print its credentials. No create intent exists and no remote creation has run. Provisioner gates42420695067 and42420810266 remain active in native WEB4 qualification at last observation.
+
+
+### Scoped candidate preparation
+
+Fresh remote inspection confirms parent Development and reused candidate at88b896815, Core candidate944d380. Dapr needs provider/read registration/compiler/admission/project reference plus native package; do not copy the broad task compiler/Startup wholesale. A private release-scope record tracks exact gates. Native qualification now accepts an explicit dispatch ref so the eventual scoped candidate can be tested directly. Companion regression jobs42420810315 (PouchDB) and42420810261 (all3teaching jobs) areSUCCESS. Provisioner jobs42420695067 and42420810266 remain active. No candidate publication/deployment yet.

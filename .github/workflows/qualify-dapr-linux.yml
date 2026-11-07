@@ -17,6 +17,11 @@ on:
       - 'Docker/provision-sandbox-dapr.cjs'
       - 'Scripts/Sandbox/test_dapr_provisioning.cjs'
   workflow_dispatch:
+    inputs:
+      ref:
+        description: Exact scoped source commit to qualify
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -29,6 +34,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           path: OASIS
+          ref: ${{ inputs.ref || github.sha }}
           submodules: true
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
           persist-credentials: false

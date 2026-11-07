@@ -4529,3 +4529,5 @@ SDK/env/build/download/live source operation. New exact helper qualification nex
 7 November: controlled provisioner command has4 local boundary controls, cached Node reused with no downloads or retained outputs. Native run42420695067/job128548278396 observed active at checkout. No remote source creation or Railway configuration write.
 
 7 November: retained one DPAPI-protected Dapr source plan under HostedDaprSourceCurrent/source-plan.dpapi; preserve until source lifecycle is explicitly retired. Read-only Railway stdin probe created no remote files; compact public receipt under RecoveryLaptopResume20261107/dapr-railway-stdin-probe.json. Three Python receipt controls produce no outputs/cache (-B). No source creation or new runtime install.
+
+7 November: fetched existing parent/Core candidate refs only; no branch switch/worktree/build. Compact dapr-release-scope.json retained in existing recovery state. Companion CI results inspected through fresh REST; no artifacts downloaded.
