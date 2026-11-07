@@ -11,7 +11,7 @@ HTTPS and deployed acceptance. No provider count changed.
 
 Waku's sandbox-only WEB4 enrollment and read tariff passed 28 focused checks.
 Native Store and loopback WEB4/MongoDB HTTP passed 3/2 and 5/4, with
-private-copy isolation. The archive restart and digest gate is in [CI 42318687767](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42318687767). The hosted Store supervisor remains open.
+private-copy isolation. All three records survived restart. SQLite snapshot qualification is running in [CI 42319328016](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42319328016). The hosted Store supervisor remains open.
 [CI 42317536191](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42317536191).
 
 ## Recent WEB4 preparation, 5–6 November 2026

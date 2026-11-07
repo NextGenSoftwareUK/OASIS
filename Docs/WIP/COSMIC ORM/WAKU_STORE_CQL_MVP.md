@@ -59,3 +59,14 @@ Its console abbreviated the SHA-256 values, so the linked run and exact
 test commit e46efdcd0 are the durable evidence. Hosted deployment still
 needs a managed loopback Store, persistent reviewed messages, and a
 sandbox preset verified against the deployed service.
+
+### Restart and snapshot
+
+[CI 42318687767](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42318687767)
+read all three reviewed hashes after restarting the Store. The subsequent
+seal step rejected SQLite sidecars. The snapshot now uses SQLite backup
+from the closed native archive, then verifies the standalone file and
+records its digest. A local smoke test confirmed committed WAL data
+survived, the digest matched, and a second seal refused to overwrite
+the snapshot. Native snapshot proof is pending in
+[CI 42319328016](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42319328016).
