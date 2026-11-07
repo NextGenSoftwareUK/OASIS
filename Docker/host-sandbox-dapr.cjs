@@ -91,7 +91,8 @@ function probeRedis(password, signal) {
       data += chunk.toString('utf8');
       if (data.length > 1024 || data.startsWith('-')) return finish(Error('Dapr native reader authentication failed.'));
       if (data === '+OK\r\n+PONG\r\n') finish();
-      else if (data.split('\r\n').length > 3) finish(Error('Dapr native reader response differs.'));
+      else if (data.split('\r\n').length > 3)
+        finish(Error('Dapr native reader response differs: ' + JSON.stringify(data.replaceAll(password, '[redacted]'))));
     });
     if (signal.aborted) abort();
   });

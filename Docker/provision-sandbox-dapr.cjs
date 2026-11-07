@@ -24,6 +24,143 @@ function review(plan) {
   }));
 }
 
+function pendingSourceDescriptor(plan, creation, seed) {
+  const records = review(plan);
+  const payload = records.map(row => ({ key: 'oasis/holon/' + row.id.replaceAll('-', ''), value: row.value }));
+  if (creation?.schema !== 1 || creation.prefix !== plan.prefix || creation.replayAllowed !== false ||
+      seed?.prefix !== plan.prefix || seed.replayAllowed !== false ||
+      !/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/.test(seed.operation || '') ||
+      JSON.stringify(seed.keys) !== JSON.stringify(payload.map(row => row.key)) ||
+      seed.payloadSha256 !== hash(JSON.stringify(payload))) throw Error('Original Dapr creation intent differs; recovery refused.');
+  return records;
+}
+
+async function privateWrite(file, text, flag = 'wx') {
+  const handle = await fs.open(file, flag, 0o600);
+  try { await handle.writeFile(text); await handle.sync(); } finally { await handle.close(); }
+}
+
+async function storageSnapshot(directory) {
+  const queue = [directory], rows = []; let entries = 0, bytes = 0;
+  while (queue.length) {
+    const current = queue.shift();
+    if (await fs.realpath(current) !== current) throw Error('Original Dapr storage redirected.');
+    for (const entry of await fs.readdir(current, { withFileTypes: true })) {
+      if (++entries > 128 || entry.isSymbolicLink()) throw Error('Original Dapr storage boundary differs.');
+      const file = path.join(current, entry.name);
+      if (entry.isDirectory()) queue.push(file);
+      else if (entry.isFile()) {
+        const size = (await fs.stat(file)).size; bytes += size;
+        if (bytes > 64 * 1024 * 1024) throw Error('Original Dapr storage exceeds inspection budget.');
+        rows.push({ name: path.relative(directory, file), bytes: size, sha256: hash(await fs.readFile(file)) });
+      } else throw Error('Unexpected original Dapr storage entry.');
+    }
+  }
+  if (!rows.length || !bytes) throw Error('Original Dapr storage is absent; never reseed.');
+  return rows.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+async function inspectPendingSource(plan, directory = '/data/COSMIC/SandboxDapr', binaries = { garnet: '/opt/garnet/GarnetServer', daprd: '/opt/dapr/daprd' }) {
+  review(plan);
+  if (process.platform !== 'linux' || await fs.realpath(directory) !== directory) throw Error('Original Linux source required.');
+  if (JSON.stringify(config.contract.linuxStorageArguments) !== JSON.stringify(['--device-type', 'Native', '--device-io-backend', 'Uring']))
+    throw Error('Qualified explicit native io_uring recovery contract required.');
+  async function original(name) {
+    const file = path.join(directory, name), stat = await fs.lstat(file);
+    if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 32768 || (stat.mode & 0o077)) throw Error('Original private Dapr journal differs.');
+    return JSON.parse(await fs.readFile(file, 'utf8'));
+  }
+  for (const name of ['seed.acknowledged.json', 'source.acknowledged.json']) {
+    try { await fs.lstat(path.join(directory, name)); }
+    catch (error) { if (error.code === 'ENOENT') continue; throw error; }
+    throw Error('Dapr source already acknowledged; retain original evidence.');
+  }
+  const creation = await original('creation.intent.json'), seed = await original('seed.intent.json');
+  const records = pendingSourceDescriptor(plan, creation, seed);
+  const before = await storageSnapshot(path.join(directory, 'store'));
+  await requireFreePorts();
+  const inspection = path.join(directory, 'inspection');
+  await fs.mkdir(inspection, { mode: 0o700 });
+  await durableExclusive(path.join(inspection, 'inspection.intent.json'), { schema: 1, prefix: plan.prefix, originalOperation: seed.operation, storage: before, businessWritesAllowed: false });
+  await fs.mkdir(path.join(inspection, 'components'), { mode: 0o700 });
+  await privateWrite(path.join(inspection, 'reader.acl'), config.readerAcl(plan.readerPassword));
+  await privateWrite(path.join(inspection, 'components/redis.yaml'), config.component(plan.readerPassword, 'reader'));
+  let observations;
+  for (const name of ['first', 'second']) {
+    await phase(inspection, 'inspect-' + name, plan.sidecarToken, async (start, signal) => {
+      await start(binaries.garnet, config.garnetArguments(directory, path.join(inspection, 'reader.acl'), 'recover'), s => runtime.waitForRedis(plan.readerPassword, s));
+      await start(binaries.daprd, config.daprArguments(inspection), s => runtime.waitForSidecar(plan.sidecarToken, s));
+      if (observations) await runtime.verifyRows({ records: observations }, plan.sidecarToken, signal);
+      else observations = await runtime.observeRows(records, plan.sidecarToken, signal);
+    });
+    await requireFreePorts();
+    if (JSON.stringify(await storageSnapshot(path.join(directory, 'store'))) !== JSON.stringify(before))
+      throw Error('Original AOF bytes changed during recovery inspection; preserve evidence.');
+  }
+  const proof = { schema: 1, originalOperation: seed.operation, sourceOwner: plan.prefix + '0', records: observations,
+    recoveries: 2, originalStorage: before, businessWrites: 0, originalSaveResponseAcknowledged: false };
+  await durableExclusive(path.join(inspection, 'inspection.acknowledged.json'), proof);
+  return proof;
+}
+
+function reconciledSourceDescriptor(plan, creation, seed, inspection, storage) {
+  const expected = pendingSourceDescriptor(plan, creation, seed);
+  if (inspection?.schema !== 1 || inspection.originalOperation !== seed.operation ||
+      inspection.sourceOwner !== plan.prefix + '0' || inspection.recoveries !== 2 ||
+      inspection.businessWrites !== 0 || inspection.originalSaveResponseAcknowledged !== false ||
+      JSON.stringify(inspection.originalStorage) !== JSON.stringify(storage) ||
+      !Array.isArray(inspection.records) || inspection.records.length !== expected.length ||
+      inspection.records.some((row, index) => row.id !== expected[index].id || row.value !== expected[index].value))
+    throw Error('Original durable Dapr recovery evidence differs.');
+  const source = { schema: 1, sourceOwner: plan.prefix + '0', ids: expected.slice(0, 3).map(row => row.id),
+    sidecarTokenSha256: hash(plan.sidecarToken), records: inspection.records,
+    configurationSha256: { 'reader.acl': hash(config.readerAcl(plan.readerPassword)),
+      'components/redis.yaml': hash(config.component(plan.readerPassword, 'reader')) },
+    reconciliation: { originalOperation: seed.operation, inspectionSha256: hash(JSON.stringify(inspection)),
+      originalSaveResponseAcknowledged: false, recoveries: 2, businessWrites: 0, originalStorageSha256: hash(JSON.stringify(storage)) } };
+  runtime.sourceDescriptor(source, { OASIS_SANDBOX_DAPR: 'true', CQL_DAPR_QUERY_STORE: config.contract.store,
+    CQL_DAPR_QUERY_GRPC_ENDPOINT: `http://127.0.0.1:${config.contract.ports.grpc}/`,
+    CQL_DAPR_QUERY_PROBE_ID: source.ids[0], CQL_DAPR_QUERY_SIDECAR_TOKEN: plan.sidecarToken,
+    CQL_PUBLIC_READ_CATALOGUES_JSON: JSON.stringify({ DaprOASIS: source.ids }) });
+  return source;
+}
+
+async function acknowledgeRecoveredSource(plan, directory = '/data/COSMIC/SandboxDapr') {
+  review(plan);
+  if (process.platform !== 'linux' || await fs.realpath(directory) !== directory) throw Error('Original Linux source required.');
+  async function original(name, maximum = 32768) {
+    const file = path.join(directory, name), stat = await fs.lstat(file);
+    if (!stat.isFile() || stat.isSymbolicLink() || stat.size > maximum || (stat.mode & 0o077) || await fs.realpath(file) !== file)
+      throw Error('Original private Dapr evidence differs.');
+    return fs.readFile(file, 'utf8');
+  }
+  for (const name of ['source.acknowledged.json', 'seed.acknowledged.json']) {
+    try { await fs.lstat(path.join(directory, name)); }
+    catch (error) { if (error.code === 'ENOENT') continue; throw error; }
+    throw Error('Original source already acknowledged; do not repeat reconciliation.');
+  }
+  const creation = JSON.parse(await original('creation.intent.json'));
+  const seed = JSON.parse(await original('seed.intent.json'));
+  const inspection = JSON.parse(await original('inspection/inspection.acknowledged.json'));
+  const storage = await storageSnapshot(path.join(directory, 'store'));
+  const source = reconciledSourceDescriptor(plan, creation, seed, inspection, storage);
+  const writer = await original('writer.acl', 4096), component = await original('components/redis.yaml', 4096);
+  const match = /^user default on >([a-f0-9]{64}) /.exec(writer);
+  if (!match || writer !== config.writerAcl(match[1], plan.readerPassword) || component !== config.component(match[1], 'default'))
+    throw Error('Original provisioning configuration changed.');
+  await requireFreePorts();
+  // This transition updates only source metadata/configuration after proven
+  // recovery. The original save intent remains; no save response is fabricated.
+  await durableExclusive(path.join(directory, 'reconciliation.intent.json'), source.reconciliation);
+  await privateWrite(path.join(directory, 'reader-password'), plan.readerPassword);
+  await privateWrite(path.join(directory, 'reader.acl'), config.readerAcl(plan.readerPassword));
+  await privateWrite(path.join(directory, 'components/redis.yaml'), config.component(plan.readerPassword, 'reader'), 'w');
+  await durableExclusive(path.join(directory, 'seed.reconciled.json'), { schema: 1, outcome: 'applied', ...source.reconciliation });
+  await durableExclusive(path.join(directory, 'source.acknowledged.json'), source);
+  return { schema: 1, sourceOwner: source.sourceOwner, ids: source.ids, records: source.records.length, recoveryVerified: true,
+    reconciliation: source.reconciliation };
+}
+
 async function requireFreePorts() {
   for (const port of Object.values(config.contract.ports)) {
     const listener = net.createServer();
@@ -89,10 +226,6 @@ async function provision(plan, directory = '/data/COSMIC/SandboxDapr', binaries 
   const admin = crypto.randomBytes(32).toString('hex');
   const writerAcl = path.join(directory, 'writer.acl');
   const component = path.join(directory, 'components/redis.yaml');
-  async function privateWrite(file, text, flag = 'wx') {
-    const handle = await fs.open(file, flag, 0o600);
-    try { await handle.writeFile(text); await handle.sync(); } finally { await handle.close(); }
-  }
   await privateWrite(writerAcl, config.writerAcl(admin, plan.readerPassword));
   await privateWrite(component, config.component(admin, 'default'));
   const observations = await phase(directory, 'provision', plan.sidecarToken, async (start, signal) => {
@@ -142,7 +275,7 @@ function reviewCommand(args, environment, text) {
   const plan = JSON.parse(text); review(plan);
   return plan;
 }
-module.exports = { review, provision, reviewCommand };
+module.exports = { review, provision, reviewCommand, pendingSourceDescriptor, inspectPendingSource, reconciledSourceDescriptor, acknowledgeRecoveredSource };
 if (require.main === module) (async () => {
   let text = '';
   for await (const chunk of process.stdin) {
