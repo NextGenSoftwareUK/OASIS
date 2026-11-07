@@ -3,10 +3,12 @@
 import argparse
 import base64
 import contextlib
+import hashlib
 import json
 import os
 from pathlib import Path
 import re
+import sqlite3
 import subprocess
 import time
 from urllib.error import HTTPError, URLError
@@ -97,8 +99,28 @@ def stored(hashes=None):
     return rows
 
 
+def seal_archive(work, hashes):
+    """Record the closed native archive without copying or modifying it."""
+    archive = work / "store.sqlite3"
+    if archive.resolve(strict=True) != archive or not archive.is_file():
+        raise RuntimeError("The Waku archive must be a regular owned file")
+    if any((work / (archive.name + suffix)).exists() for suffix in ("-wal", "-shm", "-journal")):
+        raise RuntimeError("Waku archive still has SQLite sidecars after shutdown")
+    with contextlib.closing(sqlite3.connect(archive.as_uri() + "?mode=ro", uri=True)) as database:
+        if database.execute("PRAGMA quick_check").fetchall() != [("ok",)]:
+            raise RuntimeError("The closed Waku archive failed SQLite verification")
+    with archive.open("rb") as stream:
+        digest = hashlib.file_digest(stream, "sha256").hexdigest()
+    with (work / "archive-qualified.json").open("x", encoding="utf-8") as receipt:
+        json.dump({"archive": archive.name, "sha256": digest, "bytes": archive.stat().st_size,
+                   "messageHashes": sorted(hashes)}, receipt, indent=2)
+        receipt.write("\n")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--seal-archive", action="store_true",
+                        help="write a digest receipt beside the closed native archive")
     parser.add_argument("executable", type=Path)
     parser.add_argument("workspace", type=Path)
     parser.add_argument("cql_command", nargs=argparse.REMAINDER)
@@ -133,6 +155,15 @@ def main():
             if args.cql_command:
                 env = dict(os.environ, COSMIC_WAKU_STORE_HASHES=",".join(sorted(hashes)))
                 subprocess.run(args.cql_command, env=env, check=True, timeout=420)
+    if args.seal_archive:
+        with node(executable, work, "store-restart", 28645, 28600, "--store=true",
+                  "--store-message-db-url=sqlite://store.sqlite3") as restarted:
+            wait_for(restarted, lambda: request(STORE + "/debug/v1/info"))
+            restored = stored(sorted(hashes))
+            if {row["messageHash"] for row in restored} != hashes or len(restored) != len(hashes):
+                raise RuntimeError("The restarted Waku Store lost reviewed messages")
+        seal_archive(work, hashes)
+        print("Verified the closed Waku archive and all three reviewed hashes after restart.", flush=True)
 
 
 if __name__ == "__main__":

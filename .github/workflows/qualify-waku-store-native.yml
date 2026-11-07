@@ -85,7 +85,7 @@ jobs:
               dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false
               if ($LASTEXITCODE) { exit $LASTEXITCODE }
             }'
-          python3 -B Scripts/TestHosts/Verify-WakuStoreFixture.py "$binary" "$work" pwsh -NoProfile -Command '
+          python3 -B Scripts/TestHosts/Verify-WakuStoreFixture.py --seal-archive "$binary" "$work" pwsh -NoProfile -Command '
             $ErrorActionPreference = "Stop"
             & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner waku-store-native-ci -Operation {
               $test = "NextGenSoftware.OASIS.API.Providers.WakuOASIS.UnitTests"
