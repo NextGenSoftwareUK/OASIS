@@ -39,7 +39,7 @@ RUN case "$OASIS_INCLUDE_TEACHING_SIDECARS" in \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 # The pinned Waku binary loads PostgreSQL and OpenMP libraries during startup,
 # including when the teaching source uses SQLite.
-RUN apt-get update && apt-get install -y --no-install-recommends libpq5 libgomp1 libstdc++6 libgcc-s1 \
+RUN apt-get update && apt-get install -y --no-install-recommends libpq5 libgomp1 libstdc++6 libgcc-s1 openssl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 EXPOSE 8080
@@ -56,6 +56,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
     && install -m 755 /tmp/waku-runtime/build/logosdeliverynode /opt/waku/logosdeliverynode \
     && /opt/waku/logosdeliverynode --version \
     && rm /tmp/waku.tar.gz && rm -rf /tmp/waku-runtime \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+FROM base AS provider_nats
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl \
+    && mkdir /tmp/nats-runtime \
+    && curl --fail --silent --show-error --location --max-time 90 \
+       https://github.com/nats-io/nats-server/releases/download/v2.15.2/nats-server-v2.15.2-linux-amd64.tar.gz \
+       --output /tmp/nats-runtime/native.tar.gz \
+    && echo '67cb8e10bc6f0c4b47f75a728529a20953dbae2a4f9a4a52ae8517d65ae303ff  /tmp/nats-runtime/native.tar.gz' | sha256sum --check --strict \
+    && tar -xzf /tmp/nats-runtime/native.tar.gz -C /tmp/nats-runtime \
+    && install -m 755 /tmp/nats-runtime/nats-server-v2.15.2-linux-amd64/nats-server /usr/local/bin/nats-server \
+    && test "$(nats-server --version)" = 'nats-server: v2.15.2' \
+    && rm -rf /tmp/nats-runtime \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
@@ -104,6 +117,7 @@ FROM base AS final
 WORKDIR /app
 COPY --from=provider_node /usr/local/bin/node /usr/local/bin/node
 COPY --from=provider_ipfs /usr/local/bin/ipfs /usr/local/bin/ipfs
+COPY --from=provider_nats /usr/local/bin/nats-server /usr/local/bin/nats-server
 COPY --from=provider_waku /opt/waku /opt/waku
 COPY --from=provider_solid /community-server /opt/solid
 COPY --from=build /opt/pouchdb /opt/pouchdb
@@ -111,6 +125,7 @@ COPY --from=provider_teaching_sidecars /opt/teaching /opt/teaching
 RUN node --version
 RUN node -e "const load=require('node:module').createRequire('/opt/pouchdb/package.json');if(load('pouchdb').version!=='9.0.0'||typeof load('leveldown')!=='function')throw Error('PouchDB native runtime differs');load('express-pouchdb')"
 RUN ipfs version --enc=json
+RUN test "$(nats-server --version)" = 'nats-server: v2.15.2' && openssl version
 RUN /opt/waku/logosdeliverynode --version
 RUN node -e "if(require('/opt/solid/package.json').version!=='7.1.8')throw Error('CSS version differs');require('/opt/solid/dist/init/AppRunner');require('/opt/solid/node_modules/n3')"
 COPY --from=build /app/publish .
@@ -126,6 +141,7 @@ COPY Docker/host-sandbox-pouchdb.cjs /app/host-sandbox-pouchdb.cjs
 COPY Docker/host-sandbox-teaching.cjs /app/host-sandbox-teaching.cjs
 COPY Docker/host-sandbox-waku.cjs /app/host-sandbox-waku.cjs
 COPY Docker/host-sandbox-duckdb.cjs /app/host-sandbox-duckdb.cjs
+COPY Docker/host-sandbox-nats.cjs /app/host-sandbox-nats.cjs
 RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 ENV ASPNETCORE_ENVIRONMENT=Production

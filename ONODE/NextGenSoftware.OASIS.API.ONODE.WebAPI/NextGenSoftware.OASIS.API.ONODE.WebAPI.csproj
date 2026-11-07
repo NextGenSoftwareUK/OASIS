@@ -205,5 +205,6 @@
 <ItemGroup><ProjectReference Include="../../Providers/Social/NextGenSoftware.OASIS.API.Providers.TheGraphOASIS/NextGenSoftware.OASIS.API.Providers.TheGraphOASIS.csproj" /></ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.DuckDBOASIS/NextGenSoftware.OASIS.API.Providers.DuckDBOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.csproj" />
   </ItemGroup>
 </Project>
