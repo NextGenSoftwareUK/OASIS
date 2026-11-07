@@ -2,6 +2,7 @@ using System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.TheGraphOASIS;
 using NextGenSoftware.OASIS.API.Providers.DecentralandOASIS;
 using NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS;
 using NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS;
@@ -17,6 +18,8 @@ public static class CqlReviewedNetworkReadSourceRegistration
 {
     public static void AddReviewedNetworkReadSources(this IServiceCollection services, IConfiguration configuration)
     {
+        Register(services, configuration["CQL_THE_GRAPH_STUDIO_QUERY_SOURCE_OWNER"], "The Graph Studio",
+            owner => new TheGraphStudioStatusQuerySource(owner));
         Register(services, configuration["CQL_DECENTRALAND_SCENE_QUERY_SOURCE_OWNER"], "Decentraland",
             owner => new DecentralandSceneQuerySource(owner));
         Register(services, configuration["CQL_PUSH_PUBLIC_CHANNEL_QUERY_SOURCE_OWNER"], "Push Protocol",
