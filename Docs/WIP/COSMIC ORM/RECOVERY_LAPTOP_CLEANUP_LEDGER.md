@@ -4527,3 +4527,5 @@ SDK/env/build/download/live source operation. New exact helper qualification nex
 7 November:19 local Dapr controls reused cached Node24 and removed test-owned temporary folders; Python AST-only validation used -B with no cache/build outputs. Actual provisioner qualification is assigned to an ephemeral Linux runner using the existing pinned runtime installation and one new uniquely identified source. No local runtime install.
 
 7 November: controlled provisioner command has4 local boundary controls, cached Node reused with no downloads or retained outputs. Native run42420695067/job128548278396 observed active at checkout. No remote source creation or Railway configuration write.
+
+7 November: retained one DPAPI-protected Dapr source plan under HostedDaprSourceCurrent/source-plan.dpapi; preserve until source lifecycle is explicitly retired. Read-only Railway stdin probe created no remote files; compact public receipt under RecoveryLaptopResume20261107/dapr-railway-stdin-probe.json. Three Python receipt controls produce no outputs/cache (-B). No source creation or new runtime install.

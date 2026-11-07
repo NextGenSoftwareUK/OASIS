@@ -357,3 +357,10 @@ The Linux workflow now invokes the shipping provisioner through the --provisione
 ### Controlled creation command packaged (not deployed)
 
 The image now includes provision-sandbox-dapr.cjs. Its standalone command consumes a bounded plan from stdin (credentials never command arguments), requires exact reviewed deployment and replica IDs, authoritative sandbox DNA enabled and Dapr readers disabled. Public receipt binds the exact input hash and active instance. Four provisioning boundary controls pass on cached Node24. Full native gate42420695067 is still active at checkout; it covers the prior provisioner implementation. The command/packaging revision requires exact-source qualification before rollout. No creation command has been sent to Railway.
+
+
+### Protected laptop creation journal prepared
+
+Provision-HostedDaprSource.py prepares a DPAPI-protected plan and performs only one explicitly selected create operation. It requires reviewed release/mount/instance/settings, records an exclusive local intent, checks six deployed implementation hashes against canonical reviewed Git objects, transmits the plan over SSH stdin and protects raw outcomes. Exact native receipt is required; unknown outcomes cannot be resent. Three receipt controls pass. A read-only probe on current deployment8783d8eb/instance5e85e983 verified Railway stdin forwarding with a harmless64byte hash receipt (no source writes).
+
+One protected plan is now retained under LocalState/COSMIC/HostedDaprSourceCurrent/source-plan.dpapi for source owner ccafac97-66c2-411e-ba20-29cc6bf6faa0. Do not regenerate it or print its credentials. No create intent exists and no remote creation has run. Provisioner gates42420695067 and42420810266 remain active in native WEB4 qualification at last observation.
