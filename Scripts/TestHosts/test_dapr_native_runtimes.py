@@ -81,6 +81,14 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(1, result['exitCode'])
             self.assertIn(secret, log.read_text())
 
+    def test_long_stack_trace_keeps_leading_native_error(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'native.log'
+            log.write_text('fail: NativeDevice IOException SECRET ' + ' frame' * 1500)
+            result = runtime.process_diagnostic(log, 1, ('SECRET',))
+            self.assertIn('NativeDevice IOException [redacted]', result['errors'][0])
+            self.assertNotIn('SECRET', json.dumps(result))
+
     def test_laptop_installer_refuses_download_before_network_access(self):
         with patch.object(runtime.sys, 'platform', 'win32'), patch.object(runtime.urllib.request, 'urlopen') as network:
             with self.assertRaisesRegex(RuntimeError, 'restricted'):

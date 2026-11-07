@@ -4458,3 +4458,10 @@ startup artifact13590938195/254B preserved. No live source/cohort involved.
 Added redacted all-process diagnostics, original seed intent/ACK retention and
 unique per-fixture GUID identities (same identities across recovery). No local
 runtime/build/download. Next explicit isolated diagnostic uses new identities.
+
+Dapr diagnostic42415058067 FAILED: original seed uncertain, no replay.
+Native stack shows AOF device.WriteAsync error; leading error lost to tail.
+Compact failed receipt retained, remote redacted/seed evidence retained.
+Added leading-error retention (7offline controls pass) and one journalled native
+HSET diagnostic on a unique owned source before host build; no local runtime,
+build or download. Fresh GitHub REST status supersedes stale connector snapshot.

@@ -20,6 +20,7 @@ parser.add_argument('--garnet', required=True, type=Path)
 parser.add_argument('--results-directory', required=True, type=Path)
 parser.add_argument('--runtime-directory', type=Path, help='Pinned Linux archives and extracted runtimes')
 parser.add_argument('--startup-only', action='store_true', help='Diagnose backing-store startup without seed or HTTP test')
+parser.add_argument('--storage-probe-only', action='store_true', help='Diagnose one journalled native AOF write without Dapr or WEB4')
 arguments = parser.parse_args()
 DAPR = arguments.daprd.resolve(strict=True)
 GARNET = arguments.garnet.resolve(strict=True)
@@ -186,8 +187,33 @@ def verify_reader(stage, records, expected=None):
         return observations
 
 
+def storage_probe():
+    key = 'cosmic-native-diagnostic/' + str(uuid.uuid4())
+    with (RUN / 'storage-probe.intent.json').open('x') as output:
+        json.dump({'key': key, 'operation': 'one isolated HSET', 'replayAllowed': False}, output)
+    def request(*parts):
+        encoded = [part.encode() for part in parts]
+        return b'*' + str(len(encoded)).encode() + b'\r\n' + b''.join(
+            b'$' + str(len(part)).encode() + b'\r\n' + part + b'\r\n' for part in encoded)
+    with socket.create_connection(('127.0.0.1', PORTS[3]), timeout=3) as connection:
+        reader = connection.makefile('rb')
+        connection.sendall(request('AUTH', 'default', ADMIN))
+        if reader.readline(4096) != b'+OK\r\n':
+            raise RuntimeError('Native storage diagnostic authentication failed')
+        connection.sendall(request('HSET', key, 'value', 'owned-native-probe'))
+        if reader.readline(4096) != b':1\r\n':
+            raise RuntimeError('Native AOF HSET acknowledgement differs')
+    with (RUN / 'storage-probe.acknowledged.json').open('x') as output:
+        json.dump({'key': key, 'acknowledged': True}, output)
+
+
 try:
     (RUN / 'store').mkdir()
+    if arguments.storage_probe_only:
+        with backing_store('storage-probe', recover=False):
+            storage_probe()
+        print('PASS: one isolated native AOF HSET acknowledged; no Dapr seed or WEB4 query.')
+        raise SystemExit(0)
     if arguments.startup_only:
         with backing_store('startup', recover=False):
             pass

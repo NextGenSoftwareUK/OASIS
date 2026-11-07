@@ -191,3 +191,19 @@ prefix from its runner. Recovery within one fixture retains the same identities.
 This prevents another diagnostic fixture from reusing the failed attempt's
 record identities. Timeout and persistence flags remain unchanged pending
 native server evidence; no success is inferred or retry hidden.
+
+Diagnostic42415058067/job128531230929 FAILED after startup/build passed.
+Redacted native logs show the object-store HSET path entering AOF commit and
+failing in `AllocatorBase.device.WriteAsync`; the Dapr caller timed out.
+The leading device exception was omitted by tail-only truncation. Its original
+seed intent is unacknowledged; preserve the uncertain outcome, never resend.
+The connector's job snapshot was stale; direct GitHub job timestamps established
+terminal failure. Use fresh REST state for this job's subsequent observations.
+
+Diagnostics now retain leading error lines as well as the bounded tail, after
+credential redaction. Seven offline integrity/diagnostic controls pass. A direct,
+journalled single-key HSET probe on its own unique diagnostic source now runs
+before the host build. It exercises the same native AOF write path without Dapr,
+so a storage failure can be diagnosed without rebuilding WEB4 or resending the
+uncertain Dapr request. Only that probe's own intent/ACK and redacted logs are
+retained. Original live sources and accepted cohorts remain untouched.

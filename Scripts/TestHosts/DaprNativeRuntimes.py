@@ -20,8 +20,9 @@ def process_diagnostic(log_path, exit_code, secrets):
             if not secret:
                 raise ValueError('Explicit nonempty diagnostic secrets required')
             text = text.replace(secret, '[redacted]')
-        text = text[-4096:]
-    return {'process': log_path.name, 'exitCode': exit_code, 'tail': text}
+    errors = [line[:2048] for line in text.splitlines()
+              if any(marker in line for marker in ('fail:', 'crit:', 'Exception', 'Error:', 'Unable'))][:8]
+    return {'process': log_path.name, 'exitCode': exit_code, 'errors': errors, 'tail': text[-4096:]}
 
 def digest(path):
     with path.open('rb') as stream:

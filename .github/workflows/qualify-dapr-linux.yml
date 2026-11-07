@@ -54,13 +54,13 @@ jobs:
         run: |
           mkdir -p LocalState/COSMIC/DaprLinuxQualification
           python3 -B Scripts/TestHosts/DaprNativeRuntimes.py --install-linux "$RUNNER_TEMP/cosmic-dapr-runtimes" > LocalState/COSMIC/DaprLinuxQualification/runtime-paths.json
-      - name: Diagnose exact backing-store startup before the host build
+      - name: Diagnose native AOF writes before the host build
         working-directory: OASIS
         shell: pwsh
         run: |
           $runtimes = Get-Content LocalState/COSMIC/DaprLinuxQualification/runtime-paths.json | ConvertFrom-Json
-          python3 -B Scripts/TestHosts/run-cosmic-dapr-web4-native.py --daprd $runtimes.daprd --garnet $runtimes.garnet --runtime-directory "$env:RUNNER_TEMP/cosmic-dapr-runtimes" --results-directory LocalState/COSMIC/DaprLinuxQualification --startup-only
-          if ($LASTEXITCODE) { throw 'Backing-store startup failed before any seed or host build' }
+          python3 -B Scripts/TestHosts/run-cosmic-dapr-web4-native.py --daprd $runtimes.daprd --garnet $runtimes.garnet --runtime-directory "$env:RUNNER_TEMP/cosmic-dapr-runtimes" --results-directory LocalState/COSMIC/DaprLinuxQualification --storage-probe-only
+          if ($LASTEXITCODE) { throw 'Native AOF diagnostic failed before any Dapr seed or host build' }
       - name: Verify native restricted reads, denied writes, restart and WEB4 CQL
         working-directory: OASIS
         shell: pwsh
@@ -84,5 +84,7 @@ jobs:
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/seed.intent.json
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/seed.acknowledged.json
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/startup.json
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/**/storage-probe.intent.json
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/**/storage-probe.acknowledged.json
           if-no-files-found: error
           retention-days: 30
