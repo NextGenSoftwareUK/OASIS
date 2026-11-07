@@ -73,7 +73,11 @@ qualification42354427254 and its original source inputs are present here.
 The accepted Graph live settings matched the protected baseline exactly.
 The guarded PouchDB preparer produced six changes and preserved201 settings.
 Development advanced normally to e33b2b4c2. Code job
-21eb23f3-95ce-4a9a-9e5c-8a66db21706a is queued. Observe that exact job,
+21eb23f3-95ce-4a9a-9e5c-8a66db21706a failed during source acquisition.
+Delayed logs end at ONODE clone with no compiler error or native startup.
+The required source ref is still advertised. One guarded infrastructure
+recovery request was acknowledged as4ed1c9b2-ac1a-4ba1-ab30-0317989e97a8,
+now BUILDING. Observe that exact job,
 then verify its writable mount before applying the six staged PouchDB values.
 The harness cleanup bug was reproduced and fixed locally: durable owner/write
 journals now reject fresh execution before sessions/queries; all26 tests pass.
@@ -100,7 +104,7 @@ Provision-HostedTeachingSource.py has five command tests; native helper has six.
 - PouchDB image qualified. All three original source files are present on this
   old laptop and their bundle/bootstrap hashes match native qualification.
   The 36 runtime controls passed without replaying source writes. Rebase the
-  scoped candidate on the current Development baseline before its rollout.
+  scoped candidate is now on the accepted Graph baseline and rolling out.
 - Hosted Azure Cosmos, Oracle DB and PostgreSQL remain deferred by David.
 - Never replay accepted cohorts or replace original receipts to regenerate evidence.
 - Broader ORM children/depth/history/deltas, migration, placement and HyperDrive

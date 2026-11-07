@@ -3734,3 +3734,27 @@ fast-forwarded to Development after manifest, ancestry, live-release and
 Core publication checks. Job21eb23f3-95ce-4a9a-9e5c-8a66db21706a is queued.
 The durable push intent is pouch-code-push.intent.json. No PouchDB settings
 were applied and no native source bootstrap was replayed.
+
+Waku original artifact13552413276/run42320285565 is unexpired. Restored
+its two original files to LocalState/COSMIC/WakuQualifiedSourceCurrent,
+archive12288 bytes/SHA256 0bd3c388c5662d3f73a6239555013d4526dd801e8746b58e38c4921f55ec9880
+and receipt388 bytes/SHA256 b935db3e807390b8155bf0fc9c9aedbfb71d5e131ab3074545016c8c094d9b40.
+ZIP1133 bytes was checked against its published SHA256 in memory and
+not retained. No native fixture rerun, runtime install or listener. Keep the
+exact archive for the pending hosted source.
+
+Pouch code deployment21eb23f3 failed before producing any build-log bytes.
+An empty protected log observation is retained as pouch-code-failed-build.dpapi.
+Investigating the exact deployment diagnosis before retry. No settings were
+applied. Accepted Graph service remains the previous successful runtime.
+
+Delayed API build logs became available after the original CLI observation.
+299 entries end while cloning pinned ONODE source, after native PouchDB
+image controls passed. The original protected observation remains intact.
+Complete protected logs are pouch-failed-log-api.dpapi and
+pouch-failed-log-api-final.dpapi. Deployment diagnosis is null and there
+are no instances. The exact ONODE retention ref was freshly observed.
+One bounded infrastructure recovery was journalled before its request,
+without settings changes. Job4ed1c9b2-ac1a-4ba1-ab30-0317989e97a8 is
+BUILDING at the same e33b2b4c2. Keep its intent/protected response and
+compact deployment tuple. No automatic recovery loop was introduced.
