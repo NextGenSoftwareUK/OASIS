@@ -53,11 +53,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ProofOfHumanityOASIS
     public class ProofOfHumanityOASIS : OASISProvider
     {
         /// <summary>Official v2 deployments (github.com/Proof-Of-Humanity/proof-of-humanity-v2-contracts).</summary>
-        public static readonly IReadOnlyList<PohDeployment> MainnetDeployments = new[]
+        public static readonly IReadOnlyList<PohDeployment> MainnetDeployments = Array.AsReadOnly(new[]
         {
             new PohDeployment("gnosis", "https://rpc.gnosischain.com", "0x16044E1063C08670f8653055A786b7CC2034d2b0"),
             new PohDeployment("ethereum", "https://ethereum-rpc.publicnode.com", "0xa478095886659168E8812154fB0DE39F103E74b2")
-        };
+        });
 
         private readonly IReadOnlyList<(PohDeployment Deployment, IWeb3 Web3)> _chains;
 
