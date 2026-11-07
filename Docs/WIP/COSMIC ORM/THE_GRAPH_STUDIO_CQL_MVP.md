@@ -121,6 +121,21 @@ World ID public owner setting. Four protected settings and four presets were
 prepared locally. Their application and hosted acceptance remain pending
 successful code deployment. No accepted teaching source was recreated.
 
+Code job ab79d580 succeeded. The publisher observed all four applied settings
+exactly and triggered no deployment. One explicit same-release redeployment
+created `04e8c58a-5a48-48f8-b9dd-cefc7bdacef7`, which failed during source
+checkout before runtime startup. HoloNET-ORM's advertised branch history had
+been force-updated and the required commit307b0a53 was absent from fresh clones.
+The unchanged exact commit was published on
+`codex/deployed-dependency-307b0a53` and its remote ref verified.
+
+One explicit deployment after that source repair created
+`e53de265-c76f-487b-b773-d38e43c998a3` at the same Graph release. It is
+building. The four settings were not reapplied. Both deployment intents and
+the protected original failure logs are retained under the old laptop's
+`LocalState/COSMIC/RecoveryLaptopResume20261107/`. Hosted acceptance remains
+open until the repaired deployment succeeds.
+
 The immutable public publisher descriptor is prepared at
 `LocalState/COSMIC/HostedSourceRolloutCurrent/graph-studio-public-descriptor.json`
 (49 bytes, SHA256 `de20548bd9331b2a0484e84daf1f917588838c401ae2cda175de48129f97c13e`).

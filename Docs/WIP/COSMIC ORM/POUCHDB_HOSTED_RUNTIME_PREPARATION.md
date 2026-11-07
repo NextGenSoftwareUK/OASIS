@@ -380,3 +380,11 @@ Dependency manifest and diff checks passed.
 [Image qualification42354427254](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42354427254)
 is queued with teaching runtimes enabled. No PouchDB deployment or settings
 application was requested.
+
+Image42354427254 succeeded with the exact updated candidate and teaching
+runtimes enabled. Its digest is
+`sha256:63d0bce4919a7bb0b156ac8a3c558125c0eeaf6a828ba24181a2ea78fefa9ec1`.
+An offline configuration preflight against the prepared Graph baseline
+produced exactly the six expected PouchDB changes using the retained original
+bundle and acknowledgement. Re-observe the live Graph baseline before using
+that candidate for rollout. No PouchDB source writes occurred.

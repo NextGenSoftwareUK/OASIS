@@ -3667,3 +3667,23 @@ was written to disk or printed. No local image/runtime/service was installed.
 The exact Graph deployment observer writes one compact record under
 `TestResults/RecoveryLaptopResume20261107/`. Its accepted source generation
 and pending ENS cohort remain intact.
+
+The first Graph settings rebuild failed before runtime startup at the exact
+HoloNET-ORM source pin. The remote fetch independently reported forced
+updates of Development and main. The original required commit307b0a53 was
+preserved on this laptop and published unchanged on
+`codex/deployed-dependency-307b0a53`; its advertised remote ref was verified.
+No dependency manifest or source code changed for this repair.
+
+The original failed deployment and build/deployment log captures remain
+protected, 40,918 and 230 bytes. Both deployment responses are protected,
+310 bytes each. Four per-key settings acknowledgements remain under
+`HostedSourceRolloutCurrent/`. One explicit post-repair deployment is
+e53de265-c76f-487b-b773-d38e43c998a3. No settings replay occurred.
+
+PouchDB image42354427254 succeeded. The offline future protected candidate
+is 254,246 bytes and its public scope receipt302 bytes in the recovery
+directory. It is marked as lacking a current live baseline verification.
+No PouchDB enrollment or writes have been requested. The existing website
+checkout was moved to the recovered laptop's published work/cosmic-cql
+branch with clean-source checks; no website build or new environment.

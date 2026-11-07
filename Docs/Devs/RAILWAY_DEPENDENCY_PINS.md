@@ -26,6 +26,21 @@ The WEB4-WEB10 Dockerfiles must:
 
 On `Development` and `master`, the seven private repository values in that branch's manifest must exactly match the parent repository's gitlinks. This makes the locally tested checkout and the Railway checkout identical without allowing Development revisions to leak into production.
 
+## Preserve deployed commits when rewriting dependency history
+
+A manifest pin must remain reachable from an advertised dependency repository
+ref so a fresh clone receives it. Before rewriting or deleting branches,
+retain every deployed dependency commit on a dedicated retention ref. Keep
+that ref while any Development or production manifest still names the commit.
+Matching parent gitlinks and manifest values alone does not establish remote
+source availability.
+
+On 7 November 2026 a fresh Development rebuild failed at HoloNET-ORM
+`307b0a53a67cedfbd4c2113186a2a172da6bfbb2` after its remote branches were
+force-updated. The original commit was retained locally and restored unchanged
+on `codex/deployed-dependency-307b0a53`. The repair preserves the qualified
+source graph. Verify the exact remote ref before requesting another build.
+
 ## Keeping the pins in step (automatic)
 
 Moving a submodule gitlink without the matching pin means Railway keeps building the OLD source, so the change never ships (a Core fix once sat undeployed for a day this way).
