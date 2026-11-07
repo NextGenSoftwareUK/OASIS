@@ -94,3 +94,23 @@ With the retained qualified catalogue, both generated paired presets passed
 the published Web4Site `2170b67` preparation recipe offline. It selected
 the first two message keys through `HyperlaneMessageId` and retained the
 three- and two-key federation selections. No API calls or saves were made.
+
+## Development enrollment resumed - 7 November 2026
+
+Original source-bound native3/2 and local HTTP5/4/privacy receipts remain
+present under HyperlanePublicQualificationCurrent; no fixture replay. Current
+82428c7a6 already ships the Hyperlane reader and Core2a09c9be admits its free
+query tariff. Against the actual accepted NATS baseline, the existing publisher
+changes exactly three values and preserves all other settings. Its four presets
+retain the exact three/two message IDs and explorer-reported-delivery-state
+policy; this does not establish independent cross-chain finality.
+
+Protected snapshots prepared from the fresh baseline, then three writes were
+acknowledged and read back once, with no per-write deployment. Exact healthy
+source/image and complete candidate rechecked before one activation request.
+Settings jobcf69f1ba-2a18-4389-b658-4ab31d7bee71 isBUILDING at82428c7a6.
+Intents/protected response/ACK and compact baseline proof retained in the old
+laptop state folder. Next follow that exact job, verify current source/settings
+and first hosted native/Mongo/reuse/privacy/replica HTTP scope. No hosted cohort
+has been created, no native source writes/wallet/transaction actions occurred.
+NATS original acceptance cohort and all owner deferrals remain preserved.

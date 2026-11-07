@@ -55,6 +55,16 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
+Hyperlane is the next hosted scope. Original native/local HTTP receipts are
+reused; deployed82428c7a6/Core2a09c9be already contains its reader and tariff.
+Three protected settings staged once with exact ACK/readback, preserving all
+existing values. One activationcf69f1ba-2a18-4389-b658-4ab31d7bee71 isBUILDING.
+Follow that exact job, then verify first hosted native/Mongo/reuse/privacy/
+replica acceptance. No new source writes or fixture replay. See
+[Hyperlane state](HYPERLANE_PUBLIC_SOURCE_STATUS.md). Coverage stays119/79/28
+until its live acceptance passes. NATS card64 and sealed cohort are complete.
+
+
 Waku card63 is published atf854fc2 with its real C# example and scoped
 evidence. Public HTML matches the exact Git blob. The live HTTP gate is complete: native3/2, Mongo5/4, first2 saves, repeat0new/2existing,
 foreign-private0/public3 and SQLite/Neo4j replicas2/2. Source receipt and

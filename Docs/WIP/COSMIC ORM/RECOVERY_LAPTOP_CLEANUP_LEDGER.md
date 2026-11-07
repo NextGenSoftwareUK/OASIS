@@ -4267,3 +4267,12 @@ Public HTML247316B SHA2565866221f7ad30ed04ca2e9991683762f1009a2eff74526ab77d697b
 matches exact Git bytes. HTTP response verified in memory; only compact receipt
 nats-public-card-qualified.json retained, no HTML download. Website clean after
 named-file commit/push. Browser acceptance remains open; sealed cohort untouched.
+
+Hyperlane original native/local receipts reused without replay. Current-baseline
+proof retained in hyperlane-current-baseline-qualified.json. Protected snapshots
+297846B before/300854B candidate under HostedSourceRolloutCurrent/hyperlane-public-*;
+public prepared review retained in TestResults/HyperlanePublicSourceCurrent.
+Three settings writes acknowledged once with original per-key journals; one
+activation intent/ACK/protected CLI response retained, cf69f1ba BUILDING. No
+new local runtime/environment/native fixture/source saves or wallet actions.
+Existing NATS settings/source preserved; no new owner access request.
