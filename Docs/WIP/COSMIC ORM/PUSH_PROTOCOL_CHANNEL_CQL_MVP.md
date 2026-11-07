@@ -45,3 +45,13 @@ The parent is based on Development d31713beb and carries only the
 reviewed Push Protocol provider, WEB4 registration and Core read tariff.
 The pin validator passed. The [image gate](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42321600120)
 must pass before Development deployment and protected settings verification.
+
+The image gate passed with digest
+sha256:fcbb591993a19b6bbeb680edddf3ca107cf5b1e22c4d53abbce380345e354bf8.
+Development fast-forwarded to the candidate. Railway queued exact code
+deployment e60449de-117a-4d78-8878-d607144e2044. Four reviewed settings
+are prepared in DPAPI snapshots under LocalState/COSMIC/HostedSourceRolloutCurrent
+with prefix push-protocol-public. The public catalogue uses the same teaching
+owner as Decentraland and derives separate IDs from Push Protocol channel keys.
+Apply only after the deployment reports the reviewed commit and the full
+live variables still equal the prepared baseline.

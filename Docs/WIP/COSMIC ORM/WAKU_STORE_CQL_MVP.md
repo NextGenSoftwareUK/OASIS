@@ -118,3 +118,8 @@ record could pass and leave a partial catalogue active. A regression test
 returns a valid first record and omits the second. Activation rejects it.
 Three focused tests passed. Evidence: TestResults/WakuStoreCqlCurrent/activation.trx,
 SHA-256 66D83B0D8ABE8CC0B8E46A9D804A1389D754ED064E334C3FF0273BD12C54B16B.
+
+[CI 42321399172](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42321399172)
+confirmed complete-catalogue activation against the real fixture, with
+four provider tests and one WEB4/MongoDB HTTP test passing. The original
+locally retained archive remains the provisioning input.
