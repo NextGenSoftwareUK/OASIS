@@ -20,7 +20,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - PouchDB settings/live acceptance job2045b41e succeeded.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
-- Website C:/Source/Web4Site, branch work/cosmic-cql, publishedf854fc2.
+- Website C:/Source/Web4Site, branch work/cosmic-cql, publishede7dce1b.
 - Dedicated Railway key cosmic-cql-recovery-laptop-20261107 was created on
   this laptop for mounted-source inspection. Its eventual revocation is in
   the old-laptop cleanup ledger. Private key remains outside Git.
@@ -66,10 +66,16 @@ Continue DuckDB hosted preparation. Reuse its existing
 read-only provider/registration and qualified original database. Linux run
 42385940278 passed native3/2/0 across two read-only activations, unchanged
 source/no WAL. Artifact13579442161 retains that source/seed/TRX for90days.
-Owned source-placement runtime and82 shared controls pass. Prepare the
-protected six-key settings/publisher and scoped candidate preserving all
-accepted providers. Qualify its image/native assets before placement and
-live enrollment. Do not recreate or replay the accepted Windows fixture.
+Owned source-placement runtime and82 shared controls pass. Six guarded
+settings are privately prepared, none applied. Publisher6, response28 and
+preset39 controls pass. Scoped parent3cc1ab108/Core9fac20cd is published on
+the reused candidate refs. Exact admission CI42388149011 passed6/6,0skips.
+Image42388244083 is running and must pass its native-library/ABI checks
+before any Development rollout, source placement or enrollment. Development
+still serves accepted7672cd5ea; no DuckDB deployment was requested. Do not
+recreate or replay the accepted Windows fixture. Shared website navigation
+now opens provider-card/panel hash links,119client controls pass, and public
+HTML plus new navigation script match committed e7dce1b bytes.
 [Waku evidence](WAKU_STORE_CQL_MVP.md) · [DuckDB evidence](DUCKDB_CQL_MVP.md).
 
 ## Source and rollout journals

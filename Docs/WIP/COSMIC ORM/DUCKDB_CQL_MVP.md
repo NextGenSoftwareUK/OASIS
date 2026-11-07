@@ -296,3 +296,20 @@ Linux CI/artifact evidence with exact database/seed hashes. New image checks
 will require the shipped Linux native library and all of its dynamic links.
 The existing DuckDB four-preset admission test is included with the five
 catalogue controls in the next exact candidate CI gate (six cases total).
+
+Scoped DuckDB candidate3cc1ab108ef082b9aa7e00224eb895ad01060434 with
+Core9fac20cdd4e8158e730b00785d4b39721ed691d7 is published on the reused
+candidate refs. Thirteen named paths add only the opt-in read-only reader,
+admission, native placement/ABI checks and their controls; other providers
+and all accepted source configuration remain intact. The Dockerfile uses
+the task source's LF normalization; ignoring end-of-line changes its delta
+is exactly the source module COPY and native-library ABI check. Parent
+gitlink/manifest equality and seven Dockerfile contracts passed.
+
+Exact admission CI42388149011/job128449838422 passed6/6,0skips, including
+all five catalogue guards and the existing DuckDB native/Mongo four-preset
+planning case. Artifact13580462708,2113B, SHA256
+389759ba8d595b54faccc5379b7aa0bc5d84429884a7d4e03099a6dd1a635f24.
+Image42388244083/job128450124097 is running, exact candidate/teaching flags.
+No DuckDB code deployment, settings application or mounted-source write has
+been requested. Development remains the accepted Waku release7672cd5ea.

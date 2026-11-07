@@ -4055,3 +4055,23 @@ preparation reused HostedSourceRolloutCurrent: descriptor279B, before273670B,
 candidate283430B. Six settings prepared, none applied, no deployment requested.
 Original source/seed, original local save ACKs and native data remain intact.
 New Docker ABI check awaits exact image qualification; no live claim yet.
+
+DuckDB candidate13named paths/Core9fac20cd published on reused candidate
+refs with no worktree/environment creation or working Core checkout switch.
+Manifest/gitlinks and seven Dockerfiles validated at exact3cc1ab108. Core's
+only change is the DuckDB read tariff beside accepted providers. Dockerfile
+normalizes CRLF to LF; whitespace-insensitive inspection confirms only the
+module COPY/native ABI check change. Admission42388149011 passes6/6,0skips,
+artifact13580462708/2113B/389759ba8d595b54faccc5379b7aa0bc5d84429884a7d4e03099a6dd1a635f24.
+Image42388244083 request204 ACK retained; still running. No live mutation.
+Source qualification receipt794B retained; no native copy/database open.
+
+Shared website navigation defect fixed at e7dce1b: card/panel hash links now
+activate the containing panel before scrolling. Five focused cases plus114
+existing client cases pass (119total), log provider-card-navigation-controls.log.
+Existing work/cosmic-cql/main normally pushed after shared ancestry checks.
+Public HTML244867B/SHA2564a801f319c3045736acb905ddb8f5f854888e5a7a0d5d7afa5451b2a5da26b61
+and web4-tabs.js1262B/SHA256aec0dd8db831166964e1886ee30bee375e30a9f7ea18cfa2e5d4819b924da955
+match exact committed blobs in memory. Compact public observation retained.
+No browser input or functional-browser acceptance claimed. No downloads,
+install, new environment or local.NET operation. Free32265621504B at observation.
