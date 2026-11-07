@@ -117,6 +117,39 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests
         }
 
         [Fact]
+        public async Task RegisterNodeAsync_AfterRestart_SeedsKademliaTableFromPersistedPeers()
+        {
+            string dataDirectory = Path.Combine(Path.GetTempPath(), $"onet-kademlia-seed-{Guid.NewGuid():N}");
+            Directory.CreateDirectory(dataDirectory);
+            try
+            {
+                var cached = new System.Collections.Generic.Dictionary<string, DiscoveredNode>
+                {
+                    ["peer-a"] = new DiscoveredNode { Id = "peer-a", Address = "10.0.0.1:9000" },
+                    ["peer-b"] = new DiscoveredNode { Id = "peer-b", Address = "10.0.0.2:9000" },
+                };
+                var save = await NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISPersistence
+                    .SaveAsync(dataDirectory, "onet-peers.json", cached);
+                save.IsError.Should().BeFalse();
+
+                var dna = new OASISDNA { OASIS = { DataDirectory = dataDirectory } };
+                var discovery = new ONETDiscovery(storageProvider: null, dna);
+                await (Task)InvokePrivate(discovery, "LoadPeerCacheAsync");
+
+                await discovery.RegisterNodeAsync("local-node", "10.0.0.9:9000", new());
+
+                var table = (KademliaRoutingTable)typeof(ONETDiscovery)
+                    .GetField("_kademliaTable", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(discovery)!;
+                table.Count.Should().Be(2);
+                table.GetClosestNodes("peer-a", 1).Single().Address.Should().Be("10.0.0.1:9000");
+            }
+            finally
+            {
+                Directory.Delete(dataDirectory, recursive: true);
+            }
+        }
+
+        [Fact]
         public async Task RegisterNodeAsync_PeerCacheWriteFailure_ReturnsSuccessfulRegistrationWithWarning()
         {
             string parent = Path.Combine(Path.GetTempPath(), $"onet-cache-write-{Guid.NewGuid():N}");

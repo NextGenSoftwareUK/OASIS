@@ -6,9 +6,13 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Separate nested test project; its sources and generated obj files must not be compiled here. -->
+    <Compile Remove="NextGenSoftware.OASIS.API.ONODE.Core.Tests/**" />
+    <None Remove="NextGenSoftware.OASIS.API.ONODE.Core.Tests/**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
