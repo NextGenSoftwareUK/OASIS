@@ -37,8 +37,9 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 1. Finish open browser gates using retained cohorts and journals.
    Static publication and HTTP results are separate evidence.
-2. Continue live enrollment of qualified public profiles such as World ID,
-   Pinata, Discord and Livepeer in reviewed deployment batches.
+2. Finish Oracle Object Storage, Cloudinary and Proof of Humanity hosted
+   enrollment after exact image qualification. World ID, Pinata, Discord
+   and Livepeer have already passed hosted HTTP acceptance.
 3. Finish Waku managed Store packaging and lifecycle. The earlier local
    supervisor-writing command was rejected by automatic tool policy.
 4. Complete PouchDB hosted rollout after its original three source files
