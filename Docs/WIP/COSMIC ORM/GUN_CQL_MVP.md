@@ -171,3 +171,10 @@ Evidence under `TestResults/HostedCqlIntegrationCurrent/`:
 | `GUNOASIS-native-http.json` | `e03148061d03a58b61754796987bd4cc2e48ceeeed4b1a5ec21abf0cb08c1de5` |
 | `GUNOASIS-client-http-flow.json` | `e55a495e341de8a723459d0c4d6da7dc47daa39bc8008be006bafbd3c4db0e81` |
 | `GUNOASIS-isolation-http.json` | `053e11c5f35299da94a51df69d529c6bc667953fd6b45ecc6536632e58d12038` |
+
+Website fae9c5a061c6c2a0df61fc593387acceebc9dde2 publishes the live
+playground card, native/Mongo instructions and pinned evidence/C# links.
+All114 client tests passed. Public HTML HTTP200/241209bytes matches the
+exact commit, SHA256
+`6f7bdcb4539ff934085ad2c52b9ec7860b9f6c46b73a41b2f54bf54aabd802d3`.
+This is publication proof; functional browser verification remains open.

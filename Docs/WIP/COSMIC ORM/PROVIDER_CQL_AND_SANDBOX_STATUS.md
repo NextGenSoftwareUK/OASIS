@@ -59,6 +59,11 @@ Public readers use real pinned SDK stores on the existing volume. General
 relay CRUD/multi-peer convergence and full ORM parity remain outside this proof.
 Browser interaction remains unverified. Per-provider reports link exact hashes.
 
+Website fae9c5a publishes GUN/OrbitDB cards and pinned evidence/local C#
+links. All114 client tests pass. Public HTML241209bytes/SHA256
+6f7bdcb4539ff934085ad2c52b9ec7860b9f6c46b73a41b2f54bf54aabd802d3
+matches the exact committed asset. Functional browser gates remain open.
+
 ## Current functional milestone — 7 November 2026
 
 **74 query profiles have scoped hosted HTTP evidence, 28 have functional browser evidence and 46 browser gates remain open. GUN and OrbitDB are the latest HTTP additions. ThreeFold card/static bytes2170b67 pass; ClickHouse is accepted; its card/static assets d3dfe48 are published/verified; Zcash remains accepted; its card/static assets3141cca are published/verified. Bittensor remains accepted; its card/public bytesbc31379are verified and browser gate remains open.**

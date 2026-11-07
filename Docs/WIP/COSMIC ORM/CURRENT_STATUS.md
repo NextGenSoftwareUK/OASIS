@@ -15,7 +15,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Development9c6e93003, Coref0625521. Successful code job ac51f1c7.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
-- Website C:/Source/Web4Site, branch work/cosmic-cql, published a88076d.
+- Website C:/Source/Web4Site, branch work/cosmic-cql, published fae9c5a.
 - Unknown root logs and Docs/WIP/Cleanup/CLEANUP_LEDGER.md are outside this task.
 
 ## Verified
@@ -40,10 +40,12 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-Publish the two prepared GUN/OrbitDB website cards after updating their
-pinned evidence links to this acceptance report commit. All114 website tests
-already passed. Fetch website main first, preserve concurrent changes, publish,
-then verify exact public HTML bytes. Do not rerun accepted HTTP cohorts.
+The GUN/OrbitDB cards are published at fae9c5a. Public HTML matches the
+exact commit (241209bytes/SHA256 in provider reports);114 client tests passed.
+Next inspect the unqualified The Graph Studio draft and its proving-test gaps.
+Also reproduce the harness cleanup fence using local mocks before any further
+acceptance run: accepted cohorts must stay blocked after TestResults cleanup.
+Do not rerun accepted HTTP schedules. Browser gates remain open.
 
 ## Source and rollout journals
 

@@ -203,3 +203,10 @@ Evidence under `TestResults/HostedCqlIntegrationCurrent/`:
 | `OrbitDBOASIS-native-http.json` | `dad24aee0a3aa5d00e019757ba6528edfaf3f6c57d45de901e7020eee3c71851` |
 | `OrbitDBOASIS-client-http-flow.json` | `16d5b4ded7da5c19cad81d4a51c74049c10fa4580f30a40c46388c84338690ef` |
 | `OrbitDBOASIS-isolation-http.json` | `5ffbfaf485db475ee71cd9f25b9425f20d8c6c5c60b68f4296668e5a6f906206` |
+
+Website fae9c5a061c6c2a0df61fc593387acceebc9dde2 publishes the live
+playground card, native/Mongo instructions and pinned evidence/C# links.
+All114 client tests passed. Public HTML HTTP200/241209bytes matches the
+exact commit, SHA256
+`6f7bdcb4539ff934085ad2c52b9ec7860b9f6c46b73a41b2f54bf54aabd802d3`.
+This is publication proof; functional browser verification remains open.
