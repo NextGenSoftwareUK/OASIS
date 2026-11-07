@@ -15,7 +15,9 @@ function garnetArguments(root, aclFile, mode) {
   directory(root); directory(aclFile);
   if (!['provision', 'recover'].includes(mode)) throw Error('Explicit source lifecycle mode required.');
   return ['--bind', '127.0.0.1', '--port', String(contract.ports.redis), '--auth', 'ACL',
-    '--acl-file', aclFile, ...contract.garnetArguments, '--checkpointdir', path.join(root, 'store'),
+    '--acl-file', aclFile, ...contract.garnetArguments,
+    ...(process.platform === 'linux' ? contract.linuxStorageArguments : []),
+    '--checkpointdir', path.join(root, 'store'),
     ...(mode === 'recover' ? ['--recover', '--fail-on-recovery-error'] : [])];
 }
 function daprArguments(root) {
