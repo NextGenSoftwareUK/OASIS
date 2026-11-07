@@ -72,3 +72,19 @@ read back all four settings. The same-release settings deployment is
 34802005-bbc6-467e-836f-d716fadbbc72 at commit 48c532584. Observe that
 exact job before using --reviewed-deployment-visitor with WorldIDOASIS
 and the retained world-id-public descriptor.
+
+## Development HTTP acceptance
+
+Settings deployment 34802005-bbc6-467e-836f-d716fadbbc72 succeeded.
+The initial NOT_READY observation had activation generation 0; the same
+visitor later observed the completed startup without a recovery call.
+Native returned 3/2 and MongoDB federation returned 5/4. Preparation
+saved two private copies, and repeat saved zero/reused both. Both replicas
+held two copies. A second visitor saw three public protocol records and
+zero private records on MongoDB, SQLite and Neo4j. The sandbox card and
+interactive browser gate remain open.
+
+Evidence under TestResults/HostedCqlIntegrationCurrent, SHA-256:
+- WorldIDOASIS-native-http.json 3298020014bb30baac4ac42f9fd3803025812d42168d13ccb31edad621591e07
+- WorldIDOASIS-client-http-flow.json 7cf6e70b58c179e26c94f29dcdf65ef9b31aabce4c9d575cdc2b8d32b39cb6db
+- WorldIDOASIS-isolation-http.json 91021cbdd985f877624ad4ac55c03e355819142deb6e47c0b84e2ed1f8192bfd

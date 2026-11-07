@@ -19,7 +19,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **118 scoped local, 65 live HTTP and 28 functional browser**.
+Coverage is **118 scoped local, 66 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -46,9 +46,8 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 5. Continue other providers' runtime, restricted-reader and hosting gates.
 
 World ID image qualification passed and Development advanced to 48c532584.
-World ID code job bfc56681 succeeded and all four settings were acknowledged.
-Observe settings job 34802005-bbc6-467e-836f-d716fadbbc72, then verify the
-live settings and use its deployment-scoped visitor for readiness and acceptance.
+World ID settings job 34802005 succeeded. Native 3/2, MongoDB 5/4, reuse,
+visitor isolation and both replicas passed. Next, publish its sandbox card.
 Discord/Livepeer/Pinata candidate 8645794b passed [CI 42332826329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42332826329).
 Its eight-value settings candidate uses the intended World ID baseline.
 
