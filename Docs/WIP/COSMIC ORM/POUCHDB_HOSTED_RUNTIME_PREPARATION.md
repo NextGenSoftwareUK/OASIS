@@ -445,3 +445,9 @@ The provider column distinguishes native PouchDB observations and Mongo copies.
 This scope uses real PouchDB9.0.0/LevelDB through vendor express-pouchdb4.2.0
 inside the WEB4 service. Native HTTP remains loopback-bound within its container.
 Broader CRUD, replication, remote authentication and full ORM parity remain open.
+
+Website card47 is published at26e2b4a after114 client controls passed.
+Public HTML243409 bytes/SHA256 bbe90fc8c848fa905dc4f2de56f5de4abf708dbafea042996c5add7a69277d79
+matches the exact commit. Its existing local launcher remains available,
+with the additional hosted selection/preparation/query instructions.
+Hosted browser interaction verification remains open.

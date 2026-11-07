@@ -3820,3 +3820,12 @@ LocalState/COSMIC/HostedQueryAcceptance-PouchDBOASIS. The deployment-bound
 readiness visitor is also retained. No new runtime or local provider process.
 Keep the existing native first generation on /data/COSMIC/SandboxPouchDB and
 the original old-laptop LevelDB source. Hosted total76, browser total28.
+
+PouchDB existing website card47 is published at26e2b4a on the same task
+branch and main. All114 existing client controls pass. Public HTML243409
+bytes/SHA256 bbe90fc8c848fa905dc4f2de56f5de4abf708dbafea042996c5add7a69277d79
+matches its exact Git blob, checked in memory. Compact proof
+pouch-site-publication.json retained in the recovery directory. First edit
+stopped before changing any file because Windows Python defaulted to cp1252.
+Explicit UTF8 fixed that edit, with no encoding churn in the reviewed diff.
+No new environment, service, install, source data or browser cohort.

@@ -17,7 +17,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Last accepted runtime ce47a6f8/Core acc6ed36, Graph settings job ccd86b20.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
-- Website C:/Source/Web4Site, branch work/cosmic-cql, published cbc08dd.
+- Website C:/Source/Web4Site, branch work/cosmic-cql, published26e2b4a.
 - Unknown root logs and Docs/WIP/Cleanup/CLEANUP_LEDGER.md are outside this task.
 
 ## Verified
@@ -73,8 +73,10 @@ matches image-qualified028d342e. Actual image4c98b3fb47fb82c4d9100398d18059dfb88
 active instance502b8e37-129f-432d-92ae-c3fa3f3aa4fa. Guarded six settings,
 writable mount and original native receipt all verify. Native3/2, Mongo5/4,
 first2 saves, repeat0new/2existing, visitor-private0/public3 and replicas2/2
-passed. Preserve the original cohort and native first generation. Publish
-the existing PouchDB website card with the hosted path next. Browser gate open.
+passed. Preserve the original cohort and native first generation. Website
+card47 is published at26e2b4a. Public HTML matches the exact Git blob,
+243409 bytes/SHA256 bbe90fc8c848fa905dc4f2de56f5de4abf708dbafea042996c5add7a69277d79.
+All114 client controls pass. Hosted PouchDB browser gate remains open.
 The two failed source-acquisition builds, exact identical STAR source repair,
 qualified image and external identical-tree deployment remain journalled.
 The harness cleanup bug was reproduced and fixed locally: durable owner/write
@@ -99,10 +101,9 @@ Provision-HostedTeachingSource.py has five command tests; native helper has six.
 - Finish open browser gates with original cohorts; HTTP/static proof is separate.
 - Continue other providers' runtime, restricted-reader and hosting gates.
 - Waku supervisor-writing command was rejected by automatic tool policy.
-- PouchDB image qualified. All three original source files are present on this
-  old laptop and their bundle/bootstrap hashes match native qualification.
-  The 36 runtime controls passed without replaying source writes. Rebase the
-  hosted acceptance is complete. Publish its card and retain the source cohort.
+- PouchDB hosted HTTP acceptance and website publication are complete.
+  Retain its native first generation and original acceptance cohort.
+  Its hosted browser gate remains open.
 - Hosted Azure Cosmos, Oracle DB and PostgreSQL remain deferred by David.
 - Never replay accepted cohorts or replace original receipts to regenerate evidence.
 - Broader ORM children/depth/history/deltas, migration, placement and HyperDrive
