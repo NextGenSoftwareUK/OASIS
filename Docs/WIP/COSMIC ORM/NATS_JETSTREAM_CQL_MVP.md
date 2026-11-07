@@ -120,3 +120,23 @@ No writer credential, native source generation or SaveHolon call exists in
 this gate. It requires unchanged TLS identity and clean shutdown for each
 start. The original seed qualification workflow is not replayed. This new
 restart gate is prepared but not yet accepted; deployment remains disabled.
+
+## Real restored-native restart accepted
+
+Run [42397239148](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42397239148),
+job128477134308, exact source3ba58eca22c4bcb8e05f406d8f7076c9623e9dc8,
+passed. Original accepted native archive restored once, no source seed/save.
+Shipping runtime readiness authenticated the restricted reader over verified
+TLS on both starts. Real SDK CQL3/2 and explicit write/foreign permission
+violations passed before and after restart. Exact record hashes/revisions
+and TLS identity stayed unchanged; both native processes stopped cleanly.
+Nineteen runtime controls also passed on Linux. Consumer build zero errors,
+1150 dependency warnings. This proves restored runtime/restart, not hosted HTTP.
+
+Retained artifact13583717882,1721B, SHA256
+8fac576e54df6803ff7577ef1fd34fefcbb6cc6953125a11290623280aa3a5b2,
+expires5February2027. Compact CI receipt retained under
+LocalState/COSMIC/RecoveryLaptopResume20261107/nats-owned-restart-ci-qualified.json.
+Remaining gates: exact shipping image packaging, explicit sandbox API
+registration, protected publisher, candidate admission/image qualification,
+then scoped Development rollout and native/Mongo/privacy/replica HTTP checks.

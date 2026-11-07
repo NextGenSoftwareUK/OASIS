@@ -4172,3 +4172,13 @@ New work TestResults/NatsOwnedRestartCurrent retains compact snapshots/stop
 receipts only; TLS/private native logs stay outside artifact paths on the
 ephemeral runner. No local download/build/runtime/native source execution.
 Python/YAML and Node syntax checks pass; real restart CI remains pending.
+
+NATS restored-native CI42397239148/job128477134308 SUCCESS. Artifact13583717882
+1721B SHA2568fac576e54df6803ff7577ef1fd34fefcbb6cc6953125a11290623280aa3a5b2,
+90-day remote retention; no local artifact download. Compact CI receipt only
+at RecoveryLaptopResume20261107/nats-owned-restart-ci-qualified.json. Original
+source restored once in ephemeral Linux runner, two cleanly stopped native
+starts, read-only SDK3/2+explicit denial proof, unchanged revisions/values/TLS.
+No seed/save or local install/build/native execution. Private TLS configuration,
+key and raw native logs excluded from retained artifacts; ephemeral runner
+owns their disposal. Image/live HTTP gates remain open.
