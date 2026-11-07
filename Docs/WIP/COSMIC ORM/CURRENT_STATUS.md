@@ -13,8 +13,8 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Worktree C:/Source/OASIS-cosmic, branch work/cosmic-cql-ton-public.
 - Core branch work/cosmic-cql-decentraland. Preserve independent dependency pins.
 - Website C:/Source/Web4Site, branch work/cosmic-cql, published 0e320a5.
-- Development dcae58d97. Last healthy live release 8645794bb, Core 4585be1.
-- Successful Railway settings deployment 0ab0d7c9-45b7-4fcc-b1ea-c79c9d6c0eae.
+- Development and successful code release dcae58d97, Core f695b1cd.
+- Registry/object settings deployment fb589d55-f737-4622-9160-6e63e0e55099 is building.
 - Unknown root logs and Docs/WIP/Cleanup/CLEANUP_LEDGER.md are outside this task.
 
 ## Verified
@@ -55,9 +55,10 @@ native 3/2, MongoDB 5/4, reuse, isolation and both replicas. All three
 cards and local examples are live at 0e320a5. Browser interaction remains open.
 Oracle Object Storage, Cloudinary and Proof of Humanity image CI 42336260220
 passed for dcae58d97. Its image digest is recorded in the provider reports.
-Development promotion created Railway job 900d0fe7-9dc9-489c-a12b-7df8ef84fea8.
-Eight protected settings/twelve presets remain unapplied under registry-object-public.
-Next observe that exact job, apply the guarded settings and verify all three scopes.
+Code job 900d0fe7 succeeded. All eight settings were observed exactly.
+Same-release settings job fb589d55-f737-4622-9160-6e63e0e55099 is building.
+Next observe that exact job, check discovery and verify all three scopes.
+Three website cards are prepared locally; 114 website tests passed. Publication awaits live acceptance.
 Subscription protocol CI exposed a missing SandboxSubscriptionRules source link.
 The project dependency is fixed locally: bounded build and 22 pure tests passed.
 Include that test-project-only correction in the next verified Development batch.
