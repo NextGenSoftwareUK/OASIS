@@ -76,3 +76,15 @@ sealed the archive, reran three native checks and one WEB4 federation
 check with zero failures or skips, and removed the MongoDB container.
 The snapshot and digest receipt were runner-local and disposable. A
 hosted rollout needs a separately provisioned and verified source.
+
+### Provisioning handoff
+
+[CI 42320285565](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42320285565)
+is the first run configured to retain a qualified source. After the run
+passes, verify the artifact is available and unexpired. It contains only
+store-qualified.sqlite3 and archive-qualified.json and expires after
+three days. Verify the receipt byte count and SHA-256 against the file,
+then bind its three hashes to the sandbox teaching owner in
+CQL_WAKU_STORE_QUERY_SOURCE_JSON. Keep the source outside Docs.
+Hosted readiness still requires a managed loopback Store and an actual
+read of all three records before publishing any sandbox preset.
