@@ -52,8 +52,10 @@ Discord/Livepeer/Pinata image qualification passed. Development is 8645794bb.
 Settings job 0ab0d7c9 succeeded. Discord, Livepeer and Pinata each passed
 native 3/2, MongoDB 5/4, reuse, isolation and both replicas. All three
 cards and local examples are live at 0e320a5. Browser interaction remains open.
-Next inspect Oracle Object Storage, Cloudinary and Proof of Humanity's
-qualified public profiles for a scoped hosted rollout.
+Oracle Object Storage, Cloudinary and Proof of Humanity candidate dcae58d9
+is in [image CI 42336260220](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42336260220).
+Eight protected settings/twelve presets are prepared under registry-object-public.
+Next verify that image, fetch Development and recheck live baseline before promotion.
 
 ## Constraints and unfinished roadmap
 

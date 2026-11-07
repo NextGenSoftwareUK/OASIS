@@ -31,3 +31,18 @@ The reviewed local WEB4 HTTP batch verified native 3/2, paired MongoDB
 5/4, and visitor isolation. OCI provided native HEAD metadata and the
 owned two-record Mongo fixture was removed after verification.
 [Local acceptance scope](PROVIDER_CQL_AND_SANDBOX_STATUS.md#reviewed-public-source-http-on-6-november-2026)
+
+## Joint hosted candidate
+
+The scoped candidate dcae58d976d2af04800d1670fc1e4fe3979b5608 and Core
+f695b1cd8880b3009b7b14190ab41867fb38ee65 are published on
+work/cosmic-registry-object-release-candidate. This batch adds the public
+Oracle object HEAD profile, Cloudinary image metadata and Proof of
+Humanity registry reads. The shared registration includes only those
+reviewed profiles. The existing native and local WEB4 proofs remain
+the source acceptance. [Image CI 42336260220](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42336260220)
+must pass before promotion and hosted acceptance.
+
+The eight-value protected candidate and twelve presets use prefix
+registry-object-public under LocalState/COSMIC/HostedSourceRolloutCurrent.
+No hosted settings were applied. Oracle database hosting remains deferred.
