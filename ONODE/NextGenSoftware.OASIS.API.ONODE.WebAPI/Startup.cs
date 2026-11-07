@@ -729,6 +729,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.RitualOASIS.RitualPublicBlockSource.FromJson(ritualPublicSource)));
 
+            Services.Cql.CqlDaprReadSourceRegistration.AddDaprReadSource(services, Configuration);
+
             if (Configuration["CQL_NATS_PUBLIC_SOURCE_JSON"] is string natsPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.NatsPublicCqlProfile.FromConfiguredJson(natsPublicSource,

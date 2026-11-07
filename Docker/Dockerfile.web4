@@ -39,7 +39,7 @@ RUN case "$OASIS_INCLUDE_TEACHING_SIDECARS" in \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 # The pinned Waku binary loads PostgreSQL and OpenMP libraries during startup,
 # including when the teaching source uses SQLite.
-RUN apt-get update && apt-get install -y --no-install-recommends libpq5 libgomp1 libstdc++6 libgcc-s1 openssl \
+RUN apt-get update && apt-get install -y --no-install-recommends libpq5 libgomp1 libstdc++6 libgcc-s1 openssl libaio1t64 liburing2 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 EXPOSE 8080
@@ -69,6 +69,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
     && install -m 755 /tmp/nats-runtime/nats-server-v2.15.2-linux-amd64/nats-server /usr/local/bin/nats-server \
     && test "$(nats-server --version)" = 'nats-server: v2.15.2' \
     && rm -rf /tmp/nats-runtime \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Exact Dapr/Garnet archives shared with the Linux native qualification.
+# Python/download dependencies stay in this build stage; final image receives runtimes only.
+FROM base AS provider_dapr
+COPY Scripts/TestHosts/DaprNativeRuntimes.py Scripts/TestHosts/dapr-linux-runtime-pins.json /qualification/
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates python3 build-essential cmake git libaio-dev liburing-dev uuid-dev \
+    && python3 -B /qualification/DaprNativeRuntimes.py --install-linux /opt/provider-runtimes \
+    && /opt/provider-runtimes/daprd/daprd --version \
+    && /opt/provider-runtimes/garnet/net10.0/GarnetServer --version \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
@@ -118,6 +128,8 @@ WORKDIR /app
 COPY --from=provider_node /usr/local/bin/node /usr/local/bin/node
 COPY --from=provider_ipfs /usr/local/bin/ipfs /usr/local/bin/ipfs
 COPY --from=provider_nats /usr/local/bin/nats-server /usr/local/bin/nats-server
+COPY --from=provider_dapr /opt/provider-runtimes/daprd/daprd /opt/dapr/daprd
+COPY --from=provider_dapr /opt/provider-runtimes/garnet/net10.0/ /opt/garnet/
 COPY --from=provider_waku /opt/waku /opt/waku
 COPY --from=provider_solid /community-server /opt/solid
 COPY --from=build /opt/pouchdb /opt/pouchdb
@@ -142,6 +154,9 @@ COPY Docker/host-sandbox-teaching.cjs /app/host-sandbox-teaching.cjs
 COPY Docker/host-sandbox-waku.cjs /app/host-sandbox-waku.cjs
 COPY Docker/host-sandbox-duckdb.cjs /app/host-sandbox-duckdb.cjs
 COPY Docker/host-sandbox-nats.cjs /app/host-sandbox-nats.cjs
+COPY Docker/host-sandbox-dapr.cjs /app/host-sandbox-dapr.cjs
+COPY Docker/provision-sandbox-dapr.cjs /app/provision-sandbox-dapr.cjs
+COPY Docker/DaprRuntime/ /app/DaprRuntime/
 RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 ENV ASPNETCORE_ENVIRONMENT=Production
