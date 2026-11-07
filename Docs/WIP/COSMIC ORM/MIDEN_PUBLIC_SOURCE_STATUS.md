@@ -80,4 +80,3 @@ No native fixture replay or source writes. Browser acceptance remains open.
 
 `MidenOASIS-native-http.json`: 11275B, SHA256
 `e7b84a27b6463c5dc78994f23867d585dd68ad629949a887472978bc7896f8ab`.
-

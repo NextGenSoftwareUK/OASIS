@@ -57,4 +57,3 @@ No native fixture replay or source writes. Browser acceptance remains open.
 
 `RitualOASIS-native-http.json`: 11359B, SHA256
 `bc8d8e53b9bd38ba969e513daddf581e7619ba5b4764fdf36c10125e6dddaf1b`.
-

@@ -100,4 +100,3 @@ No native fixture replay or source writes. Browser acceptance remains open.
 
 `AxelarOASIS-native-http.json`: 11822B, SHA256
 `1b5e416123683a03948396f22d0112bf7da4b3debe1261aa53cfb7313ac9cfdc`.
-

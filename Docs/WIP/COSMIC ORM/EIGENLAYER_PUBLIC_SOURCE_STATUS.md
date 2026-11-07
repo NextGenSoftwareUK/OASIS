@@ -72,4 +72,3 @@ No native fixture replay or source writes. Browser acceptance remains open.
 
 `EigenLayerOASIS-native-http.json`: 13114B, SHA256
 `224111fb4da84e81a99536a1cd7edaca7821ce8f501c0a25ea7c44ccb0512c04`.
-

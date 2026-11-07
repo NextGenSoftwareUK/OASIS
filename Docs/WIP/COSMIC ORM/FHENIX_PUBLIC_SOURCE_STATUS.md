@@ -79,4 +79,3 @@ No native fixture replay or source writes. Browser acceptance remains open.
 
 `FhenixOASIS-native-http.json`: 11968B, SHA256
 `2894523b868cb17c92e30ceedddfc91d90c9fc804c81fff99aa85ac5d7a4321c`.
-
