@@ -49,3 +49,8 @@ open. Evidence under TestResults/HostedCqlIntegrationCurrent:
 - deBridgeOASIS-client-http-flow.json: 36184B, SHA256 598f0377f5b869525664abadfcab5b6f245e31c1efee27320aff296b1188f6d8.
 - deBridgeOASIS-isolation-http.json: 6180B, SHA256 5fa11bbdce0dd12df3c6890a89f0da6f1cf575fd0f21c47f9e2bf8afb57d702e.
 - deBridgeOASIS-native-http.json: 13562B, SHA256 0f6d8c8f2080243e0906053d05e4829a2b14a11c5656415fc314a082e529d8c2.
+
+Public [card68](https://web4.oasisomniverse.one/web4-sandbox.html#cql-debridge-catalogue)
+published in Web4Site611ee736f37589ab167a833d8425cd0d3bb82b1e. Real C# query
+and evidence links pinned to backend25b4a8508. All119 website client controls
+pass; exact public HTML verified. Original cohort untouched; browser gate open.

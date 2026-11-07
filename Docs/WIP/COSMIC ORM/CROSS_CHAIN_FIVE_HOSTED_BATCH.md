@@ -110,3 +110,15 @@ reports and five sealed receipts retained; per-provider docs hold report hashes.
 Compact cross-chain-five-http-accepted.json binds all five receipt hashes.
 Coverage119local/85liveHTTP/28browser. Next publish five scoped sandbox cards
 and retain browser/full provider/ORM gates separately.
+
+## Five public cards published
+
+Web4Site611ee736f37589ab167a833d8425cd0d3bb82b1e publishes cards66-70 on the
+existing website task/main refs. Each describes its actual read representation
+and native3/2/Mongo5/4/reuse/privacy/replica proof, with source/evidence pinned
+to backend25b4a8508. All119 client controls pass. Public HTTP200 HTML256730B,
+SHA2562cef94b6a89499d6468d4d1ae28b05fad5751d7643b2d8c3751a962a9f3e6a6b,
+matched the exact Git blob on first observation. All five card anchors exist.
+Compact publication receipt retained, no HTML download or cohort replay.
+Browser and complete provider/ORM parity remain open. Continue next eligible
+provider scope with all owner deferrals and accepted source generations intact.

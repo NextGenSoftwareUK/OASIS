@@ -52,3 +52,8 @@ open. Evidence under TestResults/HostedCqlIntegrationCurrent:
 - StargateOASIS-client-http-flow.json: 36264B, SHA256 dfc811c3aed87641c84356f7da9c8d562565b6e65251b695c586c112c2f52e41.
 - StargateOASIS-isolation-http.json: 6171B, SHA256 1144e7dff54602cc51360a245ceeb6a281046f5c500c9c697ba33adf1d694a4b.
 - StargateOASIS-native-http.json: 13576B, SHA256 4ef06a6be732c65036d417294dc4adac0091fc2404f62c593e8bb8b99c267689.
+
+Public [card67](https://web4.oasisomniverse.one/web4-sandbox.html#cql-stargate-catalogue)
+published in Web4Site611ee736f37589ab167a833d8425cd0d3bb82b1e. Real C# query
+and evidence links pinned to backend25b4a8508. All119 website client controls
+pass; exact public HTML verified. Original cohort untouched; browser gate open.

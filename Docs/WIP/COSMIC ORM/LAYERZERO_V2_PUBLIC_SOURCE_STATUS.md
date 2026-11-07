@@ -66,3 +66,8 @@ open. Evidence under TestResults/HostedCqlIntegrationCurrent:
 - LayerZeroV2OASIS-client-http-flow.json: 36367B, SHA256 0e40e57f3c56ba124b9b1e517c73be134a70867e73c5914dbd0a7a77a76baad4.
 - LayerZeroV2OASIS-isolation-http.json: 6177B, SHA256 e160dcf09ea5de9e305d56990967680433b74f61ccde8cba3cac7267e9ad032f.
 - LayerZeroV2OASIS-native-http.json: 13609B, SHA256 fb726e439120839f001d59b5df6111165d0705999763b6c2ed1cbbad1f2a7955.
+
+Public [card66](https://web4.oasisomniverse.one/web4-sandbox.html#cql-layerzero-v2-catalogue)
+published in Web4Site611ee736f37589ab167a833d8425cd0d3bb82b1e. Real C# query
+and evidence links pinned to backend25b4a8508. All119 website client controls
+pass; exact public HTML verified. Original cohort untouched; browser gate open.

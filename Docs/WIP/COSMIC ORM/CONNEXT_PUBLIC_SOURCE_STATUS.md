@@ -73,3 +73,8 @@ open. Evidence under TestResults/HostedCqlIntegrationCurrent:
 - ConnextOASIS-client-http-flow.json: 37881B, SHA256 9a18883ae23b22a4b8a0596df229b434db200357799057aa1d47182f58f094cf.
 - ConnextOASIS-isolation-http.json: 6660B, SHA256 1dbfdab4cbfa1ddc5e0a388f3783a649b74feccc03dcedba7f2dbd9940c416a8.
 - ConnextOASIS-native-http.json: 14399B, SHA256 b4d869d0f14712cebf6a2e67370939771ead0a636f114640c5002570cafc1902.
+
+Public [card70](https://web4.oasisomniverse.one/web4-sandbox.html#cql-connext-catalogue)
+published in Web4Site611ee736f37589ab167a833d8425cd0d3bb82b1e. Real C# query
+and evidence links pinned to backend25b4a8508. All119 website client controls
+pass; exact public HTML verified. Original cohort untouched; browser gate open.

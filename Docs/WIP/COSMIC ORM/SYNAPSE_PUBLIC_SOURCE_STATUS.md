@@ -52,3 +52,8 @@ open. Evidence under TestResults/HostedCqlIntegrationCurrent:
 - SynapseOASIS-client-http-flow.json: 35251B, SHA256 67daa814c37b316184f80ee728fdb70d1a658792bfa608e47e18cd92b432b4a3.
 - SynapseOASIS-isolation-http.json: 5883B, SHA256 89e83a8856bb21ac7c65571d77415b9e03d9c76061c3e3352fcae2d62767ff9d.
 - SynapseOASIS-native-http.json: 13108B, SHA256 5eb4d2b6d78e7b0bec1f70d5baf6ae02784532f0a4f7b2b7c30339a963a7e4e0.
+
+Public [card69](https://web4.oasisomniverse.one/web4-sandbox.html#cql-synapse-catalogue)
+published in Web4Site611ee736f37589ab167a833d8425cd0d3bb82b1e. Real C# query
+and evidence links pinned to backend25b4a8508. All119 website client controls
+pass; exact public HTML verified. Original cohort untouched; browser gate open.

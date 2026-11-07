@@ -24,7 +24,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - PouchDB settings/live acceptance job2045b41e succeeded.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
-- Website C:/Source/Web4Site, branch work/cosmic-cql, publishedc34a4b6 (Hyperlane card65; NATS card64 retained).
+- Website C:/Source/Web4Site, branch work/cosmic-cql, published611ee73 (five new cards66-70; Hyperlane65/NATS64 retained).
 - Dedicated Railway key cosmic-cql-recovery-laptop-20261107 was created on
   this laptop for mounted-source inspection. Its eventual revocation is in
   the old-laptop cleanup ledger. Private key remains outside Git.
@@ -55,83 +55,27 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-All five public-reader HTTP scopes are accepted on eaa1b7af/370c0335:
-LayerZeroV2, Stargate, deBridge, Synapse and Connext. Each passed native3/2,
-Mongo5/4, snapshot reuse, privacy0/public3 and exactSQLite/Neo4j replicas2/2;
-all five original cohorts are sealed. Complete settings and deployment remained
-unchanged. Coverage119local/85liveHTTP/28browser. Next publish their scoped
-sandbox cards with pinned real query examples. Never replay accepted cohorts.
-See [batch acceptance](CROSS_CHAIN_FIVE_HOSTED_BATCH.md).
-
-
-Five-reader code6ef19281 is healthy; actual reader assemblies/runtime hashes
-verified. Eleven settings staged once, all ACKs/readback match. One activation
-eaa1b7af-4fb7-4471-86b2-2071db135332 isBUILDING. Follow that exact job, verify
-the complete protected candidate and run first hosted cohorts individually.
-Coverage stays119/80/28; no batch provider has hosted acceptance yet.
-
-
-Prepare the five-public-reader code batch: LayerZeroV2, Stargate, deBridge,
-Synapse and Connext. Original source/local HTTP receipts are available; one
-11-value protected candidate preserves the live Hyperlane/NATS baseline.
-Four composition guards pass. No batch settings applied. Exact candidate
-15eb48673/Core85278a4 is published on the reused candidate refs. API42404033534
-passed19/19 with zero skips; image42404062685 passed. One verified normal
-Development push of15eb48673/Core85278a4 queued code job6ef19281. Follow that
-exact deployment before applying11settings. Acceptedcf69f1ba still serves.
-Current82428c7a6 lacks these five registrations. See [five-reader batch](CROSS_CHAIN_FIVE_HOSTED_BATCH.md).
-
-
-Hyperlane hosted HTTP is accepted oncf69f1ba, instancef7e77b49, exact
-82428c7a6/Core2a09c9be. Native3/2, Mongo5/4, first2private saves/repeat0new2existing,
-privacy0/public3 and exactSQLite/Neo4j replicas2/2 passed with unchanged release
-and complete settings. Its original cohort is sealed; never replay it.
-Coverage119local/80liveHTTP/28functional browser. Hyperlane card65 is
-published inc34a4b6 with explorer-reported-delivery-state scope and pinned
-native example. Public HTML matches Git; all119 website controls pass. Next
-continue the next eligible provider scope, keeping browser gates separate. [Hyperlane evidence](HYPERLANE_PUBLIC_SOURCE_STATUS.md). NATS card64
-and original accepted cohort remain preserved; owner deferrals stay unchanged.
-
-Waku card63 is published atf854fc2 with its real C# example and scoped
-evidence. Public HTML matches the exact Git blob. The live HTTP gate is complete: native3/2, Mongo5/4, first2 saves, repeat0new/2existing,
-foreign-private0/public3 and SQLite/Neo4j replicas2/2. Source receipt and
-complete protected settings matched before and after acceptance. Exact
-nanosecond strings survived the HTTP serializer. Original cohort receipt:
-LocalState/COSMIC/HostedQueryAcceptance-WakuOASIS/cql-http-acceptance.acknowledged.json.
-Never rerun that accepted cohort. The original502 readiness operation stays
-retained; discovery explicitly reused the acknowledged PouchDB visitor.
-Browser verification remains open: the updated Windows helper stopped when
-it could not determine the browser URL reliably; no browser input occurred.
-
-DuckDB hosted HTTP acceptance is complete on32b26f74-01b7-4ce2-a84e-08959ff46468,
-instance36653fc7-c5f3-4dbc-86c6-0af48bc96f5a, exact3cc1ab108/Core9fac20cd.
-Native3/2, Mongo5/4, first2 saves/repeat0new2existing, foreign-private0/public3
-and exactSQLite/Neo4j replicas2/2 passed. Full protected settings, all six
-original write ACKs and mounted database/receipt hashes matched before and
-after; no WAL exists. Original hosted cohort is sealed under
-HostedQueryAcceptance-DuckDBOASIS/cql-http-acceptance.acknowledged.json.
-Never replay it or recreate the accepted Windows fixture.
-
-DuckDB card22 is published at698e102 with the hosted path, preserved local5116
-launcher and real C# example. Public HTML matches the exact committed blob;
-all119 client controls pass.
-
-NATS hosted HTTP acceptance is complete on8c51a9da, instance150d07cf,
-exact82428c7a6/Core2a09c9be. Mounted source/TLS/settings passed before/after
+Continue the next eligible provider scope from retained native/local evidence;
+keep owner-dependent and browser gates separate. Coverage119local/85liveHTTP/
+28functional browser. Current source15eb48673/Core85278a4, settings deployment
+eaa1b7af-4fb7-4471-86b2-2071db135332 SUCCESS, instance370c0335. All11batch
+settings/original ACKs and active environment matched before five first hosted
+cohorts. LayerZeroV2, Stargate, deBridge, Synapse and Connext each passed
 native3/2, Mongo5/4, first2private saves/repeat0new2existing, privacy0/public3
-and exactSQLite/Neo4j replicas2/2. Original cohort is sealed under
-HostedQueryAcceptance-NATSJetStreamOASIS; never replay it. Readiness reused
-the original PouchDB visitor. Exact candidate API14/14 and image qualification,
-real TLS/native/restart and eight write ACKs remain retained. Coverage is now
-119local/79liveHTTP/28functional browser. NATS card64 is published in
-Web4Site9a0fd46 with pinned real SDK source/evidence. All119 website controls
-pass; public HTML matches the committed bytes exactly. Next continue the
-next eligible provider scope, preserving browser and full ORM gaps.
-See [NATS evidence and remaining gates](NATS_JETSTREAM_CQL_MVP.md).
+and exactSQLite/Neo4j replicas2/2. All original cohorts are sealed; never replay.
 
-Do not bypass the preserved QuestDB public403. Chroma enrollment remains open.
-Keep browser acceptance separate: its URL-policy helper failure persists.
-Preserve accepted Waku/DuckDB/PouchDB cohorts and all deferred owner decisions.
+Cards66-70 are published in Web4Site611ee73, alongside NATS64/Hyperlane65.
+All119 client controls pass. Public HTML matches Git exactly. Scope is bounded
+native observations with private snapshots, separate from wallet execution,
+independent bridge finality and full provider/ORM parity. See
+[five-reader evidence](CROSS_CHAIN_FIVE_HOSTED_BATCH.md),
+[NATS](NATS_JETSTREAM_CQL_MVP.md) and [Hyperlane](HYPERLANE_PUBLIC_SOURCE_STATUS.md).
+
+Preserve accepted LocalFile, Graph Studio, PouchDB, Waku, DuckDB, GUN/OrbitDB
+sources and original cohorts. Waku's original502 readiness intent remains
+retained; no replacement readiness identity. Browser URL-policy helper failure
+remains open without bypass. QuestDB public403, Chroma and D1 access gates,
+Nostr operator recovery and David's deferred hosted databases remain unchanged.
 
 ## Source and rollout journals
 

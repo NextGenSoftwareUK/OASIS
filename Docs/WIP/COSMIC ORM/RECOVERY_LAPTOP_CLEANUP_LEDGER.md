@@ -4339,3 +4339,10 @@ in provider docs and compact cross-chain-five-http-accepted.json. Reusable
 private seal-cross-chain-http.py validates reports without replaying HTTP/saves.
 No runtime install/environment/native fixture replay/source writes/wallet actions.
 Coverage119/85/28, cards/browser pending. Preserve all accepted source generations.
+
+Five accepted cards66-70 published Web4Site611ee73 through existing task/main
+refs after fresh ancestry check. All119 cached-Node client controls pass.
+Public HTML256730B SHA2562cef94b6a89499d6468d4d1ae28b05fad5751d7643b2d8c3751a962a9f3e6a6b
+verified against Git in memory; compact cross-chain-five-public-cards-qualified.json
+retained. No HTML download, package install, browser action or native/cohort
+replay. Five pinned source/evidence pairs verified against backend25b4a8508.
