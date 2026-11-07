@@ -30,7 +30,7 @@ full provider/ORM parity.
   SUCCESS, job128512356194. All25pass/0skip: six new facts,
   five previously accepted cross-chain facts, fourteen NATS cases.
 - [Exact image qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42408951517):
-  observed running, job128512687059; one dispatch acknowledged, exact candidate
+  SUCCESS, job128512687059; one dispatch acknowledged, exact candidate
   input, teaching sidecars enabled. No image downloaded locally.
 - Shared publisher: six new plus four retained controls pass. HTTP verifier
   accepts all six provider names;28 response/recovery controls pass offline.
@@ -45,4 +45,11 @@ Never replay existing accepted cohorts. Browser acceptance remains separate.
 API artifact13588752684 retained remotely:4390B, SHA256
 `eff9cb60dac1d4b0e6b70148bf8cc2843a1c2809476f8d4a3c29b52639d3677c`,
 expires7December2026. No local artifact download. Seven private pins freshly
-confirmed on advertised remote refs; compact receipt retained. Image still running.
+confirmed on advertised remote refs; compact receipt retained. Image SUCCESS.
+
+Image digest `sha256:e705f5cf4d1345d85ce8e4d1de970e1e37656d79c9a9d98aaf3e52541187dec3`.
+One scoped Development push acknowledged after exact qualification and fresh
+complete settings/baseline checks. Code deployment
+`88dcff57-010b-4ab5-9dee-db96f1328cb7` observed QUEUED for88b896815.
+No thirteen-setting application, activation or first cohort yet. Next: terminal
+code deployment and actual runtime verification before settings enrollment.

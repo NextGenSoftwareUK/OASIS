@@ -61,7 +61,9 @@ not applied. Shared publisher safeguards pass six new and four retained tests.
 Candidate88b896815/Core944d380 is published on the existing release-candidate
 branch. API qualification42408837581 SUCCESS:25pass/0skip,
 including retained five-reader/NATS controls. Manifest/gitlinks pass.
-Next: await exact image42408951517 qualification before any live mutation;
+Image42408951517 SUCCESS; one qualified Development push acknowledged.
+Code deployment88dcff57 is QUEUED. Next: verify deployed runtime before
+applying13settings or running first hosted cohorts;
 keep owner-dependent and browser gates separate. Coverage119local/85liveHTTP/
 28functional browser. Current source15eb48673/Core85278a4, settings deployment
 eaa1b7af-4fb7-4471-86b2-2071db135332 SUCCESS, instance370c0335. All11batch

@@ -4375,3 +4375,8 @@ six-public-readers-admission-qualified.json retained. Remote artifact13588752684
 expires7December2026; no local download. Seven advertised private pins verified
 without clones in six-public-readers-private-pins-qualified.json. Image remains
 running; no Development/settings/cohort mutation.
+
+Six-reader image42408951517 SUCCESS, digest e705f5cf4d1345d85ce8e4d1de970e1e37656d79c9a9d98aaf3e52541187dec3;
+exact image receipt retained, no local image download. Guarded one-shot scoped
+Development push intent/ACK retained after complete settings/baseline equality.
+Code88dcff57 QUEUED; no settings application/activation/cohort/source replay.
