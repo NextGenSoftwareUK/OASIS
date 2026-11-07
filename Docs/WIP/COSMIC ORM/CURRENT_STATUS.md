@@ -24,7 +24,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - PouchDB settings/live acceptance job2045b41e succeeded.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
-  Dapr correction candidate81e4cd043/Coreec7d440 is published for exact
+  Dapr correction candidatef00eb9d48/Coreec7d440 is published for exact
   native/image qualification. Live Development remainsc9f6ac65d/Coreec7d440. Code deployment00eace0e isSUCCESS on instance5693a2e5; Dapr disabled.
   First planned source save is unacknowledged: Railway denies native libaio
   io_getevents. Original source/intent retained; do not reseed or recreate.
@@ -68,7 +68,7 @@ Its original source/plan/intent are preserved: never recreate or resend.
 Explicit Native/Uring full native qualification passes42425594492. The read-only
 inspector/recovered-outcome metadata fixture passes42426250057:1save,2recoveries,
 0inspection mutations, unchanged AOF and no fabricated save-response ACK. The
-corrected scoped candidate81e4cd043 now awaits exact native/image qualification.
+corrected scoped candidatef00eb9d48 now awaits exact native/image qualification.
 No inspector or metadata transition has run against the original live source.
 Next qualify/deploy that candidate, then reconcile the same original source.
 No second source generation or original save request is authorized by that flow.
