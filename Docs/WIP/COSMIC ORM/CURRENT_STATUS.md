@@ -18,7 +18,7 @@ private-copy isolation. All three records survived restart and the standalone SQ
 Push Protocol image qualification passed and Development advanced to 907fe855c.
 Railway settings deployment ecdabdbb succeeded. Push Protocol passed hosted
 3/2 native, 5/4 MongoDB federation, reuse, visitor isolation and both replicas.
-Next, add the verified presets and local test link to the sandbox page.
+Sandbox card fac8274 is live with a local C# link. Browser interaction remains open.
 
 ## Recent WEB4 preparation, 5–6 November 2026
 

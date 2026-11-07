@@ -104,3 +104,12 @@ Evidence under TestResults/HostedCqlIntegrationCurrent, SHA-256:
 - PushProtocolOASIS-isolation-http.json: 53eb1262fcca001b2772d9b74af03a997b4cf2f2ba0b2b440c33041de790b2c5
 
 The sandbox card and browser interaction remain to be verified.
+
+## Sandbox card publication
+
+The [Push Protocol sandbox card](https://web4.oasisomniverse.one/web4-sandbox.html#cql-push-protocol-catalogue)
+is live at Web4Site fac8274 with native and MongoDB instructions and a
+local C# example. All 114 website tests passed. The live 228,645-byte HTML
+matched the exact Git blob at SHA-256
+00fa5ae7020cb0aac6a50dd3b4a0eb771908c236e187b6175424275b8d1c5c58.
+Interactive browser acceptance remains open.
