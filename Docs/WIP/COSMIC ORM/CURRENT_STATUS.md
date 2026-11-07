@@ -20,7 +20,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - PouchDB settings/live acceptance job2045b41e succeeded.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
-- Website C:/Source/Web4Site, branch work/cosmic-cql, published26e2b4a.
+- Website C:/Source/Web4Site, branch work/cosmic-cql, publishedf854fc2.
 - Dedicated Railway key cosmic-cql-recovery-laptop-20261107 was created on
   this laptop for mounted-source inspection. Its eventual revocation is in
   the old-laptop cleanup ledger. Private key remains outside Git.
@@ -51,8 +51,8 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-Publish Waku card63 with its real C# example and scoped evidence. The live
-HTTP gate is complete: native3/2, Mongo5/4, first2 saves, repeat0new/2existing,
+Waku card63 is published atf854fc2 with its real C# example and scoped
+evidence. Public HTML matches the exact Git blob. The live HTTP gate is complete: native3/2, Mongo5/4, first2 saves, repeat0new/2existing,
 foreign-private0/public3 and SQLite/Neo4j replicas2/2. Source receipt and
 complete protected settings matched before and after acceptance. Exact
 nanosecond strings survived the HTTP serializer. Original cohort receipt:
@@ -62,7 +62,7 @@ retained; discovery explicitly reused the acknowledged PouchDB visitor.
 Browser verification remains open: the updated Windows helper stopped when
 it could not determine the browser URL reliably; no browser input occurred.
 
-Continue DuckDB hosted preparation after Waku publication. Reuse its existing
+Continue DuckDB hosted preparation. Reuse its existing
 read-only provider/registration and qualified original database. Linux run
 42385940278 passed native3/2/0 across two read-only activations, unchanged
 source/no WAL. Artifact13579442161 retains that source/seed/TRX for90days.
@@ -89,7 +89,7 @@ Provision-HostedTeachingSource.py has five command tests; native helper has six.
 
 - Finish open browser gates with original cohorts; HTTP/static proof is separate.
 - Continue other providers' runtime, restricted-reader and hosting gates.
-- Waku hosted HTTP acceptance is complete; public card and browser gates remain open.
+- Waku hosted HTTP acceptance and public card63 are complete; browser gate remains open.
 - PouchDB hosted HTTP acceptance and website publication are complete.
   Retain its native first generation and original acceptance cohort.
   Its hosted browser gate remains open.

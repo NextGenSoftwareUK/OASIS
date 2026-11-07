@@ -4034,3 +4034,11 @@ No new local runtime, native source, .NET build or source/setting mutation.
 A first receipt-composition read used the wrong federation response shape and
 stopped before writing; corrected schema-specific assertions passed without
 HTTP/session/query/save replay. Browser input remains stopped at URL policy gate.
+
+Web4Sitef854fc2 was pushed normally to its existing work/cosmic-cql and main
+branches after fresh ancestry checks. Card63 adds Waku's accepted HTTP path
+and pinned C# example. All114 client controls pass. Public HTML245065B,
+SHA256a3b8d0d134a6225ca40333d3d50fb8ec60c790748c6ea107a1a885c1df2ed2a0,
+matched exact committed bytes in memory on the first observation. Compact
+waku-public-html-observation-1.json and waku-website-client-controls.log
+retained. No HTML download file/environment/install/manual deployment.

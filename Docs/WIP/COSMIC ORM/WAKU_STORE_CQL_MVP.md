@@ -21,7 +21,8 @@ request validates the returned topics against the reviewed pair.
 
 The source uses the fixture's fixed loopback address and topic.
 Sandbox admission and loopback WEB4 federation are verified below.
-A managed hosted Store and live sandbox acceptance remain open.
+Hosted HTTP acceptance and public card63 are complete as recorded below.
+Browser interaction and wider messaging/ORM contracts remain open.
 
 [Original Linux run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42289148713) ·
 [Passing native REST run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42289322076) ·
@@ -290,3 +291,10 @@ Waku502 session intent/response was preserved, never resubmitted. No browser
 proof is claimed: updated app control stopped before navigation because it
 could not reliably establish the browser URL. Public card publication follows.
 Coverage is now119 scoped local/77 live HTTP/28 functional browser.
+
+Public card63 is published on Web4Site main/work-cosmic sourcef854fc2.
+All114 client controls pass. Public HTML245065B, SHA256
+ a3b8d0d134a6225ca40333d3d50fb8ec60c790748c6ea107a1a885c1df2ed2a0,
+is byte-identical to the committed blob. It links this accepted scope and
+the real WakuStoreCqlTests.cs example at backendbc6ba3e91. Browser interaction
+remains unverified. [Live demo](https://web4.oasisomniverse.one/web4-sandbox.html#cql-waku-store-catalogue).
