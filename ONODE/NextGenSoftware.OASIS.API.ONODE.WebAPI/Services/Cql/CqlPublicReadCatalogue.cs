@@ -46,7 +46,7 @@ public sealed class CqlPublicReadCatalogue : ICqlReadAccessPolicy
         if (document.RootElement.ValueKind != JsonValueKind.Object)
             throw new ArgumentException("Public read catalogues must be a provider-to-ID-array object.");
         var entries = document.RootElement.EnumerateObject().ToArray();
-        if (entries.Length > 16 || entries.Select(entry => entry.Name).Distinct(StringComparer.Ordinal).Count() != entries.Length)
+        if (entries.Select(entry => entry.Name).Distinct(StringComparer.Ordinal).Count() != entries.Length)
             throw new ArgumentException("Public read catalogues require unique bounded provider names.");
         // Parse the entire configuration before adding registrations.
         var captured = entries.Select(entry =>
