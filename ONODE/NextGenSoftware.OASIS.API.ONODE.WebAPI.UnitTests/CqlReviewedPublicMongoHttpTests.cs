@@ -41,6 +41,7 @@ using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
 using NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS;
 using NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS;
 using NextGenSoftware.OASIS.API.Providers.DecentralandOASIS;
+using NextGenSoftware.OASIS.API.Providers.WakuOASIS;
 using NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS;
 using NextGenSoftware.OASIS.API.Providers.WorldIDOASIS;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
@@ -123,6 +124,9 @@ public sealed class CqlReviewedPublicMongoHttpTests
 
     [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_NETWORK_NATIVE")]
     public Task DecentralandSceneNativeHttp() => VerifyHttpAsync(ProviderType.DecentralandOASIS);
+
+    [ReviewedPublicMongoNativeFact("COSMIC_WAKU_STORE_HASHES")]
+    public Task WakuStoreNativeHttp() => VerifyHttpAsync(ProviderType.WakuOASIS);
 
     [ReviewedPublicMongoNativeFact("COSMIC_PINATA_NATIVE_READ_CONTINUATION")]
     public Task PinataNativeHttpContinuation()
@@ -536,6 +540,13 @@ public sealed class CqlReviewedPublicMongoHttpTests
                 string[] parcels = { "0,0", "-53,71", "-100,-50" };
                 return (new DecentralandSceneQuerySource(owner),
                     parcels.Select(parcel => DecentralandSceneQuerySource.LogicalId(owner, parcel)).ToArray());
+            }
+            case ProviderType.WakuOASIS:
+            {
+                var hashes = Environment.GetEnvironmentVariable("COSMIC_WAKU_STORE_HASHES")!.Split(',');
+                var descriptor = JsonSerializer.Serialize(new { sourceOwner = owner, messageHashes = hashes });
+                return (WakuStoreQueryConfiguration.CreateSource(descriptor),
+                    hashes.Select(hash => WakuStoreQuerySource.LogicalId(owner, hash)).ToArray());
             }
             case ProviderType.SafeOASIS:
             {
