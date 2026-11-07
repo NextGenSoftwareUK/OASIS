@@ -77,3 +77,9 @@ Evidence under `TestResults/HostedCqlIntegrationCurrent/`:
 | `ProofOfHumanityOASIS-native-http.json` | `6b3631e561fa6d0a8ffd77eef470a467f1d1dabbad3fc44ba8bb06070a00964a` |
 | `ProofOfHumanityOASIS-client-http-flow.json` | `1aa675ef04a0f8da30137518787ba0259bd70f281b5f6781bb2b2c04069b6d7e` |
 | `ProofOfHumanityOASIS-isolation-http.json` | `0dabd6b4c5b23fd66291b05cea074a35e80ef83486787e7e83ae23f5913ad299` |
+
+Website `a88076d` publishes the hosted playground instructions and pinned
+local C# example. All 114 client tests passed. Public HTML was HTTP 200,
+239108 bytes, identical to the exact commit, SHA-256
+`8773ee77638a24988968db32a15d58069424ac2e03604639a03d244198e65666`.
+This verifies publication; functional browser interaction remains open.

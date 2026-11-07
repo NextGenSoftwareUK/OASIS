@@ -74,3 +74,9 @@ Evidence under `TestResults/HostedCqlIntegrationCurrent/`:
 | `CloudinaryOASIS-native-http.json` | `91140eab9e4891a9d2eeb6d0200f3b064816bd627e9dcbd492a421d776177867` |
 | `CloudinaryOASIS-client-http-flow.json` | `88d21133b01b2f60cb7ad39cbea3ea3d3cf430ad7d76884f060716cb796151af` |
 | `CloudinaryOASIS-isolation-http.json` | `11aa6c31ab0d35f47c3b2da76b3b93dcce8db809c2c23c50ea31ab02e026bee6` |
+
+Website `a88076d` publishes the hosted playground instructions and pinned
+local C# example. All 114 client tests passed. Public HTML was HTTP 200,
+239108 bytes, identical to the exact commit, SHA-256
+`8773ee77638a24988968db32a15d58069424ac2e03604639a03d244198e65666`.
+This verifies publication; functional browser interaction remains open.

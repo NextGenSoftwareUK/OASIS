@@ -46,6 +46,11 @@ Matrix hosted functional HTTP gates pass at parent7b45ee856/Coredd2c32c, setting
 
 BlueSky hosted HTTP acceptance passes at parentf36dd0d56/Core499e4e0, settings6dfdbc6c SUCCESS: native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, SQLite/Neo4j replicas2/2 each. Two version1 saves/no pending intents; original cohort frozen. Cached public AppView only; generic copies retain identity/name/description/provenance, not all native metadata. Card published/byte-verified; browser unverified.
 
+Oracle Object Storage, Cloudinary and Proof of Humanity cards are published at
+website a88076d with evidence and local C# links. All114 client tests pass.
+Public HTML239108bytes/SHA2568773ee77638a24988968db32a15d58069424ac2e03604639a03d244198e65666
+matches the committed asset. Their functional browser gates remain open.
+
 ## Current functional milestone â€” 2 November 2026
 
 **72 query profiles have scoped hosted HTTP evidence, 28 have functional browser evidence and 44 browser gates remain open. Oracle Object Storage, Cloudinary and Proof of Humanity are the latest HTTP additions. ThreeFold card/static bytes2170b67 pass; ClickHouse is accepted; its card/static assets d3dfe48 are published/verified; Zcash remains accepted; its card/static assets3141cca are published/verified. Bittensor remains accepted; its card/public bytesbc31379are verified and browser gate remains open.**

@@ -80,3 +80,9 @@ Evidence under `TestResults/HostedCqlIntegrationCurrent/`:
 | `OracleObjectStorageOASIS-native-http.json` | `790d5e0ef4adb3584bd4354b2483c6d41719659a3f784b8630d57c795f9849fb` |
 | `OracleObjectStorageOASIS-client-http-flow.json` | `e4a486e42fc57ec7f9e31aae5979e993247afb1f0a046546b629e83b0733ff48` |
 | `OracleObjectStorageOASIS-isolation-http.json` | `864db45c9d42ad674d089da60437bb682564031690341dd5786596d06fb71b36` |
+
+Website `a88076d` publishes the hosted playground instructions and pinned
+local C# example. All 114 client tests passed. Public HTML was HTTP 200,
+239108 bytes, identical to the exact commit, SHA-256
+`8773ee77638a24988968db32a15d58069424ac2e03604639a03d244198e65666`.
+This verifies publication; functional browser interaction remains open.

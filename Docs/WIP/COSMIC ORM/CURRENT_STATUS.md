@@ -12,7 +12,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 - Worktree C:/Source/OASIS-cosmic, branch work/cosmic-cql-ton-public.
 - Core branch work/cosmic-cql-decentraland. Preserve independent dependency pins.
-- Website C:/Source/Web4Site, branch work/cosmic-cql, published 0e320a5.
+- Website C:/Source/Web4Site, branch work/cosmic-cql, published a88076d.
 - Development and successful code release dcae58d97, Core f695b1cd.
 - Successful settings deployment fb589d55-f737-4622-9160-6e63e0e55099.
 - Unknown root logs and Docs/WIP/Cleanup/CLEANUP_LEDGER.md are outside this task.
@@ -37,29 +37,23 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 1. Finish open browser gates using retained cohorts and journals.
    Static publication and HTTP results are separate evidence.
-2. Publish the verified Oracle Object Storage, Cloudinary and Proof of Humanity
-   cards from website task commit f088964 to main, then verify public bytes.
+2. Inspect retained GUN/OrbitDB fixtures and the qualified opt-in image contract,
+   then prepare their hosted runtime/settings batch using the existing volume.
 3. Finish Waku managed Store packaging and lifecycle. The earlier local
    supervisor-writing command was rejected by automatic tool policy.
 4. Complete PouchDB hosted rollout after its original three source files
    arrive from the old laptop. The candidate image is already qualified.
 5. Continue other providers' runtime, restricted-reader and hosting gates.
 
-World ID image qualification passed and Development advanced to 48c532584.
-World ID settings job 34802005 succeeded. Native 3/2, MongoDB 5/4, reuse,
-visitor isolation and both replicas passed. Its sandbox card and local example are live at e87fbba; browser interaction remains open.
-Discord/Livepeer/Pinata image qualification passed. Development is 8645794bb.
-Settings job 0ab0d7c9 succeeded. Discord, Livepeer and Pinata each passed
-native 3/2, MongoDB 5/4, reuse, isolation and both replicas. All three
-cards and local examples are live at 0e320a5. Browser interaction remains open.
+World ID, Discord, Livepeer and Pinata passed hosted HTTP acceptance.
 Oracle Object Storage, Cloudinary and Proof of Humanity image CI 42336260220
-passed for dcae58d97. Its image digest is recorded in the provider reports.
-Code job 900d0fe7 succeeded. All eight settings were observed exactly.
-Settings job fb589d55 succeeded. All three passed native3/2, Mongo5/4,
-repeat0new/2existing, independent private0/public3 and both replicas2/2.
-Original cohorts and reports are retained. Browser interaction remains open.
-Three website cards are prepared at f088964; 114 website tests passed.
-Next update their evidence links and publish the verified cards to main.
+passed for dcae58d97. Code900d0fe7/settingsfb589d55 both succeeded.
+All three passed native3/2, Mongo5/4, repeat0new/2existing,
+independent private0/public3 and both replicas2/2. Original cohorts are retained.
+Website a88076d publishes their three cards and pinned evidence/C# links.
+All114 website tests passed. Public HTML239108bytes matches the exact commit,
+SHA2568773ee77638a24988968db32a15d58069424ac2e03604639a03d244198e65666.
+Browser interaction remains open. Next inspect GUN/OrbitDB hosted prerequisites.
 Subscription protocol CI exposed a missing SandboxSubscriptionRules source link.
 The project dependency is fixed locally: bounded build and 22 pure tests passed.
 Include that test-project-only correction in the next verified Development batch.
