@@ -74,3 +74,10 @@ Livepeer and Pinata on top of the World ID candidate. Provider sources
 match the tested task branch, including Livepeer's native contract reader.
 Manifest/gitlink validation passed. [CI 42332826329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42332826329)
 is the image gate. Promotion and hosted settings remain open.
+
+Eight shared batch settings and twelve presets are prepared under
+LocalState/COSMIC/HostedSourceRolloutCurrent with prefix public-three.
+The protected baseline is the intended World ID candidate, so it is
+explicitly future state until World ID deployment and settings finish.
+Before applying, the guarded publisher must verify the actual live
+variables equal this baseline. No hosted values were written.
