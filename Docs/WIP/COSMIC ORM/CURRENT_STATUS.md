@@ -59,7 +59,9 @@ are absent here. The workflow now selects their existing optional runtime
 with distinct commit-teaching tags; all three execution checks passed.
 Scoped candidate ce654d0e/Coref0625521 is pushed, manifest/remote checks pass.
 Its three runtime controls pass. Enabled image CI42339365263 is running.
-Next observe that exact CI before configuring the hosted build.
+Protected teaching-runtime-build snapshots propose one build-only flag change.
+Next verify CI42339365263, apply that flag without redeploy, then promote ce654d0e.
+Native runtime flags remain off until separately journalled source qualification.
 Subscription protocol CI exposed a missing SandboxSubscriptionRules source link.
 The project dependency is fixed locally: bounded build and 22 pure tests passed.
 Include that test-project-only correction in the next verified Development batch.
