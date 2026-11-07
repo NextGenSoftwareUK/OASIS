@@ -207,3 +207,21 @@ before the host build. It exercises the same native AOF write path without Dapr,
 so a storage failure can be diagnosed without rebuilding WEB4 or resending the
 uncertain Dapr request. Only that probe's own intent/ACK and redacted logs are
 retained. Original live sources and accepted cohorts remain untouched.
+
+Native AOF probe42415866369/job128533697756 identified the concrete root cause:
+DllNotFoundException for mandatory `runtimes/linux-x64/native/libnative_device.so`.
+The probe failed before the host build or Dapr seed; its own native control write
+was unacknowledged and is not resent. The standalone archive did not supply the
+library at the loader's expected location. This was a packaging defect, not proof
+that synchronous commits should be disabled or the timeout enlarged.
+
+The manifest now pins the required native library from the same official Garnet
+v2.2.5 commit `8d007138208ce030eb10a50c80e636b1678b83e4`:2210897B, Git blob
+`4eaa89279f0a83be63a5829e26faba693420d2c1`. The installer always places it in
+its mandatory runtime location, verifies size and complete Git-object identity,
+and requires a successful native load before any source write. Required OS
+libraries `libaio1t64`/`liburing2` are declared in CI and the runtime image.
+No alternate storage device, optional symbol or silent recovery is added.
+Eight offline integrity/diagnostic controls pass. Corrected native proof and
+image qualification remain required. No native library was downloaded locally.
+[Exact upstream native source tree](https://github.com/microsoft/garnet/tree/8d007138208ce030eb10a50c80e636b1678b83e4/libs/storage/Tsavorite/cs/src/core/Device/runtimes/linux-x64/native).

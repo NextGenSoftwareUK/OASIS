@@ -56,7 +56,10 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 ## Exact next step
 
 Qualify Dapr hosting on Linux with a restricted backing store, while advancing
-other independent provider scopes whose retained evidence and access are ready. Coverage is119local/
+other independent provider scopes whose retained evidence and access are ready.
+Dapr Linux read/write-denial/HTTP proof passes; durable restart remains open.
+The native AOF diagnostic identified a missing mandatory Garnet storage library;
+packaging and OS dependencies are corrected in task source, qualification pending. Coverage is119local/
 91live HTTP/28functional browser. Source88b896815/Core944d380, settings
 8783d8eb-1d65-474f-8bdd-081615d4794a SUCCESS, instance5e85e983.
 All13settings and active configuration verified before six first hosted cohorts.

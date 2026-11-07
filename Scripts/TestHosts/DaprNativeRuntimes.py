@@ -1,5 +1,6 @@
 """Pinned runtime verification shared by the Linux installer and native fixture."""
 import argparse
+import ctypes
 import hashlib
 import json
 from pathlib import Path, PurePosixPath
@@ -42,6 +43,16 @@ def archive_members(archive, executable):
         raise RuntimeError('Runtime archive must contain one expected executable')
     return members, matches[0]
 
+def require_native_file(path, pin):
+    if path.is_symlink() or not path.is_file() or path.stat().st_size != pin['bytes']:
+        raise RuntimeError('Mandatory native storage library size/path differs')
+    data = path.read_bytes()
+    expected_url = 'https://raw.githubusercontent.com/microsoft/garnet/' + pin['sourceCommit'] + '/' + pin['sourcePath']
+    if (path.is_symlink() or len(data) != pin['bytes'] or pin['url'] != expected_url
+            or hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest() != pin['gitBlobSha1']):
+        raise RuntimeError('Mandatory native storage library differs from pinned upstream Git object')
+
+
 def require_runtime(name, executable, runtime_directory=None):
     executable = Path(executable).resolve(strict=True)
     if sys.platform == 'win32':
@@ -64,6 +75,11 @@ def require_runtime(name, executable, runtime_directory=None):
             expected = hashlib.file_digest(stream, 'sha256').hexdigest()
     if digest(executable) != expected:
         raise RuntimeError('Linux executable bytes differ from pinned archive')
+    if name == 'garnet':
+        for native in pin['nativeFiles']:
+            library = executable.parent / native['path']
+            require_native_file(library, native)
+            ctypes.CDLL(str(library))  # Mandatory dependency resolution, before any source mutation.
     return executable
 
 def install_linux(destination):
@@ -90,6 +106,19 @@ def install_linux(destination):
             archive.extractall(directory, members=members, filter='data')
         executable = directory / member.name
         executable.chmod(executable.stat().st_mode | 0o100)
+        if name == 'garnet':
+            for native in pin['nativeFiles']:
+                relative = PurePosixPath(native['path'])
+                if relative.is_absolute() or '..' in relative.parts:
+                    raise RuntimeError('Native library path escapes runtime')
+                library = executable.parent / native['path']
+                library.parent.mkdir(parents=True, exist_ok=True)
+                with urllib.request.urlopen(native['url'], timeout=60) as response, library.open('xb') as output:
+                    data = response.read(native['bytes'] + 1)
+                    if len(data) != native['bytes']:
+                        raise RuntimeError('Native library download size differs')
+                    output.write(data)
+                require_native_file(library, native)
         result[name] = str(require_runtime(name, executable, root))
     return result
 

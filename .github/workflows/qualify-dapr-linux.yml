@@ -49,6 +49,8 @@ jobs:
       - name: Check runtime archive boundaries
         working-directory: OASIS
         run: python3 -B Scripts/TestHosts/test_dapr_native_runtimes.py
+      - name: Install mandatory native storage OS dependencies
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libaio1t64 liburing2
       - name: Install exact Linux runtimes on the ephemeral runner
         working-directory: OASIS
         run: |

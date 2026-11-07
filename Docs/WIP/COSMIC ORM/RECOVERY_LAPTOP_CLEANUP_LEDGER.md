@@ -4465,3 +4465,10 @@ Compact failed receipt retained, remote redacted/seed evidence retained.
 Added leading-error retention (7offline controls pass) and one journalled native
 HSET diagnostic on a unique owned source before host build; no local runtime,
 build or download. Fresh GitHub REST status supersedes stale connector snapshot.
+
+Native AOF probe42415866369 FAILED before host build/Dapr seed; concrete
+missing mandatory libnative_device.so. Compact root-cause receipt retained.
+Pinned upstream native Git object4eaa8927/2210897B in shared manifest; cloud
+installer/image now require it and libaio1t64/liburing2. No local binary/package
+download/install/build. Eight offline tests pass; new explicit isolated native
+qualification next. Original unknown seed/probe outcomes never resent.
