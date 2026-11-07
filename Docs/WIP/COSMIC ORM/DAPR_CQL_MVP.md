@@ -340,3 +340,10 @@ The entrypoint now validates OASIS_SANDBOX_DAPR as an explicit boolean and route
 ### Hosted recovery helper native gate passed
 
 Run42419782648/job128545514411 (ea3d7883510fd01090646475527560be54853fa6) isSUCCESS by fresh REST. Terminal job logs confirm one seed, denied writes and WEB4 query success before/after native restart with original values/ETags unchanged. This fixture invokes the actual hosted helper against the recovered source and rejects original admin authentication. Artifact13593286107 is5188bytes, SHA256651593b1d39a829bfab7e90865f0a916ee1baaa7edf8ba49f54afd6a96c87f35; archive inspection remains pending. The newer shared-seed gate42419910853 is still active. No Dapr live activation.
+
+
+### Shared seed native gate passed; explicit provisioner implementation
+
+Run42419910853/job128545899007 isaee489ed3 SUCCESS. Actual native seed journal, recovered source, denied writes and both WEB4 phases pass. Artifact13593106956:5140bytes SHA256a43d5b598cac7843e33a4a7ab2ae136cafbabe80e184d23e3bb9f8de0562fdd7 (terminal logs inspected; archive pending). Earlier helper artifact13593286107 was inspected in memory: exact ZIP hash, both TRX1/1/0skips and runtime-source-proof four originals verified.
+
+Docker/provision-sandbox-dapr.cjs implements exclusive Linux source creation, durable original intent, one shared native save, original-value/ETag capture, stopped writer process cleanup, reader-only recovery and explicit denied-write/unchanged-record verification before final source acknowledgement. It is not invoked by normal startup. Three boundary controls pass on cached Node24; syntax passes. No full native provisioner invocation has run yet, and it is not wired into a remote publishing command or deployed image. Next: qualify this actual provisioner and its owned-process lifecycle using pinned native engines, then image/controlled source provisioning/enrollment.
