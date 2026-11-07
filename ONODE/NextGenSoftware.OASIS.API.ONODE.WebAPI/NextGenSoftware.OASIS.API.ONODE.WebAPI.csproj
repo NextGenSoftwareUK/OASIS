@@ -206,6 +206,7 @@
   <ItemGroup>
     <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.DuckDBOASIS/NextGenSoftware.OASIS.API.Providers.DuckDBOASIS.csproj" />
     <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.DaprOASIS/NextGenSoftware.OASIS.API.Providers.DaprOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.MidenOASIS/NextGenSoftware.OASIS.API.Providers.MidenOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS/NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS/NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS.csproj" />

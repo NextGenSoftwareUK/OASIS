@@ -176,6 +176,8 @@ async function main() {
   const services = [];
   if (process.env.OASIS_SANDBOX_NATS === 'true')
     services.push(await require('./host-sandbox-nats.cjs').serviceConfiguration(process.env));
+  if (process.env.OASIS_SANDBOX_DAPR === 'true')
+    services.push(...await require('./host-sandbox-dapr.cjs').serviceConfigurations(process.env));
   if (process.env.OASIS_SANDBOX_DUCKDB === 'true')
     await require('./host-sandbox-duckdb.cjs').prepareEnvironment(process.env);
   if (process.env.OASIS_SANDBOX_IPFS === 'true') {
