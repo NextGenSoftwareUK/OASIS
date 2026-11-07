@@ -4362,3 +4362,9 @@ refs advanced normally; task sourceaf29ca246 pushed. No checkout/environment
 created or Development push. Manifest/gitlinks and scoped whitespace checks pass.
 One qualification workflow42408837581 observed in_progress;25pass/0skip required.
 Compact six-public-readers-ci-observed.json retained; no artifact download.
+
+Six-reader image42408951517/job128512687059 observed running after one204
+dispatch ACK, exact candidate88b896815 with teaching runtimes enabled. No local
+image/artifact download. HTTP verifier extension:28 offline response/recovery
+controls pass; temporary test fixtures removed by their owned test contexts.
+Original source/snapshot/cohort journals retained; no hosted acceptance executed.
