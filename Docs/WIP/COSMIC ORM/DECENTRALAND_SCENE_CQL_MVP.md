@@ -138,3 +138,10 @@ The deployment-bound summary and original response hashes are in
 `LocalState/COSMIC/ReviewedPublicMongoHttpQualification/DecentralandOASIS/hosted-http-qualified.json`.
 Original HTTP reports are under `TestResults/HostedCqlIntegrationCurrent`.
 The sandbox card and interactive browser proof remain open.
+
+The [Decentraland sandbox card](https://web4.oasisomniverse.one/web4-sandbox.html#cql-decentraland-catalogue)
+is live at Web4Site `46df63d`. It links the hosted presets and the verified
+local C# query example. All 93 focused Node tests passed. Live HTML matched
+the published blob at SHA-256
+`686cec4adbd6a351028adac073a8c16ef3def6f72b23781aab621cc79b96b767`.
+Interactive browser proof remains open.
