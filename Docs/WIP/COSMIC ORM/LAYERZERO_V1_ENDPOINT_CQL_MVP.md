@@ -58,3 +58,12 @@ runs against the exact candidate. The six-value protected candidate under
 LocalState/COSMIC/HostedSourceRolloutCurrent uses the layerzero-reclaim-public
 prefix. It includes four presets per provider and preserves the existing
 Push Protocol enrollment. Hosted settings have not been applied.
+
+The guarded publisher accepts both provider names in one invocation:
+Publish-HostedFixedPublicCatalogue.py LayerZeroOASIS ReclaimProtocolOASIS
+--prefix layerzero-reclaim-public --release-ref
+work/cosmic-layerzero-reclaim-release-candidate --deployment-id <code-job>.
+Use the exact expected commit environment value and preflight without
+--apply first. The publisher recomputes the shared admission and grants
+once before it writes either preset partition. Five publisher tests and
+39 exact-key configuration tests passed.

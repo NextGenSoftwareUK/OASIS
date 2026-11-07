@@ -8,10 +8,11 @@ from runpy import run_path
 from uuid import UUID
 
 
-def publish(preparation, guard, provider, prefix, release_ref, deployment_id, *, apply):
+def publish(preparation, guard, providers, prefix, release_ref, deployment_id, *, apply):
     config = preparation["configuration"]
     verifier = preparation["verifier"]
-    if provider not in verifier.FIXED_PUBLIC_CATALOGUES:
+    if (not providers or len(providers) != len(set(providers))
+            or any(provider not in verifier.FIXED_PUBLIC_CATALOGUES for provider in providers)):
         raise ValueError("Only fixed reviewed public catalogues are supported")
     if not re.fullmatch(r"[a-z][a-z0-9-]{0,63}", prefix):
         raise ValueError("A canonical configuration snapshot prefix is required")
@@ -20,14 +21,21 @@ def publish(preparation, guard, provider, prefix, release_ref, deployment_id, *,
 
     before = config.protected_read(f"{prefix}-before-variables.dpapi")
     after = config.protected_read(f"{prefix}-candidate-variables.dpapi")
-    review = verifier.reviewed_exact_key_source(provider, config.STATE / f"{prefix}-descriptor.json")
-    source_binding = review["sourceBinding"]
-    if len(source_binding) != 1 or any(key in before for key in source_binding):
-        raise RuntimeError("Existing catalogue enrollment requires reconciliation")
-    keys = (*source_binding, preparation["ADMISSION"], preparation["GRANTS"],
-            "CQL_HOSTED_QUERY_EXAMPLES__" + provider)
+    expected = before
+    source_keys = []
+    preset_keys = []
+    for provider in providers:
+        descriptor = f"{prefix}-descriptor.json" if len(providers) == 1 else f"{prefix}-{provider}-descriptor.json"
+        review = verifier.reviewed_exact_key_source(provider, config.STATE / descriptor)
+        source_binding = review["sourceBinding"]
+        if len(source_binding) != 1 or any(key in expected for key in source_binding):
+            raise RuntimeError("Existing catalogue enrollment requires reconciliation")
+        expected = preparation["candidate"](expected | source_binding, provider, review)
+        source_keys.extend(source_binding)
+        preset_keys.append("CQL_HOSTED_QUERY_EXAMPLES__" + provider)
+
+    keys = (*source_keys, preparation["ADMISSION"], preparation["GRANTS"], *preset_keys)
     changed = {key for key in before.keys() | after.keys() if before.get(key) != after.get(key)}
-    expected = preparation["candidate"](before | source_binding, provider, review)
     if changed != set(keys) or after != expected:
         raise RuntimeError("Prepared settings do not match the exact reviewed catalogue")
 
@@ -45,7 +53,7 @@ def publish(preparation, guard, provider, prefix, release_ref, deployment_id, *,
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("provider")
+    parser.add_argument("providers", nargs="+")
     parser.add_argument("--prefix", required=True)
     parser.add_argument("--release-ref", required=True)
     parser.add_argument("--deployment-id", required=True)
@@ -54,7 +62,7 @@ def main():
     scripts = Path(__file__).resolve().parent
     prepare = run_path(str(scripts / "Prepare-HostedExactKeyConfiguration.py"))
     guard = run_path(str(scripts / "Prepare-TenSourcePublicBatch.py"))["require_matching_release"]
-    count = publish(prepare, guard, args.provider, args.prefix, args.release_ref, args.deployment_id, apply=args.apply)
+    count = publish(prepare, guard, args.providers, args.prefix, args.release_ref, args.deployment_id, apply=args.apply)
     print(f"Verified {count} reviewed settings" + (" and applied them without redeploying." if args.apply else "."))
 
 

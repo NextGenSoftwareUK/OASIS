@@ -29,7 +29,7 @@ class FixedPublicCatalogueTests(unittest.TestCase):
         self.guard = Mock(return_value=self.deployment)
 
     def verify(self, *, apply=False):
-        return publish(self.preparation, self.guard, self.provider, "push-protocol-public",
+        return publish(self.preparation, self.guard, (self.provider,), "push-protocol-public",
                        "reviewed-release", self.deployment, apply=apply)
 
     def test_preflight_has_no_mutation(self):
@@ -56,3 +56,24 @@ class FixedPublicCatalogueTests(unittest.TestCase):
         self.assertEqual((self.before, self.after), kwargs["reviewed_snapshots"])
         kwargs["before_mutation"]()
         self.assertEqual([call(self.config, release_ref="reviewed-release")] * 2, self.guard.call_args_list)
+
+    def test_batch_composes_shared_settings_before_any_write(self):
+        second = "ReclaimProtocolOASIS"
+        extra_binding = {"second-owner": "reviewed"}
+        after = self.after | extra_binding | {"admission": "both", "grants": "both",
+                                               "CQL_HOSTED_QUERY_EXAMPLES__ReclaimProtocolOASIS": "four"}
+        self.config.protected_read.side_effect = [self.before, after]
+        self.verifier.FIXED_PUBLIC_CATALOGUES.add(second)
+        self.verifier.reviewed_exact_key_source.side_effect = [
+            {"sourceBinding": self.binding}, {"sourceBinding": extra_binding}
+        ]
+        self.preparation["candidate"].side_effect = [self.after, after]
+        self.assertEqual(6, publish(self.preparation, self.guard, (self.provider, second), "batch",
+                                   "reviewed-release", self.deployment, apply=True))
+        self.preparation["candidate"].assert_has_calls([
+            call(self.before | self.binding, self.provider, {"sourceBinding": self.binding}),
+            call(self.after | extra_binding, second, {"sourceBinding": extra_binding})
+        ])
+        self.assertEqual(("source-owner", "second-owner", "admission", "grants",
+                          "CQL_HOSTED_QUERY_EXAMPLES__PushProtocolOASIS",
+                          "CQL_HOSTED_QUERY_EXAMPLES__ReclaimProtocolOASIS"), self.config.apply_values.call_args.args[1])
