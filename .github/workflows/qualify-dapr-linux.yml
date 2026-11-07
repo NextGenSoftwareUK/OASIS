@@ -54,7 +54,7 @@ jobs:
         run: |
           mkdir -p LocalState/COSMIC/DaprLinuxQualification
           python3 -B Scripts/TestHosts/DaprNativeRuntimes.py --install-linux "$RUNNER_TEMP/cosmic-dapr-runtimes" > LocalState/COSMIC/DaprLinuxQualification/runtime-paths.json
-      - name: Verify native restricted reads, denied writes and WEB4 CQL
+      - name: Verify native restricted reads, denied writes, restart and WEB4 CQL
         working-directory: OASIS
         shell: pwsh
         run: |

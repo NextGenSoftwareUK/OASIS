@@ -128,36 +128,71 @@ require_free(PORTS)
 acl = RUN / 'users.acl'
 acl.write_text(f'user default on >{ADMIN} ~* +@all\n'
                f'user reader on >{READER} ~* +@read +@connection +command +info\n', encoding='utf-8')
-try:
-    with launch([str(GARNET), '--bind', '127.0.0.1', '--port', str(PORTS[3]), '--auth', 'ACL',
-                 '--acl-file', str(acl), '--memory', '64m', '--lua'], 'garnet') as process:
+def run_http(stage):
+    output = RUN / stage
+    output.mkdir()
+    project = ROOT / 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj'
+    with (output / 'web4.log').open('wb') as log:
+        subprocess.run(['dotnet', 'test', str(project), '--no-build', '--no-restore',
+                        '--filter', 'FullyQualifiedName~CqlDaprNativeHttpTests', '--results-directory', str(output),
+                        '--logger', 'trx;LogFileName=web4.trx'], cwd=RUN,
+                       env=os.environ | {'DAPR_API_TOKEN': TOKEN, 'COSMIC_DAPR_NATIVE_HTTP': 'owned-loopback-54862'},
+                       stdout=log, stderr=subprocess.STDOUT, timeout=75, check=True)
+    counters = ET.parse(output / 'web4.trx').getroot().find('.//{*}Counters')
+    if counters is None or counters.get('passed') != '1' or counters.get('total') != '1':
+        raise RuntimeError('The single native WEB4 HTTP test must pass without skips')
+
+
+@contextlib.contextmanager
+def backing_store(stage, recover):
+    arguments = [str(GARNET), '--bind', '127.0.0.1', '--port', str(PORTS[3]), '--auth', 'ACL',
+        '--acl-file', str(acl), '--memory', '64m', '--page', '4k', '--lua', '--aof', '--aof-commit-freq', '0',
+        '--aof-commit-wait', '--aof-memory', '16m', '--aof-page-size', '8k', '--aof-segment-size', '1m',
+        '--logdir', str(RUN / 'store'), '--checkpointdir', str(RUN / 'store')]
+    if recover:
+        arguments += ['--recover', '--fail-on-recovery-error']
+    require_free(PORTS)
+    with launch(arguments, 'garnet-' + stage) as process:
         await_ready(process, garnet_ready)
-        records = teaching_records()
+        yield
+    require_free(PORTS)
+
+
+def verify_reader(stage, records, expected=None):
+    with sidecar('reader-' + stage, 'reader', READER):
+        observations = {row['key']: http('GET', STORE + '/' + quote(row['key'], safe='')) for row in records}
+        for row in records:
+            response = observations[row['key']]
+            if response[0] != 200 or not response[1] or json.loads(response[2]) != row['value']:
+                raise RuntimeError('Restricted Dapr read differs from original record')
+        if expected is not None and observations != expected:
+            raise RuntimeError('Recovered native values or ETags differ; never reseed')
+        denied = http('POST', STORE, [{'key': KEY, 'value': 'changed'}])
+        if denied[0] != 500 or b'NOPERM' not in denied[2]:
+            raise RuntimeError('Redis ACL denial was not verified')
+        after = {row['key']: http('GET', STORE + '/' + quote(row['key'], safe='')) for row in records}
+        if after != observations:
+            raise RuntimeError('Value or ETag changed after rejected write')
+        run_http(stage)
+        return observations
+
+
+try:
+    (RUN / 'store').mkdir()
+    records = teaching_records()
+    with backing_store('initial', recover=False):
         with sidecar('writer', 'default', ADMIN):
             if http('POST', STORE, records)[0] != 204:
                 raise RuntimeError('Dapr seed failed')
-        target = STORE + '/' + quote(KEY, safe='')
-        with sidecar('reader', 'reader', READER):
-            before = http('GET', target)
-            if before[0] != 200 or not before[1] or json.loads(before[2]) != records[0]['value']:
-                raise RuntimeError('Restricted Dapr read did not return the seeded record')
-            denied = http('POST', STORE, [{'key': KEY, 'value': 'changed'}])
-            if denied[0] != 500 or b'NOPERM' not in denied[2]:
-                raise RuntimeError('Redis ACL denial was not verified')
-            if http('GET', target) != before:
-                raise RuntimeError('Value or ETag changed after the rejected write')
-            project = ROOT / 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj'
-            with (RUN / 'web4.log').open('wb') as log:
-                subprocess.run(['dotnet', 'test', str(project), '--no-build', '--no-restore',
-                                '--filter', 'FullyQualifiedName~CqlDaprNativeHttpTests', '--results-directory', str(RUN),
-                                '--logger', 'trx;LogFileName=web4.trx'], cwd=RUN,
-                               env=os.environ | {'DAPR_API_TOKEN': TOKEN, 'COSMIC_DAPR_NATIVE_HTTP': 'owned-loopback-54862'},
-                               stdout=log, stderr=subprocess.STDOUT, timeout=75, check=True)
-            counters = ET.parse(RUN / 'web4.trx').getroot().find('.//{*}Counters')
-            if counters is None or counters.get('passed') != '1' or counters.get('total') != '1':
-                raise RuntimeError('The single native WEB4 HTTP test must pass without skips')
+        original = verify_reader('initial', records)
+    files = [file for file in (RUN / 'store').rglob('*') if file.is_file()]
+    if not files or not any(file.stat().st_size for file in files):
+        raise RuntimeError('Acknowledged native source has no durable files')
+    # No writer sidecar or seed call exists in this recovery phase.
+    with backing_store('restart', recover=True):
+        verify_reader('restart', records, expected=original)
     require_free(PORTS)
-    result = 'PASS: Dapr state.redis reads through the Garnet reader ACL and rejects writes; value and ETag unchanged.\n'
+    result = 'PASS: Dapr restricted reads, denied writes and WEB4 native queries passed before/after backing-store restart; original values and ETags unchanged; seed executed once.\n'
     (RUN / 'result.log').write_text(result, encoding='utf-8')
     print(result, end='')
 finally:

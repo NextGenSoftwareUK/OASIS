@@ -4429,3 +4429,8 @@ Owned fixture shutdown/ports verified. Cloud archives/runtimes remain ephemeral;
 compact artifact13590146953 1698B SHA256f006ad2632e1b1605c6780638bd044e582a2d4a5118686e86209d1c62ceb1f41
 retained30days; no local download. Compact native-qualified receipt retained.
 No Development/settings/accepted cohort mutation. Durable restart still open.
+
+Dapr restart extension prepared: same single cloud fixture, bounded AOF
+segments/pages, synchronous commit ACK, two sequential backing-store/sidecar
+starts and two WEB4 TRX reports; seed once before recovery. No local native
+fixture/runtime/build/download. Prior passing artifact retained separately.

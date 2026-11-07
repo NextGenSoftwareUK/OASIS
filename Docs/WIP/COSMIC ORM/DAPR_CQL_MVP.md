@@ -132,3 +132,13 @@ Durable restart, live visitor authentication, Mongo federation and actual hosted
 sidecar enrollment remain open. Counts119local/91live HTTP/28browser unchanged.
 Next: extend the dedicated native fixture to persist acknowledged records and
 verify a backing-store/sidecar restart without another seed operation.
+
+The next qualification extends the same owned fixture with synchronous AOF
+commit acknowledgement and bounded log pages/segments. After the one writer
+stage shuts down, the restricted reader checks every original value/ETag and
+WEB4 queries. Both backing store and sidecar then restart in recovery mode;
+no writer or seed operation exists in that phase. All four original records
+(including the tombstone), write denial, and a second1/1WEB4 test must pass.
+Both TRX reports remain separate; the earlier passing artifact is preserved.
+Recovery flags were checked against [pinned Garnet2.2.5 options](https://github.com/microsoft/garnet/blob/v2.2.5/libs/host/Configuration/Options.cs).
+This stronger restart proof is pending execution, not inferred from syntax.
