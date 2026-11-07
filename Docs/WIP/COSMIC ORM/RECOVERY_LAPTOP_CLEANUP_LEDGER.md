@@ -3718,3 +3718,19 @@ visitor remains deployment-bound. No new runtime was installed.
 PouchDB's compact qualified-image receipt is now retained in the recovery
 directory. The existing source generation and exact original native proof
 remain intact; its hosted enrollment has not been applied.
+
+Graph card publication cbc08dd is pushed on the existing Web4Site task
+branch and main. Public HTML compared in memory against the exact Git blob,
+242809 bytes/SHA256 73e91515eb4cc0999fe642991caa19fa55553cf93fe2ab5d82826a700c2af290.
+Compact proof graph-site-publication.json is retained under the recovery
+directory. All114 existing Node controls passed, with no new output file.
+Browser attachment and prescribed Windows inventory recovery timed out.
+No browser acceptance is claimed.
+
+PouchDB live baseline matched the accepted Graph candidate. Six protected
+settings and the public review were prepared with the existing publisher.
+201 settings are preserved. Exact candidate e33b2b4c/Core b98220a7 was
+fast-forwarded to Development after manifest, ancestry, live-release and
+Core publication checks. Job21eb23f3-95ce-4a9a-9e5c-8a66db21706a is queued.
+The durable push intent is pouch-code-push.intent.json. No PouchDB settings
+were applied and no native source bootstrap was replayed.

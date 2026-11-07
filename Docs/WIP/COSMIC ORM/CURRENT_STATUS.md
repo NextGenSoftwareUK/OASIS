@@ -13,10 +13,11 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Resumed on the old laptop at C:/Source/OASIS2 on 7 November after the
   recovered laptop failed again. Branch work/cosmic-cql-ton-public.
 - Core task branch work/cosmic-cql-decentraland; preserve independent pins.
-- Development9c6e93003, Coref0625521. Successful code job ac51f1c7.
+- Development e33b2b4c2, scoped PouchDB/Core b98220a7 rollout queued.
+- Last accepted runtime ce47a6f8/Core acc6ed36, Graph settings job ccd86b20.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
-- Website C:/Source/Web4Site, branch work/cosmic-cql, published fae9c5a.
+- Website C:/Source/Web4Site, branch work/cosmic-cql, published cbc08dd.
 - Unknown root logs and Docs/WIP/Cleanup/CLEANUP_LEDGER.md are outside this task.
 
 ## Verified
@@ -63,10 +64,17 @@ private dependency pins are now verified on advertised retention refs.
 Settings deployment ccd86b20-5e4f-4abe-8a63-761e28c96d60 succeeded.
 Graph hosted acceptance passed native3/2, Mongo5/4, reuse0new/2existing,
 foreign-private0/public3 and SQLite/Neo4j replicas2/2. Preserve that original
-cohort. Publish its prepared website card, then finish browser acceptance.
+cohort. Website card62 is published at cbc08dd and its exact public HTML
+verified (242809 bytes, SHA256 73e91515eb4cc0999fe642991caa19fa55553cf93fe2ab5d82826a700c2af290).
+All114 client controls passed. Browser attachment and Windows helper inventory
+recovery timed out, so functional browser acceptance remains open.
 The preserved-teaching PouchDB candidate e33b2b4c/Coreb98220a7 passed image
 qualification42354427254 and its original source inputs are present here.
-Re-observe the accepted Graph baseline before the next scoped rollout.
+The accepted Graph live settings matched the protected baseline exactly.
+The guarded PouchDB preparer produced six changes and preserved201 settings.
+Development advanced normally to e33b2b4c2. Code job
+21eb23f3-95ce-4a9a-9e5c-8a66db21706a is queued. Observe that exact job,
+then verify its writable mount before applying the six staged PouchDB values.
 The harness cleanup bug was reproduced and fixed locally: durable owner/write
 journals now reject fresh execution before sessions/queries; all26 tests pass.
 Do not rerun accepted HTTP schedules. Browser gates remain open.

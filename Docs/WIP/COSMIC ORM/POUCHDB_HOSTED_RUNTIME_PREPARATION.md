@@ -388,3 +388,10 @@ An offline configuration preflight against the prepared Graph baseline
 produced exactly the six expected PouchDB changes using the retained original
 bundle and acknowledgement. Re-observe the live Graph baseline before using
 that candidate for rollout. No PouchDB source writes occurred.
+
+Fresh live Graph settings matched the protected accepted baseline on the
+old laptop. The original publisher prepared six exact changes while
+preserving201 settings. Candidate e33b2b4c2 was fast-forwarded to Development
+after exact source, manifest and ancestry checks. Code deployment
+21eb23f3-95ce-4a9a-9e5c-8a66db21706a is queued. Verify that exact runtime
+and writable mount before the first protected settings application.
