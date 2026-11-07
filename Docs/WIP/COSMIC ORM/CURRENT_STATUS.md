@@ -24,8 +24,9 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - PouchDB settings/live acceptance job2045b41e succeeded.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
-  Dapr candidatec9f6ac65d/Coreec7d440 is published there for exact native/image
-  qualification only; active Development remains88b896815/Core944d380.
+  Dapr candidatec9f6ac65d/Coreec7d440 passed exact native/image qualification
+  and is now on Development. Code deployment00eace0e isQUEUED; prior live
+  instance remains active until independently observedSUCCESS. Dapr disabled.
 - Website C:/Source/Web4Site, branch work/cosmic-cql, publishedad7e9dd (six new cards71-76; earlier accepted cards retained).
 - Dedicated Railway key cosmic-cql-recovery-laptop-20261107 was created on
   this laptop for mounted-source inspection. Its eventual revocation is in
@@ -75,7 +76,8 @@ acknowledgements but failed the subsequent Python recovery port probe; Linux
 SO_REUSEADDR and private component creation are corrected. Exact candidate
 c9f6ac65d passes42422065811: one4record creation and two native WEB4 recovery
 checks with unchanged values/ETags, no skips. Exact image qualification is now
-requested; live provisioning/enrollment remain open. Coverage is119local/
+passed in42422745498. Code deployment00eace0e isQUEUED; live
+provisioning/enrollment remain open. Coverage is119local/
 91live HTTP/28functional browser. Source88b896815/Core944d380, settings
 8783d8eb-1d65-474f-8bdd-081615d4794a SUCCESS, instance5e85e983.
 All13settings and active configuration verified before six first hosted cohorts.

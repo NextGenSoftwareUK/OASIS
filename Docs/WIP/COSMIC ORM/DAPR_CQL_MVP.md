@@ -411,3 +411,12 @@ Candidatec9f6ac65df440986fab0ad99c270801e84265828/Coreec7d440ce5212da7683cb7579f
 Artifact13593759142:5209bytes SHA25627630b488f15f69aa709eb77f2f78a3cecc2762c6fb9f332b422d18ec8f7e735. Inspected entirely in memory: exact ZIP hash, two passing TRX, one4record seed intent/ACK with matching original prefix/no replay, one actual helper proof. No downloaded archive/extraction retained. Compact evidence dapr-exact-candidate-native-qualified.json.
 
 One exactc9f6ac65d teaching-enabled image request acknowledged204 after native acceptance. Earlier image42421574240 covers earlier candidateeba699888 and cannot certify the corrected commit. Exact current image remains pending. Development/live and original protected source plan unchanged; no Railway create operation yet.
+
+
+### Exact image passed; scoped Development code deployment queued
+
+Exact image42422745498/job128554513809 isSUCCESS for c9f6ac65df440986fab0ad99c270801e84265828 with teaching_sidecars=true. Published image digestsha256:76c37a16693618b98856213054ad403a5ee78daeab6970f5712daf5034dd4d90. Exact source/provenance and pushed manifest verified in logs. All7private pins have advertised exact refs; matching gitlinks/manifest and current Development ancestry checked before a normal fast-forward push.
+
+Development now points toc9f6ac65d/Coreec7d440. Railway code deployment00eace0e-8080-4932-91b3-a7658f33d1b1 was observedQUEUED for that exact commit. Do not request another deployment while this one exists. Active instance remains prior release untilSUCCESS is independently verified. Dapr settings remain absent/disabled and provider not admitted. No remote source creation or enrollment has run.
+
+A protected pre-code snapshot preserves245settings (SHA25633e2d85c05d0c7416a3fdbf3bbf1af95c9dd4af198a1024b8252824b4fd39540); compare before proceeding. Railway actual rebuilt image digest must be observed independently; the GitHub image digest does not establish it. Next: observe this exact deployment, inspect its actual package/mount/settings, then use the original protected Dapr source plan once.
