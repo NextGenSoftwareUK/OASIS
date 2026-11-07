@@ -225,3 +225,20 @@ No alternate storage device, optional symbol or silent recovery is added.
 Eight offline integrity/diagnostic controls pass. Corrected native proof and
 image qualification remain required. No native library was downloaded locally.
 [Exact upstream native source tree](https://github.com/microsoft/garnet/tree/8d007138208ce030eb10a50c80e636b1678b83e4/libs/storage/Tsavorite/cs/src/core/Device/runtimes/linux-x64/native).
+
+Mandatory-load qualification42416231682/job128534813817 FAILED before any write:
+upstream prebuilt native library requires `libaio.so.1`, while the target OS
+provides the t64 ABI. The fail-fast load check exposed this instead of allowing
+another uncertain source mutation. No compatibility symlink is introduced.
+
+Packaging now builds the mandatory native library from the exact clean upstream
+Garnet commit8d007138208ce030eb10a50c80e636b1678b83e4 using its own CMake
+`native_device` target, Release mode and USE_URING=ON. A sparse public-source
+checkout and two compiler workers stay on the ephemeral runner/build stage.
+The resulting library is linked against the target OS's actual development
+libraries, placed at the SDK's mandatory path and SHA256-bound to a source/build
+receipt. Native loading remains mandatory before source writes. CI and Docker
+use this same installer/recipe; compiler/source/archive directories do not enter
+the final runtime image. Eight offline integrity/diagnostic controls pass.
+The rebuilt native AOF probe and full restart proof remain pending execution.
+[Upstream CMake contract](https://github.com/microsoft/garnet/blob/8d007138208ce030eb10a50c80e636b1678b83e4/libs/storage/Tsavorite/cc/CMakeLists.txt).

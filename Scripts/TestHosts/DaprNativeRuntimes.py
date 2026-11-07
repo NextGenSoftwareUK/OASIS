@@ -5,6 +5,8 @@ import hashlib
 import json
 from pathlib import Path, PurePosixPath
 import sys
+import subprocess
+import shutil
 import tarfile
 import urllib.request
 
@@ -43,14 +45,45 @@ def archive_members(archive, executable):
         raise RuntimeError('Runtime archive must contain one expected executable')
     return members, matches[0]
 
-def require_native_file(path, pin):
-    if path.is_symlink() or not path.is_file() or path.stat().st_size != pin['bytes']:
-        raise RuntimeError('Mandatory native storage library size/path differs')
-    data = path.read_bytes()
-    expected_url = 'https://raw.githubusercontent.com/microsoft/garnet/' + pin['sourceCommit'] + '/' + pin['sourcePath']
-    if (path.is_symlink() or len(data) != pin['bytes'] or pin['url'] != expected_url
-            or hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest() != pin['gitBlobSha1']):
-        raise RuntimeError('Mandatory native storage library differs from pinned upstream Git object')
+def require_native_build(library, receipt, build):
+    proof = json.loads(receipt.read_text())
+    if (proof.get('source') != build or library.is_symlink() or not library.is_file()
+            or library.stat().st_size != proof.get('bytes') or digest(library) != proof.get('sha256')):
+        raise RuntimeError('Mandatory native storage build differs from its pinned source/receipt')
+
+
+def build_native_storage(root, executable, build):
+    if build['useUring'] is not True:
+        raise RuntimeError('The complete upstream native IO contract must remain enabled')
+    source = root / 'garnet-native-source'
+    source.mkdir()
+    def run(*args, cwd=None):
+        result = subprocess.run(args, cwd=cwd, capture_output=True, timeout=180)
+        if result.returncode:
+            raise RuntimeError('Pinned native SDK build failed: ' + (result.stdout + result.stderr).decode(errors='replace')[-4096:])
+        return result.stdout.decode().strip()
+    run('git', 'init', str(source))
+    run('git', '-C', str(source), 'remote', 'add', 'origin', build['repository'])
+    run('git', '-C', str(source), 'config', 'remote.origin.promisor', 'true')
+    run('git', '-C', str(source), 'config', 'remote.origin.partialclonefilter', 'blob:none')
+    run('git', '-C', str(source), 'fetch', '--filter=blob:none', '--depth=1', 'origin', build['commit'])
+    run('git', '-C', str(source), 'sparse-checkout', 'init', '--cone')
+    run('git', '-C', str(source), 'sparse-checkout', 'set', build['sourceDirectory'])
+    run('git', '-C', str(source), 'checkout', '--detach', build['commit'])
+    if run('git', '-C', str(source), 'rev-parse', 'HEAD') != build['commit'] or run('git', '-C', str(source), 'status', '--porcelain'):
+        raise RuntimeError('Native SDK source differs from exact clean pinned commit')
+    output = root / 'garnet-native-build'
+    run('cmake', '-S', str(source / build['sourceDirectory']), '-B', str(output),
+        '-DCMAKE_BUILD_TYPE=Release', '-DUSE_URING=ON')
+    run('cmake', '--build', str(output), '--target', build['target'], '--parallel', '2')
+    library = executable.parent / build['runtimePath']
+    library.parent.mkdir(parents=True, exist_ok=True)
+    with (output / build['library']).open('rb') as original, library.open('xb') as destination:
+        shutil.copyfileobj(original, destination)
+    receipt = library.with_suffix('.build.json')
+    with receipt.open('x') as destination:
+        json.dump({'source': build, 'bytes': library.stat().st_size, 'sha256': digest(library)}, destination)
+    require_native_build(library, receipt, build)
 
 
 def require_runtime(name, executable, runtime_directory=None):
@@ -76,10 +109,10 @@ def require_runtime(name, executable, runtime_directory=None):
     if digest(executable) != expected:
         raise RuntimeError('Linux executable bytes differ from pinned archive')
     if name == 'garnet':
-        for native in pin['nativeFiles']:
-            library = executable.parent / native['path']
-            require_native_file(library, native)
-            ctypes.CDLL(str(library))  # Mandatory dependency resolution, before any source mutation.
+        build = pin['nativeBuild']
+        library = executable.parent / build['runtimePath']
+        require_native_build(library, library.with_suffix('.build.json'), build)
+        ctypes.CDLL(str(library))  # Mandatory dependency resolution, before any source mutation.
     return executable
 
 def install_linux(destination):
@@ -107,18 +140,7 @@ def install_linux(destination):
         executable = directory / member.name
         executable.chmod(executable.stat().st_mode | 0o100)
         if name == 'garnet':
-            for native in pin['nativeFiles']:
-                relative = PurePosixPath(native['path'])
-                if relative.is_absolute() or '..' in relative.parts:
-                    raise RuntimeError('Native library path escapes runtime')
-                library = executable.parent / native['path']
-                library.parent.mkdir(parents=True, exist_ok=True)
-                with urllib.request.urlopen(native['url'], timeout=60) as response, library.open('xb') as output:
-                    data = response.read(native['bytes'] + 1)
-                    if len(data) != native['bytes']:
-                        raise RuntimeError('Native library download size differs')
-                    output.write(data)
-                require_native_file(library, native)
+            build_native_storage(root, executable, pin['nativeBuild'])
         result[name] = str(require_runtime(name, executable, root))
     return result
 

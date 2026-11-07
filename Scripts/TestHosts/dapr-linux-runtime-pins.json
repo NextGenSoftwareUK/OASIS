@@ -19,16 +19,15 @@
       "url": "https://github.com/microsoft/garnet/releases/download/v2.2.5/linux-x64-based.tar.xz",
       "executable": "GarnetServer",
       "release": "https://github.com/microsoft/garnet/releases/tag/v2.2.5",
-      "nativeFiles": [
-        {
-          "path": "runtimes/linux-x64/native/libnative_device.so",
-          "bytes": 2210897,
-          "gitBlobSha1": "4eaa89279f0a83be63a5829e26faba693420d2c1",
-          "sourceCommit": "8d007138208ce030eb10a50c80e636b1678b83e4",
-          "sourcePath": "libs/storage/Tsavorite/cs/src/core/Device/runtimes/linux-x64/native/libnative_device.so",
-          "url": "https://raw.githubusercontent.com/microsoft/garnet/8d007138208ce030eb10a50c80e636b1678b83e4/libs/storage/Tsavorite/cs/src/core/Device/runtimes/linux-x64/native/libnative_device.so"
-        }
-      ]
+      "nativeBuild": {
+        "repository": "https://github.com/microsoft/garnet.git",
+        "commit": "8d007138208ce030eb10a50c80e636b1678b83e4",
+        "sourceDirectory": "libs/storage/Tsavorite/cc",
+        "target": "native_device",
+        "library": "libnative_device.so",
+        "runtimePath": "runtimes/linux-x64/native/libnative_device.so",
+        "useUring": true
+      }
     }
   }
 }

@@ -75,7 +75,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 # Python/download dependencies stay in this build stage; final image receives runtimes only.
 FROM base AS provider_dapr
 COPY Scripts/TestHosts/DaprNativeRuntimes.py Scripts/TestHosts/dapr-linux-runtime-pins.json /qualification/
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates python3 \
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates python3 build-essential cmake git libaio-dev liburing-dev \
     && python3 -B /qualification/DaprNativeRuntimes.py --install-linux /opt/provider-runtimes \
     && /opt/provider-runtimes/daprd/daprd --version \
     && /opt/provider-runtimes/garnet/net10.0/GarnetServer --version \

@@ -4472,3 +4472,12 @@ Pinned upstream native Git object4eaa8927/2210897B in shared manifest; cloud
 installer/image now require it and libaio1t64/liburing2. No local binary/package
 download/install/build. Eight offline tests pass; new explicit isolated native
 qualification next. Original unknown seed/probe outcomes never resent.
+
+Dapr native library install42416231682 FAILED before probe/seed: upstream
+libaio.so.1 ABI mismatch on t64 OS. Compact failed receipt retained. Replaced
+prebuilt-library packaging with official CMake build at exact Garnet8d007138
+source, sparse checkout and two compiler workers under existing cloud runtime
+root/garnet-native-source and garnet-native-build. SHA256 source/build receipt
+ships beside mandatory library; no shim or alternate device. Compiler/dev
+packages are cloud/build-stage-only. Eight offline controls pass; no local
+runtime/tool/source clone/build/download. New native qualification required.

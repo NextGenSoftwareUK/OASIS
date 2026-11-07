@@ -1,6 +1,5 @@
 """Offline integrity/path boundary controls; never downloads or launches runtimes."""
 import io
-import hashlib
 import json
 from pathlib import Path
 import tarfile
@@ -90,23 +89,20 @@ class RuntimeTests(unittest.TestCase):
             self.assertIn('NativeDevice IOException [redacted]', result['errors'][0])
             self.assertNotIn('SECRET', json.dumps(result))
 
-    def test_native_library_requires_exact_upstream_object_and_binding(self):
+    def test_native_library_requires_pinned_build_identity_and_exact_bytes(self):
         with tempfile.TemporaryDirectory() as directory:
             library = Path(directory) / 'libnative_device.so'
-            data = b'controlled native library bytes'
-            library.write_bytes(data)
-            pin = {'bytes': len(data), 'sourceCommit': '1' * 40, 'sourcePath': 'native/library',
-                   'gitBlobSha1': hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()}
-            pin['url'] = 'https://raw.githubusercontent.com/microsoft/garnet/' + pin['sourceCommit'] + '/' + pin['sourcePath']
-            runtime.require_native_file(library, pin)
-            with self.assertRaisesRegex(RuntimeError, 'Git object'):
-                runtime.require_native_file(library, pin | {'url': 'https://example.invalid/library'})
-            library.write_bytes(b'x' * len(data))
-            with self.assertRaisesRegex(RuntimeError, 'Git object'):
-                runtime.require_native_file(library, pin)
-            library.unlink()
-            with self.assertRaisesRegex(RuntimeError, 'size/path'):
-                runtime.require_native_file(library, pin)
+            library.write_bytes(b'controlled native library bytes')
+            build = {'commit': '1' * 40, 'target': 'native_device', 'useUring': True}
+            receipt = library.with_suffix('.build.json')
+            receipt.write_text(json.dumps({'source': build, 'bytes': library.stat().st_size,
+                                           'sha256': runtime.digest(library)}))
+            runtime.require_native_build(library, receipt, build)
+            with self.assertRaisesRegex(RuntimeError, 'pinned source'):
+                runtime.require_native_build(library, receipt, build | {'commit': '2' * 40})
+            library.write_bytes(b'changed native bytes')
+            with self.assertRaisesRegex(RuntimeError, 'pinned source'):
+                runtime.require_native_build(library, receipt, build)
 
     def test_laptop_installer_refuses_download_before_network_access(self):
         with patch.object(runtime.sys, 'platform', 'win32'), patch.object(runtime.urllib.request, 'urlopen') as network:
