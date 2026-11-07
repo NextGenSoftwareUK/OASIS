@@ -4517,3 +4517,5 @@ SDK/env/build/download/live source operation. New exact helper qualification nex
 7 November: three seed-journal controls used owned temporary directories under the OS temp root and removed them through test teardown. No runtime downloads or retained test outputs. Linux qualification42419782648 observed in progress; no duplicate dispatch.
 
 7 November: fresh GitHub REST observations confirm42419782648/job128545514411 and42419910853/job128545899007 active in native recovery/WEB4 qualification. No redispatch, downloads or local build. Corrected CURRENT_STATUS to distinguish accepted durable restart from pending hosted-helper qualification.
+
+7 November: startup wiring controls reused cached Node24.22.1; no install/build. Existing TestResults/HostedIpfsBootstrapCurrent caused fresh-bootstrap precondition refusal and was preserved unchanged. Explicit supervisor-only selection passed9 controls with1 excluded native test;16 Dapr controls pass. Test-owned temporary directories removed by teardown.

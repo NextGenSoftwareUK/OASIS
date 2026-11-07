@@ -330,3 +330,8 @@ Failure artifact13592882298:4903 bytes, SHA256 8d2c88f4a309703eedd2623b6b85744ae
 ### Explicit creation journal shared with native qualification
 
 Docker/DaprRuntime/seed.cjs now owns the single Dapr bulk-save path used by the native fixture: validated four-record authority, exclusive intent, payload hash, file sync (plus directory sync on Linux) before one bounded POST, exclusive acknowledgement only on204. An existing intent prevents resend after both success and unknown outcome. Three focused controls pass; these are lifecycle controls, not real SDK proof. Sourceea3d78835 is currently qualifying the preceding ACL correction in run42419782648. The shared seed path requires its own exact-source native qualification. Full hosted provisioning/process lifecycle/image/enrollment remain open.
+
+
+### Recovery startup wiring (not deployed)
+
+The entrypoint now validates OASIS_SANDBOX_DAPR as an explicit boolean and routes it to the existing process supervisor. Its two services are ordered Garnet recovery, then Dapr exact-source verification, before WEB4 starts. Default remains disabled; no source is created or seeded by startup. Nine supervisor controls pass (fresh Windows IPFS bootstrap deliberately excluded because its retained directory exists);16 Dapr controls pass on cached Node24.22.1. Shell syntax passes. Initial broader test invocation failed safely on the retained IPFS bootstrap directory before mutation; directory preserved. Image and native wiring acceptance remain open.
