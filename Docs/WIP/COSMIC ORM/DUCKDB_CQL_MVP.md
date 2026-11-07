@@ -313,3 +313,19 @@ planning case. Artifact13580462708,2113B, SHA256
 Image42388244083/job128450124097 is running, exact candidate/teaching flags.
 No DuckDB code deployment, settings application or mounted-source write has
 been requested. Development remains the accepted Waku release7672cd5ea.
+
+Exact image42388244083/job128450124097 passed for3cc1ab108, teaching runtimes
+enabled. Digestsha256:81d462e109e3b2e88c6997e8ca3cd14d918e01a425141a0270174e80a31e20a9.
+The shipped Linux x64 libduckdb.so was present and ldd found no missing
+native dependencies. All seven exact private retention refs were re-observed;
+new Core9fac20cd is also retained on codex/deployed-dependency-9fac20cd.
+Manifest/gitlinks, current shared refs and complete protected settings baseline
+matched. Development advanced normally to3cc1ab108. Code deployment
+858ac680-3f46-4b5e-a4f8-491573304bfc isBUILDING. No DuckDB settings or source
+placement has been applied; accepted Waku remains the preceding good release.
+
+Publisher controls are now9/9: stale setting ACK and unrelated configuration
+drift refuse inspection, and a matching bootstrap receipt cannot excuse a
+changed native file hash or deployment. These tests are fully controlled;
+no live source/SDK query or original cohort was replayed. Verify the exact
+new deployment and absent destination before applying the six prepared keys.

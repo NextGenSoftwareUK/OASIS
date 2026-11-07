@@ -13,7 +13,8 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Resumed on the old laptop at C:/Source/OASIS2 on 7 November after the
   recovered laptop failed again. Branch work/cosmic-cql-ton-public.
 - Core task branch work/cosmic-cql-decentraland; preserve independent pins.
-- Development7672cd5ea/Core2fdd3e40; deployment3cdeaf40 isSUCCESS.
+- Development3cc1ab108/Core9fac20cd; DuckDB code deployment858ac680 isBUILDING.
+  Accepted Waku runtime3cdeaf40 at7672cd5ea/Core2fdd3e40 remains the prior good release.
   Waku hosted HTTP acceptance passed on this exact release. Its17th catalogue
   exposed the obsolete16-provider startup limit, now fixed and covered by5 tests.
   Original Waku archive/configuration ACKs remain; no settings or source replay.
@@ -68,11 +69,18 @@ read-only provider/registration and qualified original database. Linux run
 source/no WAL. Artifact13579442161 retains that source/seed/TRX for90days.
 Owned source-placement runtime and82 shared controls pass. Six guarded
 settings are privately prepared, none applied. Publisher6, response28 and
-preset39 controls pass. Scoped parent3cc1ab108/Core9fac20cd is published on
-the reused candidate refs. Exact admission CI42388149011 passed6/6,0skips.
-Image42388244083 is running and must pass its native-library/ABI checks
-before any Development rollout, source placement or enrollment. Development
-still serves accepted7672cd5ea; no DuckDB deployment was requested. Do not
+preset39 controls pass; publisher coverage is now9/9 including live-file,
+ACK and deployment-drift checks. Scoped parent3cc1ab108/Core9fac20cd is
+published on the reused candidate refs. Exact admission CI42388149011 passed
+6/6,0skips. Image42388244083 passed native-library/ABI checks, digest81d462e1.
+All seven dependency retention refs and the full live baseline were rechecked.
+Development advanced normally to3cc1ab108; code deployment858ac680-3f46-4b5e-a4f8-491573304bfc
+isBUILDING. Observe that exact job, verify its active image/instance/mount and
+confirm the new source destination is unoccupied before staging settings.
+Then apply the original six-key publisher once, request one settings deployment,
+verify the mounted source hash/receipt/no-WAL and perform first readiness/HTTP
+acceptance with an acknowledged existing discovery visitor. Settings/source
+remain unapplied. Never resubmit a deployment or a save solely after a timeout. Do not
 recreate or replay the accepted Windows fixture. Shared website navigation
 now opens provider-card/panel hash links,119client controls pass, and public
 HTML plus new navigation script match committed e7dce1b bytes.

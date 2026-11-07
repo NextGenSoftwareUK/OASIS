@@ -6,7 +6,7 @@ from pathlib import Path
 import tempfile
 import unittest
 import uuid
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 spec = importlib.util.spec_from_file_location('duckdb_publisher', Path(__file__).with_name('Publish-HostedDuckDbConfiguration.py'))
 publisher = importlib.util.module_from_spec(spec)
@@ -92,6 +92,56 @@ class DuckDbConfigurationTests(unittest.TestCase):
         value = json.loads(path.read_bytes()); value['LiveIds'].reverse(); path.write_text(json.dumps(value))
         with self.assertRaisesRegex(RuntimeError, 'catalogue differs'):
             publisher.candidate(self.before)
+
+    def live_settings(self):
+        after = publisher.candidate(self.before)
+        for key in publisher.KEYS:
+            (self.root / f'{publisher.PREFIX}-{key}.acknowledged.json').write_text(json.dumps({
+                'key': key, 'verified': True, 'deploymentTriggered': False,
+                'sha256': hashlib.sha256(after[key].encode()).hexdigest()}))
+        deployment = str(uuid.UUID(int=7))
+        self.enterContext(patch.dict(publisher.os.environ, {
+            'COSMIC_CQL_SETTINGS_DEPLOYMENT_ID': deployment,
+            'COSMIC_CQL_REVIEWED_INSTANCE_IDS': str(uuid.UUID(int=8))}))
+        self.enterContext(patch.object(publisher, 'verify_mount', return_value=deployment))
+        self.enterContext(patch.object(publisher.configuration, 'protected_read', return_value=after))
+        self.variables = self.enterContext(patch.object(publisher.configuration, 'variables', return_value=after))
+        self.release = self.enterContext(patch.object(publisher.mount, 'verify_release', return_value=deployment))
+        self.inspect = self.enterContext(patch.object(publisher.subprocess, 'run'))
+        return after, deployment
+
+    def test_live_settings_refuse_a_stale_ack_before_source_inspection(self):
+        after, _ = self.live_settings()
+        key = publisher.KEYS[0]
+        path = self.root / f'{publisher.PREFIX}-{key}.acknowledged.json'
+        ack = json.loads(path.read_bytes()); ack['sha256'] = '0' * 64; path.write_text(json.dumps(ack))
+        with self.assertRaisesRegex(RuntimeError, 'acknowledgement differs'):
+            publisher.verify_settings()
+        self.inspect.assert_not_called()
+        self.variables.assert_not_called()
+
+    def test_unrelated_live_configuration_drift_blocks_source_inspection(self):
+        after, _ = self.live_settings()
+        self.variables.return_value = after | {'unrelated': 'changed elsewhere'}
+        with self.assertRaisesRegex(RuntimeError, 'configuration differs'):
+            publisher.verify_settings()
+        self.inspect.assert_not_called()
+
+    def test_live_receipt_requires_actual_source_hash_and_stable_deployment(self):
+        after, deployment = self.live_settings()
+        bundle = json.loads(after[publisher.KEYS[1]])
+        receipt = {'schema': 1, 'digest': hashlib.sha256(after[publisher.KEYS[1]].encode()).hexdigest(),
+                   'sha256': bundle['sha256'], 'bytes': bundle['bytes']}
+        body = {'receipt': receipt, 'sha256': '0' * 64, 'bytes': bundle['bytes']}
+        self.inspect.return_value = Mock(returncode=0, stdout=json.dumps(body).encode())
+        with self.assertRaisesRegex(RuntimeError, 'source differs'):
+            publisher.verify_settings()
+        body['sha256'] = bundle['sha256']
+        self.inspect.return_value.stdout = json.dumps(body).encode()
+        self.assertEqual(deployment, publisher.verify_settings())
+        self.release.return_value = str(uuid.UUID(int=9))
+        with self.assertRaisesRegex(RuntimeError, 'deployment changed'):
+            publisher.verify_settings()
 
 
 if __name__ == '__main__':

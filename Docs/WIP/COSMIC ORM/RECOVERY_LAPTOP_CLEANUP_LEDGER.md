@@ -4075,3 +4075,24 @@ and web4-tabs.js1262B/SHA256aec0dd8db831166964e1886ee30bee375e30a9f7ea18cfa2e5d4
 match exact committed blobs in memory. Compact public observation retained.
 No browser input or functional-browser acceptance claimed. No downloads,
 install, new environment or local.NET operation. Free32265621504B at observation.
+
+DuckDB image42388244083/job128450124097 succeeded for exact3cc1ab108;
+digest81d462e109e3b2e88c6997e8ca3cd14d918e01a425141a0270174e80a31e20a9,
+teaching runtimes enabled and shipped libduckdb.so/dynamic links verified.
+Created/verified Core retentionrefcodex/deployed-dependency-9fac20cd and
+re-observed all seven candidate retention refs. No dependency checkout switch,
+force push, native fixture or new environment. Compact image/ref receipts retained.
+
+The initial ad-hoc rollout preflight missed the standard Scripts/Sandbox
+Python import directory and stopped before any push intent/mutation. It had
+already written the valid image receipt, which was preserved/reused. Corrected
+caller import context, repeated fresh baseline/ref/source checks and normal
+Development push then succeeded once. Intent/ACK retained; exact858ac680 code
+rollout isBUILDING. Six settings and native source remain unapplied. No
+redeploy or configuration mutation was attempted after that local tool error.
+
+Nine publisher controls pass in duckdb-publisher-controls-v2.log, including
+ACK/configuration/file-hash/deployment drift. No new local runtime/restore/
+SDK database open/download. Official QuestDB REST/demo docs were read only;
+its preserved403 native gate was not retried, bypassed or relabelled. Existing
+QuestDB source/adapter and Chroma HTTPS/account gates remain intact.
