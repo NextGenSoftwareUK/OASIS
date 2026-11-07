@@ -336,6 +336,15 @@ Use the same IDs for the source and server-side public catalogue. Review the
 explicit query-only tariff and four presets before running the shared hosted
 verifier with a fresh NATS-scoped journal. Keep LocalFile first. Native TLS,
 hosted replicas and browser interaction remain unverified.
+The explicit owned sandbox mode separately qualifies verified TLS at
+127.0.0.1:24222 with a dedicated CA and restricted cql_reader account.
+Real native3/2, permission denials and two restored-source starts passed
+with unchanged values/revisions/TLS identity and no reseeding. Exact scoped
+candidate API/image jobs42398316205/42398318179 are running; eight settings
+are prepared locally but not applied. Hosted HTTP and browser gates remain
+open. The remote mode above retains its nonloopback/trusted-chain contract.
+See [current NATS evidence](NATS_JETSTREAM_CQL_MVP.md).
+
 ## Hosted acceptance for prepared exact-key providers
 
 After the LocalFile rollout and each provider's native qualification, use the

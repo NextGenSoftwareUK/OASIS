@@ -75,13 +75,25 @@ Never replay it or recreate the accepted Windows fixture.
 
 DuckDB card22 is published at698e102 with the hosted path, preserved local5116
 launcher and real C# example. Public HTML matches the exact committed blob;
-all119 client controls pass. Next investigate the eligible native hosting
-scope from the provider matrix; NATS JetStream already has real
-SDK/local3/2 and HTTP5/4, with its hosted read-only TLS fixture still open.
-Do not replace its existing implementation or bypass the preserved QuestDB
-public403. Chroma's reviewed HTTPS endpoint/credential gate remains open.
+all119 client controls pass.
+
+NATS JetStream is the current hosted scope. Real Linux TLS/native3/2,
+explicit write/foreign permission denials and untrusted CA rejection passed
+in42396383665. Restored-source restart42397239148 passed with unchanged
+values/revisions/TLS identity and no seed/save. Task API42397587804 passed14/14.
+Parent candidate82428c7a6441e6088cfdd6960f899641dae54dd1 and
+Core2a09c9be620b3f3c2b1bae05bf62758bc5b13983 are published on the reused
+candidate branches. All seven exact dependency pins are advertised remotely;
+manifest/gitlinks pass. Exact candidate API42398316205 and image42398318179
+are in progress. Eight settings are prepared only in protected local snapshots;
+four presets/source bindings agree with original IDs. Next inspect those same
+jobs and preserve terminal evidence before scoped Development rollout and
+one-shot settings activation. Mounted/live HTTP gates remain open.
+See [NATS evidence and remaining gates](NATS_JETSTREAM_CQL_MVP.md).
+
+Do not bypass the preserved QuestDB public403. Chroma enrollment remains open.
 Keep browser acceptance separate: its URL-policy helper failure persists.
-[Waku evidence](WAKU_STORE_CQL_MVP.md) · [DuckDB evidence](DUCKDB_CQL_MVP.md).
+Preserve accepted Waku/DuckDB/PouchDB cohorts and all deferred owner decisions.
 
 ## Source and rollout journals
 

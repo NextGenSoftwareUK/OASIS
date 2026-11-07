@@ -26,17 +26,16 @@ reason and evidence for any inapplicable feature and keep unverified cells open.
 The 4 November published launcher audit found all 37 referenced scripts in the
 task checkout. Runtime qualification remains separate.
 
-1. Complete The Graph Studio scoped image qualification and Development rollout
-   described in [CURRENT_STATUS](CURRENT_STATUS.md) and
-   [The Graph report](THE_GRAPH_STUDIO_CQL_MVP.md). Preserve active GUN/OrbitDB
-   source generations and their teaching runtimes. LocalFile and the latest
-   Oracle Object Storage, Cloudinary, Proof of Humanity, GUN and OrbitDB HTTP
-   scopes are accepted; do not repeat their write schedules. Studio indexing
-   status is a bounded read profile, not general GraphQL entity translation.
-   Nostr operator recovery remains open; PouchDB awaits its original retained
-   source artifacts. Continue independent red gates while those are blocked.
-   DuckDB Development file placement/activation and remaining launcher runtime
-   gaps stay open; retained qualification does not establish hosted readiness.
+1. Complete the scoped NATS Development rollout described in
+   [CURRENT_STATUS](CURRENT_STATUS.md) and [NATS report](NATS_JETSTREAM_CQL_MVP.md).
+   Exact candidate API/image jobs42398316205/42398318179 are in progress.
+   Native TLS, restricted access and real restored-source restart are qualified;
+   hosted configuration, HTTP and browser gates remain open. Preserve original
+   accepted LocalFile, Graph Studio, PouchDB, Waku and DuckDB sources/cohorts.
+   Their scoped HTTP gates are accepted; do not repeat their write schedules.
+   GUN/OrbitDB teaching runtimes remain enabled in the candidate image.
+   Nostr recovery, QuestDB public403, Chroma enrollment and remaining launcher
+   runtime gaps stay open. Preserve all deferred owner decisions.
 2. Preserve the accepted hosted and local scopes in the [provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md).
    ClickHouse has accepted hosted evidence; its sandbox card, guide/C#
    links and exact public static bytes are verified. Counts are demo scopes,
