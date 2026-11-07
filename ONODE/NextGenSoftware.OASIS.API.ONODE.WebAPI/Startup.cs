@@ -685,7 +685,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_GCS_PUBLIC_SOURCE_JSON"] is string googlePublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.GoogleCloudPublicMetadataSource.FromJson(googlePublicSource)));
-            Services.Cql.CqlReviewedNetworkReadSourceRegistration.AddReviewedNetworkReadSources(services, Configuration);
+            Services.Cql.CqlReviewedNetworkReadSourceRegistration.AddReviewedNetworkReadSources(services, Configuration,
+                NextGenSoftware.OASIS.API.Core.Managers.SandboxOptions.Enabled);
             Services.Cql.CqlPouchDbReadSourceRegistration.AddPouchDbReadSource(services, Configuration);
             Services.Cql.CqlCloudinaryReadSourceRegistration.AddCloudinaryReadSource(services, Configuration);
             Services.Cql.CqlLoopbackTeachingSourceRegistration.AddLoopbackTeachingSources(services, Configuration);
