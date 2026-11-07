@@ -65,3 +65,15 @@ retained descriptor, and --reviewed-deployment-visitor. Use --readiness
 first, then --prepare to reuse the same verified deployment visitor.
 All 24 response-evidence tests passed, including provider scope and
 stale-deployment refusal.
+
+Use the guarded publisher to reproduce the exact four values from the
+protected snapshots. Run without --apply to verify deployment and baseline,
+then with --apply to use the existing per-key acknowledgement journal.
+
+```powershell
+$env:COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT = '907fe855ca5e7685526b44bbc3d79da35541f052'
+python -B Scripts/Sandbox/Publish-HostedFixedPublicCatalogue.py PushProtocolOASIS --prefix push-protocol-public --release-ref work/cosmic-push-protocol-release-candidate --deployment-id e60449de-117a-4d78-8878-d607144e2044
+```
+
+Four focused publisher tests passed. The live preflight confirmed the
+release is still queued and stopped before changing settings.
