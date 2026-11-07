@@ -24,7 +24,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - PouchDB settings/live acceptance job2045b41e succeeded.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
-- Website C:/Source/Web4Site, branch work/cosmic-cql, published698e102.
+- Website C:/Source/Web4Site, branch work/cosmic-cql, published9a0fd46 (NATS card64).
 - Dedicated Railway key cosmic-cql-recovery-laptop-20261107 was created on
   this laptop for mounted-source inspection. Its eventual revocation is in
   the old-laptop cleanup ledger. Private key remains outside Git.
@@ -86,8 +86,10 @@ and exactSQLite/Neo4j replicas2/2. Original cohort is sealed under
 HostedQueryAcceptance-NATSJetStreamOASIS; never replay it. Readiness reused
 the original PouchDB visitor. Exact candidate API14/14 and image qualification,
 real TLS/native/restart and eight write ACKs remain retained. Coverage is now
-119local/79liveHTTP/28functional browser. Next publish the NATS sandbox card
-and pinned real SDK example, then continue the next eligible provider scope.
+119local/79liveHTTP/28functional browser. NATS card64 is published in
+Web4Site9a0fd46 with pinned real SDK source/evidence. All119 website controls
+pass; public HTML matches the committed bytes exactly. Next continue the
+next eligible provider scope, preserving browser and full ORM gaps.
 See [NATS evidence and remaining gates](NATS_JETSTREAM_CQL_MVP.md).
 
 Do not bypass the preserved QuestDB public403. Chroma enrollment remains open.

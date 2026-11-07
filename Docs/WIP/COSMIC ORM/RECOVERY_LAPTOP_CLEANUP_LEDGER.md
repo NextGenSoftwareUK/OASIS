@@ -4260,3 +4260,10 @@ occurred before cohort creation; protected nats-mount-exact/nats-ssh-exact/
 nats-http-ssh diagnostic files retained in RecoveryLaptopResume20261107.
 No diagnostic contains a new runtime/environment. Never replay accepted cohort.
 Coverage119/79/28. Website publication/browser gates remain open.
+
+NATS public card64 published Web4Site9a0fd46 on existing task/main refs. All119
+client controls pass with cached Node24; no runtime install/native query/save.
+Public HTML247316B SHA2565866221f7ad30ed04ca2e9991683762f1009a2eff74526ab77d697b66c2cd80d
+matches exact Git bytes. HTTP response verified in memory; only compact receipt
+nats-public-card-qualified.json retained, no HTML download. Website clean after
+named-file commit/push. Browser acceptance remains open; sealed cohort untouched.

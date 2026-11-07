@@ -1,6 +1,6 @@
 # NATS JetStream hosted CQL work
 
-Updated 7 November 2026. Scoped hosted HTTP acceptance is complete; website publication, browser and full ORM gates remain open.
+Updated 7 November 2026. Scoped hosted HTTP acceptance and website publication are complete; browser and full ORM gates remain open.
 
 The existing NATS.Net3.2.0 provider, bounded CQL reader and public-record
 profile are retained. Historical recovery-laptop evidence establishes native
@@ -306,3 +306,17 @@ Reports under TestResults/HostedCqlIntegrationCurrent:
 Coverage119local/79liveHTTP/28functional browser. Next publish the NATS card
 with accepted hosted steps and pinned real SDK example. Browser interaction
 and complete provider/ORM parity remain open; this is bounded read acceptance.
+
+## Public WEB4 card published
+
+[NATS card64](https://web4.oasisomniverse.one/web4-sandbox.html#cql-nats-jetstream-catalogue)
+published in Web4Site9a0fd46a9d79a30df0a0d9e6d1ce8992efb13c44 on existing
+work/cosmic-cql/main after fresh ancestry checks. It explains native3/2,
+Mongo5/4, repeat snapshot reuse, privacy/replicas and bounded read scope;
+real SDK source/evidence links are pinned to backenddab9a04b3. All119 website
+client controls pass. Public HTTP200 HTML247316B, SHA256
+5866221f7ad30ed04ca2e9991683762f1009a2eff74526ab77d697b66c2cd80d,
+matched the exact committed Git bytes on first observation. Compact receipt
+retained; no downloaded HTML file, browser interaction or cohort replay.
+Browser acceptance remains open. Continue the next eligible independent
+provider scope while preserving accepted sources and owner deferrals.

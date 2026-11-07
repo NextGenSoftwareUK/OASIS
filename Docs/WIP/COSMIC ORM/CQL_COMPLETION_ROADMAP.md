@@ -26,15 +26,13 @@ reason and evidence for any inapplicable feature and keep unverified cells open.
 The 4 November published launcher audit found all 37 referenced scripts in the
 task checkout. Runtime qualification remains separate.
 
-1. Complete the scoped NATS Development rollout described in
-   [CURRENT_STATUS](CURRENT_STATUS.md) and [NATS report](NATS_JETSTREAM_CQL_MVP.md).
-   Exact candidate API/image42398316205/42398318179 passed. Code rollout
-   592df8cd is queued; follow it before applying the protected settings.
-   Native TLS, restricted access and real restored-source restart are qualified;
-   hosted configuration, HTTP and browser gates remain open. Preserve original
-   accepted LocalFile, Graph Studio, PouchDB, Waku and DuckDB sources/cohorts.
-   Their scoped HTTP gates are accepted; do not repeat their write schedules.
-   GUN/OrbitDB teaching runtimes remain enabled in the candidate image.
+1. Continue the next eligible provider scope from
+   [CURRENT_STATUS](CURRENT_STATUS.md) and the provider inventory. NATS scoped
+   TLS/native/restart, hosted HTTP native3/2/Mongo5/4/privacy/replicas and public
+   card64 are complete; [NATS evidence](NATS_JETSTREAM_CQL_MVP.md) preserves
+   the original source and sealed cohort. Browser verification stays open.
+   Preserve accepted LocalFile, Graph Studio, PouchDB, Waku and DuckDB sources
+   and write schedules. GUN/OrbitDB teaching runtimes remain enabled.
    Nostr recovery, QuestDB public403, Chroma enrollment and remaining launcher
    runtime gaps stay open. Preserve all deferred owner decisions.
 2. Preserve the accepted hosted and local scopes in the [provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md).
