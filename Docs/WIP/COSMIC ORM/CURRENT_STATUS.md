@@ -20,9 +20,9 @@ Railway settings deployment ecdabdbb succeeded. Push Protocol passed hosted
 3/2 native, 5/4 MongoDB federation, reuse, visitor isolation and both replicas.
 Sandbox card fac8274 is live with a local C# link. Browser interaction remains open.
 
-LayerZero v1 and Reclaim share a corrected scoped candidate, f9d77e9dc. Six protected
-settings and eight presets are prepared. Await [CI 42328625924](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42328625924)
-before promoting the exact candidate and applying settings.
+LayerZero v1 and Reclaim image CI passed. Development advanced to f9d77e9dc.
+Observe Railway code deployment 24c2dab0-d1f6-414c-889b-c1a2094b3299 before
+applying the six reviewed settings and redeploying once.
 
 ## Recent WEB4 preparation, 5–6 November 2026
 

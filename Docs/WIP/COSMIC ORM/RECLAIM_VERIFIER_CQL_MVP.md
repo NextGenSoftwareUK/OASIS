@@ -69,3 +69,10 @@ Candidate f9d77e9dc79e632c714a5aa244a94e1f69a38352 adds that exact tested
 blob. Core and settings snapshots are unchanged. The corrected
 [image gate](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42328625924)
 must pass before promotion.
+
+The corrected image gate passed. The candidate tag resolved to
+sha256:2189a5fd52fc35cff47611b5e2e5bc2bdea7f9bf09fc849b479193909bb2a6f5.
+The protected settings reproduced exactly, and the live baseline matched
+before fast-forwarding Development. Railway code deployment
+24c2dab0-d1f6-414c-889b-c1a2094b3299 is queued at f9d77e9dc. Observe this
+exact job before applying any settings.

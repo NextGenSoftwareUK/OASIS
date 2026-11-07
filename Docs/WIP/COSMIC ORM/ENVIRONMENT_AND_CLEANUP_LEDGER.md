@@ -5127,3 +5127,5 @@ Disk recovery: 354 generated bin/obj targets removed under lease, 6597624139 log
 - LayerZero/Reclaim publisher verification reused installed Python. Five in-memory publisher tests and 39 exact-key configuration tests passed. The latter use ephemeral TemporaryDirectory fixtures, unmeasured and removed by teardown. No downloads, service ports or hosted mutation.
 
 - LayerZero/Reclaim initial CI 42328208850 failed at compile and published no qualified image. Corrected candidate f9d77e9dc adds only the tested shared EVM reader and is building in CI 42328625924. One temporary index TestResults/layerzero-reclaim-dependency.index was removed immediately after use. No local pull or new environment.
+
+- LayerZero/Reclaim image CI 42328625924 passed at f9d77e9dc. Retain registry digest sha256:2189a5fd52fc35cff47611b5e2e5bc2bdea7f9bf09fc849b479193909bb2a6f5 until release verification; no local pull. Development advanced and existing Railway service queued 24c2dab0-d1f6-414c-889b-c1a2094b3299. No new service, installation or data. The protected candidate remains retained and live settings matched its baseline.
