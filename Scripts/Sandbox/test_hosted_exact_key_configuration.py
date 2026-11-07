@@ -15,7 +15,12 @@ spec.loader.exec_module(configuration)
 
 def exact_key_catalogue(provider):
     actor, first, second, third, deleted, missing = [str(uuid.UUID(int=i)) for i in range(1, 7)]
-    if provider == "ENSOffchainOASIS":
+    if provider == "WakuOASIS":
+        actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
+        first, second, third = ("8ff38484-cb3f-834b-a77e-8e7321130e7c", "5c75110a-020a-8e6a-bdae-374cb85b5d39",
+                                "38f0dce7-ca39-82ae-90ae-a1409202a581")
+        catalogue = {"Actor": actor, "MessageHashes": ["0x" + value * 64 for value in "123"]}
+    elif provider == "ENSOffchainOASIS":
         actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
         first, second, third = ("2d8b5e78-3137-8c0d-ba70-bdaa880dcdad", "e29d23d8-4c2c-8e0a-9fde-5b92d31135c0",
                                 "ffab761f-bf16-8e02-88e4-1e8a7b6cccd9")

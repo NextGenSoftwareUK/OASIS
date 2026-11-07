@@ -28,7 +28,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
     "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "TenderlyOASIS", "QuickNodeOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS",
-    "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS",
+    "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "WakuOASIS",
 )
 FIXED_PUBLIC_CATALOGUES = {
     "TheGraphOASIS": (
@@ -73,7 +73,7 @@ FIXED_PUBLIC_CATALOGUES = {
 }
 REVIEWED_PUBLIC_CATALOGUE_PROVIDERS = frozenset((*FIXED_PUBLIC_CATALOGUES,
     "CloudinaryOASIS", "OracleObjectStorageOASIS", "ProofOfHumanityOASIS",
-    "GUNOASIS", "OrbitDBOASIS"))
+    "GUNOASIS", "OrbitDBOASIS", "WakuOASIS"))
 
 POLYGON_GATEWAY_CATALOGUES = {
     "TenderlyOASIS": ("CQL_TENDERLY_POLYGON_QUERY_SOURCE_OWNER", "tenderlypolygon-public-accounts:0x89",
@@ -330,12 +330,13 @@ def decentraland_deployment_visitor():
 def reviewed_deployment_visitor(provider):
     if provider not in REVIEWED_PUBLIC_CATALOGUE_PROVIDERS:
         raise RuntimeError("A reviewed public catalogue is required.")
-    publisher = ROOT / "Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py"
+    publisher = ROOT / "Scripts/Sandbox" / (
+        "Publish-HostedWakuConfiguration.py" if provider == "WakuOASIS" else "Publish-HostedLocalFileConfiguration.py")
     spec = importlib.util.spec_from_file_location("reviewed_release", publisher)
     release = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(release)
     deployment = os.environ.get("COSMIC_CQL_SETTINGS_DEPLOYMENT_ID", "")
-    if not deployment or release.verify_release() != deployment:
+    if not deployment or (release.verify_settings() if provider == "WakuOASIS" else release.verify_release()) != deployment:
         raise RuntimeError(f"The reviewed {provider} settings deployment must be current.")
     return deployment_visitor(provider.removesuffix("OASIS"), deployment)
 
@@ -433,6 +434,8 @@ def reviewed_exact_key_source(provider, path):
         polygon_gateway = POLYGON_GATEWAY_CATALOGUES.get(provider)
         fields = {"Actor", "Names"} if names_only else {"Actor", "LiveIds", "DeletedId", "MissingId"}
         public_keys = {
+            "WakuOASIS": ("MessageHashes", "CQL_WAKU_STORE_QUERY_SOURCE_JSON",
+                          "waku-store-v3/oasis-cql/1/store-fixture/proto", r"0x[0-9a-f]{64}"),
             "SafeOASIS": ("Networks", "CQL_SAFE_INDEXING_QUERY_SOURCE_JSON",
                           "safe-transaction-service-indexing", r"(?:eth|base|arb1)"),
             "ProofOfHumanityOASIS": ("Addresses", "CQL_PROOF_OF_HUMANITY_QUERY_SOURCE_JSON",
@@ -808,7 +811,8 @@ def reviewed_exact_key_source(provider, path):
                                    "CQL_PGVECTOR_QUERY_PROBE_ID": ids[0]}
     elif public_keys:
         key_field, setting, _, _ = public_keys
-        source = {"owner": catalogue["Actor"], key_field.lower(): logical_keys, "probe": logical_keys[0]}
+        source = ({"sourceOwner": catalogue["Actor"], "messageHashes": logical_keys} if provider == "WakuOASIS"
+                  else {"owner": catalogue["Actor"], key_field.lower(): logical_keys, "probe": logical_keys[0]})
         review["sourceBinding"] = {setting: json.dumps(source, separators=(",", ":"))}
     elif provider in ("WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS"):
         product = provider.removesuffix("OASIS").upper()
@@ -908,6 +912,8 @@ def main():
         rehearsal = decentraland_deployment_visitor()
     if options.reviewed_deployment_visitor:
         rehearsal = reviewed_deployment_visitor(options.provider)
+    if options.provider == "WakuOASIS" and not options.prepare_exact_key_presets and not options.reviewed_deployment_visitor:
+        parser.error("Waku acceptance requires its verified deployment, mounted archive and source receipt.")
     continuing = options.continue_settled_read or options.continue_native_read_failure or options.continue_snapshot_observation_change
     if options.prepare_exact_key_presets is not None:
         if (not is_reviewed_exact_key or options.prepare or options.readiness or continuing

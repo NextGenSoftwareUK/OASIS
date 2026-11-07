@@ -156,3 +156,19 @@ working archive. It preserves compact proof, native logs and the unchanged
 original input for90days. It does not publish replacement messages or run the
 accepted Mongo/CQL source-generation schedule. This native restore/restart
 qualification and exact immutable image build remain pending.
+
+Native retained-source run42366567554 passed. Three original messages survived
+two starts on the same working archive, with the original input and bootstrap
+acknowledgement unchanged. Artifact13571766234 is7029 bytes, SHA256
+ af22f8de4dcef1e45e2f6f46033544856a06f195e6ae269ded70a5b808169ed0,
+retained until5February2027. Its actual qualification.json was recovered
+and hash-checked locally,233 bytes/SHA256
+cd91118d3a752c6502cbff1d2bdd9f4fdfd1412c9c7dceb69351d671a49bb5a6.
+
+Scoped candidatec5b5d16e/Core2fdd3e40 is published on the reused
+work/cosmic-teaching-release-candidate refs. It preserves the accepted Graph,
+PouchDB and earlier native sources. Core adds only the Waku read tariff.
+Image42366908944 caught an incorrect exact tar member path before publishing
+an image. Packaging now uses the native fixture's proven extraction hierarchy
+and installs only its verified binary into the final runtime. No live rollout
+or Waku settings were requested. The next exact image must pass first.

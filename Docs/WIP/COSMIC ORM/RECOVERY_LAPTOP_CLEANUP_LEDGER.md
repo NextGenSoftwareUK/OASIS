@@ -3847,3 +3847,26 @@ and removes the runtime download after owned children stop. Compact logs,
 qualification and unchanged source input retained90days as the
 waku-hosted-runtime-qualification artifact. No Windows binary/environment,
 local provider process or source-generation replay. Last C free24466890752B.
+
+Waku retained-source cloud run42366567554 passed all14 runtime controls and
+real native restore/restart,3 messages/two starts, unchanged input and ack.
+Artifact13571766234,7029 bytes, expires2027-02-05. Its ZIP hash was checked
+in memory. Only actual233-byte qualification.json was extracted to
+LocalState/COSMIC/WakuQualifiedSourceCurrent/hosted-runtime-qualified.json,
+SHA256 cd91118d3a752c6502cbff1d2bdd9f4fdfd1412c9c7dceb69351d671a49bb5a6.
+No repeated local archive copy, runtime install or native fixture publishing.
+
+Scoped Waku parentc5b5d16e/Core2fdd3e40 were assembled with isolated indexes
+that were removed after tree creation. Reused existing teaching candidate
+branches in both repos, normal fast-forward publication.18-path scoped delta,
+manifest/gitlinks valid; Core only adds Waku read tariff. Image42366908944
+failed before .NET compilation on its exact tar member path. Full native
+archive extraction plus install from the proven build/logosdeliverynode
+path corrects that packaging layer. The earlier failed image run remains
+retained. Live Development and all cohorts are unchanged.
+
+Seven new guarded publisher controls pass. Initial existing response suite
+needed the newly required Waku mounted-deployment gate represented in its
+controlled harness. Its corrected26 cases pass. Existing39 preset controls
+also pass. All use system Python and installed Node with temporary controlled
+files removed by their existing unittest cleanup, no live traffic or sessions.

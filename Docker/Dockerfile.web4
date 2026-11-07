@@ -47,9 +47,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
        https://github.com/logos-messaging/logos-delivery/releases/download/v0.39.2/waku-v0.39.2-amd64-linux.tar.gz \
        --output /tmp/waku.tar.gz \
     && echo '063d4386623e3dcfa6e59908dd57bbc2a420f26875ea50f7adb3c5b348ba9b87  /tmp/waku.tar.gz' | sha256sum --check \
-    && tar -xzf /tmp/waku.tar.gz -C /opt/waku --strip-components=1 build/logosdeliverynode \
+    && mkdir /tmp/waku-runtime \
+    && tar -xzf /tmp/waku.tar.gz -C /tmp/waku-runtime \
+    && install -m 755 /tmp/waku-runtime/build/logosdeliverynode /opt/waku/logosdeliverynode \
     && /opt/waku/logosdeliverynode --version \
-    && rm /tmp/waku.tar.gz \
+    && rm /tmp/waku.tar.gz && rm -rf /tmp/waku-runtime \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
