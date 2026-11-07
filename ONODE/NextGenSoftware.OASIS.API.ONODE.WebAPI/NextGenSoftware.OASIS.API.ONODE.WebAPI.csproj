@@ -206,5 +206,10 @@
   <ItemGroup>
     <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.DuckDBOASIS/NextGenSoftware.OASIS.API.Providers.DuckDBOASIS.csproj" />
     <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS/NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.StargateOASIS/NextGenSoftware.OASIS.API.Providers.StargateOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.deBridgeOASIS/NextGenSoftware.OASIS.API.Providers.deBridgeOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SynapseOASIS/NextGenSoftware.OASIS.API.Providers.SynapseOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ConnextOASIS/NextGenSoftware.OASIS.API.Providers.ConnextOASIS.csproj" />
   </ItemGroup>
 </Project>
