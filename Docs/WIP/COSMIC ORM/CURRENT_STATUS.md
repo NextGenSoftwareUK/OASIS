@@ -9,8 +9,8 @@ admission and transport checks. Both guarded HTTPS native fixtures compiled.
 Owned teaching sources and read credentials remain necessary before native
 HTTPS and deployed acceptance. No provider count changed.
 
-Waku's fixed-loopback teaching descriptor passed two focused checks. Next,
-wire explicit sandbox admission and verify Waku with Mongo federation.
+Waku's sandbox-only WEB4 enrollment and read tariff passed 28 focused checks.
+Next, activate the native fixture through WEB4 and verify Mongo federation.
 
 ## Recent WEB4 preparation, 5–6 November 2026
 

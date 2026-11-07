@@ -10,13 +10,19 @@ using NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS;
 using NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS;
 using NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS;
 using NextGenSoftware.OASIS.API.Providers.WorldIDOASIS;
+using NextGenSoftware.OASIS.API.Providers.WakuOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 public static class CqlReviewedNetworkReadSourceRegistration
 {
-    public static void AddReviewedNetworkReadSources(this IServiceCollection services, IConfiguration configuration)
+    public static void AddReviewedNetworkReadSources(this IServiceCollection services, IConfiguration configuration, bool sandboxEnabled = false)
     {
+        var waku = configuration["CQL_WAKU_STORE_QUERY_SOURCE_JSON"];
+        if (sandboxEnabled && waku != null)
+            services.AddSingleton<CqlReadSourceProfile>(_ =>
+                new CqlReadSourceProfile(WakuStoreQueryConfiguration.CreateSource(waku)));
+
         Register(services, configuration["CQL_DISCORD_PUBLIC_GUILD_QUERY_SOURCE_OWNER"], "Discord",
             DiscordPublicGuildQuerySource.ForReviewedTeachingCatalogue);
         Register(services, configuration["CQL_LIVEPEER_ORCHESTRATOR_QUERY_SOURCE_OWNER"], "Livepeer",

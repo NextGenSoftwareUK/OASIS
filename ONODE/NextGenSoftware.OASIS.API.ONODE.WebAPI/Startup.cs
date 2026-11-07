@@ -614,7 +614,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             Services.Cql.CqlProtectedSqlReadSourceRegistration.AddPinotReadSource(services, Configuration);
             Services.Cql.CqlTemporalReadSourceRegistration.AddTemporalReadSource(services, Configuration);
             Services.Cql.CqlPublicPolygonGatewayReadSourceRegistration.AddPublicPolygonGatewayReadSources(services, Configuration);
-            Services.Cql.CqlReviewedNetworkReadSourceRegistration.AddReviewedNetworkReadSources(services, Configuration);
+            Services.Cql.CqlReviewedNetworkReadSourceRegistration.AddReviewedNetworkReadSources(services, Configuration,
+                NextGenSoftware.OASIS.API.Core.Managers.SandboxOptions.Enabled);
             Services.Cql.CqlCloudinaryReadSourceRegistration.AddCloudinaryReadSource(services, Configuration);
             Services.Cql.CqlPgVectorReadSourceRegistration.AddPgVectorReadSource(services, Configuration);
             Services.Cql.CqlRegistryAndObjectReadSourceRegistration.AddRegistryAndObjectReadSources(services, Configuration);

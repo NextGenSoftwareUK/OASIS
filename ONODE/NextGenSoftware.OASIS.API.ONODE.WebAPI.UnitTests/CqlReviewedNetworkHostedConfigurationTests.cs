@@ -11,6 +11,28 @@ public sealed class CqlReviewedNetworkHostedConfigurationTests
 {
     private const string Owner = "a5808c3e-7031-47e7-92de-48a659568f1b";
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void WakuFixtureRegistersOnlyInSandbox(bool sandboxEnabled)
+    {
+        var descriptor = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            sourceOwner = Owner,
+            messageHashes = new[] { 'a', 'b', 'c' }.Select(c => "0x" + new string(c, 64)).ToArray()
+        });
+
+        var services = new ServiceCollection();
+        services.AddReviewedNetworkReadSources(Settings("CQL_WAKU_STORE_QUERY_SOURCE_JSON", descriptor), sandboxEnabled);
+        using var container = services.BuildServiceProvider();
+        var profiles = container.GetServices<CqlReadSourceProfile>();
+
+        if (sandboxEnabled)
+            Assert.Equal(ProviderType.WakuOASIS, Assert.Single(profiles).Storage.ProviderType.Value);
+        else
+            Assert.Empty(profiles);
+    }
+
     [Fact]
     public void NoNetworkSourceRegistersWithoutExplicitConfiguration()
     {
@@ -65,6 +87,7 @@ public sealed class CqlReviewedNetworkHostedConfigurationTests
     [InlineData(ProviderType.WorldIDOASIS)]
     [InlineData(ProviderType.ReclaimProtocolOASIS)]
     [InlineData(ProviderType.DecentralandOASIS)]
+    [InlineData(ProviderType.WakuOASIS)]
     public void NetworkSourceRequiresIndependentReadOnlyTariff(ProviderType provider)
     {
         Assert.Equal(provider, CqlV1Compiler.RequestedProvider(provider.ToString(), includeCloudReadProfile: true));
