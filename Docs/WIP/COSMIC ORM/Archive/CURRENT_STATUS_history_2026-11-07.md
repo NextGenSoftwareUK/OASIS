@@ -24,7 +24,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 ## Verified
 
 Coverage is **118 scoped local, 72 live HTTP and 28 functional browser**.
-The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
+The [full provider report](../PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
 - IPFS, SOLID and ActivityPub passed hosted multi-row queries and Mongo federation.
@@ -95,10 +95,10 @@ python -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks.
 Observe a specific deployment with Scripts/Sandbox/Observe-HostedDeployment.py,
 providing its ID, --expected-commit and an --output path under TestResults.
 
-[Parity checklist](CQL_PARITY_CHECKLIST.md) · [CQL roadmap](CQL_COMPLETION_ROADMAP.md) ·
-[ORM roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md) · [Implementation status](IMPLEMENTATION_STATUS.md) ·
-[Manual](CQL_MANUAL.md) · [Architecture](CQL_ARCHITECTURE.md) ·
-[Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) ·
-[David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md) ·
-[Archived status history](Archive/CURRENT_STATUS_history_2026-11-06.md)
+[Parity checklist](../CQL_PARITY_CHECKLIST.md) · [CQL roadmap](../CQL_COMPLETION_ROADMAP.md) ·
+[ORM roadmap](../COSMIC_ORM_IMPLEMENTATION_ROADMAP.md) · [Implementation status](../IMPLEMENTATION_STATUS.md) ·
+[Manual](../CQL_MANUAL.md) · [Architecture](../CQL_ARCHITECTURE.md) ·
+[Resource ledger](../ENVIRONMENT_AND_CLEANUP_LEDGER.md) ·
+[David actions](../../Release%20and%20Status/ACTIONS-FOR-DAVID.md) ·
+[Archived status history](../Archive/CURRENT_STATUS_history_2026-11-06.md)
 
