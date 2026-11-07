@@ -13,6 +13,17 @@ FROM ipfs/kubo:v0.43.1@sha256:b293923d66e490e70ced64df42ea7a6cf7eac2740e3fb29101
 # Same immutable CSS 7.1.8 image already retained by the local SOLID environment.
 FROM solidproject/community-server@sha256:125727897fde6e2225239a0748bf47d8fa559cac065d5694dc10f6428799e9f2 AS provider_solid
 
+# A separately targetable SDK qualification reuses the exact shipped Node image.
+FROM provider_node AS provider_pouch
+COPY Docker/PouchDbRuntime/ /opt/pouchdb/
+WORKDIR /opt/pouchdb
+RUN npm ci --omit=dev --no-audit --no-fund
+COPY Docker/host-sandbox-pouchdb.cjs Docker/host-sandbox-ipfs.cjs Docker/verify-pouchdb-runtime.cjs /qualification/Docker/
+COPY Docker/PouchDbRuntime/ /qualification/Docker/PouchDbRuntime/
+COPY Scripts/Sandbox/test_hosted_pouchdb_runtime.cjs /qualification/Scripts/Sandbox/
+RUN node --test /qualification/Scripts/Sandbox/test_hosted_pouchdb_runtime.cjs
+RUN node /qualification/Docker/verify-pouchdb-runtime.cjs /opt/pouchdb
+
 FROM provider_node AS provider_teaching_sidecars
 ARG OASIS_INCLUDE_TEACHING_SIDECARS=false
 COPY ["Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/CqlTeachingCompanion/package.json", "Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/CqlTeachingCompanion/package-lock.json", "Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/CqlTeachingCompanion/serve-teaching.mjs", "Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/CqlTeachingCompanion/teaching-store.mjs", "/opt/teaching/orbitdb/"]
@@ -40,6 +51,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends git \
     && git clone --no-checkout "${HOLOCHAIN_REPO}" /holochain-client-csharp \
     && git -C /holochain-client-csharp checkout --detach "${HOLOCHAIN_COMMIT}" \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY --from=provider_pouch /opt/pouchdb /opt/pouchdb
 
 WORKDIR /src
 COPY . .
@@ -74,14 +87,17 @@ WORKDIR /app
 COPY --from=provider_node /usr/local/bin/node /usr/local/bin/node
 COPY --from=provider_ipfs /usr/local/bin/ipfs /usr/local/bin/ipfs
 COPY --from=provider_solid /community-server /opt/solid
+COPY --from=build /opt/pouchdb /opt/pouchdb
 COPY --from=provider_teaching_sidecars /opt/teaching /opt/teaching
 RUN node --version
+RUN node -e "const load=require('node:module').createRequire('/opt/pouchdb/package.json');if(load('pouchdb').version!=='9.0.0'||typeof load('leveldown')!=='function')throw Error('PouchDB native runtime differs');load('express-pouchdb')"
 RUN ipfs version --enc=json
 RUN node -e "if(require('/opt/solid/package.json').version!=='7.1.8')throw Error('CSS version differs');require('/opt/solid/dist/init/AppRunner');require('/opt/solid/node_modules/n3')"
 COPY --from=build /app/publish .
 COPY Docker/entrypoint.onode.sh /entrypoint.sh
 COPY Docker/host-sandbox-ipfs.cjs /app/host-sandbox-ipfs.cjs
 COPY Docker/host-sandbox-solid.cjs /app/host-sandbox-solid.cjs
+COPY Docker/host-sandbox-pouchdb.cjs /app/host-sandbox-pouchdb.cjs
 COPY Docker/host-sandbox-teaching.cjs /app/host-sandbox-teaching.cjs
 RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
 
