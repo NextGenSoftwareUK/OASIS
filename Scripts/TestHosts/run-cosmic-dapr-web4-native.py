@@ -1,6 +1,5 @@
 import argparse
 import contextlib
-import hashlib
 from http.client import HTTPConnection
 import json
 import os
@@ -11,12 +10,14 @@ import subprocess
 import time
 from urllib.parse import quote
 import xml.etree.ElementTree as ET
+from DaprNativeRuntimes import require_runtime
 
 ROOT = Path(__file__).resolve().parents[2]
 parser = argparse.ArgumentParser(description='Run native Dapr CQL over the loopback WEB4 HTTP test host.')
 parser.add_argument('--daprd', required=True, type=Path)
 parser.add_argument('--garnet', required=True, type=Path)
 parser.add_argument('--results-directory', required=True, type=Path)
+parser.add_argument('--runtime-directory', type=Path, help='Pinned Linux archives and extracted runtimes')
 arguments = parser.parse_args()
 DAPR = arguments.daprd.resolve(strict=True)
 GARNET = arguments.garnet.resolve(strict=True)
@@ -43,17 +44,11 @@ def require_free(ports):
             probe.bind(('127.0.0.1', port))
 
 
-def require_hash(path, expected):
-    with path.open('rb') as file:
-        if hashlib.file_digest(file, 'sha256').hexdigest() != expected:
-            raise RuntimeError('Unexpected runtime executable digest')
-
-
 @contextlib.contextmanager
 def launch(args, name, env=None):
     with (RUN / f'{name}.log').open('wb') as log:
         process = subprocess.Popen(args, cwd=RUN, env=env, stdout=log, stderr=subprocess.STDOUT,
-                                   creationflags=subprocess.CREATE_NO_WINDOW)
+                                   creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
         try:
             yield process
         finally:
@@ -126,8 +121,8 @@ def garnet_ready():
         return connection.makefile('rb').readline() == b'+OK\r\n'
 
 
-require_hash(DAPR, '1013629f8224e73d64aaa45a122e16c54638ccc07c3e9d5178f5e6d575a61897')
-require_hash(GARNET, '0ce799cff60409b3cfd64a85fa19669474eef157d9b369ecc31c41e456c4f2a5')
+require_runtime('daprd', DAPR, arguments.runtime_directory)
+require_runtime('garnet', GARNET, arguments.runtime_directory)
 require_free(PORTS)
 (RUN / 'components').mkdir(parents=True)
 acl = RUN / 'users.acl'

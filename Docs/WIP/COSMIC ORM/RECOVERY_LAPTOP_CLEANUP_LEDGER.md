@@ -4414,3 +4414,11 @@ dapr-linux-runtime-assets-observed.json; no runtime archive downloaded. Source
 pins record Dapr1.18.9 archive64024904B and Garnet2.2.5 archive5694440B for
 future ephemeral cloud-runner use. Existing Windows runner/native fixture
 untouched; Linux native/hosting/restart/write-denial proof remains open.
+
+Dapr native fixture made platform-aware; original Windows binary pins retained,
+Linux requires exact archive and executable integrity. Five offline boundary
+tests pass and their owned temporary directories closed. No local runtime
+download/native fixture execution/build. Qualification workflow prepared for
+one ephemeral Linux runner: pinned archives under RUNNER_TEMP/cosmic-dapr-runtimes,
+source reports under LocalState/COSMIC/DaprLinuxQualification; only TRX/result
+artifacts30days. No credentials/runtime archives uploaded. Native proof pending.

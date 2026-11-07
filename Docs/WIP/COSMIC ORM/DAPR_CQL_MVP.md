@@ -100,3 +100,17 @@ then durable hosted source/restart and Mongo federation before enrollment.
 
 [Dapr release](https://github.com/dapr/dapr/releases/tag/v1.18.9),
 [Garnet release](https://github.com/microsoft/garnet/releases/tag/v2.2.5).
+
+The native fixture is now shared as `run-cosmic-dapr-web4-native.py`; the
+existing PowerShell entry point selects it and retains both exact Windows
+binary hashes. Linux requires the pinned archives and exact extracted executable
+bytes/locations. Installer extraction rejects links, traversal, duplicate
+executables and expanded-size overflow. Five offline controls pass; no native
+Linux result is claimed by those tests.
+
+`qualify-dapr-linux.yml` runs the pinned installer only on an ephemeral Linux
+runner, builds the actual HTTP host under one provider build lease, then runs
+the same native writer-shutdown/restricted-reader/write-denial/unchanged-ETag
+and WEB4 assertions. It retains only compact TRX/result evidence for30days,
+not archives, ACL credentials or runtime logs. No Development rollout is wired
+to this qualification job. Terminal native proof remains required.
