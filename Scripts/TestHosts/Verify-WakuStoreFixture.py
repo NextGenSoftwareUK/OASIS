@@ -100,15 +100,22 @@ def stored(hashes=None):
 
 
 def seal_archive(work, hashes):
-    """Record the closed native archive without copying or modifying it."""
-    archive = work / "store.sqlite3"
-    if archive.resolve(strict=True) != archive or not archive.is_file():
+    """Snapshot committed native data, including any retained SQLite WAL."""
+    source = work / "store.sqlite3"
+    if source.resolve(strict=True) != source or not source.is_file():
         raise RuntimeError("The Waku archive must be a regular owned file")
+    archive = work / "store-qualified.sqlite3"
+    # An exclusive placeholder protects a previous snapshot from replacement.
+    archive.touch(exist_ok=False)
+    with contextlib.closing(sqlite3.connect(source.as_uri() + "?mode=ro", uri=True)) as database:
+        with contextlib.closing(sqlite3.connect(archive)) as snapshot:
+            database.backup(snapshot)
+            if snapshot.execute("PRAGMA journal_mode=DELETE").fetchone() != ("delete",):
+                raise RuntimeError("The Waku snapshot did not switch to a standalone journal mode")
+            if snapshot.execute("PRAGMA quick_check").fetchall() != [("ok",)]:
+                raise RuntimeError("The Waku snapshot failed SQLite verification")
     if any((work / (archive.name + suffix)).exists() for suffix in ("-wal", "-shm", "-journal")):
-        raise RuntimeError("Waku archive still has SQLite sidecars after shutdown")
-    with contextlib.closing(sqlite3.connect(archive.as_uri() + "?mode=ro", uri=True)) as database:
-        if database.execute("PRAGMA quick_check").fetchall() != [("ok",)]:
-            raise RuntimeError("The closed Waku archive failed SQLite verification")
+        raise RuntimeError("The Waku snapshot is not a standalone file")
     with archive.open("rb") as stream:
         digest = hashlib.file_digest(stream, "sha256").hexdigest()
     with (work / "archive-qualified.json").open("x", encoding="utf-8") as receipt:
