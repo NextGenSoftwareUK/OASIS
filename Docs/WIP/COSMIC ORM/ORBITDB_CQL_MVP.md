@@ -90,3 +90,15 @@ Use the existing service and volume. A newly provisioned hosted teaching source
 must have its own native identity, write intent and acknowledgement, with an
 independent native/restart qualification before enrollment. Do not represent
 it as recovery of the old laptop fixture or rerun accepted cohorts.
+
+The scoped hosted candidate is parent
+`ce654d0ea468f4c5c7db25df071b97c65abdfaa5`, Core
+`f06255216c07593896c054e98eeecc32c33da5e4`, published in both repositories
+on `work/cosmic-teaching-release-candidate`. The manifest/gitlink check passed,
+both remote SHAs were verified, and the exact candidate runtime passed all
+three process-identity/readiness controls. It excludes PouchDB and other
+unfinished provider registrations. The production source-link correction for
+the subscription protocol test project is included.
+[Full enabled-image qualification 42339365263](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42339365263)
+is running with `teaching_sidecars=true`. No live settings or source data
+were changed by this preparation.
