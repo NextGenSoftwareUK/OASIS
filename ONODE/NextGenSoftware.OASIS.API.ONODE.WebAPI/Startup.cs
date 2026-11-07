@@ -687,6 +687,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                     NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.GoogleCloudPublicMetadataSource.FromJson(googlePublicSource)));
             Services.Cql.CqlReviewedNetworkReadSourceRegistration.AddReviewedNetworkReadSources(services, Configuration);
             Services.Cql.CqlCloudinaryReadSourceRegistration.AddCloudinaryReadSource(services, Configuration);
+            Services.Cql.CqlLoopbackTeachingSourceRegistration.AddLoopbackTeachingSources(services, Configuration);
             Services.Cql.CqlRegistryAndObjectReadSourceRegistration.AddRegistryAndObjectReadSources(services, Configuration);
             Services.Cql.LocalFileCqlRegistration.AddConfigured(services, Configuration,
                 NextGenSoftware.OASIS.API.Core.Managers.SandboxOptions.Enabled);

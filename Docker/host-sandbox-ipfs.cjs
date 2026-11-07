@@ -187,6 +187,13 @@ async function main() {
     const native = await solid.prepare({ bundle, directory: '/data/COSMIC/SandboxSOLID' });
     services.push({ ...native, check: signal => solid.verify(native, signal, Parser) });
   }
+  if (process.env.OASIS_SANDBOX_ORBITDB === 'true' || process.env.OASIS_SANDBOX_GUN === 'true') {
+    const teaching = require('./host-sandbox-teaching.cjs');
+    if (process.env.OASIS_SANDBOX_ORBITDB === 'true')
+      services.push(await teaching.serviceConfiguration(process.env, 'OrbitDBOASIS'));
+    if (process.env.OASIS_SANDBOX_GUN === 'true')
+      services.push(await teaching.serviceConfiguration(process.env, 'GUNOASIS'));
+  }
   if (!services.length) throw Error('No native sandbox source was explicitly enabled.');
   return supervise({ services });
 }
