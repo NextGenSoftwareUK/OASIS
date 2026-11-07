@@ -9,6 +9,9 @@ admission and transport checks. Both guarded HTTPS native fixtures compiled.
 Owned teaching sources and read credentials remain necessary before native
 HTTPS and deployed acceptance. No provider count changed.
 
+Waku's fixed-loopback teaching descriptor passed two focused checks. Next,
+wire explicit sandbox admission and verify Waku with Mongo federation.
+
 ## Recent WEB4 preparation, 5–6 November 2026
 
 Decentraland passed 32 WEB4 admission tests and native 3/2, MongoDB 5/4

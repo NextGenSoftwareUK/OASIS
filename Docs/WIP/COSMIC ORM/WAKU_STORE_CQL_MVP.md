@@ -28,3 +28,11 @@ provider scopes.
 [Passing native REST run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42289322076) ·
 [Passing CQL run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42289754507) ·
 [Pinned native hash implementation](https://github.com/logos-messaging/logos-delivery/blob/fd07b72c370a6b39c69870c087cc0d928d485327/logos_delivery/waku/waku_core/message/digest.nim).
+
+### WEB4 configuration contract
+
+The reviewed teaching descriptor accepts only a canonical sourceOwner and
+three distinct lowercase Waku messageHashes. The source retains its fixed
+loopback endpoint. Focused descriptor and forged-payload tests passed (2/2).
+Evidence: TestResults/WakuStoreCqlCurrent/descriptor.trx, SHA-256 D926E7A290AA059A29F503E61E83CA7EE928473A9C90C11C2A1B3BF73009C51A.
+WEB4 registration, tariff and Mongo federation proof remain open.

@@ -17,6 +17,26 @@ public sealed class WakuStoreCqlTests
     private static readonly Guid Owner = Guid.Parse("a5808c3e-7031-47e7-92de-48a659568f1b");
 
     [TestMethod]
+    public void TeachingDescriptorOnlyAdmitsThreeDistinctCanonicalHashes()
+    {
+        var hashes = new[] { Missing, "0x" + new string('a', 64), "0x" + new string('b', 64) };
+        var descriptor = System.Text.Json.JsonSerializer.Serialize(new { sourceOwner = Owner, messageHashes = hashes });
+        using var source = WakuStoreQueryConfiguration.CreateSource(descriptor);
+        Assert.AreEqual(Provider, source.QueryProviderType);
+        Assert.IsFalse(source.IsProviderActivated);
+
+        foreach (var invalid in new[]
+        {
+            descriptor.Replace(hashes[1], hashes[0]),
+            descriptor.Replace(hashes[1], hashes[1].ToUpperInvariant()),
+            descriptor.Insert(1, "\"endpoint\":\"http://example.test\","),
+            descriptor.Insert(1, $"\"sourceOwner\":\"{Owner:D}\","),
+            System.Text.Json.JsonSerializer.Serialize(new { sourceOwner = Owner, messageHashes = hashes[..2] })
+        })
+            Assert.ThrowsException<ArgumentException>(() => WakuStoreQueryConfiguration.CreateSource(invalid));
+    }
+
+    [TestMethod]
     public async Task ReturnedHashCannotAuthenticateModifiedPayload()
     {
         using var source = new WakuStoreQuerySource(Owner, new[] { Missing }, new ForgedStore());

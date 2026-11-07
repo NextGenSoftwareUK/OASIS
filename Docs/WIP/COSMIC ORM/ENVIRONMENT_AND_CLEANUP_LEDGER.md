@@ -5073,3 +5073,5 @@ Disk recovery: 354 generated bin/obj targets removed under lease, 6597624139 log
 6 November Decentraland sandbox publication. Reused C:/Source/Web4Site work/cosmic-cql and installed Node/Python. Published 46df63d after 93 focused tests. Live HTML verified in memory against Git blob. No new build outputs, local runtimes, browser state or cohort saves.
 
 6 November latest local catalogue audit. Existing Web4Site checkout at 46df63d, Python and PowerShell reused. 46 paths exist and parse. Two compact regenerable reports in TestResults/LauncherRecoveryCurrent/nov6-published-*.json. No launchers executed, no local services, builds or downloads.
+
+- Waku descriptor qualification, 2026-11-06 (COSMIC). Reuses C:/Source/OASIS-cosmic, installed .NET SDK and existing NuGet cache. Build generates project bin/obj and compact results under C:/Source/OASIS-cosmic/TestResults/WakuStoreCqlCurrent (size unmeasured). No service or port required. Retain the compact test result and remove disposable generated outputs after the leased build exits. Recreate with the focused Waku provider test command.
