@@ -37,6 +37,10 @@ RUN case "$OASIS_INCLUDE_TEACHING_SIDECARS" in \
     esac
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
+# The pinned Waku binary loads PostgreSQL and OpenMP libraries during startup,
+# including when the teaching source uses SQLite.
+RUN apt-get update && apt-get install -y --no-install-recommends libpq5 libgomp1 libstdc++6 libgcc-s1 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 EXPOSE 8080
 

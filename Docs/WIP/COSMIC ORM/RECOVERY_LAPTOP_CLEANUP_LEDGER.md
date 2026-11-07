@@ -3870,3 +3870,12 @@ needed the newly required Waku mounted-deployment gate represented in its
 controlled harness. Its corrected26 cases pass. Existing39 preset controls
 also pass. All use system Python and installed Node with temporary controlled
 files removed by their existing unittest cleanup, no live traffic or sessions.
+
+Waku corrected image42367507424 failed at --version with missing libpq.so.5.
+Packaging now installs libpq5, libgomp1, libstdc++6 and libgcc-s1 in the common
+ASP.NET runtime base, matching the pinned upstream native runtime contract.
+This applies equally to the producer check and final container. Cloud-only
+package/image layers, no Windows install or binary download. Exact image
+qualification must pass before applying the prepared six Waku settings.
+The protected Waku candidate was freshly prepared with205 preserved settings,
+using the original source and actual cloud qualification JSON. No live write.

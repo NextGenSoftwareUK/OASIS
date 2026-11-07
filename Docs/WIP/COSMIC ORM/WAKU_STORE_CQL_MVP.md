@@ -172,3 +172,11 @@ Image42366908944 caught an incorrect exact tar member path before publishing
 an image. Packaging now uses the native fixture's proven extraction hierarchy
 and installs only its verified binary into the final runtime. No live rollout
 or Waku settings were requested. The next exact image must pass first.
+
+Corrected image42367507424 reached the native executable and exposed its
+required libpq.so.5 dependency. The pinned upstream release Dockerfile also
+declares OpenMP, C++ and GCC runtime libraries. These dependencies are now
+installed in the common runtime base so both native qualification and the
+final image inherit the same ABI. The original tar error and this dependency
+failure remain recorded. No Waku source is enabled on Development yet.
+[Upstream pinned runtime contract](https://github.com/logos-messaging/logos-delivery/blob/fd07b72c370a6b39c69870c087cc0d928d485327/Dockerfile).
