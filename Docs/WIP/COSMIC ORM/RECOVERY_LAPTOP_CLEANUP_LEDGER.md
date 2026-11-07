@@ -4151,3 +4151,10 @@ Native archive2011B, all three save ACKs and original source intent retained;
 no local native execution, new runtime, credentials or private certificate.
 Native stopped cleanly before archival, qualified3/2, both explicit permission
 denials, untrustedCA rejection and unchanged source. Do not replay/reseed.
+
+NATS native-file placement13 controls passed with existing cached Node24;
+no package install/download/native execution. Test-created small directories
+under the OS temporary directory were validated by exact real path and owned
+basename before test cleanup; all test cleanups passed. Accepted native source
+LocalState/COSMIC/NatsOwnedTlsQualifiedCurrent was not opened by native SDK,
+modified or replayed. Runtime placement is not yet enabled in the API image.

@@ -88,3 +88,13 @@ Ten retained files total4110B; the downloaded zip was verified in memory.
 Do not rerun or reseed this accepted source. No credentials/private keys
 were retained. The next gate is owned hosted startup and restart verification,
 then exact image qualification and protected enrollment/live HTTP acceptance.
+
+Owned native-file placement is implemented in Docker/host-sandbox-nats.cjs.
+Thirteen controlled runtime checks pass using cached Node24: source/descriptor
+binding, byte hashes, safe paths, duplicate keys/entries, exact native streams,
+exclusive first placement, partial-state refusal, no replacement, missing-file
+refusal, and preservation of native-owned working changes on restart.
+This module is not yet wired into hosted process supervision or deployment.
+Remaining runtime work: TLS credential/certificate persistence, restricted
+native configuration, bounded readiness and exact-source SDK activation,
+real native restart qualification, image packaging and protected publisher.
