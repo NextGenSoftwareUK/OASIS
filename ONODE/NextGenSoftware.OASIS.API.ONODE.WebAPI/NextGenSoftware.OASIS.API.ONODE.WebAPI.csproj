@@ -184,6 +184,7 @@
   <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS/NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS.csproj" />
   <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS/NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS.csproj" />
   <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS/NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Social/NextGenSoftware.OASIS.API.Providers.WorldIDOASIS/NextGenSoftware.OASIS.API.Providers.WorldIDOASIS.csproj" />
   </ItemGroup>
   <ItemGroup><ProjectReference Include="../../Providers/AI/NextGenSoftware.OASIS.API.Providers.BittensorOASIS/NextGenSoftware.OASIS.API.Providers.BittensorOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ZcashOASIS/NextGenSoftware.OASIS.API.Providers.ZcashOASIS.csproj" /></ItemGroup>

@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Providers.DecentralandOASIS;
 using NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS;
 using NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS;
 using NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS;
+using NextGenSoftware.OASIS.API.Providers.WorldIDOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
@@ -21,6 +22,8 @@ public static class CqlReviewedNetworkReadSourceRegistration
             owner => new LayerZeroV1EndpointQuerySource(owner));
         Register(services, configuration["CQL_RECLAIM_VERIFIER_QUERY_SOURCE_OWNER"], "Reclaim",
             owner => new ReclaimVerifierQuerySource(owner));
+        Register(services, configuration["CQL_WORLD_ID_PROTOCOL_QUERY_SOURCE_OWNER"], "World ID v4",
+            owner => new WorldIdProtocolQuerySource(owner));
     }
 
     private static void Register(IServiceCollection services, string ownerText, string provider,
