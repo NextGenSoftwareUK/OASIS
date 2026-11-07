@@ -357,3 +357,15 @@ to `sha256:d40b77b5d8699579baddc43119dd954f8248339637218964f969527d4bbb1fc2`.
 The compact proof is `LocalState/COSMIC/PouchDbScopedReleaseCurrent.build.qualified.json`.
 Code rollout and settings application remain pending Decentraland acceptance
 and the original PouchDB source transfer.
+
+### Resumed on the old laptop, 7 November 2026
+
+The three original inputs are available in their original relative directory.
+The bundle SHA-256 is
+`6b53d414576f80c67b588151c33c1b65cfbc13575e5a07f7569eac56fbbca385`
+and the bootstrap acknowledgement SHA-256 is
+`7aeab8c3cb8f9356f1bb6b787917e63e6c5920bed8c7d0dd5075e0456c47779c`.
+Both match the retained native qualification. All 36 runtime controls passed.
+No bootstrap or source write was replayed. Before rollout, update the scoped
+candidate against current Development so it preserves the accepted teaching
+runtime and all subsequently enrolled sources.

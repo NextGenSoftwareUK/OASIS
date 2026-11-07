@@ -520,6 +520,12 @@ Status: missing account/configuration information,2 November2026. David approved
 
 ## Railway access for Development WEB4 rollout from this laptop
 
+- Reopened for the old laptop on 2026-11-07 after the recovered laptop failed
+  again. Its existing Railway CLI 5.62.1 returns Unauthorized. Sign in privately
+  on this machine with the existing Development account using the command
+  below, then tell the agent when it completes. This enables observation and
+  the next scoped Graph Studio rollout. Keep credentials out of chat and Git.
+
 - Resolved for the recovered laptop on 2026-11-06. Its existing Railway
   session reads Development settings and deployment metadata. Its registered
   SSH identity verified a writable `/data` mount on the prior deployment.

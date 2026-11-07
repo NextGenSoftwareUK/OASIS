@@ -3626,3 +3626,25 @@ No additional .NET producer build was started. The owned Mongo port
 to its original clean detached revision. The separate handoff branch
 carries only source and documentation. LocalState, old-laptop runtime
 and cache state, and the pending ENS fixture remain on this machine.
+
+### Recovery resumed on the old laptop, 7 November 2026
+
+Fetched and fast-forwarded the existing COSMIC branch by 106 commits.
+The old local owner-list and general cleanup-ledger edits were preserved
+in the named Git stash "old-laptop preserved local ledgers before
+resuming 2026-11-07". The active owner list now comes from the pushed
+branch. No unrelated source, native evidence deletions or STAR changes
+were staged.
+
+Reused existing Node, Python and Railway CLI 5.62.1. The CLI returned
+Unauthorized and the existing owner action was reopened for this machine.
+No runtime, provider service, database or image was downloaded or started.
+The original PouchDB bundle, qualification and bootstrap acknowledgement
+remain in their original source directory and passed exact hash comparison.
+The 36 runtime controls passed without source writes.
+
+Retained in `LocalState/COSMIC/RecoveryLaptopResume20261107/` are the
+473-byte Graph image receipt, 347-byte PouchDB input receipt, 7,021-byte
+runtime-control log and 108-byte Graph publisher-control log. All five
+publisher controls passed. These are old-laptop evidence and remain
+separate from the recovered laptop's resource ledger and DPAPI snapshots.

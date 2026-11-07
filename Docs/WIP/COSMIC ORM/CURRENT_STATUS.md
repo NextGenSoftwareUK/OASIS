@@ -10,7 +10,8 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Recovery state
 
-- Worktree C:/Source/OASIS-cosmic, branch work/cosmic-cql-ton-public.
+- Resumed on the old laptop at C:/Source/OASIS2 on 7 November after the
+  recovered laptop failed again. Branch work/cosmic-cql-ton-public.
 - Core task branch work/cosmic-cql-decentraland; preserve independent pins.
 - Development9c6e93003, Coref0625521. Successful code job ac51f1c7.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
@@ -44,8 +45,13 @@ The GUN/OrbitDB cards are published at fae9c5a. Public HTML matches the
 exact commit (241209bytes/SHA256 in provider reports);114 client tests passed.
 The Graph Studio now passes12 provider controls, native3/2,32 admission cases
 and local WEB4/Mongo5/4/privacy. Scoped parentce47a6f8/Coreacc6ed36 is pushed.
-Image CI42346455177 is building with teaching_sidecars=true. Four protected
-settings/four presets use graph-studio-public; live variables are unchanged.
+Image CI42346455177 succeeded with teaching_sidecars=true, exact source
+ce47a6f89c9079ae8b3f61b874b1d73a48a4792a and digest
+sha256:7f3eabf4b84182303452a58a9261633d12ba08f61555cd3f873b6bf464943237.
+Four protected settings/four presets were prepared on the recovered laptop;
+its machine-bound snapshots remain there. Old-laptop Railway access needs
+private sign-in before observing the current baseline and rebuilding the
+protected candidate from that baseline.
 Next verify that exact image, fetch Development and recheck the live baseline
 before promotion/enrollment. Preserve active GUN/OrbitDB source generations.
 The harness cleanup bug was reproduced and fixed locally: durable owner/write
@@ -70,7 +76,10 @@ Provision-HostedTeachingSource.py has five command tests; native helper has six.
 - Finish open browser gates with original cohorts; HTTP/static proof is separate.
 - Continue other providers' runtime, restricted-reader and hosting gates.
 - Waku supervisor-writing command was rejected by automatic tool policy.
-- PouchDB image qualified; original three source files await old-laptop transfer.
+- PouchDB image qualified. All three original source files are present on this
+  old laptop and their bundle/bootstrap hashes match native qualification.
+  The 36 runtime controls passed without replaying source writes. Rebase the
+  scoped candidate on the current Development baseline before its rollout.
 - Hosted Azure Cosmos, Oracle DB and PostgreSQL remain deferred by David.
 - Never replay accepted cohorts or replace original receipts to regenerate evidence.
 - Broader ORM children/depth/history/deltas, migration, placement and HyperDrive
