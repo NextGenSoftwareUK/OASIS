@@ -13,7 +13,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Worktree C:/Source/OASIS-cosmic, branch work/cosmic-cql-ton-public.
 - Core branch work/cosmic-cql-decentraland. Preserve independent dependency pins.
 - Website C:/Source/Web4Site, branch work/cosmic-cql, published 6c95279.
-- Development f9d77e9dc, deployed Core cb99792e.
+- Development 48c532584. Current live release f9d77e9dc, Core cb99792e.
 - Successful Railway settings deployment e8a57bf6-5a96-42c5-a41f-ce350711f272.
 - Unknown root logs and Docs/WIP/Cleanup/CLEANUP_LEDGER.md are outside this task.
 
@@ -45,11 +45,10 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
    arrive from the old laptop. The candidate image is already qualified.
 5. Continue other providers' runtime, restricted-reader and hosting gates.
 
-World ID candidate 48c5325847d0519b091b02b32db7f01b602c8edf is in
-[image CI 42331296910](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42331296910).
-Four settings and presets are protected under prefix world-id-public.
-Next, inspect that exact image result, fetch Development and verify the
-current live baseline before promotion and guarded settings application.
+World ID image qualification passed and Development advanced to 48c532584.
+Observe code job bfc56681-f9a7-4e0a-9670-0ecd41c5e32a, then apply the
+four protected settings under prefix world-id-public and redeploy once.
+Discord/Livepeer/Pinata follow-on candidate 8645794b is in [CI 42332826329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42332826329).
 
 ## Constraints and unfinished roadmap
 

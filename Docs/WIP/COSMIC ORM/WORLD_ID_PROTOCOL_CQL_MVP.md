@@ -60,3 +60,9 @@ LocalState/COSMIC/HostedSourceRolloutCurrent with prefix world-id-public.
 Existing LayerZero, Reclaim and Push Protocol settings are preserved.
 The guarded publisher takes WorldIDOASIS, that prefix, the reviewed
 candidate ref and the exact successful code deployment ID.
+
+Image qualification passed at SHA-256
+ae36981c28c5866f6ec2df1764ab76980c08520f5e88c2ef31767ec58d9d3b69.
+The live baseline still matched before Development fast-forwarded to
+48c532584. Railway code job bfc56681-f9a7-4e0a-9670-0ecd41c5e32a is
+queued. Observe that exact job before applying the four protected settings.

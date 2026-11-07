@@ -51,3 +51,13 @@ recorded nine receipts from the controlled admission layer. Both
 owned databases were verified absent after cleanup and the reused
 Mongo process shut down cleanly. The 4,679-byte TRX SHA-256 is
 `b31cc2e3f8e197ad069c50cd6c4293bbb40b5642a114c70363bcf6b859013d41`.
+
+## Follow-on scoped release candidate
+
+Parent 8645794bbac7c7f8b28c51180db5afa60e586721 and Core
+4585be145c13e3c3d43cb9a5b205475f126faa8f are published on
+work/cosmic-public-three-release-candidate. The batch contains Discord,
+Livepeer and Pinata on top of the World ID candidate. Provider sources
+match the tested task branch, including Livepeer's native contract reader.
+Manifest/gitlink validation passed. [CI 42332826329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42332826329)
+is the image gate. Promotion and hosted settings remain open.

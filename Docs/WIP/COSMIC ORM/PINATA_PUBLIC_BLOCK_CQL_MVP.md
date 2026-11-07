@@ -86,3 +86,13 @@ Hosted HTTP and browser acceptance remain open.
 
 Pinata reused both acknowledged version-one saves and verified their
 identities before federation. The runner issued no repeat saves.
+
+## Follow-on scoped release candidate
+
+Parent 8645794bbac7c7f8b28c51180db5afa60e586721 and Core
+4585be145c13e3c3d43cb9a5b205475f126faa8f are published on
+work/cosmic-public-three-release-candidate. The batch contains Discord,
+Livepeer and Pinata on top of the World ID candidate. Provider sources
+match the tested task branch, including Livepeer's native contract reader.
+Manifest/gitlink validation passed. [CI 42332826329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42332826329)
+is the image gate. Promotion and hosted settings remain open.

@@ -64,3 +64,13 @@ Livepeer passed the same three native and controlled tests after that
 extraction at Core `06a4363e1c26e616eddda34c2959acadab8dbba8`.
 The 5,847-byte TRX SHA-256 is
 `d815ee4016257e1f6b428cf20e1ca6dcc417aeca9a1adc6405717993f35358d8`.
+
+## Follow-on scoped release candidate
+
+Parent 8645794bbac7c7f8b28c51180db5afa60e586721 and Core
+4585be145c13e3c3d43cb9a5b205475f126faa8f are published on
+work/cosmic-public-three-release-candidate. The batch contains Discord,
+Livepeer and Pinata on top of the World ID candidate. Provider sources
+match the tested task branch, including Livepeer's native contract reader.
+Manifest/gitlink validation passed. [CI 42332826329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42332826329)
+is the image gate. Promotion and hosted settings remain open.
