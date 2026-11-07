@@ -37,8 +37,9 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 1. Finish open browser gates using retained cohorts and journals.
    Static publication and HTTP results are separate evidence.
-2. Inspect retained GUN/OrbitDB fixtures and the qualified opt-in image contract,
-   then prepare their hosted runtime/settings batch using the existing volume.
+2. Prepare a scoped GUN/OrbitDB image with teaching_sidecars=true.
+   Bootstrap a separately journalled hosted source on the existing volume,
+   qualify native/restart reads, then enroll its native/Mongo presets.
 3. Finish Waku managed Store packaging and lifecycle. The earlier local
    supervisor-writing command was rejected by automatic tool policy.
 4. Complete PouchDB hosted rollout after its original three source files
@@ -53,7 +54,10 @@ independent private0/public3 and both replicas2/2. Original cohorts are retained
 Website a88076d publishes their three cards and pinned evidence/C# links.
 All114 website tests passed. Public HTML239108bytes matches the exact commit,
 SHA2568773ee77638a24988968db32a15d58069424ac2e03604639a03d244198e65666.
-Browser interaction remains open. Next inspect GUN/OrbitDB hosted prerequisites.
+Browser interaction remains open. GUN/OrbitDB original fixture directories
+are absent here. The workflow now selects their existing optional runtime
+with distinct commit-teaching tags; all three execution checks passed.
+Next prepare the scoped enabled image, including the test-project correction.
 Subscription protocol CI exposed a missing SandboxSubscriptionRules source link.
 The project dependency is fixed locally: bounded build and 22 pure tests passed.
 Include that test-project-only correction in the next verified Development batch.

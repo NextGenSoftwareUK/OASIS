@@ -20,6 +20,11 @@ on:
         required: false
         type: string
         default: sandbox
+      teaching_sidecars:
+        description: Include pinned GUN and OrbitDB teaching runtimes
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -56,19 +61,25 @@ jobs:
         env:
           REPOSITORY_OWNER: ${{ github.repository_owner }}
           EXTRA_IMAGE_TAG: ${{ inputs.tag }}
+          TEACHING_SIDECARS: ${{ inputs.teaching_sidecars }}
         run: |
           repo="ghcr.io/${REPOSITORY_OWNER,,}/oasis-web4"
           sha="$(git rev-parse HEAD)"
           echo "repo=$repo" >> "$GITHUB_OUTPUT"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          case "$TEACHING_SIDECARS" in
+            true) image_sha="$sha-teaching" ;;
+            false|'') image_sha="$sha" ;;
+            *) echo "Invalid teaching runtime selection" >&2; exit 1 ;;
+          esac
           if [[ -n "$EXTRA_IMAGE_TAG" && ! "$EXTRA_IMAGE_TAG" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}$ ]]; then
             echo "Invalid extra image tag" >&2
             exit 1
           fi
           {
             echo 'tags<<TAGS'
-            echo "$repo:$sha"
-            if [[ -n "$EXTRA_IMAGE_TAG" && "$EXTRA_IMAGE_TAG" != "$sha" ]]; then
+            echo "$repo:$image_sha"
+            if [[ -n "$EXTRA_IMAGE_TAG" && "$EXTRA_IMAGE_TAG" != "$image_sha" ]]; then
               echo "$repo:$EXTRA_IMAGE_TAG"
             fi
             echo TAGS
@@ -85,6 +96,7 @@ jobs:
           tags: ${{ steps.names.outputs.tags }}
           build-args: |
             GITHUB_PAT=${{ secrets.PRIVATE_SUBMODULE_PAT }}
+            OASIS_INCLUDE_TEACHING_SIDECARS=${{ inputs.teaching_sidecars && 'true' || 'false' }}
           cache-from: |
             type=gha
             type=gha,scope=pouch-native

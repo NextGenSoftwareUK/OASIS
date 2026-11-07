@@ -68,3 +68,25 @@ copies were removed after ownership and count checks. Both owned
 services stopped and the original fixture descriptor was byte-identical.
 TRX SHA-256
 `433eb5ed60d19a5cadcf619a5867e5fed0dc7d9289ee057e894b8f52eeb03774`.
+
+## Hosted preparation on the recovered laptop
+
+The original `LocalState/COSMIC/LocalGunCqlQualification` and
+`LocalState/COSMIC/LocalOrbitDbCqlQualification` directories are absent here.
+Their original native and local HTTP evidence remains accepted and unchanged.
+The paths, versions and historical sizes are recorded in
+[the recovery ledger](RECOVERY_LAPTOP_CLEANUP_LEDGER.md).
+
+The image workflow now accepts `teaching_sidecars=true`, which supplies
+`OASIS_INCLUDE_TEACHING_SIDECARS=true` to the existing Docker stage.
+Enabled images use the distinct `<commit>-teaching` tag. The default profile
+keeps its ordinary commit tag. Three tests execute the shipping naming step
+for both profiles and reject invalid selections. Run:
+`python -B -m unittest discover -s Scripts/Sandbox -p test_teaching_image_workflow.py`.
+They reuse existing Python/PyYAML and Git Bash; no dependencies were installed.
+
+The full scoped image, persistent hosted source and live acceptance remain open.
+Use the existing service and volume. A newly provisioned hosted teaching source
+must have its own native identity, write intent and acknowledgement, with an
+independent native/restart qualification before enrollment. Do not represent
+it as recovery of the old laptop fixture or rerun accepted cohorts.
