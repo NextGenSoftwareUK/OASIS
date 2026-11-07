@@ -1,6 +1,6 @@
 # CQL completion roadmap
 
-Updated 5 November 2026. Full programme remains incomplete.
+Updated 7 November 2026. Full programme remains incomplete.
 [CURRENT_STATUS](CURRENT_STATUS.md) owns deployment state and the exact next step.
 
 Continue the full CQL, COSMIC ORM and HyperDrive roadmap. Prioritize the live
@@ -26,18 +26,19 @@ reason and evidence for any inapplicable feature and keep unverified cells open.
 The 4 November published launcher audit found all 37 referenced scripts in the
 task checkout. Runtime qualification remains separate.
 
-1. Complete the [LocalFile Development rollout](LOCALFILE_CQL_MVP.md) using the
-   qualified image and verified persistent mount, then run the hosted demo gates.
-   Nostr source recovery is already deployed. The [operator recovery gate](CQL_SOURCE_RECOVERY.md)
-   remains open for the unavailable source.
-   Recover the published launcher runtime/configuration gaps and their reviewed
-   source dependencies from retained sandbox-integration pin 237403a75. DuckDB
-   now has a passing retained native and Mongo-paired replay on the recovery
-   laptop. Its Development file placement and activation remain open.
-   ThreeFold's hosted audit and card/static assets now pass at website2170b67;
-   preserve its original cohort/settings/ACKs. Do not replay accepted gates.
+1. Complete The Graph Studio scoped image qualification and Development rollout
+   described in [CURRENT_STATUS](CURRENT_STATUS.md) and
+   [The Graph report](THE_GRAPH_STUDIO_CQL_MVP.md). Preserve active GUN/OrbitDB
+   source generations and their teaching runtimes. LocalFile and the latest
+   Oracle Object Storage, Cloudinary, Proof of Humanity, GUN and OrbitDB HTTP
+   scopes are accepted; do not repeat their write schedules. Studio indexing
+   status is a bounded read profile, not general GraphQL entity translation.
+   Nostr operator recovery remains open; PouchDB awaits its original retained
+   source artifacts. Continue independent red gates while those are blocked.
+   DuckDB Development file placement/activation and remaining launcher runtime
+   gaps stay open; retained qualification does not establish hosted readiness.
 2. Preserve the accepted hosted and local scopes in the [provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md).
-   ClickHouse is the latest accepted hosted addition; its sandbox card, guide/C#
+   ClickHouse has accepted hosted evidence; its sandbox card, guide/C#
    links and exact public static bytes are verified. Counts are demo scopes,
    not full provider or ORM certification. Meilisearch adds the new Windows-local
    profile: native/restart, manager/Mongo/HTTP and browser verified, with an honest
@@ -54,7 +55,8 @@ task checkout. Runtime qualification remains separate.
    provider. Expand remaining red scopes with explicit capabilities/consistency,
    controlled tests, actual native manager/LINQ and HTTP proof, privacy/replicas,
    honest labels and usable sandbox/local demo links.
-4. Complete 32 remaining browser gates. Twenty-eight flows have browser evidence,
+4. Complete 46 remaining browser gates among the 74 HTTP-qualified profiles.
+   Twenty-eight flows have browser evidence,
    including the twenty-three recovery-session additions documented in
    [browser evidence](RECOVERY_BROWSER_EVIDENCE_2026-11-05.md).
    Static assets and HTTP success do not prove browser interaction.
