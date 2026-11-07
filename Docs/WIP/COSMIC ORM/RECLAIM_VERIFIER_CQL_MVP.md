@@ -62,3 +62,10 @@ runs against the exact candidate. The six-value protected candidate under
 LocalState/COSMIC/HostedSourceRolloutCurrent uses the layerzero-reclaim-public
 prefix. It includes four presets per provider and preserves the existing
 Push Protocol enrollment. Hosted settings have not been applied.
+
+The first image build failed with CS0246 in both providers because the
+scoped candidate omitted the shared ReviewedEvmReadClient source.
+Candidate f9d77e9dc79e632c714a5aa244a94e1f69a38352 adds that exact tested
+blob. Core and settings snapshots are unchanged. The corrected
+[image gate](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42328625924)
+must pass before promotion.

@@ -67,3 +67,10 @@ Use the exact expected commit environment value and preflight without
 --apply first. The publisher recomputes the shared admission and grants
 once before it writes either preset partition. Five publisher tests and
 39 exact-key configuration tests passed.
+
+The first image build failed with CS0246 in both providers because the
+scoped candidate omitted the shared ReviewedEvmReadClient source.
+Candidate f9d77e9dc79e632c714a5aa244a94e1f69a38352 adds that exact tested
+blob. Core and settings snapshots are unchanged. The corrected
+[image gate](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42328625924)
+must pass before promotion.
