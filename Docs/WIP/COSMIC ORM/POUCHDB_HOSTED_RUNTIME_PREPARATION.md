@@ -369,3 +369,14 @@ Both match the retained native qualification. All 36 runtime controls passed.
 No bootstrap or source write was replayed. Before rollout, update the scoped
 candidate against current Development so it preserves the accepted teaching
 runtime and all subsequently enrolled sources.
+
+The updated candidate is
+`e33b2b4c25f6903d6da24e44d33e92245dc1c469` with Core
+`b98220a77074ef5c55e061e957df3ae2e2bbcd00`. It starts from the Graph
+release and retains the existing GUN/OrbitDB runtime integration. The scoped
+delta contains 18 paths and its Core change adds only the PouchDB read tariff.
+Both existing candidate refs were advanced normally and verified remotely.
+Dependency manifest and diff checks passed.
+[Image qualification42354427254](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42354427254)
+is queued with teaching runtimes enabled. No PouchDB deployment or settings
+application was requested.

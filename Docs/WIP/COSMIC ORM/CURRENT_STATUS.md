@@ -52,8 +52,10 @@ Four protected settings/four presets were prepared on the recovered laptop;
 its machine-bound snapshots remain there. Old-laptop Railway access needs
 private sign-in before observing the current baseline and rebuilding the
 protected candidate from that baseline.
-Next verify that exact image, fetch Development and recheck the live baseline
-before promotion/enrollment. Preserve active GUN/OrbitDB source generations.
+The live baseline was verified after private sign-in. Development advanced to
+ce47a6f8 and exact Railway code deployment
+ab79d580-2412-4a70-aadc-4c0a812ec44d is queued. Observe that job before
+enrollment. Preserve active GUN/OrbitDB source generations.
 The harness cleanup bug was reproduced and fixed locally: durable owner/write
 journals now reject fresh execution before sessions/queries; all26 tests pass.
 Do not rerun accepted HTTP schedules. Browser gates remain open.

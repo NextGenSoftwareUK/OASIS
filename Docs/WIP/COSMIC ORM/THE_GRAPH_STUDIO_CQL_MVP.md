@@ -104,6 +104,23 @@ live settings still match the original teaching-public candidate.
 Catalogue: LocalState/COSMIC/GraphStudioReleaseCurrent/catalogue.json.
 No live enrollment or hosted acceptance has occurred yet.
 
+### Old-laptop continuation, 7 November 2026
+
+Image CI42346455177 succeeded with the exact reviewed source and teaching
+runtimes enabled. The image digest is
+`sha256:7f3eabf4b84182303452a58a9261633d12ba08f61555cd3f873b6bf464943237`.
+After David restored private Railway access, the prior deployment
+`593cd948-541c-4012-8d0d-654b58ba381d` still served Development9c6e93003.
+Its live configuration matched the fresh protected baseline.
+
+Development advanced by normal fast-forward to the scoped candidate
+`ce47a6f89c9079ae8b3f61b874b1d73a48a4792a`. Railway queued the exact
+code deployment `ab79d580-2412-4a70-aadc-4c0a812ec44d`. Observe that job.
+The original 49-byte descriptor was recovered byte-for-byte from the current
+World ID public owner setting. Four protected settings and four presets were
+prepared locally. Their application and hosted acceptance remain pending
+successful code deployment. No accepted teaching source was recreated.
+
 The immutable public publisher descriptor is prepared at
 `LocalState/COSMIC/HostedSourceRolloutCurrent/graph-studio-public-descriptor.json`
 (49 bytes, SHA256 `de20548bd9331b2a0484e84daf1f917588838c401ae2cda175de48129f97c13e`).

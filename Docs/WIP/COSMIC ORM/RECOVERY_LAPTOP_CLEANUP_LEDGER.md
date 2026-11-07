@@ -3648,3 +3648,22 @@ Retained in `LocalState/COSMIC/RecoveryLaptopResume20261107/` are the
 runtime-control log and 108-byte Graph publisher-control log. All five
 publisher controls passed. These are old-laptop evidence and remain
 separate from the recovered laptop's resource ledger and DPAPI snapshots.
+
+Restored private Railway access on this laptop after David's confirmation.
+Recovered the published 49-byte Graph descriptor by exact hash and created
+machine-bound before/candidate snapshots under
+`LocalState/COSMIC/HostedSourceRolloutCurrent/`, 247,430 and 249,798
+bytes. The fresh snapshot is independent of the inaccessible newer laptop's
+DPAPI state. Four settings/four presets are prepared and unapplied.
+
+The PouchDB integration reused existing Git objects through temporary
+isolated indexes; both indexes were removed after producing exact trees.
+The scoped parent/Core candidates were published to the existing release
+candidate refs and remotely verified. Image run42354427254 was requested
+once with teaching runtimes enabled. Source assembly and dispatch scripts
+and compact intents/acknowledgements are retained under
+`LocalState/COSMIC/RecoveryLaptopResume20261107/`. No Git credential
+was written to disk or printed. No local image/runtime/service was installed.
+The exact Graph deployment observer writes one compact record under
+`TestResults/RecoveryLaptopResume20261107/`. Its accepted source generation
+and pending ENS cohort remain intact.
