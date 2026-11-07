@@ -4354,3 +4354,11 @@ six-public-readers-candidate-variables.dpapi 329126B retained for guarded rollou
 No settings applied, environment/runtime installed, native source replayed or
 cohort created. Offline shared publisher controls: six new plus four retained
 pass. Retain snapshots until rollout reconciliation; never commit protected data.
+
+Six-reader scoped candidate88b896815/Core944d380 assembled using temporary Git
+indexes (removed after tree creation), original accepted baseline15eb486735/
+85278a4 and named six-reader inputs, including Miden .proto. Existing candidate
+refs advanced normally; task sourceaf29ca246 pushed. No checkout/environment
+created or Development push. Manifest/gitlinks and scoped whitespace checks pass.
+One qualification workflow42408837581 observed in_progress;25pass/0skip required.
+Compact six-public-readers-ci-observed.json retained; no artifact download.
