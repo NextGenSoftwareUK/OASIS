@@ -35,13 +35,16 @@ The pinned package XML confirms NatsTlsOpts.CaFile accepts a PEM string/path.
 
 Nine boundary/admission cases cover sandbox opt-in, inactive construction,
 plaintext/foreign endpoints, reader credentials, another bucket and the four
-native/Mongo presets. CI qualification is pending; no native TLS acceptance
+native/Mongo presets. CI run 42394807859/job128469782521 passed all nine cases with zero skips
+against 5ee6d08a4123f48eb75d5885306c5e75e10ddfbb; no native TLS acceptance
 is claimed from these controlled cases. No NATS settings, hosted source,
 credential/certificate or new local runtime/environment has been created.
 
 ## Remaining gates
 
-- Run the exact nine-case boundary job, retaining its TRX.
+- Boundary gate passed: artifact13583217752, 2480 bytes, SHA256
+  88fddffe56601994af4abc4dd94271be773b1667d689d9885e8177d6dab9ab4a.
+  The native TLS source gate below remains open.
 - Qualify a real Linux TLS native source using restricted subject permissions,
   trusted CA verification and the existing real SDK. Verify native3/2, denied
   writes/foreign access and unchanged source before any hosted enrollment.
@@ -53,3 +56,12 @@ credential/certificate or new local runtime/environment has been created.
   live native/Mongo/privacy/replica outcomes and published demo instructions.
 - Complete browser verification separately. Full provider/ORM contracts remain
   part of the programme after the breadth-first MVP.
+
+The native TLS qualifier now builds the real SDK consumer under the shared
+build lease in an isolated Linux CI runner. It downloads the exact native
+2.15.2 archive with its release SHA256, seeds one new owned synthetic source,
+and requires real CQL3/2, explicit permission-denial events, typed TLS
+authentication failure for an untrusted CA, and unchanged values/revisions.
+The server stops before native-store archival. Partial source journals remain
+on failure; private keys, server credentials and raw logs are excluded from
+artifacts. This gate has not yet run or qualified hosted enrollment.

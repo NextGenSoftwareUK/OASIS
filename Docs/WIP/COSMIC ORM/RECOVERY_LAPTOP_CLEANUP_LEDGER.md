@@ -4132,3 +4132,13 @@ certificate callback or fallback endpoint. Nine boundary/admission controls
 are prepared for cloud CI. No local.NET build/install/environment, certificate,
 credential, native source, deployment or live settings mutation performed.
 NATS_JETSTREAM_CQL_MVP.md tracks exact remaining gates and original evidence.
+
+NATS boundary CI42394807859 passed9/9, zero skips; retained TRX artifact
+13583217752 (2480B, SHA25688fddffe56601994af4abc4dd94271be773b1667d689d9885e8177d6dab9ab4a).
+Prepared isolated Linux native TLS gate: one SHA-pinned7298258B native
+archive downloaded in ephemeral CI only, .NET consumer built under lease,
+new synthetic source under TestResults/NatsOwnedTlsCurrent, native stopped
+before bounded archive. Private certificate/key/config removed only from
+validated owned CI path after process stop; native data and mutation journals
+retained as90-day artifact, including partial failures. No local download,
+runtime install, build, environment or accepted-source replay.

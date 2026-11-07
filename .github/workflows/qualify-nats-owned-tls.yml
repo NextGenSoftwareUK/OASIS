@@ -1,0 +1,74 @@
+name: Qualify native NATS owned TLS source
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-nats-owned-tls.yml'
+      - 'Scripts/TestHosts/NatsOwnedTlsQualification/**'
+      - 'Scripts/TestHosts/Verify-NatsOwnedTlsSource.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Read pinned dependencies
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Build the real SDK consumer once
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner nats-owned-tls-ci -Operation {
+            dotnet build Scripts/TestHosts/NatsOwnedTlsQualification /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE) { throw 'Native NATS TLS consumer build failed' }
+          }
+      - name: Verify native binary and qualify isolated source
+        working-directory: OASIS
+        shell: bash
+        run: |
+          set -euo pipefail
+          native_root="$RUNNER_TEMP/nats-owned-2.15.2"
+          mkdir "$native_root"
+          curl --fail --location --silent --show-error --max-time 90 https://github.com/nats-io/nats-server/releases/download/v2.15.2/nats-server-v2.15.2-linux-amd64.tar.gz --output "$native_root/native.tar.gz"
+          echo '67cb8e10bc6f0c4b47f75a728529a20953dbae2a4f9a4a52ae8517d65ae303ff  '"$native_root/native.tar.gz" | sha256sum --check --strict
+          tar -xzf "$native_root/native.tar.gz" -C "$native_root"
+          test ! -e /data/COSMIC/SandboxNATS
+          sudo install -d -m 700 -o "$(id -u)" -g "$(id -g)" /data/COSMIC
+          python3 -B Scripts/TestHosts/Verify-NatsOwnedTlsSource.py "$native_root/nats-server-v2.15.2-linux-amd64/nats-server" Scripts/TestHosts/NatsOwnedTlsQualification/bin/Debug/net10.0/NatsOwnedTlsQualification.dll TestResults/NatsOwnedTlsCurrent
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nats-owned-tls-source
+          path: OASIS/TestResults/NatsOwnedTlsCurrent/results/
+          if-no-files-found: warn
+          retention-days: 90
