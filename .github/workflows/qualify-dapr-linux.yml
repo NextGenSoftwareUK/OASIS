@@ -11,6 +11,7 @@ on:
       - 'Scripts/TestHosts/test_dapr_native_runtimes.py'
       - 'Scripts/TestHosts/DaprNativePorts.py'
       - 'Scripts/TestHosts/test_dapr_native_ports.py'
+      - 'Scripts/TestHosts/qualify-dapr-pending-recovery.cjs'
       - 'Docker/DaprRuntime/**'
       - 'Scripts/Sandbox/test_hosted_dapr_configuration.cjs'
       - 'Scripts/Sandbox/test_hosted_dapr_runtime.cjs'
@@ -92,6 +93,8 @@ jobs:
             $runtimes = Get-Content LocalState/COSMIC/DaprLinuxQualification/runtime-paths.json | ConvertFrom-Json
             python3 -B Scripts/TestHosts/run-cosmic-dapr-web4-native.py --daprd $runtimes.daprd --garnet $runtimes.garnet --runtime-directory "$env:RUNNER_TEMP/cosmic-dapr-runtimes" --results-directory LocalState/COSMIC/DaprLinuxQualification --provisioner
             if ($LASTEXITCODE) { throw 'Dapr Linux native qualification failed' }
+            node Scripts/TestHosts/qualify-dapr-pending-recovery.cjs $runtimes.garnet $runtimes.daprd LocalState/COSMIC/DaprLinuxQualification
+            if ($LASTEXITCODE) { throw 'Dapr native unknown-outcome reconciliation failed' }
           }
       - uses: actions/upload-artifact@v7
         if: always()
@@ -101,6 +104,7 @@ jobs:
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/web4.trx
             OASIS/LocalState/COSMIC/DaprLinuxQualification/native-build-receipt.json
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/runtime-source-proof.json
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/**/pending-recovery-native-proof.json
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/result.log
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/diagnostic.json
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/failure-diagnostics.json

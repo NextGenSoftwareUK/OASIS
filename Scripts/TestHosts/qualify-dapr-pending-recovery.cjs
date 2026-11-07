@@ -1,0 +1,57 @@
+'use strict';
+const fs = require('node:fs/promises');
+const path = require('node:path');
+const crypto = require('node:crypto');
+const assert = require('node:assert/strict');
+const helper = require('../../Docker/provision-sandbox-dapr.cjs');
+const { contract } = require('../../Docker/DaprRuntime/configuration.cjs');
+
+(async () => {
+  if (process.platform !== 'linux' || process.argv.length !== 5) throw Error('Explicit Linux native executables and existing evidence root required.');
+  const binaries = { garnet: await fs.realpath(process.argv[2]), daprd: await fs.realpath(process.argv[3]) };
+  const evidenceRoot = await fs.realpath(process.argv[4]);
+  const source = path.join(evidenceRoot, 'pending-' + crypto.randomUUID());
+  const plan = { schema: 1, prefix: crypto.randomUUID().slice(0, -1),
+    readerPassword: crypto.randomBytes(32).toString('hex'), sidecarToken: crypto.randomBytes(32).toString('hex') };
+  const nativeFetch = globalThis.fetch;
+  const endpoint = `http://127.0.0.1:${contract.ports.http}/v1.0/state/${contract.store}`;
+  let saves = 0, lostResponseInjected = false, inspectionMutations = 0;
+  // The real native service receives and acknowledges the only save. Only its
+  // response delivery to the journal owner is fault-injected; storage is real.
+  globalThis.fetch = async (url, options) => {
+    if (options?.method === 'POST' && url === endpoint) {
+      if (++saves !== 1) throw Error('Unexpected repeated save during failure fixture.');
+      const response = await nativeFetch(url, options);
+      assert.equal(response.status, 204);
+      lostResponseInjected = true;
+      throw Error('Controlled loss of original native save response');
+    }
+    return nativeFetch(url, options);
+  };
+  try {
+    await assert.rejects(helper.provision(plan, source, binaries), /Controlled loss of original native save response/);
+    assert.equal(lostResponseInjected, true);
+    for (const name of ['seed.acknowledged.json', 'source.acknowledged.json'])
+      await assert.rejects(fs.stat(path.join(source, name)), { code: 'ENOENT' });
+    globalThis.fetch = (url, options) => {
+      if (options?.method && options.method !== 'GET') { inspectionMutations++; throw Error('Recovery inspector attempted a mutation.'); }
+      return nativeFetch(url, options);
+    };
+    const proof = await helper.inspectPendingSource(plan, source, binaries);
+    assert.equal(proof.records.length, 4);
+    assert.equal(proof.recoveries, 2);
+    assert.equal(proof.businessWrites, 0);
+    assert.equal(proof.originalSaveResponseAcknowledged, false);
+    assert.deepEqual(proof.records.map(row => row.value), helper.review(plan).map(row => row.value));
+    assert.equal(saves, 1); assert.equal(inspectionMutations, 0);
+    for (const name of ['seed.acknowledged.json', 'source.acknowledged.json'])
+      await assert.rejects(fs.stat(path.join(source, name)), { code: 'ENOENT' });
+    const result = { schema: 1, nativeSaveRequests: saves, responseLossInjected: true,
+      originalRecordsVerified: proof.records.length, recoveries: proof.recoveries,
+      inspectionMutations, originalAofUnchanged: true, originalSaveResponseAcknowledged: false,
+      fabricatedSaveAcknowledgement: false, nativeProcessesStopped: true };
+    const file = await fs.open(path.join(source, 'pending-recovery-native-proof.json'), 'wx', 0o600);
+    try { await file.writeFile(JSON.stringify(result)); await file.sync(); } finally { await file.close(); }
+    process.stdout.write(JSON.stringify(result) + '\n');
+  } finally { globalThis.fetch = nativeFetch; }
+})().catch(error => { console.error(error.message); process.exitCode = 1; });
