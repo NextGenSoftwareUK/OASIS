@@ -90,8 +90,13 @@ Instance4feb83e2-4b94-43bd-8253-e6057e531845 exposes a separate writable
 /data mount. This laptop needed one dedicated SSH identity, created with
 built-in OpenSSH and registered as cosmic-cql-recovery-laptop-20261107.
 All six guarded PouchDB settings are acknowledged and observed exactly.
-One settings deployment request is journalled. Follow its exact job before
-source-receipt inspection and original hosted readiness/acceptance.
+Settings deployment95167a76-0535-4874-a0ac-252bffa21d41 succeeded. Its
+original first-generation receipt matches all three qualified source records.
+An external deployment2045b41e-46a6-45c9-9420-e60473b23b4b at rewritten
+commitfcb76069 is now BUILDING. Its entire root tree43013d7249f5c4b78249c33cca992337559e8c43
+is identical to qualified028d342e, and its manifest/gitlinks validate.
+Wait for that exact deployment, bind the guard to its verified commit and
+active instance/image, then perform original hosted readiness/acceptance.
 The harness cleanup bug was reproduced and fixed locally: durable owner/write
 journals now reject fresh execution before sessions/queries; all26 tests pass.
 Do not rerun accepted HTTP schedules. Browser gates remain open.

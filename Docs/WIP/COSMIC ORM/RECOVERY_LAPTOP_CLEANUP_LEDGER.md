@@ -3799,3 +3799,14 @@ intents and acknowledgements. Full protected candidate read-back matched.
 One settings-deploy request intent/response is retained. Native PouchDB
 startup remains pending that deployment, and original local LevelDB data
 was not touched.
+
+Settings deployment95167a76 succeeded at028d342e, image
+25d32ed87eb4fe1a0faf3670364f563f287e309ef46bec5e5336be34c4adb038,
+active instancefdd47dad. The original native first-generation receipt was
+verified against the retained qualification. An external same-service job
+2045b41e atfcb76069 is BUILDING. Its complete Git root tree exactly matches
+028d342e (43013d7249f5c4b78249c33cca992337559e8c43). Fetched only that
+commit with depth1 into the existing object store to verify the identity
+and manifest. No checkout, branch move, source or settings mutation. The
+compact identical-source proof is retained. Original hosted CQL acceptance
+has not started and its guard remains closed until the latest job settles.
