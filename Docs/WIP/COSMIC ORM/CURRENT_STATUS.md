@@ -66,9 +66,9 @@ Native runtime flags remain off until separately journalled source qualification
 Immutable source plans exist under HostedTeachingSourceCurrent/{GUNOASIS,OrbitDBOASIS}.
 Use Provision-HostedTeachingSource.py with the exact deployment/replica and
 existing release/mount guards. Its four command-contract tests passed.
-Subscription protocol CI exposed a missing SandboxSubscriptionRules source link.
-The source-link correction is now in Development9c6e9300.
-Its bounded build and22 pure tests passed; the next CI will exercise the native ledger.
+Subscription protocol CI42341070588 passed after the source-link correction:
+six .NET suites1493 passed/137 skipped; WEB4-WEB10 publish succeeded.
+Native provider/source acceptance remains a separate gate.
 
 ## Constraints and unfinished roadmap
 

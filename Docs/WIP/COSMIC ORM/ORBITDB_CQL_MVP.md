@@ -149,3 +149,11 @@ Four command-contract tests passed, including wrong deployment, active
 reader, mismatched/ambiguous receipts and the successful command envelope.
 Run `python -B -m unittest discover -s Scripts/Sandbox -p test_hosted_teaching_provisioning.py`.
 These checks use controlled local processes; real hosted native acceptance remains open.
+
+[Subscription protocol CI42341070588](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42341070588)
+passed on the scoped Development release. Six .NET suites reported1493
+passed, zero failed and137 skipped: protocol140, WEB4 application777,
+shared usage432, reconciliation50, service adapters77 and operator17.
+All137 skips belong to the WEB4 application suite. WEB4-WEB10 exact
+source publish checks also passed. These prove CI contracts and the
+source-link correction; they do not replace native hosted source acceptance.
