@@ -59,43 +59,28 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-Qualify Dapr hosting on Linux with a restricted backing store, while advancing
-other independent provider scopes whose retained evidence and access are ready.
-Dapr Linux read/write-denial/HTTP and durable restart proofs pass.
-The mandatory Garnet native library is rebuilt from pinned upstream source for
-the target OS; native AOF writes and full durable restart pass in42416939381.
-Shared configuration/default-writer-disabled recovery also passes in42417629733.
-The recovery-only hosted helper has13controlled checks. Run42418683499 failed
-in the fixture before helper verification because its ACL filename differed from
-the shipping contract; corrected inea3d78835. Run42419782648 isSUCCESS:
-actual helper verified recovered values/ETags and original writer was rejected.
-The shared one-shot seed journal (aee489ed3) has3additional lifecycle controls
-and passed real native engines in42419910853. Both helper and shared-seed
-gates areSUCCESS. The explicit Linux provisioner is implemented with3boundary
-controls. Actual provisioner runs42420695067/42420810266 returned creation
-acknowledgements but failed the subsequent Python recovery port probe; Linux
-SO_REUSEADDR and private component creation are corrected. Exact candidate
-c9f6ac65d passes42422065811: one4record creation and two native WEB4 recovery
-checks with unchanged values/ETags, no skips. Exact image qualification is now
-passed in42422745498. Code deployment00eace0e isQUEUED; live
-provisioning/enrollment remain open. Coverage is119local/
-91live HTTP/28functional browser. Source88b896815/Core944d380, settings
-8783d8eb-1d65-474f-8bdd-081615d4794a SUCCESS, instance5e85e983.
-All13settings and active configuration verified before six first hosted cohorts.
-Each passed native3/2, Mongo5/4, first2private saves/repeat0new2existing,
-privacy0/public3 and exactSQLite/Neo4j replicas2/2. Original cohorts sealed;
-never replay. [Exact batch evidence](SIX_PUBLIC_READERS_HOSTED_BATCH.md).
+Live Development is c9f6ac65d/Coreec7d440, code00eace0e SUCCESS on instance5693a2e5,
+actual image sha256:2777ec8ed780529cfb5c3937e9cdad50bedd54694e21910d49bdc572c50e5d2d.
+Dapr remains disabled/unadmitted. The first original source save timed out without
+acknowledgement because Railway denies the default libaio completion syscall.
+Its original source/plan/intent are preserved: never recreate or resend.
 
-Websitead7e9dd publishes accepted cards71-76 and retains all earlier cards.
-All119 client controls pass; public HTTP200 HTML matches Git exactly.
-These are bounded native observations and private snapshots, separate from
-wallet execution, full protocol functionality and full provider/ORM parity.
+Explicit Native/Uring startup works in a separate empty diagnostic; full native
+qualification is pending. The read-only pending-source inspector and recovered-
+outcome metadata transition have23local controls, but are not yet native-qualified
+or run against the live source. Next qualify their real native lost-response
+fixture, then exact candidate/image, and reconcile the same original source.
+No second source generation or original save request is authorized by that flow.
 
-Preserve every accepted source generation, cohort and unknown mutation intent.
-Browser URL-policy helper failure remains open without bypass. QuestDB public403,
-Chroma/D1 access gates, Nostr operator recovery and David's deferred hosted
-databases remain unchanged. Dapr's next hosted proof requires a Linux sidecar
-and reviewed restricted backing store; Windows proof does not establish it.
+Coverage remains119local/91live HTTP/28functional browser. The six public readers
+remain accepted on their original sealed cohorts: native3/2, Mongo5/4, repeat0new,
+privacy0/public3 and exact SQLite/Neo4j replicas2/2. Never replay accepted cohorts.
+Websitead7e9dd publishes cards71-76; all119client controls and exact public HTML
+passed. Browser gates remain open. [Batch evidence](SIX_PUBLIC_READERS_HOSTED_BATCH.md).
+
+Browser URL-policy helper failure, QuestDB403, Chroma/D1 access, Nostr recovery
+and David's deferred hosted databases remain unchanged. Full provider/ORM parity
+and broader protocol execution are separate from these bounded CQL proofs.
 
 ## Source and rollout journals
 

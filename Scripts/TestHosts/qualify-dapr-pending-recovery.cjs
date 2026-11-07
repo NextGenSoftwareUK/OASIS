@@ -46,10 +46,22 @@ const { contract } = require('../../Docker/DaprRuntime/configuration.cjs');
     assert.equal(saves, 1); assert.equal(inspectionMutations, 0);
     for (const name of ['seed.acknowledged.json', 'source.acknowledged.json'])
       await assert.rejects(fs.stat(path.join(source, name)), { code: 'ENOENT' });
+    const accepted = await helper.acknowledgeRecoveredSource(plan, source);
+    assert.equal(accepted.reconciliation.originalSaveResponseAcknowledged, false);
+    assert.equal(accepted.reconciliation.businessWrites, 0);
+    const environment = { OASIS_SANDBOX_DAPR: 'true', CQL_DAPR_QUERY_STORE: contract.store,
+      CQL_DAPR_QUERY_GRPC_ENDPOINT: `http://127.0.0.1:${contract.ports.grpc}/`,
+      CQL_DAPR_QUERY_PROBE_ID: accepted.ids[0], CQL_DAPR_QUERY_SIDECAR_TOKEN: plan.sidecarToken,
+      CQL_PUBLIC_READ_CATALOGUES_JSON: JSON.stringify({ DaprOASIS: accepted.ids }) };
+    const acknowledged = await require('../../Docker/host-sandbox-dapr.cjs').readSource(environment, source);
+    assert.equal(acknowledged.source.reconciliation.inspectionSha256, accepted.reconciliation.inspectionSha256);
+    assert.equal(JSON.parse(await fs.readFile(path.join(source, 'seed.reconciled.json'), 'utf8')).outcome, 'applied');
+    await assert.rejects(fs.stat(path.join(source, 'seed.acknowledged.json')), { code: 'ENOENT' });
+    await assert.rejects(helper.acknowledgeRecoveredSource(plan, source), /already acknowledged/);
     const result = { schema: 1, nativeSaveRequests: saves, responseLossInjected: true,
       originalRecordsVerified: proof.records.length, recoveries: proof.recoveries,
       inspectionMutations, originalAofUnchanged: true, originalSaveResponseAcknowledged: false,
-      fabricatedSaveAcknowledgement: false, nativeProcessesStopped: true };
+      fabricatedSaveAcknowledgement: false, recoveredSourceMetadataAccepted: true, nativeProcessesStopped: true };
     const file = await fs.open(path.join(source, 'pending-recovery-native-proof.json'), 'wx', 0o600);
     try { await file.writeFile(JSON.stringify(result)); await file.sync(); } finally { await file.close(); }
     process.stdout.write(JSON.stringify(result) + '\n');

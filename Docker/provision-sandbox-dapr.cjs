@@ -103,6 +103,64 @@ async function inspectPendingSource(plan, directory = '/data/COSMIC/SandboxDapr'
   return proof;
 }
 
+function reconciledSourceDescriptor(plan, creation, seed, inspection, storage) {
+  const expected = pendingSourceDescriptor(plan, creation, seed);
+  if (inspection?.schema !== 1 || inspection.originalOperation !== seed.operation ||
+      inspection.sourceOwner !== plan.prefix + '0' || inspection.recoveries !== 2 ||
+      inspection.businessWrites !== 0 || inspection.originalSaveResponseAcknowledged !== false ||
+      JSON.stringify(inspection.originalStorage) !== JSON.stringify(storage) ||
+      !Array.isArray(inspection.records) || inspection.records.length !== expected.length ||
+      inspection.records.some((row, index) => row.id !== expected[index].id || row.value !== expected[index].value))
+    throw Error('Original durable Dapr recovery evidence differs.');
+  const source = { schema: 1, sourceOwner: plan.prefix + '0', ids: expected.slice(0, 3).map(row => row.id),
+    sidecarTokenSha256: hash(plan.sidecarToken), records: inspection.records,
+    configurationSha256: { 'reader.acl': hash(config.readerAcl(plan.readerPassword)),
+      'components/redis.yaml': hash(config.component(plan.readerPassword, 'reader')) },
+    reconciliation: { originalOperation: seed.operation, inspectionSha256: hash(JSON.stringify(inspection)),
+      originalSaveResponseAcknowledged: false, recoveries: 2, businessWrites: 0, originalStorageSha256: hash(JSON.stringify(storage)) } };
+  runtime.sourceDescriptor(source, { OASIS_SANDBOX_DAPR: 'true', CQL_DAPR_QUERY_STORE: config.contract.store,
+    CQL_DAPR_QUERY_GRPC_ENDPOINT: `http://127.0.0.1:${config.contract.ports.grpc}/`,
+    CQL_DAPR_QUERY_PROBE_ID: source.ids[0], CQL_DAPR_QUERY_SIDECAR_TOKEN: plan.sidecarToken,
+    CQL_PUBLIC_READ_CATALOGUES_JSON: JSON.stringify({ DaprOASIS: source.ids }) });
+  return source;
+}
+
+async function acknowledgeRecoveredSource(plan, directory = '/data/COSMIC/SandboxDapr') {
+  review(plan);
+  if (process.platform !== 'linux' || await fs.realpath(directory) !== directory) throw Error('Original Linux source required.');
+  async function original(name, maximum = 32768) {
+    const file = path.join(directory, name), stat = await fs.lstat(file);
+    if (!stat.isFile() || stat.isSymbolicLink() || stat.size > maximum || (stat.mode & 0o077) || await fs.realpath(file) !== file)
+      throw Error('Original private Dapr evidence differs.');
+    return fs.readFile(file, 'utf8');
+  }
+  for (const name of ['source.acknowledged.json', 'seed.acknowledged.json']) {
+    try { await fs.lstat(path.join(directory, name)); }
+    catch (error) { if (error.code === 'ENOENT') continue; throw error; }
+    throw Error('Original source already acknowledged; do not repeat reconciliation.');
+  }
+  const creation = JSON.parse(await original('creation.intent.json'));
+  const seed = JSON.parse(await original('seed.intent.json'));
+  const inspection = JSON.parse(await original('inspection/inspection.acknowledged.json'));
+  const storage = await storageSnapshot(path.join(directory, 'store'));
+  const source = reconciledSourceDescriptor(plan, creation, seed, inspection, storage);
+  const writer = await original('writer.acl', 4096), component = await original('components/redis.yaml', 4096);
+  const match = /^user default on >([a-f0-9]{64}) /.exec(writer);
+  if (!match || writer !== config.writerAcl(match[1], plan.readerPassword) || component !== config.component(match[1], 'default'))
+    throw Error('Original provisioning configuration changed.');
+  await requireFreePorts();
+  // This transition updates only source metadata/configuration after proven
+  // recovery. The original save intent remains; no save response is fabricated.
+  await durableExclusive(path.join(directory, 'reconciliation.intent.json'), source.reconciliation);
+  await privateWrite(path.join(directory, 'reader-password'), plan.readerPassword);
+  await privateWrite(path.join(directory, 'reader.acl'), config.readerAcl(plan.readerPassword));
+  await privateWrite(path.join(directory, 'components/redis.yaml'), config.component(plan.readerPassword, 'reader'), 'w');
+  await durableExclusive(path.join(directory, 'seed.reconciled.json'), { schema: 1, outcome: 'applied', ...source.reconciliation });
+  await durableExclusive(path.join(directory, 'source.acknowledged.json'), source);
+  return { schema: 1, sourceOwner: source.sourceOwner, ids: source.ids, records: source.records.length, recoveryVerified: true,
+    reconciliation: source.reconciliation };
+}
+
 async function requireFreePorts() {
   for (const port of Object.values(config.contract.ports)) {
     const listener = net.createServer();
@@ -217,7 +275,7 @@ function reviewCommand(args, environment, text) {
   const plan = JSON.parse(text); review(plan);
   return plan;
 }
-module.exports = { review, provision, reviewCommand, pendingSourceDescriptor, inspectPendingSource };
+module.exports = { review, provision, reviewCommand, pendingSourceDescriptor, inspectPendingSource, reconciledSourceDescriptor, acknowledgeRecoveredSource };
 if (require.main === module) (async () => {
   let text = '';
   for await (const chunk of process.stdin) {
