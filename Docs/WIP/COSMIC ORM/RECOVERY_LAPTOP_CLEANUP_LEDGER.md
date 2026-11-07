@@ -4501,3 +4501,12 @@ afded8becb041ab9d3fe5810aaa2557baed056703a42f3bf9a3c7f2ffb3536b1
 matching single seed ACK verified; four records recovered without reseed. Native
 build receipt/source/hash retained in dapr-linux-durable-restart-qualified.json.
 Stronger writer-disabled42417629733 running; no local native env/live change.
+
+Dapr reader-ACL recovery42417629733 SUCCESS; remote artifact13592083986/4915B
+SHA2565f836937bc7ed8b0fad1bcf5e3599cb04052ac1bafde2fff02998e1bfbc851e6
+retained30days; compact qualified receipt retained, no local archive copy.
+Implemented recovery-only runtime helper;13cached-Node controls pass. Missing
+source test creates no temp directory. Native fixture now writes bounded local
+source/credential metadata for shipping-helper checks after its original seed;
+credentials excluded from artifact, only runtime proof retained. No local native
+SDK/env/build/download/live source operation. New exact helper qualification next.

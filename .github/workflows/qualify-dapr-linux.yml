@@ -11,6 +11,8 @@ on:
       - 'Scripts/TestHosts/test_dapr_native_runtimes.py'
       - 'Docker/DaprRuntime/**'
       - 'Scripts/Sandbox/test_hosted_dapr_configuration.cjs'
+      - 'Scripts/Sandbox/test_hosted_dapr_runtime.cjs'
+      - 'Docker/host-sandbox-dapr.cjs'
   workflow_dispatch:
 
 permissions:
@@ -52,7 +54,7 @@ jobs:
         working-directory: OASIS
         run: |
           python3 -B Scripts/TestHosts/test_dapr_native_runtimes.py
-          node --test Scripts/Sandbox/test_hosted_dapr_configuration.cjs
+          node --test Scripts/Sandbox/test_hosted_dapr_configuration.cjs Scripts/Sandbox/test_hosted_dapr_runtime.cjs
       - name: Install mandatory native storage OS dependencies
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libaio1t64 liburing2 libaio-dev liburing-dev build-essential cmake git uuid-dev
       - name: Install exact Linux runtimes on the ephemeral runner
@@ -86,6 +88,7 @@ jobs:
           path: |
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/web4.trx
             OASIS/LocalState/COSMIC/DaprLinuxQualification/native-build-receipt.json
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/**/runtime-source-proof.json
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/result.log
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/diagnostic.json
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/failure-diagnostics.json

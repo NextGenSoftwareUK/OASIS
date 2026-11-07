@@ -8,6 +8,8 @@ import secrets
 import socket
 import subprocess
 import time
+import sys
+import hashlib
 import uuid
 from urllib.parse import quote
 import xml.etree.ElementTree as ET
@@ -115,12 +117,16 @@ def sidecar(name, username, password):
         component.unlink()
 
 
-def garnet_ready(username='default', secret=ADMIN):
+def garnet_authentication(username, secret):
     with socket.create_connection(('127.0.0.1', PORTS[3]), timeout=1) as connection:
         password = secret.encode()
         principal = username.encode()
         connection.sendall(b'*3\r\n$4\r\nAUTH\r\n$' + str(len(principal)).encode() + b'\r\n' + principal + b'\r\n$64\r\n' + password + b'\r\n')
-        return connection.makefile('rb').readline() == b'+OK\r\n'
+        return connection.makefile('rb').readline(4096)
+
+
+def garnet_ready(username='default', secret=ADMIN):
+    return garnet_authentication(username, secret) == b'+OK\r\n'
 
 
 require_runtime('daprd', DAPR, arguments.runtime_directory)
@@ -152,8 +158,50 @@ def backing_store(stage, recover):
     require_free(PORTS)
     with launch(arguments, 'garnet-' + stage) as process:
         await_ready(process, lambda: garnet_ready('reader', READER) if recover else garnet_ready())
+        if recover:
+            rejected = garnet_authentication('default', ADMIN)
+            if not rejected.startswith(b'-') or not rejected.endswith(b'\r\n'):
+                raise RuntimeError('The original provisioning writer still authenticates after recovery')
         yield
     require_free(PORTS)
+
+
+def prepare_hosted_source(records, observations):
+    password_file = RUN / 'reader-password'
+    with password_file.open('x', encoding='utf-8') as output:
+        output.write(READER)
+    password_file.chmod(0o600)
+    acl.write_text(native_configuration('readerAcl', READER), encoding='utf-8')
+    acl.chmod(0o600)
+    component = RUN / 'components/redis.yaml'
+    with component.open('x', encoding='utf-8') as output:
+        output.write(native_configuration('component', READER, 'reader'))
+    component.chmod(0o600)
+    source = {'schema': 1, 'sourceOwner': PREFIX + '0',
+        'ids': [json.loads(row['value'])['id'] for row in records[:3]],
+        'sidecarTokenSha256': hashlib.sha256(TOKEN.encode()).hexdigest(),
+        'records': [{'id': json.loads(row['value'])['id'], 'value': row['value'], 'etag': observations[row['key']][1]} for row in records],
+        'configurationSha256': {name: hashlib.sha256((RUN / name).read_bytes()).hexdigest()
+            for name in ['reader.acl', 'components/redis.yaml']}}
+    with (RUN / 'source.acknowledged.json').open('x', encoding='utf-8') as output:
+        json.dump(source, output)
+
+
+def verify_hosted_source():
+    environment = {'OASIS_SANDBOX_DAPR': 'true', 'CQL_DAPR_QUERY_STORE': CONTRACT['store'],
+        'CQL_DAPR_QUERY_GRPC_ENDPOINT': 'http://127.0.0.1:' + str(PORTS[1]) + '/',
+        'CQL_DAPR_QUERY_PROBE_ID': PREFIX + 'e', 'CQL_DAPR_QUERY_SIDECAR_TOKEN': TOKEN,
+        'CQL_PUBLIC_READ_CATALOGUES_JSON': json.dumps({'DaprOASIS': [PREFIX + suffix for suffix in ['e', '1', '2']]})}
+    script = "const fs=require('node:fs'),runtime=require(process.argv[1]);const input=JSON.parse(fs.readFileSync(0,'utf8'));(async()=>{const services=await runtime.serviceConfigurations(input.environment,input.root);for(const service of services)await service.check(new AbortController().signal);process.stdout.write(JSON.stringify({recoveryServices:services.length,originalRecordsVerified:4,recoveryOnly:true}));})().catch(error=>{process.stderr.write(error.message);process.exitCode=1;});"
+    result = subprocess.run(['node', '-e', script, str(ROOT / 'Docker/host-sandbox-dapr.cjs')],
+        input=json.dumps({'root': str(RUN), 'environment': environment}).encode(), capture_output=True, timeout=40)
+    if result.returncode:
+        raise RuntimeError('Hosted recovery helper failed: ' + result.stderr.decode(errors='replace')[-2048:])
+    proof = json.loads(result.stdout)
+    if proof != {'recoveryServices': 2, 'originalRecordsVerified': 4, 'recoveryOnly': True}:
+        raise RuntimeError('Hosted recovery helper proof differs')
+    with (RUN / 'runtime-source-proof.json').open('x') as output:
+        json.dump(proof, output)
 
 
 def verify_reader(stage, records, expected=None):
@@ -171,6 +219,8 @@ def verify_reader(stage, records, expected=None):
         after = {row['key']: http('GET', STORE + '/' + quote(row['key'], safe='')) for row in records}
         if after != observations:
             raise RuntimeError('Value or ETag changed after rejected write')
+        if stage == 'restart' and sys.platform == 'linux':
+            verify_hosted_source()
         run_http(stage)
         return observations
 
@@ -222,6 +272,8 @@ try:
     files = [file for file in (RUN / 'store').rglob('*') if file.is_file()]
     if not files or not any(file.stat().st_size for file in files):
         raise RuntimeError('Acknowledged native source has no durable files')
+    if sys.platform == 'linux':
+        prepare_hosted_source(records, original)
     # No writer sidecar or seed call exists in this recovery phase.
     with backing_store('restart', recover=True):
         verify_reader('restart', records, expected=original)

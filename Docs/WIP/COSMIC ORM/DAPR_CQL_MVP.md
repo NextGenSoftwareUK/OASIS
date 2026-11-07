@@ -3,7 +3,7 @@
 Current7November: Linux restricted-read/write-denial/WEB4 native proof passed.
 Rebuilt upstream native IO now loads and passes the synchronous AOF write probe
 in42416939381; its full durable restart also passed. Stronger shared
-configuration/default-writer-disabled recovery is running in42417629733; no hosted Dapr source,
+configuration/default-writer-disabled recovery also passed in42417629733; no hosted Dapr source,
 startup flag, visitor enrollment or public card is enabled. Coverage119/91/28.
 
 
@@ -292,3 +292,29 @@ reader. Stronger recovery with default writer disabled and shared configuration
 is running separately in42417629733/source0c5800169. Hosted first-generation
 provisioning, image qualification/enrollment, Mongo federation and visitor/browser
 acceptance remain open. Coverage119local/91live HTTP/28browser unchanged.
+
+## Reader-only recovery and hosted helper
+
+Shared-configuration qualification42417629733/job128539040599 SUCCESS,
+source0c5800169. Native AOF writes, actual Dapr restricted reads/write denial,
+original values/ETags and both WEB4 query stages passed with the recovery ACL's
+default writer disabled. Seed ran once. Remote artifact13592083986:4915B,
+SHA256`5f836937bc7ed8b0fad1bcf5e3599cb04052ac1bafde2fff02998e1bfbc851e6`,
+expires7December2026. Earlier baseline and failed attempts remain retained.
+
+`host-sandbox-dapr.cjs` now implements recovery-only service configuration.
+It requires original acknowledged source/catalogue/owner/token binding, exact
+private ACL/component files and an existing bounded native store. It never
+creates a missing source. Reader-authenticated Garnet readiness precedes Dapr
+health and exact original values/ETags. Source queries have bounded responses,
+explicit cancellation and no retries. Thirteen controlled configuration/runtime
+checks pass; those checks do not establish hosted or native SDK acceptance.
+
+The next real Linux fixture tests this shipping helper against the running
+recovered source before its second WEB4 query test. It also explicitly rejects
+the original provisioning writer's authentication. Source credential files stay
+in the owned fixture with restrictive modes and never enter artifacts; only
+runtime-source-proof.json is retained. The image copies the helper, but the
+supervisor/entrypoint does not enable Dapr. Journalled hosted provisioning,
+image/runtime qualification, settings enrollment, federation and visitors remain
+open. No live Development settings or existing source/cohort was changed.

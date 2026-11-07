@@ -60,8 +60,9 @@ other independent provider scopes whose retained evidence and access are ready.
 Dapr Linux read/write-denial/HTTP proof passes; durable restart remains open.
 The mandatory Garnet native library is rebuilt from pinned upstream source for
 the target OS; native AOF writes and full durable restart pass in42416939381.
-Stronger shared configuration/default-writer-disabled recovery is running
-in42417629733. Hosted Dapr provisioning/image/enrollment remain open. Coverage is119local/
+Shared configuration/default-writer-disabled recovery also passes in42417629733.
+The recovery-only hosted helper is implemented with13controlled checks and is
+being qualified against the real source. Provisioning/image/enrollment stay open. Coverage is119local/
 91live HTTP/28functional browser. Source88b896815/Core944d380, settings
 8783d8eb-1d65-474f-8bdd-081615d4794a SUCCESS, instance5e85e983.
 All13settings and active configuration verified before six first hosted cohorts.
