@@ -4284,3 +4284,10 @@ including original protected owner/foreign sessions,2save ACKs and empty pending
 intents. Report sealing corrected normalized Rows operation filtering without
 HTTP/save replay. No source writes/wallet actions/new runtime/environment.
 Exact release/full settings checked after flow. Coverage119/80/28; card pending.
+
+Hyperlane card65 published Web4Sitec34a4b6 via existing task/main refs, fresh
+ancestry checked. All119 cached-Node client controls pass. Public HTML248913B
+SHA256e98bb31b143f81791ff94faa96b6459da5ed79bf63adecf9139f7827b2708848
+verified in memory against Git; only compact hyperlane-public-card-qualified.json
+retained. No HTML download, install, browser action, native replay or cohort save.
+Website source/evidence links checked against pinned backendcc95932bd.

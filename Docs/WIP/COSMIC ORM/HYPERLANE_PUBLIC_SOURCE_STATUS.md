@@ -140,3 +140,14 @@ Receipt sealing used the normalized discovery operation Rows, not the
 configuration default Query label; only report validation was corrected,
 without replaying HTTP or saves. Coverage119local/80liveHTTP/28browser.
 Next publish the scoped hosted demo card and retain browser as an open gate.
+
+## Public demo published
+
+[Hyperlane card65](https://web4.oasisomniverse.one/web4-sandbox.html#cql-hyperlane-catalogue)
+is published atWeb4Sitec34a4b6c21c25f01101ba7593f9ecffac71804bc on the existing
+website task/main branches. It describes explorer delivery observations,
+native3/2, Mongo5/4 and private snapshot reuse, with real C# query/evidence
+links pinned tobackendcc95932bd. All119 website controls pass. Public HTTP200
+HTML248913B SHA256e98bb31b143f81791ff94faa96b6459da5ed79bf63adecf9139f7827b2708848
+matches the exact committed blob. Compact receipt retained; no downloaded HTML,
+new environment or accepted cohort replay. Browser interaction remains open.

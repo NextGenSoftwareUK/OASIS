@@ -24,7 +24,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - PouchDB settings/live acceptance job2045b41e succeeded.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
-- Website C:/Source/Web4Site, branch work/cosmic-cql, published9a0fd46 (NATS card64).
+- Website C:/Source/Web4Site, branch work/cosmic-cql, publishedc34a4b6 (Hyperlane card65; NATS card64 retained).
 - Dedicated Railway key cosmic-cql-recovery-laptop-20261107 was created on
   this laptop for mounted-source inspection. Its eventual revocation is in
   the old-laptop cleanup ledger. Private key remains outside Git.
@@ -59,9 +59,10 @@ Hyperlane hosted HTTP is accepted oncf69f1ba, instancef7e77b49, exact
 82428c7a6/Core2a09c9be. Native3/2, Mongo5/4, first2private saves/repeat0new2existing,
 privacy0/public3 and exactSQLite/Neo4j replicas2/2 passed with unchanged release
 and complete settings. Its original cohort is sealed; never replay it.
-Coverage119local/80liveHTTP/28functional browser. Next publish the Hyperlane
-sandbox card with explorer-reported-delivery-state scope and pinned native
-example. [Hyperlane evidence](HYPERLANE_PUBLIC_SOURCE_STATUS.md). NATS card64
+Coverage119local/80liveHTTP/28functional browser. Hyperlane card65 is
+published inc34a4b6 with explorer-reported-delivery-state scope and pinned
+native example. Public HTML matches Git; all119 website controls pass. Next
+continue the next eligible provider scope, keeping browser gates separate. [Hyperlane evidence](HYPERLANE_PUBLIC_SOURCE_STATUS.md). NATS card64
 and original accepted cohort remain preserved; owner deferrals stay unchanged.
 
 Waku card63 is published atf854fc2 with its real C# example and scoped
