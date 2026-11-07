@@ -153,3 +153,16 @@ All101 shared runtime controls passed using cached Node24, shell syntax and
 HEAD manifest/gitlink checks passed. Expanded API boundary suite now14 cases;
 its CI and the exact candidate image are not yet qualified. No deployment or
 live configuration change has occurred. Unrelated working changes excluded.
+
+Owned NATS protected publisher is implemented separately from the remote
+publisher. It reuses the same four-preset/catalogue/admission builder with
+an explicit owned-mode validation; remote mode still rejects loopback.
+The accepted descriptor/native archive and exact two-start qualification
+are required before building eight bounded settings. The shipping Node
+parser validates transport before preparation. Reader credentials are
+retained only in protected snapshots and reused on repeated preparation.
+Mutation uses the existing per-key intent/ACK publisher, exact image/mount
+guard and deployment recheck before each write. Six controlled guards pass;
+no prepare/apply or live settings mutation has been executed. Post-activation
+mounted-source verification and HTTP verifier integration remain to implement
+before enrollment can be treated as accepted.

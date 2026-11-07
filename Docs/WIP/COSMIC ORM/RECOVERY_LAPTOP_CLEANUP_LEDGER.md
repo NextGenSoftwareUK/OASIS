@@ -4190,3 +4190,10 @@ Existing Git Bash shell syntax and HEAD dependency manifest checks pass.
 No local image, runtime install, native source replay or live settings write.
 Future cloud image build will download SHA-pinned NATS2.15.2 once in its build
 stage and remove that stage's archive/extraction after binary installation.
+
+Owned NATS publisher6 controlled guards pass using existing Python/Node,
+retained native source bytes and restart receipt only. No native SDK source
+open, source generation/save, environment install, remote call or mutation.
+Refactored qualified bundle converter into an importable pure builder; CLI
+transport is unchanged. Publisher preparation/apply has not been executed,
+so no additional real reader credential/configuration snapshot exists yet.

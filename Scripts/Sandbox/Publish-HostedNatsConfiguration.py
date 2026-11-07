@@ -30,7 +30,7 @@ def module(name):
 configuration = module("Publish-HostedSolidConfiguration")
 
 
-def candidate(before, source):
+def candidate(before, source, *, owned=False):
     if (set(source) != {"schema", "endpoint", "bucket", "ids", "sourceOwner"}
             or type(source["schema"]) is not int or source["schema"] != 1
             or not isinstance(source["ids"], list) or len(source["ids"]) != 3
@@ -46,8 +46,9 @@ def candidate(before, source):
         address = ipaddress.ip_address(host)
     except ValueError:
         address = None
-    if (endpoint.scheme != "tls" or not host or host.rstrip(".") == "localhost"
-            or (address is not None and address.is_loopback)
+    if (endpoint.scheme != "tls" or not host
+            or (owned and (source["endpoint"] != "tls://127.0.0.1:24222" or source["bucket"] != "cosmic_cql_public"))
+            or (not owned and (host.rstrip(".") == "localhost" or (address is not None and address.is_loopback)))
             or endpoint.port == 0
             or endpoint.username is not None or endpoint.path not in ("", "/")
             or endpoint.query or endpoint.fragment or "," in source["endpoint"]):
