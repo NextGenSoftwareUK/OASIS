@@ -256,3 +256,37 @@ Development to7672cd5ea. Rollout3cdeaf40-4fdb-489c-8696-7319e78d24db is queued.
 No settings or archive writes were repeated. Mounted-source inspection and
 live acceptance must verify this exact corrected deployment before counting
 Waku hosted. Protected preparation and the original502 journal remain.
+
+## Live Development HTTP acceptance — 7 November 2026
+
+Deployment3cdeaf40-4fdb-489c-8696-7319e78d24db isSUCCESS at exact
+7672cd5ea0313dc3494761226766ad84d31fdaa2/Core2fdd3e40183e8a5ed81bccee1f30660c91135eb1.
+Active instance6fbafe8e-c676-40c5-932f-3c64659b8d51, deployed image
+sha256:43659f79c8695c00f456fd7537ca4bb9a6a8bfa9e38ea4e80d9655b04ab9bf05.
+Full protected settings, all six original write ACKs and the mounted original
+source receipt matched before and after acceptance. No archive provisioning
+or settings mutation was repeated. The catalogue-limit fix passed5cases,
+zero skips, and its exact image qualification42384082328 passed.
+
+The first hosted cohort passed native3/2 and the real published frontend
+preparation flow against HTTP: first2 private Mongo saves, paired5/4,
+repeat0new/2existing and exact SQLite/Neo4j replicas2/2. An independent
+visitor saw public3 and private0 on Mongo and both replicas. All native
+nanosecond metadata remained decimal text. Exactly two save ACKs and an empty
+pending-intent object remain. The durable cohort is sealed by
+LocalState/COSMIC/HostedQueryAcceptance-WakuOASIS/cql-http-acceptance.acknowledged.json.
+Do not replay it. Protected owner/foreign sessions and original journals remain.
+
+| HTTP report | Bytes | SHA256 |
+|---|---:|---|
+| WakuOASIS-native-http.json |12673|3bd44cd881179f47c75725f00c75cb73c52d797c9280464b7b13a09830fa9c4c|
+| WakuOASIS-client-http-flow.json |35794|76af3c39c9e7c8d1e28a865a84271c5ff3b13603eaa9f016495a2ac094fad44a|
+| WakuOASIS-isolation-http.json |5988|25ec2041f7e707b38b8e38d9ff2f2095cf544d905652ad16467f8aea09468904|
+
+Reports are under TestResults/HostedCqlIntegrationCurrent. Discovery reused
+the acknowledged PouchDB readiness visitor with allow_create=false; its
+credential renewal was acknowledged in that original journal. The earlier
+Waku502 session intent/response was preserved, never resubmitted. No browser
+proof is claimed: updated app control stopped before navigation because it
+could not reliably establish the browser URL. Public card publication follows.
+Coverage is now119 scoped local/77 live HTTP/28 functional browser.

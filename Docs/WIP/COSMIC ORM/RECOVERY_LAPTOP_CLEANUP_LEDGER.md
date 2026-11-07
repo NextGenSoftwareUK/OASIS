@@ -4019,3 +4019,18 @@ were verified under the system temp directory with the owned prefix before
 removal. No source/database/runtime installation. Entrypoint shell syntax
 passed with existing Git Bash. New Docker/startup sources are task-only;
 no DuckDB deployment/settings/source placement has been requested.
+
+Waku correction3cdeaf40 isSUCCESS at7672cd5ea, instance6fbafe8e-c676-40c5-932f-3c64659b8d51,
+image43659f79c8695c00f456fd7537ca4bb9a6a8bfa9e38ea4e80d9655b04ab9bf05.
+Original source ACK and all protected settings verified before/after HTTP.
+Readiness reused acknowledged PouchDB visitor; one refresh rotation was
+acknowledged in its original directory. No new readiness avatar and no replay
+of the original502 operation. First Waku owner/foreign cohort accepted native
+3/2, paired5/4, first2private saves/repeat0new2existing, privacy0/3 and exact
+SQLite/Neo4j2/2. Source timestamps retain decimal text. Durable receipt sealed
+in HostedQueryAcceptance-WakuOASIS; two save ACKs and empty pending object.
+Raw reports12673/35794/5988B retained with hashes in Waku evidence/receipt.
+No new local runtime, native source, .NET build or source/setting mutation.
+A first receipt-composition read used the wrong federation response shape and
+stopped before writing; corrected schema-specific assertions passed without
+HTTP/session/query/save replay. Browser input remains stopped at URL policy gate.

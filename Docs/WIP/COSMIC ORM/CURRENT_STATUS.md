@@ -13,10 +13,9 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Resumed on the old laptop at C:/Source/OASIS2 on 7 November after the
   recovered laptop failed again. Branch work/cosmic-cql-ton-public.
 - Core task branch work/cosmic-cql-decentraland; preserve independent pins.
-- Development7672cd5ea; catalogue-limit correction deployment3cdeaf40 is queued.
-  Recovery deploymenta6688a2e serves the preceding working257404f8 snapshot.
-  Waku's17th public catalogue exposed an obsolete16-provider startup limit.
-  The correction passed all5 regression cases and exact teaching image42384082328.
+- Development7672cd5ea/Core2fdd3e40; deployment3cdeaf40 isSUCCESS.
+  Waku hosted HTTP acceptance passed on this exact release. Its17th catalogue
+  exposed the obsolete16-provider startup limit, now fixed and covered by5 tests.
   Original Waku archive/configuration ACKs remain; no settings or source replay.
 - PouchDB settings/live acceptance job2045b41e succeeded.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
@@ -29,7 +28,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **119 scoped local, 76 live HTTP and 28 functional browser**.
+Coverage is **119 scoped local, 77 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -52,37 +51,26 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-Waku's original12KB archive passed real native restore/restart42366567554,
-with all three messages, two native starts and unchanged original input/ack.
-Artifact13571766234 retains the proof, original source and logs for90days.
-Fourteen focused runtime controls and66 combined controlled cases pass.
-Seven publisher controls,26 response-evidence and39 preset controls pass.
+Publish Waku card63 with its real C# example and scoped evidence. The live
+HTTP gate is complete: native3/2, Mongo5/4, first2 saves, repeat0new/2existing,
+foreign-private0/public3 and SQLite/Neo4j replicas2/2. Source receipt and
+complete protected settings matched before and after acceptance. Exact
+nanosecond strings survived the HTTP serializer. Original cohort receipt:
+LocalState/COSMIC/HostedQueryAcceptance-WakuOASIS/cql-http-acceptance.acknowledged.json.
+Never rerun that accepted cohort. The original502 readiness operation stays
+retained; discovery explicitly reused the acknowledged PouchDB visitor.
+Browser verification remains open: the updated Windows helper stopped when
+it could not determine the browser URL reliably; no browser input occurred.
 
-Scoped Waku parent257404f8f86df9fb34f7dc27c4499d8c1840fe67 with
-Core2fdd3e40183e8a5ed81bccee1f30660c91135eb1 is published on the reused
-work/cosmic-teaching-release-candidate refs. It preserves all accepted sources.
-Native ABI/image42367817374 passed fore0ea3d57. A controlled regression then
-caught browser numeric rounding of nanosecond metadata. The projection now
-emits exact decimal text. Red1failed, corrected4 C# controls pass, zero skips.
-Timestamp-corrected image42368952565 passed, digest
-sha256:9671e1f694c02f1e6f26b84e7d705ee0585e41c49393be46dd0de822bf585226.
-Native regression42368859021 first failed during checkout because the
-already committed task ONODE pin9f5ad9df was unpublished. Its one ONET
-source commit was advertised on the same agreed task branch, preserving
-Development308a7860. No ONET functional acceptance is claimed. One exact
-native CI recovery passed after publication, five provider cases and one
-WEB4/Mongo case. The owned runner Mongo container/volume was removed.
-
-Six protected Waku settings were prepared with205 preserved settings, prefix
-waku-public under HostedSourceRolloutCurrent. The original archive, receipt
-and actual cloud qualification are under WakuQualifiedSourceCurrent.
-The exact image/native gates passed. Fresh live baseline and source checks
-passed. Development advanced normally to257404f8. Code deployment
-3fcf6d34-e591-4e24-a377-599a33022a4c is queued. Observe that exact job,
-then verify its active instance/image and writable mount. Apply the existing
-six-key guarded publisher once, request one settings deployment, and verify
-its original source receipt before the first hosted readiness/acceptance.
-Waku settings and hosted cohort remain uncreated.
+Continue DuckDB hosted preparation after Waku publication. Reuse its existing
+read-only provider/registration and qualified original database. Linux run
+42385940278 passed native3/2/0 across two read-only activations, unchanged
+source/no WAL. Artifact13579442161 retains that source/seed/TRX for90days.
+Owned source-placement runtime and82 shared controls pass. Prepare the
+protected six-key settings/publisher and scoped candidate preserving all
+accepted providers. Qualify its image/native assets before placement and
+live enrollment. Do not recreate or replay the accepted Windows fixture.
+[Waku evidence](WAKU_STORE_CQL_MVP.md) · [DuckDB evidence](DUCKDB_CQL_MVP.md).
 
 ## Source and rollout journals
 
@@ -101,8 +89,7 @@ Provision-HostedTeachingSource.py has five command tests; native helper has six.
 
 - Finish open browser gates with original cohorts; HTTP/static proof is separate.
 - Continue other providers' runtime, restricted-reader and hosting gates.
-- Waku native restore/restart is verified. Exact image qualification and
-  guarded hosted activation/acceptance remain open.
+- Waku hosted HTTP acceptance is complete; public card and browser gates remain open.
 - PouchDB hosted HTTP acceptance and website publication are complete.
   Retain its native first generation and original acceptance cohort.
   Its hosted browser gate remains open.
