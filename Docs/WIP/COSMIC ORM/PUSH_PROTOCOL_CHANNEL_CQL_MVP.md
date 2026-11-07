@@ -84,3 +84,23 @@ snapshot before the same-release redeploy. Observe settings deployment
 ecdabdbb-09ed-4240-9c89-2fe437525f0d at commit 907fe855c before running
 the deployment-scoped visitor checks. The redeploy intent and acknowledgement
 are retained alongside the protected settings.
+
+## Development HTTP acceptance
+
+Settings deployment ecdabdbb-09ed-4240-9c89-2fe437525f0d succeeded.
+Initial discovery saw CQL_SOURCE_NOT_READY while startup activation was
+in progress. The same visitor later observed activation generation 1
+with all four presets available. No recovery operation was needed.
+
+Native returned 3/2 and MongoDB federation 5/4. The first preparation
+saved two private copies. Repeat saved zero and reused both. The second
+visitor saw three public channels and zero private copies on MongoDB,
+SQLite and Neo4j. Both replicas held the two owned copies.
+
+Evidence under TestResults/HostedCqlIntegrationCurrent, SHA-256:
+
+- PushProtocolOASIS-native-http.json: 9cd918c09f32c8e075badc0467431323ead8e19dadc1ded46c40c2a0618e7cc2
+- PushProtocolOASIS-client-http-flow.json: d6555fb8629fe318123652a3440ab6945568f6d137d856941dae9a0bca8eaa2e
+- PushProtocolOASIS-isolation-http.json: 53eb1262fcca001b2772d9b74af03a997b4cf2f2ba0b2b440c33041de790b2c5
+
+The sandbox card and browser interaction remain to be verified.

@@ -16,9 +16,9 @@ private-copy isolation. All three records survived restart and the standalone SQ
 [CI 42317536191](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42317536191).
 
 Push Protocol image qualification passed and Development advanced to 907fe855c.
-Railway code deployment e60449de succeeded. Four protected settings were
-acknowledged. Settings deployment ecdabdbb-09ed-4240-9c89-2fe437525f0d is building.
-Verify that exact deployment before visitor readiness and federation.
+Railway settings deployment ecdabdbb succeeded. Push Protocol passed hosted
+3/2 native, 5/4 MongoDB federation, reuse, visitor isolation and both replicas.
+Next, add the verified presets and local test link to the sandbox page.
 
 ## Recent WEB4 preparation, 5–6 November 2026
 
@@ -27,7 +27,7 @@ through local WEB4. Hosted deployment `b9cb7f79` passed the same counts,
 visitor isolation and replica checks. Sandbox card `46df63d` is live.
 Interactive browser proof remains open.
 
-Acceptance is 118 scoped local, 62 live HTTP and 28 live browser.
+Acceptance is 118 scoped local, 63 live HTTP and 28 live browser.
 LocalFile settings deployment `c8ba177c` succeeded. The writable mount,
 three file hashes and all four advertised presets are verified. Hosted
 LocalFile 3/2 and MongoDB federation 5/4 passed. The sandbox card is live
