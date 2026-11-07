@@ -4321,3 +4321,11 @@ Compact image receipt retained; no local image download. Fresh private7ref
 prepush receipt and accepted baseline/complete settings check retained. One
 Development push intent/remoteACK; code6ef19281 QUEUED. No11-setting write or
 new activation/cohort yet. All accepted sources/credentials/journals preserved.
+
+Five-reader code6ef19281 SUCCESS, instance1a3b7d84, image5bba44c2029d0c4c7526bfdfaf9c17c3061c6946c9bab201edce956c879d2085.
+Actual five reader DLLs and runtime hashes checked by read-only SSH; compact
+cross-chain-five-code-runtime-qualified.json retained. Eleven original settings
+staged once with protected shared publisher per-key intent/outcome/ACK journals;
+all exact readbacks complete. One activation intent/protected response/ACK,
+eaa1b7af BUILDING. No local environment/install/native fixture replay or batch
+cohort/source save yet. Preserve every original snapshot and setting journal.

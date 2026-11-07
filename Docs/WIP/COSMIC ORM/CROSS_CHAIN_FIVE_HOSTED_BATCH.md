@@ -77,3 +77,21 @@ continues serving. No11-setting apply or activation occurred. Next follow this
 exact job, inspect deployed source/runtime and baseline, stage original11values
 once with per-key ACKs, then request one activation and first hosted cohorts.
 Push/image/API/private-ref receipts retained; never resubmit the queued rollout.
+
+## Code healthy; eleven settings staged once
+
+Code6ef19281-c114-4280-9301-ff4bee908eac SUCCESS, instance
+1a3b7d84-3b83-4dd7-a526-5e7b644e3aa2, source15eb48673/Core85278a4,
+image sha256:5bba44c2029d0c4c7526bfdfaf9c17c3061c6946c9bab201edce956c879d2085.
+Actual deployed five reader assemblies exist; NATS/supervisor script hashes
+match the exact candidate. Complete prepared-before settings were unchanged.
+One apply staged11original values under the shared per-key journal and release
+recheck; all11 ACKs/readback match, no per-write deployment. Fresh release/full
+settings/ACK checks preceded one manual activation request, acknowledged once.
+
+Batch settings jobeaa1b7af-4fb7-4471-86b2-2071db135332 isBUILDING for15eb48673.
+No hosted batch cohort started. Next follow that exact job, verify active release,
+full protected candidate and each source binding, then run each first journalled
+native3/2, Mongo5/4, reuse/privacy/exact replicas scope. Preserve per-provider
+failures/unknown intents; never replay a completed or uncertain mutation.
+Coverage remains119local/80liveHTTP/28browser until actual acceptance.

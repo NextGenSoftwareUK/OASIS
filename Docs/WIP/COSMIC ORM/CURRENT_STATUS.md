@@ -55,6 +55,13 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
+Five-reader code6ef19281 is healthy; actual reader assemblies/runtime hashes
+verified. Eleven settings staged once, all ACKs/readback match. One activation
+eaa1b7af-4fb7-4471-86b2-2071db135332 isBUILDING. Follow that exact job, verify
+the complete protected candidate and run first hosted cohorts individually.
+Coverage stays119/80/28; no batch provider has hosted acceptance yet.
+
+
 Prepare the five-public-reader code batch: LayerZeroV2, Stargate, deBridge,
 Synapse and Connext. Original source/local HTTP receipts are available; one
 11-value protected candidate preserves the live Hyperlane/NATS baseline.
