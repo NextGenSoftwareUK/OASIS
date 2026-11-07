@@ -11,7 +11,7 @@ HTTPS and deployed acceptance. No provider count changed.
 
 Waku's sandbox-only WEB4 enrollment and read tariff passed 28 focused checks.
 Native Store and loopback WEB4/MongoDB HTTP passed 3/2 and 5/4, with
-private-copy isolation. All three records survived restart. SQLite snapshot qualification is running in [CI 42319328016](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42319328016). The hosted Store supervisor remains open.
+private-copy isolation. All three records survived restart and the standalone SQLite snapshot passed in [CI 42319328016](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42319328016). Hosted provisioning and supervisor verification remain open.
 [CI 42317536191](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42317536191).
 
 ## Recent WEB4 preparation, 5–6 November 2026

@@ -68,5 +68,11 @@ seal step rejected SQLite sidecars. The snapshot now uses SQLite backup
 from the closed native archive, then verifies the standalone file and
 records its digest. A local smoke test confirmed committed WAL data
 survived, the digest matched, and a second seal refused to overwrite
-the snapshot. Native snapshot proof is pending in
+the snapshot. Native snapshot qualification passed in
 [CI 42319328016](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42319328016).
+
+The passing run confirmed all three reviewed messages survived restart,
+sealed the archive, reran three native checks and one WEB4 federation
+check with zero failures or skips, and removed the MongoDB container.
+The snapshot and digest receipt were runner-local and disposable. A
+hosted rollout needs a separately provisioned and verified source.
