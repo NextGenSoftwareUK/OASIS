@@ -8,6 +8,7 @@ import secrets
 import socket
 import subprocess
 import time
+import uuid
 from urllib.parse import quote
 import xml.etree.ElementTree as ET
 from DaprNativeRuntimes import require_runtime, process_diagnostic
@@ -26,13 +27,15 @@ PORTS = (54861, 54862, 54863, 54864)
 TOKEN = secrets.token_hex(32)
 ADMIN = secrets.token_hex(32)
 READER = secrets.token_hex(32)
-KEY = 'oasis/holon/31f03d43c0084ad68dc631fd540b285e'
+PREFIX = str(uuid.uuid4())[:-1]
+KEY = 'oasis/holon/' + (PREFIX + 'e').replace('-', '')
+PROCESSES = []
 STORE = '/v1.0/state/cosmic-teaching'
 RUN = arguments.results_directory.resolve(strict=True) / ('garnet-reader-' + secrets.token_hex(8))
 
 
 def teaching_records():
-    prefix = '31f03d43-c008-4ad6-8dc6-31fd540b285'
+    prefix = PREFIX
     return [{'key': 'oasis/holon/' + (prefix + suffix).replace('-', ''),
              'value': json.dumps({'id': prefix + suffix, 'isPublic': True, 'createdByAvatarId': prefix + '0',
                                   'deletedDate': '2026-11-01T00:00:00Z' if suffix == '3' else '0001-01-01T00:00:00'})}
@@ -51,6 +54,7 @@ def launch(args, name, env=None):
         process = subprocess.Popen(args, cwd=RUN, env=env, stdout=log, stderr=subprocess.STDOUT,
                                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
         process.cosmic_log_path = RUN / f'{name}.log'
+        PROCESSES.append(process)
         try:
             yield process
         finally:
@@ -141,7 +145,7 @@ def run_http(stage):
         subprocess.run(['dotnet', 'test', str(project), '--no-build', '--no-restore',
                         '--filter', 'FullyQualifiedName~CqlDaprNativeHttpTests', '--results-directory', str(output),
                         '--logger', 'trx;LogFileName=web4.trx'], cwd=RUN,
-                       env=os.environ | {'DAPR_API_TOKEN': TOKEN, 'COSMIC_DAPR_NATIVE_HTTP': 'owned-loopback-54862'},
+                       env=os.environ | {'DAPR_API_TOKEN': TOKEN, 'COSMIC_DAPR_NATIVE_HTTP': 'owned-loopback-54862', 'COSMIC_DAPR_NATIVE_ID_PREFIX': PREFIX},
                        stdout=log, stderr=subprocess.STDOUT, timeout=75, check=True)
     counters = ET.parse(output / 'web4.trx').getroot().find('.//{*}Counters')
     if counters is None or counters.get('passed') != '1' or counters.get('total') != '1':
@@ -193,8 +197,13 @@ try:
     records = teaching_records()
     with backing_store('initial', recover=False):
         with sidecar('writer', 'default', ADMIN):
+            with (RUN / 'seed.intent.json').open('x') as intent:
+                json.dump({'operation': str(uuid.uuid4()), 'prefix': PREFIX, 'keys': [row['key'] for row in records],
+                           'source': str(RUN / 'store'), 'replayAllowed': False}, intent)
             if http('POST', STORE, records)[0] != 204:
-                raise RuntimeError('Dapr seed failed')
+                raise RuntimeError('Dapr seed failed; original intent requires reconciliation')
+            with (RUN / 'seed.acknowledged.json').open('x') as ack:
+                json.dump({'prefix': PREFIX, 'acknowledged': True, 'count': len(records)}, ack)
         original = verify_reader('initial', records)
     files = [file for file in (RUN / 'store').rglob('*') if file.is_file()]
     if not files or not any(file.stat().st_size for file in files):
@@ -206,6 +215,15 @@ try:
     result = 'PASS: Dapr restricted reads, denied writes and WEB4 native queries passed before/after backing-store restart; original values and ETags unchanged; seed executed once.\n'
     (RUN / 'result.log').write_text(result, encoding='utf-8')
     print(result, end='')
+except Exception as error:
+    diagnostics = [process_diagnostic(process.cosmic_log_path, process.poll(), (TOKEN, ADMIN, READER))
+                   for process in PROCESSES]
+    with (RUN / 'failure-diagnostics.json').open('x') as output:
+        json.dump({'errorType': type(error).__name__, 'seedIntent': (RUN / 'seed.intent.json').exists(),
+                   'seedAcknowledged': (RUN / 'seed.acknowledged.json').exists(), 'prefix': PREFIX,
+                   'processes': diagnostics}, output)
+    print(json.dumps({'nativeFailureDiagnostics': diagnostics}))
+    raise
 finally:
     acl.unlink()
     print(RUN)

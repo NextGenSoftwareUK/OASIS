@@ -80,6 +80,9 @@ jobs:
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/web4.trx
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/result.log
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/diagnostic.json
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/**/failure-diagnostics.json
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/**/seed.intent.json
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/**/seed.acknowledged.json
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/startup.json
           if-no-files-found: error
           retention-days: 30

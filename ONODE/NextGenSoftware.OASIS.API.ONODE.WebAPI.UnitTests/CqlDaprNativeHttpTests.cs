@@ -42,7 +42,9 @@ public sealed class CqlDaprNativeHttpTests
     {
         var sidecarToken = Environment.GetEnvironmentVariable("DAPR_API_TOKEN");
         Assert.False(string.IsNullOrWhiteSpace(sidecarToken));
-        const string idPrefix = "31f03d43-c008-4ad6-8dc6-31fd540b285";
+        var idPrefix = Environment.GetEnvironmentVariable("COSMIC_DAPR_NATIVE_ID_PREFIX")
+            ?? throw new InvalidOperationException("The exact owned native fixture identity prefix is required.");
+        Assert.Equal(35, idPrefix.Length);
         var actor = Guid.Parse(idPrefix + "0");
         var live = new[] { Guid.Parse(idPrefix + "e"), Guid.Parse(idPrefix + "1"), Guid.Parse(idPrefix + "2") };
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { Args = Array.Empty<string>() });

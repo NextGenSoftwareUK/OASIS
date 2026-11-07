@@ -174,3 +174,20 @@ main store with durable AOF. The correction removes only that invalid setting;
 explicit `CheckpointDir` still owns AOF persistence. Synchronous commit waiting,
 strict recovery and original-value/ETag comparisons remain required. No source
 is recreated in recovery. The redacted diagnostic artifact is retained remotely.
+
+Corrected run42414245421/job128528770620 passed startup preflight and host
+build, then FAILED with TimeoutError during the initial Dapr state POST.
+No HTTP acceptance or restart stage ran. Original seed outcome remains unknown;
+there is no automatic resend and the failed attempt is not promoted to a pass.
+Its startup-only artifact13590938195 is254B, SHA256
+`1ddb496022a851fb2bd0bbced1ea6fc0465c7c46debe48da64c625b879851273`.
+The timed-out fixture was confined to the ephemeral CI runner; live sources and
+accepted cohorts were not involved.
+
+Failure capture now covers every owned native process, with bounded redacted
+logs and seed intent/ACK state. Every subsequent explicitly isolated fixture has
+a unique canonical GUID prefix; the actual C# native test requires that exact
+prefix from its runner. Recovery within one fixture retains the same identities.
+This prevents another diagnostic fixture from reusing the failed attempt's
+record identities. Timeout and persistence flags remain unchanged pending
+native server evidence; no success is inferred or retry hidden.

@@ -4451,3 +4451,10 @@ invalid LogDir without tiered storage. Compact root-cause receipt retained;
 redacted diagnostic artifact remote. Removed invalid main-store LogDir only;
 explicit AOF CheckpointDir/synchronous ACK/strict recovery retained. No local
 runtime/download/build or accepted cohort mutation. Corrected native proof next.
+
+Dapr corrected42414245421 passed startup/build but initial seed POST timed
+out; outcome unknown, never resent. Compact failed receipt retained; remote
+startup artifact13590938195/254B preserved. No live source/cohort involved.
+Added redacted all-process diagnostics, original seed intent/ACK retention and
+unique per-fixture GUID identities (same identities across recovery). No local
+runtime/build/download. Next explicit isolated diagnostic uses new identities.
