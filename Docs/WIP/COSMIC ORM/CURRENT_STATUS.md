@@ -25,8 +25,9 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
   Dapr candidatec9f6ac65d/Coreec7d440 passed exact native/image qualification
-  and is now on Development. Code deployment00eace0e isQUEUED; prior live
-  instance remains active until independently observedSUCCESS. Dapr disabled.
+  and is now on Development. Code deployment00eace0e isSUCCESS on instance5693a2e5; Dapr disabled.
+  First planned source save is unacknowledged: Railway denies native libaio
+  io_getevents. Original source/intent retained; do not reseed or recreate.
 - Website C:/Source/Web4Site, branch work/cosmic-cql, publishedad7e9dd (six new cards71-76; earlier accepted cards retained).
 - Dedicated Railway key cosmic-cql-recovery-laptop-20261107 was created on
   this laptop for mounted-source inspection. Its eventual revocation is in

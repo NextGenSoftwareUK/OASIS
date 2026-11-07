@@ -420,3 +420,12 @@ Exact image42422745498/job128554513809 isSUCCESS for c9f6ac65df440986fab0ad99c27
 Development now points toc9f6ac65d/Coreec7d440. Railway code deployment00eace0e-8080-4932-91b3-a7658f33d1b1 was observedQUEUED for that exact commit. Do not request another deployment while this one exists. Active instance remains prior release untilSUCCESS is independently verified. Dapr settings remain absent/disabled and provider not admitted. No remote source creation or enrollment has run.
 
 A protected pre-code snapshot preserves245settings (SHA25633e2d85c05d0c7416a3fdbf3bbf1af95c9dd4af198a1024b8252824b4fd39540); compare before proceeding. Railway actual rebuilt image digest must be observed independently; the GitHub image digest does not establish it. Next: observe this exact deployment, inspect its actual package/mount/settings, then use the original protected Dapr source plan once.
+
+
+### Live package verified; first source creation unacknowledged under host AIO restriction
+
+Code00eace0e-8080-4932-91b3-a7658f33d1b1 isSUCCESS on instance5693a2e5-7156-4e7d-969b-9924797684f8, actual image sha256:2777ec8ed780529cfb5c3937e9cdad50bedd54694e21910d49bdc572c50e5d2d. Verified6helper Git hashes,193critical active settings and complete245setting baseline unchanged,4SDK/provider DLL hashes, Dapr1.18.9/Garnet2.2.5, pinned native build receipt/hash, source directory absent before creation. Native library SHA2566b9085aa289f0af047fdd41217a295b2823cf43d18749ac08ba9effc2da48159.
+
+Exactly one create command was sent with the original protected plan/source ownerccafac97-66c2-411e-ba20-29cc6bf6faa0. It failed with native save timeout; protected raw outcome retained. Read-only reconciliation finds creation.intent.json and seed.intent.json, no seed/source acknowledgement, and0owned processes remaining. Garnet logs explicitly report io_getevents/libaio completion drainer errno1 Operation not permitted on the Railway host. CI native success does not prove host syscall permissions. Original source directory/AOF/configuration and unacknowledged intent must remain intact; never repeat creation or seed, replace identity, delete source, or activate Dapr.
+
+Exact redacted inspection is RecoveryLaptopResume20261107/dapr-original-creation-failure-inspection.json; original raw outcome is HostedDaprSourceCurrent/create.outcome.dpapi. Investigate officially supported native storage/host policy contracts before any change. Existing demo settings remain unchanged and Dapr disabled; counts unchanged. No account action requested.
