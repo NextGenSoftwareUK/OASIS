@@ -21,8 +21,9 @@ Railway settings deployment ecdabdbb succeeded. Push Protocol passed hosted
 Sandbox card fac8274 is live with a local C# link. Browser interaction remains open.
 
 LayerZero v1 and Reclaim image CI passed. Development advanced to f9d77e9dc.
-Observe Railway code deployment 24c2dab0-d1f6-414c-889b-c1a2094b3299 before
-applying the six reviewed settings and redeploying once.
+Code deployment 24c2dab0 succeeded and all six settings were acknowledged.
+Same-release settings job e8a57bf6-5a96-42c5-a41f-ce350711f272 is building.
+Verify the live settings and both provider readiness gates before HTTP acceptance.
 
 ## Recent WEB4 preparation, 5–6 November 2026
 

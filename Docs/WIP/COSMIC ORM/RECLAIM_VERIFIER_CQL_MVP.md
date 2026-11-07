@@ -76,3 +76,8 @@ The protected settings reproduced exactly, and the live baseline matched
 before fast-forwarding Development. Railway code deployment
 24c2dab0-d1f6-414c-889b-c1a2094b3299 is queued at f9d77e9dc. Observe this
 exact job before applying any settings.
+
+Code deployment 24c2dab0 succeeded. The guarded batch applied and read
+back all six settings. A same-release redeploy is building as
+e8a57bf6-5a96-42c5-a41f-ce350711f272. The exact deployment must succeed
+before testing the two live catalogues and MongoDB federation.
