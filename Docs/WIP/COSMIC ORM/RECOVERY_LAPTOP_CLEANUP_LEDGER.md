@@ -3991,3 +3991,11 @@ the helper stopped Computer Use because it could not confidently determine
 the current browser URL to enforce policy. No navigation, input, authentication
 or new browser cohort occurred. No further browser input issued. Browser
 acceptance remains open; app-control failure is agent-owned.
+
+Prepared one dedicated DuckDB Linux retained-source CI gate and native
+read-only test. Only exact original database/compressed/current seed hashes
+are admitted; gzip input fits8KiB and no new source is seeded. Source stays
+on this laptop, untouched by any SDK during preparation. Intended runner
+copy1323008B plus224B seed and small TRX retained as a synthetic-only90-day
+artifact after success. No local runtime/build/restore or compressed copy
+was created. Original directory still retained; no cleanup attempted.

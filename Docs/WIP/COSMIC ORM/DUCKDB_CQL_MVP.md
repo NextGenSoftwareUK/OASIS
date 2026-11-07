@@ -232,3 +232,20 @@ Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider DuckDB -Federated -Recovery
 This invocation passed both phases and confirmed the temporary Mongo fixture
 was removed. No test listeners remained. Reused the existing source and build
 outputs in the recovery ledger. Hosted acceptance remains open.
+
+## Linux retained-source qualification — 7 November 2026
+
+The original database still hashesDB649A3DD1A2FCE1694CBA1F9E303505596A3D3289B01F8166A6D232D3FFCA19
+and has no adjacent WAL. Its in-memory gzip transport is5381bytes, SHA256
+4b0d0e62c3331148c174c6ed51636300dc33d3296b06811cdee7b39e79d5b01d.
+The current retained224-byte seed hashesdc837edd1d778e8dc402d2b1b8712fe783faf4fef1387c4dc7f7e3fb518929de;
+its three live IDs and tombstone match the placement plan above. The older
+seed digest in historical evidence is not substituted for this exact input.
+
+A dedicated Linux CI gate accepts only those exact compressed/source/seed
+hashes, restores a separate read-only copy, and runs the real provider SDK.
+It checks native CQL3/2/0 across two provider activations, unchanged file hash
+and no WAL. It never calls the native seeding fixture, SaveHolon or Mongo.
+The original Windows source and its save acknowledgements remain unopened
+by the SDK. This is a new Linux portability gate, not replay of Windows
+acceptance. Qualification remains pending until its dispatched run passes.

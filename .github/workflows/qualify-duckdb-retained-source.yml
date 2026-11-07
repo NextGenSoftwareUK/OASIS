@@ -1,0 +1,96 @@
+name: Qualify retained DuckDB source on Linux
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths: ['.github/workflows/qualify-duckdb-retained-source.yml']
+  workflow_dispatch:
+    inputs:
+      source_gzip_base64:
+        description: Exact qualified synthetic database compressed with gzip mtime zero
+        required: true
+        type: string
+      seed_json:
+        description: Original qualified synthetic source identity manifest
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  retained:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Read reviewed dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore exact synthetic source without seeding
+        working-directory: OASIS
+        env:
+          SOURCE_GZIP_BASE64: ${{ inputs.source_gzip_base64 }}
+          SOURCE_SEED_JSON: ${{ inputs.seed_json }}
+        run: |
+          python3 -B - <<'PY'
+          import base64,gzip,hashlib,json,os
+          from pathlib import Path
+          encoded=os.environ['SOURCE_GZIP_BASE64']
+          if len(encoded)>8192:raise RuntimeError('Bounded original source required')
+          compressed=base64.b64decode(encoded,validate=True)
+          if hashlib.sha256(compressed).hexdigest()!='4b0d0e62c3331148c174c6ed51636300dc33d3296b06811cdee7b39e79d5b01d':raise RuntimeError('Original compressed source differs')
+          raw=gzip.decompress(compressed)
+          if len(raw)!=1323008 or hashlib.sha256(raw).hexdigest()!='db649a3dd1a2fce1694cba1f9e303505596a3d3289b01f8166a6d232d3ffca19':raise RuntimeError('Original native source differs')
+          seed=os.environ['SOURCE_SEED_JSON'].encode()
+          if hashlib.sha256(seed).hexdigest()!='dc837edd1d778e8dc402d2b1b8712fe783faf4fef1387c4dc7f7e3fb518929de':raise RuntimeError('Retained seed differs')
+          json.loads(seed)
+          root=Path('TestResults/DuckDbRetainedLinuxCurrent');root.mkdir(parents=True,exist_ok=False)
+          with (root/'source.duckdb').open('xb') as f:f.write(raw)
+          with (root/'demo-seed.json').open('xb') as f:f.write(seed)
+          (root/'source.duckdb').chmod(0o444)
+          PY
+      - name: Query the original source through the real read-only SDK
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          $env:OASIS_DUCKDB_RETAINED_SOURCE_STATE = (Resolve-Path TestResults/DuckDbRetainedLinuxCurrent).Path
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner duckdb-retained-linux-ci -Operation {
+            dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.DuckDBOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~DuckDbRetainedReadOnlySourceTests' --results-directory TestResults/DuckDbRetainedLinuxCurrent --logger 'trx;LogFileName=retained.trx'
+            if ($LASTEXITCODE) { throw 'Original DuckDB Linux read-only qualification failed' }
+            [xml]$report = Get-Content TestResults/DuckDbRetainedLinuxCurrent/retained.trx
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '1' -or $report.TestRun.ResultSummary.Counters.total -ne '1') {
+              throw 'The retained-source native check must pass without skips'
+            }
+          }
+      - uses: actions/upload-artifact@v7
+        if: success()
+        with:
+          name: duckdb-retained-linux-source
+          path: OASIS/TestResults/DuckDbRetainedLinuxCurrent/
+          if-no-files-found: error
+          retention-days: 90
