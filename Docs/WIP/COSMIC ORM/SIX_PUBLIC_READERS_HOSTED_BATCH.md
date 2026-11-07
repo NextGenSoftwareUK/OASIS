@@ -27,7 +27,7 @@ These scopes do not establish wallet execution, Axelar GMP, Ritual Infernet or
 full provider/ORM parity.
 
 - [Exact API qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42408837581):
-  observed running, job128512356194. Requires25pass/0skip: six new facts,
+  SUCCESS, job128512356194. All25pass/0skip: six new facts,
   five previously accepted cross-chain facts, fourteen NATS cases.
 - [Exact image qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42408951517):
   observed running, job128512687059; one dispatch acknowledged, exact candidate
@@ -41,3 +41,8 @@ this qualified batch. Verify actual runtime before thirteen journalled settings
 writes and one activation. First hosted cohorts must prove native3/2, Mongo5/4,
 private snapshot reuse, isolation and exact replicas before public cards.
 Never replay existing accepted cohorts. Browser acceptance remains separate.
+
+API artifact13588752684 retained remotely:4390B, SHA256
+`eff9cb60dac1d4b0e6b70148bf8cc2843a1c2809476f8d4a3c29b52639d3677c`,
+expires7December2026. No local artifact download. Seven private pins freshly
+confirmed on advertised remote refs; compact receipt retained. Image still running.

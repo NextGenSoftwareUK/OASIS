@@ -4368,3 +4368,10 @@ dispatch ACK, exact candidate88b896815 with teaching runtimes enabled. No local
 image/artifact download. HTTP verifier extension:28 offline response/recovery
 controls pass; temporary test fixtures removed by their owned test contexts.
 Original source/snapshot/cohort journals retained; no hosted acceptance executed.
+
+Six-reader API42408837581/job128512356194 SUCCESS,25pass/0skip; compact
+six-public-readers-admission-qualified.json retained. Remote artifact13588752684
+4390B SHA256eff9cb60dac1d4b0e6b70148bf8cc2843a1c2809476f8d4a3c29b52639d3677c
+expires7December2026; no local download. Seven advertised private pins verified
+without clones in six-public-readers-private-pins-qualified.json. Image remains
+running; no Development/settings/cohort mutation.
