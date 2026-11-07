@@ -1,7 +1,8 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { review, provision, reviewCommand } = require('../../Docker/provision-sandbox-dapr.cjs');
+const crypto = require('node:crypto');
+const { review, provision, reviewCommand, pendingSourceDescriptor } = require('../../Docker/provision-sandbox-dapr.cjs');
 const plan = { schema: 1, prefix: '12345678-1234-4234-8234-123456789ab', readerPassword: 'a'.repeat(64), sidecarToken: 'b'.repeat(64) };
 test('creation plan provides three public records and a separate tombstone under one owner', () => {
   const rows = review(plan).map(row => JSON.parse(row.value));
@@ -25,4 +26,15 @@ test('creation command binds the reviewed sandbox deployment and refuses an acti
   assert.throws(() => reviewCommand(args, { ...environment, OASIS_SANDBOX_DAPR: 'true' }, text), /disabled/);
   assert.throws(() => reviewCommand(args, { ...environment, OASIS_DNA_JSON: '{}' }, text), /Sandbox.Enabled/);
   assert.throws(() => reviewCommand(args, environment, ' '.repeat(8193)), /budget/);
+});
+test('pending inspection binds the original operation, exact keys and original serialized payload', () => {
+  const rows = review(plan), payload = rows.map(row => ({ key: 'oasis/holon/' + row.id.replaceAll('-', ''), value: row.value }));
+  const creation = { schema: 1, prefix: plan.prefix, replayAllowed: false };
+  const seed = { prefix: plan.prefix, replayAllowed: false, operation: '12345678-1234-4234-8234-123456789abc',
+    keys: payload.map(row => row.key), payloadSha256: crypto.createHash('sha256').update(JSON.stringify(payload)).digest('hex') };
+  assert.deepEqual(pendingSourceDescriptor(plan, creation, seed), rows);
+  for (const changed of [{ ...seed, replayAllowed: true }, { ...seed, payloadSha256: '0'.repeat(64) },
+    { ...seed, keys: seed.keys.slice(1) }, { ...seed, prefix: 'foreign' }, { ...seed, operation: 'unknown' }])
+    assert.throws(() => pendingSourceDescriptor(plan, creation, changed), /intent differs/);
+  assert.throws(() => pendingSourceDescriptor(plan, { ...creation, prefix: 'foreign' }, seed), /intent differs/);
 });
