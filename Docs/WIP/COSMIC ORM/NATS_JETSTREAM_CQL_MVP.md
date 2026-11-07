@@ -256,3 +256,20 @@ were applied. Next follow this exact deployment, inspect actual runtime/native
 binary/absent source and writable volume, then stage the eight original
 protected settings once and request one activation. Do not replace credentials,
 resubmit the code rollout or claim live NATS acceptance from image proof.
+
+## Code healthy; original settings staged once
+
+Code592df8cd SUCCESS, instanced3f2b840-002c-4ebc-b987-64c2dc99760e,
+image sha256:1cf1801e8c25ae59d73a9f7a9c775522071047cffdeccda9693c5d0f37f1c211.
+Actual NATS/supervisor script hashes match exact82428c7a6; native2.15.2 and
+SDK3.2.0 verified. Mount guard passed and source destination was absent.
+Eight original prepared values staged exactly once; every per-key ACK and
+complete settings readback matched, with no deployment triggered per write.
+One manual activation request was acknowledged after a fresh release/settings
+check. Its protected response and intent/ACK are retained; never resubmit.
+
+Settings deployment8c51a9da-3dc0-4ae3-a920-676b004ffe96 isBUILDING for82428c7a6.
+Next follow that exact job, inspect mounted original source/TLS identity and
+actual environment, then perform the first journalled native/Mongo/privacy/
+replica HTTP acceptance. No NATS HTTP cohort exists yet and coverage remains
+119local/78liveHTTP/28functional browser. Settings staging is not acceptance.

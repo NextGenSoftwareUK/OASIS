@@ -4241,3 +4241,12 @@ image pull. Read-only prior service/settings/source-absence checks passed.
 One Development push intent/remoteACK retained; code job592df8cd QUEUED.
 No NATS settings write, new native generation/account or accepted-cohort replay.
 Existing protected candidate credentials remain unchanged. No local install.
+
+NATS code592df8cd SUCCESS; runtime-qualified.json retains actual script hashes,
+native/SDK/mount/source-absence proof. Small protected build-observation.dpapi
+retained for earlier in-progress observation (no matching error). Original8
+setting writes completed exactly once with protected per-key intent/outcome/ACK
+journals in HostedSourceRolloutCurrent. One settings activation intent/ACK and
+protected CLI response retained; job8c51a9da BUILDING. Credentials unchanged.
+No local native execution/new environment/cohort replay; mounted source/HTTP
+acceptance still pending. Preserve original snapshots and every write journal.
