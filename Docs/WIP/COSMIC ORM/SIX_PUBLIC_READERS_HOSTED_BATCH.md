@@ -69,3 +69,20 @@ One activation intent/protected response/ACK retained. Settings deployment
 Next: terminal activation proof and exact active settings before first cohorts.
 The first-cohort preflight found all six original qualifications available and
 no existing hosted cohort or reports; it created no identity/query/save.
+
+## Active configuration verified
+
+Activation8783d8eb SUCCESS, instance5e85e983-4154-4940-b1c6-29a5108e613a,
+actual image `sha256:1e7e28767ea7b293f559e86cc8ea410a331e239593bf6712e594ebf0eb7550b4`.
+Complete service settings match the reviewed candidate; read-only SSH checked
+all CQL/OASIS/prepared-admission environment values, six DLLs and retained
+runtime hashes. Compact live-settings receipt retained.
+
+Initial Miden readiness stopped locally because the default rehearsal visitor
+has an unresolved refresh rotation; no network query/cohort was reached.
+That original rotation remains untouched. Existing explicit acknowledged-visitor
+reuse now supports public readers under an exact deployment guard. Retained-source
+special reviews remain required. Thirty evidence/recovery controls pass,
+including release drift before credential access and no replacement creation.
+Miden readiness passed with the original acknowledged PouchDB visitor.
+First Miden hosted flow started once; acceptance is not yet claimed here.

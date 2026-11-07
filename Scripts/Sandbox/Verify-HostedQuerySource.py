@@ -350,6 +350,17 @@ def deployment_visitor(provider, deployment):
     return ROOT / "LocalState/COSMIC" / f"Hosted{provider}Readiness-{deployment}"
 
 
+def require_readiness_release():
+    spec = importlib.util.spec_from_file_location("readiness_release_guard", ROOT / "Scripts/Sandbox/Prepare-TenSourcePublicBatch.py")
+    guard = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(guard)
+    host_spec = importlib.util.spec_from_file_location("readiness_configuration", ROOT / "Scripts/Sandbox/Publish-HostedSolidConfiguration.py")
+    configuration = importlib.util.module_from_spec(host_spec)
+    host_spec.loader.exec_module(configuration)
+    return guard.require_matching_release(configuration,
+        release_ref=os.environ.get("COSMIC_CQL_REVIEWED_RELEASE_REF", "HEAD"))
+
+
 def acknowledged_readiness_visitor(directory):
     path = directory.resolve(strict=True)
     if (path.parent != (ROOT / "LocalState/COSMIC").resolve(strict=True)
@@ -878,7 +889,7 @@ def main():
     parser.add_argument("--reviewed-deployment-visitor", action="store_true",
                         help="Use a separate visitor for a verified reviewed public catalogue settings deployment.")
     parser.add_argument("--reuse-acknowledged-readiness", type=Path,
-                        help="Explicitly reuse an existing acknowledged discovery visitor after verifying the retained-source deployment; never create a replacement.")
+                        help="Explicitly reuse an existing acknowledged discovery visitor after verifying the exact deployment; never create a replacement.")
     parser.add_argument("--recover-localfile-receipt", action="store_true",
                         help="Finalize the original completed LocalFile reports without sessions, queries or saves.")
     parser.add_argument("--reviewed-exact-key-source", type=Path, help="Reviewed native teaching catalogue for the prepared exact-key providers.")
@@ -896,9 +907,9 @@ def main():
     parser.add_argument("--continue-snapshot-observation-change", action="store_true",
                         help="Finish original acknowledged snapshots after a proved changing-observation reuse defect; no writes.")
     options = parser.parse_args()
-    if options.reuse_acknowledged_readiness is not None and (options.provider not in ("WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS")
-            or not options.reviewed_deployment_visitor or not (options.readiness or options.prepare)):
-        parser.error("Readiness visitor reuse requires a retained source with its verified deployment and readiness or preparation.")
+    if options.reuse_acknowledged_readiness is not None and (not (options.readiness or options.prepare)
+            or (options.provider in ("WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS") and not options.reviewed_deployment_visitor)):
+        parser.error("Readiness visitor reuse requires readiness or preparation and the retained-source deployment review where applicable.")
     if options.decentraland_deployment_visitor and (options.provider != "DecentralandOASIS"
             or not (options.readiness or options.prepare)):
         parser.error("--decentraland-deployment-visitor requires DecentralandOASIS with --readiness or --prepare.")
@@ -942,6 +953,8 @@ def main():
     if options.reviewed_deployment_visitor:
         rehearsal = reviewed_deployment_visitor(options.provider)
     if options.reuse_acknowledged_readiness is not None:
+        if not options.reviewed_deployment_visitor:
+            require_readiness_release()
         rehearsal = acknowledged_readiness_visitor(options.reuse_acknowledged_readiness)
     if options.provider in ("WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS") and not options.prepare_exact_key_presets and not options.reviewed_deployment_visitor:
         parser.error("Retained-source acceptance requires its verified deployment, mounted archive and source receipt.")

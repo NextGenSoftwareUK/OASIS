@@ -66,6 +66,30 @@ class ResponseEvidenceTests(unittest.TestCase):
                 reuse.assert_not_called()
                 session.assert_not_called()
 
+    def test_public_reader_reuse_requires_release_before_credentials(self):
+        visitor = Path("existing-visitor")
+        with (patch("sys.argv", ["verify", "MidenOASIS", "--readiness", "--reuse-acknowledged-readiness", str(visitor)]),
+              patch.object(verification, "require_readiness_release", side_effect=RuntimeError("release drift")),
+              patch.object(verification, "acknowledged_readiness_visitor") as reuse,
+              patch.object(verification, "session") as session):
+            with self.assertRaisesRegex(RuntimeError, "release drift"):
+                verification.main()
+            reuse.assert_not_called()
+            session.assert_not_called()
+
+    def test_public_reader_reuses_acknowledged_visitor_without_creation(self):
+        visitor = Path("existing-visitor")
+        with (patch("sys.argv", ["verify", "MidenOASIS", "--readiness", "--reuse-acknowledged-readiness", str(visitor)]),
+              patch.object(verification, "require_readiness_release") as release,
+              patch.object(verification, "acknowledged_readiness_visitor", return_value=visitor) as reuse,
+              patch.object(verification, "session", return_value=({}, "token")) as session,
+              patch.object(verification, "ready_source", side_effect=RuntimeError("discovery reached"))):
+            with self.assertRaises(SystemExit):
+                verification.main()
+            release.assert_called_once_with()
+            reuse.assert_called_once_with(visitor)
+            session.assert_called_once_with(visitor, "visitor", allow_create=False)
+
     def test_cleaned_test_results_cannot_reopen_an_original_acceptance_cohort(self):
         results_parent = verification.ROOT / "TestResults"
         results_parent.mkdir(exist_ok=True)

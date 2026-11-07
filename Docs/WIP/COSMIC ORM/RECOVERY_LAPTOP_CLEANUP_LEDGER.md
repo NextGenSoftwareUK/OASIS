@@ -4387,3 +4387,10 @@ original per-key intent/exact ACKs under HostedSourceRolloutCurrent. One setting
 activation intent/protected response/ACK retained;8783d8eb BUILDING. No runtime
 install/image download/native fixture replay/cohort/source write. Original
 protected settings snapshots and first-cohort preflight retained for recovery.
+
+Six-reader activation8783d8eb SUCCESS, active-instance/settings/runtime proof
+retained. Initial Miden readiness blocked locally on original default visitor
+refresh intent; preserved, no network/cohort. Explicit reuse of acknowledged
+PouchDB visitor now deployment-guarded for public readers;30 offline controls
+pass, readiness passes. Miden first hosted flow61198 running; no replay.
+No install/environment/image download; protected credentials/journals retained.
