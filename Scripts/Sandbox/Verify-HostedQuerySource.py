@@ -960,6 +960,12 @@ def main():
             "additionalSaves": 0, "replayAllowed": False}) + "\n").encode())
     if (state / "cql-http-acceptance.acknowledged.json").exists():
         raise RuntimeError("This cohort already completed acceptance; retain its acknowledged outcome.")
+    if not (continuing or options.resume_unstarted_native) and any(
+            (state / name).exists() for name in ("owner.intent.json", "owner.acknowledged.json",
+                "owner.session.dpapi", "owner.auth-response.dpapi", "preparation-intents.json",
+                "save-acknowledgements.jsonl")):
+        raise RuntimeError("Original acceptance cohort already exists. Reconcile its durable journals;"
+                           " cleaned TestResults cannot authorize another session, query or save.")
     results = ROOT / "TestResults/HostedCqlIntegrationCurrent"
     if (options.provider == "LocalFileOASIS" or is_reviewed_exact_key) and (results / (suffix + "-client-http-flow.json")).exists():
         raise RuntimeError("Original client proof exists; reconcile it without another query or save.")

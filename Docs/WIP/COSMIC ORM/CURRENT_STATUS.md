@@ -43,8 +43,8 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 The GUN/OrbitDB cards are published at fae9c5a. Public HTML matches the
 exact commit (241209bytes/SHA256 in provider reports);114 client tests passed.
 Next inspect the unqualified The Graph Studio draft and its proving-test gaps.
-Also reproduce the harness cleanup fence using local mocks before any further
-acceptance run: accepted cohorts must stay blocked after TestResults cleanup.
+The harness cleanup bug was reproduced and fixed locally: durable owner/write
+journals now reject fresh execution before sessions/queries; all26 tests pass.
 Do not rerun accepted HTTP schedules. Browser gates remain open.
 
 ## Source and rollout journals

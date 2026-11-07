@@ -19,6 +19,36 @@ spec.loader.exec_module(verification)
 
 
 class ResponseEvidenceTests(unittest.TestCase):
+    def test_cleaned_test_results_cannot_reopen_an_original_acceptance_cohort(self):
+        results_parent = verification.ROOT / "TestResults"
+        results_parent.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=results_parent) as directory:
+            root = Path(directory) / "checkout"
+            state = root / "LocalState/COSMIC/HostedQueryAcceptance-GUNOASIS"
+            state.mkdir(parents=True)
+            (state / "owner.acknowledged.json").write_text(json.dumps({"id": str(uuid.uuid4())}))
+            (state / "save-acknowledgements.jsonl").write_text('{"saved":true}\n')
+            reports = root / "TestResults/HostedCqlIntegrationCurrent"
+            reports.mkdir(parents=True)
+            for suffix in ("native-http", "client-http-flow", "isolation-http"):
+                report = reports / ("GUNOASIS-" + suffix + ".json")
+                report.write_text('{}')
+                report.unlink()  # The normal cleanup removes evidence, not durable identity state.
+            frontend = root.parent / "Web4Site"
+            frontend.mkdir()
+            for name in ("cql-demo-preparation.js", "cql-playground.js"):
+                (frontend / name).write_text('')
+            with (patch.object(verification, "ROOT", root),
+                  patch("sys.argv", ["verify", "GUNOASIS", "--prepare",
+                       "--reviewed-exact-key-source", str(state / "catalogue.json")]),
+                  patch.object(verification, "reviewed_exact_key_source", return_value={}),
+                  patch.object(verification, "session", side_effect=AssertionError("Session was reopened")) as session,
+                  patch.object(verification, "call") as call):
+                with self.assertRaisesRegex(RuntimeError, "Original acceptance cohort"):
+                    verification.main()
+                session.assert_not_called()
+                call.assert_not_called()
+
     def test_decentraland_visitor_refuses_stale_deployment(self):
         deployment = str(uuid.UUID(int=1))
         release = Mock()
