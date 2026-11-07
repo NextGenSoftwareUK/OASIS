@@ -230,3 +230,18 @@ response are retained in HostedWakuReadiness-28a381bd-187f-4214-9b4d-aa91d6a4586
 No replacement visitor or private import cohort has been created. Resolve
 this response or explicitly reuse an acknowledged existing visitor before
 further readiness work. Browser proof remains open.
+
+The catalogue-cap correction is scoped to the enrollment guard: unique
+canonical supported provider names,32KiB total configuration and128 IDs per
+provider remain enforced. Exact candidate7672cd5ea0313dc3494761226766ad84d31fdaa2
+changes only that guard, its five focused regression cases and a CI gate.
+CI42384061405 tests that candidate; teaching image42384082328 builds it.
+No new deployment is authorized by a queued/success-labelled image alone.
+Both checks must pass before replacing the recovery runtime.
+
+Explicit verifier option --reuse-acknowledged-readiness selects a retained
+acknowledged visitor for discovery only after the Waku deployment/source
+fence. It requires existing protected session credentials and forbids
+session creation. The original502 operation stays untouched. All28 response
+and journal controls passed, including reuse refusal on release drift.
+This option does not replace the separate owner/foreign acceptance cohort.

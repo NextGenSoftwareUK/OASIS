@@ -3951,3 +3951,11 @@ exclusive provider build lease, bounded2workers/no reusable nodes/shared
 compiler. Output catalogue-test.log and CqlPublicReadCatalogueCurrent TRX
 are retained for qualification. No runtime/database installation. Existing
 blocked cleanup outputs remain untouched; no removal retried.
+
+Catalogue candidate7672cd5ea adds one small CI workflow and five focused
+in-memory tests. CI42384061405 and exact teaching image42384082328 are
+running. Original local --no-restore build encountered missing Graph assets
+before tests; log retained, no native fixture or visitor work. No restore
+or replacement environment requested. Reused readiness controls28/28 pass,
+log waku-readiness-reuse-tests.log. Explicit discovery reuse retains the
+original unknown502 journal and creates no replacement identity.

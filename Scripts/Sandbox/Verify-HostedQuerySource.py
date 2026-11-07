@@ -347,6 +347,16 @@ def deployment_visitor(provider, deployment):
     return ROOT / "LocalState/COSMIC" / f"Hosted{provider}Readiness-{deployment}"
 
 
+def acknowledged_readiness_visitor(directory):
+    path = directory.resolve(strict=True)
+    if (path.parent != (ROOT / "LocalState/COSMIC").resolve(strict=True)
+            or not path.name.startswith("Hosted") or "Readiness-" not in path.name
+            or not (path / "visitor.acknowledged.json").is_file()
+            or not (path / "visitor.session.dpapi").is_file()):
+        raise RuntimeError("An existing acknowledged readiness visitor in this checkout is required.")
+    return path
+
+
 def acknowledge_localfile_http(state, owner, foreign, reviewed_mount, evidence):
     if owner == foreign:
         raise RuntimeError("LocalFile privacy proof requires two distinct visitor identities.")
@@ -853,6 +863,8 @@ def main():
                         help="Use a separate visitor for the verified Decentraland settings deployment.")
     parser.add_argument("--reviewed-deployment-visitor", action="store_true",
                         help="Use a separate visitor for a verified reviewed public catalogue settings deployment.")
+    parser.add_argument("--reuse-acknowledged-readiness", type=Path,
+                        help="Explicitly reuse an existing acknowledged discovery visitor after verifying the Waku deployment; never create a replacement.")
     parser.add_argument("--recover-localfile-receipt", action="store_true",
                         help="Finalize the original completed LocalFile reports without sessions, queries or saves.")
     parser.add_argument("--reviewed-exact-key-source", type=Path, help="Reviewed native teaching catalogue for the prepared exact-key providers.")
@@ -870,6 +882,9 @@ def main():
     parser.add_argument("--continue-snapshot-observation-change", action="store_true",
                         help="Finish original acknowledged snapshots after a proved changing-observation reuse defect; no writes.")
     options = parser.parse_args()
+    if options.reuse_acknowledged_readiness is not None and (options.provider != "WakuOASIS"
+            or not options.reviewed_deployment_visitor or not (options.readiness or options.prepare)):
+        parser.error("Readiness visitor reuse requires Waku with its verified deployment and readiness or preparation.")
     if options.decentraland_deployment_visitor and (options.provider != "DecentralandOASIS"
             or not (options.readiness or options.prepare)):
         parser.error("--decentraland-deployment-visitor requires DecentralandOASIS with --readiness or --prepare.")
@@ -912,6 +927,8 @@ def main():
         rehearsal = decentraland_deployment_visitor()
     if options.reviewed_deployment_visitor:
         rehearsal = reviewed_deployment_visitor(options.provider)
+    if options.reuse_acknowledged_readiness is not None:
+        rehearsal = acknowledged_readiness_visitor(options.reuse_acknowledged_readiness)
     if options.provider == "WakuOASIS" and not options.prepare_exact_key_presets and not options.reviewed_deployment_visitor:
         parser.error("Waku acceptance requires its verified deployment, mounted archive and source receipt.")
     continuing = options.continue_settled_read or options.continue_native_read_failure or options.continue_snapshot_observation_change
@@ -938,7 +955,7 @@ def main():
         if options.localfile_deployment_visitor:
             rehearsal, reviewed_localfile = localfile_deployment_visitor()
         create_readiness_visitor = (options.localfile_deployment_visitor or options.pouchdb_deployment_visitor
-                                    or options.decentraland_deployment_visitor or options.reviewed_deployment_visitor)
+                                    or options.decentraland_deployment_visitor or options.reviewed_deployment_visitor) and options.reuse_acknowledged_readiness is None
         if create_readiness_visitor:
             rehearsal.mkdir(exist_ok=True)
         _, token = session(rehearsal, "visitor", allow_create=create_readiness_visitor)

@@ -19,6 +19,53 @@ spec.loader.exec_module(verification)
 
 
 class ResponseEvidenceTests(unittest.TestCase):
+    def test_readiness_reuse_requires_existing_acknowledged_credentials(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            visitor = root / "LocalState/COSMIC/HostedPouchDBReadiness-existing"
+            visitor.mkdir(parents=True)
+            with patch.object(verification, "ROOT", root):
+                with self.assertRaises(RuntimeError):
+                    verification.acknowledged_readiness_visitor(visitor)
+                (visitor / "visitor.acknowledged.json").write_text('{}')
+                with self.assertRaises(RuntimeError):
+                    verification.acknowledged_readiness_visitor(visitor)
+                (visitor / "visitor.session.dpapi").write_bytes(b'protected fixture')
+                self.assertEqual(visitor.resolve(), verification.acknowledged_readiness_visitor(visitor))
+                foreign = root / "HostedPouchDBReadiness-foreign"
+                foreign.mkdir()
+                for name in ("visitor.acknowledged.json", "visitor.session.dpapi"):
+                    (foreign / name).write_bytes(b'fixture')
+                with self.assertRaises(RuntimeError):
+                    verification.acknowledged_readiness_visitor(foreign)
+
+    def test_waku_readiness_reuse_verifies_release_then_forbids_session_creation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            visitor = root / "existing"
+            with (patch("sys.argv", ["verify", "WakuOASIS", "--readiness",
+                    "--reviewed-deployment-visitor", "--reuse-acknowledged-readiness", str(visitor)]),
+                  patch.object(verification, "reviewed_exact_key_source", return_value={}),
+                  patch.object(verification, "reviewed_deployment_visitor", return_value=root / "unknown") as release,
+                  patch.object(verification, "acknowledged_readiness_visitor", return_value=visitor) as reuse,
+                  patch.object(verification, "session", return_value=({}, "token")) as session,
+                  patch.object(verification, "ready_source", side_effect=RuntimeError("discovery reached"))):
+                with self.assertRaises(SystemExit):
+                    verification.main()
+                release.assert_called_once_with("WakuOASIS")
+                reuse.assert_called_once_with(visitor)
+                session.assert_called_once_with(visitor, "visitor", allow_create=False)
+            with (patch("sys.argv", ["verify", "WakuOASIS", "--readiness",
+                    "--reviewed-deployment-visitor", "--reuse-acknowledged-readiness", str(visitor)]),
+                  patch.object(verification, "reviewed_exact_key_source", return_value={}),
+                  patch.object(verification, "reviewed_deployment_visitor", side_effect=RuntimeError("release drift")),
+                  patch.object(verification, "acknowledged_readiness_visitor") as reuse,
+                  patch.object(verification, "session") as session):
+                with self.assertRaisesRegex(RuntimeError, "release drift"):
+                    verification.main()
+                reuse.assert_not_called()
+                session.assert_not_called()
+
     def test_cleaned_test_results_cannot_reopen_an_original_acceptance_cohort(self):
         results_parent = verification.ROOT / "TestResults"
         results_parent.mkdir(exist_ok=True)
