@@ -130,4 +130,27 @@ async function provision(plan, directory = '/data/COSMIC/SandboxDapr', binaries 
   await durableExclusive(path.join(directory, 'source.acknowledged.json'), source);
   return { schema: 1, sourceOwner: source.sourceOwner, ids: source.ids, records: source.records.length, recoveryVerified: true };
 }
-module.exports = { review, provision };
+function reviewCommand(args, environment, text) {
+  const guid = /^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/;
+  if (args.length !== 2 || args.some(value => !guid.test(value)) ||
+      environment.RAILWAY_DEPLOYMENT_ID !== args[0] || environment.RAILWAY_REPLICA_ID !== args[1])
+    throw Error('Exact reviewed deployment and replica required for Dapr creation.');
+  require('./host-sandbox-ipfs.cjs').assertSandbox(environment.OASIS_DNA_JSON);
+  if (environment.OASIS_SANDBOX_DAPR !== undefined && environment.OASIS_SANDBOX_DAPR !== 'false')
+    throw Error('Dapr readers must remain disabled during source creation.');
+  if (Buffer.byteLength(text) > 8192) throw Error('Dapr creation plan exceeds its budget.');
+  const plan = JSON.parse(text); review(plan);
+  return plan;
+}
+module.exports = { review, provision, reviewCommand };
+if (require.main === module) (async () => {
+  let text = '';
+  for await (const chunk of process.stdin) {
+    text += chunk.toString('utf8');
+    if (Buffer.byteLength(text) > 8192) throw Error('Dapr creation plan exceeds its budget.');
+  }
+  const plan = reviewCommand(process.argv.slice(2), process.env, text);
+  const receipt = await provision(plan);
+  process.stdout.write('COSMIC_DAPR_PROOF ' + JSON.stringify({ ...receipt,
+    planSha256: hash(text), deployment: process.env.RAILWAY_DEPLOYMENT_ID, instance: process.env.RAILWAY_REPLICA_ID }) + '\n');
+})().catch(error => { console.error(error.message); process.exitCode = 1; });

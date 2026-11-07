@@ -352,3 +352,8 @@ Docker/provision-sandbox-dapr.cjs implements exclusive Linux source creation, du
 ### Actual provisioner native qualification connected
 
 The Linux workflow now invokes the shipping provisioner through the --provisioner fixture mode. Runtime paths are explicit, prevalidated pinned executables; shipping defaults remain /opt/garnet and /opt/dapr. One new source is created, recovered within the provisioner, then opened through two further reader-only WEB4 phases with original values/ETags retained. Creation is not replayed. The isolated creator/native process group is stopped on an observation deadline; no unrelated process is targeted.19local Node24 controls and Python AST syntax pass. Native outcome is pending the next exact-source CI run; no image/live qualification inferred.
+
+
+### Controlled creation command packaged (not deployed)
+
+The image now includes provision-sandbox-dapr.cjs. Its standalone command consumes a bounded plan from stdin (credentials never command arguments), requires exact reviewed deployment and replica IDs, authoritative sandbox DNA enabled and Dapr readers disabled. Public receipt binds the exact input hash and active instance. Four provisioning boundary controls pass on cached Node24. Full native gate42420695067 is still active at checkout; it covers the prior provisioner implementation. The command/packaging revision requires exact-source qualification before rollout. No creation command has been sent to Railway.

@@ -4525,3 +4525,5 @@ SDK/env/build/download/live source operation. New exact helper qualification nex
 7 November: inspected5188byte helper artifact in memory only, matching ZIP hash/twoTRX/helper proof; no disk copy. Shared-seed native job42419910853 succeeded; GitHub retains5140byte artifact13593106956 for30days. Three provisioner boundary controls create no source or process on Windows; cached Node reused.
 
 7 November:19 local Dapr controls reused cached Node24 and removed test-owned temporary folders; Python AST-only validation used -B with no cache/build outputs. Actual provisioner qualification is assigned to an ephemeral Linux runner using the existing pinned runtime installation and one new uniquely identified source. No local runtime install.
+
+7 November: controlled provisioner command has4 local boundary controls, cached Node reused with no downloads or retained outputs. Native run42420695067/job128548278396 observed active at checkout. No remote source creation or Railway configuration write.

@@ -155,6 +155,7 @@ COPY Docker/host-sandbox-waku.cjs /app/host-sandbox-waku.cjs
 COPY Docker/host-sandbox-duckdb.cjs /app/host-sandbox-duckdb.cjs
 COPY Docker/host-sandbox-nats.cjs /app/host-sandbox-nats.cjs
 COPY Docker/host-sandbox-dapr.cjs /app/host-sandbox-dapr.cjs
+COPY Docker/provision-sandbox-dapr.cjs /app/provision-sandbox-dapr.cjs
 COPY Docker/DaprRuntime/ /app/DaprRuntime/
 RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
 
