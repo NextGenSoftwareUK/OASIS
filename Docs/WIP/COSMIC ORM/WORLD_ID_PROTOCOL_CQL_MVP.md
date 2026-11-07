@@ -88,3 +88,11 @@ Evidence under TestResults/HostedCqlIntegrationCurrent, SHA-256:
 - WorldIDOASIS-native-http.json 3298020014bb30baac4ac42f9fd3803025812d42168d13ccb31edad621591e07
 - WorldIDOASIS-client-http-flow.json 7cf6e70b58c179e26c94f29dcdf65ef9b31aabce4c9d575cdc2b8d32b39cb6db
 - WorldIDOASIS-isolation-http.json 91021cbdd985f877624ad4ac55c03e355819142deb6e47c0b84e2ed1f8192bfd
+
+## Sandbox publication
+
+The [World ID sandbox card](https://web4.oasisomniverse.one/web4-sandbox.html#cql-world-id-catalogue)
+is live at Web4Site e87fbba with instructions and the local C# example.
+All 114 website tests passed. The live 232,176-byte HTML matched Git
+SHA-256 472a1f22ac1784390af4593b97129e23d438a20f6f6efccf89d568a383014244.
+Interactive browser acceptance remains open.

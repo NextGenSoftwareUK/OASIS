@@ -74,3 +74,9 @@ tag resolves to sha256:9186270c613dd1fb90a71f1edbb894d336f39ed5e1527efb5f523ea7c
 Finish the World ID settings deployment and its provider acceptance
 before advancing Development to this batch. Recheck remote ancestry and
 the live protected baseline at promotion time.
+
+Development advanced to the exact image-qualified candidate 8645794bb.
+The live settings matched the intended World ID baseline before promotion.
+Railway code job 052ece00-c14b-4aa7-abeb-f89c43cf0c51 is queued. Observe
+this exact job before using the guarded publisher for the three-provider
+public-three batch. Settings have not been applied.

@@ -12,9 +12,9 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 - Worktree C:/Source/OASIS-cosmic, branch work/cosmic-cql-ton-public.
 - Core branch work/cosmic-cql-decentraland. Preserve independent dependency pins.
-- Website C:/Source/Web4Site, branch work/cosmic-cql, published 6c95279.
-- Development 48c532584. Current live release f9d77e9dc, Core cb99792e.
-- Successful Railway settings deployment e8a57bf6-5a96-42c5-a41f-ce350711f272.
+- Website C:/Source/Web4Site, branch work/cosmic-cql, published e87fbba.
+- Development 8645794bb. Current live release 48c532584, Core 7bc3d5a.
+- Successful Railway settings deployment 34802005-bbc6-467e-836f-d716fadbbc72.
 - Unknown root logs and Docs/WIP/Cleanup/CLEANUP_LEDGER.md are outside this task.
 
 ## Verified
@@ -47,9 +47,11 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 World ID image qualification passed and Development advanced to 48c532584.
 World ID settings job 34802005 succeeded. Native 3/2, MongoDB 5/4, reuse,
-visitor isolation and both replicas passed. Next, publish its sandbox card.
-Discord/Livepeer/Pinata candidate 8645794b passed [CI 42332826329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42332826329).
-Its eight-value settings candidate uses the intended World ID baseline.
+visitor isolation and both replicas passed. Its sandbox card and local example are live at e87fbba; browser interaction remains open.
+Discord/Livepeer/Pinata image qualification passed. Development is 8645794bb.
+Observe code deployment 052ece00-c14b-4aa7-abeb-f89c43cf0c51, then use the
+guarded publisher for all three providers with prefix public-three and
+the exact code job ID. Apply eight settings, then redeploy once.
 
 ## Constraints and unfinished roadmap
 
