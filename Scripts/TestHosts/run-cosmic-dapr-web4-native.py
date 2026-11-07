@@ -103,7 +103,8 @@ def native_configuration(function, *values):
 def sidecar(name, username, password):
     require_free(PORTS[:3])
     component = RUN / 'components' / 'redis.yaml'
-    component.write_text(native_configuration('component', password, username), encoding='utf-8')
+    with os.fdopen(os.open(component, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), 'w', encoding='utf-8') as output:
+        output.write(native_configuration('component', password, username))
     try:
         with launch([str(DAPR), *native_configuration('daprArguments', str(RUN))], name, os.environ | {'DAPR_API_TOKEN': TOKEN}) as process:
             await_ready(process, lambda: http('GET', '/v1.0/healthz')[0] == 204)
