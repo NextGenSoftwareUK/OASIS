@@ -16,10 +16,15 @@ on:
         type: string
         default: Development
       tag:
-        description: Extra image tag besides the commit SHA (for example sandbox)
+        description: Extra image tag besides the commit SHA (leave empty for a commit-only build)
         required: false
         type: string
         default: sandbox
+      teaching_sidecars:
+        description: Include pinned GUN and OrbitDB teaching runtimes
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -53,25 +58,56 @@ jobs:
 
       - name: Compute image names
         id: names
+        env:
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+          EXTRA_IMAGE_TAG: ${{ inputs.tag }}
+          TEACHING_SIDECARS: ${{ inputs.teaching_sidecars }}
         run: |
-          repo="ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/oasis-web4"
-          echo "repo=${repo}" >> "$GITHUB_OUTPUT"
-          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          repo="ghcr.io/${REPOSITORY_OWNER,,}/oasis-web4"
+          sha="$(git rev-parse HEAD)"
+          echo "repo=$repo" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          case "$TEACHING_SIDECARS" in
+            true) image_sha="$sha-teaching" ;;
+            false|'') image_sha="$sha" ;;
+            *) echo "Invalid teaching runtime selection" >&2; exit 1 ;;
+          esac
+          if [[ -n "$EXTRA_IMAGE_TAG" && ! "$EXTRA_IMAGE_TAG" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}$ ]]; then
+            echo "Invalid extra image tag" >&2
+            exit 1
+          fi
+          {
+            echo 'tags<<TAGS'
+            echo "$repo:$image_sha"
+            if [[ -n "$EXTRA_IMAGE_TAG" && "$EXTRA_IMAGE_TAG" != "$image_sha" ]]; then
+              echo "$repo:$EXTRA_IMAGE_TAG"
+            fi
+            echo TAGS
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build and push
+        id: publish
         uses: docker/build-push-action@v6
         with:
           context: .
           file: Docker/Dockerfile.web4
           push: true
           provenance: false
-          tags: |
-            ${{ steps.names.outputs.repo }}:${{ steps.names.outputs.sha }}
-            ${{ steps.names.outputs.repo }}:${{ inputs.tag }}
+          tags: ${{ steps.names.outputs.tags }}
           build-args: |
             GITHUB_PAT=${{ secrets.PRIVATE_SUBMODULE_PAT }}
-          cache-from: type=gha
+            OASIS_INCLUDE_TEACHING_SIDECARS=${{ inputs.teaching_sidecars && 'true' || 'false' }}
+          cache-from: |
+            type=gha
+            type=gha,scope=pouch-native
           cache-to: type=gha,mode=max
 
       - name: Summary
-        run: echo "Published ${{ steps.names.outputs.repo }}:${{ steps.names.outputs.sha }}" >> "$GITHUB_STEP_SUMMARY"
+        env:
+          IMAGE_REPOSITORY: ${{ steps.names.outputs.repo }}
+          SOURCE_SHA: ${{ steps.names.outputs.sha }}
+          IMAGE_DIGEST: ${{ steps.publish.outputs.digest }}
+        run: |
+          [[ "$IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
+          printf 'Source commit: `%s`\n\nPublished image: `%s@%s`\n' \
+            "$SOURCE_SHA" "$IMAGE_REPOSITORY" "$IMAGE_DIGEST" >> "$GITHUB_STEP_SUMMARY"
