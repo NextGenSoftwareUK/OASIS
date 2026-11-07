@@ -604,7 +604,7 @@ class ResponseEvidenceTests(unittest.TestCase):
             patch.object(verification.importlib.util, "module_from_spec", return_value=release),
         ):
             for provider in ("OracleObjectStorageOASIS", "CloudinaryOASIS", "ProofOfHumanityOASIS",
-                             "GUNOASIS", "OrbitDBOASIS"):
+                             "GUNOASIS", "OrbitDBOASIS", "TheGraphOASIS"):
                 with self.subTest(provider=provider):
                     release.verify_release.return_value = str(uuid.UUID(int=8))
                     with self.assertRaisesRegex(RuntimeError, "must be current"):

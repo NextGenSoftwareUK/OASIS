@@ -28,9 +28,13 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
     "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "TenderlyOASIS", "QuickNodeOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS",
-    "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS",
+    "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS",
 )
 FIXED_PUBLIC_CATALOGUES = {
+    "TheGraphOASIS": (
+        "CQL_THE_GRAPH_STUDIO_QUERY_SOURCE_OWNER", "the-graph-studio-index-status",
+        ("adexto-arbitrum", "adexto-base", "klerosboard-gnosis"),
+    ),
     "DiscordOASIS": (
         "CQL_DISCORD_PUBLIC_GUILD_QUERY_SOURCE_OWNER", "discord-public-guild",
         ("267624335836053506", "1235157165589794909", "212250894228652034"),

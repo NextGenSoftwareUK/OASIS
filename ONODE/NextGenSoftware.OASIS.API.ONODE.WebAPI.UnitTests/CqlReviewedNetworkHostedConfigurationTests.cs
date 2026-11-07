@@ -50,7 +50,6 @@ public sealed class CqlReviewedNetworkHostedConfigurationTests
     [InlineData("CQL_WORLD_ID_PROTOCOL_QUERY_SOURCE_OWNER", ProviderType.WorldIDOASIS)]
     [InlineData("CQL_RECLAIM_VERIFIER_QUERY_SOURCE_OWNER", ProviderType.ReclaimProtocolOASIS)]
     [InlineData("CQL_DECENTRALAND_SCENE_QUERY_SOURCE_OWNER", ProviderType.DecentralandOASIS)]
-    [InlineData("CQL_THE_GRAPH_STUDIO_QUERY_SOURCE_OWNER", ProviderType.TheGraphOASIS)]
     public void ConfiguringOneNetworkSourceRegistersItsOwnReadProfile(string setting, ProviderType provider)
     {
         var services = new ServiceCollection();
@@ -72,8 +71,6 @@ public sealed class CqlReviewedNetworkHostedConfigurationTests
     [InlineData("CQL_WORLD_ID_PROTOCOL_QUERY_SOURCE_OWNER", "registry")]
     [InlineData("CQL_RECLAIM_VERIFIER_QUERY_SOURCE_OWNER", "00000000-0000-0000-0000-000000000000")]
     [InlineData("CQL_DECENTRALAND_SCENE_QUERY_SOURCE_OWNER", "0,0")]
-    [InlineData("CQL_THE_GRAPH_STUDIO_QUERY_SOURCE_OWNER", "00000000-0000-0000-0000-000000000000")]
-    [InlineData("CQL_THE_GRAPH_STUDIO_QUERY_SOURCE_OWNER", "A5808C3E-7031-47E7-92DE-48A659568F1B")]
     public void InvalidTeachingOwnerFailsClosed(string setting, string owner)
     {
         var services = new ServiceCollection();
@@ -91,7 +88,6 @@ public sealed class CqlReviewedNetworkHostedConfigurationTests
     [InlineData(ProviderType.ReclaimProtocolOASIS)]
     [InlineData(ProviderType.DecentralandOASIS)]
     [InlineData(ProviderType.WakuOASIS)]
-    [InlineData(ProviderType.TheGraphOASIS)]
     public void NetworkSourceRequiresIndependentReadOnlyTariff(ProviderType provider)
     {
         Assert.Equal(provider, CqlV1Compiler.RequestedProvider(provider.ToString(), includeCloudReadProfile: true));

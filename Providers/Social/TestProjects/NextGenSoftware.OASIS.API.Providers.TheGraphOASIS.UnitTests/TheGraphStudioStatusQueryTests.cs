@@ -21,6 +21,16 @@ public class TheGraphStudioStatusQueryTests
         "QmYaqJVD9qHhjiqrsywQqcQ2TimGRzfqQA8nBew1ZRvL2z"];
 
     [TestMethod]
+    public void LogicalIdsMatchThePublishedWeb4Catalogue()
+    {
+        // These IDs are also asserted by the Python preset-generation tests.
+        Guid[] published = [Guid.Parse("d34efac2-6513-855c-ac40-35bb83ea952e"),
+            Guid.Parse("d76a1024-c71f-8527-96e5-4def4df3633b"),
+            Guid.Parse("f3d72db4-5b1f-8daf-a8bb-e9658a8b6b8b")];
+        CollectionAssert.AreEqual(published, Ids);
+    }
+
+    [TestMethod]
     public async Task ExactSelectionsUseOnlyTheReviewedDeploymentStatusQuery()
     {
         using var replies = new Replies();

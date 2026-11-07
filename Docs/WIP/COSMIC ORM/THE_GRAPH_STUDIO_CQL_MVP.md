@@ -79,3 +79,27 @@ The finished app, unit-test, provider and provider-test bin/obj directories tota
 1,981,209,912 bytes. Automatic tool policy rejected their exact scoped cleanup,
 returning only blocked-by-policy. They remain retained and recorded in the
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md). No runtime was installed.
+
+## Scoped hosted candidate
+
+Parent `ce47a6f89c9079ae8b3f61b874b1d73a48a4792a` and Core
+`acc6ed36605fc31f75072bd2d68bb626fe6e1a2a` are pushed on
+`work/cosmic-graph-studio-release-candidate` in both repositories.
+The candidate starts from Development9c6e9300 and preserves its teaching
+runtime package. It adds only the Graph source, registration/compiler/tariff
+and isolated proving tests. Broad Waku/provider drafts remain out of this image.
+The verified local acceptance cleanup fix stays on the task branch for a
+separate operations integration; it is not a runtime dependency.
+
+The four new admission cases now live in an isolated test class and passed4/4.
+The C# catalogue golden IDs passed independently and match Python's fixed
+catalogue. Tooling passed39 preset,26 response-evidence and5 publisher tests.
+These checks use local mocks; accepted native/HTTP schedules were not repeated.
+
+[Enabled image CI42346455177](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42346455177)
+is queued with teaching_sidecars=true. Syntax checks passed for all five
+changed C# files, dependency pins match and both remote commits were verified.
+Protected graph-studio-public snapshots contain four settings/four presets;
+live settings still match the original teaching-public candidate.
+Catalogue: LocalState/COSMIC/GraphStudioReleaseCurrent/catalogue.json.
+No live enrollment or hosted acceptance has occurred yet.
