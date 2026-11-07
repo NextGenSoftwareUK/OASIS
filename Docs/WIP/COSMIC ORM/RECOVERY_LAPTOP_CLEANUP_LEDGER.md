@@ -3769,3 +3769,12 @@ pouch-star-remap-candidate.json is retained. One exact teaching-enabled
 image build42360929659 was requested and acknowledged with separate intent
 and response records. No source data, settings, runtime or environment changes.
 Last disk measurement18483781632 bytes free.
+
+Exact image qualification42360929659 passed for028d342e with teaching
+runtimes enabled. Digest6480c4fa98311e1176fa8625439243dafb4e938a9c21a943d2fada8086e2210b
+was extracted from the hosted job metadata without a local image download.
+The original PouchDB live baseline and STAR reference were checked again.
+Development advanced normally, job773422d6-48aa-43b7-8457-2899bed9c8d1
+is BUILDING. The task parent gitlink/manifest are also aligned to the
+identical rewritten STAR commit, preserving dirty nested work. No checkout
+change or local producer build. The six staged settings remain unapplied.

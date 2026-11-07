@@ -13,7 +13,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Resumed on the old laptop at C:/Source/OASIS2 on 7 November after the
   recovered laptop failed again. Branch work/cosmic-cql-ton-public.
 - Core task branch work/cosmic-cql-decentraland; preserve independent pins.
-- Development e33b2b4c2, scoped PouchDB/Core b98220a7 rollout queued.
+- Development028d342e, scoped PouchDB/Core b98220a7 rollout building.
 - Last accepted runtime ce47a6f8/Core acc6ed36, Graph settings job ccd86b20.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
@@ -81,9 +81,11 @@ retention ref moved again to1d039764, whose complete source tree exactly
 matches35896e84 (tree7b504e1590c988c7508048ade30679625662c03d).
 Scoped candidate028d342e updates only the STAR gitlink and matching manifest
 value on top of e33b2b4c2. The original history was preserved locally.
-Image qualification42360929659 is running with teaching runtimes enabled.
-After it passes, verify current source refs and settings, then advance
-Development normally and observe that exact deployment before PouchDB settings.
+Image qualification42360929659 passed with teaching runtimes enabled,
+digest sha256:6480c4fa98311e1176fa8625439243dafb4e938a9c21a943d2fada8086e2210b.
+Fresh settings and source checks passed. Development advanced normally to
+028d342e. Code job773422d6-48aa-43b7-8457-2899bed9c8d1 is BUILDING.
+Observe that exact job before writable-mount verification and PouchDB settings.
 The harness cleanup bug was reproduced and fixed locally: durable owner/write
 journals now reject fresh execution before sessions/queries; all26 tests pass.
 Do not rerun accepted HTTP schedules. Browser gates remain open.
