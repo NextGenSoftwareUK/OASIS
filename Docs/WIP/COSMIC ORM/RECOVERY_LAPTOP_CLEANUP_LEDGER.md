@@ -3984,3 +3984,10 @@ no adjacent WAL. In-memory gzip measured5381B, not retained. No native open,
 new source, database modification or replay. Existing read-only activation
 and opt-in registration are already implemented on the task branch; port
 those scoped sources rather than reimplementing them after Waku acceptance.
+
+Updated Windows browser-control helper successfully listed apps after its
+runtime update. The selected returned Edge window could not be captured:
+the helper stopped Computer Use because it could not confidently determine
+the current browser URL to enforce policy. No navigation, input, authentication
+or new browser cohort occurred. No further browser input issued. Browser
+acceptance remains open; app-control failure is agent-owned.
