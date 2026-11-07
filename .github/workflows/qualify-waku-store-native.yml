@@ -102,8 +102,19 @@ jobs:
               if ($http.TestRun.ResultSummary.Counters.passed -ne "1" -or $http.TestRun.ResultSummary.Counters.total -ne "1") {
                 throw "The real Waku/MongoDB HTTP test must pass"
               }
-              Get-FileHash "$report/native.trx", "$report/web4.trx" -Algorithm SHA256
+              Get-FileHash "$report/native.trx", "$report/web4.trx" -Algorithm SHA256 | ForEach-Object { Write-Output ("{0} {1}" -f $_.Hash, $_.Path) }
             }'
+          export_dir="$PWD/TestResults/WakuStoreNative/QualifiedSource"
+          mkdir "$export_dir"
+          install -m 600 "$work/store-qualified.sqlite3" "$work/archive-qualified.json" "$export_dir/"
+          python3 -B -c 'import json,sys; r=json.load(open(sys.argv[1], encoding="utf-8")); print(f"Qualified archive: {r['"'"'bytes'"'"']} bytes, SHA-256 {r['"'"'sha256'"'"']}")' "$export_dir/archive-qualified.json"
+      - name: Retain only the verified synthetic teaching source
+        uses: actions/upload-artifact@v7
+        with:
+          name: waku-store-qualified-source
+          path: OASIS/TestResults/WakuStoreNative/QualifiedSource/
+          if-no-files-found: error
+          retention-days: 3
       - name: Remove owned MongoDB replica
         if: always()
         run: docker rm --force --volumes waku-cql-mongo || ! docker container inspect waku-cql-mongo >/dev/null 2>&1
