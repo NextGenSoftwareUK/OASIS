@@ -24,8 +24,8 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - PouchDB settings/live acceptance job2045b41e succeeded.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
-  Dapr candidatec9f6ac65d/Coreec7d440 passed exact native/image qualification
-  and is now on Development. Code deployment00eace0e isSUCCESS on instance5693a2e5; Dapr disabled.
+  Dapr correction candidate81e4cd043/Coreec7d440 is published for exact
+  native/image qualification. Live Development remainsc9f6ac65d/Coreec7d440. Code deployment00eace0e isSUCCESS on instance5693a2e5; Dapr disabled.
   First planned source save is unacknowledged: Railway denies native libaio
   io_getevents. Original source/intent retained; do not reseed or recreate.
 - Website C:/Source/Web4Site, branch work/cosmic-cql, publishedad7e9dd (six new cards71-76; earlier accepted cards retained).
@@ -65,11 +65,12 @@ Dapr remains disabled/unadmitted. The first original source save timed out witho
 acknowledgement because Railway denies the default libaio completion syscall.
 Its original source/plan/intent are preserved: never recreate or resend.
 
-Explicit Native/Uring startup works in a separate empty diagnostic; full native
-qualification is pending. The read-only pending-source inspector and recovered-
-outcome metadata transition have23local controls, but are not yet native-qualified
-or run against the live source. Next qualify their real native lost-response
-fixture, then exact candidate/image, and reconcile the same original source.
+Explicit Native/Uring full native qualification passes42425594492. The read-only
+inspector/recovered-outcome metadata fixture passes42426250057:1save,2recoveries,
+0inspection mutations, unchanged AOF and no fabricated save-response ACK. The
+corrected scoped candidate81e4cd043 now awaits exact native/image qualification.
+No inspector or metadata transition has run against the original live source.
+Next qualify/deploy that candidate, then reconcile the same original source.
 No second source generation or original save request is authorized by that flow.
 
 Coverage remains119local/91live HTTP/28functional browser. The six public readers
