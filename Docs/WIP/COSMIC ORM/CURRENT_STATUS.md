@@ -13,7 +13,11 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Resumed on the old laptop at C:/Source/OASIS2 on 7 November after the
   recovered laptop failed again. Branch work/cosmic-cql-ton-public.
 - Core task branch work/cosmic-cql-decentraland; preserve independent pins.
-- Development257404f8, Waku code rollout queued. Accepted prior runtimefcb76069/Core b98220a7.
+- Development7672cd5ea; catalogue-limit correction deployment3cdeaf40 is queued.
+  Recovery deploymenta6688a2e serves the preceding working257404f8 snapshot.
+  Waku's17th public catalogue exposed an obsolete16-provider startup limit.
+  The correction passed all5 regression cases and exact teaching image42384082328.
+  Original Waku archive/configuration ACKs remain; no settings or source replay.
 - PouchDB settings/live acceptance job2045b41e succeeded.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.

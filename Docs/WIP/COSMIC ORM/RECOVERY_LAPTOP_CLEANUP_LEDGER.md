@@ -3959,3 +3959,28 @@ before tests; log retained, no native fixture or visitor work. No restore
 or replacement environment requested. Reused readiness controls28/28 pass,
 log waku-readiness-reuse-tests.log. Explicit discovery reuse retains the
 original unknown502 journal and creates no replacement identity.
+
+Exact catalogue CI42384061405/job128437603256 passed5/5,0skips on
+7672cd5ea. Retained artifact13578198848,1939B, SHA256
+9a41117d11396eec1c6a855fbded91de3364913469e8e4885322d5c3c775c076,
+30days. Compact receipt catalogue-regression-qualified.json. No local
+artifact ZIP retained. The already-failed local no-restore build was stopped
+only after checking exact producer2236 and child identities, so it would
+not keep compiling the full dependency tree after its missing Graph assets
+error. Session11826 exited1 and released the lease. Follow-up process scan
+found no dotnet/MSBuild/VBCS/testhost or child of8372. No local test pass
+is claimed; exact source CI is the qualification. No restore, native test,
+new environment, install or deletion. Free32303345664B at observation.
+
+Qualified image42384082328/job128437674194 passed exact7672cd5ea with
+teaching runtimes. Digestf06d27fb67f13a4911ac955553e9eddfc52e6ff149eeb85fc57f142e9a584707;
+compact catalogue-image-qualified.json retained. Fresh full config equality,
+release refs and manifest verified. Development advanced normally from257404f8.
+Push intent/ACK retained; rollout3cdeaf40 is queued, no settings reapplied.
+
+Next-provider inspection only: retained DuckDB source1323008B still hashes
+db649a3dd1a2fce1694cba1f9e303505596a3d3289b01f8166a6d232d3ffca19;
+no adjacent WAL. In-memory gzip measured5381B, not retained. No native open,
+new source, database modification or replay. Existing read-only activation
+and opt-in registration are already implemented on the task branch; port
+those scoped sources rather than reimplementing them after Waku acceptance.

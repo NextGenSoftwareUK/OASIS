@@ -245,3 +245,14 @@ fence. It requires existing protected session credentials and forbids
 session creation. The original502 operation stays untouched. All28 response
 and journal controls passed, including reuse refusal on release drift.
 This option does not replace the separate owner/foreign acceptance cohort.
+
+Catalogue correction image42384082328/job128437674194 succeeded for exact
+7672cd5ea, teaching runtimes enabled. Immutable digest
+sha256:f06d27fb67f13a4911ac955553e9eddfc52e6ff149eeb85fc57f142e9a584707.
+All five catalogue controls passed in42384061405, zero skips. Fresh live
+configuration and recovery deployment checks matched; remote Development
+and candidate ancestry were unchanged. Normal fast-forward advanced
+Development to7672cd5ea. Rollout3cdeaf40-4fdb-489c-8696-7319e78d24db is queued.
+No settings or archive writes were repeated. Mounted-source inspection and
+live acceptance must verify this exact corrected deployment before counting
+Waku hosted. Protected preparation and the original502 journal remain.
