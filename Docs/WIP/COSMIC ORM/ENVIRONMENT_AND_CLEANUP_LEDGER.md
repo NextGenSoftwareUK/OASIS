@@ -5139,3 +5139,7 @@ Disk recovery: 354 generated bin/obj targets removed under lease, 6597624139 log
 - LayerZero/Reclaim acceptance completed on e8a57bf6. Both provider-scoped visitors and both owner/foreign cohorts are retained for sandbox expiry. Each provider saved two owned Mongo snapshots and verified both replicas; repeat reused both with zero saves. Evidence hashes in the provider reports, files under TestResults/HostedCqlIntegrationCurrent. No further cohort replay or local runtime.
 
 - LayerZero v1 and Reclaim sandbox cards, 2026-11-06. Reused C:/Source/Web4Site and installed Node/Python. Published 6c95279, 114 website tests passed, and verified 230,997 live HTML bytes in memory against Git. No local install, generated output, or acceptance cohort replay.
+
+- World ID scoped candidate, 2026-11-06 (COSMIC). Reuses assigned parent/Core worktrees, Git and existing hosted CI. Temporary Git indexes in TestResults/WorldIdReleaseCurrent, unmeasured, removed after candidate construction. No local build, download or additional service. Retain exact refs and one immutable image qualification before promotion.
+
+- World ID preflight, 2026-11-06. Existing Railway CLI/Python reads live baseline into world-id-public-{before,candidate}-variables.dpapi under LocalState/COSMIC/HostedSourceRolloutCurrent, with one public descriptor, unmeasured. Four values and four presets prepared without live mutation. CI 42331296910 builds exact candidate 48c532584 using existing runner/tag world-id-cql-qualification, size/digest pending. No local image pull or new environment.

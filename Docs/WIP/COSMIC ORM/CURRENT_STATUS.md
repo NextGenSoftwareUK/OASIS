@@ -45,10 +45,11 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
    arrive from the old laptop. The candidate image is already qualified.
 5. Continue other providers' runtime, restricted-reader and hosting gates.
 
-Start the next independent rollout by inspecting
-[World ID](WORLD_ID_PROTOCOL_CQL_MVP.md) and the current Development tree.
-Select only missing admission and provider dependencies for its candidate.
-Verify the live settings baseline before preparing an extension.
+World ID candidate 48c5325847d0519b091b02b32db7f01b602c8edf is in
+[image CI 42331296910](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42331296910).
+Four settings and presets are protected under prefix world-id-public.
+Next, inspect that exact image result, fetch Development and verify the
+current live baseline before promotion and guarded settings application.
 
 ## Constraints and unfinished roadmap
 

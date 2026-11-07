@@ -45,3 +45,18 @@ skips. The 4,724-byte TRX SHA-256 is
 `55846eda17f2707263b62c42502c1e6faac38094b859e70e812136dd441d9e7a`.
 The exact synthetic database was removed after verification.
 Hosted HTTP and browser acceptance remain open.
+
+## Development rollout candidate
+
+Parent 48c5325847d0519b091b02b32db7f01b602c8edf and Core
+7bc3d5a9ce407e6ed58d7d61ef270095fc117022 are published on
+work/cosmic-world-id-release-candidate. The provider and component reader
+match the tested task branch. The dependency pin validator passed.
+[Image CI 42331296910](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42331296910)
+must pass before promotion.
+
+Four protected values and four presets are prepared under
+LocalState/COSMIC/HostedSourceRolloutCurrent with prefix world-id-public.
+Existing LayerZero, Reclaim and Push Protocol settings are preserved.
+The guarded publisher takes WorldIDOASIS, that prefix, the reviewed
+candidate ref and the exact successful code deployment ID.
