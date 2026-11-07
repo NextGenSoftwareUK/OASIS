@@ -88,3 +88,15 @@ then bind its three hashes to the sandbox teaching owner in
 CQL_WAKU_STORE_QUERY_SOURCE_JSON. Keep the source outside Docs.
 Hosted readiness still requires a managed loopback Store and an actual
 read of all three records before publishing any sandbox preset.
+
+Run the offline verifier on the exact passing artifact before provisioning.
+Use the reviewed sandbox owner UUID in canonical lowercase form.
+
+```powershell
+python -B Scripts/Sandbox/Verify-WakuQualifiedSource.py <artifact-directory> <owner-uuid>
+```
+
+The verifier emits the descriptor only after checking the SHA-256, file
+length, SQLite header and three distinct canonical hashes. Local smoke
+checks passed for a valid receipt, archive tampering, a duplicate receipt
+field and duplicate hashes. The native readiness gate is separate.
