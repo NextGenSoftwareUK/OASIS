@@ -46,7 +46,7 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 5. Continue other providers' runtime, restricted-reader and hosting gates.
 
 World ID image qualification passed and Development advanced to 48c532584.
-Observe code job bfc56681-f9a7-4e0a-9670-0ecd41c5e32a, then apply the
+Code job bfc56681-f9a7-4e0a-9670-0ecd41c5e32a is building. On success, apply the
 four protected settings under prefix world-id-public and redeploy once.
 Discord/Livepeer/Pinata candidate 8645794b is in [CI 42332826329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42332826329).
 Its eight-value settings candidate uses the intended World ID baseline.

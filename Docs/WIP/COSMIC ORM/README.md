@@ -17,7 +17,7 @@
 6. [CQL manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 7. [Historical reports/reference](Archive/README.md) and [previously committed evidence](Evidence/README.md).
 
-Recovery starts with CURRENT_STATUS, the two short roadmaps and IMPLEMENTATION_STATUS (217 lines combined). Read the projected-All contract when its paused work resumes.
+Recovery starts with CURRENT_STATUS, the two short roadmaps and IMPLEMENTATION_STATUS (under 300 lines combined). Read the projected-All contract when its paused work resumes.
 Update CURRENT_STATUS at every milestone. Do not append a chronological work log to the active roadmaps.
 New logs/test output belong in the worktree's TestResults, never Docs. Reports record counts, hashes and evidence paths; no new raw evidence commits.
 Persistent, irreproducible fixture state belongs in ignored LocalState/COSMIC and is not disposable test output.
