@@ -24,7 +24,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - PouchDB settings/live acceptance job2045b41e succeeded.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
-- Website C:/Source/Web4Site, branch work/cosmic-cql, published611ee73 (five new cards66-70; Hyperlane65/NATS64 retained).
+- Website C:/Source/Web4Site, branch work/cosmic-cql, publishedad7e9dd (six new cards71-76; earlier accepted cards retained).
 - Dedicated Railway key cosmic-cql-recovery-laptop-20261107 was created on
   this laptop for mounted-source inspection. Its eventual revocation is in
   the old-laptop cleanup ledger. Private key remains outside Git.
@@ -55,8 +55,8 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-Publish accepted Miden, Espresso, EigenLayer, Fhenix, Axelar and Ritual demo
-cards, then continue the next eligible provider scope. Coverage is119local/
+Qualify Dapr hosting on Linux with a restricted backing store, while advancing
+other independent provider scopes whose retained evidence and access are ready. Coverage is119local/
 91live HTTP/28functional browser. Source88b896815/Core944d380, settings
 8783d8eb-1d65-474f-8bdd-081615d4794a SUCCESS, instance5e85e983.
 All13settings and active configuration verified before six first hosted cohorts.
@@ -64,7 +64,8 @@ Each passed native3/2, Mongo5/4, first2private saves/repeat0new2existing,
 privacy0/public3 and exactSQLite/Neo4j replicas2/2. Original cohorts sealed;
 never replay. [Exact batch evidence](SIX_PUBLIC_READERS_HOSTED_BATCH.md).
 
-Website611ee73 retains accepted cards through70; six new cards remain pending.
+Websitead7e9dd publishes accepted cards71-76 and retains all earlier cards.
+All119 client controls pass; public HTTP200 HTML matches Git exactly.
 These are bounded native observations and private snapshots, separate from
 wallet execution, full protocol functionality and full provider/ORM parity.
 

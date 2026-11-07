@@ -1,6 +1,6 @@
 # Six public readers: Development batch
 
-Updated 7 November 2026. All six hosted HTTP scopes accepted; website/browser gates remain open.
+Updated 7 November 2026. All six hosted HTTP scopes accepted; public cards published; browser gates remain open.
 
 Candidate parent `88b896815eb41e14b5deec3cb3aeae54fb431a5d`, Core
 `944d380c16d2831d567e5b76f89e6b1c6dd2e051`, based on accepted
@@ -97,3 +97,13 @@ and original protected credentials/ACKs retained. Per-provider docs record exact
 report hashes; six-public-readers-http-accepted.json records all seal hashes.
 Coverage119local/91live HTTP/28functional browser. Public cards are next;
 full provider contracts and browser acceptance remain separate.
+
+## Website publication
+
+Web4Site `ad7e9dd8f65a997af98aa08b837f079bb44946d1` publishes cards71-76
+through the existing task/main branches. All119 client controls pass. Twelve
+source/evidence links checked against backendaddb3f1d2 before publication.
+Public HTTP200 HTML265610B matches the Git blob exactly, SHA256
+`abd3efdbb8e298ae71dc9faad9f7a0715f256521a24ed1bcbc9bfda9fdf17119`.
+Verification was in memory; no HTML/runtime download or browser acceptance claim.
+Compact six-public-readers-public-cards-qualified.json retained.

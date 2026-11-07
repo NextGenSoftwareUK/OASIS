@@ -4401,3 +4401,10 @@ retained under HostedCqlIntegrationCurrent; individual exact hashes in provider
 docs, aggregate seal/report receipt six-public-readers-http-accepted.json.
 Original protected sessions/setting journals/snapshots remain necessary.
 No new runtime/environment/download. Coverage119/91/28; website/browser pending.
+
+Six cards71-76 published Web4Sitead7e9dd through existing task/main after
+ancestry checks;119 client controls pass. Public HTML265610B SHA256
+abd3efdbb8e298ae71dc9faad9f7a0715f256521a24ed1bcbc9bfda9fdf17119
+verified byte-exact in memory. Compact public-cards receipt retained; no HTML
+file/download/environment/browser operation/source or cohort replay. Twelve
+pinned links verified at backendaddb3f1d2. Original source/ACKs remain retained.

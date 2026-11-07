@@ -26,6 +26,12 @@ reason and evidence for any inapplicable feature and keep unverified cells open.
 The 4 November published launcher audit found all 37 referenced scripts in the
 task checkout. Runtime qualification remains separate.
 
+Latest breadth milestone: six additional hosted readers (Miden, Espresso,
+EigenLayer, Fhenix, Axelar and Ritual) and cards71-76 are accepted/published.
+Coverage119local/91live HTTP/28functional browser. [Exact evidence and limits](SIX_PUBLIC_READERS_HOSTED_BATCH.md).
+Dapr's next hosting gate requires Linux native sidecar and restricted backing
+store proof; preserve its Windows-only qualification as a separate scope.
+
 1. Continue the next eligible provider scope from
    [CURRENT_STATUS](CURRENT_STATUS.md) and the provider inventory. NATS scoped
    TLS/native/restart, hosted HTTP native3/2/Mongo5/4/privacy/replicas and public
