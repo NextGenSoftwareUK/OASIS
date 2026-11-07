@@ -74,3 +74,18 @@ the subscription protocol test project is included.
 [Full enabled-image qualification 42339365263](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42339365263)
 is running with `teaching_sidecars=true`. No live settings or source data
 were changed by this preparation.
+
+Image run42339365263 failed at CqlV1Compiler provider-list syntax during
+scoped assembly. Corrected parent9c6e93003edde4ca28759b455b38e7371184fa1d
+retains Coref0625521. Exact candidate C# syntax and manifest checks pass.
+[Corrected image qualification42339962522](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42339962522)
+is queued with the enabled native profile. No live mutation occurred.
+
+Scripts/Sandbox/hosted-teaching-source.cjs now owns one-time source creation
+and separate verification. It fsyncs an exclusive intent before native writes,
+refuses existing directories and retains uncertain outcomes. Verification
+checks all three public records, the private row, tombstone and absent key
+against the original plan. Six controlled lifecycle tests pass, including
+concurrent creators and a simulated uncertain write. These are helper controls;
+real hosted native/restart acceptance remains open. Run
+`node --test Scripts/Sandbox/test_hosted_teaching_source.cjs`.

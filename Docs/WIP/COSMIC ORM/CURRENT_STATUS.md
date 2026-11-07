@@ -37,7 +37,7 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 1. Finish open browser gates using retained cohorts and journals.
    Static publication and HTTP results are separate evidence.
-2. Observe GUN/OrbitDB image CI42339365263 for candidate ce654d0e/Coref0625521.
+2. Observe GUN/OrbitDB image CI42339962522 for corrected9c6e9300/Coref0625521.
    After qualification prepare the explicit build flag before Development build.
    Bootstrap separately journalled native sources, qualify restart, then enroll presets.
 3. Finish Waku managed Store packaging and lifecycle. The earlier local
@@ -57,10 +57,11 @@ SHA2568773ee77638a24988968db32a15d58069424ac2e03604639a03d244198e65666.
 Browser interaction remains open. GUN/OrbitDB original fixture directories
 are absent here. The workflow now selects their existing optional runtime
 with distinct commit-teaching tags; all three execution checks passed.
-Scoped candidate ce654d0e/Coref0625521 is pushed, manifest/remote checks pass.
-Its three runtime controls pass. Enabled image CI42339365263 is running.
+Initial image42339365263 exposed a scoped provider-list syntax error.
+Corrected9c6e9300/Coref0625521 is pushed; exact C# syntax/manifest checks pass.
+Enabled image CI42339962522 is queued. Source helper lifecycle tests pass6/6.
 Protected teaching-runtime-build snapshots propose one build-only flag change.
-Next verify CI42339365263, apply that flag without redeploy, then promote ce654d0e.
+Next verify CI42339962522, apply that flag without redeploy, then promote9c6e9300.
 Native runtime flags remain off until separately journalled source qualification.
 Subscription protocol CI exposed a missing SandboxSubscriptionRules source link.
 The project dependency is fixed locally: bounded build and 22 pure tests passed.
