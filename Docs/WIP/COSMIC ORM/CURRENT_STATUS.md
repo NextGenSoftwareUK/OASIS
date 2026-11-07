@@ -18,6 +18,9 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
 - Website C:/Source/Web4Site, branch work/cosmic-cql, published26e2b4a.
+- Dedicated Railway key cosmic-cql-recovery-laptop-20261107 was created on
+  this laptop for mounted-source inspection. Its eventual revocation is in
+  the old-laptop cleanup ledger. Private key remains outside Git.
 - Unknown root logs and Docs/WIP/Cleanup/CLEANUP_LEDGER.md are outside this task.
 
 ## Verified
@@ -35,6 +38,9 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
   their real SDKs on the existing /data volume. No creation writes were repeated.
   Their hosted CQL passed3/2, Mongo5/4, reuse, privacy and replicas2/2.
   Browser acceptance remains open.
+- Graph Studio and PouchDB passed hosted native3/2, Mongo5/4, snapshot reuse,
+  independent privacy and exact SQLite/Neo4j replicas2/2. Their website cards
+  are published at26e2b4a and exact public HTML is verified. Browser gates open.
 - Image CI42339962522 passed for exact9c6e93003 with teaching runtimes enabled.
 - Protocol CI42341070588 passed1493 tests/137 skips across six.NET suites
   plus WEB4-WEB10 source publish. Native source acceptance is separate.
@@ -42,46 +48,30 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-The GUN/OrbitDB cards are published at fae9c5a. Public HTML matches the
-exact commit (241209bytes/SHA256 in provider reports);114 client tests passed.
-The Graph Studio now passes12 provider controls, native3/2,32 admission cases
-and local WEB4/Mongo5/4/privacy. Scoped parentce47a6f8/Coreacc6ed36 is pushed.
-Image CI42346455177 succeeded with teaching_sidecars=true, exact source
-ce47a6f89c9079ae8b3f61b874b1d73a48a4792a and digest
-sha256:7f3eabf4b84182303452a58a9261633d12ba08f61555cd3f873b6bf464943237.
-Four protected settings/four presets were prepared on the recovered laptop;
-its machine-bound snapshots remain there. Old-laptop private Railway sign-in completed. The protected candidate was
-rebuilt from the freshly observed live baseline.
-The live baseline was verified after private sign-in. Development advanced to
-ce47a6f8. Code deployment ab79d580 succeeded and the publisher acknowledged
-all four Graph settings exactly. The first settings rebuild04e8c58a failed
-before runtime startup because HoloNET-ORM's pinned source became unreachable
-after a remote history rewrite. The exact original pin was restored on
-codex/deployed-dependency-307b0a53. Repaired settings deployment
-e53de265 failed at the similarly unreachable STAR-ODK pin. All seven exact
-private dependency pins are now verified on advertised retention refs.
-Settings deployment ccd86b20-5e4f-4abe-8a63-761e28c96d60 succeeded.
-Graph hosted acceptance passed native3/2, Mongo5/4, reuse0new/2existing,
-foreign-private0/public3 and SQLite/Neo4j replicas2/2. Preserve that original
-cohort. Website card62 is published at cbc08dd and its exact public HTML
-verified (242809 bytes, SHA256 73e91515eb4cc0999fe642991caa19fa55553cf93fe2ab5d82826a700c2af290).
-All114 client controls passed. Browser attachment and Windows helper inventory
-recovery timed out, so functional browser acceptance remains open.
-PouchDB hosted acceptance now passes on deployment2045b41e-46a6-45c9-9420-e60473b23b4b,
-commitfcb76069. Its entire source tree43013d7249f5c4b78249c33cca992337559e8c43
-matches image-qualified028d342e. Actual image4c98b3fb47fb82c4d9100398d18059dfb88a1c4a36732954387044f312c2f613,
-active instance502b8e37-129f-432d-92ae-c3fa3f3aa4fa. Guarded six settings,
-writable mount and original native receipt all verify. Native3/2, Mongo5/4,
-first2 saves, repeat0new/2existing, visitor-private0/public3 and replicas2/2
-passed. Preserve the original cohort and native first generation. Website
-card47 is published at26e2b4a. Public HTML matches the exact Git blob,
-243409 bytes/SHA256 bbe90fc8c848fa905dc4f2de56f5de4abf708dbafea042996c5add7a69277d79.
-All114 client controls pass. Hosted PouchDB browser gate remains open.
-The two failed source-acquisition builds, exact identical STAR source repair,
-qualified image and external identical-tree deployment remain journalled.
-The harness cleanup bug was reproduced and fixed locally: durable owner/write
-journals now reject fresh execution before sessions/queries; all26 tests pass.
-Do not rerun accepted HTTP schedules. Browser gates remain open.
+Waku's original12KB archive passed real native restore/restart42366567554,
+with all three messages, two native starts and unchanged original input/ack.
+Artifact13571766234 retains the proof, original source and logs for90days.
+Fourteen focused runtime controls and66 combined controlled cases pass.
+Seven publisher controls,26 response-evidence and39 preset controls pass.
+
+Scoped Waku parente0ea3d578362237241d09d31223a6060f50f6558 with
+Core2fdd3e40183e8a5ed81bccee1f30660c91135eb1 is published on the reused
+work/cosmic-teaching-release-candidate refs. It preserves Graph, PouchDB,
+GUN/OrbitDB and all earlier accepted sources. Core adds only Waku read tariff.
+Image42367817374 is in progress with teaching runtimes enabled. Prior image
+failures caught the tar extraction path and native libpq dependency. Both
+are corrected in the candidate. Its complete runtime base includes the
+upstream PostgreSQL-client/OpenMP/C++/GCC shared-library contract.
+
+Six protected Waku settings were prepared with205 preserved settings, prefix
+waku-public under HostedSourceRolloutCurrent. The original archive, receipt
+and actual cloud qualification are under WakuQualifiedSourceCurrent.
+After exact image success, recheck remote source refs and live baseline,
+advance Development normally, observe the exact code job and verify its
+active instance/image and writable mount. Apply the existing six-key guarded
+publisher once, request one settings deployment, then verify its original
+source receipt before the first hosted readiness/acceptance. No Waku setting
+or new Waku hosted cohort has been created yet.
 
 ## Source and rollout journals
 
@@ -100,9 +90,8 @@ Provision-HostedTeachingSource.py has five command tests; native helper has six.
 
 - Finish open browser gates with original cohorts; HTTP/static proof is separate.
 - Continue other providers' runtime, restricted-reader and hosting gates.
-- Waku hosted runtime implementation now has14 controlled cases. Its original
-  retained archive is the native restore/restart input. Cloud qualification
-  and immutable image packaging remain next before any hosted settings.
+- Waku native restore/restart is verified. Exact image qualification and
+  guarded hosted activation/acceptance remain open.
 - PouchDB hosted HTTP acceptance and website publication are complete.
   Retain its native first generation and original acceptance cohort.
   Its hosted browser gate remains open.
