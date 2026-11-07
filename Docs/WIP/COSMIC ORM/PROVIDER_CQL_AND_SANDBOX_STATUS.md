@@ -13,7 +13,7 @@ databases were removed after verifying their ownership markers and
 exact record counts. The retained MongoDB replica shut down cleanly.
 TRX SHA-256
 `e921e8516fd8c2116e643d58bf072f7bec83072fc4a3cb4470afb306f58de22c`.
-Current coverage is **118 scoped local, 72 live HTTP and 28 live browser**.
+Current coverage is **118 scoped local, 74 live HTTP and 28 live browser**.
 The three public profiles above now also pass hosted HTTP acceptance on settings deployment fb589d55-f737-4622-9160-6e63e0e55099: native3/2, Mongo5/4, reuse0new/2existing, independent private0/public3 and SQLite/Neo4j replicas2/2. Browser gates remain open.
 
 5 November MinIO hosted preparation: explicit HTTPS query registration,
@@ -51,9 +51,17 @@ website a88076d with evidence and local C# links. All114 client tests pass.
 Public HTML239108bytes/SHA2568773ee77638a24988968db32a15d58069424ac2e03604639a03d244198e65666
 matches the committed asset. Their functional browser gates remain open.
 
-## Current functional milestone â€” 2 November 2026
+GUN and OrbitDB hosted HTTP acceptance passed7November on settings593cd948,
+parent9c6e93003/Coref0625521: native3/2, Mongo5/4, repeat0new/2existing,
+independent private0/public3 and SQLite/Neo4j replicas2/2. Their separately
+journalled native source generations survived process and container changes.
+Public readers use real pinned SDK stores on the existing volume. General
+relay CRUD/multi-peer convergence and full ORM parity remain outside this proof.
+Browser interaction remains unverified. Per-provider reports link exact hashes.
 
-**72 query profiles have scoped hosted HTTP evidence, 28 have functional browser evidence and 44 browser gates remain open. Oracle Object Storage, Cloudinary and Proof of Humanity are the latest HTTP additions. ThreeFold card/static bytes2170b67 pass; ClickHouse is accepted; its card/static assets d3dfe48 are published/verified; Zcash remains accepted; its card/static assets3141cca are published/verified. Bittensor remains accepted; its card/public bytesbc31379are verified and browser gate remains open.**
+## Current functional milestone — 7 November 2026
+
+**74 query profiles have scoped hosted HTTP evidence, 28 have functional browser evidence and 46 browser gates remain open. GUN and OrbitDB are the latest HTTP additions. ThreeFold card/static bytes2170b67 pass; ClickHouse is accepted; its card/static assets d3dfe48 are published/verified; Zcash remains accepted; its card/static assets3141cca are published/verified. Bittensor remains accepted; its card/public bytesbc31379are verified and browser gate remains open.**
 
 The 5 November recovery browser flows and retained identities are recorded in [browser evidence](RECOVERY_BROWSER_EVIDENCE_2026-11-05.md). Native 3/2, paired 5/4, reuse, independent privacy and rendered SQLite/Neo4j replica comparisons passed for twenty-three additional profiles. Older dated browser statements below describe their original checkpoints.
 
@@ -266,10 +274,10 @@ Storage/SDK columns are a snapshot of the [maintained provider matrix](../HyperD
 | [ZkSyncSSOOASIS](../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.ZkSyncSSOOASIS/NextGenSoftware.OASIS.API.Providers.ZkSyncSSOOASIS.csproj) | Non-storage | Yes - HTTP API client | Not run (capability-v1) | Not CQL-certified here | Not certified / not certified | Capability identity/activation/read-only probe pending; storage suite N/A |
 | [CargoOASIS](../../../Providers/Other/NextGenSoftware.OASIS.API.Providers.CargoOASIS/NextGenSoftware.OASIS.API.Providers.CargoOASIS.csproj) | Non-storage | Yes - HTTP API client, Nethereum | Not run (capability-v1) | Not CQL-certified here | Not certified / not certified | Capability identity/activation/read-only probe pending; storage suite N/A |
 | [DaprOASIS](../../../Providers/Other/NextGenSoftware.OASIS.API.Providers.DaprOASIS/NextGenSoftware.OASIS.API.Providers.DaprOASIS.csproj) | Key-value/object | Yes - Dapr .NET SDK and gRPC | Six provider and seven WEB4 admission checks. Native SQLite and restricted Garnet-backed state 3/2/0 | Bounded exact-ID public Holons over a loopback sidecar | Native and WEB4 admission passed / hosted WEB4 pending | [Dapr qualification](DAPR_CQL_MVP.md) |
-| [GUNOASIS](../../../Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/NextGenSoftware.OASIS.API.Providers.GUNOASIS.csproj) | Document | Yes - GUN SDK and co-located HTTP reader | Five controlled and one native test passed | Radisk public exact-ID CQL 3/2/0, privacy and restart | Local WEB4 HTTP/Mongo 5/4 / live pending | [GUN qualification](GUN_CQL_MVP.md). General relay CRUD and peer replication remain open |
+| [GUNOASIS](../../../Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/NextGenSoftware.OASIS.API.Providers.GUNOASIS.csproj) | Document | Yes - GUN SDK and co-located HTTP reader | Five controlled and one native test passed | Radisk public exact-ID CQL 3/2/0, privacy and restart | Hosted HTTP 3/2, Mongo 5/4 / browser open | [GUN qualification](GUN_CQL_MVP.md). General relay CRUD and peer replication remain open |
 | [IntelOpenVINOOASIS](../../../Providers/Other/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS.csproj) | Non-storage | Yes - HTTP API client | Not run (capability-v1) | Not CQL-certified here | Not certified / not certified | Capability identity/activation/read-only probe pending; storage suite N/A |
 | [ONION-Protocol](../../../Providers/Other/NextGenSoftware.OASIS.API.Providers.ONION-Protocol/NextGenSoftware.OASIS.API.Providers.ONION-Protocol.csproj) | Distributed application storage | Yes - HTTP API client | Not run | Not CQL-certified here | Not certified / not certified | Shared-suite adapter/run pending |
-| [OrbitDBOASIS](../../../Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS.csproj) | Document | Yes - OrbitDB SDK and co-located HTTP reader | Eleven controlled and one native test passed | Indexed public exact-ID CQL 3/2/0, privacy and restart | Local WEB4 HTTP/Mongo 5/4 / live pending | [OrbitDB qualification](ORBITDB_CQL_MVP.md). General document storage and multi-peer convergence remain open |
+| [OrbitDBOASIS](../../../Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS.csproj) | Document | Yes - OrbitDB SDK and co-located HTTP reader | Eleven controlled and one native test passed | Indexed public exact-ID CQL 3/2/0, privacy and restart | Hosted HTTP 3/2, Mongo 5/4 / browser open | [OrbitDB qualification](ORBITDB_CQL_MVP.md). General document storage and multi-peer convergence remain open |
 | [OrionProtocolOASIS](../../../Providers/Other/NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS/NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS.csproj) | Non-storage | Yes - HTTP API client | Not run (capability-v1) | Not CQL-certified here | Not certified / not certified | Capability identity/activation/read-only probe pending; storage suite N/A |
 | [PLANOASIS](../../../Providers/Other/NextGenSoftware.OASIS.API.Providers.PLANOASIS/NextGenSoftware.OASIS.API.Providers.PLANOASIS.csproj) | Distributed application storage | Yes - HTTP API client | Not run | Not CQL-certified here | Not certified / not certified | 6 explicit unimplemented throw(s): shipping-path review needed; Shared-suite adapter/run pending |
 | [SEEDSOASIS](../../../Providers/Other/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj) | Non-EVM chain | Yes - EOSCore chain API | Not run | Not CQL-certified here | Not certified / not certified | 2 explicit unimplemented throw(s): shipping-path review needed; Shared-suite adapter/run pending |

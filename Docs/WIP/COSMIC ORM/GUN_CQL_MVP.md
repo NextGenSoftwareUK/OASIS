@@ -149,3 +149,25 @@ Protected teaching-public enrollment contains13 settings/eight presets.
 All13 values were applied and observed exactly without auto-deploy. One
 same-release activation job593cd948-541c-4012-8d0d-654b58ba381d is building.
 Hosted CQL, Mongo federation and browser acceptance remain open.
+
+## Hosted CQL and MongoDB acceptance
+
+Verified7November2026 on exact settings deployment
+`593cd948-541c-4012-8d0d-654b58ba381d`, parent
+`9c6e93003edde4ca28759b455b38e7371184fa1d`, Core
+`f06255216c07593896c054e98eeecc32c33da5e4`. Native CQL returned the
+exact3/2 records; federation returned5/4. Initial preparation saved two
+version-one private Mongo records. Repeat preparation saved zero and reused
+both. SQLite and Neo4j each returned both matching copies. An independent
+visitor saw3 public records and0 private copies on all3 storage providers.
+The native source survived managed-reader activation on the same persistent
+volume. Original native and acceptance cohorts are retained; do not replay.
+Functional browser acceptance remains open.
+
+Evidence under `TestResults/HostedCqlIntegrationCurrent/`:
+
+| Report | SHA-256 |
+| --- | --- |
+| `GUNOASIS-native-http.json` | `e03148061d03a58b61754796987bd4cc2e48ceeeed4b1a5ec21abf0cb08c1de5` |
+| `GUNOASIS-client-http-flow.json` | `e55a495e341de8a723459d0c4d6da7dc47daa39bc8008be006bafbd3c4db0e81` |
+| `GUNOASIS-isolation-http.json` | `053e11c5f35299da94a51df69d529c6bc667953fd6b45ecc6536632e58d12038` |

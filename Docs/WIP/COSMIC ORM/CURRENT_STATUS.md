@@ -13,14 +13,14 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Worktree C:/Source/OASIS-cosmic, branch work/cosmic-cql-ton-public.
 - Core task branch work/cosmic-cql-decentraland; preserve independent pins.
 - Development9c6e93003, Coref0625521. Successful code job ac51f1c7.
-- Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d is building.
+- Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
 - Website C:/Source/Web4Site, branch work/cosmic-cql, published a88076d.
 - Unknown root logs and Docs/WIP/Cleanup/CLEANUP_LEDGER.md are outside this task.
 
 ## Verified
 
-Coverage is **118 scoped local, 72 live HTTP and 28 functional browser**.
+Coverage is **118 scoped local, 74 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -31,7 +31,8 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
   Their cards and local examples are published. Browser gates remain open.
 - GUN and OrbitDB first generations are created and separately verified through
   their real SDKs on the existing /data volume. No creation writes were repeated.
-  Their hosted CQL/HTTP and browser acceptance is still pending.
+  Their hosted CQL passed3/2, Mongo5/4, reuse, privacy and replicas2/2.
+  Browser acceptance remains open.
 - Image CI42339962522 passed for exact9c6e93003 with teaching runtimes enabled.
 - Protocol CI42341070588 passed1493 tests/137 skips across six.NET suites
   plus WEB4-WEB10 source publish. Native source acceptance is separate.
@@ -39,12 +40,10 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-Observe activation job593cd948 for commit9c6e93003edde4ca28759b455b38e7371184fa1d.
-On success require live variables equal teaching-public-candidate-variables.dpapi.
-Use Verify-HostedQuerySource.py readiness then prepare, sequentially for GUNOASIS
-and OrbitDBOASIS, with --reviewed-deployment-visitor and each catalogue.json.
-Set the exact deployment ID/release ref/commit environment variables first.
-Do not create acceptance cohorts before readiness. Preserve original outcomes.
+Publish the two prepared GUN/OrbitDB website cards after updating their
+pinned evidence links to this acceptance report commit. All114 website tests
+already passed. Fetch website main first, preserve concurrent changes, publish,
+then verify exact public HTML bytes. Do not rerun accepted HTTP cohorts.
 
 ## Source and rollout journals
 

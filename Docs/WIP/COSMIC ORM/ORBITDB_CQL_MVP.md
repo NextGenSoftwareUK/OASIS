@@ -181,3 +181,25 @@ Protected teaching-public enrollment contains13 settings/eight presets.
 All13 values were applied and observed exactly without auto-deploy. One
 same-release activation job593cd948-541c-4012-8d0d-654b58ba381d is building.
 Hosted CQL, Mongo federation and browser acceptance remain open.
+
+## Hosted CQL and MongoDB acceptance
+
+Verified7November2026 on exact settings deployment
+`593cd948-541c-4012-8d0d-654b58ba381d`, parent
+`9c6e93003edde4ca28759b455b38e7371184fa1d`, Core
+`f06255216c07593896c054e98eeecc32c33da5e4`. Native CQL returned the
+exact3/2 records; federation returned5/4. Initial preparation saved two
+version-one private Mongo records. Repeat preparation saved zero and reused
+both. SQLite and Neo4j each returned both matching copies. An independent
+visitor saw3 public records and0 private copies on all3 storage providers.
+The native source survived managed-reader activation on the same persistent
+volume. Original native and acceptance cohorts are retained; do not replay.
+Functional browser acceptance remains open.
+
+Evidence under `TestResults/HostedCqlIntegrationCurrent/`:
+
+| Report | SHA-256 |
+| --- | --- |
+| `OrbitDBOASIS-native-http.json` | `dad24aee0a3aa5d00e019757ba6528edfaf3f6c57d45de901e7020eee3c71851` |
+| `OrbitDBOASIS-client-http-flow.json` | `16d5b4ded7da5c19cad81d4a51c74049c10fa4580f30a40c46388c84338690ef` |
+| `OrbitDBOASIS-isolation-http.json` | `5ffbfaf485db475ee71cd9f25b9425f20d8c6c5c60b68f4296668e5a6f906206` |
