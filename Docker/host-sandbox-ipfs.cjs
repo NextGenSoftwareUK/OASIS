@@ -174,6 +174,8 @@ function assertSandbox(text) {
 async function main() {
   assertSandbox(process.env.OASIS_DNA_JSON);
   const services = [];
+  if (process.env.OASIS_SANDBOX_DUCKDB === 'true')
+    await require('./host-sandbox-duckdb.cjs').prepareEnvironment(process.env);
   if (process.env.OASIS_SANDBOX_IPFS === 'true') {
     const bundle = captureBundle(process.env.OASIS_SANDBOX_IPFS_BOOTSTRAP_JSON);
     const native = await bootstrap({ bundle, directory: '/data/COSMIC/SandboxIPFS', binary: '/usr/local/bin/ipfs' });
@@ -202,7 +204,8 @@ async function main() {
     if (process.env.OASIS_SANDBOX_GUN === 'true')
       services.push(await teaching.serviceConfiguration(process.env, 'GUNOASIS'));
   }
-  if (!services.length) throw Error('No native sandbox source was explicitly enabled.');
+  if (!services.length && process.env.OASIS_SANDBOX_DUCKDB !== 'true')
+    throw Error('No native sandbox source was explicitly enabled.');
   return supervise({ services });
 }
 
