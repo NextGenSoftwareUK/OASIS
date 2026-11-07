@@ -4211,3 +4211,12 @@ caught the newly required retained-source descriptor/guard fixture; corrected
 fixture and reran to28/28. All controlled candidates/receipts used test-owned
 temporary directories, no live calls, native accepted-source queries/mutations,
 new local environments or retained build outputs. No live settings changed.
+
+NATS scoped candidate assembled with temporary Git indexes in the existing
+RecoveryLaptopResume20261107 folder; indexes removed by owned helper after
+writing Git objects, no worktree/environment created. Source/candidate receipt
+and prepare-nats-candidate.py retained. Parent82428c7a6 and Core2a09c9be
+published only to reused candidate refs. Manifest/gitlinks pass. Two one-shot
+cloud CI dispatch intents/204 ACKs/run receipts retained: boundary42398316205,
+image42398318179. No local image/build/download, live setting/service mutation
+or accepted cohort replay. Existing shared/Core Development work preserved.

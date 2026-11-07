@@ -192,3 +192,28 @@ controls pass. Initial response controls exposed the missing NATS retained-sourc
 test fixture/guard expectations; updated them and verified the complete suite.
 No live cohort, native query/save, settings change or deployment was performed.
 Exact candidate image and live acceptance remain open.
+
+## Scoped deployment candidate prepared
+
+Task API boundary run42397587804/job128478192083 passed all14 cases against
+bb9a73dd88b7e91eb8d1554e059899e6947a5073. Artifact13584237599,3111B,
+SHA256faaa719810eb3c7b4ffc23bd8470cdae7798b84ec40f4395901d5d6f537b60f1,
+retained30days. No local TRX/archive download.
+
+Fresh parent Development and existing candidate both remained3cc1ab108.
+Core Development contains concurrent separate work; neither its branch nor
+working files were switched or overwritten. The reused candidate Core branch
+advanced normally from9fac20cd to2a09c9be620b3f3c2b1bae05bf62758bc5b13983,
+with only the NATS read tariff. Parent candidate
+82428c7a6441e6088cfdd6960f899641dae54dd1 is based on the accepted DuckDB
+release3cc1ab108ef082b9aa7e00224eb895ad01060434. Fifteen changed paths cover
+NATS runtime/provider/API/compiler/reference/test wiring plus matching Core
+gitlink/manifest. Source9ca0c20aa; unrelated working changes excluded. Exact
+manifest/gitlink validation and scoped diff review pass. Both existing candidate
+refs were pushed normally, without switching the dirty working checkout.
+
+Exact candidate boundary run42398316205 and image run42398318179 are running.
+Image dispatch pins82428c7a6441e6088cfdd6960f899641dae54dd1 explicitly,
+tagcosmic-nats-82428c7a6 and teaching_sidecars=true to preserve accepted GUN/
+OrbitDB sources. Dispatch intents and204 ACKs retained; do not resubmit them.
+No Development push, configuration staging or service deployment has occurred.
