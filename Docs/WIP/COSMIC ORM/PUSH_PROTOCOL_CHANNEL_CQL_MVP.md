@@ -35,3 +35,13 @@ The shared run passed three provider cases with zero skips. The
 `ce187305a3ebafd94bf5fd2fbe2734fb097153f258ebdc5231752f8c869bf6eb`.
 The fixture confirmed its exact owned database was absent after cleanup.
 Hosted HTTP and browser acceptance remain open.
+
+## Scoped Development candidate
+
+Parent 907fe855ca5e7685526b44bbc3d79da35541f052 and Core
+6e053cd2807bbf068c2e1bfd75d88c8f6d766d28 are pushed to
+work/cosmic-push-protocol-release-candidate in their respective repos.
+The parent is based on Development d31713beb and carries only the
+reviewed Push Protocol provider, WEB4 registration and Core read tariff.
+The pin validator passed. The [image gate](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42321600120)
+must pass before Development deployment and protected settings verification.

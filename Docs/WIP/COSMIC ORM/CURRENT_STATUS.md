@@ -15,6 +15,9 @@ Native Store and loopback WEB4/MongoDB HTTP passed 3/2 and 5/4, with
 private-copy isolation. All three records survived restart and the standalone SQLite snapshot passed in [CI 42319328016](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42319328016). The qualified archive export passed in [CI 42320285565](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42320285565). The exact archive is retained and verified locally. Hosted provisioning and supervisor verification remain open.
 [CI 42317536191](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42317536191).
 
+Push Protocol's scoped Development candidate is 907fe855c. The immutable
+WEB4 image gate is [CI 42321600120](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42321600120).
+
 ## Recent WEB4 preparation, 5–6 November 2026
 
 Decentraland passed 32 WEB4 admission tests and native 3/2, MongoDB 5/4
