@@ -50,12 +50,13 @@ jobs:
         working-directory: OASIS
         run: python3 -B Scripts/TestHosts/test_dapr_native_runtimes.py
       - name: Install mandatory native storage OS dependencies
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libaio1t64 liburing2 libaio-dev liburing-dev build-essential cmake git
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libaio1t64 liburing2 libaio-dev liburing-dev build-essential cmake git uuid-dev
       - name: Install exact Linux runtimes on the ephemeral runner
         working-directory: OASIS
         run: |
           mkdir -p LocalState/COSMIC/DaprLinuxQualification
           python3 -B Scripts/TestHosts/DaprNativeRuntimes.py --install-linux "$RUNNER_TEMP/cosmic-dapr-runtimes" > LocalState/COSMIC/DaprLinuxQualification/runtime-paths.json
+          python3 -B -c 'import json,pathlib,shutil; output=pathlib.Path("LocalState/COSMIC/DaprLinuxQualification"); paths=json.loads((output/"runtime-paths.json").read_text()); pin=json.loads(pathlib.Path("Scripts/TestHosts/dapr-linux-runtime-pins.json").read_text())["runtimes"]["garnet"]["nativeBuild"]; library=pathlib.Path(paths["garnet"]).parent/pin["runtimePath"]; shutil.copyfile(library.with_suffix(".build.json"),output/"native-build-receipt.json")'
       - name: Diagnose native AOF writes before the host build
         working-directory: OASIS
         shell: pwsh
@@ -80,6 +81,7 @@ jobs:
           name: dapr-linux-native-cql
           path: |
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/web4.trx
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/native-build-receipt.json
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/result.log
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/diagnostic.json
             OASIS/LocalState/COSMIC/DaprLinuxQualification/**/failure-diagnostics.json

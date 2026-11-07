@@ -242,3 +242,11 @@ use this same installer/recipe; compiler/source/archive directories do not enter
 the final runtime image. Eight offline integrity/diagnostic controls pass.
 The rebuilt native AOF probe and full restart proof remain pending execution.
 [Upstream CMake contract](https://github.com/microsoft/garnet/blob/8d007138208ce030eb10a50c80e636b1678b83e4/libs/storage/Tsavorite/cc/CMakeLists.txt).
+
+Source-build qualification42416692352/job128536212384 reached the upstream
+native_device compilation, then FAILED on missing `uuid/uuid.h`; no probe or
+Dapr save ran. Declared `uuid-dev` in both CI and the isolated Docker build stage.
+The native build's source/SHA256 receipt is now included in compact qualification
+artifacts, alongside the separate native results. This does not include source
+checkouts, compiler outputs, runtime archives or credentials. Native and image
+qualification remain open until the corrected build and tests pass.

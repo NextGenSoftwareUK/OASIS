@@ -4481,3 +4481,8 @@ root/garnet-native-source and garnet-native-build. SHA256 source/build receipt
 ships beside mandatory library; no shim or alternate device. Compiler/dev
 packages are cloud/build-stage-only. Eight offline controls pass; no local
 runtime/tool/source clone/build/download. New native qualification required.
+
+Dapr source-build42416692352 FAILED on missing UUID header before probe/save.
+Added uuid-dev only to cloud/native build dependencies; no local install.
+Future compact artifact includes native-build-receipt.json (source/byte hash),
+excluding SDK source/compiler/binary archives. Original failures remain retained.
