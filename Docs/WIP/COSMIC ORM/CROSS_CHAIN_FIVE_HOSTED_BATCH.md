@@ -59,3 +59,21 @@ Retained TRX artifact13586577758,3689B,
 SHA256c68e9b07ba9d326020a3c086a12342e30f7cb65cd21be765ef7dbef380512a25,
 expires7December2026. Compact source-bound receipt retained, no local artifact
 download. Image42404062685 remains active; no deployment or batch apply.
+
+## Image qualified; scoped Development code rollout queued
+
+Image42404062685/job128497872865 SUCCESS for exact15eb48673,
+sha256:8fcce94bbcbb8433297ece3552109552e85f96d7107b37d349b40c73ed27c099,
+teaching_sidecars=true. Together with19/19 API qualification this establishes
+the exact candidate build, not live provider acceptance. Fresh parent ancestry,
+accepted Hyperlane releasecf69f1ba/image87d32708, complete original batch-before
+settings and all seven advertised private pins rechecked before one normal
+push of15eb48673 toDevelopment. Source85278a4 remains on the existing Core
+candidate ref; independent Core Development history untouched. Matching parent
+gitlink/manifest were published together, no unrelated checkout changes.
+
+Railway code job6ef19281-c114-4280-9301-ff4bee908eac isQUEUED. Acceptedcf69f1ba
+continues serving. No11-setting apply or activation occurred. Next follow this
+exact job, inspect deployed source/runtime and baseline, stage original11values
+once with per-key ACKs, then request one activation and first hosted cohorts.
+Push/image/API/private-ref receipts retained; never resubmit the queued rollout.
