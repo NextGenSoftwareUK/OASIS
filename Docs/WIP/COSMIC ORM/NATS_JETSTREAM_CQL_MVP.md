@@ -64,4 +64,27 @@ and requires real CQL3/2, explicit permission-denial events, typed TLS
 authentication failure for an untrusted CA, and unchanged values/revisions.
 The server stops before native-store archival. Partial source journals remain
 on failure; private keys, server credentials and raw logs are excluded from
-artifacts. This gate has not yet run or qualified hosted enrollment.
+artifacts. This gate passed as recorded below; hosted enrollment remains open.
+
+## Real Linux TLS qualification accepted
+
+Run [42396383665](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42396383665),
+job128474549330, exact source a95f0a07368591a86afff5a4136025b813880c4a:
+real native2.15.2 and SDK3.2.0 passed CQL3/2, explicit server permission
+violations for writes and foreign-bucket access, typed TLS authentication
+failure with an untrusted CA, unchanged values/revisions, and stopped native
+server before archival. Consumer build had zero errors and1150 warnings
+from its dependency graph; this is scoped proof, not a warning-free build.
+
+Retained artifact13583577000 is4296B, SHA256
+5a96acfd7a032b3078ff45d3d3d6bcd214394144e1ba05e8c6d1e9f63567750b,
+expires5February2027. Native store archive2011B, SHA256
+a9daaeef39473742cf869b0a9673686523f2771766815f07dbd3c5ba7f29ad37.
+Source JSON SHA256
+5a8db3e17c3240289cbbb4e521cb63f8f1fb051722b8063e70664794f957709b.
+The original source/save ACKs, native archive, qualification and exact CI
+receipt are retained under LocalState/COSMIC/NatsOwnedTlsQualifiedCurrent.
+Ten retained files total4110B; the downloaded zip was verified in memory.
+Do not rerun or reseed this accepted source. No credentials/private keys
+were retained. The next gate is owned hosted startup and restart verification,
+then exact image qualification and protected enrollment/live HTTP acceptance.

@@ -4142,3 +4142,12 @@ before bounded archive. Private certificate/key/config removed only from
 validated owned CI path after process stop; native data and mutation journals
 retained as90-day artifact, including partial failures. No local download,
 runtime install, build, environment or accepted-source replay.
+
+NATS native TLS CI42396383665/job128474549330 SUCCESS at a95f0a073.
+Artifact13583577000 (4296B, SHA2565a96acfd7a032b3078ff45d3d3d6bcd214394144e1ba05e8c6d1e9f63567750b)
+verified in memory; ten extracted proof/native-source files4110B retained at
+LocalState/COSMIC/NatsOwnedTlsQualifiedCurrent. ZIP itself not written.
+Native archive2011B, all three save ACKs and original source intent retained;
+no local native execution, new runtime, credentials or private certificate.
+Native stopped cleanly before archival, qualified3/2, both explicit permission
+denials, untrustedCA rejection and unchanged source. Do not replay/reseed.
