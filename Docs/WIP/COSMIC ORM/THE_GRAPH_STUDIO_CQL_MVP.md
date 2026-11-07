@@ -147,6 +147,22 @@ One same-release deployment after the complete source repair is
 `ccd86b20-5e4f-4abe-8a63-761e28c96d60`, currently building. No settings
 were reapplied and neither failed build reached runtime startup.
 
+### Hosted acceptance passed
+
+Settings deployment `ccd86b20-5e4f-4abe-8a63-761e28c96d60` succeeded
+at the exact reviewed Graph source commit. Discovery advertised all four
+native and Mongo presets. The original hosted cohort then passed native
+3/2, Mongo federation5/4, repeat reuse0new/2existing, foreign-private0/public3,
+and the two exact snapshots on SQLite and Neo4j,2/2. Both saves were
+acknowledged once. Preserve the owner/write journals and these reports.
+Browser interaction remains open.
+
+| Report under TestResults/HostedCqlIntegrationCurrent | SHA-256 |
+| --- | --- |
+| TheGraphOASIS-native-http.json | `064b7e90a4a5a9462b1fc091ae7a14c1d5c3fea533329a9bfe3835bcdec0d31d` |
+| TheGraphOASIS-client-http-flow.json | `3f92dd23e8ba58455372655cc4568586bcc1f2c97c5ee40ba5f0f3ba365fec27` |
+| TheGraphOASIS-isolation-http.json | `6ef2da8e4a44da17888c1af0e26f0a0731df116f941f653c5313816d4bb2a44c` |
+
 The immutable public publisher descriptor is prepared at
 `LocalState/COSMIC/HostedSourceRolloutCurrent/graph-studio-public-descriptor.json`
 (49 bytes, SHA256 `de20548bd9331b2a0484e84daf1f917588838c401ae2cda175de48129f97c13e`).

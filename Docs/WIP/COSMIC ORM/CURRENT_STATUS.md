@@ -21,7 +21,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **119 scoped local, 74 live HTTP and 28 functional browser**.
+Coverage is **119 scoped local, 75 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -60,9 +60,13 @@ after a remote history rewrite. The exact original pin was restored on
 codex/deployed-dependency-307b0a53. Repaired settings deployment
 e53de265 failed at the similarly unreachable STAR-ODK pin. All seven exact
 private dependency pins are now verified on advertised retention refs.
-Settings deployment ccd86b20-5e4f-4abe-8a63-761e28c96d60 is building.
-Observe that exact job before hosted acceptance. Settings were not reapplied.
-Preserve active GUN/OrbitDB source generations.
+Settings deployment ccd86b20-5e4f-4abe-8a63-761e28c96d60 succeeded.
+Graph hosted acceptance passed native3/2, Mongo5/4, reuse0new/2existing,
+foreign-private0/public3 and SQLite/Neo4j replicas2/2. Preserve that original
+cohort. Publish its prepared website card, then finish browser acceptance.
+The preserved-teaching PouchDB candidate e33b2b4c/Coreb98220a7 passed image
+qualification42354427254 and its original source inputs are present here.
+Re-observe the accepted Graph baseline before the next scoped rollout.
 The harness cleanup bug was reproduced and fixed locally: durable owner/write
 journals now reject fresh execution before sessions/queries; all26 tests pass.
 Do not rerun accepted HTTP schedules. Browser gates remain open.

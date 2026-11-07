@@ -3704,3 +3704,17 @@ were replayed. A concurrent task had committed a WEB6 gitlink change without
 its matching manifest value; only that manifest value was synchronized with
 the existing committed gitlink before publishing task documentation. The
 scoped Development Graph release remained unchanged.
+
+Graph settings deploymentccd86b20 succeeded after exact source refs were
+retained. The original HTTP acceptance completed once. Reports in
+`TestResults/HostedCqlIntegrationCurrent/` measure 11,937 bytes native,
+33,608 bytes client flow and 5,529 bytes isolation. Original owner/foreign
+acknowledgements, machine-bound tokens, two save acknowledgements and
+the empty preparation-intent object remain in
+`LocalState/COSMIC/HostedQueryAcceptance-TheGraphOASIS/`. Do not replay
+that accepted preparation schedule. The separately journalled readiness
+visitor remains deployment-bound. No new runtime was installed.
+
+PouchDB's compact qualified-image receipt is now retained in the recovery
+directory. The existing source generation and exact original native proof
+remain intact; its hosted enrollment has not been applied.
