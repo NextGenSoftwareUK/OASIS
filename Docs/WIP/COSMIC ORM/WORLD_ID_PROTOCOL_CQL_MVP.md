@@ -66,3 +66,9 @@ ae36981c28c5866f6ec2df1764ab76980c08520f5e88c2ef31767ec58d9d3b69.
 The live baseline still matched before Development fast-forwarded to
 48c532584. Railway code job bfc56681-f9a7-4e0a-9670-0ecd41c5e32a is
 queued. Observe that exact job before applying the four protected settings.
+
+Code deployment bfc56681 succeeded. The protected publisher applied and
+read back all four settings. The same-release settings deployment is
+34802005-bbc6-467e-836f-d716fadbbc72 at commit 48c532584. Observe that
+exact job before using --reviewed-deployment-visitor with WorldIDOASIS
+and the retained world-id-public descriptor.
