@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS;
 using NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS;
 using NextGenSoftware.OASIS.API.Providers.WorldIDOASIS;
 using NextGenSoftware.OASIS.API.Providers.WakuOASIS;
+using NextGenSoftware.OASIS.API.Providers.TheGraphOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
@@ -37,6 +38,8 @@ public static class CqlReviewedNetworkReadSourceRegistration
             owner => new WorldIdProtocolQuerySource(owner));
         Register(services, configuration["CQL_RECLAIM_VERIFIER_QUERY_SOURCE_OWNER"], "Reclaim",
             owner => new ReclaimVerifierQuerySource(owner));
+        Register(services, configuration["CQL_THE_GRAPH_STUDIO_QUERY_SOURCE_OWNER"], "The Graph Studio",
+            owner => new TheGraphStudioStatusQuerySource(owner));
         Register(services, configuration["CQL_DECENTRALAND_SCENE_QUERY_SOURCE_OWNER"], "Decentraland",
             owner => new DecentralandSceneQuerySource(owner));
     }

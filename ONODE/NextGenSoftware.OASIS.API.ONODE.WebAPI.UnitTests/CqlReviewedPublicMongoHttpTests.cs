@@ -42,6 +42,7 @@ using NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS;
 using NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS;
 using NextGenSoftware.OASIS.API.Providers.DecentralandOASIS;
 using NextGenSoftware.OASIS.API.Providers.WakuOASIS;
+using NextGenSoftware.OASIS.API.Providers.TheGraphOASIS;
 using NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS;
 using NextGenSoftware.OASIS.API.Providers.WorldIDOASIS;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
@@ -124,6 +125,9 @@ public sealed class CqlReviewedPublicMongoHttpTests
 
     [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_NETWORK_NATIVE")]
     public Task DecentralandSceneNativeHttp() => VerifyHttpAsync(ProviderType.DecentralandOASIS);
+
+    [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_NETWORK_NATIVE")]
+    public Task TheGraphStudioNativeHttp() => VerifyHttpAsync(ProviderType.TheGraphOASIS);
 
     [ReviewedPublicMongoNativeFact("COSMIC_WAKU_STORE_HASHES")]
     public Task WakuStoreNativeHttp() => VerifyHttpAsync(ProviderType.WakuOASIS);
@@ -540,6 +544,13 @@ public sealed class CqlReviewedPublicMongoHttpTests
                 string[] parcels = { "0,0", "-53,71", "-100,-50" };
                 return (new DecentralandSceneQuerySource(owner),
                     parcels.Select(parcel => DecentralandSceneQuerySource.LogicalId(owner, parcel)).ToArray());
+            }
+            case ProviderType.TheGraphOASIS:
+            {
+                Assert.Equal("owned-loopback", Environment.GetEnvironmentVariable("COSMIC_REVIEWED_NETWORK_NATIVE"));
+                string[] deployments = { "adexto-arbitrum", "adexto-base", "klerosboard-gnosis" };
+                return (new TheGraphStudioStatusQuerySource(owner),
+                    deployments.Select(key => TheGraphStudioStatusQuerySource.LogicalId(owner, key)).ToArray());
             }
             case ProviderType.WakuOASIS:
             {

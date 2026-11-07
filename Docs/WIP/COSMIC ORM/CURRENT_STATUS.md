@@ -20,7 +20,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **118 scoped local, 74 live HTTP and 28 functional browser**.
+Coverage is **119 scoped local, 74 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -42,7 +42,9 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 The GUN/OrbitDB cards are published at fae9c5a. Public HTML matches the
 exact commit (241209bytes/SHA256 in provider reports);114 client tests passed.
-Next inspect the unqualified The Graph Studio draft and its proving-test gaps.
+The Graph Studio now passes12 provider controls, native3/2,32 admission cases
+and local WEB4/Mongo5/4/privacy. Next prepare its scoped image from9c6e9300,
+with teaching_sidecars=true to retain active GUN/OrbitDB runtimes.
 The harness cleanup bug was reproduced and fixed locally: durable owner/write
 journals now reject fresh execution before sessions/queries; all26 tests pass.
 Do not rerun accepted HTTP schedules. Browser gates remain open.
@@ -71,7 +73,8 @@ Provision-HostedTeachingSource.py has five command tests; native helper has six.
 - Broader ORM children/depth/history/deltas, migration, placement and HyperDrive
   operator, transport and scale acceptance remain incomplete.
 - Disk target107GB remains unmet; preserve personal WSL Miniforge/ML models.
-- Subscription project generated20.6MB retained after cleanup-policy rejection.
+- Subscription20.6MB and finished Graph build outputs1.98GB retained after
+  automatic cleanup-policy rejection; exact scopes are in the resource ledger.
 
 ## Commands and entry points
 
