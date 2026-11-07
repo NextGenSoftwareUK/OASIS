@@ -135,3 +135,12 @@ Evidence under TestResults/HostedCqlIntegrationCurrent, SHA-256:
 - PinataOASIS-native-http.json d5aab48282bc9b8ee90d0db5f62fcf3461df7bffe10e436d2f772e07a95677d6
 - PinataOASIS-client-http-flow.json 8e5d67a2c336b173ce34cba51016097a87c1101b8f6b5829b4ee3501ab5a5074
 - PinataOASIS-isolation-http.json b4e9faac38ee37cebfdda351a137eb1dc3630cbd967f277d8af652abbbeecc54
+
+## Sandbox publication
+
+The [sandbox card](https://web4.oasisomniverse.one/web4-sandbox.html#cql-pinata-catalogue)
+is live at Web4Site 0e320a5 with native and MongoDB instructions and a
+local C# example. All 114 website tests passed. Live HTML was 235,637
+bytes and matched Git SHA-256
+e4d7080f2daf86b11bd6f16c94b36df7dd492357fed5572e25f498137bd44f50.
+Interactive browser acceptance remains open.

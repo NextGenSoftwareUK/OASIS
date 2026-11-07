@@ -100,3 +100,12 @@ Evidence under TestResults/HostedCqlIntegrationCurrent, SHA-256:
 - DiscordOASIS-native-http.json 7ff580766caec9e2c570320b1fb2606314593d0c77265ef8f2c31870214b4e1c
 - DiscordOASIS-client-http-flow.json ee2afd75e086407203fa9b2d37f316e0ce3abeee1dcbc9437159604c0d46413f
 - DiscordOASIS-isolation-http.json e64cba39d316575787a14f7b197ad1145112d52e29bf2d6996b21f4d6cecd78c
+
+## Sandbox publication
+
+The [sandbox card](https://web4.oasisomniverse.one/web4-sandbox.html#cql-discord-catalogue)
+is live at Web4Site 0e320a5 with native and MongoDB instructions and a
+local C# example. All 114 website tests passed. Live HTML was 235,637
+bytes and matched Git SHA-256
+e4d7080f2daf86b11bd6f16c94b36df7dd492357fed5572e25f498137bd44f50.
+Interactive browser acceptance remains open.

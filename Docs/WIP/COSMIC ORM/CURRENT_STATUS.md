@@ -12,7 +12,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 - Worktree C:/Source/OASIS-cosmic, branch work/cosmic-cql-ton-public.
 - Core branch work/cosmic-cql-decentraland. Preserve independent dependency pins.
-- Website C:/Source/Web4Site, branch work/cosmic-cql, published e87fbba.
+- Website C:/Source/Web4Site, branch work/cosmic-cql, published 0e320a5.
 - Development 8645794bb. Current live release 8645794bb, Core 4585be1.
 - Successful Railway settings deployment 0ab0d7c9-45b7-4fcc-b1ea-c79c9d6c0eae.
 - Unknown root logs and Docs/WIP/Cleanup/CLEANUP_LEDGER.md are outside this task.
@@ -50,8 +50,10 @@ World ID settings job 34802005 succeeded. Native 3/2, MongoDB 5/4, reuse,
 visitor isolation and both replicas passed. Its sandbox card and local example are live at e87fbba; browser interaction remains open.
 Discord/Livepeer/Pinata image qualification passed. Development is 8645794bb.
 Settings job 0ab0d7c9 succeeded. Discord, Livepeer and Pinata each passed
-native 3/2, MongoDB 5/4, reuse, isolation and both replicas. Next, publish
-all three sandbox cards with local C# links.
+native 3/2, MongoDB 5/4, reuse, isolation and both replicas. All three
+cards and local examples are live at 0e320a5. Browser interaction remains open.
+Next inspect Oracle Object Storage, Cloudinary and Proof of Humanity's
+qualified public profiles for a scoped hosted rollout.
 
 ## Constraints and unfinished roadmap
 

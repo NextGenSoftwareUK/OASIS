@@ -113,3 +113,12 @@ Evidence under TestResults/HostedCqlIntegrationCurrent, SHA-256:
 - LivepeerOASIS-native-http.json 43000831e7e8c9bab079366c29cd2f814ea2d1cde946585bc9fab9393ae5b7db
 - LivepeerOASIS-client-http-flow.json cc6be3a86ce349fa5f8dd08c86b3813c2ca415956ed3429cb9870eb1b0af303b
 - LivepeerOASIS-isolation-http.json 610dc6ca69216f9a4eab0cd11e57bc135f1fa3a4766dee0e4c99466208cf38a5
+
+## Sandbox publication
+
+The [sandbox card](https://web4.oasisomniverse.one/web4-sandbox.html#cql-livepeer-catalogue)
+is live at Web4Site 0e320a5 with native and MongoDB instructions and a
+local C# example. All 114 website tests passed. Live HTML was 235,637
+bytes and matched Git SHA-256
+e4d7080f2daf86b11bd6f16c94b36df7dd492357fed5572e25f498137bd44f50.
+Interactive browser acceptance remains open.
