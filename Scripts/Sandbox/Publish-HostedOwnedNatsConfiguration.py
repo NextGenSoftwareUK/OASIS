@@ -74,6 +74,14 @@ def prepare():
     prior = configuration.STATE / candidate_name
     password = configuration.protected_read(candidate_name)[EXTRA[3]] if prior.exists() else secrets.token_urlsafe(32)
     after = candidate(before, password)
+    source = json.loads(after[native.KEYS[0]])
+    review = configuration.compact({'Actor': source['sourceOwner'], 'LiveIds': source['ids']}).encode()
+    review_path = configuration.STATE / (PREFIX + '-descriptor.json')
+    if review_path.exists():
+        if review_path.read_bytes() != review:
+            raise RuntimeError('Existing reviewed NATS catalogue differs.')
+    else:
+        configuration.write_new(review_path, review)
     for label, value in (('before', before), ('candidate', after)):
         name = f'{PREFIX}-{label}-variables.dpapi'
         if (configuration.STATE / name).exists():

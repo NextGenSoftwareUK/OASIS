@@ -235,7 +235,7 @@ class ResponseEvidenceTests(unittest.TestCase):
                     drift = json.loads(json.dumps(presets))
                     drift[3]["request"]["source"]["filters"][0]["value"][1] = missing
                     arguments = ["verify", provider, "--reviewed-exact-key-source", str(descriptor)]
-                    if provider in ("WakuOASIS", "DuckDBOASIS"):
+                    if provider in ("WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS"):
                         arguments += ["--readiness", "--reviewed-deployment-visitor"]
                         (root / "LocalState/COSMIC").mkdir(parents=True, exist_ok=True)
                     with (
@@ -246,12 +246,12 @@ class ResponseEvidenceTests(unittest.TestCase):
                         patch.object(verification, "session", return_value=({}, "retained")) as session,
                         patch.object(verification, "ready_source", return_value={"examples": drift}),
                     ):
-                        expected_error = SystemExit if provider in ("WakuOASIS", "DuckDBOASIS") else RuntimeError
+                        expected_error = SystemExit if provider in ("WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS") else RuntimeError
                         with self.assertRaisesRegex(expected_error, "differs from the reviewed rollout"):
                             verification.main()
                     session.assert_called_once_with(root / "LocalState/COSMIC/HostedDemoRehearsalDiscovery",
-                                                    "visitor", allow_create=provider in ("WakuOASIS", "DuckDBOASIS"))
-                    expected_files = {descriptor, root / "LocalState"} if provider in ("WakuOASIS", "DuckDBOASIS") else {descriptor}
+                                                    "visitor", allow_create=provider in ("WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS"))
+                    expected_files = {descriptor, root / "LocalState"} if provider in ("WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS") else {descriptor}
                     self.assertEqual(expected_files, set(root.iterdir()))
                     if provider == "MinIOOASIS":
                         catalogue["Originals"][0]["Id"] = missing
@@ -661,7 +661,7 @@ class ResponseEvidenceTests(unittest.TestCase):
             for provider in ("OracleObjectStorageOASIS", "CloudinaryOASIS", "ProofOfHumanityOASIS",
                              "GUNOASIS", "OrbitDBOASIS", "TheGraphOASIS", "WakuOASIS", "DuckDBOASIS"):
                 with self.subTest(provider=provider):
-                    verify = release.verify_settings if provider in ("WakuOASIS", "DuckDBOASIS") else release.verify_release
+                    verify = release.verify_settings if provider in ("WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS") else release.verify_release
                     verify.return_value = str(uuid.UUID(int=8))
                     with self.assertRaisesRegex(RuntimeError, "must be current"):
                         verification.reviewed_deployment_visitor(provider)

@@ -35,6 +35,19 @@ class OwnedNatsTests(unittest.TestCase):
         self.assertEqual(ids, presets[0]['request']['filters'][0]['value'])
         self.assertEqual(ids[:2], presets[2]['request']['filters'][0]['value'])
 
+    def test_http_review_binds_original_ids_without_inventing_deleted_records(self):
+        descriptor, _ = publisher.qualified_source()
+        source = json.loads(descriptor)
+        verifier = publisher.native.module('Verify-HostedQuerySource')
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / 'review.json'
+            path.write_text(json.dumps({'Actor': source['sourceOwner'], 'LiveIds': source['ids']}))
+            review = verifier.reviewed_exact_key_source('NATSJetStreamOASIS', path)
+        self.assertEqual(source['ids'], review['publicIds'])
+        self.assertEqual(descriptor, review['sourceBinding']['CQL_NATS_PUBLIC_SOURCE_JSON'])
+        self.assertEqual('true', review['sourceBinding']['OASIS_SANDBOX_NATS'])
+        self.assertEqual(4, len(review['presets']))
+
     def test_existing_owned_settings_are_never_replaced(self):
         for key in publisher.EXTRA:
             with self.subTest(key=key), self.assertRaisesRegex(RuntimeError, 'reconciliation'):

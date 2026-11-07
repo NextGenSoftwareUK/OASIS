@@ -4204,3 +4204,10 @@ TemporaryDirectory lifecycle; no real credentials, native execution or live
 Railway calls. Mounted verification implementation reads only existing files
 and native binary version; credentials use private stdin, compact output only.
 It has not been executed against a live service. No settings/deployment writes.
+
+NATS HTTP integration:11 publisher,39 exact-key preset/configuration and28
+response-evidence controls pass with existing Python/Node. First response run
+caught the newly required retained-source descriptor/guard fixture; corrected
+fixture and reran to28/28. All controlled candidates/receipts used test-owned
+temporary directories, no live calls, native accepted-source queries/mutations,
+new local environments or retained build outputs. No live settings changed.

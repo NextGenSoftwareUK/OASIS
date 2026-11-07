@@ -179,3 +179,16 @@ Ten controlled publisher guards pass, including stale ACK/config drift,
 certificate identity change and deployment change. No live inspection or
 settings mutation has yet occurred. HTTP verifier integration and exact
 candidate image qualification remain open.
+
+HTTP acceptance integration now treats owned NATS as a reviewed retained source.
+It requires the exact deployment and mounted-source verification before cohort
+work, binds the original Actor/three LiveIds to the fixed TLS endpoint/bucket
+and reader, checks exact public identities and permits explicit reuse of an
+acknowledged readiness visitor. The descriptor contains only real source IDs;
+no deleted/tombstone records or evidence are invented. Publisher preparation
+writes that exact reviewed descriptor, preserving it across repeated prepare.
+Eleven publisher checks,39 preset/configuration controls and28 response-evidence
+controls pass. Initial response controls exposed the missing NATS retained-source
+test fixture/guard expectations; updated them and verified the complete suite.
+No live cohort, native query/save, settings change or deployment was performed.
+Exact candidate image and live acceptance remain open.

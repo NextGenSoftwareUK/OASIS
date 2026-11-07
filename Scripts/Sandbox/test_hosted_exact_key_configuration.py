@@ -15,7 +15,9 @@ spec.loader.exec_module(configuration)
 
 def exact_key_catalogue(provider):
     actor, first, second, third, deleted, missing = [str(uuid.UUID(int=i)) for i in range(1, 7)]
-    if provider == "WakuOASIS":
+    if provider == "NATSJetStreamOASIS":
+        catalogue = {"Actor": actor, "LiveIds": [first, second, third]}
+    elif provider == "WakuOASIS":
         actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
         first, second, third = ("8ff38484-cb3f-834b-a77e-8e7321130e7c", "5c75110a-020a-8e6a-bdae-374cb85b5d39",
                                 "38f0dce7-ca39-82ae-90ae-a1409202a581")

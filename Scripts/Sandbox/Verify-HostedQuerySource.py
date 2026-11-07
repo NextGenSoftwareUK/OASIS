@@ -28,7 +28,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
     "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "TenderlyOASIS", "QuickNodeOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS",
-    "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "WakuOASIS", "DuckDBOASIS",
+    "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS",
 )
 FIXED_PUBLIC_CATALOGUES = {
     "TheGraphOASIS": (
@@ -73,7 +73,7 @@ FIXED_PUBLIC_CATALOGUES = {
 }
 REVIEWED_PUBLIC_CATALOGUE_PROVIDERS = frozenset((*FIXED_PUBLIC_CATALOGUES,
     "CloudinaryOASIS", "OracleObjectStorageOASIS", "ProofOfHumanityOASIS",
-    "GUNOASIS", "OrbitDBOASIS", "WakuOASIS", "DuckDBOASIS"))
+    "GUNOASIS", "OrbitDBOASIS", "WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS"))
 
 POLYGON_GATEWAY_CATALOGUES = {
     "TenderlyOASIS": ("CQL_TENDERLY_POLYGON_QUERY_SOURCE_OWNER", "tenderlypolygon-public-accounts:0x89",
@@ -333,12 +333,13 @@ def reviewed_deployment_visitor(provider):
     publisher = ROOT / "Scripts/Sandbox" / {
         "WakuOASIS": "Publish-HostedWakuConfiguration.py",
         "DuckDBOASIS": "Publish-HostedDuckDbConfiguration.py",
+        "NATSJetStreamOASIS": "Publish-HostedOwnedNatsConfiguration.py",
     }.get(provider, "Publish-HostedLocalFileConfiguration.py")
     spec = importlib.util.spec_from_file_location("reviewed_release", publisher)
     release = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(release)
     deployment = os.environ.get("COSMIC_CQL_SETTINGS_DEPLOYMENT_ID", "")
-    if not deployment or (release.verify_settings() if provider in ("WakuOASIS", "DuckDBOASIS") else release.verify_release()) != deployment:
+    if not deployment or (release.verify_settings() if provider in ("WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS") else release.verify_release()) != deployment:
         raise RuntimeError(f"The reviewed {provider} settings deployment must be current.")
     return deployment_visitor(provider.removesuffix("OASIS"), deployment)
 
@@ -444,7 +445,8 @@ def reviewed_exact_key_source(provider, path):
         names_only = provider == "ENSOffchainOASIS"
         fixed_public = FIXED_PUBLIC_CATALOGUES.get(provider)
         polygon_gateway = POLYGON_GATEWAY_CATALOGUES.get(provider)
-        fields = {"Actor", "Names"} if names_only else {"Actor", "LiveIds", "DeletedId", "MissingId"}
+        fields = ({"Actor", "LiveIds"} if provider == "NATSJetStreamOASIS" else
+                  {"Actor", "Names"} if names_only else {"Actor", "LiveIds", "DeletedId", "MissingId"})
         public_keys = {
             "WakuOASIS": ("MessageHashes", "CQL_WAKU_STORE_QUERY_SOURCE_JSON",
                           "waku-store-v3/oasis-cql/1/store-fixture/proto", r"0x[0-9a-f]{64}"),
@@ -677,7 +679,7 @@ def reviewed_exact_key_source(provider, path):
             ids = catalogue["LiveIds"]
             if not isinstance(ids, list) or len(ids) != 3:
                 raise ValueError("Three teaching identities are required.")
-            record_ids = [*ids, catalogue["DeletedId"], catalogue["MissingId"]]
+            record_ids = ids if provider == "NATSJetStreamOASIS" else [*ids, catalogue["DeletedId"], catalogue["MissingId"]]
         if any(str(uuid.UUID(value)) != value or uuid.UUID(value).int == 0
                for value in [catalogue["Actor"], *record_ids]) or len(set(record_ids)) != len(record_ids):
             raise ValueError("Invalid teaching identities.")
@@ -785,6 +787,13 @@ def reviewed_exact_key_source(provider, path):
     elif provider == "ConvexOASIS":
         review["sourceBinding"] = {"CQL_CONVEX_QUERY_SITE": catalogue["Site"],
                                    "CQL_CONVEX_QUERY_PROBE_ID": ids[0]}
+    elif provider == "NATSJetStreamOASIS":
+        review["publicIds"] = ids
+        review["sourceBinding"] = {"OASIS_SANDBOX_NATS": "true",
+            "CQL_NATS_PUBLIC_SOURCE_USERNAME": "cql_reader",
+            "CQL_NATS_PUBLIC_SOURCE_JSON": json.dumps({"schema": 1,
+                "endpoint": "tls://127.0.0.1:24222", "bucket": "cosmic_cql_public",
+                "sourceOwner": catalogue["Actor"], "ids": ids}, separators=(",", ":"))}
     elif provider == "DuckDBOASIS":
         review["sourceBinding"] = {"CQL_DUCKDB_QUERY_CONNECTION_STRING":
             "Data Source=/data/COSMIC/SandboxDuckDB/source.duckdb;access_mode=READ_ONLY"}
@@ -887,7 +896,7 @@ def main():
     parser.add_argument("--continue-snapshot-observation-change", action="store_true",
                         help="Finish original acknowledged snapshots after a proved changing-observation reuse defect; no writes.")
     options = parser.parse_args()
-    if options.reuse_acknowledged_readiness is not None and (options.provider not in ("WakuOASIS", "DuckDBOASIS")
+    if options.reuse_acknowledged_readiness is not None and (options.provider not in ("WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS")
             or not options.reviewed_deployment_visitor or not (options.readiness or options.prepare)):
         parser.error("Readiness visitor reuse requires a retained source with its verified deployment and readiness or preparation.")
     if options.decentraland_deployment_visitor and (options.provider != "DecentralandOASIS"
@@ -934,7 +943,7 @@ def main():
         rehearsal = reviewed_deployment_visitor(options.provider)
     if options.reuse_acknowledged_readiness is not None:
         rehearsal = acknowledged_readiness_visitor(options.reuse_acknowledged_readiness)
-    if options.provider in ("WakuOASIS", "DuckDBOASIS") and not options.prepare_exact_key_presets and not options.reviewed_deployment_visitor:
+    if options.provider in ("WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS") and not options.prepare_exact_key_presets and not options.reviewed_deployment_visitor:
         parser.error("Retained-source acceptance requires its verified deployment, mounted archive and source receipt.")
     continuing = options.continue_settled_read or options.continue_native_read_failure or options.continue_snapshot_observation_change
     if options.prepare_exact_key_presets is not None:
