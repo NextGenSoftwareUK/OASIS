@@ -318,3 +318,10 @@ runtime-source-proof.json is retained. The image copies the helper, but the
 supervisor/entrypoint does not enable Dapr. Journalled hosted provisioning,
 image/runtime qualification, settings enrollment, federation and visitors remain
 open. No live Development settings or existing source/cohort was changed.
+
+
+### 7 November: hosted recovery fixture filename correction
+
+Run42418683499/job128542212746 failed before the hosted-helper/restart gate: the fixture wrote users.acl while the shipping contract hashes and opens reader.acl. Initial native source save was acknowledged and initial WEB4 query passed; this is not a completed recovery proof. Corrected the fixture to use reader.acl throughout. A new run uses a unique source prefix and does not replay the prior source. The helper now shares bounded observation/startup functions for subsequent explicit provisioning;13 controlled configuration/runtime checks pass. Native qualification remains required.
+
+Failure artifact13592882298:4903 bytes, SHA256 8d2c88f4a309703eedd2623b6b85744ae1864df7f0448afcfd53432caf915fe1.

@@ -4510,3 +4510,6 @@ source test creates no temp directory. Native fixture now writes bounded local
 source/credential metadata for shipping-helper checks after its original seed;
 credentials excluded from artifact, only runtime proof retained. No local native
 SDK/env/build/download/live source operation. New exact helper qualification next.
+
+
+7 November: inspected failed Dapr job128542212746 logs in memory; no runtime/archive install or local build. Cloud failure artifact13592882298 retains4903 bytes for30days. Focused13 Node checks generated no retained local outputs. Next cloud fixture must use a fresh unique source; prior acknowledged source must not be reseeded.

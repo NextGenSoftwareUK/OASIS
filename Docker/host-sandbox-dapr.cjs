@@ -109,21 +109,42 @@ async function startup(check, signal) {
   throw Error('Dapr native startup deadline expired.');
 }
 
-async function verifyRows(source, token, signal) {
-  for (const record of source.records) {
-    signal.throwIfAborted();
-    const key = encodeURIComponent('oasis/holon/' + record.id.replaceAll('-', ''));
-    const response = await fetch(`http://127.0.0.1:${contract.ports.http}/v1.0/state/${contract.store}/${key}`, {
-      headers: { 'dapr-api-token': token }, redirect: 'error', signal: AbortSignal.any([signal, AbortSignal.timeout(3000)]) });
-    if (response.status !== 200 || response.headers.get('etag') !== record.etag) throw Error('Recovered Dapr record/ETag differs.');
-    const chunks = []; let bytes = 0;
-    for await (const chunk of response.body) {
-      bytes += chunk.byteLength;
-      if (bytes > 8192) throw Error('Recovered Dapr source exceeds its response budget.');
-      chunks.push(Buffer.from(chunk));
-    }
-    if (JSON.parse(Buffer.concat(chunks).toString('utf8')) !== record.value) throw Error('Recovered Dapr source value differs.');
+async function readRecord(record, token, signal) {
+  signal.throwIfAborted();
+  const key = encodeURIComponent('oasis/holon/' + record.id.replaceAll('-', ''));
+  const response = await fetch(`http://127.0.0.1:${contract.ports.http}/v1.0/state/${contract.store}/${key}`, {
+    headers: { 'dapr-api-token': token }, redirect: 'error', signal: AbortSignal.any([signal, AbortSignal.timeout(3000)]) });
+  const etag = response.headers.get('etag');
+  if (response.status !== 200 || !etag || etag.length > 256 || (record.etag !== undefined && etag !== record.etag))
+    throw Error('Recovered Dapr record/ETag differs.');
+  const chunks = []; let bytes = 0;
+  for await (const chunk of response.body) {
+    bytes += chunk.byteLength;
+    if (bytes > 8192) throw Error('Recovered Dapr source exceeds its response budget.');
+    chunks.push(Buffer.from(chunk));
   }
+  if (JSON.parse(Buffer.concat(chunks).toString('utf8')) !== record.value) throw Error('Recovered Dapr source value differs.');
+  return { id: record.id, value: record.value, etag };
+}
+async function observeRows(records, token, signal) {
+  const observed = [];
+  for (const record of records) observed.push(await readRecord(record, token, signal));
+  return observed;
+}
+async function verifyRows(source, token, signal) {
+  await observeRows(source.records, token, signal);
+}
+async function waitForRedis(password, signal) {
+  await startup(async () => { await probeRedis(password, signal); return true; }, signal);
+}
+async function waitForSidecar(token, signal) {
+  await startup(async () => {
+    const response = await fetch(`http://127.0.0.1:${contract.ports.http}/v1.0/healthz`, {
+      headers: { 'dapr-api-token': token }, redirect: 'error', signal: AbortSignal.any([signal, AbortSignal.timeout(1000)]) });
+    if (response.status === 503) return false;
+    if (response.status !== 204) throw Error('Dapr native health response differs.');
+    return true;
+  }, signal);
 }
 
 async function serviceConfigurations(environment, directory = '/data/COSMIC/SandboxDapr') {
@@ -132,18 +153,12 @@ async function serviceConfigurations(environment, directory = '/data/COSMIC/Sand
   for (const key of ['PATH', 'HOME', 'TMPDIR', 'DOTNET_ROOT']) if (environment[key]) nativeEnvironment[key] = environment[key];
   return [
     { command: '/opt/garnet/GarnetServer', args: configuration.garnetArguments(directory, path.join(directory, 'reader.acl'), 'recover'),
-      cwd: directory, env: nativeEnvironment, check: signal => startup(async () => { await probeRedis(password, signal); return true; }, signal) },
+      cwd: directory, env: nativeEnvironment, check: signal => waitForRedis(password, signal) },
     { command: '/opt/dapr/daprd', args: configuration.daprArguments(directory), cwd: directory,
       env: { ...nativeEnvironment, DAPR_API_TOKEN: environment.CQL_DAPR_QUERY_SIDECAR_TOKEN }, check: async signal => {
-        await startup(async () => {
-          const response = await fetch(`http://127.0.0.1:${contract.ports.http}/v1.0/healthz`, { headers: { 'dapr-api-token': environment.CQL_DAPR_QUERY_SIDECAR_TOKEN },
-            redirect: 'error', signal: AbortSignal.any([signal, AbortSignal.timeout(1000)]) });
-          if (response.status === 503) return false;
-          if (response.status !== 204) throw Error('Dapr native health response differs.');
-          return true;
-        }, signal);
+        await waitForSidecar(environment.CQL_DAPR_QUERY_SIDECAR_TOKEN, signal);
         await verifyRows(source, environment.CQL_DAPR_QUERY_SIDECAR_TOKEN, signal);
       } }
   ];
 }
-module.exports = { sourceDescriptor, readSource, probeRedis, verifyRows, serviceConfigurations };
+module.exports = { sourceDescriptor, readSource, probeRedis, observeRows, verifyRows, waitForRedis, waitForSidecar, serviceConfigurations };

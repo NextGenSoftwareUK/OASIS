@@ -133,7 +133,7 @@ require_runtime('daprd', DAPR, arguments.runtime_directory)
 require_runtime('garnet', GARNET, arguments.runtime_directory)
 require_free(PORTS)
 (RUN / 'components').mkdir(parents=True)
-acl = RUN / 'users.acl'
+acl = RUN / 'reader.acl'
 acl.write_text(native_configuration('writerAcl', ADMIN, READER), encoding='utf-8')
 
 def run_http(stage):
