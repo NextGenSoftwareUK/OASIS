@@ -129,3 +129,23 @@ shared usage432, reconciliation50, service adapters77 and operator17.
 All137 skips belong to the WEB4 application suite. WEB4-WEB10 exact
 source publish checks also passed. These prove CI contracts and the
 source-link correction; they do not replace native hosted source acceptance.
+
+## Hosted native source milestone
+
+On7November2026 the exact code job ac51f1c7/replica295b34e3 created
+one independent source generation through the real SDK, then a separate
+process verified all3 public records,1 private row,1 tombstone and1 absent
+key against the immutable plan. No creation writes were repeated.
+
+Identity receipts under `LocalState/COSMIC/HostedTeachingSourceCurrent/GUNOASIS/`:
+
+| Receipt | SHA-256 |
+| --- | --- |
+| `source-plan.json` | `e5da4e6927b527d9ca794c3c8ccb5983a3c40ec4f0e7d67681040815a8ab1ad9` |
+| `create.acknowledged.json` | `f45db8de247e460c3f337186ddcbda6fc3e8beef076c775dff4af91fff0544e4` |
+| `verify.acknowledged.json` | `5a3bf2bad5191632283181d1ce952a280abd1f4647e9e9d9e65abe9987758f78` |
+
+Protected teaching-public enrollment contains13 settings/eight presets.
+All13 values were applied and observed exactly without auto-deploy. One
+same-release activation job593cd948-541c-4012-8d0d-654b58ba381d is building.
+Hosted CQL, Mongo federation and browser acceptance remain open.

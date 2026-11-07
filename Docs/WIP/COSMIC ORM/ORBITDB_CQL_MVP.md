@@ -157,3 +157,27 @@ shared usage432, reconciliation50, service adapters77 and operator17.
 All137 skips belong to the WEB4 application suite. WEB4-WEB10 exact
 source publish checks also passed. These prove CI contracts and the
 source-link correction; they do not replace native hosted source acceptance.
+
+## Hosted native source milestone
+
+On7November2026 the exact code job ac51f1c7/replica295b34e3 created
+one independent source generation through the real SDK, then a separate
+process verified all3 public records,1 private row,1 tombstone and1 absent
+key against the immutable plan. No creation writes were repeated.
+The first verification never connected over SSH (exit255). Read-only
+inspection proved its durable verification intent was absent and original
+source receipt unchanged. One explicit --resume-unstarted-verify completed
+the original operation. Original failure and fresh no-start proof are retained.
+
+Identity receipts under `LocalState/COSMIC/HostedTeachingSourceCurrent/OrbitDBOASIS/`:
+
+| Receipt | SHA-256 |
+| --- | --- |
+| `source-plan.json` | `1d36a20f3069fb1e0ed9800789893ac0c8f38222aa14d6b5fcc6aeee59613963` |
+| `create.acknowledged.json` | `62b2e0a74eabb9147cc59db8e34d2331ffa9cde3066298e4552dbf8885c9b12f` |
+| `verify-unstarted.acknowledged.json` | `67c4a2f2f56a241448a0e4d39c9de868c0e325e793b44d9e5eed3f9f9640501c` |
+
+Protected teaching-public enrollment contains13 settings/eight presets.
+All13 values were applied and observed exactly without auto-deploy. One
+same-release activation job593cd948-541c-4012-8d0d-654b58ba381d is building.
+Hosted CQL, Mongo federation and browser acceptance remain open.

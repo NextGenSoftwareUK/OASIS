@@ -16,6 +16,24 @@ def output(value):
 
 
 class TeachingProvisioningTests(unittest.TestCase):
+    def test_unstarted_continuation_requires_original_failure_and_exact_remote_journals(self):
+        expected = {"deployment": "deployment", "instance": "replica", "mode": "verify"}
+        plan, created = {"generation": "original"}, {"planSha256": HASH}
+        inspection = {"deployment": "deployment", "instance": "replica", "verificationStarted": False,
+            "verificationAcknowledged": False, "sourceIntent": plan, "sourceAck": created}
+        guard = TOOL["require_unstarted_verification"]
+        guard(expected, {"returncode": 255}, expected, inspection, plan, created)
+        for changed in (inspection | {"verificationStarted": True},
+                        inspection | {"verificationAcknowledged": True},
+                        inspection | {"instance": "other"}, inspection | {"sourceIntent": {}},
+                        inspection | {"sourceAck": {}}):
+            with self.subTest(changed=changed), self.assertRaises(RuntimeError):
+                guard(expected, {"returncode": 255}, expected, changed, plan, created)
+        with self.assertRaises(RuntimeError):
+            guard(expected, {"returncode": 0}, expected, inspection, plan, created)
+        with self.assertRaises(RuntimeError):
+            guard(expected | {"mode": "create"}, {"returncode": 255}, expected, inspection, plan, created)
+
     def test_native_receipts_bind_the_exact_plan_and_provider_identity(self):
         create = {"schema": 1, "planSha256": HASH, "address": None}
         self.assertEqual(TOOL["receipt"](output(create), "create", HASH, "GUNOASIS"), create)
