@@ -55,3 +55,13 @@ with prefix push-protocol-public. The public catalogue uses the same teaching
 owner as Decentraland and derives separate IDs from Push Protocol channel keys.
 Apply only after the deployment reports the reviewed commit and the full
 live variables still equal the prepared baseline.
+
+The shared verifier now supports a deployment-scoped visitor for fixed
+public catalogues. After the exact settings deployment succeeds, set
+COSMIC_CQL_SETTINGS_DEPLOYMENT_ID, COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT
+and COSMIC_CQL_REVIEWED_RELEASE_REF. Run Verify-HostedQuerySource.py
+with PushProtocolOASIS, --reviewed-exact-key-source pointing to the
+retained descriptor, and --reviewed-deployment-visitor. Use --readiness
+first, then --prepare to reuse the same verified deployment visitor.
+All 24 response-evidence tests passed, including provider scope and
+stale-deployment refusal.

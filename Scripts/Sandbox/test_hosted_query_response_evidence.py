@@ -61,6 +61,23 @@ class ResponseEvidenceTests(unittest.TestCase):
                 session.assert_called_once_with(visitor, "visitor", allow_create=False)
                 self.assertFalse((visitor.parent / "HostedQueryAcceptance-DecentralandOASIS").exists())
 
+    def test_fixed_public_visitor_requires_current_deployment_and_is_provider_scoped(self):
+        deployment = str(uuid.UUID(int=1))
+        release = Mock()
+        with (
+            patch.dict(verification.os.environ, {"COSMIC_CQL_SETTINGS_DEPLOYMENT_ID": deployment}),
+            patch.object(verification.importlib.util, "spec_from_file_location", return_value=Mock()),
+            patch.object(verification.importlib.util, "module_from_spec", return_value=release),
+        ):
+            release.verify_release.return_value = str(uuid.UUID(int=2))
+            with self.assertRaisesRegex(RuntimeError, "must be current"):
+                verification.reviewed_deployment_visitor("PushProtocolOASIS")
+            release.verify_release.return_value = deployment
+            self.assertEqual(verification.deployment_visitor("PushProtocol", deployment),
+                             verification.reviewed_deployment_visitor("PushProtocolOASIS"))
+            with self.assertRaisesRegex(RuntimeError, "fixed reviewed"):
+                verification.reviewed_deployment_visitor("MongoDBOASIS")
+
     def test_localfile_deployment_visitor_requires_mount_and_prepare_reuses_it(self):
         with tempfile.TemporaryDirectory() as directory:
             base = Path(directory)
