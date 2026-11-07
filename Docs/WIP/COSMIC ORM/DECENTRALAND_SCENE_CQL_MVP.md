@@ -124,3 +124,17 @@ the live baseline and acknowledged all four values with deploys skipped.
 The same release was then redeployed with those settings as
 `b9cb7f79-e9f8-407c-b3ff-30f9bc9945c1`. Observe that exact job and verify
 settings before creating the deployment-scoped readiness visitor.
+
+### Hosted HTTP acceptance passed
+
+Settings deployment `b9cb7f79` at `d31713be` passed the health, protected
+settings and discovery checks. Native CQL returned 3/2 scene records.
+MongoDB federation returned 5/4 rows. Two private copies were created, and
+repeat preparation reused both with zero new saves. The independent visitor
+saw three public records and no private copies. SQLite and Neo4j each had
+both expected replicas and denied the private copies to the other visitor.
+
+The deployment-bound summary and original response hashes are in
+`LocalState/COSMIC/ReviewedPublicMongoHttpQualification/DecentralandOASIS/hosted-http-qualified.json`.
+Original HTTP reports are under `TestResults/HostedCqlIntegrationCurrent`.
+The sandbox card and interactive browser proof remain open.

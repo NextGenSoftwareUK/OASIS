@@ -12,9 +12,10 @@ HTTPS and deployed acceptance. No provider count changed.
 ## Recent WEB4 preparation, 5–6 November 2026
 
 Decentraland passed 32 WEB4 admission tests and native 3/2, MongoDB 5/4
-through local WEB4. The exact test fixture was cleaned. Hosted enrollment is open.
+through local WEB4. Hosted deployment `b9cb7f79` passed the same counts,
+visitor isolation and replica checks. Sandbox card and browser proof remain open.
 
-Acceptance is 118 scoped local, 61 live HTTP and 28 live browser.
+Acceptance is 118 scoped local, 62 live HTTP and 28 live browser.
 LocalFile settings deployment `c8ba177c` succeeded. The writable mount,
 three file hashes and all four advertised presets are verified. Hosted
 LocalFile 3/2 and MongoDB federation 5/4 passed. The sandbox card is live
