@@ -249,3 +249,30 @@ and no WAL. It never calls the native seeding fixture, SaveHolon or Mongo.
 The original Windows source and its save acknowledgements remain unopened
 by the SDK. This is a new Linux portability gate, not replay of Windows
 acceptance. Qualification remains pending until its dispatched run passes.
+
+Linux run42385940278/job128443199243 passed the retained-source native case,
+zero skips, on exactdd0ee7a2740770f962be8732a0f0d0d4a760c9c5. The real
+DuckDB.NET SDK returned3/2/0 through CQL across two provider activations,
+with unchanged database SHA256 and no WAL. No native seeding or Mongo
+mutation occurred. Artifact13579442161 is7184bytes, SHA256
+35620a1dd3a1408ae6cac7c95b79d25df286b7500697fe7817142f5b24da71d0,
+retained90days. It contains the exact synthetic source, retained seed and
+TRX. This closes the standalone Linux portability gate; shipping WEB4 native
+asset packaging, protected volume placement, registration/admission, live
+HTTP federation/privacy and browser acceptance remain separate gates.
+[Retained-source Linux qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42385940278).
+
+Owned hosted placement is now implemented behind explicit sandbox flags.
+The bootstrap accepts a bounded gzip bundle bound to its native byte count
+and SHA256, writes an exclusive intent/source/ACK generation, and requires
+identical source bytes/receipt plus no WAL on restart. Partial state, symlinks,
+changed data and writable/foreign SDK connection strings are refused without
+repair or overwrite. The exact source path is/data/COSMIC/SandboxDuckDB/source.duckdb
+with access_mode=READ_ONLY. DuckDB runs inside.NET, so the shared supervisor
+also supports this explicit source without launching a native daemon.
+
+All16 new runtime controls and all82 focused shared runtime controls pass;
+no native IPFS bootstrap was replayed. Entrypoint shell syntax passes. These
+checks use owned temporary synthetic byte fixtures, not the original database.
+No DuckDB settings, hosted source or live enrollment has been applied. The
+scoped image/publisher and live HTTP/browser gates remain open.

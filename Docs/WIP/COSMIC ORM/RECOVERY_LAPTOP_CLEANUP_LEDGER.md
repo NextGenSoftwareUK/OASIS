@@ -3999,3 +3999,23 @@ on this laptop, untouched by any SDK during preparation. Intended runner
 copy1323008B plus224B seed and small TRX retained as a synthetic-only90-day
 artifact after success. No local runtime/build/restore or compressed copy
 was created. Original directory still retained; no cleanup attempted.
+
+DuckDB retained-source dispatch acknowledged204 once. Request is protected
+in duckdb-linux-dispatch.request.dpapi; intent and acknowledgement retained.
+Run42385940278/job128443199243 passed1/1,0skips; native3/2/0 across two
+read-only activations, unchanged source/no WAL. No source seeding or Mongo
+write. Artifact13579442161,7184B, SHA256
+35620a1dd3a1408ae6cac7c95b79d25df286b7500697fe7817142f5b24da71d0,
+90days. Compact duckdb-linux-qualified.json retained. No local ZIP/database
+copy/SDK open; original Windows source and all original ACKs preserved.
+This source can now be restored by exact hash after a laptop failure.
+
+DuckDB placement runtime controls16new/82shared pass, zero skips, using
+cached Node24.22.1. First81shared cases passed before adding the standalone
+in-process API supervision case; second82passed after that change. Logs
+are duckdb-runtime-controls.log, duckdb-shared-runtime-controls.log and
+...-v2.log. No native IPFS import fixture replayed. Temporary control roots
+were verified under the system temp directory with the owned prefix before
+removal. No source/database/runtime installation. Entrypoint shell syntax
+passed with existing Git Bash. New Docker/startup sources are task-only;
+no DuckDB deployment/settings/source placement has been requested.

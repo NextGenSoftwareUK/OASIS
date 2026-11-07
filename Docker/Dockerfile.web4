@@ -120,6 +120,7 @@ COPY Docker/host-sandbox-solid.cjs /app/host-sandbox-solid.cjs
 COPY Docker/host-sandbox-pouchdb.cjs /app/host-sandbox-pouchdb.cjs
 COPY Docker/host-sandbox-teaching.cjs /app/host-sandbox-teaching.cjs
 COPY Docker/host-sandbox-waku.cjs /app/host-sandbox-waku.cjs
+COPY Docker/host-sandbox-duckdb.cjs /app/host-sandbox-duckdb.cjs
 RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 ENV ASPNETCORE_ENVIRONMENT=Production
