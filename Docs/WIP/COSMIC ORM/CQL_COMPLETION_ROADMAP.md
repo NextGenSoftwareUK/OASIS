@@ -28,7 +28,8 @@ task checkout. Runtime qualification remains separate.
 
 1. Complete the scoped NATS Development rollout described in
    [CURRENT_STATUS](CURRENT_STATUS.md) and [NATS report](NATS_JETSTREAM_CQL_MVP.md).
-   Exact candidate API/image jobs42398316205/42398318179 are in progress.
+   Exact candidate API/image42398316205/42398318179 passed. Code rollout
+   592df8cd is queued; follow it before applying the protected settings.
    Native TLS, restricted access and real restored-source restart are qualified;
    hosted configuration, HTTP and browser gates remain open. Preserve original
    accepted LocalFile, Graph Studio, PouchDB, Waku and DuckDB sources/cohorts.

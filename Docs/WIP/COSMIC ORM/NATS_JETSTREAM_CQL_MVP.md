@@ -237,3 +237,22 @@ state folder; no local artifact download. Image42398318179 remains active.
 All seven exact private pins also verified on advertised remote refs and
 recorded in nats-candidate-dependency-refs.acknowledged.json. Deployment and
 live settings are still unchanged; image terminal proof is required next.
+
+## Exact image qualified; scoped Development rollout queued
+
+Image42398318179/job128480407003 SUCCESS for exact82428c7a6,
+sha256:1d5ff756da8f3432622b94140a466a4cb586b624702bfbcb102f39ef873b25bd.
+Final image verifies native2.15.2 and OpenSSL3.0.13; teaching_sidecars=true.
+Image/source/dispatch qualification receipts retained, no local image pull.
+Fresh parent Development remained3cc1ab108 and was an ancestor. Exact active
+baseline32b26f74, complete prepared-before settings and absent NATS destination
+were verified before one normal push of82428c7a6 toDevelopment. Parent gitlink
+and manifest advance together; Core candidate2a09c9be remains published on its
+existing candidate ref, independent Core Development history untouched.
+
+Railway code deployment592df8cd-a820-4dbe-b6b0-6ebfb5f0b04e isQUEUED for
+82428c7a6. Old accepted deployment32b26f74 remains active. No NATS settings
+were applied. Next follow this exact deployment, inspect actual runtime/native
+binary/absent source and writable volume, then stage the eight original
+protected settings once and request one activation. Do not replace credentials,
+resubmit the code rollout or claim live NATS acceptance from image proof.

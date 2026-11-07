@@ -13,7 +13,8 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Resumed on the old laptop at C:/Source/OASIS2 on 7 November after the
   recovered laptop failed again. Branch work/cosmic-cql-ton-public.
 - Core task branch work/cosmic-cql-decentraland; preserve independent pins.
-- Development3cc1ab108/Core9fac20cd; DuckDB settings deployment32b26f74 isSUCCESS.
+- Development source82428c7a6/Core2a09c9be is queued in code deployment592df8cd.
+  Active service remains3cc1ab108/Core9fac20cd, DuckDB deployment32b26f74 SUCCESS.
   DuckDB hosted HTTP acceptance passed with the original qualified database,
   unchanged mounted file hash and no WAL before/after the full flow.
 - Waku accepted on7672cd5ea/3cdeaf40; PouchDB accepted on2045b41e.
@@ -85,7 +86,9 @@ Parent candidate82428c7a6441e6088cfdd6960f899641dae54dd1 and
 Core2a09c9be620b3f3c2b1bae05bf62758bc5b13983 are published on the reused
 candidate branches. All seven exact dependency pins are advertised remotely;
 manifest/gitlinks pass. Exact candidate API42398316205 passed14/14 with
-zero skips; image42398318179 is still in progress. Eight settings are prepared only in protected local snapshots;
+zero skips; image42398318179 passed with teaching runtimes enabled.
+Code deployment592df8cd-a820-4dbe-b6b0-6ebfb5f0b04e is queued after one
+verified normal Development push. Track that exact job before settings staging. Eight settings are prepared only in protected local snapshots;
 four presets/source bindings agree with original IDs. Next inspect those same
 jobs and preserve terminal evidence before scoped Development rollout and
 one-shot settings activation. Mounted/live HTTP gates remain open.
