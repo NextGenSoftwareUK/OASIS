@@ -98,3 +98,14 @@ This module is not yet wired into hosted process supervision or deployment.
 Remaining runtime work: TLS credential/certificate persistence, restricted
 native configuration, bounded readiness and exact-source SDK activation,
 real native restart qualification, image packaging and protected publisher.
+
+NATS service configuration now provisions a persistent dedicated TLS identity
+once with intent/ACK, verifies its certificate/key/config hashes and validity
+on restart, and refuses partial provisioning or credential changes. The native
+configuration exposes only loopback24222 and one restricted cql_reader user;
+no writer account is shipped. Its bounded readiness uses actual NATS INFO,
+verified TLS, reader authentication and PING/PONG. Only connection-refused
+startup polling is allowed; TLS/auth/protocol errors fail immediately.
+Nineteen focused controls pass, including a real certificate/key persistence
+test using the existing Git OpenSSL executable. Native process/restart CI,
+shipping image integration and live enrollment remain unverified and disabled.

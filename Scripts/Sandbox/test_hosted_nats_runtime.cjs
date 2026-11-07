@@ -5,7 +5,7 @@ const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { captureBundle, prepare } = require('../../Docker/host-sandbox-nats.cjs');
+const { captureBundle, prepare, prepareTls, serverConfiguration, waitForNative, serviceConfiguration } = require('../../Docker/host-sandbox-nats.cjs');
 const hash = data => crypto.createHash('sha256').update(data).digest('hex');
 const descriptor = JSON.stringify({ schema: 1, endpoint: 'tls://127.0.0.1:24222',
   bucket: 'cosmic_cql_public', sourceOwner: 'b3ec9989-1733-450f-aba3-1015f6712c33',
@@ -73,4 +73,48 @@ test('missing acknowledged native file stops restart', async t => {
   await prepare(bundle, directory);
   await fs.unlink(path.join(directory, 'store', bundle.files[0].path));
   await assert.rejects(prepare(bundle, directory));
+});
+test('native configuration exposes only the restricted reader on loopback', () => {
+  const config = serverConfiguration('/data/COSMIC/SandboxNATS', 'x'.repeat(43));
+  assert.equal(config.host, '127.0.0.1');
+  assert.equal(config.authorization.users.length, 1);
+  const reader = config.authorization.users[0];
+  assert.equal(reader.user, 'cql_reader');
+  assert.deepEqual(reader.permissions.subscribe.allow, ['_INBOX.>']);
+  assert.ok(reader.permissions.publish.allow.every(subject => !subject.includes('foreign') && !subject.startsWith('$KV.')));
+});
+test('invalid credentials and missing explicit flag stop before placement', async () => {
+  assert.throws(() => serverConfiguration('/data/COSMIC/SandboxNATS', 'short'));
+  await assert.rejects(serviceConfiguration({}), /explicit flag/);
+});
+test('unknown partial TLS state cannot regenerate credentials or certificate', async t => {
+  const directory = await fixture(t);
+  await fs.mkdir(directory);
+  await fs.writeFile(path.join(directory, 'tls.intent.json'), '{}');
+  await assert.rejects(prepareTls(directory, 'x'.repeat(43)), /reconciliation/);
+  assert.deepEqual(await fs.readdir(directory), ['tls.intent.json']);
+});
+test('readiness does not retry authentication or certificate errors', async () => {
+  const error = Object.assign(Error('certificate rejected'), { code: 'CERT_HAS_EXPIRED' });
+  let calls = 0;
+  await assert.rejects(waitForNative(Buffer.alloc(0), 'x'.repeat(43), new AbortController().signal,
+    async () => { calls++; throw error; }), error);
+  assert.equal(calls, 1);
+});
+test('startup polling retries only a refused connection', async () => {
+  let calls = 0;
+  await waitForNative(Buffer.alloc(0), 'x'.repeat(43), new AbortController().signal,
+    async () => { if (++calls === 1) throw Object.assign(Error('not listening'), { code: 'ECONNREFUSED' }); });
+  assert.equal(calls, 2);
+});
+test('persistent real TLS identity survives restart and rejects credential changes', async t => {
+  const openssl = process.platform === 'win32' ? 'C:/Program Files/Git/usr/bin/openssl.exe' : 'openssl';
+  const directory = await fixture(t);
+  await fs.mkdir(directory);
+  const ca = await prepareTls(directory, 'x'.repeat(43), openssl);
+  const key = await fs.readFile(path.join(directory, 'server.key'));
+  assert.deepEqual(await prepareTls(directory, 'x'.repeat(43), openssl), ca);
+  assert.deepEqual(await fs.readFile(path.join(directory, 'server.key')), key);
+  await assert.rejects(prepareTls(directory, 'y'.repeat(43), openssl), /configuration differs/);
+  assert.deepEqual(await fs.readFile(path.join(directory, 'ca.pem')), ca);
 });

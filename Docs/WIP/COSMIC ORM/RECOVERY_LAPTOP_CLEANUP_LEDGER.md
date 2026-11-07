@@ -4158,3 +4158,10 @@ under the OS temporary directory were validated by exact real path and owned
 basename before test cleanup; all test cleanups passed. Accepted native source
 LocalState/COSMIC/NatsOwnedTlsQualifiedCurrent was not opened by native SDK,
 modified or replayed. Runtime placement is not yet enabled in the API image.
+
+NATS runtime controls now19/19 using cached Node24 and existing Git OpenSSL
+C:/Program Files/Git/usr/bin/openssl.exe. One disposable certificate/key and
+fixed synthetic test credentials existed only in owned OS-temp test paths;
+all test cleanup callbacks passed after exact path validation. No global CA
+trust modification, runtime install, native source query/replay, deployment
+or live settings mutation. Real restored-native restart gate remains next.
