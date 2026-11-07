@@ -61,3 +61,22 @@ The foreign actor saw three public rows and zero private rows. The resume
 validated the two original SDK saves and recorded nine usage receipts.
 The fixture database was removed, the replica stopped, and the guarded
 publisher accepted the source-bound evidence. Hosted acceptance is open.
+
+## Development hosted HTTP acceptance — 7 November 2026
+
+Original first cohort passed and is sealed on source88b896815/Core944d380,
+settings8783d8eb. Native3/2, Mongo5/4, first2private saves, repeat0new/2existing,
+foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 passed. Original
+owner/foreign credentials and two save ACKs retained; pending intents empty.
+No native fixture replay or source writes. Browser acceptance remains open.
+[Batch gates and limits](SIX_PUBLIC_READERS_HOSTED_BATCH.md).
+
+`FhenixOASIS-client-http-flow.json`: 31581B, SHA256
+`8c62f9d56d8f0e5524a813cedcb184cdbd14bda7eff5baafd4cb558987145fc0`.
+
+`FhenixOASIS-isolation-http.json`: 5598B, SHA256
+`514ee1df3c4bfebf4208c41ad5167fcd589b2013962cf4802d8cdc54a8179cab`.
+
+`FhenixOASIS-native-http.json`: 11968B, SHA256
+`2894523b868cb17c92e30ceedddfc91d90c9fc804c81fff99aa85ac5d7a4321c`.
+

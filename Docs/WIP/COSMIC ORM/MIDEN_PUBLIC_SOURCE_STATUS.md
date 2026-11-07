@@ -62,3 +62,22 @@ admission, and refusal to mutate before the expected release is live.
 Run Scripts/Sandbox/Publish-HostedMidenPublicConfiguration.py to prepare a
 protected review only after LocalFile hosted acceptance. Apply requires a
 matching deployment and the same reviewed source. Hosted verification is open.
+
+## Development hosted HTTP acceptance — 7 November 2026
+
+Original first cohort passed and is sealed on source88b896815/Core944d380,
+settings8783d8eb. Native3/2, Mongo5/4, first2private saves, repeat0new/2existing,
+foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 passed. Original
+owner/foreign credentials and two save ACKs retained; pending intents empty.
+No native fixture replay or source writes. Browser acceptance remains open.
+[Batch gates and limits](SIX_PUBLIC_READERS_HOSTED_BATCH.md).
+
+`MidenOASIS-client-http-flow.json`: 30147B, SHA256
+`5e877867b4d05daa0af864e9cfb42614fc535d552425f064a5f69087a1c99c8e`.
+
+`MidenOASIS-isolation-http.json`: 5230B, SHA256
+`558b960250e1111d129b47d202a7c66c77e0235213407198c98a0341a3d2743c`.
+
+`MidenOASIS-native-http.json`: 11275B, SHA256
+`e7b84a27b6463c5dc78994f23867d585dd68ad629949a887472978bc7896f8ab`.
+

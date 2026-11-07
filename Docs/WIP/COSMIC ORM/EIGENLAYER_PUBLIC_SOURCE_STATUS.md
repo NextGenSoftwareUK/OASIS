@@ -54,3 +54,22 @@ local Mongo federation passed. Native counts were 3/2, federation 5/4,
 foreign private 0 and foreign public 3. The harness verified two SDK saves
 and nine receipts, dropped its exact fixture database, and the publisher
 accepted the source-bound cleanup receipt. Hosted acceptance is open.
+
+## Development hosted HTTP acceptance — 7 November 2026
+
+Original first cohort passed and is sealed on source88b896815/Core944d380,
+settings8783d8eb. Native3/2, Mongo5/4, first2private saves, repeat0new/2existing,
+foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 passed. Original
+owner/foreign credentials and two save ACKs retained; pending intents empty.
+No native fixture replay or source writes. Browser acceptance remains open.
+[Batch gates and limits](SIX_PUBLIC_READERS_HOSTED_BATCH.md).
+
+`EigenLayerOASIS-client-http-flow.json`: 34922B, SHA256
+`b1888fca140d7dbefaf0a99bb0a6fe946393804e7e307ef71e05d6f2489937af`.
+
+`EigenLayerOASIS-isolation-http.json`: 6027B, SHA256
+`8630d1ec5c8710a67964c10b355ec37888561472a337784aa48662d803ff0360`.
+
+`EigenLayerOASIS-native-http.json`: 13114B, SHA256
+`224111fb4da84e81a99536a1cd7edaca7821ce8f501c0a25ea7c44ccb0512c04`.
+

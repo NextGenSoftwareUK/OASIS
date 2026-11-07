@@ -1,6 +1,6 @@
 # Six public readers: Development batch
 
-Updated 7 November 2026. Qualification in progress; no live batch acceptance yet.
+Updated 7 November 2026. All six hosted HTTP scopes accepted; website/browser gates remain open.
 
 Candidate parent `88b896815eb41e14b5deec3cb3aeae54fb431a5d`, Core
 `944d380c16d2831d567e5b76f89e6b1c6dd2e051`, based on accepted
@@ -86,3 +86,14 @@ special reviews remain required. Thirty evidence/recovery controls pass,
 including release drift before credential access and no replacement creation.
 Miden readiness passed with the original acknowledged PouchDB visitor.
 First Miden hosted flow started once; acceptance is not yet claimed here.
+
+## Six original cohorts accepted
+
+All six providers passed and are sealed on activation8783d8eb: native3/2,
+Mongo5/4, first2private saves/repeat0new2existing, foreign-private0/public3,
+exact SQLite/Neo4j replicas2/2. Twelve acknowledged private saves total;
+no uncertain saves or pending preparation intents. Eighteen compact HTTP reports
+and original protected credentials/ACKs retained. Per-provider docs record exact
+report hashes; six-public-readers-http-accepted.json records all seal hashes.
+Coverage119local/91live HTTP/28functional browser. Public cards are next;
+full provider contracts and browser acceptance remain separate.

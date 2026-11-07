@@ -4394,3 +4394,10 @@ refresh intent; preserved, no network/cohort. Explicit reuse of acknowledged
 PouchDB visitor now deployment-guarded for public readers;30 offline controls
 pass, readiness passes. Miden first hosted flow61198 running; no replay.
 No install/environment/image download; protected credentials/journals retained.
+
+All six first hosted cohorts accepted and sealed; original two save ACKs each,
+empty pending intents, no source writes/fixture replay. Eighteen HTTP reports
+retained under HostedCqlIntegrationCurrent; individual exact hashes in provider
+docs, aggregate seal/report receipt six-public-readers-http-accepted.json.
+Original protected sessions/setting journals/snapshots remain necessary.
+No new runtime/environment/download. Coverage119/91/28; website/browser pending.

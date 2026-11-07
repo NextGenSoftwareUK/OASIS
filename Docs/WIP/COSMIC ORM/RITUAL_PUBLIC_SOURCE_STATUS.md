@@ -39,3 +39,22 @@ were 3/2 and federated counts 5/4. The foreign actor saw three public rows
 and zero private rows. Two SDK saves and nine receipts were verified.
 The test dropped its fixture database, stopped the replica, and the
 publisher accepted the source-bound receipt. Hosted acceptance is open.
+
+## Development hosted HTTP acceptance — 7 November 2026
+
+Original first cohort passed and is sealed on source88b896815/Core944d380,
+settings8783d8eb. Native3/2, Mongo5/4, first2private saves, repeat0new/2existing,
+foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 passed. Original
+owner/foreign credentials and two save ACKs retained; pending intents empty.
+No native fixture replay or source writes. Browser acceptance remains open.
+[Batch gates and limits](SIX_PUBLIC_READERS_HOSTED_BATCH.md).
+
+`RitualOASIS-client-http-flow.json`: 30306B, SHA256
+`d866cb0cbf8317bf7245f5c2e145217cf9d2e4791dfb6a2e1357a98e1ebe9113`.
+
+`RitualOASIS-isolation-http.json`: 5288B, SHA256
+`613766ae694add7514b8d8e449e2f437a7146800ad41e7d90c1e8665f9e55b62`.
+
+`RitualOASIS-native-http.json`: 11359B, SHA256
+`bc8d8e53b9bd38ba969e513daddf581e7619ba5b4764fdf36c10125e6dddaf1b`.
+

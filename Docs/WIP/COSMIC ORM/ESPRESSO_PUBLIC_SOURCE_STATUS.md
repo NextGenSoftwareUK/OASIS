@@ -47,3 +47,22 @@ returned 3/2 native rows and Mongo federation returned 5/4. The foreign
 actor saw 0 private rows and 3 public rows. The run verified 2 SDK saves,
 9 usage receipts and removal of its exact Mongo fixture database. The
 publisher accepted the source-bound local receipt. Hosted acceptance is open.
+
+## Development hosted HTTP acceptance — 7 November 2026
+
+Original first cohort passed and is sealed on source88b896815/Core944d380,
+settings8783d8eb. Native3/2, Mongo5/4, first2private saves, repeat0new/2existing,
+foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 passed. Original
+owner/foreign credentials and two save ACKs retained; pending intents empty.
+No native fixture replay or source writes. Browser acceptance remains open.
+[Batch gates and limits](SIX_PUBLIC_READERS_HOSTED_BATCH.md).
+
+`EspressoSystemsOASIS-client-http-flow.json`: 31481B, SHA256
+`826612672bef3b757562b805f29b1888d2acae843fddfcfbb4df0f0e5bd0f6b0`.
+
+`EspressoSystemsOASIS-isolation-http.json`: 5522B, SHA256
+`0f7e4705924fc4f1f84140e18febc812b28d4329c9a09ad0e67a853bd74b69b1`.
+
+`EspressoSystemsOASIS-native-http.json`: 11849B, SHA256
+`39c567a13783469e49a23f603534ec8b9a5e632bd571beefee6231ad5744fdd4`.
+

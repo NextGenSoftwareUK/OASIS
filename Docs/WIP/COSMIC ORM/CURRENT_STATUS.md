@@ -32,7 +32,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **119 scoped local, 85 live HTTP and 28 functional browser**.
+Coverage is **119 scoped local, 91 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -55,37 +55,24 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-Next batch: Miden, Espresso, EigenLayer, Fhenix, Axelar and Ritual, reusing
-original native/local qualification. All13settings are staged once with exact
-readback and per-key ACKs. One activation8783d8eb is BUILDING. Shared publisher safeguards pass six new and four retained tests.
-Candidate88b896815/Core944d380 is published on the existing release-candidate
-branch. API qualification42408837581 SUCCESS:25pass/0skip,
-including retained five-reader/NATS controls. Manifest/gitlinks pass.
-Image42408951517 SUCCESS; one qualified Development push acknowledged.
-Code deployment88dcff57 SUCCESS, instance02dda788; six reader DLLs and retained
-NATS/IPFS runtime hashes verified, original baseline settings unchanged.
-Next: verify successful settings activation8783d8eb and active environment
-before running first hosted cohorts;
-keep owner-dependent and browser gates separate. Coverage119local/85liveHTTP/
-28functional browser. Current source15eb48673/Core85278a4, settings deployment
-eaa1b7af-4fb7-4471-86b2-2071db135332 SUCCESS, instance370c0335. All11batch
-settings/original ACKs and active environment matched before five first hosted
-cohorts. LayerZeroV2, Stargate, deBridge, Synapse and Connext each passed
-native3/2, Mongo5/4, first2private saves/repeat0new2existing, privacy0/public3
-and exactSQLite/Neo4j replicas2/2. All original cohorts are sealed; never replay.
+Publish accepted Miden, Espresso, EigenLayer, Fhenix, Axelar and Ritual demo
+cards, then continue the next eligible provider scope. Coverage is119local/
+91live HTTP/28functional browser. Source88b896815/Core944d380, settings
+8783d8eb-1d65-474f-8bdd-081615d4794a SUCCESS, instance5e85e983.
+All13settings and active configuration verified before six first hosted cohorts.
+Each passed native3/2, Mongo5/4, first2private saves/repeat0new2existing,
+privacy0/public3 and exactSQLite/Neo4j replicas2/2. Original cohorts sealed;
+never replay. [Exact batch evidence](SIX_PUBLIC_READERS_HOSTED_BATCH.md).
 
-Cards66-70 are published in Web4Site611ee73, alongside NATS64/Hyperlane65.
-All119 client controls pass. Public HTML matches Git exactly. Scope is bounded
-native observations with private snapshots, separate from wallet execution,
-independent bridge finality and full provider/ORM parity. See
-[five-reader evidence](CROSS_CHAIN_FIVE_HOSTED_BATCH.md),
-[NATS](NATS_JETSTREAM_CQL_MVP.md) and [Hyperlane](HYPERLANE_PUBLIC_SOURCE_STATUS.md).
+Website611ee73 retains accepted cards through70; six new cards remain pending.
+These are bounded native observations and private snapshots, separate from
+wallet execution, full protocol functionality and full provider/ORM parity.
 
-Preserve accepted LocalFile, Graph Studio, PouchDB, Waku, DuckDB, GUN/OrbitDB
-sources and original cohorts. Waku's original502 readiness intent remains
-retained; no replacement readiness identity. Browser URL-policy helper failure
-remains open without bypass. QuestDB public403, Chroma and D1 access gates,
-Nostr operator recovery and David's deferred hosted databases remain unchanged.
+Preserve every accepted source generation, cohort and unknown mutation intent.
+Browser URL-policy helper failure remains open without bypass. QuestDB public403,
+Chroma/D1 access gates, Nostr operator recovery and David's deferred hosted
+databases remain unchanged. Dapr's next hosted proof requires a Linux sidecar
+and reviewed restricted backing store; Windows proof does not establish it.
 
 ## Source and rollout journals
 

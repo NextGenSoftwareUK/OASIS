@@ -82,3 +82,22 @@ public rows and zero private rows. Two SDK saves and nine usage receipts
 were verified. The test dropped its owned fixture database, the replica
 stopped, and the publisher accepted the exact source-bound receipt.
 Hosted acceptance remains pending.
+
+## Development hosted HTTP acceptance — 7 November 2026
+
+Original first cohort passed and is sealed on source88b896815/Core944d380,
+settings8783d8eb. Native3/2, Mongo5/4, first2private saves, repeat0new/2existing,
+foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 passed. Original
+owner/foreign credentials and two save ACKs retained; pending intents empty.
+No native fixture replay or source writes. Browser acceptance remains open.
+[Batch gates and limits](SIX_PUBLIC_READERS_HOSTED_BATCH.md).
+
+`AxelarOASIS-client-http-flow.json`: 31496B, SHA256
+`f40942b72a3c108c5ce981ad53a526a5fe1f0c14fb5fb551479a0b42ae398082`.
+
+`AxelarOASIS-isolation-http.json`: 5519B, SHA256
+`e632cd92c79581d0fa84a15cf8df79c84e83388508cba5205d4909e32325a22d`.
+
+`AxelarOASIS-native-http.json`: 11822B, SHA256
+`1b5e416123683a03948396f22d0112bf7da4b3debe1261aa53cfb7313ac9cfdc`.
+
