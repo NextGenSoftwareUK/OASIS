@@ -32,7 +32,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **119 scoped local, 80 live HTTP and 28 functional browser**.
+Coverage is **119 scoped local, 85 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -54,6 +54,15 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 - Waku native Store3/2/0, loopback WEB4/Mongo5/4, restart and snapshot passed.
 
 ## Exact next step
+
+All five public-reader HTTP scopes are accepted on eaa1b7af/370c0335:
+LayerZeroV2, Stargate, deBridge, Synapse and Connext. Each passed native3/2,
+Mongo5/4, snapshot reuse, privacy0/public3 and exactSQLite/Neo4j replicas2/2;
+all five original cohorts are sealed. Complete settings and deployment remained
+unchanged. Coverage119local/85liveHTTP/28browser. Next publish their scoped
+sandbox cards with pinned real query examples. Never replay accepted cohorts.
+See [batch acceptance](CROSS_CHAIN_FIVE_HOSTED_BATCH.md).
+
 
 Five-reader code6ef19281 is healthy; actual reader assemblies/runtime hashes
 verified. Eleven settings staged once, all ACKs/readback match. One activation

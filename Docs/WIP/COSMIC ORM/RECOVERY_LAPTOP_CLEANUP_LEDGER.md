@@ -4329,3 +4329,13 @@ staged once with protected shared publisher per-key intent/outcome/ACK journals;
 all exact readbacks complete. One activation intent/protected response/ACK,
 eaa1b7af BUILDING. No local environment/install/native fixture replay or batch
 cohort/source save yet. Preserve every original snapshot and setting journal.
+
+Five-reader activationeaa1b7af SUCCESS, instance370c0335; compact live settings/
+active environment proof retained. All five original first hosted cohorts passed
+native3/2/Mongo5/4/reuse/privacy/exact replicas and are sealed, each with2save
+ACKs/empty pending intents/protected owner+foreign sessions. Fifteen HTTP reports
+retained under HostedCqlIntegrationCurrent; individual reports/receipt hashes
+in provider docs and compact cross-chain-five-http-accepted.json. Reusable
+private seal-cross-chain-http.py validates reports without replaying HTTP/saves.
+No runtime install/environment/native fixture replay/source writes/wallet actions.
+Coverage119/85/28, cards/browser pending. Preserve all accepted source generations.

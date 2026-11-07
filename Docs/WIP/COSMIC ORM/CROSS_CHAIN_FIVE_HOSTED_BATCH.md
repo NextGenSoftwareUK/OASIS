@@ -95,3 +95,18 @@ full protected candidate and each source binding, then run each first journalled
 native3/2, Mongo5/4, reuse/privacy/exact replicas scope. Preserve per-provider
 failures/unknown intents; never replay a completed or uncertain mutation.
 Coverage remains119local/80liveHTTP/28browser until actual acceptance.
+
+## All five hosted HTTP scopes accepted
+
+Activationeaa1b7af SUCCESS, instance370c0335, image99940404f16658fab75f7b9a0d85082e688697095e19250fd4b6daef4de3f010.
+Complete11settings/original ACKs and actual environment verified before cohorts.
+LayerZeroV2, Stargate, deBridge, Synapse and Connext each passed native3/2,
+Mongo5/4, first2private saves/repeat0new2existing, foreign-private0/public3 and
+exactSQLite/Neo4j replicas2/2. Each original cohort was sealed immediately;
+exact release/full settings rechecked before each sealing. Ten acknowledged
+private saves total, zero pending intents. No uncertain mutation, native fixture
+replay, source write, wallet transaction or activation retry. Fifteen HTTP
+reports and five sealed receipts retained; per-provider docs hold report hashes.
+Compact cross-chain-five-http-accepted.json binds all five receipt hashes.
+Coverage119local/85liveHTTP/28browser. Next publish five scoped sandbox cards
+and retain browser/full provider/ORM gates separately.

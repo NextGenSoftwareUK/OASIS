@@ -33,3 +33,22 @@ receipts. The fixture database was removed and the reused replica stopped.
 The hosted publisher accepted the source-bound native and local HTTP receipts.
 Local HTTP TRX SHA256 4BFC742B896794E502A44F4A5EA908D4B52BB171823CD3F82A3F88E82B55EF64.
 Hosted settings, replicas and browser acceptance remain open.
+
+## Hosted HTTP accepted - 7 November2026
+
+Batch settingseaa1b7af-4fb7-4471-86b2-2071db135332 SUCCESS, instance
+370c0335-3940-4f48-abef-7314caab801f, source15eb48673/Core85278a4,
+image sha256:99940404f16658fab75f7b9a0d85082e688697095e19250fd4b6daef4de3f010.
+Full11setting readback, original ACKs and active environment matched. Exact
+release/settings stayed unchanged during each first hosted cohort. Native3/2,
+Mongo5/4, first2private saves/repeat0new2existing, foreign-private0/public3 and
+exactSQLite/Neo4j replicas2/2 passed. Original owner/foreign sessions,2save ACKs,
+empty pending intents and report/deployment-bound acceptance receipt are sealed
+under LocalState/COSMIC/HostedQueryAcceptance-StargateOASIS. Never replay this
+accepted cohort or regenerate its original native/local fixture. This proves
+the retained bounded read representation, not wallet execution, independent
+bridge finality or complete provider/ORM parity. Website/browser gates remain
+open. Evidence under TestResults/HostedCqlIntegrationCurrent:
+- StargateOASIS-client-http-flow.json: 36264B, SHA256 dfc811c3aed87641c84356f7da9c8d562565b6e65251b695c586c112c2f52e41.
+- StargateOASIS-isolation-http.json: 6171B, SHA256 1144e7dff54602cc51360a245ceeb6a281046f5c500c9c697ba33adf1d694a4b.
+- StargateOASIS-native-http.json: 13576B, SHA256 4ef06a6be732c65036d417294dc4adac0091fc2404f62c593e8bb8b99c267689.

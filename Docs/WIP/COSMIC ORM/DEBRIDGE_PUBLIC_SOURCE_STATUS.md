@@ -30,3 +30,22 @@ receipts. Both test snapshots were removed with the isolated database. The
 retained Mongo replica stopped. The hosted publisher accepted both receipts.
 Local HTTP TRX SHA256 75B2CD5A95E82CF8B8E28C309C6FC60070939D0FB263337051A102F8FD59C33E.
 Hosted settings, replicas and browser acceptance remain open.
+
+## Hosted HTTP accepted - 7 November2026
+
+Batch settingseaa1b7af-4fb7-4471-86b2-2071db135332 SUCCESS, instance
+370c0335-3940-4f48-abef-7314caab801f, source15eb48673/Core85278a4,
+image sha256:99940404f16658fab75f7b9a0d85082e688697095e19250fd4b6daef4de3f010.
+Full11setting readback, original ACKs and active environment matched. Exact
+release/settings stayed unchanged during each first hosted cohort. Native3/2,
+Mongo5/4, first2private saves/repeat0new2existing, foreign-private0/public3 and
+exactSQLite/Neo4j replicas2/2 passed. Original owner/foreign sessions,2save ACKs,
+empty pending intents and report/deployment-bound acceptance receipt are sealed
+under LocalState/COSMIC/HostedQueryAcceptance-deBridgeOASIS. Never replay this
+accepted cohort or regenerate its original native/local fixture. This proves
+the retained bounded read representation, not wallet execution, independent
+bridge finality or complete provider/ORM parity. Website/browser gates remain
+open. Evidence under TestResults/HostedCqlIntegrationCurrent:
+- deBridgeOASIS-client-http-flow.json: 36184B, SHA256 598f0377f5b869525664abadfcab5b6f245e31c1efee27320aff296b1188f6d8.
+- deBridgeOASIS-isolation-http.json: 6180B, SHA256 5fa11bbdce0dd12df3c6890a89f0da6f1cf575fd0f21c47f9e2bf8afb57d702e.
+- deBridgeOASIS-native-http.json: 13562B, SHA256 0f6d8c8f2080243e0906053d05e4829a2b14a11c5656415fc314a082e529d8c2.

@@ -54,3 +54,22 @@ receipts. Both test snapshots were removed with the isolated database. The
 retained Mongo replica stopped. The hosted publisher accepted both receipts.
 Local HTTP TRX SHA256 A56DAA72D41114AE91F5D6F41811FAC0C1A14CC273E7B27204A3180BDF21FEBF.
 Hosted settings, replicas and browser acceptance remain open.
+
+## Hosted HTTP accepted - 7 November2026
+
+Batch settingseaa1b7af-4fb7-4471-86b2-2071db135332 SUCCESS, instance
+370c0335-3940-4f48-abef-7314caab801f, source15eb48673/Core85278a4,
+image sha256:99940404f16658fab75f7b9a0d85082e688697095e19250fd4b6daef4de3f010.
+Full11setting readback, original ACKs and active environment matched. Exact
+release/settings stayed unchanged during each first hosted cohort. Native3/2,
+Mongo5/4, first2private saves/repeat0new2existing, foreign-private0/public3 and
+exactSQLite/Neo4j replicas2/2 passed. Original owner/foreign sessions,2save ACKs,
+empty pending intents and report/deployment-bound acceptance receipt are sealed
+under LocalState/COSMIC/HostedQueryAcceptance-ConnextOASIS. Never replay this
+accepted cohort or regenerate its original native/local fixture. This proves
+the retained bounded read representation, not wallet execution, independent
+bridge finality or complete provider/ORM parity. Website/browser gates remain
+open. Evidence under TestResults/HostedCqlIntegrationCurrent:
+- ConnextOASIS-client-http-flow.json: 37881B, SHA256 9a18883ae23b22a4b8a0596df229b434db200357799057aa1d47182f58f094cf.
+- ConnextOASIS-isolation-http.json: 6660B, SHA256 1dbfdab4cbfa1ddc5e0a388f3783a649b74feccc03dcedba7f2dbd9940c416a8.
+- ConnextOASIS-native-http.json: 14399B, SHA256 b4d869d0f14712cebf6a2e67370939771ead0a636f114640c5002570cafc1902.

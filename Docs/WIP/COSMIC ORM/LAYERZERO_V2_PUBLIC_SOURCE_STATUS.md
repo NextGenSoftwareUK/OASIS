@@ -47,3 +47,22 @@ removed after exact identity and count checks. The owned replica stopped.
 Native Scan status may change; snapshots retain the status captured at save.
 Hosted enrollment, replication and browser acceptance remain open.
 Local HTTP TRX SHA256 802C5196CB767440896387F4445F43BCD69960BD6C873C0CC7ECC94BBD48DBF8.
+
+## Hosted HTTP accepted - 7 November2026
+
+Batch settingseaa1b7af-4fb7-4471-86b2-2071db135332 SUCCESS, instance
+370c0335-3940-4f48-abef-7314caab801f, source15eb48673/Core85278a4,
+image sha256:99940404f16658fab75f7b9a0d85082e688697095e19250fd4b6daef4de3f010.
+Full11setting readback, original ACKs and active environment matched. Exact
+release/settings stayed unchanged during each first hosted cohort. Native3/2,
+Mongo5/4, first2private saves/repeat0new2existing, foreign-private0/public3 and
+exactSQLite/Neo4j replicas2/2 passed. Original owner/foreign sessions,2save ACKs,
+empty pending intents and report/deployment-bound acceptance receipt are sealed
+under LocalState/COSMIC/HostedQueryAcceptance-LayerZeroV2OASIS. Never replay this
+accepted cohort or regenerate its original native/local fixture. This proves
+the retained bounded read representation, not wallet execution, independent
+bridge finality or complete provider/ORM parity. Website/browser gates remain
+open. Evidence under TestResults/HostedCqlIntegrationCurrent:
+- LayerZeroV2OASIS-client-http-flow.json: 36367B, SHA256 0e40e57f3c56ba124b9b1e517c73be134a70867e73c5914dbd0a7a77a76baad4.
+- LayerZeroV2OASIS-isolation-http.json: 6177B, SHA256 e160dcf09ea5de9e305d56990967680433b74f61ccde8cba3cac7267e9ad032f.
+- LayerZeroV2OASIS-native-http.json: 13609B, SHA256 fb726e439120839f001d59b5df6111165d0705999763b6c2ed1cbbad1f2a7955.
