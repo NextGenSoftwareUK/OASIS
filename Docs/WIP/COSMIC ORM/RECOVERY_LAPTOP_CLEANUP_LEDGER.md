@@ -3887,3 +3887,16 @@ teaching runtimes true. Corrected registrar preserves the preceding source
 registration order. The prepared protected candidate preserves205 settings;
 its descriptor is273 bytes, before254246 bytes, candidate273670 bytes.
 No Waku settings application or native hosted archive creation has occurred.
+
+Waku browser-bound metadata regression found during integration review. Native nanosecond timestamps exceed JavaScript's exact integer range. One new controlled C# case checks exact decimal text in the shipping stored JSON. Planned one bounded leased test build using existing .NET/NuGet cache, no native listener or dataset. New test/provider bin/obj were absent before this run. Reuse existing Core/Shared outputs, logs/TRX under TestResults/WakuHostedRuntimeCurrent, retain compact hashes and measure owned output scopes after build. Core working diff is only ProviderType.cs from concurrent work and is preserved.
+
+Waku native-ABI image42367817374 passed, digestd12bba06fa03bc9daf2511830a85498114ec4d2f896c272afbc8c14e555ae5de.
+It remains qualification evidence while timestamp projection is corrected
+before activation. Controlled C# red/green completed under separate exclusive
+leases with bounded workers, zero native requests. Red1failed, green4passed.
+TRX3211/7121 bytes, compact SHA256 receipts in waku-timestamp-regression.json.
+Owned new outputs measured provider bin8274185B/obj931924B and test
+bin47131335B/obj1019333B, total57356777B. Core/Shared outputs were reused,
+size unmeasured/shared, and concurrent enum edits preserved. No remaining
+local dotnet/MSBuild/testhost processes were observed after both operations.
+These four Waku-only generated scopes are eligible for exact-path cleanup.

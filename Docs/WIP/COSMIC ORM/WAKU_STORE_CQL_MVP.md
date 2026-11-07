@@ -180,3 +180,17 @@ installed in the common runtime base so both native qualification and the
 final image inherit the same ABI. The original tar error and this dependency
 failure remain recorded. No Waku source is enabled on Development yet.
 [Upstream pinned runtime contract](https://github.com/logos-messaging/logos-delivery/blob/fd07b72c370a6b39c69870c087cc0d928d485327/Dockerfile).
+
+Native ABI/image qualification42367817374 passed fore0ea3d57, digest
+sha256:d12bba06fa03bc9daf2511830a85498114ec4d2f896c272afbc8c14e555ae5de.
+Both provider and final stages verified native0.39.2. Activation waits for
+the timestamp projection correction described below.
+
+A controlled regression exposed JSON numeric rounding for nanosecond values
+above JavaScript's exact integer range. The shipping native hash validation
+continues using Int64, while projected WakuTimestampNanoseconds now uses
+invariant decimal text. A normal CQL query and shipping stored JSON serializer
+preserve9007199254740993 exactly. The regression failed before the fix with
+Expected String/Actual Number. All four controlled Waku C# cases now pass,
+zero skips. No native fixture or account was opened for these tests. The
+updated native CI gate requires five provider cases and one WEB4/Mongo case.

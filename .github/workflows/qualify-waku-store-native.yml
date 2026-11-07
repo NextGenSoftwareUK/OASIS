@@ -93,8 +93,8 @@ jobs:
               dotnet test "Providers/Network/TestProjects/$test/$test.csproj" /m:2 /nr:false /p:UseSharedCompilation=false --filter "FullyQualifiedName~WakuStoreCqlTests" --results-directory $report --logger "trx;LogFileName=native.trx"
               if ($LASTEXITCODE) { throw "Waku Store CQL qualification failed" }
               [xml]$trx = Get-Content "$report/native.trx"
-              if ($trx.TestRun.ResultSummary.Counters.passed -ne "4" -or $trx.TestRun.ResultSummary.Counters.total -ne "4") {
-                throw "All four focused Waku Store CQL checks must pass"
+              if ($trx.TestRun.ResultSummary.Counters.passed -ne "5" -or $trx.TestRun.ResultSummary.Counters.total -ne "5") {
+                throw "All five focused Waku Store CQL checks must pass"
               }
               dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --no-build --filter "FullyQualifiedName~WakuStoreNativeHttp" --results-directory $report --logger "trx;LogFileName=web4.trx" /m:2 /nr:false /p:UseSharedCompilation=false
               if ($LASTEXITCODE) { throw "Waku WEB4 MongoDB qualification failed" }
