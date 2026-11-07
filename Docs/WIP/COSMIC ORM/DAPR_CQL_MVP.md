@@ -2,8 +2,8 @@
 
 Current7November: Linux restricted-read/write-denial/WEB4 native proof passed.
 Rebuilt upstream native IO now loads and passes the synchronous AOF write probe
-in42416939381. Full durable restart remains pending. Shared runtime configuration
-and reader-only recovery qualification are being added; no hosted Dapr source,
+in42416939381; its full durable restart also passed. Stronger shared
+configuration/default-writer-disabled recovery is running in42417629733; no hosted Dapr source,
 startup flag, visitor enrollment or public card is enabled. Coverage119/91/28.
 
 
@@ -270,3 +270,25 @@ credentials stay out of command arguments and console output. During recovery
 it disables the default writer and authenticates readiness as the reader.
 This stronger reader-only recovery is pending cloud execution. The final image
 copies the shared configuration, but no startup path invokes Dapr yet.
+
+## Durable Linux restart proof passed
+
+[Run42416939381](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42416939381),
+job128536974684, sourcef90c23b74 SUCCESS. Compiled native IO loads and its AOF
+probe is acknowledged. The actual Dapr source is seeded once; all four original
+records and ETags survive backing-store/sidecar restart. Restricted reads,
+write denial and WEB4 native queries pass before and after restart.
+
+Artifact13591404960 inspected in memory:4920B, SHA256
+`afded8becb041ab9d3fe5810aaa2557baed056703a42f3bf9a3c7f2ffb3536b1`,
+expires7December2026. Initial/restart TRX each contain1passed/1total. The single
+four-record seed intent/ACK match. Build receipt matches pinned source/recipe,
+compiled native library SHA256
+`4ec8298481a7ce929f2245e6a67d3b733a2a4f550c59c96ccecc9a7cd046422d`.
+No ZIP or extracted copy saved locally; compact qualified receipt retained.
+
+This baseline used the provisioning backing-store ACL with Dapr's restricted
+reader. Stronger recovery with default writer disabled and shared configuration
+is running separately in42417629733/source0c5800169. Hosted first-generation
+provisioning, image qualification/enrollment, Mongo federation and visitor/browser
+acceptance remain open. Coverage119local/91live HTTP/28browser unchanged.

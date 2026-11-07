@@ -4493,3 +4493,11 @@ restart step remains running. Shared Docker/DaprRuntime configuration added;
 consumes the same generators and disables writer on recovery. No local SDK
 download/install/build/native source operation. Stronger source requires its own
 exact cloud qualification; no Development or accepted cohort mutation.
+
+Dapr durable42416939381/j128536974684 SUCCESS. Remote artifact13591404960
+4920B inspected in memory only; no ZIP/extracted copy saved. SHA256
+afded8becb041ab9d3fe5810aaa2557baed056703a42f3bf9a3c7f2ffb3536b1
+(exact digest in qualified receipt), expires7December2026. Both TRX1/1 and
+matching single seed ACK verified; four records recovered without reseed. Native
+build receipt/source/hash retained in dapr-linux-durable-restart-qualified.json.
+Stronger writer-disabled42417629733 running; no local native env/live change.
