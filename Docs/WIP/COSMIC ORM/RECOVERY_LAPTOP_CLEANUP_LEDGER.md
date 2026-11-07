@@ -4346,3 +4346,11 @@ Public HTML256730B SHA2562cef94b6a89499d6468d4d1ae28b05fad5751d7643b2d8c3751a962
 verified against Git in memory; compact cross-chain-five-public-cards-qualified.json
 retained. No HTML download, package install, browser action or native/cohort
 replay. Five pinned source/evidence pairs verified against backend25b4a8508.
+
+Six-reader preparation (7 November): reused original Miden/Espresso/EigenLayer/
+Fhenix/Axelar/Ritual qualification and existing Railway CLI. Protected snapshots
+HostedSourceRolloutCurrent/six-public-readers-before-variables.dpapi 316230B and
+six-public-readers-candidate-variables.dpapi 329126B retained for guarded rollout.
+No settings applied, environment/runtime installed, native source replayed or
+cohort created. Offline shared publisher controls: six new plus four retained
+pass. Retain snapshots until rollout reconciliation; never commit protected data.

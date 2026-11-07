@@ -55,7 +55,10 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-Continue the next eligible provider scope from retained native/local evidence;
+Next batch: Miden, Espresso, EigenLayer, Fhenix, Axelar and Ritual, reusing
+original native/local qualification. Thirteen settings are prepared privately,
+not applied. Shared publisher safeguards pass six new and four retained tests.
+Next: qualify the exact scoped API/image candidate before any live mutation;
 keep owner-dependent and browser gates separate. Coverage119local/85liveHTTP/
 28functional browser. Current source15eb48673/Core85278a4, settings deployment
 eaa1b7af-4fb7-4471-86b2-2071db135332 SUCCESS, instance370c0335. All11batch
