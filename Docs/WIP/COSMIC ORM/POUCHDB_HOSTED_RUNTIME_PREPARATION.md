@@ -1,16 +1,14 @@
 # PouchDB persistent WEB4 source preparation
 
-5 November 2026. Native source/runtime and supervision verified on Windows;
-Docker packaging and Linux SDK qualification pass. Shipping CQL
-enrollment and hosted/browser acceptance remain open. Counts stay
-103 local/60 hosted HTTP/28 hosted browser. First LocalFile rollout remains the
-priority; its existing Railway session still returns Unauthorized.
+Updated7November2026. PouchDB hosted HTTP acceptance passed on the existing
+Development WEB4 service. Coverage119 scoped local/76 live HTTP/28 functional
+browser. The PouchDB hosted browser gate remains open.
 
 ## Purpose and source contract
 
 Prepare the real PouchDB teaching source for the existing WEB4 Node runtime and
 persistent volume. No new service, account or paid resource is provisioned.
-Deployment packaging/flags are opt-in and not enabled. The module uses PouchDB9.0.0,
+The explicit PouchDB runtime flag is enabled on Development. The module uses PouchDB9.0.0,
 express-pouchdb4.2.0, express4.21.2 and its pinned allDbs1.1.1 SDK plugin. Native
 LevelDB stores are used; vendor middleware serves document data.
 
@@ -413,3 +411,37 @@ The exact active instance4feb83e2 has a separate writable /data mount.
 All six guarded settings were applied and observed exactly, preserving
 the existing sources. One same-source settings deployment is requested.
 Inspect its native first-generation receipt before the first hosted cohort.
+
+## Original hosted HTTP acceptance,7November2026
+
+Stable deployment2045b41e-46a6-45c9-9420-e60473b23b4b atfcb760695509eb279b05f77e15d71b1f9b75bbaa
+has exactly the qualified028d342e complete source tree43013d7249f5c4b78249c33cca992337559e8c43.
+Its active image issha256:4c98b3fb47fb82c4d9100398d18059dfb88a1c4a36732954387044f312c2f613
+and active instance502b8e37-129f-432d-92ae-c3fa3f3aa4fa. Full protected settings,
+writable /data mount and original first-generation source receipt verify.
+Discovery readiness succeeded before the original acceptance cohort was created.
+
+Acceptance returned native3/2 and paired Mongo5/4. First preparation saved two
+private snapshots, and repeat preparation reused both with zero new saves.
+Independent visitor-private0/public3 and exact SQLite/Neo4j replicas2/2 passed.
+The browserAcceptance field is false. Retain the original owner/foreign sessions,
+two save acknowledgements and empty preparation-intent object under
+LocalState/COSMIC/HostedQueryAcceptance-PouchDBOASIS. Preserve this accepted
+schedule. Functional browser verification is a separate gate.
+
+Reports under TestResults/HostedCqlIntegrationCurrent are
+
+- PouchDBOASIS-native-http.json,10113 bytes, SHA256
+  7aa5a564a1e09abbf1bfb4b586d6010498b0bdd7efc169d9f5b71c3c425d886d.
+- PouchDBOASIS-client-http-flow.json,31316 bytes, SHA256
+  4b5ec134c3627b71bf07ba195757f8e149afb2d557271fdbb287c63664e38bb8.
+- PouchDBOASIS-isolation-http.json,4489 bytes, SHA256
+  fb637e817020cf3b68301cc4514a8185d095af56505a1611efe406d3c395d2ce.
+
+Select PouchDBOASIS in the hosted CQL playground. Its public presets select
+three records or a two-record subset. Choose a MongoDB + PouchDBOASIS preset,
+prepare the two private snapshots, then run the query for five or four rows.
+The provider column distinguishes native PouchDB observations and Mongo copies.
+This scope uses real PouchDB9.0.0/LevelDB through vendor express-pouchdb4.2.0
+inside the WEB4 service. Native HTTP remains loopback-bound within its container.
+Broader CRUD, replication, remote authentication and full ORM parity remain open.

@@ -3810,3 +3810,13 @@ commit with depth1 into the existing object store to verify the identity
 and manifest. No checkout, branch move, source or settings mutation. The
 compact identical-source proof is retained. Original hosted CQL acceptance
 has not started and its guard remains closed until the latest job settles.
+
+PouchDB original hosted acceptance passed once at stable2045b41e/fcb76069.
+Reports10113/31316/4489 bytes and SHA256 values are in the source preparation
+doc. Additional progress/native-observation files remain under the same
+existing TestResults directory. Durable owner/foreign machine-bound sessions,
+two save acknowledgements and empty preparation intents remain under
+LocalState/COSMIC/HostedQueryAcceptance-PouchDBOASIS. The deployment-bound
+readiness visitor is also retained. No new runtime or local provider process.
+Keep the existing native first generation on /data/COSMIC/SandboxPouchDB and
+the original old-laptop LevelDB source. Hosted total76, browser total28.

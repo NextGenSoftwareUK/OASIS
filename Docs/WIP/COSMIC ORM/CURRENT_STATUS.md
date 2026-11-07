@@ -22,7 +22,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **119 scoped local, 75 live HTTP and 28 functional browser**.
+Coverage is **119 scoped local, 76 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -67,36 +67,16 @@ cohort. Website card62 is published at cbc08dd and its exact public HTML
 verified (242809 bytes, SHA256 73e91515eb4cc0999fe642991caa19fa55553cf93fe2ab5d82826a700c2af290).
 All114 client controls passed. Browser attachment and Windows helper inventory
 recovery timed out, so functional browser acceptance remains open.
-The preserved-teaching PouchDB candidate e33b2b4c/Coreb98220a7 passed image
-qualification42354427254 and its original source inputs are present here.
-The accepted Graph live settings matched the protected baseline exactly.
-The guarded PouchDB preparer produced six changes and preserved201 settings.
-Development advanced normally to e33b2b4c2. Code job
-21eb23f3-95ce-4a9a-9e5c-8a66db21706a failed during source acquisition.
-Delayed logs end at ONODE clone with no compiler error or native startup.
-The required source ref is still advertised. One guarded infrastructure
-recovery request was acknowledged as4ed1c9b2-ac1a-4ba1-ab30-0317989e97a8,
-also failed. Its complete logs expose STAR35896e84 as unavailable. The
-retention ref moved again to1d039764, whose complete source tree exactly
-matches35896e84 (tree7b504e1590c988c7508048ade30679625662c03d).
-Scoped candidate028d342e updates only the STAR gitlink and matching manifest
-value on top of e33b2b4c2. The original history was preserved locally.
-Image qualification42360929659 passed with teaching runtimes enabled,
-digest sha256:6480c4fa98311e1176fa8625439243dafb4e938a9c21a943d2fada8086e2210b.
-Fresh settings and source checks passed. Development advanced normally to
-028d342e. Code job773422d6-48aa-43b7-8457-2899bed9c8d1 succeeded, actual image
-sha256:5bdc89c172b89232a31ae30bb116bbd568b2b4d9797dc49bb7b22a56a371b88d.
-Instance4feb83e2-4b94-43bd-8253-e6057e531845 exposes a separate writable
-/data mount. This laptop needed one dedicated SSH identity, created with
-built-in OpenSSH and registered as cosmic-cql-recovery-laptop-20261107.
-All six guarded PouchDB settings are acknowledged and observed exactly.
-Settings deployment95167a76-0535-4874-a0ac-252bffa21d41 succeeded. Its
-original first-generation receipt matches all three qualified source records.
-An external deployment2045b41e-46a6-45c9-9420-e60473b23b4b at rewritten
-commitfcb76069 is now BUILDING. Its entire root tree43013d7249f5c4b78249c33cca992337559e8c43
-is identical to qualified028d342e, and its manifest/gitlinks validate.
-Wait for that exact deployment, bind the guard to its verified commit and
-active instance/image, then perform original hosted readiness/acceptance.
+PouchDB hosted acceptance now passes on deployment2045b41e-46a6-45c9-9420-e60473b23b4b,
+commitfcb76069. Its entire source tree43013d7249f5c4b78249c33cca992337559e8c43
+matches image-qualified028d342e. Actual image4c98b3fb47fb82c4d9100398d18059dfb88a1c4a36732954387044f312c2f613,
+active instance502b8e37-129f-432d-92ae-c3fa3f3aa4fa. Guarded six settings,
+writable mount and original native receipt all verify. Native3/2, Mongo5/4,
+first2 saves, repeat0new/2existing, visitor-private0/public3 and replicas2/2
+passed. Preserve the original cohort and native first generation. Publish
+the existing PouchDB website card with the hosted path next. Browser gate open.
+The two failed source-acquisition builds, exact identical STAR source repair,
+qualified image and external identical-tree deployment remain journalled.
 The harness cleanup bug was reproduced and fixed locally: durable owner/write
 journals now reject fresh execution before sessions/queries; all26 tests pass.
 Do not rerun accepted HTTP schedules. Browser gates remain open.
@@ -122,7 +102,7 @@ Provision-HostedTeachingSource.py has five command tests; native helper has six.
 - PouchDB image qualified. All three original source files are present on this
   old laptop and their bundle/bootstrap hashes match native qualification.
   The 36 runtime controls passed without replaying source writes. Rebase the
-  scoped candidate is now on the accepted Graph baseline and rolling out.
+  hosted acceptance is complete. Publish its card and retain the source cohort.
 - Hosted Azure Cosmos, Oracle DB and PostgreSQL remain deferred by David.
 - Never replay accepted cohorts or replace original receipts to regenerate evidence.
 - Broader ORM children/depth/history/deltas, migration, placement and HyperDrive
