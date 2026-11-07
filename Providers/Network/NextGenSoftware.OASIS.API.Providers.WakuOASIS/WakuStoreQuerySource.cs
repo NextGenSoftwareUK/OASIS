@@ -30,18 +30,19 @@ public sealed class WakuStoreQuerySource : KeyValueStorageProviderBase, ICosmicQ
     private const string ContentTopic = "/oasis-cql/1/store-fixture/proto";
     private readonly StoreBackend backend;
     private readonly BoundedPublicKeyValueQuery query;
-    private readonly Guid probeId;
+    private readonly IReadOnlyList<Guid> probeIds;
 
     public WakuStoreQuerySource(Guid owner, IReadOnlyList<string> reviewedHashes)
         : this(owner, reviewedHashes, handler: null) { }
 
-    internal WakuStoreQuerySource(Guid owner, IReadOnlyList<string> reviewedHashes, HttpMessageHandler? handler)
-        : this(new StoreBackend(owner, reviewedHashes, handler)) { }
+    internal WakuStoreQuerySource(Guid owner, IReadOnlyList<string> reviewedHashes, HttpMessageHandler? handler,
+        bool verifyCatalogue = false)
+        : this(new StoreBackend(owner, reviewedHashes, handler), verifyCatalogue) { }
 
-    private WakuStoreQuerySource(StoreBackend backend) : base(backend, "waku-store:")
+    private WakuStoreQuerySource(StoreBackend backend, bool verifyCatalogue) : base(backend, "waku-store:")
     {
         this.backend = backend;
-        probeId = backend.ProbeId;
+        probeIds = verifyCatalogue ? backend.ReviewedIds : new[] { backend.ReviewedIds[0] };
         ProviderType = new EnumValue<PType>(QueryProviderType);
         ProviderName = QueryProviderType.ToString();
         ProviderDescription = "Reviewed public Waku Store messages";
@@ -66,9 +67,15 @@ public sealed class WakuStoreQuerySource : KeyValueStorageProviderBase, ICosmicQ
     public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken = default)
     {
         IsProviderActivated = false;
-        var result = await query.VerifyProbeAsync(probeId, cancellationToken);
-        IsProviderActivated = !result.IsError && result.Result;
-        return result;
+        foreach (var probe in probeIds)
+        {
+            var result = await query.VerifyProbeAsync(probe, cancellationToken);
+            if (result.IsError || !result.Result)
+                return result;
+        }
+
+        IsProviderActivated = true;
+        return new OASISResult<bool>(true);
     }
 
     public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
@@ -96,7 +103,7 @@ public sealed class WakuStoreQuerySource : KeyValueStorageProviderBase, ICosmicQ
 
             this.owner = owner;
             hashes = reviewedHashes.ToDictionary(hash => LogicalId(owner, hash));
-            ProbeId = LogicalId(owner, reviewedHashes[0]);
+            ReviewedIds = reviewedHashes.Select(hash => LogicalId(owner, hash)).ToArray();
             client = new HttpClient(handler ?? new SocketsHttpHandler
             {
                 AllowAutoRedirect = false,
@@ -105,7 +112,7 @@ public sealed class WakuStoreQuerySource : KeyValueStorageProviderBase, ICosmicQ
             });
         }
 
-        public Guid ProbeId { get; }
+        public IReadOnlyList<Guid> ReviewedIds { get; }
 
         public async Task<string> ReadAsync(Guid id, CancellationToken token)
         {

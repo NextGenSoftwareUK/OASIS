@@ -109,3 +109,12 @@ The offline verifier produced three canonical reviewed hashes. The
 archive and receipt are retained outside Git in
 LocalState/COSMIC/WakuQualifiedSourceCurrent. The online artifact
 expires on 2026-11-10 at 00:54:44 UTC.
+
+### Complete catalogue activation
+
+The WEB4 descriptor now requires successful native verification of every
+reviewed record before marking the source active. Previously the first
+record could pass and leave a partial catalogue active. A regression test
+returns a valid first record and omits the second. Activation rejects it.
+Three focused tests passed. Evidence: TestResults/WakuStoreCqlCurrent/activation.trx,
+SHA-256 66D83B0D8ABE8CC0B8E46A9D804A1389D754ED064E334C3FF0273BD12C54B16B.

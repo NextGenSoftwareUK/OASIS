@@ -88,6 +88,51 @@ public sealed class WakuStoreCqlTests
         }
     }
 
+    [TestMethod]
+    public async Task TeachingActivationRejectsMissingRecordAfterValidFirstProbe()
+    {
+        const string payload = "reviewed";
+        const long timestamp = 42;
+        var time = new byte[sizeof(long)];
+        System.Buffers.Binary.BinaryPrimitives.WriteInt64BigEndian(time, timestamp);
+        var input = System.Text.Encoding.UTF8.GetBytes(Pubsub + payload + Content).Concat(time).ToArray();
+        var first = "0x" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(input)).ToLowerInvariant();
+        var hashes = new[] { first, Missing, "0x" + new string('b', 64) };
+        var descriptor = System.Text.Json.JsonSerializer.Serialize(new { sourceOwner = Owner, messageHashes = hashes });
+        using var store = new PartialStore(first, payload, timestamp);
+        using var source = WakuStoreQueryConfiguration.CreateSource(descriptor, store);
+
+        var result = await source.ActivateQuerySourceAsync();
+
+        Assert.IsTrue(result.IsError);
+        Assert.IsFalse(source.IsProviderActivated);
+        CollectionAssert.AreEqual(hashes[..2], store.Requests.ToArray());
+    }
+
+    private sealed class PartialStore(string first, string payload, long timestamp) : HttpMessageHandler
+    {
+        public List<string> Requests { get; } = new();
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
+        {
+            var hash = request.RequestUri!.Query.Split("hashes=", 2)[1];
+            Requests.Add(hash);
+            object[] messages = hash == first
+                ? new object[] { new
+                {
+                    messageHash = first,
+                    pubsubTopic = Pubsub,
+                    message = new { contentTopic = Content, timestamp, ephemeral = false,
+                        payload = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(payload)) }
+                } }
+                : Array.Empty<object>();
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = JsonContent.Create(new { statusCode = 200, messages })
+            });
+        }
+    }
+
     private sealed class ForgedStore : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)

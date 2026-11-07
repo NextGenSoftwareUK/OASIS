@@ -10,6 +10,7 @@ Owned teaching sources and read credentials remain necessary before native
 HTTPS and deployed acceptance. No provider count changed.
 
 Waku's sandbox-only WEB4 enrollment and read tariff passed 28 focused checks.
+Activation now requires all three reviewed records; three focused tests passed.
 Native Store and loopback WEB4/MongoDB HTTP passed 3/2 and 5/4, with
 private-copy isolation. All three records survived restart and the standalone SQLite snapshot passed in [CI 42319328016](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42319328016). The qualified archive export passed in [CI 42320285565](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42320285565). The exact archive is retained and verified locally. Hosted provisioning and supervisor verification remain open.
 [CI 42317536191](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42317536191).
