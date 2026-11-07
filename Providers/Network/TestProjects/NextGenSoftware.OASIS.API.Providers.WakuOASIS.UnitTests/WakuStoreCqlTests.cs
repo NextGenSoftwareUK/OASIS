@@ -89,6 +89,34 @@ public sealed class WakuStoreCqlTests
     }
 
     [TestMethod]
+    public async Task NanosecondTimestampPreservesExactDecimalTextInStoredJson()
+    {
+        const string payload = "reviewed";
+        const long timestamp = 9_007_199_254_740_993;
+        var time = new byte[sizeof(long)];
+        System.Buffers.Binary.BinaryPrimitives.WriteInt64BigEndian(time, timestamp);
+        var input = System.Text.Encoding.UTF8.GetBytes(Pubsub + payload + Content).Concat(time).ToArray();
+        var hash = "0x" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(input)).ToLowerInvariant();
+        using var store = new PartialStore(hash, payload, timestamp);
+        using var source = new WakuStoreQuerySource(Owner, new[] { hash }, store);
+        var activation = await source.ActivateQuerySourceAsync();
+        Assert.IsFalse(activation.IsError, activation.Exception?.Message);
+        var ids = new[] { WakuStoreQuerySource.LogicalId(Owner, hash) };
+        var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(Provider).Result)
+            .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(Owner, Provider, ids).Result).Result
+            .Where(row => ids.Contains(row.Id));
+        var plan = CosmicQueryPlanner.Plan(query.Result, Provider, new[] { new CosmicQueryTarget(Provider, source.QueryCapabilities) });
+        var result = await source.ExecuteCosmicQueryAsync(plan.Result);
+        Assert.IsFalse(result.IsError, result.Exception?.Message);
+        var row = result.Result.Single();
+        using var json = System.Text.Json.JsonDocument.Parse(
+            NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(row));
+        var value = json.RootElement.GetProperty("MetaData").GetProperty("WakuTimestampNanoseconds");
+        Assert.AreEqual(System.Text.Json.JsonValueKind.String, value.ValueKind);
+        Assert.AreEqual("9007199254740993", value.GetString());
+    }
+
+    [TestMethod]
     public async Task TeachingActivationRejectsMissingRecordAfterValidFirstProbe()
     {
         const string payload = "reviewed";
