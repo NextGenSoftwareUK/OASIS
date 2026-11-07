@@ -2,6 +2,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -165,7 +166,7 @@ public sealed class WakuStoreQuerySource : KeyValueStorageProviderBase, ICosmicQ
                 ["WakuMessageHash"] = hash,
                 ["WakuPubsubTopic"] = PubsubTopic,
                 ["WakuContentTopic"] = ContentTopic,
-                ["WakuTimestampNanoseconds"] = timestamp,
+                ["WakuTimestampNanoseconds"] = timestamp.ToString(CultureInfo.InvariantCulture),
                 ["WakuPayloadBytes"] = payload.Length
             });
             var mapped = NativeRecordHolonMapper.CreateHolon(owner, PType.WakuOASIS, record, NativeDataMapping.ForSource(Source));
