@@ -49,7 +49,7 @@ World ID image qualification passed and Development advanced to 48c532584.
 World ID code job bfc56681 succeeded and all four settings were acknowledged.
 Observe settings job 34802005-bbc6-467e-836f-d716fadbbc72, then verify the
 live settings and use its deployment-scoped visitor for readiness and acceptance.
-Discord/Livepeer/Pinata candidate 8645794b is in [CI 42332826329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42332826329).
+Discord/Livepeer/Pinata candidate 8645794b passed [CI 42332826329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42332826329).
 Its eight-value settings candidate uses the intended World ID baseline.
 
 ## Constraints and unfinished roadmap

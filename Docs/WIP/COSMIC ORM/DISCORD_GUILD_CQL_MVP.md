@@ -68,3 +68,9 @@ The protected baseline is the intended World ID candidate, so it is
 explicitly future state until World ID deployment and settings finish.
 Before applying, the guarded publisher must verify the actual live
 variables equal this baseline. No hosted values were written.
+
+The immutable image gate passed for exact parent 8645794bb. The candidate
+tag resolves to sha256:9186270c613dd1fb90a71f1edbb894d336f39ed5e1527efb5f523ea7c076722f.
+Finish the World ID settings deployment and its provider acceptance
+before advancing Development to this batch. Recheck remote ancestry and
+the live protected baseline at promotion time.
