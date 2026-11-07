@@ -28,7 +28,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
     "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "TenderlyOASIS", "QuickNodeOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS",
-    "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "WakuOASIS",
+    "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "WakuOASIS", "DuckDBOASIS",
 )
 FIXED_PUBLIC_CATALOGUES = {
     "TheGraphOASIS": (
@@ -73,7 +73,7 @@ FIXED_PUBLIC_CATALOGUES = {
 }
 REVIEWED_PUBLIC_CATALOGUE_PROVIDERS = frozenset((*FIXED_PUBLIC_CATALOGUES,
     "CloudinaryOASIS", "OracleObjectStorageOASIS", "ProofOfHumanityOASIS",
-    "GUNOASIS", "OrbitDBOASIS", "WakuOASIS"))
+    "GUNOASIS", "OrbitDBOASIS", "WakuOASIS", "DuckDBOASIS"))
 
 POLYGON_GATEWAY_CATALOGUES = {
     "TenderlyOASIS": ("CQL_TENDERLY_POLYGON_QUERY_SOURCE_OWNER", "tenderlypolygon-public-accounts:0x89",
@@ -330,13 +330,15 @@ def decentraland_deployment_visitor():
 def reviewed_deployment_visitor(provider):
     if provider not in REVIEWED_PUBLIC_CATALOGUE_PROVIDERS:
         raise RuntimeError("A reviewed public catalogue is required.")
-    publisher = ROOT / "Scripts/Sandbox" / (
-        "Publish-HostedWakuConfiguration.py" if provider == "WakuOASIS" else "Publish-HostedLocalFileConfiguration.py")
+    publisher = ROOT / "Scripts/Sandbox" / {
+        "WakuOASIS": "Publish-HostedWakuConfiguration.py",
+        "DuckDBOASIS": "Publish-HostedDuckDbConfiguration.py",
+    }.get(provider, "Publish-HostedLocalFileConfiguration.py")
     spec = importlib.util.spec_from_file_location("reviewed_release", publisher)
     release = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(release)
     deployment = os.environ.get("COSMIC_CQL_SETTINGS_DEPLOYMENT_ID", "")
-    if not deployment or (release.verify_settings() if provider == "WakuOASIS" else release.verify_release()) != deployment:
+    if not deployment or (release.verify_settings() if provider in ("WakuOASIS", "DuckDBOASIS") else release.verify_release()) != deployment:
         raise RuntimeError(f"The reviewed {provider} settings deployment must be current.")
     return deployment_visitor(provider.removesuffix("OASIS"), deployment)
 
@@ -783,6 +785,9 @@ def reviewed_exact_key_source(provider, path):
     elif provider == "ConvexOASIS":
         review["sourceBinding"] = {"CQL_CONVEX_QUERY_SITE": catalogue["Site"],
                                    "CQL_CONVEX_QUERY_PROBE_ID": ids[0]}
+    elif provider == "DuckDBOASIS":
+        review["sourceBinding"] = {"CQL_DUCKDB_QUERY_CONNECTION_STRING":
+            "Data Source=/data/COSMIC/SandboxDuckDB/source.duckdb;access_mode=READ_ONLY"}
     elif provider == "TursoOASIS":
         review["sourceBinding"] = {"CQL_TURSO_QUERY_ORIGIN": catalogue["Origin"],
                                    "CQL_TURSO_QUERY_PROBE_ID": ids[0]}
@@ -852,7 +857,7 @@ def verify_private_visibility(token, ids, providers):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("provider", choices=["ThreeFoldOASIS", "ClickHouseOASIS", "QuestDBOASIS", "SQLServerDBOASIS", "DuckDBOASIS", "CouchDBOASIS", "PouchDBOASIS", "ChromaOASIS", "CloudflareD1OASIS", "NATSJetStreamOASIS", "ZcashOASIS", "BittensorOASIS", "AkashOASIS", "EclipseOASIS", "ENSOASIS", "BlockscoutOASIS", "CelestiaOASIS", "ChainflipOASIS", "LocalFileOASIS", "HyperlaneOASIS", "LayerZeroV2OASIS", "StargateOASIS", "deBridgeOASIS", "SynapseOASIS", "ConnextOASIS", "WormholeOASIS", "BlockStackOASIS", "MatrixOASIS", "NostrOASIS", "BlueSkyOASIS", "ChainLinkOASIS", "EOSIOOASIS", "TelosOASIS", "FilecoinOASIS", "FantomOASIS", "AzureStorageOASIS", "SOLIDOASIS", "AWSS3OASIS", "SolanaOASIS", "GoogleCloudOASIS", "EthereumOASIS", "PolygonOASIS", "ArbitrumOASIS", "CosmosBlockChainOASIS", "PolkadotOASIS", "NEAROASIS", "BaseOASIS", "AvalancheOASIS", "BNBChainOASIS", "OptimismOASIS", "LineaOASIS", "ScrollOASIS", "ZkSyncOASIS", "AbstractOASIS", "MonadOASIS", "SeiOASIS", "BerachainOASIS", "BitcoinOASIS", "XRPLOASIS", "StellarOASIS", "AlgorandOASIS", "AptosOASIS", "HashgraphOASIS", "SuiOASIS", "ElrondOASIS", "RadixOASIS", "StarknetOASIS", "CardanoOASIS", "ArweaveOASIS", "TONOASIS", *REVIEWED_EXACT_KEY_PROVIDERS])
+    parser.add_argument("provider", choices=["ThreeFoldOASIS", "ClickHouseOASIS", "QuestDBOASIS", "SQLServerDBOASIS", "CouchDBOASIS", "PouchDBOASIS", "ChromaOASIS", "CloudflareD1OASIS", "NATSJetStreamOASIS", "ZcashOASIS", "BittensorOASIS", "AkashOASIS", "EclipseOASIS", "ENSOASIS", "BlockscoutOASIS", "CelestiaOASIS", "ChainflipOASIS", "LocalFileOASIS", "HyperlaneOASIS", "LayerZeroV2OASIS", "StargateOASIS", "deBridgeOASIS", "SynapseOASIS", "ConnextOASIS", "WormholeOASIS", "BlockStackOASIS", "MatrixOASIS", "NostrOASIS", "BlueSkyOASIS", "ChainLinkOASIS", "EOSIOOASIS", "TelosOASIS", "FilecoinOASIS", "FantomOASIS", "AzureStorageOASIS", "SOLIDOASIS", "AWSS3OASIS", "SolanaOASIS", "GoogleCloudOASIS", "EthereumOASIS", "PolygonOASIS", "ArbitrumOASIS", "CosmosBlockChainOASIS", "PolkadotOASIS", "NEAROASIS", "BaseOASIS", "AvalancheOASIS", "BNBChainOASIS", "OptimismOASIS", "LineaOASIS", "ScrollOASIS", "ZkSyncOASIS", "AbstractOASIS", "MonadOASIS", "SeiOASIS", "BerachainOASIS", "BitcoinOASIS", "XRPLOASIS", "StellarOASIS", "AlgorandOASIS", "AptosOASIS", "HashgraphOASIS", "SuiOASIS", "ElrondOASIS", "RadixOASIS", "StarknetOASIS", "CardanoOASIS", "ArweaveOASIS", "TONOASIS", *REVIEWED_EXACT_KEY_PROVIDERS])
     parser.add_argument("--prepare", action="store_true")
     parser.add_argument("--readiness", action="store_true", help="Check discovery using the retained rehearsal visitor; create no cohort.")
     parser.add_argument("--localfile-deployment-visitor", action="store_true",
@@ -864,7 +869,7 @@ def main():
     parser.add_argument("--reviewed-deployment-visitor", action="store_true",
                         help="Use a separate visitor for a verified reviewed public catalogue settings deployment.")
     parser.add_argument("--reuse-acknowledged-readiness", type=Path,
-                        help="Explicitly reuse an existing acknowledged discovery visitor after verifying the Waku deployment; never create a replacement.")
+                        help="Explicitly reuse an existing acknowledged discovery visitor after verifying the retained-source deployment; never create a replacement.")
     parser.add_argument("--recover-localfile-receipt", action="store_true",
                         help="Finalize the original completed LocalFile reports without sessions, queries or saves.")
     parser.add_argument("--reviewed-exact-key-source", type=Path, help="Reviewed native teaching catalogue for the prepared exact-key providers.")
@@ -882,9 +887,9 @@ def main():
     parser.add_argument("--continue-snapshot-observation-change", action="store_true",
                         help="Finish original acknowledged snapshots after a proved changing-observation reuse defect; no writes.")
     options = parser.parse_args()
-    if options.reuse_acknowledged_readiness is not None and (options.provider != "WakuOASIS"
+    if options.reuse_acknowledged_readiness is not None and (options.provider not in ("WakuOASIS", "DuckDBOASIS")
             or not options.reviewed_deployment_visitor or not (options.readiness or options.prepare)):
-        parser.error("Readiness visitor reuse requires Waku with its verified deployment and readiness or preparation.")
+        parser.error("Readiness visitor reuse requires a retained source with its verified deployment and readiness or preparation.")
     if options.decentraland_deployment_visitor and (options.provider != "DecentralandOASIS"
             or not (options.readiness or options.prepare)):
         parser.error("--decentraland-deployment-visitor requires DecentralandOASIS with --readiness or --prepare.")
@@ -929,8 +934,8 @@ def main():
         rehearsal = reviewed_deployment_visitor(options.provider)
     if options.reuse_acknowledged_readiness is not None:
         rehearsal = acknowledged_readiness_visitor(options.reuse_acknowledged_readiness)
-    if options.provider == "WakuOASIS" and not options.prepare_exact_key_presets and not options.reviewed_deployment_visitor:
-        parser.error("Waku acceptance requires its verified deployment, mounted archive and source receipt.")
+    if options.provider in ("WakuOASIS", "DuckDBOASIS") and not options.prepare_exact_key_presets and not options.reviewed_deployment_visitor:
+        parser.error("Retained-source acceptance requires its verified deployment, mounted archive and source receipt.")
     continuing = options.continue_settled_read or options.continue_native_read_failure or options.continue_snapshot_observation_change
     if options.prepare_exact_key_presets is not None:
         if (not is_reviewed_exact_key or options.prepare or options.readiness or continuing

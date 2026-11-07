@@ -4042,3 +4042,16 @@ SHA256a3b8d0d134a6225ca40333d3d50fb8ec60c790748c6ea107a1a885c1df2ed2a0,
 matched exact committed bytes in memory on the first observation. Compact
 waku-public-html-observation-1.json and waku-website-client-controls.log
 retained. No HTML download file/environment/install/manual deployment.
+
+DuckDB guarded publisher/new candidate controls6/6, response controls28/28
+and preset controls39/39 pass. Initial response-fixture failures reflected
+the new explicit deployment guard and reuse of its temporary fixture parent;
+corrected fixture-only setup/expectations pass in duckdb-response-controls-v3.log.
+All initial logs retained. Native Windows fixture/SDK and prior hosted cohorts
+were not replayed. New publisher script uses existing system Node only for
+in-memory bundle validation; no install or database open. Source qualification
+receipt materialized from verified Linux source/artifact fields. Protected
+preparation reused HostedSourceRolloutCurrent: descriptor279B, before273670B,
+candidate283430B. Six settings prepared, none applied, no deployment requested.
+Original source/seed, original local save ACKs and native data remain intact.
+New Docker ABI check awaits exact image qualification; no live claim yet.

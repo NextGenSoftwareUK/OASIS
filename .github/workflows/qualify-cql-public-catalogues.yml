@@ -50,16 +50,16 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
-      - name: Verify all supported catalogues and invalid-input guards
+      - name: Verify catalogues and DuckDB native/federated preset admission
         working-directory: OASIS
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner public-catalogue-ci -Operation {
-            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlPublicReadCatalogueTests' --results-directory TestResults/CqlPublicReadCatalogueCurrent --logger 'trx;LogFileName=catalogue.trx'
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlPublicReadCatalogueTests|FullyQualifiedName~CqlDuckDbHostedAdmissionTests' --results-directory TestResults/CqlPublicReadCatalogueCurrent --logger 'trx;LogFileName=catalogue.trx'
             if ($LASTEXITCODE) { throw 'Public catalogue regression failed' }
             [xml]$report = Get-Content TestResults/CqlPublicReadCatalogueCurrent/catalogue.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '5' -or $report.TestRun.ResultSummary.Counters.total -ne '5') {
-              throw 'All five public catalogue regression cases must pass'
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '6' -or $report.TestRun.ResultSummary.Counters.total -ne '6') {
+              throw 'All five catalogue cases and the DuckDB four-preset admission case must pass'
             }
           }
       - uses: actions/upload-artifact@v7

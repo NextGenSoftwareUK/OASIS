@@ -276,3 +276,23 @@ no native IPFS bootstrap was replayed. Entrypoint shell syntax passes. These
 checks use owned temporary synthetic byte fixtures, not the original database.
 No DuckDB settings, hosted source or live enrollment has been applied. The
 scoped image/publisher and live HTTP/browser gates remain open.
+
+Guarded DuckDB publisher now prepares exactly six settings: explicit runtime
+flag, compressed original bundle, fixed read-only connection, query-only
+admission/tariff, public catalogue and four preset partition. It requires
+matching retained database/seed Linux qualification, distinct reviewed IDs,
+no WAL and shipping runtime bundle validation. No DNA or existing provider
+settings are changed. Apply retains the shared per-key intent/ACK/no-replay
+protocol and exact deployment fence. Acceptance verifies all six ACKs, full
+configuration equality and mounted source hash/size/receipt/no-WAL before
+and after queries. Explicit acknowledged discovery-visitor reuse is supported.
+
+Six new publisher controls,28 response/journal controls and39 preset controls
+pass. The shared response fixture was adjusted for a second retained-source
+provider; its two earlier fixture failures are retained, not shipping/native
+failures. Six protected settings are prepared under prefixduckdb-public;
+none were applied. The original source receipt was materialized from verified
+Linux CI/artifact evidence with exact database/seed hashes. New image checks
+will require the shipped Linux native library and all of its dynamic links.
+The existing DuckDB four-preset admission test is included with the five
+catalogue controls in the next exact candidate CI gate (six cases total).
