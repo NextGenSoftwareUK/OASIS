@@ -58,8 +58,11 @@ all four Graph settings exactly. The first settings rebuild04e8c58a failed
 before runtime startup because HoloNET-ORM's pinned source became unreachable
 after a remote history rewrite. The exact original pin was restored on
 codex/deployed-dependency-307b0a53. Repaired settings deployment
-e53de265-c76f-487b-b773-d38e43c998a3 is building. Observe that exact job
-before hosted acceptance. Preserve active GUN/OrbitDB source generations.
+e53de265 failed at the similarly unreachable STAR-ODK pin. All seven exact
+private dependency pins are now verified on advertised retention refs.
+Settings deployment ccd86b20-5e4f-4abe-8a63-761e28c96d60 is building.
+Observe that exact job before hosted acceptance. Settings were not reapplied.
+Preserve active GUN/OrbitDB source generations.
 The harness cleanup bug was reproduced and fixed locally: durable owner/write
 journals now reject fresh execution before sessions/queries; all26 tests pass.
 Do not rerun accepted HTTP schedules. Browser gates remain open.

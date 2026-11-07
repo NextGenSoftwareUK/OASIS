@@ -3687,3 +3687,20 @@ directory. It is marked as lacking a current live baseline verification.
 No PouchDB enrollment or writes have been requested. The existing website
 checkout was moved to the recovered laptop's published work/cosmic-cql
 branch with clean-source checks; no website build or new environment.
+
+The second settings build failed before runtime startup at STAR-ODK35896e84.
+The exact seven-source retention check is now in
+`deployed-dependency-refs.json` under the recovery directory. Existing pinned
+objects were retained and independently read back through the authenticated
+repository API. An earlier CLI push timeout was reconciled against those
+exact advertised refs before any new deployment. No source history was
+rewritten and no new repository, worktree or runtime was created.
+Both original failure log sets remain protected.
+
+One explicit deployment after the complete source repair is
+ccd86b20-5e4f-4abe-8a63-761e28c96d60, using the unchanged Graph release
+and the originally acknowledged four settings. No settings or source writes
+were replayed. A concurrent task had committed a WEB6 gitlink change without
+its matching manifest value; only that manifest value was synchronized with
+the existing committed gitlink before publishing task documentation. The
+scoped Development Graph release remained unchanged.

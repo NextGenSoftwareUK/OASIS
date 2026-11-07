@@ -41,6 +41,12 @@ force-updated. The original commit was retained locally and restored unchanged
 on `codex/deployed-dependency-307b0a53`. The repair preserves the qualified
 source graph. Verify the exact remote ref before requesting another build.
 
+The follow-up build exposed the same failure at STAR-ODK35896e84. All seven
+private pins in that deployed manifest were then retained on dedicated
+`codex/deployed-dependency-<first-eight-SHA>` refs and verified remotely.
+These refs are deployment dependencies and must remain while a live manifest
+names their commits.
+
 ## Keeping the pins in step (automatic)
 
 Moving a submodule gitlink without the matching pin means Railway keeps building the OLD source, so the change never ships (a Core fix once sat undeployed for a day this way).

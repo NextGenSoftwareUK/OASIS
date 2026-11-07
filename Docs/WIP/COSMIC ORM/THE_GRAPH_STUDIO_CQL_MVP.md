@@ -136,6 +136,17 @@ the protected original failure logs are retained under the old laptop's
 `LocalState/COSMIC/RecoveryLaptopResume20261107/`. Hosted acceptance remains
 open until the repaired deployment succeeds.
 
+The next build e53de265 exposed the same remote-history problem at STAR-ODK's
+exact pin35896e84. Before another build, all seven pinned private commits were
+verified on advertised `codex/deployed-dependency-<first-eight-SHA>` refs.
+The authenticated repository API retained the existing exact objects without
+rebuilding or rewriting their source history. The CLI publication timeout was
+reconciled by those exact ref observations.
+
+One same-release deployment after the complete source repair is
+`ccd86b20-5e4f-4abe-8a63-761e28c96d60`, currently building. No settings
+were reapplied and neither failed build reached runtime startup.
+
 The immutable public publisher descriptor is prepared at
 `LocalState/COSMIC/HostedSourceRolloutCurrent/graph-studio-public-descriptor.json`
 (49 bytes, SHA256 `de20548bd9331b2a0484e84daf1f917588838c401ae2cda175de48129f97c13e`).
