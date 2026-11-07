@@ -68,7 +68,8 @@ FIXED_PUBLIC_CATALOGUES = {
     ),
 }
 REVIEWED_PUBLIC_CATALOGUE_PROVIDERS = frozenset((*FIXED_PUBLIC_CATALOGUES,
-    "CloudinaryOASIS", "OracleObjectStorageOASIS", "ProofOfHumanityOASIS"))
+    "CloudinaryOASIS", "OracleObjectStorageOASIS", "ProofOfHumanityOASIS",
+    "GUNOASIS", "OrbitDBOASIS"))
 
 POLYGON_GATEWAY_CATALOGUES = {
     "TenderlyOASIS": ("CQL_TENDERLY_POLYGON_QUERY_SOURCE_OWNER", "tenderlypolygon-public-accounts:0x89",

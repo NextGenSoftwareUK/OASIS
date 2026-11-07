@@ -1,6 +1,6 @@
 # COSMIC ORM / CQL current status
 
-Updated 6 November 2026. Goal active and incomplete.
+Updated 7 November 2026. Goal active and incomplete.
 
 ## Current phase
 
@@ -13,7 +13,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Worktree C:/Source/OASIS-cosmic, branch work/cosmic-cql-ton-public.
 - Core branch work/cosmic-cql-decentraland. Preserve independent dependency pins.
 - Website C:/Source/Web4Site, branch work/cosmic-cql, published a88076d.
-- Development and successful code release dcae58d97, Core f695b1cd.
+- Development9c6e9300/Coref0625521; last healthy code dcae58d97/Coref695b1cd.
 - Successful settings deployment fb589d55-f737-4622-9160-6e63e0e55099.
 - Unknown root logs and Docs/WIP/Cleanup/CLEANUP_LEDGER.md are outside this task.
 
@@ -37,9 +37,9 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 1. Finish open browser gates using retained cohorts and journals.
    Static publication and HTTP results are separate evidence.
-2. Observe GUN/OrbitDB image CI42339962522 for corrected9c6e9300/Coref0625521.
-   After qualification prepare the explicit build flag before Development build.
-   Bootstrap separately journalled native sources, qualify restart, then enroll presets.
+2. Observe Railway ac51f1c7-693a-4136-b0ed-46c8e72843ea for9c6e9300.
+   On success verify its instance/mount and native package, then bootstrap the
+   retained source plans with the tracked helper. Qualify restart before enrollment.
 3. Finish Waku managed Store packaging and lifecycle. The earlier local
    supervisor-writing command was rejected by automatic tool policy.
 4. Complete PouchDB hosted rollout after its original three source files
@@ -59,13 +59,14 @@ are absent here. The workflow now selects their existing optional runtime
 with distinct commit-teaching tags; all three execution checks passed.
 Initial image42339365263 exposed a scoped provider-list syntax error.
 Corrected9c6e9300/Coref0625521 is pushed; exact C# syntax/manifest checks pass.
-Enabled image CI42339962522 is queued. Source helper lifecycle tests pass6/6.
-Protected teaching-runtime-build snapshots propose one build-only flag change.
-Next verify CI42339962522, apply that flag without redeploy, then promote9c6e9300.
+Enabled image CI42339962522 passed. Source helper lifecycle tests pass6/6.
+The build-only teaching flag was applied/observed exactly;9c6e9300 is in Development.
+Exact Railway code job ac51f1c7 is queued. Readiness visitor checks pass25/25.
 Native runtime flags remain off until separately journalled source qualification.
+Immutable source plans exist under HostedTeachingSourceCurrent/{GUNOASIS,OrbitDBOASIS}.
 Subscription protocol CI exposed a missing SandboxSubscriptionRules source link.
-The project dependency is fixed locally: bounded build and 22 pure tests passed.
-Include that test-project-only correction in the next verified Development batch.
+The source-link correction is now in Development9c6e9300.
+Its bounded build and22 pure tests passed; the next CI will exercise the native ledger.
 
 ## Constraints and unfinished roadmap
 

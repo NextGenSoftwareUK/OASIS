@@ -117,3 +117,13 @@ against the original plan. Six controlled lifecycle tests pass, including
 concurrent creators and a simulated uncertain write. These are helper controls;
 real hosted native/restart acceptance remains open. Run
 `node --test Scripts/Sandbox/test_hosted_teaching_source.cjs`.
+
+Corrected image42339962522 passed with teaching runtimes explicitly enabled.
+Published image: `ghcr.io/nextgensoftwareuk/oasis-web4@sha256:5e68ea554ccf46556e65e706fe3217b4a56463bb2ffbef97fea14f005c13a327`.
+The single build flag was staged without deployment after baseline checks.
+Development advanced to9c6e93003edde4ca28759b455b38e7371184fa1d.
+Railway job ac51f1c7-693a-4136-b0ed-46c8e72843ea is queued. Runtime
+activation flags remain off until the separate native source qualification.
+Immutable plans are retained under LocalState/COSMIC/HostedTeachingSourceCurrent.
+Deployment-bound readiness visitors are admitted; all25 response-evidence
+checks passed including both new provider cases. No live query acceptance yet.

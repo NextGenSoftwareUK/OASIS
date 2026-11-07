@@ -565,7 +565,7 @@ class ResponseEvidenceTests(unittest.TestCase):
                     verification.call("data/query-cql", evidence_path=target)
 
 
-    def test_registry_and_object_visitors_are_bound_to_the_exact_settings_deployment(self):
+    def test_reviewed_catalogue_visitors_are_bound_to_the_exact_settings_deployment(self):
         deployment = str(uuid.UUID(int=7))
         release = Mock()
         with (
@@ -573,7 +573,8 @@ class ResponseEvidenceTests(unittest.TestCase):
             patch.object(verification.importlib.util, "spec_from_file_location", return_value=Mock()),
             patch.object(verification.importlib.util, "module_from_spec", return_value=release),
         ):
-            for provider in ("OracleObjectStorageOASIS", "CloudinaryOASIS", "ProofOfHumanityOASIS"):
+            for provider in ("OracleObjectStorageOASIS", "CloudinaryOASIS", "ProofOfHumanityOASIS",
+                             "GUNOASIS", "OrbitDBOASIS"):
                 with self.subTest(provider=provider):
                     release.verify_release.return_value = str(uuid.UUID(int=8))
                     with self.assertRaisesRegex(RuntimeError, "must be current"):
