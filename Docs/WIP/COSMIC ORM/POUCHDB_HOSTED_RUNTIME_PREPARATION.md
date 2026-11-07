@@ -395,3 +395,13 @@ preserving201 settings. Candidate e33b2b4c2 was fast-forwarded to Development
 after exact source, manifest and ancestry checks. Code deployment
 21eb23f3-95ce-4a9a-9e5c-8a66db21706a is queued. Verify that exact runtime
 and writable mount before the first protected settings application.
+
+Both original code builds failed before native startup. Complete logs from
+the bounded recovery job4ed1c9b2 identify an unavailable STAR35896e84 pin.
+The exact retention branch was rewritten to1d039764a899b15158ede37626eb50d0fc43515d.
+Its source tree7b504e1590c988c7508048ade30679625662c03d is byte-for-byte
+identical to the qualified old tree. Scoped candidate
+028d342effabb6094cb1de50ddc9312d53025bac changes only that gitlink and its
+manifest value. Both refs and tree identity were checked without a new clone.
+Image qualification42360929659 is in progress with teaching runtimes enabled.
+The six protected PouchDB settings remain unapplied.

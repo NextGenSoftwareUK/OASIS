@@ -3758,3 +3758,14 @@ One bounded infrastructure recovery was journalled before its request,
 without settings changes. Job4ed1c9b2-ac1a-4ba1-ab30-0317989e97a8 is
 BUILDING at the same e33b2b4c2. Keep its intent/protected response and
 compact deployment tuple. No automatic recovery loop was introduced.
+
+Complete recovery logs identify the repeated source-history rewrite. The
+STAR retention branch now points to1d039764 instead of35896e84. API tree
+identity proves the entire source tree is unchanged. Other six retention
+refs still match. Candidate028d342e changes only STAR gitlink and manifest,
+using a temporary isolated index that was removed after tree creation.
+No shared checkout or dependency branch was reset. Compact proof
+pouch-star-remap-candidate.json is retained. One exact teaching-enabled
+image build42360929659 was requested and acknowledged with separate intent
+and response records. No source data, settings, runtime or environment changes.
+Last disk measurement18483781632 bytes free.

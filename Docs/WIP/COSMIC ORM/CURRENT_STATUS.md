@@ -50,9 +50,8 @@ Image CI42346455177 succeeded with teaching_sidecars=true, exact source
 ce47a6f89c9079ae8b3f61b874b1d73a48a4792a and digest
 sha256:7f3eabf4b84182303452a58a9261633d12ba08f61555cd3f873b6bf464943237.
 Four protected settings/four presets were prepared on the recovered laptop;
-its machine-bound snapshots remain there. Old-laptop Railway access needs
-private sign-in before observing the current baseline and rebuilding the
-protected candidate from that baseline.
+its machine-bound snapshots remain there. Old-laptop private Railway sign-in completed. The protected candidate was
+rebuilt from the freshly observed live baseline.
 The live baseline was verified after private sign-in. Development advanced to
 ce47a6f8. Code deployment ab79d580 succeeded and the publisher acknowledged
 all four Graph settings exactly. The first settings rebuild04e8c58a failed
@@ -77,8 +76,14 @@ Development advanced normally to e33b2b4c2. Code job
 Delayed logs end at ONODE clone with no compiler error or native startup.
 The required source ref is still advertised. One guarded infrastructure
 recovery request was acknowledged as4ed1c9b2-ac1a-4ba1-ab30-0317989e97a8,
-now BUILDING. Observe that exact job,
-then verify its writable mount before applying the six staged PouchDB values.
+also failed. Its complete logs expose STAR35896e84 as unavailable. The
+retention ref moved again to1d039764, whose complete source tree exactly
+matches35896e84 (tree7b504e1590c988c7508048ade30679625662c03d).
+Scoped candidate028d342e updates only the STAR gitlink and matching manifest
+value on top of e33b2b4c2. The original history was preserved locally.
+Image qualification42360929659 is running with teaching runtimes enabled.
+After it passes, verify current source refs and settings, then advance
+Development normally and observe that exact deployment before PouchDB settings.
 The harness cleanup bug was reproduced and fixed locally: durable owner/write
 journals now reject fresh execution before sessions/queries; all26 tests pass.
 Do not rerun accepted HTTP schedules. Browser gates remain open.

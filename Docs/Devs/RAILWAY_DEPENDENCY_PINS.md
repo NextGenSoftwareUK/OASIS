@@ -47,6 +47,13 @@ private pins in that deployed manifest were then retained on dedicated
 These refs are deployment dependencies and must remain while a live manifest
 names their commits.
 
+A retention ref must keep pointing to the retained commit. A history rewrite
+can move the retention ref itself. Re-observe its exact SHA before rollout.
+When migrating a pin to a rewritten commit, verify the full source tree
+identity and update the parent gitlink and manifest together. If the trees
+differ, review and qualify those source changes before deployment. Preserve
+the original failure evidence and avoid restoring rewritten history blindly.
+
 ## Keeping the pins in step (automatic)
 
 Moving a submodule gitlink without the matching pin means Railway keeps building the OLD source, so the change never ships (a Core fix once sat undeployed for a day this way).
