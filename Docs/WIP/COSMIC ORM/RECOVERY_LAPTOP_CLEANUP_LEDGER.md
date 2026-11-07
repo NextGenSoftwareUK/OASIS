@@ -4220,3 +4220,11 @@ published only to reused candidate refs. Manifest/gitlinks pass. Two one-shot
 cloud CI dispatch intents/204 ACKs/run receipts retained: boundary42398316205,
 image42398318179. No local image/build/download, live setting/service mutation
 or accepted cohort replay. Existing shared/Core Development work preserved.
+
+NATS preparation retained283430B before-variables DPAPI,297846B candidate
+DPAPI and177B descriptor in HostedSourceRolloutCurrent/nats-owned-public-*.
+One new dedicated reader password is protected locally, not printed/committed;
+no Railway setting write/deployment/native mutation. Four reviewed presets
+and exact original-ID source binding checked offline from protected snapshots.
+Preserve these files for the one-shot enrollment journals; do not replace or
+regenerate credentials. Exact remote candidate publication ACK retained.

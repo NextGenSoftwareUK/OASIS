@@ -217,3 +217,14 @@ Image dispatch pins82428c7a6441e6088cfdd6960f899641dae54dd1 explicitly,
 tagcosmic-nats-82428c7a6 and teaching_sidecars=true to preserve accepted GUN/
 OrbitDB sources. Dispatch intents and204 ACKs retained; do not resubmit them.
 No Development push, configuration staging or service deployment has occurred.
+
+NATS eight-value preparation now completed against the actual Development
+baseline, without mutation/deployment. Protected before/candidate snapshots
+and the177B original-ID reviewed descriptor are retained under
+LocalState/COSMIC/HostedSourceRolloutCurrent with prefixnats-owned-public.
+A single43-character random reader password exists only in the protected
+candidate and is reused on repeated preparation. Complete four-preset/source
+binding comparison against the HTTP verifier passes. Parent/Core candidate
+remote refs were read back exactly and a publication ACK retained. Both
+candidate jobs remain in progress; do not apply settings or resubmit jobs
+based solely on prepared configuration.
