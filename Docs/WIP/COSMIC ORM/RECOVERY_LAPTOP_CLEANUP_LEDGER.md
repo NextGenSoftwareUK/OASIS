@@ -4434,3 +4434,8 @@ Dapr restart extension prepared: same single cloud fixture, bounded AOF
 segments/pages, synchronous commit ACK, two sequential backing-store/sidecar
 starts and two WEB4 TRX reports; seed once before recovery. No local native
 fixture/runtime/build/download. Prior passing artifact retained separately.
+
+Dapr/Garnet Docker stage prepared from shared exact archive pins; final copy
+excludes Python and compressed archives. No local Docker/native download/build
+or live deploy. Restart qualification42413413865 remains running. Future image
+qualification required before this packaging can enter a Development rollout.

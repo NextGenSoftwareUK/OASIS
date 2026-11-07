@@ -71,6 +71,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
     && rm -rf /tmp/nats-runtime \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Exact Dapr/Garnet archives shared with the Linux native qualification.
+# Python/download dependencies stay in this build stage; final image receives runtimes only.
+FROM base AS provider_dapr
+COPY Scripts/TestHosts/DaprNativeRuntimes.py Scripts/TestHosts/dapr-linux-runtime-pins.json /qualification/
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates python3 \
+    && python3 -B /qualification/DaprNativeRuntimes.py --install-linux /opt/provider-runtimes \
+    && /opt/provider-runtimes/daprd/daprd --version \
+    && /opt/provider-runtimes/garnet/net10.0/GarnetServer --version \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 COPY --from=provider_node /usr/local/ /usr/local/
 
@@ -118,6 +128,8 @@ WORKDIR /app
 COPY --from=provider_node /usr/local/bin/node /usr/local/bin/node
 COPY --from=provider_ipfs /usr/local/bin/ipfs /usr/local/bin/ipfs
 COPY --from=provider_nats /usr/local/bin/nats-server /usr/local/bin/nats-server
+COPY --from=provider_dapr /opt/provider-runtimes/daprd/daprd /opt/dapr/daprd
+COPY --from=provider_dapr /opt/provider-runtimes/garnet/net10.0/ /opt/garnet/
 COPY --from=provider_waku /opt/waku /opt/waku
 COPY --from=provider_solid /community-server /opt/solid
 COPY --from=build /opt/pouchdb /opt/pouchdb

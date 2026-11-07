@@ -142,3 +142,13 @@ no writer or seed operation exists in that phase. All four original records
 Both TRX reports remain separate; the earlier passing artifact is preserved.
 Recovery flags were checked against [pinned Garnet2.2.5 options](https://github.com/microsoft/garnet/blob/v2.2.5/libs/host/Configuration/Options.cs).
 This stronger restart proof is pending execution, not inferred from syntax.
+
+Hosted image packaging is prepared in the task Dockerfile using the same
+`dapr-linux-runtime-pins.json` and integrity installer as qualification. Only
+the Dapr binary and Garnet net10 runtime directory enter the final image;
+Python and downloaded archives stay in the separate build stage. Version
+commands are required at image build. This stage has not been image-qualified
+or deployed. No startup flag, source seed or visitor enrollment is enabled.
+Hosted source creation must be an explicit journalled provisioning operation;
+normal startup must only recover existing acknowledged records. Preserve the
+live six-reader release and source generations while implementing that contract.
