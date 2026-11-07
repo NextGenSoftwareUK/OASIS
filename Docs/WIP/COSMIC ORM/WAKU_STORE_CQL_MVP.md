@@ -44,3 +44,19 @@ sandbox mode. WEB4 admits explicit Waku scope with a dedicated read tariff.
 The focused registration and tariff suite passed 28/28.
 Evidence: TestResults/WakuStoreCqlCurrent/web4-admission.trx, SHA-256 D3BA8A478BCA338B40661E1E92161849DD46B6326106ADA231AA87654891EE52.
 Next is native fixture activation through WEB4 and Mongo federation.
+
+### Native Store and WEB4 federation verification
+
+[Linux CI 42317536191](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42317536191)
+passed three native tests and one WEB4 HTTP integration test, with zero
+failures or skips. Store exact-hash reads returned 3/2/0. WEB4 returned
+3/2 native rows and 5/4 federated rows, preserving source attribution.
+A second visitor saw zero private MongoDB copies and all three public
+Waku records. The owned test database and MongoDB container were removed.
+The test used controlled authentication and admission on loopback.
+
+The runner wrote TestResults/WakuStoreNative/native.trx and web4.trx.
+Its console abbreviated the SHA-256 values, so the linked run and exact
+test commit e46efdcd0 are the durable evidence. Hosted deployment still
+needs a managed loopback Store, persistent reviewed messages, and a
+sandbox preset verified against the deployed service.

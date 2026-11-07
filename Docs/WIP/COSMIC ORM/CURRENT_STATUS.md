@@ -10,7 +10,9 @@ Owned teaching sources and read credentials remain necessary before native
 HTTPS and deployed acceptance. No provider count changed.
 
 Waku's sandbox-only WEB4 enrollment and read tariff passed 28 focused checks.
-The native Store and MongoDB HTTP qualification is running in [CI 42317536191](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42317536191). Check that run before considering a hosted rollout.
+Native Store and loopback WEB4/MongoDB HTTP passed 3/2 and 5/4, with
+private-copy isolation. Next, qualify the hosted Store lifecycle.
+[CI 42317536191](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42317536191).
 
 ## Recent WEB4 preparation, 5–6 November 2026
 
