@@ -19,10 +19,9 @@ combined exact hashes and topic filters. The pinned API permits hash
 selection independently of content filters. The corrected native
 request validates the returned topics against the reviewed pair.
 
-The source currently uses only the fixture's loopback address and
-topic. WEB4 admission, a reviewed hosted Store and hosted federation
-remain open. General relay publication and retention are separate
-provider scopes.
+The source uses the fixture's fixed loopback address and topic.
+Sandbox admission and loopback WEB4 federation are verified below.
+A managed hosted Store and live sandbox acceptance remain open.
 
 [Original Linux run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42289148713) ·
 [Passing native REST run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42289322076) ·
@@ -35,7 +34,7 @@ The reviewed teaching descriptor accepts only a canonical sourceOwner and
 three distinct lowercase Waku messageHashes. The source retains its fixed
 loopback endpoint. Focused descriptor and forged-payload tests passed (2/2).
 Evidence: TestResults/WakuStoreCqlCurrent/descriptor.trx, SHA-256 D926E7A290AA059A29F503E61E83CA7EE928473A9C90C11C2A1B3BF73009C51A.
-WEB4 registration, tariff and Mongo federation proof remain open.
+WEB4 registration, tariff and MongoDB federation evidence follows.
 
 ### WEB4 admission verification
 
@@ -43,7 +42,7 @@ The CQL_WAKU_STORE_QUERY_SOURCE_JSON setting adds a read-only profile in
 sandbox mode. WEB4 admits explicit Waku scope with a dedicated read tariff.
 The focused registration and tariff suite passed 28/28.
 Evidence: TestResults/WakuStoreCqlCurrent/web4-admission.trx, SHA-256 D3BA8A478BCA338B40661E1E92161849DD46B6326106ADA231AA87654891EE52.
-Next is native fixture activation through WEB4 and Mongo federation.
+The native fixture and MongoDB integration result follows.
 
 ### Native Store and WEB4 federation verification
 

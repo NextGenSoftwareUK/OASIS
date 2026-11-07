@@ -62,7 +62,7 @@ at Web4Site `3229dd7`. Browser interaction proof remains open. [LocalFile rollou
   [World ID evidence](WORLD_ID_PROTOCOL_CQL_MVP.md) ·
   [Reclaim evidence](RECLAIM_VERIFIER_CQL_MVP.md).
 - Waku Store v3 passed native REST and CQL 3/2/0 with two isolated
-  Linux peers. WEB4 admission remains open. [Waku evidence](WAKU_STORE_CQL_MVP.md).
+  Linux peers. Loopback WEB4/MongoDB federation and visitor isolation passed. [Waku evidence](WAKU_STORE_CQL_MVP.md).
 - The ENS Offchain local federation diagnostic captured upstream HTTP 429
   after successful public and paired reads. The two acknowledged private
   Mongo copies are retained for authenticated continuation.
