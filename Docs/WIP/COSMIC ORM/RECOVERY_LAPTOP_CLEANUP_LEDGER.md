@@ -4165,3 +4165,10 @@ fixed synthetic test credentials existed only in owned OS-temp test paths;
 all test cleanup callbacks passed after exact path validation. No global CA
 trust modification, runtime install, native source query/replay, deployment
 or live settings mutation. Real restored-native restart gate remains next.
+
+Prepared isolated NATS restart CI: reuses original4296B retained artifact and
+SHA-pinned2.15.2 Linux native archive, runner-only SDK build under shared lease.
+New work TestResults/NatsOwnedRestartCurrent retains compact snapshots/stop
+receipts only; TLS/private native logs stay outside artifact paths on the
+ephemeral runner. No local download/build/runtime/native source execution.
+Python/YAML and Node syntax checks pass; real restart CI remains pending.

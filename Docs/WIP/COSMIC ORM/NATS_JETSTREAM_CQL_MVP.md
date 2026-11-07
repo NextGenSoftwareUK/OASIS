@@ -109,3 +109,14 @@ startup polling is allowed; TLS/auth/protocol errors fail immediately.
 Nineteen focused controls pass, including a real certificate/key persistence
 test using the existing Git OpenSSL executable. Native process/restart CI,
 shipping image integration and live enrollment remain unverified and disabled.
+
+Prepared a separate restored-source restart CI gate. It downloads retained
+artifact13583577000 from run42396383665, verifies the exact descriptor/archive
+hashes and accepted qualification, transports only bounded native files,
+and invokes the shipping runtime module twice against one restored source.
+A separate read-only SDK consumer checks native3/2 and both explicit permission
+denials on both starts, then compares every record value hash and revision.
+No writer credential, native source generation or SaveHolon call exists in
+this gate. It requires unchanged TLS identity and clean shutdown for each
+start. The original seed qualification workflow is not replayed. This new
+restart gate is prepared but not yet accepted; deployment remains disabled.
