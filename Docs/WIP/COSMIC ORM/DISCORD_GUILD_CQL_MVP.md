@@ -80,3 +80,8 @@ The live settings matched the intended World ID baseline before promotion.
 Railway code job 052ece00-c14b-4aa7-abeb-f89c43cf0c51 is queued. Observe
 this exact job before using the guarded publisher for the three-provider
 public-three batch. Settings have not been applied.
+
+Code deployment 052ece00 succeeded. The guarded publisher applied and
+read back all eight batch settings. Same-source settings job
+0ab0d7c9-45b7-4fcc-b1ea-c79c9d6c0eae is building at parent 8645794bb.
+Observe the exact job before live readiness and provider acceptance.

@@ -49,9 +49,9 @@ World ID image qualification passed and Development advanced to 48c532584.
 World ID settings job 34802005 succeeded. Native 3/2, MongoDB 5/4, reuse,
 visitor isolation and both replicas passed. Its sandbox card and local example are live at e87fbba; browser interaction remains open.
 Discord/Livepeer/Pinata image qualification passed. Development is 8645794bb.
-Observe code deployment 052ece00-c14b-4aa7-abeb-f89c43cf0c51, then use the
-guarded publisher for all three providers with prefix public-three and
-the exact code job ID. Apply eight settings, then redeploy once.
+Code job 052ece00 succeeded. All eight settings were applied and observed.
+Observe settings job 0ab0d7c9-45b7-4fcc-b1ea-c79c9d6c0eae, then verify
+live settings and separate visitor readiness/acceptance for all three providers.
 
 ## Constraints and unfinished roadmap
 
