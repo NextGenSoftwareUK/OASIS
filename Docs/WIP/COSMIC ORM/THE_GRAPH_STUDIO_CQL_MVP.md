@@ -97,9 +97,14 @@ catalogue. Tooling passed39 preset,26 response-evidence and5 publisher tests.
 These checks use local mocks; accepted native/HTTP schedules were not repeated.
 
 [Enabled image CI42346455177](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42346455177)
-is queued with teaching_sidecars=true. Syntax checks passed for all five
+is building with teaching_sidecars=true. Syntax checks passed for all five
 changed C# files, dependency pins match and both remote commits were verified.
 Protected graph-studio-public snapshots contain four settings/four presets;
 live settings still match the original teaching-public candidate.
 Catalogue: LocalState/COSMIC/GraphStudioReleaseCurrent/catalogue.json.
 No live enrollment or hosted acceptance has occurred yet.
+
+The immutable public publisher descriptor is prepared at
+`LocalState/COSMIC/HostedSourceRolloutCurrent/graph-studio-public-descriptor.json`
+(49 bytes, SHA256 `de20548bd9331b2a0484e84daf1f917588838c401ae2cda175de48129f97c13e`).
+It matches the original catalogue byte-for-byte; no live setting was changed.

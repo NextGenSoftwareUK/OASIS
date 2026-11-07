@@ -44,7 +44,7 @@ The GUN/OrbitDB cards are published at fae9c5a. Public HTML matches the
 exact commit (241209bytes/SHA256 in provider reports);114 client tests passed.
 The Graph Studio now passes12 provider controls, native3/2,32 admission cases
 and local WEB4/Mongo5/4/privacy. Scoped parentce47a6f8/Coreacc6ed36 is pushed.
-Image CI42346455177 is queued with teaching_sidecars=true. Four protected
+Image CI42346455177 is building with teaching_sidecars=true. Four protected
 settings/four presets use graph-studio-public; live variables are unchanged.
 Next verify that exact image, fetch Development and recheck the live baseline
 before promotion/enrollment. Preserve active GUN/OrbitDB source generations.
