@@ -385,3 +385,10 @@ A scoped candidate was assembled locally as5aff049b3e2a3b4590b924ceca2ae2f262efa
 Parenteba69988852439d3b1c60f7727eea3eceefc0d5e/Coreec7d440ce5212da7683cb7579f0b9139bbadd5a1 are published by normal fast-forward pushes to the existing work/cosmic-teaching-release-candidate refs. Development remains88b896815/Core944d380. Candidate contains Dapr-only API/admission additions and native package/tools; unrelated dirty checkout paths excluded. Exact manifest/gitlink and diff checks pass.
 
 One exact-candidate native dispatch and one teaching-enabled image dispatch were each acknowledged204. Exclusive dispatch intents/ACKs are under RecoveryLaptopResume20261107/dapr-candidate-{native,image}-dispatch.*. Qualification is pending; publication is not deployment or acceptance. Task-native port correction run42421434378/job128550494850 was observed live in boundary controls. No new remote source created and original protected plan retained.
+
+
+### Enrollment tooling and current qualification handles
+
+Publish-HostedDaprConfiguration.py requires the original protected source plan and exact native creation acknowledgement; it never creates a source. Preparation derives the original three live IDs/tombstone/missing ID and reviewed loopback component. Exactly8settings may change; existing providers/settings are preserved. Apply uses original protected snapshots and per-key acknowledgements without triggering deployment. Verify-settings checks full settings, exact active deployment/instance and mounted original values/ETags through read-only native requests. Three focused controls pass (scope preservation, existing-reader rejection, foreign-catalogue rejection). No protected enrollment candidate can be prepared until actual source creation is acknowledged. No prepare/apply command has run.
+
+Fresh observations: task42421434378/job128550494850 and scoped candidate42421572256/job128550926747 passed boundary controls (including Linux TCP semantics) and remain in native WEB4 qualification; exact image42421574240/job128550932896 is building. Candidate iseba699888/Coreec7d440, not deployed.

@@ -4535,3 +4535,5 @@ SDK/env/build/download/live source operation. New exact helper qualification nex
 7 November: scoped candidate used two temporary Git indexes under RecoveryLaptopResume20261107 and removed both in finally; retained compact assembly JSON/script and Git objects only. No worktree/runtime/build. Failed native fixture logs inspected in memory;2081/2080byte artifacts remain on GitHub30days. Local port controls left no listener/process/output; Linux TIME_WAIT test is explicitly skipped on Windows.
 
 7 November: corrected candidate preparation reused existing state and retained Core object; temporary index files removed. Published only existing candidate refs, without checkout/worktree changes. Two cloud dispatch intents/ACKs retained; no local image/build/runtime download. Ephemeral native/image runners own their outputs. No Development deployment or source creation.
+
+7 November:3 Dapr enrollment controls used automatically removed owned temporary catalogue folders and -B/no cache. No live settings reads/writes or runtime install required for these controls. Retain qualification handles42421434378,42421572256 and42421574240; no redispatch.
