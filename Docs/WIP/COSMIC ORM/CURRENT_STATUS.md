@@ -58,6 +58,9 @@ passed for dcae58d97. Its image digest is recorded in the provider reports.
 Development promotion created Railway job 900d0fe7-9dc9-489c-a12b-7df8ef84fea8.
 Eight protected settings/twelve presets remain unapplied under registry-object-public.
 Next observe that exact job, apply the guarded settings and verify all three scopes.
+Subscription protocol CI exposed a missing SandboxSubscriptionRules source link.
+The project dependency is fixed locally: bounded build and 22 pure tests passed.
+Include that test-project-only correction in the next verified Development batch.
 
 ## Constraints and unfinished roadmap
 
