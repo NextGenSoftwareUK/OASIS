@@ -4120,3 +4120,15 @@ Public HTML245724B, SHA256eec1271ac6348716c32771bca66d4d8d229e31e1e1d251b00557d1
 matched exact Git bytes on first observation; compact receipt retained. No
 HTML download file, new environment/install/native replay or browser input.
 Native SDK/source/token/configuration and sealed cohort journals preserved.
+
+NATS next scope reuses existing NATS.Net3.2.0 provider/public CQL reader,
+existing recovery runtime2.15.2 and native/HTTP/TLS probes. No accepted fixture,
+public endpoint, source or original account was replayed. Pinned local SDK
+XML and official SDK/security docs verified the CaFile/TlsMode options before
+implementation. Added an explicit owned TLS factory with fixed loopback port,
+bucket, reader, sandbox opt-in and dedicated CA; existing remote constraints
+remain. TLS options flow into the same SDK connection, with no insecure
+certificate callback or fallback endpoint. Nine boundary/admission controls
+are prepared for cloud CI. No local.NET build/install/environment, certificate,
+credential, native source, deployment or live settings mutation performed.
+NATS_JETSTREAM_CQL_MVP.md tracks exact remaining gates and original evidence.

@@ -17,6 +17,10 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS;
 /// <summary>Explicit public records in an existing JetStream bucket.</summary>
 public sealed class NatsPublicCqlProfile : NATSJetStreamOASIS, ICosmicReadOnlyQueryActivation, IDisposable
 {
+    public const string OwnedEndpoint = "tls://127.0.0.1:24222";
+    public const string OwnedBucket = "cosmic_cql_public";
+    public const string OwnedReader = "cql_reader";
+    public const string OwnedCaFile = "/data/COSMIC/SandboxNATS/ca.pem";
     private readonly HashSet<Guid> catalogue;
     private readonly Guid owner;
     private bool disposed;
@@ -24,8 +28,9 @@ public sealed class NatsPublicCqlProfile : NATSJetStreamOASIS, ICosmicReadOnlyQu
     public NatsPublicCqlProfile(string url, string bucket, Guid owner, IEnumerable<Guid> ids)
         : this(url, bucket, owner, ids, null) { }
 
-    private NatsPublicCqlProfile(string url, string bucket, Guid owner, IEnumerable<Guid> ids, NatsAuthOpts? auth)
-        : base(url, bucket, readOnly: true, auth)
+    private NatsPublicCqlProfile(string url, string bucket, Guid owner, IEnumerable<Guid> ids, NatsAuthOpts? auth,
+        NatsTlsOpts? tls = null)
+        : base(url, bucket, readOnly: true, auth, tls)
     {
         var selected = ids.Take(101).ToArray();
         catalogue = new(selected);
@@ -36,6 +41,16 @@ public sealed class NatsPublicCqlProfile : NATSJetStreamOASIS, ICosmicReadOnlyQu
     }
 
     public static NatsPublicCqlProfile FromJson(string json, string? username = null, string? password = null)
+        => Parse(json, username, password, ownedSandbox: false);
+
+    public static NatsPublicCqlProfile FromOwnedSandboxJson(string json, string username, string password, bool sandboxEnabled)
+    {
+        if (!sandboxEnabled)
+            throw new InvalidOperationException("The owned NATS source requires the enabled OASIS sandbox.");
+        return Parse(json, username, password, ownedSandbox: true);
+    }
+
+    private static NatsPublicCqlProfile Parse(string json, string? username, string? password, bool ownedSandbox)
     {
         if (Encoding.UTF8.GetByteCount(json) > 8192)
             throw new ArgumentException("Bounded NATS profile configuration required.", nameof(json));
@@ -49,20 +64,25 @@ public sealed class NatsPublicCqlProfile : NATSJetStreamOASIS, ICosmicReadOnlyQu
 
         var endpoint = root.GetProperty("endpoint").GetString();
         if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) || uri.Scheme != "tls" ||
-            uri.Host.Length == 0 || uri.IsLoopback || uri.UserInfo.Length != 0 ||
+            uri.Host.Length == 0 || (ownedSandbox ? endpoint != OwnedEndpoint : uri.IsLoopback) || uri.UserInfo.Length != 0 ||
             uri.AbsolutePath is not ("" or "/") || uri.Query.Length != 0 || uri.Fragment.Length != 0 ||
             endpoint!.Contains(','))
             throw new ArgumentException("One explicit TLS NATS endpoint is required.", nameof(json));
         var bucket = root.GetProperty("bucket").GetString();
         if (string.IsNullOrEmpty(bucket) || bucket.Length > 64 ||
-            bucket.Any(character => !char.IsAsciiLetterOrDigit(character) && character is not ('_' or '-')))
+            bucket.Any(character => !char.IsAsciiLetterOrDigit(character) && character is not ('_' or '-')) ||
+            ownedSandbox && bucket != OwnedBucket)
             throw new ArgumentException("An explicit NATS key-value bucket is required.", nameof(json));
         var ids = root.GetProperty("ids").EnumerateArray().Take(101).Select(item => item.GetGuid()).ToArray();
         if ((username == null) != (password == null) ||
             username != null && (string.IsNullOrWhiteSpace(username) || string.IsNullOrEmpty(password)))
             throw new ArgumentException("NATS source credentials require both a username and password.");
+        if (ownedSandbox && (username != OwnedReader || password == null || password.Length != 43 ||
+                password.Any(character => !char.IsAsciiLetterOrDigit(character) && character is not ('_' or '-'))))
+            throw new ArgumentException("The owned NATS source requires its explicit bounded reader credentials.");
         var auth = username == null ? null : new NatsAuthOpts { Username = username, Password = password };
-        return new NatsPublicCqlProfile(endpoint, bucket, root.GetProperty("sourceOwner").GetGuid(), ids, auth);
+        var tls = ownedSandbox ? new NatsTlsOpts { Mode = TlsMode.Require, CaFile = OwnedCaFile } : null;
+        return new NatsPublicCqlProfile(endpoint, bucket, root.GetProperty("sourceOwner").GetGuid(), ids, auth, tls);
     }
 
     public override Task<OASISResult<bool>> ActivateProviderAsync() => ActivateQuerySourceAsync();

@@ -21,8 +21,9 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
         public NATSJetStreamOASIS(string natsUrl = "nats://localhost:4222", string bucket = "oasis")
             : this(natsUrl, bucket, readOnly: false) { }
 
-        protected NATSJetStreamOASIS(string natsUrl, string bucket, bool readOnly, NatsAuthOpts auth = null)
-            : base(new NatsKvBackend(natsUrl, bucket, readOnly, auth))
+        protected NATSJetStreamOASIS(string natsUrl, string bucket, bool readOnly, NatsAuthOpts? auth = null,
+            NatsTlsOpts? tls = null)
+            : base(new NatsKvBackend(natsUrl, bucket, readOnly, auth, tls))
         {
             ProviderName = "NATSJetStreamOASIS";
             ProviderDescription = "NATS JetStream provider: OASIS avatars and holons in a JetStream key-value bucket.";
@@ -44,11 +45,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
         private readonly string _bucket;
         private readonly bool _readOnly;
         private readonly NatsAuthOpts _auth;
+        private readonly NatsTlsOpts _tls;
         private readonly SemaphoreSlim _connectLock = new(1, 1);
         private NatsConnection _connection;
         private INatsKVStore _store;
 
-        public NatsKvBackend(string url, string bucket, bool readOnly, NatsAuthOpts auth = null)
+        public NatsKvBackend(string url, string bucket, bool readOnly, NatsAuthOpts? auth = null, NatsTlsOpts? tls = null)
         {
             if (string.IsNullOrWhiteSpace(url)) throw new ArgumentException("A NATS server URL is required.", nameof(url));
             if (string.IsNullOrWhiteSpace(bucket)) throw new ArgumentException("A key-value bucket name is required.", nameof(bucket));
@@ -56,6 +58,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
             _bucket = bucket;
             _readOnly = readOnly;
             _auth = auth ?? new NatsAuthOpts();
+            _tls = tls ?? NatsTlsOpts.Default;
         }
 
         private async Task<INatsKVStore> StoreAsync(CancellationToken ct)
@@ -65,7 +68,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
             try
             {
                 if (_store != null) return _store;
-                var connection = new NatsConnection(new NatsOpts { Url = _url, AuthOpts = _auth });
+                var connection = new NatsConnection(new NatsOpts { Url = _url, AuthOpts = _auth, TlsOpts = _tls });
                 try
                 {
                     await connection.ConnectAsync();

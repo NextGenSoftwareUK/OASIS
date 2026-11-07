@@ -10,6 +10,46 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
 public class CqlNatsHostedAdmissionTests
 {
+    private static string OwnedSource(string? endpoint = null, string? bucket = null) => JsonSerializer.Serialize(new
+    {
+        schema = 1, endpoint = endpoint ?? NatsPublicCqlProfile.OwnedEndpoint,
+        bucket = bucket ?? NatsPublicCqlProfile.OwnedBucket,
+        sourceOwner = Guid.NewGuid(), ids = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() }
+    });
+
+    [Fact]
+    public void OwnedSourceRequiresSandboxAndRemainsInactiveUntilVerified()
+    {
+        var json = OwnedSource();
+        Assert.Throws<InvalidOperationException>(() => NatsPublicCqlProfile.FromOwnedSandboxJson(
+            json, NatsPublicCqlProfile.OwnedReader, new string('x', 43), sandboxEnabled: false));
+        using var source = NatsPublicCqlProfile.FromOwnedSandboxJson(
+            json, NatsPublicCqlProfile.OwnedReader, new string('x', 43), sandboxEnabled: true);
+        Assert.False(source.IsProviderActivated);
+        Assert.Throws<ArgumentException>(() => NatsPublicCqlProfile.FromJson(json));
+    }
+
+    [Theory]
+    [InlineData("nats://127.0.0.1:24222")]
+    [InlineData("tls://127.0.0.1:24223")]
+    [InlineData("tls://nats.example:24222")]
+    public void OwnedSourceRejectsPlaintextAndForeignEndpoints(string endpoint)
+        => Assert.Throws<ArgumentException>(() => NatsPublicCqlProfile.FromOwnedSandboxJson(
+            OwnedSource(endpoint), NatsPublicCqlProfile.OwnedReader, new string('x', 43), sandboxEnabled: true));
+
+    [Theory]
+    [InlineData("writer", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")]
+    [InlineData("cql_reader", "short")]
+    [InlineData("cql_reader", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ")]
+    public void OwnedSourceRequiresItsExplicitBoundedReaderCredentials(string username, string password)
+        => Assert.Throws<ArgumentException>(() => NatsPublicCqlProfile.FromOwnedSandboxJson(
+            OwnedSource(), username, password, sandboxEnabled: true));
+
+    [Fact]
+    public void OwnedSourceRejectsAnotherBucket()
+        => Assert.Throws<ArgumentException>(() => NatsPublicCqlProfile.FromOwnedSandboxJson(
+            OwnedSource(bucket: "foreign"), NatsPublicCqlProfile.OwnedReader, new string('x', 43), sandboxEnabled: true));
+
     [Fact]
     public void ExactKeyPresetsPlanNativeAndMongoQueries()
     {
