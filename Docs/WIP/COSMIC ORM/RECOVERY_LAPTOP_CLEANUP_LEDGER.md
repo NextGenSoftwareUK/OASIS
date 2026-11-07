@@ -4533,3 +4533,5 @@ SDK/env/build/download/live source operation. New exact helper qualification nex
 7 November: fetched existing parent/Core candidate refs only; no branch switch/worktree/build. Compact dapr-release-scope.json retained in existing recovery state. Companion CI results inspected through fresh REST; no artifacts downloaded.
 
 7 November: scoped candidate used two temporary Git indexes under RecoveryLaptopResume20261107 and removed both in finally; retained compact assembly JSON/script and Git objects only. No worktree/runtime/build. Failed native fixture logs inspected in memory;2081/2080byte artifacts remain on GitHub30days. Local port controls left no listener/process/output; Linux TIME_WAIT test is explicitly skipped on Windows.
+
+7 November: corrected candidate preparation reused existing state and retained Core object; temporary index files removed. Published only existing candidate refs, without checkout/worktree changes. Two cloud dispatch intents/ACKs retained; no local image/build/runtime download. Ephemeral native/image runners own their outputs. No Development deployment or source creation.

@@ -378,3 +378,10 @@ Runs42420695067/job128548278396 and42420810266/job128548630883 failed at the fir
 Failure artifacts:13593447685/2081bytes/SHA256a0f23bc1310fb0c0805ff71e83431f3b478160edbb2cc3db7153a80530aa206b;13594085872/2080bytes/SHA25687c92bbfdb8543d4f2157a51a1ea4444cda1b8bf3ccd00cb39b8755522cb1734. Logs inspected in memory; archives not downloaded.
 
 A scoped candidate was assembled locally as5aff049b3e2a3b4590b924ceca2ae2f262efa6a0/Coreec7d440ce5212da7683cb7579f0b9139bbadd5a1 with matching gitlink/manifest validation. It is unpublished and superseded for qualification by this pending probe correction. Preserve its assembly receipt; do not deploy or publish it as qualified. No checkout/worktree switch or local build occurred.
+
+
+### Corrected scoped candidate published for qualification only
+
+Parenteba69988852439d3b1c60f7727eea3eceefc0d5e/Coreec7d440ce5212da7683cb7579f0b9139bbadd5a1 are published by normal fast-forward pushes to the existing work/cosmic-teaching-release-candidate refs. Development remains88b896815/Core944d380. Candidate contains Dapr-only API/admission additions and native package/tools; unrelated dirty checkout paths excluded. Exact manifest/gitlink and diff checks pass.
+
+One exact-candidate native dispatch and one teaching-enabled image dispatch were each acknowledged204. Exclusive dispatch intents/ACKs are under RecoveryLaptopResume20261107/dapr-candidate-{native,image}-dispatch.*. Qualification is pending; publication is not deployment or acceptance. Task-native port correction run42421434378/job128550494850 was observed live in boundary controls. No new remote source created and original protected plan retained.
