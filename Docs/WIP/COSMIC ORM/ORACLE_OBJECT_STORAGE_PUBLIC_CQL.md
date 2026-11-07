@@ -46,3 +46,11 @@ must pass before promotion and hosted acceptance.
 The eight-value protected candidate and twelve presets use prefix
 registry-object-public under LocalState/COSMIC/HostedSourceRolloutCurrent.
 No hosted settings were applied. Oracle database hosting remains deferred.
+
+The guarded public publisher and deployment-scoped visitor now explicitly
+admit Oracle Object Storage, Cloudinary and Proof of Humanity. Use
+Publish-HostedFixedPublicCatalogue.py with all three provider names,
+prefix registry-object-public, the reviewed candidate ref and the exact
+successful code deployment. Preflight first, then --apply.
+The three visitor scopes reject stale deployments. All 25 response
+evidence tests and five publisher tests passed.

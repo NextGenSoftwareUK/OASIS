@@ -1,4 +1,4 @@
-"""Verify and explicitly apply a prepared fixed public CQL catalogue."""
+"""Verify and explicitly apply a prepared reviewed public CQL catalogue."""
 
 import argparse
 import re
@@ -12,8 +12,8 @@ def publish(preparation, guard, providers, prefix, release_ref, deployment_id, *
     config = preparation["configuration"]
     verifier = preparation["verifier"]
     if (not providers or len(providers) != len(set(providers))
-            or any(provider not in verifier.FIXED_PUBLIC_CATALOGUES for provider in providers)):
-        raise ValueError("Only fixed reviewed public catalogues are supported")
+            or any(provider not in verifier.REVIEWED_PUBLIC_CATALOGUE_PROVIDERS for provider in providers)):
+        raise ValueError("Only reviewed public catalogues are supported")
     if not re.fullmatch(r"[a-z][a-z0-9-]{0,63}", prefix):
         raise ValueError("A canonical configuration snapshot prefix is required")
     if not release_ref or str(UUID(deployment_id)) != deployment_id:

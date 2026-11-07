@@ -67,6 +67,9 @@ FIXED_PUBLIC_CATALOGUES = {
         ("0,0", "-53,71", "-100,-50"),
     ),
 }
+REVIEWED_PUBLIC_CATALOGUE_PROVIDERS = frozenset((*FIXED_PUBLIC_CATALOGUES,
+    "CloudinaryOASIS", "OracleObjectStorageOASIS", "ProofOfHumanityOASIS"))
+
 POLYGON_GATEWAY_CATALOGUES = {
     "TenderlyOASIS": ("CQL_TENDERLY_POLYGON_QUERY_SOURCE_OWNER", "tenderlypolygon-public-accounts:0x89",
                      "TenderlyPolygonAccountAddress"),
@@ -320,8 +323,8 @@ def decentraland_deployment_visitor():
 
 
 def reviewed_deployment_visitor(provider):
-    if provider not in FIXED_PUBLIC_CATALOGUES:
-        raise RuntimeError("A fixed reviewed public catalogue is required.")
+    if provider not in REVIEWED_PUBLIC_CATALOGUE_PROVIDERS:
+        raise RuntimeError("A reviewed public catalogue is required.")
     publisher = ROOT / "Scripts/Sandbox/Publish-HostedLocalFileConfiguration.py"
     spec = importlib.util.spec_from_file_location("reviewed_release", publisher)
     release = importlib.util.module_from_spec(spec)
@@ -840,7 +843,7 @@ def main():
     parser.add_argument("--decentraland-deployment-visitor", action="store_true",
                         help="Use a separate visitor for the verified Decentraland settings deployment.")
     parser.add_argument("--reviewed-deployment-visitor", action="store_true",
-                        help="Use a separate visitor for a verified fixed public catalogue settings deployment.")
+                        help="Use a separate visitor for a verified reviewed public catalogue settings deployment.")
     parser.add_argument("--recover-localfile-receipt", action="store_true",
                         help="Finalize the original completed LocalFile reports without sessions, queries or saves.")
     parser.add_argument("--reviewed-exact-key-source", type=Path, help="Reviewed native teaching catalogue for the prepared exact-key providers.")
@@ -861,9 +864,9 @@ def main():
     if options.decentraland_deployment_visitor and (options.provider != "DecentralandOASIS"
             or not (options.readiness or options.prepare)):
         parser.error("--decentraland-deployment-visitor requires DecentralandOASIS with --readiness or --prepare.")
-    if options.reviewed_deployment_visitor and (options.provider not in FIXED_PUBLIC_CATALOGUES
+    if options.reviewed_deployment_visitor and (options.provider not in REVIEWED_PUBLIC_CATALOGUE_PROVIDERS
             or not (options.readiness or options.prepare) or options.decentraland_deployment_visitor):
-        parser.error("--reviewed-deployment-visitor requires a fixed public catalogue with --readiness or --prepare.")
+        parser.error("--reviewed-deployment-visitor requires a reviewed public catalogue with --readiness or --prepare.")
     if options.localfile_deployment_visitor and (options.provider != "LocalFileOASIS"
             or not (options.readiness or options.prepare)):
         parser.error("--localfile-deployment-visitor requires LocalFileOASIS with --readiness or --prepare.")

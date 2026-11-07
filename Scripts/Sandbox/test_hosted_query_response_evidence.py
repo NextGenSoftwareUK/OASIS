@@ -75,7 +75,7 @@ class ResponseEvidenceTests(unittest.TestCase):
             release.verify_release.return_value = deployment
             self.assertEqual(verification.deployment_visitor("PushProtocol", deployment),
                              verification.reviewed_deployment_visitor("PushProtocolOASIS"))
-            with self.assertRaisesRegex(RuntimeError, "fixed reviewed"):
+            with self.assertRaisesRegex(RuntimeError, "reviewed public"):
                 verification.reviewed_deployment_visitor("MongoDBOASIS")
 
     def test_localfile_deployment_visitor_requires_mount_and_prepare_reuses_it(self):
@@ -563,6 +563,24 @@ class ResponseEvidenceTests(unittest.TestCase):
                     verification.capture_query_response(target, "data/query-cql", "other-op", 503, b'other')
                 with self.assertRaises(FileExistsError):
                     verification.call("data/query-cql", evidence_path=target)
+
+
+    def test_registry_and_object_visitors_are_bound_to_the_exact_settings_deployment(self):
+        deployment = str(uuid.UUID(int=7))
+        release = Mock()
+        with (
+            patch.dict(verification.os.environ, {"COSMIC_CQL_SETTINGS_DEPLOYMENT_ID": deployment}),
+            patch.object(verification.importlib.util, "spec_from_file_location", return_value=Mock()),
+            patch.object(verification.importlib.util, "module_from_spec", return_value=release),
+        ):
+            for provider in ("OracleObjectStorageOASIS", "CloudinaryOASIS", "ProofOfHumanityOASIS"):
+                with self.subTest(provider=provider):
+                    release.verify_release.return_value = str(uuid.UUID(int=8))
+                    with self.assertRaisesRegex(RuntimeError, "must be current"):
+                        verification.reviewed_deployment_visitor(provider)
+                    release.verify_release.return_value = deployment
+                    self.assertEqual(verification.deployment_visitor(provider.removesuffix("OASIS"), deployment),
+                                     verification.reviewed_deployment_visitor(provider))
 
 
 if __name__ == "__main__":

@@ -20,7 +20,7 @@ class FixedPublicCatalogueTests(unittest.TestCase):
         self.config = Mock(STATE=Path("protected-state"))
         self.config.protected_read.side_effect = [self.before, self.after]
         self.config.variables.return_value = self.before
-        self.verifier = Mock(FIXED_PUBLIC_CATALOGUES={self.provider})
+        self.verifier = Mock(REVIEWED_PUBLIC_CATALOGUE_PROVIDERS={self.provider})
         self.verifier.reviewed_exact_key_source.return_value = {"sourceBinding": self.binding}
         self.preparation = {
             "configuration": self.config, "verifier": self.verifier,
@@ -63,7 +63,7 @@ class FixedPublicCatalogueTests(unittest.TestCase):
         after = self.after | extra_binding | {"admission": "both", "grants": "both",
                                                "CQL_HOSTED_QUERY_EXAMPLES__ReclaimProtocolOASIS": "four"}
         self.config.protected_read.side_effect = [self.before, after]
-        self.verifier.FIXED_PUBLIC_CATALOGUES.add(second)
+        self.verifier.REVIEWED_PUBLIC_CATALOGUE_PROVIDERS.add(second)
         self.verifier.reviewed_exact_key_source.side_effect = [
             {"sourceBinding": self.binding}, {"sourceBinding": extra_binding}
         ]
