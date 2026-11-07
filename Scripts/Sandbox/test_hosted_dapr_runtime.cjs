@@ -1,4 +1,6 @@
 'use strict';
+const net = require('node:net');
+const { EventEmitter } = require('node:events');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
@@ -6,6 +8,20 @@ const path = require('node:path');
 const os = require('node:os');
 const fs = require('node:fs/promises');
 const runtime = require('../../Docker/host-sandbox-dapr.cjs');
+test('unexpected native handshake diagnostics redact the reader credential and close its socket', async t => {
+  const password = 'd'.repeat(64), socket = new EventEmitter(); let closed = false;
+  socket.setTimeout = () => socket;
+  socket.destroy = () => { closed = true; };
+  socket.write = () => socket.emit('data', Buffer.from('+OK\r\n$64\r\n' + password + '\r\n'));
+  t.mock.method(net, 'createConnection', () => { process.nextTick(() => socket.emit('connect')); return socket; });
+  await assert.rejects(runtime.probeRedis(password, new AbortController().signal), error => {
+    assert.match(error.message, /response differs/);
+    assert.ok(error.message.includes('[redacted]'));
+    assert.ok(!error.message.includes(password));
+    return true;
+  });
+  assert.equal(closed, true);
+});
 function fixture() {
   const owner = crypto.randomUUID(); const ids = Array.from({ length: 4 }, () => crypto.randomUUID());
   const token = 'a'.repeat(64);
