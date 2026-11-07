@@ -206,6 +206,12 @@
   <ItemGroup>
     <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.DuckDBOASIS/NextGenSoftware.OASIS.API.Providers.DuckDBOASIS.csproj" />
     <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.MidenOASIS/NextGenSoftware.OASIS.API.Providers.MidenOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS/NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS/NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FhenixOASIS/NextGenSoftware.OASIS.API.Providers.FhenixOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AxelarOASIS/NextGenSoftware.OASIS.API.Providers.AxelarOASIS.csproj" />
+    <ProjectReference Include="../../Providers/AI/NextGenSoftware.OASIS.API.Providers.RitualOASIS/NextGenSoftware.OASIS.API.Providers.RitualOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS/NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.StargateOASIS/NextGenSoftware.OASIS.API.Providers.StargateOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.deBridgeOASIS/NextGenSoftware.OASIS.API.Providers.deBridgeOASIS.csproj" />

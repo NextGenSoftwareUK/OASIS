@@ -1,0 +1,38 @@
+// Read projection of the MIT-licensed Miden node v0.18.2 RPC and
+// Miden protocol v0.18.0 block.proto, block_number.proto and primitives.proto.
+// Field numbers and wire types match upstream. Unused fields remain unknown.
+syntax = "proto3";
+package miden.node.v1;
+option csharp_namespace = "NextGenSoftware.OASIS.API.Providers.MidenOASIS.PublicRpc";
+
+service NodeService {
+  rpc GetBlockHeaderByNumber(GetBlockHeaderByNumberRequest) returns (GetBlockHeaderByNumberResponse);
+}
+
+message GetBlockHeaderByNumberRequest {
+  optional uint32 block_num = 1;
+}
+
+message GetBlockHeaderByNumberResponse {
+  BlockHeader block_header = 1;
+}
+
+message BlockHeader {
+  BlockVersion version = 1;
+  fixed32 timestamp = 2;
+  BlockNumber block_num = 3;
+  Word prev_block_commitment = 4;
+}
+
+enum BlockVersion {
+  BLOCK_VERSION_UNSPECIFIED = 0;
+  BLOCK_VERSION_V1 = 1;
+}
+
+message BlockNumber {
+  fixed32 block_num = 1;
+}
+
+message Word {
+  bytes encoded = 1;
+}
