@@ -181,6 +181,7 @@
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ChainflipOASIS/NextGenSoftware.OASIS.API.Providers.ChainflipOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS/NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS.csproj" />
     <ProjectReference Include="../../Providers/Maps/NextGenSoftware.OASIS.API.Providers.DecentralandOASIS/NextGenSoftware.OASIS.API.Providers.DecentralandOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.PouchDBOASIS/NextGenSoftware.OASIS.API.Providers.PouchDBOASIS.csproj" />
   <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS/NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS.csproj" />
   <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS/NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS.csproj" />
   <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS/NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS.csproj" />
