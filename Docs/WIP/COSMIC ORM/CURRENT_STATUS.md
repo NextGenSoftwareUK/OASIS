@@ -13,8 +13,8 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Resumed on the old laptop at C:/Source/OASIS2 on 7 November after the
   recovered laptop failed again. Branch work/cosmic-cql-ton-public.
 - Core task branch work/cosmic-cql-decentraland; preserve independent pins.
-- Development028d342e, scoped PouchDB/Core b98220a7 rollout building.
-- Last accepted runtime ce47a6f8/Core acc6ed36, Graph settings job ccd86b20.
+- Development ref028d342e, accepted identical-tree runtimefcb76069/Core b98220a7.
+- PouchDB settings/live acceptance job2045b41e succeeded.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
 - Website C:/Source/Web4Site, branch work/cosmic-cql, published26e2b4a.
@@ -100,7 +100,9 @@ Provision-HostedTeachingSource.py has five command tests; native helper has six.
 
 - Finish open browser gates with original cohorts; HTTP/static proof is separate.
 - Continue other providers' runtime, restricted-reader and hosting gates.
-- Waku supervisor-writing command was rejected by automatic tool policy.
+- Waku hosted runtime implementation now has14 controlled cases. Its original
+  retained archive is the native restore/restart input. Cloud qualification
+  and immutable image packaging remain next before any hosted settings.
 - PouchDB hosted HTTP acceptance and website publication are complete.
   Retain its native first generation and original acceptance cohort.
   Its hosted browser gate remains open.

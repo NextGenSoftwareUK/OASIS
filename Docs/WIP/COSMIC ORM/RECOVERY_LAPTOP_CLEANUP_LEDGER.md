@@ -3829,3 +3829,21 @@ pouch-site-publication.json retained in the recovery directory. First edit
 stopped before changing any file because Windows Python defaulted to cp1252.
 Explicit UTF8 fixed that edit, with no encoding churn in the reviewed diff.
 No new environment, service, install, source data or browser cohort.
+
+Waku hosted runtime source/tests added in the existing checkout. The14
+focused controls create only bounded oasis-waku-control-* directories under
+this user's TEMP, removed after validating their resolved parent/prefix.
+No listener, package installation or local native runtime download. Initial
+combined suite reached the existing IPFS probe guard and failed because
+TestResults/HostedIpfsBootstrapCurrent already exists. It stopped before
+native I/O. The existing probe was preserved. Corrected controlled selection
+uses cached Codex Node24.22.1 and excludes that native bootstrap by name,
+66 controlled tests pass. Terminal output only, no new raw local log.
+
+Planned cloud retained-source qualification downloads the same pinned Linux
+Waku binary once on the disposable runner, restores the exact12KB original
+archive into one owned native working directory, verifies startup/restart
+and removes the runtime download after owned children stop. Compact logs,
+qualification and unchanged source input retained90days as the
+waku-hosted-runtime-qualification artifact. No Windows binary/environment,
+local provider process or source-generation replay. Last C free24466890752B.

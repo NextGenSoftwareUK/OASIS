@@ -123,3 +123,36 @@ SHA-256 66D83B0D8ABE8CC0B8E46A9D804A1389D754ED064E334C3FF0273BD12C54B16B.
 confirmed complete-catalogue activation against the real fixture, with
 four provider tests and one WEB4/MongoDB HTTP test passing. The original
 locally retained archive remains the provisioning input.
+
+### Hosted runtime implementation,7November2026
+
+On the old laptop, the original artifact13552413276 was recovered with its
+exact archive and receipt hashes. The current environment permits the scoped
+source edits that the earlier recovered-laptop command could not complete.
+The new native runtime module restores that standalone archive exactly once
+into its own mounted directory. Durable intent/acknowledgement and exclusive
+creation refuse interrupted, changed and concurrent provisioning. Later
+starts preserve native SQLite files and check the full three-message catalogue.
+The existing shared supervisor owns the native child and WEB4 shutdown.
+Native credentials are limited to PATH/HOME/TMPDIR. The fixed loopback Store,
+cluster/topic and C# complete-catalogue activation contract are retained.
+
+The WEB4 Docker source downloads only the original pinned0.39.2 release,
+checks its SHA256 and verifies that executable in both provider/final stages.
+The runtime remains explicitly enabled by OASIS_SANDBOX_WAKU. Its bundle and
+CQL_WAKU_STORE_QUERY_SOURCE_JSON must bind all three qualified hashes.
+
+Fourteen focused controls pass. Combined controlled runtime regression has
+66 passes. The accepted Windows native IPFS bootstrap is explicitly excluded
+from that run. Its first attempted invocation stopped at the preserved probe
+existence guard, before any source read/write or native execution. Existing
+Node18 was initially used, then the already-installed Codex Node24.22.1 was
+used for the final controlled run. No new runtime installation.
+
+The new retained-source workflow restores original artifact42320285565,
+checks the known archive SHA256, starts the native process on a separate owned
+working copy, verifies all three hashes, closes it and repeats from the same
+working archive. It preserves compact proof, native logs and the unchanged
+original input for90days. It does not publish replacement messages or run the
+accepted Mongo/CQL source-generation schedule. This native restore/restart
+qualification and exact immutable image build remain pending.
