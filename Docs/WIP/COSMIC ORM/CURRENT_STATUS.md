@@ -14,7 +14,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
   recovered laptop failed again. Branch work/cosmic-cql-ton-public.
 - Core task branch work/cosmic-cql-decentraland; preserve independent pins.
 - Development source82428c7a6/Core2a09c9be code592df8cd isSUCCESS.
-  Eight NATS settings staged once; activation8c51a9da isBUILDING.
+  Eight NATS settings staged once; activation8c51a9da isSUCCESS and HTTP accepted.
   DuckDB accepted deployment32b26f74/source evidence remains preserved.
   DuckDB hosted HTTP acceptance passed with the original qualified database,
   unchanged mounted file hash and no WAL before/after the full flow.
@@ -32,7 +32,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **119 scoped local, 78 live HTTP and 28 functional browser**.
+Coverage is **119 scoped local, 79 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -79,22 +79,15 @@ DuckDB card22 is published at698e102 with the hosted path, preserved local5116
 launcher and real C# example. Public HTML matches the exact committed blob;
 all119 client controls pass.
 
-NATS JetStream is the current hosted scope. Real Linux TLS/native3/2,
-explicit write/foreign permission denials and untrusted CA rejection passed
-in42396383665. Restored-source restart42397239148 passed with unchanged
-values/revisions/TLS identity and no seed/save. Task API42397587804 passed14/14.
-Parent candidate82428c7a6441e6088cfdd6960f899641dae54dd1 and
-Core2a09c9be620b3f3c2b1bae05bf62758bc5b13983 are published on the reused
-candidate branches. All seven exact dependency pins are advertised remotely;
-manifest/gitlinks pass. Exact candidate API42398316205 passed14/14 with
-zero skips; image42398318179 passed with teaching runtimes enabled.
-Code592df8cd succeeded; actual runtime hashes/native/SDK/mount and absent
-source verified. Eight original settings staged once with exact ACK/readback.
-One activation8c51a9da-3dc0-4ae3-a920-676b004ffe96 isBUILDING. Follow that
-exact job, inspect mounted source/TLS, then run first journalled HTTP acceptance. Eight settings retain their original protected snapshots and per-key ACKs;
-four presets/source bindings agree with original IDs. Next inspect those same
-jobs and preserve terminal evidence before scoped Development rollout and
-one-shot settings activation. Mounted/live HTTP gates remain open.
+NATS hosted HTTP acceptance is complete on8c51a9da, instance150d07cf,
+exact82428c7a6/Core2a09c9be. Mounted source/TLS/settings passed before/after
+native3/2, Mongo5/4, first2private saves/repeat0new2existing, privacy0/public3
+and exactSQLite/Neo4j replicas2/2. Original cohort is sealed under
+HostedQueryAcceptance-NATSJetStreamOASIS; never replay it. Readiness reused
+the original PouchDB visitor. Exact candidate API14/14 and image qualification,
+real TLS/native/restart and eight write ACKs remain retained. Coverage is now
+119local/79liveHTTP/28functional browser. Next publish the NATS sandbox card
+and pinned real SDK example, then continue the next eligible provider scope.
 See [NATS evidence and remaining gates](NATS_JETSTREAM_CQL_MVP.md).
 
 Do not bypass the preserved QuestDB public403. Chroma enrollment remains open.

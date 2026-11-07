@@ -1,6 +1,6 @@
 # NATS JetStream hosted CQL work
 
-Updated 7 November 2026. Hosted acceptance remains open.
+Updated 7 November 2026. Scoped hosted HTTP acceptance is complete; website publication, browser and full ORM gates remain open.
 
 The existing NATS.Net3.2.0 provider, bounded CQL reader and public-record
 profile are retained. Historical recovery-laptop evidence establishes native
@@ -273,3 +273,36 @@ Next follow that exact job, inspect mounted original source/TLS identity and
 actual environment, then perform the first journalled native/Mongo/privacy/
 replica HTTP acceptance. No NATS HTTP cohort exists yet and coverage remains
 119local/78liveHTTP/28functional browser. Settings staging is not acceptance.
+
+## Live Development HTTP accepted
+
+Settings8c51a9da-3dc0-4ae3-a920-676b004ffe96 SUCCESS, instance
+150d07cf-796f-4bd1-a887-38b90e574459, source82428c7a6/Core2a09c9be,
+image sha256:04ada59a1624bcf26aa8912c3cefdcfd0c411a6a64fbfa5ea5ea2095df369ee0.
+Railway rebuilt the settings image: initial verification correctly rejected the
+previous code-image digest; exact new source/image metadata was observed before
+verification. Complete settings,8 ACKs, mounted original source receipt, native
+files, reader permissions and TLS identity passed before/after HTTP acceptance.
+
+Native3/2, Mongo5/4, first2private saves, repeat0new/2existing, foreign-private0/
+public3 and exact SQLite/Neo4j replicas2/2 passed. Original owner/foreign sessions,
+2save ACKs and empty pending intents remain under
+LocalState/COSMIC/HostedQueryAcceptance-NATSJetStreamOASIS. Its source/deployment/
+report-bound cql-http-acceptance.acknowledged.json is sealed; never replay it.
+Readiness reused the original acknowledged PouchDB visitor; no replacement
+readiness account. Several SSH preconditions stopped before cohort creation;
+protected diagnostic observations retained. Later complete source/readiness and
+HTTP checks passed, with unchanged mounted identity after acceptance. No source
+reseed, activation retry or native source save occurred.
+
+Reports under TestResults/HostedCqlIntegrationCurrent:
+- NATSJetStreamOASIS-native-http.json:8970B,
+  b56bf25f39a795ddedc9f7b7fffe463ed4b30d43898a4b10ac5eecd0d9b450b3.
+- NATSJetStreamOASIS-client-http-flow.json:27570B,
+  1e5eb079ce3786972dca1f7e781c70345c1d358985ff9b7737d493ffe59a9e91.
+- NATSJetStreamOASIS-isolation-http.json:3820B,
+  c3890d204e92ec8528a8ddf554dbc4506d4c4ec4f2e1963abf986da68e3513ff.
+
+Coverage119local/79liveHTTP/28functional browser. Next publish the NATS card
+with accepted hosted steps and pinned real SDK example. Browser interaction
+and complete provider/ORM parity remain open; this is bounded read acceptance.

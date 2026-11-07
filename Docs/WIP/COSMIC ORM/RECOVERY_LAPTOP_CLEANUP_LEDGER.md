@@ -4250,3 +4250,13 @@ journals in HostedSourceRolloutCurrent. One settings activation intent/ACK and
 protected CLI response retained; job8c51a9da BUILDING. Credentials unchanged.
 No local native execution/new environment/cohort replay; mounted source/HTTP
 acceptance still pending. Preserve original snapshots and every write journal.
+
+NATS settings8c51a9da SUCCESS, image04ada59a1624bcf26aa8912c3cefdcfd0c411a6a64fbfa5ea5ea2095df369ee0.
+Mounted/source/TLS/settings verified before/after original HTTP cohort. Reports
+8970/27570/3820B retained; owner/foreign DPAPI sessions and2save ACKs with empty
+pending intents sealed under HostedQueryAcceptance-NATSJetStreamOASIS. No
+accepted source reseed/save/activation retry. Earlier SSH precondition failures
+occurred before cohort creation; protected nats-mount-exact/nats-ssh-exact/
+nats-http-ssh diagnostic files retained in RecoveryLaptopResume20261107.
+No diagnostic contains a new runtime/environment. Never replay accepted cohort.
+Coverage119/79/28. Website publication/browser gates remain open.
