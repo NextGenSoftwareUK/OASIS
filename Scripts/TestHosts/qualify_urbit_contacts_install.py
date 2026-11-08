@@ -22,9 +22,11 @@ def digest(path):
 def main(on_initialized=None, http_transport=False):
     assert platform.system() == 'Linux' and os.environ.get('GITHUB_ACTIONS') == 'true'
     root = Path(__file__).resolve().parents[2]
-    assets = root / 'LocalState/COSMIC/CloudUrbitRuntimeAssets/v4.6-408k-2'
-    sources = root / 'LocalState/COSMIC/CloudUrbitContactsDesk'
-    kernel = root / 'LocalState/COSMIC/CloudUrbitKernel408'
+    cache_root = Path(os.environ.get('URBIT_CLOUD_CACHE_ROOT', root / 'LocalState/COSMIC')).resolve()
+    assert cache_root.is_relative_to(Path(os.environ['GITHUB_WORKSPACE']).resolve())
+    assets = cache_root / 'CloudUrbitRuntimeAssets/v4.6-408k-2'
+    sources = cache_root / 'CloudUrbitContactsDesk'
+    kernel = cache_root / 'CloudUrbitKernel408'
     inputs = json.loads((root / 'Scripts/TestHosts/urbit-runtime-inputs.json').read_text())
     assert digest(assets / 'urbit') == '47ad302e8934271dfc00dcdab1d553c6d6460b105e3099ff47e0e4e4231bb26d'
     assert digest(assets / 'solid.pill') == inputs['pillSha256']
