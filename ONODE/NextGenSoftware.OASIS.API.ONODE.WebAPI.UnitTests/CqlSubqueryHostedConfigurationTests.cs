@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.API.Providers.SubqueryOASIS;
@@ -89,8 +90,12 @@ public sealed class CqlSubqueryHostedConfigurationTests
         }
         var examples = CqlHostedQueryExamples.FromJson(JsonSerializer.Serialize(new Dictionary<string, object> {
             [Provider.ToString()] = rows }));
+        Assert.Throws<ArgumentException>(() => examples.For(Provider, source.QueryCapabilities));
         var planned = examples.For(Provider, source.QueryCapabilities,
-            target => target == ProviderType.MongoDBOASIS ? MongoSource.CqlCapabilities : null);
+            target => target == ProviderType.MongoDBOASIS ? MongoSource.CqlCapabilities : null,
+            (target, actor) => target == Provider
+                ? CosmicQueryReadAccess.AuthoritativeRecords(actor, target, ids).Result
+                : CosmicQueryReadAccess.OwnerOrPublic(actor).Result);
         Assert.Equal(4, planned.Count);
         Assert.All(planned, example => Assert.True(example.Available, example.ErrorCode));
         Assert.False(source.IsProviderActivated);
