@@ -133,10 +133,16 @@ authority). Both are corrected; exact replacement42439418296 isSUCCESS:
 8boundary+1real HTTP/Mongo cases/zero skips, native3/2, Mongo5/4, foreign-private0/public3,
 9usage receipts and exact fixture database absence/container teardown verified.
 Scoped candidate45734a552/Core06df088 is published only to existing candidate
-branches; exact dictionary42440093239 isSUCCESS16+1/zero skips, artifact verified
-in memory. Exact WEB4/accepted-reader admission jobs42440093218/241 are running.
-Exact image42440274631 is running with teaching runtimes enabled; dispatch204
-acknowledged once. No Development deployment or settings mutation requested.
+branches; its exact dictionary42440093239 isSUCCESS16+1/zero skips, artifact verified
+in memory. Exact WEB4/admission jobs42440093218/241 failed compile because the
+shared HTTP test file referenced unenrolled Safe/ENS Offchain assemblies.
+Owned image42440274631 is terminalCANCELLED; no successful image claimed.
+Taskb07a2e453 factors one shared HTTP/Mongo fixture from provider factories, with
+its existing test body preserved. Corrected candidate9fd968a7b/Core06df088 is
+published only on the existing candidate branch; shipping runtime/pins unchanged,
+manifest checks pass. Exact WEB442440703734, dictionary42440748480 and admission
+42440751129 are live. Wait for corrected gates before another image dispatch.
+No Development deployment or settings mutation requested.
 Thirty-nine protected-candidate and five publisher controls pass locally without
 live mutations or local builds. A pinned independent Firehose registry agrees
 with the expected Arbitrum One genesis; the fresh RPC attempt remains denied.

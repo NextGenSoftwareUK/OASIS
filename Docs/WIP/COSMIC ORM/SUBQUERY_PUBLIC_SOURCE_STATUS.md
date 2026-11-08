@@ -157,14 +157,33 @@ Exact candidate dictionary42440093239/job128607260584 isSUCCESS:16controlled+
 455b43258d7e2ae6e7da8c3ce05708b7ed7b4ea724cc0dad76e247583040ff08 and both TRX
 counters were verified in memory; compact `subquery-exact-candidate-dictionary-qualified.json`
 retained, no ZIP/extraction. Exact WEB4 cloud42440093218 and accepted public
-reader admission regression42440093241 remain in progress. One image dispatch
+reader admission regression42440093241 both failed compilation before tests:
+the copied shared native HTTP test file referenced unenrolled ENS Offchain and
+Safe assemblies. Neither run started native HTTP/Mongo execution. One image dispatch
 was acknowledged204 for the same exact candidate with teaching runtimes enabled:
-run42440274631/job128607820457 is in progress. Image proof is separate from the
-native/HTTP checks. No Development deployment request has been made.
+run42440274631/job128607820457 was explicitly cancelled after this candidate
+qualification failure; terminalCANCELLED observed. No successful image proof
+is claimed. No Development deployment request has been made.
 First publication preflight stopped before any
 push because its exact changed-file set included an unchanged legacy file; fixed
 the comparison to derive actual changed blobs, then normal fast-forward pushes
 and fresh remote-SHA observations succeeded. No force push or worktree created.
+
+Root fix at taskb07a2e453 separates `ReviewedPublicMongoHttpFixture` from each
+provider's native factory. Its complete HTTP/Mongo/query/privacy/receipt/cleanup
+body is byte-for-byte preserved apart from the explicit source-factory parameter
+and call. The original reviewed providers delegate to that single shared fixture;
+SubQuery supplies its own factory in `CqlSubqueryDictionaryHttpTests`.
+No extra provider project is added to the release. Corrected scoped candidate
+9fd968a7b40d2decb389f7a2a5c7f75874b11153/Core06df0885c398e0b16749565852d12a9d499288d2
+is fast-forward published only on the existing candidate branch. Compared with
+45734a552, only tests/workflow changed; shipping runtime and dependency pins are
+unchanged. Exact manifest checks pass. New exact WEB4 run42440703734 is live;
+one explicitly acknowledged204 dictionary run42440748480 and admission regression
+42440751129 are queued/running. No replacement image dispatch yet; wait for the
+corrected boundary qualification. Task refactor jobs42440591625 (SubQuery) and
+42440591607 (Waku regression) also run in isolated cloud fixtures. Their data/bundles
+must never replace accepted hosted sources/cohorts.
 
 Stable future host plan: `LocalState/COSMIC/HostedSubqueryDictionarySourceCurrent`,
 ownerf0d6a43f-cdf4-4112-8397-b406571401a6, mapped IDs
