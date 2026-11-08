@@ -1,0 +1,34 @@
+name: Qualify unadmitted Dapr source preservation
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - 'Scripts/Sandbox/DaprSourceRetirement.cjs'
+      - 'Scripts/Sandbox/Retire-HostedDaprSource.py'
+      - 'Scripts/Sandbox/test_dapr_retirement.cjs'
+      - 'Scripts/Sandbox/test_hosted_dapr_retirement.py'
+      - '.github/workflows/qualify-dapr-retirement.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preserve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          submodules: false
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Verify byte preservation and guarded receipts
+        run: |
+          node --test Scripts/Sandbox/test_dapr_retirement.cjs
+          python3 -B Scripts/Sandbox/test_hosted_dapr_retirement.py
+          printf 'Qualified operator source: %s\n' "$GITHUB_SHA"
+          sha256sum Scripts/Sandbox/DaprSourceRetirement.cjs

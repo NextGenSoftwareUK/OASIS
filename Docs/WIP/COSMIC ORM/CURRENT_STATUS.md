@@ -25,8 +25,8 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
   Dapr correction74a7b60c0/Coreec7d440 passed exact native/image gates and
-  is now on Development. Code deployment75e5970b isBUILDING. Active code remains
-  f00eb9d48/db3d1e66 on ab03fb8e-9d74-4f81-ae6f-38264afeba36 until newSUCCESS.
+  is now on Development. Code deployment75e5970b isSUCCESS on
+  ca788724-9609-4630-8093-e61d4cc80c4d; package/settings/source fingerprints verified.
   Dapr disabled; no settings changed.
   First planned source save is unacknowledged: Railway denies native libaio
   io_getevents. Original source/intent retained; do not reseed or recreate.
@@ -61,10 +61,9 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-Development branch is74a7b60c0/Coreec7d440; code deployment75e5970b isBUILDING.
-Active codef00eb9d48/db3d1e66 isSUCCESS
-on instanceab03fb8e-9d74-4f81-ae6f-38264afeba36,
-actual image sha256:54c3fd20f29399801dd827c51d26e5cc6fd9019cbe1eaea687ef84a677d414c8.
+Development branch is74a7b60c0/Coreec7d440; code deployment75e5970b isSUCCESS
+on instanceca788724-9609-4630-8093-e61d4cc80c4d,
+actual image sha256:153a043e5e2874e00d731fb9c2c150942d912cf00b25c418f1d76983cc7b7c29.
 Dapr remains disabled/unadmitted. The first original source save timed out without
 acknowledgement because Railway denies the default libaio completion syscall.
 Its original source/plan/intent are preserved: never recreate or resend.
@@ -96,11 +95,19 @@ sha256:b704b8fa5a83f3db779eb5110c9cdd44faffed328fd02323d7b9f2240a7777d5. Superse
 owned image42431411318 is terminalCANCELLED with no active steps.
 Fresh rollout review confirms seven advertised pins, matching shared branch bases
 and unchanged245settings; one scoped Development push is acknowledged.
-Next observe75e5970b, verify its actual running image/package/settings and original
-failed inspection/AOF fingerprints, then inspect all original records via the
-explicit corrected-device operation before metadata/enrollment. No duplicate deploy,
-corrected-device live inspection or original-source metadata transition yet.
-No second source generation or original save request is authorized by that flow.
+Installed package,198critical settings/full245baseline and original fingerprints
+pass. Corrected-device inspection ran once after an unstarted mount preflight
+stopped; it still failed record/ETag verification. Original2048byte AOF hash unchanged,
+prior diagnostics archived intact,0owned processes and no storage engine errors.
+No save replay or recovered metadata ACK. Original save outcome remains unknown.
+
+An explicit unadmitted-generation retirement operator is prepared: preserve every
+source byte and failed journal, retain unknown save outcome, then archive local
+plan state under its original operation UUID. It permits no admitted source or
+business writes. Linux qualification pending; not invoked live. After that separate
+lifecycle operation earns both receipts, prepare a distinct fresh teaching plan/IDs
+and one new creation using the qualified RandomAccess runtime. Do not reset/reseed
+the old generation or fabricate its acknowledgement. Enrollment/HTTP remain open.
 
 Coverage remains119local/91live HTTP/28functional browser. The six public readers
 remain accepted on their original sealed cohorts: native3/2, Mongo5/4, repeat0new,
