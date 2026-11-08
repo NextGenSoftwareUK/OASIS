@@ -32,6 +32,11 @@
     "TRON_SCOPED_DEVELOPMENT_PARENT.patch": {
       "bytes": 72519,
       "sha256": "95f02af140e2e89d7564f2be3c5233a2a0711ee228877cdb806f0dc002d555c7"
+    },
+    "TRON_SCOPED_DEVELOPMENT_QUALIFICATION.patch": {
+      "bytes": 22358,
+      "sha256": "6721472cf179519295927499762c04d31122fd1173d8439cef2313f3d5c35411",
+      "baseTree": "bbd3fae378cec8ebce55327a55837ed9595e92cb"
     }
   },
   "sourceFixtureSha256": "7f1c8fe3c35ef3c45ee31be6eaef72f34f8d10185a28e2177ace267822e89c02",
@@ -45,12 +50,51 @@
   "remaining": [
     "reader location and authenticated SDK3/2",
     "authenticated HTTP3/2,federation5/4,privacy,receipts,cleanup",
-    "scoped qualification workflow closure and exact candidate image",
+    "exact scoped cloud compilation/control runs and candidate image",
     "permitted Development integration and once-only cohort acceptance",
     "browser acceptance"
   ],
   "patchRoundTripVerified": true,
   "scopedCoreCommitObjectBase64": "dHJlZSBhNGNmNjY5ZWZlZTA0ZmEzYjZhODY5YTE1YTExMjk0MjMxYjY4OGQ2CnBhcmVudCA4MTg2MmIyNDUwYzFkNGJkMGYzZTg4NTM1MjNjMWIxM2I4YTI1N2QzCmF1dGhvciBEYXZpZCBFbGxhbXMgPGRhdmlkZWxsYW1zQGhvdG1haWwuY29tPiAxNzk0MTQ3MDcyIC0wNTAwCmNvbW1pdHRlciBEYXZpZCBFbGxhbXMgPGRhdmlkZWxsYW1zQGhvdG1haWwuY29tPiAxNzk0MTQ3MDcyIC0wNTAwCgpQcmVwYXJlIHNjb3BlZCBUUk9OIHF1ZXJ5LW9ubHkgYWRtaXNzaW9uIGZyb20gRGV2ZWxvcG1lbnQgYmFzZWxpbmUK",
   "publicationScope": "Runtime candidate remains unpublished; these review artifacts may be committed on the original task branch.",
-  "stage": "Runtime and unit-test patch draft; qualification tooling closure and scoped cloud proof remain open."
+  "stage": "Runtime and qualification-tooling snapshot prepared; exact scoped cloud compilation and candidate image remain unverified.",
+  "qualificationSourceTaskCommit": "84983a681ea430beebbfb20afbbb0c108d326e76",
+  "qualificationPaths": [
+    ".github/workflows/build-web4-image.yml",
+    ".github/workflows/qualify-owned-web4-mongo.yml",
+    ".github/workflows/qualify-tron-header-client.yml",
+    ".github/workflows/qualify-tron-header-web4.yml",
+    "Scripts/TestHosts/gomap_web4_mongo.py",
+    "Scripts/TestHosts/owned_docker_resources.py",
+    "Scripts/TestHosts/test_owned_web4_mongo.py"
+  ],
+  "qualificationTree": "c2385c4ad31c93fd1d52238f35036e2d94440d02",
+  "scopedSourceCommit": "beee2d25e79038ab0eb9f5ca2fd7f25e7364118f",
+  "scopedSourceCommitObjectBase64": "dHJlZSBjMjM4NWM0YWQzMWM5M2ZkMWQ1MjIzOGYzNTAzNmUyZDk0NDQwZDAyCnBhcmVudCA4OGMzNzhjMWUwOGVlMjcwMzY1Yjc2MGM5ZDNhYmMyOWI2MjlhMGY0CmF1dGhvciBEYXZpZCBFbGxhbXMgPGRhdmlkZWxsYW1zQGhvdG1haWwuY29tPiAxNzk0MTQ3NTk3IC0wNTAwCmNvbW1pdHRlciBEYXZpZCBFbGxhbXMgPGRhdmlkZWxsYW1zQGhvdG1haWwuY29tPiAxNzk0MTQ3NTk3IC0wNTAwCgpQcmVwYXJlIGlzb2xhdGVkIFRST04gcnVudGltZSBhbmQgY2xvdWQgcXVhbGlmaWNhdGlvbiBzbmFwc2hvdAo=",
+  "qualificationPatchRoundTripVerified": true,
+  "qualificationToolingClosureVerified": true,
+  "fullScopedParentPaths": [
+    ".github/workflows/build-web4-image.yml",
+    ".github/workflows/qualify-owned-web4-mongo.yml",
+    ".github/workflows/qualify-tron-header-client.yml",
+    ".github/workflows/qualify-tron-header-web4.yml",
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlTronHeaderHostedConfigurationTests.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlTronHeaderHttpTests.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/ReviewedPublicMongoHttpFixture.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReviewedNetworkReadSourceRegistration.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Compiler.cs",
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TRONOASIS/TronPublicHeaderMetadataSource.cs",
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/Fixtures/.gitattributes",
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/Fixtures/tron-public-header-source.json",
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests.csproj",
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/TronPublicHeaderMetadataTests.cs",
+    "Scripts/TestHosts/gomap_web4_mongo.py",
+    "Scripts/TestHosts/owned_docker_resources.py",
+    "Scripts/TestHosts/test_owned_web4_mongo.py"
+  ],
+  "baselineValidatorPreserved": true,
+  "baselineValidatorSha256": "2333122fa1b6f94c7196e1bdb387c00312ce7fb2712d1841c4b1d039d6f8d6ab"
 }

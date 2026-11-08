@@ -5068,3 +5068,17 @@ pending. This is qualification tooling only, no runtime/API behavior, image rebu
 source replay, private settings, local SDK/database/model download or new worktree.
 Next: incorporate only the small qualification closure into the scoped draft and
 verify the isolated source in cloud; native reader location remains pending once.
+
+Scoped TRON qualification draft now closes7tooling paths/20parent paths total,
+plus the one Core tariff file. Incremental QUALIFICATION.patch22358bytes
+independently replays over the13-path runtime tree to the recorded snapshot.
+Build-worker lease/walkthrough bytes match baseline. Baseline dependency validator
+already supports the used --require-gitlinks contract; optional task --ref
+enhancement reviewed and excluded. Full snapshot committed-pin validation passes
+using the current read-only --ref checker. Captured commit metadata makes both
+Core/source snapshots reproducible; no new branch/worktree/runtime environment.
+Shared extraction cloud controls42489179604 (startup) and42489179672 (ownership)
+passed; GOMap compatibility42489179711 remains running and must be followed to
+its real outcome/owned cleanup. No native TRON request or Development change.
+Next: publish immutable verification refs and run only the scoped controls with
+native SDK/HTTP switches off. Native/private reader location remains pending.
