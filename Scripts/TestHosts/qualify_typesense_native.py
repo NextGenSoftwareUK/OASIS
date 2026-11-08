@@ -104,6 +104,12 @@ def main():
             except urllib.error.URLError as error:
                 if not isinstance(error.reason, ConnectionRefusedError):
                     raise
+            except ConnectionResetError:
+                # Docker's published socket can accept before Typesense binds.
+                # Only startup health polling permits this transition; native
+                # document reads and CQL tests have no retry path.
+                state = owned('container', container)
+                assert state is not None and state['State']['Running'] and not state['State']['OOMKilled']
             if time.monotonic() >= deadline:
                 raise TimeoutError('Owned Typesense startup deadline exceeded.')
             time.sleep(1)

@@ -90,3 +90,39 @@ The native HTTPS fixture uses `TestCategory=TypesenseHostedCqlNative` and
 source is available. The existing loopback fixture and its WSL prerequisites
 remain separate. Development WEB4 rollout follows LocalFile and real
 Typesense qualification.
+
+## Cloud native qualification in progress — 8 November 2026
+
+The laptop WSL prerequisite does not prevent a separate owned cloud fixture.
+Source `c2ad4819dffb7e8bedaa375e60bb4eeb1d04c032` is running in
+[qualification42497546582](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42497546582).
+This is not a pass or hosted enrollment. It reuses the existing native test;
+there is no replay of an accepted native Typesense cohort because none was
+previously accepted. The cloud-only runner creates one explicitly disposable
+source after compilation, four canonical records (three live/one deleted), a
+missing control and an actual restricted documents:get/collections:get reader.
+It requires write denial, native3/2/0/paging/source preservation, then an actual
+stop/restart and the same unchanged-source read test. Label-checked container
+and named-volume cleanup must be observed before acceptance.
+
+Official image `typesense/typesense:29.0` is pinned to registry manifest digest
+`sha256:316b7e71c21f7e5e5caa8daa150e1b3f2be8c876081ee1f77bc2d92cd7f137d0`.
+This deliberately tests the existing29.0 adapter contract, not an unverified
+upgrade to the currently documented30.2. [Official container installation](https://typesense.org/docs/guide/install-typesense.html)
+and [29.0 key permissions](https://typesense.org/docs/29.0/api/api-keys.html)
+define the runtime and restricted-reader contracts.
+
+No service, runtime, build or database is installed on the recovery laptop.
+No priority-provider cohort, live setting or Development branch changes.
+TRON and the remaining priority browser gates retain live-rollout precedence.
+Manager/LINQ, HTTP/Mongo, hosted and browser Typesense gates remain open.
+
+First cloud run42497546582 failed at startup health before any seed or CQL read:
+Docker published its port before the native listener was ready, producing
+ConnectionResetError. Compilation succeeded. Original artifact13624431440,
+697bytes, SHA256b4b1920cd0f8877a2cd66b5c7b7947a1f0819c07eb4db09cd64a373debec982a
+was inspected in memory: native/restart false, final exit0, owned container and
+volume cleanup verified. The readiness boundary now permits that reset only
+while the exact labeled container is running without OOM, under the existing
+60-second startup deadline. Native document/CQL calls gain no retries. No
+accepted source was replayed; this failed fixture contained no seeded records.
