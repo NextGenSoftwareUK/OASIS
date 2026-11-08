@@ -14,10 +14,11 @@ namespace boundary controls pass locally; actual namespace transport passes
 unproved; no provider-count increase or accepted live-cohort replay.
 
 Private WEB4 registration/configuration/compiler controls pass30/30 atd4edadf7f
-(run42522330369). Shared admitted endpoint component checks pass3/3 at ec1f2baf1
-with Coree62ec44 (run42523100057): real adapter/manager/leaf projection, explicit
-usage receipt and rejection before native reads. Native HTTP replies/outbox are
-controlled in that component gate. No socket-level/native WEB4 HTTP claim follows.
+(run42522330369). Shared admitted endpoint checks now pass4/4 atc2a8b2391 with Coree62ec44
+(run42523748419), including real loopback Kestrel/MVC on the shipping controller.
+Owner3/2, private projection/receipts, anonymous401, forged-field400, foreign403
+and inactive503 pass. Native replies, validated identity and outbox are controlled;
+this is socket/MVC proof, not native-source WEB4 HTTP or production JWT/billing.
 
 Next: verify actual WEB4 HTTP against the native source through the same existing
 endpoint/admission path, then federation, durable live hosting/authorization and
@@ -330,3 +331,10 @@ Corrected admitted component run42523100057/job128860696806 at ec1f2baf144134cfb
 The admitted suite now adds one real loopback Kestrel/MVC test on the shipping CqlV1Controller route /api/data/query-cql. It reuses the actual private policy/SDK/adapter/V2 manager and checks anonymous401, unknown actorId field400 before native reads, owner full3/subset2 private leaf metadata, one query receipt per success, foreign403 before native reads and inactive503 without rows or fallback. Explicit channel completion synchronizes receipt observations; no request retry or timing-dependent polling. Expected suite4cases.
 
 Native responses, validated identity and usage outbox remain controlled fixtures; this is actual socket/MVC binding plus production query machinery, not production JWT/durable billing, native-source WEB4 HTTP, federation or live/browser proof. Cloud-only runner starts/stops the loopback app in try/finally; no native ship/database or local runtime is requested. Accepted native SDK/manager/restart evidence remains untouched. Only this test/workflow path triggers qualification, avoiding redundant older-provider builds.
+
+
+## Actual MVC wire gate accepted with controlled native source
+
+Run42523748419 atc2a8b239182c3a892147f8d5152349ee0d47c401/Coree62ec44 passed4/4 admitted cases, none skipped. Artifact13634666563 SHA256f93086e24486f777fc275f16118e1d99ad6f0a03df88f10f60616b4bef5df8ee inspected in memory; all outcomes and exact MVC method verified. The real ephemeral loopback server routes through shipping CqlV1Controller/CqlV1ResourceFilter/DTO binding/CqlV1Endpoint/private keyed policy/API compiler/actual SDK/adapter/V2 manager and leaf projection. Anonymous401 and forged actorId400 occur before source reads; owner3/2 returns exact private IDs/metadata with one measured query receipt each; separately validated foreign identity403 and inactive503 have no further native reads, manager creation or query receipts. No replacement rows on inactive source. Server always stopped/disposed; a completion channel synchronizes post-request receipts without retry.
+
+Native HTTP replies, identity validation and usage outbox remain explicit controlled fixtures. This result does not certify production JWT, durable billing, native-source WEB4 HTTP, public-source registration transport/hosting, federation, live or browser. Next native integration should reuse this MVC walkthrough with the owned synthetic source owner/catalogue and in-memory native session, preserve before/after restart API projection hashes and inspect exact cleanup. No public demo card/count increase yet.
