@@ -214,10 +214,12 @@ public sealed class UrbitContactBookQueryTests
         using var replies = new Replies(); using var http = new HttpClient(replies); using var client = Reader(http);
         using var source = new UrbitContactBookQuerySource(client, Owner, Connection, Cids);
         await source.ActivateQuerySourceAsync();
+        var selected = Ids.ToArray();
         var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(Provider).Result)
-            .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(Owner, ProviderType.MongoDBOASIS, Ids).Result).Result
-            .Where(row => Ids.Contains(row.Id)).Result;
-        var plan = CosmicQueryPlanner.Plan(query, Provider, new[] { new CosmicQueryTarget(Provider, source.QueryCapabilities) });
+            .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(Owner, ProviderType.MongoDBOASIS, selected).Result).Result
+            .Where(row => selected.Contains(row.Id));
+        Assert.IsFalse(query.IsError, query.Message);
+        var plan = CosmicQueryPlanner.Plan(query.Result, Provider, new[] { new CosmicQueryTarget(Provider, source.QueryCapabilities) });
         Assert.AreEqual("CQL_ACCESS_AUTHORITY_MISMATCH", plan.ErrorCode);
         Assert.AreEqual(1, replies.Calls);
     }
