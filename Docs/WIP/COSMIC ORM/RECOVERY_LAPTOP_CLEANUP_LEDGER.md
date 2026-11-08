@@ -5279,3 +5279,7 @@ Real .NET HTTP reader host added as source only on laptop. Cloud build4251406226
 
 ### 8 Nov — Strict HTTP host accepted / native transport prepared
 Strict cloud build42514186079 terminal success. Compact330byte artifact verified in memory; receipt updated with terminal conclusion. No extracted assemblies, SDKs or source cache on laptop. Future native HTTP scope restores existing cache paths directly, publishes only127.0.0.1on labeled internal Docker network, passes fake ship code through process memory/stdin, and requires network/container/pier removal. Scope not dispatched while native book42513709558 remains active. No cleanup claim for an unexecuted scope.
+
+
+### 8 Nov — Fixture LF/preflight correction and combined native run
+Failed book42513709558 artifact3884bytes verified in memory. Zero seed intents/ACKs; owned container/pier removed, clean exit0/no OOM. Local1072byte fixture reset to exact already-tracked LF content (only line endings differed), scoped eol pinned; pure JSON preflight and Python syntax pass. No runtime/download/env installation locally. Combined native page/real SDK HTTP42514925237 dispatched once after prior terminal result. It restores existing three caches and builds in isolated cloud runner; cleanup/acceptance pending.

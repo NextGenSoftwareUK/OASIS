@@ -64,8 +64,10 @@ sourcec0746d520/run42511819014,zero skips (23existing profile+20page controls).
 Hashed TRX/class/outcomes inspected. Native run42511918338 now passes actual
 Kelvin408, committed current source and contacts-agent initialization, exit0/no OOM,
 network none and exact owned container/pier cleanup; artifact inspected. Full
-Tlon/Landscape settings health is not proved. Three private pages remain unseeded;
-actual page reads/restart, CQL mapping and live acceptance remain open. Primary current agent/JSON codec pinned; no old-agent
+Tlon/Landscape settings health is not proved. First book attempt42513709558
+stopped before seeding on a CRLF/LF checksum mismatch; exact LF pin and preflight
+fixed. Combined native page/real HTTP run42514925237 is active; native reads/restart,
+CQL mapping and live acceptance remain unqualified. Primary current agent/JSON codec pinned; no old-agent
 fallback. Native ship, three-record CQL/mapping, manager/HTTP/live/browser remain
 open and no profile count increases. Pinned Vere4.6 and repository development
 pill passed real offline cold boot/run42507813675/source61c28aa5b. Hashed artifact
