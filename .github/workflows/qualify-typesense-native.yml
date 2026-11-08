@@ -1,0 +1,65 @@
+name: Qualify native Typesense CQL
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-typesense-native.yml'
+      - 'Scripts/TestHosts/qualify_typesense_native.py'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS/**'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests/TypesenseCqlNativeTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: typesense-native-qualification
+  cancel-in-progress: false
+
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          persist-credentials: false
+      - name: Read reviewed dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|OASIS_API_CORE_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/OASIS-API-Core
+          ref: ${{ steps.dependency.outputs.OASIS_API_CORE_COMMIT }}
+          path: OASIS/OASIS Architecture/NextGenSoftware.OASIS.API.Core
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Qualify native reads and unchanged source after actual restart
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner typesense-native-ci -Operation {
+            python3 -B Scripts/TestHosts/qualify_typesense_native.py
+            if ($LASTEXITCODE) { throw 'Native Typesense qualification failed' }
+          }
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: typesense-native-cql
+          path: OASIS/TestResults/TypesenseNativeCurrent/
+          retention-days: 7
