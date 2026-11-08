@@ -1,12 +1,6 @@
 name: Qualify pinned offline Urbit runtime
 
 on:
-  push:
-    branches: [work/cosmic-cql-ton-public]
-    paths:
-      - '.github/workflows/qualify-urbit-runtime.yml'
-      - 'Scripts/TestHosts/urbit-runtime-inputs.json'
-      - 'Scripts/TestHosts/qualify_urbit_runtime.py'
   workflow_dispatch:
 
 permissions:

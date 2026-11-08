@@ -5,6 +5,7 @@ import os
 from pathlib import Path, PurePosixPath
 import platform
 import re
+import signal
 import shutil
 import subprocess
 import tarfile
@@ -144,8 +145,24 @@ def main():
             assert not source.exists(), 'Do not overwrite dependency checkout.'
             environment = dict(os.environ, GIT_LFS_SKIP_SMUDGE='1', GIT_TERMINAL_PROMPT='0')
             def git(*args, timeout=120, check=True):
-                return subprocess.run(['git', '-c', 'lfs.transfer.maxretries=0', '-C', str(source), *args],
-                    env=environment, capture_output=True, text=True, timeout=timeout, check=check)
+                command = ['git', '-c', 'lfs.transfer.maxretries=0', '-C', str(source), *args]
+                with subprocess.Popen(command, env=environment, stdout=subprocess.PIPE,
+                                      stderr=subprocess.PIPE, text=True, start_new_session=True) as process:
+                    try:
+                        stdout, stderr = process.communicate(timeout=timeout)
+                    except subprocess.TimeoutExpired:
+                        # Git/LFS spawn helpers. Stop the entire owned session before
+                        # deleting its checkout, rather than only killing the parent.
+                        os.killpg(process.pid, signal.SIGKILL)
+                        stdout, stderr = process.communicate()
+                        report['timedOutGitOperation'] = list(args)
+                        report['timedOutGitDiagnostic'] = stderr[-8192:]
+                        report['ownedGitProcessGroupStopped'] = True
+                        raise
+                    result = subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
+                    if check:
+                        result.check_returncode()
+                    return result
             source.mkdir()
             git('init')
             git('remote', 'add', 'origin', inputs['kernelRepository'])
