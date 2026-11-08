@@ -32,6 +32,10 @@ this checkpoint does not claim completion of those designs.
   assemblies, then genuine combined API/native startup using only fresh owned
   cloud data. Full API image startup is still unproven. Task-image qualification
   never authorizes sweeping unrelated work into Development.
+  Cloud-only package/startup workflow is prepared: exact tag/digest/helper/model
+  hashes/six assemblies first, then optional real API/native startup with fresh
+  Mongo replica/accounting data on an internal network. Syntax/config invariants
+  pass; neither checker has been dispatched before full-image publication.
 
 [OpenVINO/runtime/build evidence](OPENVINO_CQL_MVP.md).
 [Artifact download contract](../../Devs/WEB4_NATIVE_ARTIFACT_DOWNLOADS.md).
