@@ -85,3 +85,5 @@ See [current deployment evidence](LOCALFILE_CQL_MVP.md) and
 ## Scoped Urbit Core candidate after accepted-history synchronization
 
 Coree62ec44cfc7d80640195ae4a6e538908015ea61e adds exactly one Urbit entry to the explicit read-query tariff admission set on existing work/cosmic-cql-decentraland. Core branch/remote equality checked before editing; unrelated ProviderType edits preserved. Parent gitlink and manifest move together using index sync. This advances the task candidate beyond the byte-identical05d049a history merge; it does not change the accepted Development baseline or any immutable candidate tag. Required admitted-component controls follow at this exact pin. No third8November Development push.
+
+Coree62ec44 admitted endpoint candidate now passes exact-source3/3 component controls42523100057 at parent ec1f2baf1; hashed artifact13634475851 inspected. Full private registration/compiler30/30 proof42522330369 is retained at its earlier source/pin. No new Development push or immutable candidate-tag change; native WEB4 HTTP/image/live gates remain open.

@@ -13,12 +13,17 @@ namespace boundary controls pass locally; actual namespace transport passes
 42519747804. WEB4 API admission, federation, live deployment and browser remain
 unproved; no provider-count increase or accepted live-cohort replay.
 
-Next: integrate through WEB4's existing CqlV1Endpoint/ICqlReadAccessPolicy and query-only
-profile lifecycle, with an explicit server-owned owner/connection/CID catalogue.
-Browser input cannot select the private source owner or grant record access.
-Urbit read-profile registration is a task-branch candidate under qualification;
-the deployed API is unchanged. Do not route this adapter as canonical storage.
-No alternate query engine or parallel API route is needed.
+Private WEB4 registration/configuration/compiler controls pass30/30 atd4edadf7f
+(run42522330369). Shared admitted endpoint component checks pass3/3 at ec1f2baf1
+with Coree62ec44 (run42523100057): real adapter/manager/leaf projection, explicit
+usage receipt and rejection before native reads. Native HTTP replies/outbox are
+controlled in that component gate. No socket-level/native WEB4 HTTP claim follows.
+
+Next: verify actual WEB4 HTTP against the native source through the same existing
+endpoint/admission path, then federation, durable live hosting/authorization and
+browser. Registration stays query-only with server-owned owner/connection/CIDs;
+browser input cannot grant record access. Deployed API and public presets are
+unchanged. Do not route this adapter as canonical storage.
 
 The dated sections below preserve earlier evidence and failures; this checkpoint
 and CURRENT_STATUS.md describe the current gate.
@@ -311,3 +316,10 @@ Component run42522703723/job128859479687 at2218710dd compiled but all3cases fail
 Core task branch was fetched/checked equal to its remote, then only Services/Subscriptions/PreparedStorageExecution.cs was changed: add Urbit to the explicit admitted unsigned query tariff set. Coree62ec44cfc7d80640195ae4a6e538908015ea61e pushed on the existing work/cosmic-cql-decentraland branch; unowned Enums/ProviderType.cs preserved. No tariff amount, actor/permission, measurement or canonical-write rule was relaxed. Parent gitlink and OASIS_API_CORE_COMMIT advance together via sync --source index, preserving unrelated dirty STAR/WEB6 heads. This is a task candidate, not a Development deployment or moved immutable image tag.
 
 Next exact-source component qualification must rerun all3admitted cases with this pinned Core. Redundant push workflows are suppressed only for this task commit; manual qualify-urbit-web4-admission remains mandatory and performs the dependency check and leased build. Full-API30-case run42522330369 still refers to its original frozen source and is followed independently.
+
+
+## WEB4 configuration and admitted endpoint component gates accepted
+
+Registration/compiler run42522330369/job128858331868 atd4edadf7f passed30/30, zero skips. Artifact13633868589 SHA2562bac5248c9090130b374cb31be0e6ab8debdc31117a555e1826036e4ee07c4f6 inspected in memory, exact class and all outcomes verified. It includes duplicate-policy refusal, permitted unordered compiler/planner admission and rejection of unsupported name sorting. Its frozen dependency predates the one-entry Core tariff correction; it does not certify a later deployment image.
+
+Corrected admitted component run42523100057/job128860696806 at ec1f2baf144134cfbd7c1e745f65ac0819e1f2b5 with Coree62ec44 passed3/3, zero skips. Artifact13634475851 SHA256e457a7cd9ffdef9f2fdf29ff1115205e91f1bbcc57c7925477420521619e1d1f inspected in memory. Same shipping CqlV1Endpoint + private keyed policy + API compiler + actual SDK/adapter + V2 HolonManager and leaf projection: owner full3/subset2 private/provenance/metadata and one measured query receipt per execution; foreign403 and unsupported sort400 before further native reads or manager creation, zero execution receipts. Controlled native responses and usage outbox only; no native WEB4 HTTP/federation/live/browser claim. Original0/3failure preserved, invariant fixed in Core rather than bypassing admission. Manifest/seven-Dockerfile/gitlink validation at ec1f2baf1 passes. Both existing task branches pushed; no Development or production rollout.

@@ -81,10 +81,12 @@ authenticated SDK/CQL/shared-manager full3/subset2 before/after restart, foreign
 anonymous403, unchanged source/private projection hashes and exact cleanup.
 Hashed artifact13632864832 inspected in memory. WEB4 API admission, federation,
 live deployment and browser remain open; no profile-count increase. [Detailed gates and receipts](URBIT_CQL_MVP.md).
-Private WEB4 registration candidate55795aa69 passed27controlled cases with full
-API build; no deployment. Source d4edadf7f adds private-policy conflict refusal and
-actual compiler/capability checks; sole30-case cloud qualification42522330369
-is active. Actual admitted HTTP/federation/live/browser remain open.
+Private WEB4 registration/compiler controls now pass30/30 atd4edadf7f/run42522330369.
+Admitted endpoint component checks pass3/3 at ec1f2baf1/run42523100057 with
+Coree62ec44's explicit Urbit query-tariff admission: owner3/2, measured receipts,
+foreign403 and unsupported sort400 without native reads. Native responses/outbox
+are controlled in that gate; actual native WEB4 HTTP/federation/live/browser and
+new deployment-image certification remain open. No deployment or count increase.
 Pinned Vere4.6 and repository development
 pill passed real offline cold boot/run42507813675/source61c28aa5b. Hashed artifact
 inspected: bootstrap complete, pier live, exit0/no OOM, network none, owned
