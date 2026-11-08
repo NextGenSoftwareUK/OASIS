@@ -26,9 +26,8 @@ to change queue order.
 Focus engineering/demo usability on this chain order before adding further
 providers. Existing MapLibre and four-provider plans/owners/settings remain
 prepared and unchanged behind the chain priorities; no unverified rollout or
-third8November Development push. GOMap WEB4 run42480693015 has completed success;
-close out its already-running artifact/cleanup evidence without starting another
-GOMap feature ahead of this queue. Remaining-provider popularity ranking must use
+third8November Development push. GOMap WEB4 run42480693015 and its cleanup
+evidence are closed. Further GOMap rollout follows the priority queue. Remaining-provider popularity ranking must use
 current adoption/use evidence when that queue is resumed, with dependencies and
 owner deferrals explicit.
 
@@ -231,8 +230,7 @@ command to the proven Node probe. Its dependency manifest validates. Qualify the
 corrected source and image before integration. The original publisher still pins
 the old candidate and must be updated after exact qualification. Then verify the
 deployed package, apply the reviewed settings once and seal the first owned
-HTTP/reuse/privacy/replica results. The four-provider candidate also carries the
-old health command and needs the corresponding correction before qualification.
+HTTP/reuse/privacy/replica results. The four-provider health correction is prepared below.
 [MapLibre details](MAPLIBRE_PUBLIC_SOURCE_STATUS.md).
 
 ## Four-provider follow-on batch
@@ -242,7 +240,16 @@ separate native CQL/WEB4 proofs. OpenVINO additionally passed actual production
 runtime packaging, real loopback service startup/inference and graceful shutdown.
 These scopes are not yet live-enrolled.
 
-Current **unpublished** scoped parent candidate:
+The offline health-corrected candidate is
+`550d67c1ec037473197a37ca0367b739efccb496`. It descends from corrected MapLibre
+`c6f25f76c9fb1ab2a61d83670791df4bb91b6c00` and carries the same Core pin.
+Compared with the original four-provider tree below, only the Docker health
+command, combined startup qualifier and its regression tests differ. All three
+blobs match the health-qualified source and the manifest validates. Exact
+combined source, image and startup qualification and the MapLibre live seal
+remain gates. The prepared publisher still pins the original candidate.
+
+Original **unpublished** scoped parent candidate:
 **d555cb2a7959a27a3af22dc3d45b06e25568bac7**, Core
 **e242de41c41dbd4a1a4089694a2d945cdff828b4**,69scoped paths. Existing candidate
 branch refs still point to MapLibre; publish only after accepted MapLibre and
