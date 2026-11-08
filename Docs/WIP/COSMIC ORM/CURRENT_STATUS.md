@@ -4,6 +4,16 @@ Updated 8 November 2026. Goal active and incomplete.
 
 ## Latest continuation
 
+OpenVINO exact9c20d06ad SDK16+1, CQL21+1 and WEB4 8+1 all pass, with
+native3/2, Mongo federation5/4 and privacy0/public3. Artifacts/TRX/owned
+model and Mongo cleanup verified; no local runtime/image/model install.
+Coverage128scoped local/96live HTTP/28live browser. Live OpenVINO package,
+enrollment, replicas and browser remain open. [Proof](OPENVINO_CQL_MVP.md).
+MapLibre candidate23532a6f exact62checks and image qualification pass;
+rollout is prepared for the next permitted Development integration window
+(9November local), with no third8November Development push. Civic card81
+is published and byte-verified; accepted Civic cohort remains sealed.
+
 Holonym settings7ba0af2c SUCCESS; all257settings/210critical/6helpers/
 12assemblies and accepted Self/SubQuery/Dapr proofs inspected. First HTTP
 cohortc41676eb isaccepted/sealed: native3/2, paired5/4, repeat0new/2existing,
