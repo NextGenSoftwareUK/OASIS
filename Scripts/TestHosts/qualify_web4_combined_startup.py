@@ -42,6 +42,21 @@ def configuration(root, mongo, marker):
         'PORT':'8080','ASPNETCORE_URLS':'http://+:8080'}
 
 
+def missing_resource(kind, name, returncode, stderr):
+    if returncode != 1:
+        return False
+    text = stderr.strip().lower()
+    name = name.lower()
+    if kind == 'network':
+        return text == 'error response from daemon: network ' + name + ' not found'
+    if kind == 'container':
+        return text in ['error: no such container: ' + name,
+                        'error response from daemon: no such container: ' + name]
+    if kind == 'volume':
+        return text == 'error response from daemon: get ' + name + ': no such volume'
+    raise ValueError('Unknown owned Docker resource kind.')
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--digest',required=True);o=p.parse_args()
     assert os.environ.get('GITHUB_ACTIONS')=='true' and re.fullmatch('sha256:[a-f0-9]{64}',o.digest)
@@ -56,7 +71,10 @@ def main():
         if check and r.returncode: raise RuntimeError('Owned startup operation failed: '+r.stderr[-1500:])
         return r
     def absent(kind,name):
-        r=docker(kind,'inspect',name,check=False);return r.returncode!=0 and 'no such' in r.stderr.lower()
+        r=docker(kind,'inspect',name,check=False)
+        if missing_resource(kind,name,r.returncode,r.stderr): return True
+        if r.returncode != 0: raise RuntimeError('Cannot prove owned '+kind+' absence: '+r.stderr[-1000:])
+        return False
     for kind,name in [('network',network),('container',mongo),('container',api)]: assert absent(kind,name)
     try:
         docker('network','create','--internal','--label','oasis.startup.owner='+marker,network);created.append(('network',network))

@@ -41,7 +41,12 @@ this checkpoint does not claim completion of those designs.
   cleanup requirements; the cloud workflow runs those controls before inspecting
   an image. Initial manual-only workflow request returned404/no job; source-only
   push registration411100785 corrected that. One new combined package/startup
-  request acknowledged204 after publication; original run discovery pending.
+  run42477476099 package stage passed: exact source/tag/digest, six assemblies,
+  helpers and all model hashes verified from artifact13616395658/851bytes.
+  Startup preflight failed before creating resources because the checker did
+  not recognize Docker network-not-found wording. Typed absence parser fixed;
+  controls now reject daemon/permission/wrong-name failures. Actual API/native
+  startup remains open; no full image rebuild required for this test-host fix.
 
 [OpenVINO/runtime/build evidence](OPENVINO_CQL_MVP.md).
 [Artifact download contract](../../Devs/WEB4_NATIVE_ARTIFACT_DOWNLOADS.md).
