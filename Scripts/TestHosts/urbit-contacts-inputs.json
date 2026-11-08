@@ -240,7 +240,8 @@
     "documentationSymlink": {
       "path": "desk/CLAUDE.md",
       "blobSha": "47dc3e3d863cfb5727b87d785d09abf9743c0a72",
-      "bytes": 9
+      "bytes": 9,
+      "target": "AGENTS.md"
     }
   },
   "qualification": {
