@@ -80,16 +80,25 @@ Exact candidate auto-triggered runs (no manual duplicate dispatch):
 - Attestation42451496266/job128641478981 SUCCESS:25controls+1real CQL3/2.
   Artifact13606136927/5460bytes/hash2391d24b236819d0d1dc7c42ad9376f0533894f692fbd79bc580be8f7d72ab86
   and both TRX counts/hashes verified in memory; no skips.
-- WEB4/Mongo42451496300/job128641478943 active.
-- Existing-source admission42451496310/job128641479004 active.
-Observe those exact handles; do not redispatch them.
+- WEB4/Mongo42451496300/job128641478943 SUCCESS:8controls+1real HTTP case.
+  Artifact13605139355/4602bytes/hashf76a18960d261d96a00aa66261eaa7bd6927c5b5e8e2ec33a5a586cee9c04c35
+  verified in memory:3/2,5/4,private0/public3,9receipts and ownedDBabsent.
+- Admission42451496310/job128641479004 SUCCESS:25cases, no skips.
+  Artifact13605863152/4381bytes/hashb0fc86c5747837d714048d4ca0f54a8857dd1d714d3370afe8bb2a989e8410a9.
+All exact gates passed,60cases total/no skips; preserve original receipts.
 
-After all three qualified receipts exist, invoke guarded dispatch-holonym-image.py
-once. It checks current candidate ref, exact receipt sources and explicit638...-teaching
-tag. Prepared/syntax-checked only; no image requested yet. Do not use mutable tags.
-Then fresh seven-pin/full live baseline review and successful exact image are
-required before a second qualified Development batch, package inspection and
-four-setting/one-activation flow.
+**Observe image42451953369/job128642888031**, active Build and push.
+One exact request acknowledged, source638993968dfd9d43467d97f42d7931892df8c549,
+explicit638993968dfd9d43467d97f42d7931892df8c549-teaching tag/teachingSidecars:true.
+Do not dispatch again or use mutable tags. No Holonym deployment requested.
+
+Read-only review-holonym-rollout-prerequisites.py completed: seven advertised pins,
+full255settings unchanged, accepted baseline1fe29f38/916c62210/actuale2f01ef06f,
+Self/SubQuery/Dapr preserved. After imageSUCCESS, inspect source/digest/tag and
+retain holonym-image-qualified.json; guarded publish-holonym-development.py then
+rechecks live assumptions before one second qualified Development batch.
+Publisher prepared/syntax-checked only, not invoked. Next package/settings/
+activation operators must verify257candidate while preserving all accepted cohorts.
 
 Offline source owner5eda0cab-e29b-4b9a-969b-ad4001c0eace is fixed under
 HostedHolonymAttestationSourceCurrent, no native data creation. Prefixholonym-attestation-public,
