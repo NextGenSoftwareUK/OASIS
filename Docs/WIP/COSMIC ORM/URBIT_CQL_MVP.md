@@ -99,8 +99,8 @@ owned internal network and drop to the runner UID/GID, with no published ports.
 
 [Archived checkpoints, failures, pins and primary-source links](Archive/URBIT_CQL_MVP_HISTORY_2026-11-08.md)
 retain the full earlier record. Historical active/unqualified statements there
-are dated observations, not the current status. Archive snapshot SHA256:
-`8defb787c70febcd37662623a8c88bf4064da34ff8f9cdbaa7a7376d4e3d8c6d`.
+are dated observations, not the current status. Git archive blob SHA256 (LF):
+`3d2cdd98647c0bd2de96dcf17d714e3b4a4592564190d4d5a4502c04231e59c0`.
 
 [Current programme status](CURRENT_STATUS.md) ·
 [Recovery laptop cleanup ledger](RECOVERY_LAPTOP_CLEANUP_LEDGER.md) ·
