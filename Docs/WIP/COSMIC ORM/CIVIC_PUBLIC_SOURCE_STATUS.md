@@ -207,3 +207,37 @@ original protected response returned51ca9b77-38e5-4b20-9b26-33b932c8594c,
 freshly observedBUILDING on88c378c1e. Preserve original owner73eb/source plan;
 no hosted cohort, activation replay or native source write. Next: inspect
 this exact running settings package before one first HTTP acceptance flow.
+
+## Accepted live HTTP cohort — 8 November 2026
+
+Activation51ca9b77 SUCCESS on613e1281-4132-4446-a194-8100d332adec,
+actual imagesha256:73c657c1da04756f49f7528cd3f66e50b39da56c0544d03809ddbbd92955f03a.
+All259settings/212critical/6helpers/13assemblies and native/runtime/source
+proofs inspected; Civic enabled, accepted Holonym/Self/SubQuery/Dapr preserved.
+Original source owner73eb9868-650e-4fd5-9398-dc7e794861fb retained; source writes0.
+
+One first normal-client cohort owner18e405bd-89fe-4746-9934-998025d1f525 and
+foreign visitorc9535896-cd13-41af-a3e8-8cb6e55e4397 complete native3/2,
+Mongo federation5/4, initial2saves/repeat0new+2existing, matching private
+SQLite/Neo4j ID sets2/2, foreign private0/public3 and replica-private0. Existing
+PouchDB readiness visitor reused with its original credential journal; no new
+readiness actor. Original2version-one save ACKs/pending0 retained. No resumed
+flow, continuation, source write or accepted query/save replay.
+
+Offline audit seals exact logical/native IDs, network names, chain/genesis/
+contract, per-row reported canonical block/code provenance, ownership/version,
+first-observation snapshots, correlated save operations, federation/replica
+projection equality and independent privacy. Native blocks may advance between
+reads; private snapshots keep their first observation rather than being updated
+or compared against newer public names. Durable receipt is in
+HostedQueryAcceptance-CivicOASIS/cql-http-acceptance.acknowledged.json.
+
+CivicOASIS-client-http-flow.json: 36429bytes/SHA256d8a791c9b505ac0b0625241dd4ae7cd417cc31913140793be569fd3dab0bd96b.
+
+CivicOASIS-isolation-http.json: 6296bytes/SHA256edd79c032ca314fcd65c3c9f65643e425ec0a6aad31edd17eb5ec58c227a0172.
+
+CivicOASIS-native-http.json: 13223bytes/SHA256cd02313824aa10cb76db104c0f059ef6bd6af5670a349eaad8013c2ed4699884.
+
+Private record IDs bf051f2f-8411-84bb-9aaa-d5457d28130c, 71984641-5668-89ce-9b5f-6e63eb413b0b; original save operations 6b1fcc8f-386e-e72e-8a48-3b5b92aee453, b175c228-1f71-049c-ba92-2fe593f3a456.
+
+Coverage124scoped local/96liveHTTP/28browser. Website card81 publication next; browser remains open. Registry configuration is not personal verification, pass issuance, archival-state access, independent consensus or full ORM/identity certification. Preserve this accepted cohort.

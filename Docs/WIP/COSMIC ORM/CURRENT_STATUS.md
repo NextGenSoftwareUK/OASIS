@@ -12,27 +12,12 @@ source writes, continuation or replay. Website card80 published99791ff8; public2
 Git/SHA256c4e4012d5306b4f0baa4dbd8aa3a5ad1ad0f34a6a2b20d2a4175276e8aa110e5;
 browser remains open. [Proof](HOLONYM_PUBLIC_SOURCE_STATUS.md).
 
-Civic first cloud42452950450 passes27controlled+1296shared but native fails
-because the frozen state needs archive access. Original diagnostic retained;
-no more archived-state requests or alternate endpoint. Single current-finalized
-per-record reader now replaces the unsuitable archive contract. Corrected
-source4a56a62a2/Core46ac61c manifest validates; native42453281381 passes
-27controlled+1296shared+1native, artifact/counters verified in memory.
-WEB442453281168/job128646846608 passes8boundary+1realHTTP/Mongo;
-artifact/counters/privacy/9receipts and ownedDBabsence verified in memory.
-Civic scoped candidate88c378c1e/Core81862b2 published on existing candidate
-refs after accepted Holonym;15paths, no Development/settings change. Exact
-native42455252759/WEB442455252768/admission42455252725 all pass1358cases,
-no skips; artifacts inspected in memory. Exact teaching image42455727615 succeeds; tag/provenance/GHCRdigest06d39f6b
-verified. Fresh7pin/all257settings/accepted Holonym baseline checks pass; one
-Development push88c378c1e acknowledged, exact code50095dbf-e740-4847-8a27-2f8de45db1f1
-isSUCCESS; package257settings/210critical/6helpers/13assemblies inspected.
-Four Civic settings applied once/no deployment with4ACKs; one activation
-51ca9b77-38e5-4b20-9b26-33b932c8594c isBUILDING. No new cohort or native
-source writes; inspect259settings/enabled source before first HTTP flow. Offline fixed
-owner73eb9868 and257/259settings plan prepared, not applied.
-Civic planner39controls+5publisher guards pass. No CQL count/admission increase. Existing
-personal-pass adapter preserved. [Review](CIVIC_PUBLIC_SOURCE_STATUS.md).
+Civic activation51ca9b77 SUCCESS; all259settings/212critical/6helpers/
+13assemblies and accepted-source/runtime proofs inspected. Original HTTP
+cohort18e405bd accepted/sealed: native3/2, paired5/4, repeat0new/2existing,
+foreignprivate0/public3, SQLite/Neo4j replicas2/2;2saveACKs/pending0. First
+snapshots retain their initial block observation. No source writes/replay.
+Website card81 publication next; browser remains open. [Proof](CIVIC_PUBLIC_SOURCE_STATUS.md).
 MapLibre style-data cloud42454653284 passes27controls+1native CQL3/2;
 5626byte artifact13607083066 hashes/counters verified in memory. WEB4/Core
 260d7c7 registration/8boundary+realHTTP cloud42455134733 passes8boundaries but paired native HTTP exceeds1MiB.
@@ -84,7 +69,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **124 scoped local, 95 live HTTP and 28 functional browser**.
+Coverage is **124 scoped local, 96 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -161,7 +146,7 @@ at104a0064, public268592byte HTML hash7908eabb8c70743d2e0cc1023484da2c7bb1e480d6
 matches exact Git. Do not replay its accepted cohort, settings or activation.
 [SubQuery proof](SUBQUERY_PUBLIC_SOURCE_STATUS.md).
 
-Coverage remains **124 scoped local / 95 live HTTP / 28 functional browser**.
+Coverage remains **124 scoped local / 96 live HTTP / 28 functional browser**.
 The accepted Dapr cohort and retired failed generation remain preserved; no
 source creation/save was replayed. [Dapr history](DAPR_CQL_MVP.md). While the
 code deployment waited for a build slot, a first anonymous Self Protocol RPC
