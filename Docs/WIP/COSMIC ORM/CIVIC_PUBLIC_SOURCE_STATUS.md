@@ -178,3 +178,17 @@ Exact teaching image42455727615/job128654204988 observedlive in Build and push; 
 Guarded Development publisher and13assembly package inspector/four-setting activation operator prepared only. Python AST and cached Node24 remote syntax pass. Code phase must retain accepted Holonym/Self/SubQuery/Dapr enabled while Civic disabled; settings phase checks original Civic owner73eb and259settings, with genesis/contract/namespace/ABI-string method bindings. No operator invoked; exact successful image proof remains required. Client snapshot logic retains its first observation when live blocks advance; future cohort audit must preserve that contract rather than compare old snapshot names against a newer native block.
 
 Website task9751d1e backs up conditional card81 with candidate88 C#link and immutable scope guide. Public main99791ff8 remains accepted Holonym card80; no Civic availability claim or browser acceptance. Exact Civic image42455727615/job128654204988 still observedBuild and push; no redispatch.
+
+Exact image42455727615/job128654204988 completesSUCCESS.175769byte logs
+inspected in memory; single explicit88c378c1e-teaching tag, exact provenance
+revision and teachingsidecars:true verified. GHCR digest
+sha256:06d39f6b61909c6bf93d74b6ccac9c751395578bd7245cc0c7a4fb8da39b2033;
+this is not the future Railway package digest. No image downloaded.
+
+Fresh7pin/257setting/shared refs/accepted7ba0baseline checks pass; one normal
+Development push88c378c1e acknowledged, settings unchanged. Exact code
+50095dbf-e740-4847-8a27-2f8de45db1f1 isQUEUED. Original protected after-push
+observation/compact handle retained; no source enrollment, activation or
+hosted cohort. Inspect this exact running package before four-setting rollout.
+This is the second8November Development push in configured America/Cancun;
+Self was7November23:59:58, Holonym8November00:57:44 per authoritative reflog.

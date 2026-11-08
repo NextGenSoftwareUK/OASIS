@@ -23,9 +23,10 @@ artifact/counters/privacy/9receipts and ownedDBabsence verified in memory.
 Civic scoped candidate88c378c1e/Core81862b2 published on existing candidate
 refs after accepted Holonym;15paths, no Development/settings change. Exact
 native42455252759/WEB442455252768/admission42455252725 all pass1358cases,
-no skips; artifacts inspected in memory. One exact teaching image42455727615/
-job128654204988 islive in Build and push. Prereview confirms7pins/all257
-settings/current accepted Holonym baseline unchanged; no Civic enrollment. Offline fixed
+no skips; artifacts inspected in memory. Exact teaching image42455727615 succeeds; tag/provenance/GHCRdigest06d39f6b
+verified. Fresh7pin/all257settings/accepted Holonym baseline checks pass; one
+Development push88c378c1e acknowledged, exact code50095dbf-e740-4847-8a27-2f8de45db1f1
+isQUEUED. Settings unchanged; inspect its running package before Civic enrollment. Offline fixed
 owner73eb9868 and257/259settings plan prepared, not applied.
 Civic planner39controls+5publisher guards pass. No CQL count/admission increase. Existing
 personal-pass adapter preserved. [Review](CIVIC_PUBLIC_SOURCE_STATUS.md).
@@ -36,7 +37,9 @@ Lossless full-JSON compaction retains all values/original body hash and adds
 compact JSON hash, without changing budgets. Corrected native42455893389 passes27+1; artifact13608085483 verified.
 WEB442455893404 passes8boundaries+1realHTTP/Mongo, zero skips; artifact
 13607493979 verified in memory, native3/2,paired5/4,private0/public3,9receipts
-and ownedDBabsence. MapLibre planner39controls+5guards pass; no hosted admission. Legacy map renderer
+and ownedDBabsence. MapLibre planner39controls+5guards pass; no hosted admission. Scoped MapLibre candidate23532a6f/Core681a1d0 prepared/unpublished,15paths;
+source blob equals qualified70f8f7c3c, manifest validates, waits for accepted
+Civic rollout. Legacy map renderer
 remains unqualified. [Scope](MAPLIBRE_PUBLIC_SOURCE_STATUS.md).
 No local build/runtime/image/database download.
 
