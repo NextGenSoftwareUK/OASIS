@@ -5021,3 +5021,20 @@ Three pure decision checks pass locally; restoration not yet executed.
 Exact-digest package+isolated startup qualification dispatched once204 using
 checker54e93d046 and tron_reader=true; independent of mutable alias, not live
 or native CQL acceptance. Native reader location remains pending once.
+
+TRON package/isolated API+OpenVINO startup VERIFIED42487868944, checker54e93d046,
+built sourcecb38e07b7/digeste2a83122. Artifact13620138373/4832bytes SHA256
+3bf90b4309b54feb5d85e0a82b394395d8a494e27aa38cc5639b7cf328aef873
+checked wholly in memory:7assemblies/TRON reader metadata, helper/model hashes,
+real API health, native owned model metadata, graceful0/no OOM, owned package/API/
+Mongo containers/internal network/anonymous volumes absent. Not a TRON native
+request/live acceptance. Captured-expression planner11/11 passed42487361965;
+artifact13619964037/2856bytes SHA256
+57c601dd690a98290b0fd254adfcd3be27f181d96d9d97b96192a31f8f7eea81.
+Alias incident CLOSED: restore42487987112, exact current guard and one manifest
+PUT, prior digestc9e3748b independently verified,0image-layer downloads/no service
+deployment. Artifact13619784846/678bytes SHA256
+da8cec98a2074bd053f55006b16e8edf1fc17610a15c916ba3ed0f6eee9b0160.
+Removed the owned one-time repair workflow mode/helper after success; retained
+compact journals/receipts and permanent empty-default root fix. No local images,
+ZIP/TRX extraction, SDK/runtime/build/database/model installation or new worktree.

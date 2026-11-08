@@ -34,6 +34,19 @@ owner deferrals explicit.
 
 ## Immediate work
 
+Latest package checkpoint: TRON task image cb38e07b7, immutable digest
+sha256:e2a83122b1992aae4f998a08423085264c32c0f7385812fc8efdb882f00b3abd,
+passed package plus isolated API/OpenVINO startup42487868944. Seven assemblies,
+authenticated TRON reader metadata, source/helper/model hashes, real API health,
+graceful exit0/no OOM and all owned containers/network/database volumes removed.
+This proves packaging/startup, not native TRON reads or live CQL acceptance.
+The empty extra-tag request unexpectedly applied GitHub's sandbox default; the
+prior alias digest c9e3748b was restored in42487987112 and verified from its
+hashed artifact. Build default is now empty; one-time repair mode removed.
+Expanded captured-metadata planner check54e93d046 passed11/11/no skips in
+42487361965. Existing private reader location and browser gates remain open;
+no Development/master promotion, live settings change or source replay.
+
 Priority TRON checkpoint: SDK38controlled and host configuration/admission11controlled
 cases passed. Core query-only admission is eebf39b; manifest/gitlink match. The
 native HTTP fixture uses exact height metadata and retained catalogue IDs.
@@ -319,3 +332,20 @@ Three pure decision checks pass locally; restoration not yet executed.
 Exact-digest package+isolated startup qualification dispatched once204 using
 checker54e93d046 and tron_reader=true; independent of mutable alias, not live
 or native CQL acceptance. Native reader location remains pending once.
+
+TRON package/isolated API+OpenVINO startup VERIFIED42487868944, checker54e93d046,
+built sourcecb38e07b7/digeste2a83122. Artifact13620138373/4832bytes SHA256
+3bf90b4309b54feb5d85e0a82b394395d8a494e27aa38cc5639b7cf328aef873
+checked wholly in memory:7assemblies/TRON reader metadata, helper/model hashes,
+real API health, native owned model metadata, graceful0/no OOM, owned package/API/
+Mongo containers/internal network/anonymous volumes absent. Not a TRON native
+request/live acceptance. Captured-expression planner11/11 passed42487361965;
+artifact13619964037/2856bytes SHA256
+57c601dd690a98290b0fd254adfcd3be27f181d96d9d97b96192a31f8f7eea81.
+Alias incident CLOSED: restore42487987112, exact current guard and one manifest
+PUT, prior digestc9e3748b independently verified,0image-layer downloads/no service
+deployment. Artifact13619784846/678bytes SHA256
+da8cec98a2074bd053f55006b16e8edf1fc17610a15c916ba3ed0f6eee9b0160.
+Removed the owned one-time repair workflow mode/helper after success; retained
+compact journals/receipts and permanent empty-default root fix. No local images,
+ZIP/TRX extraction, SDK/runtime/build/database/model installation or new worktree.
