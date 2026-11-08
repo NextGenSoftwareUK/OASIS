@@ -4979,8 +4979,8 @@ no Development promotion or live settings mutation. No local build/download.
 
 TRON task-image build dispatched once and acknowledged204 after confirming no
 active full WEB4 build. Exact sourcecb38e07b723ce3bc6800b09ce506b419be0f6ca1,
-run42485543286 is in progress. No extra image alias; immutable commit-teaching
-tag only. Source manifest/gitlink and all provider SDK publication checks passed.
+run42485543286 is in progress. Requested no extra alias; GitHub instead applied its sandbox input default.
+See the explicit alias reconciliation correction below. Source manifest/gitlink and all provider SDK publication checks passed.
 Three startup/absence controls passed; explicit TRON package-profile check is
 prepared. Reuse this original run, do not duplicate it on timeout. After success,
 verify exact published digest and run package+isolated startup with tron_reader
@@ -5004,3 +5004,20 @@ source IDs, before activation. This addresses an untested fixture expression
 shape without a native request. Existing11test count retained; new cloud
 qualification required. Original image42485543286 remains live; only test/docs
 change, so do not rebuild that image. No local build/download or source replay.
+
+Image publication VERIFIED sourcecb38e07b723ce3bc6800b09ce506b419be0f6ca1,
+run42485543286/job128746476064, digest
+sha256:e2a83122b1992aae4f998a08423085264c32c0f7385812fc8efdb882f00b3abd.
+Exact checkout/summary/tag/push log verified in memory. CORRECTION: the empty
+extra tag request was normalized to the workflow default sandbox, so the build
+also updated that registry alias; prior no-alias statements were incorrect.
+No service deployment requested. Prior sandbox publisher42441146593 at03:11UTC
+had digestc9e3748ba13de0e0134c7e0046e1b30840d27ab6cc56ff056fdf4f3b187530b5;
+all nine intervening full-build logs explicitly use unique teaching tags.
+Changed the workflow default to empty and prepared an incident-scoped cloud
+manifest-only restore: same build concurrency group, exact current digest
+guard, no image layers/download, refuse foreign updates, verify prior digest.
+Three pure decision checks pass locally; restoration not yet executed.
+Exact-digest package+isolated startup qualification dispatched once204 using
+checker54e93d046 and tron_reader=true; independent of mutable alias, not live
+or native CQL acceptance. Native reader location remains pending once.

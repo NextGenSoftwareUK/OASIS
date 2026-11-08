@@ -19,7 +19,12 @@ on:
         description: Extra image tag besides the commit SHA (leave empty for a commit-only build)
         required: false
         type: string
-        default: sandbox
+        default: ''
+      restore_tron_alias:
+        description: Restore only the verified prior sandbox alias after TRON build 42485543286
+        required: false
+        type: boolean
+        default: false
       teaching_sidecars:
         description: Include pinned GUN and OrbitDB teaching runtimes
         required: false
@@ -36,6 +41,7 @@ concurrency:
 
 jobs:
   image:
+    if: ${{ !inputs.restore_tron_alias }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -111,3 +117,22 @@ jobs:
           [[ "$IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
           printf 'Source commit: `%s`\n\nPublished image: `%s@%s`\n' \
             "$SOURCE_SHA" "$IMAGE_REPOSITORY" "$IMAGE_DIGEST" >> "$GITHUB_STEP_SUMMARY"
+
+  restore_tron_alias:
+    if: ${{ inputs.restore_tron_alias }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore the exact previously published alias without downloading images
+        env:
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 -B Scripts/TestHosts/restore_tron_image_alias.py
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: tron-image-alias-reconciliation
+          path: TestResults/TronImageAlias/*.json
+          if-no-files-found: warn
+          retention-days: 30
