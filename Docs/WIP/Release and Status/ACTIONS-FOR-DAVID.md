@@ -600,7 +600,7 @@ and hosted federation and replication verification.
 
 ## Recovery laptop: enable WSL2 host prerequisites — 2026-11-05
 
-- Status: pending device access/reboot window; no system changes performed.
+- Status (8 November2026): device access/reboot remains deferred and no system changes were performed. Typesense native/restart and manager/HTTP/Mongo qualification now pass on the existing owned cloud runner; enabling WSL is not a prerequisite for those accepted scopes. No new cloud account was created; local Linux use remains a separate optional device decision.
 - Context: Typesense's controlled CQL tests pass and native fixture compiles.
   This recovery laptop has no registered WSL distributions or standard Docker
   executable. System32/wsl.exe --status requires Virtual Machine Platform and
@@ -902,3 +902,12 @@ submission is requested or authorized by this entry.
 - Concrete action: configure a dedicated existing TronGrid reader API key privately on this laptop as the user environment setting `COSMIC_TRON_PUBLIC_READER_KEY`, or identify the existing private configuration location. Do not paste the key into chat or commit it. Tell the agent when ready. [Official TronGrid access setup](https://developers.tron.network/reference/select-network).
 - Reason: exact process/user/machine checks found no `COSMIC_TRON_PUBLIC_READER_KEY`, `TRONGRID_API_KEY` or `TRON_API_KEY`. Native authenticated qualification cannot be proved without legitimate reader access. Header reads do not require wallet funding or transaction signing; any broader write authority remains outside this request.
 - Agent work (8 November 2026): scoped source passed53controlled checks; exact scoped image/package and real API startup/owned cleanup verified in [current status](../COSMIC%20ORM/CURRENT_STATUS.md). No native TRON request or live enrollment has been made. Preserve the original cohort and separate recovered catalogue. Exact existing reader location remains pending; no local SDK/runtime install or failed anonymous endpoint replay.
+
+
+## Typesense owned Development teaching source — 8 November 2026
+
+- Status: deferred behind the priority-provider live queue; no new access question or account request now. Local/cloud native and manager/HTTP/Mongo scopes passed; live enrollment remains open.
+- Context: disposable cloud qualification42497834056/42498399586 verified real Typesense29.0 reads, unchanged-source restart, manager/HTTP5/4 and restricted-reader write denial. Those owned test runtimes/data were removed, so they are not a live WEB4 source.
+- Concrete owner step when this queue is reached: identify an existing owned reachable HTTPS Typesense service and make its restricted reader available privately. Grant only collections:get and documents:get on oasis_holons. If no teaching collection exists, identify authorized provisioning access separately so engineering can prepare three public roots, one deleted control and one absent ID under a declared actor. Never paste or commit keys. No new paid setup is assumed.
+- Reason: live WEB4 needs a durable authorized HTTPS native source; controlled cloud tests and compiled registration do not establish that access. Engineering owns bounded fixture preparation and native/live verification after access is available.
+- Evidence and exact remaining scope: [Typesense CQL MVP](../COSMIC%20ORM/TYPESENSE_CQL_MVP.md). Deployed settings use CQL_TYPESENSE_QUERY_ORIGIN and CQL_TYPESENSE_QUERY_API_KEY; preserve current provider decisions/cohorts.

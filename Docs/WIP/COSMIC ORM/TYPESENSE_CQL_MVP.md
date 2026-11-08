@@ -1,5 +1,40 @@
 # Typesense bounded CQL demo scope
 
+## Current manager/HTTP checkpoint — 8 November 2026
+
+[Run42498399586](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42498399586),
+job128785632985, sourceac71b92fb9d8d4a1078862eadf79523a826b500f passed1/1,
+zero skipped. Actual shared HolonManager captured ID predicates return5/4
+physical rows over real Typesense and Mongo; loopback HTTP returns the same
+counts and provenance. A third unrelated private Mongo control is excluded.
+Forged actor/unknown preset requests reject; inactive Typesense returns503
+without partial rows. Native Typesense document hashes remain unchanged.
+
+The reader is restricted to collection/document GETs; native write denial is
+verified before the test. Two selected private Mongo copies plus one unrelated
+private sentinel are fixture-only records. The test verified exact ownership,
+removed its previously absent database, and wrote its completion ACK. Typesense
+exited0/no OOM; exact owned Typesense container/data volume and Mongo container/
+anonymous volumes were confirmed absent. Six ownership guards also pass.
+Native-only/restart tests were not rerun in this new scope.
+
+Artifact13624825762,4127bytes, SHA256
+`2807f96459c39e82d5797fbb9ac8855de655511e5e030c9157cf033507bc24e6`.
+TRX SHA256
+`54d9a12b35666b63c21c167559c68eb4fe551dc3bfe79fe0dd0c14c3e0a3409e`.
+All nine artifact entries inspected in memory; compact receipt retained at
+LocalState/COSMIC/RecoveryLaptopResume20261107/typesense-mongo-qualified.json.
+No local runtime/image/database, live setting or Development deployment.
+
+Live HTTPS source access/enrollment and actual browser interaction remain open;
+normal visitor privacy/reuse and SQLite/Neo4j replicas must be verified there.
+This loopback teaching host is not the authenticated live WEB4 API. Full storage
+interfaces, content predicates, EF parity and HyperDrive remain unqualified.
+The existing Typesense profile gains stronger evidence; no additional unique
+profile or hosted/browser count is claimed. Priority live queue stays unchanged.
+Dated earlier manager/HTTP-open statements below are historical.
+
+
 ## Current native checkpoint — 8 November 2026
 
 Real pinned Typesense29.0 native reads and same-source restart are accepted.
@@ -157,3 +192,22 @@ volume cleanup verified. The readiness boundary now permits that reset only
 while the exact labeled container is running without OOM, under the existing
 60-second startup deadline. Native document/CQL calls gain no retries. No
 accepted source was replayed; this failed fixture contained no seeded records.
+
+## Manager/HTTP federation qualification started — 8 November 2026
+
+New scope sourceac71b92fb, run42498399586 confirmed in_progress. One explicitly
+separate disposable cloud fixture tests the real shared HolonManager and
+IdentityFederationApiHost with Typesense plus a native Mongo replica. It must
+prove manager and HTTP5/4 with both provider labels, unrelated private control
+exclusion, forged actor/unknown preset rejection and inactive-source503 with
+no partial rows. Before/after Typesense document hashes must match. The Mongo
+fixture holds two selected private copies plus one unrelated private control;
+that is test data, not a live visitor cohort. Exact owned database cleanup and
+both runtime/container/volume cleanup are required. Pending, not accepted.
+
+The native-only workflow is now manual so extending this new federation scope
+does not automatically rerun the accepted native/restart tests. The original
+native proof remains source2fa81ea8b/run42497834056. Existing Mongo lifecycle
+helper now admits a distinct typesense owner namespace; six pure cleanup guards
+pass locally. No local native process/database/install, production promotion,
+Development push, browser proof or live enrollment.

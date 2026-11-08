@@ -34,12 +34,21 @@ owner deferrals explicit.
 
 ## Immediate work
 
+Typesense manager/HTTP/Mongo gate now passes1/1/no skips at sourceac71b92fb,
+run42498399586. Actual manager and loopback HTTP5/4/provenance, forged/unknown
+rejection, inactive503/no partial data and unchanged native source verified.
+Owned database/container/volume cleanup and exit0/no OOM inspected in memory.
+Native/restart gate was not replayed. Live HTTPS source, authenticated visitor
+privacy/reuse/replicas and browser remain open, behind the priority queue.
+Existing scoped profile count unchanged. [Evidence](TYPESENSE_CQL_MVP.md).
+
+
 Typesense's previously unexecuted native gate is now accepted on the owned cloud
 runner: source2fa81ea8b, run42497834056, initial1/1 plus same-source restart1/1,
 zero skipped. Restricted reader write denial, native3/2/0/paging and source
 preservation passed; exact container/volume cleanup and exit0 verified. No
-local runtime/install or live enrollment. Manager/HTTP/Mongo/hosted/browser
-remain open; this native-only proof does not increase the129integration count.
+local runtime/install or live enrollment. The later manager/HTTP/Mongo checkpoint above supersedes that gate; hosted and
+browser remain open. No additional unique profile is counted.
 [Evidence and retained original startup failure](TYPESENSE_CQL_MVP.md).
 
 
