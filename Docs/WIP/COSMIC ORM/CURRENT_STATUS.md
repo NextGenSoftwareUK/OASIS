@@ -34,6 +34,15 @@ owner deferrals explicit.
 
 ## Immediate work
 
+Typesense's previously unexecuted native gate is now accepted on the owned cloud
+runner: source2fa81ea8b, run42497834056, initial1/1 plus same-source restart1/1,
+zero skipped. Restricted reader write denial, native3/2/0/paging and source
+preservation passed; exact container/volume cleanup and exit0 verified. No
+local runtime/install or live enrollment. Manager/HTTP/Mongo/hosted/browser
+remain open; this native-only proof does not increase the129integration count.
+[Evidence and retained original startup failure](TYPESENSE_CQL_MVP.md).
+
+
 TRON enrollment configuration tools passed46pure cloud tests with HTTP forbidden,
 and the Python public IDs match the actual .NET mapper in11passing controls
 (source63f25ae0f, runs42494318935/42494318990). No private baseline/candidate was

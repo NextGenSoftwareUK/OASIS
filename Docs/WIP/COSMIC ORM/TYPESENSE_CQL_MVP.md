@@ -1,5 +1,36 @@
 # Typesense bounded CQL demo scope
 
+## Current native checkpoint — 8 November 2026
+
+Real pinned Typesense29.0 native reads and same-source restart are accepted.
+[Run42497834056](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42497834056),
+job128783906994, source2fa81ea8b0bc1969d5e060f57b134bdc2998fcc6:
+1/1 initial native and1/1 post-restart, zero skipped. Both execute the existing
+C# provider and shared planner against actual Typesense document reads:
+full3/subset2/deleted+missing0/paging1, with all four native document hashes
+unchanged before/after. The actual reader has only documents:get and
+collections:get for oasis_holons; its attempted document create was denied.
+Four synthetic records were provisioned once before qualification; neither
+native test nor restart reseeded them. The final native process exited0 and
+exact owned container/named volume absence was verified.
+
+Artifact13624436951,3661bytes, SHA256
+`2929983f0dbf86d9190683a68b56221dc4373f4e1740d3a9d455a1d9710dfbdf`.
+Native TRX SHA256
+`71450c85e33e6ea6d47a1d8520e80a39253cbd7fe78197a8dc4900c1e6f631d7`;
+restart TRX SHA256
+`cf462564c680709c0e43b565f224ff2a69fe7fa3bf28a33ee09bb193d5804dc7`.
+Artifact inspected entirely in memory. Compact durable receipt:
+LocalState/COSMIC/RecoveryLaptopResume20261107/typesense-native-qualified.json.
+No local runtime/database/image, live settings or deployment was created.
+
+Next is manager/LINQ and HTTP/Mongo federation; hosted HTTPS admission and
+browser acceptance remain open. The broader scoped integration total is not
+increased for this native-only gate. Priority-provider live work still takes
+precedence. Dated earlier native-open statements below are historical and
+superseded by this checkpoint; the laptop WSL device state itself is unchanged.
+
+
 5 November 2026: provider build and 13 controlled tests pass, zero failed/skipped.
 Eight tests cover the new CQL/HTTP boundary; five are existing metadata checks.
 No native service, manager/LINQ, federation, hosted or browser acceptance yet.
