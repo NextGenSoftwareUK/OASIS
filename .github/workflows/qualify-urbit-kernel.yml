@@ -1,0 +1,39 @@
+name: Assemble pinned offline Urbit OS update source
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-urbit-kernel.yml'
+      - 'Scripts/TestHosts/qualify_urbit_kernel.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: urbit-kernel-source-assembly
+  cancel-in-progress: false
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Verify pinned OS source and all symlink targets
+        id: assembly
+        run: python3 -B Scripts/TestHosts/qualify_urbit_kernel.py
+      - uses: actions/cache/save@v4
+        if: steps.assembly.outputs.assembled == 'true'
+        with:
+          path: LocalState/COSMIC/CloudUrbitKernel408
+          key: urbit-kernel408-${{ hashFiles('Scripts/TestHosts/urbit-runtime-inputs.json', 'Scripts/TestHosts/qualify_urbit_kernel.py', 'Scripts/TestHosts/qualify_urbit_desk.py') }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: urbit-kernel-source
+          path: TestResults/UrbitKernelCurrent/*.json
+          retention-days: 7
