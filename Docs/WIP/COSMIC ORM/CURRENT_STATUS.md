@@ -82,7 +82,10 @@ settings, activation or source creation. No native source writes were needed.
 Website card78 is published at104a0064a9db43f28f62d206dcd0feaea038a696
 with immutable evidence082f7d367. Public HTML268592bytes/SHA256
 7908eabb8c70743d2e0cc1023484da2c7bb1e480d68dce26857ca6af4e383001
-matches exact Git bytes. Continue Self Protocol public-source review. Existing119client controls pass; browser gate
+matches exact Git bytes. Self Protocol network/genesis/transition identity and three hub-resolved
+registry-root observations qualified at one RPC-reported finalized canonical
+hash. Historical helper addresses differ and are retained as such. Implement
+the bounded CQL source next, preserving existing proof verification. Existing119client controls pass; browser gate
 remains open and must not bypass the existing URL-policy failure. Future
 image requests must pass the explicit commit-specific teaching tag.
 [Full proof and scope](SUBQUERY_PUBLIC_SOURCE_STATUS.md).

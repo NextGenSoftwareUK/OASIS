@@ -1,8 +1,8 @@
 # Self Protocol public CQL source qualification
 
-7 November 2026. Preliminary source/access review only. No CQL or hosted count
+7 November 2026. Native network/hub/registry-root protocol qualified; CQL implementation pending. No CQL or hosted count
 increase, provider modification, runtime installation or native business write.
-SubQuery's queued Development rollout remains the immediate priority.
+SubQuery live HTTP acceptance and card78 publication are complete; browser remains open.
 
 ## Existing implementation and primary contract
 
@@ -67,3 +67,58 @@ This is a prospective public registry scope; general identity verification,
 storage and full provider/ORM parity remain their separately tracked roadmap work.
 
 [Provider inventory](PROVIDER_CQL_AND_SANDBOX_STATUS.md) · [Active rollout](CURRENT_STATUS.md).
+
+## Native protocol qualification — 7 November
+
+One bounded journalled network batch returned HTTP200/21286bytes, SHA256
+193e91f535152b4e0503c3451c0778dae8388f32d08d6e8348353202f2887c2a.
+Reported chain42220 matches. Historic block0 hash
+`0x19ea3339d3c8cda97235bc8293240d5b9dadcdfbb5d4b0b90ee731cac1bd11c3`
+matches pinned [Celo client configuration](https://raw.githubusercontent.com/celo-org/celo-blockchain/b1b88599dae455ccc08a1084acea6ccdcb817612/params/config.go).
+The1797byte [Superchain registry](https://raw.githubusercontent.com/ethereum-optimism/superchain-registry/3273a28575300b76cf82f282d34c2221f81cbefd/superchain/configs/mainnet/celo.toml) independently binds transition
+block31056500 to
+`0x7586014e20c69b3fa7c9070baf1a7edd95833db57853126f32593b455da2e5c5`,
+which also matches the RPC. The transition anchor is not historic block0 genesis.
+
+RPC-reported finalized block `0x4e66733` / `0xe8e3a373b127a614a3df09c20e23085c2881804d05aea7f3122039f08f7586ec` is the common
+observation point. Hub code and all registry calls used EIP1898 blockHash plus
+requireCanonical:true, with no number/latest substitution or retry. This binds
+reported RPC observations; it does not independently establish consensus.
+
+The pinned helper's listed registry constants differ from all three actual
+hub-resolved addresses. The first local observer stopped on that comparison;
+its complete612byte response/status/hash remain preserved. Reconciliation read
+that same response without network replay. The documented registry(bytes32)
+lookup through the pinned hub is the binding contract; published constants
+were explicitly historical references. Existing proof verifier uses this same
+right-aligned32byte integer encoding. No new left-aligned encoding path added.
+
+| Attestation | Actual hub-resolved registry | Exact uint256 root at this block |
+|---|---|---|
+|1|`0x37f5cb8cb1f6b00aa768d8aa99f1a9289802a968`|`16467781073809921235718380216749760257063201868872900454449846404863196687156`|
+|3|`0x61473e587319297d197aa33072f2837515d1ca4a`|`15132602829901602832616170110205297154820203316036968499170345415260925905600`|
+|4|`0x238f83c641020ef9636694a846019fd2a105c4f0`|`17403457413196001059533281012865110387998358053288702523938180990850375925989`|
+
+One subsequent six-call batch verified nonempty registry code and all three
+mandatory getIdentityCommitmentMerkleRoot() ABI uint256 results at the same
+canonical hash: HTTP200/1350bytes, SHA256
+42b0414e1ed8e499b4c288b1ec9d4a375ad140a0fa054630b4277cbb12b094cf.
+Selectors7ef50298/4bf4dc7a computed using the already installed @noble/hashes
+Keccak implementation; no runtime/package install. No OFAC getter, personal
+document, wallet, proof submission, signing or transaction was involved.
+Raw/status persisted before parsing for every RPC batch. Compact source hashes,
+original responses and validated receipts remain under the existing recovery
+folder: self-protocol-{network-binding,hub-binding,registry-roots}.*.
+
+Next implementation invariant: a bounded CQL record identifies attestation and
+one explicitly reviewed finalized block hash; resolve registry through the hub
+and read its mandatory root at that same canonical hash. Include network, hub,
+registry, attestation, block and exact uint256 provenance. Fixed observation
+identity prevents moving roots/finalized cursors from silently changing a
+prepared snapshot's content. Validate chain/genesis and code; never trust a
+historical helper address instead of the actual binding. Preserve existing
+verification classes and proof schemas. Unknown CQL IDs must fail before
+transport; one failed selected mandatory read must publish no partial rows.
+
+CQL/native3/2, WEB4/Mongo5/4, hosted deployment, reuse/privacy/replicas and browser
+remain unimplemented/unaccepted for this source. Provider counts stay unchanged.
