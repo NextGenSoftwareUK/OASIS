@@ -284,3 +284,14 @@ container absence; unknown errors cannot count as cleanup. Three existing
 startup/health/absence controls pass locally with no images/native resources.
 Next: one immutable task-image build, then exact package/isolated startup proof;
 no Development promotion or live settings mutation. No local build/download.
+
+TRON task-image build dispatched once and acknowledged204 after confirming no
+active full WEB4 build. Exact sourcecb38e07b723ce3bc6800b09ce506b419be0f6ca1,
+run42485543286 is in progress. No extra image alias; immutable commit-teaching
+tag only. Source manifest/gitlink and all provider SDK publication checks passed.
+Three startup/absence controls passed; explicit TRON package-profile check is
+prepared. Reuse this original run, do not duplicate it on timeout. After success,
+verify exact published digest and run package+isolated startup with tron_reader
+selected. This builds the task snapshot, not a deployment-scoped candidate or
+native/live acceptance. No Development change, live settings, reader request,
+local runtime/build/model/database/image download or new worktree/environment.
