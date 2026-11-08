@@ -1,5 +1,12 @@
 name: Qualify immutable full WEB4 package
 on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - .github/workflows/qualify-web4-full-package.yml
+      - Scripts/TestHosts/qualify_web4_full_package.py
+      - Scripts/TestHosts/qualify_web4_combined_startup.py
+      - Scripts/TestHosts/test_web4_combined_startup.py
   workflow_dispatch:
     inputs:
       source:
@@ -19,7 +26,18 @@ permissions:
   contents: read
   packages: read
 jobs:
+  controls:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Verify startup probe error contract without native images
+        run: python3 -B Scripts/TestHosts/test_web4_combined_startup.py
   package:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
