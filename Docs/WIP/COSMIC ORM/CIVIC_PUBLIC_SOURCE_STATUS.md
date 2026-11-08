@@ -73,3 +73,31 @@ and project XML reviewed; compilation/acceptance still pending. No coverage
 count increase, WEB4 admission, source owner, settings or hosted cohort.
 
 Tasksourcee8fdfc00fd379e06f4efb99fe316e3c94b37b5c8 pushed on the original task branch; cloud42452950450/job128645866052 observed live. No manual duplicate dispatch; source remains unaccepted until controlled/shared/native gates pass.
+
+## First native failure and source-contract correction
+
+Cloud42452950450 compiles, passes all27controlled and1296shared cases, but
+native activation fails at historical eth_getCode; no CQL rows accepted.
+A separate bounded protocol diagnostic retained HTTP200/474bytes;
+byte count/hash are in civic-polygon-code-contract-diagnostic.observed.json.
+The original hash-bound historical code/call replies report unavailable
+historical state; numeric archive access explicitly requires a personal token.
+No further requests for that archived state or alternate endpoint are allowed.
+
+Root invariant: the anonymous endpoint supports current state; freezing an
+old state into a durable demo requires archive access it does not grant.
+The single Civic source contract now reads each record at its RPC-reported
+current finalized block, verifies its canonical header, and binds code and
+getNetwork to that exact hash with requireCanonical. Block number/hash are
+retained per row; there is no shared-block, frozen-snapshot, archive, identity
+verification or independent-consensus claim. Stable source IDs bind owner,
+provider and native network ID, with no block in the identity namespace.
+Expected network names remain explicitly reviewed and must match. This is
+one code path, not a retry or fallback. Controlled identity/ABI failures remain
+mandatory; six calls per observation, whole-catalogue preflight/no partial rows.
+
+WEB4 explicit owner registration, read compiler allowlist,8boundary cases and
+real shared Mongo/HTTP fixture are prepared. Core query-only read-tariff entry
+46ac61c2abb80c4e3e3c6431f940a758691dcb78 pushed on the original Core task branch;
+parent gitlink and manifest advance together. Source correction and WEB4
+qualification must pass before any local count or hosted enrollment increase.

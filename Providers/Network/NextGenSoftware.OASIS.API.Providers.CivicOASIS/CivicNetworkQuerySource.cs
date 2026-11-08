@@ -20,17 +20,15 @@ using PType = NextGenSoftware.OASIS.API.Core.Enums.ProviderType;
 namespace NextGenSoftware.OASIS.API.Providers.CivicOASIS;
 
 /// <summary>
-/// Public network names at one reviewed, RPC-reported finalized Polygon block.
+/// Public network names at each record's RPC-reported finalized Polygon block.
 /// Network configuration observations do not verify a person or a Civic Pass.
 /// </summary>
 public sealed class CivicNetworkQuerySource : KeyValueStorageProviderBase,
     ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
 {
     public const string GenesisHash = "0xa9c28ce2141b56c474f1dc504bee9b01eb1bd7d1a507580d5519d4437a97de1b";
-    public const string BlockNumber = "0x5c7349f";
-    public const string BlockHash = "0x63e481ab0ed2431ffa2c986b662b35480f69d46d43e847ea54b8cfd7b9dbf7af";
     public const string GatewayToken = "0xf65b6396df6b7e2d8a6270e3ab6c7bb08baef22e";
-    private const string Source = "civic/polygon/network/" + BlockHash;
+    private const string Source = "civic/polygon/network";
     private readonly NetworkBackend backend;
     private readonly BoundedPublicKeyValueQuery query;
 
@@ -48,7 +46,7 @@ public sealed class CivicNetworkQuerySource : KeyValueStorageProviderBase,
         this.backend = backend;
         ProviderType = new EnumValue<PType>(QueryProviderType);
         ProviderName = QueryProviderType.ToString();
-        ProviderDescription = "Public Civic network names at a reviewed Polygon block";
+        ProviderDescription = "Public Civic network names at per-record finalized Polygon blocks";
         ProviderCategory = new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.Identity);
         query = new(QueryProviderType, backend.ReadAsync, maximumConcurrentReads: 3,
             admittedRecordIds: backend.RecordIds);
@@ -92,7 +90,6 @@ public sealed class CivicNetworkQuerySource : KeyValueStorageProviderBase,
     private sealed class NetworkBackend : IKeyValueBackend, IDisposable
     {
         private static readonly Uri Endpoint = new("https://polygon-bor-rpc.publicnode.com/");
-        private static readonly ReviewedEvmReadClient.Block At = new(BlockNumber, BlockHash);
         private readonly Guid owner;
         private readonly Dictionary<Guid, int> networks;
         private readonly ReviewedEvmReadClient client;
@@ -116,21 +113,22 @@ public sealed class CivicNetworkQuerySource : KeyValueStorageProviderBase,
             if (!networks.TryGetValue(id, out var network))
                 throw new InvalidDataException("The ID is outside the configured Civic network catalogue.");
             await client.VerifyChainAsync(Endpoint, "0x89", GenesisHash, token);
-            await client.VerifyCanonicalBlockAsync(Endpoint, At, token);
-            var gatewayCode = await client.ReadDeployedCodeAsync(Endpoint, GatewayToken, At, token);
+            var at = await client.ReadFinalizedBlockAsync(Endpoint, token);
+            await client.VerifyCanonicalBlockAsync(Endpoint, at, token);
+            var gatewayCode = await client.ReadDeployedCodeAsync(Endpoint, GatewayToken, at, token);
             var key = network.ToString(CultureInfo.InvariantCulture);
             var networkName = await client.ReadAbiStringAsync(Endpoint, GatewayToken,
-                "0x95ea5717" + network.ToString("x64", CultureInfo.InvariantCulture), At, 128, token);
+                "0x95ea5717" + network.ToString("x64", CultureInfo.InvariantCulture), at, 128, token);
             if (networkName != ReviewedNetworkName(network))
                 throw new InvalidDataException("The network name differs from the reviewed public catalogue.");
             var fields = new Dictionary<string, object>
             {
-                ["name"] = "Civic network " + key + " at " + BlockNumber,
+                ["name"] = "Civic network " + key + " at " + at.Number,
                 ["CivicNetworkId"] = key,
                 ["CivicChainId"] = "137",
                 ["CivicGenesisHash"] = GenesisHash,
-                ["CivicBlockNumber"] = BlockNumber,
-                ["CivicBlockHash"] = BlockHash,
+                ["CivicBlockNumber"] = at.Number,
+                ["CivicBlockHash"] = at.Hash,
                 ["CivicGatewayToken"] = GatewayToken,
                 ["CivicNetworkName"] = networkName,
                 ["CivicGatewayCodeSha256"] = CodeHash(gatewayCode)

@@ -20,6 +20,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CivicOASIS.UnitTests;
 [TestClass]
 public class CivicNetworkQueryTests
 {
+    private const string FixtureBlockNumber = "0x5c7349f";
+    private const string FixtureBlockHash = "0x63e481ab0ed2431ffa2c986b662b35480f69d46d43e847ea54b8cfd7b9dbf7af";
     private const ProviderType Provider = ProviderType.CivicOASIS;
     private static readonly Guid Owner = Guid.Parse("8dbbf7bc-8a31-4a35-8796-621f17cb5e39");
     private static readonly int[] Networks = { 1, 4, 10 };
@@ -33,7 +35,7 @@ public class CivicNetworkQueryTests
         Assert.IsFalse((await source.ActivateQuerySourceAsync()).IsError);
         Check(await Read(source, Ids), Ids);
         Check(await Read(source, Ids.Take(2).ToArray()), Ids.Take(2).ToArray());
-        Assert.AreEqual(30, replies.Requests, "Five mandatory calls per observation; no retry or personal-token query.");
+        Assert.AreEqual(36, replies.Requests, "Six mandatory calls per observation; no retry or personal-token query.");
         var before = replies.Requests;
         foreach (var selection in new[] { new[] { Guid.NewGuid() }, new[] { Ids[0], Guid.NewGuid() } })
         {
@@ -72,7 +74,7 @@ public class CivicNetworkQueryTests
         var result = await source.ActivateQuerySourceAsync();
         Assert.IsTrue(result.IsError, fault); Assert.IsFalse(source.IsProviderActivated);
         Assert.AreEqual("CQL_SOURCE_UNAVAILABLE", result.ErrorCode);
-        Assert.IsTrue(replies.Requests <= 5, "No retry or read past the failed mandatory stage.");
+        Assert.IsTrue(replies.Requests <= 6, "No retry or read past the failed mandatory stage.");
     }
 
     [TestMethod]
@@ -84,7 +86,7 @@ public class CivicNetworkQueryTests
         replies.FailNetwork = 4;
         var result = await Read(source, Ids);
         Assert.IsTrue(result.IsError); Assert.IsNull(result.Result);
-        Assert.AreEqual(20, replies.Requests);
+        Assert.AreEqual(24, replies.Requests);
     }
 
     [TestMethod]
@@ -138,7 +140,8 @@ public class CivicNetworkQueryTests
         foreach (var row in result.Result)
         {
             Assert.IsTrue(row.IsPublic && row.IsActive && row.CreatedByAvatarId == Owner && !row.Children.Any());
-            Assert.AreEqual(CivicNetworkQuerySource.BlockHash, row.MetaData["CivicBlockHash"].ToString());
+            Assert.IsTrue(System.Text.RegularExpressions.Regex.IsMatch(row.MetaData["CivicBlockHash"].ToString(), "^0x[0-9a-f]{64}$"));
+            Assert.IsTrue(System.Text.RegularExpressions.Regex.IsMatch(row.MetaData["CivicBlockNumber"].ToString(), "^0x[1-9a-f][0-9a-f]*$"));
             Assert.AreEqual(CivicNetworkQuerySource.GenesisHash, row.MetaData["CivicGenesisHash"].ToString());
             Assert.AreEqual(CivicNetworkQuerySource.GatewayToken, row.MetaData["CivicGatewayToken"].ToString());
             var key = int.Parse(row.MetaData["CivicNetworkId"].ToString(), CultureInfo.InvariantCulture);
@@ -168,14 +171,15 @@ public class CivicNetworkQueryTests
             else if (method == "eth_getBlockByNumber")
             {
                 var genesis = parameters[0].GetString() == "0x0";
-                Assert.AreEqual(genesis ? "0x0" : CivicNetworkQuerySource.BlockNumber, parameters[0].GetString());
-                result = new { number = genesis ? "0x0" : Fault == "wrong-block-number" ? "0x1" : CivicNetworkQuerySource.BlockNumber,
+                var finalized = parameters[0].GetString() == "finalized";
+                Assert.AreEqual(genesis ? "0x0" : finalized ? "finalized" : FixtureBlockNumber, parameters[0].GetString());
+                result = new { number = genesis ? "0x0" : !finalized && Fault == "wrong-block-number" ? "0x1" : FixtureBlockNumber,
                     hash = genesis ? Fault == "wrong-genesis" ? "0x" + new string('1', 64) : CivicNetworkQuerySource.GenesisHash
-                        : Fault == "wrong-block-hash" ? "0x" + new string('1', 64) : CivicNetworkQuerySource.BlockHash };
+                        : !finalized && Fault == "wrong-block-hash" ? "0x" + new string('1', 64) : FixtureBlockHash };
             }
             else
             {
-                Assert.AreEqual(CivicNetworkQuerySource.BlockHash, parameters[1].GetProperty("blockHash").GetString());
+                Assert.AreEqual(FixtureBlockHash, parameters[1].GetProperty("blockHash").GetString());
                 Assert.IsTrue(parameters[1].GetProperty("requireCanonical").GetBoolean());
                 if (method == "eth_getCode")
                 {
