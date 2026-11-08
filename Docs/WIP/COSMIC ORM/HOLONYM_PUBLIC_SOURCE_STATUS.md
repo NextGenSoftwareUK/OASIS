@@ -83,3 +83,25 @@ holonym-current-attestation-readiness.* and holonym-exact-attestation-readiness.
 Redirects/proxies/retries disabled; reads only, no SDK installation. These are
 source readiness observations, not CQL3/2, independent on-chain confirmation,
 manager/HTTP/federation, hosted replication/reuse or browser acceptance.
+
+## Exact-ID CQL implementation awaiting cloud qualification
+
+HolonymAttestationQuerySource adds a current Sign-index read representation;
+legacy Nethereum SBT methods remain unchanged. It preflights the complete ID
+catalogue, reads only the fixed native exact-ID route, binds record/schema/
+network/attester and payload types, then uses Nethereum7.0 ABI decode plus exact
+re-encoding. Allocation-safe dynamic string/array framing checked first; UTF-8
+literal and all unsigned values retained without guessed identity meanings.
+Observed null revokeTimestamp is preserved, not changed to zero; a reported
+revocation requires its timestamp. Moving index maintenance fields excluded.
+No listing fallback, writes, scans, callbacks or private document operations.
+
+Cloud workflow qualify-holonym-attestation.yml requires25controlled cases
+(23new exact-ID/protocol/ABI/privacy-boundary checks plus2legacy controls),
+then1real current-index CQL3/2 case with no skips. Full uint256 values, short
+biometric string, allocation bombs, malformed offsets/padding/trailing bytes,
+source mismatches, partial errors and stable snapshot metadata covered.
+Nethereum ABI7.0.0 API contract read from the already cached NuGet README and
+pinned package repository revisiona7aadf5cc89478dd91ef406a8780647acd484925;
+no package installed. This implementation is not yet compiled or accepted.
+No WEB4/Core read tariff, hosted admission, deployment or count increase.
