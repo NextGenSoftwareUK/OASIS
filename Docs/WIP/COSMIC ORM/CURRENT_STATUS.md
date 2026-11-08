@@ -63,34 +63,40 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-SubQuery settings activation **eb09ea25-e7c0-4650-abc3-6d1419ee3794**
-succeeded for source `9fd968a7b40d2decb389f7a2a5c7f75874b11153`,
-Core `06df0885c398e0b16749565852d12a9d499288d2`.
-Exact package inspection verifies253settings/206critical, enabled reader,
-six helpers, SDK/native hashes and preserved accepted Dapr acknowledgement.
-Actual Railway image is
-`sha256:510762ee57c752a5fd213ca11578eda8ac172a59e20b6d7bdc9138c3d9bff945`,
-instance `1f32e8f1-4853-48e4-bc0a-d4f52493704e`.
+Self Protocol scoped candidate **916c62210a1eb51fa23353bccfca3024750f452b**,
+Core **25a296e986f35fe118f30e7489c655151d57e97e**, is pushed to the existing
+work/cosmic-teaching-release-candidate branches. Development remains9fd968a7b.
+Only16reviewed paths differ; unrelated HostedBasicSqlQueryReader and dirty
+checkout changes are excluded. Seven pins/manifest verified. No deployment.
 
-Original owner51c28fc4 passed native3/2, federation5/4, first2saves,
-repeat0new/2existing, exact SQLite/Neo4j replicas2/2, foreign private0/public3.
-Durable acceptance receipt is sealed. Initial evidence-directory failure's
-HTTP outcome is unknown and preserved; root fix32bc5e677 passes32controls.
-Explicit original-owner continuation completed; do not rerun acceptance,
-settings, activation or source creation. No native source writes were needed.
+Task sourcef5c4826c5 passed26controls,1296shared checks and actual native CQL3/2
+on42446401193; WEB4/Mongo42446401228 passed8boundary+1real HTTP case with
+native3/2,paired5/4,foreign private0/public3,9receipts and databaseAbsent:true.
+Both artifacts inspected/hash verified in memory. These are not hosted proofs.
 
-Website card78 is published at104a0064a9db43f28f62d206dcd0feaea038a696
-with immutable evidence082f7d367. Public HTML268592bytes/SHA256
-7908eabb8c70743d2e0cc1023484da2c7bb1e480d68dce26857ca6af4e383001
-matches exact Git bytes. Self Protocol network/genesis/transition identity and three hub-resolved
-registry-root observations qualified at one RPC-reported finalized canonical
-hash. Historical helper addresses differ and are retained as such. Bounded CQL source now passes actual native3/2 plus26controlled and1296shared
-checks (cloud42446401193). WEB4/Mongo HTTP qualification42446401228 remains
-active; inspect the same run, do not redispatch it. Existing proof verification
-is preserved. No Self Protocol deployment/settings/live acceptance yet. Existing119client controls pass; browser gate
-remains open and must not bypass the existing URL-policy failure. Future
-image requests must pass the explicit commit-specific teaching tag.
-[Full proof and scope](SUBQUERY_PUBLIC_SOURCE_STATUS.md).
+Observe these exact candidate runs; do not redispatch:
+- Registry/shared/native42446975238/job128627863798.
+- WEB4/Mongo42446977425/job128627870278.
+- Existing-source admission42446952053/job128627789633 (original push run).
+Redundant manual admission42446979977 was cancelled and is terminalCANCELLED.
+Preserve its cancellation history; no source/runtime claim from that run.
+
+After all exact receipts pass, run the guarded private dispatch-self-protocol-image.py.
+It requires all three exact qualified receipts and uses the explicit916...-teaching
+tag, preventing the workflow's sandbox-tag default. It has not been invoked.
+Only after image qualification/fresh baseline/pins may the scoped Development
+batch advance, followed by code package inspection, four settings and one activation.
+Offline ownerc7efecf1/source plan and protected253baseline/255candidate are fixed;
+no native source writes or live settings changes. Website card79 is drafted only
+on task8a650c6; main/public remains104a0064. Browser URL-policy gate stays open.
+[Self Protocol proof and gates](SELF_PROTOCOL_PUBLIC_SOURCE_STATUS.md).
+
+SubQuery activationeb09ea25 is accepted/sealed:253settings/package verified,
+native3/2,paired5/4,reuse0new/2existing,privacy0/public3,replicas2/2. Original
+owner51c28fc4 and initial unretained observer failure preserved. Card78 is live
+at104a0064, public268592byte HTML hash7908eabb8c70743d2e0cc1023484da2c7bb1e480d68dce26857ca6af4e383001
+matches exact Git. Do not replay its accepted cohort, settings or activation.
+[SubQuery proof](SUBQUERY_PUBLIC_SOURCE_STATUS.md).
 
 Coverage remains **121 scoped local / 93 live HTTP / 28 functional browser**.
 The accepted Dapr cohort and retired failed generation remain preserved; no

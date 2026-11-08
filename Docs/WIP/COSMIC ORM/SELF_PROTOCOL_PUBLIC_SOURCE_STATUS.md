@@ -1,7 +1,7 @@
 # Self Protocol public CQL source qualification
 
-7 November 2026. Native network/hub/registry-root protocol qualified; CQL implementation pending. No CQL or hosted count
-increase, provider modification, runtime installation or native business write.
+7 November 2026. Native CQL and loopback WEB4/Mongo qualified; exact scoped candidate checks active.
+Hosted/browser gates remain open. No runtime installation or native business write.
 SubQuery live HTTP acceptance and card78 publication are complete; browser remains open.
 
 ## Existing implementation and primary contract
@@ -175,3 +175,35 @@ an optional publicIds field, then reconciliation compared serialized sorted
 review ordering; both corrected using the same descriptor and original snapshots,
 no owner regeneration or live request. Fresh live baseline/pins and exact scoped
 candidate qualification are still required before any rollout.
+
+## WEB4 task proof and exact release candidate
+
+Task sourcef5c4826c5 WEB4 cloud42446401228/job128626132649 succeeds:8controls
+and1real HTTP/Mongo case, no skips. Artifact13604156126/4642bytes SHA256
+0b4a39141d5d00d88ba07e4fc76212542844a72e3aea8ef22221cd56c9d58bc2
+and both TRX verified in memory. Actual native3/2,paired5/4,foreign private0/
+public3,2SDK saves,9receipts, owned databaseAbsent:true. This does not claim
+hosted snapshot reuse/replica/browser acceptance.
+
+Candidate916c62210a1eb51fa23353bccfca3024750f452b/Core25a296e986f35fe118f30e7489c655151d57e97e
+prepared directly from accepted9fd968a7b/Core06df088 Git objects and taskfe5afa673.
+16changed paths, only Self CQL closure/new shared methods/catalogue; unrelated
+HostedBasicSqlQueryReader, dirty enum, STAR/WEB6 and other branches excluded.
+Temporary indices removed in finally. Initial exact diff guard stopped because
+Git auto-abbreviated blob hashes differently; replaced with full blob identity
+comparison of old bases. No qualification weakened or checkout/environment.
+Existing candidate refs advanced normally after fresh base checks; manifest
+validation passes. No Development push or deployment requested.
+
+Exact registry42446975238/job128627863798 and WEB442446977425/job128627870278
+were dispatched once. Admission already triggered by candidate push42446952053/
+job128627789633. A redundant manual admission42446979977 was dispatched before
+recognizing that trigger; cancellation202 acknowledged and terminalCANCELLED
+observed. Retain original push admission, no duplicate restart. Automatic
+SubQuery native/WEB4 candidate regressions also run on their existing triggers.
+
+Private dispatch-self-protocol-image.py is syntax-checked, not invoked. It
+requires all three exact success receipts and matches current candidate ref,
+then requests one explicit commit-specific teaching tag (no mutable sandbox tag).
+Website8a650c6 backs up conditional card79 on the original website task branch;
+main104a0064/public remains unchanged. Promote card79 only after hosted acceptance.
