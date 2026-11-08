@@ -1,6 +1,6 @@
 # COSMIC ORM / CQL current status
 
-Updated 7 November 2026. Goal active and incomplete.
+Updated 8 November 2026. Goal active and incomplete.
 
 ## Current phase
 
@@ -32,7 +32,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
   source values/ETags verified. Dapr HTTP cohort is sealed; browser remains open.
   The original failed generation is separately retired with its unknown save
   outcome and original files preserved. Never replay that generation's save.
-- Website C:/Source/Web4Site, branch work/cosmic-cql, published104a0064 (SubQuery card78; earlier accepted cards retained).
+- Website C:/Source/Web4Site, branch work/cosmic-cql, publishedfc2714b5 (Self Protocol card79; earlier accepted cards retained).
 - Dedicated Railway key cosmic-cql-recovery-laptop-20261107 was created on
   this laptop for mounted-source inspection. Its eventual revocation is in
   the old-laptop cleanup ledger. Private key remains outside Git.
@@ -94,13 +94,16 @@ Self original owner2826f75b/foreign16769240 passed live native3/2,paired5/4,
 first2saves,repeat0new/2existing,private0/public3 and exact SQLite/Neo4j2/2.
 Durable acceptance sealed from original reports/twoACKs/empty pending registry;
 no query/session/save replay. Reused PouchDB readiness actor. Browser still open.
-Publish card79 with the new immutable acceptance evidence; verify public HTML
-against exact Git bytes. Then continue Holonym's scoped candidate/rollout.
+Card79 is published on website task/mainfc2714b50fb032c8c8e0c3e7dbb9006ce039b883
+with immutable parent acceptance892a215ec. Public270083byte HTML hash
+4f9bade880ef8c24bfbdb8007a2fb9dbf9f3baa437bb5183ebf18547837aec80 matches exact Git.
+Continue Holonym's scoped candidate/rollout from this accepted916c62210/Core25a296e
+baseline. Preserve the current255setting snapshot and existing candidate branches.
 Do not repeat any accepted Self/SubQuery/Dapr cohort or source operation.
 
 Offline owner/source plan and protected253baseline/255candidate are fixed;
-no native source writes. Website card79 currently drafted on task8a650c6;
-main/public remains104a0064 until this newly accepted card is published. Browser URL-policy gate stays open.
+no native source writes. Website card79 task/main/public isfc2714b5; static publication verified,
+functional browser gate remains separate. Browser URL-policy gate stays open.
 [Self Protocol proof and gates](SELF_PROTOCOL_PUBLIC_SOURCE_STATUS.md).
 Activation guard activate-self-protocol-settings.py is prepared/syntax checked only.
 Holonym current Sign source now passes25controls+1real CQL3/2 on source25d8f3a03,

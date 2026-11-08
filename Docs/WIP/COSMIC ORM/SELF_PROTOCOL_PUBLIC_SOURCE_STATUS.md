@@ -1,6 +1,7 @@
 # Self Protocol public CQL source qualification
 
-7 November 2026. Native CQL, loopback WEB4/Mongo and exact image qualified; settings activation building.
+7 November 2026. Native CQL, live Development HTTP/reuse/privacy/replicas and card79 accepted.
+Functional browser remains open.
 Hosted/browser gates remain open. No runtime installation or native business write.
 SubQuery live HTTP acceptance and card78 publication are complete; browser remains open.
 
@@ -257,3 +258,5 @@ Original protected sessions, journals and cql-http-acceptance.acknowledged.json
 are under HostedQueryAcceptance-SelfProtocolOASIS. Never rerun --prepare or
 replace these originals to regenerate evidence. Scope122local/94HTTP/28browser.
 Card79 may now be published with this immutable proof and explicit browser gap.
+
+Card79 published atomically to website task/mainfc2714b50fb032c8c8e0c3e7dbb9006ce039b883 after fresh refs/ancestry checks. Immutable acceptance link892a215ec, C# source916c62210. Public HTML HTTP200/270083bytes/SHA2564f9bade880ef8c24bfbdb8007a2fb9dbf9f3baa437bb5183ebf18547837aec80 matches exact Git bytes, observed in memory only. Existing119client controls cover unchanged client logic; publication changes HTML wording/link only. Browser interaction remains unverified; no policy bypass or repeated accepted flow.
