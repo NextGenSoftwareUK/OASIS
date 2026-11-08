@@ -86,9 +86,9 @@ def main(on_initialized=None, http_transport=False, fixture_loader=None):
         assert state['Labels'].get(label) == owner and state['Internal'] is True
         return state
 
-    def http_command(command):
+    def http_command(command, native_web4_input=False):
         assert http_transport and inspect_network() is not None
-        return client_command(inspect(), owner, label, network, command)
+        return client_command(inspect(), owner, label, network, command, native_web4_input=native_web4_input)
 
     def ready(predicate, seconds=120):
         deadline = time.monotonic() + seconds

@@ -9,7 +9,7 @@ from qualify_urbit_contacts_install import main
 from urbit_conn import thread
 
 
-def native_http(context, phase):
+def native_http(context, phase, web4_reader=None):
     prefix = context['prefix']
     code_expression = '(slag 1 (scow %p .^(@p %j /(scot %p our.bowl)/code/(scot %da now.bowl)/(scot %p our.bowl))))'
 
@@ -51,6 +51,8 @@ def native_http(context, phase):
     assert proof['managerForeignPrivateCount'] == 0
     assert re.fullmatch('[0-9a-f]{64}', proof['privateCqlProjectionSha256'])
     (context['out'] / (phase + '-http.json')).write_text(json.dumps(proof, indent=2))
+    if web4_reader is not None:
+        proof.update(web4_reader(context, phase, code))
     return proof
 
 

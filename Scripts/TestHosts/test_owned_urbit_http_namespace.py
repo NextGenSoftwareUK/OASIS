@@ -18,15 +18,22 @@ class OwnedNamespaceTests(unittest.TestCase):
             'NetworkSettings': {'Networks': {self.network: {}}, 'Ports': {}},
         }
 
-    def command(self, state):
-        with patch('os.getuid', return_value=1001, create=True), patch('os.getgid', return_value=1002, create=True):
-            return client_command(state, self.owner, self.label, self.network, ['/frozen/dotnet', '/frozen/reader.dll'])
+    def command(self, state, native_web4_input=False):
+        with patch('os.getuid', return_value=1001, create=True), patch('os.getgid', return_value=1002, create=True), patch('os.path.expanduser', return_value='/home/runner'):
+            return client_command(state, self.owner, self.label, self.network, ['/frozen/dotnet', '/frozen/reader.dll'], native_web4_input=native_web4_input)
 
     def test_owned_client_drops_to_runner_and_enters_only_network(self):
         command = self.command(self.state)
         self.assertEqual(command, ['sudo', '-n', 'nsenter', '--target', '1234', '--net',
             '--setuid', '1001', '--setgid', '1002', '--', '/usr/bin/env',
-            'GITHUB_ACTIONS=true', '/frozen/dotnet', '/frozen/reader.dll'])
+            'GITHUB_ACTIONS=true', 'HOME=/home/runner', 'DOTNET_CLI_HOME=/home/runner',
+            'DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1', 'DOTNET_NOLOGO=1', '/frozen/dotnet', '/frozen/reader.dll'])
+
+    def test_native_input_preserves_only_the_named_private_field(self):
+        command = self.command(self.state, native_web4_input=True)
+        self.assertEqual(command[2], '--preserve-env=COSMIC_URBIT_NATIVE_WEB4_INPUT')
+        self.assertNotIn('--preserve-env', command)
+        with self.assertRaises(AssertionError): self.command(self.state, native_web4_input='ALL')
 
     def test_wrong_owner_is_rejected(self):
         self.state['Config']['Labels'][self.label] = 'another-owner'

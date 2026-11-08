@@ -72,6 +72,12 @@ def qualify_book(context, http_reader=None):
         report['nativeProviderCqlQualified'] = True
         assert before['sharedManagerQualified'] is True and after['sharedManagerQualified'] is True
         report['nativeSharedManagerQualified'] = True
+        if 'nativeWeb4MvcQualified' in before or 'nativeWeb4MvcQualified' in after:
+            assert before['nativeWeb4MvcQualified'] is True and after['nativeWeb4MvcQualified'] is True
+            assert before['privateApiProjectionSha256'] == after['privateApiProjectionSha256']
+            report['nativeWeb4MvcQualified'] = True
+            report['nativeWeb4ApiProjectionPreservedAcrossRestart'] = True
+            report['controlledWeb4IdentityAndOutbox'] = True
     report['nativeBookAgentQualified'] = True
     report['nativeBookRestartVerified'] = True
     # Generic live/API flags stay false; native SDK/provider/manager flags require the explicit hook.
