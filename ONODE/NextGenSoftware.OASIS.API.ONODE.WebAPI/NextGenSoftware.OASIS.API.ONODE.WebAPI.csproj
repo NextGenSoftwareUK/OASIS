@@ -221,4 +221,5 @@
   </ItemGroup>
   <ItemGroup><ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.SubqueryOASIS/NextGenSoftware.OASIS.API.Providers.SubqueryOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Identity/NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS/NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Identity/NextGenSoftware.OASIS.API.Providers.HolonymOASIS/NextGenSoftware.OASIS.API.Providers.HolonymOASIS.csproj" /></ItemGroup>
 </Project>
