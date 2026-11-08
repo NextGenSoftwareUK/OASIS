@@ -81,10 +81,14 @@ One separate RandomAccess diagnostic HSET reached durable storage without engine
 errors. Its inventory stopped on Garnet's log-commits directory; a separately
 journalled recovery-only continuation read the same value, changed no AOF bytes
 and stopped its process. Original live source was not accessed by that diagnostic.
-Task-only Linux contract now explicitly selects supported RandomAccess (24controls
-pass); no runtime selection/fallback. Next qualify this exact device contract and
-implement an explicit corrected-device inspection transition that retains the old
-failed inspection, then verify all original records before metadata/enrollment.
+Task-only Linux contract now explicitly selects supported RandomAccess; no runtime
+selection/fallback. Explicit corrected-device inspection transition is implemented
+(25Node/11Python controls pass), preserving old diagnostic files and exact AOF.
+Scoped candidate226a61565 (Core unchanged) is published only to the candidate branch.
+Exact native42431408413/job128580914568 is running real WEB4 qualification;
+image42431411318/job128580919486 is building. No duplicate dispatch.
+Next qualify this complete candidate, deploy its scoped batch, then inspect all
+original records via the explicit corrected-device operation before metadata/enrollment.
 No RandomAccess shipping deployment or original-source metadata transition yet.
 No second source generation or original save request is authorized by that flow.
 
