@@ -5263,3 +5263,7 @@ Three verified cloud caches restored directly; no repeated source/bootstrap down
 
 ### 8 Nov — Book-page reader and native deadline
 Cloud43controlled tests/run42511819014 pass, artifact7529bytes/TRX inspected entirely in memory; compact receipt only. Native42511441973 timed out observing active rebuild; hashed failure artifact inspected, owned container/pier removed, exit137/OOMfalse retained without claiming clean native shutdown. Corrected deadline run42511918338 active, using existing three cloud caches. No laptop .NET/runtime/SDK/source checkout/database installed.
+
+
+### 8 Nov — Native contacts initialization accepted
+Cloud42511918338 passed actual Kelvin408/current contacts initialization. Exact owned container and pier removal, exit0/no OOM/network none verified in artifact13629794881/3888bytes (in-memory inspection); compact member-hash receipt retained. Existing three immutable source/runtime caches reused. No new source cohort, laptop runtime/SDK/database/source clone or image. Standalone install workflow manual-only after accepted milestone. Cancelled earlier run cleanup remains independently unproved; this success does not retroactively certify it.

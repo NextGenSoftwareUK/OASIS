@@ -1,13 +1,6 @@
 name: Qualify native current Urbit contacts installation
 
 on:
-  push:
-    branches: [work/cosmic-cql-ton-public]
-    paths:
-      - '.github/workflows/qualify-urbit-contacts-install.yml'
-      - 'Scripts/TestHosts/qualify_urbit_contacts_install.py'
-      - 'Scripts/TestHosts/urbit_conn.py'
-      - 'Scripts/TestHosts/test_urbit_conn.py'
   workflow_dispatch:
 
 permissions:
