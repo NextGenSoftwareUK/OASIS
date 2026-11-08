@@ -107,8 +107,10 @@ COPY Docker/oasis-dependency-versions.env /tmp/oasis-dependency-versions.env
 RUN apt-get update && apt-get install -y --no-install-recommends git \
     && . /tmp/oasis-dependency-versions.env \
     && git clone --no-checkout "${LIBRARIES_REPO}" /NextGenSoftware-Libraries \
+    && git -C /NextGenSoftware-Libraries fetch --no-tags origin "${LIBRARIES_COMMIT}" \
     && git -C /NextGenSoftware-Libraries checkout --detach "${LIBRARIES_COMMIT}" \
     && git clone --no-checkout "${HOLOCHAIN_REPO}" /holochain-client-csharp \
+    && git -C /holochain-client-csharp fetch --no-tags origin "${HOLOCHAIN_COMMIT}" \
     && git -C /holochain-client-csharp checkout --detach "${HOLOCHAIN_COMMIT}" \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 

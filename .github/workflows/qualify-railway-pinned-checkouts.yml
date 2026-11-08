@@ -1,0 +1,50 @@
+name: Qualify exact Railway dependency checkouts
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-railway-pinned-checkouts.yml'
+      - 'Docker/clone-pinned-oasis-dependencies.sh'
+      - 'Docker/oasis-dependency-versions.env'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pins:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Check manifest and clone script syntax
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py
+          sh -n Docker/clone-pinned-oasis-dependencies.sh
+      - name: Execute actual private dependency checkout contract
+        env:
+          GITHUB_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+        run: |
+          set -euo pipefail
+          sh Docker/clone-pinned-oasis-dependencies.sh "$PWD/Docker/oasis-dependency-versions.env"
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          python3 -B - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          pins=dict(line.split('=',1) for line in Path('Docker/oasis-dependency-versions.env').read_text().splitlines() if line and not line.startswith('#') and '=' in line)
+          paths={'OASIS_API_CORE_COMMIT':'OASIS Architecture/NextGenSoftware.OASIS.API.Core','OASIS_ONODE_CORE_COMMIT':'ONODE/NextGenSoftware.OASIS.API.ONODE.Core','ONODE_MANAGER_COMMIT':'ONODE/ONODEManager','STAR_ODK_COMMIT':'STAR ODK','OASIS_WEB6_COMMIT':'WEB6','OGENGINE_CLIENT_COMMIT':'OASIS Omniverse/OGEngineClient','HOLONET_ORM_COMMIT':'HoloNET-ORM'}
+          actual={key:subprocess.check_output(['git','-C',path,'rev-parse','HEAD'],text=True).strip() for key,path in paths.items()}
+          assert all(actual[key]==pins[key] for key in paths)
+          target=Path('TestResults/RailwayPinnedCheckouts');target.mkdir(parents=True)
+          (target/'acknowledged.json').write_text(json.dumps({'source':os.environ['GITHUB_SHA'],'exactHeads':actual,'allSevenPass':True,'liveDeployment':False},indent=2))
+          PY
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: railway-exact-pinned-checkouts
+          path: TestResults/RailwayPinnedCheckouts/
+          if-no-files-found: warn
+          retention-days: 30
