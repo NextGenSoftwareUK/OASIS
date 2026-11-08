@@ -38,8 +38,11 @@ Priority TRON checkpoint: SDK38controlled and host configuration/admission11cont
 cases passed. Core query-only admission is eebf39b; manifest/gitlink match. The
 native HTTP fixture uses exact height metadata and retained catalogue IDs.
 Source54877be94 failed compilation on the ambiguous File type; source2240cc116
-fixes it explicitly. Follow corrected run42484551166/job128743452146 (currently
-compiling), not the failed prior run. Its native stage is off. Four owned Mongo
+fixes it explicitly. Corrected run42484551166/job128743452146 PASSED11/11
+controlled cases and compiled the HTTP fixture; native stage was not selected.
+Artifact13618634457/2864bytes SHA256
+306bd94371a01ecddde976b6e403218d5ec6866966b4f1cce085d516d0d9eb37
+was verified in memory, including exact test class/report/no skips. Four owned Mongo
 cleanup guard tests passed locally and cloud42484388393. No TRON native/live
 acceptance or count increase is claimed. Existing private reader location is
 pending David's answer: local/ignored/commented DNA, WEB4 user secrets and dev
@@ -260,3 +263,15 @@ HTTP/Mongo setup; earlier accepted cohorts are unchanged. Preserve original
 failed runs; new corrected-source qualification required, no replay/restart of
 those old handles. Lightweight ownership cloud run42484388393 PASSED, covering
 all four controlled guard tests, with no real Docker/native operation.
+
+Corrected TRON HTTP fixture compiled and controlled host tests PASSED11/11
+with zero skipped, run42484551166/job128743452146/source2240cc116. Exact
+artifact13618634457/2864bytes SHA256
+306bd94371a01ecddde976b6e403218d5ec6866966b4f1cce085d516d0d9eb37
+verified in memory, exact boundary.trx/test class and counters asserted. Native
+HTTP/Mongo stage was not selected, not a native pass. Original failed source
+run42483969440 is terminalfailure with CS0117 verified directly, no replay.
+No archive/TRX extracted, no local build/runtime/database/model/image install.
+Next: authenticated native SDK+HTTP qualification when the existing private
+reader location is resolved; independent exact scoped package preparation may
+continue, preserving accepted cohorts and Development cadence.
