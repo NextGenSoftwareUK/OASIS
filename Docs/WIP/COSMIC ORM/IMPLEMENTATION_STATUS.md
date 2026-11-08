@@ -12,7 +12,7 @@ Updated 8 November 2026. The Development demo has accepted usable scopes; the fu
 | Full task image | Built/published; exact package and combined real API/OpenVINO startup, graceful shutdown and owned cloud cleanup passed | Exact scoped candidate qualification/image and live cohort acceptance; task image has not been deployed |
 | Priority demo scopes | Requested14-provider order in CURRENT_STATUS; most already have scoped live proofs | EOS/SOLID/TON/Hedera browser gaps and TRON authenticated native/live admission; other prepared batches retained, no third8November Development push |
 | GOMap | SDK28+1, CQL12+1 and WEB4 admission/HTTP8+1 pass; native3/2/Mongo5/4/privacy,2SDK saves9receipts, cloud cleanup | Hosting/use contract, live WEB4, replicas/browser and full Unity capabilities; queued behind priority chains |
-| TRON | Recovered authenticated header reader38/38controlled cloud cases on current Core; original separate catalogue preserved | Dedicated reader access pending; native CQL/shared manager/WEB4/live/browser not qualified; no anonymous retry |
+| TRON | Authenticated header reader38/38 plus WEB4 configuration/admission/preset planning11/11controlled cloud cases; original separate catalogue preserved | Existing private reader location pending; native CQL/shared manager/HTTP/live/browser not qualified; no anonymous retry |
 | Gelato | Current Gasless client34controlled cases | Native current API credentials deferred; CQL/live integration open |
 | Imports | Existing materialized import/replication and virtual/pointer/hybrid design roadmap | Universal virtual/lazy/hybrid implementation and full-payload migration |
 

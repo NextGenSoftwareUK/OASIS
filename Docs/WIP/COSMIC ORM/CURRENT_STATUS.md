@@ -227,3 +227,14 @@ requires explicit dispatch plus a private secret before any native work. Owned
 Mongo helper now accepts only gomap/tron profiles and preserves GOMap defaults;
 TRON uses distinct labels/container/report paths. Syntax/help/diff checks passed;
 C# compilation and native execution not yet verified. No local downloads/builds.
+
+TRON controlled WEB4 admission/preset planning VERIFIED11/11/no skips:
+sourcee4d9a64155ee645b026f3aaab792d455620bea3c/Coreeebf39b,
+run42483509747/job128740304255. Artifact13617664870/2781bytes SHA256
+27925a9e390543ddad4ca2ae8c4981303df5e405c686dcb5867010c33a953ff8
+inspected in memory; compact receipt only. Exact-height3/2 and Mongo pairs
+are planned, not natively executed. Updated source54877be94 HTTP fixture
+compilation is running42483969440/job128741706991; native selection is off.
+Native/live/browser/counts remain unchanged. C:41.07GiB free; this work has
+created no local builds/downloads/databases. Preserve unrelated disk activity
+and rejected cleanup scopes. Existing private credential location still pending.
