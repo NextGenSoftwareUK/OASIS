@@ -33,8 +33,9 @@ MapLibre style-data cloud42454653284 passes27controls+1native CQL3/2;
 5626byte artifact13607083066 hashes/counters verified in memory. WEB4/Core
 260d7c7 registration/8boundary+realHTTP cloud42455134733 passes8boundaries but paired native HTTP exceeds1MiB.
 Lossless full-JSON compaction retains all values/original body hash and adds
-compact JSON hash, without changing budgets. Corrected native42455893389/
-WEB442455893404 live on70f8f7c3c; no hosted admission. Legacy map renderer
+compact JSON hash, without changing budgets. Corrected native42455893389 passes27+1; artifact13608085483 verified.
+WEB442455893404 passes8boundaries and is starting its isolated MongoDB
+replica. MapLibre planner39controls+5guards pass; no hosted admission. Legacy map renderer
 remains unqualified. [Scope](MAPLIBRE_PUBLIC_SOURCE_STATUS.md).
 No local build/runtime/image/database download.
 

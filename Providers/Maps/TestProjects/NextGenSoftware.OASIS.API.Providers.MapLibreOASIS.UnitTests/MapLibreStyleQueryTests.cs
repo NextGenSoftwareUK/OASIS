@@ -104,6 +104,9 @@ public class MapLibreStyleQueryTests
     [TestMethod]
     public void InvalidCataloguesFailBeforeTransportConstruction()
     {
+        var configurationOwner = Guid.Parse("a5808c3e-7031-47e7-92de-48a659568f1b");
+        CollectionAssert.AreEqual(new[] { "b0f5d38d-cc44-8e60-93b2-e201be79f2b9", "025230b9-0731-8dca-8443-af589d04f4cd", "2f4cf1cc-ed1b-85e2-88fc-75930d4b582a" },
+            Keys.Select(x => MapLibreStyleQuerySource.LogicalId(configurationOwner, x).ToString()).ToArray());
         foreach (var keys in new[] { Array.Empty<string>(), new[] { "world", "world" }, new[] { "WORLD" },
                      new[] { "https://foreign.invalid/style.json" }, new[] { "world", "bright", "terrain", "world" } })
             Assert.ThrowsException<ArgumentException>(() => new MapLibreStyleQuerySource(Owner, keys));
