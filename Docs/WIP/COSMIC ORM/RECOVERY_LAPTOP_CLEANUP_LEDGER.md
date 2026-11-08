@@ -4724,3 +4724,5 @@ Web4Site26b3172 published atomically to existing work/cosmic-cql/main branches a
 8 November: Sandbox5508byte qualification archive inspected in memory;26+1TRX counters/hashes retained only as compact proof. Counter-template correction re-inspects same artifact without native replay. WEB4/Core source/test/workflow additions only; all compilation cloud-only. No runtime/image/database/download install, no denied cleanup retry.
 
 8 November: Sandbox fixed-catalogue39candidate+5publisher tests pass on cached Python -B/self-cleaning fixtures, no real settings mutation or permanent database. Cross-language fixture assertions added to existing source-only test; cloud compilation pending. No runtime/image/build download or rejected cleanup retry.
+
+8 November: corrected Sandbox5536byte artifact inspected wholly in memory; compact26+1/TRX/hash proof only. MapLibre package inspector Python/Node24 syntax check reuses cached Node, no new runtime/build/image/database. Failed Sandbox log discarded from memory after root cause recorded. Original WEB4/image jobs remain observed active; no duplicate dispatch/deployment or denied cleanup retry.
