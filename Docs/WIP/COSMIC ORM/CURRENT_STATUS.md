@@ -10,11 +10,14 @@ this checkpoint does not claim completion of those designs.
 - Full WEB4 image **42473514300** failed Waku503 on all3bounded attempts.
   No new full-image request is active. Never expand the retry count or blindly
   resubmit; no live deployment requested.
-- Native producer publication **42474138782** is active for exact source
-  **0210139b8b0efebc2a2043ff16dfcf42cfe2a480**. It verifies then publishes native-only
-  stages into the existing WEB4 image package. After exact digest ACKs, wire the
-  full-image consumer to those immutable artifacts. Consumer wiring/publication
-  acceptance remains pending; no alternate download fallback.
+- Native producer publication **42474138782** passed for exact source
+  **0210139b8b0efebc2a2043ff16dfcf42cfe2a480**; Waku/NATS native-only image
+  digests and hashed ACK artifacts verified. Same existing WEB4 registry package.
+- Final image source **8668fd2d040da71ba27e27e49fbed6792eb4e094** now consumes
+  those exact runtime digests.5local policy/graph checks pass; origin producer
+  stages are absent from final dependency closure. Cloud consumer verification
+  **42474992596** is active, proving actual image roles/versions/owned cleanup
+  before any full-image dispatch. No pull/download fallback or live mutation.
 - Native download policy and actual Waku/NATS stages passed **42473182023**;
   artifacts/checksums/native versions and4controlled policy cases verified.
 - All seven exact private dependency checkouts passed **42472240791**. The
