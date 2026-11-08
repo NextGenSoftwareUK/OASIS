@@ -498,3 +498,12 @@ Candidatef00eb9d480e20f1431b01840ed6b499312f5c0a9 passes42427310034/job128568251
 Exact current image42427405291 was observed pending behind earlier image42427033466; both handles retained, no redispatch. The earlier image targets81e4cd043 and cannot stand in forf00eb9d48. Sourceb9dfc2d6 diagnostic job42426870760 also completedSUCCESS; the earlier unexpected-frame failure remains retained, not asserted cured by repeat successes. The canonical response contract and redacted diagnostic stay in the candidate.
 
 Live Developmentc9/original source remains unchanged. Next complete exactf00 image, refresh advertised dependency refs/settings/branch bases, then perform scoped code rollout and protected original-source inspection. Counts unchanged.
+
+
+### Exact correction image passed; Development correction queued
+
+Image42427405291/job128570036330 isSUCCESS forf00eb9d480e20f1431b01840ed6b499312f5c0a9 with teaching_sidecars=true. Published digestsha256:9d76aa6ad62dc68f77250643b4e9ae802f1f143f19ab5ce7f727f9b52bd60ab1. Exact source/provenance checked in terminal logs. All7private pins refreshed as advertised; matching manifest/gitlinks and shared branch ancestry confirmed.245settings still exactly match protected pre-code baseline.
+
+Normal fast-forward publishedf00eb9d48 to Development; code deploymentdb3d1e66-7113-47bf-bc0c-1af52f9d73e4 observedQUEUED. Do not request another deployment. Dapr stays disabled and original unacknowledged source/intent unchanged. Active00eace0e/instance5693a2e5 remains current until newSUCCESS observed. Railway rebuilt image digest must be inspected independently of the GitHub digest.
+
+Next observe this exact code deployment; inspect actual package/mount/settings; run the original-source read-only inspection once, review its exact records/AOF proof, then explicitly acknowledge recovered metadata without a save. Enrollment and live HTTP/browser acceptance remain open; counts unchanged.

@@ -24,8 +24,9 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - PouchDB settings/live acceptance job2045b41e succeeded.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
-  Dapr correction candidatef00eb9d48/Coreec7d440 is published for exact
-  native/image qualification. Live Development remainsc9f6ac65d/Coreec7d440. Code deployment00eace0e isSUCCESS on instance5693a2e5; Dapr disabled.
+  Dapr correctionf00eb9d48/Coreec7d440 passed exact native/image gates and
+  is now on Development. Code deploymentdb3d1e66 isQUEUED; active instance
+  remainsc9f6ac65d until newSUCCESS verified. Code deployment00eace0e isSUCCESS on instance5693a2e5; Dapr disabled.
   First planned source save is unacknowledged: Railway denies native libaio
   io_getevents. Original source/intent retained; do not reseed or recreate.
 - Website C:/Source/Web4Site, branch work/cosmic-cql, publishedad7e9dd (six new cards71-76; earlier accepted cards retained).
@@ -59,7 +60,8 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-Live Development is c9f6ac65d/Coreec7d440, code00eace0e SUCCESS on instance5693a2e5,
+Development branch isf00eb9d48/Coreec7d440; code deploymentdb3d1e66 isQUEUED.
+Active code remainsc9f6ac65d,00eace0e SUCCESS on instance5693a2e5,
 actual image sha256:2777ec8ed780529cfb5c3937e9cdad50bedd54694e21910d49bdc572c50e5d2d.
 Dapr remains disabled/unadmitted. The first original source save timed out without
 acknowledgement because Railway denies the default libaio completion syscall.
@@ -69,7 +71,7 @@ Explicit Native/Uring full native qualification passes42425594492. The read-only
 inspector/recovered-outcome metadata fixture passes42426250057:1save,2recoveries,
 0inspection mutations, unchanged AOF and no fabricated save-response ACK. The
 corrected scoped candidatef00eb9d48 passes exact native qualification42427310034;
-its exact image42427405291 is pending.
+its exact image42427405291 passed; correction deploymentdb3d1e66 isQUEUED.
 No inspector or metadata transition has run against the original live source.
 Next qualify/deploy that candidate, then reconcile the same original source.
 No second source generation or original save request is authorized by that flow.
