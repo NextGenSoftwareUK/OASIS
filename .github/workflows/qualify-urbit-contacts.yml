@@ -1,13 +1,6 @@
 name: Qualify current Urbit contacts reader
 
 on:
-  push:
-    branches: [work/cosmic-cql-ton-public]
-    paths:
-      - '.github/workflows/qualify-urbit-contacts.yml'
-      - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.UrbitOASIS/UrbitContactsV1Client.cs'
-      - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.UrbitOASIS.UnitTests/UrbitContactsV1ClientTests.cs'
-      - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.UrbitOASIS.UnitTests/UrbitOASISProviderTests.cs'
   workflow_dispatch:
 
 permissions:

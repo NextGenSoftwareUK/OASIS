@@ -81,7 +81,7 @@ public sealed class UrbitContactBookQuerySource : KeyValueStorageProviderBase,
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
     {
-        OASISResult<IReadOnlyList<IHolon>> Error(string code, string message, Exception? error = null) =>
+        OASISResult<IReadOnlyList<IHolon>> Error(string? code, string? message, Exception? error = null) =>
             Failure<IReadOnlyList<IHolon>>(code, message, error);
         try
         {
@@ -146,7 +146,7 @@ public sealed class UrbitContactBookQuerySource : KeyValueStorageProviderBase,
         if (ownsClient) client.Dispose();
     }
 
-    private static OASISResult<T> Failure<T>(string code, string message, Exception? error = null) =>
+    private static OASISResult<T> Failure<T>(string? code, string? message, Exception? error = null) =>
         new() { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message, Exception = error };
 
     private sealed class ReadOnlyBackend : IKeyValueBackend

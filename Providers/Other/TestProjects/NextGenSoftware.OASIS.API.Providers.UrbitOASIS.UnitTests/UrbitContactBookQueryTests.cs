@@ -214,7 +214,11 @@ public sealed class UrbitContactBookQueryTests
         using var replies = new Replies(); using var http = new HttpClient(replies); using var client = Reader(http);
         using var source = new UrbitContactBookQuerySource(client, Owner, Connection, Cids);
         await source.ActivateQuerySourceAsync();
-        Assert.AreEqual("CQL_ACCESS_INVALID", (await source.ExecuteCosmicQueryAsync(Plan(source, Ids, authority: ProviderType.MongoDBOASIS))).ErrorCode);
+        var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(Provider).Result)
+            .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(Owner, ProviderType.MongoDBOASIS, Ids).Result).Result
+            .Where(row => Ids.Contains(row.Id)).Result;
+        var plan = CosmicQueryPlanner.Plan(query, Provider, new[] { new CosmicQueryTarget(Provider, source.QueryCapabilities) });
+        Assert.AreEqual("CQL_ACCESS_AUTHORITY_MISMATCH", plan.ErrorCode);
         Assert.AreEqual(1, replies.Calls);
     }
 }
