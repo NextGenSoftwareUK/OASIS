@@ -5353,3 +5353,5 @@ Infura retirement42535999021/job128900305746 accepted3/3, zero skipped, at122ae3
 Infura reader compiled in cloud42536290104. Registration/tariff controls42536469729 active at78607a087/Core64a691b. Existing workflow and pinned cloud build environment reused. No local SDK, image, database or test archive downloaded. Native credentials and live acceptance remain open.
 
 Infura corrected cloud42536679933 passed5/5 with zero skips at2c40a12c8. Artifact13640160084 SHA256d7424619ac791576f0e2503251b92ba646a7d20d47afbb9dca148add7d51f458 verified in memory. No extracted archive, local runtime or image. Native access pending.
+
+MapLibre offline health candidate c6f25f76c9fb1ab2a61d83670791df4bb91b6c00 changes one Dockerfile line from original23532a6f using the probe qualified at1c9c39904. Temporary index directory removed. Manifest verified. Exact image and qualification pending. Original refs, settings and owner preserved. No local runtime or image.

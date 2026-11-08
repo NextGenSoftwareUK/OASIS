@@ -224,8 +224,15 @@ Do not regenerate them. The 8 November 18:46 Cancun preflight fetched
 Development at the accepted Civic commit. MapLibre descends from that commit,
 its diff is limited to 15 paths, and its pinned dependency manifest validates.
 Refresh the shared refs before publication in a permitted window.
-Next: permitted scoped integration, exact deployed package,
-once-only settings/activation and first owned HTTP/reuse/privacy/replica seal.
+The original image qualification predates the Docker health gate. The original
+candidate still calls missing curl. An offline correction
+`c6f25f76c9fb1ab2a61d83670791df4bb91b6c00` changes only the Dockerfile health
+command to the proven Node probe. Its dependency manifest validates. Qualify the
+corrected source and image before integration. The original publisher still pins
+the old candidate and must be updated after exact qualification. Then verify the
+deployed package, apply the reviewed settings once and seal the first owned
+HTTP/reuse/privacy/replica results. The four-provider candidate also carries the
+old health command and needs the corresponding correction before qualification.
 [MapLibre details](MAPLIBRE_PUBLIC_SOURCE_STATUS.md).
 
 ## Four-provider follow-on batch
