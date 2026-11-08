@@ -275,7 +275,7 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>PushProtocolOASIS</b> - Push Protocol Decentralised Notifications Provider (REST API; notifications → Holons).</li>
 <li><b>ENSOASIS</b> - ENS (Ethereum Name Service) Provider (The Graph GraphQL subgraph; ENS names → Avatars).</li>
 <li><b>AlchemyOASIS</b> - Alchemy Web3 Infrastructure Provider (ETH JSON-RPC + NFT v3 API; transactions → Holons).</li>
-<li><b>InfuraOASIS</b> - Infura Web3 Gateway Provider (ETH JSON-RPC + IPFS pinning; holons stored as IPFS objects).</li>
+<li><b>InfuraOASIS</b> - Infura Ethereum JSON-RPC gateway. The former Infura IPFS service is retired.</li>
 <li><b>SafeOASIS</b> - Gnosis Safe Multisig Provider (Safe Transaction REST API; multisig txs → Holons, safe addresses → Avatars).</li>
 <li><b>TablelandOASIS</b> - Tableland Decentralised SQL Provider (REST API; SQL SELECT/INSERT for holons stored as table rows).</li>
 <li><b>WakuOASIS</b> - Waku v2 Decentralised Messaging Provider (REST API; relay messages → Holons).</li>
