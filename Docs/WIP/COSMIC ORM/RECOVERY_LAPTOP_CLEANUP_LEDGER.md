@@ -5251,3 +5251,7 @@ Seven framing controls use only Python standard library and sockets locally; no 
 
 ### 8 Nov — Native control/OS mismatch
 Artifacts13628782909 (1585bytes) and13628444378 (2600bytes) verified in memory; compact receipts retained, no extracted data. Both native attempts verify owned container/pier removal, exit0 and no OOM. Complete runtime cache reused. Kernel408 source inventory retained as compact metadata only; cloud assembly42510963618 in progress. No local native runtime, source clone or environment installed. Native contacts and OS update remain unqualified.
+
+
+### 8 Nov — Pinned OS source assembly accepted
+Cloud42511142535 verifies546files/4307737bytes, including151materialized links and four directory aliases. Temporary source checkout removed; reusable OS source+manifest retained in cloud cache. First failed assembly also verified temporary checkout removal. Both artifacts inspected in memory; only compact failure/success receipts retained locally. No laptop checkout/runtime/database/image added. Native OS update remains pending; accepted source assembly workflow is manual-only.

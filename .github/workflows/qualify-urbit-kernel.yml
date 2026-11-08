@@ -1,11 +1,6 @@
 name: Assemble pinned offline Urbit OS update source
 
 on:
-  push:
-    branches: [work/cosmic-cql-ton-public]
-    paths:
-      - '.github/workflows/qualify-urbit-kernel.yml'
-      - 'Scripts/TestHosts/qualify_urbit_kernel.py'
   workflow_dispatch:
 
 permissions:
