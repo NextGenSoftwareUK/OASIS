@@ -16,7 +16,9 @@ public sealed class UrbitContactsV1Client : IDisposable
 {
     public sealed record Contact(string RequestedShip, string? Nickname, string? Bio, string? Status);
     public sealed record ContactFields(string? Nickname, string? Bio, string? Status);
-    public sealed record BookPage(string RequestedId, ContactFields Contact, ContactFields Overlay);
+    /// <summary>HasNativeFields is false for both an empty existing page and the
+    /// native missing-page default; it is not an existence certificate.</summary>
+    public sealed record BookPage(string RequestedId, ContactFields Contact, ContactFields Overlay, bool HasNativeFields);
     private readonly HttpClient http;
     private readonly Uri origin;
     private readonly bool ownsClient;
@@ -97,7 +99,10 @@ public sealed class UrbitContactsV1Client : IDisposable
         return ReadAsync("/~/scry/contacts/v1/book/id/" + Uri.EscapeDataString(id) + ".json", value => {
             if (value.ValueKind != JsonValueKind.Array || value.GetArrayLength() != 2)
                 throw new InvalidDataException("Contacts v1 page must contain exactly contact and overlay objects.");
-            return new BookPage(id, Fields(value[0]), Fields(value[1]));
+            var contact = Fields(value[0]);
+            var overlay = Fields(value[1]);
+            return new BookPage(id, contact, overlay,
+                value[0].EnumerateObject().MoveNext() || value[1].EnumerateObject().MoveNext());
         }, "URBIT_CONTACT_PAGE", cancellationToken);
     }
 

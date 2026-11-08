@@ -21,6 +21,7 @@ public sealed class UrbitContactBookQueryTests
     {
         public int Calls;
         public int FailAt;
+        public bool DefaultPage;
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
@@ -32,6 +33,7 @@ public sealed class UrbitContactBookQueryTests
             var cid = path.Split('/').Last().Replace(".json", "", StringComparison.Ordinal);
             Assert.IsTrue(Cids.Contains(cid));
             var body = "[{}, {\"nickname\":{\"type\":\"text\",\"value\":\"Private " + cid + "\"},\"bio\":{\"type\":\"text\",\"value\":\"Owner overlay\"},\"unreviewed\":{\"type\":\"text\",\"value\":\"Never mapped\"}}]";
+            if (DefaultPage) body = "[{},{}]";
             return Task.FromResult(new HttpResponseMessage(Calls == FailAt ? HttpStatusCode.ServiceUnavailable : HttpStatusCode.OK) {
                 Content = new StringContent(body, Encoding.UTF8, "application/json")
             });
@@ -50,6 +52,30 @@ public sealed class UrbitContactBookQueryTests
         var plan = CosmicQueryPlanner.Plan(query, Provider, new[] { new CosmicQueryTarget(Provider, source.QueryCapabilities) });
         Assert.IsFalse(plan.IsError, plan.Message);
         return plan.Result;
+    }
+
+    [TestMethod]
+    public async Task AmbiguousDefaultCannotActivateThePrivateSource()
+    {
+        var replies = new Replies { DefaultPage = true };
+        using var http = new HttpClient(replies);
+        using var reader = new UrbitContactsV1Client(new Uri("https://example.test"), http);
+        using var source = new UrbitContactBookQuerySource(reader, Owner, Connection, Cids);
+        var result = await source.ActivateQuerySourceAsync();
+        Assert.AreEqual("CQL_NATIVE_IDENTITY_AMBIGUOUS", result.ErrorCode);
+        Assert.IsFalse(source.IsProviderActivated);
+        Assert.AreEqual(1, replies.Calls);
+    }
+
+    [TestMethod]
+    public async Task MissingPageDefaultCannotBecomeAPhantomPrivateHolon()
+    {
+        using var replies = new Replies(); using var http = new HttpClient(replies); using var client = Reader(http);
+        using var source = new UrbitContactBookQuerySource(client, Owner, Connection, Cids);
+        await source.ActivateQuerySourceAsync(); replies.DefaultPage = true;
+        var result = await source.ExecuteCosmicQueryAsync(Plan(source, Ids.Take(1).ToArray()));
+        Assert.AreEqual("CQL_NATIVE_IDENTITY_AMBIGUOUS", result.ErrorCode);
+        Assert.IsNull(result.Result); Assert.AreEqual(2, replies.Calls);
     }
 
     [TestMethod]

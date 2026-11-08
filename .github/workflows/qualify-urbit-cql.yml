@@ -61,7 +61,7 @@ jobs:
             if ($LASTEXITCODE) { throw 'Urbit private CQL qualification failed' }
             [xml]$report = Get-Content TestResults/UrbitPrivateBookCqlCurrent/query.trx
             $counts = $report.TestRun.ResultSummary.Counters
-            if ($counts.total -ne '62' -or $counts.executed -ne '62' -or $counts.passed -ne '62') { throw 'All 62 reader and private CQL controls must execute and pass' }
+            if ($counts.total -ne '64' -or $counts.executed -ne '64' -or $counts.passed -ne '64') { throw 'All 64 reader and private CQL controls must execute and pass' }
           }
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()

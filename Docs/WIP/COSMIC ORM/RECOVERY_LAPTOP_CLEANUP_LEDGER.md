@@ -5283,3 +5283,8 @@ Strict cloud build42514186079 terminal success. Compact330byte artifact verified
 
 ### 8 Nov — Fixture LF/preflight correction and combined native run
 Failed book42513709558 artifact3884bytes verified in memory. Zero seed intents/ACKs; owned container/pier removed, clean exit0/no OOM. Local1072byte fixture reset to exact already-tracked LF content (only line endings differed), scoped eol pinned; pure JSON preflight and Python syntax pass. No runtime/download/env installation locally. Combined native page/real SDK HTTP42514925237 dispatched once after prior terminal result. It restores existing three caches and builds in isolated cloud runner; cleanup/acceptance pending.
+
+
+### 8 November — Urbit private CQL identity gate
+
+No laptop runtime, SDK, database, image or build output installed for this change. Cloud-only controlled run42516923950 succeeded; detailed artifact inspection pending. Native run42514925237 failed before any seed and verified owned container/network/pier removal. Original immutable cloud caches retained for reuse; no new local artifact extraction. New source identity controls reuse the same cloud provider-test workflow, bounded build lease and task branch. Unrelated cleanup ledger and source changes preserved.

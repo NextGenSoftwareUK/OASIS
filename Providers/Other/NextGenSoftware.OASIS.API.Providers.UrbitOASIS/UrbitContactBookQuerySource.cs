@@ -70,6 +70,8 @@ public sealed class UrbitContactBookQuerySource : KeyValueStorageProviderBase,
             var probe = await client.ReadBookPageAsync(ids.Values.First(), cancellationToken);
             if (probe.IsError || probe.Result is null)
                 return Failure<bool>(cancellationToken.IsCancellationRequested ? "CQL_QUERY_CANCELLED" : "CQL_SOURCE_UNAVAILABLE", "Native private book probe failed: " + probe.ErrorCode, probe.Exception);
+            if (!probe.Result.HasNativeFields)
+                return Failure<bool>("CQL_NATIVE_IDENTITY_AMBIGUOUS", "Native probe has no fields; page existence cannot be established.");
             cancellationToken.ThrowIfCancellationRequested();
             IsProviderActivated = true;
             return new(true);
@@ -112,6 +114,10 @@ public sealed class UrbitContactBookQuerySource : KeyValueStorageProviderBase,
                     return Error(cancellationToken.IsCancellationRequested ? "CQL_QUERY_CANCELLED" : deadline.IsCancellationRequested
                         ? "CQL_QUERY_TIMEOUT" : "CQL_QUERY_FAILED", "Native private book read failed: " + native.ErrorCode + "; no partial result published.", native.Exception);
                 var page = native.Result;
+                // Native book/id returns a default empty page for an unknown CID.
+                // Its wire format cannot distinguish that from a real empty page.
+                if (!page.HasNativeFields)
+                    return Error("CQL_NATIVE_IDENTITY_AMBIGUOUS", "Native page has no fields; existence cannot be established from the point response.");
                 var fields = new Dictionary<string, object> {
                     ["name"] = "Urbit contact page " + page.RequestedId,
                     ["UrbitBookPageId"] = page.RequestedId,
