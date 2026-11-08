@@ -39,3 +39,14 @@ cloud builds independently verify official bytes, checksums and native versions.
 See the [curl retry documentation](https://curl.se/docs/manpage.html#--retry),
 [GitHub binary asset API](https://docs.github.com/en/rest/releases/assets#get-a-release-asset)
 and [agent root-cause policy](AGENT_Root_Cause_No_Fallbacks.md).
+
+Qualified native-stage publication is the producer boundary. Task-branch pushes
+run policy checks, build each actual native stage and publish the verified stage
+to the existing `ghcr.io/nextgensoftwareuk/oasis-web4` package with a distinct
+`<source>-native-waku` or `<source>-native-nats` tag. Manual qualification defaults
+to no publication unless explicitly selected. Each stage records its digest,
+source revision and native-only role; no API/deployment acceptance is implied.
+The consumer must pin the observed digest, never a moving tag. Producer and final
+API image responsibilities remain separate; no pull-failure download fallback is
+permitted. Publishing uses the existing package permissions/visibility and does
+not change live service settings.
