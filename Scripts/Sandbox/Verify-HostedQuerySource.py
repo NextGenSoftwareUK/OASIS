@@ -125,6 +125,8 @@ def call(route, token=None, body=None, method="POST", operation=None, *, cookie_
             raise ValueError("Query evidence must stay in this worktree's TestResults.")
         if target.exists():
             raise FileExistsError("Original query outcome exists; reconcile before another dispatch.")
+        if not target.parent.is_dir():
+            raise FileNotFoundError("Query evidence directory must exist before dispatch.")
     headers = {"Accept": "application/json", "Origin": BROWSER_ORIGIN, "Idempotency-Key": operation or str(uuid.uuid4())}
     if token:
         headers["Authorization"] = "Bearer " + token
@@ -1044,6 +1046,7 @@ def main():
             require_reviewed_presets("LocalFile", source, reviewed_localfile)
     elif options.provider == "LocalFileOASIS":
         reviewed_localfile = localfile_review(require_mount=True)
+    results.mkdir(parents=True, exist_ok=True)
     state.mkdir(exist_ok=True)
     if options.resume_unstarted_native:
         if (not (state / "owner.acknowledged.json").is_file()

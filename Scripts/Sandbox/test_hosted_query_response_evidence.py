@@ -19,6 +19,47 @@ spec.loader.exec_module(verification)
 
 
 class ResponseEvidenceTests(unittest.TestCase):
+    def test_cleaned_results_directory_is_recreated_after_admission_before_owner_creation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            root = base / 'OASIS'
+            (root / 'LocalState/COSMIC').mkdir(parents=True)
+            frontend = base / 'Web4Site'
+            frontend.mkdir()
+            for name in ('cql-demo-preparation.js', 'cql-playground.js'):
+                (frontend / name).touch()
+            reports = root / 'TestResults/HostedCqlIntegrationCurrent'
+            self.assertFalse(reports.exists())
+
+            def session(*args, **kwargs):
+                if args[1] == 'visitor':
+                    self.assertFalse(reports.exists())
+                    self.assertFalse(kwargs['allow_create'])
+                    return {}, 'retained-readonly-visitor'
+                self.assertTrue(reports.is_dir())
+                raise RuntimeError('stopped before owner creation or transport')
+
+            with (patch.object(verification, 'ROOT', root),
+                  patch('sys.argv', ['verify', 'SubqueryOASIS', '--prepare',
+                        '--reviewed-exact-key-source', str(root / 'catalogue.json')]),
+                  patch.object(verification, 'reviewed_exact_key_source', return_value={}),
+                  patch.object(verification, 'ready_source', return_value={}),
+                  patch.object(verification, 'require_reviewed_presets'),
+                  patch.object(verification, 'session', side_effect=session),
+                  patch.object(verification, 'call') as call):
+                with self.assertRaisesRegex(RuntimeError, 'stopped before owner creation'):
+                    verification.main()
+                call.assert_not_called()
+
+    def test_missing_evidence_directory_rejects_before_native_dispatch(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with (patch.object(verification, 'ROOT', root),
+                  patch.object(verification.urllib.request, 'build_opener') as transport):
+                with self.assertRaisesRegex(FileNotFoundError, 'before dispatch'):
+                    verification.call('data/query-cql', evidence_path=root / 'TestResults/missing.json')
+                transport.assert_not_called()
+
     def test_readiness_reuse_requires_existing_acknowledged_credentials(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
