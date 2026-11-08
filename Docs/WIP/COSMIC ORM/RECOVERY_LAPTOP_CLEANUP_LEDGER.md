@@ -4997,3 +4997,10 @@ journals a single package/startup dispatch with explicit TRON requirement.
 Packaged Node probe syntax also checked through cached Node without files or
 containers. Original image42485543286/job128746476064 remains in progress;
 no duplicate run, local build/download/environment or cleanup retry.
+
+TRON controlled planner check expanded to the actual captured metadata-path
+LINQ expression used by the shared HTTP fixture, exact height3/2 and retained
+source IDs, before activation. This addresses an untested fixture expression
+shape without a native request. Existing11test count retained; new cloud
+qualification required. Original image42485543286 remains live; only test/docs
+change, so do not rebuild that image. No local build/download or source replay.

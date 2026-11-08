@@ -1,3 +1,6 @@
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using Microsoft.Extensions.Configuration;
@@ -107,8 +110,23 @@ public sealed class CqlTronHeaderHostedConfigurationTests
     {
         using var source = TronPublicHeaderMetadataSource.FromAuthenticatedJson(Catalogue, "controlled-reader");
         var rows = new List<object>();
+        var owner = Guid.Parse("374ef405-02b9-4424-b2c6-3e187104a262");
+        var heights = new[] { "1", "2", "3" };
+        var ids = heights.Select(height => NativeRecordHolonMapper.StableHolonId(owner, ProviderType.TRONOASIS,
+            "tron-public-solidified:" + TronPublicHeaderMetadataSource.PublicGenesis, height)).ToArray();
         foreach (var count in new[] { 3, 2 })
         {
+            // Exercise the captured metadata-path expression used by the shared HTTP
+            // fixture, before any native activation or provider request is possible.
+            var metadataField = TronPublicHeaderMetadataSource.AddressMetadata;
+            var metadataKeys = heights.Take(count).ToArray();
+            var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.TRONOASIS).Result)
+                .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(owner, ProviderType.TRONOASIS, ids).Result).Result
+                .Where(row => metadataKeys.Contains(CosmicQueryMetadata.Value<string>(row, metadataField)));
+            Assert.False(query.IsError, query.ErrorCode);
+            var plan = CosmicQueryPlanner.Plan(query.Result, ProviderType.TRONOASIS,
+                new[] { new CosmicQueryTarget(ProviderType.TRONOASIS, source.QueryCapabilities) });
+            Assert.False(plan.IsError, plan.ErrorCode);
             var selection = new { orderBy = "None", take = 8, filters = new[] {
                 new { metadataPath = new[] { TronPublicHeaderMetadataSource.AddressMetadata }, scalar = "String",
                     @operator = "In", value = new[] { "1", "2", "3" }.Take(count).ToArray() } } };
