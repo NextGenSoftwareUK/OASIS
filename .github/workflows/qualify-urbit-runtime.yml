@@ -33,7 +33,7 @@ jobs:
         id: qualification
         run: python3 -B Scripts/TestHosts/qualify_urbit_runtime.py
       - uses: actions/cache/save@v4
-        if: always() && steps.assets.outputs.cache-hit != 'true' && steps.qualification.outputs.assets_ready == 'true'
+        if: always() && steps.assets.outputs.cache-hit != 'true' && steps.qualification.outputs.archive_ready == 'true'
         with:
           path: LocalState/COSMIC/CloudUrbitRuntimeAssets/v4.6-408k-2
           key: urbit-linux-runtime-${{ hashFiles('Scripts/TestHosts/urbit-runtime-inputs.json') }}

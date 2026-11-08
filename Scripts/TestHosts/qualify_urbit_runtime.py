@@ -106,18 +106,29 @@ def main():
     try:
         archive = cache / 'linux-x86_64.tgz'
         download_release(inputs['runtimeArchiveUrl'], archive, inputs['runtimeArchiveBytes'], inputs['runtimeArchiveSha256'])
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as stream:
+            stream.write('archive_ready=true\n')
         binary = cache / 'urbit'
         with tarfile.open(archive, 'r:gz') as package:
             members = package.getmembers()
+            assert len(members) <= 64
+            report['archiveMembers'] = [{'name': m.name, 'bytes': m.size} for m in members]
+            selected = []
             for member in members:
                 path = PurePosixPath(member.name)
                 assert not path.is_absolute() and '..' not in path.parts
                 assert member.isfile() or member.isdir(), 'No archive links or special files.'
-            selected = [m for m in members if m.isfile() and PurePosixPath(m.name).name == 'urbit']
-            assert len(selected) == 1 and selected[0].size <= 64 * 1024 * 1024
-            payload = package.extractfile(selected[0])
-            assert payload is not None
-            expected_binary = hashlib.sha256(payload.read()).hexdigest()
+                if member.isfile():
+                    with package.extractfile(member) as payload:
+                        header = payload.read(20)
+                    # One actual x86-64 little-endian ELF executable, independent
+                    # of the vendor's archive filename. No script/name fallback.
+                    if len(header) == 20 and header[:6] == b'\x7fELF\x02\x01' and int.from_bytes(header[18:20], 'little') == 62:
+                        selected.append(member)
+            assert len(selected) == 1 and selected[0].size <= 64 * 1024 * 1024, 'Exactly one bounded native executable required.'
+            report['selectedExecutable'] = selected[0].name
+            with package.extractfile(selected[0]) as payload:
+                expected_binary = hashlib.file_digest(payload, 'sha256').hexdigest()
             if binary.exists():
                 assert digest(binary) == expected_binary, 'Refuse changed cached executable.'
             else:
