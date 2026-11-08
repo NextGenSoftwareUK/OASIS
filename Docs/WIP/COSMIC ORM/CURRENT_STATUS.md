@@ -62,7 +62,7 @@ or relabel a deprecated runtime as the current service.
 Urbit current contacts-v1 reader/private book CQL passed65controlled cases at
 source2558e56bb/run42518331256, all executed/passed and hashed artifact inspected.
 The additional controlled case passes through the real shared V2 HolonManager;
-native manager and HTTP API coverage remain separate unproved gates.
+native HTTP/manager/restart are now accepted below; WEB4 HTTP API is still open.
 The owner-bound virtual source preserves stable connection/CID identities, private
 contact/overlay separation, explicit bounded selections and foreign-actor isolation.
 Missing native pages share an empty default with existing blank pages; ambiguous
@@ -76,15 +76,18 @@ Combined run42517795274 at1937289c4 now proves native empty-book/seed3/full3/sub
 but failed at Docker publication metadata before HTTP. Clean exit0/no OOM and
 owned container/network/pier removal verified. Docker29.4.2 suppressed publication on the internal network; replacement
 namespace-loopback transport passes42519747804 with runner UID and clean removal.
-Native HTTP/provider/shared-manager restart run42519994312 is active;
-no restart/native HTTP/CQL, native manager/live/browser acceptance or profile-count increase. [Detailed gates and receipts](URBIT_CQL_MVP.md).
+Native HTTP/provider/shared-manager restart42519994312 atd628fcc62 passes:
+authenticated SDK/CQL/shared-manager full3/subset2 before/after restart, foreign0,
+anonymous403, unchanged source/private projection hashes and exact cleanup.
+Hashed artifact13632864832 inspected in memory. WEB4 API admission, federation,
+live deployment and browser remain open; no profile-count increase. [Detailed gates and receipts](URBIT_CQL_MVP.md).
 Pinned Vere4.6 and repository development
 pill passed real offline cold boot/run42507813675/source61c28aa5b. Hashed artifact
 inspected: bootstrap complete, pier live, exit0/no OOM, network none, owned
 container/volume and temporary checkout removed. Cloud asset cache43057001bytes;
 no laptop runtime installation. Earlier fetch/cleanup failures retained. Current
 contacts installation/native book reads and controlled CQL/manager have the scoped
-proofs above; native HTTP/restart/API/live gates remain open. Do not replay accepted
+proofs above; WEB4 API/federation/live/browser gates remain open. Do not replay accepted
 runtime boot alone. Exact current contacts source
 assembly passed42508500262:695files/4657933bytes, hashed manifest and temporary
 checkout cleanup verified. Cloud-only source cache retained for native install;

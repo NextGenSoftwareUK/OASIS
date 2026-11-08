@@ -3,16 +3,17 @@
 8 November 2026. Goal incomplete; priority-chain rollout remains first.
 
 Current gate: reader/private virtual CQL/shared V2 manager pass 65 controlled
-cases (42518331256). Actual Kelvin408/current contacts installation and native
-synthetic book full3/subset2 pass; restart remains unproved. Namespace-loopback
-HTTP transport passes 42519747804 after reproducing Docker's absent publication
-on an internal network. Combined native SDK/private-CQL/shared-manager/restart
-run [42519994312](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42519994312)
-is active at frozen d628fcc62. No native HTTP/manager, federation, WEB4 API/live
-or browser acceptance yet; no provider-count increase or accepted live-cohort replay.
+cases (42518331256). Actual Kelvin408/current contacts, owned native book,
+authenticated HTTP SDK, private CQL and shared V2 manager now pass full3/subset2
+before and after same-pier restart in
+[42519994312](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42519994312)
+at frozen d628fcc62. Foreign actors get0; anonymous HTTP403, unchanged projected
+source/private-CQL hashes and exact owned cleanup are verified. Seven pure
+namespace boundary controls pass locally; actual namespace transport passes
+42519747804. WEB4 API admission, federation, live deployment and browser remain
+unproved; no provider-count increase or accepted live-cohort replay.
 
-Next: inspect that run's exact native/auth/query/restart/cleanup artifact. Then
-integrate through WEB4's existing CqlV1Endpoint/ICqlReadAccessPolicy and query-only
+Next: integrate through WEB4's existing CqlV1Endpoint/ICqlReadAccessPolicy and query-only
 profile lifecycle, with an explicit server-owned owner/connection/CID catalogue.
 Browser input cannot select the private source owner or grant record access.
 Urbit is not currently enrolled in CqlV1Compiler read profiles; do not mistake
@@ -268,3 +269,12 @@ Manager extension compile source89ac6195b passed42519121747. Artifact13632506823
 
 
 Namespace transport accepted atab9351fb8/run42519747804/job128850425697. Artifact13632987214 SHA256f97365a9415ce891902c746b47b00e8aefbae5ac0bdda400c17e370fc484190f inspected in memory: actual loopback HTTP success as runner, no requested/effective published ports, owned container/network cleanup verified. Host compiled with assembly SHA256b24a94f769e2b9f17217dbb23a1c6d025689b4ab4c05ea49ff9384f6998066c1. One native lifecycle atd628fcc62 now follows [42519994312](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42519994312), after verifying no other native/transport operation active. Requires actual native seed/read, anonymous denial/session SDK, direct CQL and shared V2 manager3/2/foreign0, restart-preserved projections and exact cleanup. Pending; no native HTTP/manager/live claim.
+
+
+## Native SDK/private CQL/shared-manager restart accepted
+
+Run42519994312/job128851185181 atd628fcc62ad401b9dfcdda6448fc4ef99d256f86 completed success. Artifact13632864832/12122bytes SHA25679328082767f9afe196a6f2eb8af8e52604d6313260a707536b758f5a0667544 inspected entirely in memory, including three exact owner-bound seed intents/ACKs. Frozen real host assembly SHA256f770878952d1e8263553b12d730ae65d2794be8b5ff7afff1b9a1b35bac527f3.
+
+Actual Kelvin408/current contacts installation, native book full3/subset2 and same owned pier restart passed. Both phases: real anonymous HTTP403; login cookie/session; actual provider SDK3/2; private CQL3/2/foreign0; shared V2 HolonManager3/2/foreign0; owner/provenance/root-only metadata projections checked. Native projected-source hash567ee3dc83ad01ab384428739ad34a801081af19be09ca1332ffbd78d2129062 and private-CQL projection hasheaa2e14e2b7d66198da671322b5c6837bb6533ee7c6a52fd6f81fe4db0d07956 match across restart. No source copies/imports/failover/replica writes were performed by the readers. Only the explicitly owned synthetic fixture was seeded.
+
+Restart shutdown0, final exit0/no OOM; exact owned internal network/container/pier removal verified. Three synthetic pages removed with owned pier, caches retained cloud-only. No local build/runtime/artifact extraction. Receipt urbit-native-namespace-manager-qualified.json contains compact safe evidence only. Native SDK/provider/shared-manager scope accepted; generic cqlQualified/liveDeployment remain false because actual WEB4 admission/API/federation/live/browser have not run. Empty existing native pages remain ambiguous and fail explicitly. Do not replay accepted native boot/book/SDK checks alone; next work is shared WEB4 admission/policy/HTTP scope. Seven new pure namespace boundary tests pass locally and are wired into subsequent cloud host runs without triggering another native fixture.
