@@ -104,6 +104,9 @@ public class SandboxContractQueryTests
     [TestMethod]
     public void InvalidCataloguesFailBeforeTransportConstruction()
     {
+        var configurationOwner = Guid.Parse("a5808c3e-7031-47e7-92de-48a659568f1b");
+        CollectionAssert.AreEqual(new[] { "84cbd2a6-dde5-8895-ac30-17aa35d25972", "b019be67-c823-85fd-80a7-9d33925b9990", "f5412ace-a25a-8f42-bb73-64c3ac55616a" },
+            Networks.Select(x => SandboxContractQuerySource.LogicalId(configurationOwner, x).ToString()).ToArray());
         foreach (var values in new[] { Array.Empty<string>(), new[] { "land", "land" }, new[] { "LAND" }, new[] { "unknown" }, new[] { "land", "sand", "asset", "land" } })
             Assert.ThrowsException<ArgumentException>(() => new SandboxContractQuerySource(Owner, values));
         Assert.ThrowsException<ArgumentException>(() => new SandboxContractQuerySource(Guid.Empty, Networks));
