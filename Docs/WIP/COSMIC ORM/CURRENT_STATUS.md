@@ -4,6 +4,12 @@ Updated 8 November 2026. Goal active and incomplete.
 
 ## Latest continuation
 
+Exact private checkouta651e6d cloud42472240791 passes all seven actual
+manifest HEADs, including WEB6;539byte artifact/hash verified. New full image
+42472504855 is active for exacta651e6d source. Scoped candidateb835b20c/
+Coree242de41 now61paths, unpublished, owners/settings unchanged. Full
+image/exact batch/live gates remain open. [Proof](OPENVINO_CQL_MVP.md).
+
 Native release download correction4f1d5d4 passes both actual Waku/NATS
 cloud stages42471346684; hashed artifacts/checksums/version checks verified.
 Corrected full image42471538567 is active for exact4f1d5d4 source. Four-provider

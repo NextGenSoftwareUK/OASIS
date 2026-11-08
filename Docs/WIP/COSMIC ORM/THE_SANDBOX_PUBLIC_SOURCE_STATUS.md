@@ -41,3 +41,5 @@ Corrected sourcee6263111241a01a5fd2d1649ec0ea2d3afeaf41a WEB442460029319/job1286
 Original offline batch source ownerdb065b19-d87e-46ac-9ecb-0b42ebc67fe1; public IDsc8bf9da0-d547-82ea-9208-e5314b7da3f0,e06ca671-d2be-875f-95ac-1ec71922142a,f1d48c82-29ca-86db-acf5-620b8c132396. Source-plan only, not live enrollment; original owner must be preserved.
 
 Four-provider candidate amended toed52cea5052d79d63e21005d2d8d304662e1fccd/Coree242de41 unchanged: canonical native-artifact retrieval now qualified on4f1d5d4, exact2path amendment/59total scoped paths, manifest valid. Original source owner/public IDs/protected settings unchanged; no refs/settings/deployment. Original preparation receipt retained with explicit amendment. Full image42471538567 active; scoped exact batch/live gates remain open.
+
+Four-provider scoped candidate nowb835b20c9e69ac0a8c8d5a4e8b9a22142b6f0ff7/Coree242de41 unchanged,61paths, exact3path checkout-contract amendment after seven-pin cloud42472240791 passes. Original source owner/public IDs/settings unchanged; explicit amendment retained, no refs/live mutation. Full image42472504855 active; exact batch/live acceptance still required.
