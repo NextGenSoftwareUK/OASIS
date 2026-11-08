@@ -119,6 +119,12 @@ provider behavior changed. Eight local control methods pass, including the actua
 shipped health command and the reproduced missing-curl false acceptance. Corrected
 source needs a new immutable image and exact package/startup qualification; never
 move or overwrite the existing candidate tag. No native cohort replay.
+Cloud controls42533306769/job128892050267 pass at corrected source
+1c9c399042272489e582b0646e16052d478382d1/Coree62ec44. One corrected cloud image
+build42533336909/job128892145512 is active at that exact SHA, new commit-only
+teaching tag, no alias or Development/live changes. Follow the original build;
+then require exact-digest package/TRON+Urbit and tightened Docker-health startup
+proof. Existing rejected image54be8845a remains unchanged, not a deploy candidate.
 
 ## Files and reusable resources
 
