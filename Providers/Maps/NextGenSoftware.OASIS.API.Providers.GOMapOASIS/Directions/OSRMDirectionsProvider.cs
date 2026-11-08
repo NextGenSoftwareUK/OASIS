@@ -43,6 +43,9 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Directions
         {
             cancellationToken.ThrowIfCancellationRequested();
             var result = new OASISResult<OSRMRouteObservation>();
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            deadline.CancelAfter(TimeSpan.FromSeconds(30));
+            var token = deadline.Token;
             try
             {
                 if (!Valid(startPoint) || !Valid(endPoint) || !Enum.IsDefined(typeof(RoutingType), routingType))
@@ -56,16 +59,16 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Directions
                 using var request = new HttpRequestMessage(HttpMethod.Get, url);
                 request.Headers.UserAgent.ParseAdd("OASIS-GOMapOASIS/2.0 (+https://oasisomniverse.one)");
                 request.Headers.Accept.ParseAdd("application/json");
-                await RequestGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+                await RequestGate.WaitAsync(token).ConfigureAwait(false);
                 try
                 {
                     // A single process-wide gate covers every client instance and the complete response lifetime.
                     var remaining = TimeSpan.FromSeconds(1) - Stopwatch.GetElapsedTime(lastRequest);
                     if (lastRequest != 0 && remaining > TimeSpan.Zero)
-                        await Task.Delay(remaining, cancellationToken).ConfigureAwait(false);
-                    cancellationToken.ThrowIfCancellationRequested();
+                        await Task.Delay(remaining, token).ConfigureAwait(false);
+                    token.ThrowIfCancellationRequested();
                     lastRequest = Stopwatch.GetTimestamp();
-                    using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
                     if (response.StatusCode != System.Net.HttpStatusCode.OK)
                         throw new InvalidDataException("OSRM returned HTTP " + (int)response.StatusCode + ". No retry was made.");
                     if (response.RequestMessage?.RequestUri is Uri actual && actual != request.RequestUri)
@@ -74,10 +77,10 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Directions
                         throw new InvalidDataException("OSRM must return JSON.");
                     if (response.Content.Headers.ContentLength > 262144)
                         throw new InvalidDataException("OSRM response exceeds the 256 KiB bound.");
-                    using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                    using var stream = await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
                     using var buffer = new MemoryStream();
                     var chunk = new byte[8192]; int count;
-                    while ((count = await stream.ReadAsync(chunk.AsMemory(), cancellationToken).ConfigureAwait(false)) != 0)
+                    while ((count = await stream.ReadAsync(chunk.AsMemory(), token).ConfigureAwait(false)) != 0)
                     {
                         if (buffer.Length + count > 262144) throw new InvalidDataException("OSRM response exceeds the 256 KiB bound.");
                         buffer.Write(chunk, 0, count);

@@ -55,8 +55,8 @@ jobs:
             if ($LASTEXITCODE) { throw 'GOMap route controlled client qualification failed' }
             [xml]$report = Get-Content TestResults/GOMapRouteClientCurrent/controlled.trx
             $counts = $report.TestRun.ResultSummary.Counters
-            if ($counts.passed -ne '26' -or $counts.total -ne '26' -or $counts.executed -ne '26') {
-              throw 'All twenty-six controlled client cases must execute and pass without skips'
+            if ($counts.passed -ne '28' -or $counts.total -ne '28' -or $counts.executed -ne '28') {
+              throw 'All twenty-eight controlled client cases must execute and pass without skips'
             }
           }
       - uses: actions/upload-artifact@v7

@@ -14,9 +14,10 @@ public class OSRMBoundedClientTests
     {
         public int Calls;
         public string? Url;
+        public long Dispatched;
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
         {
-            token.ThrowIfCancellationRequested(); Calls++; Url = request.RequestUri!.AbsoluteUri;
+            token.ThrowIfCancellationRequested(); Calls++; Dispatched=System.Diagnostics.Stopwatch.GetTimestamp(); Url = request.RequestUri!.AbsoluteUri;
             Assert.IsTrue(request.Headers.UserAgent.ToString().Contains("OASIS-GOMapOASIS"));
             return Task.FromResult(new HttpResponseMessage((HttpStatusCode)status) { RequestMessage = request,
                 Content = new StringContent(body, Encoding.UTF8, "application/json") });
@@ -111,4 +112,46 @@ public class OSRMBoundedClientTests
         var result = await Read(new OSRMDirectionsProvider(client){BaseUrl="https://private:secret@example.com"});
         Assert.IsTrue(result.IsError); Assert.IsFalse(result.Message.Contains("private:secret")); Assert.AreEqual(0,handler.Calls);
     }
+    private sealed class BlockingHandler : HttpMessageHandler
+    {
+        public readonly TaskCompletionSource<bool> Entered = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
+        {
+            Entered.TrySetResult(true);
+            await Task.Delay(Timeout.Infinite, token);
+            throw new InvalidOperationException("Cancellation must end the pending request.");
+        }
+    }
+    [TestMethod]
+    public async Task CancellationDuringTransportAndSharedGateWaitDispatchesNoSecondRequest()
+    {
+        using var firstHandler = new BlockingHandler(); using var firstClient = new HttpClient(firstHandler);
+        using var secondHandler = new Handler(Valid); using var secondClient = new HttpClient(secondHandler);
+        using var firstCancellation = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var first = new OSRMDirectionsProvider(firstClient).GetRouteAsync(new Geolocation(52,13),new Geolocation(52.1,13.1),cancellationToken:firstCancellation.Token);
+        try
+        {
+            await firstHandler.Entered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            using var secondCancellation = new CancellationTokenSource(TimeSpan.FromMilliseconds(50));
+            await Assert.ThrowsExceptionAsync<OperationCanceledException>(() => new OSRMDirectionsProvider(secondClient).GetRouteAsync(
+                new Geolocation(52,13),new Geolocation(52.1,13.1),cancellationToken:secondCancellation.Token));
+            Assert.AreEqual(0,secondHandler.Calls);
+        }
+        finally
+        {
+            firstCancellation.Cancel();
+            await Assert.ThrowsExceptionAsync<OperationCanceledException>(async () => { await first; });
+        }
+    }
+    [TestMethod]
+    public async Task SharedRateGateSpacesSeparateClientInstances()
+    {
+        using var a = new Handler(Valid); using var ca = new HttpClient(a);
+        using var b = new Handler(Valid); using var cb = new HttpClient(b);
+        Assert.IsFalse((await Read(new OSRMDirectionsProvider(ca))).IsError);
+        Assert.IsFalse((await Read(new OSRMDirectionsProvider(cb))).IsError);
+        Assert.IsTrue(System.Diagnostics.Stopwatch.GetElapsedTime(a.Dispatched,b.Dispatched)>=TimeSpan.FromMilliseconds(950),"Shared gate must prevent back-to-back requests across instances.");
+        Assert.AreEqual(1,a.Calls);Assert.AreEqual(1,b.Calls);
+    }
+
 }
