@@ -5231,3 +5231,7 @@ Urbit source-trigger qualification VERIFIED: sourcec61a5db0b/run42505144648 pass
 
 ### 8 Nov — Urbit cloud runtime preparation
 No laptop runtime, pill, SDK, container image or database installed. Compact first-failure receipt retained under LocalState/COSMIC/RecoveryLaptopResume20261107/urbit-runtime-first-failure.json; artifact inspected in memory, no ZIP extracted. Cloud-only archive cache admitted after exact vendor size/hash verification. Second run42507284986 LFS timeout exposed live helper processes racing temporary checkout cleanup; process-group shutdown correction committed, cloud requalification pending. Do not claim checkout cleanup or offline boot from that failed run. Runtime workflow manual-only until fetch cause is diagnosed.
+
+
+### 8 Nov — Urbit offline runtime accepted
+Cloud run42507813675 passed real boot; artifact13628570452/1998bytes inspected in memory, no extraction. Exact owned container/volume and temporary kernel checkout removed. Reusable remote runtime assets43057001bytes retained; no laptop runtime, pill, SDK or image installed. Compact SHA/member/cleanup receipt urbit-offline-runtime-qualified.json retained under existing LocalState recovery directory. Prior failed receipts preserved. Laptop free space40.02GiB at this checkpoint.

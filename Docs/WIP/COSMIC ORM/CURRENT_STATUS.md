@@ -62,12 +62,13 @@ or relabel a deprecated runtime as the current service.
 Urbit current contacts-v1 client passed23controlled cases at source1e93c39d7,
 run42504482542,zero skips. Primary current agent/JSON codec pinned; no old-agent
 fallback. Native ship, three-record CQL/mapping, manager/HTTP/live/browser remain
-open and no profile count increases. No runtime installed on this laptop. Cloud
-run42507284986 verified/executed pinned Vere4.6 version output but timed out in
-repository LFS discovery; no native ship boot or contacts acceptance. Its cleanup
-failure is retained and corrected process-group shutdown still needs qualification.
-Pinned single-pointer resolution and shutdown correction are under manual cloud
-run42507813675/source61c28aa5b; follow that handle, do not duplicate the run.
+open and no profile count increases. Pinned Vere4.6 and repository development
+pill passed real offline cold boot/run42507813675/source61c28aa5b. Hashed artifact
+inspected: bootstrap complete, pier live, exit0/no OOM, network none, owned
+container/volume and temporary checkout removed. Cloud asset cache43057001bytes;
+no laptop runtime installation. Earlier fetch/cleanup failures retained. Current
+contacts desk install/read, three/two-record mapping and all CQL/live gates remain
+open; do not replay accepted runtime boot alone.
 [Current source contract and next native gates](URBIT_CQL_MVP.md).
 
 TRON enrollment configuration tools passed46pure cloud tests with HTTP forbidden,
