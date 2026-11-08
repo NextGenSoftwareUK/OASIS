@@ -277,4 +277,5 @@
 <ItemGroup><ProjectReference Include="../../Providers/Identity/NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS/NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Identity/NextGenSoftware.OASIS.API.Providers.HolonymOASIS/NextGenSoftware.OASIS.API.Providers.HolonymOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.CivicOASIS/NextGenSoftware.OASIS.API.Providers.CivicOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Maps/NextGenSoftware.OASIS.API.Providers.MapLibreOASIS/NextGenSoftware.OASIS.API.Providers.MapLibreOASIS.csproj" /></ItemGroup>
 </Project>

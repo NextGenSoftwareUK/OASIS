@@ -71,3 +71,13 @@ Project XML and expected case counts checked; cloud qualification pending.
 Coverage counts unchanged; no WEB4 registration or hosted source prepared.
 
 Tasksourcea1ebbf5f75a10ce426103d7bce77fa9dc06b9641 pushed on original task branch; cloud42454653284 observedin_progress. One automatic run, no manual dispatch or local compiler.
+
+Cloud42454653284/job128650985638 succeeds:27controlled+1actual native CQL3/2,
+zero skips. Artifact13607083066/5626bytes SHA256
+bff12b69e30c9710e237577a52ea5d1813cc5cbb7cd8084da3824cbfab25ec8a and both
+TRX hashes/counters verified wholly in memory. Real complete style documents
+round-trip with their SHA256 and source/layer counts; no child requests.
+WEB4 explicit owner registration/read compiler/project binding,8boundary
+cases and real shared HTTP/Mongo fixture prepared. Core260d7c7dcc5512cccceb049480bd323d274b7be7
+adds only the read-tariff entry on the original Core task branch; parent
+manifest/gitlink advance together. No hosted source/admission/count change.

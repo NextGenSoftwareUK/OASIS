@@ -159,3 +159,40 @@ candidate settings and original owner5eda verified. One guarded activation
 request acknowledged; response DPAPI retained and exact returned ID extracted,
 7ba0af2c-62bb-4c75-a792-53fd953807d6 observedBUILDING on638993968. No hosted
 cohort/source creation yet; next inspect this exact running settings package.
+
+## Accepted live HTTP cohort — 8 November 2026
+
+Activation7ba0af2c SUCCESS onf7305680-27ba-4d6e-9d19-ea68ac310bc6,
+actual imagesha256:fc74e84d7d935f5160c0ae2860032b0e791770613a8af8ef6592cc6e54a43e7b.
+All257settings/210critical/6helpers/12assemblies and accepted Self/SubQuery/
+Dapr enrollment/runtime/source proofs inspected; Holonym enabled with original
+source owner5eda0cab-e29b-4b9a-969b-ad4001c0eace, native source writes0.
+
+Initial live verifier entry stopped before cohort creation because its explicit
+settings-deployment environment value was missing; confirmed no cohort existed.
+Supplied the inspected7ba0handle and reused the original acknowledged PouchDB
+readiness visitor, with no replacement readiness identity. One first owner
+c41676eb-ee6a-4e99-bd55-22f0860b0642 and independent visitor
+6c66c794-8b02-4f24-9053-eb6ef32013ab then completed the normal client flow.
+Native3/2, Mongo federation5/4, first2saves/repeat0new+2existing, exact private
+replica ID sets2/2 in SQLite and Neo4j, foreign private0/public3 and foreign
+replica-private0 pass. Original2version-one save ACKs and empty pending-intent
+registry retained. No continuation or original save/source replay.
+
+Retained native/client/isolation reports19731/49769/10158bytes have SHA256:
+a3e9fed7cbe287ace9465a886570fb42cf46050508bc8aa5ba056b08104d40e3;
+851cd9f48604800234b0589b80b41c62d771234d59177fe06a68a3bcae9f6612;
+7cf3dce9fd48471814fba77381d40aad12b536f9ff4a518bbd023969efa47a0e.
+Original-cohort offline audit checks exact logical/native IDs, source/schema/
+chain/attester, full unsigned value arrays, ownership/version, save operation
+correlation, federation/private replica equality and foreign isolation. First
+composition failed at the guard's module-vs-dictionary calling contract before
+its observation/write; corrected argument type and sealed from the same files,
+without query/session/save replay. Durable acceptance receipt retained under
+HostedQueryAcceptance-HolonymOASIS/cql-http-acceptance.acknowledged.json.
+
+Coverage123scoped local/95liveHTTP/28browser. Browser acceptance remains open;
+this does not independently verify a person, attestation consensus, source
+writes, reliability or full ORM/identity/legacy SBT parity. Preserve this cohort.
+
+Private record IDs: 23e0acb8-cd87-8695-90be-0fb1022372ef, fbfa15d5-f09c-83eb-9413-83f51aa3dabd. Original save operation IDs: 1cf17e9d-6914-235e-4a69-5ed3d97d9d5b, a4e2533c-5a42-16af-be7a-5d4d913ffc35.

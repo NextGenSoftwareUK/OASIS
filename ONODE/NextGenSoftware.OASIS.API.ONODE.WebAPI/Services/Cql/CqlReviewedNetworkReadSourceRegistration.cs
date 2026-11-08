@@ -16,6 +16,7 @@ using NextGenSoftware.OASIS.API.Providers.SubqueryOASIS;
 using NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS;
 using NextGenSoftware.OASIS.API.Providers.HolonymOASIS;
 using NextGenSoftware.OASIS.API.Providers.CivicOASIS;
+using NextGenSoftware.OASIS.API.Providers.MapLibreOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
@@ -44,6 +45,8 @@ public static class CqlReviewedNetworkReadSourceRegistration
             owner => new ReclaimVerifierQuerySource(owner));
         Register(services, configuration["CQL_THE_GRAPH_STUDIO_QUERY_SOURCE_OWNER"], "The Graph Studio",
             owner => new TheGraphStudioStatusQuerySource(owner));
+        Register(services, configuration["CQL_MAPLIBRE_STYLE_QUERY_SOURCE_OWNER"], "MapLibre demo style",
+            MapLibreStyleQuerySource.ForReviewedTeachingCatalogue);
         Register(services, configuration["CQL_CIVIC_NETWORK_QUERY_SOURCE_OWNER"], "Civic public network",
             CivicNetworkQuerySource.ForReviewedTeachingCatalogue);
         Register(services, configuration["CQL_HOLONYM_ATTESTATION_QUERY_SOURCE_OWNER"], "Human ID attestation index",

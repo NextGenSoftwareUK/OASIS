@@ -4,12 +4,12 @@ Updated 8 November 2026. Goal active and incomplete.
 
 ## Latest continuation
 
-Holonym exact image42451953369 succeeds; codeff89fa57 SUCCESS and running
-package inspected:255settings/208critical/6helpers/12assemblies, accepted
-Self/SubQuery/Dapr preserved, Holonym initially disabled. Four reviewed
-settings applied once/no deployment with4ACKs. One activation7ba0af2c-62bb-4c75-a792-53fd953807d6
-isBUILDING. Next inspect all257settings and enabled reader, then one first
-owned HTTP cohort. No Holonym native source writes or new cohort yet.
+Holonym settings7ba0af2c SUCCESS; all257settings/210critical/6helpers/
+12assemblies and accepted Self/SubQuery/Dapr proofs inspected. First HTTP
+cohortc41676eb isaccepted/sealed: native3/2, paired5/4, repeat0new/2existing,
+private0/public3, SQLite/Neo4j replicas2/2, original2saveACKs/pending0. No
+source writes, continuation or replay. Website card80 publication next;
+browser remains open. [Proof](HOLONYM_PUBLIC_SOURCE_STATUS.md).
 
 Civic first cloud42452950450 passes27controlled+1296shared but native fails
 because the frozen state needs archive access. Original diagnostic retained;
@@ -23,8 +23,9 @@ Civic scoped candidate88c378c1e/Core81862b2 prepared from Holonym638,15paths;
 not published, no refs/settings changed until accepted Holonym rollout.
 Civic planner39controls+5publisher guards pass. No CQL count/admission increase. Existing
 personal-pass adapter preserved. [Review](CIVIC_PUBLIC_SOURCE_STATUS.md).
-MapLibre style-data source/test project/workflow pushed ata1ebbf5f7;
-cloud42454653284 islive, no CQL acceptance/count change. Legacy map renderer
+MapLibre style-data cloud42454653284 passes27controls+1native CQL3/2;
+5626byte artifact13607083066 hashes/counters verified in memory. WEB4/Core
+260d7c7 registration/8boundary+realHTTP fixture prepared; no hosted admission. Legacy map renderer
 remains unqualified. [Scope](MAPLIBRE_PUBLIC_SOURCE_STATUS.md).
 No local build/runtime/image/database download.
 
@@ -66,7 +67,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **123 scoped local, 94 live HTTP and 28 functional browser**.
+Coverage is **123 scoped local, 95 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -143,7 +144,7 @@ at104a0064, public268592byte HTML hash7908eabb8c70743d2e0cc1023484da2c7bb1e480d6
 matches exact Git. Do not replay its accepted cohort, settings or activation.
 [SubQuery proof](SUBQUERY_PUBLIC_SOURCE_STATUS.md).
 
-Coverage remains **123 scoped local / 94 live HTTP / 28 functional browser**.
+Coverage remains **123 scoped local / 95 live HTTP / 28 functional browser**.
 The accepted Dapr cohort and retired failed generation remain preserved; no
 source creation/save was replayed. [Dapr history](DAPR_CQL_MVP.md). While the
 code deployment waited for a build slot, a first anonymous Self Protocol RPC
