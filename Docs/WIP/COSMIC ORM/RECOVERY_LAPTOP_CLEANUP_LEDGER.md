@@ -4987,3 +4987,13 @@ verify exact published digest and run package+isolated startup with tron_reader
 selected. This builds the task snapshot, not a deployment-scoped candidate or
 native/live acceptance. No Development change, live settings, reader request,
 local runtime/build/model/database/image download or new worktree/environment.
+
+TRON local footprint measured:19 compact receipts/inspectors/operators,24789
+bytes total in existing RecoveryLaptopResume20261107; C:41.10GiB free. Retain
+the pending image journal, exact build handle and private access findings.
+qualify-tron-task-image.py is syntax-checked and not invoked: requires verified
+publication source/digest, matching checker files and remote task HEAD, then
+journals a single package/startup dispatch with explicit TRON requirement.
+Packaged Node probe syntax also checked through cached Node without files or
+containers. Original image42485543286/job128746476064 remains in progress;
+no duplicate run, local build/download/environment or cleanup retry.
