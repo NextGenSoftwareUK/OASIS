@@ -17,18 +17,18 @@ REMOTE = r"""
 const fs=require('node:fs'),crypto=require('node:crypto'),hash=b=>crypto.createHash('sha256').update(b).digest('hex');
 const manifest=JSON.parse(Buffer.from(process.argv[4],'base64').toString('utf8'));
 for(const [name,sha]of Object.entries(manifest))if(hash(fs.readFileSync('/app/'+name))!==sha)throw Error('Reviewed Dapr recovery implementation differs');
-const modes={inspect:'inspectPendingSource',acknowledge:'acknowledgeRecoveredSource'},mode=process.argv[3];
+const modes={inspect:'inspectPendingSource','inspect-corrected-device':'inspectCorrectedDeviceSource',acknowledge:'acknowledgeRecoveredSource'},mode=process.argv[3];
 if(!modes[mode])throw Error('Explicit Dapr recovery operation required');
 const helper=require('/app/provision-sandbox-dapr.cjs');
 (async()=>{let text='';for await(const chunk of process.stdin){text+=chunk.toString('utf8');if(Buffer.byteLength(text)>8192)throw Error('Plan budget exceeded');}
 const plan=helper.reviewCommand([process.argv[1],process.argv[2]],process.env,text);
-const value=await helper[modes[mode]](plan);
-const recovery=mode==='inspect'?{originalOperation:value.originalOperation,recoveries:value.recoveries,
+const value=await helper[modes[mode]](...(mode==='inspect-corrected-device'?[plan,process.argv[5]]:[plan]));
+const recovery=mode!=='acknowledge'?{originalOperation:value.originalOperation,recoveries:value.recoveries,
 businessWrites:value.businessWrites,originalSaveResponseAcknowledged:value.originalSaveResponseAcknowledged,
 inspectionSha256:hash(JSON.stringify(value)),originalStorageSha256:hash(JSON.stringify(value.originalStorage))}:value.reconciliation;
 process.stdout.write('COSMIC_DAPR_RECOVERY_PROOF '+JSON.stringify({schema:1,mode,planSha256:hash(text),
 deployment:process.env.RAILWAY_DEPLOYMENT_ID,instance:process.env.RAILWAY_REPLICA_ID,
-sourceOwner:value.sourceOwner,records:mode==='inspect'?value.records.length:value.records,...recovery})+'\n');
+sourceOwner:value.sourceOwner,records:mode!=='acknowledge'?value.records.length:value.records,...recovery})+'\n');
 })().catch(error=>{console.error(error.message);process.exitCode=1;});
 """
 
@@ -51,12 +51,27 @@ def receipt(stdout, mode, plan, digest, deployment, instance):
     return value
 
 
+def accepted_inspection(state):
+    files = [state / name for name in ('inspect.acknowledged.json', 'inspect-corrected-device.acknowledged.json')
+             if (state / name).is_file()]
+    if len(files) != 1:
+        raise RuntimeError('One acknowledged original-source inspection is required.')
+    return json.loads(files[0].read_bytes())
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=('inspect', 'acknowledge'))
+    parser.add_argument('mode', choices=('inspect', 'inspect-corrected-device', 'acknowledge'))
+    parser.add_argument('--prior-inspection-intent-sha256')
     parser.add_argument('--deployment-id', required=True)
     parser.add_argument('--instance-id', required=True)
     args = parser.parse_args()
+    prior_hash = args.prior_inspection_intent_sha256
+    if args.mode == 'inspect-corrected-device':
+        if not re.fullmatch(r'[a-f0-9]{64}', prior_hash or ''):
+            parser.error('The read-only reviewed prior inspection intent hash is required.')
+    elif prior_hash is not None:
+        parser.error('A prior inspection hash is valid only for explicit corrected-device inspection.')
     for value in (args.deployment_id, args.instance_id):
         if str(uuid.UUID(value)) != value:
             parser.error('Exact canonical deployment and instance required.')
@@ -82,18 +97,30 @@ def main():
     if settings.get('OASIS_SANDBOX_DAPR') not in (None, 'false'):
         raise RuntimeError('Dapr readers must remain disabled during reconciliation.')
     inspected = None
+    if args.mode == 'inspect-corrected-device':
+        prior_intent = json.loads((STATE / 'inspect.intent.json').read_bytes())
+        prior_outcome = json.loads(protect((STATE / 'inspect.outcome.dpapi').read_bytes(), decrypt=True))
+        if (prior_intent.get('planSha256') != digest or prior_outcome.get('uncertain')
+                or type(prior_outcome.get('returncode')) is not int or prior_outcome['returncode'] == 0
+                or (STATE / 'inspect.acknowledged.json').exists()):
+            raise RuntimeError('A terminal failed original inspection with the same plan is required.')
     if args.mode == 'acknowledge':
-        inspected = json.loads((STATE / 'inspect.acknowledged.json').read_bytes())
+        inspected = accepted_inspection(STATE)
         if inspected.get('sourceCommit') != source or inspected.get('planSha256') != digest:
             raise RuntimeError('Exact qualified inspection source and plan must match.')
     intent = {'mode': args.mode, 'sourceCommit': source, 'planSha256': digest,
               'originalCreationIntentSha256': hashlib.sha256(original_bytes).hexdigest(),
               'deployment': args.deployment_id, 'instance': args.instance_id, 'implementationSha256': manifest}
+    if args.mode == 'inspect-corrected-device':
+        intent['priorInspectionIntentSha256'] = prior_hash
+        intent['priorLocalInspectionIntentSha256'] = hashlib.sha256((STATE / 'inspect.intent.json').read_bytes()).hexdigest()
     write(STATE / (args.mode + '.intent.json'), json.dumps(intent).encode())
     if mount['verify_release']() != args.deployment_id or host['variables']() != settings:
         raise RuntimeError('Reviewed release/settings changed; no recovery operation sent.')
     command = [str(host['CLI']), 'ssh', *host['COMMON'], '-d', args.instance_id, '--', 'node', '--eval', REMOTE,
                args.deployment_id, args.instance_id, args.mode, base64.b64encode(json.dumps(manifest).encode()).decode()]
+    if args.mode == 'inspect-corrected-device':
+        command.append(prior_hash)
     try:
         result = subprocess.run(command, input=payload, capture_output=True, timeout=150)
         outcome = {'returncode': result.returncode, 'stdout': base64.b64encode(result.stdout).decode(), 'stderr': base64.b64encode(result.stderr).decode()}
