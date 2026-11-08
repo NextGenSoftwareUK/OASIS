@@ -66,6 +66,8 @@ def main():
         while True:
             r=docker('exec',mongo,'mongosh','--quiet','--eval','db.adminCommand({ping:1}).ok',check=False,timeout=10)
             if r.returncode==0: break
+            if not re.search(r'ECONNREFUSED|connection refused',r.stdout+r.stderr,re.I):
+                raise RuntimeError('Mongo ping failed outside the startup connection-refusal contract.')
             if time.monotonic()>deadline: raise RuntimeError('Owned Mongo readiness deadline.')
             time.sleep(1)
         docker('exec',mongo,'mongosh','--quiet','--eval','rs.initiate({_id:"rs0",members:[{_id:0,host:"mongo:27017"}]})')
@@ -73,19 +75,30 @@ def main():
         while True:
             r=docker('exec',mongo,'mongosh','--quiet','--eval','if(!db.hello().isWritablePrimary)quit(2)',check=False,timeout=10)
             if r.returncode==0: break
+            if r.returncode!=2: raise RuntimeError('Mongo primary check failed outside the not-yet-primary contract.')
             if time.monotonic()>deadline: raise RuntimeError('Owned primary readiness deadline.')
             time.sleep(1)
         with tempfile.TemporaryDirectory(prefix='oasis-startup-',dir=os.environ['RUNNER_TEMP']) as tmp:
             envfile=Path(tmp)/'environment';envfile.write_text(''.join(k+'='+v+'\n' for k,v in configuration(root,'mongodb://mongo:27017/?replicaSet=rs0',marker).items()));envfile.chmod(0o600)
             docker('create','--name',api,'--label','oasis.startup.owner='+marker,'--network',network,
                 '--memory','3g','--cpus','2','--env-file',str(envfile),image);created.append(('container',api));docker('start',api)
-        probe="fetch('http://127.0.0.1:8080/api/health',{signal:AbortSignal.timeout(3000)}).then(async r=>{if(!r.ok)throw Error('health');const b=await r.json();if(b.status!=='healthy'||b.service!=='OASIS API ONODE WebAPI')throw Error('identity');console.log(JSON.stringify(b))}).catch(()=>process.exit(2))"
+        probe = r"""
+(async()=>{
+let r;try{r=await fetch('http://127.0.0.1:8080/api/health',{signal:AbortSignal.timeout(3000)});}
+catch(e){if(e.cause?.code==='ECONNREFUSED')process.exit(2);throw e;}
+if(r.status===503)process.exit(2);
+if(!r.ok)throw Error('API health HTTP '+r.status);
+const b=await r.json();if(b.status!=='healthy'||b.service!=='OASIS API ONODE WebAPI')throw Error('API health identity differs');
+console.log(JSON.stringify(b));
+})().catch(e=>{console.error(e);process.exit(1)});
+"""
         deadline=time.monotonic()+180
         while True:
             state=json.loads(docker('inspect',api).stdout)[0]
             if not state['State']['Running']: raise RuntimeError('Combined API process exited before readiness.')
             r=docker('exec',api,'node','-e',probe,check=False,timeout=8)
             if r.returncode==0: break
+            if r.returncode!=2: raise RuntimeError('API health failed outside connection-refusal/503 readiness contract: '+r.stderr[-1500:])
             if time.monotonic()>deadline: raise RuntimeError('Combined API readiness deadline.')
             time.sleep(2)
         native="const x=require('/app/host-sandbox-openvino.cjs');x.verifyNative(require('/app/openvino-model-server-pins.json'),AbortSignal.timeout(10000)).then(()=>console.log('native-metadata-verified')).catch(e=>{console.error(e);process.exit(1)})"
@@ -104,7 +117,10 @@ def main():
             labels=state['Labels'] if kind=='network' else state['Config']['Labels'];assert labels['oasis.startup.owner']==marker
             if kind=='container':
                 if state['State']['Running']: docker('stop','--time','20',name,timeout=30)
+                volumes=[mount['Name'] for mount in state.get('Mounts',[]) if mount['Type']=='volume']
                 docker('rm','--volumes',name)
+                for volume in volumes:
+                    assert absent('volume',volume), 'Owned anonymous database volume remains.'
             else: docker('network','rm',name)
             assert absent(kind,name)
         (out/'cleanup.json').write_text(json.dumps({'ownedContainersAbsent':True,'ownedNetworkAbsent':True,'ephemeralDatabaseVolumesRemoved':True}))
