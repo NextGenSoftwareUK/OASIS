@@ -26,6 +26,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+      - name: Verify startup readiness and error boundaries
+        run: python3 -B Scripts/TestHosts/test_web4_combined_startup.py
       - name: Retain verifier before checking exact image source
         run: |
           cp Scripts/TestHosts/qualify_web4_full_package.py "$RUNNER_TEMP/qualify_web4_full_package.py"

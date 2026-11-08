@@ -35,7 +35,9 @@ this checkpoint does not claim completion of those designs.
   Cloud-only package/startup workflow is prepared: exact tag/digest/helper/model
   hashes/six assemblies first, then optional real API/native startup with fresh
   Mongo replica/accounting data on an internal network. Syntax/config invariants
-  pass; neither checker has been dispatched before full-image publication.
+  pass, including seven actual health-probe response controls and verified-volume
+  cleanup requirements; the cloud workflow runs those controls before inspecting
+  an image. Neither checker has been dispatched before full-image publication.
 
 [OpenVINO/runtime/build evidence](OPENVINO_CQL_MVP.md).
 [Artifact download contract](../../Devs/WEB4_NATIVE_ARTIFACT_DOWNLOADS.md).
