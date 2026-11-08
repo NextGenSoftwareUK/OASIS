@@ -24,9 +24,10 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - PouchDB settings/live acceptance job2045b41e succeeded.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
-  Dapr correctionf00eb9d48/Coreec7d440 passed exact native/image gates and
-  is now on Development. Code deploymentdb3d1e66 isSUCCESS on instance
-  ab03fb8e-9d74-4f81-ae6f-38264afeba36; Dapr disabled.
+  Dapr correction74a7b60c0/Coreec7d440 passed exact native/image gates and
+  is now on Development. Code deployment75e5970b isQUEUED. Active code remains
+  f00eb9d48/db3d1e66 on ab03fb8e-9d74-4f81-ae6f-38264afeba36 until newSUCCESS.
+  Dapr disabled; no settings changed.
   First planned source save is unacknowledged: Railway denies native libaio
   io_getevents. Original source/intent retained; do not reseed or recreate.
 - Website C:/Source/Web4Site, branch work/cosmic-cql, publishedad7e9dd (six new cards71-76; earlier accepted cards retained).
@@ -60,7 +61,8 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-Development branch isf00eb9d48/Coreec7d440; code deploymentdb3d1e66 isSUCCESS
+Development branch is74a7b60c0/Coreec7d440; code deployment75e5970b isQUEUED.
+Active codef00eb9d48/db3d1e66 isSUCCESS
 on instanceab03fb8e-9d74-4f81-ae6f-38264afeba36,
 actual image sha256:54c3fd20f29399801dd827c51d26e5cc6fd9019cbe1eaea687ef84a677d414c8.
 Dapr remains disabled/unadmitted. The first original source save timed out without
@@ -89,13 +91,15 @@ Prior native42431408413 passed normal WEB4 recoveries but failed the new fixture
 its GET fault injection missed fetch's implicit GET. Fixed the fixture boundary;
 exact corrected native42431903229/job128582436232 isSUCCESS. Its artifact was
 verified in memory: two real WEB4 TRX1/1/0skips and complete corrected-device
-recovery proof. Exact image42432504316/job128584628139 is building. Superseded
+recovery proof. Exact image42432504316/job128584628139 isSUCCESS, digest
+sha256:b704b8fa5a83f3db779eb5110c9cdd44faffed328fd02323d7b9f2240a7777d5. Superseded
 owned image42431411318 is terminalCANCELLED with no active steps.
 Fresh rollout review confirms seven advertised pins, matching shared branch bases
-and unchanged245settings; integration command is prepared but not executed.
-Next qualify this complete candidate, deploy its scoped batch, then inspect all
-original records via the explicit corrected-device operation before metadata/enrollment.
-No RandomAccess shipping deployment or original-source metadata transition yet.
+and unchanged245settings; one scoped Development push is acknowledged.
+Next observe75e5970b, verify its actual running image/package/settings and original
+failed inspection/AOF fingerprints, then inspect all original records via the
+explicit corrected-device operation before metadata/enrollment. No duplicate deploy,
+corrected-device live inspection or original-source metadata transition yet.
 No second source generation or original save request is authorized by that flow.
 
 Coverage remains119local/91live HTTP/28functional browser. The six public readers

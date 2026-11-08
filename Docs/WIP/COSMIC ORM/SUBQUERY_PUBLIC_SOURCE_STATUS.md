@@ -54,6 +54,16 @@ no automatic repeat. Preserve the original attempt rather than inferring a
 network error/status. Each distinct request has its own intent/outcome under
 `RecoveryLaptopResume20261107/subquery-arbitrum-*`.
 
+The observer was then corrected to persist raw/status before parsing. One
+separately journalled independent identity batch (chain ID plus genesis block)
+returned HTTP403/706bytes, SHA256
+`b3dbc17ed26cf4d67d6b47cb93e736f370718842b9a8e402e5e31b16c9bd2e76`.
+The response explicitly identifies Cloudflare1010/browser_signature_banned,
+access_denied and retryable=false. Stop requests to this endpoint; no header
+spoofing, proxy, alternate route or automatic retry. This observed denial does
+not retroactively establish the missing first response's status or contents.
+SubQuery chain identity remains unverified, despite its own V1 metadata200.
+
 Next complete independent chain identity and bounded entity/schema qualification,
 then implement/admit the native CQL reader. Native manager, WEB4, federation,
 privacy, snapshot/replica and browser gates remain open. Existing legacy storage
