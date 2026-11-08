@@ -13,7 +13,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Resumed on the old laptop at C:/Source/OASIS2 on 7 November after the
   recovered laptop failed again. Branch work/cosmic-cql-ton-public.
 - Core task branch work/cosmic-cql-decentraland; preserve independent pins.
-- Development source82428c7a6/Core2a09c9be code592df8cd isSUCCESS.
+- Earlier NATS checkpoint: source82428c7a6/Core2a09c9be code592df8cd isSUCCESS.
   Eight NATS settings staged once; activation8c51a9da isSUCCESS and HTTP accepted.
   DuckDB accepted deployment32b26f74/source evidence remains preserved.
   DuckDB hosted HTTP acceptance passed with the original qualified database,
@@ -25,7 +25,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
   Dapr correction74a7b60c0/Coreec7d440 passed exact native/image gates and
-  is now on Development. Code deployment75e5970b isSUCCESS on
+  preceded the new SubQuery batch. Code deployment75e5970b isSUCCESS on
   ca788724-9609-4630-8093-e61d4cc80c4d; package/settings/source fingerprints verified.
   Fresh Dapr generation acknowledged; activationf0b2771c isSUCCESS on
   0fb82716-5388-46ee-a6e7-a6536fd36bf5. All251settings/package and mounted
@@ -63,106 +63,65 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-Development branch is74a7b60c0/Coreec7d440; activationf0b2771c isSUCCESS
-on instance0fb82716-5388-46ee-a6e7-a6536fd36bf5,
-actual image sha256:d67979ce202c656fda6552bc2dab2eb5cce04d4ea19b0a9cd50e4c172f2c4dbd.
-Dapr scoped HTTP acceptance is sealed. The first original source save timed out without
-acknowledgement because Railway denies the default libaio completion syscall.
-Its original source/plan/intent are preserved: never recreate or resend.
+Observe Railway code deployment **ac908014-1a41-40ef-aec9-3d5df89b5ff8**. It is
+QUEUED for verified SubQuery candidate `9fd968a7b40d2decb389f7a2a5c7f75874b11153`
+and Core `06df0885c398e0b16749565852d12a9d499288d2`. One normal Development push
+is acknowledged. **Do not rerun the integration operator or request another
+code deployment.** The accepted Dapr release still serves while this is queued.
 
-Explicit Native/Uring full native qualification passes42425594492. The read-only
-inspector/recovered-outcome metadata fixture passes42426250057:1save,2recoveries,
-0inspection mutations, unchanged AOF and no fabricated save-response ACK. The
-corrected scoped candidatef00eb9d48 passes exact native qualification42427310034;
-its exact image42427405291 passed. Installed package/198critical settings and
-full245setting baseline are verified unchanged. The one original-source inspection
-failed: host Native/Uring initialization returns errno38 Function not implemented
-on actual AOF reads. Original2048byte AOF hash unchanged; owned processes0.
-Do not replay inspect or save. Its failed private journals/logs are preserved.
+Image run42441146593/job128610449048 succeeded. Qualified GHCR digest:
+`sha256:c9e3748ba13de0e0134c7e0046e1b30840d27ab6cc56ff056fdf4f3b187530b5`.
+All 51 scoped checks pass with zero skips: 16 dictionary controls + 1 real native
+CQL case, 8 WEB4 controls + 1 actual HTTP/Mongo case, and 25 admission regressions.
+Native3/2, Mongo5/4, foreign-private0/public3, nine usage receipts and exact owned
+fixture database absence are verified. Task SubQuery8+1 and affected Waku5+1 also
+pass. [Exact source, hashes and scope](SUBQUERY_PUBLIC_SOURCE_STATUS.md).
 
-One separate RandomAccess diagnostic HSET reached durable storage without engine
-errors. Its inventory stopped on Garnet's log-commits directory; a separately
-journalled recovery-only continuation read the same value, changed no AOF bytes
-and stopped its process. Original live source was not accessed by that diagnostic.
-Task-only Linux contract now explicitly selects supported RandomAccess; no runtime
-selection/fallback. Explicit corrected-device inspection transition is implemented
-(25Node/11Python controls pass), preserving old diagnostic files and exact AOF.
-Scoped candidate74a7b60c0 (Core unchanged) is published only to the candidate branch.
-Prior native42431408413 passed normal WEB4 recoveries but failed the new fixture:
-its GET fault injection missed fetch's implicit GET. Fixed the fixture boundary;
-exact corrected native42431903229/job128582436232 isSUCCESS. Its artifact was
-verified in memory: two real WEB4 TRX1/1/0skips and complete corrected-device
-recovery proof. Exact image42432504316/job128584628139 isSUCCESS, digest
-sha256:b704b8fa5a83f3db779eb5110c9cdd44faffed328fd02323d7b9f2240a7777d5. Superseded
-owned image42431411318 is terminalCANCELLED with no active steps.
-Fresh rollout review confirms seven advertised pins, matching shared branch bases
-and unchanged245settings; one scoped Development push is acknowledged.
-Installed package,198critical settings/full245baseline and original fingerprints
-pass. Corrected-device inspection ran once after an unstarted mount preflight
-stopped; it still failed record/ETag verification. Original2048byte AOF hash unchanged,
-prior diagnostics archived intact,0owned processes and no storage engine errors.
-No save replay or recovered metadata ACK. Original save outcome remains unknown.
+The image workflow used its default mutable sandbox tag despite the requested
+empty extra tag. Actual tags are recorded; a fresh protected observation proved
+that it did not change the live service. Future image requests must explicitly
+set the commit-specific teaching tag rather than an empty string. The qualified
+GHCR digest is separate from the eventual actual Railway image digest.
 
-Retirement operator177ad6a73 passes Linux42435459405/job128593209843:
-6Node+3Python/0skips. Remote retirement and checked local archive are acknowledged;
-all original files preserved under operationb75969e7-cd3d-40e1-be62-22ea3835eafa,
-businessWrites0/originalSaveOutcomeunknown. No original save ACK fabricated.
-Fresh source owner141c7116-ab36-432d-a570-d772403768e0 has a distinct plan/IDs,
-one successful creation ACK and verified durable reader recovery. Generation lineage
-links the retained original. Eight exact settings are staged/acknowledged; one
-activationf0b2771c-49bf-466f-91d3-7dbf060dfaf5 isSUCCESS for the same74a7b60c0 code.
-Exact package/251settings and fresh mounted values/ETags pass before and after HTTP.
-Original PouchDB rehearsal visitor reused, one Dapr owner/foreign cohort sealed:
-native3/2, Mongo5/4, first2private saves/repeat0new2existing, privacy0/public3 and
-SQLite/Neo4j2/2. Dapr card77 is published at26b3172 with119client controls passing
-and exact public HTML bytes verified. Continue independent red provider/browser
-gates; SubQuery has real bounded dictionary-block evidence but identity/CQL remain
-open. Never replay this accepted cohort or either source creation.
+Read-only preflight verified all seven advertised pins, the accepted deployment
+and all 251 settings. A second guarded review passed before the acknowledged
+Development push. Dapr remains enabled; SubQuery is not enrolled. Private state
+and guarded operators are under `LocalState/COSMIC/RecoveryLaptopResume20261107`:
 
-SubQuery task source `c223bfc009107d58f7ae5b8ae4980dba4fa0be8b` now implements
-bounded exact-height dictionary CQL with sixteen controlled cases and one real
-public native CQL case. Cloud run42438203693/job128601533699 isSUCCESS:
-16controlled/1native pass with zero skips; both TRX reports verified in memory.
-Independent chain identity, WEB4 admission and hosted
-acceptance remain open. No coverage count or Development deployment advances.
+1. Observe ac908014 until SUCCESS. The read-only inspector may safely report
+   QUEUED without source access. Then run `inspect-subquery-code-package.py`
+   with `--deployment ac908014-1a41-40ef-aec9-3d5df89b5ff8 --phase code`.
+   It binds the actual instance/package/settings, accepted Dapr acknowledgement,
+   runtime versions and new SubQuery assembly/registration. Preserve its receipt.
+2. Review and explicitly publish the four settings with
+   `Publish-HostedFixedPublicCatalogue.py`, prefix `subquery-dictionary-public`.
+   The retained baseline has 251 settings; the prepared candidate has 253.
+   Recheck the live baseline and exact successful deployment before publication.
+3. After all four setting ACKs, invoke `activate-subquery-settings.py` once.
+   The operator refuses an existing intent and verifies the original source owner.
+   Observe that new activation handle, then inspect it with `--phase settings`.
+4. Reuse the acknowledged PouchDB readiness visitor only after exact release
+   verification. Run SubQuery's first hosted native/federation/preparation/reuse/
+   privacy/SQLite+Neo4j cohort once; seal its original two saves and reports.
+   Never replay accepted cohorts or create/replace an existing native source.
+5. Publish website card78 only after hosted acceptance, updating its note and
+   evidence link. Website task73bacd67970877cfed7404595498ca12ad233c0d has the draft
+   and all119client controls pass. Main/public source remains26b3172. Browser
+   interaction stays separate; do not bypass the existing URL-policy failure.
 
-SubQuery WEB4 task04ecc5d50 now pins Core6dbdc03 with its central read-tariff
-allowlist entry; parent gitlink/manifest validation passes. First WEB4 cloud
-42438643607 compiled but failed2of8controls (tariff support and missing fixture
-authority). Both are corrected; exact replacement42439418296 isSUCCESS:
-8boundary+1real HTTP/Mongo cases/zero skips, native3/2, Mongo5/4, foreign-private0/public3,
-9usage receipts and exact fixture database absence/container teardown verified.
-Scoped candidate45734a552/Core06df088 is published only to existing candidate
-branches; its exact dictionary42440093239 isSUCCESS16+1/zero skips, artifact verified
-in memory. Exact WEB4/admission jobs42440093218/241 failed compile because the
-shared HTTP test file referenced unenrolled Safe/ENS Offchain assemblies.
-Owned image42440274631 is terminalCANCELLED; no successful image claimed.
-Taskb07a2e453 factors one shared HTTP/Mongo fixture from provider factories, with
-its existing test body preserved. Corrected candidate9fd968a7b/Core06df088 is
-published only on the existing candidate branch; shipping runtime/pins unchanged,
-manifest checks pass. Exact WEB4 run42440703734 (8+1), dictionary42440748480 (16+1)
-and admission42440751129 (25) all pass/zero skips; artifacts verified in memory.
-Task SubQuery8+1 and affected Waku5+1 regressions also pass in isolated fixtures.
-One corrected image dispatch204 is acknowledged:42441146593/job128610449048 is
-live on9fd968a7b with teaching runtimes enabled and commit-only tag.
-No Development deployment or settings mutation requested.
-Thirty-nine protected-candidate and five publisher controls pass locally without
-live mutations or local builds. A pinned independent Firehose registry agrees
-with the expected Arbitrum One genesis; the fresh RPC attempt remains denied.
-Stable SubQuery host source plan and protected offline253setting candidate are
-prepared without live mutation; full baseline recheck remains mandatory.
-Current source/admission evidence and scope limits are in
-[SubQuery status](SUBQUERY_PUBLIC_SOURCE_STATUS.md). Hosted/browser counts remain unchanged.
+The original SubQuery plan keeps ownerf0d6a43f-cdf4-4112-8397-b406571401a6 and
+its three mapped IDs. It creates no native data. Its dictionary network pin
+agrees with an independent pinned Firehose registry and earlier accepted Arbitrum
+binding; fresh independent RPC access remains denied. Full logs, consensus
+verification and general ORM/storage operations are not claimed.
 
-Coverage is120local/92live HTTP/28functional browser. The six public readers
-remain accepted on their original sealed cohorts: native3/2, Mongo5/4, repeat0new,
-privacy0/public3 and exact SQLite/Neo4j replicas2/2. Never replay accepted cohorts.
-Website26b3172 publishes card77 plus cards71-76; all119client controls and exact public HTML
-passed. Browser gates remain open. [Batch evidence](SIX_PUBLIC_READERS_HOSTED_BATCH.md).
-
-Browser URL-policy helper failure, QuestDB403, Chroma/D1 access, Nostr recovery
-and David's deferred hosted databases remain unchanged. Full provider/ORM parity
-and broader protocol execution are separate from these bounded CQL proofs.
+Coverage is **120 scoped local / 92 live HTTP / 28 functional browser**.
+The accepted Dapr cohort remains sealed at activationf0b2771c on its fresh native
+generation. Its retired failed predecessor retains its unknown save outcome and
+original files. [Dapr history](DAPR_CQL_MVP.md) and
+[prior status](https://github.com/NextGenSoftwareUK/OASIS/blob/f1295f01fcc38a11ad4a09baa11003d802928b23/Docs/WIP/COSMIC%20ORM/CURRENT_STATUS.md)
+preserve recovery detail. No SubQuery settings mutation or source operation has
+happened during this code rollout.
 
 ## Source and rollout journals
 

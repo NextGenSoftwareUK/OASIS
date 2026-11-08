@@ -193,13 +193,48 @@ or production billing proof is inferred. Artifacts were inspected in memory:
 | Admission |13601662838|4366|8e46efd236c520e44f44653128a2dbec1b5b4630324aa5b07dc71fb1cf3fe545|
 
 One replacement image dispatch is acknowledged204 after those exact gates:
-run42441146593/job128610449048 is live for9fd968a7b with teaching runtimes enabled,
-commit-only image tag and no mutable sandbox tag. No Development/settings mutation.
+run42441146593/job128610449048 succeeded for9fd968a7b with teaching runtimes enabled.
+The requested commit-only tagging intention differed from the actual workflow
+default; see the qualified-image checkpoint below. At request time Development
+and settings were unchanged.
 Task refactor run42440591625 also passed8+1/zero skips. Its artifact13601677943,
 4617bytes/SHA2567550c00f7f9863127f176a68b3fa3cfe4326530ee3c4fb6f83abf2fad3d8f89b,
 was inspected in memory. Waku regression42440591607/job128608780526 passed
 5native+1HTTP/zero skips. Its separate synthetic cloud bundle13601786959/1143bytes
 was not downloaded and must never replace accepted hosted sources/cohorts.
+
+### Qualified image and code rollout
+
+Image run42441146593/job128610449048 succeeded for9fd968a7b with teaching
+runtimes enabled. Qualified GHCR digest:
+`sha256:c9e3748ba13de0e0134c7e0046e1b30840d27ab6cc56ff056fdf4f3b187530b5`.
+The earlier commit-only tag intention was not the observed result: GitHub applied
+the workflow's default extra `sandbox` tag despite the empty requested value.
+Actual tags are recorded in `subquery-corrected-image-qualified.json`. Future
+qualification requests must pass the explicit commit-specific teaching tag.
+No retry/retag was attempted. A fresh protected deployment observation after
+image publication proved the accepted service still atf0b2771c/74a7b60c0/d67979ce.
+
+Read-only preflight passes all seven advertised dependency pins and full251setting
+equality, preserving enabled Dapr and absent SubQuery enrollment. The guarded
+integration rechecked those invariants and acknowledged one normal Development
+push to9fd968a7b. No source/settings operation occurred. Railway code deployment
+`ac908014-1a41-40ef-aec9-3d5df89b5ff8` isQUEUED for that exact source; observe
+that handle, never request a replacement because observation expires.
+Fresh queue detail explicitly says **Waiting for build slot**. No restart/retry
+or duplicate deployment request was made.
+
+Prepared private operators: `publish-subquery-development.py` has already run
+once and must not be replayed; `inspect-subquery-code-package.py` performs read-only
+code/settings-phase checks; `activate-subquery-settings.py` requires inspected
+code and four exact per-key ACKs before one journalled activation. Activation
+has not run. Actual Railway digest/instance and253setting proof remain pending.
+
+Website task73bacd67970877cfed7404595498ca12ad233c0d backs up card78, scoped to
+dictionary-reported activity and explicitly conditional on source availability.
+All119client controls pass using cached Node24, no skips. It is pushed only to
+`work/cosmic-cql`; main/public source remains26b3172. Update the final evidence
+link/note and publish only after hosted acceptance. No browser proof is inferred.
 
 Stable future host plan: `LocalState/COSMIC/HostedSubqueryDictionarySourceCurrent`,
 ownerf0d6a43f-cdf4-4112-8397-b406571401a6, mapped IDs
