@@ -33,11 +33,26 @@ const { contract } = require('../../Docker/DaprRuntime/configuration.cjs');
     assert.equal(lostResponseInjected, true);
     for (const name of ['seed.acknowledged.json', 'source.acknowledged.json'])
       await assert.rejects(fs.stat(path.join(source, name)), { code: 'ENOENT' });
+    let inspectionReadFailureInjected = false;
     globalThis.fetch = (url, options) => {
       if (options?.method && options.method !== 'GET') { inspectionMutations++; throw Error('Recovery inspector attempted a mutation.'); }
+      if (!inspectionReadFailureInjected && options?.method === 'GET' && String(url).includes('/v1.0/state/')) {
+        inspectionReadFailureInjected = true;
+        throw Error('Controlled failure of first inspection read');
+      }
       return nativeFetch(url, options);
     };
-    const proof = await helper.inspectPendingSource(plan, source, binaries);
+    await assert.rejects(helper.inspectPendingSource(plan, source, binaries), /Controlled failure of first inspection read/);
+    assert.equal(inspectionReadFailureInjected, true);
+    const priorIntent = await fs.readFile(path.join(source, 'inspection/inspection.intent.json'));
+    const priorHash = crypto.createHash('sha256').update(priorIntent).digest('hex');
+    const proof = await helper.inspectCorrectedDeviceSource(plan, priorHash, source, binaries);
+    assert.deepEqual(await fs.readFile(path.join(source, 'inspection-device-correction/prior-inspection/inspection.intent.json')), priorIntent);
+    for (const name of ['inspect-first-0.log', 'inspect-first-1.log'])
+      assert.ok((await fs.stat(path.join(source, 'inspection-device-correction/prior-inspection', name))).isFile());
+    const correction = JSON.parse(await fs.readFile(path.join(source, 'inspection-device-correction/correction.intent.json'), 'utf8'));
+    assert.equal(correction.priorInspectionIntentSha256, priorHash);
+    await assert.rejects(helper.inspectCorrectedDeviceSource(plan, priorHash, source, binaries), /Acknowledged/);
     assert.equal(proof.records.length, 4);
     assert.equal(proof.recoveries, 2);
     assert.equal(proof.businessWrites, 0);
@@ -61,7 +76,8 @@ const { contract } = require('../../Docker/DaprRuntime/configuration.cjs');
     const result = { schema: 1, nativeSaveRequests: saves, responseLossInjected: true,
       originalRecordsVerified: proof.records.length, recoveries: proof.recoveries,
       inspectionMutations, originalAofUnchanged: true, originalSaveResponseAcknowledged: false,
-      fabricatedSaveAcknowledgement: false, recoveredSourceMetadataAccepted: true, nativeProcessesStopped: true };
+      fabricatedSaveAcknowledgement: false, recoveredSourceMetadataAccepted: true, nativeProcessesStopped: true,
+      failedInspectionRetained: true, correctedDeviceInspectionVerified: true };
     const file = await fs.open(path.join(source, 'pending-recovery-native-proof.json'), 'wx', 0o600);
     try { await file.writeFile(JSON.stringify(result)); await file.sync(); } finally { await file.close(); }
     process.stdout.write(JSON.stringify(result) + '\n');

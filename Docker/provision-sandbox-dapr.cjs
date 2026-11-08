@@ -60,11 +60,60 @@ async function storageSnapshot(directory) {
   return rows.sort((a, b) => a.name.localeCompare(b.name));
 }
 
+function correctedInspectionReview(plan, creation, seed, prior, storage, priorBytes, expectedHash) {
+  pendingSourceDescriptor(plan, creation, seed);
+  if (!/^[a-f0-9]{64}$/.test(expectedHash || '') || hash(priorBytes) !== expectedHash ||
+      prior?.schema !== 1 || prior.prefix !== plan.prefix || prior.originalOperation !== seed.operation ||
+      prior.businessWritesAllowed !== false || JSON.stringify(prior.storage) !== JSON.stringify(storage))
+    throw Error('Reviewed failed inspection or original AOF differs; correction refused.');
+  return { schema: 1, originalOperation: seed.operation, priorInspectionIntentSha256: expectedHash,
+    originalStorageSha256: hash(JSON.stringify(storage)), businessWritesAllowed: false };
+}
+
+async function inspectCorrectedDeviceSource(plan, expectedHash, directory = '/data/COSMIC/SandboxDapr', binaries = { garnet: '/opt/garnet/GarnetServer', daprd: '/opt/dapr/daprd' }) {
+  review(plan);
+  if (process.platform !== 'linux' || await fs.realpath(directory) !== directory ||
+      JSON.stringify(config.contract.linuxStorageArguments) !== JSON.stringify(['--device-type', 'RandomAccess']))
+    throw Error('Qualified corrected Linux storage device required.');
+  const old = path.join(directory, 'inspection');
+  async function original(file) {
+    const stat = await fs.lstat(file);
+    if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 32768 || (stat.mode & 0o077))
+      throw Error('Private original inspection journal differs.');
+    return fs.readFile(file);
+  }
+  for (const file of [path.join(old, 'inspection.acknowledged.json'), path.join(directory, 'source.acknowledged.json'), path.join(directory, 'seed.acknowledged.json')]) {
+    try { await fs.lstat(file); } catch (error) { if (error.code === 'ENOENT') continue; throw error; }
+    throw Error('Acknowledged inspection/source cannot be corrected.');
+  }
+  const priorBytes = await original(path.join(old, 'inspection.intent.json'));
+  const creation = JSON.parse(await original(path.join(directory, 'creation.intent.json')));
+  const seed = JSON.parse(await original(path.join(directory, 'seed.intent.json')));
+  const storage = await storageSnapshot(path.join(directory, 'store'));
+  const correction = correctedInspectionReview(plan, creation, seed, JSON.parse(priorBytes), storage, priorBytes, expectedHash);
+  // Inventory the private diagnostic tree before retaining it as immutable
+  // history. The business store is never moved, copied or modified here.
+  correction.priorInspectionFiles = await storageSnapshot(old);
+  await requireFreePorts();
+  const history = path.join(directory, 'inspection-device-correction');
+  await fs.mkdir(history, { mode: 0o700 });
+  await durableExclusive(path.join(history, 'correction.intent.json'), correction);
+  const retained = path.join(history, 'prior-inspection');
+  await fs.rename(old, retained);
+  for (const parent of [history, directory]) {
+    const handle = await fs.open(parent, 'r');
+    try { await handle.sync(); } finally { await handle.close(); }
+  }
+  if (JSON.stringify(await storageSnapshot(retained)) !== JSON.stringify(correction.priorInspectionFiles))
+    throw Error('Retained failed inspection changed; corrected inspection not started.');
+  return inspectPendingSource(plan, directory, binaries);
+}
+
 async function inspectPendingSource(plan, directory = '/data/COSMIC/SandboxDapr', binaries = { garnet: '/opt/garnet/GarnetServer', daprd: '/opt/dapr/daprd' }) {
   review(plan);
   if (process.platform !== 'linux' || await fs.realpath(directory) !== directory) throw Error('Original Linux source required.');
-  if (JSON.stringify(config.contract.linuxStorageArguments) !== JSON.stringify(['--device-type', 'Native', '--device-io-backend', 'Uring']))
-    throw Error('Qualified explicit native io_uring recovery contract required.');
+  if (JSON.stringify(config.contract.linuxStorageArguments) !== JSON.stringify(['--device-type', 'RandomAccess']))
+    throw Error('Qualified explicit RandomAccess durable storage contract required.');
   async function original(name) {
     const file = path.join(directory, name), stat = await fs.lstat(file);
     if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 32768 || (stat.mode & 0o077)) throw Error('Original private Dapr journal differs.');
@@ -275,7 +324,8 @@ function reviewCommand(args, environment, text) {
   const plan = JSON.parse(text); review(plan);
   return plan;
 }
-module.exports = { review, provision, reviewCommand, pendingSourceDescriptor, inspectPendingSource, reconciledSourceDescriptor, acknowledgeRecoveredSource };
+module.exports = { review, provision, reviewCommand, pendingSourceDescriptor, inspectPendingSource,
+  correctedInspectionReview, inspectCorrectedDeviceSource, reconciledSourceDescriptor, acknowledgeRecoveredSource };
 if (require.main === module) (async () => {
   let text = '';
   for await (const chunk of process.stdin) {

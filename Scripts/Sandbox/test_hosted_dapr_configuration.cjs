@@ -7,14 +7,14 @@ const root = path.resolve('LocalState/COSMIC/OwnedDaprFixture');
 const acl = path.join(root, 'reader.acl');
 const password = 'a'.repeat(64);
 
-test('Linux explicitly selects the reviewed native io_uring backend without default or libaio selection', () => {
-  assert.deepEqual(runtime.contract.linuxStorageArguments, ['--device-type', 'Native', '--device-io-backend', 'Uring']);
+test('Linux explicitly selects the host-compatible RandomAccess device without privileged native IO', () => {
+  assert.deepEqual(runtime.contract.linuxStorageArguments, ['--device-type', 'RandomAccess']);
   const args = runtime.garnetArguments(root, acl, 'recover');
   if (process.platform === 'linux') {
-    assert.equal(args[args.indexOf('--device-type') + 1], 'Native');
-    assert.equal(args[args.indexOf('--device-io-backend') + 1], 'Uring');
-    assert.equal(args.filter(value => value === '--device-io-backend').length, 1);
-  } else assert.ok(!args.includes('--device-io-backend'));
+    assert.equal(args[args.indexOf('--device-type') + 1], 'RandomAccess');
+    assert.equal(args.filter(value => value === '--device-type').length, 1);
+  } else assert.ok(!args.includes('--device-type'));
+  assert.ok(!args.includes('--device-io-backend'));
 });
 test('AOF recovery requires synchronous durability and strict recovery without invalid tiered LogDir', () => {
   const args = runtime.garnetArguments(root, acl, 'recover');

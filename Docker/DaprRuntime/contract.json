@@ -8,7 +8,7 @@
     "internalGrpc": 54863,
     "redis": 54864
   },
-  "linuxStorageArguments": ["--device-type", "Native", "--device-io-backend", "Uring"],
+  "linuxStorageArguments": ["--device-type", "RandomAccess"],
   "garnetArguments": [
     "--memory",
     "64m",
