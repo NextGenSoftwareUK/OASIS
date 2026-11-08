@@ -50,6 +50,18 @@ const fs={readFileSync:p=>{
    if(o.missingFile)throw Error('controlled missing reader assembly');
    return Buffer.from('TronPublicHeaderMetadataSource '+(o.missingMethod?'':'FromAuthenticatedJson'));
  }
+ if(p==='/app/NextGenSoftware.OASIS.API.Providers.UrbitOASIS.dll'){
+   if(o.missingUrbit)throw Error('controlled missing Urbit assembly');
+   return Buffer.from('UrbitContactsV1Client ReadBookPageAsync '+(o.missingUrbitQuery?'':'UrbitContactBookQuerySource'));
+ }
+ if(p==='/app/NextGenSoftware.OASIS.API.ONODE.WebAPI.dll')return Buffer.from(o.missingUrbitRegistration?'':'CqlUrbitReadSourceRegistration AddUrbitReadSource');
+ if(p==='/app/NextGenSoftware.OASIS.API.ONODE.WebAPI.deps.json'){
+   const name='NextGenSoftware.OASIS.API.Providers.UrbitOASIS',key=name+'/2.0.0';
+   const target={[key]:{runtime:{[name+'.dll']:{}}},'NextGenSoftware.OASIS.API.ONODE.WebAPI/2.0.0':{dependencies:{[name]:'2.0.0'}}};
+   if(o.missingUrbitRuntime)delete target[key].runtime[name+'.dll'];
+   if(o.missingUrbitDependency)delete target['NextGenSoftware.OASIS.API.ONODE.WebAPI/2.0.0'].dependencies[name];
+   return JSON.stringify({runtimeTarget:{name:'net10.0'},targets:{'net10.0':target},libraries:{[key]:{type:o.urbitNotProject?'package':'project'}}});
+ }
  if(p.startsWith('/models/')){modelReads++;return model;}
  throw Error('Unexpected controlled file '+p);
 },statSync:()=>({size:1}),realpathSync:()=>'/opt/ovms-rootfs/ovms'};
@@ -57,7 +69,7 @@ const pins={modelName:'controlled',versions:['1','2','3'],files:{'graph':{bytes:
 vm.runInNewContext(PROBE,{Buffer,require:p=>{
  if(p==='node:fs')return fs;if(p==='node:crypto')return crypto;if(p==='node:assert/strict')return assert;
  if(p==='/app/openvino-model-server-pins.json')return pins;throw Error('Unexpected controlled module '+p);
-},process:{argv:['node',JSON.stringify(expected),JSON.stringify(o.reader),o.profile]},console:{log:s=>result=JSON.parse(s)}});
+},process:{argv:['node',JSON.stringify(expected),JSON.stringify(o.reader),o.profile,JSON.stringify(o.urbit===true)]},console:{log:s=>result=JSON.parse(s)}});
 assert.equal(modelReads,o.profile==='full'?3:0);
 console.log(JSON.stringify(result));
 """.replace('PROBE', json.dumps(probe))
@@ -66,7 +78,13 @@ console.log(JSON.stringify(result));
                  ({'profile':'tron-api','reader':True}, 0, 3),
                  ({'profile':'tron-api','reader':True,'missingMethod':True}, 1, None),
                  ({'profile':'tron-api','reader':True,'missingFile':True}, 1, None),
-                 ({'profile':'tron-api','reader':False}, 1, None)]
+                 ({'profile':'tron-api','reader':False}, 1, None),
+                 ({'profile':'full','reader':False,'urbit':True}, 0, 7),
+                 ({'profile':'full','reader':True,'urbit':True}, 0, 8),
+                 ({'profile':'tron-api','reader':True,'urbit':True}, 1, None)]
+        cases += [({'profile':'full','reader':False,'urbit':True,key:True},1,None)
+                  for key in ['missingUrbit','missingUrbitQuery','missingUrbitRegistration',
+                              'missingUrbitRuntime','missingUrbitDependency','urbitNotProject']]
         for options, status, count in cases:
             with self.subTest(options=options):
                 result = subprocess.run([os.environ.get('NODE_BINARY','node'), '-e', harness,
@@ -75,6 +93,7 @@ console.log(JSON.stringify(result));
                 if status == 0:
                     proof = json.loads(result.stdout)
                     self.assertEqual(count, proof['assemblies'])
+                    self.assertEqual(options.get('urbit',False), proof['urbitReaderPackaged'])
                     self.assertEqual(options['profile']=='full', proof['modelHashes'])
 
     def test_generated_dna_satisfies_actual_native_supervisor_guard(self):

@@ -81,6 +81,13 @@ owned internal network and drop to the runner UID/GID, with no published ports.
 5. Blank-page existence contract, wider CQL, canonical provider CRUD/full interfaces,
    imported/virtual/hybrid persistence and EF/NHibernate parity remain incomplete.
 
+Package qualification preparation: the explicit `urbit_reader` input requires
+SDK/book/query symbols, WEB4 registration and the actual project/runtime/direct
+API dependency graph from the image, in addition to existing full-package checks.
+The actual Node probe passes15 controlled positive/negative cases in6 local test
+methods; these are packaging controls, not image/runtime acceptance. No image
+build or Development publication is implied by these controls.
+
 ## Files and reusable resources
 
 - Provider: Providers/Other/NextGenSoftware.OASIS.API.Providers.UrbitOASIS/

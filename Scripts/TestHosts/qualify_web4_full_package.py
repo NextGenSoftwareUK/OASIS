@@ -9,8 +9,10 @@ def main():
     p.add_argument('--source', required=True)
     p.add_argument('--digest', required=True)
     p.add_argument('--require-tron-reader', action='store_true')
+    p.add_argument('--require-urbit-reader', action='store_true')
     p.add_argument('--profile', choices=['full', 'tron-api'], default='full')
     o = p.parse_args()
+    assert not o.require_urbit_reader or o.profile == 'full', 'Urbit requires the full WEB4 package.'
     assert os.environ.get('GITHUB_ACTIONS') == 'true', 'Cloud-only image qualification.'
     assert re.fullmatch('[a-f0-9]{40}', o.source)
     assert re.fullmatch('sha256:[a-f0-9]{64}', o.digest)
@@ -53,14 +55,29 @@ def main():
                 for source, target in mapping.items()}
     probe = r'''
 const fs=require('node:fs'), crypto=require('node:crypto'), assert=require('node:assert/strict');
-const expected=JSON.parse(process.argv[1]), requireTron=JSON.parse(process.argv[2]), profile=process.argv[3];
+const expected=JSON.parse(process.argv[1]), requireTron=JSON.parse(process.argv[2]), profile=process.argv[3], requireUrbit=JSON.parse(process.argv[4]);
 assert(['full','tron-api'].includes(profile));
 assert(profile!=='tron-api'||requireTron, 'TRON API package requires its reader');
+assert(!requireUrbit||profile==='full', 'Urbit requires the full WEB4 package');
 for(const [file,hash] of Object.entries(expected)) assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),hash);
 const names=['NextGenSoftware.OASIS.API.ONODE.WebAPI','NextGenSoftware.OASIS.API.Core'];
 if(profile==='full')names.push('NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS','NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS','NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS','NextGenSoftware.OASIS.API.Providers.SEEDSOASIS');
 for(const name of names)assert(fs.statSync('/app/'+name+'.dll').size>0,name);
 if(requireTron){const reader=fs.readFileSync('/app/NextGenSoftware.OASIS.API.Providers.TRONOASIS.dll');for(const symbol of ['TronPublicHeaderMetadataSource','FromAuthenticatedJson'])assert(reader.includes(Buffer.from(symbol)),symbol);}
+if(requireUrbit){
+ const name='NextGenSoftware.OASIS.API.Providers.UrbitOASIS', file=name+'.dll';
+ const reader=fs.readFileSync('/app/'+file);
+ for(const symbol of ['UrbitContactsV1Client','ReadBookPageAsync','UrbitContactBookQuerySource'])assert(reader.includes(Buffer.from(symbol)),symbol);
+ const api=fs.readFileSync('/app/NextGenSoftware.OASIS.API.ONODE.WebAPI.dll');
+ for(const symbol of ['CqlUrbitReadSourceRegistration','AddUrbitReadSource'])assert(api.includes(Buffer.from(symbol)),symbol);
+ const deps=JSON.parse(fs.readFileSync('/app/NextGenSoftware.OASIS.API.ONODE.WebAPI.deps.json','utf8'));
+ const key=name+'/2.0.0', target=deps.targets[deps.runtimeTarget.name];
+ assert.equal(deps.libraries[key].type,'project');
+ assert(target[key].runtime[file], 'Urbit runtime assembly must be in the dependency graph');
+ const apiKeys=Object.keys(target).filter(k=>k.startsWith('NextGenSoftware.OASIS.API.ONODE.WebAPI/'));
+ assert.equal(apiKeys.length,1);
+ assert.equal(target[apiKeys[0]].dependencies[name],'2.0.0');
+}
 let versions=[];
 if(profile==='full'){
 const pins=require('/app/openvino-model-server-pins.json');
@@ -69,19 +86,20 @@ assert.equal(fs.realpathSync('/ovms'),'/opt/ovms-rootfs/ovms');
 assert(fs.statSync('/opt/ovms-rootfs/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2').size>0);
 versions=pins.versions;
 }
-console.log(JSON.stringify({packagedSourceHashes:true,assemblies:names.length+(requireTron?1:0),tronReaderPackaged:requireTron,modelVersions:versions,modelHashes:profile==='full',apiQualified:false}));
+console.log(JSON.stringify({packagedSourceHashes:true,assemblies:names.length+(requireTron?1:0)+(requireUrbit?1:0),tronReaderPackaged:requireTron,urbitReaderPackaged:requireUrbit,modelVersions:versions,modelHashes:profile==='full',apiQualified:false}));
 '''
     try:
         docker('create', '--name', name, '--label', 'oasis.package.owner=' + name,
                '--network', 'none', '--read-only', '--cpus', '1', '--memory', '256m',
-               '--entrypoint', 'node', image, '-e', probe, json.dumps(expected), json.dumps(require_tron), o.profile)
+               '--entrypoint', 'node', image, '-e', probe, json.dumps(expected), json.dumps(require_tron), o.profile, json.dumps(o.require_urbit_reader))
         r = docker('start', '--attach', name, timeout=30)
         ack = json.loads(r.stdout)
         state = json.loads(docker('inspect', name).stdout)[0]
         assert state['Image'] == metadata['Id'] and state['State']['ExitCode'] == 0
         assert not state['State']['Running'] and not state['State']['OOMKilled']
-        assert ack['apiQualified'] is False and ack['assemblies'] == (2 if o.profile == 'tron-api' else 6) + int(require_tron)
+        assert ack['apiQualified'] is False and ack['assemblies'] == (2 if o.profile == 'tron-api' else 6) + int(require_tron) + int(o.require_urbit_reader)
         assert ack['tronReaderPackaged'] is require_tron
+        assert ack['urbitReaderPackaged'] is o.require_urbit_reader
         assert ack['modelHashes'] is (o.profile == 'full')
         (out / 'acknowledged.json').write_text(json.dumps({'source': o.source, 'image': image,
             'tag': tag, 'imageId': metadata['Id'], 'expectedHashes': expected, 'checks': ack,

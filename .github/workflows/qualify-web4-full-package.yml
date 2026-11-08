@@ -29,6 +29,11 @@ on:
         required: false
         type: boolean
         default: false
+      urbit_reader:
+        description: Require the packaged Urbit SDK, query source and WEB4 registration
+        required: false
+        type: boolean
+        default: false
       combined_startup:
         description: Also verify isolated API and native startup with fresh cloud data
         required: false
@@ -83,10 +88,12 @@ jobs:
           SOURCE: ${{ inputs.source }}
           DIGEST: ${{ inputs.digest }}
           REQUIRE_TRON_READER: ${{ inputs.tron_reader }}
+          REQUIRE_URBIT_READER: ${{ inputs.urbit_reader }}
           PACKAGE_PROFILE: ${{ inputs.package_profile }}
         run: |
           args=()
           if [[ "$REQUIRE_TRON_READER" == true ]]; then args+=(--require-tron-reader); fi
+          if [[ "$REQUIRE_URBIT_READER" == true ]]; then args+=(--require-urbit-reader); fi
           python3 -B Scripts/TestHosts/qualify_web4_full_package.py --source "$SOURCE" --digest "$DIGEST" --profile "$PACKAGE_PROFILE" "${args[@]}"
       - name: Verify combined API and native startup on isolated fresh data
         if: inputs.combined_startup
