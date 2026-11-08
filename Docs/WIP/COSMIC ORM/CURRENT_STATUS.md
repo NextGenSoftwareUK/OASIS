@@ -5,6 +5,31 @@ full native provider implementation and EF/NHibernate parity remain on the
 roadmap. Imported, virtual/pointer and hybrid holon modes remain in that roadmap;
 this checkpoint does not claim completion of those designs.
 
+## User priority order updated 8 November 2026
+
+Solana → Ethereum → Polygon → Arbitrum → NEAR → Cosmos → Polkadot → TON →
+TRON → Hedera/Hashgraph → EOS/EOSIO, then the remaining providers in popularity
+order. EOS was added immediately after the original ordered request and is queued
+after Hedera. Interpret HetraGraph as Hedera/Hashgraph (HashgraphOASIS).
+
+The first seven retain accepted scoped live HTTP and browser evidence. TON,
+Hedera and EOS retain accepted live HTTP evidence; their browser gates remain
+open. TRON has no accepted current live CQL admission: preserve rate-limit/denial
+outcomes and the authenticated-reader draft/credential preflight; do not retry
+failed unauthenticated endpoints or recreate its original cohort. Use the single
+owner-action list for any missing account/access requirement, preserving existing
+entries and deferrals. Do not rerun accepted native sources or resave copies just
+to change queue order.
+
+Focus engineering/demo usability on this chain order before adding further
+providers. Existing MapLibre and four-provider plans/owners/settings remain
+prepared and unchanged behind the chain priorities; no unverified rollout or
+third8November Development push. GOMap WEB4 run42480693015 has completed success;
+close out its already-running artifact/cleanup evidence without starting another
+GOMap feature ahead of this queue. Remaining-provider popularity ranking must use
+current adoption/use evidence when that queue is resumed, with dependencies and
+owner deferrals explicit.
+
 ## Immediate work
 
 Full WEB4 image source **8668fd2d040da71ba27e27e49fbed6792eb4e094** built and
@@ -22,7 +47,8 @@ passed; seven pinned dependency checkouts42472240791 passed. Earlier image and
 checker failures are retained in [OpenVINO evidence](OPENVINO_CQL_MVP.md).
 API startup proof is task-image qualification, not live CQL acceptance or approval
 to deploy unrelated task-branch changes. Exact scoped-candidate tests/image and
-live cohort acceptance still remain. MapLibre is the next permitted live batch.
+live cohort acceptance still remain. The chain priority queue above now takes
+precedence over additional provider rollouts; existing prepared batches are retained.
 
 [Full229-project status report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) separates
 SDK/native evidence, CQL/COSMIC depth, live/browser and HyperDrive scope. Latest

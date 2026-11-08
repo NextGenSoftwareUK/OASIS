@@ -1,5 +1,31 @@
 # CQL completion roadmap
 
+## User priority order updated 8 November 2026
+
+Solana → Ethereum → Polygon → Arbitrum → NEAR → Cosmos → Polkadot → TON →
+TRON → Hedera/Hashgraph → EOS/EOSIO, then the remaining providers in popularity
+order. EOS was added immediately after the original ordered request and is queued
+after Hedera. Interpret HetraGraph as Hedera/Hashgraph (HashgraphOASIS).
+
+The first seven retain accepted scoped live HTTP and browser evidence. TON,
+Hedera and EOS retain accepted live HTTP evidence; their browser gates remain
+open. TRON has no accepted current live CQL admission: preserve rate-limit/denial
+outcomes and the authenticated-reader draft/credential preflight; do not retry
+failed unauthenticated endpoints or recreate its original cohort. Use the single
+owner-action list for any missing account/access requirement, preserving existing
+entries and deferrals. Do not rerun accepted native sources or resave copies just
+to change queue order.
+
+Focus engineering/demo usability on this chain order before adding further
+providers. Existing MapLibre and four-provider plans/owners/settings remain
+prepared and unchanged behind the chain priorities; no unverified rollout or
+third8November Development push. GOMap WEB4 run42480693015 has completed success;
+close out its already-running artifact/cleanup evidence without starting another
+GOMap feature ahead of this queue. Remaining-provider popularity ranking must use
+current adoption/use evidence when that queue is resumed, with dependencies and
+owner deferrals explicit.
+
+
 Updated 7 November 2026. Full programme remains incomplete.
 [CURRENT_STATUS](CURRENT_STATUS.md) owns deployment state and the exact next step.
 
