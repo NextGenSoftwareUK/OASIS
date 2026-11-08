@@ -46,7 +46,11 @@ this checkpoint does not claim completion of those designs.
   Startup preflight failed before creating resources because the checker did
   not recognize Docker network-not-found wording. Typed absence parser fixed;
   controls now reject daemon/permission/wrong-name failures. Actual API/native
-  startup remains open; no full image rebuild required for this test-host fix.
+  startup remains open; no full image rebuild required for test-host fixes.
+  Second qualifier42477763769 package passed and cloud cleanup proved, but
+  generated Sandbox.Enabled=false violated the native supervisor guard. Fixed
+  test DNA and added actual-guard regression plus stderr/probe/state diagnostics;
+  three controlled methods pass. Next corrected checker run pending.
 
 [OpenVINO/runtime/build evidence](OPENVINO_CQL_MVP.md).
 [Artifact download contract](../../Devs/WEB4_NATIVE_ARTIFACT_DOWNLOADS.md).

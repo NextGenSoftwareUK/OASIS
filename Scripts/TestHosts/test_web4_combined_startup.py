@@ -7,6 +7,16 @@ import unittest
 
 
 class StartupProbeTests(unittest.TestCase):
+    def test_generated_dna_satisfies_actual_native_supervisor_guard(self):
+        import runpy
+        root=Path(__file__).resolve().parents[2]
+        create=runpy.run_path(str(Path(__file__).with_name('qualify_web4_combined_startup.py')))['configuration']
+        env=create(root,'mongodb://mongo:27017/?replicaSet=rs0','oasis_startup_1_1')
+        script="const fs=require('node:fs');require(process.argv[1]).assertSandbox(fs.readFileSync(0,'utf8'));"
+        result=subprocess.run([os.environ.get('NODE_BINARY','node'),'-e',script,str(root/'Docker/host-sandbox-ipfs.cjs')],
+                              input=env['OASIS_DNA_JSON'],text=True,capture_output=True,timeout=8)
+        self.assertEqual(0,result.returncode,result.stderr)
+
     def test_typed_docker_absence_excludes_daemon_and_permission_failures(self):
         import runpy
         missing = runpy.run_path(str(Path(__file__).with_name('qualify_web4_combined_startup.py')))['missing_resource']

@@ -23,7 +23,7 @@ def configuration(root, mongo, marker):
     oasis['Security']['SecretKey'] = secrets.token_hex(64)
     oasis['Security']['RequireApiKey'] = False
     oasis['OfflineSessionGrants']['Enabled'] = False
-    oasis['Sandbox']['Enabled'] = False
+    oasis['Sandbox']['Enabled'] = True
     oasis['Logging']['LogToFile'] = False
     policy = {'meterCategory':'cql.package-startup','reservedUnits':1,'fixedCostUsd':0,
               'estimatedCostUsd':0,'maximumNativeFeeCostUsd':0,'maximumProviderAttempts':1,
@@ -116,7 +116,9 @@ console.log(JSON.stringify(b));
             if not state['State']['Running']: raise RuntimeError('Combined API process exited before readiness.')
             r=docker('exec',api,'node','-e',probe,check=False,timeout=8)
             if r.returncode==0: break
-            if r.returncode!=2: raise RuntimeError('API health failed outside connection-refusal/503 readiness contract: '+r.stderr[-1500:])
+            if r.returncode!=2:
+                (out/'failed-health-probe.json').write_text(json.dumps({'exitCode':r.returncode,'stdout':r.stdout[-2000:],'stderr':r.stderr[-2000:]}))
+                raise RuntimeError('API health failed outside connection-refusal/503 readiness contract; exit '+str(r.returncode)+': '+r.stderr[-1500:])
             if time.monotonic()>deadline: raise RuntimeError('Combined API readiness deadline.')
             time.sleep(2)
         native="const x=require('/app/host-sandbox-openvino.cjs');x.verifyNative(require('/app/openvino-model-server-pins.json'),AbortSignal.timeout(10000)).then(()=>console.log('native-metadata-verified')).catch(e=>{console.error(e);process.exit(1)})"
@@ -126,7 +128,11 @@ console.log(JSON.stringify(b));
         (out/'acknowledged.json').write_text(json.dumps({'source':package['source'],'image':image,'apiHealth':True,'nativeMetadata':True,'gracefulExit':0,'internalNetwork':True,'liveDeployment':False,'cqlAcceptance':False},indent=2))
     finally:
         if ('container',api) in created:
-            log=docker('logs','--tail','250',api,check=False).stdout
+            observed=json.loads(docker('inspect',api).stdout)[0]
+            assert observed['Config']['Labels']['oasis.startup.owner']==marker
+            (out/'process-state.json').write_text(json.dumps(observed['State'],indent=2))
+            logs=docker('logs','--tail','250',api,check=False)
+            log=logs.stdout+'\n'+logs.stderr
             # Never retain configuration or generated signing material in diagnostic output.
             safe = [line for line in log.splitlines() if not re.search(r'(?i)secret|password|token|key|connectionstring|[{}]',line)]
             (out/'process.log').write_text('\n'.join(safe)[-32768:])
