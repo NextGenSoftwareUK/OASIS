@@ -59,8 +59,11 @@ runtime or current/live acceptance, no profile-count increment. Do not download
 or relabel a deprecated runtime as the current service.
 [Contract, lifecycle boundary and remaining gates](MARQO_CQL_MVP.md).
 
-Urbit current contacts-v1 client passed23controlled cases at source1e93c39d7,
-run42504482542,zero skips. Primary current agent/JSON codec pinned; no old-agent
+Urbit current contacts-v1 profile/book-page client passed43controlled cases at
+sourcec0746d520/run42511819014,zero skips (23existing profile+20page controls).
+Hashed TRX/class/outcomes inspected. Actual native control passes; kernel408
+source assembly/cache verified, native OS upgrade/contacts run42511918338 active.
+No actual contacts read or CQL/live acceptance is claimed. Primary current agent/JSON codec pinned; no old-agent
 fallback. Native ship, three-record CQL/mapping, manager/HTTP/live/browser remain
 open and no profile count increases. Pinned Vere4.6 and repository development
 pill passed real offline cold boot/run42507813675/source61c28aa5b. Hashed artifact

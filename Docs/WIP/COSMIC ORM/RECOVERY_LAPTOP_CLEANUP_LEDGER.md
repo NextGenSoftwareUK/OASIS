@@ -5259,3 +5259,7 @@ Cloud42511142535 verifies546files/4307737bytes, including151materialized links a
 
 ### 8 Nov — Native base update qualification
 Three verified cloud caches restored directly; no repeated source/bootstrap download. Owned cloud run42511356066 cancelled after pinned source proved its readiness predicate could never pass. Cancellation terminal; artifact343bytes exists, native cleanup not yet proven and must not be asserted. Corrected numeric-version probe run42511441973 active. No laptop runtime/environment/source clone or DB created.
+
+
+### 8 Nov — Book-page reader and native deadline
+Cloud43controlled tests/run42511819014 pass, artifact7529bytes/TRX inspected entirely in memory; compact receipt only. Native42511441973 timed out observing active rebuild; hashed failure artifact inspected, owned container/pier removed, exit137/OOMfalse retained without claiming clean native shutdown. Corrected deadline run42511918338 active, using existing three cloud caches. No laptop .NET/runtime/SDK/source checkout/database installed.
