@@ -100,7 +100,17 @@ public partial class TypesenseOASIS : ICosmicQueryStorageProvider, ICosmicReadOn
                     if (!names.Add(property.Name)) throw new InvalidDataException("Duplicate native document property.");
                 if (document.RootElement.GetProperty("id").GetString() != id.ToString("D"))
                     throw new InvalidDataException("Native Typesense identity differs from selected key.");
-                var row = JsonSerializer.Deserialize<Holon>(raw, _jsonOpts);
+                // Root queries do not materialize the interface-typed embedded
+                // graph. Project it out before the canonical deserializer runs.
+                using var projected = new MemoryStream();
+                using (var writer = new Utf8JsonWriter(projected))
+                {
+                    writer.WriteStartObject();
+                    foreach (var property in document.RootElement.EnumerateObject())
+                        if (!property.NameEquals("children")) property.WriteTo(writer);
+                    writer.WriteEndObject();
+                }
+                var row = JsonSerializer.Deserialize<Holon>(projected.ToArray(), _jsonOpts);
                 if (row == null || row.Id != id || !plan.Query.ReadAccess.CanRead(row))
                     throw new InvalidDataException("Native Typesense holon differs from read authority.");
                 if (row.IsDeleted) continue;

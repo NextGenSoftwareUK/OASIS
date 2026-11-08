@@ -135,10 +135,12 @@ def main():
         actor = str(uuid.uuid4())
         ids = [str(uuid.uuid4()) for _ in range(5)]
         for index, identity in enumerate(ids[:4]):
-            request('POST', '/collections/oasis_holons/documents', bootstrap,
-                    {'id': identity, 'name': 'Owned native teaching record ' + str(index),
-                     'createdByAvatarId': actor, 'isPublic': True,
-                     'deletedDate': '2026-11-08T00:00:00Z' if index == 3 else '0001-01-01T00:00:00Z'}, expected=201)
+            record = {'id': identity, 'name': 'Owned native teaching record ' + str(index),
+                      'createdByAvatarId': actor, 'isPublic': True,
+                      'deletedDate': '2026-11-08T00:00:00Z' if index == 3 else '0001-01-01T00:00:00Z'}
+            if args.scope == 'mongo' and index == 0:
+                record['children'] = [{'id': str(uuid.uuid4()), 'name': 'Embedded graph stays in native source'}]
+            request('POST', '/collections/oasis_holons/documents', bootstrap, record, expected=201)
         access = request('POST', '/keys', bootstrap, {'description': 'Owned CQL read-only qualification',
             'actions': ['collections:get', 'documents:get'], 'collections': ['oasis_holons']}, expected=201)
         reader = access['value']
@@ -180,6 +182,7 @@ def main():
         if args.scope == 'mongo':
             completion = json.loads((out / 'mongo-complete.json').read_text(encoding='utf-8'))
             assert completion['ownedDatabaseAbsent'] and completion['sourceUnchanged']
+            assert completion['embeddedNativeChildProjected']
             assert not (out / 'mongo.pending.json').exists()
             report['federation'] = completion
         report['seedCreates'] = 4

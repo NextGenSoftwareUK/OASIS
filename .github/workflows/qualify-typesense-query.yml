@@ -47,15 +47,18 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
-      - name: Reproduce embedded canonical child materialization failure
+      - name: Verify root materialization and affected query regressions
         working-directory: OASIS
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner typesense-query-ci -Operation {
             $project = 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.UnitTests.csproj'
-            dotnet test $project /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~EmbeddedChildrenAreProjectedBeforeCanonicalMaterialization' --results-directory TestResults/TypesenseQueryCurrent --logger 'trx;LogFileName=query.trx'
+            dotnet test $project /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~TypesenseCqlTests' --results-directory TestResults/TypesenseQueryCurrent --logger 'trx;LogFileName=query.trx'
             if ($LASTEXITCODE) { throw 'Typesense query qualification failed' }
+            [xml]$report = Get-Content TestResults/TypesenseQueryCurrent/query.trx
+            $counts = $report.TestRun.ResultSummary.Counters
+            if ($counts.total -ne '9' -or $counts.executed -ne '9' -or $counts.passed -ne '9') { throw 'All nine affected query cases must execute and pass' }
           }
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()

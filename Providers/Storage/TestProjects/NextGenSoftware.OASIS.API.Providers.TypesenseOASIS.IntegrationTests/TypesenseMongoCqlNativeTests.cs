@@ -67,7 +67,15 @@ public class TypesenseMongoCqlNativeTests
                     Assert.IsTrue(body.Length + count <= 1024 * 1024);
                     body.Write(buffer, 0, count);
                 }
-                hashes.Add(Convert.ToHexString(SHA256.HashData(body.ToArray())));
+                var bytes = body.ToArray();
+                if (id == source.LiveIds[0])
+                {
+                    using var native = JsonDocument.Parse(bytes);
+                    var children = native.RootElement.GetProperty("children");
+                    Assert.AreEqual(1, children.GetArrayLength(), "Native regression source must retain its actual embedded graph.");
+                    Assert.IsFalse(source.LiveIds.Contains(children[0].GetProperty("id").GetGuid()));
+                }
+                hashes.Add(Convert.ToHexString(SHA256.HashData(bytes)));
             }
             return hashes.ToArray();
         }
@@ -98,6 +106,8 @@ public class TypesenseMongoCqlNativeTests
                 Assert.AreEqual(selection.Length, result.Rows.Count(row => row.Selected.Provider == ProviderType.TypesenseOASIS));
                 Assert.AreEqual(2, result.Rows.Count(row => row.Selected.Provider == ProviderType.MongoDBOASIS));
                 Assert.IsFalse(result.Rows.Any(row => row.Selected.Row.Id == copies[2].Id));
+                Assert.IsTrue(result.Rows.Where(row => row.Selected.Provider == ProviderType.TypesenseOASIS)
+                    .All(row => !row.Selected.Row.Children.Any()));
             }
             await using (var app = CosmicCqlDemo.IdentityFederationApiHost.Build(manager, mongo, typesense, source.Actor,
                 source.LiveIds, copies.Select(row => row.Id), source.LiveIds, "http://127.0.0.1:0"))
@@ -153,7 +163,7 @@ public class TypesenseMongoCqlNativeTests
             File.Delete(journal);
             await File.WriteAllTextAsync(Path.Combine(state, "mongo-complete.json"), JsonSerializer.Serialize(new {
                 database, managerRows = new[] { 5, 4 }, httpRows = new[] { 5, 4 }, sourceUnchanged = true, privateCopies = 3,
-                unrelatedCopyExcluded = true, ownedDatabaseAbsent = true
+                unrelatedCopyExcluded = true, ownedDatabaseAbsent = true, embeddedNativeChildProjected = true
             }));
         }
         finally { await mongo.DeActivateProviderAsync(); await typesense.DeActivateProviderAsync(); }
