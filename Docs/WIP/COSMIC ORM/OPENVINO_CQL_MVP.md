@@ -1,6 +1,6 @@
 # OpenVINO model-server CQL preparation â€” 8 November 2026
 
-Status: real existing OVMS client reviewed; one cloud-only runtime qualification prepared, not yet executed. No native/CQL/WEB4/hosted/browser certification or coverage increment.
+Status: scoped SDK, native CQL and WEB4 HTTP/Mongo qualification passed on exact source 9c20d06ad6326d31e564c3c150b72a68e25da070. Live hosting, enrollment, replicas and browser acceptance remain open. Earlier entries below retain the original failure and correction history.
 
 IntelOpenVINOOASIS already implements actual KServe v2 health/server metadata/model metadata/inference and model-server chat/embedding HTTP interfaces. Preserve that implementation. A natural read-only CQL scope is metadata for three explicitly versioned models on an owned OVMS, with real inference as independent native-runtime evidence. Do not treat model metadata as proof of generative model quality, production performance or GPU/NPU support.
 
@@ -43,3 +43,16 @@ New CQL test class declares21controls+1real native3/2; query workflow runs one l
 Explicit WEB4 CQL_OPENVINO_MODEL_QUERY_SOURCE_OWNER registration/compiler/projectref and8admission/configuration tests plus1shared real HTTP/Mongo test added. Coref2c622111c6b60536102980654198e3bd79a3ef2 adds one query-only read tariff; original Core task branch pushed and parent gitlink/manifest synchronized together from index. Owned runtime qualifier adds mutually exclusive --verify-web4 and keeps original labeled server alive through the actual no-build API HTTP test; existing Mongo marker/nonce fixture cleanup and owned model cleanup remain mandatory. New WEB4 workflow starts one ephemeral Mongo replica and holds one build lease around producer/consumer checks. No live native process/enrollment/deployment.
 
 Fixed-public planner binds only CQL_OPENVINO_MODEL_QUERY_SOURCE_OWNER, namespace openvino/owned-models/cosmic_dummy,keys1/2/3.39candidate+5publisher controls pass using self-cleaning fixtures;4transport regressions also pass. Actor a5808c3e-7031-47e7-92de-48a659568f1b logical IDs76dc34ff-dbbc-8541-9fd4-6708c14086a9,9a25a55f-5a66-85d0-9700-891eacd87dd6,acd7cd30-fffe-844a-a048-a20e67e1afed; matching assertions added to existing C#case. These are offline test descriptors, not a real native source owner or enrollment. Updated exact source/WEB4 qualification remains required; native OVMS installation/deployed package/first live cohorts/replicas/browser remain open.
+
+
+## Exact integration qualification — 8 November
+
+All three suites qualified the same source9c20d06ad6326d31e564c3c150b72a68e25da070, 48 cases total with no skips. Artifacts, TRX counts/hashes and owned cleanup were inspected entirely in memory.
+
+- Cloud run [42465894220](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42465894220): 16+1 passed; artifact 13612105198, 16500 bytes, SHA256 `8676d373377d72f8caa8bfccad4bb4ffa3e7ac3c775923fced26c3fbf4fe3546`.
+- Cloud run [42465894234](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42465894234): 21+1 passed; artifact 13611766951, 17015 bytes, SHA256 `da7b6f98b574bc6f4ae0cad78ba3a0464bdc6b38cd5035874ec4cbb02839c34d`.
+- Cloud run [42465894266](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42465894266): 8+1 passed; artifact 13612095400, 17567 bytes, SHA256 `e4c5376417e35146fd9636bbab2ec159cc7666d64e7f9e57ff354fc08fbb3b60`.
+
+Native CQL returns3/2 records; actual WEB4/Mongo federation returns5/4, foreign-private0/public3, with2SDK-owned saves and9receipts. Owned Mongo database absence and original model process/container/generated-model-directory cleanup are proven. The same tiny official add-one graph is served at three teaching versions. This adds one scoped local provider:128scoped local/96live HTTP/28live browser. Cloud HTTP qualification does not increment live counts.
+
+Live hosting remains a separate engineering gate. Official pinned image layout inspection identifies the complete /ovms bundle, LD_LIBRARY_PATH=/ovms/lib and PYTHONPATH=/ovms/lib/python:/ovms/python_deps; its process entrypoint uses /ovms/bin/ovms. No local image was pulled. Compatibility of the complete bundle with the exact WEB4 base must be qualified in cloud before any package change or deployment; no ABI mismatch has been observed. Preserve per-process native environment isolation. No live runtime/package, source owner, settings plan, enrollment, replica proof or browser acceptance exists yet. Do not infer hosting readiness from successful isolated SDK/CQL/HTTP suites.
