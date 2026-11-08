@@ -23,6 +23,28 @@ def docker(*args,check=True,timeout=180):
     if check and p.returncode:raise RuntimeError('Owned OVMS docker operation failed: '+p.stderr[-2000:])
     return p
 
+def capture_startup_diagnostics():
+    """Observe the original process only; never restart, attach, or change mounts."""
+    probes={
+        'threads':('top',name,'-eo','pid,ppid,stat,wchan:32,comm'),
+        'runtime-view':('exec','--user','0',name,'/bin/sh','-c',
+            'readlink /proc/1/root; '
+            'for p in /proc/1/root/proc /proc/1/root/proc/cpuinfo /proc/1/root/sys '
+            '/proc/1/root/dev /proc/1/root/dev/null /proc/1/root/models/config.json; '
+            'do ls -ld "$p" 2>&1; done; '
+            'n=0; for t in /proc/1/task/*; do '
+            'n=$((n+1)); [ "$n" -le 64 ] || break; printf "THREAD %s\\n" "$t"; '
+            'for f in comm wchan syscall; do printf "%s: " "$f"; head -c 512 "$t/$f" 2>&1; printf "\\n"; done; done')
+    }
+    for key,args in probes.items():
+        try:
+            observed=docker(*args,check=False,timeout=10)
+            record={'exitCode':observed.returncode,'stdout':observed.stdout[:32768],
+                    'stderr':observed.stderr[:4096],'observationOnly':True}
+        except subprocess.TimeoutExpired:
+            record={'timeoutSeconds':10,'observationOnly':True}
+        (result/('diagnostic-'+key+'.json')).write_text(json.dumps(record,indent=2))
+
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self,*args):return None
 
@@ -99,7 +121,9 @@ try:
         if status==200:break
         inspected=json.loads(docker('container','inspect',name,timeout=20).stdout)[0]
         assert inspected['State']['Running'] and not inspected['State']['OOMKilled']
-        if time.monotonic()>=deadline:raise RuntimeError('Owned OVMS startup deadline expired')
+        if time.monotonic()>=deadline:
+            capture_startup_diagnostics()
+            raise RuntimeError('Owned OVMS startup deadline expired')
         time.sleep(1)
     status,raw=call('/v2');assert status==200
     server=json.loads(raw);assert server['name']=='OpenVINO Model Server' and server['version']==PINS['serverVersion']
