@@ -207,3 +207,22 @@ requires all three exact success receipts and matches current candidate ref,
 then requests one explicit commit-specific teaching tag (no mutable sandbox tag).
 Website8a650c6 backs up conditional card79 on the original website task branch;
 main104a0064/public remains unchanged. Promote card79 only after hosted acceptance.
+
+## Exact candidate qualified; image active
+
+Source916c62210a1eb51fa23353bccfca3024750f452b/Core25a296e exact gates all pass:
+- Registry42446975238:26controlled+1296shared+1actualnative3/2; artifact13604230606/307639bytes, SHA256131ba26403feef504a6e26510b9479abd381563f215d77836631410894c99d2d.
+- WEB442446977425:8boundary+1actualHTTP/Mongo; artifact13603598148/4644bytes, SHA256a3e659a8e65255813ba7a902c9f1483c588b0229531ed91c6873c1591b456423. Actual3/2,5/4,private0/public3,9receipts,ownedDBabsent.
+- Admission42446952053:25controls; artifact13604635191/4385bytes, SHA25619739040781ee6c823908a1e8b7b7616ca23bb176c90f2822066c92ff98686f2.
+All TRX counts/hashes verified in memory, no skips or retained archive.
+
+One exact image request acknowledged:42447469381/job128629322069 is active,
+Build and push. Explicit tag916c62210a1eb51fa23353bccfca3024750f452b-teaching
+with teachingSidecars:true; no mutable sandbox tag. Do not dispatch again.
+Read-only prerequisite review succeeds: seven pins advertised at expected refs,
+complete253settings unchanged, baselineeb09ea25/source9fd/actual510762ee57.
+No Development push/settings/source operation. Guarded publisher prepared only;
+requires successful exact image receipt and rechecks all prior assumptions.
+Read-only package inspector prepared/Python+remote JS syntax verified, not run;
+preserves accepted SubQuery and Dapr while verifying Self/shared reader pins and
+SDK assemblies. Latest actionable handle and sequence are inCURRENT_STATUS.md.

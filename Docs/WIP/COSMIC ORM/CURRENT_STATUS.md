@@ -74,21 +74,32 @@ on42446401193; WEB4/Mongo42446401228 passed8boundary+1real HTTP case with
 native3/2,paired5/4,foreign private0/public3,9receipts and databaseAbsent:true.
 Both artifacts inspected/hash verified in memory. These are not hosted proofs.
 
-Observe these exact candidate runs; do not redispatch:
-- Registry/shared/native42446975238/job128627863798.
-- WEB4/Mongo42446977425/job128627870278.
-- Existing-source admission42446952053/job128627789633 (original push run).
-Redundant manual admission42446979977 was cancelled and is terminalCANCELLED.
-Preserve its cancellation history; no source/runtime claim from that run.
+All exact candidate gates now pass/no skips: registry42446975238 (26controls,
+1296shared,1native), WEB442446977425 (8controls+1HTTP), and25admission cases
+42446952053. Original artifact IDs/hashes and TRX counters verified in memory.
+Redundant manual admission42446979977 is terminalCANCELLED, original run retained.
 
-After all exact receipts pass, run the guarded private dispatch-self-protocol-image.py.
-It requires all three exact qualified receipts and uses the explicit916...-teaching
-tag, preventing the workflow's sandbox-tag default. It has not been invoked.
-Only after image qualification/fresh baseline/pins may the scoped Development
-batch advance, followed by code package inspection, four settings and one activation.
-Offline ownerc7efecf1/source plan and protected253baseline/255candidate are fixed;
-no native source writes or live settings changes. Website card79 is drafted only
-on task8a650c6; main/public remains104a0064. Browser URL-policy gate stays open.
+**Observe image42447469381/job128629322069**, currently in progress/Build and push.
+Source916c62210a1eb51fa23353bccfca3024750f452b, explicit immutable tag
+916c62210a1eb51fa23353bccfca3024750f452b-teaching, teachingSidecars:true.
+One image dispatch acknowledged; do not redispatch or use a mutable sandbox tag.
+
+Read-only prereview verifies all seven advertised pins and complete253settings
+unchanged, accepted baselineeb09ea25/9fd968a7b/actual510762ee57 preserved.
+Private review-self-protocol-rollout-prerequisites.py ran once successfully.
+After image SUCCESS, inspect exact provenance/digest/tag and retain
+self-protocol-image-qualified.json. Then invoke guarded publish-self-protocol-development.py
+once; it rechecks current branches/pins/settings/deployment before one scoped push.
+It is prepared/syntax-checked, not invoked. No Development or live settings changes.
+
+Read-only inspect-self-protocol-code-package.py is prepared, Python+remote JS
+syntax pass. Invoke for exact code deployment SUCCESS before settings. It checks
+all253settings, preserved SubQuery/Dapr sources/runtime/native proofs, Self/shared
+reader metadata/pins and eleven SDK/provider assemblies. Settings phase later
+requires255settings and Self ownerc7efecf1. It starts no native storage process.
+Offline owner/source plan and protected253baseline/255candidate are fixed;
+no native source writes. Website card79 is drafted only on task8a650c6;
+main/public remains104a0064. Browser URL-policy gate stays open.
 [Self Protocol proof and gates](SELF_PROTOCOL_PUBLIC_SOURCE_STATUS.md).
 
 SubQuery activationeb09ea25 is accepted/sealed:253settings/package verified,
