@@ -71,3 +71,5 @@ is unchanged. New cloud workflow requires27controlled cases (25new+2legacy),
 all shared-reader regressions and1actual native CQL3/2case, no skips. Source
 and project XML reviewed; compilation/acceptance still pending. No coverage
 count increase, WEB4 admission, source owner, settings or hosted cohort.
+
+Tasksourcee8fdfc00fd379e06f4efb99fe316e3c94b37b5c8 pushed on the original task branch; cloud42452950450/job128645866052 observed live. No manual duplicate dispatch; source remains unaccepted until controlled/shared/native gates pass.

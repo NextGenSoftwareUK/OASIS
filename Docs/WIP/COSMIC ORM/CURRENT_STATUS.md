@@ -11,7 +11,7 @@ isQUEUED; no settings mutation or hosted cohort. Next: inspect this running
 package, then apply exactly four protected settings and one activation.
 Civic source readiness returns3public network names at one canonical-hash-bound
 Polygon block. New bounded CQL source/security controls/cloud workflow prepared;
-compile/native acceptance pending, no count increase. [Review](CIVIC_PUBLIC_SOURCE_STATUS.md).
+cloud42452950450/job128645866052 live; compile/native acceptance pending, no count increase. [Review](CIVIC_PUBLIC_SOURCE_STATUS.md).
 Disk remains protected: no local build/runtime/image/database download.
 
 ## Current phase
