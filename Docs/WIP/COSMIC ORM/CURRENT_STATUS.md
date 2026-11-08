@@ -25,8 +25,8 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
   Dapr correctionf00eb9d48/Coreec7d440 passed exact native/image gates and
-  is now on Development. Code deploymentdb3d1e66 isBUILDING; active instance
-  remainsc9f6ac65d until newSUCCESS verified. Code deployment00eace0e isSUCCESS on instance5693a2e5; Dapr disabled.
+  is now on Development. Code deploymentdb3d1e66 isSUCCESS on instance
+  ab03fb8e-9d74-4f81-ae6f-38264afeba36; Dapr disabled.
   First planned source save is unacknowledged: Railway denies native libaio
   io_getevents. Original source/intent retained; do not reseed or recreate.
 - Website C:/Source/Web4Site, branch work/cosmic-cql, publishedad7e9dd (six new cards71-76; earlier accepted cards retained).
@@ -60,9 +60,9 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-Development branch isf00eb9d48/Coreec7d440; code deploymentdb3d1e66 isBUILDING.
-Active code remainsc9f6ac65d,00eace0e SUCCESS on instance5693a2e5,
-actual image sha256:2777ec8ed780529cfb5c3937e9cdad50bedd54694e21910d49bdc572c50e5d2d.
+Development branch isf00eb9d48/Coreec7d440; code deploymentdb3d1e66 isSUCCESS
+on instanceab03fb8e-9d74-4f81-ae6f-38264afeba36,
+actual image sha256:54c3fd20f29399801dd827c51d26e5cc6fd9019cbe1eaea687ef84a677d414c8.
 Dapr remains disabled/unadmitted. The first original source save timed out without
 acknowledgement because Railway denies the default libaio completion syscall.
 Its original source/plan/intent are preserved: never recreate or resend.
@@ -71,10 +71,21 @@ Explicit Native/Uring full native qualification passes42425594492. The read-only
 inspector/recovered-outcome metadata fixture passes42426250057:1save,2recoveries,
 0inspection mutations, unchanged AOF and no fabricated save-response ACK. The
 corrected scoped candidatef00eb9d48 passes exact native qualification42427310034;
-its exact image42427405291 passed; correction deploymentdb3d1e66 isBUILDING.
-No inspector or metadata transition has run against the original live source.
-Next observe that same deployment to SUCCESS, verify its actual image/package
-and unchanged settings, then reconcile the same original source.
+its exact image42427405291 passed. Installed package/198critical settings and
+full245setting baseline are verified unchanged. The one original-source inspection
+failed: host Native/Uring initialization returns errno38 Function not implemented
+on actual AOF reads. Original2048byte AOF hash unchanged; owned processes0.
+Do not replay inspect or save. Its failed private journals/logs are preserved.
+
+One separate RandomAccess diagnostic HSET reached durable storage without engine
+errors. Its inventory stopped on Garnet's log-commits directory; a separately
+journalled recovery-only continuation read the same value, changed no AOF bytes
+and stopped its process. Original live source was not accessed by that diagnostic.
+Task-only Linux contract now explicitly selects supported RandomAccess (24controls
+pass); no runtime selection/fallback. Next qualify this exact device contract and
+implement an explicit corrected-device inspection transition that retains the old
+failed inspection, then verify all original records before metadata/enrollment.
+No RandomAccess shipping deployment or original-source metadata transition yet.
 No second source generation or original save request is authorized by that flow.
 
 Coverage remains119local/91live HTTP/28functional browser. The six public readers

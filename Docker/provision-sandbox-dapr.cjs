@@ -63,8 +63,8 @@ async function storageSnapshot(directory) {
 async function inspectPendingSource(plan, directory = '/data/COSMIC/SandboxDapr', binaries = { garnet: '/opt/garnet/GarnetServer', daprd: '/opt/dapr/daprd' }) {
   review(plan);
   if (process.platform !== 'linux' || await fs.realpath(directory) !== directory) throw Error('Original Linux source required.');
-  if (JSON.stringify(config.contract.linuxStorageArguments) !== JSON.stringify(['--device-type', 'Native', '--device-io-backend', 'Uring']))
-    throw Error('Qualified explicit native io_uring recovery contract required.');
+  if (JSON.stringify(config.contract.linuxStorageArguments) !== JSON.stringify(['--device-type', 'RandomAccess']))
+    throw Error('Qualified explicit RandomAccess durable storage contract required.');
   async function original(name) {
     const file = path.join(directory, name), stat = await fs.lstat(file);
     if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 32768 || (stat.mode & 0o077)) throw Error('Original private Dapr journal differs.');
