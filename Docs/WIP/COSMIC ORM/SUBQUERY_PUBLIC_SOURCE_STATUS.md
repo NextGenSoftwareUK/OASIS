@@ -132,9 +132,45 @@ adds the central read-tariff entry; parentc34107088 updates its gitlink and mani
 together. Exact manifest/gitlink validation passes. The preset fixture now binds
 the actual authoritative catalogue and also asserts rejection without that grant.
 Corrected source04ecc5d5085e15dc39a9047fbd793bd72f97a50d is pushed; cloud
-run42439418296 is in progress. Qualification remains pending.
+run42439418296/job128605236758 isSUCCESS: all8boundary controls and the real
+loopback WEB4/Mongo case pass, zero skips. Native3/2 and paired5/4 check exact
+IDs/provider labels, foreign-private0/public3 and9usage receipts. Two SDK-owned
+Mongo saves are fixture data; the success receipt proves the owned database
+absent, and the cloud container teardown passed. Production auth/billing,
+replication, snapshot reuse and browser acceptance are not inferred.
 The exact source's dictionary regression42438643558/job128602920938 isSUCCESS.
 No Development/settings admission has run.
+
+Task WEB4 artifact13601640895/4625bytes, SHA256
+b04c553ee2fcab1123d317075a138970a23af578d23e2c4f81f851f904aadfdf,
+was verified entirely in memory: boundary TRX8/8 and web4 TRX1/1, both zero skips;
+summary249bytes SHA256963a4d58477e53394da149cf98a29beab0e516a54a5440e9838461346bef2996;
+cleanup70bytes SHA256baa8ee4636f9637b09dce94f3501b5fb79bc5bb63caaa2bf1ff10e0cd9c64426.
+Compact receipt: `LocalState/COSMIC/RecoveryLaptopResume20261107/subquery-task-web4-qualified.json`.
+
+Scoped candidate45734a552506b7249d5332685e075b83a9bf7329/Core06df0885c398e0b16749565852d12a9d499288d2
+is now published on the existing `work/cosmic-teaching-release-candidate` branches.
+It extends accepted Development74a7b60c0/Coreec7d440 with the named SubQuery closure;
+the working task branches were not switched. Exact manifest/gitlink checks pass.
+Exact candidate WEB4 cloud42440093218, dictionary42440093239 and accepted public
+reader admission regression42440093241 are in progress. No image or Development
+deployment request has been made. First publication preflight stopped before any
+push because its exact changed-file set included an unchanged legacy file; fixed
+the comparison to derive actual changed blobs, then normal fast-forward pushes
+and fresh remote-SHA observations succeeded. No force push or worktree created.
+
+Stable future host plan: `LocalState/COSMIC/HostedSubqueryDictionarySourceCurrent`,
+ownerf0d6a43f-cdf4-4112-8397-b406571401a6, mapped IDs
+4e399094-1338-810d-b2be-dc801dbf8889,
+70b801fd-aceb-896f-99c0-7e4ecfdb31db,
+bf29084c-a4b5-8fc7-9044-be3b58719d10. No native data is created.
+Protected offline prefix `subquery-dictionary-public` preserves the acknowledged
+251setting Dapr baseline and prepares253settings/four changed keys (source owner,
+read admission, public grants and four presets). Live baseline recheck, exact
+candidate/image gates and explicit journalled publication remain required.
+No live settings have changed. Source JSON initially existed when an operator
+import failed; completed only its review/plan from the same original owner, with
+no ID regeneration, source/network operation or replay.
 
 Superseded corrected-tariff run42439322377 was explicitly cancelled after the
 remaining fixture failure was understood, before native HTTP execution; terminal

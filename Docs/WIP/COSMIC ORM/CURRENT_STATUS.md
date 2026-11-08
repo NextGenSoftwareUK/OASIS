@@ -40,7 +40,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **119 scoped local, 92 live HTTP and 28 functional browser**.
+Coverage is **120 scoped local, 92 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -129,14 +129,21 @@ acceptance remain open. No coverage count or Development deployment advances.
 SubQuery WEB4 task04ecc5d50 now pins Core6dbdc03 with its central read-tariff
 allowlist entry; parent gitlink/manifest validation passes. First WEB4 cloud
 42438643607 compiled but failed2of8controls (tariff support and missing fixture
-authority). Both are corrected; exact replacement42439418296 is in progress.
+authority). Both are corrected; exact replacement42439418296 isSUCCESS:
+8boundary+1real HTTP/Mongo cases/zero skips, native3/2, Mongo5/4, foreign-private0/public3,
+9usage receipts and exact fixture database absence/container teardown verified.
+Scoped candidate45734a552/Core06df088 is published only to existing candidate
+branches; exact WEB4/dictionary/accepted-reader admission jobs42440093218/239/241
+are running. No image, Development deployment or settings mutation requested.
 Thirty-nine protected-candidate and five publisher controls pass locally without
 live mutations or local builds. A pinned independent Firehose registry agrees
 with the expected Arbitrum One genesis; the fresh RPC attempt remains denied.
+Stable SubQuery host source plan and protected offline253setting candidate are
+prepared without live mutation; full baseline recheck remains mandatory.
 Current source/admission evidence and scope limits are in
-[SubQuery status](SUBQUERY_PUBLIC_SOURCE_STATUS.md). Coverage remains unchanged.
+[SubQuery status](SUBQUERY_PUBLIC_SOURCE_STATUS.md). Hosted/browser counts remain unchanged.
 
-Coverage remains119local/92live HTTP/28functional browser. The six public readers
+Coverage is120local/92live HTTP/28functional browser. The six public readers
 remain accepted on their original sealed cohorts: native3/2, Mongo5/4, repeat0new,
 privacy0/public3 and exact SQLite/Neo4j replicas2/2. Never replay accepted cohorts.
 Website26b3172 publishes card77 plus cards71-76; all119client controls and exact public HTML
