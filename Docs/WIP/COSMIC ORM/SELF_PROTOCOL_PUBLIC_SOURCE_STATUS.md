@@ -144,3 +144,5 @@ CQL3/2 case without skips. Existing Live forged-proof test is outside this CQL
 qualification schedule, not counted or claimed. No local .NET build or hosted
 registration/settings/deployment. Counts remain120local/93HTTP/28browser until
 the corresponding exact evidence is observed.
+
+First cloud42446173870/job128625460437 compiled source06b2951dd and passed all26controlled cases/no skips. Shared suite passed1295/1296, failed ParentAcknowledgementFollowsRealMongoPreparedIdentityWrite because required127.0.0.1:27017 MongoDB was absent. Native CQL stage skipped. New workflow now supplies runner-owned Mongo8.0.15 service with bounded health readiness; no test weakened or local service installed. WEB4 explicit owner/profile, compiler allowance, Core read-only tariff, eight boundary controls and real shared HTTP/Mongo fixture are prepared for the next exact qualification. Core88eefb17b committed/pushed on original task branch; unrelated dirty enum remains excluded, parent gitlink/manifest advance together. Not deployed.

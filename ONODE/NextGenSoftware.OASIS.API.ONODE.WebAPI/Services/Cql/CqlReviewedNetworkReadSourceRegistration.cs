@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.Providers.WorldIDOASIS;
 using NextGenSoftware.OASIS.API.Providers.WakuOASIS;
 using NextGenSoftware.OASIS.API.Providers.TheGraphOASIS;
 using NextGenSoftware.OASIS.API.Providers.SubqueryOASIS;
+using NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
@@ -41,6 +42,8 @@ public static class CqlReviewedNetworkReadSourceRegistration
             owner => new ReclaimVerifierQuerySource(owner));
         Register(services, configuration["CQL_THE_GRAPH_STUDIO_QUERY_SOURCE_OWNER"], "The Graph Studio",
             owner => new TheGraphStudioStatusQuerySource(owner));
+        Register(services, configuration["CQL_SELF_PROTOCOL_REGISTRY_QUERY_SOURCE_OWNER"], "Self Protocol registry",
+            SelfProtocolRegistryQuerySource.ForReviewedTeachingCatalogue);
         Register(services, configuration["CQL_SUBQUERY_DICTIONARY_QUERY_SOURCE_OWNER"], "SubQuery dictionary",
             SubqueryDictionaryBlockQuerySource.ForReviewedTeachingCatalogue);
         Register(services, configuration["CQL_DECENTRALAND_SCENE_QUERY_SOURCE_OWNER"], "Decentraland",

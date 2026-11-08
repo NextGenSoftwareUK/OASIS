@@ -20,6 +20,14 @@ jobs:
   registry:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      mongo:
+        image: mongo:8.0.15
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1})'"
+          --health-interval 5s --health-timeout 5s --health-retries 12
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
