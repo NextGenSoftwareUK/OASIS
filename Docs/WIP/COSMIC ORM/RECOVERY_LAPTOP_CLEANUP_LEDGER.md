@@ -5133,3 +5133,13 @@ explicit beee2d25-teaching tag, no native switches/deployment. Plan now records
 image handle and separate profile proof. No image package/startup pass claimed
 until that exact image digest is inspected. No local runtimes/SDKs/databases/
 models/images or archive extraction; compact receipts only.
+
+Scoped image verifier preparation: qualify-tron-scoped-image.py and
+inspect-tron-scoped-startup.py retained in existing RecoveryLaptopResume20261107.
+Syntax checked only; operator not invoked before publication proof. It requires
+sourcebeee2d25/build42490408557/workflow sourcef83c1497e, exact sole commit-tag
+proof and6passing checker controls at3fca0b24b; rejects checker drift and journals
+one explicit tron-api package/startup request. Inspector checks3assemblies/reader,
+source IPFS helper hash, nativeMetadata=false, actual API health/graceful exit and
+owned cleanup, with nativeTronAccepted=false. No API key, local archive, runtime,
+SDK, image or database created. Build job128761323059 remains active; reuse it.
