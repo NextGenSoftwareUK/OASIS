@@ -82,13 +82,14 @@ anonymous403, unchanged source/private projection hashes and exact cleanup.
 Hashed artifact13632864832 inspected in memory. WEB4 API admission, federation,
 live deployment and browser remain open; no profile-count increase. [Detailed gates and receipts](URBIT_CQL_MVP.md).
 Private WEB4 registration/compiler controls now pass30/30 atd4edadf7f/run42522330369.
-Admitted endpoint checks now pass4/4 atc2a8b2391/run42523748419 with Coree62ec44,
-including actual loopback MVC: owner3/2 private metadata/receipts, anonymous401,
-forged-field400, foreign403 and inactive503 without native reads or replacement rows.
-Native replies, identity validation and outbox remain controlled in that proof.
-Refactored MVC preflight4/4 at6981acb6b/run42525205507 accepted; one real native
-WEB4/restart lifecycle42525613719 is active at that exact source. Native-source
-WEB4 HTTP/federation/hosting/live/browser and new image certification remain open. No deployment or count increase.
+Admitted/MVC/federation controlled suite passes7/7 at7dd4c5187/run42526697897.
+Actual native WEB4 MVC/restart now passes42525613719 at6981acb6b/Coree62ec44:
+owner3/2, exact private fields/IDs, receipts, anonymous401, forged-field400,
+foreign403, inactive503 and identical API projection hashes across restart.
+Exact owned container/network/pier cleanup verified; hashed artifact13635911089
+and both native phase TRXs inspected. Identity validation/outbox are controlled.
+Actual Mongo federation, production JWT/durable billing, public HTTPS hosting,
+new image certification and live/browser acceptance remain open. No deployment or count increase.
 Pinned Vere4.6 and repository development
 pill passed real offline cold boot/run42507813675/source61c28aa5b. Hashed artifact
 inspected: bootstrap complete, pier live, exit0/no OOM, network none, owned

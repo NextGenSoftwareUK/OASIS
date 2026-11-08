@@ -13,18 +13,20 @@ namespace boundary controls pass locally; actual namespace transport passes
 42519747804. WEB4 API admission, federation, live deployment and browser remain
 unproved; no provider-count increase or accepted live-cohort replay.
 
-Private WEB4 registration/configuration/compiler controls pass30/30 atd4edadf7f
-(run42522330369). Shared admitted endpoint checks now pass4/4 atc2a8b2391 with Coree62ec44
-(run42523748419), including real loopback Kestrel/MVC on the shipping controller.
-Owner3/2, private projection/receipts, anonymous401, forged-field400, foreign403
-and inactive503 pass. Native replies, validated identity and outbox are controlled;
-this is socket/MVC proof, not native-source WEB4 HTTP or production JWT/billing.
+Private WEB4 registration/configuration/compiler controls pass30/30 atd4edadf7f.
+Shared admitted/MVC/federation component suite passes7/7 at7dd4c5187
+(run42526697897); Mongo responses remain controlled in those federation cases.
+Actual native WEB4 MVC now passes before/after same-pier restart at6981acb6b
+(run42525613719): real source/SDK/private policy/adapter/manager/controller,
+owner3/2, all contact/overlay fields, receipts, anonymous401, forged-field400,
+foreign403 and inactive503. API projection hashes match and exact cleanup passes.
+Native identity validation/outbox are controlled; production JWT/durable billing,
+public HTTPS profile hosting/registration and live/browser remain unproved.
 
-Next: verify actual WEB4 HTTP against the native source through the same existing
-endpoint/admission path, then federation, durable live hosting/authorization and
-browser. Registration stays query-only with server-owned owner/connection/CIDs;
-browser input cannot grant record access. Deployed API and public presets are
-unchanged. Do not route this adapter as canonical storage.
+Next: actual Mongo-backed native federation with owned copies and source
+preservation, then durable hosting/demo authorization, exact image qualification
+and live/browser acceptance. No public card/count increase. Query-only source
+and server-owned owner/connection/CID policy remain mandatory.
 
 The dated sections below preserve earlier evidence and failures; this checkpoint
 and CURRENT_STATUS.md describe the current gate.
@@ -357,3 +359,14 @@ Refactored shared MVC preflight at6981acb6b passed4/4 in42525205507/job128867191
 Three new admitted cases exercise the shipping federation endpoint with the actual Urbit SDK/adapter and a controlled canonical Mongo source. Full3+2/subset2+2 must preserve5/4physical copies, provider provenance, private owner fields, independent Mongo owner/public versus Urbit keyed-catalogue permissions and two measured query receipts. Other-owner private denial403 or inactive source503 must reject the entire request before either source query or manager creation; canonical copies cannot substitute for the required private source. Mongo responses and native Urbit replies remain controlled in this component suite, so no native Mongo/federation acceptance or unrelated-copy filtering claim follows.
 
 Expected admitted suite7cases (existing4plus3federation). No native job/environment is started by this change. Already-running native MVC42525613719 remains at frozen6981acb6b and is followed independently; these new tests cannot change that job's source or certify its results. Exact native federation with owned Mongo remains a later distinct gate.
+
+
+## Actual native WEB4 MVC/restart gate accepted
+
+Native run42525613719/job128868449497 at6981acb6b06c42ed0bede16a6872edc93fe99b27/Coree62ec44 completed success. Artifact13635911089 SHA2561c2806b86aa9947353b67509fbc15e87287f50ec33285f37dcde5541fbef6312 inspected entirely in memory. Both phase TRXs contain the exact UrbitNativeWeb4MvcReadsOwnedBook case, each1executed/1passed/0skips. All before/after JSON assertions independently validated.
+
+Real shipping MVC route -> explicit private policy/API compiler -> actual V2 manager/adapter/SDK -> native current contacts book passes owner full3/subset2, exact six contact/overlay fields and identities/private ownership, six native point reads per phase (one probe+3+2), two successful query receipts and zero rejected-query receipts. API anonymous401, forged-field400, foreign403 and inactive503 occur without extra native reads. Private API projection SHA256df6d5ce459ad17015f4f32ef5df8331531f40597d231dc2fa9a67ad09ba6a80f matches across same-pier restart. Existing raw source/private-CQL hashes are preserved too. Native validated identity and usage outbox remain controlled fixtures; production JWT/durable billing and public HTTPS registration/hosting are not certified by this run.
+
+Three owned pages seeded once, before/after native book reads pass, restart/final exit0, no OOM; owned container/internal-network/pier removal verified. No native credentials persisted or logged. No accepted original live cohort replayed, no remaining native process/data to adopt. Cloud caches retained; local safe receipt urbit-native-web4-mvc-qualified.json only. Generic CQL/live flags remainfalse because native federation/hosting/live/browser still require their gates.
+
+Controlled admitted/federation run42526697897/job128871791735 at7dd4c5187 passed7/7 with zero skips. Artifact13634769248/2218bytes SHA256b752c5b2d43616f1f889755ea203a8aeb2922c0f405b3a1534333ca442705e22 inspected in memory; exactly3federation cases plus4previous admitted/MVC cases, all outcomes verified. Federation preserves5/4physical rows and per-provider receipts/provenance, independent policies and whole-query denial/unavailability before reads; canonical Mongo responses are controlled, so no native Mongo/federation claim. All changes/evidence pushed on existing task branches, no Development deployment or profile-count increment.
