@@ -100,3 +100,5 @@ changes now trigger its WEB4 workflow directly. Corrected native and HTTP
 qualification remain required; no accepted source/cohort replay.
 
 Corrected source70f8f7c3c20d0f0b628719d0e37b4302d172cb81 pushed; native42455893389 and WEB442455893404 freshly observedlive. Original first HTTP413/failed artifact preserved; no same accepted cohort replay or platform budget increase.
+
+Corrected native42455893389/job128654707996 succeeds:27controls+1real CQL3/2, zero skips. Artifact13608085483/5607bytes SHA256b64f056e980a281e3ba1589de04228a9d1a23b953715737de4c76c3aab2c8ade and both TRX hashes/counters verified wholly in memory. Full compact JSON, explicit original-body SHA/byte count and compact JSON SHA/count round trips pass; WEB442455893404 still live. No local build/ZIP/TRX archive retained.
