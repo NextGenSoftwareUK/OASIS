@@ -5247,3 +5247,7 @@ Cloud run42508500262 assembled695files/4657933bytes. Four exact owned source che
 
 ### 8 Nov — Native contacts preparation/cache ownership
 Seven framing controls use only Python standard library and sockets locally; no runtime downloaded. Cloud42509161255 completed assets-only preparation and saved immutable complete43057001byte runtime cache. Failed native bind-owner attempt had exact owned container/pier removal verified in hashed artifact13627844264 (inspected in memory); compact receipt retained. Sourceaee605aef/run42509342247 uses runner UID:GID and complete cache directly. Actual source install/contacts still pending; no local DB, image, SDK or environment created.
+
+
+### 8 Nov — Native control/OS mismatch
+Artifacts13628782909 (1585bytes) and13628444378 (2600bytes) verified in memory; compact receipts retained, no extracted data. Both native attempts verify owned container/pier removal, exit0 and no OOM. Complete runtime cache reused. Kernel408 source inventory retained as compact metadata only; cloud assembly42510963618 in progress. No local native runtime, source clone or environment installed. Native contacts and OS update remain unqualified.
