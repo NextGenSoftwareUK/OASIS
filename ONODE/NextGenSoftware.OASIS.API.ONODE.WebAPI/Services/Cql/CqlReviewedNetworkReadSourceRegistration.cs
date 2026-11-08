@@ -18,6 +18,7 @@ using NextGenSoftware.OASIS.API.Providers.HolonymOASIS;
 using NextGenSoftware.OASIS.API.Providers.CivicOASIS;
 using NextGenSoftware.OASIS.API.Providers.MapLibreOASIS;
 using NextGenSoftware.OASIS.API.Providers.GOMapOASIS;
+using NextGenSoftware.OASIS.API.Providers.TRONOASIS;
 using NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS;
 using NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
@@ -29,6 +30,16 @@ public static class CqlReviewedNetworkReadSourceRegistration
 {
     public static void AddReviewedNetworkReadSources(this IServiceCollection services, IConfiguration configuration, bool sandboxEnabled = false)
     {
+        var tron = configuration["CQL_TRON_PUBLIC_HEADER_QUERY_SOURCE_JSON"];
+        var tronKey = configuration["COSMIC_TRON_PUBLIC_READER_KEY"];
+        if (tron != null || tronKey != null)
+        {
+            if (!sandboxEnabled || string.IsNullOrWhiteSpace(tron) || string.IsNullOrWhiteSpace(tronKey))
+                throw new InvalidOperationException("TRON public header queries require sandbox mode, an explicit catalogue and a separate dedicated reader key.");
+            services.AddSingleton<CqlReadSourceProfile>(_ => new CqlReadSourceProfile(
+                TronPublicHeaderMetadataSource.FromAuthenticatedJson(tron, tronKey)));
+        }
+
         var waku = configuration["CQL_WAKU_STORE_QUERY_SOURCE_JSON"];
         if (sandboxEnabled && waku != null)
             services.AddSingleton<CqlReadSourceProfile>(_ =>

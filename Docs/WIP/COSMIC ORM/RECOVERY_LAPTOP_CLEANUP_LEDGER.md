@@ -4886,3 +4886,10 @@ Web4Site26b3172 published atomically to existing work/cosmic-cql/main branches a
 8 November: recovered TRON SDK/test bytes and exact existing separate catalogue moved into tracked source/test fixtures without altering originals. Normal shared walkthrough compile link replaces test-only injection; current-Core controlled cloud workflow prepared/native default off. Initial local XML validation exposed BOM decoding in the edited project, corrected from exact HEAD content using explicit UTF8 before staging; XML/workflow/38declaration checks now pass. No local .NET/runtime/database/image/install/native request or branch switch. User access question remains pending; no dependent native action or repeat ask.
 
 8 November: integrated TRON6582byte success artifact inspected wholly in memory,38/38/no skips verified on current pinned Core. Native stage deliberately not selected, no native service request or credentials read. Compact proof only, no local archive/runtime/build/database/image/install. Original catalogue/draft and deferred decisions preserved; account-access question remains pending without re-ask.
+
+TRON WEB4 configuration boundary prepared: explicit sandbox-only catalogue +
+separate COSMIC_TRON_PUBLIC_READER_KEY pair; incomplete configuration fails,
+no anonymous fallback or activation during registration. Nine controlled host
+cases added with cloud-only build lease workflow; qualification pending. This
+does not yet add compiler/tariff admission or native/live/browser acceptance.
+No local build, installation, database, model/image or artifact download.

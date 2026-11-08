@@ -193,3 +193,10 @@ native stage was explicitly skipped by workflow selection, not counted as a pass
 Reader-access question remains pending once in ACTIONS-FOR-DAVID. Native CQL,
 WEB4/live grant, browser and coverage increase remain open. Continue priority
 engineering without another anonymous endpoint attempt.
+
+TRON WEB4 configuration boundary prepared: explicit sandbox-only catalogue +
+separate COSMIC_TRON_PUBLIC_READER_KEY pair; incomplete configuration fails,
+no anonymous fallback or activation during registration. Nine controlled host
+cases added with cloud-only build lease workflow; qualification pending. This
+does not yet add compiler/tariff admission or native/live/browser acceptance.
+No local build, installation, database, model/image or artifact download.
