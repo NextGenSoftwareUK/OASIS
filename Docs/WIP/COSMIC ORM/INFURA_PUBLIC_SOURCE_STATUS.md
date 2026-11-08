@@ -40,10 +40,19 @@ requires that key in the request path. For a secret-required key, use the exact
 [official HTTPS Basic authentication example](https://docs.infura.io/dashboard/how-to/secure-an-api/api-key-secret/#call-apis-using-an-api-key-secret)
 and keep both values in private server configuration. No new paid account/hosting or credential values retained.
 
-Next engineering: use the existing bounded EVM observation engine with a distinct
-Infura identity, official Ethereum mainnet endpoint, private server-only credential,
-chain/genesis and finalized canonical selection; no fallback to another gateway or
-legacy IPFS. Verify the credential transport's error/log redaction before native
-reads. Then qualify the native scoped source and paired WEB4 flow; no live/browser
-or full provider parity claim until those gates pass. Upstream-retired Infura IPFS
-storage is inapplicable, distinct from the accepted independent IPFS demo.
+The scoped Infura reader reuses the bounded EVM engine for chain/genesis checks
+and finalized canonical account balances. It requires a server API key and secret
+and uses Infura Ethereum mainnet. Cloud run 42536290104 compiled the reader with
+the retirement controls.
+
+WEB4 source 78607a087 and Core 64a691b add opt-in registration and query tariff
+eligibility. The configuration names are CQL_INFURA_QUERY_SOURCE_OWNER,
+CQL_INFURA_API_KEY and CQL_INFURA_API_SECRET. Use protected server settings for
+the credentials. The fixed teaching set contains the zero address, burn address
+and Ethereum deposit contract. Exact registration controls are running in
+[42536469729](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42536469729).
+
+Remaining gates include inspecting that run, verifying credential handling and
+native reads with authorized access, qualifying the exact WEB4 package and paired
+query flow, then live and browser acceptance. The independent IPFS demo covers
+IPFS separately from the retired Infura service.
