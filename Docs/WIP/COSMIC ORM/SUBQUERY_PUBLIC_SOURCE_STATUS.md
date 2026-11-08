@@ -302,3 +302,7 @@ not an alternative route to the denied RPC service. The scoped public profile
 continues to describe dictionary-reported activity, never verified full logs.
 
 [Provider inventory](PROVIDER_CQL_AND_SANDBOX_STATUS.md) · [Current status](CURRENT_STATUS.md).
+
+## Live HTTP acceptance — 7 November
+
+Settings activation eb09ea25-e7c0-4650-abc3-6d1419ee3794 succeeded on source9fd968a7b40d2decb389f7a2a5c7f75874b11153. Package inspection verifies253settings/206critical and enabled SubQuery reader; actual image sha256:510762ee57c752a5fd213ca11578eda8ac172a59e20b6d7bdc9138c3d9bff945. Original owner51c28fc4-bd6d-4559-ae7a-1fa1b3ddaee7 passed native3/2, Mongo federation5/4, first2saves, repeat0new/2existing, exact SQLite/Neo4j replicas2/2, foreign private0/public3. Durable cql-http-acceptance receipt sealed from retained reports and save acknowledgements, with no request replay. Initial missing-output-directory observation retained no HTTP status/body: that first read remains unknown. Root fix32bc5e677 establishes evidence-directory admission before transport;32controls pass. Original-owner continuation completed successfully. Browser acceptance remains open; website card publication remains next. Scoped totals now120local/93liveHTTP/28browser.
