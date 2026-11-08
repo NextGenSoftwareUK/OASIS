@@ -114,3 +114,5 @@ pass with the same1MiBAPI limit. Complete losslessly compact style documents
 remain present; no field/geometry/source/layer removal or larger budget.
 Coverage124scoped local/95liveHTTP/28browser. No hosted, replication or browser
 acceptance for MapLibre; legacy map rendering/full SDK scope stays open.
+
+Scoped candidate23532a6fc9146d5535152c182e61ec21d8889d6e/Core681a1d0b2d4aa8f3b2751a1fad8857a1dd5f86e0 prepared from Civic88c378c1e/Core81862b2 with15scoped paths, including the new test project. Source reader blob matches native/HTTP-qualified70f8f7c3c; API edits constructed from the scoped base. Manifest/gitlinks validate; temporary indices removed in finally. No checkout/worktree/runtime/database, ref publication or deployment. Candidate publication awaits accepted Civic rollout.
