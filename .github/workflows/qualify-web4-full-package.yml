@@ -7,6 +7,7 @@ on:
       - Scripts/TestHosts/qualify_web4_full_package.py
       - Scripts/TestHosts/qualify_web4_combined_startup.py
       - Scripts/TestHosts/test_web4_combined_startup.py
+      - Scripts/TestHosts/owned_docker_resources.py
   workflow_dispatch:
     inputs:
       source:
@@ -55,6 +56,7 @@ jobs:
         run: |
           cp Scripts/TestHosts/qualify_web4_full_package.py "$RUNNER_TEMP/qualify_web4_full_package.py"
           cp Scripts/TestHosts/qualify_web4_combined_startup.py "$RUNNER_TEMP/qualify_web4_combined_startup.py"
+          cp Scripts/TestHosts/owned_docker_resources.py "$RUNNER_TEMP/owned_docker_resources.py"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ inputs.source }}
@@ -64,6 +66,7 @@ jobs:
         run: |
           cp "$RUNNER_TEMP/qualify_web4_full_package.py" Scripts/TestHosts/qualify_web4_full_package.py
           cp "$RUNNER_TEMP/qualify_web4_combined_startup.py" Scripts/TestHosts/qualify_web4_combined_startup.py
+          cp "$RUNNER_TEMP/owned_docker_resources.py" Scripts/TestHosts/owned_docker_resources.py
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io

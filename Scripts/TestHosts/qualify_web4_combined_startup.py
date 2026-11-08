@@ -1,6 +1,7 @@
 """Cloud-only combined WEB4/OpenVINO startup with fresh isolated accounting data."""
 import argparse, json, os, re, secrets, subprocess, tempfile, time
 from pathlib import Path
+from owned_docker_resources import missing_resource
 
 
 def configuration(root, mongo, marker):
@@ -42,19 +43,6 @@ def configuration(root, mongo, marker):
         'PORT':'8080','ASPNETCORE_URLS':'http://+:8080'}
 
 
-def missing_resource(kind, name, returncode, stderr):
-    if returncode != 1:
-        return False
-    text = stderr.strip().lower()
-    name = name.lower()
-    if kind == 'network':
-        return text == 'error response from daemon: network ' + name + ' not found'
-    if kind == 'container':
-        return text in ['error: no such container: ' + name,
-                        'error response from daemon: no such container: ' + name]
-    if kind == 'volume':
-        return text == 'error response from daemon: get ' + name + ': no such volume'
-    raise ValueError('Unknown owned Docker resource kind.')
 
 
 def main():

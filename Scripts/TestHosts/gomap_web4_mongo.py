@@ -1,7 +1,7 @@
 """Owned cloud Mongo replica for explicitly named WEB4 qualification jobs."""
 import argparse,json,os,subprocess,time
 from pathlib import Path
-from qualify_web4_combined_startup import missing_resource
+from owned_docker_resources import missing_resource
 
 
 def main():

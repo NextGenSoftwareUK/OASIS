@@ -367,3 +367,15 @@ on another laptop without an unreferenced-object dependency. No runtime candidat
 ref published or deployment/setting/native request. Qualification-tool closure,
 scoped cloud build and actual credentialed proof remain open. Windows credential
 manager target/environment-name checks also found no reader; no values printed.
+
+TRON qualification dependency closure: moved the single typed Docker absence
+contract into owned_docker_resources.py. Shared Mongo and package/startup
+checkers import that one implementation; TRON no longer imports the unrelated
+OpenVINO startup harness merely for resource checks. Full-package workflow
+retains/restores all three checker dependency files around exact-source checkout,
+including old built sources without the new module. Existing3startup/absence
+and4Mongo ownership controls pass locally; syntax/diff checks pass, cloud controls
+pending. This is qualification tooling only, no runtime/API behavior, image rebuild,
+source replay, private settings, local SDK/database/model download or new worktree.
+Next: incorporate only the small qualification closure into the scoped draft and
+verify the isolated source in cloud; native reader location remains pending once.

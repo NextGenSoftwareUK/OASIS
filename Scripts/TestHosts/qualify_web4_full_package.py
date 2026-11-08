@@ -1,7 +1,7 @@
 """Inspect an immutable full WEB4 image in an owned cloud container; no API acceptance claim."""
 import argparse, hashlib, json, os, re, subprocess
 from pathlib import Path
-from qualify_web4_combined_startup import missing_resource
+from owned_docker_resources import missing_resource
 
 
 def main():

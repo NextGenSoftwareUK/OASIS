@@ -7,7 +7,7 @@ on:
       - '.github/workflows/qualify-owned-web4-mongo.yml'
       - 'Scripts/TestHosts/gomap_web4_mongo.py'
       - 'Scripts/TestHosts/test_owned_web4_mongo.py'
-      - 'Scripts/TestHosts/qualify_web4_combined_startup.py'
+      - 'Scripts/TestHosts/owned_docker_resources.py'
   workflow_dispatch:
 
 permissions:
