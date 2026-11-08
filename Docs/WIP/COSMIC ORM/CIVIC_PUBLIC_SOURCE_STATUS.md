@@ -172,3 +172,5 @@ admission13607164406/4434bytes SHA256cd32743783e0d73613ae5528dc34517403f3ac4b645
 Reports/counters/privacy/9receipts/ownedDBabsence verified wholly in memory.
 One commit-tagged teaching image request acknowledged204; no Railway request,
 Development push or settings change. Preserve original dispatch journals.
+
+Exact teaching image42455727615/job128654204988 observedlive in Build and push; tag88c378c1e08ee270365b760c9d3abc29b629a0f4-teaching. Read-only prereview verifies all7advertised pins, complete257settings unchanged, accepted7ba0Holonym baseline/actualfc74e84d, with Holonym/Self/SubQuery/Dapr preserved. No Civic source enrollment, Development push, Railway request or native source write; image success/provenance and fresh integration checks remain required.

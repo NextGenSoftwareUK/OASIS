@@ -22,14 +22,19 @@ WEB442453281168/job128646846608 passes8boundary+1realHTTP/Mongo;
 artifact/counters/privacy/9receipts and ownedDBabsence verified in memory.
 Civic scoped candidate88c378c1e/Core81862b2 published on existing candidate
 refs after accepted Holonym;15paths, no Development/settings change. Exact
-native42455252759/WEB442455252768/admission42455252725 live. Offline fixed
+native42455252759/WEB442455252768/admission42455252725 all pass1358cases,
+no skips; artifacts inspected in memory. One exact teaching image42455727615/
+job128654204988 islive in Build and push. Prereview confirms7pins/all257
+settings/current accepted Holonym baseline unchanged; no Civic enrollment. Offline fixed
 owner73eb9868 and257/259settings plan prepared, not applied.
 Civic planner39controls+5publisher guards pass. No CQL count/admission increase. Existing
 personal-pass adapter preserved. [Review](CIVIC_PUBLIC_SOURCE_STATUS.md).
 MapLibre style-data cloud42454653284 passes27controls+1native CQL3/2;
 5626byte artifact13607083066 hashes/counters verified in memory. WEB4/Core
-260d7c7 registration/8boundary+realHTTP cloud42455134733/job128652414955 live;
-no hosted admission. Legacy map renderer
+260d7c7 registration/8boundary+realHTTP cloud42455134733 passes8boundaries but paired native HTTP exceeds1MiB.
+Lossless full-JSON compaction retains all values/original body hash and adds
+compact JSON hash, without changing budgets. Corrected native42455893389/
+WEB442455893404 live on70f8f7c3c; no hosted admission. Legacy map renderer
 remains unqualified. [Scope](MAPLIBRE_PUBLIC_SOURCE_STATUS.md).
 No local build/runtime/image/database download.
 

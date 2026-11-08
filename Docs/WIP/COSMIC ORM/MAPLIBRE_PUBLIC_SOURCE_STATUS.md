@@ -98,3 +98,5 @@ are unchanged. Controlled positive fixtures are pretty-printed to exercise
 this invariant; full JSON/hash/count round trips remain required. Source-path
 changes now trigger its WEB4 workflow directly. Corrected native and HTTP
 qualification remain required; no accepted source/cohort replay.
+
+Corrected source70f8f7c3c20d0f0b628719d0e37b4302d172cb81 pushed; native42455893389 and WEB442455893404 freshly observedlive. Original first HTTP413/failed artifact preserved; no same accepted cohort replay or platform budget increase.
