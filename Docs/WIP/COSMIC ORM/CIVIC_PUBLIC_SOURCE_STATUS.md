@@ -192,3 +192,5 @@ observation/compact handle retained; no source enrollment, activation or
 hosted cohort. Inspect this exact running package before four-setting rollout.
 This is the second8November Development push in configured America/Cancun;
 Self was7November23:59:58, Holonym8November00:57:44 per authoritative reflog.
+
+Exact code50095dbf freshly observedBUILDING. Offline original-cohort audit prepared and syntax parsed only; validates per-row network/chain/genesis/contract/block/code provenance and first-observation snapshot names without requiring them to match newer public blocks. No sessions, native requests or saves started for Civic acceptance.
