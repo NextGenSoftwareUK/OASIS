@@ -1,7 +1,8 @@
 """One cloud-only owned OVMS runtime qualification; no local image/model installation."""
 import argparse,datetime,hashlib,json,os,re,shutil,subprocess,time,urllib.request,urllib.error
 from pathlib import Path
-parser=argparse.ArgumentParser(description=__doc__);verification=parser.add_mutually_exclusive_group();verification.add_argument('--verify-client',action='store_true');verification.add_argument('--verify-query',action='store_true');verification.add_argument('--verify-web4',action='store_true');verification.add_argument('--verify-package',action='store_true');options=parser.parse_args()
+parser=argparse.ArgumentParser(description=__doc__);verification=parser.add_mutually_exclusive_group();verification.add_argument('--verify-client',action='store_true');verification.add_argument('--verify-query',action='store_true');verification.add_argument('--verify-web4',action='store_true');verification.add_argument('--verify-package',action='store_true');parser.add_argument('--verify-service',action='store_true');options=parser.parse_args()
+if options.verify_service and not options.verify_package:parser.error('--verify-service requires --verify-package')
 if os.environ.get('GITHUB_ACTIONS')!='true':
     raise RuntimeError('This qualifier runs only in the owned cloud job, never on the recovery laptop')
 ROOT=Path(__file__).resolve().parents[2]
@@ -103,7 +104,7 @@ try:
         web4_dockerfile=ROOT/'Docker/Dockerfile.web4'
         docker('build','--target','base','--file',str(web4_dockerfile),'--tag',base_image,str(models),timeout=240)
         context=models/'build-context';context.mkdir()
-        for relative in ['Scripts/TestHosts/openvino-model-server-pins.json','Docker/host-sandbox-openvino.cjs','Docker/provision-sandbox-openvino.cjs']:
+        for relative in ['Scripts/TestHosts/openvino-model-server-pins.json','Docker/host-sandbox-openvino.cjs','Docker/provision-sandbox-openvino.cjs','Scripts/TestHosts/Qualify-OpenVinoNativeService.cjs']:
             target=context/relative;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes((ROOT/relative).read_bytes())
         provisioned_image='oasis-ovms-provisioned:'+label
         docker('build','--target','provider_openvino','--file',str(web4_dockerfile),'--tag',provisioned_image,str(context),timeout=360)
@@ -115,6 +116,15 @@ try:
             'COPY --from=provisioned /models/ /models/\n'
             'RUN test ! -L /opt/ovms-rootfs/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 && test -x /opt/ovms-rootfs/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 && test -d /opt/ovms-rootfs/usr/lib/python3.12 && ln -s /opt/ovms-rootfs/ovms /ovms\n'
             'ENTRYPOINT ["/usr/bin/env","PYTHONHOME=/opt/ovms-rootfs/usr","PYTHONPATH=/ovms/lib/python:/ovms/python_deps","ESPEAK_DATA_PATH=/ovms/share/espeak-ng-data","/opt/ovms-rootfs/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2","--library-path","/ovms/lib:/opt/ovms-rootfs/usr/lib/x86_64-linux-gnu:/opt/ovms-rootfs/lib/x86_64-linux-gnu","/ovms/bin/ovms"]\n',encoding='utf-8')
+        if options.verify_service:
+            content=package_dockerfile.read_text(encoding='utf-8')
+            content=content[:content.index('ENTRYPOINT')]+(
+                'COPY --from=provisioned /usr/local/bin/node /usr/local/bin/node\n'
+                'COPY build-context/Docker/host-sandbox-openvino.cjs /app/host-sandbox-openvino.cjs\n'
+                'COPY build-context/Scripts/TestHosts/openvino-model-server-pins.json /app/openvino-model-server-pins.json\n'
+                'COPY build-context/Scripts/TestHosts/Qualify-OpenVinoNativeService.cjs /app/qualify-openvino-service.cjs\n'
+                'ENTRYPOINT ["node","/app/qualify-openvino-service.cjs"]\n')
+            package_dockerfile.write_text(content,encoding='utf-8')
         docker('build','--file',str(package_dockerfile),'--tag',runtime_image,str(models),timeout=240)
         package_info=json.loads(docker('image','inspect',runtime_image,timeout=20).stdout)[0]
         base_info=json.loads(docker('image','inspect',base_image,timeout=20).stdout)[0]
@@ -126,7 +136,9 @@ try:
             'productionProvisioningStage':True,'packagedModelsNotOverlaid':True,'launchMode':'official-loader-container-kernel-view','additionalSystemPackages':[],'liveDeployment':False},indent=2))
     assert docker('container','inspect',name,check=False,timeout=20).returncode!=0
     mount_arguments=[] if options.verify_package else ['--mount','type=bind,source='+str(runtime_models)+',target='+model_mount+',readonly']
-    docker('run','--detach','--name',name,'--label','oasis.cql.owner='+label,'--cpus','2','--memory','1g','--publish','127.0.0.1:28000:8000',*mount_arguments,runtime_image,'--config_path','/models/config.json','--rest_port','8000','--port','9000',timeout=30)
+    network_arguments=['--network','host','--env','GITHUB_ACTIONS=true'] if options.verify_service else ['--publish','127.0.0.1:28000:8000']
+    native_arguments=[] if options.verify_service else ['--config_path','/models/config.json','--rest_port','8000','--port','9000']
+    docker('run','--detach','--name',name,'--label','oasis.cql.owner='+label,'--cpus','2','--memory','1g',*network_arguments,*mount_arguments,runtime_image,*native_arguments,timeout=30)
     deadline=time.monotonic()+120
     # Explicit bounded startup readiness polling; model metadata/inference never retried.
     while True:
@@ -175,6 +187,7 @@ await r.verifyNative(pins,AbortSignal.timeout(15000));})().catch(e=>{console.err
     proof['web4BasePackagePass']=options.verify_package
     proof['web4StartupVerifierPass']=options.verify_package
     proof['buildTimeModelProvisionerPass']=options.verify_package
+    proof['nativeServiceLaunchPass']=options.verify_service
     (result/'acknowledged.json').write_text(json.dumps(proof,indent=2))
 finally:
     observation=docker('container','inspect',name,check=False,timeout=20)
@@ -186,6 +199,15 @@ finally:
         docker('stop','--time','15',name,timeout=30)
         stopped=json.loads(docker('container','inspect',name,timeout=20).stdout)[0]
         assert not stopped['State']['Running'] and not stopped['State']['OOMKilled']
+        if options.verify_service:
+            terminal_logs=docker('logs',name,timeout=20)
+            (result/'server.log').write_text(terminal_logs.stdout+terminal_logs.stderr)
+            rows=[]
+            for line in terminal_logs.stdout.splitlines():
+                if line.startswith('{"nativeService'):
+                    rows.append(json.loads(line))
+            service_stopped=stopped['State']['ExitCode']==0 and any(row.get('nativeServiceReady') is True for row in rows) and any(row.get('nativeServiceStopped') is True for row in rows)
+            (result/'service-stop.json').write_text(json.dumps({'passed':service_stopped,'exitCode':stopped['State']['ExitCode'],'observations':rows,'apiQualified':False},indent=2))
         docker('rm','--volumes',name,timeout=20)
         absence=docker('container','inspect',name,check=False,timeout=20)
         assert absence.returncode!=0 and 'no such' in absence.stderr.lower()
@@ -195,4 +217,5 @@ finally:
     assert json.loads((models/'owner.json').read_bytes())=={'run':run,'attempt':attempt}
     shutil.rmtree(models)
     (result/'cleanup.json').write_text(json.dumps({'ownedProcessesStopped':True,'ownedContainerAbsent':True,'ownedModelDirectoryAbsent':not models.exists(),'cloudImageOnly':True}))
+if options.verify_service:assert json.loads((result/'service-stop.json').read_bytes())['passed'], 'Native service shutdown did not qualify'
 print('Owned OpenVINO runtime and three real versioned model/inference checks pass; compact evidence retained.')
