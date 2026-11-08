@@ -5255,3 +5255,7 @@ Artifacts13628782909 (1585bytes) and13628444378 (2600bytes) verified in memory; 
 
 ### 8 Nov — Pinned OS source assembly accepted
 Cloud42511142535 verifies546files/4307737bytes, including151materialized links and four directory aliases. Temporary source checkout removed; reusable OS source+manifest retained in cloud cache. First failed assembly also verified temporary checkout removal. Both artifacts inspected in memory; only compact failure/success receipts retained locally. No laptop checkout/runtime/database/image added. Native OS update remains pending; accepted source assembly workflow is manual-only.
+
+
+### 8 Nov — Native base update qualification
+Three verified cloud caches restored directly; no repeated source/bootstrap download. Owned cloud run42511356066 cancelled after pinned source proved its readiness predicate could never pass. Cancellation terminal; artifact343bytes exists, native cleanup not yet proven and must not be asserted. Corrected numeric-version probe run42511441973 active. No laptop runtime/environment/source clone or DB created.
