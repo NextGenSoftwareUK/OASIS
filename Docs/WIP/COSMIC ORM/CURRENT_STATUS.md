@@ -4,6 +4,12 @@ Updated 8 November 2026. Goal active and incomplete.
 
 ## Latest continuation
 
+OpenVINO real model provisioner/startup verifier f49804feb cloud42468488713
+passed native metadata/3inferences and owned cleanup. WEB4 image/entrypoint
+now has explicit supervisor wiring on task source483a6fcd7; exact production
+OCI-stage cloud42468686268 is active. Full supervisor/API image and live
+enrollment remain open; no live settings/deployment. [Proof](OPENVINO_CQL_MVP.md).
+
 OpenVINO WEB4-base package4f3eac104 cloud42467961728 passed exact runtime
 identity,3version metadata and3real inferences; artifact10781bytes/hash and
 owned cleanup verified. Complete official userspace/loader retains normal
