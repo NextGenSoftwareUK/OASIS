@@ -4,6 +4,12 @@ Updated 8 November 2026. Goal active and incomplete.
 
 ## Latest continuation
 
+OpenVINO WEB4-base package4f3eac104 cloud42467961728 passed exact runtime
+identity,3version metadata and3real inferences; artifact10781bytes/hash and
+owned cleanup verified. Complete official userspace/loader retains normal
+container kernel view; no additional packages or local downloads. Supervisor
+integration/full image/live enrollment remain open. [Proof](OPENVINO_CQL_MVP.md).
+
 OpenVINO exact9c20d06ad SDK16+1, CQL21+1 and WEB4 8+1 all pass, with
 native3/2, Mongo federation5/4 and privacy0/public3. Artifacts/TRX/owned
 model and Mongo cleanup verified; no local runtime/image/model install.
