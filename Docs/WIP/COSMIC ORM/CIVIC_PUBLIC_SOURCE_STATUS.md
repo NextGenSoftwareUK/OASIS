@@ -162,3 +162,5 @@ review key ordering inside compact preset strings. Reconciled original
 source/snapshots using exact fixed-preset schema and fresh verifier ordering;
 no actor regeneration, snapshot replacement, native request or settings apply.
 No public source writes; fresh live baseline comparison still required.
+
+Exact candidate88c378c1e native42455252759/job128652766765 succeeds:27controlled+1296shared+1native, zero skips. Artifact13607421696/308268bytes SHA25645cf16e1bffd8cbdbb29016d0c1675f54e3fe5ac8ae92dd0dae40e8a29d78e18 and all3TRX hashes/counters verified entirely in memory. WEB442455252768/job128652766868 and admission42455252725/job128652766840 freshly observedlive; no image request until both pass.
