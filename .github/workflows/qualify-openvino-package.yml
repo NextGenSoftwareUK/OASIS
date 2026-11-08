@@ -1,0 +1,35 @@
+name: Qualify OpenVINO bundle on exact WEB4 base
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-openvino-package.yml'
+      - 'Scripts/TestHosts/Qualify-OpenVinoModelServer.py'
+      - 'Scripts/TestHosts/openvino-model-server-pins.json'
+      - 'Docker/Dockerfile.web4'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Verify one-shot HTTP transport
+        run: python3 -B -m unittest discover -s Scripts/TestHosts -p test_openvino_model_server_transport.py -v
+      - name: Build unchanged WEB4 base and qualify complete official bundle
+        run: python3 -B Scripts/TestHosts/Qualify-OpenVinoModelServer.py --verify-package
+      - name: Retain package, native inference and cleanup evidence
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: openvino-web4-base-package
+          path: TestResults/OpenVinoRuntimeCurrent/
+          if-no-files-found: error
+          retention-days: 30

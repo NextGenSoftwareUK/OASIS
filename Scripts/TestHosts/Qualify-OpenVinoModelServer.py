@@ -1,7 +1,7 @@
 """One cloud-only owned OVMS runtime qualification; no local image/model installation."""
 import argparse,datetime,hashlib,json,os,re,shutil,subprocess,time,urllib.request,urllib.error
 from pathlib import Path
-parser=argparse.ArgumentParser(description=__doc__);verification=parser.add_mutually_exclusive_group();verification.add_argument('--verify-client',action='store_true');verification.add_argument('--verify-query',action='store_true');verification.add_argument('--verify-web4',action='store_true');options=parser.parse_args()
+parser=argparse.ArgumentParser(description=__doc__);verification=parser.add_mutually_exclusive_group();verification.add_argument('--verify-client',action='store_true');verification.add_argument('--verify-query',action='store_true');verification.add_argument('--verify-web4',action='store_true');verification.add_argument('--verify-package',action='store_true');options=parser.parse_args()
 if os.environ.get('GITHUB_ACTIONS')!='true':
     raise RuntimeError('This qualifier runs only in the owned cloud job, never on the recovery laptop')
 ROOT=Path(__file__).resolve().parents[2]
@@ -14,6 +14,8 @@ tmp=Path(os.environ['RUNNER_TEMP']).resolve();models=(tmp/name).resolve()
 assert models.parent==tmp and not models.exists()
 models.mkdir();(models/'owner.json').write_text(json.dumps({'run':run,'attempt':attempt}))
 intent={'run':run,'attempt':attempt,'container':name,'image':PINS['image'],'model':PINS['modelName'],'versions':PINS['versions'],'readinessOnly':not(options.verify_client or options.verify_query or options.verify_web4),'qualification':'web4' if options.verify_web4 else 'query' if options.verify_query else 'client' if options.verify_client else 'runtime'}
+if options.verify_package:
+    intent['qualification']='web4-base-package'
 (result/'intent.json').write_text(json.dumps(intent,indent=2))
 
 def docker(*args,check=True,timeout=180):
@@ -62,8 +64,31 @@ try:
     config={'model_config_list':[{'config':{'name':PINS['modelName'],'base_path':'/models/'+PINS['modelName'],'model_version_policy':{'all':{}},'target_device':'CPU'}}]}
     (models/'config.json').write_text(json.dumps(config))
     docker('pull',PINS['image'])
+    runtime_image=PINS['image']
+    if options.verify_package:
+        # Build the actual unchanged WEB4 base stage, then copy the entire official
+        # bundle. No guessed system packages or global native-library environment.
+        base_image='oasis-web4-base:'+label
+        runtime_image='oasis-ovms-web4-package:'+label
+        web4_dockerfile=ROOT/'Docker/Dockerfile.web4'
+        docker('build','--target','base','--file',str(web4_dockerfile),'--tag',base_image,str(models),timeout=240)
+        package_dockerfile=models/'Dockerfile.package'
+        package_dockerfile.write_text(
+            'FROM '+PINS['image']+' AS official\n'
+            'FROM '+base_image+'\n'
+            'COPY --from=official /ovms /ovms\n'
+            'ENTRYPOINT ["/usr/bin/env","LD_LIBRARY_PATH=/ovms/lib","PYTHONPATH=/ovms/lib/python:/ovms/python_deps","ESPEAK_DATA_PATH=/ovms/share/espeak-ng-data","/ovms/bin/ovms"]\n',encoding='utf-8')
+        docker('build','--file',str(package_dockerfile),'--tag',runtime_image,str(models),timeout=240)
+        package_info=json.loads(docker('image','inspect',runtime_image,timeout=20).stdout)[0]
+        base_info=json.loads(docker('image','inspect',base_image,timeout=20).stdout)[0]
+        (result/'package.json').write_text(json.dumps({
+            'web4DockerfileSha256':hashlib.sha256(web4_dockerfile.read_bytes()).hexdigest(),
+            'packageDockerfileSha256':hashlib.sha256(package_dockerfile.read_bytes()).hexdigest(),
+            'baseImageId':base_info['Id'],'packageImageId':package_info['Id'],
+            'officialImage':PINS['image'],'completeBundle':'/ovms',
+            'additionalSystemPackages':[],'liveDeployment':False},indent=2))
     assert docker('container','inspect',name,check=False,timeout=20).returncode!=0
-    docker('run','--detach','--name',name,'--label','oasis.cql.owner='+label,'--cpus','2','--memory','1g','--publish','127.0.0.1:28000:8000','--mount','type=bind,source='+str(models)+',target=/models,readonly',PINS['image'],'--config_path','/models/config.json','--rest_port','8000','--port','9000',timeout=30)
+    docker('run','--detach','--name',name,'--label','oasis.cql.owner='+label,'--cpus','2','--memory','1g','--publish','127.0.0.1:28000:8000','--mount','type=bind,source='+str(models)+',target=/models,readonly',runtime_image,'--config_path','/models/config.json','--rest_port','8000','--port','9000',timeout=30)
     deadline=time.monotonic()+120
     # Explicit bounded startup readiness polling; model metadata/inference never retried.
     while True:
@@ -98,6 +123,7 @@ try:
         env=dict(os.environ,COSMIC_OPENVINO_MODEL_NATIVE_HTTP='owned-loopback',COSMIC_REVIEWED_PUBLIC_MONGO_NATIVE='owned-local-27029')
         subprocess.run(['dotnet','test','ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests','--no-build','--no-restore','/m:2','/nr:false','/p:UseSharedCompilation=false','--filter','FullyQualifiedName~OpenVinoModelNativeHttp','--results-directory','TestResults/OpenVinoWeb4Current','--logger','trx;LogFileName=web4.trx'],cwd=ROOT,env=env,check=True,timeout=180)
     proof=intent|{'server':server,'metadata':metadata,'inferences':3,'probeRequests':sequence,'nativeApiPass':True,'dotnetClientPass':options.verify_client,'cqlPass':options.verify_query,'web4Pass':options.verify_web4,'browserPass':False,'hostedPass':False}
+    proof['web4BasePackagePass']=options.verify_package
     (result/'acknowledged.json').write_text(json.dumps(proof,indent=2))
 finally:
     observation=docker('container','inspect',name,check=False,timeout=20)
