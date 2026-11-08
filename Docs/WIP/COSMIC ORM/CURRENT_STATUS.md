@@ -89,8 +89,10 @@ Prior native42431408413 passed normal WEB4 recoveries but failed the new fixture
 its GET fault injection missed fetch's implicit GET. Fixed the fixture boundary;
 exact corrected native42431903229/job128582436232 isSUCCESS. Its artifact was
 verified in memory: two real WEB4 TRX1/1/0skips and complete corrected-device
-recovery proof. Exact image42432504316 is dispatched once and pending. Superseded
-owned image42431411318 cancellation acknowledged202; its runner cleanup is active.
+recovery proof. Exact image42432504316/job128584628139 is building. Superseded
+owned image42431411318 is terminalCANCELLED with no active steps.
+Fresh rollout review confirms seven advertised pins, matching shared branch bases
+and unchanged245settings; integration command is prepared but not executed.
 Next qualify this complete candidate, deploy its scoped batch, then inspect all
 original records via the explicit corrected-device operation before metadata/enrollment.
 No RandomAccess shipping deployment or original-source metadata transition yet.
