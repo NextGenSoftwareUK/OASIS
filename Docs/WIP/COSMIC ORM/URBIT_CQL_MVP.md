@@ -13,14 +13,17 @@ native reads. API projection hash is preserved; owned resource cleanup verified.
 Identity validation and usage outbox are controlled test fixtures. These tests
 are not production JWT, durable billing or live/browser acceptance.
 
-Actual Mongo-backed native federation is **running**, not accepted:
+Actual Mongo-backed native federation is **accepted**:
 [42529114754](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42529114754),
 frozen parent834f713a091ebc2d91250cf95cad4e80c54b0d0b/Coree62ec44.
-Follow this original run; never restart because observation timed out.
-It must prove real HTTP5/4, independent permissions/provenance/receipts,
-unrelated-copy exclusion, no source reads on denial/unavailability, unchanged
-canonical BSON and federation projection across restart, one-time copy seeding,
-owned database absence and exact container/volume/pier/network cleanup.
+Both exact native phase tests executed/passed1/1 with zero skipped. Shipping MVC
+federation returns5/4 with independent permissions, provenance and receipts;
+unrelated canonical copy excluded. Foreign403/inactive503 read neither source.
+Canonical BSON and federation projections remain identical across the same pier
+restart. Canonical copies seeded3before/0after; owned database absent afterwards.
+Mongo container/two labelled volumes and native container/pier/internal network
+removed; restart/final exits0, no OOM. This does not qualify production JWT,
+durable billing, public HTTPS registration, live deployment or browser use.
 
 ## Accepted evidence
 
@@ -35,6 +38,7 @@ only compact safe receipts were retained locally. Counts describe their scope.
 | Actual native WEB4 MVC/restart |1/1 each phase, source6981acb6b/Coree62ec44 |42525613719 /13635911089 /1c2806b86aa9947353b67509fbc15e87287f50ec33285f37dcde5541fbef6312 |
 | Refactored admitted/MVC/federation controls |7/7, zero skipped, source834f713a0; Mongo/native replies controlled |42528767151 /13636726128 /5c593977ab7987c8283d82fd608ae9674d3049959befebdfac44897106a4e08b |
 | Owned Mongo topology/cleanup |Pinned replica, internal-only, exit0/no OOM, two volumes/network removed; no native ship/data seed |42528796075 /13636343596 /5156b6c7a0403b6bc9d0b18cf8db156701a1043b1187455cc26d810c24e3cd77 |
+| Actual native Mongo + Urbit MVC federation/restart |HTTP5/4,1/1 each phase, zero skipped; canonical hashes, one-time seed and cleanup |42529114754 /13637565973 /193927a9c5c4eccd4eead26802117685100c04ab8484c50903b22907089d718f |
 
 Native WEB4 API projection SHA256 before/after:
 `df6d5ce459ad17015f4f32ef5df8331531f40597d231dc2fa9a67ad09ba6a80f`.
@@ -67,7 +71,8 @@ owned internal network and drop to the runner UID/GID, with no published ports.
 
 ## Remaining gates
 
-1. Inspect the running native federation artifact against every assertion above.
+1. Native federation artifact accepted against every assertion above; retain its
+   compact receipt and exact source rather than replaying the accepted cohort.
 2. Durable source hosting and demo authorization. No new hosting spend is
    authorized. Private-book policy is not an all-visitor/public teaching grant.
 3. Exact dependency/image/runtime qualification and a permitted Development batch;

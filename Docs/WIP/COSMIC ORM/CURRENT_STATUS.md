@@ -62,7 +62,7 @@ or relabel a deprecated runtime as the current service.
 Urbit current contacts-v1 reader/private book CQL passed65controlled cases at
 source2558e56bb/run42518331256, all executed/passed and hashed artifact inspected.
 The additional controlled case passes through the real shared V2 HolonManager;
-native HTTP/manager/restart are now accepted below; WEB4 HTTP API is still open.
+native HTTP/manager/WEB4 MVC/federation/restart are now accepted below.
 The owner-bound virtual source preserves stable connection/CID identities, private
 contact/overlay separation, explicit bounded selections and foreign-actor isolation.
 Missing native pages share an empty default with existing blank pages; ambiguous
@@ -79,8 +79,8 @@ namespace-loopback transport passes42519747804 with runner UID and clean removal
 Native HTTP/provider/shared-manager restart42519994312 atd628fcc62 passes:
 authenticated SDK/CQL/shared-manager full3/subset2 before/after restart, foreign0,
 anonymous403, unchanged source/private projection hashes and exact cleanup.
-Hashed artifact13632864832 inspected in memory. WEB4 API admission, federation,
-live deployment and browser remain open; no profile-count increase. [Detailed gates and receipts](URBIT_CQL_MVP.md).
+Hashed artifact13632864832 inspected in memory. Later WEB4 API/federation proofs
+are below; live deployment and browser remain open, with no profile-count increase. [Detailed gates and receipts](URBIT_CQL_MVP.md).
 Private WEB4 registration/compiler controls now pass30/30 atd4edadf7f/run42522330369.
 Admitted/MVC/federation controlled suite passes7/7 at7dd4c5187/run42526697897.
 Actual native WEB4 MVC/restart now passes42525613719 at6981acb6b/Coree62ec44:
@@ -88,17 +88,23 @@ owner3/2, exact private fields/IDs, receipts, anonymous401, forged-field400,
 foreign403, inactive503 and identical API projection hashes across restart.
 Exact owned container/network/pier cleanup verified; hashed artifact13635911089
 and both native phase TRXs inspected. Identity validation/outbox are controlled.
-Actual Mongo federation is under qualification42529114754 at834f713a0 after
-seven controlled cases and isolated Mongo replica/cleanup preflight passed.
-Production JWT/durable billing, public HTTPS hosting, new image certification and
-live/browser acceptance remain open; native federation is not accepted yet. No deployment or count increase.
+Actual Mongo + Urbit federation42529114754 at834f713a0/Coree62ec44 is accepted:
+both exact native phase tests1/1, zero skipped; shipping MVC HTTP5/4 before/after
+the same pier restart, private provenance/receipts, foreign403/inactive503 with
+neither source read, unrelated-copy exclusion. Canonical BSON/federation hashes
+unchanged; copy seed3before/0after, owned DB absent, Mongo container/two volumes
+and native container/pier/network removed, exit0/no OOM. Artifact13637565973
+SHA256193927a9c5c4eccd4eead26802117685100c04ab8484c50903b22907089d718f
+inspected in memory; compact safe receipt only. Production JWT/durable billing,
+public HTTPS hosting, exact image certification and live/browser acceptance remain
+open. No deployment or count increase.
 Pinned Vere4.6 and repository development
 pill passed real offline cold boot/run42507813675/source61c28aa5b. Hashed artifact
 inspected: bootstrap complete, pier live, exit0/no OOM, network none, owned
 container/volume and temporary checkout removed. Cloud asset cache43057001bytes;
 no laptop runtime installation. Earlier fetch/cleanup failures retained. Current
 contacts installation/native book reads and controlled CQL/manager have the scoped
-proofs above; WEB4 API/federation/live/browser gates remain open. Do not replay accepted
+proofs above; live/browser gates remain open. Do not replay accepted
 runtime boot alone. Exact current contacts source
 assembly passed42508500262:695files/4657933bytes, hashed manifest and temporary
 checkout cleanup verified. Cloud-only source cache retained for native install;
