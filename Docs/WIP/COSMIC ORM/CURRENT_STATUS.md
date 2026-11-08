@@ -63,55 +63,43 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-Self Protocol scoped candidate **916c62210a1eb51fa23353bccfca3024750f452b**,
-Core **25a296e986f35fe118f30e7489c655151d57e97e**, is pushed to the existing
-work/cosmic-teaching-release-candidate branches. Development is916c62210.
-Only16reviewed paths differ; unrelated HostedBasicSqlQueryReader and dirty
-checkout changes are excluded. Seven pins/manifest verified; only this scoped batch was deployed.
+Holonym scoped candidate **638993968dfd9d43467d97f42d7931892df8c549**,
+Core **be4636a6436ad304a08de446ac6a456ea76960dc**, is pushed normally to the
+existing work/cosmic-teaching-release-candidate branches. Accepted Development
+remains916c62210/Core25a296e with live Self cohort sealed; website card79 is live
+onfc2714b5, exact public HTML270083bytes/hash4f9bade880ef8c24bfbdb8007a2fb9dbf9f3baa437bb5183ebf18547837aec80.
+Self activation1fe29f38/instanceff2628fd/actuale2f01ef06f remains accepted.
+Do not replay its source/settings/cohort or republish its image.
 
-Task sourcef5c4826c5 passed26controls,1296shared checks and actual native CQL3/2
-on42446401193; WEB4/Mongo42446401228 passed8boundary+1real HTTP case with
-native3/2,paired5/4,foreign private0/public3,9receipts and databaseAbsent:true.
-Both artifacts inspected/hash verified in memory. These are not hosted proofs.
+Only14reviewed candidate paths differ from accepted916c62210; unrelated dirty
+checkout paths, HostedBasicSqlQueryReader and other providers remain excluded.
+Core tariff/manifest equality verified. Source/class matches task native proof.
+No Holonym deployment/settings/source write. Temporary indices removed.
 
-All exact candidate gates now pass/no skips: registry42446975238 (26controls,
-1296shared,1native), WEB442446977425 (8controls+1HTTP), and25admission cases
-42446952053. Original artifact IDs/hashes and TRX counters verified in memory.
-Redundant manual admission42446979977 is terminalCANCELLED, original run retained.
+Exact candidate auto-triggered runs (no manual duplicate dispatch):
+- Attestation42451496266/job128641478981 SUCCESS:25controls+1real CQL3/2.
+  Artifact13606136927/5460bytes/hash2391d24b236819d0d1dc7c42ad9376f0533894f692fbd79bc580be8f7d72ab86
+  and both TRX counts/hashes verified in memory; no skips.
+- WEB4/Mongo42451496300/job128641478943 active.
+- Existing-source admission42451496310/job128641479004 active.
+Observe those exact handles; do not redispatch them.
 
-Image42447469381/job128629322069 isSUCCESS. Exact source/tag/teaching mode
-verified, GHCR digestsha256:bb86863c7bf41311cf3e49b77203f87d41d39c66de2cb14f65c674bf27c66067.
-No image download or mutable sandbox tag. Fresh branch/seven-pin/full253setting/
-baseline checks passed; one scoped Development push916c62210 acknowledged.
+After all three qualified receipts exist, invoke guarded dispatch-holonym-image.py
+once. It checks current candidate ref, exact receipt sources and explicit638...-teaching
+tag. Prepared/syntax-checked only; no image requested yet. Do not use mutable tags.
+Then fresh seven-pin/full live baseline review and successful exact image are
+required before a second qualified Development batch, package inspection and
+four-setting/one-activation flow.
 
-Self code131667e6 and activation1fe29f38 bothSUCCESS. Exact settings package
-verified255settings/208critical,6helpers,11SDK/provider assemblies and native/
-Dapr/SubQuery fingerprints. Active instanceff2628fd-b511-4e26-9bc6-cb7b86a34b43;
-actual Railway imagesha256:e2f01ef06f3471231df01ef5d09dd1af19551a46311ef7f21d2dae25565c0dd8.
-One settings apply/activation only; native source writes0.
-
-Self original owner2826f75b/foreign16769240 passed live native3/2,paired5/4,
-first2saves,repeat0new/2existing,private0/public3 and exact SQLite/Neo4j2/2.
-Durable acceptance sealed from original reports/twoACKs/empty pending registry;
-no query/session/save replay. Reused PouchDB readiness actor. Browser still open.
-Card79 is published on website task/mainfc2714b50fb032c8c8e0c3e7dbb9006ce039b883
-with immutable parent acceptance892a215ec. Public270083byte HTML hash
-4f9bade880ef8c24bfbdb8007a2fb9dbf9f3baa437bb5183ebf18547837aec80 matches exact Git.
-Continue Holonym's scoped candidate/rollout from this accepted916c62210/Core25a296e
-baseline. Preserve the current255setting snapshot and existing candidate branches.
-Do not repeat any accepted Self/SubQuery/Dapr cohort or source operation.
-
-Offline owner/source plan and protected253baseline/255candidate are fixed;
-no native source writes. Website card79 task/main/public isfc2714b5; static publication verified,
-functional browser gate remains separate. Browser URL-policy gate stays open.
-[Self Protocol proof and gates](SELF_PROTOCOL_PUBLIC_SOURCE_STATUS.md).
-Activation guard activate-self-protocol-settings.py is prepared/syntax checked only.
-Holonym current Sign source now passes25controls+1real CQL3/2 on source25d8f3a03,
-cloud42449086090/artifact13605126354 verified in memory; raw ABI/doc differences
-preserved. WEB4 read profile/Coreabaedaf and8+1 actual HTTP/Mongo qualification
-pass on91b08d8d6/cloud42449470293;9receipts/privacy/DBabsence verified, not deployed.
-39Python catalogue controls+5publisher guards pass; no Holonym settings/source
-owner created yet. [Next source](HOLONYM_PUBLIC_SOURCE_STATUS.md).
+Offline source owner5eda0cab-e29b-4b9a-969b-ad4001c0eace is fixed under
+HostedHolonymAttestationSourceCurrent, no native data creation. Prefixholonym-attestation-public,
+protected255baseline/257candidate, exactly owner/admission/grants/presets differ.
+Original raw review and protected snapshots retained; fresh live comparison still
+required. Public IDs e51d26f3-0536-81d2-9106-abd62188d22b,
+edd0328e-dad4-8f16-b70b-d58a779a3bb2,a671aae6-39dc-8f54-b839-4c49abf1ec2d.
+Website card80 is drafted only on task46eaf41; main/public staysfc2714b5 until
+Holonym live HTTP acceptance. Browser gates remain open; no URL-policy bypass.
+[Holonym evidence](HOLONYM_PUBLIC_SOURCE_STATUS.md) · [Accepted Self](SELF_PROTOCOL_PUBLIC_SOURCE_STATUS.md).
 
 SubQuery activationeb09ea25 is accepted/sealed:253settings/package verified,
 native3/2,paired5/4,reuse0new/2existing,privacy0/public3,replicas2/2. Original
