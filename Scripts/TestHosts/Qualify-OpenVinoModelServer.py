@@ -30,12 +30,17 @@ def call(path,body=None):
     uri='http://127.0.0.1:28000'+path
     (result/(str(sequence)+'-intent.json')).write_text(json.dumps({'method':'GET' if body is None else 'POST','path':path,'body':body}))
     request=urllib.request.Request(uri,data=None if body is None else json.dumps(body).encode(),headers={'Accept':'application/json','Content-Type':'application/json'},method='GET' if body is None else 'POST')
-    try:response=urllib.request.build_opener(NoRedirect).open(request,timeout=10)
-    except urllib.error.HTTPError as error:response=error
-    except urllib.error.URLError as error:
-        (result/(str(sequence)+'-transport.json')).write_text(json.dumps({'errorType':type(error.reason).__name__,'message':str(error.reason)}))
+    stage='connect';observed_status=None
+    try:
+        try:response=urllib.request.build_opener(NoRedirect).open(request,timeout=10)
+        except urllib.error.HTTPError as error:response=error
+        with response:
+            observed_status=response.status;stage='body'
+            raw=response.read(65537);status=response.status
+    except (urllib.error.URLError,ConnectionError,TimeoutError) as error:
+        reason=error.reason if isinstance(error,urllib.error.URLError) else error
+        (result/(str(sequence)+'-transport.json')).write_text(json.dumps({'stage':stage,'observedHttpStatus':observed_status,'errorType':type(reason).__name__,'message':str(reason)}))
         return None,None
-    with response:raw=response.read(65537);status=response.status
     (result/(str(sequence)+'-raw.json')).write_bytes(raw)
     (result/(str(sequence)+'-status.json')).write_text(json.dumps({'status':status,'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}))
     assert len(raw)<=65536
