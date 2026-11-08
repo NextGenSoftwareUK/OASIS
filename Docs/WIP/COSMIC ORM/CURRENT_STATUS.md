@@ -4,6 +4,14 @@ Updated 8 November 2026. Goal active and incomplete.
 
 ## Latest continuation
 
+OpenVINO actual native-service2ad47d9fa cloud42469362007 passed production
+models, real loopback launch, metadata/3inferences and graceful child/parent
+exit0; owned container/models absent. Full image42468917135 failed existing
+Waku/NATS release504 downloads, which still504 on bounded HEAD checks.
+Four-provider candidatee4ee7eb1/Coree242de41 prepared,58scoped paths/pins
+verified, unpublished; full image/exact batch/live gates remain open.
+[Proof](OPENVINO_CQL_MVP.md).
+
 OpenVINO exact production-stage483a6fcd7 cloud42468686268 passed actual
 OCI extraction/packaged models (no overlay), metadata/3inferences/startup
 checks and owned cleanup. One full teaching image42468917135 is active for
