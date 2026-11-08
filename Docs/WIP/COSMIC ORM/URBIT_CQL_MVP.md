@@ -295,3 +295,10 @@ Next scoped batch adds an explicit duplicate-provider-policy refusal plus two ac
 
 
 Single30-case qualification atd4edadf7f is [42522330369](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42522330369), manual event confirmed; no redundant automatic workflows at that source. Follow this exact handle to terminal and inspect hashed TRX. No native ship/network/auth requests or deployments requested.
+
+
+## Admitted endpoint component gate prepared
+
+CqlUrbitAdmittedTests extends the existing shared WEB4 endpoint/admission test harness. It references the actual Urbit provider and links the exact shipping private registration/read-profile source (no parallel query engine). Three cases cover owner full3/subset2 through CqlV1Endpoint, real SDK/adapter, actual V2 manager, leaf metadata/ownership projection and one provider-query usage receipt; foreign actor403 and unsupported name-order400 must occur before another native read or manager creation. Only native HTTP replies and usage outbox storage are controlled. This is a component gate, not native WEB4 HTTP, federation, live or browser proof.
+
+The existing Core.UnitTests project is reused with one provider reference and two production-source links. Cloud-only qualify-urbit-web4-admission builds exact manifest-pinned Core/libraries under the same bounded provider lease; no native ship, database, credential or local SDK installation. Trigger overlap inspected before this batch: no older task-branch workflows match these new test/workflow paths. Current30-case full-API registration42522330369 remains running at its frozen source and must not be restarted on an observation timeout.
