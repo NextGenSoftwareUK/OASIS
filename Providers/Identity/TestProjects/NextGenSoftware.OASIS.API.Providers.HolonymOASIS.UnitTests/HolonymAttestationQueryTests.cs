@@ -32,12 +32,13 @@ public class HolonymAttestationQueryTests
     {
         using var replies = new Replies();
         using var source = new HolonymAttestationQuerySource(Owner, Keys, replies);
-        Assert.IsFalse((await source.ActivateQuerySourceAsync()).IsError);
+        var activation = await source.ActivateQuerySourceAsync();
+        Assert.IsFalse(activation.IsError, activation.Exception?.ToString());
         var result = await Read(source, Ids); Check(result, Ids);
         foreach (var row in result.Result)
         {
             Assert.AreEqual(Replies.Circuit, row.MetaData["HolonymCircuitIdRaw"].ToString());
-            StringAssert.Contains(row.MetaData["HolonymPublicValues"].ToString(), ((BigInteger.One << 256) - 1).ToString());
+            StringAssert.Contains(row.MetaData["HolonymPublicValuesJson"].ToString(), ((BigInteger.One << 256) - 1).ToString());
             Assert.IsFalse(row.MetaData.ContainsKey("syncAt"));
         }
         Check(await Read(source, Ids.Take(2).ToArray()), Ids.Take(2).ToArray());
@@ -67,7 +68,8 @@ public class HolonymAttestationQueryTests
     {
         using var replies = new Replies();
         using var source = new HolonymAttestationQuerySource(Owner, Keys, replies);
-        Assert.IsFalse((await source.ActivateQuerySourceAsync()).IsError);
+        var activation = await source.ActivateQuerySourceAsync();
+        Assert.IsFalse(activation.IsError, activation.Exception?.ToString());
         replies.FailId = Keys[1]; var result = await Read(source, Ids);
         Assert.IsTrue(result.IsError); Assert.IsNull(result.Result); Assert.AreEqual(4, replies.Requests);
     }
@@ -77,7 +79,8 @@ public class HolonymAttestationQueryTests
     {
         using var replies = new Replies();
         using var source = new HolonymAttestationQuerySource(Owner, Keys, replies);
-        Assert.IsFalse((await source.ActivateQuerySourceAsync()).IsError);
+        var activation = await source.ActivateQuerySourceAsync();
+        Assert.IsFalse(activation.IsError, activation.Exception?.ToString());
         var before = await Read(source, Ids.Take(1).ToArray()); replies.Sync++;
         var after = await Read(source, Ids.Take(1).ToArray());
         Assert.IsFalse(before.IsError || after.IsError);

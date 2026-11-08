@@ -171,14 +171,14 @@ public sealed class HolonymAttestationQuerySource : KeyValueStorageProviderBase,
                 ["HolonymNativeId"] = key, ["HolonymSchemaId"] = SchemaId,
                 ["HolonymChainId"] = "10", ["HolonymAttester"] = row.GetProperty("attester").GetString()!,
                 ["HolonymCircuitIdRaw"] = payload.CircuitId,
-                ["HolonymPublicValues"] = payload.PublicValues.Select(value => value.ToString(CultureInfo.InvariantCulture)).ToArray(),
+                ["HolonymPublicValuesJson"] = JsonSerializer.Serialize(payload.PublicValues.Select(value => value.ToString(CultureInfo.InvariantCulture)).ToArray()),
                 ["HolonymDataHex"] = hex,
                 ["HolonymTransactionHash"] = transaction,
                 ["HolonymAttestTimestamp"] = Decimal(row.GetProperty("attestTimestamp")),
                 ["HolonymValidUntil"] = Decimal(row.GetProperty("validUntil")),
                 ["HolonymRevoked"] = revoked,
                 ["HolonymRevokeTimestamp"] = revokedAt.ValueKind == JsonValueKind.Null ? null! : Decimal(revokedAt),
-                ["HolonymRecipients"] = row.GetProperty("recipients").EnumerateArray().Select(value => value.GetString() ?? throw new InvalidDataException("A native recipient string is required.")).ToArray()
+                ["HolonymRecipientsJson"] = JsonSerializer.Serialize(row.GetProperty("recipients").EnumerateArray().Select(value => value.GetString() ?? throw new InvalidDataException("A native recipient string is required.")).ToArray())
             };
             // syncAt/lastSyncAt/extra are index maintenance fields, not the
             // attestation. Never turn moving cursors into snapshot contents.

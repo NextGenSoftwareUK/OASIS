@@ -105,3 +105,5 @@ Nethereum ABI7.0.0 API contract read from the already cached NuGet README and
 pinned package repository revisiona7aadf5cc89478dd91ef406a8780647acd484925;
 no package installed. This implementation is not yet compiled or accepted.
 No WEB4/Core read tariff, hosted admission, deployment or count increase.
+
+First cloud42448890292/job128633651813 compiles but3positive activation checks fail;22/25controlled pass, native stage skipped. Root invariant: NativeRecord permits portable scalar metadata, not raw arrays. Normalize complete value/recipient arrays to explicit canonical JSON string fields HolonymPublicValuesJson/HolonymRecipientsJson at the provider boundary; preserve exact uint256 strings and raw ABI payload, no core-contract relaxation or discarded elements. Positive assertions now include the retained exception for diagnosis. Corrected qualification follows; no count/deployment claim.
