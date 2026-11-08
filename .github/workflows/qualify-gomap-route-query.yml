@@ -1,0 +1,69 @@
+name: Qualify bounded GOMap route CQL source
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-gomap-route-query.yml'
+      - 'Docker/oasis-dependency-versions.env'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core'
+      - 'Providers/Maps/NextGenSoftware.OASIS.API.Providers.GOMapOASIS/**'
+      - 'Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dictionary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Validate exact dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify capability HTTP and parser boundary without native service access
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner gomap-route-query-ci -Operation {
+            dotnet test Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests --filter FullyQualifiedName~GOMapRouteQueryTests /m:2 /nr:false /p:UseSharedCompilation=false --results-directory TestResults/GOMapRouteQueryCurrent --logger 'trx;LogFileName=controlled.trx'
+            if ($LASTEXITCODE) { throw 'GOMap route CQL controlled client qualification failed' }
+            [xml]$report = Get-Content TestResults/GOMapRouteQueryCurrent/controlled.trx
+            $counts = $report.TestRun.ResultSummary.Counters
+            if ($counts.passed -ne '12' -or $counts.total -ne '12' -or $counts.executed -ne '12') {
+              throw 'All twelve controlled client cases must execute and pass without skips'
+            }
+          }
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: gomap-route-query-qualification
+          path: |
+            OASIS/TestResults/GOMapRouteQueryCurrent/*.trx
+          if-no-files-found: error
+          retention-days: 30

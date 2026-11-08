@@ -128,3 +128,5 @@ and three actual fixed Berlin routes; raw response hashes and attribution verifi
 in memory. No CQL/live enrollment, coverage increment or four-provider candidate
 change. Hosting/use-contract and CQL/HTTP/replica/browser gates remain open.
 See [GOMap evidence](GOMAP_PUBLIC_SOURCE_STATUS.md).
+
+GOMap bounded fixed-route CQL adapter and12controlled source cases now prepared; cloud compilation/qualification pending. It reuses the qualified SDK; no new native/public schedule, live enrollment, Core admission, candidate mutation or coverage increment.
