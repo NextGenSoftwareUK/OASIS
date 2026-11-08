@@ -43,3 +43,29 @@ resources. Qualify malformed JSON/schema, unknown/mixed IDs, payload bounds,
 privacy, native3/2, manager/HTTP/Mongo and later hosted reuse/replicas/browser.
 No map renderer, tile-serving performance, style editing or full SDK parity
 claim follows from a public document query. Coverage counts are unchanged.
+
+## Bounded read implementation prepared
+
+MapLibreStyleQuerySource uses the existing bounded ID compiler and public
+source mapper, with explicit world/bright/terrain keys. It issues one GET for
+each selected reviewed URL, rejects redirects/partial responses/non-JSON,
+bounds decoded bodies to262144bytes and JSON depth48, and rejects duplicate
+properties recursively. Version8, bounded nonempty names/sources/layers,
+supported source/layer kinds, distinct layer IDs and local source references
+are required. It preserves the entire original UTF-8 style JSON, SHA256,
+native URL/key/version and counts as portable scalar metadata. Referenced
+resources remain opaque data and are never requested or executed.
+
+Unknown/mixed ID selections preflight before transport; source writes and
+scans return explicit unsupported errors. Creator/public/active/childless
+projection and owner-dependent logical identity use existing shared contracts.
+The original map facade is unchanged and its unimplemented rendering remains
+open. No shared helper, Core enum or admission tariff changed for this source.
+
+New provider test project contains27controlled cases and1opt-in real native
+CQL3/2case. These cover HTTP/schema/JSON/UTF-8/payload boundaries, no child
+resource requests, no partial rows, inactive/cancelled reads and catalogue
+validation. New cloud workflow enforces exact counters/no skips, one build
+lease and bounded .NET workers; no local compilation/runtime/environment.
+Project XML and expected case counts checked; cloud qualification pending.
+Coverage counts unchanged; no WEB4 registration or hosted source prepared.
