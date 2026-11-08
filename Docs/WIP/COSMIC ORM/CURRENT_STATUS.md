@@ -34,8 +34,9 @@ MapLibre style-data cloud42454653284 passes27controls+1native CQL3/2;
 260d7c7 registration/8boundary+realHTTP cloud42455134733 passes8boundaries but paired native HTTP exceeds1MiB.
 Lossless full-JSON compaction retains all values/original body hash and adds
 compact JSON hash, without changing budgets. Corrected native42455893389 passes27+1; artifact13608085483 verified.
-WEB442455893404 passes8boundaries and is starting its isolated MongoDB
-replica. MapLibre planner39controls+5guards pass; no hosted admission. Legacy map renderer
+WEB442455893404 passes8boundaries+1realHTTP/Mongo, zero skips; artifact
+13607493979 verified in memory, native3/2,paired5/4,private0/public3,9receipts
+and ownedDBabsence. MapLibre planner39controls+5guards pass; no hosted admission. Legacy map renderer
 remains unqualified. [Scope](MAPLIBRE_PUBLIC_SOURCE_STATUS.md).
 No local build/runtime/image/database download.
 
@@ -77,7 +78,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **123 scoped local, 95 live HTTP and 28 functional browser**.
+Coverage is **124 scoped local, 95 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -154,7 +155,7 @@ at104a0064, public268592byte HTML hash7908eabb8c70743d2e0cc1023484da2c7bb1e480d6
 matches exact Git. Do not replay its accepted cohort, settings or activation.
 [SubQuery proof](SUBQUERY_PUBLIC_SOURCE_STATUS.md).
 
-Coverage remains **123 scoped local / 95 live HTTP / 28 functional browser**.
+Coverage remains **124 scoped local / 95 live HTTP / 28 functional browser**.
 The accepted Dapr cohort and retired failed generation remain preserved; no
 source creation/save was replayed. [Dapr history](DAPR_CQL_MVP.md). While the
 code deployment waited for a build slot, a first anonymous Self Protocol RPC

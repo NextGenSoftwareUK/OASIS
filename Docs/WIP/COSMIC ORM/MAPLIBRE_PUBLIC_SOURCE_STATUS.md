@@ -104,3 +104,13 @@ Corrected source70f8f7c3c20d0f0b628719d0e37b4302d172cb81 pushed; native424558933
 Corrected native42455893389/job128654707996 succeeds:27controls+1real CQL3/2, zero skips. Artifact13608085483/5607bytes SHA256b64f056e980a281e3ba1589de04228a9d1a23b953715737de4c76c3aab2c8ade and both TRX hashes/counters verified wholly in memory. Full compact JSON, explicit original-body SHA/byte count and compact JSON SHA/count round trips pass; WEB442455893404 still live. No local build/ZIP/TRX archive retained.
 
 Fixed-catalogue planner binds only CQL_MAPLIBRE_STYLE_QUERY_SOURCE_OWNER with namespace maplibre/demo-styles and world/bright/terrain keys.39candidate controls+5publisher guards pass using cached Python -B/self-cleaning fixtures; their simulated preparation output is not live configuration. Fixture actora5808c3e-7031-47e7-92de-48a659568f1b logical IDs b0f5d38d-cc44-8e60-93b2-e201be79f2b9,025230b9-0731-8dca-8443-af589d04f4cd,2f4cf1cc-ed1b-85e2-88fc-75930d4b582a. Same assertions added to the existing C#catalogue case for the next cloud check. No real source actor/snapshot/enrollment generated. Corrected WEB442455893404 has passed8boundaries and is starting its isolated MongoDB replica.
+
+Corrected WEB442455893404/job128654708111 succeeds:8boundary+1real HTTP/Mongo,
+zero skips. Artifact13607493979/4611bytes SHA256
+d47f7f1c1d4a247d1eee8c8b3789d196b759092a29e8d56ab86a27a1b8164efd,
+TRX/summary/cleanup counters and hashes verified wholly in memory. Full3/2,
+paired5/4,foreign private0/public3,2SDKsaves/9receipts and databaseAbsent:true
+pass with the same1MiBAPI limit. Complete losslessly compact style documents
+remain present; no field/geometry/source/layer removal or larger budget.
+Coverage124scoped local/95liveHTTP/28browser. No hosted, replication or browser
+acceptance for MapLibre; legacy map rendering/full SDK scope stays open.
