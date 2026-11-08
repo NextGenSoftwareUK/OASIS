@@ -7,6 +7,7 @@ on:
       - '.github/workflows/qualify-marqo-query.yml'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MarqoOASIS/MarqoOASIS.Cql.cs'
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MarqoOASIS.UnitTests/MarqoCqlTests.cs'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MarqoOASIS.UnitTests/MarqoOASISProviderTests.cs'
   workflow_dispatch:
 
 permissions:

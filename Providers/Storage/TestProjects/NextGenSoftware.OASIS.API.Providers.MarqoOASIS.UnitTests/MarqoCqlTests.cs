@@ -118,7 +118,8 @@ public class MarqoCqlTests
         var result = await provider.ExecuteCosmicQueryAsync(Plan(provider, Query(new[] { id })));
         Assert.AreEqual("CQL_QUERY_FAILED", result.ErrorCode);
         Assert.IsNull(result.Result);
-        Assert.AreEqual((HttpStatusCode)status, ((HttpRequestException)result.Exception).StatusCode);
+        Assert.IsInstanceOfType(result.Exception, typeof(HttpRequestException));
+        Assert.AreEqual((HttpStatusCode)status, ((HttpRequestException)result.Exception!).StatusCode);
         Assert.AreEqual(1, handler.Paths.Count);
     }
 

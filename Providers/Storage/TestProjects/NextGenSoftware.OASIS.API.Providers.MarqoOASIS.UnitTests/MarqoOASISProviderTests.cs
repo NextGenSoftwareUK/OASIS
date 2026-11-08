@@ -40,9 +40,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MarqoOASIS.UnitTests
         }
 
         [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
+        public void Provider_ExposesExplicitReadOnlyQueryContracts()
         {
-            Assert.IsFalse(string.IsNullOrWhiteSpace(_provider.GetProviderVersion()));
+            Assert.IsInstanceOfType(_provider, typeof(NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicQueryStorageProvider));
+            Assert.IsInstanceOfType(_provider, typeof(NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicReadOnlyQueryActivation));
+            Assert.AreEqual(ProviderType.MarqoOASIS, _provider.QueryProviderType);
         }
 
         [TestCleanup]
