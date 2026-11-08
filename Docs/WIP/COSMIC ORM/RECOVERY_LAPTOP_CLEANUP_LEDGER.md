@@ -5235,3 +5235,7 @@ No laptop runtime, pill, SDK, container image or database installed. Compact fir
 
 ### 8 Nov — Urbit offline runtime accepted
 Cloud run42507813675 passed real boot; artifact13628570452/1998bytes inspected in memory, no extraction. Exact owned container/volume and temporary kernel checkout removed. Reusable remote runtime assets43057001bytes retained; no laptop runtime, pill, SDK or image installed. Compact SHA/member/cleanup receipt urbit-offline-runtime-qualified.json retained under existing LocalState recovery directory. Prior failed receipts preserved. Laptop free space40.02GiB at this checkpoint.
+
+
+### 8 Nov — Contacts source pins
+Retained compact current-desk tree inventory under existing LocalState (metadata only) plus tracked urbit-contacts-inputs.json with26dependency Git blob identities. Upstream manifests/trees inspected in memory; no669-file source download, app SDK installation, new environment or native ship created. Native assembly/install still unqualified.

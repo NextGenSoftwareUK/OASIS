@@ -1,0 +1,254 @@
+{
+  "schemaVersion": 1,
+  "application": {
+    "repository": "tloncorp/tlon-apps",
+    "commit": "838744ee462a49d55d98fd4030b3a9cb6c989cd0",
+    "deskPrefix": "desk",
+    "deskFileCount": 669,
+    "deskBytes": 4555031,
+    "declarationSha256": "27572c42c542d55a05f46269a1b39dfe2b021203f4c208d7fd448957b24f7091",
+    "kelvin": 408
+  },
+  "dependencies": [
+    {
+      "name": "base",
+      "repository": "urbit/urbit",
+      "declaredRef": "408k-rc2",
+      "commit": "192187b2975c6a06840c9630fae9394aac09a8e8",
+      "exportPrefix": "pkg/base-dev",
+      "picks": [
+        "pkg/base-dev/lib/azimuth.hoon",
+        "pkg/base-dev/lib/dbug.hoon",
+        "pkg/base-dev/lib/default-agent.hoon",
+        "pkg/base-dev/lib/ethereum.hoon",
+        "pkg/base-dev/lib/mip.hoon",
+        "pkg/base-dev/lib/server.hoon",
+        "pkg/base-dev/lib/skeleton.hoon",
+        "pkg/base-dev/sur/spider.hoon",
+        "pkg/base-dev/sur/hood.hoon",
+        "pkg/base-dev/mar/bill.hoon",
+        "pkg/base-dev/mar/hoon.hoon",
+        "pkg/base-dev/mar/kelvin.hoon",
+        "pkg/base-dev/mar/mime.hoon",
+        "pkg/base-dev/mar/noun.hoon",
+        "pkg/base-dev/mar/txt.hoon",
+        "pkg/base-dev/mar/css.hoon",
+        "pkg/base-dev/mar/json.hoon",
+        "pkg/base-dev/mar/htm.hoon",
+        "pkg/base-dev/mar/html.hoon",
+        "pkg/base-dev/mar/tang.hoon"
+      ],
+      "files": [
+        {
+          "path": "pkg/base-dev/lib/azimuth.hoon",
+          "target": "lib/azimuth.hoon",
+          "gitBlobSha": "2bd9077666b8568f02b53dab751a8ab4d62ce950",
+          "bytes": 12628
+        },
+        {
+          "path": "pkg/base-dev/lib/dbug.hoon",
+          "target": "lib/dbug.hoon",
+          "gitBlobSha": "333360f5a2e1701e785d240c1e6d2a1c5c32ca8c",
+          "bytes": 4083
+        },
+        {
+          "path": "pkg/base-dev/lib/default-agent.hoon",
+          "target": "lib/default-agent.hoon",
+          "gitBlobSha": "319bf952457399449c1e6b60568d786b1fea4432",
+          "bytes": 1307
+        },
+        {
+          "path": "pkg/base-dev/lib/ethereum.hoon",
+          "target": "lib/ethereum.hoon",
+          "gitBlobSha": "0c2c635cf3f9a004504fe70009dcdb18502561d6",
+          "bytes": 26995
+        },
+        {
+          "path": "pkg/base-dev/lib/mip.hoon",
+          "target": "lib/mip.hoon",
+          "gitBlobSha": "322a4c85f9c1afae7e320524a321481628a4bfc3",
+          "bytes": 1190
+        },
+        {
+          "path": "pkg/base-dev/lib/server.hoon",
+          "target": "lib/server.hoon",
+          "gitBlobSha": "f5cf8f0c5f770759521e980bb0b91abf3dc8bda6",
+          "bytes": 3870
+        },
+        {
+          "path": "pkg/base-dev/lib/skeleton.hoon",
+          "target": "lib/skeleton.hoon",
+          "gitBlobSha": "982c371b87d3da0b9aefa9adfa710bd40b1be695",
+          "bytes": 792
+        },
+        {
+          "path": "pkg/base-dev/sur/spider.hoon",
+          "target": "sur/spider.hoon",
+          "gitBlobSha": "7c212681f1479b004279f7633ac5612578c22e90",
+          "bytes": 490
+        },
+        {
+          "path": "pkg/base-dev/sur/hood.hoon",
+          "target": "sur/hood.hoon",
+          "gitBlobSha": "bcdfcd79d3b14189a7a55becc2dc0a139a4525a8",
+          "bytes": 11505
+        },
+        {
+          "path": "pkg/base-dev/mar/bill.hoon",
+          "target": "mar/bill.hoon",
+          "gitBlobSha": "76cef343aedd546dd7d23a50cb42cbb474cff756",
+          "bytes": 715
+        },
+        {
+          "path": "pkg/base-dev/mar/hoon.hoon",
+          "target": "mar/hoon.hoon",
+          "gitBlobSha": "428e1056d9a05d0f94617d5d1cb7fb986e94ec06",
+          "bytes": 1007
+        },
+        {
+          "path": "pkg/base-dev/mar/kelvin.hoon",
+          "target": "mar/kelvin.hoon",
+          "gitBlobSha": "7f1b409cb3e09ee24851292b9c404f32bcccb2e4",
+          "bytes": 566
+        },
+        {
+          "path": "pkg/base-dev/mar/mime.hoon",
+          "target": "mar/mime.hoon",
+          "gitBlobSha": "83b4daeb5efef8867081f0f9f67f5e8f78871fc5",
+          "bytes": 565
+        },
+        {
+          "path": "pkg/base-dev/mar/noun.hoon",
+          "target": "mar/noun.hoon",
+          "gitBlobSha": "ff5443ec469c82ddf1f01ffd7bbb316b88b44342",
+          "bytes": 409
+        },
+        {
+          "path": "pkg/base-dev/mar/txt.hoon",
+          "target": "mar/txt.hoon",
+          "gitBlobSha": "982dce97321fd78c912391adfc303689ed7d5345",
+          "bytes": 7802
+        },
+        {
+          "path": "pkg/base-dev/mar/css.hoon",
+          "target": "mar/css.hoon",
+          "gitBlobSha": "1a8708110e6b6b17ad229fc94d6a3f888d310edb",
+          "bytes": 693
+        },
+        {
+          "path": "pkg/base-dev/mar/json.hoon",
+          "target": "mar/json.hoon",
+          "gitBlobSha": "7d6fcbf890f7f324dfd19309cec1661b8d461011",
+          "bytes": 588
+        },
+        {
+          "path": "pkg/base-dev/mar/htm.hoon",
+          "target": "mar/htm.hoon",
+          "gitBlobSha": "da943dcc0b5eab662c7372031bc5eda3abc910d1",
+          "bytes": 61
+        },
+        {
+          "path": "pkg/base-dev/mar/html.hoon",
+          "target": "mar/html.hoon",
+          "gitBlobSha": "203d75f61220e363d35b46edfbf0aacfff0e1368",
+          "bytes": 689
+        },
+        {
+          "path": "pkg/base-dev/mar/tang.hoon",
+          "target": "mar/tang.hoon",
+          "gitBlobSha": "6db1ceae8695ba8ce87367dfec07ec13df7799ab",
+          "bytes": 638
+        }
+      ]
+    },
+    {
+      "name": "landscape",
+      "repository": "tloncorp/landscape",
+      "declaredRef": "5193635",
+      "commit": "5193635c45a346b3030280e76ee32d6fa290bc98",
+      "exportPrefix": "desk",
+      "picks": [
+        "desk/lib/docket.hoon",
+        "desk/mar/docket-0.hoon",
+        "desk/sur/docket.hoon",
+        "desk/sur/settings.hoon"
+      ],
+      "files": [
+        {
+          "path": "desk/lib/docket.hoon",
+          "target": "lib/docket.hoon",
+          "gitBlobSha": "ef39b7fbb9deb972ccf9f8fa3e702cc7c3afe592",
+          "bytes": 4873
+        },
+        {
+          "path": "desk/mar/docket-0.hoon",
+          "target": "mar/docket-0.hoon",
+          "gitBlobSha": "c3b253b319604fc86d19b7fd5405fe8cf19845f8",
+          "bytes": 436
+        },
+        {
+          "path": "desk/sur/docket.hoon",
+          "target": "sur/docket.hoon",
+          "gitBlobSha": "091c8c9f9840c423d83349894f8e1b9062a447f8",
+          "bytes": 1427
+        },
+        {
+          "path": "desk/sur/settings.hoon",
+          "target": "sur/settings.hoon",
+          "gitBlobSha": "9ba9683092facfb4442ebeca1fecdd0c27dde1d8",
+          "bytes": 731
+        }
+      ]
+    },
+    {
+      "name": "mcp",
+      "repository": "tloncorp/mcp",
+      "declaredRef": "03630c712a0a2f3f23a39e710e1b92b8b8da077d",
+      "commit": "03630c712a0a2f3f23a39e710e1b92b8b8da077d",
+      "exportPrefix": "desk",
+      "picks": [
+        "desk/mar/mcp-proxy-action.hoon",
+        "desk/sur/mcp-proxy.hoon"
+      ],
+      "files": [
+        {
+          "path": "desk/mar/mcp-proxy-action.hoon",
+          "target": "mar/mcp-proxy-action.hoon",
+          "gitBlobSha": "101daa3f2d52ea898f2edf0de1f86443d25ee050",
+          "bytes": 141
+        },
+        {
+          "path": "desk/sur/mcp-proxy.hoon",
+          "target": "sur/mcp-proxy.hoon",
+          "gitBlobSha": "f36c4e2b593ec9655780ea6443d1f00060e04cd4",
+          "bytes": 2783
+        }
+      ]
+    }
+  ],
+  "assembly": {
+    "order": [
+      "base",
+      "landscape",
+      "mcp",
+      "application"
+    ],
+    "applicationWinsOverDependencies": true,
+    "provenanceFile": "commit.txt",
+    "installDesk": "groups",
+    "requiredAgent": "contacts",
+    "documentationSymlink": {
+      "path": "desk/CLAUDE.md",
+      "blobSha": "47dc3e3d863cfb5727b87d785d09abf9743c0a72",
+      "bytes": 9
+    }
+  },
+  "qualification": {
+    "assemblyVerified": false,
+    "installed": false,
+    "nativeContactsQualified": false,
+    "cqlQualified": false,
+    "liveDeployment": false,
+    "dependencyTreeMetadataVerified": true
+  }
+}
