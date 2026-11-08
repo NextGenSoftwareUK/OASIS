@@ -89,6 +89,7 @@ def main():
         assert inspect() is None
         touched = True
         docker('create', '--name', owner, '--label', label + '=' + owner,
+               '--user', str(os.getuid()) + ':' + str(os.getgid()),
                '--network', 'none', '--memory', '3g', '--memory-swap', '3g', '--cpus', '2',
                '--pids-limit', '128', '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges',
                '--read-only', '--workdir', '/pier', '--env', 'HOME=/pier',
