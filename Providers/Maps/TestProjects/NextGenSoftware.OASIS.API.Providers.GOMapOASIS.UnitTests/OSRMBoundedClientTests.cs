@@ -86,7 +86,7 @@ public class OSRMBoundedClientTests
     {
         using var handler = new Handler(Valid); using var client = new HttpClient(handler);
         using var c = new CancellationTokenSource(); c.Cancel();
-        await Assert.ThrowsExceptionAsync<OperationCanceledException>(() => new OSRMDirectionsProvider(client).GetRouteAsync(
+        await ExpectCancellation(() => new OSRMDirectionsProvider(client).GetRouteAsync(
             new Geolocation(52,13), new Geolocation(52.1,13.1), cancellationToken:c.Token));
         Assert.AreEqual(0, handler.Calls);
     }
@@ -112,6 +112,12 @@ public class OSRMBoundedClientTests
         var result = await Read(new OSRMDirectionsProvider(client){BaseUrl="https://private:secret@example.com"});
         Assert.IsTrue(result.IsError); Assert.IsFalse(result.Message.Contains("private:secret")); Assert.AreEqual(0,handler.Calls);
     }
+    private static async Task ExpectCancellation(Func<Task> operation)
+    {
+        try { await operation(); }
+        catch (OperationCanceledException) { return; }
+        Assert.Fail("The operation must propagate cancellation, including TaskCanceledException.");
+    }
     private sealed class BlockingHandler : HttpMessageHandler
     {
         public readonly TaskCompletionSource<bool> Entered = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -133,14 +139,14 @@ public class OSRMBoundedClientTests
         {
             await firstHandler.Entered.Task.WaitAsync(TimeSpan.FromSeconds(3));
             using var secondCancellation = new CancellationTokenSource(TimeSpan.FromMilliseconds(50));
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(() => new OSRMDirectionsProvider(secondClient).GetRouteAsync(
+            await ExpectCancellation(() => new OSRMDirectionsProvider(secondClient).GetRouteAsync(
                 new Geolocation(52,13),new Geolocation(52.1,13.1),cancellationToken:secondCancellation.Token));
             Assert.AreEqual(0,secondHandler.Calls);
         }
         finally
         {
             firstCancellation.Cancel();
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(async () => { await first; });
+            await ExpectCancellation(async () => { await first; });
         }
     }
     [TestMethod]
