@@ -62,6 +62,29 @@ public class TypesenseCqlTests
         Assert.IsFalse(handler.Paths.Any(path => path.Contains("search")));
     }
 
+    [TestMethod]
+    public async Task EmbeddedChildrenAreProjectedBeforeCanonicalMaterialization()
+    {
+        var id = Guid.NewGuid();
+        var child = Guid.NewGuid();
+        var payload = JsonSerializer.Serialize(new Holon {
+            Id = id, Name = "Native root with an embedded graph",
+            Children = new[] { new Holon { Id = child, Name = "Embedded child must not materialize" } }
+        }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        var handler = new Handler(request => request.RequestUri!.AbsolutePath == "/collections/oasis_holons"
+            ? Response("{\"name\":\"oasis_holons\"}") : Response(payload));
+        using var http = new HttpClient(handler);
+        var provider = new TypesenseOASIS("http://127.0.0.1:1", "controlled", http);
+        Assert.IsFalse((await provider.ActivateQuerySourceAsync(default)).IsError);
+        var result = await provider.ExecuteCosmicQueryAsync(Plan(provider, Query(new[] { id })));
+        Assert.IsFalse(result.IsError, result.Message + " " + result.Exception?.GetType().Name);
+        Assert.AreEqual(1, result.Result.Count);
+        Assert.AreEqual(id, result.Result[0].Id);
+        Assert.AreEqual("Native root with an embedded graph", result.Result[0].Name);
+        Assert.AreEqual(0, result.Result[0].Children.Count());
+        Assert.AreEqual(2, handler.Paths.Count);
+    }
+
     [DataTestMethod]
     [DataRow("unauthorized")]
     [DataRow("forbidden")]
