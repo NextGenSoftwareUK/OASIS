@@ -5271,3 +5271,7 @@ Cloud42511918338 passed actual Kelvin408/current contacts initialization. Exact 
 
 ### 8 Nov — Native private book lifecycle job
 Source6e1a22a1c/run42513709558 active: reuses three cloud source/runtime caches, adds real page seed/read/restart proof. Restarts the same owned pier, no database copy or second source. Per-page intents/ACKs and compact equality results retained as job artifacts; native cleanup not yet claimed. No laptop runtime/SDK/image/database or environment installed.
+
+
+### 8 Nov — Native HTTP host cloud compile
+Real .NET HTTP reader host added as source only on laptop. Cloud build42514062260 succeeded; stricter auth-denial source build42514186079 active. Builds use existing manifest-pinned dependencies and bounded provider lease. Artifacts are compact qualification JSON only; no compiled runtime/image/db retained locally. Native book42513709558 still active; no cleanup or HTTP acceptance yet claimed. Future fake-ship code/cookies must stay in process memory/stdin and never artifact/log output.
