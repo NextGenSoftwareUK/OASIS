@@ -27,7 +27,8 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
   Dapr correction74a7b60c0/Coreec7d440 passed exact native/image gates and
   is now on Development. Code deployment75e5970b isSUCCESS on
   ca788724-9609-4630-8093-e61d4cc80c4d; package/settings/source fingerprints verified.
-  Dapr disabled; no settings changed.
+  Fresh Dapr generation acknowledged; eight settings staged once. Activation
+  f0b2771c isBUILDING; running75e5970b still has its earlier disabled configuration.
   First planned source save is unacknowledged: Railway denies native libaio
   io_getevents. Original source/intent retained; do not reseed or recreate.
 - Website C:/Source/Web4Site, branch work/cosmic-cql, publishedad7e9dd (six new cards71-76; earlier accepted cards retained).
@@ -64,7 +65,7 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 Development branch is74a7b60c0/Coreec7d440; code deployment75e5970b isSUCCESS
 on instanceca788724-9609-4630-8093-e61d4cc80c4d,
 actual image sha256:153a043e5e2874e00d731fb9c2c150942d912cf00b25c418f1d76983cc7b7c29.
-Dapr remains disabled/unadmitted. The first original source save timed out without
+Dapr live acceptance remains unproven. The first original source save timed out without
 acknowledgement because Railway denies the default libaio completion syscall.
 Its original source/plan/intent are preserved: never recreate or resend.
 
@@ -101,13 +102,17 @@ stopped; it still failed record/ETag verification. Original2048byte AOF hash unc
 prior diagnostics archived intact,0owned processes and no storage engine errors.
 No save replay or recovered metadata ACK. Original save outcome remains unknown.
 
-An explicit unadmitted-generation retirement operator is prepared: preserve every
-source byte and failed journal, retain unknown save outcome, then archive local
-plan state under its original operation UUID. It permits no admitted source or
-business writes. Linux qualification pending; not invoked live. After that separate
-lifecycle operation earns both receipts, prepare a distinct fresh teaching plan/IDs
-and one new creation using the qualified RandomAccess runtime. Do not reset/reseed
-the old generation or fabricate its acknowledgement. Enrollment/HTTP remain open.
+Retirement operator177ad6a73 passes Linux42435459405/job128593209843:
+6Node+3Python/0skips. Remote retirement and checked local archive are acknowledged;
+all original files preserved under operationb75969e7-cd3d-40e1-be62-22ea3835eafa,
+businessWrites0/originalSaveOutcomeunknown. No original save ACK fabricated.
+Fresh source owner141c7116-ab36-432d-a570-d772403768e0 has a distinct plan/IDs,
+one successful creation ACK and verified durable reader recovery. Generation lineage
+links the retained original. Eight exact settings are staged/acknowledged; one
+activationf0b2771c-49bf-466f-91d3-7dbf060dfaf5 isBUILDING for the same74a7b60c0 code.
+Next observe this activation, inspect actual image/instance/settings and mounted
+fresh-source values/ETags, reuse acknowledged readiness, then create one new Dapr
+HTTP acceptance cohort. No source creation, activation or accepted cohort replay.
 
 Coverage remains119local/91live HTTP/28functional browser. The six public readers
 remain accepted on their original sealed cohorts: native3/2, Mongo5/4, repeat0new,
