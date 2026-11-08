@@ -16,6 +16,31 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class AssetDownloadPolicyTests(unittest.TestCase):
+    def test_final_image_consumes_pinned_artifacts_without_origin_producer_dependencies(self):
+        source = (ROOT / 'Docker/Dockerfile.web4').read_text(encoding='utf-8')
+        stages = list(re.finditer(r'^FROM\s+(\S+)\s+AS\s+(\w+)\s*$', source, re.M | re.I))
+        blocks = {stage.group(2): source[stage.end():stages[index + 1].start() if index + 1 < len(stages) else len(source)]
+                  for index, stage in enumerate(stages)}
+        bases = {stage.group(2): stage.group(1) for stage in stages}
+        self.assertEqual(len(stages), len(blocks), 'Stage aliases must be unique.')
+        reachable = set()
+        pending = ['final']
+        while pending:
+            name = pending.pop()
+            if name in reachable:
+                continue
+            reachable.add(name)
+            if bases[name] in blocks:
+                pending.append(bases[name])
+            for dependency in re.findall(r'^COPY\s+--from=(\w+)\s', blocks[name], re.M):
+                self.assertIn(dependency, blocks)
+                pending.append(dependency)
+        for role in ['provider_waku', 'provider_nats']:
+            self.assertNotIn(role, reachable, 'Normal API image must not repeat the origin producer download.')
+            self.assertIn(role + '_runtime', reachable)
+            self.assertRegex(bases[role + '_runtime'], r'^ghcr\.io/nextgensoftwareuk/oasis-web4@sha256:[a-f0-9]{64}$')
+        self.assertNotEqual(bases['provider_waku_runtime'], bases['provider_nats_runtime'])
+
     def arguments(self, stage):
         dockerfile = (ROOT / 'Docker/Dockerfile.web4').read_text(encoding='utf-8')
         block = re.search(r'^FROM[^\n]* AS ' + stage + r'\n.*?(?=^FROM|\Z)', dockerfile, re.M | re.S).group()

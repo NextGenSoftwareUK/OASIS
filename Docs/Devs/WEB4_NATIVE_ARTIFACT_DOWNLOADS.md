@@ -50,3 +50,11 @@ The consumer must pin the observed digest, never a moving tag. Producer and fina
 API image responsibilities remain separate; no pull-failure download fallback is
 permitted. Publishing uses the existing package permissions/visibility and does
 not change live service settings.
+
+Normal final-image COPY uses `provider_waku_runtime` and `provider_nats_runtime`,
+whose FROM references pin qualified registry digests. The `provider_waku` and
+`provider_nats` origin producers remain explicit targets for future artifact
+upgrades. The graph regression test proves final does not depend on either
+producer. Cloud consumer qualification checks exact image roles/source, executes
+native versions in network-isolated read-only containers and proves cleanup.
+Native-only images never certify the WEB4 API or a live source cohort.
