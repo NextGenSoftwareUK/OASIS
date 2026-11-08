@@ -84,14 +84,26 @@ The pinned SDK's [V1 query builder](https://github.com/subquery/subql/blob/b35d4
 specifies the actual dictionary contract: range-constrained filters,
 BLOCK_HEIGHT_ASC, distinct BLOCK_HEIGHT and nodes containing blockHeight.
 One exact-shape query limited to3nodes in [400000000,400010000), matching
-ERC20 Transfer topic, returned HTTP200/245bytes, SHA256
+Transfer event topic (shared by ERC20 and ERC721), returned HTTP200/245bytes, SHA256
 67be5266179614e631f2fc166b77b922794babc98b6cac66faa86dbcd8b6d289.
 Heights400000000,400000002,400000003 are distinct ascending decimal strings;
 the same reported genesis identifier is preserved. Raw values/metadata remain
 under subquery-arbitrum-sdk-v1-blocks.*. No full log/transaction or on-chain
 finality claim follows from these dictionary matches.
 
-Next implement a bounded dictionary-block CQL source from this real SDK contract,
+Task-branch implementation now adds `SubqueryDictionaryBlockQuerySource` using
+the shared bounded identity planner and explicit one-height dictionary requests.
+It validates reported genesis and index coverage, rejects malformed/partial
+GraphQL replies, bounds response bytes and concurrency, and exposes stable match
+attributes without persisting the moving index cursor. Native writes/scans are
+unsupported. This is dictionary activity evidence, not full log/header support.
+
+Sixteen controlled cases and one explicitly enabled real dictionary CQL case are
+prepared in `qualify-subquery-dictionary.yml`; qualification is not yet observed.
+All compilation/native testing is cloud-only. No deployment, inventory count or
+public source admission advances from implementation alone.
+
+Next qualify the bounded dictionary-block CQL source from this real SDK contract,
 complete independent chain identity before admission, and qualify actual native
 manager/WEB4/federation/privacy/snapshot/replica/browser gates. Existing legacy
 storage methods are outside this preliminary proof. No runtime installed, provider
