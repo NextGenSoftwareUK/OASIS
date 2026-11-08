@@ -146,3 +146,32 @@ registration/settings/deployment. Counts remain120local/93HTTP/28browser until
 the corresponding exact evidence is observed.
 
 First cloud42446173870/job128625460437 compiled source06b2951dd and passed all26controlled cases/no skips. Shared suite passed1295/1296, failed ParentAcknowledgementFollowsRealMongoPreparedIdentityWrite because required127.0.0.1:27017 MongoDB was absent. Native CQL stage skipped. New workflow now supplies runner-owned Mongo8.0.15 service with bounded health readiness; no test weakened or local service installed. WEB4 explicit owner/profile, compiler allowance, Core read-only tariff, eight boundary controls and real shared HTTP/Mongo fixture are prepared for the next exact qualification. Core88eefb17b committed/pushed on original task branch; unrelated dirty enum remains excluded, parent gitlink/manifest advance together. Not deployed.
+
+## Native CQL accepted on task source f5c4826c5
+
+Corrected cloud42446401193/job128626132502 passed26controls (21registry+5existing
+proof),1296shared cases and1actual native CQL3/2 case, all executed/no skips.
+Source `f5c4826c5eaf8a09dcebacec7878018366a89379`. Artifact13603612128/307467bytes
+SHA2562f12103b6958a011e167f2ff779827b2640d85a230f7ebf72b0c78cadbf089ec,
+all three TRX counters/hashes verified entirely in memory. The initial inspector
+refused an incorrect expected source SHA before artifact access; full SHA then
+resolved from Git. Initial256KiB compressed bound refused the307467byte shared
+report; metadata checked, bound512KiB, uncompressed8MiB; no archive retained.
+
+Local scope count121; live HTTP93/browser28 unchanged. WEB4 qualification
+42446401228/job128626132649 remains active. Affected SubQuery native regression
+42446401144 succeeded; its WEB4 regression42446401174 is also active.
+
+Protected fixed-catalogue planning now includes SelfProtocolOASIS.39candidate
+controls (including cross-provider subcases) and5publisher guards pass; fixture
+messages are simulated configuration writes, not live mutations. Cross-language
+GUID fixture added to the existing catalogue test, keeping26controlled cases.
+Offline source ownerc7efecf1-7536-44bd-82bf-54b67c67b026 is fixed in
+HostedSelfProtocolRegistrySourceCurrent. Public IDsdae615d6-c682-865f-bdb7-0fc6801c8b99,
+415214d6-445b-861b-b65f-c4c1f6ac11f7,bf1a83eb-8cf5-8b82-8fb1-86fe294e5eb4.
+Native source writes0. Protected before253/candidate255 settings prepared,
+exactly owner/admission/grants/provider-presets change. Initial receipt assumed
+an optional publicIds field, then reconciliation compared serialized sorted
+review ordering; both corrected using the same descriptor and original snapshots,
+no owner regeneration or live request. Fresh live baseline/pins and exact scoped
+candidate qualification are still required before any rollout.

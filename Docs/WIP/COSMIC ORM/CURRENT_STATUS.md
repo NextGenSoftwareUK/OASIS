@@ -40,7 +40,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **120 scoped local, 93 live HTTP and 28 functional browser**.
+Coverage is **121 scoped local, 93 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -84,13 +84,15 @@ with immutable evidence082f7d367. Public HTML268592bytes/SHA256
 7908eabb8c70743d2e0cc1023484da2c7bb1e480d68dce26857ca6af4e383001
 matches exact Git bytes. Self Protocol network/genesis/transition identity and three hub-resolved
 registry-root observations qualified at one RPC-reported finalized canonical
-hash. Historical helper addresses differ and are retained as such. Implement
-the bounded CQL source next, preserving existing proof verification. Existing119client controls pass; browser gate
+hash. Historical helper addresses differ and are retained as such. Bounded CQL source now passes actual native3/2 plus26controlled and1296shared
+checks (cloud42446401193). WEB4/Mongo HTTP qualification42446401228 remains
+active; inspect the same run, do not redispatch it. Existing proof verification
+is preserved. No Self Protocol deployment/settings/live acceptance yet. Existing119client controls pass; browser gate
 remains open and must not bypass the existing URL-policy failure. Future
 image requests must pass the explicit commit-specific teaching tag.
 [Full proof and scope](SUBQUERY_PUBLIC_SOURCE_STATUS.md).
 
-Coverage remains **120 scoped local / 93 live HTTP / 28 functional browser**.
+Coverage remains **121 scoped local / 93 live HTTP / 28 functional browser**.
 The accepted Dapr cohort and retired failed generation remain preserved; no
 source creation/save was replayed. [Dapr history](DAPR_CQL_MVP.md). While the
 code deployment waited for a build slot, a first anonymous Self Protocol RPC

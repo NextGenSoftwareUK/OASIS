@@ -102,6 +102,9 @@ public class SelfProtocolRegistryQueryTests
     [TestMethod]
     public void InvalidCataloguesFailBeforeTransportConstruction()
     {
+        var configurationOwner = Guid.Parse("a5808c3e-7031-47e7-92de-48a659568f1b");
+        CollectionAssert.AreEqual(new[] { "afc6163f-f72e-8c3c-a270-33c1cb3a4d69", "b69b4b29-3147-8a0e-8042-45e96f96d883", "7995517f-88ba-8834-8c5d-1063dba989f0" },
+            Attestations.Select(x => SelfProtocolRegistryQuerySource.LogicalId(configurationOwner, x).ToString()).ToArray());
         foreach (var values in new[] { Array.Empty<int>(), new[] { 1, 1 }, new[] { 0 }, new[] { 2 }, new[] { 5 }, new[] { 1, 3, 4, 1 } })
             Assert.ThrowsException<ArgumentException>(() => new SelfProtocolRegistryQuerySource(Owner, values));
         Assert.ThrowsException<ArgumentException>(() => new SelfProtocolRegistryQuerySource(Guid.Empty, Attestations));
