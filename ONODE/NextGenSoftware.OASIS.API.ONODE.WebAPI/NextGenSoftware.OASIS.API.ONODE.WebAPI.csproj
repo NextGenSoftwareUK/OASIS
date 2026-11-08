@@ -273,4 +273,5 @@
 <ItemGroup><ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS/NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Social/NextGenSoftware.OASIS.API.Providers.TheGraphOASIS/NextGenSoftware.OASIS.API.Providers.TheGraphOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.SubqueryOASIS/NextGenSoftware.OASIS.API.Providers.SubqueryOASIS.csproj" /></ItemGroup>
 </Project>

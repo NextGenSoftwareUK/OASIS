@@ -37,6 +37,9 @@ public sealed class SubqueryDictionaryBlockQuerySource : KeyValueStorageProvider
     public SubqueryDictionaryBlockQuerySource(Guid owner, IEnumerable<long> heights)
         : this(owner, heights, null) { }
 
+    public static SubqueryDictionaryBlockQuerySource ForReviewedTeachingCatalogue(Guid owner) =>
+        new(owner, new long[] { 400000000, 400000002, 400000003 });
+
     internal SubqueryDictionaryBlockQuerySource(Guid owner, IEnumerable<long> heights, HttpMessageHandler? handler)
         : this(new DictionaryBackend(owner, heights, handler)) { }
 

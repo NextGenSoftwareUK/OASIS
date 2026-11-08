@@ -43,6 +43,7 @@ using NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS;
 using NextGenSoftware.OASIS.API.Providers.DecentralandOASIS;
 using NextGenSoftware.OASIS.API.Providers.WakuOASIS;
 using NextGenSoftware.OASIS.API.Providers.TheGraphOASIS;
+using NextGenSoftware.OASIS.API.Providers.SubqueryOASIS;
 using NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS;
 using NextGenSoftware.OASIS.API.Providers.WorldIDOASIS;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
@@ -128,6 +129,9 @@ public sealed class CqlReviewedPublicMongoHttpTests
 
     [ReviewedPublicMongoNativeFact("COSMIC_REVIEWED_NETWORK_NATIVE")]
     public Task TheGraphStudioNativeHttp() => VerifyHttpAsync(ProviderType.TheGraphOASIS);
+
+    [ReviewedPublicMongoNativeFact("COSMIC_SUBQUERY_DICTIONARY_NATIVE_HTTP")]
+    public Task SubqueryDictionaryNativeHttp() => VerifyHttpAsync(ProviderType.SubqueryOASIS);
 
     [ReviewedPublicMongoNativeFact("COSMIC_WAKU_STORE_HASHES")]
     public Task WakuStoreNativeHttp() => VerifyHttpAsync(ProviderType.WakuOASIS);
@@ -551,6 +555,13 @@ public sealed class CqlReviewedPublicMongoHttpTests
                 string[] deployments = { "adexto-arbitrum", "adexto-base", "klerosboard-gnosis" };
                 return (new TheGraphStudioStatusQuerySource(owner),
                     deployments.Select(key => TheGraphStudioStatusQuerySource.LogicalId(owner, key)).ToArray());
+            }
+            case ProviderType.SubqueryOASIS:
+            {
+                Assert.Equal("owned-loopback", Environment.GetEnvironmentVariable("COSMIC_SUBQUERY_DICTIONARY_NATIVE_HTTP"));
+                long[] heights = { 400000000, 400000002, 400000003 };
+                return (SubqueryDictionaryBlockQuerySource.ForReviewedTeachingCatalogue(owner),
+                    heights.Select(height => SubqueryDictionaryBlockQuerySource.LogicalId(owner, height)).ToArray());
             }
             case ProviderType.WakuOASIS:
             {

@@ -1,0 +1,106 @@
+name: Qualify SubQuery WEB4 read integration
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-subquery-web4.yml'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlSubqueryHostedConfigurationTests.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReviewedNetworkReadSourceRegistration.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Compiler.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web4:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Validate exact dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify controlled WEB4 read integration
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner subquery-web4-ci -Operation {
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlSubqueryHostedConfigurationTests' --results-directory TestResults/SubqueryWeb4Current --logger 'trx;LogFileName=boundary.trx'
+            if ($LASTEXITCODE) { throw 'SubQuery WEB4 boundary qualification failed' }
+            [xml]$report = Get-Content TestResults/SubqueryWeb4Current/boundary.trx
+            $counts = $report.TestRun.ResultSummary.Counters
+            if ($counts.passed -ne '8' -or $counts.total -ne '8' -or $counts.executed -ne '8') {
+              throw 'All eight boundary cases must execute and pass without skips'
+            }
+          }
+      - name: Start isolated MongoDB replica
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --detach --name subquery-cql-mongo --publish 127.0.0.1:27029:27029 mongo:8.0.15 --port 27029 --replSet oasisRecoveryRs --bind_ip_all
+          ready() { docker exec subquery-cql-mongo mongosh --port 27029 --quiet --eval "$1" >/dev/null 2>&1; }
+          for attempt in {1..45}; do
+            if ready 'db.adminCommand({ping:1})'; then break; fi
+            sleep 1
+          done
+          ready 'rs.initiate({_id:"oasisRecoveryRs",members:[{_id:0,host:"127.0.0.1:27029"}]})'
+          for attempt in {1..45}; do
+            if ready 'if (!db.hello().isWritablePrimary) quit(1)'; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - name: Verify actual dictionary and MongoDB through loopback WEB4 HTTP
+        working-directory: OASIS
+        shell: pwsh
+        env:
+          COSMIC_REVIEWED_PUBLIC_MONGO_NATIVE: owned-local-27029
+          COSMIC_SUBQUERY_DICTIONARY_NATIVE_HTTP: owned-loopback
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner subquery-web4-native-ci -Operation {
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SubqueryDictionaryNativeHttp' --results-directory TestResults/SubqueryWeb4Current --logger 'trx;LogFileName=web4.trx'
+            if ($LASTEXITCODE) { throw 'SubQuery dictionary/MongoDB WEB4 qualification failed' }
+            [xml]$report = Get-Content TestResults/SubqueryWeb4Current/web4.trx
+            $counts = $report.TestRun.ResultSummary.Counters
+            if ($counts.passed -ne '1' -or $counts.total -ne '1' -or $counts.executed -ne '1') {
+              throw 'The real dictionary/MongoDB HTTP case must execute and pass without skips'
+            }
+          }
+      - name: Retain compact qualification reports
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: subquery-web4-cql
+          path: |
+            OASIS/TestResults/SubqueryWeb4Current/*.trx
+            OASIS/LocalState/COSMIC/ReviewedPublicMongoHttpQualification/SubqueryOASIS/mongo-http-native-summary.json
+            OASIS/LocalState/COSMIC/ReviewedPublicMongoHttpQualification/SubqueryOASIS/fixture.cleaned.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Remove owned ephemeral MongoDB replica
+        if: always()
+        run: docker rm --force --volumes subquery-cql-mongo || ! docker container inspect subquery-cql-mongo >/dev/null 2>&1
