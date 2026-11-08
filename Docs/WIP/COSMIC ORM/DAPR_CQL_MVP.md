@@ -489,3 +489,12 @@ Candidate81e4cd04360ee6ed37dfed6da1737229e70f1d3c is published by fast-forward o
 Candidate native42427031581/job128567404506 failed in the new Python boundary checks before native installation/source operations: Prepare-HostedExactKeyConfiguration.py was absent from the scoped snapshot. The new publisher correctly imports the shared real catalogue reviewer; do not replace it with duplicate Dapr parsing or skip the controls. Restored its task-qualified dependency closure: Prepare-HostedExactKeyConfiguration.py, Verify-HostedQuerySource.py and HostedSessionCredentials.py. These are operator-tool dependencies; API/provider registration and permissions are unchanged.
 
 Corrected candidatef00eb9d480e20f1431b01840ed6b499312f5c0a9 advances81e4cd043 on the existing candidate branch; Coreec7d440 unchanged. Pins/diff pass. One exact native dispatch acknowledged204 under dapr-uring-dependencies-native-dispatch.*. No corrected image request yet: first verify boundary checks. Image42427033466 still concerns81e4cd043 and cannot substitute for current commit. Live Developmentc9/source unchanged, Dapr disabled.
+
+
+### Corrected exact candidate native qualification passed
+
+Candidatef00eb9d480e20f1431b01840ed6b499312f5c0a9 passes42427310034/job128568251078, including all new Python boundary imports/controls, explicit Native/Uring AOF writes, normal provisioner/two WEB4 recoveries and actual lost-response inspector/metadata transition. Artifact13595713630:6064bytes SHA2568be03d3eaa3683c1f5816816c2b618bd6eeb10ab618966607c3e4d8fea215447. ZIP verified in memory: twoTRX1/1/0skips and exact pending proof (one save,4originals,2recoveries,0inspection mutations, unchanged AOF, recovered metadata accepted, lost save-response ACK remains absent, all processes stopped). No disk ZIP/extraction retained.
+
+Exact current image42427405291 was observed pending behind earlier image42427033466; both handles retained, no redispatch. The earlier image targets81e4cd043 and cannot stand in forf00eb9d48. Sourceb9dfc2d6 diagnostic job42426870760 also completedSUCCESS; the earlier unexpected-frame failure remains retained, not asserted cured by repeat successes. The canonical response contract and redacted diagnostic stay in the candidate.
+
+Live Developmentc9/original source remains unchanged. Next complete exactf00 image, refresh advertised dependency refs/settings/branch bases, then perform scoped code rollout and protected original-source inspection. Counts unchanged.

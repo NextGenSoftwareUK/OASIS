@@ -68,7 +68,8 @@ Its original source/plan/intent are preserved: never recreate or resend.
 Explicit Native/Uring full native qualification passes42425594492. The read-only
 inspector/recovered-outcome metadata fixture passes42426250057:1save,2recoveries,
 0inspection mutations, unchanged AOF and no fabricated save-response ACK. The
-corrected scoped candidatef00eb9d48 now awaits exact native/image qualification.
+corrected scoped candidatef00eb9d48 passes exact native qualification42427310034;
+its exact image42427405291 is pending.
 No inspector or metadata transition has run against the original live source.
 Next qualify/deploy that candidate, then reconcile the same original source.
 No second source generation or original save request is authorized by that flow.
