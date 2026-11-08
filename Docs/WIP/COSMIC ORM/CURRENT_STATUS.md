@@ -4,6 +4,13 @@ Updated 8 November 2026. Goal active and incomplete.
 
 ## Latest continuation
 
+Native release download correction4f1d5d4 passes both actual Waku/NATS
+cloud stages42471346684; hashed artifacts/checksums/version checks verified.
+Corrected full image42471538567 is active for exact4f1d5d4 source. Four-provider
+scoped candidateed52cea5/Coree242de41 now59paths, unpublished; original
+source owners/settings preserved by amendment. No live changes.
+[Proof](OPENVINO_CQL_MVP.md).
+
 Gelato controlled client563e87ed1 cloud42470665687 passes34/34/no skips;
 hashed artifact inspected. Native credentials/CQL remain open and access
 is deferred in the one owner list. Four-provider offline settings plan now
