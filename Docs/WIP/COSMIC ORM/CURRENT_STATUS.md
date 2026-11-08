@@ -7,12 +7,13 @@ this checkpoint does not claim completion of those designs.
 
 ## User priority order updated 8 November 2026
 
-Solana → Ethereum → Polygon → Arbitrum → NEAR → Cosmos → Polkadot → TON →
-TRON → Hedera/Hashgraph → EOS/EOSIO, then the remaining providers in popularity
-order. EOS was added immediately after the original ordered request and is queued
-after Hedera. Interpret HetraGraph as Hedera/Hashgraph (HashgraphOASIS).
+Solana → Ethereum → Polygon → Arbitrum → NEAR → EOS/EOSIO → Cosmos →
+Polkadot → TON → TRON → Hedera/Hashgraph, then the remaining providers in
+popularity order. This matches the user-edited goal, with EOS immediately after
+NEAR. Interpret HetraGraph as Hedera/Hashgraph (HashgraphOASIS).
 
-The first seven retain accepted scoped live HTTP and browser evidence. TON,
+Solana, Ethereum, Polygon, Arbitrum, NEAR, Cosmos and Polkadot retain accepted
+scoped live HTTP and browser evidence. TON,
 Hedera and EOS retain accepted live HTTP evidence; their browser gates remain
 open. TRON has no accepted current live CQL admission: preserve rate-limit/denial
 outcomes and the authenticated-reader draft/credential preflight; do not retry
