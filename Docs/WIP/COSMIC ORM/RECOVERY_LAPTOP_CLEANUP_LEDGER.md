@@ -5124,3 +5124,12 @@ Six local controls pass, including actual Node probe rejection of absent reader
 assembly/auth method and both full model profiles; cloud controls pending. Only
 checker tooling changed, not the immutable image source; do not rebuild it.
 No local image/runtime/SDK/model/database downloads or new worktree/environment.
+
+TRON/API package-profile cloud controls VERIFIED6/6, run42490737868/
+job128762323304/checker3fca0b24b; actual Ran6tests/OK log inspected. Existing
+full model checks and exact TRON reader rejection cases remain enforced.
+Scoped image42490408557 is still the one original build; sourcebeee2d25,
+explicit beee2d25-teaching tag, no native switches/deployment. Plan now records
+image handle and separate profile proof. No image package/startup pass claimed
+until that exact image digest is inspected. No local runtimes/SDKs/databases/
+models/images or archive extraction; compact receipts only.

@@ -169,5 +169,36 @@
     "tagAndDevelopmentRefsUnchanged": true
   },
   "controlledQualificationPassed": true,
-  "controlledChecks": 53
+  "controlledChecks": 53,
+  "imageBuild": {
+    "run": 42490408557,
+    "workflowSource": "f83c1497e424457c41de6dbe11189698f8af2ff1",
+    "builtSource": "beee2d25e79038ab0eb9f5ca2fd7f25e7364118f",
+    "status": "in_progress",
+    "explicitImageTag": "beee2d25e79038ab0eb9f5ca2fd7f25e7364118f-teaching",
+    "deployment": false
+  },
+  "packageVerification": {
+    "profile": "tron-api",
+    "checkerSource": "3fca0b24b8186896d59fb3b09ebe32dcebf88b0a",
+    "controls": [
+      {
+        "id": 42490737868,
+        "status": "completed",
+        "conclusion": "success",
+        "source": "3fca0b24b8186896d59fb3b09ebe32dcebf88b0a"
+      }
+    ],
+    "imagePackageVerified": false,
+    "startupVerified": false,
+    "nativeTronVerified": false,
+    "controlledEvidence": {
+      "source": "3fca0b24b8186896d59fb3b09ebe32dcebf88b0a",
+      "run": 42490737868,
+      "job": 128762323304,
+      "conclusion": "success",
+      "passed": 6,
+      "actualLogCountersVerified": true
+    }
+  }
 }
