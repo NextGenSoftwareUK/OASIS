@@ -11,17 +11,22 @@ from qualify_urbit_contacts_http import native_http
 from qualify_urbit_contacts_install import main
 
 
-def web4_phase(context, phase, code):
+def run_native_case(context, phase, code, test_name, stem, extra_input=None):
+    assert (test_name, stem) in [('UrbitNativeWeb4MvcReadsOwnedBook', 'web4'),
+                                 ('UrbitNativeWeb4FederationReadsOwnedMongoCopies', 'federation')]
     dotnet = shutil.which('dotnet')
     assert dotnet is not None
     project = context['root'] / 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/NextGenSoftware.OASIS.API.Core.UnitTests.csproj'
-    results = context['out'] / ('web4-' + phase)
+    results = context['out'] / (stem + '-' + phase)
     results.mkdir(exist_ok=False)
     command = [dotnet, 'test', str(project), '-c', 'Release', '--no-build', '--no-restore',
                '/m:2', '/nr:false', '/p:UseSharedCompilation=false',
-               '--filter', 'FullyQualifiedName~UrbitNativeWeb4MvcReadsOwnedBook',
+               '--filter', 'FullyQualifiedName~' + test_name,
                '--results-directory', str(results), '--logger', 'trx;LogFileName=web4.trx']
     payload = dict(origin='http://127.0.0.1:80/', phase=phase, loginCode=code)
+    if extra_input is not None:
+        assert set(extra_input) == {'mongoUri', 'mongoDatabase', 'owner'}
+        payload.update(extra_input)
     # Named input survives sudo only for this child. Never put values in arguments,
     # reports, test parameters or the persistent runner environment.
     environment = dict(os.environ, COSMIC_URBIT_NATIVE_WEB4_INPUT=json.dumps(payload))
@@ -30,7 +35,7 @@ def web4_phase(context, phase, code):
     assert code not in result.stdout and code not in result.stderr, 'Private diagnostic rejected; no output retained.'
     assert len(result.stdout.encode()) <= 65536 and len(result.stderr.encode()) <= 16384
     if result.returncode:
-        (context['out'] / (phase + '-web4-error.txt')).write_text(result.stdout + result.stderr)
+        (context['out'] / (phase + '-' + stem + '-error.txt')).write_text(result.stdout + result.stderr)
     result.check_returncode()
     ns = {'t': 'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'}
     root = ET.parse(results / 'web4.trx').getroot()
@@ -38,8 +43,13 @@ def web4_phase(context, phase, code):
     assert counters['total'] == counters['executed'] == counters['passed'] == '1'
     tests = root.findall('.//t:UnitTestResult', ns)
     assert len(tests) == 1 and tests[0].attrib['outcome'] == 'Passed'
-    assert 'UrbitNativeWeb4MvcReadsOwnedBook' in tests[0].attrib['testName']
-    proof = json.loads((context['out'] / (phase + '-web4.json')).read_text())
+    assert test_name in tests[0].attrib['testName']
+    proof = json.loads((context['out'] / (phase + '-' + stem + '.json')).read_text())
+    return proof
+
+
+def web4_phase(context, phase, code):
+    proof = run_native_case(context, phase, code, 'UrbitNativeWeb4MvcReadsOwnedBook', 'web4')
     for key, expected in dict(phase=phase, nativeWeb4MvcQualified=True,
                               ownerFullCount=3, ownerSubsetCount=2,
                               anonymousStatus=401, forgedFieldStatus=400, foreignStatus=403, inactiveStatus=503,

@@ -78,6 +78,17 @@ def qualify_book(context, http_reader=None):
             report['nativeWeb4MvcQualified'] = True
             report['nativeWeb4ApiProjectionPreservedAcrossRestart'] = True
             report['controlledWeb4IdentityAndOutbox'] = True
+        if 'nativeFederationQualified' in before or 'nativeFederationQualified' in after:
+            assert before['nativeFederationQualified'] is True and after['nativeFederationQualified'] is True
+            assert before['canonicalSourceSha256'] == after['canonicalSourceSha256']
+            assert before['federationProjectionSha256'] == after['federationProjectionSha256']
+            assert before['copySeedCount'] == 3 and after['copySeedCount'] == 0
+            assert after['ownedDatabaseAbsent'] is True
+            report['nativeFederationQualified'] = True
+            report['nativeCanonicalDocumentsPreservedAcrossRestart'] = True
+            report['nativeFederationProjectionPreservedAcrossRestart'] = True
+            report['ownedCanonicalDatabaseRemoved'] = True
+            report['controlledWeb4IdentityAndOutbox'] = True
     report['nativeBookAgentQualified'] = True
     report['nativeBookRestartVerified'] = True
     # Generic live/API flags stay false; native SDK/provider/manager flags require the explicit hook.

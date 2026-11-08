@@ -17,6 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
@@ -161,46 +162,11 @@ public partial class CqlV1Web4Tests
         IReadOnlyDictionary<string, UrbitContactsV1Client.ContactFields> expected, Action<int> assertReads)
     {
         string? fullHash = null;
-        using var policies = UrbitPolicyServices(owner);
         var source = new UrbitEndpointSource(adapter);
         var completed = Channel.CreateUnbounded<int>(new UnboundedChannelOptions { SingleReader = true });
         var foreign = Guid.Parse("372a7b25-32cf-4316-88bc-ea1b56a24b37");
         Assert.NotEqual(owner, foreign);
-        var controller = typeof(NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.CqlV1Controller);
-        var builder = WebApplication.CreateBuilder(new WebApplicationOptions {
-            ApplicationName = controller.Assembly.FullName, Args = Array.Empty<string>()
-        });
-        builder.Logging.ClearProviders();
-        builder.WebHost.UseUrls("http://127.0.0.1:0");
-        builder.Services.AddSingleton<ICqlV1Providers>(source);
-        builder.Services.AddKeyedSingleton<ICqlReadAccessPolicy>(ProviderType.UrbitOASIS,
-            policies.GetRequiredKeyedService<ICqlReadAccessPolicy>(ProviderType.UrbitOASIS));
-        builder.Services.AddSingleton<CqlV1ResourceFilter>();
-        builder.Services.AddControllers().AddApplicationPart(controller.Assembly);
-        await using var app = builder.Build();
-        app.UseRouting();
-        app.Use(async (context, next) =>
-        {
-            // Explicit controlled identity/admission fixture, not production JWT or outbox proof.
-            var token = context.Request.Headers.Authorization.ToString();
-            if (token is "Bearer urbit-owned-fixture" or "Bearer urbit-foreign-fixture")
-            {
-                var actor = token == "Bearer urbit-owned-fixture" ? owner : foreign;
-                var admitted = Admission(ProviderType.UrbitOASIS, reservedActor: actor);
-                context.User = new ClaimsPrincipal(new ClaimsIdentity(
-                    new[] { new Claim(ClaimTypes.NameIdentifier, actor.ToString("D")) }, "controlled-validated"));
-                foreach (var item in admitted.Http.Items) context.Items[item.Key] = item.Value;
-                context.Items["Avatar"] = new Avatar { Id = actor };
-                await admitted.Policy.RunAsync(async () => { await next(); return true; });
-                Assert.True(completed.Writer.TryWrite(admitted.Receipts.Count));
-            }
-            else
-            {
-                await next();
-                Assert.True(completed.Writer.TryWrite(0));
-            }
-        });
-        app.MapControllers();
+        await using var app = BuildUrbitMvcFixture(source, owner, foreign, completed, new[] { ProviderType.UrbitOASIS });
         await app.StartAsync();
         try
         {
@@ -288,6 +254,51 @@ public partial class CqlV1Web4Tests
         finally { await app.StopAsync(); }
         Assert.NotNull(fullHash);
         return fullHash!;
+    }
+
+    private static WebApplication BuildUrbitMvcFixture(ICqlV1Providers source, Guid owner, Guid foreign,
+        Channel<int> completed, ProviderType[] providers)
+    {
+        using var policies = UrbitPolicyServices(owner);
+        var controller = typeof(NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.CqlV1Controller);
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions {
+            ApplicationName = controller.Assembly.FullName, Args = Array.Empty<string>()
+        });
+        builder.Logging.ClearProviders();
+        builder.WebHost.UseUrls("http://127.0.0.1:0");
+        builder.Services.AddSingleton<ICqlV1Providers>(source);
+        builder.Services.AddKeyedSingleton<ICqlReadAccessPolicy>(ProviderType.UrbitOASIS,
+            policies.GetRequiredKeyedService<ICqlReadAccessPolicy>(ProviderType.UrbitOASIS));
+        builder.Services.AddSingleton<CqlV1ResourceFilter>();
+        builder.Services.AddControllers().AddApplicationPart(controller.Assembly);
+        var app = builder.Build();
+        app.UseRouting();
+        app.Use(async (context, next) =>
+        {
+            // Explicit controlled identity/admission fixture, not production JWT or outbox proof.
+            var token = context.Request.Headers.Authorization.ToString();
+            if (token is "Bearer urbit-owned-fixture" or "Bearer urbit-foreign-fixture")
+            {
+                var actor = token == "Bearer urbit-owned-fixture" ? owner : foreign;
+                var admitted = Admission(providers[0], reservedActor: actor);
+                var handle = (UsageExecutionHandle)admitted.Http.Items[Web4UsageMeasurement.ExecutionKey]!;
+                var policy = new PreparedStorageExecution(handle, "urbit-http-fixture", new Dictionary<ProviderType, string>(),
+                    providers, providers.Select(type => new StorageQueryTariff(type, 0.002m, "test-v1")));
+                context.User = new ClaimsPrincipal(new ClaimsIdentity(
+                    new[] { new Claim(ClaimTypes.NameIdentifier, actor.ToString("D")) }, "controlled-validated"));
+                foreach (var item in admitted.Http.Items) context.Items[item.Key] = item.Value;
+                context.Items["Avatar"] = new Avatar { Id = actor };
+                await policy.RunAsync(async () => { await next(); return true; });
+                Assert.True(completed.Writer.TryWrite(admitted.Receipts.Count));
+            }
+            else
+            {
+                await next();
+                Assert.True(completed.Writer.TryWrite(0));
+            }
+        });
+        app.MapControllers();
+        return app;
     }
 
 }

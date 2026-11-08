@@ -21,6 +21,33 @@ public partial class CqlV1Web4Tests
     [UrbitNativeWeb4Fact]
     public async Task UrbitNativeWeb4MvcReadsOwnedBook()
     {
+        using var session = await OpenUrbitNativeSessionAsync(includeMongo: false);
+        var output = Path.Combine(session.Root, "TestResults/UrbitContactsInstallCurrent", session.Phase + "-web4.json");
+        Assert.True(Directory.Exists(Path.GetDirectoryName(output)));
+        Assert.False(File.Exists(output));
+        var hash = await VerifyUrbitMvcAsync(session.Adapter, session.Owner, session.Expected,
+            count => Assert.Equal(count, session.Observed.Calls));
+        var proof = new {
+            phase = session.Phase, nativeWeb4MvcQualified = true, ownerFullCount = 3, ownerSubsetCount = 2,
+            anonymousStatus = 401, forgedFieldStatus = 400, foreignStatus = 403, inactiveStatus = 503,
+            nativePointReadCount = session.Observed.Calls, successfulQueryReceipts = 2, rejectedQueryReceipts = 0,
+            privateApiProjectionSha256 = hash, controlledIdentityAndOutbox = true,
+            productionJwtQualified = false, durableBillingQualified = false, cqlQualified = false, liveDeployment = false
+        };
+        await using var stream = new FileStream(output, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+        await JsonSerializer.SerializeAsync(stream, proof);
+    }
+
+    private sealed record UrbitNativeSession(string Root, string Phase, Guid Owner,
+        IReadOnlyDictionary<string, UrbitContactsV1Client.ContactFields> Expected, UrbitNativePointHandler Observed,
+        HttpClient Http, UrbitContactsV1Client Reader, UrbitContactBookQuerySource Adapter,
+        string? MongoUri, string? Database, string? ResourceOwner) : IDisposable
+    {
+        public void Dispose() { Adapter.Dispose(); Reader.Dispose(); Http.Dispose(); }
+    }
+
+    private static async Task<UrbitNativeSession> OpenUrbitNativeSessionAsync(bool includeMongo)
+    {
         if (!OperatingSystem.IsLinux() || Environment.GetEnvironmentVariable("GITHUB_ACTIONS") != "true")
             throw new InvalidOperationException("Owned cloud native fixture required.");
         const string inputName = "COSMIC_URBIT_NATIVE_WEB4_INPUT";
@@ -30,7 +57,9 @@ public partial class CqlV1Web4Tests
             throw new InvalidDataException("Bounded private native input required.");
         using var config = JsonDocument.Parse(input, new JsonDocumentOptions { MaxDepth = 4 });
         var keys = config.RootElement.EnumerateObject().Select(field => field.Name).ToArray();
-        if (keys.Length != 3 || keys.Distinct().Count() != 3 || keys.Except(new[] { "origin", "phase", "loginCode" }).Any())
+        var expectedKeys = includeMongo ? new[] { "origin", "phase", "loginCode", "mongoUri", "mongoDatabase", "owner" }
+            : new[] { "origin", "phase", "loginCode" };
+        if (keys.Length != expectedKeys.Length || keys.Distinct().Count() != expectedKeys.Length || keys.Except(expectedKeys).Any())
             throw new InvalidDataException("Exact native input required.");
         var originText = config.RootElement.GetProperty("origin").GetString();
         var phase = config.RootElement.GetProperty("phase").GetString();
@@ -54,10 +83,25 @@ public partial class CqlV1Web4Tests
             return new UrbitContactsV1Client.ContactFields(overlay.GetProperty("nickname").GetString(),
                 overlay.GetProperty("bio").GetString(), overlay.GetProperty("status").GetString());
         });
-        var output = Path.Combine(root, "TestResults/UrbitContactsInstallCurrent", phase + "-web4.json");
-        Assert.True(Directory.Exists(Path.GetDirectoryName(output)));
-        Assert.False(File.Exists(output));
 
+        string? mongoUri = null, database = null, resourceOwner = null;
+        if (includeMongo)
+        {
+            using var ready = JsonDocument.Parse(await File.ReadAllBytesAsync(Path.Combine(root, "TestResults/UrbitContactsInstallCurrent/mongo-ready.json")));
+            mongoUri = config.RootElement.GetProperty("mongoUri").GetString();
+            database = config.RootElement.GetProperty("mongoDatabase").GetString();
+            resourceOwner = config.RootElement.GetProperty("owner").GetString();
+            var data = ready.RootElement;
+            if (string.IsNullOrEmpty(mongoUri) || string.IsNullOrEmpty(database)
+                || mongoUri != data.GetProperty("mongoUri").GetString() || database != data.GetProperty("database").GetString()
+                || resourceOwner != data.GetProperty("owner").GetString() || !data.GetProperty("internalNetwork").GetBoolean()
+                || !data.GetProperty("noPublishedPorts").GetBoolean() || !data.GetProperty("replicaReady").GetBoolean()
+                || resourceOwner == null || !Regex.IsMatch(resourceOwner, @"\Aurbit-contacts-[0-9]+-[0-9]+\z"))
+                throw new InvalidDataException("Owned replica metadata required.");
+            var parts = resourceOwner.Split('-');
+            if (database != "urbit_web4_" + parts[2] + "_" + parts[3])
+                throw new InvalidDataException("Exact owned database required.");
+        }
         var cookies = new CookieContainer();
         using (var login = new HttpClient(new HttpClientHandler {
             AllowAutoRedirect = false, UseProxy = false, UseCookies = true, CookieContainer = cookies
@@ -70,21 +114,17 @@ public partial class CqlV1Web4Tests
                 throw new InvalidOperationException("Native login did not establish a session.");
         }
         var observed = new UrbitNativePointHandler(origin, cookies);
-        using var nativeHttp = new HttpClient(observed);
-        using var reader = new UrbitContactsV1Client(origin, nativeHttp);
-        using var adapter = new UrbitContactBookQuerySource(reader, owner, UrbitConnection, UrbitCids);
-        var activation = await adapter.ActivateQuerySourceAsync();
-        Assert.False(activation.IsError, "Owned native activation failed.");
-        var hash = await VerifyUrbitMvcAsync(adapter, owner, expected, count => Assert.Equal(count, observed.Calls));
-        var proof = new {
-            phase, nativeWeb4MvcQualified = true, ownerFullCount = 3, ownerSubsetCount = 2,
-            anonymousStatus = 401, forgedFieldStatus = 400, foreignStatus = 403, inactiveStatus = 503,
-            nativePointReadCount = observed.Calls, successfulQueryReceipts = 2, rejectedQueryReceipts = 0,
-            privateApiProjectionSha256 = hash, controlledIdentityAndOutbox = true,
-            productionJwtQualified = false, durableBillingQualified = false, cqlQualified = false, liveDeployment = false
-        };
-        await using var stream = new FileStream(output, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-        await JsonSerializer.SerializeAsync(stream, proof);
+        var nativeHttp = new HttpClient(observed);
+        var reader = new UrbitContactsV1Client(origin, nativeHttp);
+        var adapter = new UrbitContactBookQuerySource(reader, owner, UrbitConnection, UrbitCids);
+        try
+        {
+            var activation = await adapter.ActivateQuerySourceAsync();
+            Assert.False(activation.IsError, "Owned native activation failed.");
+            return new UrbitNativeSession(root, phase!, owner, expected, observed, nativeHttp, reader, adapter,
+                mongoUri, database, resourceOwner);
+        }
+        catch { adapter.Dispose(); reader.Dispose(); nativeHttp.Dispose(); throw; }
     }
 
     private sealed class UrbitNativePointHandler : DelegatingHandler
