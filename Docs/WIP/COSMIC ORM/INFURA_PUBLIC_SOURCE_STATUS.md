@@ -52,7 +52,9 @@ the credentials. The fixed teaching set contains the zero address, burn address
 and Ethereum deposit contract. The first registration test failed while populating its configuration fixture.
 The fixture now uses an in-memory configuration source. Corrected run
 [42536679933](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42536679933)
-includes registration, tariff and credential destination/redaction controls.
+passed all five tests, including registration, tariff and credential
+destination and error redaction. Artifact 13640160084 was verified in memory
+against SHA256 `d7424619ac791576f0e2503251b92ba646a7d20d47afbb9dca148add7d51f458`.
 The shared owner list tracks access for native verification.
 
 Remaining gates include inspecting that run, verifying credential handling and
