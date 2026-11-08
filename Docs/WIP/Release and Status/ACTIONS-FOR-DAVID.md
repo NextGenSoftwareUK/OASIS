@@ -911,3 +911,12 @@ submission is requested or authorized by this entry.
 - Concrete owner step when this queue is reached: identify an existing owned reachable HTTPS Typesense service and make its restricted reader available privately. Grant only collections:get and documents:get on oasis_holons. If no teaching collection exists, identify authorized provisioning access separately so engineering can prepare three public roots, one deleted control and one absent ID under a declared actor. Never paste or commit keys. No new paid setup is assumed.
 - Reason: live WEB4 needs a durable authorized HTTPS native source; controlled cloud tests and compiled registration do not establish that access. Engineering owns bounded fixture preparation and native/live verification after access is available.
 - Evidence and exact remaining scope: [Typesense CQL MVP](../COSMIC%20ORM/TYPESENSE_CQL_MVP.md). Deployed settings use CQL_TYPESENSE_QUERY_ORIGIN and CQL_TYPESENSE_QUERY_API_KEY; preserve current provider decisions/cohorts.
+
+
+## Marqo current commerce teaching source — 8 November2026
+
+- Status: deferred behind the priority-provider live queue; no access/account question now. The existing legacy unstructured adapter has26controlled passes but no native/current/live acceptance.
+- Context: pinned upstream README explicitly deprecates open source. Its old Holon document-envelope contract does not prove the current commerce API. No historical runtime/model/image, new account or paid resource was created.
+- Concrete owner step when queued: identify an existing authorized current Marqo commerce teaching index and its existing private reader configuration, without posting keys. Engineering will first qualify the documented current read contract, approved catalogue and least-privilege credentials; do not assume an old unstructured endpoint or shared API token is compatible. If access does not exist, retain the deferment; no paid signup is assumed.
+- Reason: current native/live proof requires authorized real source records. The original bounded legacy implementation and controlled tests cannot stand in for those records or current commerce semantics. A historical runtime demo would be explicitly labelled and separate from current-service acceptance.
+- Evidence: [Marqo scope and pinned lifecycle statement](../COSMIC%20ORM/MARQO_CQL_MVP.md). Engineering/API-contract failures remain agent-owned; this entry requests no action ahead of the priority queue.

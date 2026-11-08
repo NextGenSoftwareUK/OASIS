@@ -44,6 +44,13 @@ Durable HTTPS source, authenticated live visitor/reuse/replicas and browser rema
 open behind priority providers. Existing profile counts unchanged.
 [Evidence, original failure and remaining scope](TYPESENSE_CQL_MVP.md).
 
+Marqo's existing legacy unstructured-document CQL adapter passed26controlled
+cases/run42500640392 at source38f811b4a. Primary upstream README explicitly
+deprecates OSS; current commerce contract/source remains unqualified. No native
+runtime or current/live acceptance, no profile-count increment. Do not download
+or relabel a deprecated runtime as the current service.
+[Contract, lifecycle boundary and remaining gates](MARQO_CQL_MVP.md).
+
 TRON enrollment configuration tools passed46pure cloud tests with HTTP forbidden,
 and the Python public IDs match the actual .NET mapper in11passing controls
 (source63f25ae0f, runs42494318935/42494318990). No private baseline/candidate was
