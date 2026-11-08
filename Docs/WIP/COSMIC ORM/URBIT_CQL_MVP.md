@@ -1,10 +1,28 @@
 # Urbit current-protocol CQL preparation
 
-8 November2026. Current contacts reader implemented; CQL, native ship execution,
-manager/federation, live WEB4 and browser remain unqualified. No coverage-count
-increment or earlier accepted cohort replay. Priority-chain rollout remains first.
+8 November 2026. Goal incomplete; priority-chain rollout remains first.
 
-## Verified current read client
+Current gate: reader/private virtual CQL/shared V2 manager pass 65 controlled
+cases (42518331256). Actual Kelvin408/current contacts installation and native
+synthetic book full3/subset2 pass; restart remains unproved. Namespace-loopback
+HTTP transport passes 42519747804 after reproducing Docker's absent publication
+on an internal network. Combined native SDK/private-CQL/shared-manager/restart
+run [42519994312](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42519994312)
+is active at frozen d628fcc62. No native HTTP/manager, federation, WEB4 API/live
+or browser acceptance yet; no provider-count increase or accepted live-cohort replay.
+
+Next: inspect that run's exact native/auth/query/restart/cleanup artifact. Then
+integrate through WEB4's existing CqlV1Endpoint/ICqlReadAccessPolicy and query-only
+profile lifecycle, with an explicit server-owned owner/connection/CID catalogue.
+Browser input cannot select the private source owner or grant record access.
+Urbit is not currently enrolled in CqlV1Compiler read profiles; do not mistake
+adapter/manager qualification for API admission or route it as canonical storage.
+No alternate query engine or parallel API route is needed.
+
+The dated sections below preserve earlier evidence and failures; this checkpoint
+and CURRENT_STATUS.md describe the current gate.
+
+## Verified current read client (initial 23-case checkpoint)
 
 Source1e93c39d70d3dd1b822cbc5e61227d027871ef01,
 [run42504482542](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42504482542),

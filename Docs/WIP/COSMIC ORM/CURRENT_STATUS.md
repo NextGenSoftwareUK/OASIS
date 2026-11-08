@@ -83,8 +83,9 @@ pill passed real offline cold boot/run42507813675/source61c28aa5b. Hashed artifa
 inspected: bootstrap complete, pier live, exit0/no OOM, network none, owned
 container/volume and temporary checkout removed. Cloud asset cache43057001bytes;
 no laptop runtime installation. Earlier fetch/cleanup failures retained. Current
-contacts desk install/read, three/two-record mapping and all CQL/live gates remain
-open; do not replay accepted runtime boot alone. Exact current contacts source
+contacts installation/native book reads and controlled CQL/manager have the scoped
+proofs above; native HTTP/restart/API/live gates remain open. Do not replay accepted
+runtime boot alone. Exact current contacts source
 assembly passed42508500262:695files/4657933bytes, hashed manifest and temporary
 checkout cleanup verified. Cloud-only source cache retained for native install;
 assembly does not prove installation, contacts reads or CQL acceptance.
