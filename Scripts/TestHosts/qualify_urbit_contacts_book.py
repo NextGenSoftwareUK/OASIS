@@ -9,14 +9,21 @@ import re
 from qualify_urbit_contacts_install import main
 
 
-def qualify_book(context, http_reader=None):
-    root, out, report = (context[key] for key in ('root', 'out', 'report'))
-    execute, prefix, suffix = (context[key] for key in ('execute', 'prefix', 'suffix'))
+def load_fixture(root):
     path = root / 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.UrbitOASIS.UnitTests/Fixtures/urbit-contacts-book-source.json'
     raw = path.read_bytes()
-    assert hashlib.sha256(raw).hexdigest() == '53c7954266ddecb261bcda68637e02a16ef1d89651997a0ef4fa168f4d0b71bb'
+    digest = hashlib.sha256(raw).hexdigest()
+    assert digest == '75ac02bb8c0ad875ad227248cfe810441aa9f6550de39031e7381062b17293cb'
     fixture = json.loads(raw)
     assert fixture['visibility'] == 'Private' and [p['id'] for p in fixture['pages']] == ['0v1', '0v2', '0v3']
+    return dict(document=fixture, sha256=digest)
+
+
+def qualify_book(context, http_reader=None):
+    out, report = (context[key] for key in ('out', 'report'))
+    execute, prefix, suffix = (context[key] for key in ('execute', 'prefix', 'suffix'))
+    fixture = context['fixture_input']['document']
+    source_sha = context['fixture_input']['sha256']
     report.update(nativeBookAgentQualified=False, nativeBookRestartVerified=False, nativeSeedCount=0)
 
     def fields(page):
@@ -31,7 +38,7 @@ def qualify_book(context, http_reader=None):
     execute('book-empty', prefix + ';<  book=*  bind:m  (scry * %gx /contacts/v1/book)  ?>  =(book ~)  ' + suffix)
     for index, page in enumerate(fixture['pages'], 1):
         intent = dict(owner=report['owner'], sourceOwner=fixture['sourceOwner'], ship='~zod',
-                      fixtureSha256=hashlib.sha256(raw).hexdigest(), page=page,
+                      fixtureSha256=source_sha, page=page,
                       beforeDispatch=True, nativeAcknowledged=False)
         with (out / ('seed-' + str(index) + '-intent.json')).open('x') as stream:
             json.dump(intent, stream, indent=2)
@@ -66,4 +73,4 @@ def qualify_book(context, http_reader=None):
 
 
 if __name__ == '__main__':
-    main(on_initialized=qualify_book)
+    main(on_initialized=qualify_book, fixture_loader=load_fixture)

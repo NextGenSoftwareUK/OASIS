@@ -27,7 +27,7 @@ var loginCode = config.GetProperty("loginCode").GetString();
 if (loginCode is not { Length: >= 8 and <= 128 } || loginCode.Any(c => !(c is >= 'a' and <= 'z' or '-')))
     throw new InvalidDataException("Owned fake ship login code has an invalid spelling.");
 var fixtureBytes = await File.ReadAllBytesAsync(config.GetProperty("fixturePath").GetString()!);
-if (Convert.ToHexString(SHA256.HashData(fixtureBytes)).ToLowerInvariant() != "53c7954266ddecb261bcda68637e02a16ef1d89651997a0ef4fa168f4d0b71bb")
+if (Convert.ToHexString(SHA256.HashData(fixtureBytes)).ToLowerInvariant() != "75ac02bb8c0ad875ad227248cfe810441aa9f6550de39031e7381062b17293cb")
     throw new InvalidDataException("Native teaching source fixture differs.");
 using var fixture = JsonDocument.Parse(fixtureBytes);
 if (fixture.RootElement.GetProperty("visibility").GetString() != "Private")

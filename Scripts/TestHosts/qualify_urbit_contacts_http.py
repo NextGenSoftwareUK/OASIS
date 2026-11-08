@@ -3,7 +3,7 @@ import json
 import re
 import subprocess
 
-from qualify_urbit_contacts_book import qualify_book
+from qualify_urbit_contacts_book import load_fixture, qualify_book
 from qualify_urbit_contacts_install import main
 from urbit_conn import thread
 
@@ -47,4 +47,5 @@ def native_http(context, phase):
 
 
 if __name__ == '__main__':
-    main(on_initialized=lambda context: qualify_book(context, http_reader=native_http), http_transport=True)
+    main(on_initialized=lambda context: qualify_book(context, http_reader=native_http),
+         http_transport=True, fixture_loader=load_fixture)

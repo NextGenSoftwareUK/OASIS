@@ -19,9 +19,10 @@ def digest(path):
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
-def main(on_initialized=None, http_transport=False):
+def main(on_initialized=None, http_transport=False, fixture_loader=None):
     assert platform.system() == 'Linux' and os.environ.get('GITHUB_ACTIONS') == 'true'
     root = Path(__file__).resolve().parents[2]
+    fixture_input = fixture_loader(root) if fixture_loader is not None else None
     cache_root = Path(os.environ.get('URBIT_CLOUD_CACHE_ROOT', root / 'LocalState/COSMIC')).resolve()
     assert cache_root.is_relative_to(Path(os.environ['GITHUB_WORKSPACE']).resolve())
     assets = cache_root / 'CloudUrbitRuntimeAssets/v4.6-408k-2'
@@ -211,7 +212,8 @@ def main(on_initialized=None, http_transport=False):
         if on_initialized is not None:
             on_initialized(dict(root=root, out=out, report=report, execute=execute,
                                 prefix=prefix, suffix=suffix, restart=restart_owned_pier,
-                                binary=binary, connection=connection, http_origin=http_origin))
+                                binary=binary, connection=connection, http_origin=http_origin,
+                                fixture_input=fixture_input))
         completed = True
     finally:
         if touched:
