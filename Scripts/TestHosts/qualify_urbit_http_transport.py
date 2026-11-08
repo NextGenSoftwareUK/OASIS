@@ -4,6 +4,9 @@ import os
 from pathlib import Path
 import platform
 import subprocess
+import time
+
+from owned_urbit_http_namespace import client_command
 
 from owned_docker_resources import missing_resource
 
@@ -46,15 +49,26 @@ def main():
         assert state['Internal'] is True
         report['networkOptions'] = state['Options']
         docker('run', '-d', '--name', owner, '--label', label + '=' + owner,
-               '--network', network, '--publish', '127.0.0.1::80',
+               '--network', network,
                '--memory', '64m', '--pids-limit', '32', '--cap-drop', 'ALL',
                '--security-opt', 'no-new-privileges', '--read-only', image,
-               'node', '-e', "require('http').createServer((q,s)=>s.end('owned transport')).listen(80,'0.0.0.0')")
+               'node', '-e', "require('http').createServer((q,s)=>s.end('owned transport')).listen(80,'0.0.0.0',()=>console.log('owned-ready'))")
         state = inspect('container', owner)
         assert state['State']['Running'] is True
         report['requestedBindings'] = state['HostConfig']['PortBindings']
         report['effectivePorts'] = state['NetworkSettings']['Ports']
-        report['dockerPortOutput'] = docker('port', owner, '80/tcp').stdout.strip()
+        deadline = time.monotonic() + 15
+        while docker('logs', owner).stdout.strip() != 'owned-ready':
+            assert time.monotonic() < deadline, 'Owned transport listener not ready.'
+            time.sleep(0.1)
+        code = "import os,urllib.request,json; r=urllib.request.urlopen('http://127.0.0.1:80/',timeout=5); print(json.dumps({'uid':os.getuid(),'body':r.read(64).decode()}))"
+        reply = subprocess.run(client_command(state, owner, label, network,
+            ['/usr/bin/python3', '-c', code]), capture_output=True, text=True, check=True, timeout=15)
+        proof = json.loads(reply.stdout)
+        assert proof == {'uid': os.getuid(), 'body': 'owned transport'}
+        report['namespaceLoopbackHttpQualified'] = True
+        report['clientRanAsRunner'] = True
+        report['noPublishedPorts'] = not state['HostConfig'].get('PortBindings')
     finally:
         state = inspect('container', owner)
         if state is not None:

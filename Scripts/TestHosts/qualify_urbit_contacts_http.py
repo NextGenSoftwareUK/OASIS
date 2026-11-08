@@ -2,6 +2,7 @@
 import json
 import re
 import subprocess
+import shutil
 
 from qualify_urbit_contacts_book import load_fixture, qualify_book
 from qualify_urbit_contacts_install import main
@@ -27,8 +28,10 @@ def native_http(context, phase):
     root = context['root']
     host = root / 'Scripts/TestHosts/UrbitContactsHttpHost/bin/Release/net10.0/UrbitContactsHttpHost.dll'
     fixture = root / 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.UrbitOASIS.UnitTests/Fixtures/urbit-contacts-book-source.json'
-    payload = dict(origin=context['http_origin'](), loginCode=code, fixturePath=str(fixture), phase=phase)
-    result = subprocess.run(['dotnet', str(host)], input=json.dumps(payload), text=True,
+    payload = dict(origin='http://127.0.0.1:80/', loginCode=code, fixturePath=str(fixture), phase=phase)
+    dotnet = shutil.which('dotnet')
+    assert dotnet is not None
+    result = subprocess.run(context['http_command']([dotnet, str(host)]), input=json.dumps(payload), text=True,
                             capture_output=True, timeout=180)
     if result.returncode:
         # The fixture host emits fixed diagnostics only; it never echoes stdin,

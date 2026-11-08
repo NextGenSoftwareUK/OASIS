@@ -12,6 +12,7 @@ import time
 
 from owned_docker_resources import missing_resource
 from urbit_conn import thread
+from owned_urbit_http_namespace import client_command
 
 
 def digest(path):
@@ -85,13 +86,9 @@ def main(on_initialized=None, http_transport=False, fixture_loader=None):
         assert state['Labels'].get(label) == owner and state['Internal'] is True
         return state
 
-    def http_origin():
+    def http_command(command):
         assert http_transport and inspect_network() is not None
-        ports = inspect()['NetworkSettings']['Ports']['80/tcp']
-        assert len(ports) == 1 and ports[0]['HostIp'] == '127.0.0.1'
-        port = int(ports[0]['HostPort'])
-        assert 1 <= port <= 65535
-        return 'http://127.0.0.1:' + str(port) + '/'
+        return client_command(inspect(), owner, label, network, command)
 
     def ready(predicate, seconds=120):
         deadline = time.monotonic() + seconds
@@ -143,7 +140,6 @@ def main(on_initialized=None, http_transport=False, fixture_loader=None):
                '--tmpfs', '/tmp:rw,size=64m,mode=1777',
                '--mount', 'type=bind,source=' + str(assets) + ',target=/assets,readonly',
                '--mount', 'type=bind,source=' + str(data) + ',target=/pier',
-               *(['--publish', '127.0.0.1::80'] if http_transport else []),
                inputs['containerImage'], *command, timeout=180)
 
     def restart_owned_pier():
@@ -212,7 +208,7 @@ def main(on_initialized=None, http_transport=False, fixture_loader=None):
         if on_initialized is not None:
             on_initialized(dict(root=root, out=out, report=report, execute=execute,
                                 prefix=prefix, suffix=suffix, restart=restart_owned_pier,
-                                binary=binary, connection=connection, http_origin=http_origin,
+                                binary=binary, connection=connection, http_command=http_command,
                                 fixture_input=fixture_input))
         completed = True
     finally:
