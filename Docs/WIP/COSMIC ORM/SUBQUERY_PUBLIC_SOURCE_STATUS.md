@@ -64,10 +64,37 @@ spoofing, proxy, alternate route or automatic retry. This observed denial does
 not retroactively establish the missing first response's status or contents.
 SubQuery chain identity remains unverified, despite its own V1 metadata200.
 
-Next complete independent chain identity and bounded entity/schema qualification,
-then implement/admit the native CQL reader. Native manager, WEB4, federation,
-privacy, snapshot/replica and browser gates remain open. Existing legacy storage
-methods are outside this preliminary proof. No runtime installed, provider
+## Native dictionary schema and bounded block evidence
+
+Bounded schema reads succeeded: root fields are `_metadata`, `evmLogs` and
+`evmTransactions`; EvmLog exposes id/address/blockHeight/topics; StringFilter
+declares equality and key-set filters. Root313bytes SHA256
+ba8760934386c11fa2e4057bba75ec87a44a1283d6950a3f7db7382953b7256a;
+connection/arguments1540bytes SHA2561424d43ff67f646923f272d0599950cc932c271720cc98eb54f32d3ef430e2e0;
+entity/filter/metadata1819bytes SHA256e3f009982c0c918050d7d68cd04c993b7194823ecd56667485ce1faceebeaab4.
+
+Do not infer a generic entity API from introspection: a first:3 read with no
+explicit order returned PRIMARY_KEY_ASC is not a valid EvmLogsOrderBy. The
+declared enum includes ID_ASC, but a separate explicit ID_ASC read returned
+not supported orderby option. Both failed queries and raw responses are retained;
+a local summary initially mishandled the null connection, but request/status/body
+were already retained and no request was repeated to repair that summary.
+
+The pinned SDK's [V1 query builder](https://github.com/subquery/subql/blob/b35d488cfe4d9ff85cf2f6d1752ff7038e5a4eb8/packages/node-core/src/indexer/dictionary/v1/utils.ts)
+specifies the actual dictionary contract: range-constrained filters,
+BLOCK_HEIGHT_ASC, distinct BLOCK_HEIGHT and nodes containing blockHeight.
+One exact-shape query limited to3nodes in [400000000,400010000), matching
+ERC20 Transfer topic, returned HTTP200/245bytes, SHA256
+67be5266179614e631f2fc166b77b922794babc98b6cac66faa86dbcd8b6d289.
+Heights400000000,400000002,400000003 are distinct ascending decimal strings;
+the same reported genesis identifier is preserved. Raw values/metadata remain
+under subquery-arbitrum-sdk-v1-blocks.*. No full log/transaction or on-chain
+finality claim follows from these dictionary matches.
+
+Next implement a bounded dictionary-block CQL source from this real SDK contract,
+complete independent chain identity before admission, and qualify actual native
+manager/WEB4/federation/privacy/snapshot/replica/browser gates. Existing legacy
+storage methods are outside this preliminary proof. No runtime installed, provider
 configuration changed, accepted cohort replayed or owner action requested.
 
 [Provider inventory](PROVIDER_CQL_AND_SANDBOX_STATUS.md) · [Current status](CURRENT_STATUS.md).

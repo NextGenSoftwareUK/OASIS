@@ -25,7 +25,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 - Teaching activation job593cd948-541c-4012-8d0d-654b58ba381d succeeded.
 - Scoped release branch work/cosmic-teaching-release-candidate in both repos.
   Dapr correction74a7b60c0/Coreec7d440 passed exact native/image gates and
-  is now on Development. Code deployment75e5970b isQUEUED. Active code remains
+  is now on Development. Code deployment75e5970b isBUILDING. Active code remains
   f00eb9d48/db3d1e66 on ab03fb8e-9d74-4f81-ae6f-38264afeba36 until newSUCCESS.
   Dapr disabled; no settings changed.
   First planned source save is unacknowledged: Railway denies native libaio
@@ -61,7 +61,7 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-Development branch is74a7b60c0/Coreec7d440; code deployment75e5970b isQUEUED.
+Development branch is74a7b60c0/Coreec7d440; code deployment75e5970b isBUILDING.
 Active codef00eb9d48/db3d1e66 isSUCCESS
 on instanceab03fb8e-9d74-4f81-ae6f-38264afeba36,
 actual image sha256:54c3fd20f29399801dd827c51d26e5cc6fd9019cbe1eaea687ef84a677d414c8.
