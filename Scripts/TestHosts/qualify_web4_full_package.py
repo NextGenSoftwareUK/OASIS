@@ -10,7 +10,7 @@ def main():
     p.add_argument('--digest', required=True)
     p.add_argument('--require-tron-reader', action='store_true')
     p.add_argument('--require-urbit-reader', action='store_true')
-    p.add_argument('--profile', choices=['full', 'tron-api'], default='full')
+    p.add_argument('--profile', choices=['full', 'tron-api', 'maplibre'], default='full')
     o = p.parse_args()
     assert not o.require_urbit_reader or o.profile == 'full', 'Urbit requires the full WEB4 package.'
     assert os.environ.get('GITHUB_ACTIONS') == 'true', 'Cloud-only image qualification.'
@@ -56,11 +56,12 @@ def main():
     probe = r'''
 const fs=require('node:fs'), crypto=require('node:crypto'), assert=require('node:assert/strict');
 const expected=JSON.parse(process.argv[1]), requireTron=JSON.parse(process.argv[2]), profile=process.argv[3], requireUrbit=JSON.parse(process.argv[4]);
-assert(['full','tron-api'].includes(profile));
+assert(['full','tron-api','maplibre'].includes(profile));
 assert(profile!=='tron-api'||requireTron, 'TRON API package requires its reader');
 assert(!requireUrbit||profile==='full', 'Urbit requires the full WEB4 package');
 for(const [file,hash] of Object.entries(expected)) assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),hash);
 const names=['NextGenSoftware.OASIS.API.ONODE.WebAPI','NextGenSoftware.OASIS.API.Core'];
+if(profile==='maplibre')names.push('NextGenSoftware.OASIS.API.Providers.MapLibreOASIS');
 if(profile==='full')names.push('NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS','NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS','NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS','NextGenSoftware.OASIS.API.Providers.SEEDSOASIS');
 for(const name of names)assert(fs.statSync('/app/'+name+'.dll').size>0,name);
 if(requireTron){const reader=fs.readFileSync('/app/NextGenSoftware.OASIS.API.Providers.TRONOASIS.dll');for(const symbol of ['TronPublicHeaderMetadataSource','FromAuthenticatedJson'])assert(reader.includes(Buffer.from(symbol)),symbol);}
@@ -97,12 +98,12 @@ console.log(JSON.stringify({packagedSourceHashes:true,assemblies:names.length+(r
         state = json.loads(docker('inspect', name).stdout)[0]
         assert state['Image'] == metadata['Id'] and state['State']['ExitCode'] == 0
         assert not state['State']['Running'] and not state['State']['OOMKilled']
-        assert ack['apiQualified'] is False and ack['assemblies'] == (2 if o.profile == 'tron-api' else 6) + int(require_tron) + int(o.require_urbit_reader)
+        assert ack['apiQualified'] is False and ack['assemblies'] == {'tron-api': 2, 'maplibre': 3, 'full': 6}[o.profile] + int(require_tron) + int(o.require_urbit_reader)
         assert ack['tronReaderPackaged'] is require_tron
         assert ack['urbitReaderPackaged'] is o.require_urbit_reader
         assert ack['modelHashes'] is (o.profile == 'full')
         (out / 'acknowledged.json').write_text(json.dumps({'source': o.source, 'image': image,
-            'tag': tag, 'imageId': metadata['Id'], 'expectedHashes': expected, 'checks': ack,
+            'profile': o.profile, 'tag': tag, 'imageId': metadata['Id'], 'expectedHashes': expected, 'checks': ack,
             'liveDeployment': False}, indent=2))
     finally:
         r = docker('container', 'inspect', name, check=False)

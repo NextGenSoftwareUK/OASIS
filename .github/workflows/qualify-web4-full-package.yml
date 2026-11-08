@@ -22,7 +22,7 @@ on:
         description: Exact image scope to verify
         required: false
         type: choice
-        options: [full, tron-api]
+        options: [full, tron-api, maplibre]
         default: full
       tron_reader:
         description: Require the packaged authenticated TRON header reader

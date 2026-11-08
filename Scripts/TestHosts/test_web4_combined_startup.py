@@ -75,6 +75,7 @@ console.log(JSON.stringify(result));
 """.replace('PROBE', json.dumps(probe))
         cases = [({'profile':'full','reader':False}, 0, 6),
                  ({'profile':'full','reader':True}, 0, 7),
+                 ({'profile':'maplibre','reader':False}, 0, 3),
                  ({'profile':'tron-api','reader':True}, 0, 3),
                  ({'profile':'tron-api','reader':True,'missingMethod':True}, 1, None),
                  ({'profile':'tron-api','reader':True,'missingFile':True}, 1, None),
