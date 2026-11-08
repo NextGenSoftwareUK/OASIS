@@ -5239,3 +5239,7 @@ Cloud run42507813675 passed real boot; artifact13628570452/1998bytes inspected i
 
 ### 8 Nov — Contacts source pins
 Retained compact current-desk tree inventory under existing LocalState (metadata only) plus tracked urbit-contacts-inputs.json with26dependency Git blob identities. Upstream manifests/trees inspected in memory; no669-file source download, app SDK installation, new environment or native ship created. Native assembly/install still unqualified.
+
+
+### 8 Nov — Current contacts assembly verified
+Cloud run42508500262 assembled695files/4657933bytes. Four exact owned source checkouts removed after Git helpers exited. Assembled source+manifest retained in reusable cloud cache only. Artifact13628616882/33200bytes verified in memory; compact receipt retained, no source/ZIP extracted locally. Manual-only workflow after first accepted assembly. Native installation remains open.

@@ -1,12 +1,6 @@
 name: Assemble pinned Urbit contacts desk
 
 on:
-  push:
-    branches: [work/cosmic-cql-ton-public]
-    paths:
-      - '.github/workflows/qualify-urbit-desk.yml'
-      - 'Scripts/TestHosts/qualify_urbit_desk.py'
-      - 'Scripts/TestHosts/urbit-contacts-inputs.json'
   workflow_dispatch:
 
 permissions:

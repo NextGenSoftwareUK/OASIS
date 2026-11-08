@@ -68,7 +68,10 @@ inspected: bootstrap complete, pier live, exit0/no OOM, network none, owned
 container/volume and temporary checkout removed. Cloud asset cache43057001bytes;
 no laptop runtime installation. Earlier fetch/cleanup failures retained. Current
 contacts desk install/read, three/two-record mapping and all CQL/live gates remain
-open; do not replay accepted runtime boot alone.
+open; do not replay accepted runtime boot alone. Exact current contacts source
+assembly passed42508500262:695files/4657933bytes, hashed manifest and temporary
+checkout cleanup verified. Cloud-only source cache retained for native install;
+assembly does not prove installation, contacts reads or CQL acceptance.
 [Current source contract and next native gates](URBIT_CQL_MVP.md).
 
 TRON enrollment configuration tools passed46pure cloud tests with HTTP forbidden,
