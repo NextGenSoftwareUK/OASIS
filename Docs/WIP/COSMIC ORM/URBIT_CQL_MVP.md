@@ -121,10 +121,14 @@ source needs a new immutable image and exact package/startup qualification; neve
 move or overwrite the existing candidate tag. No native cohort replay.
 Cloud controls42533306769/job128892050267 pass at corrected source
 1c9c399042272489e582b0646e16052d478382d1/Coree62ec44. One corrected cloud image
-build42533336909/job128892145512 is active at that exact SHA, new commit-only
-teaching tag, no alias or Development/live changes. Follow the original build;
-then require exact-digest package/TRON+Urbit and tightened Docker-health startup
-proof. Existing rejected image54be8845a remains unchanged, not a deploy candidate.
+build42533336909/job128892145512 completed successfully at that exact SHA,
+new commit-only teaching tag; digest
+`sha256:37e966a8d0c47e8242844f254947ab74e7a7cfe6d8371d7bd9e45735c7f31e0f`.
+One corrected exact-digest package/TRON+Urbit and tightened Docker-health startup
+qualification42534822963/job128896685512 is active (workflow139876f21, frozen
+source1c9c39904). Follow that original run and inspect cleanup before acceptance.
+No alias or Development/live changes. Existing rejected image54be8845a remains
+unchanged, not a deploy candidate.
 
 ## Files and reusable resources
 
