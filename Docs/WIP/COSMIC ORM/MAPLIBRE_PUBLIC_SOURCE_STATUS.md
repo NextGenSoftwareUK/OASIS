@@ -81,3 +81,20 @@ WEB4 explicit owner registration/read compiler/project binding,8boundary
 cases and real shared HTTP/Mongo fixture prepared. Core260d7c7dcc5512cccceb049480bd323d274b7be7
 adds only the read-tariff entry on the original Core task branch; parent
 manifest/gitlink advance together. No hosted source/admission/count change.
+
+First WEB4 cloud42455134733/job128652414955 compiles and passes8boundary
+cases, but actual paired-3returns413/CQL_FEDERATION_OUTPUT_LIMIT under the
+existing1MiBwire budget. Native3already returned successfully; no hosted claim.
+Root: full pretty-printed JSON metadata is repeatedly escaped in federation
+projections. Retained source bodies compact losslessly from77224/119336/75856
+bytes to approximately18763/45419/45833bytes, keeping every JSON value.
+
+The single provider representation now serializes the complete parsed JSON
+without formatting whitespace. Original body SHA256/byte count remain explicit;
+MapLibreStyleJsonSha256 binds the actual compact full JSON separately. No field,
+layer, source or geometry is discarded; original byte layout is not promised
+for the projected JSON string. Existing1MiBAPI limit and federation behavior
+are unchanged. Controlled positive fixtures are pretty-printed to exercise
+this invariant; full JSON/hash/count round trips remain required. Source-path
+changes now trigger its WEB4 workflow directly. Corrected native and HTTP
+qualification remain required; no accepted source/cohort replay.

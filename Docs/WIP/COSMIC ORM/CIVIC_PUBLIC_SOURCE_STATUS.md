@@ -164,3 +164,11 @@ no actor regeneration, snapshot replacement, native request or settings apply.
 No public source writes; fresh live baseline comparison still required.
 
 Exact candidate88c378c1e native42455252759/job128652766765 succeeds:27controlled+1296shared+1native, zero skips. Artifact13607421696/308268bytes SHA25645cf16e1bffd8cbdbb29016d0c1675f54e3fe5ac8ae92dd0dae40e8a29d78e18 and all3TRX hashes/counters verified entirely in memory. WEB442455252768/job128652766868 and admission42455252725/job128652766840 freshly observedlive; no image request until both pass.
+
+Exact candidate88c378c1e all1358cases succeed/no skips:27controls+1296shared+
+1native,8boundary+1realWEB4/Mongo,25existing-source admission. WEB4 artifact
+13607104522/4584bytes SHA25612318c0386090341302553ffa98332ef440fb6281370b4cf970985c8d73d720f;
+admission13607164406/4434bytes SHA256cd32743783e0d73613ae5528dc34517403f3ac4b645d571d5955e2a71dbd7a1f.
+Reports/counters/privacy/9receipts/ownedDBabsence verified wholly in memory.
+One commit-tagged teaching image request acknowledged204; no Railway request,
+Development push or settings change. Preserve original dispatch journals.

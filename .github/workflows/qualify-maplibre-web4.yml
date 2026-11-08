@@ -5,6 +5,7 @@ on:
     branches: [work/cosmic-cql-ton-public]
     paths:
       - '.github/workflows/qualify-maplibre-web4.yml'
+      - 'Providers/Maps/NextGenSoftware.OASIS.API.Providers.MapLibreOASIS/**'
       - 'Docker/oasis-dependency-versions.env'
       - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlMapLibreHostedConfigurationTests.cs'

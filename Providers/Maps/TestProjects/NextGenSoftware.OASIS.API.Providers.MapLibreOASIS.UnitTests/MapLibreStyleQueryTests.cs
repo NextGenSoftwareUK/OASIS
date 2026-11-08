@@ -148,7 +148,10 @@ public class MapLibreStyleQueryTests
             Assert.AreEqual(key, row.ProviderUniqueStorageKey[Provider]);
             var text = row.MetaData["MapLibreStyleJson"].ToString();
             Assert.AreEqual(Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(text))),
-                row.MetaData["MapLibreContentSha256"].ToString());
+                row.MetaData["MapLibreStyleJsonSha256"].ToString());
+            Assert.AreEqual(64, row.MetaData["MapLibreContentSha256"].ToString().Length);
+            Assert.IsTrue(int.Parse(row.MetaData["MapLibreContentBytes"].ToString()) > 0);
+            Assert.IsFalse(text.Contains('\n'), "Store the complete JSON without formatting whitespace.");
             using var document = JsonDocument.Parse(text);
             Assert.AreEqual(8, document.RootElement.GetProperty("version").GetInt32());
             Assert.AreEqual(row.Name, document.RootElement.GetProperty("name").GetString());
@@ -197,7 +200,7 @@ public class MapLibreStyleQueryTests
             if (Fault == "bad-layer-kind") layer["type"] = "foreign-kind";
             if (Fault == "unknown-layer-source") layer["source"] = "absent";
             if (Fault == "missing-layers") root.Remove("layers");
-            var json = JsonSerializer.Serialize(root);
+            var json = JsonSerializer.Serialize(root, new JsonSerializerOptions { WriteIndented = true });
             if (Fault == "malformed-json") json = "{";
             if (Fault == "duplicate-root") json = json[..^1] + ",\"version\":8}";
             if (Fault == "duplicate-nested") json = json[..^1] + ",\"metadata\":{\"x\":1,\"x\":2}}";

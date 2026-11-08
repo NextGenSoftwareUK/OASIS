@@ -163,6 +163,7 @@ public sealed class MapLibreStyleQuerySource : KeyValueStorageProviderBase,
                 if (layer.TryGetProperty("source", out var selected) && !sourceIds.Contains(selected.GetString()!))
                     throw new InvalidDataException("A layer references a source outside its style document.");
             }
+            var compactStyle = JsonSerializer.Serialize(root);
             var fields = new Dictionary<string, object>
             {
                 ["name"] = name,
@@ -172,7 +173,9 @@ public sealed class MapLibreStyleQuerySource : KeyValueStorageProviderBase,
                 ["MapLibreSourceCount"] = sourceIds.Count,
                 ["MapLibreLayerCount"] = layerIds.Count,
                 ["MapLibreContentSha256"] = Convert.ToHexStringLower(SHA256.HashData(bytes)),
-                ["MapLibreStyleJson"] = text
+                ["MapLibreContentBytes"] = bytes.Length,
+                ["MapLibreStyleJsonSha256"] = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(compactStyle))),
+                ["MapLibreStyleJson"] = compactStyle
             };
             var mapped = NativeRecordHolonMapper.CreateHolon(owner, PType.MapLibreOASIS,
                 new NativeRecord(Source, key, fields), NativeDataMapping.ForSource(Source));
