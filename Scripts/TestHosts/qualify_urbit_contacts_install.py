@@ -109,6 +109,7 @@ def main():
         shutil.copytree(source, mounted, dirs_exist_ok=True)
 
     touched = False
+    completed = False
     try:
         assert inspect() is None
         touched = True
@@ -134,7 +135,9 @@ def main():
         deadline = time.monotonic() + 600
         kernel_probes = []
         while True:
-            result = thread(binary, connection, prefix + '(pure:m !>(zuse))', timeout=120)
+            remaining = deadline - time.monotonic()
+            assert remaining > 0, 'Native OS readiness deadline exceeded.'
+            result = thread(binary, connection, prefix + '(pure:m !>(zuse))', timeout=min(600, remaining))
             canonical = re.sub(r'\s+', ' ', result).strip()
             kernel_probes.append(canonical)
             assert canonical in ('[1 %avow 0 %noun 408]', '[1 %avow 0 %noun 409]'), 'Native OS readiness probe failed.'
@@ -158,6 +161,7 @@ def main():
         body += '  ?>  (lth attempts 120)  ;<  ~  bind:m  (sleep ~s1)  $(attempts +(attempts))'
         execute('contacts-ready', body, timeout=180)
         report['contactsAgentInitialized'] = True
+        completed = True
     finally:
         if touched:
             state = inspect()
@@ -181,6 +185,8 @@ def main():
         shutil.rmtree(data)
         report['ownedPierRemoved'] = not data.exists()
         (out / 'qualification.json').write_text(json.dumps(report, indent=2))
+    if completed:
+        assert report['exitCode'] == 0 and not report['oomKilled'] and report['networkMode'] == 'none', 'Native lifecycle did not finish cleanly.'
 
 
 if __name__ == '__main__':
