@@ -123,3 +123,15 @@ One offline mapping owner5eda0cab-e29b-4b9a-969b-ad4001c0eace/source plan prepar
 Exact candidate638993968 all gates succeed,60cases/no skips:25controls+1native;8boundary+1realWEB4/Mongo;25existing-admission. WEB4 artifact13605139355/4602bytes SHA256f76a18960d261d96a00aa66261eaa7bd6927c5b5e8e2ec33a5a586cee9c04c35 and admission13605863152/4381bytes SHA256b0fc86c5747837d714048d4ca0f54a8857dd1d714d3370afe8bb2a989e8410a9 verified wholly in memory. Original HTTP3/2,5/4,private0/public3/9receipts and databaseAbsent:true verified. No hosted/replica/browser claim.
 
 One explicit commit-tagged teaching image42451953369/job128642888031 is active, Build and push; tag638993968dfd9d43467d97f42d7931892df8c549-teaching, no mutable sandbox tag or second request. Prereview verifies all7advertised pins, complete255settings unchanged and exact accepted Self baseline1fe29f38/source916/actuale2f01ef06f, including active Self/SubQuery/Dapr source settings. Guarded publisher prepared only, requires exact successful image receipt and fresh branches/pins/settings/deployment checks. No Holonym settings or Development push.
+
+Exact image run freshly observed in_progress on the same source; job remains
+in Build and push. Logs are not yet available (GitHub BlobNotFound); this is
+not a terminal build failure and does not authorize redispatch. Read-only
+package inspector and four-setting activation operator are prepared only.
+Both Python files parse and the remote inspector passes cached Node24 syntax
+checking. Code phase requires all255 baseline settings, Holonym disabled and
+accepted Self/SubQuery/Dapr enabled; settings phase requires all257 candidate
+settings and original Holonym owner. Installed Holonym assembly, exact-ID
+reader/schema/source binding and WEB4 registration are checked alongside the
+existing helpers, runtime proofs and accepted source enrollment. No operator
+was invoked, settings applied, deployment requested or cohort created.
