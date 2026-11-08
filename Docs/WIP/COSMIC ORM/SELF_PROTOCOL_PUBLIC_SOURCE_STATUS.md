@@ -230,3 +230,30 @@ SDK assemblies. Latest actionable handle and sequence are inCURRENT_STATUS.md.
 8 November Development batch: image42447469381 SUCCESS, exact916c62210-teaching tag/provenance verified, GHCRsha256:bb86863c7bf41311cf3e49b77203f87d41d39c66de2cb14f65c674bf27c66067. Fresh publisher rechecks seven advertised pins, all253settings, exact accepted baseline and branch ancestry, then one normal Development push acknowledged. Code deployment131667e6-1d02-4958-8584-448520365dac isQUEUED; original protected metadata/handle retained. No settings/native operation or duplicate request. Inspect actual running code package before staging/activation.
 
 8 November: code131667e6 SUCCESS, actualsha256:d8755e8788ef050419ccddd7eaca3e9b3978ad6658e740906af888d81a84b970, instance03a1c671-2988-4d35-8df6-14db5ea73eef. Read-only inspection verifies253settings/206critical,6helpers,11SDK/provider assemblies/native proof and preserved Dapr/SubQuery sources; Self correctly disabled. Four settings preflight/apply ACK exactly once, without deploys; one activation request acknowledged. Activation1fe29f38-1ddb-4ca1-82ba-4c000dac26d7 isBUILDING. Protected original response and handle retained. No Self visitor cohort/native source write yet. Require exact255setting/running-package inspection before HTTP acceptance.
+
+## Live Development HTTP acceptance sealed — 8 November
+
+Activation1fe29f38-1ddb-4ca1-82ba-4c000dac26d7 SUCCESS on instance
+ff2628fd-b511-4e26-9bc6-cb7b86a34b43. Actual Railway image
+sha256:e2f01ef06f3471231df01ef5d09dd1af19551a46311ef7f21d2dae25565c0dd8.
+All255settings/208critical,6helpers,11assemblies/native/runtime proof verified;
+Self enabled, SubQuery/Dapr source/runtime acknowledgements preserved.
+
+First live cohort owner2826f75b-27ec-40f4-a259-edaa1921c81b, foreign
+16769240-3a08-4e78-a1d2-2b8e6b7e4bac, reused the acknowledged PouchDB readiness
+visitor. No new readiness actor or public/native source data created.
+Native3/2, Mongo federation5/4, first2saves/repeat0new+2existing, exact SQLite/
+Neo4j replicas2/2 and foreign private0/public3 all pass. Empty pending intents,
+exactly2save ACKs and original reports composed into durable acceptance receipt
+without another query/save/session. No continuation/replacement cohort needed.
+Browser remains open; this verifies HTTP, not functional browser interaction.
+
+Evidence SHA256:
+- native:60f0551de351595ab30cbc883f7c6749466911fddbf5bf91c9303a3b0cb1c6f9
+- client:861906c417423b7b7eada3477ad2c3dd3315406254790fd8272b562a6030d7d2
+- isolation:b282fdacfd1d0f379e6ce29ddd517a761b3b8561f7d96a9a0e1b64e698a40584
+
+Original protected sessions, journals and cql-http-acceptance.acknowledged.json
+are under HostedQueryAcceptance-SelfProtocolOASIS. Never rerun --prepare or
+replace these originals to regenerate evidence. Scope122local/94HTTP/28browser.
+Card79 may now be published with this immutable proof and explicit browser gap.

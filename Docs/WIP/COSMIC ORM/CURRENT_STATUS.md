@@ -40,7 +40,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **122 scoped local, 93 live HTTP and 28 functional browser**.
+Coverage is **122 scoped local, 94 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -84,30 +84,23 @@ verified, GHCR digestsha256:bb86863c7bf41311cf3e49b77203f87d41d39c66de2cb14f65c6
 No image download or mutable sandbox tag. Fresh branch/seven-pin/full253setting/
 baseline checks passed; one scoped Development push916c62210 acknowledged.
 
-Code deployment131667e6 isSUCCESS on03a1c671-2988-4d35-8df6-14db5ea73eef.
-Actual Railway image issha256:d8755e8788ef050419ccddd7eaca3e9b3978ad6658e740906af888d81a84b970.
-Read-only package inspection verifies all253settings/206critical, six helpers,
-eleven assemblies and native/runtime/Dapr ACK; Self reader present and correctly
-disabled, SubQuery still enabled. Original code receipt retained; do not repeat it.
+Self code131667e6 and activation1fe29f38 bothSUCCESS. Exact settings package
+verified255settings/208critical,6helpers,11SDK/provider assemblies and native/
+Dapr/SubQuery fingerprints. Active instanceff2628fd-b511-4e26-9bc6-cb7b86a34b43;
+actual Railway imagesha256:e2f01ef06f3471231df01ef5d09dd1af19551a46311ef7f21d2dae25565c0dd8.
+One settings apply/activation only; native source writes0.
 
-Four Self settings passed preflight and were applied once without deployment;
-four exact per-key ACKs retained. One guarded activation request acknowledged.
-**Observe activation1fe29f38-1ddb-4ca1-82ba-4c000dac26d7**, currentlyBUILDING.
-Do not repeat variable writes, activation, Development push or image dispatch.
-After SUCCESS, invoke inspect-self-protocol-code-package.py with that exact ID
-and --phase settings. Require all255settings, enabled ownerc7efecf1, exact
-instance/package plus preserved SubQuery/Dapr. Use its actual Railway digest,
-not the GHCR digest, for the first live HTTP cohort guard.
-
-Then reuse the acknowledged PouchDB readiness visitor; create Self's original
-owner/foreign cohort once for native3/2,federation5/4,preparation/reuse/privacy
-and exact SQLite+Neo4j replicas2/2. Seal the original two saves and reports;
-never replace unknown outcomes or rerun accepted cohorts. No Self cohort yet.
-Publish card79 only after live HTTP acceptance and pin its immutable evidence.
+Self original owner2826f75b/foreign16769240 passed live native3/2,paired5/4,
+first2saves,repeat0new/2existing,private0/public3 and exact SQLite/Neo4j2/2.
+Durable acceptance sealed from original reports/twoACKs/empty pending registry;
+no query/session/save replay. Reused PouchDB readiness actor. Browser still open.
+Publish card79 with the new immutable acceptance evidence; verify public HTML
+against exact Git bytes. Then continue Holonym's scoped candidate/rollout.
+Do not repeat any accepted Self/SubQuery/Dapr cohort or source operation.
 
 Offline owner/source plan and protected253baseline/255candidate are fixed;
-no native source writes. Website card79 is drafted only on task8a650c6;
-main/public remains104a0064. Browser URL-policy gate stays open.
+no native source writes. Website card79 currently drafted on task8a650c6;
+main/public remains104a0064 until this newly accepted card is published. Browser URL-policy gate stays open.
 [Self Protocol proof and gates](SELF_PROTOCOL_PUBLIC_SOURCE_STATUS.md).
 Activation guard activate-self-protocol-settings.py is prepared/syntax checked only.
 Holonym current Sign source now passes25controls+1real CQL3/2 on source25d8f3a03,
@@ -124,7 +117,7 @@ at104a0064, public268592byte HTML hash7908eabb8c70743d2e0cc1023484da2c7bb1e480d6
 matches exact Git. Do not replay its accepted cohort, settings or activation.
 [SubQuery proof](SUBQUERY_PUBLIC_SOURCE_STATUS.md).
 
-Coverage remains **122 scoped local / 93 live HTTP / 28 functional browser**.
+Coverage remains **122 scoped local / 94 live HTTP / 28 functional browser**.
 The accepted Dapr cohort and retired failed generation remain preserved; no
 source creation/save was replayed. [Dapr history](DAPR_CQL_MVP.md). While the
 code deployment waited for a build slot, a first anonymous Self Protocol RPC
