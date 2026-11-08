@@ -4,6 +4,13 @@ Updated 8 November 2026. Goal active and incomplete.
 
 ## Latest continuation
 
+Gelato controlled client563e87ed1 cloud42470665687 passes34/34/no skips;
+hashed artifact inspected. Native credentials/CQL remain open and access
+is deferred in the one owner list. Four-provider offline settings plan now
+prepared:261to270settings,11changed keys, one intended activation, no live
+mutation. Third same-URL release HEAD check still returns504 for Waku/NATS;
+full-image rebuild remains held. [Gelato proof](GELATO_PUBLIC_SOURCE_STATUS.md).
+
 OpenVINO actual native-service2ad47d9fa cloud42469362007 passed production
 models, real loopback launch, metadata/3inferences and graceful child/parent
 exit0; owned container/models absent. Full image42468917135 failed existing
@@ -257,3 +264,5 @@ Observe only the exact deployment with Scripts/Sandbox/Observe-HostedDeployment.
 8 November browser gate review: retained recovery ledger records earlier URL-confidence policy rejection. Windows browser discovery returned no matching browser apps/windows; no navigation, input, new browser install or alternate-route attempt. Existing rejection is preserved, no browser coverage increment. Work continues on guarded release preparation and remaining provider gates. Four-provider existing-branch publisher prepared with explicit accepted-MapLibre/native/replica/reuse/privacy/settings/remote-ref guards; not invoked.
 
 8 November Gelato breadth continuation: actual published Gasless0.0.12 archive integrity/native client construction/capability schema reviewed in memory, no install. Legacy Relay oracle TLS failures preserved/no retry; current capability read uses separate production RPC and configured Bearer key. Controlled bounded migration/native supported-chain discovery remain engineering gates; no native service request, owner ask, enrollment or coverage increment. See GELATO_PUBLIC_SOURCE_STATUS.md.
+
+Offline four-provider source/settings plan prepared once under LocalState/COSMIC/HostedFourProviderSourcesCurrent. Reuses original MapLibre261setting candidate as baseline; after270settings/11changed keys (four source-owner bindings, four preset partitions, shared admission/grants and explicit OpenVINO runtime flag). One protected353014byte candidate SHA2568dfa5e675efd34ea7915f022265a141d9b3c31bea1680d3fa0e3ca4f506e33db, no duplicate baseline copy. All existing settings preserved outside exact11key set. One activation intended, no native writes/settings/deployment; accepted MapLibre/fresh full baseline comparison/exact scoped batch/full image still required. Preserve original owners/descriptors, never regenerate.

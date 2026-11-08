@@ -875,3 +875,21 @@ and hosted federation and replication verification.
 - This transfer enables the next Development demo after LocalFile. Keep
   credentials, protected settings and the database on the old laptop.
   Engineering will verify the original hashes before preparing settings.
+
+
+## Gelato Gasless native capability access — deferred (8 November 2026)
+
+Status: deferred; no action requested during the current four-provider demo batch.
+The supported read-only client passes34controlled tests, but neither this laptop
+nor WEB4 Development has a Gelato-named credential setting. Native supported-chain
+records cannot be certified from controlled responses.
+
+When this provider reaches the live-demo queue, David's account/access decision
+is needed: use an authorized Gelato Cloud development key with capability-read
+access and provision it privately as `GELATO_GASLESS_API_KEY` in the agreed dev
+secret store; never paste it into chat or commit it. If no account/key is available,
+preserve this deferred gate. No funding, sponsorship, signing or transaction
+submission is requested or authorized by this entry.
+
+[Exact SDK contract and34case proof](../COSMIC%20ORM/GELATO_PUBLIC_SOURCE_STATUS.md).
+[Gelato Cloud account](https://app.gelato.cloud/).
