@@ -169,3 +169,15 @@ window has no sandbox tab; no navigation, save replay or URL-policy bypass made.
 TRON reader key missing in expected process/user/machine locations; one access
 entry added to ACTIONS-FOR-DAVID and privately configuring it requested once.
 Continue engineering while access is pending; do not retry anonymous endpoints.
+
+TRON priority engineering: recovered authenticated header adapter/tests copied
+byte-for-byte from existing HostedTronAuthenticatedQualification into the normal
+provider/unit projects; no retained fixture/source rewritten. The exact separate
+catalogue SHA2567f1c8fe3c35ef3c45ee31be6eaef72f34f8d10185a28e2177ace267822e89c02
+is preserved as an explicit test fixture, not claimed as the absent old cohort.
+Shared manager/LINQ walkthrough linked normally; test-only MSBuild injection and
+branch switching are not used. New cloud-only workflow verifies38controlled cases
+against current pinned Core; actual compilation pending. Native stage defaults off,
+requires an explicit dispatch and dedicated configured reader secret, and consumes
+frozen private outputs. No native request, grant, live enrollment or count increase.
+Missing access remains recorded once in ACTIONS-FOR-DAVID; no repeat ask.
