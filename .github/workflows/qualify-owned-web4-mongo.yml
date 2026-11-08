@@ -1,0 +1,25 @@
+name: Verify owned WEB4 Mongo cleanup guards
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-owned-web4-mongo.yml'
+      - 'Scripts/TestHosts/gomap_web4_mongo.py'
+      - 'Scripts/TestHosts/test_owned_web4_mongo.py'
+      - 'Scripts/TestHosts/owned_docker_resources.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ownership:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Verify both owner namespaces without Docker or native access
+        run: python3 -B Scripts/TestHosts/test_owned_web4_mongo.py

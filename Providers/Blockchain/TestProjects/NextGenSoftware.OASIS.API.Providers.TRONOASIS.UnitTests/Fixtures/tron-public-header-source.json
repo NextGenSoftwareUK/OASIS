@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "rpcUrl": "https://api.trongrid.io/walletsolidity/getblock",
+  "genesisHash": "00000000000000001ebf88508a03865c71d452e25f4d51194196a1d22b6653dc",
+  "consistency": "SolidityNodeSolidified",
+  "blockHeights": [
+    "1",
+    "2",
+    "3"
+  ],
+  "sourceOwner": "374ef405-02b9-4424-b2c6-3e187104a262"
+}

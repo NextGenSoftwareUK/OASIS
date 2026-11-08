@@ -29,4 +29,5 @@
   </ItemGroup>
 
   <ItemGroup><Compile Include="../../../Shared/TestSupport/NativeCodeGenesisContract.cs" Link="Shared/NativeCodeGenesisContract.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../../../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs" Link="Shared/NativeKeySetWalkthrough.cs" /></ItemGroup>
 </Project>
