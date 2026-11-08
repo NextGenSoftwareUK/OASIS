@@ -4931,3 +4931,11 @@ compilation is running42483969440/job128741706991; native selection is off.
 Native/live/browser/counts remain unchanged. C:41.07GiB free; this work has
 created no local builds/downloads/databases. Preserve unrelated disk activity
 and rejected cleanup scopes. Existing private credential location still pending.
+
+Owned WEB4 Mongo cleanup guard tests:4/4 passed locally with mocked Docker
+only (GOMap/TRON foreign-owner rejection and owned stop/remove/volume absence).
+No real Docker/native call, no retained temporary directory or Python cache.
+Initial test harness used an incorrect Docker volume-not-found string; corrected
+the fixture to the already-shipped exact daemon contract, no production parser
+relaxation. Added lightweight cloud ownership workflow; no SDK install/build.
+TRON HTTP compilation run42483969440 remains in progress; do not restart.
