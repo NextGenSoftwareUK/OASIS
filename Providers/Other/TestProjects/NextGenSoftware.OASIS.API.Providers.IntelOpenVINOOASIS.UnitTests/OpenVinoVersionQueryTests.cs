@@ -97,6 +97,9 @@ public class OpenVinoVersionQueryTests
     [TestMethod]
     public void InvalidCataloguesFailBeforeNativeTransportConstruction()
     {
+        var configurationOwner = Guid.Parse("a5808c3e-7031-47e7-92de-48a659568f1b");
+        CollectionAssert.AreEqual(new[] { "76dc34ff-dbbc-8541-9fd4-6708c14086a9", "9a25a55f-5a66-85d0-9700-891eacd87dd6", "acd7cd30-fffe-844a-a048-a20e67e1afed" },
+            Versions.Select(x => OpenVinoVersionQuerySource.LogicalId(configurationOwner, x).ToString()).ToArray());
         foreach (var versions in new[] { Array.Empty<string>(), new[] { "1", "1" }, new[] { "01" }, new[] { "4" }, new[] { "../1" }, new[] { "1", "2", "3", "1" } })
             Assert.ThrowsException<ArgumentException>(() => new OpenVinoVersionQuerySource(Owner, versions));
         Assert.ThrowsException<ArgumentException>(() => new OpenVinoVersionQuerySource(Guid.Empty, Versions));
