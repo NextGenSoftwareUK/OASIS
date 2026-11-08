@@ -24,6 +24,7 @@ def main():
     root = Path(__file__).resolve().parents[2]
     assets = root / 'LocalState/COSMIC/CloudUrbitRuntimeAssets/v4.6-408k-2'
     sources = root / 'LocalState/COSMIC/CloudUrbitContactsDesk'
+    kernel = root / 'LocalState/COSMIC/CloudUrbitKernel408'
     inputs = json.loads((root / 'Scripts/TestHosts/urbit-runtime-inputs.json').read_text())
     assert digest(assets / 'urbit') == '47ad302e8934271dfc00dcdab1d553c6d6460b105e3099ff47e0e4e4231bb26d'
     assert digest(assets / 'solid.pill') == inputs['pillSha256']
@@ -34,6 +35,13 @@ def main():
     for path, entry in manifest.items():
         source = desk / path
         assert not source.is_symlink() and source.stat().st_size == entry['bytes'] and digest(source) == entry['sha256']
+    assert digest(kernel / 'files.json') == '09f7f0e3d6798499b5fb87f3037bb8b6f4ee0dd52badef5ea26f8392b306f7fe'
+    kernel_manifest = json.loads((kernel / 'files.json').read_text())
+    base_source = kernel / 'base'
+    assert sorted(str(p.relative_to(base_source)) for p in base_source.rglob('*') if p.is_file()) == sorted(kernel_manifest)
+    for path, entry in kernel_manifest.items():
+        source = base_source / path
+        assert not source.is_symlink() and source.stat().st_size == entry['bytes'] and digest(source) == entry['sha256']
     run, attempt = os.environ['GITHUB_RUN_ID'], os.environ['GITHUB_RUN_ATTEMPT']
     assert run.isdecimal() and attempt.isdecimal()
     owner = 'urbit-contacts-' + run + '-' + attempt
@@ -43,6 +51,7 @@ def main():
     data = out / 'owned-pier'
     data.mkdir()
     report = dict(source=os.environ['GITHUB_SHA'], owner=owner, nativeControlQualified=False,
+                  nativeKernel408Verified=False,
                   currentSourceCommitted=False, contactsAgentInitialized=False,
                   nativeContactsQualified=False, cqlQualified=False, liveDeployment=False,
                   acknowledgements=[])
@@ -86,6 +95,19 @@ def main():
     # Vere cue prints untyped small atoms numerically. Choose one explicit
     # numeric sentinel instead of guessing a textual aura for a term.
     suffix = '(pure:m !>(0))'
+
+    def replace_mounted(name, source):
+        mounted = data / 'zod' / name
+        ready(lambda: (mounted / 'sys.kelvin').is_file())
+        assert mounted.resolve() == data.resolve() / 'zod' / name and not mounted.is_symlink()
+        for child in mounted.iterdir():
+            assert child.resolve().is_relative_to(mounted.resolve()) and not child.is_symlink()
+            if child.is_dir():
+                shutil.rmtree(child)
+            else:
+                child.unlink()
+        shutil.copytree(source, mounted, dirs_exist_ok=True)
+
     touched = False
     try:
         assert inspect() is None
@@ -104,19 +126,27 @@ def main():
         ready(lambda: connection.exists() and stat.S_ISSOCK(connection.stat().st_mode))
         execute('control', prefix + suffix)
         report['nativeControlQualified'] = True
+        execute('mount-base', prefix + '=/  =path  [(scot %p our.bowl) %base (scot %da now.bowl) ~]  ;<  ~  bind:m  (poke [our.bowl %hood] kiln-mount+!>([path %base]))  ' + suffix)
+        replace_mounted('base', base_source)
+        execute('commit-base', prefix + ';<  ~  bind:m  (poke [our.bowl %hood] kiln-commit+!>([%base |]))  ' + suffix, timeout=600)
+        # Readiness probes compile anew on the running OS. A Hoon loop compiled
+        # before the upgrade would keep the old zuse constant in its code.
+        deadline = time.monotonic() + 600
+        kernel_probes = []
+        while True:
+            result = thread(binary, connection, prefix + '(pure:m !>(=([%zuse 408] zuse)))', timeout=120)
+            canonical = re.sub(r'\s+', ' ', result).strip()
+            kernel_probes.append(canonical)
+            assert canonical in ('[1 %avow 0 %noun 0]', '[1 %avow 0 %noun 1]'), 'Native OS readiness probe failed.'
+            if canonical == '[1 %avow 0 %noun 0]':
+                break
+            assert time.monotonic() < deadline, 'Native OS did not reach Kelvin408.'
+            time.sleep(2)
+        (out / 'kernel-readiness.json').write_text(json.dumps(kernel_probes, indent=2))
+        report['nativeKernel408Verified'] = True
         execute('create-groups', prefix + ';<  ~  bind:m  (poke [our.bowl %hood] kiln-merge+!>([%groups our.bowl %base da+now.bowl %init]))  ' + suffix)
         execute('mount-groups', prefix + '=/  =path  [(scot %p our.bowl) %groups (scot %da now.bowl) ~]  ;<  ~  bind:m  (poke [our.bowl %hood] kiln-mount+!>([path %groups]))  ' + suffix)
-        mounted = data / 'zod/groups'
-        ready(lambda: (mounted / 'sys.kelvin').is_file())
-        assert mounted.resolve() == data.resolve() / 'zod/groups' and not mounted.is_symlink()
-        # Replace only this run's synthetic mounted desk, preserving its mount root.
-        for child in mounted.iterdir():
-            assert child.resolve().is_relative_to(mounted.resolve()) and not child.is_symlink()
-            if child.is_dir():
-                shutil.rmtree(child)
-            else:
-                child.unlink()
-        shutil.copytree(desk, mounted, dirs_exist_ok=True)
+        replace_mounted('groups', desk)
         execute('commit-groups', prefix + ';<  ~  bind:m  (poke [our.bowl %hood] kiln-commit+!>([%groups |]))  ' + suffix, timeout=600)
         execute('verify-source', prefix + ';<  exists=?  bind:m  (scry ? %cu /groups/app/contacts/hoon)  ?>  exists  ' + suffix)
         report['currentSourceCommitted'] = True
