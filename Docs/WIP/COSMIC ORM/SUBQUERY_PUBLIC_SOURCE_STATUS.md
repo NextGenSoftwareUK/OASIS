@@ -120,4 +120,42 @@ manager/WEB4/federation/privacy/snapshot/replica/browser gates. Existing legacy
 storage methods are outside this preliminary proof. No runtime installed, provider
 configuration changed, accepted cohort replayed or owner action requested.
 
+## WEB4 task integration and historical identity evidence
+
+Task sourceca1a06e30 adds an explicitly configured query-only WEB4 reader,
+compiler support, four native/Mongo preset plans and a real loopback HTTP/Mongo
+fixture. Cloud run42438643607/job128602921160 is compiling; qualification pending.
+The exact source's dictionary regression42438643558/job128602920938 isSUCCESS.
+No Development/settings admission has run.
+
+The shared rollout verifier now derives SubQuery's three mapped IDs from the
+fixed dictionary namespace/heights and explicit owner. All39protected candidate
+controls pass, including foreign-catalogue rejection, owner-binding mismatch,
+existing-enrollment rejection and preservation of other provider settings.
+These are isolated temporary test fixtures, not actual live settings candidates.
+
+An existing historical identity binding was located without another RPC request:
+accepted release4e0d58f0868a7a4d0e6e1951a7331e04888e19c6 pins the same genesis
+in `ArbitrumPublicAccountMetadataSource`. Its shared EVM reader requires chain
+0xa4b1 and genesis equality before each native selection. The original accepted
+Arbitrum cohort is recorded in [the1November report](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md),
+including native report SHA25638ceaac374ad51b2c77e8db865c5c3dccf8a6612df3bb2bca43eafbc357553a9.
+This corroborates the immutable expected network pin from earlier accepted work;
+it is not a fresh successful independent identity request or validation of the
+specific dictionary matches. Original raw reports are not present on this laptop.
+The new independent-RPC observation remains403/unavailable; no endpoint retry,
+alternate route, proxy or header spoofing was attempted.
+
+The immutable expected network pin is now independently corroborated by the
+[StreamingFast Firehose network registry](https://github.com/streamingfast/firehose-core/blob/8a16569d5fea3c768251ecc5ea57f82553852492/well-known/chains.go).
+Tagv1.9.10 resolves to8a16569d5fea3c768251ecc5ea57f82553852492; its Arbitrum One
+entry names block0 and the exact same genesis hash. One bounded source-file GET
+returned200/12254bytes, SHA25611aa69f1a4bc60a5940e9b6ff7e58a852fb78d26c2bd75ea28c2441759d477e0;
+read/validated in memory, compact intent/outcome only. This independently binds
+the expected network name/genesis pin used by the dictionary implementation.
+Fresh RPC/consensus verification and validation of specific event matches remain
+unavailable/unclaimed. This is static primary-maintainer registry evidence,
+not an alternative route to the denied RPC service. The scoped public profile
+continues to describe dictionary-reported activity, never verified full logs.
+
 [Provider inventory](PROVIDER_CQL_AND_SANDBOX_STATUS.md) · [Current status](CURRENT_STATUS.md).

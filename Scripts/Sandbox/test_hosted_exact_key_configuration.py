@@ -27,9 +27,11 @@ def exact_key_catalogue(provider):
         first, second, third = ("2d8b5e78-3137-8c0d-ba70-bdaa880dcdad", "e29d23d8-4c2c-8e0a-9fde-5b92d31135c0",
                                 "ffab761f-bf16-8e02-88e4-1e8a7b6cccd9")
         catalogue = {"Actor": actor, "Names": ["vitalik.eth", "nick.eth", "luc.eth"]}
-    elif provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS"):
+    elif provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS"):
         actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
         fixed_ids = {
+            "SubqueryOASIS": ("03d65d4b-1b61-8192-b4e0-3b74a698eb8d", "ea697e06-ad86-80f4-a0cc-3ba141d9c458",
+                              "1b6bec6e-d75a-8f47-8815-3c00fbb271c9"),
             "TheGraphOASIS": ("d34efac2-6513-855c-ac40-35bb83ea952e", "d76a1024-c71f-8527-96e5-4def4df3633b",
                               "f3d72db4-5b1f-8daf-a8bb-e9658a8b6b8b"),
             "DiscordOASIS": ("ca36c2c9-350d-8603-ab00-1c8e1f2a9d4f", "d5c8ecfd-cc3e-8ec7-9697-0e2ea2c96ab2",
@@ -226,7 +228,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
         self.check_candidate("TemporalOASIS")
 
     def test_fixed_public_network_candidates_bind_only_the_reviewed_owner(self):
-        for provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS"):
+        for provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS"):
             with self.subTest(provider=provider):
                 self.check_candidate(provider)
                 catalogue, _ = exact_key_catalogue(provider)
@@ -475,7 +477,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -571,7 +573,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {key: "{}"}, provider, review)
                     baseline[key] = value
-                elif provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS"):
+                elif provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS"):
                     setting = {"DiscordOASIS": "CQL_DISCORD_PUBLIC_GUILD_QUERY_SOURCE_OWNER",
                                "LivepeerOASIS": "CQL_LIVEPEER_ORCHESTRATOR_QUERY_SOURCE_OWNER",
                                "PinataOASIS": "CQL_PINATA_PUBLIC_BLOCK_QUERY_SOURCE_OWNER",
@@ -580,7 +582,8 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                                "WorldIDOASIS": "CQL_WORLD_ID_PROTOCOL_QUERY_SOURCE_OWNER",
                                "ReclaimProtocolOASIS": "CQL_RECLAIM_VERIFIER_QUERY_SOURCE_OWNER",
                                "DecentralandOASIS": "CQL_DECENTRALAND_SCENE_QUERY_SOURCE_OWNER",
-                               "TheGraphOASIS": "CQL_THE_GRAPH_STUDIO_QUERY_SOURCE_OWNER"}[provider]
+                               "TheGraphOASIS": "CQL_THE_GRAPH_STUDIO_QUERY_SOURCE_OWNER",
+                               "SubqueryOASIS": "CQL_SUBQUERY_DICTIONARY_QUERY_SOURCE_OWNER"}[provider]
                     self.assertEqual({setting: actor}, review["sourceBinding"])
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {setting: str(uuid.UUID(int=2))}, provider, review)
