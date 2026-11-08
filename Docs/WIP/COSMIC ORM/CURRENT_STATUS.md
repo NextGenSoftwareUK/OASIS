@@ -18,8 +18,8 @@ this checkpoint does not claim completion of those designs.
   **42474992596** passed both roles: exact pinned digests, producer identity,
   native versions and owned-container removal verified from hashed artifacts
   13615241072 (1103 bytes) and 13615270909 (1084 bytes), inspected in memory.
-  Full image request for exact source8668fd2d was acknowledged once after
-  prerequisite verification; original run discovery pending. No live mutation.
+  Full image42475406236/job128715501131 for exact source8668fd2d is running
+  after prerequisite verification. No live mutation.
 - Native download policy and actual Waku/NATS stages passed **42473182023**;
   artifacts/checksums/native versions and4controlled policy cases verified.
 - All seven exact private dependency checkouts passed **42472240791**. The
@@ -65,8 +65,8 @@ runtime packaging, real loopback service startup/inference and graceful shutdown
 These scopes are not yet live-enrolled.
 
 Current **unpublished** scoped parent candidate:
-**369a914e3abc54da18f6d89406511a07bae1e008**, Core
-**e242de41c41dbd4a1a4089694a2d945cdff828b4**,63scoped paths. Existing candidate
+**6284fc990d9e964f3e295599ee3b923998a2569a**, Core
+**e242de41c41dbd4a1a4089694a2d945cdff828b4**,65scoped paths. Existing candidate
 branch refs still point to MapLibre; publish only after accepted MapLibre and
 fresh shared-ref checks. Candidate publisher is prepared, never invoked.
 Exact combined-candidate qualification and final image remain required.

@@ -4834,3 +4834,5 @@ Web4Site26b3172 published atomically to existing work/cosmic-cql/main branches a
 8 November disk check after owner's space concern: C: 45.98GiB / 49.37decimalGB free. Heavy builds, native images and model/database qualification remain cloud-only. No bulk cleanup performed in this check; no previously rejected deletion retried. Compact evidence retained locally; cached tools and unrelated/user data preserved.
 
 8 November: immutable native consumer artifacts1103/1084bytes inspected wholly in memory; exact image/producer/version and both owned-container removals verified. Compact receipts only. Full WEB4 image request acknowledged once after prior terminal failure and prerequisite proof; cloud-only, no local image/model/runtime/database download or live deployment.
+
+8 November: six-path immutable-runtime amendment prepared in existing Git objects; scoped candidate6284fc990d9e964f3e295599ee3b923998a2569a has65paths and manifest/gitlink validation passes. Temporary index removed; branch refs unchanged, original owners/settings preserved. Full image42475406236/job128715501131 confirmed building in cloud; no local build/image/runtime or new environment.
