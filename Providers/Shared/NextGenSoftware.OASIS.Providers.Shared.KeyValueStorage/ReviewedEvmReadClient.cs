@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -74,6 +75,34 @@ public sealed class ReviewedEvmReadClient : IDisposable
             throw new InvalidDataException("The reviewed EVM call must return one canonical ABI word.");
 
         return word!;
+    }
+
+    public async Task<string> ReadAbiStringAsync(Uri origin, string contract, string data, Block block,
+        int maximumUtf8Bytes, CancellationToken token)
+    {
+        if (maximumUtf8Bytes is < 1 or > 4096)
+            throw new ArgumentOutOfRangeException(nameof(maximumUtf8Bytes));
+        var call = new { to = contract, data };
+        var at = new { blockHash = block.Hash, requireCanonical = true };
+        var reply = await CallAsync(origin, "eth_call", new object[] { call, at },
+            2048 + maximumUtf8Bytes * 2, token);
+        var encoded = reply.GetString();
+        var maximumFrame = 64 + ((maximumUtf8Bytes + 31) / 32) * 32;
+        if (encoded is null || encoded.Length < 130 || encoded.Length > 2 + maximumFrame * 2 ||
+            !IsHex(encoded, encoded.Length - 2) || encoded.Length % 2 != 0)
+            throw new InvalidDataException("A bounded canonical ABI string frame is required.");
+        var frame = Convert.FromHexString(encoded[2..]);
+        if (frame.AsSpan(0, 31).ContainsAnyExcept((byte)0) || frame[31] != 32 ||
+            frame.AsSpan(32, 28).ContainsAnyExcept((byte)0))
+            throw new InvalidDataException("The ABI string offset or length is noncanonical.");
+        var size = BinaryPrimitives.ReadUInt32BigEndian(frame.AsSpan(60, 4));
+        if (size > maximumUtf8Bytes)
+            throw new InvalidDataException("The ABI string exceeds the reviewed byte bound.");
+        var length = (int)size;
+        if (frame.Length != 64 + ((length + 31) / 32) * 32 ||
+            frame.AsSpan(64 + length).ContainsAnyExcept((byte)0))
+            throw new InvalidDataException("The ABI string padding or frame length is noncanonical.");
+        return new UTF8Encoding(false, true).GetString(frame, 64, length);
     }
 
     private async Task<Block> HeaderAsync(Uri origin, string selector, CancellationToken token)
