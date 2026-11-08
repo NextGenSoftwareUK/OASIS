@@ -52,6 +52,10 @@ public static class CqlUrbitReadSourceRegistration
         catch (JsonException) { throw InvalidConfiguration(); }
         catch (ArgumentException) { throw InvalidConfiguration(); }
 
+        if (services.Any(descriptor => descriptor.ServiceType == typeof(ICqlReadAccessPolicy)
+            && descriptor.IsKeyedService && Equals(descriptor.ServiceKey, ProviderType.UrbitOASIS)))
+            throw new InvalidOperationException("Urbit read authority is already configured; private enrollment cannot replace it.");
+
         services.AddKeyedSingleton<HttpClient>(ClientKey, (_, _) =>
         {
             var transport = (SocketsHttpHandler)NativeConnectionGuard.CreateGuardedHttpHandler();

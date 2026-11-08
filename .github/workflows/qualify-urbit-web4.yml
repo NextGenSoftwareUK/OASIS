@@ -53,8 +53,8 @@ jobs:
             if ($LASTEXITCODE) { throw 'Urbit private book WEB4 boundary qualification failed' }
             [xml]$report = Get-Content TestResults/UrbitWeb4Current/boundary.trx
             $counts = $report.TestRun.ResultSummary.Counters
-            if ($counts.passed -ne '27' -or $counts.total -ne '27' -or $counts.executed -ne '27') {
-              throw 'All 27 boundary cases must execute and pass without skips'
+            if ($counts.passed -ne '30' -or $counts.total -ne '30' -or $counts.executed -ne '30') {
+              throw 'All 30 boundary cases must execute and pass without skips'
             }
           }
       - name: Retain compact controlled reports

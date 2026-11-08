@@ -16,8 +16,8 @@ unproved; no provider-count increase or accepted live-cohort replay.
 Next: integrate through WEB4's existing CqlV1Endpoint/ICqlReadAccessPolicy and query-only
 profile lifecycle, with an explicit server-owned owner/connection/CID catalogue.
 Browser input cannot select the private source owner or grant record access.
-Urbit is not currently enrolled in CqlV1Compiler read profiles; do not mistake
-adapter/manager qualification for API admission or route it as canonical storage.
+Urbit read-profile registration is a task-branch candidate under qualification;
+the deployed API is unchanged. Do not route this adapter as canonical storage.
 No alternate query engine or parallel API route is needed.
 
 The dated sections below preserve earlier evidence and failures; this checkpoint
@@ -287,3 +287,8 @@ The existing Startup/CqlReadSourceProfile/CqlV1Compiler path now has an opt-in U
 A guarded DNS/HTTPS transport disables redirects, proxies and cookie mutation. Its single exact-read handler permits only GETs of the configured point paths on the configured authority, attaches the configured session only after those checks and rejects caller-supplied credentials, query strings, full-book reads, login and writes. The source remains inactive until the existing read-profile lifecycle explicitly probes it. Its keyed ICqlReadAccessPolicy grants only the configured owner/Urbit authority the stable logical catalogue. Other authenticated actors receive access rejection before native dispatch. This private integration is not a public sandbox teaching-data grant; live demo authorization/hosting remain separate gates.
 
 CqlUrbitHostedConfigurationTests defines27controlled cases covering registration, invalid configuration, owner/authority rejection, exact-path credential containment and read-profile versus composition admission. New cloud-only qualify-urbit-web4 workflow uses exact pinned submodules/libraries and the bounded provider build lease; no native runtime or data source is requested. Compilation/test acceptance pending. Existing65reader/CQL controls, native SDK/manager/restart and original live cohorts are not replayed.
+
+
+Initial WEB4 registration source55795aa69 passed27/27 controlled cases in42521643339/job128856216698. Artifact13633344725 SHA256f189d28a05eb5721e6926b2670ffa52fbe351765352da905d94218ef298e5df5 inspected in memory, zero skips. Full API/provider graph compiled cloud-only. Shared compiler/Startup edits triggered eleven older boundary workflows; all eleven were explicitly cancelled and verified terminal, while the scoped Urbit run finished. These were controlled jobs, not native cohort replays. Cancellation receipt retains exact run identities.
+
+Next scoped batch adds an explicit duplicate-provider-policy refusal plus two actual API-compiler-to-adapter-planner cases: unordered point reads admitted; name ordering rejected by the source capabilities. Expected30cases. This task-branch push suppresses redundant automatic push workflows using GitHub's documented commit annotation; exactly one manual qualify-urbit-web4 run at that source is mandatory. No deployment/merge or blanket green-check claim from suppression. Exact dependency validation and leased full API build still run in that workflow; Development integration remains held until scoped evidence and required release checks exist.

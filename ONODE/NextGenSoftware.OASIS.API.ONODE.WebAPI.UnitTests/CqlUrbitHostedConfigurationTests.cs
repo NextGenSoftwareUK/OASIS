@@ -2,6 +2,9 @@ using System.Net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.API.Providers.UrbitOASIS;
 
@@ -45,6 +48,16 @@ public class CqlUrbitHostedConfigurationTests
         Assert.Equal(ProviderType.UrbitOASIS, access.Result.Authority);
         Assert.True(access.Result.CanRead(UrbitContactBookQuerySource.LogicalId(Guid.Parse(Owner), Guid.Parse(Connection), "0v1"), false, Guid.Parse(Owner)));
         Assert.False(access.Result.CanRead(Guid.NewGuid(), true, Guid.Parse(Owner)));
+    }
+
+    [Fact]
+    public void PrivateRegistrationCannotReplaceAnExistingProviderPolicy()
+    {
+        var services = new ServiceCollection();
+        services.AddKeyedSingleton<ICqlReadAccessPolicy>(ProviderType.UrbitOASIS,
+            new CqlPublicReadCatalogue(ProviderType.UrbitOASIS, Array.Empty<Guid>()));
+        Assert.Throws<InvalidOperationException>(() => services.AddUrbitReadSource(Settings(Values())));
+        Assert.Single(services);
     }
 
     [Theory]
@@ -129,6 +142,25 @@ public class CqlUrbitHostedConfigurationTests
     {
         Assert.Equal(ProviderType.UrbitOASIS, CqlV1Compiler.RequestedProvider("UrbitOASIS", true));
         Assert.Throws<ArgumentException>(() => CqlV1Compiler.RequestedProvider("UrbitOASIS"));
+    }
+
+    [Theory]
+    [InlineData("None", true)]
+    [InlineData("Name", false)]
+    public void CompiledApiQueryMustMatchTheRealPointSourceCapabilities(string orderBy, bool supported)
+    {
+        var services = new ServiceCollection();
+        services.AddUrbitReadSource(Settings(Values()));
+        using var container = services.BuildServiceProvider();
+        var adapter = (ICosmicQueryStorageProvider)Assert.Single(container.GetServices<CqlReadSourceProfile>()).Storage;
+        var access = container.GetRequiredKeyedService<ICqlReadAccessPolicy>(ProviderType.UrbitOASIS)
+            .Authorize(Guid.Parse(Owner), ProviderType.UrbitOASIS);
+        Assert.False(access.IsError, access.Message);
+        var query = CqlV1Compiler.Compile(new CqlV1Request { Provider = "UrbitOASIS", OrderBy = orderBy },
+            Guid.Parse(Owner), ProviderType.UrbitOASIS, access.Result);
+        var plan = CosmicQueryPlanner.Plan(query, ProviderType.UrbitOASIS,
+            new[] { new CosmicQueryTarget(ProviderType.UrbitOASIS, adapter.QueryCapabilities) });
+        Assert.Equal(supported, !plan.IsError);
     }
 
     private sealed class Observed : HttpMessageHandler

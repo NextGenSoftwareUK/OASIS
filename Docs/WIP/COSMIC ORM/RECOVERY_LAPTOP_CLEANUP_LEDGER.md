@@ -5302,3 +5302,6 @@ Namespace transport42519747804 accepted; artifact13632987214 inspected in memory
 
 
 Native42519994312 accepted artifact13632864832/12122bytes SHA25679328082767f9afe196a6f2eb8af8e52604d6313260a707536b758f5a0667544 inspected in memory. SDK/private CQL/shared-manager3/2/foreign0 and source hashes preserved across restart. Restart/final exit0, no OOM; owned container/internal-network/pier removal verified, including all3owned synthetic pages. Cloud runtime/desk/kernel caches retained for reuse; no local installs/extraction/build outputs. Observation process67998 exited0 on authoritative terminal success; no owned local monitor remains. Seven pure Python namespace controls pass locally with -B, no bytecode/environment install. No duplicate native fixture dispatched.
+
+
+WEB4 registration42521643339 passed27/27; artifact13633344725 inspected in memory, compact receipt only retained. All eleven redundant shared-file-triggered boundary jobs at55795aa69 verified terminal cancelled. No native DB/container work requested by those push scopes; no new laptop SDK/toolchain/build output. Next30-case source uses one manually dispatched exact-source cloud build rather than eleven duplicate full graph builds. No Deployment push.
