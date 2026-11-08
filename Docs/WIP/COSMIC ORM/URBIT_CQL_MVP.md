@@ -88,7 +88,7 @@ The actual Node probe passes15 controlled positive/negative cases in6 local test
 methods; cloud controls42531017106/job128884988269 also pass. These are packaging
 controls, not image/runtime acceptance.
 
-One cloud candidate image build is active:
+Cloud candidate image build completed successfully:
 [42531102996](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42531102996),
 job128885261601, frozen parente514c0025532a1849c7d53ffe86be7fb1d00416c,
 Coree62ec44. Teaching runtimes included; only new commit-specific image tag
@@ -98,8 +98,15 @@ workflow changes, no API/provider/Core/dependency/publish changes. Exact depende
 manifest validation passes. First dispatch used an unsupported bare-SHA workflow
 ref and returned422 without creating a run; corrected dispatch uses the existing
 branch after matching its SHA, while the build checkout input remains frozen.
-Follow this original build; require its digest and full package/Urbit/startup
-qualification before any candidate acceptance. No Development publication.
+Published digest:
+`sha256:54be8845a8766885b959a8e162eca682d270ad7390644e6d16afd9c7a5a6d39c`.
+Source/digest were read from completed job metadata/logs without retaining logs.
+Build success is not package or startup acceptance. Exact-digest full package
+qualification is active42532884240/job128890792797, workflowe02bd2e71, source
+checkout still frozen toe514c0025. It explicitly requires both TRON and Urbit
+readers plus isolated combined API/native startup with fresh owned cloud data.
+Follow this original package run and inspect its artifact/cleanup before
+acceptance. No live settings, Development publication or native source re-seed.
 
 ## Files and reusable resources
 
