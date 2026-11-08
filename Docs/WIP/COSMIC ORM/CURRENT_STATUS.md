@@ -65,9 +65,9 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 Self Protocol scoped candidate **916c62210a1eb51fa23353bccfca3024750f452b**,
 Core **25a296e986f35fe118f30e7489c655151d57e97e**, is pushed to the existing
-work/cosmic-teaching-release-candidate branches. Development remains9fd968a7b.
+work/cosmic-teaching-release-candidate branches. Development is916c62210.
 Only16reviewed paths differ; unrelated HostedBasicSqlQueryReader and dirty
-checkout changes are excluded. Seven pins/manifest verified. No deployment.
+checkout changes are excluded. Seven pins/manifest verified; only this scoped batch was deployed.
 
 Task sourcef5c4826c5 passed26controls,1296shared checks and actual native CQL3/2
 on42446401193; WEB4/Mongo42446401228 passed8boundary+1real HTTP case with
@@ -84,17 +84,27 @@ verified, GHCR digestsha256:bb86863c7bf41311cf3e49b77203f87d41d39c66de2cb14f65c6
 No image download or mutable sandbox tag. Fresh branch/seven-pin/full253setting/
 baseline checks passed; one scoped Development push916c62210 acknowledged.
 
-**Observe code deployment131667e6-1d02-4958-8584-448520365dac**, currentlyQUEUED.
-Do not repeat Development push, request another deployment or replay any source.
-After SUCCESS, invoke inspect-self-protocol-code-package.py for that exact code
-phase; actual Railway image digest must be observed independently of GHCR.
-No Self settings staged or activation requested. Exact activation guard prepared.
+Code deployment131667e6 isSUCCESS on03a1c671-2988-4d35-8df6-14db5ea73eef.
+Actual Railway image issha256:d8755e8788ef050419ccddd7eaca3e9b3978ad6658e740906af888d81a84b970.
+Read-only package inspection verifies all253settings/206critical, six helpers,
+eleven assemblies and native/runtime/Dapr ACK; Self reader present and correctly
+disabled, SubQuery still enabled. Original code receipt retained; do not repeat it.
 
-Read-only inspect-self-protocol-code-package.py is prepared, Python+remote JS
-syntax pass. Invoke for exact code deployment SUCCESS before settings. It checks
-all253settings, preserved SubQuery/Dapr sources/runtime/native proofs, Self/shared
-reader metadata/pins and eleven SDK/provider assemblies. Settings phase later
-requires255settings and Self ownerc7efecf1. It starts no native storage process.
+Four Self settings passed preflight and were applied once without deployment;
+four exact per-key ACKs retained. One guarded activation request acknowledged.
+**Observe activation1fe29f38-1ddb-4ca1-82ba-4c000dac26d7**, currentlyBUILDING.
+Do not repeat variable writes, activation, Development push or image dispatch.
+After SUCCESS, invoke inspect-self-protocol-code-package.py with that exact ID
+and --phase settings. Require all255settings, enabled ownerc7efecf1, exact
+instance/package plus preserved SubQuery/Dapr. Use its actual Railway digest,
+not the GHCR digest, for the first live HTTP cohort guard.
+
+Then reuse the acknowledged PouchDB readiness visitor; create Self's original
+owner/foreign cohort once for native3/2,federation5/4,preparation/reuse/privacy
+and exact SQLite+Neo4j replicas2/2. Seal the original two saves and reports;
+never replace unknown outcomes or rerun accepted cohorts. No Self cohort yet.
+Publish card79 only after live HTTP acceptance and pin its immutable evidence.
+
 Offline owner/source plan and protected253baseline/255candidate are fixed;
 no native source writes. Website card79 is drafted only on task8a650c6;
 main/public remains104a0064. Browser URL-policy gate stays open.
@@ -102,8 +112,10 @@ main/public remains104a0064. Browser URL-policy gate stays open.
 Activation guard activate-self-protocol-settings.py is prepared/syntax checked only.
 Holonym current Sign source now passes25controls+1real CQL3/2 on source25d8f3a03,
 cloud42449086090/artifact13605126354 verified in memory; raw ABI/doc differences
-preserved. WEB4 read profile/Coreabaedaf and8+1 HTTP integration qualification
-prepared next, not deployed. [Next source](HOLONYM_PUBLIC_SOURCE_STATUS.md).
+preserved. WEB4 read profile/Coreabaedaf and8+1 actual HTTP/Mongo qualification
+pass on91b08d8d6/cloud42449470293;9receipts/privacy/DBabsence verified, not deployed.
+39Python catalogue controls+5publisher guards pass; no Holonym settings/source
+owner created yet. [Next source](HOLONYM_PUBLIC_SOURCE_STATUS.md).
 
 SubQuery activationeb09ea25 is accepted/sealed:253settings/package verified,
 native3/2,paired5/4,reuse0new/2existing,privacy0/public3,replicas2/2. Original

@@ -1,6 +1,6 @@
 # Self Protocol public CQL source qualification
 
-7 November 2026. Native CQL and loopback WEB4/Mongo qualified; exact scoped candidate checks active.
+7 November 2026. Native CQL, loopback WEB4/Mongo and exact image qualified; settings activation building.
 Hosted/browser gates remain open. No runtime installation or native business write.
 SubQuery live HTTP acceptance and card78 publication are complete; browser remains open.
 
@@ -228,3 +228,5 @@ preserves accepted SubQuery and Dapr while verifying Self/shared reader pins and
 SDK assemblies. Latest actionable handle and sequence are inCURRENT_STATUS.md.
 
 8 November Development batch: image42447469381 SUCCESS, exact916c62210-teaching tag/provenance verified, GHCRsha256:bb86863c7bf41311cf3e49b77203f87d41d39c66de2cb14f65c674bf27c66067. Fresh publisher rechecks seven advertised pins, all253settings, exact accepted baseline and branch ancestry, then one normal Development push acknowledged. Code deployment131667e6-1d02-4958-8584-448520365dac isQUEUED; original protected metadata/handle retained. No settings/native operation or duplicate request. Inspect actual running code package before staging/activation.
+
+8 November: code131667e6 SUCCESS, actualsha256:d8755e8788ef050419ccddd7eaca3e9b3978ad6658e740906af888d81a84b970, instance03a1c671-2988-4d35-8df6-14db5ea73eef. Read-only inspection verifies253settings/206critical,6helpers,11SDK/provider assemblies/native proof and preserved Dapr/SubQuery sources; Self correctly disabled. Four settings preflight/apply ACK exactly once, without deploys; one activation request acknowledged. Activation1fe29f38-1ddb-4ca1-82ba-4c000dac26d7 isBUILDING. Protected original response and handle retained. No Self visitor cohort/native source write yet. Require exact255setting/running-package inspection before HTTP acceptance.

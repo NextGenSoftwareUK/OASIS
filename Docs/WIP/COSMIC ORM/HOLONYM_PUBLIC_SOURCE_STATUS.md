@@ -1,7 +1,7 @@
 # Holonym / Human ID public CQL source review
 
-7 November 2026. Source and native index readiness review only. No new runtime, account,
-proof, wallet, business write, CQL count or hosted claim.
+7 November 2026. Native CQL and loopback WEB4/Mongo qualified; hosted/browser gates remain open.
+No new runtime, account, proof, wallet or native business write.
 Self Protocol image42447469381 remains the active rollout priority.
 
 The existing HolonymOASIS uses real Nethereum calls to the Optimism Hub V3
@@ -109,3 +109,5 @@ No WEB4/Core read tariff, hosted admission, deployment or count increase.
 First cloud42448890292/job128633651813 compiles but3positive activation checks fail;22/25controlled pass, native stage skipped. Root invariant: NativeRecord permits portable scalar metadata, not raw arrays. Normalize complete value/recipient arrays to explicit canonical JSON string fields HolonymPublicValuesJson/HolonymRecipientsJson at the provider boundary; preserve exact uint256 strings and raw ABI payload, no core-contract relaxation or discarded elements. Positive assertions now include the retained exception for diagnosis. Corrected qualification follows; no count/deployment claim.
 
 Corrected cloud42449086090 on25d8f3a03b39b5597835f9af412922c5cff63d79 succeeds:25controls+1actual native CQL3/2, zero skips. Artifact13605126354/5471bytes SHA256faa87fde3963a77c424d098c482105427a54844c0ca3746f5c5d445e83d01f23 and both TRX counts/hashes verified entirely in memory. The only source correction normalized unsupported array types at the provider boundary; all3previously failing positive tests now pass. Count122local/93hostedHTTP/28browser. WEB4 explicit owner/profile/read-compiler allowance,8boundary controls and real shared Mongo/HTTP fixture prepared; Coreabaedaf read-only tariff pushed on original task branch, gitlink/manifest match. Self immutable candidate916c62210 remains separate and already queued for deployment; Holonym changes excluded.
+
+WEB4 source91b08d8d6048656e0195fe9a2d8f401c7cbcc929 cloud42449470293/job128635384346 succeeds:8boundary+1real HTTP/Mongo case, no skips. Artifact13605033325/4617bytes SHA2564faf70866cf5da2939c37ebd4e23478f2b54fa5b382cf0739712af9c5a9c9ebd, both TRX/hash/summary and databaseAbsent:true verified in memory. Actual native3/2,paired5/4,foreign private0/public3,2SDK saves,9receipts. Not hosted or replica/browser acceptance. Protected fixed-catalogue planner adds Holonym native IDs/source binding;39candidate controls+5publisher guards pass with self-cleaning fixtures. No Holonym owner/snapshot/settings rollout created; wait for accepted Self batch before advancing the existing candidate refs.
