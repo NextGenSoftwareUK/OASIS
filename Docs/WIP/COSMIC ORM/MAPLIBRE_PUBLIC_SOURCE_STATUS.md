@@ -116,3 +116,5 @@ Coverage124scoped local/95liveHTTP/28browser. No hosted, replication or browser
 acceptance for MapLibre; legacy map rendering/full SDK scope stays open.
 
 Scoped candidate23532a6fc9146d5535152c182e61ec21d8889d6e/Core681a1d0b2d4aa8f3b2751a1fad8857a1dd5f86e0 prepared from Civic88c378c1e/Core81862b2 with15scoped paths, including the new test project. Source reader blob matches native/HTTP-qualified70f8f7c3c; API edits constructed from the scoped base. Manifest/gitlinks validate; temporary indices removed in finally. No checkout/worktree/runtime/database, ref publication or deployment. Candidate publication awaits accepted Civic rollout.
+
+Cross-language fixture source181e3e9928416a518f7412107135ee074e9a0502 cloud42456430837 succeeds:27controlled+1native/no skips, including the hard-coded Python/.NET logical-ID assertions. Artifact13607831994/5589bytes SHA2567344c079a4a2367f41fc11d7d5ebf07d30c74b689be4cf74d80ecef145167334 and both TRX hashes/counters verified wholly in memory. Candidate23532a6f includes this fixture; no extra local environment/build or hosted actor.
