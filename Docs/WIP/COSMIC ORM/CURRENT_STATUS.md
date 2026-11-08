@@ -53,7 +53,10 @@ this checkpoint does not claim completion of those designs.
   three controlled methods pass. Third qualifier42478032839 loaded all native
   versions, then API rejected the test JSON literal V2; canonical serialized
   value is OASISHyperDrive2 (confirmed in DNA constants/validator). Corrected
-  generator/regression; cleanup proven. Next same-image checker pending.
+  generator/regression; cleanup proven. Fourth qualifier42478260550 completes
+  passive OASIS boot, then rejects an omitted requiresProviderMeasurement flag
+  in the test route policy. Full admission contract reviewed; generator and
+  invariant regression corrected. Same-image API health still pending.
 
 [OpenVINO/runtime/build evidence](OPENVINO_CQL_MVP.md).
 [Artifact download contract](../../Devs/WEB4_NATIVE_ARTIFACT_DOWNLOADS.md).

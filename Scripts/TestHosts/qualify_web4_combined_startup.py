@@ -25,7 +25,7 @@ def configuration(root, mongo, marker):
     oasis['OfflineSessionGrants']['Enabled'] = False
     oasis['Sandbox']['Enabled'] = True
     oasis['Logging']['LogToFile'] = False
-    policy = {'meterCategory':'cql.package-startup','reservedUnits':1,'fixedCostUsd':0,
+    policy = {'requiresProviderMeasurement':True,'meterCategory':'cql.package-startup','reservedUnits':1,'fixedCostUsd':0,
               'estimatedCostUsd':0,'maximumNativeFeeCostUsd':0,'maximumProviderAttempts':1,
               'pricingCatalogueVersion':'package-startup-v1'}
     admission = {'nativeProviders':[], 'ordinaryProviders':['MongoDBOASIS'],

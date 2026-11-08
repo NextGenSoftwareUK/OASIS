@@ -14,6 +14,15 @@ class StartupProbeTests(unittest.TestCase):
         env=create(root,'mongodb://mongo:27017/?replicaSet=rs0','oasis_startup_1_1')
         import json
         self.assertEqual('OASISHyperDrive2',json.loads(env['OASIS_DNA_JSON'])['OASIS']['HyperDriveMode'])
+        admission=json.loads(env['PREPARED_STORAGE_ADMISSION_JSON'])
+        policy=admission['routes'][0]['policy']
+        self.assertTrue(policy['requiresProviderMeasurement'])
+        self.assertEqual(0,policy['maximumNativeFeeCostUsd'])
+        self.assertEqual(1,policy['maximumProviderAttempts'])
+        self.assertGreater(policy['reservedUnits'],0)
+        for tariff in admission['queryTariffs']:
+            self.assertEqual(policy['pricingCatalogueVersion'],tariff['catalogueVersion'])
+            self.assertLessEqual(tariff['costUsd']*policy['maximumProviderAttempts'],policy['estimatedCostUsd'])
         script="const fs=require('node:fs');require(process.argv[1]).assertSandbox(fs.readFileSync(0,'utf8'));"
         result=subprocess.run([os.environ.get('NODE_BINARY','node'),'-e',script,str(root/'Docker/host-sandbox-ipfs.cjs')],
                               input=env['OASIS_DNA_JSON'],text=True,capture_output=True,timeout=8)
