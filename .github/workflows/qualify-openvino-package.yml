@@ -10,6 +10,8 @@ on:
       - 'Docker/Dockerfile.web4'
       - 'Docker/host-sandbox-openvino.cjs'
       - 'Scripts/TestHosts/openvino-supervisor.test.cjs'
+      - 'Docker/provision-sandbox-openvino.cjs'
+      - 'Scripts/TestHosts/openvino-provision.test.cjs'
   workflow_dispatch:
 
 permissions:
@@ -29,7 +31,7 @@ jobs:
         with:
           node-version: '24.19.0'
       - name: Verify startup identity, response bounds and cancellation
-        run: node --test Scripts/TestHosts/openvino-supervisor.test.cjs
+        run: node --test Scripts/TestHosts/openvino-supervisor.test.cjs Scripts/TestHosts/openvino-provision.test.cjs
       - name: Build unchanged WEB4 base and qualify complete official bundle
         run: python3 -B Scripts/TestHosts/Qualify-OpenVinoModelServer.py --verify-package
       - name: Retain package, native inference and cleanup evidence

@@ -11,8 +11,12 @@ const loader = `${root}/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2`;
 function configuration(environment, pins) {
   if (environment.OASIS_SANDBOX_OPENVINO !== 'true' ||
       !/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/.test(environment.CQL_OPENVINO_MODEL_QUERY_SOURCE_OWNER || '') ||
-      environment.CQL_OPENVINO_MODEL_QUERY_SOURCE_OWNER === '00000000-0000-0000-0000-000000000000' ||
-      pins?.modelName !== 'cosmic_dummy' || JSON.stringify(pins.versions) !== '["1","2","3"]' ||
+      environment.CQL_OPENVINO_MODEL_QUERY_SOURCE_OWNER === '00000000-0000-0000-0000-000000000000')
+    throw Error('Explicit OpenVINO source owner is required.');
+  return modelConfiguration(pins);
+}
+function modelConfiguration(pins) {
+  if (pins?.modelName !== 'cosmic_dummy' || JSON.stringify(pins.versions) !== '["1","2","3"]' ||
       !/^openvino\/model_server@sha256:[a-f0-9]{64}$/.test(pins.image || '') || !pins.serverVersion)
     throw Error('Explicit OpenVINO source owner and pinned teaching model are required.');
   return { model_config_list: [{ config: { name: pins.modelName, base_path: '/models/' + pins.modelName,
@@ -106,4 +110,4 @@ async function serviceConfiguration(environment, pins, directory = '/models') {
   env: { PYTHONHOME: `${root}/usr`, PYTHONPATH: '/ovms/lib/python:/ovms/python_deps',
     ESPEAK_DATA_PATH: '/ovms/share/espeak-ng-data' }, check: signal => verifyNative(pins, signal) };
 }
-module.exports = { configuration, verifyModels, verifyNative, serviceConfiguration };
+module.exports = { modelConfiguration, configuration, verifyModels, verifyNative, serviceConfiguration };

@@ -72,19 +72,24 @@ def call(path,body=None):
     return status,raw
 
 try:
-    files={}
-    for file,pin in PINS['files'].items():
-        url='https://raw.githubusercontent.com/openvinotoolkit/model_server/'+PINS['sourceCommit']+'/src/test/dummy/1/'+file
-        with urllib.request.build_opener(NoRedirect).open(url,timeout=25) as response:
-            assert response.status==200
-            raw=response.read(pin['bytes']+1)
-        assert len(raw)==pin['bytes'] and hashlib.sha256(raw).hexdigest()==pin['sha256']
-        files[file]=raw
-    for version in PINS['versions']:
-        folder=models/PINS['modelName']/version;folder.mkdir(parents=True)
-        for file,raw in files.items():(folder/file).write_bytes(raw)
-    config={'model_config_list':[{'config':{'name':PINS['modelName'],'base_path':'/models/'+PINS['modelName'],'model_version_policy':{'all':{}},'target_device':'CPU'}}]}
-    (models/'config.json').write_text(json.dumps(config,separators=(',',':')))
+    runtime_models=models
+    if options.verify_package:
+        runtime_models=models/'package-models'
+        subprocess.run(['node','Docker/provision-sandbox-openvino.cjs',str(runtime_models),str(ROOT/'Scripts/TestHosts/openvino-model-server-pins.json')],cwd=ROOT,check=True,timeout=60)
+    else:
+        files={}
+        for file,pin in PINS['files'].items():
+            url='https://raw.githubusercontent.com/openvinotoolkit/model_server/'+PINS['sourceCommit']+'/src/test/dummy/1/'+file
+            with urllib.request.build_opener(NoRedirect).open(url,timeout=25) as response:
+                assert response.status==200
+                raw=response.read(pin['bytes']+1)
+            assert len(raw)==pin['bytes'] and hashlib.sha256(raw).hexdigest()==pin['sha256']
+            files[file]=raw
+        for version in PINS['versions']:
+            folder=models/PINS['modelName']/version;folder.mkdir(parents=True)
+            for file,raw in files.items():(folder/file).write_bytes(raw)
+        config={'model_config_list':[{'config':{'name':PINS['modelName'],'base_path':'/models/'+PINS['modelName'],'model_version_policy':{'all':{}},'target_device':'CPU'}}]}
+        (models/'config.json').write_text(json.dumps(config,separators=(',',':')))
     docker('pull',PINS['image'])
     runtime_image=PINS['image']
     model_mount='/models'
@@ -114,7 +119,7 @@ try:
             'officialImage':PINS['image'],'completeBundle':'official-rootfs','runtimeRoot':'/opt/ovms-rootfs',
             'launchMode':'official-loader-container-kernel-view','additionalSystemPackages':[],'liveDeployment':False},indent=2))
     assert docker('container','inspect',name,check=False,timeout=20).returncode!=0
-    docker('run','--detach','--name',name,'--label','oasis.cql.owner='+label,'--cpus','2','--memory','1g','--publish','127.0.0.1:28000:8000','--mount','type=bind,source='+str(models)+',target='+model_mount+',readonly',runtime_image,'--config_path','/models/config.json','--rest_port','8000','--port','9000',timeout=30)
+    docker('run','--detach','--name',name,'--label','oasis.cql.owner='+label,'--cpus','2','--memory','1g','--publish','127.0.0.1:28000:8000','--mount','type=bind,source='+str(runtime_models)+',target='+model_mount+',readonly',runtime_image,'--config_path','/models/config.json','--rest_port','8000','--port','9000',timeout=30)
     deadline=time.monotonic()+120
     # Explicit bounded startup readiness polling; model metadata/inference never retried.
     while True:
@@ -149,7 +154,7 @@ const pins=require('./Scripts/TestHosts/openvino-model-server-pins.json');
 const env={OASIS_SANDBOX_OPENVINO:'true',CQL_OPENVINO_MODEL_QUERY_SOURCE_OWNER:'a5808c3e-7031-47e7-92de-48a659568f1b'};
 (async()=>{await r.verifyModels(process.argv[1],r.configuration(env,pins),pins);
 await r.verifyNative(pins,AbortSignal.timeout(15000));})().catch(e=>{console.error(e);process.exitCode=1});"""
-        subprocess.run(['node','-e',code,str(models)],cwd=ROOT,check=True,timeout=30)
+        subprocess.run(['node','-e',code,str(runtime_models)],cwd=ROOT,check=True,timeout=30)
     if options.verify_client:
         env=dict(os.environ,COSMIC_OPENVINO_CLIENT_NATIVE='owned-loopback-28000',COSMIC_OPENVINO_PIN_FILE=str(ROOT/'Scripts/TestHosts/openvino-model-server-pins.json'))
         subprocess.run(['dotnet','test','Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS.UnitTests','--no-build','--no-restore','/m:2','/nr:false','/p:UseSharedCompilation=false','--filter','TestCategory=OpenVinoClientNative','--results-directory','TestResults/OpenVinoClientCurrent','--logger','trx;LogFileName=native.trx'],cwd=ROOT,env=env,check=True,timeout=120)
@@ -162,6 +167,7 @@ await r.verifyNative(pins,AbortSignal.timeout(15000));})().catch(e=>{console.err
     proof=intent|{'server':server,'metadata':metadata,'inferences':3,'probeRequests':sequence,'nativeApiPass':True,'dotnetClientPass':options.verify_client,'cqlPass':options.verify_query,'web4Pass':options.verify_web4,'browserPass':False,'hostedPass':False}
     proof['web4BasePackagePass']=options.verify_package
     proof['web4StartupVerifierPass']=options.verify_package
+    proof['buildTimeModelProvisionerPass']=options.verify_package
     (result/'acknowledged.json').write_text(json.dumps(proof,indent=2))
 finally:
     observation=docker('container','inspect',name,check=False,timeout=20)
