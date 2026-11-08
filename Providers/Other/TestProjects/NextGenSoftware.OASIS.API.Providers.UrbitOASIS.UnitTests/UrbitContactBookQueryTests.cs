@@ -55,6 +55,44 @@ public sealed class UrbitContactBookQueryTests
     }
 
     [TestMethod]
+    public async Task SharedV2ManagerPreservesPrivateRowsAndProviderProvenance()
+    {
+        var replies = new Replies();
+        using var http = new HttpClient(replies);
+        using var reader = Reader(http);
+        using var source = new UrbitContactBookQuerySource(reader, Owner, Connection, Cids);
+        Assert.IsFalse((await source.ActivateQuerySourceAsync()).IsError);
+        var dna = new NextGenSoftware.OASIS.API.DNA.OASISDNA {
+            OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS {
+                HyperDriveMode = NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2
+            }
+        };
+        var registry = new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null, dna) {
+            IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false
+        };
+        var manager = new NextGenSoftware.OASIS.API.Core.Managers.HolonManager(null, dna, registry);
+        foreach (var selected in new[] { Ids, new[] { Ids[0], Ids[2] } })
+        {
+            var result = await manager.ExecuteQueryAsync(Plan(source, selected),
+                new ICosmicQueryStorageProvider[] { source });
+            Assert.IsFalse(result.IsError, result.Message);
+            Assert.AreEqual(selected.Length, result.Result.TotalRows);
+            Assert.AreEqual(1, result.Result.Providers.Count);
+            var group = result.Result.Providers.Single();
+            Assert.AreEqual(Provider, group.Provider);
+            CollectionAssert.AreEquivalent(selected, group.Rows.Select(row => row.Id).ToArray());
+            Assert.IsTrue(group.Rows.All(row => !row.IsPublic && row.CreatedByAvatarId == Owner
+                && !row.Children.Any() && row.MetaData.ContainsKey("UrbitBookPageId")));
+        }
+        var calls = replies.Calls;
+        var foreign = await manager.ExecuteQueryAsync(Plan(source, Ids, Guid.NewGuid()),
+            new ICosmicQueryStorageProvider[] { source });
+        Assert.IsFalse(foreign.IsError, foreign.Message);
+        Assert.AreEqual(0, foreign.Result.TotalRows);
+        Assert.AreEqual(calls, replies.Calls);
+    }
+
+    [TestMethod]
     public async Task AmbiguousDefaultCannotActivateThePrivateSource()
     {
         var replies = new Replies { DefaultPage = true };
