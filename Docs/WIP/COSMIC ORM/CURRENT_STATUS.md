@@ -216,3 +216,14 @@ run42482939556/job128738613047. Artifact13618815990/2483bytes SHA256
 inspected in memory; compact local receipt only. Expanded admission/preset
 sourcee4d9a6415/Coreeebf39b is running42483509747/job128740304255;
 do not restart on observation timeout. No native grant/live/provider count change.
+
+TRON native HTTP qualification prepared (not executed): shared HTTP/Mongo
+fixture now supports explicit metadata-string selections alongside its existing
+ID contract, preserving physical-ID/privacy assertions, two SDK-owned saves,
+nine receipts and success-only owned DB cleanup. TRON case consumes the exact
+retained separate catalogue hash/owner/heights and stable native IDs; no old
+cohort rewrite. Cloud workflow defaults to controlled-only; authenticated HTTP
+requires explicit dispatch plus a private secret before any native work. Owned
+Mongo helper now accepts only gomap/tron profiles and preserves GOMap defaults;
+TRON uses distinct labels/container/report paths. Syntax/help/diff checks passed;
+C# compilation and native execution not yet verified. No local downloads/builds.

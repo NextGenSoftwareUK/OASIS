@@ -6,7 +6,13 @@ on:
     paths:
       - '.github/workflows/qualify-tron-header-web4.yml'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlTronHeaderHostedConfigurationTests.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlTronHeaderHttpTests.cs'
   workflow_dispatch:
+    inputs:
+      authenticated_native_http:
+        description: Verify real TRON headers and owned Mongo copies through WEB4 HTTP
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -56,11 +62,50 @@ jobs:
               throw 'All eleven boundary cases must execute and pass without skips'
             }
           }
+      - name: Require dedicated reader access before any native work
+        if: github.event_name == 'workflow_dispatch' && inputs.authenticated_native_http
+        shell: pwsh
+        env:
+          COSMIC_TRON_PUBLIC_READER_KEY: ${{ secrets.COSMIC_TRON_PUBLIC_READER_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:COSMIC_TRON_PUBLIC_READER_KEY)) { throw 'Dedicated reader access required; no native request made.' }
+      - name: Start isolated owned Mongo replica
+        if: github.event_name == 'workflow_dispatch' && inputs.authenticated_native_http
+        working-directory: OASIS
+        run: python3 -B Scripts/TestHosts/gomap_web4_mongo.py --profile tron --operation start
+      - name: Verify authenticated native headers and Mongo through WEB4 HTTP
+        if: github.event_name == 'workflow_dispatch' && inputs.authenticated_native_http
+        working-directory: OASIS
+        shell: pwsh
+        env:
+          COSMIC_TRON_PUBLIC_READER_KEY: ${{ secrets.COSMIC_TRON_PUBLIC_READER_KEY }}
+          COSMIC_TRON_HEADER_NATIVE_HTTP: owned-loopback
+          COSMIC_REVIEWED_PUBLIC_MONGO_NATIVE: owned-local-27029
+        run: |
+          dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter FullyQualifiedName~AuthenticatedTronHeadersAndPrivateMongoCopiesOverHttp --results-directory TestResults/TronHeaderWeb4Current --logger 'trx;LogFileName=native-http.trx'
+          if ($LASTEXITCODE) { throw 'Native TRON HTTP qualification failed; preserve outcome and never automatically retry.' }
+          [xml]$report = Get-Content TestResults/TronHeaderWeb4Current/native-http.trx
+          $counts = $report.TestRun.ResultSummary.Counters
+          if ($counts.passed -ne '1' -or $counts.total -ne '1' -or $counts.executed -ne '1') { throw 'One real native HTTP case must execute and pass without skips.' }
       - name: Retain compact controlled reports
         uses: actions/upload-artifact@v7
         if: always()
         with:
           name: tron-header-web4-controlled
-          path: OASIS/TestResults/TronHeaderWeb4Current/*.trx
+          path: |
+            OASIS/TestResults/TronHeaderWeb4Current/*.trx
+            OASIS/LocalState/COSMIC/ReviewedPublicMongoHttpQualification/TRONOASIS/*.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Remove only owned native fixture container and anonymous volumes
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.authenticated_native_http
+        working-directory: OASIS
+        run: python3 -B Scripts/TestHosts/gomap_web4_mongo.py --profile tron --operation stop
+      - name: Retain owned cleanup report
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.authenticated_native_http
+        uses: actions/upload-artifact@v7
+        with:
+          name: tron-header-web4-cleanup
+          path: OASIS/TestResults/TronHeaderWeb4Current/mongo-*.json
           if-no-files-found: error
           retention-days: 30

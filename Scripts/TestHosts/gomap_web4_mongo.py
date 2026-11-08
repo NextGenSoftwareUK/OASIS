@@ -1,15 +1,15 @@
-"""Owned cloud Mongo replica for the GOMap WEB4 qualification job."""
+"""Owned cloud Mongo replica for explicitly named WEB4 qualification jobs."""
 import argparse,json,os,subprocess,time
 from pathlib import Path
 from qualify_web4_combined_startup import missing_resource
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--operation',choices=['start','stop'],required=True);o=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--operation',choices=['start','stop'],required=True);p.add_argument('--profile',choices=['gomap','tron'],default='gomap');o=p.parse_args()
     assert os.environ.get('GITHUB_ACTIONS')=='true','Cloud-only database qualification.'
     run=os.environ['GITHUB_RUN_ID'];attempt=os.environ['GITHUB_RUN_ATTEMPT'];assert run.isdecimal() and attempt.isdecimal()
-    owner='gomap-web4-'+run+'-'+attempt;name='gomap-cql-mongo'
-    out=Path(__file__).resolve().parents[2]/'TestResults/GOMapWeb4Current';out.mkdir(parents=True,exist_ok=True)
+    owner=o.profile+'-web4-'+run+'-'+attempt;name=o.profile+'-cql-mongo';label='oasis.'+o.profile+'.web4.owner'
+    out=Path(__file__).resolve().parents[2]/'TestResults'/({'gomap':'GOMapWeb4Current','tron':'TronHeaderWeb4Current'}[o.profile]);out.mkdir(parents=True,exist_ok=True)
     def docker(*args,check=True,timeout=30):
         r=subprocess.run(['docker',*args],capture_output=True,text=True,timeout=timeout)
         if check and r.returncode:raise RuntimeError('Owned Mongo operation failed: '+r.stderr[-1500:])
@@ -22,7 +22,7 @@ def main():
     if o.operation=='stop':
         if not absent('container',name):
             state=json.loads(docker('container','inspect',name).stdout)[0]
-            assert state['Config']['Labels']['oasis.gomap.web4.owner']==owner
+            assert state['Config']['Labels'][label]==owner
             volumes=[x['Name'] for x in state.get('Mounts',[]) if x['Type']=='volume']
             if state['State']['Running']:docker('stop','--time','20',name,timeout=30)
             docker('rm','--volumes',name)
@@ -32,7 +32,7 @@ def main():
         return
     assert absent('container',name),'Never adopt an existing Mongo container.'
     with (out/'mongo-intent.json').open('x') as f:json.dump({'owner':owner,'container':name,'image':'mongo:8.0.15','loopbackPort':27029},f)
-    docker('create','--name',name,'--label','oasis.gomap.web4.owner='+owner,'--publish','127.0.0.1:27029:27029',
+    docker('create','--name',name,'--label',label+'='+owner,'--publish','127.0.0.1:27029:27029',
         '--memory','1g','mongo:8.0.15','--port','27029','--replSet','oasisRecoveryRs','--bind_ip_all',timeout=180)
     docker('start',name)
     def shell(statement):return docker('exec',name,'mongosh','--port','27029','--quiet','--eval',statement,check=False,timeout=10)
