@@ -80,3 +80,8 @@ unauthorized. Its existing owner action is unchanged; no fresh deployment,
 production promotion, reviewed settings write or permission bypass occurred.
 See [current deployment evidence](LOCALFILE_CQL_MVP.md) and
 [current programme state](CURRENT_STATUS.md).
+
+
+## Scoped Urbit Core candidate after accepted-history synchronization
+
+Coree62ec44cfc7d80640195ae4a6e538908015ea61e adds exactly one Urbit entry to the explicit read-query tariff admission set on existing work/cosmic-cql-decentraland. Core branch/remote equality checked before editing; unrelated ProviderType edits preserved. Parent gitlink and manifest move together using index sync. This advances the task candidate beyond the byte-identical05d049a history merge; it does not change the accepted Development baseline or any immutable candidate tag. Required admitted-component controls follow at this exact pin. No third8November Development push.
