@@ -7,59 +7,28 @@ this checkpoint does not claim completion of those designs.
 
 ## Immediate work
 
-- Full WEB4 image **42473514300** failed Waku503 on all3bounded attempts.
-  Failure retained; no live deployment requested.
-- Native producer publication **42474138782** passed for exact source
-  **0210139b8b0efebc2a2043ff16dfcf42cfe2a480**; Waku/NATS native-only image
-  digests and hashed ACK artifacts verified. Same existing WEB4 registry package.
-- Final image source **8668fd2d040da71ba27e27e49fbed6792eb4e094** now consumes
-  those exact runtime digests.5local policy/graph checks pass; origin producer
-  stages are absent from final dependency closure. Cloud consumer verification
-  **42474992596** passed both roles: exact pinned digests, producer identity,
-  native versions and owned-container removal verified from hashed artifacts
-  13615241072 (1103 bytes) and 13615270909 (1084 bytes), inspected in memory.
-  Full image42475406236/job128715501131 SUCCEEDED for exact source8668fd2d.
-  Explicit checkout/source summary/tag/push digest verified:
-  sha256:dcd1e9f67e9e44cfb721b23c47c26ad0f79cf490472a648cd32f7d8e5cec0496.
-  No live mutation.
-- Native download policy and actual Waku/NATS stages passed **42473182023**;
-  artifacts/checksums/native versions and4controlled policy cases verified.
-- All seven exact private dependency checkouts passed **42472240791**. The
-  production clone script fetches each manifest SHA before checkout. No pin changed.
-- Earlier full image failures are preserved:42468917135 release504,
-  42471538567 exact WEB6 object absent from branch-tip clone,42472504855 NATS502,
-  42473514300 Waku503after3bounded attempts.
-  The latest source includes the independently qualified corrections.
-- After image success, verify exact source/tag/digest and packaged runtime/pins/
-  assemblies, then genuine combined API/native startup using only fresh owned
-  cloud data. Full API image startup is still unproven. Task-image qualification
-  never authorizes sweeping unrelated work into Development.
-  Cloud-only package/startup workflow is prepared: exact tag/digest/helper/model
-  hashes/six assemblies first, then optional real API/native startup with fresh
-  Mongo replica/accounting data on an internal network. Syntax/config invariants
-  pass, including seven actual health-probe response controls and verified-volume
-  cleanup requirements; the cloud workflow runs those controls before inspecting
-  an image. Initial manual-only workflow request returned404/no job; source-only
-  push registration411100785 corrected that. One new combined package/startup
-  run42477476099 package stage passed: exact source/tag/digest, six assemblies,
-  helpers and all model hashes verified from artifact13616395658/851bytes.
-  Startup preflight failed before creating resources because the checker did
-  not recognize Docker network-not-found wording. Typed absence parser fixed;
-  controls now reject daemon/permission/wrong-name failures. Actual API/native
-  startup remains open; no full image rebuild required for test-host fixes.
-  Second qualifier42477763769 package passed and cloud cleanup proved, but
-  generated Sandbox.Enabled=false violated the native supervisor guard. Fixed
-  test DNA and added actual-guard regression plus stderr/probe/state diagnostics;
-  three controlled methods pass. Third qualifier42478032839 loaded all native
-  versions, then API rejected the test JSON literal V2; canonical serialized
-  value is OASISHyperDrive2 (confirmed in DNA constants/validator). Corrected
-  generator/regression; cleanup proven. Fourth qualifier42478260550 completes
-  passive OASIS boot, then rejects an omitted requiresProviderMeasurement flag
-  in the test route policy. Full admission contract reviewed; generator and
-  invariant regression corrected. Same-image API health still pending.
+Full WEB4 image source **8668fd2d040da71ba27e27e49fbed6792eb4e094** built and
+published successfully in42475406236. Exact teaching tag/digest:
+**sha256:dcd1e9f67e9e44cfb721b23c47c26ad0f79cf490472a648cd32f7d8e5cec0496**.
+Combined cloud qualifier **42478524577** (checker sourceb34b55e103) PASSED:
+exact package/source/helper/model hashes, six assemblies, genuine WEB4 API health,
+OpenVINO metadata, graceful exit0, no OOM and complete owned container/network/
+anonymous database-volume removal. Artifact13616282018/4834bytes
+SHA256dcd008fe15813240031a2ca4e316f35b2e5b25d6ffae19861e778da2368a703f
+verified entirely in memory. No local image/runtime/model/database download.
 
-[OpenVINO/runtime/build evidence](OPENVINO_CQL_MVP.md).
-[Artifact download contract](../../Devs/WEB4_NATIVE_ARTIFACT_DOWNLOADS.md).
+Waku/NATS immutable producer publication42474138782 and exact consumer42474992596
+passed; seven pinned dependency checkouts42472240791 passed. Earlier image and
+checker failures are retained in [OpenVINO evidence](OPENVINO_CQL_MVP.md).
+API startup proof is task-image qualification, not live CQL acceptance or approval
+to deploy unrelated task-branch changes. Exact scoped-candidate tests/image and
+live cohort acceptance still remain. MapLibre is the next permitted live batch.
+
+[Full229-project status report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) separates
+SDK/native evidence, CQL/COSMIC depth, live/browser and HyperDrive scope. Latest
+reconciled baseline has93query-only+3canonical=96accepted/enrolled query types;
+128scoped integration checkpoint and28browser flows remain the recorded totals.
+No fresh all-provider availability sweep is claimed.
 
 ## Live Development baseline and integration cadence
 
@@ -90,11 +59,13 @@ runtime packaging, real loopback service startup/inference and graceful shutdown
 These scopes are not yet live-enrolled.
 
 Current **unpublished** scoped parent candidate:
-**6284fc990d9e964f3e295599ee3b923998a2569a**, Core
-**e242de41c41dbd4a1a4089694a2d945cdff828b4**,65scoped paths. Existing candidate
+**d555cb2a7959a27a3af22dc3d45b06e25568bac7**, Core
+**e242de41c41dbd4a1a4089694a2d945cdff828b4**,69scoped paths. Existing candidate
 branch refs still point to MapLibre; publish only after accepted MapLibre and
 fresh shared-ref checks. Candidate publisher is prepared, never invoked.
-Exact combined-candidate qualification and final image remain required.
+Exact combined-candidate qualification and candidate image remain required.
+Task-image startup is now passed; the guarded publisher additionally requires
+that exact API/native/graceful-stop/cleanup proof. It has not been invoked.
 
 Original offline plan: `LocalState/COSMIC/HostedFourProviderSourcesCurrent`.
 It reuses the original MapLibre261setting candidate and prepares270settings/
@@ -141,7 +112,7 @@ create another worktree/environment for this workflow.
 
 All heavy builds/runtime/model/image downloads stay in cloud. Reuse cached tools;
 retain compact evidence, verify owned cleanup, never repeat denied cleanup.
-Last C: measurement46.02GiB free. This laptop's separate ledger:
+Last C: measurement45.76GiB free. This laptop's separate ledger:
 [RECOVERY_LAPTOP_CLEANUP_LEDGER.md](RECOVERY_LAPTOP_CLEANUP_LEDGER.md).
 Owner actions only: [ACTIONS-FOR-DAVID](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
 Use the build lease for shared .NET outputs and bounded workers; no local build
