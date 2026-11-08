@@ -1,5 +1,39 @@
 # Typesense bounded CQL demo scope
 
+## Embedded-child defect resolved and verified — 8 November2026
+
+Source032e0a10ee4e85687f91a05c03cd856b8806d395 fixes the reproduced root-query
+failure by projecting children before canonical materialization. The original
+failure source6b8847247/run42499253849 remains retained below. No alternate
+parser, source, retry, native mutation or swallowed error was introduced.
+
+[Query regression42499481264](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42499481264)
+passed9/9 affected cases, zero skipped, including the formerly failing canonical
+root-with-child case and existing authorization/error/budget/paging controls.
+Artifact13624434881/2305bytes SHA256
+`8417067ece3f4f7243e12f719fff6a77cb7540dfb8b6641315173fee8f30d62a`;
+TRX SHA256`b03e6cc85ae9684e860d21a4fc2071765ac86073b6acf3ecb57fb13813f90078`.
+
+[Native manager/HTTP regression42499481245](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42499481245)
+passed1/1, zero skipped, against an actual Typesense29.0 root containing a child.
+The fixture independently confirms the native child remains present before and
+after CQL reads; selected query roots have empty children and source hashes
+match. Manager/HTTP5/4, provenance, unrelated private control exclusion,
+forged/unknown requests and inactive503/no partial rows remain verified. Four
+native document creates only, restricted-reader write denied, exact owned
+Mongo database plus both container/volume sets removed, exit0/no OOM.
+Artifact13624732028/4160bytes SHA256
+`88604385cd68dcecbac2308c6fecb97c555b78b74e49dfdb9395a256f884d909`;
+TRX SHA256`57c7dcc7139c8a9b8c876f3028e7b18b5ad5daabf62b071bb33cf9d6583d9b6a`.
+
+Both artifacts inspected in memory. Compact original failure and success
+receipts are under LocalState/COSMIC/RecoveryLaptopResume20261107/typesense-*.
+No native-only/restart replay, local install/build/database/image/model,
+Development/live setting change, browser proof or coverage-count increment.
+Hosted HTTPS source, authenticated visitor acceptance/reuse/replicas and browser
+remain open. This current checkpoint supersedes the pending statements below.
+
+
 ## Current manager/HTTP checkpoint — 8 November 2026
 
 [Run42498399586](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42498399586),
@@ -211,3 +245,25 @@ native proof remains source2fa81ea8b/run42497834056. Existing Mongo lifecycle
 helper now admits a distinct typesense owner namespace; six pure cleanup guards
 pass locally. No local native process/database/install, production promotion,
 Development push, browser proof or live enrollment.
+
+## Reproduced embedded-child materialization defect — 8 November2026
+
+The accepted initial native fixtures used minimal root records. A real canonical
+Holon may also persist its children. Source6b8847247/run42499253849 executed the
+new captured-wire child case once and failed once (no skips): valid root JSON
+with one embedded child returned CQL_QUERY_FAILED/NotSupportedException before
+returning any rows. This is an actual reproduced gap, not a reason to replay
+unrelated accepted native cohorts. Artifact13624721713/1372bytes SHA256
+021bf76eca8fd0a1cde7dae5bc200b5ef3f2d0b9cc8f1ef39c573b91ab557cbb;
+TRX SHA256ec5ec52c6d6d6704c70914d4dfa8b8b6f7858842619fe6433216b334ad9e24dd.
+Compact original failure retained under RecoveryLaptopResume20261107.
+
+Source032e0a10e projects the declared camel-case children field out before
+canonical deserialization, preserving duplicate-property, identity, authority,
+deleted-row, budget and error checks. No fallback parser or query retry. Query
+regression run42499481264 and real-native manager/HTTP run42499481245 were
+confirmed in_progress; pending, not accepted. The latter explicitly seeds one
+root with an actual embedded child, verifies it exists before/after the reads,
+and requires empty query child results plus unchanged native source hashes.
+That stronger regression scope justifies the affected query/native reruns.
+The accepted native-only/restart gate remains frozen; no live state changed.

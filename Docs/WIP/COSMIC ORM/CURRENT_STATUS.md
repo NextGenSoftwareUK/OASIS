@@ -34,23 +34,15 @@ owner deferrals explicit.
 
 ## Immediate work
 
-Typesense manager/HTTP/Mongo gate now passes1/1/no skips at sourceac71b92fb,
-run42498399586. Actual manager and loopback HTTP5/4/provenance, forged/unknown
-rejection, inactive503/no partial data and unchanged native source verified.
-Owned database/container/volume cleanup and exit0/no OOM inspected in memory.
-Native/restart gate was not replayed. Live HTTPS source, authenticated visitor
-privacy/reuse/replicas and browser remain open, behind the priority queue.
-Existing scoped profile count unchanged. [Evidence](TYPESENSE_CQL_MVP.md).
-
-
-Typesense's previously unexecuted native gate is now accepted on the owned cloud
-runner: source2fa81ea8b, run42497834056, initial1/1 plus same-source restart1/1,
-zero skipped. Restricted reader write denial, native3/2/0/paging and source
-preservation passed; exact container/volume cleanup and exit0 verified. No
-local runtime/install or live enrollment. The later manager/HTTP/Mongo checkpoint above supersedes that gate; hosted and
-browser remain open. No additional unique profile is counted.
-[Evidence and retained original startup failure](TYPESENSE_CQL_MVP.md).
-
+Typesense's real native/restart and manager/HTTP/Mongo gates pass. A subsequently
+reproduced embedded-child failure is now fixed at source032e0a10e: query controls
+9/9/run42499481264 and actual child-bearing native manager/HTTP1/1/run42499481245,
+zero skipped. Actual native child/source hashes preserved; root results exclude
+children; manager/HTTP5/4, request rejection, inactive503 and exact owned cleanup
+verified. Original failure retained; accepted native-only/restart not replayed.
+Durable HTTPS source, authenticated live visitor/reuse/replicas and browser remain
+open behind priority providers. Existing profile counts unchanged.
+[Evidence, original failure and remaining scope](TYPESENSE_CQL_MVP.md).
 
 TRON enrollment configuration tools passed46pure cloud tests with HTTP forbidden,
 and the Python public IDs match the actual .NET mapper in11passing controls
