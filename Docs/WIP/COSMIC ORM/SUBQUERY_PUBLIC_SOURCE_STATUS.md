@@ -124,9 +124,22 @@ configuration changed, accepted cohort replayed or owner action requested.
 
 Task sourceca1a06e30 adds an explicitly configured query-only WEB4 reader,
 compiler support, four native/Mongo preset plans and a real loopback HTTP/Mongo
-fixture. Cloud run42438643607/job128602921160 is compiling; qualification pending.
+fixture. Cloud run42438643607/job128602921160 compiled successfully but failed
+two of eight controls: Core did not yet support the explicit query tariff, and
+the preset fixture omitted its authoritative public-ID grant. Six passed, zero
+skips; the native HTTP stage did not run. Core task6dbdc0366da8a6b279b724b5b3f7b2e7d9ee3904
+adds the central read-tariff entry; parentc34107088 updates its gitlink and manifest
+together. Exact manifest/gitlink validation passes. The preset fixture now binds
+the actual authoritative catalogue and also asserts rejection without that grant.
+Corrected source04ecc5d5085e15dc39a9047fbd793bd72f97a50d is pushed; cloud
+run42439418296 is in progress. Qualification remains pending.
 The exact source's dictionary regression42438643558/job128602920938 isSUCCESS.
 No Development/settings admission has run.
+
+Superseded corrected-tariff run42439322377 was explicitly cancelled after the
+remaining fixture failure was understood, before native HTTP execution; terminal
+CANCELLED observed. Unrelated Waku run42438643581, triggered only by the shared
+fixture edit, is terminalCANCELLED. Neither cancellation touched live cohorts.
 
 The shared rollout verifier now derives SubQuery's three mapped IDs from the
 fixed dictionary namespace/heights and explicit owner. All39protected candidate

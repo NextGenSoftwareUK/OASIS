@@ -126,6 +126,16 @@ public native CQL case. Cloud run42438203693/job128601533699 isSUCCESS:
 Independent chain identity, WEB4 admission and hosted
 acceptance remain open. No coverage count or Development deployment advances.
 
+SubQuery WEB4 task04ecc5d50 now pins Core6dbdc03 with its central read-tariff
+allowlist entry; parent gitlink/manifest validation passes. First WEB4 cloud
+42438643607 compiled but failed2of8controls (tariff support and missing fixture
+authority). Both are corrected; exact replacement42439418296 is in progress.
+Thirty-nine protected-candidate and five publisher controls pass locally without
+live mutations or local builds. A pinned independent Firehose registry agrees
+with the expected Arbitrum One genesis; the fresh RPC attempt remains denied.
+Current source/admission evidence and scope limits are in
+[SubQuery status](SUBQUERY_PUBLIC_SOURCE_STATUS.md). Coverage remains unchanged.
+
 Coverage remains119local/92live HTTP/28functional browser. The six public readers
 remain accepted on their original sealed cohorts: native3/2, Mongo5/4, repeat0new,
 privacy0/public3 and exact SQLite/Neo4j replicas2/2. Never replay accepted cohorts.
