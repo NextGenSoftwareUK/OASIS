@@ -196,3 +196,11 @@ this does not independently verify a person, attestation consensus, source
 writes, reliability or full ORM/identity/legacy SBT parity. Preserve this cohort.
 
 Private record IDs: 23e0acb8-cd87-8695-90be-0fb1022372ef, fbfa15d5-f09c-83eb-9413-83f51aa3dabd. Original save operation IDs: 1cf17e9d-6914-235e-4a69-5ed3d97d9d5b, a4e2533c-5a42-16af-be7a-5d4d913ffc35.
+
+Website99791ff81061922b22f870405ccd1f4eb50ed79c publishes accepted card80
+via normal atomic work/cosmic-cql/main push after fresh refs/ancestry checks.
+Evidence link pins parent143d5808b, runtime C# link pins638993968. Public
+HTML271531bytes/SHA256c4e4012d5306b4f0baa4dbd8aa3a5ad1ad0f34a6a2b20d2a4175276e8aa110e5
+matches exact Git bytes, HTTP200, card present. Existing119client controls
+cover unchanged client logic; this changes HTML wording/links only. No new
+browser claim, archive download, native write, cohort or source replay.

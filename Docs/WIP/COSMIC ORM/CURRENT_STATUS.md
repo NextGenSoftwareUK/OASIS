@@ -8,7 +8,8 @@ Holonym settings7ba0af2c SUCCESS; all257settings/210critical/6helpers/
 12assemblies and accepted Self/SubQuery/Dapr proofs inspected. First HTTP
 cohortc41676eb isaccepted/sealed: native3/2, paired5/4, repeat0new/2existing,
 private0/public3, SQLite/Neo4j replicas2/2, original2saveACKs/pending0. No
-source writes, continuation or replay. Website card80 publication next;
+source writes, continuation or replay. Website card80 published99791ff8; public271531byte HTML exactly matches
+Git/SHA256c4e4012d5306b4f0baa4dbd8aa3a5ad1ad0f34a6a2b20d2a4175276e8aa110e5;
 browser remains open. [Proof](HOLONYM_PUBLIC_SOURCE_STATUS.md).
 
 Civic first cloud42452950450 passes27controlled+1296shared but native fails
@@ -19,13 +20,16 @@ source4a56a62a2/Core46ac61c manifest validates; native42453281381 passes
 27controlled+1296shared+1native, artifact/counters verified in memory.
 WEB442453281168/job128646846608 passes8boundary+1realHTTP/Mongo;
 artifact/counters/privacy/9receipts and ownedDBabsence verified in memory.
-Civic scoped candidate88c378c1e/Core81862b2 prepared from Holonym638,15paths;
-not published, no refs/settings changed until accepted Holonym rollout.
+Civic scoped candidate88c378c1e/Core81862b2 published on existing candidate
+refs after accepted Holonym;15paths, no Development/settings change. Exact
+native42455252759/WEB442455252768/admission42455252725 live. Offline fixed
+owner73eb9868 and257/259settings plan prepared, not applied.
 Civic planner39controls+5publisher guards pass. No CQL count/admission increase. Existing
 personal-pass adapter preserved. [Review](CIVIC_PUBLIC_SOURCE_STATUS.md).
 MapLibre style-data cloud42454653284 passes27controls+1native CQL3/2;
 5626byte artifact13607083066 hashes/counters verified in memory. WEB4/Core
-260d7c7 registration/8boundary+realHTTP fixture prepared; no hosted admission. Legacy map renderer
+260d7c7 registration/8boundary+realHTTP cloud42455134733/job128652414955 live;
+no hosted admission. Legacy map renderer
 remains unqualified. [Scope](MAPLIBRE_PUBLIC_SOURCE_STATUS.md).
 No local build/runtime/image/database download.
 
@@ -59,7 +63,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
   source values/ETags verified. Dapr HTTP cohort is sealed; browser remains open.
   The original failed generation is separately retired with its unknown save
   outcome and original files preserved. Never replay that generation's save.
-- Website C:/Source/Web4Site, branch work/cosmic-cql, publishedfc2714b5 (Self Protocol card79; earlier accepted cards retained).
+- Website C:/Source/Web4Site, branch work/cosmic-cql, published99791ff8 (Holonym card80; earlier accepted cards retained).
 - Dedicated Railway key cosmic-cql-recovery-laptop-20261107 was created on
   this laptop for mounted-source inspection. Its eventual revocation is in
   the old-laptop cleanup ledger. Private key remains outside Git.

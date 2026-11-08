@@ -139,3 +139,26 @@ from the broader task tree. Source reader blob matches native-qualified4a56;
 manifest/gitlinks pass. Temporary indices removed in finally; no checkout,
 worktree, runtime or database. Neither candidate ref is changed or pushed;
 exact qualification/publication waits for accepted Holonym rollout.
+
+After Holonym accepted/sealed and public page byte verification, existing
+candidate refs advanced normally to88c378c1e/Core81862b2 after fresh base/
+ancestry/manifest checks. Original task branches/worktrees unchanged; no
+Development push/settings/deployment. Exact source-qualified native
+42455252759, WEB442455252768 and existing-source admission42455252725 are
+live. The admission workflow's actual candidate path is
+.github/workflows/qualify-cross-chain-five.yml, displaying the six-reader name
+and enforcing25cases/artifact six-public-readers-candidate-admission. All are
+original push runs; no duplicate/manual dispatch.
+
+One offline mapping owner73eb9868-650e-4fd5-9398-dc7e794861fb and descriptor/
+review prepared; public IDs772e4306-fd30-817c-a8b0-e7bdbbdd564e,
+0311a43f-3763-8e76-ba92-ea28a26571b6,38f0dade-a30f-8370-a721-bb6df22e013f.
+Before257/candidate259protected settings differ on exactly4intended keys,
+using accepted Holonym baseline. Baseline338790bytes SHA256
+b05dcd0a2ab9e01c2d961d1eca297d5bfaa62183d3835da611c516429ae97700;
+candidate341110bytes SHA256b2ed4ddb4c7a42cd731f77803f8280f028768f529d7b798a506925b2847f661e.
+First composition assumed optional publicIds; second comparison used sorted
+review key ordering inside compact preset strings. Reconciled original
+source/snapshots using exact fixed-preset schema and fresh verifier ordering;
+no actor regeneration, snapshot replacement, native request or settings apply.
+No public source writes; fresh live baseline comparison still required.
