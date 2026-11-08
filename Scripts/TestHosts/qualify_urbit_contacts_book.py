@@ -70,9 +70,11 @@ def qualify_book(context, http_reader=None):
         report['nativeContactsQualified'] = True
         report['nativeHttpSourcePreservedAcrossRestart'] = True
         report['nativeProviderCqlQualified'] = True
+        assert before['sharedManagerQualified'] is True and after['sharedManagerQualified'] is True
+        report['nativeSharedManagerQualified'] = True
     report['nativeBookAgentQualified'] = True
     report['nativeBookRestartVerified'] = True
-    # HTTP SDK / CQL flags deliberately stay false until their actual gates run.
+    # Generic live/API flags stay false; native SDK/provider/manager flags require the explicit hook.
 
 
 if __name__ == '__main__':

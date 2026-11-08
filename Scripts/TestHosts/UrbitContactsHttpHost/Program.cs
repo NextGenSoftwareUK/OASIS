@@ -122,6 +122,42 @@ foreach (var selected in new[] { logical, subsetLogical })
 var foreign = await source.ExecuteCosmicQueryAsync(Plan(Guid.Parse("372a7b25-32cf-4316-88bc-ea1b56a24b37"), logical));
 if (foreign.IsError || foreign.Result is null || foreign.Result.Count != 0)
     throw new InvalidDataException("Native private CQL did not isolate another actor.");
+// Exercise the shared V2 typed materializer over the same native session and
+// trusted catalogue, without creating another fixture or enabling replica writes.
+var dna = new NextGenSoftware.OASIS.API.DNA.OASISDNA {
+    OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS {
+        HyperDriveMode = NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2
+    }
+};
+var registry = new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null, dna) {
+    IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false
+};
+var manager = new NextGenSoftware.OASIS.API.Core.Managers.HolonManager(null, dna, registry);
+foreach (var selected in new[] { logical, subsetLogical })
+{
+    var managed = await manager.ExecuteQueryAsync(Plan(owner, selected),
+        new ICosmicQueryStorageProvider[] { source });
+    if (managed.IsError || managed.Result is null || managed.Result.TotalRows != selected.Length
+        || managed.Result.Providers.Count != 1 || managed.Result.Providers[0].Provider != ProviderType.UrbitOASIS)
+        throw new InvalidDataException("Native shared-manager query failed: " + managed.ErrorCode);
+    var rows = managed.Result.Providers[0].Rows;
+    if (!selected.Order().SequenceEqual(rows.Select(row => row.Id).Order()))
+        throw new InvalidDataException("Native shared-manager identities differ.");
+    foreach (var row in rows)
+    {
+        var direct = cqlFull.Single(value => value.Id == row.Id);
+        if (row.IsPublic || row.CreatedByAvatarId != owner || row.Children.Any()
+            || direct.MetaData.Count != row.MetaData.Count
+            || direct.MetaData.Any(entry => !row.MetaData.TryGetValue(entry.Key, out var actual)
+                || JsonSerializer.Serialize(entry.Value) != JsonSerializer.Serialize(actual)))
+            throw new InvalidDataException("Native shared-manager private projection differs.");
+    }
+}
+var managedForeign = await manager.ExecuteQueryAsync(
+    Plan(Guid.Parse("372a7b25-32cf-4316-88bc-ea1b56a24b37"), logical),
+    new ICosmicQueryStorageProvider[] { source });
+if (managedForeign.IsError || managedForeign.Result is null || managedForeign.Result.TotalRows != 0)
+    throw new InvalidDataException("Native shared-manager foreign actor was not isolated.");
 var projected = cqlFull.OrderBy(row => row.Id).Select(row => new {
     row.Id, row.CreatedByAvatarId, row.IsPublic,
     cid = row.MetaData["UrbitBookPageId"],
@@ -133,6 +169,7 @@ Console.WriteLine(JsonSerializer.Serialize(new {
     phase, fullCount = 3, subsetCount = 2, anonymousDeniedStatus = (int)nativeDenial.StatusCode!.Value,
     projectedSourceSha256 = sourceHash, nativeHttpClientQualified = true,
     providerCqlQualified = true, cqlOwnerFullCount = 3, cqlOwnerSubsetCount = 2, cqlForeignPrivateCount = 0,
-    privateCqlProjectionSha256 = cqlHash, sharedManagerQualified = false,
+    privateCqlProjectionSha256 = cqlHash, sharedManagerQualified = true,
+    managerOwnerFullCount = 3, managerOwnerSubsetCount = 2, managerForeignPrivateCount = 0,
     cqlQualified = false, liveDeployment = false
 }));
