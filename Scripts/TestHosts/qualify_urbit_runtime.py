@@ -1,5 +1,6 @@
 """Pin/cache official runtime assets and cold-boot one offline owned development ship."""
 import hashlib
+import argparse
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -65,7 +66,7 @@ def download_release(url, target, size, expected):
             temporary.unlink()
 
 
-def main():
+def main(assets_only=False):
     assert os.environ.get('GITHUB_ACTIONS') == 'true' and platform.system() == 'Linux', 'Cloud Linux only.'
     root = Path(__file__).resolve().parents[2]
     inputs = json.loads((Path(__file__).with_name('urbit-runtime-inputs.json')).read_text())
@@ -79,7 +80,8 @@ def main():
     report = {'source': os.environ['GITHUB_SHA'], 'owner': owner, 'runtimeTag': inputs['runtimeTag'],
               'kernelRelease': inputs['kernelRelease'], 'kernelCommit': inputs['kernelCommit'],
               'pillSha256': inputs['pillSha256'], 'offlineColdBootPassed': False,
-              'contactsQualified': False, 'cqlQualified': False, 'liveDeployment': False}
+              'contactsQualified': False, 'cqlQualified': False, 'liveDeployment': False,
+              'assetsPreparationOnly': assets_only}
     with (out / 'intent.json').open('x') as stream:
         json.dump(report, stream, indent=2)
     container, volume = owner, owner + '-data'
@@ -191,6 +193,8 @@ def main():
         report['cachedAssetBytes'] = sum(p.stat().st_size for p in cache.iterdir() if p.is_file())
         with open(os.environ['GITHUB_OUTPUT'], 'a') as stream:
             stream.write('assets_ready=true\n')
+        if assets_only:
+            return
         assert inspect('container', container) is None and inspect('volume', volume) is None
         touched = True
         docker('volume', 'create', '--label', label + '=' + owner, volume)
@@ -235,4 +239,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--assets-only', action='store_true', help='Verify/complete pinned assets without creating or booting a ship.')
+    main(parser.parse_args().assets_only)
