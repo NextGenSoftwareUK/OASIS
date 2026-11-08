@@ -19,7 +19,7 @@ def digest(path):
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
-def main():
+def main(on_initialized=None):
     assert platform.system() == 'Linux' and os.environ.get('GITHUB_ACTIONS') == 'true'
     root = Path(__file__).resolve().parents[2]
     assets = root / 'LocalState/COSMIC/CloudUrbitRuntimeAssets/v4.6-408k-2'
@@ -110,9 +110,10 @@ def main():
 
     touched = False
     completed = False
-    try:
-        assert inspect() is None
-        touched = True
+
+    def create_container(initial):
+        command = ['/assets/urbit', '-L', '-t', '--loom', '32']
+        command += ['-F', 'zod', '-c', '/pier/zod', '-B', '/assets/solid.pill'] if initial else ['/pier/zod']
         docker('create', '--name', owner, '--label', label + '=' + owner,
                '--user', str(os.getuid()) + ':' + str(os.getgid()),
                '--network', 'none', '--memory', '3g', '--memory-swap', '3g', '--cpus', '2',
@@ -121,8 +122,28 @@ def main():
                '--tmpfs', '/tmp:rw,size=64m,mode=1777',
                '--mount', 'type=bind,source=' + str(assets) + ',target=/assets,readonly',
                '--mount', 'type=bind,source=' + str(data) + ',target=/pier',
-               inputs['containerImage'], '/assets/urbit', '-F', 'zod', '-c', '/pier/zod',
-               '-B', '/assets/solid.pill', '-L', '-t', '--loom', '32', timeout=180)
+               inputs['containerImage'], *command, timeout=180)
+
+    def restart_owned_pier():
+        before = connection.stat().st_mtime_ns
+        docker('stop', '--time', '30', owner)
+        state = inspect()
+        assert state['State']['ExitCode'] == 0 and not state['State']['OOMKilled']
+        report['restartShutdownExitCode'] = 0
+        logs = docker('logs', owner)
+        (out / 'before-restart.log').write_text(logs.stdout + logs.stderr)
+        docker('rm', '-v', owner)
+        assert inspect() is None
+        create_container(False)
+        docker('start', owner)
+        ready(lambda: connection.exists() and stat.S_ISSOCK(connection.stat().st_mode)
+              and connection.stat().st_mtime_ns != before)
+        execute('restart-control', prefix + suffix)
+
+    try:
+        assert inspect() is None
+        touched = True
+        create_container(True)
         docker('start', owner)
         ready(lambda: connection.exists() and stat.S_ISSOCK(connection.stat().st_mode))
         execute('control', prefix + suffix)
@@ -161,6 +182,9 @@ def main():
         body += '  ?>  (lth attempts 120)  ;<  ~  bind:m  (sleep ~s1)  $(attempts +(attempts))'
         execute('contacts-ready', body, timeout=180)
         report['contactsAgentInitialized'] = True
+        if on_initialized is not None:
+            on_initialized(dict(root=root, out=out, report=report, execute=execute,
+                                prefix=prefix, suffix=suffix, restart=restart_owned_pier))
         completed = True
     finally:
         if touched:
