@@ -5243,3 +5243,7 @@ Retained compact current-desk tree inventory under existing LocalState (metadata
 
 ### 8 Nov — Current contacts assembly verified
 Cloud run42508500262 assembled695files/4657933bytes. Four exact owned source checkouts removed after Git helpers exited. Assembled source+manifest retained in reusable cloud cache only. Artifact13628616882/33200bytes verified in memory; compact receipt retained, no source/ZIP extracted locally. Manual-only workflow after first accepted assembly. Native installation remains open.
+
+
+### 8 Nov — Native contacts preparation/cache ownership
+Seven framing controls use only Python standard library and sockets locally; no runtime downloaded. Cloud42509161255 completed assets-only preparation and saved immutable complete43057001byte runtime cache. Failed native bind-owner attempt had exact owned container/pier removal verified in hashed artifact13627844264 (inspected in memory); compact receipt retained. Sourceaee605aef/run42509342247 uses runner UID:GID and complete cache directly. Actual source install/contacts still pending; no local DB, image, SDK or environment created.
