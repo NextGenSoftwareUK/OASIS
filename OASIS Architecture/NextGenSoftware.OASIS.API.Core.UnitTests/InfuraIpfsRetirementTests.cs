@@ -1,3 +1,7 @@
+using System.Net;
+using System.Net.Http;
+using System.Threading;
+using NextGenSoftware.OASIS.API.Providers.InfuraOASIS;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
@@ -77,6 +81,40 @@ public sealed class InfuraIpfsRetirementTests
         var profile = container.GetRequiredService<CqlReadSourceProfile>();
         Assert.Equal(ProviderType.InfuraOASIS, profile.Storage.ProviderType.Value);
         _ = new StorageQueryTariff(ProviderType.InfuraOASIS, 0m, "test-v1");
+    }
+
+    [Fact]
+    public async Task RpcCredentialsReachOnlyThePinnedTransportAndAreRemovedFromErrors()
+    {
+        using var invoker = new HttpMessageInvoker(
+            new InfuraPublicAccountMetadataSource.CredentialHandler(
+                "controlledkey", "controlledsecret", new FailingTransport()));
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://mainnet.infura.io/");
+        var error = await Assert.ThrowsAsync<HttpRequestException>(
+            () => invoker.SendAsync(request, CancellationToken.None));
+        Assert.Equal(HttpStatusCode.Unauthorized, error.StatusCode);
+        Assert.DoesNotContain("controlledkey", error.ToString());
+        Assert.DoesNotContain("controlledsecret", error.ToString());
+        Assert.Equal(new Uri("https://mainnet.infura.io/"), request.RequestUri);
+        Assert.Null(request.Headers.Authorization);
+
+        using var foreign = new HttpRequestMessage(HttpMethod.Post, "https://example.invalid/");
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => invoker.SendAsync(foreign, CancellationToken.None));
+        Assert.Null(foreign.Headers.Authorization);
+    }
+
+    private sealed class FailingTransport : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            Assert.Equal(new Uri("https://mainnet.infura.io/v3/controlledkey"), request.RequestUri);
+            Assert.Equal("Basic", request.Headers.Authorization?.Scheme);
+            Assert.Equal("OmNvbnRyb2xsZWRzZWNyZXQ=", request.Headers.Authorization?.Parameter);
+            throw new HttpRequestException("controlledkey controlledsecret", null, HttpStatusCode.Unauthorized);
+        }
     }
 
     private static void Rejected<T>(OASISResult<T> result)

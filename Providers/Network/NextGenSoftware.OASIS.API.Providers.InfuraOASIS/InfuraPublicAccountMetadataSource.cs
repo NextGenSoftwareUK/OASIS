@@ -50,7 +50,7 @@ public sealed class InfuraPublicAccountMetadataSource : EvmPublicAccountMetadata
         }
     }
 
-    private sealed class CredentialHandler(string apiKey, string apiSecret, HttpMessageHandler transport)
+    internal sealed class CredentialHandler(string apiKey, string apiSecret, HttpMessageHandler transport)
         : DelegatingHandler(transport)
     {
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
