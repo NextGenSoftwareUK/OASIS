@@ -226,3 +226,5 @@ requires successful exact image receipt and rechecks all prior assumptions.
 Read-only package inspector prepared/Python+remote JS syntax verified, not run;
 preserves accepted SubQuery and Dapr while verifying Self/shared reader pins and
 SDK assemblies. Latest actionable handle and sequence are inCURRENT_STATUS.md.
+
+8 November Development batch: image42447469381 SUCCESS, exact916c62210-teaching tag/provenance verified, GHCRsha256:bb86863c7bf41311cf3e49b77203f87d41d39c66de2cb14f65c674bf27c66067. Fresh publisher rechecks seven advertised pins, all253settings, exact accepted baseline and branch ancestry, then one normal Development push acknowledged. Code deployment131667e6-1d02-4958-8584-448520365dac isQUEUED; original protected metadata/handle retained. No settings/native operation or duplicate request. Inspect actual running code package before staging/activation.

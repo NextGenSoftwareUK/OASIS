@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Providers.WakuOASIS;
 using NextGenSoftware.OASIS.API.Providers.TheGraphOASIS;
 using NextGenSoftware.OASIS.API.Providers.SubqueryOASIS;
 using NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS;
+using NextGenSoftware.OASIS.API.Providers.HolonymOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
@@ -42,6 +43,8 @@ public static class CqlReviewedNetworkReadSourceRegistration
             owner => new ReclaimVerifierQuerySource(owner));
         Register(services, configuration["CQL_THE_GRAPH_STUDIO_QUERY_SOURCE_OWNER"], "The Graph Studio",
             owner => new TheGraphStudioStatusQuerySource(owner));
+        Register(services, configuration["CQL_HOLONYM_ATTESTATION_QUERY_SOURCE_OWNER"], "Human ID attestation index",
+            HolonymAttestationQuerySource.ForReviewedTeachingCatalogue);
         Register(services, configuration["CQL_SELF_PROTOCOL_REGISTRY_QUERY_SOURCE_OWNER"], "Self Protocol registry",
             SelfProtocolRegistryQuerySource.ForReviewedTeachingCatalogue);
         Register(services, configuration["CQL_SUBQUERY_DICTIONARY_QUERY_SOURCE_OWNER"], "SubQuery dictionary",

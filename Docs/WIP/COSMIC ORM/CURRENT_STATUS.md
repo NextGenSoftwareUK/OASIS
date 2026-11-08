@@ -40,7 +40,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **121 scoped local, 93 live HTTP and 28 functional browser**.
+Coverage is **122 scoped local, 93 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -79,18 +79,16 @@ All exact candidate gates now pass/no skips: registry42446975238 (26controls,
 42446952053. Original artifact IDs/hashes and TRX counters verified in memory.
 Redundant manual admission42446979977 is terminalCANCELLED, original run retained.
 
-**Observe image42447469381/job128629322069**, currently in progress/Build and push.
-Source916c62210a1eb51fa23353bccfca3024750f452b, explicit immutable tag
-916c62210a1eb51fa23353bccfca3024750f452b-teaching, teachingSidecars:true.
-One image dispatch acknowledged; do not redispatch or use a mutable sandbox tag.
+Image42447469381/job128629322069 isSUCCESS. Exact source/tag/teaching mode
+verified, GHCR digestsha256:bb86863c7bf41311cf3e49b77203f87d41d39c66de2cb14f65c674bf27c66067.
+No image download or mutable sandbox tag. Fresh branch/seven-pin/full253setting/
+baseline checks passed; one scoped Development push916c62210 acknowledged.
 
-Read-only prereview verifies all seven advertised pins and complete253settings
-unchanged, accepted baselineeb09ea25/9fd968a7b/actual510762ee57 preserved.
-Private review-self-protocol-rollout-prerequisites.py ran once successfully.
-After image SUCCESS, inspect exact provenance/digest/tag and retain
-self-protocol-image-qualified.json. Then invoke guarded publish-self-protocol-development.py
-once; it rechecks current branches/pins/settings/deployment before one scoped push.
-It is prepared/syntax-checked, not invoked. No Development or live settings changes.
+**Observe code deployment131667e6-1d02-4958-8584-448520365dac**, currentlyQUEUED.
+Do not repeat Development push, request another deployment or replay any source.
+After SUCCESS, invoke inspect-self-protocol-code-package.py for that exact code
+phase; actual Railway image digest must be observed independently of GHCR.
+No Self settings staged or activation requested. Exact activation guard prepared.
 
 Read-only inspect-self-protocol-code-package.py is prepared, Python+remote JS
 syntax pass. Invoke for exact code deployment SUCCESS before settings. It checks
@@ -102,9 +100,10 @@ no native source writes. Website card79 is drafted only on task8a650c6;
 main/public remains104a0064. Browser URL-policy gate stays open.
 [Self Protocol proof and gates](SELF_PROTOCOL_PUBLIC_SOURCE_STATUS.md).
 Activation guard activate-self-protocol-settings.py is prepared/syntax checked only.
-While image builds, Holonym current Sign source readiness returned3real bounded
-records and an exact-ID record; raw ABI/doc differences preserved, no CQL count
-increase or provider code change. [Next source](HOLONYM_PUBLIC_SOURCE_STATUS.md).
+Holonym current Sign source now passes25controls+1real CQL3/2 on source25d8f3a03,
+cloud42449086090/artifact13605126354 verified in memory; raw ABI/doc differences
+preserved. WEB4 read profile/Coreabaedaf and8+1 HTTP integration qualification
+prepared next, not deployed. [Next source](HOLONYM_PUBLIC_SOURCE_STATUS.md).
 
 SubQuery activationeb09ea25 is accepted/sealed:253settings/package verified,
 native3/2,paired5/4,reuse0new/2existing,privacy0/public3,replicas2/2. Original
@@ -113,7 +112,7 @@ at104a0064, public268592byte HTML hash7908eabb8c70743d2e0cc1023484da2c7bb1e480d6
 matches exact Git. Do not replay its accepted cohort, settings or activation.
 [SubQuery proof](SUBQUERY_PUBLIC_SOURCE_STATUS.md).
 
-Coverage remains **121 scoped local / 93 live HTTP / 28 functional browser**.
+Coverage remains **122 scoped local / 93 live HTTP / 28 functional browser**.
 The accepted Dapr cohort and retired failed generation remain preserved; no
 source creation/save was replayed. [Dapr history](DAPR_CQL_MVP.md). While the
 code deployment waited for a build slot, a first anonymous Self Protocol RPC
