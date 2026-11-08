@@ -52,8 +52,8 @@ jobs:
             if ($LASTEXITCODE) { throw 'TRON header WEB4 boundary qualification failed' }
             [xml]$report = Get-Content TestResults/TronHeaderWeb4Current/boundary.trx
             $counts = $report.TestRun.ResultSummary.Counters
-            if ($counts.passed -ne '9' -or $counts.total -ne '9' -or $counts.executed -ne '9') {
-              throw 'All nine boundary cases must execute and pass without skips'
+            if ($counts.passed -ne '11' -or $counts.total -ne '11' -or $counts.executed -ne '11') {
+              throw 'All eleven boundary cases must execute and pass without skips'
             }
           }
       - name: Retain compact controlled reports

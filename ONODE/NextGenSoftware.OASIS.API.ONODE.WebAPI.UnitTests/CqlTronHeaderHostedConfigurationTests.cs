@@ -1,3 +1,5 @@
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
@@ -65,7 +67,7 @@ public sealed class CqlTronHeaderHostedConfigurationTests
         var profile = Assert.Single(container.GetServices<CqlReadSourceProfile>());
         var source = Assert.IsType<TronPublicHeaderMetadataSource>(profile.Storage);
         Assert.False(source.IsProviderActivated);
-        Assert.Equal(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS, source.QueryProviderType);
+        Assert.Equal(ProviderType.TRONOASIS, source.QueryProviderType);
         Assert.Same(CqlReadSourceActivationPolicy.None, profile.ActivationPolicy);
     }
 
@@ -77,6 +79,52 @@ public sealed class CqlTronHeaderHostedConfigurationTests
         services.AddReviewedNetworkReadSources(Settings(embedded, "controlled-reader"), true);
         using var container = services.BuildServiceProvider();
         Assert.Throws<ArgumentException>(() => container.GetServices<CqlReadSourceProfile>().ToArray());
+    }
+
+    [Fact]
+    public void QueryAdmissionRequiresIndependentReadTariffAndRejectsWrites()
+    {
+        const ProviderType provider = ProviderType.TRONOASIS;
+        Assert.Equal(provider, CqlV1Compiler.RequestedProvider(provider.ToString(), includeCloudReadProfile: true));
+        Assert.Throws<ArgumentException>(() => CqlV1Compiler.RequestedProvider(provider.ToString()));
+        var ordinary = new[] { ProviderType.MongoDBOASIS };
+        var tariffs = new[] { new StorageQueryTariff(ordinary[0], 0, "demo-read-v1"),
+            new StorageQueryTariff(provider, 0, "demo-read-v1") };
+        var factory = new PricedStorageAdmissionFactory(null,
+            Array.Empty<NativeStorageAdmissionBinding>(),
+            ordinary, tariffs, null, new[] { provider });
+        Assert.Contains(provider, factory.QueryOnlyProviders);
+        Assert.Throws<ArgumentException>(() => new PricedStorageAdmissionFactory(null,
+            Array.Empty<NativeStorageAdmissionBinding>(),
+            ordinary, tariffs[..1], null, new[] { provider }));
+        Assert.Throws<ArgumentException>(() => new PricedStorageAdmissionFactory(null,
+            Array.Empty<NativeStorageAdmissionBinding>(),
+            ordinary, tariffs, new[] { new StorageAttemptTariff(provider, "SaveHolon", 0, "demo-read-v1") }, new[] { provider }));
+    }
+
+    [Fact]
+    public void ExactHeightPresetsPlanThreeTwoAndMongoPairsWithoutNativeRequests()
+    {
+        using var source = TronPublicHeaderMetadataSource.FromAuthenticatedJson(Catalogue, "controlled-reader");
+        var rows = new List<object>();
+        foreach (var count in new[] { 3, 2 })
+        {
+            var selection = new { orderBy = "None", take = 8, filters = new[] {
+                new { metadataPath = new[] { TronPublicHeaderMetadataSource.AddressMetadata }, scalar = "String",
+                    @operator = "In", value = new[] { "1", "2", "3" }.Take(count).ToArray() } } };
+            rows.Add(new { id = $"native-{count}", label = "Solidified TRON headers", request = new {
+                provider = "TRONOASIS", selection.orderBy, selection.take, selection.filters } });
+            rows.Add(new { id = $"paired-{count}", label = "Solidified TRON headers and MongoDB", operation = "Federation", request = new {
+                scope = "Named", providers = new[] { "MongoDBOASIS", "TRONOASIS" }, source = selection,
+                identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8 } });
+        }
+        var examples = CqlHostedQueryExamples.FromJson(System.Text.Json.JsonSerializer.Serialize(
+            new Dictionary<string, object> { ["TRONOASIS"] = rows }));
+        var planned = examples.For(ProviderType.TRONOASIS,
+            source.QueryCapabilities, _ => NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS.CqlCapabilities);
+        Assert.Equal(4, planned.Count);
+        Assert.All(planned, example => Assert.True(example.Available, example.ErrorCode));
+        Assert.False(source.IsProviderActivated);
     }
 
     private static IConfiguration Settings(string? catalogue, string? key) => new ConfigurationBuilder()

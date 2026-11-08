@@ -200,3 +200,12 @@ no anonymous fallback or activation during registration. Nine controlled host
 cases added with cloud-only build lease workflow; qualification pending. This
 does not yet add compiler/tariff admission or native/live/browser acceptance.
 No local build, installation, database, model/image or artifact download.
+
+TRON query admission prepared in Coreeebf39b and WEB4 compiler, with exact
+height-string native3/2 and Mongo federation preset planning plus independent
+read tariff/write rejection tests (11 controlled host cases total). Cloud
+qualification pending; no native/live increase. David chose existing private
+configuration; names/presence-only searches of local settings, retained baseline
+and current Development nested settings found no reader credential. Exact
+private location requested in the existing owner entry. No values logged or
+protected settings written, no local build/download/runtime/database created.
