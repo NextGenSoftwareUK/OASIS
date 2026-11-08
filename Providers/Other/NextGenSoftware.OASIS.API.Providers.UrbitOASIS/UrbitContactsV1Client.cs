@@ -15,6 +15,8 @@ namespace NextGenSoftware.OASIS.API.Providers.UrbitOASIS;
 public sealed class UrbitContactsV1Client : IDisposable
 {
     public sealed record Contact(string RequestedShip, string? Nickname, string? Bio, string? Status);
+    public sealed record ContactFields(string? Nickname, string? Bio, string? Status);
+    public sealed record BookPage(string RequestedId, ContactFields Contact, ContactFields Overlay);
     private readonly HttpClient http;
     private readonly Uri origin;
     private readonly bool ownsClient;
@@ -65,21 +67,50 @@ public sealed class UrbitContactsV1Client : IDisposable
         return value;
     }
 
-    public async Task<OASISResult<Contact>> ReadContactAsync(string ship, CancellationToken cancellationToken = default)
+    private static OASISResult<T> Error<T>(string code, string message, Exception? error = null)
+        => new() { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message, Exception = error };
+
+    private static ContactFields Fields(JsonElement value)
     {
-        OASISResult<Contact> Error(string code, string message, Exception? error = null)
-            => new() { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message, Exception = error };
+        UniqueObject(value);
+        return new(Text(value, "nickname"), Text(value, "bio"), Text(value, "status"));
+    }
+
+    public Task<OASISResult<Contact>> ReadContactAsync(string ship, CancellationToken cancellationToken = default)
+    {
+        // Path-safe spelling only; native @p identity qualification remains separate.
+        if (ship == null || ship.Length > 64 || !Regex.IsMatch(ship,
+            "\\A~(?:[a-z]{3}|[a-z]{6}(?:-{1,2}[a-z]{6}){0,7})\\z", RegexOptions.CultureInvariant))
+            return Task.FromResult(Error<Contact>("URBIT_CONTACT_INVALID_INPUT", "One path-safe ship spelling is required."));
+        return ReadAsync("/~/scry/contacts/v1/contact/" + Uri.EscapeDataString(ship) + ".json", value => {
+            var fields = Fields(value);
+            return new Contact(ship, fields.Nickname, fields.Bio, fields.Status);
+        }, "URBIT_CONTACT", cancellationToken);
+    }
+
+    /// <summary>One explicitly selected local book page. Contact and overlay stay separate.</summary>
+    public Task<OASISResult<BookPage>> ReadBookPageAsync(string id, CancellationToken cancellationToken = default)
+    {
+        // Bounded @uv spelling; the native agent remains authoritative for CID existence/type.
+        if (id == null || id.Length > 64 || !Regex.IsMatch(id,
+            "\\A0v(?:0|[1-9a-v][0-9a-v]{0,4}(?:\\.[0-9a-v]{5})*)\\z", RegexOptions.CultureInvariant))
+            return Task.FromResult(Error<BookPage>("URBIT_CONTACT_PAGE_INVALID_INPUT", "One path-safe book CID is required."));
+        return ReadAsync("/~/scry/contacts/v1/book/id/" + Uri.EscapeDataString(id) + ".json", value => {
+            if (value.ValueKind != JsonValueKind.Array || value.GetArrayLength() != 2)
+                throw new InvalidDataException("Contacts v1 page must contain exactly contact and overlay objects.");
+            return new BookPage(id, Fields(value[0]), Fields(value[1]));
+        }, "URBIT_CONTACT_PAGE", cancellationToken);
+    }
+
+    private async Task<OASISResult<T>> ReadAsync<T>(string path, Func<JsonElement, T> project,
+        string errorPrefix, CancellationToken cancellationToken)
+    {
         try
         {
             ObjectDisposedException.ThrowIf(disposed, this);
-            // This is a bounded, path-safe spelling check. Native @p validation
-            // and source identity still require actual ship qualification.
-            if (ship == null || ship.Length > 64 || !Regex.IsMatch(ship,
-                "\\A~(?:[a-z]{3}|[a-z]{6}(?:-{1,2}[a-z]{6}){0,7})\\z", RegexOptions.CultureInvariant))
-                return Error("URBIT_CONTACT_INVALID_INPUT", "One canonical path-safe ship spelling is required.");
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             deadline.CancelAfter(TimeSpan.FromSeconds(15));
-            var target = new Uri(origin, "/~/scry/contacts/v1/contact/" + Uri.EscapeDataString(ship) + ".json");
+            var target = new Uri(origin, path);
             using var request = new HttpRequestMessage(HttpMethod.Get, target);
             using var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
             response.EnsureSuccessStatusCode();
@@ -97,18 +128,16 @@ public sealed class UrbitContactsV1Client : IDisposable
                 body.Write(buffer, 0, count);
             }
             using var document = JsonDocument.Parse(body.ToArray(), new JsonDocumentOptions { MaxDepth = 16 });
-            UniqueObject(document.RootElement);
-            var contact = new Contact(ship, Text(document.RootElement, "nickname"),
-                Text(document.RootElement, "bio"), Text(document.RootElement, "status"));
+            var contact = project(document.RootElement);
             cancellationToken.ThrowIfCancellationRequested();
             return new(contact) { IsLoaded = true, LoadedCount = 1 };
         }
         catch (OperationCanceledException error)
-        { return Error(cancellationToken.IsCancellationRequested ? "URBIT_CONTACT_CANCELLED" : "URBIT_CONTACT_TIMEOUT", "Contact read did not complete.", error); }
+        { return Error<T>(errorPrefix + (cancellationToken.IsCancellationRequested ? "_CANCELLED" : "_TIMEOUT"), "Contact read did not complete.", error); }
         catch (PayloadLimitException error)
-        { return Error("URBIT_CONTACT_LIMIT", "Contact response exceeds its bounded budget.", error); }
+        { return Error<T>(errorPrefix + "_LIMIT", "Contact response exceeds its bounded budget.", error); }
         catch (Exception error)
-        { return Error("URBIT_CONTACT_READ_FAILED", "The configured contacts v1 read failed.", error); }
+        { return Error<T>(errorPrefix + "_READ_FAILED", "The configured contacts v1 read failed.", error); }
     }
 
     public void Dispose()

@@ -56,10 +56,10 @@ jobs:
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner urbit-contacts-ci -Operation {
             $project = 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.UrbitOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.UrbitOASIS.UnitTests.csproj'
             dotnet test $project /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~UrbitContactsV1ClientTests' --results-directory TestResults/UrbitContactsCurrent --logger 'trx;LogFileName=query.trx'
-            if ($LASTEXITCODE) { throw 'Typesense query qualification failed' }
+            if ($LASTEXITCODE) { throw 'Urbit contacts qualification failed' }
             [xml]$report = Get-Content TestResults/UrbitContactsCurrent/query.trx
             $counts = $report.TestRun.ResultSummary.Counters
-            if ($counts.total -ne '23' -or $counts.executed -ne '23' -or $counts.passed -ne '23') { throw 'All 23 current contacts controls must execute and pass' }
+            if ($counts.total -ne '43' -or $counts.executed -ne '43' -or $counts.passed -ne '43') { throw 'All 43 current profile/page controls must execute and pass' }
           }
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()

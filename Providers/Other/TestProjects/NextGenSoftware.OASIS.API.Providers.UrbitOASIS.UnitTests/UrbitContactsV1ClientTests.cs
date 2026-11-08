@@ -24,6 +24,100 @@ public class UrbitContactsV1ClientTests
         => new(status) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
 
     [TestMethod]
+    public async Task LocalBookPageUsesExactIdRouteAndKeepsContactAndOverlaySeparate()
+    {
+        var handler = new Handler(_ => Reply("[" + Profile + ",{\"nickname\":{\"type\":\"text\",\"value\":\"Local label\"},\"bio\":{\"type\":\"null\"}}]"));
+        using var http = new HttpClient(handler);
+        using var client = new UrbitContactsV1Client(new Uri("https://teaching.invalid/"), http);
+        var result = await client.ReadBookPageAsync("0v1.abcde");
+        Assert.IsFalse(result.IsError, result.Message);
+        Assert.AreEqual("0v1.abcde", result.Result.RequestedId);
+        Assert.AreEqual("Native contact", result.Result.Contact.Nickname);
+        Assert.AreEqual("Teaching profile", result.Result.Contact.Bio);
+        Assert.AreEqual("Local label", result.Result.Overlay.Nickname);
+        Assert.IsNull(result.Result.Overlay.Bio);
+        Assert.IsNull(result.Result.Overlay.Status);
+        Assert.AreEqual(1, result.LoadedCount);
+        Assert.AreEqual(1, handler.Calls.Count);
+        Assert.AreEqual("https://teaching.invalid/~/scry/contacts/v1/book/id/0v1.abcde.json", handler.Calls[0].AbsoluteUri);
+    }
+
+    [DataTestMethod]
+    [DataRow("{}")]
+    [DataRow("[]")]
+    [DataRow("[{}]")]
+    [DataRow("[{},{},{}]")]
+    [DataRow("[{},null]")]
+    [DataRow("[{},{\"nickname\":\"bare\"}]")]
+    [DataRow("[{},{\"nickname\":{},\"nickname\":{}}]")]
+    public async Task InvalidPageShapeOrOverlayRejectsWithoutPartialResult(string body)
+    {
+        var handler = new Handler(_ => Reply(body));
+        using var http = new HttpClient(handler);
+        using var client = new UrbitContactsV1Client(new Uri("https://teaching.invalid/"), http);
+        var result = await client.ReadBookPageAsync("0v1");
+        Assert.AreEqual("URBIT_CONTACT_PAGE_READ_FAILED", result.ErrorCode);
+        Assert.IsNull(result.Result);
+        Assert.AreEqual(1, handler.Calls.Count);
+    }
+
+    [DataTestMethod]
+    [DataRow("1")]
+    [DataRow("0v../x")]
+    [DataRow("0vA")]
+    [DataRow("0v1?x=1")]
+    [DataRow("0v1\n")]
+    [DataRow("0v01")]
+    public async Task UnsafePageIdRejectsBeforeTransport(string id)
+    {
+        var handler = new Handler(_ => throw new AssertFailedException("No read expected."));
+        using var http = new HttpClient(handler);
+        using var client = new UrbitContactsV1Client(new Uri("https://teaching.invalid/"), http);
+        Assert.AreEqual("URBIT_CONTACT_PAGE_INVALID_INPUT", (await client.ReadBookPageAsync(id)).ErrorCode);
+        Assert.AreEqual(0, handler.Calls.Count);
+    }
+
+    [DataTestMethod]
+    [DataRow(401)]
+    [DataRow(403)]
+    [DataRow(404)]
+    [DataRow(500)]
+    public async Task PageFailurePreservesNativeHttpErrorWithoutProfileFallback(int status)
+    {
+        var handler = new Handler(_ => Reply("denied", (HttpStatusCode)status));
+        using var http = new HttpClient(handler);
+        using var client = new UrbitContactsV1Client(new Uri("https://teaching.invalid/"), http);
+        var result = await client.ReadBookPageAsync("0v1");
+        Assert.AreEqual("URBIT_CONTACT_PAGE_READ_FAILED", result.ErrorCode);
+        Assert.IsNull(result.Result);
+        Assert.IsInstanceOfType(result.Exception, typeof(HttpRequestException));
+        Assert.AreEqual((HttpStatusCode)status, ((HttpRequestException)result.Exception!).StatusCode);
+        Assert.AreEqual(1, handler.Calls.Count);
+    }
+
+    [TestMethod]
+    public async Task OversizedPageDoesNotPublishEitherContactObject()
+    {
+        using var http = new HttpClient(new Handler(_ => Reply(new string('x', 64 * 1024 + 1))));
+        using var client = new UrbitContactsV1Client(new Uri("https://teaching.invalid/"), http);
+        var result = await client.ReadBookPageAsync("0v1");
+        Assert.AreEqual("URBIT_CONTACT_PAGE_LIMIT", result.ErrorCode);
+        Assert.IsNull(result.Result);
+    }
+
+    [TestMethod]
+    public async Task CancelledPageReadDoesNotSendAnyRequest()
+    {
+        var handler = new Handler(_ => throw new AssertFailedException("No read expected."));
+        using var http = new HttpClient(handler);
+        using var client = new UrbitContactsV1Client(new Uri("https://teaching.invalid/"), http);
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        Assert.AreEqual("URBIT_CONTACT_PAGE_CANCELLED", (await client.ReadBookPageAsync("0v1", cancelled.Token)).ErrorCode);
+        Assert.AreEqual(0, handler.Calls.Count);
+    }
+
+    [TestMethod]
     public async Task CurrentTaggedProfileUsesExactPointReadAndProjectsOnlyReviewedFields()
     {
         var handler = new Handler(_ => Reply(Profile));
