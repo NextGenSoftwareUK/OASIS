@@ -4,15 +4,20 @@ Updated 8 November 2026. Goal active and incomplete.
 
 ## Latest continuation
 
-Holonym exact image42451953369 succeeds; commit tag/provenance/digest verified
-in memory. Fresh7pin/255setting/baseline checks pass; one normal Development
-push638993968 acknowledged. Exact code deploymentff89fa57-7dee-4563-b38b-14321118c433
-isQUEUED; no settings mutation or hosted cohort. Next: inspect this running
-package, then apply exactly four protected settings and one activation.
-Civic source readiness returns3public network names at one canonical-hash-bound
-Polygon block. New bounded CQL source/security controls/cloud workflow prepared;
-cloud42452950450/job128645866052 live; compile/native acceptance pending, no count increase. [Review](CIVIC_PUBLIC_SOURCE_STATUS.md).
-Disk remains protected: no local build/runtime/image/database download.
+Holonym exact image42451953369 succeeds; provenance/digest verified. One
+qualified Development push638993968 acknowledged; exact code deployment
+ff89fa57-7dee-4563-b38b-14321118c433 isBUILDING. No settings mutation or new
+hosted cohort. Next: inspect this running package, then four protected
+settings and one activation; accepted Self/SubQuery/Dapr must remain enabled.
+
+Civic first cloud42452950450 passes27controlled+1296shared but native fails
+because the frozen state needs archive access. Original diagnostic retained;
+no more archived-state requests or alternate endpoint. Single current-finalized
+per-record reader now replaces the unsuitable archive contract. Corrected
+source4a56a62a2/Core46ac61c manifest validates; native cloud42453281381 and
+WEB4 cloud42453281168 arequeued. No CQL count/admission increase. Existing
+personal-pass adapter preserved. [Review](CIVIC_PUBLIC_SOURCE_STATUS.md).
+No local build/runtime/image/database download.
 
 ## Current phase
 

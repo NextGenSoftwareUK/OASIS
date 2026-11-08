@@ -101,3 +101,5 @@ real shared Mongo/HTTP fixture are prepared. Core query-only read-tariff entry
 46ac61c2abb80c4e3e3c6431f940a758691dcb78 pushed on the original Core task branch;
 parent gitlink and manifest advance together. Source correction and WEB4
 qualification must pass before any local count or hosted enrollment increase.
+
+Corrected tasksource4a56a62a279045e92248f74c1e507279112ece3f/Core46ac61c manifest/gitlinks pass. Cloud native42453281381 and WEB442453281168 observedqueued, no manual duplicate dispatch or accepted source change.
