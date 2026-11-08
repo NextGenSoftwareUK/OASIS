@@ -1,6 +1,6 @@
 # GOMap public query source review — 8 November 2026
 
-Status: existing real HTTP routing client reviewed; no CQL source admitted, no native route request made, no coverage increment.
+Status: bounded real HTTP routing client controlled-qualified (28/28); no CQL source admitted, no native route request made, no coverage increment.
 
 The current GOMap project targets net10.0. Its existing OSRMDirectionsProvider uses an injected HttpClient or one shared client, identifies itself with an OASIS user agent, and calls the route HTTP API with full GeoJSON geometry. This is a genuine integration. The README netstandard2.1 description does not describe the current project target. Unity rendering, placement, routing and persistence require separate evidence.
 
@@ -21,3 +21,6 @@ Twenty-six declared controlled cases and a cloud-only leased qualification workf
 First source5d3a6960362b1bf8ae9bd29c11d2dc8679c34243 cloud42476678025/job128719482090 failed before test execution: existing GOMapOASISProviderTests lacked the Contracts.Enums import for MapProviderType (CS0103). Client compilation completed; no TRX was produced and no tests/native requests/coverage are claimed. Corrected that namespace import without removing tests. Client now adds a linked30second end-to-end deadline including gate/response streaming, plus real gate-wait cancellation and cross-instance request-spacing controls (28declared cases). Actual corrected cloud run required.
 
 Corrected source32a252125b56adeaa63e00a3b49699fea92e5871 run42476814718/job128719902348 executed28cases:27pass/1fail/no skips. Only failure: MSTest exact-type assertion expected OperationCanceledException while the actual canceled HTTP task correctly propagated its TaskCanceledException subclass. Updated the test helper to require cancellation across that defined exception hierarchy; zero-second-dispatch assertion remains. No production request/parser change or native route call. Successful corrected run/artifact required before qualification.
+
+
+Cloud sourcef393451ad6da967aa0222fe5b6bf2a73c9498a4d run42476991119/job128720435514 SUCCESS. Actual TRX artifact13616200194/4667bytes SHA25668e1466097f145e7c0baefd77edb110a5b8ab8c473da268bd47dec147786f820 inspected wholly in memory:28executed/28passed/0failed/0skipped. This qualifies only the selected controlled HTTP/parser/cancellation/shared-rate cases, not all Unity/provider behavior, a real OSRM request, hosting eligibility, CQL/WEB4/replicas/browser or full ORM parity. Original compile/test failures remain above; no assertions removed. No local image/build/runtime/environment installed.

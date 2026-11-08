@@ -129,3 +129,10 @@ Use the build lease for shared .NET outputs and bounded workers; no local build
 or new SDK/environment is needed for current cloud qualification.
 
 Historical checkpoints remain in git and the linked provider evidence docs.
+
+
+GOMap follow-on: canonical bounded OSRM client passed28/28controlled cloud cases
+(run42476991119, sourcef393451ad). Artifact13616200194/4667bytes hash/TRX verified
+in memory. No native route, CQL/live enrollment, coverage increment or four-provider
+candidate change. Hosting/use-contract, native, CQL/HTTP/replica/browser gates open.
+See [GOMap evidence](GOMAP_PUBLIC_SOURCE_STATUS.md).
