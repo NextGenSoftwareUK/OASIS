@@ -85,8 +85,21 @@ Package qualification preparation: the explicit `urbit_reader` input requires
 SDK/book/query symbols, WEB4 registration and the actual project/runtime/direct
 API dependency graph from the image, in addition to existing full-package checks.
 The actual Node probe passes15 controlled positive/negative cases in6 local test
-methods; these are packaging controls, not image/runtime acceptance. No image
-build or Development publication is implied by these controls.
+methods; cloud controls42531017106/job128884988269 also pass. These are packaging
+controls, not image/runtime acceptance.
+
+One cloud candidate image build is active:
+[42531102996](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42531102996),
+job128885261601, frozen parente514c0025532a1849c7d53ffe86be7fb1d00416c,
+Coree62ec44. Teaching runtimes included; only new commit-specific image tag
+`e514c0025532a1849c7d53ffe86be7fb1d00416c-teaching`; no alias or deployment.
+Diff from accepted native834f713a0 contains only docs/package qualifier/controls/
+workflow changes, no API/provider/Core/dependency/publish changes. Exact dependency
+manifest validation passes. First dispatch used an unsupported bare-SHA workflow
+ref and returned422 without creating a run; corrected dispatch uses the existing
+branch after matching its SHA, while the build checkout input remains frozen.
+Follow this original build; require its digest and full package/Urbit/startup
+qualification before any candidate acceptance. No Development publication.
 
 ## Files and reusable resources
 
