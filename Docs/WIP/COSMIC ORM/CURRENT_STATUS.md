@@ -40,7 +40,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **120 scoped local, 92 live HTTP and 28 functional browser**.
+Coverage is **120 scoped local, 93 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -63,49 +63,29 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-Observe SubQuery settings activation **eb09ea25-e7c0-4650-abc3-6d1419ee3794**.
-It is BUILDING for verified source `9fd968a7b40d2decb389f7a2a5c7f75874b11153`,
-Core `06df0885c398e0b16749565852d12a9d499288d2`. **Do not repeat the Development
-push, four setting updates or activation request.**
-
-Code deployment ac908014 succeeded on instance0deef829-024a-4248-958b-9c6162fc4e79.
+SubQuery settings activation **eb09ea25-e7c0-4650-abc3-6d1419ee3794**
+succeeded for source `9fd968a7b40d2decb389f7a2a5c7f75874b11153`,
+Core `06df0885c398e0b16749565852d12a9d499288d2`.
+Exact package inspection verifies253settings/206critical, enabled reader,
+six helpers, SDK/native hashes and preserved accepted Dapr acknowledgement.
 Actual Railway image is
-`sha256:88a422c48ff2014c6f7f1b8b08a50c2732e071836426a387e79a7d6f631fae29`.
-Its package inspection verified all251settings/204critical values, six helper
-hashes, five SDK/provider assemblies, runtime/native-library proof, the accepted
-Dapr acknowledgement/owner141c7116 and the new SubQuery reader/registration.
-SubQuery was correctly disabled during that code inspection.
+`sha256:510762ee57c752a5fd213ca11578eda8ac172a59e20b6d7bdc9138c3d9bff945`,
+instance `1f32e8f1-4853-48e4-bc0a-d4f52493704e`.
 
-The four settings passed preflight, were applied once with deploys skipped,
-and have exact per-key ACKs. They preserve the other sources and prepare253total
-settings. One guarded activation request is acknowledged; its original protected
-response and exact handle are retained. No hosted SubQuery cohort or native
-source creation has run. Private state/operators are under
-`LocalState/COSMIC/RecoveryLaptopResume20261107`:
+Original owner51c28fc4 passed native3/2, federation5/4, first2saves,
+repeat0new/2existing, exact SQLite/Neo4j replicas2/2, foreign private0/public3.
+Durable acceptance receipt is sealed. Initial evidence-directory failure's
+HTTP outcome is unknown and preserved; root fix32bc5e677 passes32controls.
+Explicit original-owner continuation completed; do not rerun acceptance,
+settings, activation or source creation. No native source writes were needed.
 
-1. Observe eb09ea25 until SUCCESS, then invoke `inspect-subquery-code-package.py`
-   with `--deployment eb09ea25-e7c0-4650-abc3-6d1419ee3794 --phase settings`.
-   It verifies the actual instance/package and all253settings, enabled source
-   ownerf0d6a43f-cdf4-4112-8397-b406571401a6, and preserved Dapr source/runtime.
-   Do not reuse the GHCR digest as the actual Railway digest.
-2. Reuse the acknowledged PouchDB readiness visitor after exact release
-   verification. Run SubQuery's first native/federation/preparation/reuse/privacy/
-   SQLite+Neo4j cohort once. Seal its original two saves and reports. Preserve
-   uncertain operations; never replay accepted cohorts or replace native data.
-3. After hosted acceptance, publish website card78, updating its note/evidence
-   link. Website task73bacd67970877cfed7404595498ca12ad233c0d has the draft and
-   all119client controls pass. Main/public source remains26b3172. Browser proof
-   is separate; do not bypass the existing URL-policy failure.
-
-All51scoped candidate checks pass/zero skips:17dictionary,9WEB4/HTTP and25admission
-regressions. Task SubQuery8+1 and affected Waku5+1 also pass. Image42441146593
-succeeded with GHCR digestc9e3748ba13de0e0134c7e0046e1b30840d27ab6cc56ff056fdf4f3b187530b5.
-The workflow applied its default sandbox tag despite an empty requested extra
-tag; actual tags and unchanged-live-service observation are recorded. Future
+Publish website card78 with immutable evidence082f7d367, then continue Self
+Protocol public-source review. Existing119client controls pass; browser gate
+remains open and must not bypass the existing URL-policy failure. Future
 image requests must pass the explicit commit-specific teaching tag.
 [Full proof and scope](SUBQUERY_PUBLIC_SOURCE_STATUS.md).
 
-Coverage remains **120 scoped local / 92 live HTTP / 28 functional browser**.
+Coverage remains **120 scoped local / 93 live HTTP / 28 functional browser**.
 The accepted Dapr cohort and retired failed generation remain preserved; no
 source creation/save was replayed. [Dapr history](DAPR_CQL_MVP.md). While the
 code deployment waited for a build slot, a first anonymous Self Protocol RPC
@@ -138,7 +118,7 @@ Provision-HostedTeachingSource.py has five command tests; native helper has six.
 - Broader ORM children/depth/history/deltas, migration, placement and HyperDrive
   operator, transport and scale acceptance remain incomplete.
 - Disk target107GB remains unmet; preserve personal WSL Miniforge/ML models.
-- Latest observed free space is49,979,895,808bytes (~46.5GiB); no task-owned bulk
+- Latest observed free space is49,833,431,040bytes (~46.4GiB); no task-owned bulk
   deletion, local build/runtime/image download or rejected cleanup retry.
 - Subscription20.6MB and finished Graph build outputs1.98GB retained after
   automatic cleanup-policy rejection; exact scopes are in the resource ledger.
