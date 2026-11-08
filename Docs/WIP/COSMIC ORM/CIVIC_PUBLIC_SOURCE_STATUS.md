@@ -32,3 +32,42 @@ credentials, owner decision or hosting change is required for this review.
 Compact tree and selected contract/hash receipts are retained under
 LocalState/COSMIC/RecoveryLaptopResume20261107/civic-gateway-*.json.
 Native, manager, HTTP, replication and browser gates remain open.
+
+## Native network catalogue and CQL preparation
+
+Pinned Polygon deployment files independently identify chain137, the existing
+GatewayToken proxy and its original implementation. Proxy deployment
+block41896100/transaction728e2c1631fb7580e5f80c6d5481b2aec63bd3abf76af557a6d13d6bcbffe92f;
+original implementation65Bb8eb7c66c107e379C1C5781268393303E4b50.
+The deployment ABI specifies getNetwork(uint256) returning a string, unlike
+the newer separate GatewayNetwork tuple interface. Files3/11372/401785bytes
+were inspected/hash recorded in memory; no source archive retained.
+
+One anonymous batch returned HTTP200/9697bytes: reported chain0x89, genesis
+0xa9c28ce2141b56c474f1dc504bee9b01eb1bd7d1a507580d5519d4437a97de1b,
+finalized block0x5c7349f/hash
+0x63e481ab0ed2431ffa2c986b662b35480f69d46d43e847ea54b8cfd7b9dbf7af,
+and nonempty680byte proxy code. Genesis matches the already accepted Polygon
+source pin; this does not assert independent consensus verification.
+
+One subsequent canonical-hash-bound batch returned HTTP200/993bytes.
+Network1=tgnuXXNMDLK8dy7Xm1TdeGyc95MDym4bvAQCwcW21Bf;
+network4=ignREusXmGrscGNUesoU9mxfds9AiYTezUKex2PsZV6;
+network10=uniqobk8oGh4XBLMqM68K8M2zNu3CdYX7q5go7whQiv.
+All three strict ABI strings preserve offset/length/padding and exact bytes.
+The proxy implementation slot reportscd868b491d98a3e8543c590186a5eaa923bc40f7,
+which differs from the original deployment record: do not claim unchanged
+implementation provenance or substitute the original implementation address.
+Raw/status/hash persisted before parsing; no retry, redirect, proxy or write.
+No personal pass, wallet or user identity queried.
+
+CivicNetworkQuerySource now prepares an explicit immutable1/4/10catalogue,
+canonical block/chain/code checks, exact native names and portable provenance.
+Shared ReviewedEvmReadClient adds a bounded canonical ABI-string reader with
+strict UTF-8, safe length/offset checks and exact zero padding/trailing bounds.
+Unknown/mixed IDs preflight before any native dispatch; scans and writes
+remain unsupported with explicit errors. Existing pass-verification adapter
+is unchanged. New cloud workflow requires27controlled cases (25new+2legacy),
+all shared-reader regressions and1actual native CQL3/2case, no skips. Source
+and project XML reviewed; compilation/acceptance still pending. No coverage
+count increase, WEB4 admission, source owner, settings or hosted cohort.

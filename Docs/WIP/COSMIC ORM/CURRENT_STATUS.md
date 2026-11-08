@@ -4,15 +4,15 @@ Updated 8 November 2026. Goal active and incomplete.
 
 ## Latest continuation
 
-Holonym exact image42451953369/job128642888031 is freshly confirmed live in
-Build and push on638993968; all60qualification cases already passed. No
-Development push, settings mutation or hosted cohort yet. Prepared guarded
-package/activation operators pass Python/Node24 syntax checks and preserve
-accepted Self/SubQuery/Dapr sources. Next: successful exact image provenance,
-then guarded scoped integration and exact running-package inspection.
-Civic primary-contract review identifies a separate deployment/ABI gate;
-no native query or admission claim. [Review](CIVIC_PUBLIC_SOURCE_STATUS.md).
-Latest measured free space46.44GiB; compact recovery journal2.87MiB.
+Holonym exact image42451953369 succeeds; commit tag/provenance/digest verified
+in memory. Fresh7pin/255setting/baseline checks pass; one normal Development
+push638993968 acknowledged. Exact code deploymentff89fa57-7dee-4563-b38b-14321118c433
+isQUEUED; no settings mutation or hosted cohort. Next: inspect this running
+package, then apply exactly four protected settings and one activation.
+Civic source readiness returns3public network names at one canonical-hash-bound
+Polygon block. New bounded CQL source/security controls/cloud workflow prepared;
+compile/native acceptance pending, no count increase. [Review](CIVIC_PUBLIC_SOURCE_STATUS.md).
+Disk remains protected: no local build/runtime/image/database download.
 
 ## Current phase
 

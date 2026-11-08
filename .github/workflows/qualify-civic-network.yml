@@ -1,0 +1,106 @@
+name: Qualify bounded Civic network CQL
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-civic-network.yml'
+      - 'Docker/oasis-dependency-versions.env'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.CivicOASIS/**'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.CivicOASIS.UnitTests/**'
+      - 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/ReviewedEvmReadClient.cs'
+      - 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/BoundedPublicKeyValueQuery.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  registry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mongo:
+        image: mongo:8.0.15
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1})'"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Validate exact dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Compile and verify controlled registry invariants
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner civic-network-ci -Operation {
+            dotnet test Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.CivicOASIS.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'TestCategory!=CivicNetworkNative&TestCategory!=Live' --results-directory TestResults/CivicNetworkCurrent --logger 'trx;LogFileName=controlled.trx'
+            if ($LASTEXITCODE) { throw 'Controlled Civic network qualification failed' }
+            [xml]$report = Get-Content TestResults/CivicNetworkCurrent/controlled.trx
+            $counts = $report.TestRun.ResultSummary.Counters
+            if ($counts.passed -ne '27' -or $counts.total -ne '27' -or $counts.executed -ne '27') {
+              throw 'All twenty-seven controlled cases must execute and pass without skips'
+            }
+          }
+      - name: Verify shared EVM reader consumers
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner civic-shared-ci -Operation {
+            dotnet test Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --results-directory TestResults/CivicNetworkCurrent --logger 'trx;LogFileName=shared.trx'
+            if ($LASTEXITCODE) { throw 'Shared reader consumer checks failed' }
+            [xml]$report = Get-Content TestResults/CivicNetworkCurrent/shared.trx
+            $counts = $report.TestRun.ResultSummary.Counters
+            if ([int]$counts.total -lt 1 -or $counts.passed -ne $counts.total -or $counts.executed -ne $counts.total) {
+              throw 'All shared checks must execute and pass without skips'
+            }
+          }
+      - name: Verify actual public registry CQL reads
+        working-directory: OASIS
+        shell: pwsh
+        env:
+          COSMIC_CIVIC_VERIFY_PUBLIC: '1'
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner civic-network-native-ci -Operation {
+            dotnet test Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.CivicOASIS.UnitTests --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter 'TestCategory=CivicNetworkNative' --results-directory TestResults/CivicNetworkCurrent --logger 'trx;LogFileName=native.trx'
+            if ($LASTEXITCODE) { throw 'Actual Civic network CQL qualification failed' }
+            [xml]$report = Get-Content TestResults/CivicNetworkCurrent/native.trx
+            $counts = $report.TestRun.ResultSummary.Counters
+            if ($counts.passed -ne '1' -or $counts.total -ne '1' -or $counts.executed -ne '1') {
+              throw 'The native registry CQL case must execute and pass without skips'
+            }
+          }
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: civic-network-cql
+          path: OASIS/TestResults/CivicNetworkCurrent/*.trx
+          if-no-files-found: error
+          retention-days: 30

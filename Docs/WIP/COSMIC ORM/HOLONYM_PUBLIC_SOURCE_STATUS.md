@@ -135,3 +135,11 @@ settings and original Holonym owner. Installed Holonym assembly, exact-ID
 reader/schema/source binding and WEB4 registration are checked alongside the
 existing helpers, runtime proofs and accepted source enrollment. No operator
 was invoked, settings applied, deployment requested or cohort created.
+
+Image42451953369/job128642888031 succeeds;166013byte logs inspected in memory.
+Single explicit638993968-teaching tag and exact provenance revision verified,
+GHCR digestsha256:e1739b2960d20d4414c9a457c704fc161da8827472e5ee9760230911da17915d.
+No image downloaded. Fresh7pin/255setting/accepted baseline checks pass;
+one normal Development push638993968 acknowledged. Exact code deployment
+ff89fa57-7dee-4563-b38b-14321118c433 isQUEUED. Settings unchanged, Holonym
+not enrolled; inspect this exact running package before four-setting rollout.
