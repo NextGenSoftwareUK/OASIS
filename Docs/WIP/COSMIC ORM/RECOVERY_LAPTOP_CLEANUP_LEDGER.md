@@ -5157,3 +5157,19 @@ containers/internal network/anonymous volumes absent. Native metadata=false,
 TRON/CQL/native/live acceptance=false. No images or archive/TRX extracted locally,
 no local build/environment/model/database or original-source replay. Plan image
 gate closed; legitimate reader location/native HTTP/live/browser remain open.
+
+TRON enrollment tooling prepared in the existing generic configuration path.
+Retained six-field catalogue/owner/heights validated, duplicate/credential/foreign
+fields refused; original fixture7f1c8fe3 bytes unchanged. Shared preset writer
+now owns existing GUID and explicit metadata-key selection; TRON uses exact
+TronBlockHeight3/2 presets plus Mongo pairs and deterministic public UUIDs.
+Dedicated reader is separate, printable1..256/no commas matching SDK. Encryption
+requires the already-explicit queryable metadata key; DNA and wallet data are
+never rewritten. Existing provider/grant/example/write-tariff state is refused
+for reconciliation. Added missing orphaned-write-tariff check at the preparer
+boundary, aligning the actual query-only factory rejection. Seven new+39existing
+pure tests passed locally with outbound HTTP forbidden/count0; all temp fixtures
+removed by owned contexts, no real settings prepared/applied or credentials read.
+New lightweight cloud46case workflow and .NET/Python public-ID contract assertion
+prepared; cloud checks pending. Scoped/task Core mapper bytes match. Only test/
+operator tooling changed, no image rebuild, live query/source replay or new env.

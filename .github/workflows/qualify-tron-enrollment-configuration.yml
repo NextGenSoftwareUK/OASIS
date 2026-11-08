@@ -1,0 +1,51 @@
+name: Verify TRON enrollment configuration contracts
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-tron-enrollment-configuration.yml'
+      - 'Scripts/Sandbox/Prepare-HostedExactKeyConfiguration.py'
+      - 'Scripts/Sandbox/Verify-HostedQuerySource.py'
+      - 'Scripts/Sandbox/test_hosted_exact_key_configuration.py'
+      - 'Scripts/Sandbox/test_tron_header_configuration.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  configuration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Verify pure configuration contracts with outbound HTTP forbidden
+        run: |
+          python3 -B - <<'PY'
+          import contextlib, io, json, os, pathlib, unittest
+          from unittest.mock import patch
+          with patch('urllib.request.urlopen', side_effect=AssertionError('Pure controls forbid outbound HTTP')) as outbound:
+              loader = unittest.TestLoader()
+              suite = unittest.TestSuite([
+                  loader.discover('Scripts/Sandbox', pattern='test_tron_header_configuration.py'),
+                  loader.discover('Scripts/Sandbox', pattern='test_hosted_exact_key_configuration.py')])
+              with contextlib.redirect_stdout(io.StringIO()):
+                  result = unittest.TextTestRunner().run(suite)
+              if result.testsRun != 46 or not result.wasSuccessful() or result.skipped or outbound.call_count:
+                  raise SystemExit('All 46 pure configuration cases must pass without skips or HTTP calls')
+          out = pathlib.Path('TestResults/TronHeaderConfiguration')
+          out.mkdir(parents=True, exist_ok=False)
+          (out/'controlled.json').write_text(json.dumps({'source': os.environ['GITHUB_SHA'],
+              'total': result.testsRun, 'passed': result.testsRun, 'skipped': 0,
+              'outboundHttpCalls': 0, 'settingsApplied': False}), encoding='utf-8')
+          PY
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: tron-enrollment-configuration-controls
+          path: TestResults/TronHeaderConfiguration/controlled.json
+          if-no-files-found: error
+          retention-days: 30

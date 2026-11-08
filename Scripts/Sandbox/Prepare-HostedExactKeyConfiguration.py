@@ -19,6 +19,7 @@ ADMISSION = "PREPARED_STORAGE_ADMISSION_JSON"
 GRANTS = "CQL_PUBLIC_READ_CATALOGUES_JSON"
 EXAMPLES = "CQL_HOSTED_QUERY_EXAMPLES_JSON"
 REQUIRED_SOURCE_TOKENS = {
+    "TRONOASIS": "COSMIC_TRON_PUBLIC_READER_KEY",
     "DaprOASIS": "CQL_DAPR_QUERY_SIDECAR_TOKEN",
     "CloudflareOASIS": "CQL_CLOUDFLARE_KV_QUERY_READER_TOKEN",
     "VercelKVOASIS": "CQL_VERCEL_KV_QUERY_READER_TOKEN",
@@ -55,11 +56,11 @@ def candidate(before, provider, review):
         raise ValueError("Protected source settings do not match the reviewed teaching catalogue.")
     if provider in REQUIRED_SOURCE_TOKENS:
         token = before.get(REQUIRED_SOURCE_TOKENS[provider])
-        maximum_length = {"DenoDeployOASIS": 8192, "TursoOASIS": 8192, "SafeOASIS": 4096, "TemporalOASIS": 4096}.get(provider, 1024)
+        maximum_length = {"TRONOASIS": 256, "DenoDeployOASIS": 8192, "TursoOASIS": 8192, "SafeOASIS": 4096, "TemporalOASIS": 4096}.get(provider, 1024)
         if (not isinstance(token, str) or not 1 <= len(token) <= maximum_length
                 or any(not 33 <= ord(character) <= 126 for character in token)):
             raise ValueError("A valid protected source token is required.")
-        if provider in ("ENSOffchainOASIS", "TemporalOASIS") and "," in token:
+        if provider in ("ENSOffchainOASIS", "TemporalOASIS", "TRONOASIS") and "," in token:
             raise ValueError("A valid protected source token is required.")
         if provider == "SafeOASIS" and not re.fullmatch(r"[A-Za-z0-9._-]{1,4096}", token):
             raise ValueError("A valid protected source token is required.")
@@ -69,7 +70,7 @@ def candidate(before, provider, review):
     grants = json.loads(before.get(GRANTS, "{}"))
     partition = "CQL_HOSTED_QUERY_EXAMPLES__" + provider
     if (provider in admission["queryOnlyProviders"] or provider in admission["ordinaryProviders"]
-            or any(row["provider"] == provider for row in admission["nativeProviders"] + admission["queryTariffs"])
+            or any(row["provider"] == provider for row in admission["nativeProviders"] + admission["queryTariffs"] + admission.get("storageTariffs", []))
             or provider in grants or partition in before or provider in json.loads(before.get(EXAMPLES, "{}"))):
         raise ValueError("Existing provider settings require explicit reconciliation.")
 

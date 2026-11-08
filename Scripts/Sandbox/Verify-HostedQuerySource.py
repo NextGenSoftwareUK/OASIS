@@ -28,7 +28,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
     "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "TenderlyOASIS", "QuickNodeOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS",
-    "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS", "SelfProtocolOASIS", "HolonymOASIS", "CivicOASIS", "MapLibreOASIS", "GOMapOASIS", "TheSandboxOASIS", "PolygonIDOASIS", "SEEDSOASIS", "IntelOpenVINOOASIS", "WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS",
+    "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS", "SelfProtocolOASIS", "HolonymOASIS", "CivicOASIS", "MapLibreOASIS", "GOMapOASIS", "TheSandboxOASIS", "PolygonIDOASIS", "SEEDSOASIS", "IntelOpenVINOOASIS", "WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS", "TRONOASIS",
 )
 FIXED_PUBLIC_CATALOGUES = {
     "GOMapOASIS": (
@@ -484,7 +484,59 @@ def native_logical_id(actor, provider, source, key):
     return str(uuid.UUID(bytes_le=bytes(digest)))
 
 
+def reviewed_record_presets(provider, ids, metadata_key=None, metadata_values=None):
+    if (metadata_key is None) != (metadata_values is None):
+        raise ValueError("Metadata selection requires both its field and native keys.")
+    presets = []
+    for suffix, count in (("records", 3), ("subset", 2)):
+        if metadata_key is not None:
+            predicate = {"metadataPath": [metadata_key], "scalar": "String", "operator": "In",
+                         "value": list(metadata_values[:count])}
+        else:
+            predicate = {"field": "Id", "scalar": "Guid", "operator": "In", "value": ids[:count]}
+        selection = {"orderBy": "None", "take": 25, "includeMetadata": True, "filters": [predicate]}
+        presets.extend([
+            {"id": "public-" + suffix, "label": f"{provider} public teaching records ({count})",
+             "request": dict(selection, provider=provider, maximumDurationMilliseconds=30000)},
+            {"id": "mongo-public-" + suffix, "label": f"MongoDB + {provider} ({count} source records)",
+             "operation": "Federation", "request": {
+                "scope": "Named", "providers": ["MongoDBOASIS", provider], "source": selection,
+                "identityMode": "PreserveCopies", "maximumProviderAttempts": 2,
+                "maximumDurationMilliseconds": 30000, "take": 25}},
+        ])
+    return presets
+
+
+def reviewed_tron_header_source(path):
+    if path is None or not path.is_file() or not 0 < path.stat().st_size <= 16384:
+        raise RuntimeError("An explicit retained TRON header catalogue is required.")
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("Duplicate catalogue property.")
+            result[key] = value
+        return result
+    try:
+        source = json.loads(path.read_bytes(), object_pairs_hook=unique)
+        genesis = "00000000000000001ebf88508a03865c71d452e25f4d51194196a1d22b6653dc"
+        expected = {"schema": 1, "rpcUrl": "https://api.trongrid.io/walletsolidity/getblock",
+                    "genesisHash": genesis, "consistency": "SolidityNodeSolidified",
+                    "blockHeights": ["1", "2", "3"], "sourceOwner": "374ef405-02b9-4424-b2c6-3e187104a262"}
+        if not isinstance(source, dict) or type(source.get("schema")) is not int or source != expected:
+            raise ValueError("Retained source identity, heights or fields differ.")
+    except (ValueError, UnicodeError):
+        raise RuntimeError("The retained TRON header catalogue must match exactly; credentials are separate.") from None
+    ids = [native_logical_id(source["sourceOwner"], "TRONOASIS", "tron-public-solidified:" + genesis, height)
+           for height in source["blockHeights"]]
+    return {"presets": reviewed_record_presets("TRONOASIS", ids, "TronBlockHeight", source["blockHeights"]),
+            "sourceBinding": {"CQL_TRON_PUBLIC_HEADER_QUERY_SOURCE_JSON": json.dumps(source, separators=(",", ":"))},
+            "publicIds": ids, "requiredQueryableMetadataKey": "TronBlockHeight"}
+
+
 def reviewed_exact_key_source(provider, path):
+    if provider == "TRONOASIS":
+        return reviewed_tron_header_source(path)
     if path is None or not path.is_file() or not 0 < path.stat().st_size <= 16384:
         raise RuntimeError("An explicit reviewed native teaching catalogue is required.")
     catalogue = json.loads(path.read_bytes())
@@ -742,23 +794,9 @@ def reviewed_exact_key_source(provider, path):
     except (AttributeError, KeyError, TypeError, ValueError) as error:
         raise RuntimeError("The reviewed teaching catalogue requires canonical, distinct record identities"
                            " and any provider-specific original receipts.") from error
-    presets = []
-    for suffix, count in (("records", 3), ("subset", 2)):
-        if polygon_gateway:
-            predicate = {"metadataPath": [polygon_gateway[2]], "scalar": "String", "operator": "In",
-                         "value": list(POLYGON_GATEWAY_KEYS[:count])}
-        else:
-            predicate = {"field": "Id", "scalar": "Guid", "operator": "In", "value": ids[:count]}
-        selection = {"orderBy": "None", "take": 25, "includeMetadata": True, "filters": [predicate]}
-        presets.extend([
-            {"id": "public-" + suffix, "label": f"{provider} public teaching records ({count})",
-             "request": dict(selection, provider=provider, maximumDurationMilliseconds=30000)},
-            {"id": "mongo-public-" + suffix, "label": f"MongoDB + {provider} ({count} source records)",
-             "operation": "Federation", "request": {
-                "scope": "Named", "providers": ["MongoDBOASIS", provider], "source": selection,
-                "identityMode": "PreserveCopies", "maximumProviderAttempts": 2,
-                "maximumDurationMilliseconds": 30000, "take": 25}},
-        ])
+    presets = reviewed_record_presets(provider, ids,
+        polygon_gateway[2] if polygon_gateway else None,
+        list(POLYGON_GATEWAY_KEYS) if polygon_gateway else None)
     review = {"presets": presets}
     if provider == "TigrisOASIS":
         review["sourceBinding"] = {"CQL_TIGRIS_QUERY_ORIGIN": catalogue["Endpoint"],

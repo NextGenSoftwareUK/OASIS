@@ -114,6 +114,10 @@ public sealed class CqlTronHeaderHostedConfigurationTests
         var heights = new[] { "1", "2", "3" };
         var ids = heights.Select(height => NativeRecordHolonMapper.StableHolonId(owner, ProviderType.TRONOASIS,
             "tron-public-solidified:" + TronPublicHeaderMetadataSource.PublicGenesis, height)).ToArray();
+        // Match the Python enrollment review's authoritative public-ID contract.
+        Assert.Equal(new[] { Guid.Parse("a87726c3-9e6c-83c1-b5a9-a16117120d23"),
+            Guid.Parse("3c627b14-07f6-83e4-ac4f-2d5c1a50aa51"),
+            Guid.Parse("ead3d916-0c33-83d4-a156-84ef80f34b5a") }, ids);
         foreach (var count in new[] { 3, 2 })
         {
             // Exercise the captured metadata-path expression used by the shared HTTP
