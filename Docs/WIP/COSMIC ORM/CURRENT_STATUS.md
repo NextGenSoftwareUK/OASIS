@@ -18,8 +18,10 @@ this checkpoint does not claim completion of those designs.
   **42474992596** passed both roles: exact pinned digests, producer identity,
   native versions and owned-container removal verified from hashed artifacts
   13615241072 (1103 bytes) and 13615270909 (1084 bytes), inspected in memory.
-  Full image42475406236/job128715501131 for exact source8668fd2d is running
-  after prerequisite verification. No live mutation.
+  Full image42475406236/job128715501131 SUCCEEDED for exact source8668fd2d.
+  Explicit checkout/source summary/tag/push digest verified:
+  sha256:dcd1e9f67e9e44cfb721b23c47c26ad0f79cf490472a648cd32f7d8e5cec0496.
+  No live mutation.
 - Native download policy and actual Waku/NATS stages passed **42473182023**;
   artifacts/checksums/native versions and4controlled policy cases verified.
 - All seven exact private dependency checkouts passed **42472240791**. The
@@ -37,7 +39,9 @@ this checkpoint does not claim completion of those designs.
   Mongo replica/accounting data on an internal network. Syntax/config invariants
   pass, including seven actual health-probe response controls and verified-volume
   cleanup requirements; the cloud workflow runs those controls before inspecting
-  an image. Neither checker has been dispatched before full-image publication.
+  an image. Initial manual-only workflow request returned404/no job; source-only
+  push registration411100785 corrected that. One new combined package/startup
+  request acknowledged204 after publication; original run discovery pending.
 
 [OpenVINO/runtime/build evidence](OPENVINO_CQL_MVP.md).
 [Artifact download contract](../../Devs/WEB4_NATIVE_ARTIFACT_DOWNLOADS.md).
@@ -133,6 +137,8 @@ Historical checkpoints remain in git and the linked provider evidence docs.
 
 GOMap follow-on: canonical bounded OSRM client passed28/28controlled cloud cases
 (run42476991119, sourcef393451ad). Artifact13616200194/4667bytes hash/TRX verified
-in memory. No native route, CQL/live enrollment, coverage increment or four-provider
-candidate change. Hosting/use-contract, native, CQL/HTTP/replica/browser gates open.
+in memory. Native developer run42477332751/source24d53fc82 additionally passed28+1cases
+and three actual fixed Berlin routes; raw response hashes and attribution verified
+in memory. No CQL/live enrollment, coverage increment or four-provider candidate
+change. Hosting/use-contract and CQL/HTTP/replica/browser gates remain open.
 See [GOMap evidence](GOMAP_PUBLIC_SOURCE_STATUS.md).
