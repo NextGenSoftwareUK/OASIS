@@ -134,11 +134,13 @@ def main():
         deadline = time.monotonic() + 600
         kernel_probes = []
         while True:
-            result = thread(binary, connection, prefix + '(pure:m !>(=([%zuse 408] zuse)))', timeout=120)
+            result = thread(binary, connection, prefix + '(pure:m !>(zuse))', timeout=120)
             canonical = re.sub(r'\s+', ' ', result).strip()
             kernel_probes.append(canonical)
-            assert canonical in ('[1 %avow 0 %noun 0]', '[1 %avow 0 %noun 1]'), 'Native OS readiness probe failed.'
-            if canonical == '[1 %avow 0 %noun 0]':
+            assert canonical in ('[1 %avow 0 %noun 408]', '[1 %avow 0 %noun 409]'), 'Native OS readiness probe failed.'
+            report['nativeKernelVersion'] = 408 if canonical == '[1 %avow 0 %noun 408]' else 409
+            report['kernelReadinessProbeCount'] = len(kernel_probes)
+            if report['nativeKernelVersion'] == 408:
                 break
             assert time.monotonic() < deadline, 'Native OS did not reach Kelvin408.'
             time.sleep(2)
