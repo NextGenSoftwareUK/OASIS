@@ -91,7 +91,8 @@ try:
     if options.verify_package:
         # Build the actual unchanged WEB4 base stage, then copy the entire official
         # userspace. Its Python runtime lives outside /ovms; preserve its ABI as
-        # a complete root filesystem, isolated from the WEB4 loader environment.
+        # a complete userspace. Use its loader without chroot: native runtime
+        # discovery requires the container proc/sys/dev filesystem view.
         base_image='oasis-web4-base:'+label
         runtime_image='oasis-ovms-web4-package:'+label
         web4_dockerfile=ROOT/'Docker/Dockerfile.web4'
@@ -101,8 +102,8 @@ try:
             'FROM '+PINS['image']+' AS official\n'
             'FROM '+base_image+'\n'
             'COPY --from=official / /opt/ovms-rootfs/\n'
-            'ENTRYPOINT ["/usr/sbin/chroot","/opt/ovms-rootfs","/usr/bin/env","LD_LIBRARY_PATH=/ovms/lib","PYTHONPATH=/ovms/lib/python:/ovms/python_deps","ESPEAK_DATA_PATH=/ovms/share/espeak-ng-data","/ovms/bin/ovms"]\n',encoding='utf-8')
-        model_mount='/opt/ovms-rootfs/models'
+            'RUN test -x /opt/ovms-rootfs/lib64/ld-linux-x86-64.so.2 && test -d /opt/ovms-rootfs/usr/lib/python3.12 && ln -s /opt/ovms-rootfs/ovms /ovms\n'
+            'ENTRYPOINT ["/usr/bin/env","PYTHONHOME=/opt/ovms-rootfs/usr","PYTHONPATH=/ovms/lib/python:/ovms/python_deps","ESPEAK_DATA_PATH=/ovms/share/espeak-ng-data","/opt/ovms-rootfs/lib64/ld-linux-x86-64.so.2","--library-path","/ovms/lib:/opt/ovms-rootfs/usr/lib/x86_64-linux-gnu:/opt/ovms-rootfs/lib/x86_64-linux-gnu","/ovms/bin/ovms"]\n',encoding='utf-8')
         docker('build','--file',str(package_dockerfile),'--tag',runtime_image,str(models),timeout=240)
         package_info=json.loads(docker('image','inspect',runtime_image,timeout=20).stdout)[0]
         base_info=json.loads(docker('image','inspect',base_image,timeout=20).stdout)[0]
@@ -111,7 +112,7 @@ try:
             'packageDockerfileSha256':hashlib.sha256(package_dockerfile.read_bytes()).hexdigest(),
             'baseImageId':base_info['Id'],'packageImageId':package_info['Id'],
             'officialImage':PINS['image'],'completeBundle':'official-rootfs','runtimeRoot':'/opt/ovms-rootfs',
-            'additionalSystemPackages':[],'liveDeployment':False},indent=2))
+            'launchMode':'official-loader-container-kernel-view','additionalSystemPackages':[],'liveDeployment':False},indent=2))
     assert docker('container','inspect',name,check=False,timeout=20).returncode!=0
     docker('run','--detach','--name',name,'--label','oasis.cql.owner='+label,'--cpus','2','--memory','1g','--publish','127.0.0.1:28000:8000','--mount','type=bind,source='+str(models)+',target='+model_mount+',readonly',runtime_image,'--config_path','/models/config.json','--rest_port','8000','--port','9000',timeout=30)
     deadline=time.monotonic()+120
