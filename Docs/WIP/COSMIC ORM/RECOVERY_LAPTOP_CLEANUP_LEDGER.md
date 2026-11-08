@@ -4967,3 +4967,12 @@ No archive/TRX extracted, no local build/runtime/database/model/image install.
 Next: authenticated native SDK+HTTP qualification when the existing private
 reader location is resolved; independent exact scoped package preparation may
 continue, preserving accepted cohorts and Development cadence.
+
+TRON package preparation: added explicit opt-in requirement for the shipped
+TRON assembly and authenticated header-reader type/method metadata strings to
+the existing full-image qualifier. This is package presence, not native/API
+acceptance. Reused the typed Docker missing-resource contract for package
+container absence; unknown errors cannot count as cleanup. Three existing
+startup/health/absence controls pass locally with no images/native resources.
+Next: one immutable task-image build, then exact package/isolated startup proof;
+no Development promotion or live settings mutation. No local build/download.

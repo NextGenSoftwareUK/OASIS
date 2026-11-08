@@ -17,6 +17,11 @@ on:
         description: Published full image sha256 digest
         required: true
         type: string
+      tron_reader:
+        description: Require the packaged authenticated TRON header reader
+        required: false
+        type: boolean
+        default: false
       combined_startup:
         description: Also verify isolated API and native startup with fresh cloud data
         required: false
@@ -68,7 +73,11 @@ jobs:
         env:
           SOURCE: ${{ inputs.source }}
           DIGEST: ${{ inputs.digest }}
-        run: python3 -B Scripts/TestHosts/qualify_web4_full_package.py --source "$SOURCE" --digest "$DIGEST"
+          REQUIRE_TRON_READER: ${{ inputs.tron_reader }}
+        run: |
+          args=()
+          if [[ "$REQUIRE_TRON_READER" == true ]]; then args+=(--require-tron-reader); fi
+          python3 -B Scripts/TestHosts/qualify_web4_full_package.py --source "$SOURCE" --digest "$DIGEST" "${args[@]}"
       - name: Verify combined API and native startup on isolated fresh data
         if: inputs.combined_startup
         env:
