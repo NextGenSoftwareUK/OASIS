@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.Providers.DiscordOASIS;
 using NextGenSoftware.OASIS.API.Providers.LivepeerOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
 using NextGenSoftware.OASIS.API.Providers.SubqueryOASIS;
+using NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
@@ -41,6 +42,8 @@ public static class CqlReviewedNetworkReadSourceRegistration
             DiscordPublicGuildQuerySource.ForReviewedTeachingCatalogue);
         Register(services, configuration["CQL_LIVEPEER_ORCHESTRATOR_QUERY_SOURCE_OWNER"], "Livepeer",
             LivepeerOrchestratorQuerySource.ForReviewedTeachingCatalogue);
+        Register(services, configuration["CQL_SELF_PROTOCOL_REGISTRY_QUERY_SOURCE_OWNER"], "Self Protocol registry",
+            SelfProtocolRegistryQuerySource.ForReviewedTeachingCatalogue);
         Register(services, configuration["CQL_SUBQUERY_DICTIONARY_QUERY_SOURCE_OWNER"], "SubQuery dictionary",
             SubqueryDictionaryBlockQuerySource.ForReviewedTeachingCatalogue);
         Register(services, configuration["CQL_PINATA_PUBLIC_BLOCK_QUERY_SOURCE_OWNER"], "Pinata",
