@@ -64,7 +64,8 @@ EXPOSE 8080
 FROM base AS provider_waku
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl \
     && mkdir /opt/waku \
-    && curl --fail --silent --show-error --location --max-redirs 3 --max-time 90 \
+    && curl --disable --fail --no-progress-meter --show-error --location --max-redirs 3 --max-time 90 \
+       --retry 2 --retry-max-time 180 \
        --header 'Accept: application/octet-stream' --header 'X-GitHub-Api-Version: 2022-11-28' \
        https://api.github.com/repos/logos-messaging/logos-delivery/releases/assets/637565114 \
        --output /tmp/waku.tar.gz \
@@ -79,7 +80,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 FROM base AS provider_nats
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl \
     && mkdir /tmp/nats-runtime \
-    && curl --fail --silent --show-error --location --max-redirs 3 --max-time 90 \
+    && curl --disable --fail --no-progress-meter --show-error --location --max-redirs 3 --max-time 90 \
+       --retry 2 --retry-max-time 180 \
        --header 'Accept: application/octet-stream' --header 'X-GitHub-Api-Version: 2022-11-28' \
        https://api.github.com/repos/nats-io/nats-server/releases/assets/678804536 \
        --output /tmp/nats-runtime/native.tar.gz \

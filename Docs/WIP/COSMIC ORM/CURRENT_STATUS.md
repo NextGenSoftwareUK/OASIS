@@ -4,6 +4,13 @@ Updated 8 November 2026. Goal active and incomplete.
 
 ## Latest continuation
 
+Full image42472504855 failed transient NATS asset502; prior native asset
+and seven-pin qualifications remain valid, no image acceptance. Explicit
+build-only max3attempt download policy now passes4controlled checks with
+actual curl/checksum pipeline; cloud policy/native-stage proof pending.
+No query/save/inference replay or live mutation.
+[Contract](../../Devs/WEB4_NATIVE_ARTIFACT_DOWNLOADS.md).
+
 Exact private checkouta651e6d cloud42472240791 passes all seven actual
 manifest HEADs, including WEB6;539byte artifact/hash verified. New full image
 42472504855 is active for exacta651e6d source. Scoped candidateb835b20c/
