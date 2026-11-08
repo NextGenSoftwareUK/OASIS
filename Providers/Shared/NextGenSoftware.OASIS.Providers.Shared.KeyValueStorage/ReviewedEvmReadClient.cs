@@ -46,6 +46,24 @@ public sealed class ReviewedEvmReadClient : IDisposable
     public Task<Block> ReadFinalizedBlockAsync(Uri origin, CancellationToken token) =>
         HeaderAsync(origin, "finalized", token);
 
+    public async Task<Block> VerifyCanonicalBlockAsync(Uri origin, Block expected, CancellationToken token)
+    {
+        var observed = await HeaderAsync(origin, expected.Number, token);
+        if (observed != expected)
+            throw new InvalidDataException("The canonical block differs from the reviewed observation.");
+        return observed;
+    }
+
+    public async Task<string> ReadDeployedCodeAsync(Uri origin, string contract, Block block, CancellationToken token)
+    {
+        var at = new { blockHash = block.Hash, requireCanonical = true };
+        var result = await CallAsync(origin, "eth_getCode", new object[] { contract, at }, 65536, token);
+        var code = result.GetString();
+        if (code is not { Length: >= 4 } || code.Length % 2 != 0 || !IsHex(code, code.Length - 2))
+            throw new InvalidDataException("The reviewed contract must have nonempty canonical EVM code.");
+        return code;
+    }
+
     public async Task<string> ReadAbiWordAsync(Uri origin, string contract, string data, Block block, CancellationToken token)
     {
         var call = new { to = contract, data };

@@ -28,9 +28,18 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
     "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "TenderlyOASIS", "QuickNodeOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS",
-    "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS",
+    "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS", "SelfProtocolOASIS", "WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS",
 )
 FIXED_PUBLIC_CATALOGUES = {
+    "SelfProtocolOASIS": (
+        "CQL_SELF_PROTOCOL_REGISTRY_QUERY_SOURCE_OWNER",
+        "self-protocol/celo/registry-root/0xe8e3a373b127a614a3df09c20e23085c2881804d05aea7f3122039f08f7586ec",
+        ("1", "3", "4"),
+    ),
+    "SubqueryOASIS": (
+        "CQL_SUBQUERY_DICTIONARY_QUERY_SOURCE_OWNER", "subquery/arbitrum/transfer-block",
+        ("400000000", "400000002", "400000003"),
+    ),
     "TheGraphOASIS": (
         "CQL_THE_GRAPH_STUDIO_QUERY_SOURCE_OWNER", "the-graph-studio-index-status",
         ("adexto-arbitrum", "adexto-base", "klerosboard-gnosis"),
@@ -121,6 +130,8 @@ def call(route, token=None, body=None, method="POST", operation=None, *, cookie_
             raise ValueError("Query evidence must stay in this worktree's TestResults.")
         if target.exists():
             raise FileExistsError("Original query outcome exists; reconcile before another dispatch.")
+        if not target.parent.is_dir():
+            raise FileNotFoundError("Query evidence directory must exist before dispatch.")
     headers = {"Accept": "application/json", "Origin": BROWSER_ORIGIN, "Idempotency-Key": operation or str(uuid.uuid4())}
     if token:
         headers["Authorization"] = "Bearer " + token
@@ -1040,6 +1051,7 @@ def main():
             require_reviewed_presets("LocalFile", source, reviewed_localfile)
     elif options.provider == "LocalFileOASIS":
         reviewed_localfile = localfile_review(require_mount=True)
+    results.mkdir(parents=True, exist_ok=True)
     state.mkdir(exist_ok=True)
     if options.resume_unstarted_native:
         if (not (state / "owner.acknowledged.json").is_file()
