@@ -145,3 +145,17 @@ ff89fa57-7dee-4563-b38b-14321118c433 isQUEUED. Settings unchanged, Holonym
 not enrolled; inspect this exact running package before four-setting rollout.
 
 Exact codeff89fa57 freshly observedBUILDING; retain original deployment handle, no duplicate request. All255baseline settings remain unchanged pending successful package inspection.
+
+Codeff89fa57 SUCCESS; exact running instancea43e45c3-1744-48e9-9ca8-c2ba50b3b56f,
+actual Railway digestsha256:f131765279aaf2e10f85f74848d82a9f3c805991d99ebc476f4bc55c578def86.
+All255baseline settings/208critical,6helpers,12SDK/provider assemblies,
+native/runtime/source proof inspected. Holonym present/disabled; accepted
+Self/SubQuery/Dapr enabled. No image downloaded or source write.
+
+First interactive publisher invocation failed during local module import,
+before any settings/journal operation; corrected script import context then
+applied exactly4values once with4observedACKs and no deployments. Full257
+candidate settings and original owner5eda verified. One guarded activation
+request acknowledged; response DPAPI retained and exact returned ID extracted,
+7ba0af2c-62bb-4c75-a792-53fd953807d6 observedBUILDING on638993968. No hosted
+cohort/source creation yet; next inspect this exact running settings package.

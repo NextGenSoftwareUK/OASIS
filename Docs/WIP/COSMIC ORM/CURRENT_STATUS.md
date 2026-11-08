@@ -4,11 +4,12 @@ Updated 8 November 2026. Goal active and incomplete.
 
 ## Latest continuation
 
-Holonym exact image42451953369 succeeds; provenance/digest verified. One
-qualified Development push638993968 acknowledged; exact code deployment
-ff89fa57-7dee-4563-b38b-14321118c433 isBUILDING. No settings mutation or new
-hosted cohort. Next: inspect this running package, then four protected
-settings and one activation; accepted Self/SubQuery/Dapr must remain enabled.
+Holonym exact image42451953369 succeeds; codeff89fa57 SUCCESS and running
+package inspected:255settings/208critical/6helpers/12assemblies, accepted
+Self/SubQuery/Dapr preserved, Holonym initially disabled. Four reviewed
+settings applied once/no deployment with4ACKs. One activation7ba0af2c-62bb-4c75-a792-53fd953807d6
+isBUILDING. Next inspect all257settings and enabled reader, then one first
+owned HTTP cohort. No Holonym native source writes or new cohort yet.
 
 Civic first cloud42452950450 passes27controlled+1296shared but native fails
 because the frozen state needs archive access. Original diagnostic retained;
