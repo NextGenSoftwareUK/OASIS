@@ -59,8 +59,10 @@ runtime or current/live acceptance, no profile-count increment. Do not download
 or relabel a deprecated runtime as the current service.
 [Contract, lifecycle boundary and remaining gates](MARQO_CQL_MVP.md).
 
-Urbit current contacts-v1 reader/private book CQL passed64controlled cases at
-source1937289c4/run42517629662, all executed/passed and hashed artifact inspected.
+Urbit current contacts-v1 reader/private book CQL passed65controlled cases at
+source2558e56bb/run42518331256, all executed/passed and hashed artifact inspected.
+The additional controlled case passes through the real shared V2 HolonManager;
+native manager and HTTP API coverage remain separate unproved gates.
 The owner-bound virtual source preserves stable connection/CID identities, private
 contact/overlay separation, explicit bounded selections and foreign-actor isolation.
 Missing native pages share an empty default with existing blank pages; ambiguous
