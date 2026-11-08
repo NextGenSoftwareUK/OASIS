@@ -4774,3 +4774,5 @@ Web4Site26b3172 published atomically to existing work/cosmic-cql/main branches a
 8 November: exact integration OpenVINO SDK16500byte/CQL17015byte/WEB417567byte artifacts inspected wholly in memory;48TRX cases pass/no skips and original model-process/container/model-directory plus Mongo database cleanup proven. Compact receipts only; no local archive/runtime/model/image/database/build download. Existing accepted sources preserved; no denied cleanup retry.
 
 8 November: OpenVINO WEB4-base package workflow/source prepared, four local mocked-transport controls pass with self-cleaning fixtures. Docker/image/model builds execute only in cloud; no local runtime/environment/install or rejected cleanup retry. Complete native bundle compatibility is pending, no live deployment claimed.
+
+8 November: first OpenVINO WEB4-base package1676byte artifact/server log inspected in memory; exact missing Python3.12 dependency diagnosed, original owned process/container/model cleanup verified. No local image/archive/runtime download. Corrected complete-userspace cloud package prepared; prior failure retained, no blind replay or rejected cleanup retry.

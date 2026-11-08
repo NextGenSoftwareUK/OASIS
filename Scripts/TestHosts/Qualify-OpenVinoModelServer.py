@@ -65,9 +65,11 @@ try:
     (models/'config.json').write_text(json.dumps(config))
     docker('pull',PINS['image'])
     runtime_image=PINS['image']
+    model_mount='/models'
     if options.verify_package:
         # Build the actual unchanged WEB4 base stage, then copy the entire official
-        # bundle. No guessed system packages or global native-library environment.
+        # userspace. Its Python runtime lives outside /ovms; preserve its ABI as
+        # a complete root filesystem, isolated from the WEB4 loader environment.
         base_image='oasis-web4-base:'+label
         runtime_image='oasis-ovms-web4-package:'+label
         web4_dockerfile=ROOT/'Docker/Dockerfile.web4'
@@ -76,8 +78,9 @@ try:
         package_dockerfile.write_text(
             'FROM '+PINS['image']+' AS official\n'
             'FROM '+base_image+'\n'
-            'COPY --from=official /ovms /ovms\n'
-            'ENTRYPOINT ["/usr/bin/env","LD_LIBRARY_PATH=/ovms/lib","PYTHONPATH=/ovms/lib/python:/ovms/python_deps","ESPEAK_DATA_PATH=/ovms/share/espeak-ng-data","/ovms/bin/ovms"]\n',encoding='utf-8')
+            'COPY --from=official / /opt/ovms-rootfs/\n'
+            'ENTRYPOINT ["/usr/sbin/chroot","/opt/ovms-rootfs","/usr/bin/env","LD_LIBRARY_PATH=/ovms/lib","PYTHONPATH=/ovms/lib/python:/ovms/python_deps","ESPEAK_DATA_PATH=/ovms/share/espeak-ng-data","/ovms/bin/ovms"]\n',encoding='utf-8')
+        model_mount='/opt/ovms-rootfs/models'
         docker('build','--file',str(package_dockerfile),'--tag',runtime_image,str(models),timeout=240)
         package_info=json.loads(docker('image','inspect',runtime_image,timeout=20).stdout)[0]
         base_info=json.loads(docker('image','inspect',base_image,timeout=20).stdout)[0]
@@ -85,10 +88,10 @@ try:
             'web4DockerfileSha256':hashlib.sha256(web4_dockerfile.read_bytes()).hexdigest(),
             'packageDockerfileSha256':hashlib.sha256(package_dockerfile.read_bytes()).hexdigest(),
             'baseImageId':base_info['Id'],'packageImageId':package_info['Id'],
-            'officialImage':PINS['image'],'completeBundle':'/ovms',
+            'officialImage':PINS['image'],'completeBundle':'official-rootfs','runtimeRoot':'/opt/ovms-rootfs',
             'additionalSystemPackages':[],'liveDeployment':False},indent=2))
     assert docker('container','inspect',name,check=False,timeout=20).returncode!=0
-    docker('run','--detach','--name',name,'--label','oasis.cql.owner='+label,'--cpus','2','--memory','1g','--publish','127.0.0.1:28000:8000','--mount','type=bind,source='+str(models)+',target=/models,readonly',runtime_image,'--config_path','/models/config.json','--rest_port','8000','--port','9000',timeout=30)
+    docker('run','--detach','--name',name,'--label','oasis.cql.owner='+label,'--cpus','2','--memory','1g','--publish','127.0.0.1:28000:8000','--mount','type=bind,source='+str(models)+',target='+model_mount+',readonly',runtime_image,'--config_path','/models/config.json','--rest_port','8000','--port','9000',timeout=30)
     deadline=time.monotonic()+120
     # Explicit bounded startup readiness polling; model metadata/inference never retried.
     while True:
