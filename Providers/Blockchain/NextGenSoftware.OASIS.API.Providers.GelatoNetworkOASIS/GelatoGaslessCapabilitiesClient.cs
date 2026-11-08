@@ -101,7 +101,7 @@ public sealed class GelatoGaslessCapabilitiesClient : IDisposable
             return result;
         }
         catch (OperationCanceledException) { throw; }
-        catch (Exception error) when (error is HttpRequestException or IOException or JsonException or
+        catch (Exception error) when (error is HttpRequestException or IOException or InvalidDataException or JsonException or
             InvalidOperationException or KeyNotFoundException or DecoderFallbackException or FormatException)
         {
             // No server body, auth header or transport exception text enters public diagnostics.
