@@ -35,7 +35,7 @@ def qualify_book(context, http_reader=None):
         return '(my ~[' + ' '.join(entries) + '])'
 
     # Verify empty native book before any mutation, not an HTTP error interpreted as absence.
-    execute('book-empty', prefix + ';<  book=*  bind:m  (scry * %gx /contacts/v1/book)  ?>  =(book ~)  ' + suffix)
+    execute('book-empty', prefix + ';<  book=*  bind:m  (scry * %gx /contacts/v1/book/noun)  ?>  =(book ~)  ' + suffix)
     for index, page in enumerate(fixture['pages'], 1):
         intent = dict(owner=report['owner'], sourceOwner=fixture['sourceOwner'], ship='~zod',
                       fixtureSha256=source_sha, page=page,
@@ -52,7 +52,7 @@ def qualify_book(context, http_reader=None):
         for group, ids in [('full', [p['id'] for p in fixture['pages']]), ('subset', fixture['subsetIds'])]:
             for index, cid in enumerate(ids, 1):
                 page = next(p for p in fixture['pages'] if p['id'] == cid)
-                body = prefix + ';<  page=*  bind:m  (scry * %gx /contacts/v1/book/id/' + cid + ')  ?>  =(page [~ ' + fields(page) + '])  ' + suffix
+                body = prefix + ';<  page=*  bind:m  (scry * %gx /contacts/v1/book/id/' + cid + '/noun)  ?>  =(page [~ ' + fields(page) + '])  ' + suffix
                 execute(phase + '-' + group + '-' + str(index), body)
         report[phase + 'FullCount'] = 3
         report[phase + 'SubsetCount'] = 2
@@ -64,9 +64,12 @@ def qualify_book(context, http_reader=None):
     if http_reader is not None:
         after = http_reader(context, 'afterRestart')
         assert before['projectedSourceSha256'] == after['projectedSourceSha256']
+        assert before['providerCqlQualified'] is True and after['providerCqlQualified'] is True
+        assert before['privateCqlProjectionSha256'] == after['privateCqlProjectionSha256']
         report['nativeHttpClientQualified'] = True
         report['nativeContactsQualified'] = True
         report['nativeHttpSourcePreservedAcrossRestart'] = True
+        report['nativeProviderCqlQualified'] = True
     report['nativeBookAgentQualified'] = True
     report['nativeBookRestartVerified'] = True
     # HTTP SDK / CQL flags deliberately stay false until their actual gates run.

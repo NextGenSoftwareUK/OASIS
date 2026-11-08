@@ -2,6 +2,10 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text.Json;
 using NextGenSoftware.OASIS.API.Providers.UrbitOASIS;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Queries;
 
 // Cloud-only native qualification. Input is piped in memory, including the
 // owned fake ship's login code. Never print request input or session cookies.
@@ -76,8 +80,59 @@ foreach (var selected in new[] { ids, subset })
 if (fullRead.Count != 3 || subset.Length != 2)
     throw new InvalidDataException("Native three/two catalogue incomplete.");
 var sourceHash = Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(fullRead))).ToLowerInvariant();
+var owner = fixture.RootElement.GetProperty("sourceOwner").GetGuid();
+// Explicit server fixture identity, independent of the ephemeral HTTP port.
+var connection = Guid.Parse("eaa5679e-9250-4abb-bb5e-d415dcf1f117");
+using var source = new UrbitContactBookQuerySource(client, owner, connection, ids);
+var activated = await source.ActivateQuerySourceAsync();
+if (activated.IsError) throw new InvalidDataException("Native CQL source activation failed: " + activated.ErrorCode);
+CosmicQueryPlan<Holon> Plan(Guid actor, Guid[] selected)
+{
+    var access = CosmicQueryReadAccess.AuthoritativeRecords(actor, ProviderType.UrbitOASIS, selected);
+    if (access.IsError) throw new InvalidDataException("Native CQL read authority could not be constructed.");
+    var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.UrbitOASIS).Result)
+        .WithReadAccess(access.Result).Result.Where(row => selected.Contains(row.Id)).Result;
+    var planned = CosmicQueryPlanner.Plan(query, ProviderType.UrbitOASIS,
+        new[] { new CosmicQueryTarget(ProviderType.UrbitOASIS, source.QueryCapabilities) });
+    if (planned.IsError) throw new InvalidDataException("Native CQL planning failed: " + planned.ErrorCode);
+    return planned.Result;
+}
+var logical = ids.Select(id => UrbitContactBookQuerySource.LogicalId(owner, connection, id)).ToArray();
+var subsetLogical = subset.Select(id => UrbitContactBookQuerySource.LogicalId(owner, connection, id)).ToArray();
+var cqlFull = new List<IHolon>();
+foreach (var selected in new[] { logical, subsetLogical })
+{
+    var queried = await source.ExecuteCosmicQueryAsync(Plan(owner, selected));
+    if (queried.IsError || queried.Result is null || !selected.Order().SequenceEqual(queried.Result.Select(row => row.Id).Order()))
+        throw new InvalidDataException("Native private CQL three/two selection failed: " + queried.ErrorCode);
+    foreach (var row in queried.Result)
+    {
+        var cid = row.MetaData["UrbitBookPageId"].ToString()!;
+        var expected = pages.Single(page => page.GetProperty("id").GetString() == cid).GetProperty("overlay");
+        if (row.IsPublic || row.CreatedByAvatarId != owner || row.Children.Any()
+            || row.Id != UrbitContactBookQuerySource.LogicalId(owner, connection, cid)
+            || row.MetaData["ContactNickname"] is not null || row.MetaData["ContactBio"] is not null || row.MetaData["ContactStatus"] is not null
+            || row.MetaData["OverlayNickname"]?.ToString() != expected.GetProperty("nickname").GetString()
+            || row.MetaData["OverlayBio"]?.ToString() != expected.GetProperty("bio").GetString()
+            || row.MetaData["OverlayStatus"]?.ToString() != expected.GetProperty("status").GetString())
+            throw new InvalidDataException("Native private CQL projection or ownership differs.");
+        if (ReferenceEquals(selected, logical)) cqlFull.Add(row);
+    }
+}
+var foreign = await source.ExecuteCosmicQueryAsync(Plan(Guid.Parse("372a7b25-32cf-4316-88bc-ea1b56a24b37"), logical));
+if (foreign.IsError || foreign.Result is null || foreign.Result.Count != 0)
+    throw new InvalidDataException("Native private CQL did not isolate another actor.");
+var projected = cqlFull.OrderBy(row => row.Id).Select(row => new {
+    row.Id, row.CreatedByAvatarId, row.IsPublic,
+    cid = row.MetaData["UrbitBookPageId"],
+    contactNickname = row.MetaData["ContactNickname"], contactBio = row.MetaData["ContactBio"], contactStatus = row.MetaData["ContactStatus"],
+    overlayNickname = row.MetaData["OverlayNickname"], overlayBio = row.MetaData["OverlayBio"], overlayStatus = row.MetaData["OverlayStatus"]
+}).ToArray();
+var cqlHash = Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(projected))).ToLowerInvariant();
 Console.WriteLine(JsonSerializer.Serialize(new {
     phase, fullCount = 3, subsetCount = 2, anonymousDeniedStatus = (int)nativeDenial.StatusCode!.Value,
     projectedSourceSha256 = sourceHash, nativeHttpClientQualified = true,
+    providerCqlQualified = true, cqlOwnerFullCount = 3, cqlOwnerSubsetCount = 2, cqlForeignPrivateCount = 0,
+    privateCqlProjectionSha256 = cqlHash, sharedManagerQualified = false,
     cqlQualified = false, liveDeployment = false
 }));

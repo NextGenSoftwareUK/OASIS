@@ -42,6 +42,9 @@ def native_http(context, phase):
     assert proof['anonymousDeniedStatus'] in (401, 403) and proof['nativeHttpClientQualified'] is True
     assert proof['cqlQualified'] is False and proof['liveDeployment'] is False
     assert re.fullmatch('[0-9a-f]{64}', proof['projectedSourceSha256'])
+    assert proof['providerCqlQualified'] is True and proof['cqlOwnerFullCount'] == 3 and proof['cqlOwnerSubsetCount'] == 2
+    assert proof['cqlForeignPrivateCount'] == 0 and proof['sharedManagerQualified'] is False
+    assert re.fullmatch('[0-9a-f]{64}', proof['privateCqlProjectionSha256'])
     (context['out'] / (phase + '-http.json')).write_text(json.dumps(proof, indent=2))
     return proof
 
