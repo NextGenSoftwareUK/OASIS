@@ -563,3 +563,19 @@ Operator177ad6a7331837abd35e030a1fdde76d8d117b70 passes Linux42435459405/job1285
 A new plan/source owner141c7116-ab36-432d-a570-d772403768e0 was prepared, checked distinct from the retired prefix, and linked by generation-lineage.json to the original retirement/files hashes. One creation through the already-qualified74a7b60c0 RandomAccess provisioner returned a valid creation ACK and durable reader recovery. Current plan/source now belongs only to this new generation, with live ID suffixese/1/2, tombstone3 and missing4. Do not use the retired source plan or original failed inspection intents for this generation.
 
 Fresh prepare reviewed exactly8settings, no unrelated changes, candidate SHA256042d8c23a047f8ec5d87ebafc0ae2eae2d394576af4d2151e2e8589b13d9e30c. An initial interactive review lacked the script directory on sys.path and stopped before staging; correct script context then passed without adding import shims. All8settings received exact individual ACKs with deploymentTriggered=false. One activation request acknowledged, creatingf0b2771c-49bf-466f-91d3-7dbf060dfaf5, observedBUILDING for74a7b60c0. No repeat source save or activation. Running75e5970b retains its old disabled environment until activation succeeds; actual activation image/replica must be reviewed independently. Mounted fresh values/ETags, readiness, hosted HTTP/federation/privacy/replicas, card and browser remain open; counts unchanged.
+
+### Live Development HTTP acceptance sealed
+
+Activationf0b2771c isSUCCESS on0fb82716-5388-46ee-a6e7-a6536fd36bf5, actual image sha256:d67979ce202c656fda6552bc2dab2eb5cce04d4ea19b0a9cd50e4c172f2c4dbd, source74a7b60c0/Coreec7d440. Six helper hashes,204critical active settings/full251candidate settings, native runtime/SDK assemblies and fresh generation owner141c7116-ab36-432d-a570-d772403768e0 are verified. Mounted four-record values/ETags pass before and after the HTTP flow. Readiness reused the acknowledged PouchDB rehearsal visitor without a replacement readiness avatar.
+
+One new owner/foreign cohort passes native3/2, Mongo federation5/4, initial2private snapshot saves, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2 with foreign-private0 on both. Two save ACKs and an empty pending registry are sealed in LocalState/COSMIC/HostedQueryAcceptance-DaprOASIS/cql-http-acceptance.acknowledged.json; compact aggregate dapr-http-accepted.json retains release, source-creation and generation-lineage hashes. Do not replay this cohort or either source creation. Browser acceptance remains false.
+
+Retained reports under TestResults/HostedCqlIntegrationCurrent:
+
+| Report | Bytes | SHA256 |
+|---|---:|---|
+| DaprOASIS-native-http.json | 9333 | 8821dec0d9e96176ba517d9ff0b7f1dc94d1f41e908de17440a9a01ef9c7fd1f |
+| DaprOASIS-client-http-flow.json | 29152 | 19b540776d827575d90d2b38908c658be3550c01a5ef7e6610a5da65b1012cf4 |
+| DaprOASIS-isolation-http.json | 4044 | 1b24aae31675b829b7e907efd952b11f1e1a682dbebce0737f3b612dac45a6c4 |
+
+The first receipt-composition read assumed a publicIds review field used by a different source family and stopped before writing. Corrected composition binds the validated exact-key descriptor's LiveIds; no HTTP/query/save/session replay. Coverage119scoped local/92liveHTTP/28browser. Public card/static publication is next. Full Dapr components, native write contracts and broader ORM parity are separate work.

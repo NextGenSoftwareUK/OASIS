@@ -27,8 +27,9 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
   Dapr correction74a7b60c0/Coreec7d440 passed exact native/image gates and
   is now on Development. Code deployment75e5970b isSUCCESS on
   ca788724-9609-4630-8093-e61d4cc80c4d; package/settings/source fingerprints verified.
-  Fresh Dapr generation acknowledged; eight settings staged once. Activation
-  f0b2771c isBUILDING; running75e5970b still has its earlier disabled configuration.
+  Fresh Dapr generation acknowledged; activationf0b2771c isSUCCESS on
+  0fb82716-5388-46ee-a6e7-a6536fd36bf5. All251settings/package and mounted
+  source values/ETags verified. Dapr HTTP cohort is sealed; browser remains open.
   First planned source save is unacknowledged: Railway denies native libaio
   io_getevents. Original source/intent retained; do not reseed or recreate.
 - Website C:/Source/Web4Site, branch work/cosmic-cql, publishedad7e9dd (six new cards71-76; earlier accepted cards retained).
@@ -39,7 +40,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **119 scoped local, 91 live HTTP and 28 functional browser**.
+Coverage is **119 scoped local, 92 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -62,10 +63,10 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-Development branch is74a7b60c0/Coreec7d440; code deployment75e5970b isSUCCESS
-on instanceca788724-9609-4630-8093-e61d4cc80c4d,
-actual image sha256:153a043e5e2874e00d731fb9c2c150942d912cf00b25c418f1d76983cc7b7c29.
-Dapr live acceptance remains unproven. The first original source save timed out without
+Development branch is74a7b60c0/Coreec7d440; activationf0b2771c isSUCCESS
+on instance0fb82716-5388-46ee-a6e7-a6536fd36bf5,
+actual image sha256:d67979ce202c656fda6552bc2dab2eb5cce04d4ea19b0a9cd50e4c172f2c4dbd.
+Dapr scoped HTTP acceptance is sealed. The first original source save timed out without
 acknowledgement because Railway denies the default libaio completion syscall.
 Its original source/plan/intent are preserved: never recreate or resend.
 
@@ -109,12 +110,14 @@ businessWrites0/originalSaveOutcomeunknown. No original save ACK fabricated.
 Fresh source owner141c7116-ab36-432d-a570-d772403768e0 has a distinct plan/IDs,
 one successful creation ACK and verified durable reader recovery. Generation lineage
 links the retained original. Eight exact settings are staged/acknowledged; one
-activationf0b2771c-49bf-466f-91d3-7dbf060dfaf5 isBUILDING for the same74a7b60c0 code.
-Next observe this activation, inspect actual image/instance/settings and mounted
-fresh-source values/ETags, reuse acknowledged readiness, then create one new Dapr
-HTTP acceptance cohort. No source creation, activation or accepted cohort replay.
+activationf0b2771c-49bf-466f-91d3-7dbf060dfaf5 isSUCCESS for the same74a7b60c0 code.
+Exact package/251settings and fresh mounted values/ETags pass before and after HTTP.
+Original PouchDB rehearsal visitor reused, one Dapr owner/foreign cohort sealed:
+native3/2, Mongo5/4, first2private saves/repeat0new2existing, privacy0/public3 and
+SQLite/Neo4j2/2. Next publish its accepted demo card and continue independent red
+provider/browser gates. Never replay this accepted cohort or either source creation.
 
-Coverage remains119local/91live HTTP/28functional browser. The six public readers
+Coverage remains119local/92live HTTP/28functional browser. The six public readers
 remain accepted on their original sealed cohorts: native3/2, Mongo5/4, repeat0new,
 privacy0/public3 and exact SQLite/Neo4j replicas2/2. Never replay accepted cohorts.
 Websitead7e9dd publishes cards71-76; all119client controls and exact public HTML

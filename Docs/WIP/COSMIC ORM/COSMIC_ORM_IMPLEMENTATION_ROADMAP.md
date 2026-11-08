@@ -1,5 +1,12 @@
 # COSMIC ORM implementation roadmap
 
+7 November checkpoint: coverage is119scoped local/92liveHTTP/28functional browser.
+[Dapr's bounded live read/federation flow](DAPR_CQL_MVP.md) passes source durability,
+snapshot reuse/privacy and exact SQLite/Neo4j replicas. Its browser gate remains
+open. The dated counts below are retained historical checkpoints; CURRENT_STATUS
+owns current release state. Full provider implementation, import modes and
+EF/NHibernate parity remain incomplete and follow the demo/MVP priorities.
+
 ## Virtual and hybrid native imports after the WEB4 demo
 
 The live breadth-first WEB4 CQL and HyperDrive demo remains the priority.

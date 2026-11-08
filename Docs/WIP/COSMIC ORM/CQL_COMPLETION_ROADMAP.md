@@ -3,6 +3,12 @@
 Updated 7 November 2026. Full programme remains incomplete.
 [CURRENT_STATUS](CURRENT_STATUS.md) owns deployment state and the exact next step.
 
+7 November checkpoint: [Dapr](DAPR_CQL_MVP.md) now passes scoped live native3/2,
+Mongo5/4, snapshot reuse/privacy and SQLite/Neo4j2/2, with unchanged mounted
+values/ETags. Coverage119local/92liveHTTP/28browser; Dapr browser gate remains open.
+The original unadmitted failed generation is preserved separately from its fresh
+acknowledged source. This checkpoint does not close the full provider/ORM programme.
+
 Continue the full CQL, COSMIC ORM and HyperDrive roadmap. Prioritize the live
 Development WEB4 demo. When a gate needs owner access or retained evidence,
 keep that gate open and advance the next independent provider or engineering
