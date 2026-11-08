@@ -144,12 +144,16 @@ def main():
         if not pill.exists():
             assert not source.exists(), 'Do not overwrite dependency checkout.'
             environment = dict(os.environ, GIT_LFS_SKIP_SMUDGE='1', GIT_TERMINAL_PROMPT='0')
-            def git(*args, timeout=120, check=True):
+            def git(*args, timeout=120, check=True, input_text=None, output=None):
                 command = ['git', '-c', 'lfs.transfer.maxretries=0', '-C', str(source), *args]
-                with subprocess.Popen(command, env=environment, stdout=subprocess.PIPE,
+                command_environment = dict(environment)
+                if args[:2] == ('lfs', 'smudge'):
+                    command_environment['GIT_LFS_SKIP_SMUDGE'] = '0'
+                with subprocess.Popen(command, env=command_environment, stdout=output if output is not None else subprocess.PIPE,
+                                      stdin=subprocess.PIPE if input_text is not None else subprocess.DEVNULL,
                                       stderr=subprocess.PIPE, text=True, start_new_session=True) as process:
                     try:
-                        stdout, stderr = process.communicate(timeout=timeout)
+                        stdout, stderr = process.communicate(input=input_text, timeout=timeout)
                     except subprocess.TimeoutExpired:
                         # Git/LFS spawn helpers. Stop the entire owned session before
                         # deleting its checkout, rather than only killing the parent.
@@ -172,7 +176,12 @@ def main():
             pointer = git('show', inputs['kernelCommit'] + ':' + inputs['pillPath']).stdout
             assert 'oid sha256:' + inputs['pillSha256'] in pointer and 'size ' + str(inputs['pillBytes']) in pointer
             git('lfs', 'version')
-            git('lfs', 'fetch', '--include=' + inputs['pillPath'], '--exclude=', 'origin', inputs['kernelCommit'], timeout=180)
+            # Resolve precisely the already-verified pointer. Ref-level LFS fetch
+            # scans the repository tree, unnecessary for this one-object contract.
+            with (source / 'selected-pill').open('xb') as payload:
+                git('lfs', 'smudge', inputs['pillPath'], input_text=pointer, output=payload, timeout=180)
+            selected_pill = source / 'selected-pill'
+            assert selected_pill.stat().st_size == inputs['pillBytes'] and digest(selected_pill) == inputs['pillSha256']
             oid = inputs['pillSha256']
             object_path = source / '.git/lfs/objects' / oid[:2] / oid[2:4] / oid
             assert object_path.is_file() and object_path.stat().st_size == inputs['pillBytes'] and digest(object_path) == oid
