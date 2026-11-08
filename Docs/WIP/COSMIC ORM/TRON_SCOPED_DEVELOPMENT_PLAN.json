@@ -50,14 +50,13 @@
   "remaining": [
     "reader location and authenticated SDK3/2",
     "authenticated HTTP3/2,federation5/4,privacy,receipts,cleanup",
-    "exact scoped candidate image/package verification",
     "permitted Development integration and once-only cohort acceptance",
     "browser acceptance"
   ],
   "patchRoundTripVerified": true,
   "scopedCoreCommitObjectBase64": "dHJlZSBhNGNmNjY5ZWZlZTA0ZmEzYjZhODY5YTE1YTExMjk0MjMxYjY4OGQ2CnBhcmVudCA4MTg2MmIyNDUwYzFkNGJkMGYzZTg4NTM1MjNjMWIxM2I4YTI1N2QzCmF1dGhvciBEYXZpZCBFbGxhbXMgPGRhdmlkZWxsYW1zQGhvdG1haWwuY29tPiAxNzk0MTQ3MDcyIC0wNTAwCmNvbW1pdHRlciBEYXZpZCBFbGxhbXMgPGRhdmlkZWxsYW1zQGhvdG1haWwuY29tPiAxNzk0MTQ3MDcyIC0wNTAwCgpQcmVwYXJlIHNjb3BlZCBUUk9OIHF1ZXJ5LW9ubHkgYWRtaXNzaW9uIGZyb20gRGV2ZWxvcG1lbnQgYmFzZWxpbmUK",
   "publicationScope": "Runtime candidate remains unpublished; these review artifacts may be committed on the original task branch.",
-  "stage": "Isolated scoped source passed SDK38, WEB4 admission/planning11 and ownership4 controlled checks. Native, exact scoped image, live and browser gates remain open.",
+  "stage": "Isolated source passed 53 controlled checks; exact scoped image package and real API startup/cleanup verified. Native TRON, live enrollment and browser gates remain open.",
   "qualificationSourceTaskCommit": "84983a681ea430beebbfb20afbbb0c108d326e76",
   "qualificationPaths": [
     ".github/workflows/build-web4-image.yml",
@@ -174,9 +173,13 @@
     "run": 42490408557,
     "workflowSource": "f83c1497e424457c41de6dbe11189698f8af2ff1",
     "builtSource": "beee2d25e79038ab0eb9f5ca2fd7f25e7364118f",
-    "status": "in_progress",
+    "status": "completed",
     "explicitImageTag": "beee2d25e79038ab0eb9f5ca2fd7f25e7364118f-teaching",
-    "deployment": false
+    "deployment": false,
+    "conclusion": "success",
+    "job": 128761323059,
+    "digest": "sha256:f63396f5593feddf6fbba4e85de3cb043138fb59f9568c9ea2634ab4f42a0023",
+    "onlyCommitTeachingTagVerified": true
   },
   "packageVerification": {
     "profile": "tron-api",
@@ -189,8 +192,8 @@
         "source": "3fca0b24b8186896d59fb3b09ebe32dcebf88b0a"
       }
     ],
-    "imagePackageVerified": false,
-    "startupVerified": false,
+    "imagePackageVerified": true,
+    "startupVerified": true,
     "nativeTronVerified": false,
     "controlledEvidence": {
       "source": "3fca0b24b8186896d59fb3b09ebe32dcebf88b0a",
@@ -199,6 +202,15 @@
       "conclusion": "success",
       "passed": 6,
       "actualLogCountersVerified": true
-    }
+    },
+    "run": 42491999466,
+    "workflowSource": "56f0701aec391b74d04a40723a4b6c0c1659209c",
+    "artifact": 13621852560,
+    "artifactBytes": 3093,
+    "artifactSha256": "164f896609e703dd0b1c4aa5a38bec02bb6b6ff8613a35e74816d5dc8f7621a4",
+    "apiHealth": true,
+    "nativeMetadata": false,
+    "gracefulExit": 0,
+    "ownedCleanupVerified": true
   }
 }

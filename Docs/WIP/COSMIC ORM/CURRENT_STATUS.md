@@ -38,10 +38,14 @@ Isolated TRON Development snapshot **beee2d25e79038ab0eb9f5ca2fd7f25e7364118f**
 with Core **7b426c953dd6ebaeee1af873e7b4fcd76b609df6** passed all53controlled
 checks: SDK38/run42489776142, WEB411/run42489777910, ownership4/run42489779968.
 Exact scoped Core+20parent paths are published as immutable verification tags;
-working/Development/queued candidate branches did not move. These controls use
-neither a TRON key nor real TRON requests. Native3/2, native HTTP/federation,
-exact scoped image/package, live enrollment and browser acceptance remain open.
-The larger task-image proof below does not qualify this separate scoped image.
+working/Development/queued candidate branches did not move. Exact scoped image
+sha256:f63396f5593feddf6fbba4e85de3cb043138fb59f9568c9ea2634ab4f42a0023
+passed package plus real API startup/graceful shutdown/owned cleanup in
+42491999466. Only its commit-specific teaching image tag was published. Three
+assemblies/authenticated reader metadata and source helper hash verified; native
+provider/model metadata was not requested. These checks use neither a TRON key
+nor real TRON requests. Native3/2, native HTTP/federation, live enrollment and
+browser acceptance remain open. The larger task-image proof below is separate.
 [Scope, reproducible patches and remaining gates](TRON_SCOPED_DEVELOPMENT_PLAN.json).
 
 Latest package checkpoint: TRON task image cb38e07b7, immutable digest
@@ -454,3 +458,17 @@ explicit beee2d25-teaching tag, no native switches/deployment. Plan now records
 image handle and separate profile proof. No image package/startup pass claimed
 until that exact image digest is inspected. No local runtimes/SDKs/databases/
 models/images or archive extraction; compact receipts only.
+
+Exact scoped TRON image/sourcebeee2d25/Core7b426c9 VERIFIED: build42490408557/
+job128761323059 succeeded, digest
+sha256:f63396f5593feddf6fbba4e85de3cb043138fb59f9568c9ea2634ab4f42a0023.
+Checkout/summary/digest and sole explicit immutable teaching tag verified in
+memory, no mutable alias. One startup dispatch204/checker56f0701ae,
+run42491999466 PASSED tron-api profile. Artifact13621852560/3093bytes SHA256
+164f896609e703dd0b1c4aa5a38bec02bb6b6ff8613a35e74816d5dc8f7621a4
+inspected in memory:3assemblies, authenticated reader metadata, exact source
+IPFS supervisor hash, real API health, graceful0/no OOM, owned package/API/Mongo
+containers/internal network/anonymous volumes absent. Native metadata=false,
+TRON/CQL/native/live acceptance=false. No images or archive/TRX extracted locally,
+no local build/environment/model/database or original-source replay. Plan image
+gate closed; legitimate reader location/native HTTP/live/browser remain open.
