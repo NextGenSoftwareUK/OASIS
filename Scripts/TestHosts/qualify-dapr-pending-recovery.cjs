@@ -35,14 +35,16 @@ const { contract } = require('../../Docker/DaprRuntime/configuration.cjs');
       await assert.rejects(fs.stat(path.join(source, name)), { code: 'ENOENT' });
     let inspectionReadFailureInjected = false;
     globalThis.fetch = (url, options) => {
-      if (options?.method && options.method !== 'GET') { inspectionMutations++; throw Error('Recovery inspector attempted a mutation.'); }
-      if (!inspectionReadFailureInjected && options?.method === 'GET' && String(url).includes('/v1.0/state/')) {
+      const method = options?.method ?? 'GET';
+      if (method !== 'GET') { inspectionMutations++; throw Error('Recovery inspector attempted a mutation.'); }
+      if (!inspectionReadFailureInjected && method === 'GET' && String(url).includes('/v1.0/state/')) {
         inspectionReadFailureInjected = true;
         throw Error('Controlled failure of first inspection read');
       }
       return nativeFetch(url, options);
     };
-    await assert.rejects(helper.inspectPendingSource(plan, source, binaries), /Controlled failure of first inspection read/);
+    await assert.rejects(helper.inspectPendingSource(plan, source, binaries), /Controlled failure of first inspection read/,
+      'The first real inspection GET must reach the controlled read-failure boundary');
     assert.equal(inspectionReadFailureInjected, true);
     const priorIntent = await fs.readFile(path.join(source, 'inspection/inspection.intent.json'));
     const priorHash = crypto.createHash('sha256').update(priorIntent).digest('hex');
