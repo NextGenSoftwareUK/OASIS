@@ -1,12 +1,13 @@
 name: Compile real Urbit native HTTP reader host
 
 on:
-  push:
-    branches: [work/cosmic-cql-ton-public]
-    paths:
-      - '.github/workflows/qualify-urbit-http-host.yml'
-      - 'Scripts/TestHosts/UrbitContactsHttpHost/**'
   workflow_dispatch:
+    inputs:
+      scope:
+        type: choice
+        options: [compile, native-http]
+        default: compile
+        description: Compile only or qualify real native HTTP page reads and restart
 
 permissions:
   contents: read
@@ -18,7 +19,7 @@ concurrency:
 jobs:
   native:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -59,9 +60,35 @@ jobs:
             $assembly = 'Scripts/TestHosts/UrbitContactsHttpHost/bin/Release/net10.0/UrbitContactsHttpHost.dll'
             @{ source = $env:GITHUB_SHA; buildQualified = $true; assemblySha256 = (Get-FileHash -LiteralPath $assembly -Algorithm SHA256).Hash.ToLowerInvariant(); nativeHttpClientQualified = $false; cqlQualified = $false; liveDeployment = $false } | ConvertTo-Json | Set-Content "$output/qualification.json"
           }
+      - uses: actions/cache/restore@v4
+        if: inputs.scope == 'native-http'
+        with:
+          path: OASIS/LocalState/COSMIC/CloudUrbitRuntimeAssets/v4.6-408k-2
+          key: urbit-linux-complete-${{ hashFiles('OASIS/Scripts/TestHosts/urbit-runtime-inputs.json') }}
+          fail-on-cache-miss: true
+      - uses: actions/cache/restore@v4
+        if: inputs.scope == 'native-http'
+        with:
+          path: OASIS/LocalState/COSMIC/CloudUrbitContactsDesk
+          key: urbit-contacts-desk-${{ hashFiles('OASIS/Scripts/TestHosts/urbit-contacts-inputs.json', 'OASIS/Scripts/TestHosts/qualify_urbit_desk.py') }}
+          fail-on-cache-miss: true
+      - uses: actions/cache/restore@v4
+        if: inputs.scope == 'native-http'
+        with:
+          path: OASIS/LocalState/COSMIC/CloudUrbitKernel408
+          key: urbit-kernel408-${{ hashFiles('OASIS/Scripts/TestHosts/urbit-runtime-inputs.json', 'OASIS/Scripts/TestHosts/qualify_urbit_kernel.py', 'OASIS/Scripts/TestHosts/qualify_urbit_desk.py') }}
+          fail-on-cache-miss: true
+      - name: Real private native HTTP pages and preserved restart
+        if: inputs.scope == 'native-http'
+        working-directory: OASIS
+        run: python3 -B Scripts/TestHosts/qualify_urbit_contacts_http.py
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: urbit-http-host-build
-          path: OASIS/TestResults/UrbitHttpHostBuildCurrent/*.json
+          path: |
+            OASIS/TestResults/UrbitHttpHostBuildCurrent/*.json
+            OASIS/TestResults/UrbitContactsInstallCurrent/*.json
+            OASIS/TestResults/UrbitContactsInstallCurrent/*.txt
+            OASIS/TestResults/UrbitContactsInstallCurrent/*.log
           retention-days: 7

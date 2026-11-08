@@ -1,11 +1,6 @@
 name: Qualify owned native Urbit contact pages and restart
 
 on:
-  push:
-    branches: [work/cosmic-cql-ton-public]
-    paths:
-      - '.github/workflows/qualify-urbit-contacts-book.yml'
-      - 'Scripts/TestHosts/qualify_urbit_contacts_book.py'
   workflow_dispatch:
 
 permissions:

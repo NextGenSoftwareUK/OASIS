@@ -9,7 +9,7 @@ import re
 from qualify_urbit_contacts_install import main
 
 
-def qualify_book(context):
+def qualify_book(context, http_reader=None):
     root, out, report = (context[key] for key in ('root', 'out', 'report'))
     execute, prefix, suffix = (context[key] for key in ('execute', 'prefix', 'suffix'))
     path = root / 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.UrbitOASIS.UnitTests/Fixtures/urbit-contacts-book-source.json'
@@ -51,8 +51,15 @@ def qualify_book(context):
         report[phase + 'SubsetCount'] = 2
 
     verify('beforeRestart')
+    before = http_reader(context, 'beforeRestart') if http_reader is not None else None
     context['restart']()
     verify('afterRestart')
+    if http_reader is not None:
+        after = http_reader(context, 'afterRestart')
+        assert before['projectedSourceSha256'] == after['projectedSourceSha256']
+        report['nativeHttpClientQualified'] = True
+        report['nativeContactsQualified'] = True
+        report['nativeHttpSourcePreservedAcrossRestart'] = True
     report['nativeBookAgentQualified'] = True
     report['nativeBookRestartVerified'] = True
     # HTTP SDK / CQL flags deliberately stay false until their actual gates run.

@@ -19,7 +19,7 @@ def digest(path):
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
-def main(on_initialized=None):
+def main(on_initialized=None, http_transport=False):
     assert platform.system() == 'Linux' and os.environ.get('GITHUB_ACTIONS') == 'true'
     root = Path(__file__).resolve().parents[2]
     assets = root / 'LocalState/COSMIC/CloudUrbitRuntimeAssets/v4.6-408k-2'
@@ -45,6 +45,7 @@ def main(on_initialized=None):
     run, attempt = os.environ['GITHUB_RUN_ID'], os.environ['GITHUB_RUN_ATTEMPT']
     assert run.isdecimal() and attempt.isdecimal()
     owner = 'urbit-contacts-' + run + '-' + attempt
+    network = owner + '-http' if http_transport else 'none'
     label = 'oasis.urbit.contacts.owner'
     out = root / 'TestResults/UrbitContactsInstallCurrent'
     out.mkdir(parents=True, exist_ok=False)
@@ -71,6 +72,23 @@ def main(on_initialized=None):
         state = json.loads(result.stdout)[0]
         assert state['Config']['Labels'].get(label) == owner
         return state
+
+    def inspect_network():
+        result = docker('network', 'inspect', network, check=False)
+        if missing_resource('network', network, result.returncode, result.stderr):
+            return None
+        result.check_returncode()
+        state = json.loads(result.stdout)[0]
+        assert state['Labels'].get(label) == owner and state['Internal'] is True
+        return state
+
+    def http_origin():
+        assert http_transport and inspect_network() is not None
+        ports = inspect()['NetworkSettings']['Ports']['80/tcp']
+        assert len(ports) == 1 and ports[0]['HostIp'] == '127.0.0.1'
+        port = int(ports[0]['HostPort'])
+        assert 1 <= port <= 65535
+        return 'http://127.0.0.1:' + str(port) + '/'
 
     def ready(predicate, seconds=120):
         deadline = time.monotonic() + seconds
@@ -116,12 +134,13 @@ def main(on_initialized=None):
         command += ['-F', 'zod', '-c', '/pier/zod', '-B', '/assets/solid.pill'] if initial else ['/pier/zod']
         docker('create', '--name', owner, '--label', label + '=' + owner,
                '--user', str(os.getuid()) + ':' + str(os.getgid()),
-               '--network', 'none', '--memory', '3g', '--memory-swap', '3g', '--cpus', '2',
+               '--network', network, '--memory', '3g', '--memory-swap', '3g', '--cpus', '2',
                '--pids-limit', '128', '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges',
                '--read-only', '--workdir', '/pier', '--env', 'HOME=/pier',
                '--tmpfs', '/tmp:rw,size=64m,mode=1777',
                '--mount', 'type=bind,source=' + str(assets) + ',target=/assets,readonly',
                '--mount', 'type=bind,source=' + str(data) + ',target=/pier',
+               *(['--publish', '127.0.0.1::80'] if http_transport else []),
                inputs['containerImage'], *command, timeout=180)
 
     def restart_owned_pier():
@@ -143,6 +162,11 @@ def main(on_initialized=None):
     try:
         assert inspect() is None
         touched = True
+        if http_transport:
+            assert inspect_network() is None
+            docker('network', 'create', '--internal', '--label', label + '=' + owner, network)
+            assert inspect_network() is not None
+            report['internalHttpNetworkVerified'] = True
         create_container(True)
         docker('start', owner)
         ready(lambda: connection.exists() and stat.S_ISSOCK(connection.stat().st_mode))
@@ -184,7 +208,8 @@ def main(on_initialized=None):
         report['contactsAgentInitialized'] = True
         if on_initialized is not None:
             on_initialized(dict(root=root, out=out, report=report, execute=execute,
-                                prefix=prefix, suffix=suffix, restart=restart_owned_pier))
+                                prefix=prefix, suffix=suffix, restart=restart_owned_pier,
+                                binary=binary, connection=connection, http_origin=http_origin))
         completed = True
     finally:
         if touched:
@@ -205,12 +230,19 @@ def main(on_initialized=None):
                     docker('rm', '-v', owner)
             assert inspect() is None
             report['ownedContainerRemoved'] = True
+            if http_transport:
+                state = inspect_network()
+                if state is not None:
+                    assert not state['Containers'], 'Never remove a network with remaining attached resources.'
+                    docker('network', 'rm', network)
+                assert inspect_network() is None
+                report['ownedHttpNetworkRemoved'] = True
         assert data.resolve().parent == out.resolve() and not data.is_symlink()
         shutil.rmtree(data)
         report['ownedPierRemoved'] = not data.exists()
         (out / 'qualification.json').write_text(json.dumps(report, indent=2))
     if completed:
-        assert report['exitCode'] == 0 and not report['oomKilled'] and report['networkMode'] == 'none', 'Native lifecycle did not finish cleanly.'
+        assert report['exitCode'] == 0 and not report['oomKilled'] and report['networkMode'] == network, 'Native lifecycle did not finish cleanly.'
 
 
 if __name__ == '__main__':
