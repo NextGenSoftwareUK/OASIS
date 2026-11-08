@@ -34,6 +34,19 @@ owner deferrals explicit.
 
 ## Immediate work
 
+Priority TRON checkpoint: SDK38controlled and host configuration/admission11controlled
+cases passed. Core query-only admission is eebf39b; manifest/gitlink match. The
+native HTTP fixture uses exact height metadata and retained catalogue IDs.
+Source54877be94 failed compilation on the ambiguous File type; source2240cc116
+fixes it explicitly. Follow corrected run42484551166/job128743452146 (currently
+compiling), not the failed prior run. Its native stage is off. Four owned Mongo
+cleanup guard tests passed locally and cloud42484388393. No TRON native/live
+acceptance or count increase is claimed. Existing private reader location is
+pending David's answer: local/ignored/commented DNA, WEB4 user secrets and dev
+settings have no located reader; repository secret-name metadata also has no
+TRON entry. Organization metadata returned403, so no further access attempted.
+Continue useful priority work without anonymous endpoint replay or a repeated ask.
+
 Full WEB4 image source **8668fd2d040da71ba27e27e49fbed6792eb4e094** built and
 published successfully in42475406236. Exact teaching tag/digest:
 **sha256:dcd1e9f67e9e44cfb721b23c47c26ad0f79cf490472a648cd32f7d8e5cec0496**.

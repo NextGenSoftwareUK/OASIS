@@ -4948,3 +4948,10 @@ HTTP/Mongo setup; earlier accepted cohorts are unchanged. Preserve original
 failed runs; new corrected-source qualification required, no replay/restart of
 those old handles. Lightweight ownership cloud run42484388393 PASSED, covering
 all four controlled guard tests, with no real Docker/native operation.
+
+Existing TRON configuration investigation expanded to ignored Core/WEB4 DNA
+using PowerShell JSON-with-comments parsing, WEB4 UserSecretsId store and GitHub
+repository secret-name metadata: no reader located; no secret values printed,
+no private configuration modified. Organization secret-name metadata403 retained,
+no retry/bypass. Corrected build42484551166/job128743452146 remains live; old
+42483969440 is terminalfailure before native/Mongo setup. Compact receipts only.
