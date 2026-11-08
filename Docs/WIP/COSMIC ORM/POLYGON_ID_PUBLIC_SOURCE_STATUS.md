@@ -1,0 +1,17 @@
+# Polygon ID / iden3 public schema source review — 8 November 2026
+
+Status: three official pinned public schema documents retrieved successfully; CQL implementation and all provider/hosted acceptance gates remain open. No coverage increment.
+
+The existing PolygonIDOASIS project has no active native SDK/API adapter certified here. A scoped real HTTP schema catalogue is feasible independently of credential issuance/proof verification. Primary references: [Privado ID on-chain verification tutorial](https://docs.privado.id/docs/verifier/on-chain-verification/tutorial/) identifies the iden3 KYC schema family; [iden3 schema repository](https://github.com/iden3/claim-schema-vocab/tree/0711b5845db5f57ac8957eda0574196371535af2) defines the public credential vocabulary/schema documents. Pin0711b5845db5f57ac8957eda0574196371535af2, recursive tree22642bytes SHA25646353789748a39df4aa0d099ef7070589b6c62183a2fcee6e4d5b66aed4ede6c inspected in memory.
+
+One original three-request schedule uses exact commit-pinned raw.githubusercontent.com URLs, without retries or recursive references. Each returns HTTP200/text/plain;charset=utf-8, and the original raw/status/hash is saved before JSON inspection in LocalState/COSMIC/RecoveryLaptopResume20261107/PolygonIdSchemaReadiness.
+
+| Key | Official path | Bytes | SHA256 |
+| --- | --- | --- | --- |
+| age-v3 | schemas/json/KYCAgeCredential-v3.json | 2367 | 73b9da01a67461ea71405933b4e4d1ae4928fdebe17212c12265e9a72d21fdaf |
+| country-v2 | schemas/json/KYCCountryOfResidenceCredential-v2.json | 2385 | 3e25b0ecdf2c805eac3b81de676737a084b8fda1989c78162ff517a97a157eda |
+| auth-v1 | schemas/json/auth-v1.json | 2391 | aa91049d1370cb12dd853f8524c922a02c178c7a4794e370fe9f4aa2d7806738 |
+
+All are draft-07 JSON object schemas with metadata, required and properties; none has title or $id. Do not invent these fields, change historical version keys, or treat the definitions as personal credentials. The country document uses merklizedRootPosition, while age/auth use merklizationRootPosition; preserve original fields and do not silently normalize distinct native schemas. The complete schema, content hash, source commit/path and exact published metadata should remain queryable, with bounded decoded UTF8/JSON/depth and duplicate-field checks. No fetching referenced vocabularies, contexts, DID documents, circuits or proving keys during CQL reads. Fixed IDs/source-owner binding, query-only admission, native CQL3/2, WEB4 federation5/4/privacy, first owned live replicas and browser acceptance remain unimplemented/unverified. No assertion that these historical pinned versions are the latest recommended credential format.
+
+No personal data, wallet, account, credential issuance, proof verification, write, model/asset/runtime/database/image install or SDK download occurred. Full Polygon ID/Privado ID capabilities and EF parity remain in the later full-provider roadmap.
