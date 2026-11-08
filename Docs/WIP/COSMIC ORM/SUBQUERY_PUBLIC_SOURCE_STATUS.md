@@ -152,9 +152,16 @@ Scoped candidate45734a552506b7249d5332685e075b83a9bf7329/Core06df0885c398e0b1674
 is now published on the existing `work/cosmic-teaching-release-candidate` branches.
 It extends accepted Development74a7b60c0/Coreec7d440 with the named SubQuery closure;
 the working task branches were not switched. Exact manifest/gitlink checks pass.
-Exact candidate WEB4 cloud42440093218, dictionary42440093239 and accepted public
-reader admission regression42440093241 are in progress. No image or Development
-deployment request has been made. First publication preflight stopped before any
+Exact candidate dictionary42440093239/job128607260584 isSUCCESS:16controlled+
+1real native case, zero skips. Artifact13600982133/4402bytes SHA256
+455b43258d7e2ae6e7da8c3ce05708b7ed7b4ea724cc0dad76e247583040ff08 and both TRX
+counters were verified in memory; compact `subquery-exact-candidate-dictionary-qualified.json`
+retained, no ZIP/extraction. Exact WEB4 cloud42440093218 and accepted public
+reader admission regression42440093241 remain in progress. One image dispatch
+was acknowledged204 for the same exact candidate with teaching runtimes enabled:
+run42440274631/job128607820457 is in progress. Image proof is separate from the
+native/HTTP checks. No Development deployment request has been made.
+First publication preflight stopped before any
 push because its exact changed-file set included an unchanged legacy file; fixed
 the comparison to derive actual changed blobs, then normal fast-forward pushes
 and fresh remote-SHA observations succeeded. No force push or worktree created.

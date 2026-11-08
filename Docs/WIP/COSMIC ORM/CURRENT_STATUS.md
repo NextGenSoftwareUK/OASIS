@@ -133,8 +133,10 @@ authority). Both are corrected; exact replacement42439418296 isSUCCESS:
 8boundary+1real HTTP/Mongo cases/zero skips, native3/2, Mongo5/4, foreign-private0/public3,
 9usage receipts and exact fixture database absence/container teardown verified.
 Scoped candidate45734a552/Core06df088 is published only to existing candidate
-branches; exact WEB4/dictionary/accepted-reader admission jobs42440093218/239/241
-are running. No image, Development deployment or settings mutation requested.
+branches; exact dictionary42440093239 isSUCCESS16+1/zero skips, artifact verified
+in memory. Exact WEB4/accepted-reader admission jobs42440093218/241 are running.
+Exact image42440274631 is running with teaching runtimes enabled; dispatch204
+acknowledged once. No Development deployment or settings mutation requested.
 Thirty-nine protected-candidate and five publisher controls pass locally without
 live mutations or local builds. A pinned independent Firehose registry agrees
 with the expected Arbitrum One genesis; the fresh RPC attempt remains denied.
