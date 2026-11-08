@@ -224,11 +224,28 @@ that handle, never request a replacement because observation expires.
 Fresh queue detail explicitly says **Waiting for build slot**. No restart/retry
 or duplicate deployment request was made.
 
+That code deployment is nowSUCCESS on instance0deef829-024a-4248-958b-9c6162fc4e79,
+actual Railway digest
+`sha256:88a422c48ff2014c6f7f1b8b08a50c2732e071836426a387e79a7d6f631fae29`.
+Read-only `subquery-code-package-inspected.json` verifies all251settings and204
+critical active values, six exact helper files, five SDK/provider assemblies,
+Dapr1.18.9/Garnet2.2.5/native-build proof and accepted Dapr source owner141c7116.
+The new SubQuery DLL59392bytes/SHA256
+97d65f8c48715ae8dd079d4dcd89de0c7bdb8a2d3a93f6b7924432a1141a62f3 and its
+bounded reader/catalogue metadata plus WEB4 registration literal are present.
+SubQuery was correctly unenrolled during the code-only check.
+
 Prepared private operators: `publish-subquery-development.py` has already run
 once and must not be replayed; `inspect-subquery-code-package.py` performs read-only
 code/settings-phase checks; `activate-subquery-settings.py` requires inspected
-code and four exact per-key ACKs before one journalled activation. Activation
-has not run. Actual Railway digest/instance and253setting proof remain pending.
+code and four exact per-key ACKs before one journalled activation. Four-setting
+preflight passes; apply observed all four exact values with no deployment
+triggered. All per-key ACKs are retained under `subquery-dictionary-public`.
+One guarded activation request is acknowledged, with its protected response:
+`eb09ea25-e7c0-4650-abc3-6d1419ee3794` isBUILDING for the same9fd968a7b source.
+Observe that handle, then inspect the exact package/settings phase. No activation
+retry, native source creation, hosted query cohort or snapshot save has occurred.
+The253setting active-package proof and hosted acceptance remain pending.
 
 Website task73bacd67970877cfed7404595498ca12ad233c0d backs up card78, scoped to
 dictionary-reported activity and explicitly conditional on source availability.

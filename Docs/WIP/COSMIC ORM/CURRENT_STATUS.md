@@ -63,65 +63,54 @@ The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scop
 
 ## Exact next step
 
-Observe Railway code deployment **ac908014-1a41-40ef-aec9-3d5df89b5ff8**. It is
-QUEUED for verified SubQuery candidate `9fd968a7b40d2decb389f7a2a5c7f75874b11153`
-and Core `06df0885c398e0b16749565852d12a9d499288d2`. One normal Development push
-is acknowledged. **Do not rerun the integration operator or request another
-code deployment.** The accepted Dapr release still serves while this is queued.
+Observe SubQuery settings activation **eb09ea25-e7c0-4650-abc3-6d1419ee3794**.
+It is BUILDING for verified source `9fd968a7b40d2decb389f7a2a5c7f75874b11153`,
+Core `06df0885c398e0b16749565852d12a9d499288d2`. **Do not repeat the Development
+push, four setting updates or activation request.**
 
-Image run42441146593/job128610449048 succeeded. Qualified GHCR digest:
-`sha256:c9e3748ba13de0e0134c7e0046e1b30840d27ab6cc56ff056fdf4f3b187530b5`.
-All 51 scoped checks pass with zero skips: 16 dictionary controls + 1 real native
-CQL case, 8 WEB4 controls + 1 actual HTTP/Mongo case, and 25 admission regressions.
-Native3/2, Mongo5/4, foreign-private0/public3, nine usage receipts and exact owned
-fixture database absence are verified. Task SubQuery8+1 and affected Waku5+1 also
-pass. [Exact source, hashes and scope](SUBQUERY_PUBLIC_SOURCE_STATUS.md).
+Code deployment ac908014 succeeded on instance0deef829-024a-4248-958b-9c6162fc4e79.
+Actual Railway image is
+`sha256:88a422c48ff2014c6f7f1b8b08a50c2732e071836426a387e79a7d6f631fae29`.
+Its package inspection verified all251settings/204critical values, six helper
+hashes, five SDK/provider assemblies, runtime/native-library proof, the accepted
+Dapr acknowledgement/owner141c7116 and the new SubQuery reader/registration.
+SubQuery was correctly disabled during that code inspection.
 
-The image workflow used its default mutable sandbox tag despite the requested
-empty extra tag. Actual tags are recorded; a fresh protected observation proved
-that it did not change the live service. Future image requests must explicitly
-set the commit-specific teaching tag rather than an empty string. The qualified
-GHCR digest is separate from the eventual actual Railway image digest.
+The four settings passed preflight, were applied once with deploys skipped,
+and have exact per-key ACKs. They preserve the other sources and prepare253total
+settings. One guarded activation request is acknowledged; its original protected
+response and exact handle are retained. No hosted SubQuery cohort or native
+source creation has run. Private state/operators are under
+`LocalState/COSMIC/RecoveryLaptopResume20261107`:
 
-Read-only preflight verified all seven advertised pins, the accepted deployment
-and all 251 settings. A second guarded review passed before the acknowledged
-Development push. Dapr remains enabled; SubQuery is not enrolled. Private state
-and guarded operators are under `LocalState/COSMIC/RecoveryLaptopResume20261107`:
+1. Observe eb09ea25 until SUCCESS, then invoke `inspect-subquery-code-package.py`
+   with `--deployment eb09ea25-e7c0-4650-abc3-6d1419ee3794 --phase settings`.
+   It verifies the actual instance/package and all253settings, enabled source
+   ownerf0d6a43f-cdf4-4112-8397-b406571401a6, and preserved Dapr source/runtime.
+   Do not reuse the GHCR digest as the actual Railway digest.
+2. Reuse the acknowledged PouchDB readiness visitor after exact release
+   verification. Run SubQuery's first native/federation/preparation/reuse/privacy/
+   SQLite+Neo4j cohort once. Seal its original two saves and reports. Preserve
+   uncertain operations; never replay accepted cohorts or replace native data.
+3. After hosted acceptance, publish website card78, updating its note/evidence
+   link. Website task73bacd67970877cfed7404595498ca12ad233c0d has the draft and
+   all119client controls pass. Main/public source remains26b3172. Browser proof
+   is separate; do not bypass the existing URL-policy failure.
 
-1. Observe ac908014 until SUCCESS. The read-only inspector may safely report
-   QUEUED without source access. Then run `inspect-subquery-code-package.py`
-   with `--deployment ac908014-1a41-40ef-aec9-3d5df89b5ff8 --phase code`.
-   It binds the actual instance/package/settings, accepted Dapr acknowledgement,
-   runtime versions and new SubQuery assembly/registration. Preserve its receipt.
-2. Review and explicitly publish the four settings with
-   `Publish-HostedFixedPublicCatalogue.py`, prefix `subquery-dictionary-public`.
-   The retained baseline has 251 settings; the prepared candidate has 253.
-   Recheck the live baseline and exact successful deployment before publication.
-3. After all four setting ACKs, invoke `activate-subquery-settings.py` once.
-   The operator refuses an existing intent and verifies the original source owner.
-   Observe that new activation handle, then inspect it with `--phase settings`.
-4. Reuse the acknowledged PouchDB readiness visitor only after exact release
-   verification. Run SubQuery's first hosted native/federation/preparation/reuse/
-   privacy/SQLite+Neo4j cohort once; seal its original two saves and reports.
-   Never replay accepted cohorts or create/replace an existing native source.
-5. Publish website card78 only after hosted acceptance, updating its note and
-   evidence link. Website task73bacd67970877cfed7404595498ca12ad233c0d has the draft
-   and all119client controls pass. Main/public source remains26b3172. Browser
-   interaction stays separate; do not bypass the existing URL-policy failure.
+All51scoped candidate checks pass/zero skips:17dictionary,9WEB4/HTTP and25admission
+regressions. Task SubQuery8+1 and affected Waku5+1 also pass. Image42441146593
+succeeded with GHCR digestc9e3748ba13de0e0134c7e0046e1b30840d27ab6cc56ff056fdf4f3b187530b5.
+The workflow applied its default sandbox tag despite an empty requested extra
+tag; actual tags and unchanged-live-service observation are recorded. Future
+image requests must pass the explicit commit-specific teaching tag.
+[Full proof and scope](SUBQUERY_PUBLIC_SOURCE_STATUS.md).
 
-The original SubQuery plan keeps ownerf0d6a43f-cdf4-4112-8397-b406571401a6 and
-its three mapped IDs. It creates no native data. Its dictionary network pin
-agrees with an independent pinned Firehose registry and earlier accepted Arbitrum
-binding; fresh independent RPC access remains denied. Full logs, consensus
-verification and general ORM/storage operations are not claimed.
-
-Coverage is **120 scoped local / 92 live HTTP / 28 functional browser**.
-The accepted Dapr cohort remains sealed at activationf0b2771c on its fresh native
-generation. Its retired failed predecessor retains its unknown save outcome and
-original files. [Dapr history](DAPR_CQL_MVP.md) and
-[prior status](https://github.com/NextGenSoftwareUK/OASIS/blob/f1295f01fcc38a11ad4a09baa11003d802928b23/Docs/WIP/COSMIC%20ORM/CURRENT_STATUS.md)
-preserve recovery detail. No SubQuery settings mutation or source operation has
-happened during this code rollout.
+Coverage remains **120 scoped local / 92 live HTTP / 28 functional browser**.
+The accepted Dapr cohort and retired failed generation remain preserved; no
+source creation/save was replayed. [Dapr history](DAPR_CQL_MVP.md). While the
+code deployment waited for a build slot, a first anonymous Self Protocol RPC
+read confirmed reported chain42220/access only; existing verifier unchanged,
+no CQL count increase. [Next provider review](SELF_PROTOCOL_PUBLIC_SOURCE_STATUS.md).
 
 ## Source and rollout journals
 
