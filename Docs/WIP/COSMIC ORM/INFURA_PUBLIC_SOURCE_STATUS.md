@@ -20,7 +20,10 @@ operations, retaining public signatures. No substitute provider, automatic
 migration, CID deletion, remote retry or write. Existing identifiers/data remain
 intact; a retained copy can be explicitly placed on a supported IPFS provider.
 Three actual-provider controls cover advertised capabilities, typed read/write
-failures and unchanged retained CID/input. Exact cloud compile/test pending.
+failures and unchanged retained CID/input. Exact cloud compile/test is active:
+[42535999021](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42535999021),
+job128900305746, frozen source122ae35d343d112e21fac550a151114b955e0005/Coree62ec44.
+Follow this original run; no duplicate compile or local SDK install.
 WEB4's historical descriptive catalogue still needs the same scope correction
 when this provider boundary is verified; this change does not enroll anything.
 
