@@ -579,3 +579,7 @@ Retained reports under TestResults/HostedCqlIntegrationCurrent:
 | DaprOASIS-isolation-http.json | 4044 | 1b24aae31675b829b7e907efd952b11f1e1a682dbebce0737f3b612dac45a6c4 |
 
 The first receipt-composition read assumed a publicIds review field used by a different source family and stopped before writing. Corrected composition binds the validated exact-key descriptor's LiveIds; no HTTP/query/save/session replay. Coverage119scoped local/92liveHTTP/28browser. Public card/static publication is next. Full Dapr components, native write contracts and broader ORM parity are separate work.
+
+### Accepted demo card published
+
+Web4Site task/main26b3172d5d655c0203560a95ab0beb79aef5cc5b adds [card77](https://web4.oasisomniverse.one/web4-sandbox.html#cql-dapr-catalogue), with native/paired presets, private snapshot instructions and pinned scope/C# source links. Existing cards remain intact.119client controls pass/0skips. Public HTML267010bytes SHA256599793eb8c4ad89c4f0a2bf978232db3911860bb227df2220bf7c90f48f95828 matches the exact committed Git blob in memory and contains the Dapr card. No HTML download file, manual site deployment or accepted cohort replay. Functional browser verification remains open at the existing URL-policy tool gate.

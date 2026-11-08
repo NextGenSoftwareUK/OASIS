@@ -32,7 +32,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
   source values/ETags verified. Dapr HTTP cohort is sealed; browser remains open.
   First planned source save is unacknowledged: Railway denies native libaio
   io_getevents. Original source/intent retained; do not reseed or recreate.
-- Website C:/Source/Web4Site, branch work/cosmic-cql, publishedad7e9dd (six new cards71-76; earlier accepted cards retained).
+- Website C:/Source/Web4Site, branch work/cosmic-cql, published26b3172 (Dapr card77; earlier accepted cards retained).
 - Dedicated Railway key cosmic-cql-recovery-laptop-20261107 was created on
   this laptop for mounted-source inspection. Its eventual revocation is in
   the old-laptop cleanup ledger. Private key remains outside Git.
@@ -114,13 +114,15 @@ activationf0b2771c-49bf-466f-91d3-7dbf060dfaf5 isSUCCESS for the same74a7b60c0 c
 Exact package/251settings and fresh mounted values/ETags pass before and after HTTP.
 Original PouchDB rehearsal visitor reused, one Dapr owner/foreign cohort sealed:
 native3/2, Mongo5/4, first2private saves/repeat0new2existing, privacy0/public3 and
-SQLite/Neo4j2/2. Next publish its accepted demo card and continue independent red
-provider/browser gates. Never replay this accepted cohort or either source creation.
+SQLite/Neo4j2/2. Dapr card77 is published at26b3172 with119client controls passing
+and exact public HTML bytes verified. Continue independent red provider/browser
+gates; SubQuery has real bounded dictionary-block evidence but identity/CQL remain
+open. Never replay this accepted cohort or either source creation.
 
 Coverage remains119local/92live HTTP/28functional browser. The six public readers
 remain accepted on their original sealed cohorts: native3/2, Mongo5/4, repeat0new,
 privacy0/public3 and exact SQLite/Neo4j replicas2/2. Never replay accepted cohorts.
-Websitead7e9dd publishes cards71-76; all119client controls and exact public HTML
+Website26b3172 publishes card77 plus cards71-76; all119client controls and exact public HTML
 passed. Browser gates remain open. [Batch evidence](SIX_PUBLIC_READERS_HOSTED_BATCH.md).
 
 Browser URL-policy helper failure, QuestDB403, Chroma/D1 access, Nostr recovery
