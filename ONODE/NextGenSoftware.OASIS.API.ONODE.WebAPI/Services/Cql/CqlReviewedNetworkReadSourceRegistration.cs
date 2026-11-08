@@ -19,6 +19,7 @@ using NextGenSoftware.OASIS.API.Providers.CivicOASIS;
 using NextGenSoftware.OASIS.API.Providers.MapLibreOASIS;
 using NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS;
 using NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS;
+using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
@@ -47,6 +48,8 @@ public static class CqlReviewedNetworkReadSourceRegistration
             owner => new ReclaimVerifierQuerySource(owner));
         Register(services, configuration["CQL_THE_GRAPH_STUDIO_QUERY_SOURCE_OWNER"], "The Graph Studio",
             owner => new TheGraphStudioStatusQuerySource(owner));
+        Register(services, configuration["CQL_SEEDS_SETTINGS_QUERY_SOURCE_OWNER"], "SEEDS public setting",
+            SeedsSettingsQuerySource.ForReviewedTeachingCatalogue);
         Register(services, configuration["CQL_POLYGON_ID_SCHEMA_QUERY_SOURCE_OWNER"], "Polygon ID public schema",
             PolygonIdSchemaQuerySource.ForReviewedTeachingCatalogue);
         Register(services, configuration["CQL_SANDBOX_CONTRACT_QUERY_SOURCE_OWNER"], "Sandbox public contract",

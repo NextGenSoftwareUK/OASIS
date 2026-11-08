@@ -28,9 +28,12 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
     "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "TenderlyOASIS", "QuickNodeOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS",
-    "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS", "SelfProtocolOASIS", "HolonymOASIS", "CivicOASIS", "MapLibreOASIS", "TheSandboxOASIS", "PolygonIDOASIS", "WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS",
+    "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS", "SelfProtocolOASIS", "HolonymOASIS", "CivicOASIS", "MapLibreOASIS", "TheSandboxOASIS", "PolygonIDOASIS", "SEEDSOASIS", "WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS",
 )
 FIXED_PUBLIC_CATALOGUES = {
+    "SEEDSOASIS": (
+        "CQL_SEEDS_SETTINGS_QUERY_SOURCE_OWNER", "seeds/telos/config", ("unity.high", "unity.medium", "unity.low"),
+    ),
     "PolygonIDOASIS": (
         "CQL_POLYGON_ID_SCHEMA_QUERY_SOURCE_OWNER", "polygon-id/credential-schemas", ("age-v3", "country-v2", "auth-v1"),
     ),

@@ -116,6 +116,9 @@ public class SeedsSettingsQueryTests
     [TestMethod]
     public void InvalidCataloguesFailBeforeConstructingTransport()
     {
+        var configurationOwner = Guid.Parse("a5808c3e-7031-47e7-92de-48a659568f1b");
+        CollectionAssert.AreEqual(new[] { "999101fa-bdd3-8b42-969e-eafeaaad3e64", "e8b73bc1-15f5-8dad-b92d-47b8750638eb", "743062bf-03df-81d3-a29b-6eb015a80858" },
+            Keys.Select(x => SeedsSettingsQuerySource.LogicalId(configurationOwner, x).ToString()).ToArray());
         foreach (var keys in new[] { Array.Empty<string>(), new[] { "unity.high", "unity.high" }, new[] { "UNITY.HIGH" },
                      new[] { "other" }, new[] { "unity.high", "unity.medium", "unity.low", "unity.high" } })
             Assert.ThrowsException<ArgumentException>(() => new SeedsSettingsQuerySource(Owner, keys));
