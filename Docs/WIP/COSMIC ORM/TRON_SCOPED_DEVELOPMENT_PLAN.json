@@ -212,5 +212,25 @@
     "nativeMetadata": false,
     "gracefulExit": 0,
     "ownedCleanupVerified": true
+  },
+  "enrollmentConfiguration": {
+    "source": "63f25ae0f0fa84f132a8036c39fc1411c09bcf96",
+    "run": 42494318935,
+    "passed": 46,
+    "skipped": 0,
+    "outboundHttpCalls": 0,
+    "settingsApplied": false,
+    "artifact": 13622956486,
+    "artifactBytes": 261,
+    "artifactSha256": "4ff48fab47666d346758d4d4657dd1b8f8b27dcbf411432120e185d52df9ec3e",
+    "publicIds": [
+      "a87726c3-9e6c-83c1-b5a9-a16117120d23",
+      "3c627b14-07f6-83e4-ac4f-2d5c1a50aa51",
+      "ead3d916-0c33-83d4-a156-84ef80f34b5a"
+    ],
+    "dotNetPublicIdContractRun": 42494318990,
+    "dotNetPublicIdContractJob": 128773193371,
+    "dotNetPublicIdContractStatus": "in_progress",
+    "privateCandidatePrepared": false
   }
 }

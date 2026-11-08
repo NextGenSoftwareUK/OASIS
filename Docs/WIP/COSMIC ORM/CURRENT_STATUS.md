@@ -488,3 +488,14 @@ removed by owned contexts, no real settings prepared/applied or credentials read
 New lightweight cloud46case workflow and .NET/Python public-ID contract assertion
 prepared; cloud checks pending. Scoped/task Core mapper bytes match. Only test/
 operator tooling changed, no image rebuild, live query/source replay or new env.
+
+Enrollment pure controls VERIFIED46/46/no skips/outbound HTTP0/settingsApplied
+false, source63f25ae0f/run42494318935. Artifact13622956486/261bytes SHA256
+4ff48fab47666d346758d4d4657dd1b8f8b27dcbf411432120e185d52df9ec3e
+inspected wholly in memory. New Python/.NET public-ID constants agree by source
+contract; actual .NET assertion run42494318990/job128773193371 remains active,
+so do not claim that assertion passed yet. Original fixture preserved; no real
+reader credential/baseline loaded, protected candidate prepared, settings applied
+or native call. Kept compact source/artifact receipt and inspector only. No
+local SDK/runtime/build/image/database/model or ZIP extraction. Next: follow
+that exact assertion run, then legitimate reader access/native/live gates.
