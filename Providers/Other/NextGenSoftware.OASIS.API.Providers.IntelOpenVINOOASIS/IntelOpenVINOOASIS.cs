@@ -114,6 +114,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS
             var result = new OASISResult<T>();
             try
             {
+                ct.ThrowIfCancellationRequested();
                 using var request = new HttpRequestMessage(method, path);
                 if (body != null) request.Content = JsonContent.Create(body, body.GetType(), options: Json);
                 using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
@@ -175,6 +176,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS
             var result = new OASISResult<bool>();
             try
             {
+                ct.ThrowIfCancellationRequested();
                 using var response = await _http.GetAsync($"{ModelPath(model, version)}/ready", HttpCompletionOption.ResponseHeadersRead, ct);
                 await response.Content.LoadIntoBufferAsync(1024, ct);
                 result.Result = response.StatusCode == System.Net.HttpStatusCode.OK;
