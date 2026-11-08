@@ -50,7 +50,10 @@ this checkpoint does not claim completion of those designs.
   Second qualifier42477763769 package passed and cloud cleanup proved, but
   generated Sandbox.Enabled=false violated the native supervisor guard. Fixed
   test DNA and added actual-guard regression plus stderr/probe/state diagnostics;
-  three controlled methods pass. Next corrected checker run pending.
+  three controlled methods pass. Third qualifier42478032839 loaded all native
+  versions, then API rejected the test JSON literal V2; canonical serialized
+  value is OASISHyperDrive2 (confirmed in DNA constants/validator). Corrected
+  generator/regression; cleanup proven. Next same-image checker pending.
 
 [OpenVINO/runtime/build evidence](OPENVINO_CQL_MVP.md).
 [Artifact download contract](../../Devs/WEB4_NATIVE_ARTIFACT_DOWNLOADS.md).

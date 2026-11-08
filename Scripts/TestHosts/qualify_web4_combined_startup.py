@@ -6,7 +6,7 @@ from pathlib import Path
 def configuration(root, mongo, marker):
     dna = json.loads((root / 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/Default/OASIS_DNA.json').read_text(encoding='utf-8-sig'))
     oasis = dna['OASIS']; storage = oasis['StorageProviders']
-    oasis['HyperDriveMode'] = 'V2'
+    oasis['HyperDriveMode'] = 'OASISHyperDrive2'
     for key in list(storage):
         if key.startswith('Auto') and isinstance(storage[key], bool): storage[key] = False
         if key.startswith('Auto') and isinstance(storage[key], str): storage[key] = 'MongoDBOASIS'
