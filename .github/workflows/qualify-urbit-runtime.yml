@@ -1,0 +1,45 @@
+name: Qualify pinned offline Urbit runtime
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-urbit-runtime.yml'
+      - 'Scripts/TestHosts/urbit-runtime-inputs.json'
+      - 'Scripts/TestHosts/qualify_urbit_runtime.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: urbit-runtime-qualification
+  cancel-in-progress: false
+
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/cache/restore@v4
+        id: assets
+        with:
+          path: LocalState/COSMIC/CloudUrbitRuntimeAssets/v4.6-408k-2
+          key: urbit-linux-runtime-${{ hashFiles('Scripts/TestHosts/urbit-runtime-inputs.json') }}
+      - name: Verify native release and offline cold boot with owned cleanup
+        id: qualification
+        run: python3 -B Scripts/TestHosts/qualify_urbit_runtime.py
+      - uses: actions/cache/save@v4
+        if: always() && steps.assets.outputs.cache-hit != 'true' && steps.qualification.outputs.assets_ready == 'true'
+        with:
+          path: LocalState/COSMIC/CloudUrbitRuntimeAssets/v4.6-408k-2
+          key: urbit-linux-runtime-${{ hashFiles('Scripts/TestHosts/urbit-runtime-inputs.json') }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: urbit-offline-runtime
+          path: TestResults/UrbitRuntimeCurrent/
+          retention-days: 7
