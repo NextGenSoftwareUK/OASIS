@@ -23,6 +23,9 @@ Civic scoped candidate88c378c1e/Core81862b2 prepared from Holonym638,15paths;
 not published, no refs/settings changed until accepted Holonym rollout.
 Civic planner39controls+5publisher guards pass. No CQL count/admission increase. Existing
 personal-pass adapter preserved. [Review](CIVIC_PUBLIC_SOURCE_STATUS.md).
+MapLibre style-data source/test project/workflow pushed ata1ebbf5f7;
+cloud42454653284 islive, no CQL acceptance/count change. Legacy map renderer
+remains unqualified. [Scope](MAPLIBRE_PUBLIC_SOURCE_STATUS.md).
 No local build/runtime/image/database download.
 
 ## Current phase
