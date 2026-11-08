@@ -121,3 +121,21 @@ fb19f71f-ed17-8a0c-b2dc-b0f5074a6888,863752f8-cc68-8ebe-bf88-4b95f8921590,
 3e9729d9-0057-82ea-8335-a83ad0fa8f8d; same assertions added to the existing
 C#catalogue test for next cloud qualification. No real source actor/snapshot,
 admission, Development image or hosted cohort prepared for Civic yet.
+
+WEB442453281168/job128646846608 succeeds:8boundary+1actual HTTP/Mongo,
+zero skips. Artifact13605839734/4574bytes SHA256
+52a721880e6880d708c501d44054a50d5ec687d8d1ebc48f2bc00b7ebbd6f6b3,
+TRX counters/hashes/summary verified wholly in memory: native3/2, paired5/4,
+foreignprivate0/public3,2SDKsaves/9receipts; ownedDBabsent and ephemeral
+container removed. Coverage123scoped local/94liveHTTP/28browser. No hosted,
+replication, billing or browser acceptance for Civic.
+
+Scoped candidate88c378c1e08ee270365b760c9d3abc29b629a0f4/Core81862b2450c1d4bd0f3e8853523c1b13b8a257d3
+is prepared from Holonym638993968/Corebe4636a;15scoped paths. Shared client
+change is asserted to be only the bounded ABI-string reader plus its import;
+all earlier shared behavior remains byte-identical. CQL registration/compiler/
+project edits are constructed from the scoped base, not copied wholesale
+from the broader task tree. Source reader blob matches native-qualified4a56;
+manifest/gitlinks pass. Temporary indices removed in finally; no checkout,
+worktree, runtime or database. Neither candidate ref is changed or pushed;
+exact qualification/publication waits for accepted Holonym rollout.

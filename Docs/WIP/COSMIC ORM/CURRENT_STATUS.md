@@ -16,7 +16,10 @@ no more archived-state requests or alternate endpoint. Single current-finalized
 per-record reader now replaces the unsuitable archive contract. Corrected
 source4a56a62a2/Core46ac61c manifest validates; native42453281381 passes
 27controlled+1296shared+1native, artifact/counters verified in memory.
-WEB442453281168/job128646846608 islive compiling its controlled consumer.
+WEB442453281168/job128646846608 passes8boundary+1realHTTP/Mongo;
+artifact/counters/privacy/9receipts and ownedDBabsence verified in memory.
+Civic scoped candidate88c378c1e/Core81862b2 prepared from Holonym638,15paths;
+not published, no refs/settings changed until accepted Holonym rollout.
 Civic planner39controls+5publisher guards pass. No CQL count/admission increase. Existing
 personal-pass adapter preserved. [Review](CIVIC_PUBLIC_SOURCE_STATUS.md).
 No local build/runtime/image/database download.
@@ -59,7 +62,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
 
 ## Verified
 
-Coverage is **122 scoped local, 94 live HTTP and 28 functional browser**.
+Coverage is **123 scoped local, 94 live HTTP and 28 functional browser**.
 The [full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) records each scope.
 
 - MongoDB, SQLite and Neo4j provide the principal owned-storage demo paths.
@@ -136,7 +139,7 @@ at104a0064, public268592byte HTML hash7908eabb8c70743d2e0cc1023484da2c7bb1e480d6
 matches exact Git. Do not replay its accepted cohort, settings or activation.
 [SubQuery proof](SUBQUERY_PUBLIC_SOURCE_STATUS.md).
 
-Coverage remains **122 scoped local / 94 live HTTP / 28 functional browser**.
+Coverage remains **123 scoped local / 94 live HTTP / 28 functional browser**.
 The accepted Dapr cohort and retired failed generation remain preserved; no
 source creation/save was replayed. [Dapr history](DAPR_CQL_MVP.md). While the
 code deployment waited for a build slot, a first anonymous Self Protocol RPC
