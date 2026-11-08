@@ -37,6 +37,8 @@ using var anonymous = UrbitContactsV1Client.FromSession(origin, new CookieContai
 var denied = await anonymous.ReadBookPageAsync("0v1");
 if (!denied.IsError || denied.Exception is not HttpRequestException { StatusCode: not null } nativeDenial)
     throw new InvalidDataException("Native private page was not denied to an unauthenticated HTTP reader.");
+if (nativeDenial.StatusCode is not (HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden))
+    throw new InvalidDataException("Anonymous native response did not prove authentication denial.");
 
 var cookies = new CookieContainer();
 using (var login = new HttpClient(new HttpClientHandler {
