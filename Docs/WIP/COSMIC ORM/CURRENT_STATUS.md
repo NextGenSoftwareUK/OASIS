@@ -72,9 +72,10 @@ exit0/no OOM, network-none and owned cleanup. Full Tlon health is not proved.
 First book attempt42513709558 stopped before seeding on LF checksum mismatch;
 preflight fixed. Next42514925237 failed before seeding because native Gall scry
 paths omitted the output mark; root cause corrected with `/noun`, cleanup verified.
-Combined real native HTTP/private-CQL restart run42517795274 is active at
-1937289c4. No native page/HTTP/CQL, manager/live/browser acceptance yet, and no
-profile-count increase. [Detailed gates and receipts](URBIT_CQL_MVP.md).
+Combined run42517795274 at1937289c4 now proves native empty-book/seed3/full3/subset2,
+but failed at Docker publication metadata before HTTP. Clean exit0/no OOM and
+owned container/network/pier removal verified. Transport-only diagnosis follows;
+no restart/native HTTP/CQL, native manager/live/browser acceptance or profile-count increase. [Detailed gates and receipts](URBIT_CQL_MVP.md).
 Pinned Vere4.6 and repository development
 pill passed real offline cold boot/run42507813675/source61c28aa5b. Hashed artifact
 inspected: bootstrap complete, pier live, exit0/no OOM, network none, owned

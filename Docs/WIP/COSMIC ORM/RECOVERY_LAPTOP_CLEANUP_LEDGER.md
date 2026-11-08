@@ -5292,3 +5292,6 @@ No laptop runtime, SDK, database, image or build output installed for this chang
 64-case cloud artifact inspected wholly in memory; only compact metadata receipt retained locally. Combined native run42517795274 reuses three exact immutable caches and tracks owned pier/container/internal-network cleanup. Free C drive measured43.85GiB. Native cleanup remains pending until terminal artifact inspection.
 
 Cloud shared-manager controls42518331256 passed65/65; artifact13632455738 inspected in memory without extraction. Compact receipt only retained locally. No additional local environment or native fixture started; existing42517795274 remains live at its original handle.
+
+
+Native42517795274 terminal artifact13632891336 SHA256f34265092cf7cbaebde73ec87a8cbc55452caece8ce36dc139e98bfb5d98a482 inspected in memory. Three owned synthetic native pages seeded/read; all removed with owned pier. Exit0/no OOM/container/network/pier cleanup verified. No SDK HTTP request/restart accepted. Transport-only diagnostic source9030a4d52 uses a small cloud-only pinned-image container/internal network, no native pier; cleanup pending. Laptop receives compact receipts only, no build/runtime/archive extraction.
