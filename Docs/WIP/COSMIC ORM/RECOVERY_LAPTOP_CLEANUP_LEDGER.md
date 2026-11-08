@@ -5288,3 +5288,5 @@ Failed book42513709558 artifact3884bytes verified in memory. Zero seed intents/A
 ### 8 November — Urbit private CQL identity gate
 
 No laptop runtime, SDK, database, image or build output installed for this change. Cloud-only controlled run42516923950 succeeded; detailed artifact inspection pending. Native run42514925237 failed before any seed and verified owned container/network/pier removal. Original immutable cloud caches retained for reuse; no new local artifact extraction. New source identity controls reuse the same cloud provider-test workflow, bounded build lease and task branch. Unrelated cleanup ledger and source changes preserved.
+
+64-case cloud artifact inspected wholly in memory; only compact metadata receipt retained locally. Combined native run42517795274 reuses three exact immutable caches and tracks owned pier/container/internal-network cleanup. Free C drive measured43.85GiB. Native cleanup remains pending until terminal artifact inspection.
