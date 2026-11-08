@@ -5,11 +5,11 @@ from owned_docker_resources import missing_resource
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--operation',choices=['start','stop'],required=True);p.add_argument('--profile',choices=['gomap','tron'],default='gomap');o=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--operation',choices=['start','stop'],required=True);p.add_argument('--profile',choices=['gomap','tron','typesense'],default='gomap');o=p.parse_args()
     assert os.environ.get('GITHUB_ACTIONS')=='true','Cloud-only database qualification.'
     run=os.environ['GITHUB_RUN_ID'];attempt=os.environ['GITHUB_RUN_ATTEMPT'];assert run.isdecimal() and attempt.isdecimal()
     owner=o.profile+'-web4-'+run+'-'+attempt;name=o.profile+'-cql-mongo';label='oasis.'+o.profile+'.web4.owner'
-    out=Path(__file__).resolve().parents[2]/'TestResults'/({'gomap':'GOMapWeb4Current','tron':'TronHeaderWeb4Current'}[o.profile]);out.mkdir(parents=True,exist_ok=True)
+    out=Path(__file__).resolve().parents[2]/'TestResults'/({'gomap':'GOMapWeb4Current','tron':'TronHeaderWeb4Current','typesense':'TypesenseMongoCurrent'}[o.profile]);out.mkdir(parents=True,exist_ok=True)
     def docker(*args,check=True,timeout=30):
         r=subprocess.run(['docker',*args],capture_output=True,text=True,timeout=timeout)
         if check and r.returncode:raise RuntimeError('Owned Mongo operation failed: '+r.stderr[-1500:])

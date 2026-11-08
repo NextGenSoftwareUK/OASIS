@@ -1,4 +1,5 @@
 """Cloud-only native Typesense CQL qualification; never adopts an existing source."""
+import argparse
 import hashlib
 import json
 import os
@@ -24,16 +25,19 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--scope', choices=['native', 'mongo'], default='native')
+    args = parser.parse_args()
     assert os.environ.get('GITHUB_ACTIONS') == 'true', 'Cloud-only qualification.'
     run, attempt = os.environ['GITHUB_RUN_ID'], os.environ['GITHUB_RUN_ATTEMPT']
     assert run.isdecimal() and attempt.isdecimal()
-    owner = 'typesense-' + run + '-' + attempt
+    owner = 'typesense-' + args.scope + '-' + run + '-' + attempt
     container, volume = owner, owner + '-data'
     root = Path(__file__).resolve().parents[2]
-    out = root / 'TestResults/TypesenseNativeCurrent'
+    out = root / ('TestResults/TypesenseNativeCurrent' if args.scope == 'native' else 'TestResults/TypesenseMongoCurrent')
     out.mkdir(parents=True, exist_ok=True)
     endpoint = 'http://127.0.0.1:58108'
-    report = {'source': os.environ['GITHUB_SHA'], 'owner': owner, 'image': IMAGE,
+    report = {'source': os.environ['GITHUB_SHA'], 'owner': owner, 'image': IMAGE, 'scope': args.scope,
               'nativePassed': False, 'restartPassed': False, 'hostedAccepted': False}
 
     def docker(*args, check=True, timeout=60, env=None):
@@ -146,7 +150,11 @@ def main():
         source.write_text(json.dumps({'Endpoint': endpoint, 'Actor': actor,
             'LiveIds': ids[:3], 'DeletedId': ids[3], 'MissingId': ids[4]}), encoding='utf-8')
         environment = dict(os.environ, COSMIC_TYPESENSE_CQL_SOURCE=str(source), COSMIC_TYPESENSE_CQL_KEY=reader)
-        for phase in ['native', 'restart']:
+        phases = ['native', 'restart'] if args.scope == 'native' else ['mongo']
+        category = 'TypesenseCqlNative' if args.scope == 'native' else 'TypesenseMongoCqlNative'
+        test_name = ('ExistingNativeRecordsSupportThreeTwoPagingAndSourcePreservation' if args.scope == 'native'
+                     else 'NativeTypesenseMongoFederationRunsManagerAndHttpWithoutSourceWrites')
+        for phase in phases:
             if phase == 'restart':
                 state = owned('container', container)
                 assert state['State']['Running']
@@ -156,7 +164,7 @@ def main():
                 docker('start', container)
                 ready()
             subprocess.run(['dotnet', 'test', PROJECT, '--no-build', '--no-restore',
-                '--filter', 'TestCategory=TypesenseCqlNative', '--results-directory', str(out),
+                '--filter', 'TestCategory=' + category, '--results-directory', str(out),
                 '--logger', 'trx;LogFileName=' + phase + '.trx'], cwd=root, env=environment, check=True)
             trx = out / (phase + '.trx')
             ns = {'t': 'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'}
@@ -166,9 +174,14 @@ def main():
             assert counts.get('notExecuted') == '0'
             rows = xml.findall('.//t:UnitTestResult', ns)
             assert len(rows) == 1 and rows[0].attrib['outcome'] == 'Passed'
-            assert rows[0].attrib['testName'] == 'ExistingNativeRecordsSupportThreeTwoPagingAndSourcePreservation'
+            assert rows[0].attrib['testName'] == test_name
             report[phase + 'Passed'] = True
             report[phase + 'TrxSha256'] = hashlib.sha256(trx.read_bytes()).hexdigest()
+        if args.scope == 'mongo':
+            completion = json.loads((out / 'mongo-complete.json').read_text(encoding='utf-8'))
+            assert completion['ownedDatabaseAbsent'] and completion['sourceUnchanged']
+            assert not (out / 'mongo.pending.json').exists()
+            report['federation'] = completion
         report['seedCreates'] = 4
         report['restrictedReaderWriteDenied'] = True
     finally:
@@ -179,13 +192,17 @@ def main():
                     docker('stop', '--time', '20', container)
                 state = owned('container', container)
                 report['finalExitCode'] = state['State']['ExitCode']
-                assert not state['State']['Running'] and not state['State']['OOMKilled']
+                report['finalOomKilled'] = state['State']['OOMKilled']
+                assert not state['State']['Running']
                 docker('rm', '-v', container)
             if owned('volume', volume) is not None:
                 docker('volume', 'rm', volume)
             assert inspect('container', container) is None and inspect('volume', volume) is None
             report['ownedCleanupVerified'] = True
         (out / 'qualification.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
+        # Cleanup evidence survives even if native termination was not clean.
+        if report.get('mongoPassed') or report.get('restartPassed'):
+            assert report['finalExitCode'] == 0 and not report['finalOomKilled']
 
 
 if __name__ == '__main__':

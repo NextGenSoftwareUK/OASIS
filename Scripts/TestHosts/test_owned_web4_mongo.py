@@ -51,10 +51,16 @@ class OwnershipTests(unittest.TestCase):
                     fixture.main()
                     self.assertIn(["docker", "stop", "--time", "20", name], calls)
                     self.assertIn(["docker", "rm", "--volumes", name], calls)
-                    folder = {"gomap": "GOMapWeb4Current", "tron": "TronHeaderWeb4Current"}[profile]
+                    folder = {"gomap": "GOMapWeb4Current", "tron": "TronHeaderWeb4Current", "typesense": "TypesenseMongoCurrent"}[profile]
                     proof = json.loads((Path(temporary) / "TestResults" / folder / "mongo-cleanup.json").read_text(encoding="utf-8"))
                     self.assertTrue(proof["ownedContainerAbsent"])
                     self.assertTrue(proof["anonymousVolumesAbsent"])
+
+    def test_typesense_rejects_foreign_owner(self):
+        self.verify_cleanup("typesense", True)
+
+    def test_typesense_owned_cleanup(self):
+        self.verify_cleanup("typesense", False)
 
     def test_gomap_rejects_foreign_owner(self):
         self.verify_cleanup("gomap", True)
