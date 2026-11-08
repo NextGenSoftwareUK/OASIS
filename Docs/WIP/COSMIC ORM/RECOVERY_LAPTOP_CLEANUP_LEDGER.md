@@ -5357,3 +5357,5 @@ Infura corrected cloud42536679933 passed5/5 with zero skips at2c40a12c8. Artifac
 MapLibre offline health candidate c6f25f76c9fb1ab2a61d83670791df4bb91b6c00 changes one Dockerfile line from original23532a6f using the probe qualified at1c9c39904. Temporary index directory removed. Manifest verified. Exact image and qualification pending. Original refs, settings and owner preserved. No local runtime or image.
 
 Four-provider offline health candidate 550d67c1ec037473197a37ca0367b739efccb496 based on corrected MapLibre c6f25f76. Exactly three qualified blobs differ from original d555cb2a. Core pin and manifest verified. Temporary index removed. Exact combined qualification pending. No local image, runtime or database.
+
+Corrected MapLibre c6f25f76 fast-forwarded the existing qualification branch. Exact cloud image42537289091 observed active, new commit-only teaching tag. Follow original run then MapLibre package/startup qualifier. Development/settings untouched. No local image/runtime/download.

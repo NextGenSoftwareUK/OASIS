@@ -226,8 +226,11 @@ Refresh the shared refs before publication in a permitted window.
 The original image qualification predates the Docker health gate. The original
 candidate still calls missing curl. An offline correction
 `c6f25f76c9fb1ab2a61d83670791df4bb91b6c00` changes only the Dockerfile health
-command to the proven Node probe. Its dependency manifest validates. Qualify the
-corrected source and image before integration. The original publisher still pins
+command to the proven Node probe. Its dependency manifest validates. The existing
+qualification branch advanced from the original source to this correction after
+a fresh ref check. The exact commit-only teaching image is building in
+[42537289091](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42537289091).
+Follow that run, then use the MapLibre package/startup profile before integration. The original publisher still pins
 the old candidate and must be updated after exact qualification. Then verify the
 deployed package, apply the reviewed settings once and seal the first owned
 HTTP/reuse/privacy/replica results. The four-provider health correction is prepared below.
