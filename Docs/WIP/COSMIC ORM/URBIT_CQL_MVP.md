@@ -75,8 +75,9 @@ owned internal network and drop to the runner UID/GID, with no published ports.
    compact receipt and exact source rather than replaying the accepted cohort.
 2. Durable source hosting and demo authorization. No new hosting spend is
    authorized. Private-book policy is not an all-visitor/public teaching grant.
-3. Exact dependency/image/runtime qualification and a permitted Development batch;
-   no third8November push, production/master promotion or moved candidate tags.
+3. Corrected exact package/startup candidate accepted below; source hosting and a
+   permitted scoped Development batch remain. No third8November push,
+   production/master promotion or moved candidate tags.
 4. Live authenticated visitor flow, reuse/replicas/cleanup and actual browser proof.
 5. Blank-page existence contract, wider CQL, canonical provider CRUD/full interfaces,
    imported/virtual/hybrid persistence and EF/NHibernate parity remain incomplete.
@@ -117,18 +118,35 @@ the declared Docker healthcheck actually reaching healthy with a successful log,
 before shutdown/acceptance; missing/disabled/failed checks reject. No CQL API or
 provider behavior changed. Eight local control methods pass, including the actual
 shipped health command and the reproduced missing-curl false acceptance. Corrected
-source needs a new immutable image and exact package/startup qualification; never
-move or overwrite the existing candidate tag. No native cohort replay.
+source required a new immutable image and exact package/startup qualification,
+now accepted below; never move or overwrite the existing candidate tag. No native cohort replay.
 Cloud controls42533306769/job128892050267 pass at corrected source
 1c9c399042272489e582b0646e16052d478382d1/Coree62ec44. One corrected cloud image
 build42533336909/job128892145512 completed successfully at that exact SHA,
 new commit-only teaching tag; digest
 `sha256:37e966a8d0c47e8242844f254947ab74e7a7cfe6d8371d7bd9e45735c7f31e0f`.
-One corrected exact-digest package/TRON+Urbit and tightened Docker-health startup
-qualification42534822963/job128896685512 is active (workflow139876f21, frozen
-source1c9c39904). Follow that original run and inspect cleanup before acceptance.
+Corrected exact-digest package/TRON+Urbit and tightened Docker-health startup
+qualification42534822963/job128896685512 is **accepted** (workflow139876f21,
+frozen source1c9c39904). Artifact13638493286,4873bytes, SHA256
+`f0c03b4865a16d5c3bc6768ed2e48cfb3d116b33c07a292e87f403e90d2cd863`
+was verified in memory. Eight assemblies, SDK/query/registration/direct runtime
+dependency graph, exact frozen Git-blob host/model hashes and versions pass.
+API health/native metadata pass; the mandatory image-health gate observed Docker
+healthy before shutdown. Last actual health probe exits0/failing streak0. Graceful
+process exit0/no OOM; exact owned API/Mongo containers, network and test volumes
+removed. Only compact safe receipt retained; no local image/runtime/database.
+
+The post-stop state reports unhealthy because Docker stops its health monitor;
+it is not a failed post-start probe. [Docker primary implementation](https://github.com/moby/moby/blob/docker-v29.4.3/daemon/container/health.go#L66-L76)
+sets this status on monitor closure. Acceptance is specifically gated on the
+running state before shutdown, plus the successful final execution log; no relaxed
+health requirement or additional retry was introduced. Windows working-copy CRLF
+is not the hash authority: checks use exact frozen Git blobs.
+
 No alias or Development/live changes. Existing rejected image54be8845a remains
-unchanged, not a deploy candidate.
+unchanged, not a deploy candidate. Corrected37e966a8 is package/startup qualified;
+public Urbit source hosting/authorization, production JWT/durable billing,
+live authenticated CQL/reuse/replicas and browser acceptance remain open.
 
 ## Files and reusable resources
 

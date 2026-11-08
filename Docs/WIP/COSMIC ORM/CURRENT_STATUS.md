@@ -96,7 +96,7 @@ unchanged; copy seed3before/0after, owned DB absent, Mongo container/two volumes
 and native container/pier/network removed, exit0/no OOM. Artifact13637565973
 SHA256193927a9c5c4eccd4eead26802117685100c04ab8484c50903b22907089d718f
 inspected in memory; compact safe receipt only. Production JWT/durable billing,
-public HTTPS hosting, exact image certification and live/browser acceptance remain
+public HTTPS hosting and live/browser acceptance remain
 open. No deployment or count increase.
 Exact candidate image build42531102996 completed success at e514c0025/Coree62ec44;
 commit-only teaching tag, digest54be8845a8766885b959a8e162eca682d270ad7390644e6d16afd9c7a5a6d39c.
@@ -107,6 +107,15 @@ already-shipped Node for the Docker health command and requires actual healthy
 Docker execution before startup acceptance;8local control methods pass. Corrected
 source needs a new immutable image, not a moved existing tag. No CQL API change,
 native cohort replay, local image download or live/Development change.
+Corrected exact image1c9c39904/Coree62ec44/digest37e966a8d0c47e8242844f254947ab74e7a7cfe6d8371d7bd9e45735c7f31e0f
+now passes package/actual Docker-health/API/native startup42534822963. Artifact
+13638493286 SHA256f0c03b4865a16d5c3bc6768ed2e48cfb3d116b33c07a292e87f403e90d2cd863
+inspected in memory:8assemblies, both readers, host/model/dependency checks, running
+Docker healthy gate, last probe exit0, graceful exit0/no OOM and exact owned cleanup.
+Docker's post-stop unhealthy status is its monitor-closure behavior, not a failed
+final probe; source and receipt distinguish the running gate from shutdown.
+This closes only exact package/startup qualification. No public Urbit hosting,
+production JWT/durable billing, live/browser acceptance, deployment or count increase.
 Pinned Vere4.6 and repository development
 pill passed real offline cold boot/run42507813675/source61c28aa5b. Hashed artifact
 inspected: bootstrap complete, pier live, exit0/no OOM, network none, owned
