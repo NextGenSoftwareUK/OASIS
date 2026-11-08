@@ -5267,3 +5267,7 @@ Cloud43controlled tests/run42511819014 pass, artifact7529bytes/TRX inspected ent
 
 ### 8 Nov — Native contacts initialization accepted
 Cloud42511918338 passed actual Kelvin408/current contacts initialization. Exact owned container and pier removal, exit0/no OOM/network none verified in artifact13629794881/3888bytes (in-memory inspection); compact member-hash receipt retained. Existing three immutable source/runtime caches reused. No new source cohort, laptop runtime/SDK/database/source clone or image. Standalone install workflow manual-only after accepted milestone. Cancelled earlier run cleanup remains independently unproved; this success does not retroactively certify it.
+
+
+### 8 Nov — Native private book lifecycle job
+Source6e1a22a1c/run42513709558 active: reuses three cloud source/runtime caches, adds real page seed/read/restart proof. Restarts the same owned pier, no database copy or second source. Per-page intents/ACKs and compact equality results retained as job artifacts; native cleanup not yet claimed. No laptop runtime/SDK/image/database or environment installed.
