@@ -140,8 +140,11 @@ Owned image42440274631 is terminalCANCELLED; no successful image claimed.
 Taskb07a2e453 factors one shared HTTP/Mongo fixture from provider factories, with
 its existing test body preserved. Corrected candidate9fd968a7b/Core06df088 is
 published only on the existing candidate branch; shipping runtime/pins unchanged,
-manifest checks pass. Exact WEB442440703734, dictionary42440748480 and admission
-42440751129 are live. Wait for corrected gates before another image dispatch.
+manifest checks pass. Exact WEB4 run42440703734 (8+1), dictionary42440748480 (16+1)
+and admission42440751129 (25) all pass/zero skips; artifacts verified in memory.
+Task SubQuery8+1 and affected Waku5+1 regressions also pass in isolated fixtures.
+One corrected image dispatch204 is acknowledged:42441146593/job128610449048 is
+live on9fd968a7b with teaching runtimes enabled and commit-only tag.
 No Development deployment or settings mutation requested.
 Thirty-nine protected-candidate and five publisher controls pass locally without
 live mutations or local builds. A pinned independent Firehose registry agrees
@@ -187,6 +190,8 @@ Provision-HostedTeachingSource.py has five command tests; native helper has six.
 - Broader ORM children/depth/history/deltas, migration, placement and HyperDrive
   operator, transport and scale acceptance remain incomplete.
 - Disk target107GB remains unmet; preserve personal WSL Miniforge/ML models.
+- Latest observed free space is49,979,895,808bytes (~46.5GiB); no task-owned bulk
+  deletion, local build/runtime/image download or rejected cleanup retry.
 - Subscription20.6MB and finished Graph build outputs1.98GB retained after
   automatic cleanup-policy rejection; exact scopes are in the resource ledger.
 

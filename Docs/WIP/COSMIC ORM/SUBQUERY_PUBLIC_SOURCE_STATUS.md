@@ -178,12 +178,28 @@ No extra provider project is added to the release. Corrected scoped candidate
 9fd968a7b40d2decb389f7a2a5c7f75874b11153/Core06df0885c398e0b16749565852d12a9d499288d2
 is fast-forward published only on the existing candidate branch. Compared with
 45734a552, only tests/workflow changed; shipping runtime and dependency pins are
-unchanged. Exact manifest checks pass. New exact WEB4 run42440703734 is live;
-one explicitly acknowledged204 dictionary run42440748480 and admission regression
-42440751129 are queued/running. No replacement image dispatch yet; wait for the
-corrected boundary qualification. Task refactor jobs42440591625 (SubQuery) and
-42440591607 (Waku regression) also run in isolated cloud fixtures. Their data/bundles
-must never replace accepted hosted sources/cohorts.
+unchanged. Exact manifest checks pass. All corrected candidate checks succeeded:
+dictionary run 42440748480/job128609268674 (16 controls + 1 native), WEB4 run
+42440703734/job128609128447 (8 boundary + 1 real HTTP), and admission regression
+42440751129/job128609276818 (25 cases), with zero skips throughout.
+Native3/2, Mongo5/4, foreign-private0/public3, nine usage receipts and owned
+database absence are verified from the compact artifact. No replica, browser
+or production billing proof is inferred. Artifacts were inspected in memory:
+
+| Scope | Artifact | Bytes | SHA256 |
+|---|---:|---:|---|
+| Dictionary |13601563117|4404|10e7f677292dce923c42cd258c3c55879aa73bbba5a9fe4e328564fb421c2303|
+| WEB4/Mongo |13601792021|4615|fbbf5f3a5d3e364d1b923f38b0565406c3f758382b65d18f75629d7d39b09115|
+| Admission |13601662838|4366|8e46efd236c520e44f44653128a2dbec1b5b4630324aa5b07dc71fb1cf3fe545|
+
+One replacement image dispatch is acknowledged204 after those exact gates:
+run42441146593/job128610449048 is live for9fd968a7b with teaching runtimes enabled,
+commit-only image tag and no mutable sandbox tag. No Development/settings mutation.
+Task refactor run42440591625 also passed8+1/zero skips. Its artifact13601677943,
+4617bytes/SHA2567550c00f7f9863127f176a68b3fa3cfe4326530ee3c4fb6f83abf2fad3d8f89b,
+was inspected in memory. Waku regression42440591607/job128608780526 passed
+5native+1HTTP/zero skips. Its separate synthetic cloud bundle13601786959/1143bytes
+was not downloaded and must never replace accepted hosted sources/cohorts.
 
 Stable future host plan: `LocalState/COSMIC/HostedSubqueryDictionarySourceCurrent`,
 ownerf0d6a43f-cdf4-4112-8397-b406571401a6, mapped IDs
