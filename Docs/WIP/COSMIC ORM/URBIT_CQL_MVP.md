@@ -350,3 +350,10 @@ Namespace command now gives the child the existing runner home/CLI home and has 
 
 
 Refactored shared MVC preflight at6981acb6b passed4/4 in42525205507/job128867191602. Artifact13634709046 SHA256e001c115c4c70f05ad4bc3ff6dd84f3c7d87df0306eda5a6b364358d2f1efc0a inspected in memory, all outcomes/classes verified. Native fact compiled but was not selected; no native acceptance from preflight. Eight namespace controls pass locally. After proving no other native lifecycle active, one native-web4 scope dispatched at exactly6981acb6b: [42525613719](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42525613719). Follow this original handle; do not restart on observation timeout. Actual MVC-to-native, before/after API hash preservation and cleanup pending. No Development deployment or public profile count change.
+
+
+## Private federation component gate prepared while native MVC runs
+
+Three new admitted cases exercise the shipping federation endpoint with the actual Urbit SDK/adapter and a controlled canonical Mongo source. Full3+2/subset2+2 must preserve5/4physical copies, provider provenance, private owner fields, independent Mongo owner/public versus Urbit keyed-catalogue permissions and two measured query receipts. Other-owner private denial403 or inactive source503 must reject the entire request before either source query or manager creation; canonical copies cannot substitute for the required private source. Mongo responses and native Urbit replies remain controlled in this component suite, so no native Mongo/federation acceptance or unrelated-copy filtering claim follows.
+
+Expected admitted suite7cases (existing4plus3federation). No native job/environment is started by this change. Already-running native MVC42525613719 remains at frozen6981acb6b and is followed independently; these new tests cannot change that job's source or certify its results. Exact native federation with owned Mongo remains a later distinct gate.

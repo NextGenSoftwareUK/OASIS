@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/qualify-urbit-web4-admission.yml'
       - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CqlUrbitAdmittedTests.cs'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CqlUrbitFederationAdmittedTests.cs'
   workflow_dispatch:
 
 permissions:
@@ -57,7 +58,7 @@ jobs:
             if ($LASTEXITCODE) { throw 'Urbit admitted endpoint qualification failed' }
             [xml]$report = Get-Content TestResults/UrbitAdmittedWeb4Current/query.trx
             $counts = $report.TestRun.ResultSummary.Counters
-            if ($counts.total -ne '4' -or $counts.executed -ne '4' -or $counts.passed -ne '4') { throw 'All 4 admitted endpoint controls must execute and pass' }
+            if ($counts.total -ne '7' -or $counts.executed -ne '7' -or $counts.passed -ne '7') { throw 'All 7 admitted endpoint controls must execute and pass' }
           }
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
