@@ -1,0 +1,1014 @@
+diff --git a/Docker/oasis-dependency-versions.env b/Docker/oasis-dependency-versions.env
+index e0e450a394116124f2ce73fc9bb8c7bcd53a6cf7..6662bf7754333e349b3bc7564d55597829f5830f 100644
+--- a/Docker/oasis-dependency-versions.env
++++ b/Docker/oasis-dependency-versions.env
+@@ -9,7 +9,7 @@ LIBRARIES_COMMIT=e91f10635c5c79e484b06322a6c0c60d392a46ce
+ HOLOCHAIN_REPO=https://github.com/holochain-open-dev/holochain-client-csharp.git
+ HOLOCHAIN_COMMIT=75824d5b4ef7f4f4dda12225747d916ed1dc220a
+ 
+-OASIS_API_CORE_COMMIT=81862b2450c1d4bd0f3e8853523c1b13b8a257d3
++OASIS_API_CORE_COMMIT=7b426c953dd6ebaeee1af873e7b4fcd76b609df6
+ OASIS_ONODE_CORE_COMMIT=308a7860b4b8ed164c0d950bed29f656c052b12a
+ ONODE_MANAGER_COMMIT=7d909cabf7e849ad2efec7b05e25677c0c2e29b0
+ STAR_ODK_COMMIT=1d039764a899b15158ede37626eb50d0fc43515d
+diff --git a/OASIS Architecture/NextGenSoftware.OASIS.API.Core b/OASIS Architecture/NextGenSoftware.OASIS.API.Core
+index 81862b2450c1d4bd0f3e8853523c1b13b8a257d3..7b426c953dd6ebaeee1af873e7b4fcd76b609df6 160000
+--- a/OASIS Architecture/NextGenSoftware.OASIS.API.Core	
++++ b/OASIS Architecture/NextGenSoftware.OASIS.API.Core	
+@@ -1 +1 @@
+-Subproject commit 81862b2450c1d4bd0f3e8853523c1b13b8a257d3
++Subproject commit 7b426c953dd6ebaeee1af873e7b4fcd76b609df6
+diff --git a/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlTronHeaderHostedConfigurationTests.cs b/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlTronHeaderHostedConfigurationTests.cs
+new file mode 100644
+index 0000000000000000000000000000000000000000..db1d29584706f0b278fc7cef9f282cd054bc929c
+--- /dev/null
++++ b/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlTronHeaderHostedConfigurationTests.cs
+@@ -0,0 +1,151 @@
++using NextGenSoftware.OASIS.API.Core.Holons;
++using NextGenSoftware.OASIS.API.Core.Queries;
++using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
++using NextGenSoftware.OASIS.API.Core.Enums;
++using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
++using Microsoft.Extensions.Configuration;
++using Microsoft.Extensions.DependencyInjection;
++using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
++using NextGenSoftware.OASIS.API.Providers.TRONOASIS;
++
++namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
++
++public sealed class CqlTronHeaderHostedConfigurationTests
++{
++    private const string CatalogueSetting = "CQL_TRON_PUBLIC_HEADER_QUERY_SOURCE_JSON";
++    private const string KeySetting = "COSMIC_TRON_PUBLIC_READER_KEY";
++    private const string Catalogue = """
++        {"schema":1,"rpcUrl":"https://api.trongrid.io/walletsolidity/getblock",
++         "genesisHash":"00000000000000001ebf88508a03865c71d452e25f4d51194196a1d22b6653dc",
++         "consistency":"SolidityNodeSolidified","blockHeights":["1","2","3"],
++         "sourceOwner":"374ef405-02b9-4424-b2c6-3e187104a262"}
++        """;
++
++    [Fact]
++    public void AbsentConfigurationDoesNotRegisterASource()
++    {
++        var services = new ServiceCollection();
++        services.AddReviewedNetworkReadSources(Settings(null, null), sandboxEnabled: true);
++        Assert.Empty(services);
++    }
++
++    [Theory]
++    [InlineData(true)]
++    [InlineData(false)]
++    public void PartialConfigurationCannotSelectAnonymousAccess(bool missingKey)
++    {
++        var services = new ServiceCollection();
++        Assert.Throws<InvalidOperationException>(() => services.AddReviewedNetworkReadSources(
++            Settings(missingKey ? Catalogue : null, missingKey ? null : "controlled-reader"), true));
++        Assert.Empty(services);
++    }
++
++    [Fact]
++    public void ConfiguredReaderRequiresSandboxMode()
++    {
++        var services = new ServiceCollection();
++        Assert.Throws<InvalidOperationException>(() => services.AddReviewedNetworkReadSources(
++            Settings(Catalogue, "controlled-reader")));
++        Assert.Empty(services);
++    }
++
++    [Theory]
++    [InlineData("contains space")]
++    [InlineData("two,keys")]
++    [InlineData("control\r\nheader")]
++    public void InvalidReaderKeyFailsBeforeAnyActivation(string key)
++    {
++        var services = new ServiceCollection();
++        services.AddReviewedNetworkReadSources(Settings(Catalogue, key), true);
++        using var container = services.BuildServiceProvider();
++        Assert.Throws<ArgumentException>(() => container.GetServices<CqlReadSourceProfile>().ToArray());
++    }
++
++    [Fact]
++    public void ExplicitPairCreatesOnlyAnInactiveReadOnlyProfile()
++    {
++        var services = new ServiceCollection();
++        services.AddReviewedNetworkReadSources(Settings(Catalogue, "controlled-reader"), true);
++        using var container = services.BuildServiceProvider();
++        var profile = Assert.Single(container.GetServices<CqlReadSourceProfile>());
++        var source = Assert.IsType<TronPublicHeaderMetadataSource>(profile.Storage);
++        Assert.False(source.IsProviderActivated);
++        Assert.Equal(ProviderType.TRONOASIS, source.QueryProviderType);
++        Assert.Same(CqlReadSourceActivationPolicy.None, profile.ActivationPolicy);
++    }
++
++    [Fact]
++    public void CredentialInsideCatalogueIsRejected()
++    {
++        var services = new ServiceCollection();
++        var embedded = Catalogue.Replace("\"schema\":1", "\"readerKey\":\"forbidden\",\"schema\":1");
++        services.AddReviewedNetworkReadSources(Settings(embedded, "controlled-reader"), true);
++        using var container = services.BuildServiceProvider();
++        Assert.Throws<ArgumentException>(() => container.GetServices<CqlReadSourceProfile>().ToArray());
++    }
++
++    [Fact]
++    public void QueryAdmissionRequiresIndependentReadTariffAndRejectsWrites()
++    {
++        const ProviderType provider = ProviderType.TRONOASIS;
++        Assert.Equal(provider, CqlV1Compiler.RequestedProvider(provider.ToString(), includeCloudReadProfile: true));
++        Assert.Throws<ArgumentException>(() => CqlV1Compiler.RequestedProvider(provider.ToString()));
++        var ordinary = new[] { ProviderType.MongoDBOASIS };
++        var tariffs = new[] { new StorageQueryTariff(ordinary[0], 0, "demo-read-v1"),
++            new StorageQueryTariff(provider, 0, "demo-read-v1") };
++        var factory = new PricedStorageAdmissionFactory(null,
++            Array.Empty<NativeStorageAdmissionBinding>(),
++            ordinary, tariffs, null, new[] { provider });
++        Assert.Contains(provider, factory.QueryOnlyProviders);
++        Assert.Throws<ArgumentException>(() => new PricedStorageAdmissionFactory(null,
++            Array.Empty<NativeStorageAdmissionBinding>(),
++            ordinary, tariffs[..1], null, new[] { provider }));
++        Assert.Throws<ArgumentException>(() => new PricedStorageAdmissionFactory(null,
++            Array.Empty<NativeStorageAdmissionBinding>(),
++            ordinary, tariffs, new[] { new StorageAttemptTariff(provider, "SaveHolon", 0, "demo-read-v1") }, new[] { provider }));
++    }
++
++    [Fact]
++    public void ExactHeightPresetsPlanThreeTwoAndMongoPairsWithoutNativeRequests()
++    {
++        using var source = TronPublicHeaderMetadataSource.FromAuthenticatedJson(Catalogue, "controlled-reader");
++        var rows = new List<object>();
++        var owner = Guid.Parse("374ef405-02b9-4424-b2c6-3e187104a262");
++        var heights = new[] { "1", "2", "3" };
++        var ids = heights.Select(height => NativeRecordHolonMapper.StableHolonId(owner, ProviderType.TRONOASIS,
++            "tron-public-solidified:" + TronPublicHeaderMetadataSource.PublicGenesis, height)).ToArray();
++        foreach (var count in new[] { 3, 2 })
++        {
++            // Exercise the captured metadata-path expression used by the shared HTTP
++            // fixture, before any native activation or provider request is possible.
++            var metadataField = TronPublicHeaderMetadataSource.AddressMetadata;
++            var metadataKeys = heights.Take(count).ToArray();
++            var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.TRONOASIS).Result)
++                .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(owner, ProviderType.TRONOASIS, ids).Result).Result
++                .Where(row => metadataKeys.Contains(CosmicQueryMetadata.Value<string>(row, metadataField)));
++            Assert.False(query.IsError, query.ErrorCode);
++            var plan = CosmicQueryPlanner.Plan(query.Result, ProviderType.TRONOASIS,
++                new[] { new CosmicQueryTarget(ProviderType.TRONOASIS, source.QueryCapabilities) });
++            Assert.False(plan.IsError, plan.ErrorCode);
++            var selection = new { orderBy = "None", take = 8, filters = new[] {
++                new { metadataPath = new[] { TronPublicHeaderMetadataSource.AddressMetadata }, scalar = "String",
++                    @operator = "In", value = new[] { "1", "2", "3" }.Take(count).ToArray() } } };
++            rows.Add(new { id = $"native-{count}", label = "Solidified TRON headers", request = new {
++                provider = "TRONOASIS", selection.orderBy, selection.take, selection.filters } });
++            rows.Add(new { id = $"paired-{count}", label = "Solidified TRON headers and MongoDB", operation = "Federation", request = new {
++                scope = "Named", providers = new[] { "MongoDBOASIS", "TRONOASIS" }, source = selection,
++                identityMode = "PreserveCopies", maximumProviderAttempts = 2, take = 8 } });
++        }
++        var examples = CqlHostedQueryExamples.FromJson(System.Text.Json.JsonSerializer.Serialize(
++            new Dictionary<string, object> { ["TRONOASIS"] = rows }));
++        var planned = examples.For(ProviderType.TRONOASIS,
++            source.QueryCapabilities, _ => NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS.CqlCapabilities);
++        Assert.Equal(4, planned.Count);
++        Assert.All(planned, example => Assert.True(example.Available, example.ErrorCode));
++        Assert.False(source.IsProviderActivated);
++    }
++
++    private static IConfiguration Settings(string? catalogue, string? key) => new ConfigurationBuilder()
++        .AddInMemoryCollection(new Dictionary<string, string?> {
++            [CatalogueSetting] = catalogue, [KeySetting] = key }).Build();
++}
+diff --git a/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlTronHeaderHttpTests.cs b/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlTronHeaderHttpTests.cs
+new file mode 100644
+index 0000000000000000000000000000000000000000..4f1bfaab62f88de8fa64b5b44b189c8e9895ad97
+--- /dev/null
++++ b/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlTronHeaderHttpTests.cs
+@@ -0,0 +1,33 @@
++using System.Security.Cryptography;
++using System.Text.Json;
++using NextGenSoftware.OASIS.API.Core.Enums;
++using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
++using NextGenSoftware.OASIS.API.Providers.TRONOASIS;
++
++namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
++
++public sealed class CqlTronHeaderHttpTests
++{
++    [ReviewedPublicMongoNativeFact("COSMIC_TRON_PUBLIC_READER_KEY")]
++    public async Task AuthenticatedTronHeadersAndPrivateMongoCopiesOverHttp()
++    {
++        Assert.Equal("owned-loopback", Environment.GetEnvironmentVariable("COSMIC_TRON_HEADER_NATIVE_HTTP"));
++        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
++        var path = Path.Combine(root, "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/Fixtures/tron-public-header-source.json");
++        var bytes = await System.IO.File.ReadAllBytesAsync(path);
++        Assert.Equal("7f1c8fe3c35ef3c45ee31be6eaef72f34f8d10185a28e2177ace267822e89c02",
++            Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant());
++        using var catalogue = JsonDocument.Parse(bytes);
++        var owner = catalogue.RootElement.GetProperty("sourceOwner").GetGuid();
++        var heights = catalogue.RootElement.GetProperty("blockHeights").EnumerateArray()
++            .Select(item => item.GetString()!).ToArray();
++        Assert.Equal(new[] { "1", "2", "3" }, heights);
++        var json = System.Text.Encoding.UTF8.GetString(bytes);
++        var key = Environment.GetEnvironmentVariable("COSMIC_TRON_PUBLIC_READER_KEY")!;
++        await ReviewedPublicMongoHttpFixture.VerifyHttpAsync(ProviderType.TRONOASIS, _ =>
++            (TronPublicHeaderMetadataSource.FromAuthenticatedJson(json, key), heights.Select(height =>
++                NativeRecordHolonMapper.StableHolonId(owner, ProviderType.TRONOASIS,
++                    "tron-public-solidified:" + TronPublicHeaderMetadataSource.PublicGenesis, height)).ToArray()),
++            metadataField: TronPublicHeaderMetadataSource.AddressMetadata, metadataKeys: heights);
++    }
++}
+diff --git a/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/ReviewedPublicMongoHttpFixture.cs b/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/ReviewedPublicMongoHttpFixture.cs
+index f0580d443c992fe82ca394e040956fe62a756ca7..3d4cc4a37a6c0d3e9039f73ff42f441c97896a97 100644
+--- a/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/ReviewedPublicMongoHttpFixture.cs
++++ b/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/ReviewedPublicMongoHttpFixture.cs
+@@ -102,7 +102,8 @@ internal static class ReviewedPublicMongoHttpFixture
+     }
+ 
+     public static async Task VerifyHttpAsync(ProviderType provider,
+-        Func<Guid, (IOASISStorageProvider Source, Guid[] Ids)> sourceFactory, bool resume = false)
++        Func<Guid, (IOASISStorageProvider Source, Guid[] Ids)> sourceFactory, bool resume = false,
++        string? metadataField = null, string[]? metadataKeys = null)
+     {
+         var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
+         const string mongoConnection = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=10000";
+@@ -138,6 +139,14 @@ internal static class ReviewedPublicMongoHttpFixture
+         var foreignActor = retained?.foreignActor ?? Guid.NewGuid();
+         var nonce = retained?.nonce ?? Guid.NewGuid().ToString("D");
+         var (storage, allowed) = sourceFactory(actor);
++        Assert.Equal(metadataField is null, metadataKeys is null);
++        if (metadataKeys is not null)
++        {
++            Assert.False(string.IsNullOrWhiteSpace(metadataField));
++            Assert.Equal(3, allowed.Length);
++            Assert.Equal(allowed.Length, metadataKeys.Length);
++            Assert.Equal(metadataKeys.Length, metadataKeys.Distinct(StringComparer.Ordinal).Count());
++        }
+         using var sourceLifetime = (IDisposable)storage;
+         var copies = retained?.copies ?? new[] { Guid.NewGuid(), Guid.NewGuid() };
+         var operations = retained?.operations ?? new[] { Guid.NewGuid(), Guid.NewGuid() };
+@@ -158,9 +167,11 @@ internal static class ReviewedPublicMongoHttpFixture
+         var activation = await ((ICosmicReadOnlyQueryActivation)storage).ActivateQuerySourceAsync(default);
+         Assert.False(activation.IsError, activation.Exception?.ToString());
+         var querySource = (ICosmicQueryStorageProvider)storage;
+-        var nativeQuery = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(provider).Result)
+-            .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(actor, provider, allowed).Result).Result
+-            .Where(row => allowed.Contains(row.Id));
++        var nativeBase = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(provider).Result)
++            .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(actor, provider, allowed).Result).Result;
++        var nativeQuery = metadataKeys is null
++            ? nativeBase.Where(row => allowed.Contains(row.Id))
++            : nativeBase.Where(row => metadataKeys.Contains(CosmicQueryMetadata.Value<string>(row, metadataField!)));
+         Assert.False(nativeQuery.IsError, nativeQuery.ErrorCode);
+         var plan = CosmicQueryPlanner.Plan(nativeQuery.Result, provider,
+             new[] { new CosmicQueryTarget(provider, querySource.QueryCapabilities) });
+@@ -300,8 +311,25 @@ internal static class ReviewedPublicMongoHttpFixture
+             var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
+             using var http = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(45) };
+             var counts = new Dictionary<string, int>();
+-            object Selection(IEnumerable<Guid> selected) => new { orderBy = "None", take = 8, includeMetadata = true,
+-                filters = new[] { new { field = "Id", scalar = "Guid", @operator = "In", value = selected.ToArray() } } };
++            object Selection(IEnumerable<Guid> selected)
++            {
++                object filter;
++                if (metadataKeys is null)
++                    filter = new { field = "Id", scalar = "Guid", @operator = "In", value = selected.ToArray() };
++                else
++                {
++                    // Private copies retain their source metadata. Select the same native
++                    // keys on both providers, while assertions still check every physical ID.
++                    var keys = selected.Select(id => {
++                        var index = Array.IndexOf(allowed, id);
++                        if (index < 0) index = Array.IndexOf(copies, id);
++                        Assert.InRange(index, 0, metadataKeys.Length - 1);
++                        return metadataKeys[index];
++                    }).Distinct(StringComparer.Ordinal).ToArray();
++                    filter = new { metadataPath = new[] { metadataField }, scalar = "String", @operator = "In", value = keys };
++                }
++                return new { orderBy = "None", take = 8, includeMetadata = true, filters = new[] { filter } };
++            }
+             async Task Check(string name, string token, string route, object request, Guid[] expected)
+             {
+                 http.DefaultRequestHeaders.Authorization = new("Bearer", token);
+@@ -350,9 +378,10 @@ internal static class ReviewedPublicMongoHttpFixture
+             foreach (var count in new[] { 3, 2 })
+             {
+                 var selected = allowed.Take(count).ToArray();
+-                await Check("native-" + count, ownerToken, "/api/data/query-cql", new { provider = provider.ToString(),
+-                    orderBy = "None", take = 8, includeMetadata = true, maximumDurationMilliseconds = 30000,
+-                    filters = new[] { new { field = "Id", scalar = "Guid", @operator = "In", value = selected } } }, selected);
++                var nativeRequest = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(JsonSerializer.Serialize(Selection(selected)))!;
++                nativeRequest.Add("provider", JsonSerializer.SerializeToElement(provider.ToString()));
++                nativeRequest.Add("maximumDurationMilliseconds", JsonSerializer.SerializeToElement(30000));
++                await Check("native-" + count, ownerToken, "/api/data/query-cql", nativeRequest, selected);
+                 await Check("paired-" + count, ownerToken, "/api/data/query-cql/federation", new { scope = "Named",
+                     providers = new[] { "MongoDBOASIS", provider.ToString() }, source = Selection(selected.Concat(copies)),
+                     identityMode = "PreserveCopies", maximumProviderAttempts = 2, maximumDurationMilliseconds = 30000, take = 8 },
+diff --git a/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj b/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj
+index be0f01f58f423f5ec8bebb1231d2bdf437f4fb74..14a542eb14ae76f896eaa071ca58af619d10c1b3 100644
+--- a/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj
++++ b/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj
+@@ -223,4 +223,5 @@
+ <ItemGroup><ProjectReference Include="../../Providers/Identity/NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS/NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS.csproj" /></ItemGroup>
+ <ItemGroup><ProjectReference Include="../../Providers/Identity/NextGenSoftware.OASIS.API.Providers.HolonymOASIS/NextGenSoftware.OASIS.API.Providers.HolonymOASIS.csproj" /></ItemGroup>
+ <ItemGroup><ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.CivicOASIS/NextGenSoftware.OASIS.API.Providers.CivicOASIS.csproj" /></ItemGroup>
++<ItemGroup><ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TRONOASIS/NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj" /></ItemGroup>
+ </Project>
+diff --git a/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReviewedNetworkReadSourceRegistration.cs b/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReviewedNetworkReadSourceRegistration.cs
+index 121a94bec8120f619d43b692431ba98fdd576205..cf73cae8b1df0dbd64d49277550dddc1d2e79cca 100644
+--- a/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReviewedNetworkReadSourceRegistration.cs
++++ b/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReviewedNetworkReadSourceRegistration.cs
+@@ -1,3 +1,4 @@
++using NextGenSoftware.OASIS.API.Providers.TRONOASIS;
+ using System;
+ using Microsoft.Extensions.Configuration;
+ using Microsoft.Extensions.DependencyInjection;
+@@ -23,6 +24,16 @@ public static class CqlReviewedNetworkReadSourceRegistration
+ {
+     public static void AddReviewedNetworkReadSources(this IServiceCollection services, IConfiguration configuration, bool sandboxEnabled = false)
+     {
++        var tron = configuration["CQL_TRON_PUBLIC_HEADER_QUERY_SOURCE_JSON"];
++        var tronKey = configuration["COSMIC_TRON_PUBLIC_READER_KEY"];
++        if (tron != null || tronKey != null)
++        {
++            if (!sandboxEnabled || string.IsNullOrWhiteSpace(tron) || string.IsNullOrWhiteSpace(tronKey))
++                throw new InvalidOperationException("TRON public header queries require sandbox mode, an explicit catalogue and a separate dedicated reader key.");
++            services.AddSingleton<CqlReadSourceProfile>(_ => new CqlReadSourceProfile(
++                TronPublicHeaderMetadataSource.FromAuthenticatedJson(tron, tronKey)));
++        }
++
+         var waku = configuration["CQL_WAKU_STORE_QUERY_SOURCE_JSON"];
+         if (sandboxEnabled && waku != null)
+             services.AddSingleton<CqlReadSourceProfile>(_ =>
+diff --git a/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Compiler.cs b/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Compiler.cs
+index e4cff9381d3747abc68d33afdb75a5112a568773..4e36feba1484c9a682c4b8899567423729a85ff4 100644
+--- a/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Compiler.cs
++++ b/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Compiler.cs
+@@ -105,7 +105,7 @@ public static partial class CqlV1Compiler
+         ProviderType.WorldIDOASIS,
+         ProviderType.DiscordOASIS, ProviderType.LivepeerOASIS, ProviderType.PinataOASIS, ProviderType.OracleObjectStorageOASIS, ProviderType.GUNOASIS, ProviderType.TheGraphOASIS, ProviderType.SubqueryOASIS, ProviderType.SelfProtocolOASIS, ProviderType.HolonymOASIS, ProviderType.CivicOASIS, ProviderType.OrbitDBOASIS, ProviderType.CloudinaryOASIS, ProviderType.ProofOfHumanityOASIS,
+         ProviderType.AzureCosmosDBOASIS, ProviderType.ActivityPubOASIS, ProviderType.IPFSOASIS, ProviderType.SOLIDOASIS,
+-        ProviderType.AzureStorageOASIS, ProviderType.AWSS3OASIS, ProviderType.OracleDBOASIS, ProviderType.SolanaOASIS, ProviderType.GoogleCloudOASIS, ProviderType.EthereumOASIS, ProviderType.PolygonOASIS, ProviderType.ArbitrumOASIS, ProviderType.CosmosBlockChainOASIS, ProviderType.PolkadotOASIS, ProviderType.NEAROASIS, ProviderType.BaseOASIS, ProviderType.AvalancheOASIS, ProviderType.BNBChainOASIS, ProviderType.OptimismOASIS, ProviderType.LineaOASIS, ProviderType.ScrollOASIS, ProviderType.ZkSyncOASIS, ProviderType.AbstractOASIS, ProviderType.MonadOASIS, ProviderType.SeiOASIS, ProviderType.BerachainOASIS, ProviderType.FantomOASIS, ProviderType.FilecoinOASIS, ProviderType.TelosOASIS, ProviderType.EOSIOOASIS, ProviderType.ChainLinkOASIS, ProviderType.BlueSkyOASIS, ProviderType.NostrOASIS, ProviderType.MatrixOASIS, ProviderType.BlockStackOASIS, ProviderType.WormholeOASIS, ProviderType.ChainflipOASIS, ProviderType.HyperlaneOASIS, ProviderType.CelestiaOASIS, ProviderType.BlockscoutOASIS, ProviderType.ENSOASIS, ProviderType.EclipseOASIS, ProviderType.AkashOASIS, ProviderType.BittensorOASIS, ProviderType.ZcashOASIS, ProviderType.ClickHouseOASIS, ProviderType.ThreeFoldOASIS, ProviderType.BitcoinOASIS, ProviderType.XRPLOASIS, ProviderType.StellarOASIS, ProviderType.AlgorandOASIS, ProviderType.AptosOASIS, ProviderType.HashgraphOASIS, ProviderType.SuiOASIS, ProviderType.ElrondOASIS, ProviderType.TONOASIS, ProviderType.ArweaveOASIS, ProviderType.CardanoOASIS, ProviderType.StarknetOASIS, ProviderType.RadixOASIS
++        ProviderType.AzureStorageOASIS, ProviderType.AWSS3OASIS, ProviderType.OracleDBOASIS, ProviderType.SolanaOASIS, ProviderType.GoogleCloudOASIS, ProviderType.EthereumOASIS, ProviderType.PolygonOASIS, ProviderType.ArbitrumOASIS, ProviderType.CosmosBlockChainOASIS, ProviderType.PolkadotOASIS, ProviderType.NEAROASIS, ProviderType.BaseOASIS, ProviderType.AvalancheOASIS, ProviderType.BNBChainOASIS, ProviderType.OptimismOASIS, ProviderType.LineaOASIS, ProviderType.ScrollOASIS, ProviderType.ZkSyncOASIS, ProviderType.AbstractOASIS, ProviderType.MonadOASIS, ProviderType.SeiOASIS, ProviderType.BerachainOASIS, ProviderType.FantomOASIS, ProviderType.FilecoinOASIS, ProviderType.TelosOASIS, ProviderType.EOSIOOASIS, ProviderType.ChainLinkOASIS, ProviderType.BlueSkyOASIS, ProviderType.NostrOASIS, ProviderType.MatrixOASIS, ProviderType.BlockStackOASIS, ProviderType.WormholeOASIS, ProviderType.ChainflipOASIS, ProviderType.HyperlaneOASIS, ProviderType.CelestiaOASIS, ProviderType.BlockscoutOASIS, ProviderType.ENSOASIS, ProviderType.EclipseOASIS, ProviderType.AkashOASIS, ProviderType.BittensorOASIS, ProviderType.ZcashOASIS, ProviderType.ClickHouseOASIS, ProviderType.ThreeFoldOASIS, ProviderType.BitcoinOASIS, ProviderType.XRPLOASIS, ProviderType.StellarOASIS, ProviderType.AlgorandOASIS, ProviderType.AptosOASIS, ProviderType.HashgraphOASIS, ProviderType.SuiOASIS, ProviderType.ElrondOASIS, ProviderType.TONOASIS, ProviderType.TRONOASIS, ProviderType.ArweaveOASIS, ProviderType.CardanoOASIS, ProviderType.StarknetOASIS, ProviderType.RadixOASIS
+     });
+     public static bool SupportedReadProfile(ProviderType type) => ReadProfiles.Contains(type);
+ 
+@@ -271,7 +271,7 @@ public static partial class CqlV1Compiler
+         if (orderBy == "None")
+         {
+             if (descending || !unorderedFederation && (!includeCloudReadProfile
+-                || provider is not (ProviderType.LocalFileOASIS or ProviderType.DecentralandOASIS or ProviderType.PouchDBOASIS or ProviderType.WakuOASIS or ProviderType.DuckDBOASIS or ProviderType.NATSJetStreamOASIS or ProviderType.DaprOASIS or ProviderType.MidenOASIS or ProviderType.EspressoSystemsOASIS or ProviderType.EigenLayerOASIS or ProviderType.FhenixOASIS or ProviderType.AxelarOASIS or ProviderType.RitualOASIS or ProviderType.LayerZeroV2OASIS or ProviderType.StargateOASIS or ProviderType.deBridgeOASIS or ProviderType.SynapseOASIS or ProviderType.ConnextOASIS or ProviderType.PushProtocolOASIS or ProviderType.LayerZeroOASIS or ProviderType.ReclaimProtocolOASIS or ProviderType.WorldIDOASIS or ProviderType.DiscordOASIS or ProviderType.LivepeerOASIS or ProviderType.PinataOASIS or ProviderType.OracleObjectStorageOASIS or ProviderType.GUNOASIS or ProviderType.TheGraphOASIS or ProviderType.SubqueryOASIS or ProviderType.SelfProtocolOASIS or ProviderType.HolonymOASIS or ProviderType.CivicOASIS or ProviderType.OrbitDBOASIS or ProviderType.CloudinaryOASIS or ProviderType.ProofOfHumanityOASIS or ProviderType.AzureStorageOASIS or ProviderType.ActivityPubOASIS or ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS or ProviderType.AWSS3OASIS or ProviderType.OracleDBOASIS or ProviderType.SolanaOASIS or ProviderType.GoogleCloudOASIS or ProviderType.EthereumOASIS or ProviderType.PolygonOASIS or ProviderType.ArbitrumOASIS or ProviderType.CosmosBlockChainOASIS or ProviderType.PolkadotOASIS or ProviderType.NEAROASIS or ProviderType.BaseOASIS or ProviderType.AvalancheOASIS or ProviderType.BNBChainOASIS or ProviderType.OptimismOASIS or ProviderType.LineaOASIS or ProviderType.ScrollOASIS or ProviderType.ZkSyncOASIS or ProviderType.AbstractOASIS or ProviderType.MonadOASIS or ProviderType.SeiOASIS or ProviderType.BerachainOASIS or ProviderType.FantomOASIS or ProviderType.FilecoinOASIS or ProviderType.TelosOASIS or ProviderType.EOSIOOASIS or ProviderType.ChainLinkOASIS or ProviderType.BlueSkyOASIS or ProviderType.NostrOASIS or ProviderType.MatrixOASIS or ProviderType.BlockStackOASIS or ProviderType.WormholeOASIS or ProviderType.ChainflipOASIS or ProviderType.HyperlaneOASIS or ProviderType.CelestiaOASIS or ProviderType.BlockscoutOASIS or ProviderType.ENSOASIS or ProviderType.EclipseOASIS or ProviderType.AkashOASIS or ProviderType.BittensorOASIS or ProviderType.ZcashOASIS or ProviderType.ClickHouseOASIS or ProviderType.ThreeFoldOASIS or ProviderType.BitcoinOASIS or ProviderType.XRPLOASIS or ProviderType.StellarOASIS or ProviderType.AlgorandOASIS or ProviderType.AptosOASIS or ProviderType.HashgraphOASIS or ProviderType.SuiOASIS or ProviderType.ElrondOASIS or ProviderType.RadixOASIS or ProviderType.StarknetOASIS or ProviderType.TONOASIS or ProviderType.ArweaveOASIS or ProviderType.CardanoOASIS)))
++                || provider is not (ProviderType.LocalFileOASIS or ProviderType.DecentralandOASIS or ProviderType.PouchDBOASIS or ProviderType.WakuOASIS or ProviderType.DuckDBOASIS or ProviderType.NATSJetStreamOASIS or ProviderType.DaprOASIS or ProviderType.MidenOASIS or ProviderType.EspressoSystemsOASIS or ProviderType.EigenLayerOASIS or ProviderType.FhenixOASIS or ProviderType.AxelarOASIS or ProviderType.RitualOASIS or ProviderType.LayerZeroV2OASIS or ProviderType.StargateOASIS or ProviderType.deBridgeOASIS or ProviderType.SynapseOASIS or ProviderType.ConnextOASIS or ProviderType.PushProtocolOASIS or ProviderType.LayerZeroOASIS or ProviderType.ReclaimProtocolOASIS or ProviderType.WorldIDOASIS or ProviderType.DiscordOASIS or ProviderType.LivepeerOASIS or ProviderType.PinataOASIS or ProviderType.OracleObjectStorageOASIS or ProviderType.GUNOASIS or ProviderType.TheGraphOASIS or ProviderType.SubqueryOASIS or ProviderType.SelfProtocolOASIS or ProviderType.HolonymOASIS or ProviderType.CivicOASIS or ProviderType.OrbitDBOASIS or ProviderType.CloudinaryOASIS or ProviderType.ProofOfHumanityOASIS or ProviderType.AzureStorageOASIS or ProviderType.ActivityPubOASIS or ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS or ProviderType.AWSS3OASIS or ProviderType.OracleDBOASIS or ProviderType.SolanaOASIS or ProviderType.GoogleCloudOASIS or ProviderType.EthereumOASIS or ProviderType.PolygonOASIS or ProviderType.ArbitrumOASIS or ProviderType.CosmosBlockChainOASIS or ProviderType.PolkadotOASIS or ProviderType.NEAROASIS or ProviderType.BaseOASIS or ProviderType.AvalancheOASIS or ProviderType.BNBChainOASIS or ProviderType.OptimismOASIS or ProviderType.LineaOASIS or ProviderType.ScrollOASIS or ProviderType.ZkSyncOASIS or ProviderType.AbstractOASIS or ProviderType.MonadOASIS or ProviderType.SeiOASIS or ProviderType.BerachainOASIS or ProviderType.FantomOASIS or ProviderType.FilecoinOASIS or ProviderType.TelosOASIS or ProviderType.EOSIOOASIS or ProviderType.ChainLinkOASIS or ProviderType.BlueSkyOASIS or ProviderType.NostrOASIS or ProviderType.MatrixOASIS or ProviderType.BlockStackOASIS or ProviderType.WormholeOASIS or ProviderType.ChainflipOASIS or ProviderType.HyperlaneOASIS or ProviderType.CelestiaOASIS or ProviderType.BlockscoutOASIS or ProviderType.ENSOASIS or ProviderType.EclipseOASIS or ProviderType.AkashOASIS or ProviderType.BittensorOASIS or ProviderType.ZcashOASIS or ProviderType.ClickHouseOASIS or ProviderType.ThreeFoldOASIS or ProviderType.BitcoinOASIS or ProviderType.XRPLOASIS or ProviderType.StellarOASIS or ProviderType.AlgorandOASIS or ProviderType.AptosOASIS or ProviderType.HashgraphOASIS or ProviderType.SuiOASIS or ProviderType.ElrondOASIS or ProviderType.RadixOASIS or ProviderType.StarknetOASIS or ProviderType.TONOASIS or ProviderType.TRONOASIS or ProviderType.ArweaveOASIS or ProviderType.CardanoOASIS)))
+                 throw new ArgumentException("OrderBy None requires an unsorted protocol read profile or an explicitly unordered federation, without Descending.");
+             var pointPage = query.Skip(skip);
+             if (take.HasValue) pointPage = pointPage.Take(take.Value);
+diff --git a/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TRONOASIS/TronPublicHeaderMetadataSource.cs b/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TRONOASIS/TronPublicHeaderMetadataSource.cs
+new file mode 100644
+index 0000000000000000000000000000000000000000..470081e5d5e153d432a94a463aef41933a21aa2f
+--- /dev/null
++++ b/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TRONOASIS/TronPublicHeaderMetadataSource.cs
+@@ -0,0 +1,359 @@
++using System;
++using System.Collections.Generic;
++using System.Globalization;
++using System.IO;
++using System.Linq;
++using System.Net.Http;
++using System.Text.Json;
++using System.Threading;
++using System.Threading.Tasks;
++using System.Text;
++using System.Text.RegularExpressions;
++using NextGenSoftware.OASIS.API.Core.Interfaces;
++using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
++using NextGenSoftware.OASIS.API.Core.Queries;
++using NextGenSoftware.OASIS.API.Core.Serialization;
++using NextGenSoftware.OASIS.Common;
++using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
++using NextGenSoftware.Utilities;
++using PType = NextGenSoftware.OASIS.API.Core.Enums.ProviderType;
++
++namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS;
++
++/// <summary>Explicit solidified public TRON headers; never signed storage.</summary>
++public sealed class TronPublicHeaderMetadataSource : KeyValueStorageProviderBase,
++    ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
++{
++    public const string AddressMetadata = "TronBlockHeight";
++    private readonly HeadersBackend blockHeights;
++    private bool disposed;
++
++    public const string PublicGenesis = "00000000000000001ebf88508a03865c71d452e25f4d51194196a1d22b6653dc";
++    public const string PublicEndpoint = "https://api.trongrid.io/walletsolidity/getblock";
++
++    public TronPublicHeaderMetadataSource(HttpClient client, Uri endpoint,
++        IEnumerable<string> blockHeights, Guid sourceOwner, bool ownsClient = false)
++        : this(new HeadersBackend(client, endpoint, blockHeights, sourceOwner, ownsClient)) { }
++
++    private TronPublicHeaderMetadataSource(HeadersBackend backend) : base(backend, backend.Prefix)
++    {
++        blockHeights = backend;
++        ProviderName = PType.TRONOASIS.ToString();
++        ProviderDescription = "Read-only solidified public TRON headers";
++        ProviderType = new EnumValue<PType>(PType.TRONOASIS);
++        ProviderCategory = new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
++        QueryCapabilities = CosmicQueryCapabilities.ForStringMetadataKeyLookup(AddressMetadata, 19, 8);
++    }
++
++    public PType QueryProviderType => PType.TRONOASIS;
++    public CosmicQueryCapabilities QueryCapabilities { get; }
++
++    /// <summary>Separate host query-profile configuration, never the existing
++    /// signed Tron storage settings. Reject unknown fields rather than ignore keys.</summary>
++    public static TronPublicHeaderMetadataSource FromJson(string json) => CreateFromJson(json, null);
++
++    public static TronPublicHeaderMetadataSource FromAuthenticatedJson(string json, string readerKey)
++    {
++        if (readerKey is not { Length: > 0 and <= 256 } || readerKey.Any(c => c <= ' ' || c > '~' || c == ','))
++            throw new ArgumentException("A dedicated TronGrid reader key is required.", nameof(readerKey));
++        return CreateFromJson(json, readerKey);
++    }
++
++    private static TronPublicHeaderMetadataSource CreateFromJson(string json, string readerKey)
++    {
++        if (json == null || Encoding.UTF8.GetByteCount(json) > 8192)
++            throw new ArgumentException("Bounded explicit Tron public source required.");
++        using var document = JsonDocument.Parse(json, new JsonDocumentOptions { MaxDepth = 4 });
++        var root = document.RootElement;
++        Unique(root);
++        var fields = new[] { "schema", "rpcUrl", "genesisHash", "consistency", "blockHeights", "sourceOwner" };
++        if (root.ValueKind != JsonValueKind.Object || root.EnumerateObject().Count() != fields.Length ||
++            root.EnumerateObject().Any(property => !fields.Contains(property.Name, StringComparer.Ordinal)) ||
++            root.GetProperty("schema").GetInt32() != 1 || root.GetProperty("genesisHash").GetString() != PublicGenesis ||
++            root.GetProperty("consistency").GetString() != "SolidityNodeSolidified" ||
++            root.GetProperty("blockHeights").ValueKind != JsonValueKind.Array ||
++            root.GetProperty("blockHeights").GetArrayLength() is < 1 or > 8)
++            throw new ArgumentException("Exact solidified TRON header configuration required; credential fields are forbidden.");
++        var blockHeights = root.GetProperty("blockHeights").EnumerateArray().Select(row => row.GetString()).ToArray();
++        var transport = (SocketsHttpHandler)NativeConnectionGuard.CreateGuardedHttpHandler();
++        transport.UseProxy = false;
++        transport.UseCookies = false;
++        var client = new HttpClient(transport);
++        try
++        {
++            if (readerKey != null) client.DefaultRequestHeaders.Add("TRON-PRO-API-KEY", readerKey);
++            return new TronPublicHeaderMetadataSource(client,
++                new Uri(root.GetProperty("rpcUrl").GetString(), UriKind.Absolute),
++                blockHeights, root.GetProperty("sourceOwner").GetGuid(), true);
++        }
++        catch { client.Dispose(); throw; }
++    }
++
++    public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
++    {
++        try
++        {
++            ObjectDisposedException.ThrowIf(disposed, this);
++            await blockHeights.VerifyAsync(cancellationToken);
++            cancellationToken.ThrowIfCancellationRequested();
++            IsProviderActivated = true;
++            return new(true);
++        }
++        catch (Exception error)
++        {
++            IsProviderActivated = false;
++            return new() { IsError = true, ErrorCount = 1, ErrorCode = error is OperationCanceledException && cancellationToken.IsCancellationRequested
++                ? "CQL_QUERY_CANCELLED" : "CQL_SOURCE_UNAVAILABLE", Message = "Public Tron header source activation failed.", Exception = error };
++        }
++    }
++
++    public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
++        int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
++    {
++        try
++        {
++            ObjectDisposedException.ThrowIf(disposed, this);
++            if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != QueryProviderType)
++                return Failure("CQL_PLAN_TARGET_UNAVAILABLE", "One explicitly admitted public Tron source is required.");
++            if (maximumResults is < 1 or > 10000) return Failure("CQL_QUERY_LIMIT", "A bounded result budget is required.");
++            var admitted = QueryCapabilities.AdmitPlan(plan);
++            if (admitted.IsError) return Failure(admitted.ErrorCode, admitted.Message);
++            IReadOnlyList<string> keys;
++            if (QueryCapabilities.StringKeySetLookup.IsKeySetQuery(plan.Query))
++            {
++                var selected = QueryCapabilities.StringKeySetLookup.SelectKeys(plan.Query);
++                if (selected.IsError) return Failure(selected.ErrorCode, selected.Message);
++                keys = selected.Result;
++            }
++            else
++            {
++                var selected = QueryCapabilities.StringPointLookup.SelectKey(plan.Query);
++                if (selected.IsError) return Failure(selected.ErrorCode, selected.Message);
++                keys = new[] { selected.Result };
++            }
++            if (keys.Any(key => !blockHeights.Addresses.Contains(key, StringComparer.Ordinal)))
++                return Failure("CQL_INVALID_SOURCE_KEY", "Select addresses from the configured block catalogue.");
++            cancellationToken.ThrowIfCancellationRequested();
++            if (!IsProviderActivated) return Failure("CQL_PROVIDER_INACTIVE", "Activate the configured public source first.");
++            var native = await blockHeights.ReadAsync(keys, cancellationToken);
++            var rows = native.Where(row => plan.Query.ReadAccess == null || plan.Query.ReadAccess.CanRead(row))
++                .Skip(plan.Query.Offset).Take(plan.Query.Limit ?? native.Count).ToArray();
++            if (rows.Length > maximumResults) return Failure("CQL_QUERY_LIMIT", "The complete source page exceeds the result budget.");
++            cancellationToken.ThrowIfCancellationRequested();
++            return new(Array.AsReadOnly(rows)) { IsLoaded = true, LoadedCount = rows.Length };
++        }
++        catch (OperationCanceledException error) when (cancellationToken.IsCancellationRequested)
++        { return Failure("CQL_QUERY_CANCELLED", "Tron query cancelled; no partial rows.", error); }
++        catch (Exception error) { return Failure("CQL_QUERY_FAILED", "Public TRON header query failed; no partial rows.", error); }
++    }
++
++    public void Dispose()
++    {
++        if (disposed) return;
++        disposed = true; IsProviderActivated = false; blockHeights.Dispose();
++    }
++
++    private static OASISResult<IReadOnlyList<IHolon>> Failure(string code, string message, Exception error = null)
++        => new() { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message, Exception = error };
++
++    public static string ValidateAddress(string value)
++    {
++        if (value == null || !Regex.IsMatch(value, "\\A[1-9][0-9]{0,18}\\z") ||
++            !long.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out _))
++            throw new ArgumentException("Canonical positive native int64 block height required.");
++        return value;
++    }
++
++    private static string Hash32(string value)
++    {
++        if (value == null || !Regex.IsMatch(value, "\\A[0-9a-f]{64}\\z"))
++            throw new InvalidDataException("Canonical 32-byte native hash required.");
++        return value;
++    }
++
++    private static string NonnegativeInt64(JsonElement value)
++    {
++        if (value.ValueKind != JsonValueKind.Number || !value.TryGetInt64(out long number) || number < 0)
++            throw new InvalidDataException("Exact nonnegative native Int64 required.");
++        return number.ToString(CultureInfo.InvariantCulture);
++    }
++
++    private static void Unique(JsonElement value)
++    {
++        if (value.ValueKind == JsonValueKind.Object)
++        {
++            var seen = new HashSet<string>(StringComparer.Ordinal);
++            foreach (var property in value.EnumerateObject())
++            {
++                if (!seen.Add(property.Name)) throw new InvalidDataException("Duplicate native/configuration property.");
++                Unique(property.Value);
++            }
++        }
++        else if (value.ValueKind == JsonValueKind.Array)
++            foreach (var entry in value.EnumerateArray()) Unique(entry);
++    }
++
++    private sealed class HeadersBackend : IKeyValueBackend, IDisposable
++    {
++        private readonly HttpClient client;
++        private readonly Uri endpoint;
++        private readonly Guid owner;
++        private readonly bool ownsClient;
++        private readonly Dictionary<string, string> records;
++        private const string SourceName = "tron-public-solidified:" + PublicGenesis;
++        public IReadOnlyList<string> Addresses { get; }
++        public string Prefix => "tron-public-metadata/";
++
++        public HeadersBackend(HttpClient client, Uri endpoint, IEnumerable<string> blockHeights, Guid owner, bool ownsClient)
++        {
++            ArgumentNullException.ThrowIfNull(client);
++            // This explicit public read profile stays outside the wallet registry.
++            if (endpoint == null || !endpoint.IsAbsoluteUri || endpoint.AbsoluteUri != PublicEndpoint)
++                throw new ArgumentException("Explicit official TRON Mainnet SolidityNode endpoint required.");
++            if (client.DefaultRequestHeaders.Authorization != null || owner == Guid.Empty)
++                throw new ArgumentException("A nonempty projection owner and a source without bearer credentials are required.");
++            var catalogue = blockHeights?.Take(9).Select(ValidateAddress).ToArray() ?? throw new ArgumentNullException(nameof(blockHeights));
++            if (catalogue.Length is < 1 or > 8 || catalogue.Distinct(StringComparer.Ordinal).Count() != catalogue.Length)
++                throw new ArgumentException("One to eight unique native block heights required.");
++            this.client = client; this.endpoint = endpoint; this.owner = owner; this.ownsClient = ownsClient;
++            Addresses = Array.AsReadOnly(catalogue);
++            records = catalogue.ToDictionary(key => Prefix + "holon/" +
++                NativeRecordHolonMapper.StableHolonId(owner, PType.TRONOASIS, SourceName, key).ToString("N"), key => key);
++        }
++
++        private Task<JsonElement> GetNativeAsync(string height, CancellationToken token)
++            => SendNativeAsync(endpoint, new { id_or_num = height, detail = false }, token);
++
++        private async Task<JsonElement> SendNativeAsync(Uri uri, object payload, CancellationToken token)
++        {
++            // POST submits a header-only read, never a transaction or mutation.
++            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
++            deadline.CancelAfter(TimeSpan.FromSeconds(15));
++            using var request = new HttpRequestMessage(HttpMethod.Post, uri) {
++                Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json") };
++            using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
++            response.EnsureSuccessStatusCode();
++            await using var stream = await response.Content.ReadAsStreamAsync(deadline.Token);
++            using var body = new MemoryStream(); var buffer = new byte[8192]; int count;
++            while ((count = await stream.ReadAsync(buffer.AsMemory(), deadline.Token)) != 0)
++            {
++                if (body.Length + count > 65536) throw new InvalidDataException("Native header response exceeds64KiB.");
++                body.Write(buffer, 0, count);
++            }
++            using var document = JsonDocument.Parse(body.ToArray(), new JsonDocumentOptions { MaxDepth = 16 });
++            Unique(document.RootElement);
++            var root = document.RootElement;
++            if (root.ValueKind != JsonValueKind.Object || root.TryGetProperty("Error", out _) || root.TryGetProperty("transactions", out _))
++                throw new InvalidDataException("Complete header-only native result required.");
++            deadline.Token.ThrowIfCancellationRequested();
++            return root.Clone();
++        }
++
++        private async Task<IReadOnlyList<JsonElement>> ReadRangeAsync(string[] keys, CancellationToken token)
++        {
++            if (keys.Length == 1)
++            {
++                var point = await GetNativeAsync(keys[0], token);
++                return new[] { point };
++            }
++            long first = long.Parse(keys[0], CultureInfo.InvariantCulture);
++            long end = checked(long.Parse(keys[keys.Length - 1], CultureInfo.InvariantCulture) + 1);
++            var page = await SendNativeAsync(new Uri("https://api.trongrid.io/walletsolidity/getblockbylimitnext"),
++                new { startNum = first, endNum = end }, token);
++            if (!page.TryGetProperty("block", out var blocks) || blocks.ValueKind != JsonValueKind.Array || blocks.GetArrayLength() != keys.Length)
++                throw new InvalidDataException("Complete exact native range required.");
++            var result = blocks.EnumerateArray().ToArray();
++            for (int index = 0; index < result.Length; index++)
++                if (NonnegativeInt64(result[index].GetProperty("block_header").GetProperty("raw_data").GetProperty("number")) != keys[index])
++                    throw new InvalidDataException("Native range contains missing, duplicate or unexpected heights.");
++            return result;
++        }
++
++        public async Task<IReadOnlyList<IHolon>> ReadAsync(IReadOnlyList<string> keys, CancellationToken token)
++        {
++            var genesis = await GetNativeAsync("0", token);
++            if (Hash32(genesis.GetProperty("blockID").GetString()) != PublicGenesis)
++                throw new InvalidDataException("Configured API-reported TRON Mainnet genesis differs.");
++            var genesisRaw = genesis.GetProperty("block_header").GetProperty("raw_data");
++            if (genesisRaw.ValueKind != JsonValueKind.Object ||
++                genesisRaw.TryGetProperty("number", out var genesisNumber) && NonnegativeInt64(genesisNumber) != "0")
++                throw new InvalidDataException("Genesis header identity differs.");
++
++            // Combine only adjacent requested heights into exact native ranges.
++            // Sparse selections do not fetch intervening records. Int64.MaxValue
++            // uses its point primitive because an exclusive range end cannot fit.
++            // A failed primitive is never retried or replaced by another route.
++            var ordered = keys.Select(key => long.Parse(key, CultureInfo.InvariantCulture)).OrderBy(value => value).ToArray();
++            var ranges = new List<List<string>>();
++            foreach (long height in ordered)
++            {
++                if (ranges.Count == 0 || height == long.MaxValue ||
++                    long.Parse(ranges[ranges.Count - 1].Last(), CultureInfo.InvariantCulture) != height - 1)
++                    ranges.Add(new List<string>());
++                ranges[ranges.Count - 1].Add(height.ToString(CultureInfo.InvariantCulture));
++            }
++            using var gate = new SemaphoreSlim(3);
++            var pages = await Task.WhenAll(ranges.Select(async range => {
++                await gate.WaitAsync(token);
++                try { return await ReadRangeAsync(range.ToArray(), token); }
++                finally { gate.Release(); }
++            }));
++            var byHeight = pages.SelectMany(page => page).ToDictionary(
++                row => NonnegativeInt64(row.GetProperty("block_header").GetProperty("raw_data").GetProperty("number")),
++                row => row, StringComparer.Ordinal);
++            var rows = new List<IHolon>();
++            for (int index = 0; index < keys.Count; index++)
++            {
++                string key = keys[index];
++                var native = byHeight[key];
++                string blockId = Hash32(native.GetProperty("blockID").GetString());
++                var raw = native.GetProperty("block_header").GetProperty("raw_data");
++                if (NonnegativeInt64(raw.GetProperty("number")) != key ||
++                    ulong.Parse(blockId.Substring(0, 16), NumberStyles.HexNumber, CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture) != key)
++                    throw new InvalidDataException("Requested, header and block ID heights must agree.");
++                string witness = raw.GetProperty("witness_address").GetString();
++                if (witness == null || !Regex.IsMatch(witness, "\\A41[0-9a-f]{40}\\z"))
++                    throw new InvalidDataException("Canonical TRON witness hex address required.");
++                var fields = new Dictionary<string, object> {
++                    ["name"] = "TRON block " + key,
++                    ["description"] = "API-reported solidified header; no independent signature or consensus proof.",
++                    [AddressMetadata] = key, ["TronBlockId"] = blockId,
++                    ["TronParentHash"] = Hash32(raw.GetProperty("parentHash").GetString()),
++                    ["TronTransactionRoot"] = Hash32(raw.GetProperty("txTrieRoot").GetString()),
++                    ["TronTimestampMilliseconds"] = NonnegativeInt64(raw.GetProperty("timestamp")),
++                    ["TronWitnessAddress"] = witness, ["TronGenesisHash"] = PublicGenesis,
++                    ["TronConsistency"] = "SolidityNodeSolidified"
++                };
++                var mapped = NativeRecordHolonMapper.CreateHolon(owner, PType.TRONOASIS,
++                    new NativeRecord(SourceName, key, fields), NativeDataMapping.ForSource(SourceName));
++                if (mapped.IsError) throw new InvalidDataException(mapped.ErrorCode);
++                var row = mapped.Result;
++                row.CreatedByAvatarId = owner; row.IsPublic = true; row.IsActive = true; row.Children = Array.Empty<IHolon>();
++                row.ProviderUniqueStorageKey[PType.TRONOASIS] = key; rows.Add(row);
++            }
++            token.ThrowIfCancellationRequested();
++            return rows.AsReadOnly();
++        }
++        public async Task VerifyAsync(CancellationToken cancellationToken = default)
++        {
++            var rows = await ReadAsync(Addresses, cancellationToken);
++            if (rows.Count != Addresses.Count) throw new InvalidDataException("Configured blockHeights are missing.");
++        }
++        public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
++        {
++            if (!records.TryGetValue(key, out var blockHeight)) return null;
++            var rows = await ReadAsync(new[] { blockHeight }, cancellationToken);
++            return StoredRecordJson.Serialize<IHolon>(rows[0]);
++        }
++        public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken cancellationToken = default)
++        {
++            cancellationToken.ThrowIfCancellationRequested();
++            return Task.FromResult<IReadOnlyList<string>>(Array.AsReadOnly(records.Keys.Where(key => key.StartsWith(prefix, StringComparison.Ordinal)).ToArray()));
++        }
++        public Task PutAsync(string key, string value, CancellationToken cancellationToken = default)
++            => Task.FromException(new NotSupportedException("Public Tron header metadata is read-only."));
++        public Task DeleteAsync(string key, CancellationToken cancellationToken = default)
++            => Task.FromException(new NotSupportedException("Public Tron header metadata is read-only."));
++        public void Dispose() { if (ownsClient) client.Dispose(); }
++    }
++}
+diff --git a/Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/Fixtures/.gitattributes b/Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/Fixtures/.gitattributes
+new file mode 100644
+index 0000000000000000000000000000000000000000..2f9b67f94764a2f54df8d61115552a33d09caa6e
+--- /dev/null
++++ b/Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/Fixtures/.gitattributes
+@@ -0,0 +1 @@
++tron-public-header-source.json -text
+diff --git a/Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/Fixtures/tron-public-header-source.json b/Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/Fixtures/tron-public-header-source.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..304b03ade5e35d924da1a998194f5fae74844290
+--- /dev/null
++++ b/Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/Fixtures/tron-public-header-source.json
+@@ -0,0 +1,12 @@
++{
++  "schema": 1,
++  "rpcUrl": "https://api.trongrid.io/walletsolidity/getblock",
++  "genesisHash": "00000000000000001ebf88508a03865c71d452e25f4d51194196a1d22b6653dc",
++  "consistency": "SolidityNodeSolidified",
++  "blockHeights": [
++    "1",
++    "2",
++    "3"
++  ],
++  "sourceOwner": "374ef405-02b9-4424-b2c6-3e187104a262"
++}
+diff --git a/Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests.csproj b/Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests.csproj
+index e37404bbb43525acd4f7f5ea5c2b3a14989e1731..9794e40d9e9589ba3802c3828dd660a390ca03b8 100644
+--- a/Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests.csproj
++++ b/Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests.csproj
+@@ -29,4 +29,5 @@
+   </ItemGroup>
+ 
+   <ItemGroup><Compile Include="../../../Shared/TestSupport/NativeCodeGenesisContract.cs" Link="Shared/NativeCodeGenesisContract.cs" /></ItemGroup>
++  <ItemGroup><Compile Include="../../../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs" Link="Shared/NativeKeySetWalkthrough.cs" /></ItemGroup>
+ </Project>
+diff --git a/Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/TronPublicHeaderMetadataTests.cs b/Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/TronPublicHeaderMetadataTests.cs
+new file mode 100644
+index 0000000000000000000000000000000000000000..9a8e3e286234fb802002a925f52c072587c70930
+--- /dev/null
++++ b/Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/TronPublicHeaderMetadataTests.cs
+@@ -0,0 +1,248 @@
++using System.Globalization;
++using System.Net;
++using System.Text;
++using System.Text.Json;
++using System.Text.Json.Nodes;
++using NextGenSoftware.OASIS.API.Core.Enums;
++using NextGenSoftware.OASIS.API.Core.Holons;
++using NextGenSoftware.OASIS.API.Core.Managers;
++using NextGenSoftware.OASIS.API.Core.Queries;
++using NextGenSoftware.OASIS.API.DNA;
++using Xunit;
++
++namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
++
++public sealed class TronPublicFactAttribute : FactAttribute
++{
++    public TronPublicFactAttribute()
++    {
++        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("COSMIC_TRON_PUBLIC_SOURCE")) ||
++            string.IsNullOrEmpty(Environment.GetEnvironmentVariable("COSMIC_TRON_PUBLIC_READER_KEY")))
++            Skip = "Explicit retained TRON catalogue and dedicated reader key required.";
++    }
++}
++
++public class TronPublicHeaderMetadataTests
++{
++    private static readonly string[] Keys = { "1", "2", "3" };
++
++    private sealed class Native : HttpMessageHandler
++    {
++        public string Fault = "normal";
++        public int Requests;
++        public bool Gated;
++        public int InFlight, Maximum, Started;
++        public TaskCompletionSource<bool> Reached = new(TaskCreationOptions.RunContinuationsAsynchronously);
++        public TaskCompletionSource<bool> Release = new(TaskCreationOptions.RunContinuationsAsynchronously);
++
++        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
++        {
++            token.ThrowIfCancellationRequested();
++            Interlocked.Increment(ref Requests);
++            if (Fault == "deadline") throw new TaskCanceledException("Native request deadline elapsed.");
++            Assert.Equal(HttpMethod.Post, request.Method);
++            using var body = JsonDocument.Parse(await request.Content!.ReadAsStringAsync(token));
++            bool batch = request.RequestUri!.AbsoluteUri.EndsWith("getblockbylimitnext", StringComparison.Ordinal);
++            long height;
++            long end;
++            if (batch)
++            {
++                height = body.RootElement.GetProperty("startNum").GetInt64();
++                end = body.RootElement.GetProperty("endNum").GetInt64();
++                Assert.InRange(end - height, 2, 8);
++            }
++            else
++            {
++                Assert.Equal(TronPublicHeaderMetadataSource.PublicEndpoint, request.RequestUri.AbsoluteUri);
++                Assert.False(body.RootElement.GetProperty("detail").GetBoolean());
++                height = long.Parse(body.RootElement.GetProperty("id_or_num").GetString()!, CultureInfo.InvariantCulture);
++                end = height == long.MaxValue ? height : height + 1;
++            }
++            if (Gated && height != 0)
++            {
++                int active = Interlocked.Increment(ref InFlight);
++                int observed;
++                do { observed = Maximum; if (observed >= active) break; }
++                while (Interlocked.CompareExchange(ref Maximum, active, observed) != observed);
++                if (Interlocked.Increment(ref Started) == 3) Reached.TrySetResult(true);
++                try { await Release.Task.WaitAsync(token); }
++                finally { Interlocked.Decrement(ref InFlight); }
++            }
++
++            JsonObject Make(long height)
++            {
++                var raw = new JsonObject();
++                var result = new JsonObject { ["blockID"] = height == 0 ? TronPublicHeaderMetadataSource.PublicGenesis
++                : height.ToString("x16") + new string('a', 48), ["block_header"] = new JsonObject { ["raw_data"] = raw } };
++            if (height == 0)
++            {
++                if (Fault == "genesis") result["blockID"] = new string('0', 64);
++                if (Fault == "genesis-number") raw["number"] = 1;
++            }
++            else
++            {
++                raw["number"] = height; raw["timestamp"] = long.MaxValue;
++                raw["parentHash"] = TronPublicHeaderMetadataSource.PublicGenesis;
++                raw["txTrieRoot"] = new string('0', 64); raw["witness_address"] = "41" + new string('a', 40);
++                if (Fault == "identity") raw["number"] = height + 1;
++                if (Fault == "id-height") result["blockID"] = (height + 1).ToString("x16") + new string('a', 48);
++                if (Fault == "precision") raw["timestamp"] = long.MaxValue.ToString(CultureInfo.InvariantCulture);
++                if (Fault == "overflow") raw["timestamp"] = (ulong)long.MaxValue + 1;
++                if (Fault == "negative") raw["timestamp"] = -1;
++                if (Fault == "fraction") raw["timestamp"] = 1.5;
++                if (Fault == "boolean") raw["timestamp"] = true;
++                if (Fault == "parent") raw["parentHash"] = "bad";
++                if (Fault == "root") raw["txTrieRoot"] = "bad";
++                if (Fault == "witness") raw["witness_address"] = "bad";
++                if (Fault == "missing") raw.Remove("timestamp");
++                if (Fault == "last" && height == 3) raw.Remove("number");
++                if (Fault == "null") result["block_header"] = null;
++            }
++                return result;
++            }
++            JsonObject result;
++            if (batch)
++            {
++                var blocks = new JsonArray();
++                for (long value = height; value < end; value++) blocks.Add(Make(value));
++                if (Fault == "range-missing") blocks.RemoveAt(blocks.Count - 1);
++                if (Fault == "range-extra") blocks.Add(Make(end));
++                if (Fault == "range-order") { var swap = blocks[0]!.DeepClone(); blocks[0] = blocks[1]!.DeepClone(); blocks[1] = swap; }
++                result = new JsonObject { ["block"] = blocks };
++            }
++            else result = Make(height);
++            if (Fault == "error") result["Error"] = "";
++            if (Fault == "transactions") result["transactions"] = new JsonArray();
++            string text = result.ToJsonString();
++            if (Fault == "duplicate") text = "{\"blockID\":1,\"blockID\":2}";
++            if (Fault == "oversize") text = new string(' ', 65537);
++            return new HttpResponseMessage(Fault == "http" ? HttpStatusCode.BadGateway : HttpStatusCode.OK)
++                { Content = new StringContent(text, Encoding.UTF8, "application/json") };
++        }
++    }
++
++    private static CosmicQueryPlan<Holon> Plan(TronPublicHeaderMetadataSource source, string[] keys)
++    {
++        var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.TRONOASIS).Result)
++            .Where(row => keys.Contains(CosmicQueryMetadata.Value<string>(row, TronPublicHeaderMetadataSource.AddressMetadata))).Result;
++        var plan = CosmicQueryPlanner.Plan(query, ProviderType.TRONOASIS,
++            new[] { new CosmicQueryTarget(ProviderType.TRONOASIS, source.QueryCapabilities) });
++        Assert.False(plan.IsError, plan.Message);
++        return plan.Result;
++    }
++
++    [Theory]
++    [InlineData("normal")] [InlineData("point")] [InlineData("window")] [InlineData("budget")]
++    [InlineData("genesis")] [InlineData("genesis-number")] [InlineData("identity")] [InlineData("id-height")]
++    [InlineData("precision")] [InlineData("overflow")] [InlineData("negative")] [InlineData("fraction")] [InlineData("boolean")]
++    [InlineData("parent")] [InlineData("root")] [InlineData("witness")] [InlineData("missing")] [InlineData("last")]
++    [InlineData("null")] [InlineData("error")] [InlineData("transactions")] [InlineData("duplicate")]
++    [InlineData("oversize")] [InlineData("http")] [InlineData("inactive")] [InlineData("cancel")]
++    [InlineData("range-missing")] [InlineData("range-extra")] [InlineData("range-order")]
++    [InlineData("off-catalogue")] [InlineData("empty-window-error")]
++    [InlineData("deadline")]
++    public async Task OnlyCompleteNativeSelectionsEscape(string scenario)
++    {
++        var native = new Native();
++        using var client = new HttpClient(native);
++        using var source = new TronPublicHeaderMetadataSource(client, new Uri(TronPublicHeaderMetadataSource.PublicEndpoint), Keys, Guid.NewGuid());
++        if (scenario != "inactive") Assert.False((await source.ActivateQuerySourceAsync(default)).IsError);
++        native.Requests = 0; native.Fault = scenario == "empty-window-error" ? "last" : scenario;
++        string[] selected = scenario == "off-catalogue" ? new[] { "9" } : Keys;
++        var plan = Plan(source, selected);
++        if (scenario is "point" or "window" or "empty-window-error")
++        {
++            var query = plan.Query;
++            if (scenario == "point")
++            {
++                string key = Keys[0];
++                query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.TRONOASIS).Result)
++                    .Where(row => CosmicQueryMetadata.Value<string>(row, TronPublicHeaderMetadataSource.AddressMetadata) == key).Result;
++            }
++            if (scenario == "window") query = query.Skip(1).Result.Take(1).Result;
++            if (scenario == "empty-window-error") query = query.Take(0).Result;
++            plan = CosmicQueryPlanner.Plan(query, ProviderType.TRONOASIS,
++                new[] { new CosmicQueryTarget(ProviderType.TRONOASIS, source.QueryCapabilities) }).Result;
++        }
++        using var cancel = new CancellationTokenSource();
++        if (scenario == "cancel") cancel.Cancel();
++        var result = await source.ExecuteCosmicQueryAsync(plan, scenario == "budget" ? 2 : 100, cancel.Token);
++        if (scenario is "normal" or "point" or "window")
++        {
++            Assert.False(result.IsError, result.Exception?.ToString());
++            Assert.Equal(scenario == "normal" ? 3 : 1, result.Result.Count);
++            Assert.All(result.Result, row => {
++                Assert.True(row.IsPublic);
++                Assert.Equal("9223372036854775807", row.MetaData["TronTimestampMilliseconds"]);
++                Assert.Equal("SolidityNodeSolidified", row.MetaData["TronConsistency"]);
++            });
++        }
++        else Assert.True(result.IsError, "A partial page must never escape.");
++        if (scenario == "deadline") Assert.Equal("CQL_QUERY_FAILED", result.ErrorCode);
++        if (scenario is "inactive" or "cancel" or "off-catalogue") Assert.Equal(0, native.Requests);
++    }
++
++    [Theory]
++    [InlineData(false)] [InlineData(true)]
++    public async Task OverlapIsBoundedAndCancellationDrainsAllReads(bool cancelInFlight)
++    {
++        var native = new Native();
++        using var client = new HttpClient(native);
++        var keys = Enumerable.Range(1, 6).Select(value => (value * 2 - 1).ToString(CultureInfo.InvariantCulture)).ToArray();
++        using var source = new TronPublicHeaderMetadataSource(client, new Uri(TronPublicHeaderMetadataSource.PublicEndpoint), keys, Guid.NewGuid());
++        Assert.False((await source.ActivateQuerySourceAsync(default)).IsError);
++        native.Gated = true;
++        using var cancel = new CancellationTokenSource(TimeSpan.FromSeconds(10));
++        var pending = source.ExecuteCosmicQueryAsync(Plan(source, keys), cancellationToken: cancel.Token);
++        try { await native.Reached.Task.WaitAsync(TimeSpan.FromSeconds(5)); }
++        finally { if (cancelInFlight) cancel.Cancel(); else native.Release.TrySetResult(true); }
++        var result = await pending;
++        Assert.Equal(3, native.Maximum);
++        Assert.Equal(0, native.InFlight);
++        if (cancelInFlight) Assert.True(result.IsError);
++        else
++        {
++            Assert.False(result.IsError, result.Exception?.ToString());
++            Assert.Equal(keys, result.Result.Select(row => (string)row.MetaData[TronPublicHeaderMetadataSource.AddressMetadata]));
++        }
++    }
++
++    [Fact]
++    public void ExplicitCanonicalConfigurationRequired()
++    {
++        foreach (string key in new[] { "0", "01", "+1", "1.0", "9223372036854775808" })
++            Assert.Throws<ArgumentException>(() => TronPublicHeaderMetadataSource.ValidateAddress(key));
++        using var client = new HttpClient(new Native());
++        Assert.Throws<ArgumentException>(() => new TronPublicHeaderMetadataSource(client, new Uri("https://api.shasta.trongrid.io/walletsolidity/getblock"), Keys, Guid.NewGuid()));
++        Assert.Throws<ArgumentException>(() => new TronPublicHeaderMetadataSource(client, new Uri(TronPublicHeaderMetadataSource.PublicEndpoint), new[] { "1", "1" }, Guid.NewGuid()));
++        Assert.Throws<ArgumentException>(() => TronPublicHeaderMetadataSource.FromJson("{\"signer\":123}"));
++    }
++
++    [Theory]
++    [InlineData("")]
++    [InlineData("bad key")]
++    [InlineData("first,second")]
++    public void AuthenticatedFactoryRejectsInvalidKeysBeforeOpeningTheSource(string key)
++    {
++        var error = Assert.Throws<ArgumentException>(() => TronPublicHeaderMetadataSource.FromAuthenticatedJson("{}", key));
++        Assert.Equal("readerKey", error.ParamName);
++    }
++
++    [TronPublicFact]
++    public async Task RetainedNativeCatalogueRunsSharedManagerThreeAndTwo()
++    {
++        string json = await File.ReadAllTextAsync(Environment.GetEnvironmentVariable("COSMIC_TRON_PUBLIC_SOURCE")!);
++        using var source = TronPublicHeaderMetadataSource.FromAuthenticatedJson(
++            json, Environment.GetEnvironmentVariable("COSMIC_TRON_PUBLIC_READER_KEY")!);
++        using var config = JsonDocument.Parse(json);
++        var keys = config.RootElement.GetProperty("blockHeights").EnumerateArray().Select(row => row.GetString()!).ToArray();
++        var activated = await source.ActivateQuerySourceAsync(default);
++        Assert.False(activated.IsError, activated.Exception?.ToString());
++        var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS { HyperDriveMode = HyperDriveModes.V2 } };
++        var manager = new HolonManager(null, dna, new ProviderManager(null, dna));
++        using var output = new StringWriter();
++        var actor = Guid.NewGuid();
++        Assert.Equal(3, (await CosmicCqlDemo.NativeKeySetWalkthrough.RunAsync(manager, source, keys, actor, output)).Count);
++        Assert.Equal(2, (await CosmicCqlDemo.NativeKeySetWalkthrough.RunAsync(manager, source, keys.Take(2), actor, output)).Count);
++    }
++}

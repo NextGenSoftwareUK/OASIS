@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "parentBaseline": "88c378c1e08ee270365b760c9d3abc29b629a0f4",
+  "coreBaseline": "81862b2450c1d4bd0f3e8853523c1b13b8a257d3",
+  "sourceTaskCommit": "db1e6ba9a19e8629b84d845d8add940d4ff84962",
+  "scopedCoreCommit": "7b426c953dd6ebaeee1af873e7b4fcd76b609df6",
+  "scopedCoreTree": "a4cf669efee04fa3b6a869a15a11294231b688d6",
+  "scopedParentTree": "bbd3fae378cec8ebce55327a55837ed9595e92cb",
+  "parentPaths": [
+    "Docker/oasis-dependency-versions.env",
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlTronHeaderHostedConfigurationTests.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlTronHeaderHttpTests.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/ReviewedPublicMongoHttpFixture.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReviewedNetworkReadSourceRegistration.cs",
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Compiler.cs",
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TRONOASIS/TronPublicHeaderMetadataSource.cs",
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/Fixtures/.gitattributes",
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/Fixtures/tron-public-header-source.json",
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests.csproj",
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/TronPublicHeaderMetadataTests.cs"
+  ],
+  "corePaths": [
+    "Services/Subscriptions/PreparedStorageExecution.cs"
+  ],
+  "patches": {
+    "TRON_SCOPED_DEVELOPMENT_CORE.patch": {
+      "bytes": 4803,
+      "sha256": "6f5f67887d9e4899ce8ebd2d789ea24eacecb9778410258b4791f2ef4762000d"
+    },
+    "TRON_SCOPED_DEVELOPMENT_PARENT.patch": {
+      "bytes": 72519,
+      "sha256": "95f02af140e2e89d7564f2be3c5233a2a0711ee228877cdb806f0dc002d555c7"
+    }
+  },
+  "sourceFixtureSha256": "7f1c8fe3c35ef3c45ee31be6eaef72f34f8d10185a28e2177ace267822e89c02",
+  "published": false,
+  "nativeTronAccepted": false,
+  "httpAccepted": false,
+  "liveEnrolled": false,
+  "browserAccepted": false,
+  "queuedCandidatesChanged": false,
+  "temporaryIndexesRemoved": true,
+  "remaining": [
+    "reader location and authenticated SDK3/2",
+    "authenticated HTTP3/2,federation5/4,privacy,receipts,cleanup",
+    "scoped qualification workflow closure and exact candidate image",
+    "permitted Development integration and once-only cohort acceptance",
+    "browser acceptance"
+  ],
+  "patchRoundTripVerified": true,
+  "scopedCoreCommitObjectBase64": "dHJlZSBhNGNmNjY5ZWZlZTA0ZmEzYjZhODY5YTE1YTExMjk0MjMxYjY4OGQ2CnBhcmVudCA4MTg2MmIyNDUwYzFkNGJkMGYzZTg4NTM1MjNjMWIxM2I4YTI1N2QzCmF1dGhvciBEYXZpZCBFbGxhbXMgPGRhdmlkZWxsYW1zQGhvdG1haWwuY29tPiAxNzk0MTQ3MDcyIC0wNTAwCmNvbW1pdHRlciBEYXZpZCBFbGxhbXMgPGRhdmlkZWxsYW1zQGhvdG1haWwuY29tPiAxNzk0MTQ3MDcyIC0wNTAwCgpQcmVwYXJlIHNjb3BlZCBUUk9OIHF1ZXJ5LW9ubHkgYWRtaXNzaW9uIGZyb20gRGV2ZWxvcG1lbnQgYmFzZWxpbmUK",
+  "publicationScope": "Runtime candidate remains unpublished; these review artifacts may be committed on the original task branch.",
+  "stage": "Runtime and unit-test patch draft; qualification tooling closure and scoped cloud proof remain open."
+}

@@ -5038,3 +5038,21 @@ da8cec98a2074bd053f55006b16e8edf1fc17610a15c916ba3ed0f6eee9b0160.
 Removed the owned one-time repair workflow mode/helper after success; retained
 compact journals/receipts and permanent empty-default root fix. No local images,
 ZIP/TRX extraction, SDK/runtime/build/database/model installation or new worktree.
+
+Scoped TRON runtime/test draft prepared against Development88c378c1/Core81862b2:
+TRON_SCOPED_DEVELOPMENT_PARENT.patch (13paths), CORE.patch (one tariff file),
+and PLAN.json record exact trees/hashes. Both patches independently reapply to
+temporary indexes and reproduce their recorded trees. Exact public fixture SHA
+7f1c8fe3 unchanged; SDK walkthrough already exists identically in baseline.
+Only explicit TRON references/registration/compiler/read tariff, source/tests
+and metadata HTTP fixture change are selected; queued provider candidates and
+unowned files untouched. Manifest/gitlink advance together in the draft only.
+77,322bytes of source patches retained with -text attributes, no worktree/runtime
+created. Initial default whitespace check rejected immutable CRLF fixture bytes;
+actual source patch checks retain normal whitespace rules plus cr-at-eol.
+Temporary indexes removed in finally; real indexes unchanged until named docs
+staging. Compact exact Core commit object metadata makes the draft reproducible
+on another laptop without an unreferenced-object dependency. No runtime candidate
+ref published or deployment/setting/native request. Qualification-tool closure,
+scoped cloud build and actual credentialed proof remain open. Windows credential
+manager target/environment-name checks also found no reader; no values printed.
