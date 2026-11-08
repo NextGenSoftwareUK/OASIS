@@ -1,6 +1,7 @@
 """One cloud-only owned OVMS runtime qualification; no local image/model installation."""
-import datetime,hashlib,json,os,re,shutil,subprocess,time,urllib.request,urllib.error
+import argparse,datetime,hashlib,json,os,re,shutil,subprocess,time,urllib.request,urllib.error
 from pathlib import Path
+parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--verify-client',action='store_true');options=parser.parse_args()
 if os.environ.get('GITHUB_ACTIONS')!='true':
     raise RuntimeError('This qualifier runs only in the owned cloud job, never on the recovery laptop')
 ROOT=Path(__file__).resolve().parents[2]
@@ -87,7 +88,10 @@ try:
         inference=json.loads(raw)
         assert inference['model_name']==PINS['modelName'] and inference['model_version']==version
         assert inference['id']==request['id'] and inference['outputs']==[PINS['output']|{'data':list(range(1,11))}]
-    proof=intent|{'server':server,'metadata':metadata,'inferences':3,'requests':sequence,'nativeApiPass':True,'cqlPass':False,'browserPass':False,'hostedPass':False}
+    if options.verify_client:
+        env=dict(os.environ,COSMIC_OPENVINO_CLIENT_NATIVE='owned-loopback-28000',COSMIC_OPENVINO_PIN_FILE=str(ROOT/'Scripts/TestHosts/openvino-model-server-pins.json'))
+        subprocess.run(['dotnet','test','Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS.UnitTests','--no-build','--no-restore','/m:2','/nr:false','/p:UseSharedCompilation=false','--filter','TestCategory=OpenVinoClientNative','--results-directory','TestResults/OpenVinoClientCurrent','--logger','trx;LogFileName=native.trx'],cwd=ROOT,env=env,check=True,timeout=120)
+    proof=intent|{'server':server,'metadata':metadata,'inferences':3,'requests':sequence,'nativeApiPass':True,'dotnetClientPass':options.verify_client,'cqlPass':False,'browserPass':False,'hostedPass':False}
     (result/'acknowledged.json').write_text(json.dumps(proof,indent=2))
 finally:
     observation=docker('container','inspect',name,check=False,timeout=20)
