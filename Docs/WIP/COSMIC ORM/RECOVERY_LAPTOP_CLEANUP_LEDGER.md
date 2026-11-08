@@ -5275,3 +5275,7 @@ Source6e1a22a1c/run42513709558 active: reuses three cloud source/runtime caches,
 
 ### 8 Nov — Native HTTP host cloud compile
 Real .NET HTTP reader host added as source only on laptop. Cloud build42514062260 succeeded; stricter auth-denial source build42514186079 active. Builds use existing manifest-pinned dependencies and bounded provider lease. Artifacts are compact qualification JSON only; no compiled runtime/image/db retained locally. Native book42513709558 still active; no cleanup or HTTP acceptance yet claimed. Future fake-ship code/cookies must stay in process memory/stdin and never artifact/log output.
+
+
+### 8 Nov — Strict HTTP host accepted / native transport prepared
+Strict cloud build42514186079 terminal success. Compact330byte artifact verified in memory; receipt updated with terminal conclusion. No extracted assemblies, SDKs or source cache on laptop. Future native HTTP scope restores existing cache paths directly, publishes only127.0.0.1on labeled internal Docker network, passes fake ship code through process memory/stdin, and requires network/container/pier removal. Scope not dispatched while native book42513709558 remains active. No cleanup claim for an unexecuted scope.
