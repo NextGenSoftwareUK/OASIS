@@ -57,7 +57,7 @@ jobs:
             if ($LASTEXITCODE) { throw 'Urbit admitted endpoint qualification failed' }
             [xml]$report = Get-Content TestResults/UrbitAdmittedWeb4Current/query.trx
             $counts = $report.TestRun.ResultSummary.Counters
-            if ($counts.total -ne '3' -or $counts.executed -ne '3' -or $counts.passed -ne '3') { throw 'All 3 admitted endpoint controls must execute and pass' }
+            if ($counts.total -ne '4' -or $counts.executed -ne '4' -or $counts.passed -ne '4') { throw 'All 4 admitted endpoint controls must execute and pass' }
           }
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()

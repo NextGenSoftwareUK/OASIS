@@ -1,4 +1,13 @@
 using System.Net;
+using System.Net.Http.Json;
+using System.Security.Claims;
+using System.Threading.Channels;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.Extensions.Logging;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
@@ -134,4 +143,122 @@ public partial class CqlV1Web4Tests
         Assert.Equal(0, source.Managers);
         Assert.Empty(admitted.Receipts);
     }
+    [Fact]
+    public async Task UrbitAdmittedMvcRoutePreservesPrivateResultsAndRejectsForgedRequests()
+    {
+        var wire = new UrbitWire();
+        using var http = new HttpClient(wire);
+        using var reader = new UrbitContactsV1Client(new Uri("https://ship.example.test"), http);
+        using var adapter = new UrbitContactBookQuerySource(reader, Actor, UrbitConnection, UrbitCids);
+        Assert.False((await adapter.ActivateQuerySourceAsync()).IsError);
+        using var policies = UrbitPolicyServices(Actor);
+        var source = new UrbitEndpointSource(adapter);
+        var completed = Channel.CreateUnbounded<int>(new UnboundedChannelOptions { SingleReader = true });
+        var foreign = Guid.Parse("372a7b25-32cf-4316-88bc-ea1b56a24b37");
+        Assert.NotEqual(Actor, foreign);
+        var controller = typeof(NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.CqlV1Controller);
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions {
+            ApplicationName = controller.Assembly.FullName, Args = Array.Empty<string>()
+        });
+        builder.Logging.ClearProviders();
+        builder.WebHost.UseUrls("http://127.0.0.1:0");
+        builder.Services.AddSingleton<ICqlV1Providers>(source);
+        builder.Services.AddKeyedSingleton<ICqlReadAccessPolicy>(ProviderType.UrbitOASIS,
+            policies.GetRequiredKeyedService<ICqlReadAccessPolicy>(ProviderType.UrbitOASIS));
+        builder.Services.AddSingleton<CqlV1ResourceFilter>();
+        builder.Services.AddControllers().AddApplicationPart(controller.Assembly);
+        await using var app = builder.Build();
+        app.UseRouting();
+        app.Use(async (context, next) =>
+        {
+            // Explicit controlled identity/admission fixture, not production JWT or outbox proof.
+            var token = context.Request.Headers.Authorization.ToString();
+            if (token is "Bearer urbit-owned-fixture" or "Bearer urbit-foreign-fixture")
+            {
+                var actor = token == "Bearer urbit-owned-fixture" ? Actor : foreign;
+                var admitted = Admission(ProviderType.UrbitOASIS, reservedActor: actor);
+                context.User = new ClaimsPrincipal(new ClaimsIdentity(
+                    new[] { new Claim(ClaimTypes.NameIdentifier, actor.ToString("D")) }, "controlled-validated"));
+                foreach (var item in admitted.Http.Items) context.Items[item.Key] = item.Value;
+                context.Items["Avatar"] = new Avatar { Id = actor };
+                await admitted.Policy.RunAsync(async () => { await next(); return true; });
+                Assert.True(completed.Writer.TryWrite(admitted.Receipts.Count));
+            }
+            else
+            {
+                await next();
+                Assert.True(completed.Writer.TryWrite(0));
+            }
+        });
+        app.MapControllers();
+        await app.StartAsync();
+        try
+        {
+            var address = Assert.Single(app.Services.GetRequiredService<IServer>()
+                .Features.Get<IServerAddressesFeature>()!.Addresses);
+            using var client = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(10) };
+            async Task<int> ReceiptCount()
+            {
+                using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                return await completed.Reader.ReadAsync(deadline.Token);
+            }
+            using var anonymous = await client.PostAsJsonAsync("/api/data/query-cql", new {
+                provider = "UrbitOASIS", orderBy = "None"
+            });
+            Assert.Equal(HttpStatusCode.Unauthorized, anonymous.StatusCode);
+            Assert.Equal(0, await ReceiptCount());
+            Assert.Equal(1, wire.Calls);
+
+            client.DefaultRequestHeaders.Authorization = new("Bearer", "urbit-owned-fixture");
+            using var forged = await client.PostAsJsonAsync("/api/data/query-cql", new {
+                provider = "UrbitOASIS", orderBy = "None", actorId = foreign
+            });
+            Assert.Equal(HttpStatusCode.BadRequest, forged.StatusCode);
+            Assert.Equal(0, await ReceiptCount());
+            Assert.Equal(1, wire.Calls);
+            Assert.Equal(0, source.Managers);
+
+            var ids = UrbitCids.Select(cid => UrbitContactBookQuerySource.LogicalId(Actor, UrbitConnection, cid)).ToArray();
+            foreach (var selected in new[] { ids, new[] { ids[0], ids[2] } })
+            {
+                using var response = await client.PostAsJsonAsync("/api/data/query-cql", new CqlV1Request {
+                    Provider = "UrbitOASIS", OrderBy = "None", Take = 10, IncludeMetadata = true,
+                    Filters = new[] { new CqlV1Filter { Field = "Id", Operator = CqlV1Operator.In,
+                        Value = JsonSerializer.SerializeToElement(selected) } }
+                });
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal(1, await ReceiptCount());
+                using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                var result = body.RootElement.GetProperty("result");
+                Assert.Equal(selected.Length, result.GetProperty("count").GetInt32());
+                var rows = result.GetProperty("rows").EnumerateArray().ToArray();
+                Assert.Equal(selected.Order(), rows.Select(row => row.GetProperty("id").GetGuid()).Order());
+                Assert.All(rows, row => {
+                    Assert.False(row.GetProperty("isPublic").GetBoolean());
+                    Assert.Equal(Actor, row.GetProperty("createdByAvatarId").GetGuid());
+                    Assert.StartsWith("Owned ", row.GetProperty("metadata").GetProperty("OverlayNickname").GetString());
+                });
+            }
+            Assert.Equal(6, wire.Calls);
+            Assert.Equal(2, source.Managers);
+
+            client.DefaultRequestHeaders.Authorization = new("Bearer", "urbit-foreign-fixture");
+            using var denied = await client.PostAsJsonAsync("/api/data/query-cql", new { provider = "UrbitOASIS", orderBy = "None" });
+            Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
+            Assert.Equal(0, await ReceiptCount());
+            Assert.Equal(6, wire.Calls);
+            Assert.Equal(2, source.Managers);
+
+            client.DefaultRequestHeaders.Authorization = new("Bearer", "urbit-owned-fixture");
+            Assert.False((await adapter.DeActivateProviderAsync()).IsError);
+            using var inactive = await client.PostAsJsonAsync("/api/data/query-cql", new { provider = "UrbitOASIS", orderBy = "None" });
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, inactive.StatusCode);
+            Assert.Equal(0, await ReceiptCount());
+            Assert.DoesNotContain("\"rows\"", await inactive.Content.ReadAsStringAsync());
+            Assert.Equal(6, wire.Calls);
+            Assert.Equal(2, source.Managers);
+        }
+        finally { await app.StopAsync(); }
+    }
+
 }
