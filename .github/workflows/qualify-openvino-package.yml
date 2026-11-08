@@ -8,6 +8,8 @@ on:
       - 'Scripts/TestHosts/Qualify-OpenVinoModelServer.py'
       - 'Scripts/TestHosts/openvino-model-server-pins.json'
       - 'Docker/Dockerfile.web4'
+      - 'Docker/host-sandbox-openvino.cjs'
+      - 'Scripts/TestHosts/openvino-supervisor.test.cjs'
   workflow_dispatch:
 
 permissions:
@@ -23,6 +25,11 @@ jobs:
           persist-credentials: false
       - name: Verify one-shot HTTP transport
         run: python3 -B -m unittest discover -s Scripts/TestHosts -p test_openvino_model_server_transport.py -v
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.19.0'
+      - name: Verify startup identity, response bounds and cancellation
+        run: node --test Scripts/TestHosts/openvino-supervisor.test.cjs
       - name: Build unchanged WEB4 base and qualify complete official bundle
         run: python3 -B Scripts/TestHosts/Qualify-OpenVinoModelServer.py --verify-package
       - name: Retain package, native inference and cleanup evidence

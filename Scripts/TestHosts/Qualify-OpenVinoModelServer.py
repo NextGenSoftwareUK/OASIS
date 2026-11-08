@@ -84,7 +84,7 @@ try:
         folder=models/PINS['modelName']/version;folder.mkdir(parents=True)
         for file,raw in files.items():(folder/file).write_bytes(raw)
     config={'model_config_list':[{'config':{'name':PINS['modelName'],'base_path':'/models/'+PINS['modelName'],'model_version_policy':{'all':{}},'target_device':'CPU'}}]}
-    (models/'config.json').write_text(json.dumps(config))
+    (models/'config.json').write_text(json.dumps(config,separators=(',',':')))
     docker('pull',PINS['image'])
     runtime_image=PINS['image']
     model_mount='/models'
@@ -141,6 +141,15 @@ try:
         inference=json.loads(raw)
         assert inference['model_name']==PINS['modelName'] and inference['model_version']==version
         assert inference['id']==request['id'] and inference['outputs']==[PINS['output']|{'data':list(range(1,11))}]
+    if options.verify_package:
+        # Execute the actual WEB4 startup verifier against this original server.
+        # This is not yet a full supervisor launch or a live enrollment.
+        code="""const r=require('./Docker/host-sandbox-openvino.cjs');
+const pins=require('./Scripts/TestHosts/openvino-model-server-pins.json');
+const env={OASIS_SANDBOX_OPENVINO:'true',CQL_OPENVINO_MODEL_QUERY_SOURCE_OWNER:'a5808c3e-7031-47e7-92de-48a659568f1b'};
+(async()=>{await r.verifyModels(process.argv[1],r.configuration(env,pins),pins);
+await r.verifyNative(pins,AbortSignal.timeout(15000));})().catch(e=>{console.error(e);process.exitCode=1});"""
+        subprocess.run(['node','-e',code,str(models)],cwd=ROOT,check=True,timeout=30)
     if options.verify_client:
         env=dict(os.environ,COSMIC_OPENVINO_CLIENT_NATIVE='owned-loopback-28000',COSMIC_OPENVINO_PIN_FILE=str(ROOT/'Scripts/TestHosts/openvino-model-server-pins.json'))
         subprocess.run(['dotnet','test','Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS.UnitTests','--no-build','--no-restore','/m:2','/nr:false','/p:UseSharedCompilation=false','--filter','TestCategory=OpenVinoClientNative','--results-directory','TestResults/OpenVinoClientCurrent','--logger','trx;LogFileName=native.trx'],cwd=ROOT,env=env,check=True,timeout=120)
@@ -152,6 +161,7 @@ try:
         subprocess.run(['dotnet','test','ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests','--no-build','--no-restore','/m:2','/nr:false','/p:UseSharedCompilation=false','--filter','FullyQualifiedName~OpenVinoModelNativeHttp','--results-directory','TestResults/OpenVinoWeb4Current','--logger','trx;LogFileName=web4.trx'],cwd=ROOT,env=env,check=True,timeout=180)
     proof=intent|{'server':server,'metadata':metadata,'inferences':3,'probeRequests':sequence,'nativeApiPass':True,'dotnetClientPass':options.verify_client,'cqlPass':options.verify_query,'web4Pass':options.verify_web4,'browserPass':False,'hostedPass':False}
     proof['web4BasePackagePass']=options.verify_package
+    proof['web4StartupVerifierPass']=options.verify_package
     (result/'acknowledged.json').write_text(json.dumps(proof,indent=2))
 finally:
     observation=docker('container','inspect',name,check=False,timeout=20)
