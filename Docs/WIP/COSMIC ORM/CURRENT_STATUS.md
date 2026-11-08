@@ -32,7 +32,7 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
   source values/ETags verified. Dapr HTTP cohort is sealed; browser remains open.
   The original failed generation is separately retired with its unknown save
   outcome and original files preserved. Never replay that generation's save.
-- Website C:/Source/Web4Site, branch work/cosmic-cql, published26b3172 (Dapr card77; earlier accepted cards retained).
+- Website C:/Source/Web4Site, branch work/cosmic-cql, published104a0064 (SubQuery card78; earlier accepted cards retained).
 - Dedicated Railway key cosmic-cql-recovery-laptop-20261107 was created on
   this laptop for mounted-source inspection. Its eventual revocation is in
   the old-laptop cleanup ledger. Private key remains outside Git.
@@ -79,8 +79,10 @@ HTTP outcome is unknown and preserved; root fix32bc5e677 passes32controls.
 Explicit original-owner continuation completed; do not rerun acceptance,
 settings, activation or source creation. No native source writes were needed.
 
-Publish website card78 with immutable evidence082f7d367, then continue Self
-Protocol public-source review. Existing119client controls pass; browser gate
+Website card78 is published at104a0064a9db43f28f62d206dcd0feaea038a696
+with immutable evidence082f7d367. Public HTML268592bytes/SHA256
+7908eabb8c70743d2e0cc1023484da2c7bb1e480d68dce26857ca6af4e383001
+matches exact Git bytes. Continue Self Protocol public-source review. Existing119client controls pass; browser gate
 remains open and must not bypass the existing URL-policy failure. Future
 image requests must pass the explicit commit-specific teaching tag.
 [Full proof and scope](SUBQUERY_PUBLIC_SOURCE_STATUS.md).
