@@ -5184,3 +5184,12 @@ reader credential/baseline loaded, protected candidate prepared, settings applie
 or native call. Kept compact source/artifact receipt and inspector only. No
 local SDK/runtime/build/image/database/model or ZIP extraction. Next: follow
 that exact assertion run, then legitimate reader access/native/live gates.
+
+TRON Python/.NET public-ID contract VERIFIED: source63f25ae0f, run42494318990/
+job128773193371 passed11/11/no skips. Artifact13622368933/2868bytes SHA256
+69eace7639e14d4ccbb413a01307ce8247b274b7cea1b9c8e41068ac9d252945
+inspected in memory. Exact three configuration whitelist IDs now independently
+asserted against the actual Core mapper, whose scoped/task source bytes match.
+Updated pending status to verified. Scoped runtime/image and immutable source
+refs unchanged; no image rebuild, native request, private candidate, live setting
+or old cohort touched. Local test outputs remain compact receipts only.

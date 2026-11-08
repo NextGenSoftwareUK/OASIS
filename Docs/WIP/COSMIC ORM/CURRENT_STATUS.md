@@ -34,6 +34,13 @@ owner deferrals explicit.
 
 ## Immediate work
 
+TRON enrollment configuration tools passed46pure cloud tests with HTTP forbidden,
+and the Python public IDs match the actual .NET mapper in11passing controls
+(source63f25ae0f, runs42494318935/42494318990). No private baseline/candidate was
+prepared or applied; no reader credential or native TRON request was used.
+The remaining access question is the location of the existing private reader.
+Keep this separate from runtime/native/live acceptance below.
+
 Isolated TRON Development snapshot **beee2d25e79038ab0eb9f5ca2fd7f25e7364118f**
 with Core **7b426c953dd6ebaeee1af873e7b4fcd76b609df6** passed all53controlled
 checks: SDK38/run42489776142, WEB411/run42489777910, ownership4/run42489779968.
@@ -499,3 +506,12 @@ reader credential/baseline loaded, protected candidate prepared, settings applie
 or native call. Kept compact source/artifact receipt and inspector only. No
 local SDK/runtime/build/image/database/model or ZIP extraction. Next: follow
 that exact assertion run, then legitimate reader access/native/live gates.
+
+TRON Python/.NET public-ID contract VERIFIED: source63f25ae0f, run42494318990/
+job128773193371 passed11/11/no skips. Artifact13622368933/2868bytes SHA256
+69eace7639e14d4ccbb413a01307ce8247b274b7cea1b9c8e41068ac9d252945
+inspected in memory. Exact three configuration whitelist IDs now independently
+asserted against the actual Core mapper, whose scoped/task source bytes match.
+Updated pending status to verified. Scoped runtime/image and immutable source
+refs unchanged; no image rebuild, native request, private candidate, live setting
+or old cohort touched. Local test outputs remain compact receipts only.

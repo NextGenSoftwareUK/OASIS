@@ -230,7 +230,12 @@
     ],
     "dotNetPublicIdContractRun": 42494318990,
     "dotNetPublicIdContractJob": 128773193371,
-    "dotNetPublicIdContractStatus": "in_progress",
-    "privateCandidatePrepared": false
+    "dotNetPublicIdContractStatus": "completed",
+    "privateCandidatePrepared": false,
+    "dotNetPublicIdContractConclusion": "success",
+    "dotNetPublicIdContractPassed": 11,
+    "dotNetPublicIdContractArtifact": 13622368933,
+    "dotNetPublicIdContractArtifactBytes": 2868,
+    "dotNetPublicIdContractArtifactSha256": "69eace7639e14d4ccbb413a01307ce8247b274b7cea1b9c8e41068ac9d252945"
   }
 }
