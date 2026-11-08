@@ -59,17 +59,21 @@ runtime or current/live acceptance, no profile-count increment. Do not download
 or relabel a deprecated runtime as the current service.
 [Contract, lifecycle boundary and remaining gates](MARQO_CQL_MVP.md).
 
-Urbit current contacts-v1 profile/book-page client passed43controlled cases at
-sourcec0746d520/run42511819014,zero skips (23existing profile+20page controls).
-Hashed TRX/class/outcomes inspected. Native run42511918338 now passes actual
-Kelvin408, committed current source and contacts-agent initialization, exit0/no OOM,
-network none and exact owned container/pier cleanup; artifact inspected. Full
-Tlon/Landscape settings health is not proved. First book attempt42513709558
-stopped before seeding on a CRLF/LF checksum mismatch; exact LF pin and preflight
-fixed. Combined native page/real HTTP run42514925237 is active; native reads/restart,
-CQL mapping and live acceptance remain unqualified. Primary current agent/JSON codec pinned; no old-agent
-fallback. Native ship, three-record CQL/mapping, manager/HTTP/live/browser remain
-open and no profile count increases. Pinned Vere4.6 and repository development
+Urbit current contacts-v1 reader/private book CQL passed64controlled cases at
+source1937289c4/run42517629662, all executed/passed and hashed artifact inspected.
+The owner-bound virtual source preserves stable connection/CID identities, private
+contact/overlay separation, explicit bounded selections and foreign-actor isolation.
+Missing native pages share an empty default with existing blank pages; ambiguous
+activation/projection explicitly fails rather than producing phantom holons.
+Native run42511918338 accepted actual Kelvin408, current contacts initialization,
+exit0/no OOM, network-none and owned cleanup. Full Tlon health is not proved.
+First book attempt42513709558 stopped before seeding on LF checksum mismatch;
+preflight fixed. Next42514925237 failed before seeding because native Gall scry
+paths omitted the output mark; root cause corrected with `/noun`, cleanup verified.
+Combined real native HTTP/private-CQL restart run42517795274 is active at
+1937289c4. No native page/HTTP/CQL, manager/live/browser acceptance yet, and no
+profile-count increase. [Detailed gates and receipts](URBIT_CQL_MVP.md).
+Pinned Vere4.6 and repository development
 pill passed real offline cold boot/run42507813675/source61c28aa5b. Hashed artifact
 inspected: bootstrap complete, pier live, exit0/no OOM, network none, owned
 container/volume and temporary checkout removed. Cloud asset cache43057001bytes;
