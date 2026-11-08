@@ -220,7 +220,11 @@ MapLibre candidate **23532a6fc9146d5535152c182e61ec21d8889d6e** / Core
 **681a1d0b2d4aa8f3b2751a1fad8857a1dd5f86e0** has62exact checks and image
 qualification passed. Its original source owner77afeb39-df6d-4df4-8686-5ff43bd01cbb,
 protected baseline/candidate and guarded rollout operators already exist.
-Do not regenerate them. Next: permitted scoped integration, exact deployed package,
+Do not regenerate them. The 8 November 18:46 Cancun preflight fetched
+Development at the accepted Civic commit. MapLibre descends from that commit,
+its diff is limited to 15 paths, and its pinned dependency manifest validates.
+Refresh the shared refs before publication in a permitted window.
+Next: permitted scoped integration, exact deployed package,
 once-only settings/activation and first owned HTTP/reuse/privacy/replica seal.
 [MapLibre details](MAPLIBRE_PUBLIC_SOURCE_STATUS.md).
 
@@ -252,7 +256,7 @@ candidate references. No settings were applied and no native source writes occur
 
 ## Coverage and website
 
-**128 scoped local /96live HTTP /28functional browser**. These are bounded demo
+**129 scoped local /96live HTTP /28functional browser**. These are bounded demo
 scopes, never full SDK/storage/ORM parity claims. Cloud HTTP tests do not increment
 live counts. [Provider matrix](PROVIDER_CQL_AND_SANDBOX_STATUS.md).
 

@@ -293,7 +293,7 @@ databases were removed after verifying their ownership markers and
 exact record counts. The retained MongoDB replica shut down cleanly.
 TRX SHA-256
 `e921e8516fd8c2116e643d58bf072f7bec83072fc4a3cb4470afb306f58de22c`.
-Current coverage is **128 scoped local, 96 live HTTP and 28 live browser**.
+Current coverage is **129 scoped local, 96 live HTTP and 28 live browser**.
 The three public profiles above now also pass hosted HTTP acceptance on settings deployment fb589d55-f737-4622-9160-6e63e0e55099: native3/2, Mongo5/4, reuse0new/2existing, independent private0/public3 and SQLite/Neo4j replicas2/2. Browser gates remain open.
 
 5 November MinIO hosted preparation: explicit HTTPS query registration,
