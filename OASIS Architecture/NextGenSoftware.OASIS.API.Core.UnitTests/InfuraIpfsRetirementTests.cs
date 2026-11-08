@@ -1,3 +1,7 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -54,6 +58,25 @@ public sealed class InfuraIpfsRetirementTests
         Rejected(await provider.LoadHolonsByMetaDataAsync("infura_ipfs_cid", cid));
         Rejected(await provider.LoadHolonsByMetaDataAsync(new Dictionary<string, string>(), default));
         Rejected(await provider.SearchAsync(null!));
+    }
+
+    [Fact]
+    public void QueryProfileRequiresExplicitServerConfiguration()
+    {
+        var settings = new ConfigurationBuilder().Build();
+        var services = new ServiceCollection();
+        services.AddInfuraReadSource(settings);
+        Assert.Empty(services);
+
+        settings["CQL_INFURA_QUERY_SOURCE_OWNER"] = Guid.NewGuid().ToString("D");
+        Assert.Throws<InvalidOperationException>(() => services.AddInfuraReadSource(settings));
+        settings["CQL_INFURA_API_KEY"] = "controlledkey";
+        settings["CQL_INFURA_API_SECRET"] = "controlledsecret";
+        services.AddInfuraReadSource(settings);
+        using var container = services.BuildServiceProvider();
+        var profile = container.GetRequiredService<CqlReadSourceProfile>();
+        Assert.Equal(ProviderType.InfuraOASIS, profile.Storage.ProviderType.Value);
+        _ = new StorageQueryTariff(ProviderType.InfuraOASIS, 0m, "test-v1");
     }
 
     private static void Rejected<T>(OASISResult<T> result)

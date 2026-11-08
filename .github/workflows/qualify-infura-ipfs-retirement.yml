@@ -58,7 +58,7 @@ jobs:
             if ($LASTEXITCODE) { throw 'Infura retirement qualification failed' }
             [xml]$report = Get-Content TestResults/InfuraIpfsRetirementCurrent/query.trx
             $counts = $report.TestRun.ResultSummary.Counters
-            if ($counts.total -ne '3' -or $counts.executed -ne '3' -or $counts.passed -ne '3') { throw 'All 3 retirement controls must execute and pass' }
+            if ($counts.total -ne '4' -or $counts.executed -ne '4' -or $counts.passed -ne '4') { throw 'All 4 Infura controls must execute and pass' }
           }
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()

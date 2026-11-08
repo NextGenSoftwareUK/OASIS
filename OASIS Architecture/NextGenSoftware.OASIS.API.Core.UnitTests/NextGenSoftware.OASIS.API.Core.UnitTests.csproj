@@ -35,6 +35,7 @@
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlPublicReadCatalogue.cs" Link="Production/CqlPublicReadCatalogue.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadSourceProfile.cs" Link="Production/CqlReadSourceProfile.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlUrbitReadSourceRegistration.cs" Link="Production/CqlUrbitReadSourceRegistration.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlInfuraReadSourceRegistration.cs" Link="Production/CqlInfuraReadSourceRegistration.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadPolicyDeployment.cs" Link="Production/CqlReadPolicyDeployment.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlCompositionV1Request.cs" Link="Production/CqlCompositionV1Request.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSelectedV1Compiler.cs" Link="Production/CqlSelectedV1Compiler.cs" />
