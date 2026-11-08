@@ -74,3 +74,19 @@ JSON mark uses the tagged field codec above; untagged legacy JSON is not accepte
 Legacy storage/profile writes, general graph migration, full interfaces and
 EF/HyperDrive parity remain separate. No live service, reader key, native
 runtime, source database or private contact book was accessed in this milestone.
+
+## Source-trigger correction verified
+
+Workflow source path now names UrbitContactsV1Client.cs explicitly. Source
+c61a5db0b08d1c3533717aa37151874180958e67/run42505144648 passed the same23
+controls/no skips, and no C# reader source changed from the first qualification.
+Artifact13627470788/3995bytes SHA256
+08da329d31287992ecd584012cad092234e6a01af0f7d2f6d5eebb75b223be69;
+TRX SHA2561c6039f939f23b2ad70df1ae45bfa500a2d56e5d8e6a962fe1ce6c7e9755e653.
+Artifact inspected in memory and compact workflow receipt retained. This is
+23distinct cases, not46independent capabilities or native execution.
+
+The10hash-verified primary-source cache files (69693bytes) were removed after
+contract extraction; exact commit/path/size/SHA manifest and lifecycle/source
+references remain. No credentials/native data, runtime or original cohort
+was removed. No model/image/SDK installed or local build performed.
