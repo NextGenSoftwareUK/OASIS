@@ -1,0 +1,32 @@
+name: Qualify owned OpenVINO model server runtime
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-openvino-runtime.yml'
+      - 'Scripts/TestHosts/Qualify-OpenVinoModelServer.py'
+      - 'Scripts/TestHosts/openvino-model-server-pins.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Verify official pinned OVMS with owned tiny model versions
+        run: python3 -B Scripts/TestHosts/Qualify-OpenVinoModelServer.py
+      - name: Retain compact native runtime and cleanup evidence
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: openvino-runtime-readiness
+          path: TestResults/OpenVinoRuntimeCurrent/
+          if-no-files-found: error
+          retention-days: 30
