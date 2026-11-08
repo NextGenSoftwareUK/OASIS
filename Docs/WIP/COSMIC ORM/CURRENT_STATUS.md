@@ -238,3 +238,12 @@ compilation is running42483969440/job128741706991; native selection is off.
 Native/live/browser/counts remain unchanged. C:41.07GiB free; this work has
 created no local builds/downloads/databases. Preserve unrelated disk activity
 and rejected cleanup scopes. Existing private credential location still pending.
+
+Cloud source54877be94 compile failure identified from PolygonID run42483969430/
+job128741706820 and Holonym run42483969460: CS0117 CqlTronHeaderHttpTests.cs17,
+File resolved to an OASIS type. Fixed the filesystem reference explicitly to
+System.IO.File; no alternate execution path. Compilation failed before native
+HTTP/Mongo setup; earlier accepted cohorts are unchanged. Preserve original
+failed runs; new corrected-source qualification required, no replay/restart of
+those old handles. Lightweight ownership cloud run42484388393 PASSED, covering
+all four controlled guard tests, with no real Docker/native operation.

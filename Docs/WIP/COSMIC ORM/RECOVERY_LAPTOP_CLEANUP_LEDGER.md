@@ -4939,3 +4939,12 @@ Initial test harness used an incorrect Docker volume-not-found string; corrected
 the fixture to the already-shipped exact daemon contract, no production parser
 relaxation. Added lightweight cloud ownership workflow; no SDK install/build.
 TRON HTTP compilation run42483969440 remains in progress; do not restart.
+
+Cloud source54877be94 compile failure identified from PolygonID run42483969430/
+job128741706820 and Holonym run42483969460: CS0117 CqlTronHeaderHttpTests.cs17,
+File resolved to an OASIS type. Fixed the filesystem reference explicitly to
+System.IO.File; no alternate execution path. Compilation failed before native
+HTTP/Mongo setup; earlier accepted cohorts are unchanged. Preserve original
+failed runs; new corrected-source qualification required, no replay/restart of
+those old handles. Lightweight ownership cloud run42484388393 PASSED, covering
+all four controlled guard tests, with no real Docker/native operation.
