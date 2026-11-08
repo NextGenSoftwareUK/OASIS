@@ -102,8 +102,8 @@ try:
             'FROM '+PINS['image']+' AS official\n'
             'FROM '+base_image+'\n'
             'COPY --from=official / /opt/ovms-rootfs/\n'
-            'RUN test -x /opt/ovms-rootfs/lib64/ld-linux-x86-64.so.2 && test -d /opt/ovms-rootfs/usr/lib/python3.12 && ln -s /opt/ovms-rootfs/ovms /ovms\n'
-            'ENTRYPOINT ["/usr/bin/env","PYTHONHOME=/opt/ovms-rootfs/usr","PYTHONPATH=/ovms/lib/python:/ovms/python_deps","ESPEAK_DATA_PATH=/ovms/share/espeak-ng-data","/opt/ovms-rootfs/lib64/ld-linux-x86-64.so.2","--library-path","/ovms/lib:/opt/ovms-rootfs/usr/lib/x86_64-linux-gnu:/opt/ovms-rootfs/lib/x86_64-linux-gnu","/ovms/bin/ovms"]\n',encoding='utf-8')
+            'RUN test ! -L /opt/ovms-rootfs/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 && test -x /opt/ovms-rootfs/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 && test -d /opt/ovms-rootfs/usr/lib/python3.12 && ln -s /opt/ovms-rootfs/ovms /ovms\n'
+            'ENTRYPOINT ["/usr/bin/env","PYTHONHOME=/opt/ovms-rootfs/usr","PYTHONPATH=/ovms/lib/python:/ovms/python_deps","ESPEAK_DATA_PATH=/ovms/share/espeak-ng-data","/opt/ovms-rootfs/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2","--library-path","/ovms/lib:/opt/ovms-rootfs/usr/lib/x86_64-linux-gnu:/opt/ovms-rootfs/lib/x86_64-linux-gnu","/ovms/bin/ovms"]\n',encoding='utf-8')
         docker('build','--file',str(package_dockerfile),'--tag',runtime_image,str(models),timeout=240)
         package_info=json.loads(docker('image','inspect',runtime_image,timeout=20).stdout)[0]
         base_info=json.loads(docker('image','inspect',base_image,timeout=20).stdout)[0]
