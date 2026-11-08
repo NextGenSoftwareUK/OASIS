@@ -130,3 +130,5 @@ change. Hosting/use-contract and CQL/HTTP/replica/browser gates remain open.
 See [GOMap evidence](GOMAP_PUBLIC_SOURCE_STATUS.md).
 
 GOMap bounded fixed-route CQL adapter and12controlled source cases now prepared; cloud compilation/qualification pending. It reuses the qualified SDK; no new native/public schedule, live enrollment, Core admission, candidate mutation or coverage increment.
+
+GOMap source controls42479732136 passed12/12/no skips; hashed2748byte artifact verified in memory. Separately opt-in actual CQL3/2 schedule prepared, no native CQL/WEB4/Core admission or live acceptance yet; coverage unchanged.

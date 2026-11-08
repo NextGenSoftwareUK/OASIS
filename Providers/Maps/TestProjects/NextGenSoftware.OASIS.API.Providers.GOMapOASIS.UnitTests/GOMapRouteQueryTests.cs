@@ -109,4 +109,26 @@ public sealed class GOMapRouteQueryTests
         var result=CosmicQueryPlanner.Plan(query,Provider,new[]{new CosmicQueryTarget(Provider,source.QueryCapabilities)});
         Assert.IsTrue(result.IsError);
     }
+    [TestMethod,TestCategory("GOMapRouteNative")]
+    public async Task FixedPublicNativeCqlReturnsThreeAndTwoAttributedRoutes()
+    {
+        Assert.AreEqual("fixed-public-berlin",Environment.GetEnvironmentVariable("COSMIC_GOMAP_NATIVE_CQL"));
+        Assert.AreEqual("true",Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
+        var directory=Path.GetFullPath(Environment.GetEnvironmentVariable("COSMIC_GOMAP_NATIVE_CQL_EVIDENCE_DIRECTORY")!);
+        Assert.AreEqual(Path.GetFullPath(Path.Combine(Environment.GetEnvironmentVariable("GITHUB_WORKSPACE")!,"OASIS","TestResults","GOMapRouteQueryCurrent","native")),directory);
+        Assert.IsFalse(Directory.Exists(directory));Directory.CreateDirectory(directory);
+        using var source=GOMapRouteQuerySource.ForReviewedTeachingCatalogue(Owner);
+        Assert.IsFalse((await source.ActivateQuerySourceAsync()).IsError);
+        var full=await Read(source,Ids);Check(full,Ids);
+        var subset=await Read(source,Ids.Take(2).ToArray());Check(subset,Ids.Take(2).ToArray());
+        object[] Observations(IReadOnlyList<IHolon> rows)=>rows.Select(row=>(object)new{
+            id=row.Id,key=row.MetaData["GOMapRouteKey"].ToString(),rawJson=row.MetaData["GOMapRouteJson"].ToString(),
+            sha256=row.MetaData["GOMapResponseSha256"].ToString(),attribution=row.MetaData["GOMapAttribution"].ToString(),
+            attributionUrl=row.MetaData["GOMapAttributionUrl"].ToString(),fixMapUrl=row.MetaData["GOMapFixMapUrl"].ToString()}).ToArray();
+        await File.WriteAllTextAsync(Path.Combine(directory,"acknowledged.json"),System.Text.Json.JsonSerializer.Serialize(new{
+            source=Environment.GetEnvironmentVariable("GITHUB_SHA"),provider=Provider.ToString(),sourceOwner=Owner,
+            nativeCounts=new[]{3,2},full=Observations(full.Result),subset=Observations(subset.Result),
+            sourceWrites=0,developerQualificationOnly=true,liveDeployment=false,web4Qualified=false}));
+    }
+
 }

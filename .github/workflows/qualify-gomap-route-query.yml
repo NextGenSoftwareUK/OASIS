@@ -10,6 +10,12 @@ on:
       - 'Providers/Maps/NextGenSoftware.OASIS.API.Providers.GOMapOASIS/**'
       - 'Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests/**'
   workflow_dispatch:
+    inputs:
+      native_query:
+        description: Verify fixed public Berlin CQL full/subset using the actual client
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -49,14 +55,25 @@ jobs:
       - name: Verify capability HTTP and parser boundary without native service access
         working-directory: OASIS
         shell: pwsh
+        env:
+          RUN_NATIVE_QUERY: ${{ github.event_name == 'workflow_dispatch' && inputs.native_query }}
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner gomap-route-query-ci -Operation {
-            dotnet test Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests --filter FullyQualifiedName~GOMapRouteQueryTests /m:2 /nr:false /p:UseSharedCompilation=false --results-directory TestResults/GOMapRouteQueryCurrent --logger 'trx;LogFileName=controlled.trx'
+            dotnet test Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests --filter 'FullyQualifiedName~GOMapRouteQueryTests&TestCategory!=GOMapRouteNative' /m:2 /nr:false /p:UseSharedCompilation=false --results-directory TestResults/GOMapRouteQueryCurrent --logger 'trx;LogFileName=controlled.trx'
             if ($LASTEXITCODE) { throw 'GOMap route CQL controlled client qualification failed' }
             [xml]$report = Get-Content TestResults/GOMapRouteQueryCurrent/controlled.trx
             $counts = $report.TestRun.ResultSummary.Counters
             if ($counts.passed -ne '12' -or $counts.total -ne '12' -or $counts.executed -ne '12') {
               throw 'All twelve controlled client cases must execute and pass without skips'
+            }
+            if ($env:RUN_NATIVE_QUERY -eq 'true') {
+              $env:COSMIC_GOMAP_NATIVE_CQL='fixed-public-berlin'
+              $env:COSMIC_GOMAP_NATIVE_CQL_EVIDENCE_DIRECTORY=[IO.Path]::GetFullPath('TestResults/GOMapRouteQueryCurrent/native')
+              dotnet test Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests --no-build --no-restore --filter TestCategory=GOMapRouteNative --results-directory TestResults/GOMapRouteQueryCurrent --logger 'trx;LogFileName=native.trx'
+              if ($LASTEXITCODE) { throw 'GOMap native route CQL qualification failed; no retry' }
+              [xml]$native = Get-Content TestResults/GOMapRouteQueryCurrent/native.trx
+              $n=$native.TestRun.ResultSummary.Counters
+              if ($n.passed -ne '1' -or $n.total -ne '1' -or $n.executed -ne '1') { throw 'Native CQL case must execute and pass' }
             }
           }
       - uses: actions/upload-artifact@v7
@@ -65,5 +82,6 @@ jobs:
           name: gomap-route-query-qualification
           path: |
             OASIS/TestResults/GOMapRouteQueryCurrent/*.trx
+            OASIS/TestResults/GOMapRouteQueryCurrent/native/
           if-no-files-found: error
           retention-days: 30
