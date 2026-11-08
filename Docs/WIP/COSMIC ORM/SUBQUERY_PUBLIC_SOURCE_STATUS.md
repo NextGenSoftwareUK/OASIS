@@ -98,13 +98,24 @@ GraphQL replies, bounds response bytes and concurrency, and exposes stable match
 attributes without persisting the moving index cursor. Native writes/scans are
 unsupported. This is dictionary activity evidence, not full log/header support.
 
-Sixteen controlled cases and one explicitly enabled real dictionary CQL case are
-prepared in `qualify-subquery-dictionary.yml`; qualification is not yet observed.
-All compilation/native testing is cloud-only. No deployment, inventory count or
-public source admission advances from implementation alone.
+Exact task source `c223bfc009107d58f7ae5b8ae4980dba4fa0be8b` passed cloud
+[run42438203693](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42438203693),
+job128601533699: sixteen controlled cases and one explicitly enabled real
+dictionary CQL case, all executed/passed, zero skips. The native case activates
+the source and checks three/two selected historical match identities through the
+real CQL planner/executor. It does not query the denied independent RPC endpoint.
 
-Next qualify the bounded dictionary-block CQL source from this real SDK contract,
-complete independent chain identity before admission, and qualify actual native
+Artifact13600278331 is4398bytes, SHA256
+`37efaaeca441fcec14065ead5397a8a75dc3a386650d4830a55dafafb37c890e`.
+Both TRX reports were verified in memory: controlled25895bytes/SHA256
+`90c258533638020411a04e436cc60e3663f6bd997fbb7e5c221368a40dfa1635`,
+native2825bytes/SHA256
+`eea83e5e60b18185f7c27d801a6b11df34e24312413f350da0b052dd7b55d997`.
+Compact receipt is `LocalState/COSMIC/RecoveryLaptopResume20261107/subquery-dictionary-cql-qualified.json`.
+All compilation/native testing was cloud-only; no local archive/build/runtime
+retained. No hosted deployment, coverage count or public admission advances.
+
+Next complete independent chain identity before admission, and qualify actual
 manager/WEB4/federation/privacy/snapshot/replica/browser gates. Existing legacy
 storage methods are outside this preliminary proof. No runtime installed, provider
 configuration changed, accepted cohort replayed or owner action requested.

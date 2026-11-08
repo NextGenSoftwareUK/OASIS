@@ -30,8 +30,8 @@ stages remains paused. Work on unverified scopes and reproduced bugs.
   Fresh Dapr generation acknowledged; activationf0b2771c isSUCCESS on
   0fb82716-5388-46ee-a6e7-a6536fd36bf5. All251settings/package and mounted
   source values/ETags verified. Dapr HTTP cohort is sealed; browser remains open.
-  First planned source save is unacknowledged: Railway denies native libaio
-  io_getevents. Original source/intent retained; do not reseed or recreate.
+  The original failed generation is separately retired with its unknown save
+  outcome and original files preserved. Never replay that generation's save.
 - Website C:/Source/Web4Site, branch work/cosmic-cql, published26b3172 (Dapr card77; earlier accepted cards retained).
 - Dedicated Railway key cosmic-cql-recovery-laptop-20261107 was created on
   this laptop for mounted-source inspection. Its eventual revocation is in
@@ -118,6 +118,13 @@ SQLite/Neo4j2/2. Dapr card77 is published at26b3172 with119client controls passi
 and exact public HTML bytes verified. Continue independent red provider/browser
 gates; SubQuery has real bounded dictionary-block evidence but identity/CQL remain
 open. Never replay this accepted cohort or either source creation.
+
+SubQuery task source `c223bfc009107d58f7ae5b8ae4980dba4fa0be8b` now implements
+bounded exact-height dictionary CQL with sixteen controlled cases and one real
+public native CQL case. Cloud run42438203693/job128601533699 isSUCCESS:
+16controlled/1native pass with zero skips; both TRX reports verified in memory.
+Independent chain identity, WEB4 admission and hosted
+acceptance remain open. No coverage count or Development deployment advances.
 
 Coverage remains119local/92live HTTP/28functional browser. The six public readers
 remain accepted on their original sealed cohorts: native3/2, Mongo5/4, repeat0new,
