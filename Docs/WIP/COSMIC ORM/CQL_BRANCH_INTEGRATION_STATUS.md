@@ -1,4 +1,49 @@
-# CQL branch integration check — 5 November2026
+# CQL branch integration status
+
+## Accepted Development history merged — 8 November2026
+
+Parent task branch work/cosmic-cql-ton-public merge
+`6e2cccbd1077fb669ac1077a71fc9a51df065a50` includes accepted Development
+`88c378c1e08ee270365b760c9d3abc29b629a0f4`;0commits behind after fetch/merge.
+Core task branch work/cosmic-cql-decentraland merge
+`05d049a0228b93b22ba16c9775bfb4edcf71146a` includes the accepted parent Core
+`81862b2450c1d4bd0f3e8853523c1b13b8a257d3`. Moving Core Development54159614
+was inspected but not pulled into the accepted dependency by assumption.
+Both existing task branches were pushed. No new branch/worktree or deployment.
+
+Read-only merge analysis found22parent conflicts and one Core conflict. Core's
+162-provider admission set includes all98accepted entries; all text outside the
+set was identical. The complete Core source tree of05d049a is byte-identical to
+eebf39bf. Parent nonconflicting paths already equalled the task tree. Manual
+conflict review retained newer task packaging/owned-runtime/configuration and
+metadata-fixture changes, all accepted provider registrations and the separate
+six-reader qualification workflow. It preserves the empty image-tag default
+that fixed the prior alias incident. Historical branch-trigger variants do not
+replace exact-source manual qualification or move any prepared candidate.
+
+Parent merge changes exactly two entries: Core gitlink and its matching manifest
+pin. The canonical sync tool ran with --source index against a temporary index,
+so unrelated STAR/WEB6 working heads were not swept in. Manifest/seven-Dockerfile/
+gitlink validation passes. Temporary indices removed; unrelated real index
+entries and four pre-existing dirty working files hash-checked unchanged.
+Original immutable TRON/MapLibre/four-provider candidates were not moved.
+
+The first preparation helper stopped on a Python bytes/encode mistake after the
+owned manifest synchronization and before real index/ref mutation. The same
+intent was continued after validating the exact pending manifest, index entries,
+branch heads and protected working-file hashes; original intent remains.
+Compact source/intent/application evidence is under
+LocalState/COSMIC/RecoveryLaptopResume20261107/*development*merge*.json.
+No accepted native source was replayed. Source-tree identity and exact changed
+paths establish that this merge adds history and a content-identical dependency
+reference, not new runtime behavior. Cloud exact-seven-checkout run42502482108/job128798029363
+PASSED. Artifact13626635364/538bytes SHA256
+`e250967d2c173957a3d5387f9ef5e2197c6563958d08289b47e249eea8ee8147`
+was inspected in memory: source6e2cccbd, all seven actual checkout HEADs equal
+the manifest, including Core05d049a; liveDeployment=false. Compact receipt
+railway-history-merge-pins-qualified.json retained; no ZIP extraction. No additional Development push8November or master promotion.
+
+## Historical checkpoint — 5 November2026
 
 Fetched `origin/Development` before this continuation. Development remains
 `b718f2879` (2November, serialized failed-source recovery); task branch includes

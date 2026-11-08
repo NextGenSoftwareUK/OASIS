@@ -34,6 +34,14 @@ owner deferrals explicit.
 
 ## Immediate work
 
+Daily branch synchronization: task merge6e2cccbd includes accepted Development
+88c378c1e; Core05d049a includes its accepted81862b2pin with the exact source
+tree of eebf39bf. Both existing branches pushed; only parent gitlink/manifest
+changed, unrelated edits preserved. Local manifest validation and cloud
+exact-seven-checkout42502482108 pass; hashed artifact inspected in memory. Scoped deployment candidates/tags and
+live state unchanged. [Review and exact scope](CQL_BRANCH_INTEGRATION_STATUS.md).
+
+
 Typesense's real native/restart and manager/HTTP/Mongo gates pass. A subsequently
 reproduced embedded-child failure is now fixed at source032e0a10e: query controls
 9/9/run42499481264 and actual child-bearing native manager/HTTP1/1/run42499481245,
