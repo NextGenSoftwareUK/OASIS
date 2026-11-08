@@ -43,7 +43,7 @@ def qualified_source():
                                  digest, ack['deployment'], ack['instance'])
         original_bytes = (creation.STATE / 'create.intent.json').read_bytes()
         original = json.loads(original_bytes)
-        inspection = json.loads((creation.STATE / 'inspect.acknowledged.json').read_bytes())
+        inspection = recovery.accepted_inspection(creation.STATE)
         if (ack.get('originalCreationIntentSha256') != hashlib.sha256(original_bytes).hexdigest()
                 or ack.get('originalCreationDeployment') != original['deployment']
                 or ack.get('originalCreationInstance') != original['instance']

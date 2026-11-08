@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from runpy import run_path
 import unittest
+import tempfile
 
 module = run_path(str(Path(__file__).with_name('Reconcile-HostedDaprSource.py')))
 
@@ -34,6 +35,22 @@ class DaprRecoveryReceiptTests(unittest.TestCase):
         line = module['MARKER'] + json.dumps(self.proof).encode()
         with self.assertRaises(RuntimeError):
             module['receipt'](line + b'\n' + line, 'inspect', self.plan, 'a' * 64, 'reviewed-deployment', 'reviewed-instance')
+
+    def test_corrected_device_receipt_preserves_the_same_read_only_contract(self):
+        proof = self.proof | {'mode': 'inspect-corrected-device'}
+        self.assertEqual(module['receipt'](module['MARKER'] + json.dumps(proof).encode(), 'inspect-corrected-device',
+                         self.plan, 'a' * 64, 'reviewed-deployment', 'reviewed-instance'), proof)
+
+    def test_acknowledgement_requires_one_unambiguous_inspection(self):
+        with tempfile.TemporaryDirectory(prefix='cosmic-dapr-inspection-choice-') as directory:
+            state = Path(directory)
+            with self.assertRaises(RuntimeError):
+                module['accepted_inspection'](state)
+            (state / 'inspect-corrected-device.acknowledged.json').write_text(json.dumps({'native': self.proof}), encoding='utf-8')
+            self.assertEqual(module['accepted_inspection'](state), {'native': self.proof})
+            (state / 'inspect.acknowledged.json').write_text('{}', encoding='utf-8')
+            with self.assertRaises(RuntimeError):
+                module['accepted_inspection'](state)
 
 
 if __name__ == '__main__':
