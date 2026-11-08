@@ -35,5 +35,6 @@
       10
     ]
   },
-  "addConstant": 1
+  "addConstant": 1,
+  "serverVersion": "2026.4.1.cfc9ac721"
 }

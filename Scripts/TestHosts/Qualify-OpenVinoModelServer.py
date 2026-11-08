@@ -73,7 +73,7 @@ try:
         if time.monotonic()>=deadline:raise RuntimeError('Owned OVMS startup deadline expired')
         time.sleep(1)
     status,raw=call('/v2');assert status==200
-    server=json.loads(raw);assert server['version']==PINS['release']
+    server=json.loads(raw);assert server['name']=='OpenVINO Model Server' and server['version']==PINS['serverVersion']
     metadata=[]
     for version in PINS['versions']:
         path='/v2/models/'+PINS['modelName']+'/versions/'+version
