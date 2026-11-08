@@ -36,6 +36,23 @@ RUN case "$OASIS_INCLUDE_TEACHING_SIDECARS" in \
       *) echo "Invalid optional teaching runtime build flag" >&2; exit 1 ;; \
     esac
 
+FROM provider_node AS provider_openvino
+# Resolve the official image from the one runtime pin manifest. OCI-aware
+# extraction preserves its complete userspace, including layer whiteouts.
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates skopeo umoci \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+COPY Scripts/TestHosts/openvino-model-server-pins.json /openvino/pins.json
+COPY Docker/host-sandbox-openvino.cjs Docker/provision-sandbox-openvino.cjs /openvino/
+RUN node /openvino/provision-sandbox-openvino.cjs /models /openvino/pins.json
+RUN image="$(node -p 'require("/openvino/pins.json").image')" \
+    && skopeo copy --override-os linux --override-arch amd64 "docker://${image}" oci:/tmp/openvino-image:runtime \
+    && umoci unpack --rootless --image /tmp/openvino-image:runtime /tmp/openvino-bundle \
+    && mkdir -p /opt/ovms-rootfs \
+    && cp -a /tmp/openvino-bundle/rootfs/. /opt/ovms-rootfs/ \
+    && test ! -L /opt/ovms-rootfs/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 \
+    && test -x /opt/ovms-rootfs/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 \
+    && rm -rf /tmp/openvino-image /tmp/openvino-bundle
+
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 # The pinned Waku binary loads PostgreSQL and OpenMP libraries during startup,
 # including when the teaching source uses SQLite.
@@ -125,6 +142,11 @@ RUN bash /src/Docker/package-provider-sdk-bridges.sh /app/publish
 
 FROM base AS final
 WORKDIR /app
+COPY --from=provider_openvino /opt/ovms-rootfs/ /opt/ovms-rootfs/
+COPY --from=provider_openvino /models/ /models/
+COPY Scripts/TestHosts/openvino-model-server-pins.json /app/openvino-model-server-pins.json
+COPY Docker/host-sandbox-openvino.cjs /app/host-sandbox-openvino.cjs
+RUN ln -s /opt/ovms-rootfs/ovms /ovms
 COPY --from=provider_node /usr/local/bin/node /usr/local/bin/node
 COPY --from=provider_ipfs /usr/local/bin/ipfs /usr/local/bin/ipfs
 COPY --from=provider_nats /usr/local/bin/nats-server /usr/local/bin/nats-server

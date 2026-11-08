@@ -102,11 +102,17 @@ try:
         runtime_image='oasis-ovms-web4-package:'+label
         web4_dockerfile=ROOT/'Docker/Dockerfile.web4'
         docker('build','--target','base','--file',str(web4_dockerfile),'--tag',base_image,str(models),timeout=240)
+        context=models/'build-context';context.mkdir()
+        for relative in ['Scripts/TestHosts/openvino-model-server-pins.json','Docker/host-sandbox-openvino.cjs','Docker/provision-sandbox-openvino.cjs']:
+            target=context/relative;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes((ROOT/relative).read_bytes())
+        provisioned_image='oasis-ovms-provisioned:'+label
+        docker('build','--target','provider_openvino','--file',str(web4_dockerfile),'--tag',provisioned_image,str(context),timeout=360)
         package_dockerfile=models/'Dockerfile.package'
         package_dockerfile.write_text(
-            'FROM '+PINS['image']+' AS official\n'
+            'FROM '+provisioned_image+' AS provisioned\n'
             'FROM '+base_image+'\n'
-            'COPY --from=official / /opt/ovms-rootfs/\n'
+            'COPY --from=provisioned /opt/ovms-rootfs/ /opt/ovms-rootfs/\n'
+            'COPY --from=provisioned /models/ /models/\n'
             'RUN test ! -L /opt/ovms-rootfs/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 && test -x /opt/ovms-rootfs/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 && test -d /opt/ovms-rootfs/usr/lib/python3.12 && ln -s /opt/ovms-rootfs/ovms /ovms\n'
             'ENTRYPOINT ["/usr/bin/env","PYTHONHOME=/opt/ovms-rootfs/usr","PYTHONPATH=/ovms/lib/python:/ovms/python_deps","ESPEAK_DATA_PATH=/ovms/share/espeak-ng-data","/opt/ovms-rootfs/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2","--library-path","/ovms/lib:/opt/ovms-rootfs/usr/lib/x86_64-linux-gnu:/opt/ovms-rootfs/lib/x86_64-linux-gnu","/ovms/bin/ovms"]\n',encoding='utf-8')
         docker('build','--file',str(package_dockerfile),'--tag',runtime_image,str(models),timeout=240)
@@ -117,9 +123,10 @@ try:
             'packageDockerfileSha256':hashlib.sha256(package_dockerfile.read_bytes()).hexdigest(),
             'baseImageId':base_info['Id'],'packageImageId':package_info['Id'],
             'officialImage':PINS['image'],'completeBundle':'official-rootfs','runtimeRoot':'/opt/ovms-rootfs',
-            'launchMode':'official-loader-container-kernel-view','additionalSystemPackages':[],'liveDeployment':False},indent=2))
+            'productionProvisioningStage':True,'packagedModelsNotOverlaid':True,'launchMode':'official-loader-container-kernel-view','additionalSystemPackages':[],'liveDeployment':False},indent=2))
     assert docker('container','inspect',name,check=False,timeout=20).returncode!=0
-    docker('run','--detach','--name',name,'--label','oasis.cql.owner='+label,'--cpus','2','--memory','1g','--publish','127.0.0.1:28000:8000','--mount','type=bind,source='+str(runtime_models)+',target='+model_mount+',readonly',runtime_image,'--config_path','/models/config.json','--rest_port','8000','--port','9000',timeout=30)
+    mount_arguments=[] if options.verify_package else ['--mount','type=bind,source='+str(runtime_models)+',target='+model_mount+',readonly']
+    docker('run','--detach','--name',name,'--label','oasis.cql.owner='+label,'--cpus','2','--memory','1g','--publish','127.0.0.1:28000:8000',*mount_arguments,runtime_image,'--config_path','/models/config.json','--rest_port','8000','--port','9000',timeout=30)
     deadline=time.monotonic()+120
     # Explicit bounded startup readiness polling; model metadata/inference never retried.
     while True:
