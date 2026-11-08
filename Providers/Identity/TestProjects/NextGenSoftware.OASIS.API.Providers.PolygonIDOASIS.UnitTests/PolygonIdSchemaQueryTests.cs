@@ -96,6 +96,9 @@ public class PolygonIdSchemaQueryTests
     [TestMethod]
     public void InvalidCataloguesFailBeforeTransportConstruction()
     {
+        var configurationOwner = Guid.Parse("a5808c3e-7031-47e7-92de-48a659568f1b");
+        CollectionAssert.AreEqual(new[] { "b33f9708-a3da-805c-8d7f-73fc6c7980ea", "395a8ace-db5c-81d0-a31b-2b4b83f27d40", "c972e7a0-677c-8b43-b2bb-fe90da46f9d1" },
+            Keys.Select(x => PolygonIdSchemaQuerySource.LogicalId(configurationOwner, x).ToString()).ToArray());
         foreach (var keys in new[] { Array.Empty<string>(), new[] { "age-v3", "age-v3" }, new[] { "AGE-V3" },
                      new[] { "../secret" }, new[] { "age-v3", "country-v2", "auth-v1", "age-v3" } })
             Assert.ThrowsException<ArgumentException>(() => new PolygonIdSchemaQuerySource(Owner, keys));
