@@ -10,6 +10,12 @@ on:
       - 'Providers/Maps/NextGenSoftware.OASIS.API.Providers.GOMapOASIS/**'
       - 'Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests/**'
   workflow_dispatch:
+    inputs:
+      native_route:
+        description: Make three fixed public Berlin route reads (developer qualification only)
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -49,6 +55,8 @@ jobs:
       - name: Verify capability HTTP and parser boundary without native service access
         working-directory: OASIS
         shell: pwsh
+        env:
+          RUN_NATIVE_ROUTE: ${{ github.event_name == 'workflow_dispatch' && inputs.native_route }}
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner gomap-route-client-ci -Operation {
             dotnet test Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests --filter FullyQualifiedName~OSRMBoundedClientTests /m:2 /nr:false /p:UseSharedCompilation=false --results-directory TestResults/GOMapRouteClientCurrent --logger 'trx;LogFileName=controlled.trx'
@@ -58,6 +66,15 @@ jobs:
             if ($counts.passed -ne '28' -or $counts.total -ne '28' -or $counts.executed -ne '28') {
               throw 'All twenty-eight controlled client cases must execute and pass without skips'
             }
+            if ($env:RUN_NATIVE_ROUTE -eq 'true') {
+              $env:COSMIC_GOMAP_NATIVE_ROUTE='fixed-public-berlin'
+              $env:COSMIC_GOMAP_NATIVE_EVIDENCE_DIRECTORY=[IO.Path]::GetFullPath('TestResults/GOMapRouteClientCurrent/native')
+              dotnet test Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests --no-build --no-restore --filter FullyQualifiedName~OSRMNativeRouteTests --results-directory TestResults/GOMapRouteClientCurrent --logger 'trx;LogFileName=native.trx'
+              if ($LASTEXITCODE) { throw 'GOMap fixed native route qualification failed; no retry' }
+              [xml]$native = Get-Content TestResults/GOMapRouteClientCurrent/native.trx
+              $n = $native.TestRun.ResultSummary.Counters
+              if ($n.passed -ne '1' -or $n.total -ne '1' -or $n.executed -ne '1') { throw 'Native route case must execute and pass' }
+            }
           }
       - uses: actions/upload-artifact@v7
         if: always()
@@ -65,5 +82,6 @@ jobs:
           name: gomap-route-client-qualification
           path: |
             OASIS/TestResults/GOMapRouteClientCurrent/*.trx
+            OASIS/TestResults/GOMapRouteClientCurrent/native/
           if-no-files-found: error
           retention-days: 30
