@@ -53,7 +53,7 @@ jobs:
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner openvino-client-ci -Operation {
-            dotnet test Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'TestCategory!=OpenVinoClientNative&TestCategory!=Live' --results-directory TestResults/OpenVinoClientCurrent --logger 'trx;LogFileName=controlled.trx'
+            dotnet test Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter '(FullyQualifiedName~IntelOpenVINOOASISTests|FullyQualifiedName~OpenVinoMetadataTests)&TestCategory!=OpenVinoClientNative&TestCategory!=Live' --results-directory TestResults/OpenVinoClientCurrent --logger 'trx;LogFileName=controlled.trx'
             if ($LASTEXITCODE) { throw 'OpenVINO controlled client qualification failed' }
             [xml]$report = Get-Content TestResults/OpenVinoClientCurrent/controlled.trx
             $counts = $report.TestRun.ResultSummary.Counters

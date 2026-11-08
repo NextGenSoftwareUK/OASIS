@@ -1,7 +1,7 @@
 """One cloud-only owned OVMS runtime qualification; no local image/model installation."""
 import argparse,datetime,hashlib,json,os,re,shutil,subprocess,time,urllib.request,urllib.error
 from pathlib import Path
-parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--verify-client',action='store_true');options=parser.parse_args()
+parser=argparse.ArgumentParser(description=__doc__);verification=parser.add_mutually_exclusive_group();verification.add_argument('--verify-client',action='store_true');verification.add_argument('--verify-query',action='store_true');options=parser.parse_args()
 if os.environ.get('GITHUB_ACTIONS')!='true':
     raise RuntimeError('This qualifier runs only in the owned cloud job, never on the recovery laptop')
 ROOT=Path(__file__).resolve().parents[2]
@@ -13,7 +13,7 @@ result=ROOT/'TestResults/OpenVinoRuntimeCurrent';result.mkdir(parents=True,exist
 tmp=Path(os.environ['RUNNER_TEMP']).resolve();models=(tmp/name).resolve()
 assert models.parent==tmp and not models.exists()
 models.mkdir();(models/'owner.json').write_text(json.dumps({'run':run,'attempt':attempt}))
-intent={'run':run,'attempt':attempt,'container':name,'image':PINS['image'],'model':PINS['modelName'],'versions':PINS['versions'],'readinessOnly':True}
+intent={'run':run,'attempt':attempt,'container':name,'image':PINS['image'],'model':PINS['modelName'],'versions':PINS['versions'],'readinessOnly':not(options.verify_client or options.verify_query),'qualification':'query' if options.verify_query else 'client' if options.verify_client else 'runtime'}
 (result/'intent.json').write_text(json.dumps(intent,indent=2))
 
 def docker(*args,check=True,timeout=180):
@@ -91,7 +91,10 @@ try:
     if options.verify_client:
         env=dict(os.environ,COSMIC_OPENVINO_CLIENT_NATIVE='owned-loopback-28000',COSMIC_OPENVINO_PIN_FILE=str(ROOT/'Scripts/TestHosts/openvino-model-server-pins.json'))
         subprocess.run(['dotnet','test','Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS.UnitTests','--no-build','--no-restore','/m:2','/nr:false','/p:UseSharedCompilation=false','--filter','TestCategory=OpenVinoClientNative','--results-directory','TestResults/OpenVinoClientCurrent','--logger','trx;LogFileName=native.trx'],cwd=ROOT,env=env,check=True,timeout=120)
-    proof=intent|{'server':server,'metadata':metadata,'inferences':3,'requests':sequence,'nativeApiPass':True,'dotnetClientPass':options.verify_client,'cqlPass':False,'browserPass':False,'hostedPass':False}
+    if options.verify_query:
+        env=dict(os.environ,COSMIC_OPENVINO_MODEL_NATIVE='owned-loopback-28000')
+        subprocess.run(['dotnet','test','Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS.UnitTests','--no-build','--no-restore','/m:2','/nr:false','/p:UseSharedCompilation=false','--filter','TestCategory=OpenVinoModelNative','--results-directory','TestResults/OpenVinoQueryCurrent','--logger','trx;LogFileName=native.trx'],cwd=ROOT,env=env,check=True,timeout=120)
+    proof=intent|{'server':server,'metadata':metadata,'inferences':3,'probeRequests':sequence,'nativeApiPass':True,'dotnetClientPass':options.verify_client,'cqlPass':options.verify_query,'browserPass':False,'hostedPass':False}
     (result/'acknowledged.json').write_text(json.dumps(proof,indent=2))
 finally:
     observation=docker('container','inspect',name,check=False,timeout=20)

@@ -1,0 +1,79 @@
+name: Qualify bounded owned OpenVINO versioned model CQL
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-openvino-query.yml'
+      - 'Docker/oasis-dependency-versions.env'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core'
+      - 'Providers/Other/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS/**'
+      - 'Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS.UnitTests/**'
+      - 'Scripts/TestHosts/Qualify-OpenVinoModelServer.py'
+      - 'Scripts/TestHosts/openvino-model-server-pins.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dictionary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Validate exact dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify controlled CQL boundaries and real owned model server
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner openvino-query-ci -Operation {
+            dotnet test Providers/Other/TestProjects/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~OpenVinoVersionQueryTests&TestCategory!=OpenVinoModelNative&TestCategory!=Live' --results-directory TestResults/OpenVinoQueryCurrent --logger 'trx;LogFileName=controlled.trx'
+            if ($LASTEXITCODE) { throw 'OpenVINO controlled query qualification failed' }
+            [xml]$report = Get-Content TestResults/OpenVinoQueryCurrent/controlled.trx
+            $counts = $report.TestRun.ResultSummary.Counters
+            if ($counts.passed -ne '21' -or $counts.total -ne '21' -or $counts.executed -ne '21') {
+              throw 'All twenty-one controlled query cases must execute and pass without skips'
+            }
+            python3 -B Scripts/TestHosts/Qualify-OpenVinoModelServer.py --verify-query
+            if ($LASTEXITCODE) { throw 'OpenVINO real CQL/native runtime qualification failed' }
+            [xml]$report = Get-Content TestResults/OpenVinoQueryCurrent/native.trx
+            $counts = $report.TestRun.ResultSummary.Counters
+            if ($counts.passed -ne '1' -or $counts.total -ne '1' -or $counts.executed -ne '1') {
+              throw 'Actual versioned model CQL case must execute and pass without skips'
+            }
+          }
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: openvino-query-qualification
+          path: |
+            OASIS/TestResults/OpenVinoQueryCurrent/*.trx
+            OASIS/TestResults/OpenVinoRuntimeCurrent/
+          if-no-files-found: error
+          retention-days: 30
