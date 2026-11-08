@@ -129,3 +129,5 @@ writes, Core/WEB4 admission, Mongo federation/replicas/browser/live enrollment o
 four-provider candidate change. Next: explicit query-only Core/WEB4 integration
 and scoped cloud HTTP proof. Coverage checkpoint remains unchanged.
 See [GOMap evidence](GOMAP_PUBLIC_SOURCE_STATUS.md).
+
+GOMap query-only Core8b085f8/WEB4 owner registration,8boundary cases and1native loopback HTTP/Mongo case prepared; cloud qualification pending. Core gitlink/manifest updated together, existing source SDK/native CQL proof retained. No new live source or candidate change.
