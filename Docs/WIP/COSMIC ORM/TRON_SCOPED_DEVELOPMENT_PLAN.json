@@ -50,14 +50,14 @@
   "remaining": [
     "reader location and authenticated SDK3/2",
     "authenticated HTTP3/2,federation5/4,privacy,receipts,cleanup",
-    "exact scoped cloud compilation/control runs and candidate image",
+    "exact scoped candidate image/package verification",
     "permitted Development integration and once-only cohort acceptance",
     "browser acceptance"
   ],
   "patchRoundTripVerified": true,
   "scopedCoreCommitObjectBase64": "dHJlZSBhNGNmNjY5ZWZlZTA0ZmEzYjZhODY5YTE1YTExMjk0MjMxYjY4OGQ2CnBhcmVudCA4MTg2MmIyNDUwYzFkNGJkMGYzZTg4NTM1MjNjMWIxM2I4YTI1N2QzCmF1dGhvciBEYXZpZCBFbGxhbXMgPGRhdmlkZWxsYW1zQGhvdG1haWwuY29tPiAxNzk0MTQ3MDcyIC0wNTAwCmNvbW1pdHRlciBEYXZpZCBFbGxhbXMgPGRhdmlkZWxsYW1zQGhvdG1haWwuY29tPiAxNzk0MTQ3MDcyIC0wNTAwCgpQcmVwYXJlIHNjb3BlZCBUUk9OIHF1ZXJ5LW9ubHkgYWRtaXNzaW9uIGZyb20gRGV2ZWxvcG1lbnQgYmFzZWxpbmUK",
   "publicationScope": "Runtime candidate remains unpublished; these review artifacts may be committed on the original task branch.",
-  "stage": "Immutable scoped source snapshots published; controlled cloud checks running. Native, scoped image and live gates remain open.",
+  "stage": "Isolated scoped source passed SDK38, WEB4 admission/planning11 and ownership4 controlled checks. Native, exact scoped image, live and browser gates remain open.",
   "qualificationSourceTaskCommit": "84983a681ea430beebbfb20afbbb0c108d326e76",
   "qualificationPaths": [
     ".github/workflows/build-web4-image.yml",
@@ -104,32 +104,32 @@
     {
       "id": 42489779968,
       "name": "Verify owned WEB4 Mongo cleanup guards",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "path": ".github/workflows/qualify-owned-web4-mongo.yml",
       "event": "workflow_dispatch"
     },
     {
       "id": 42489777910,
       "name": "Qualify TRON header WEB4 read integration",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "path": ".github/workflows/qualify-tron-header-web4.yml",
       "event": "workflow_dispatch"
     },
     {
       "id": 42489776142,
       "name": "Qualify recovered authenticated TRON header client",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "path": ".github/workflows/qualify-tron-header-client.yml",
       "event": "workflow_dispatch"
     },
     {
       "id": 42489746996,
       "name": "Render Mermaid Diagrams",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "path": ".github/workflows/render-mermaid.yml",
       "event": "push"
     }
@@ -151,7 +151,14 @@
     "web4": {
       "run": 42489777910,
       "job": 128759413228,
-      "status": "in_progress"
+      "status": "completed",
+      "conclusion": "success",
+      "passed": 11,
+      "executed": 11,
+      "skipped": 0,
+      "artifact": 13621177844,
+      "artifactBytes": 2864,
+      "artifactSha256": "cabef704234e39f94821791c16c9b242ea5d4db40ae6f48899da378bab1663e5"
     }
   },
   "tagTriggeredDiagramOutcome": {
@@ -160,5 +167,7 @@
     "noUpdatesToCommitVerified": true,
     "cancelRequested": false,
     "tagAndDevelopmentRefsUnchanged": true
-  }
+  },
+  "controlledQualificationPassed": true,
+  "controlledChecks": 53
 }

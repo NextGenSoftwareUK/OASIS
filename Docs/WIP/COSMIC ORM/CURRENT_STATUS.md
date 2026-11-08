@@ -34,6 +34,16 @@ owner deferrals explicit.
 
 ## Immediate work
 
+Isolated TRON Development snapshot **beee2d25e79038ab0eb9f5ca2fd7f25e7364118f**
+with Core **7b426c953dd6ebaeee1af873e7b4fcd76b609df6** passed all53controlled
+checks: SDK38/run42489776142, WEB411/run42489777910, ownership4/run42489779968.
+Exact scoped Core+20parent paths are published as immutable verification tags;
+working/Development/queued candidate branches did not move. These controls use
+neither a TRON key nor real TRON requests. Native3/2, native HTTP/federation,
+exact scoped image/package, live enrollment and browser acceptance remain open.
+The larger task-image proof below does not qualify this separate scoped image.
+[Scope, reproducible patches and remaining gates](TRON_SCOPED_DEVELOPMENT_PLAN.json).
+
 Latest package checkpoint: TRON task image cb38e07b7, immutable digest
 sha256:e2a83122b1992aae4f998a08423085264c32c0f7385812fc8efdb882f00b3abd,
 passed package plus isolated API/OpenVINO startup42487868944. Seven assemblies,
@@ -412,3 +422,12 @@ and237byte container/volume cleanup13620846827 SHA256
 672251bbb74958d3df8677224fc28ac6379552c9f55243bf92504073deb0a96f
 inspected in memory. No local images/archives/builds/databases/runtimes or new
 worktree/environment. Native TRON/scoped image/live/browser gates remain open.
+
+Exact isolated TRON WEB4 sourcebeee2d25/Core7b426c9 now PASSED11/11/no skips,
+run42489777910/job128759413228. Artifact13621177844/2864bytes SHA256
+cabef704234e39f94821791c16c9b242ea5d4db40ae6f48899da378bab1663e5
+verified wholly in memory, exact class/report/counters. Combined scoped controls
+38SDK+11WEB4+4ownership=53passed; native switches remain off. Plan updated
+from active to verified controls. No local build, archive extraction, credentials,
+source replay, image alias or Development/master change. Exact scoped image and
+real native/HTTP/live/browser acceptance are separate remaining gates.

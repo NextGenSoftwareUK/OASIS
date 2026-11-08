@@ -5101,3 +5101,12 @@ and237byte container/volume cleanup13620846827 SHA256
 672251bbb74958d3df8677224fc28ac6379552c9f55243bf92504073deb0a96f
 inspected in memory. No local images/archives/builds/databases/runtimes or new
 worktree/environment. Native TRON/scoped image/live/browser gates remain open.
+
+Exact isolated TRON WEB4 sourcebeee2d25/Core7b426c9 now PASSED11/11/no skips,
+run42489777910/job128759413228. Artifact13621177844/2864bytes SHA256
+cabef704234e39f94821791c16c9b242ea5d4db40ae6f48899da378bab1663e5
+verified wholly in memory, exact class/report/counters. Combined scoped controls
+38SDK+11WEB4+4ownership=53passed; native switches remain off. Plan updated
+from active to verified controls. No local build, archive extraction, credentials,
+source replay, image alias or Development/master change. Exact scoped image and
+real native/HTTP/live/browser acceptance are separate remaining gates.
