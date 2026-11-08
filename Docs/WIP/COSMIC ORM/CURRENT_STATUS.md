@@ -84,9 +84,12 @@ and stopped its process. Original live source was not accessed by that diagnosti
 Task-only Linux contract now explicitly selects supported RandomAccess; no runtime
 selection/fallback. Explicit corrected-device inspection transition is implemented
 (25Node/11Python controls pass), preserving old diagnostic files and exact AOF.
-Scoped candidate226a61565 (Core unchanged) is published only to the candidate branch.
-Exact native42431408413/job128580914568 is running real WEB4 qualification;
-image42431411318/job128580919486 is building. No duplicate dispatch.
+Scoped candidate74a7b60c0 (Core unchanged) is published only to the candidate branch.
+Prior native42431408413 passed normal WEB4 recoveries but failed the new fixture:
+its GET fault injection missed fetch's implicit GET. Fixed the fixture boundary;
+exact corrected native42431903229/job128582436232 is running. Prior-candidate
+image42431411318/job128580919486 remains active and cannot substitute for the
+corrected source. Corrected exact image request waits for native qualification.
 Next qualify this complete candidate, deploy its scoped batch, then inspect all
 original records via the explicit corrected-device operation before metadata/enrollment.
 No RandomAccess shipping deployment or original-source metadata transition yet.
