@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MarqoOASIS
     /// Search:  POST   {base}/indexes/{index}/search   {{ q, filter, limit }}
     /// Delete:  POST   {base}/indexes/{index}/documents/delete-batch
     /// </summary>
-    public class MarqoOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
+    public partial class MarqoOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -47,12 +47,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MarqoOASIS
         private const string CollHolons = "oasis-holons";
 
         public MarqoOASIS(string baseUrl = "http://localhost:8882")
+            : this(baseUrl, new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })) { }
+
+        /// <summary>The caller owns an explicitly supplied HTTP client and its transport policy.</summary>
+        public MarqoOASIS(string baseUrl, HttpClient httpClient)
         {
             _baseUrl = baseUrl.TrimEnd('/');
+            ProviderName = "MarqoOASIS";
+            ProviderDescription = "Marqo native document and tensor-search provider.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.MarqoOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
-            _http = new HttpClient();
+            _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
