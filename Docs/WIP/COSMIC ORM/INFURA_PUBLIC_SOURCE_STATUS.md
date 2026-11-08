@@ -49,8 +49,11 @@ WEB4 source 78607a087 and Core 64a691b add opt-in registration and query tariff
 eligibility. The configuration names are CQL_INFURA_QUERY_SOURCE_OWNER,
 CQL_INFURA_API_KEY and CQL_INFURA_API_SECRET. Use protected server settings for
 the credentials. The fixed teaching set contains the zero address, burn address
-and Ethereum deposit contract. Exact registration controls are running in
-[42536469729](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42536469729).
+and Ethereum deposit contract. The first registration test failed while populating its configuration fixture.
+The fixture now uses an in-memory configuration source. Corrected run
+[42536679933](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42536679933)
+includes registration, tariff and credential destination/redaction controls.
+The shared owner list tracks access for native verification.
 
 Remaining gates include inspecting that run, verifying credential handling and
 native reads with authorized access, qualifying the exact WEB4 package and paired

@@ -920,3 +920,15 @@ submission is requested or authorized by this entry.
 - Concrete owner step when queued: identify an existing authorized current Marqo commerce teaching index and its existing private reader configuration, without posting keys. Engineering will first qualify the documented current read contract, approved catalogue and least-privilege credentials; do not assume an old unstructured endpoint or shared API token is compatible. If access does not exist, retain the deferment; no paid signup is assumed.
 - Reason: current native/live proof requires authorized real source records. The original bounded legacy implementation and controlled tests cannot stand in for those records or current commerce semantics. A historical runtime demo would be explicitly labelled and separate from current-service acceptance.
 - Evidence: [Marqo scope and pinned lifecycle statement](../COSMIC%20ORM/MARQO_CQL_MVP.md). Engineering/API-contract failures remain agent-owned; this entry requests no action ahead of the priority queue.
+
+
+## Infura Ethereum CQL access · 8 November 2026
+
+- **Pending authorized reader access.** For native qualification, identify an
+  existing Ethereum mainnet Infura key with API secret authentication enabled.
+  Configure the key and secret privately as `CQL_INFURA_API_KEY` and
+  `CQL_INFURA_API_SECRET` for the qualification environment. Share only the
+  location or readiness. This enables finalized public balance reads.
+- Process and user environment checks found neither configured credential.
+  See [Infura qualification](../COSMIC%20ORM/INFURA_PUBLIC_SOURCE_STATUS.md)
+  and [Infura key security](https://docs.infura.io/dashboard/how-to/secure-an-api/api-key-secret/).
