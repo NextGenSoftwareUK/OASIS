@@ -1,0 +1,67 @@
+name: Compile real Urbit native HTTP reader host
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-urbit-http-host.yml'
+      - 'Scripts/TestHosts/UrbitContactsHttpHost/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: urbit-http-host-build
+  cancel-in-progress: false
+
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          persist-credentials: false
+      - name: Read reviewed dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|OASIS_API_CORE_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/OASIS-API-Core
+          ref: ${{ steps.dependency.outputs.OASIS_API_CORE_COMMIT }}
+          path: OASIS/OASIS Architecture/NextGenSoftware.OASIS.API.Core
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Compile native HTTP host with exact pinned provider dependencies
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner urbit-http-host-ci -Operation {
+            dotnet build Scripts/TestHosts/UrbitContactsHttpHost/UrbitContactsHttpHost.csproj -c Release /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE) { throw 'Urbit HTTP host compilation failed' }
+            $output = 'TestResults/UrbitHttpHostBuildCurrent'
+            New-Item -ItemType Directory -Path $output -Force | Out-Null
+            $assembly = 'Scripts/TestHosts/UrbitContactsHttpHost/bin/Release/net10.0/UrbitContactsHttpHost.dll'
+            @{ source = $env:GITHUB_SHA; buildQualified = $true; assemblySha256 = (Get-FileHash -LiteralPath $assembly -Algorithm SHA256).Hash.ToLowerInvariant(); nativeHttpClientQualified = $false; cqlQualified = $false; liveDeployment = $false } | ConvertTo-Json | Set-Content "$output/qualification.json"
+          }
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: urbit-http-host-build
+          path: OASIS/TestResults/UrbitHttpHostBuildCurrent/*.json
+          retention-days: 7
