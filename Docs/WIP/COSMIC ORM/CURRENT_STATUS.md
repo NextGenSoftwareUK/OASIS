@@ -74,7 +74,9 @@ preflight fixed. Next42514925237 failed before seeding because native Gall scry
 paths omitted the output mark; root cause corrected with `/noun`, cleanup verified.
 Combined run42517795274 at1937289c4 now proves native empty-book/seed3/full3/subset2,
 but failed at Docker publication metadata before HTTP. Clean exit0/no OOM and
-owned container/network/pier removal verified. Transport-only diagnosis follows;
+owned container/network/pier removal verified. Docker29.4.2 suppressed publication on the internal network; replacement
+namespace-loopback transport passes42519747804 with runner UID and clean removal.
+Native HTTP/provider/shared-manager restart run42519994312 is active;
 no restart/native HTTP/CQL, native manager/live/browser acceptance or profile-count increase. [Detailed gates and receipts](URBIT_CQL_MVP.md).
 Pinned Vere4.6 and repository development
 pill passed real offline cold boot/run42507813675/source61c28aa5b. Hashed artifact
