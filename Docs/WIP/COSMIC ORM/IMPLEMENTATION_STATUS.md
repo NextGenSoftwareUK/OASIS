@@ -11,7 +11,7 @@ Updated 8 November 2026. The Development demo has accepted usable scopes; the fu
 | HyperDrive | Scoped three-store routing/failover/replication and accepted reader snapshot/reuse/privacy/replica flows | Every-provider native writes, general failover/load balancing/scale/reliability and full migration |
 | Full task image | Built/published; exact package and combined real API/OpenVINO startup, graceful shutdown and owned cloud cleanup passed | Exact scoped candidate qualification/image and live cohort acceptance; task image has not been deployed |
 | Next live scopes | MapLibre qualified/prepared; Sandbox, Polygon ID, SEEDS and OpenVINO native/CQL/WEB4 scopes qualified | First MapLibre acceptance then scoped4provider batch; no third8November Development push |
-| GOMap | 28controlled+1native case,3actual fixed public routes | CQL adapter, hosting/use contract, live WEB4, replicas/browser and full Unity capabilities |
+| GOMap | SDK28controlled+1native; CQL12controlled+1native full3/subset2, complete JSON/hash/attribution | Core/WEB4 admission, Mongo federation, hosting/use contract, live WEB4, replicas/browser and full Unity capabilities |
 | Gelato | Current Gasless client34controlled cases | Native current API credentials deferred; CQL/live integration open |
 | Imports | Existing materialized import/replication and virtual/pointer/hybrid design roadmap | Universal virtual/lazy/hybrid implementation and full-payload migration |
 

@@ -121,14 +121,11 @@ or new SDK/environment is needed for current cloud qualification.
 Historical checkpoints remain in git and the linked provider evidence docs.
 
 
-GOMap follow-on: canonical bounded OSRM client passed28/28controlled cloud cases
-(run42476991119, sourcef393451ad). Artifact13616200194/4667bytes hash/TRX verified
-in memory. Native developer run42477332751/source24d53fc82 additionally passed28+1cases
-and three actual fixed Berlin routes; raw response hashes and attribution verified
-in memory. No CQL/live enrollment, coverage increment or four-provider candidate
-change. Hosting/use-contract and CQL/HTTP/replica/browser gates remain open.
+GOMap follow-on: native SDK routing passed28controlled+1native case (3fixed
+public routes); bounded CQL adapter now passed12controlled+1native case on
+source525434ce2/run42480043896. Exact full3/subset2 route keys/IDs/native JSON
+hashes/attribution verified from8168byte artifact13616947227 in memory. No source
+writes, Core/WEB4 admission, Mongo federation/replicas/browser/live enrollment or
+four-provider candidate change. Next: explicit query-only Core/WEB4 integration
+and scoped cloud HTTP proof. Coverage checkpoint remains unchanged.
 See [GOMap evidence](GOMAP_PUBLIC_SOURCE_STATUS.md).
-
-GOMap bounded fixed-route CQL adapter and12controlled source cases now prepared; cloud compilation/qualification pending. It reuses the qualified SDK; no new native/public schedule, live enrollment, Core admission, candidate mutation or coverage increment.
-
-GOMap source controls42479732136 passed12/12/no skips; hashed2748byte artifact verified in memory. Separately opt-in actual CQL3/2 schedule prepared, no native CQL/WEB4/Core admission or live acceptance yet; coverage unchanged.
