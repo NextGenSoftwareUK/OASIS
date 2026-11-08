@@ -88,8 +88,10 @@ owner3/2, exact private fields/IDs, receipts, anonymous401, forged-field400,
 foreign403, inactive503 and identical API projection hashes across restart.
 Exact owned container/network/pier cleanup verified; hashed artifact13635911089
 and both native phase TRXs inspected. Identity validation/outbox are controlled.
-Actual Mongo federation, production JWT/durable billing, public HTTPS hosting,
-new image certification and live/browser acceptance remain open. No deployment or count increase.
+Actual Mongo federation is under qualification42529114754 at834f713a0 after
+seven controlled cases and isolated Mongo replica/cleanup preflight passed.
+Production JWT/durable billing, public HTTPS hosting, new image certification and
+live/browser acceptance remain open; native federation is not accepted yet. No deployment or count increase.
 Pinned Vere4.6 and repository development
 pill passed real offline cold boot/run42507813675/source61c28aa5b. Hashed artifact
 inspected: bootstrap complete, pier live, exit0/no OOM, network none, owned
