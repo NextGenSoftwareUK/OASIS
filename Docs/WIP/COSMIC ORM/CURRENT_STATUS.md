@@ -181,3 +181,15 @@ against current pinned Core; actual compilation pending. Native stage defaults o
 requires an explicit dispatch and dedicated configured reader secret, and consumes
 frozen private outputs. No native request, grant, live enrollment or count increase.
 Missing access remains recorded once in ACTIONS-FOR-DAVID; no repeat ask.
+
+TRON integrated controlled qualification now PASSED38/38/no skips:
+source946a3bc4f06dead2759daa18c7aa09719443eac2,
+run42482265144/job128736560638, current pinned Core8b085f8.
+Artifact13617703920/6582bytes SHA256
+9ff7c04782b7999e84c68bc356b63876daf2f097d4c270eec3a987565db0004c
+verified wholly in memory. This supersedes reliance on the older local-only
+38-case injected build; original draft/catalogue retained unchanged. Authenticated
+native stage was explicitly skipped by workflow selection, not counted as a pass.
+Reader-access question remains pending once in ACTIONS-FOR-DAVID. Native CQL,
+WEB4/live grant, browser and coverage increase remain open. Continue priority
+engineering without another anonymous endpoint attempt.
