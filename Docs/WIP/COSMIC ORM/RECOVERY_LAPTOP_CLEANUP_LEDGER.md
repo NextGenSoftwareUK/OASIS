@@ -5316,3 +5316,5 @@ MVC/admission42523748419 accepted4/4; artifact13634666563 SHA256f93086e24486f777
 
 
 Native WEB4 preparation: no runtime, source DB, native container or native job started. One new child-process-only variable COSMIC_URBIT_NATIVE_WEB4_INPUT will carry owned synthetic login data in memory; never user/machine env, command arguments, reports or files, and cleared in test child. Existing runner home retained for CLI operation, no new environment directory. Same cloud runtime/desk/kernel caches and existing task worktree; Release producers serialized once, native consumer no-build/no-restore. Eight pure Python controls pass with -B and no bytecode. Pending four-case cloud compile/refactor qualification before any native lifecycle dispatch.
+
+Preflight42525205507 accepted4/4/artifact13634709046 inspected in memory, compact receipt only. One native-web4 lifecycle42525613719 active at6981acb6b, reusing exact three caches and owned synthetic source; no other native run active at dispatch. Child-only input and owned pier/container/network cleanup pending terminal inspection. No user/machine env, local runtime or copied build output created.

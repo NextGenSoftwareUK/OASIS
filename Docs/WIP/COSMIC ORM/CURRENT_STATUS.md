@@ -85,7 +85,9 @@ Private WEB4 registration/compiler controls now pass30/30 atd4edadf7f/run4252233
 Admitted endpoint checks now pass4/4 atc2a8b2391/run42523748419 with Coree62ec44,
 including actual loopback MVC: owner3/2 private metadata/receipts, anonymous401,
 forged-field400, foreign403 and inactive503 without native reads or replacement rows.
-Native replies, identity validation and outbox remain controlled. Native-source
+Native replies, identity validation and outbox remain controlled in that proof.
+Refactored MVC preflight4/4 at6981acb6b/run42525205507 accepted; one real native
+WEB4/restart lifecycle42525613719 is active at that exact source. Native-source
 WEB4 HTTP/federation/hosting/live/browser and new image certification remain open. No deployment or count increase.
 Pinned Vere4.6 and repository development
 pill passed real offline cold boot/run42507813675/source61c28aa5b. Hashed artifact
