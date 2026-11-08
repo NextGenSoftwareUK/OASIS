@@ -198,3 +198,5 @@ Observe only the exact deployment with Scripts/Sandbox/Observe-HostedDeployment.
 [Resources](ENVIRONMENT_AND_CLEANUP_LEDGER.md) Â·
 [David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md) Â·
 [Previous status](Archive/CURRENT_STATUS_history_2026-11-07.md).
+
+8 November checkpoint: Civic accepted card81 now publicly byte-verified at websitefa0f848b2bbb7418fdbe2fca4f0e0a45367ec3bd. Scoped MapLibre candidate23532a6f/Core681a1d0 published; exact native42458784027,WEB442458783911,admission42458784079 observed live. Offline original MapLibre source plan prepared once, no settings or deployment; full hosted/replication/browser gate remains open. Coverage124scoped local/96liveHTTP/28browser unchanged.

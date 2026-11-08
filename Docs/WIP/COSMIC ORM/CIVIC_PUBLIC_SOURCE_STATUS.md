@@ -241,3 +241,5 @@ CivicOASIS-native-http.json: 13223bytes/SHA256cd02313824aa10cb76db104c0f059ef6bd
 Private record IDs bf051f2f-8411-84bb-9aaa-d5457d28130c, 71984641-5668-89ce-9b5f-6e63eb413b0b; original save operations 6b1fcc8f-386e-e72e-8a48-3b5b92aee453, b175c228-1f71-049c-ba92-2fe593f3a456.
 
 Coverage124scoped local/96liveHTTP/28browser. Website card81 publication next; browser remains open. Registry configuration is not personal verification, pass issuance, archival-state access, independent consensus or full ORM/identity certification. Preserve this accepted cohort.
+
+8 November: accepted sandbox card81 published from website commit fa0f848b2bbb7418fdbe2fca4f0e0a45367ec3bd through normal atomic original-task/main push. Public HTML fetched once:272986bytes,SHA25629a42daa76bb55bb48e6f85569274a582cce33dacd086fae74c9535e5ac94745; exact committed bytes and immutable sealed evidence843620f4978e1a8854db7b1809bb06508def43e3 match. Browser acceptance remains open; no accepted cohort replay.
