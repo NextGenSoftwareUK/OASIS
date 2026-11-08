@@ -4878,3 +4878,5 @@ Web4Site26b3172 published atomically to existing work/cosmic-cql/main branches a
 8 November: user priority order updated to Solana/Ethereum/Polygon/Arbitrum/NEAR/Cosmos/Polkadot/TON/TRON/Hedera/EOS before remaining-provider popularity queue. Source/roadmap edits only; accepted cohorts and queued rollout owners/settings preserved. GOMap original WEB442480693015 freshly confirmed terminal success; artifact closeout pending, no replacement job or native/source replay. No local runtime/build/database/image/install.
 
 8 November priority correction: latest user-edited goal explicitly places EOS immediately after NEAR, before Cosmos/Polkadot/TON/TRON/Hedera. Current status/roadmap corrected to that exact order; earlier appended priority checkpoint is superseded. Documentation only, no resource/live/source changes.
+
+8 November latest priority amendment: user adds SOLID/IPFS/ActivityPub after EOS and before Cosmos, explicitly clarifying OLID=SOLID. Current status/roadmap now match all14ordered providers. Existing accepted HTTP/browser proofs preserved; no source replay, resources or live settings changed.
