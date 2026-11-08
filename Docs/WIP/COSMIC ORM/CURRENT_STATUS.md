@@ -14,8 +14,10 @@ Civic first cloud42452950450 passes27controlled+1296shared but native fails
 because the frozen state needs archive access. Original diagnostic retained;
 no more archived-state requests or alternate endpoint. Single current-finalized
 per-record reader now replaces the unsuitable archive contract. Corrected
-source4a56a62a2/Core46ac61c manifest validates; native cloud42453281381 and
-WEB4 cloud42453281168 arequeued. No CQL count/admission increase. Existing
+source4a56a62a2/Core46ac61c manifest validates; native42453281381 passes
+27controlled+1296shared+1native, artifact/counters verified in memory.
+WEB442453281168/job128646846608 islive compiling its controlled consumer.
+Civic planner39controls+5publisher guards pass. No CQL count/admission increase. Existing
 personal-pass adapter preserved. [Review](CIVIC_PUBLIC_SOURCE_STATUS.md).
 No local build/runtime/image/database download.
 

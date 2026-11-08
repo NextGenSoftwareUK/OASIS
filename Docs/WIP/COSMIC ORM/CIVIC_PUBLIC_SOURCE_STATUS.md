@@ -103,3 +103,21 @@ parent gitlink and manifest advance together. Source correction and WEB4
 qualification must pass before any local count or hosted enrollment increase.
 
 Corrected tasksource4a56a62a279045e92248f74c1e507279112ece3f/Core46ac61c manifest/gitlinks pass. Cloud native42453281381 and WEB442453281168 observedqueued, no manual duplicate dispatch or accepted source change.
+
+Corrected cloud42453281381/job128646847144 succeeds:27controlled+1296shared+
+1actual native CQL3/2, zero skips. Artifact13606606841/308395bytes SHA256
+67add0e29740f0267215b3917abe27ec942883f840e6a709b9e5b4844dc76101 and all
+three TRX hashes/counters verified entirely in memory; no ZIP/TRX retained.
+The original archive failure is preserved, not retried or re-labelled green.
+WEB442453281168/job128646846608 is live at controlled consumer compilation.
+
+Fixed-catalogue planner now binds only CQL_CIVIC_NETWORK_QUERY_SOURCE_OWNER,
+namespacecivic/polygon/network and native IDs1/4/10.39candidate controls and
+5publisher guards pass with self-cleaning fixtures; simulated test stdout
+is not a live setting update. An initial publisher filename pattern matched
+zero tests; corrected to test_hosted_fixed_public_catalogue.py, all5executed.
+Fixture actor a5808c3e-7031-47e7-92de-48a659568f1b expected logical IDs
+fb19f71f-ed17-8a0c-b2dc-b0f5074a6888,863752f8-cc68-8ebe-bf88-4b95f8921590,
+3e9729d9-0057-82ea-8335-a83ad0fa8f8d; same assertions added to the existing
+C#catalogue test for next cloud qualification. No real source actor/snapshot,
+admission, Development image or hosted cohort prepared for Civic yet.

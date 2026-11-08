@@ -28,9 +28,12 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
     "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "TenderlyOASIS", "QuickNodeOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS",
-    "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS", "SelfProtocolOASIS", "HolonymOASIS", "WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS",
+    "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS", "SelfProtocolOASIS", "HolonymOASIS", "CivicOASIS", "WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS",
 )
 FIXED_PUBLIC_CATALOGUES = {
+    "CivicOASIS": (
+        "CQL_CIVIC_NETWORK_QUERY_SOURCE_OWNER", "civic/polygon/network", ("1", "4", "10"),
+    ),
     "HolonymOASIS": (
         "CQL_HOLONYM_ATTESTATION_QUERY_SOURCE_OWNER", "human-id/sign/optimism/schema-1",
         ("onchain_evm_10_0x3248d", "onchain_evm_10_0x3248c", "onchain_evm_10_0x3248a"),

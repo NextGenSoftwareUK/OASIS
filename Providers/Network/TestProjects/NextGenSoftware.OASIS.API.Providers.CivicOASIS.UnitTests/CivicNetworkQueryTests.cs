@@ -103,6 +103,9 @@ public class CivicNetworkQueryTests
     [TestMethod]
     public void InvalidCataloguesFailBeforeTransportConstruction()
     {
+        var configurationOwner = Guid.Parse("a5808c3e-7031-47e7-92de-48a659568f1b");
+        CollectionAssert.AreEqual(new[] { "fb19f71f-ed17-8a0c-b2dc-b0f5074a6888", "863752f8-cc68-8ebe-bf88-4b95f8921590", "3e9729d9-0057-82ea-8335-a83ad0fa8f8d" },
+            Networks.Select(x => CivicNetworkQuerySource.LogicalId(configurationOwner, x).ToString()).ToArray());
         foreach (var values in new[] { Array.Empty<int>(), new[] { 1, 1 }, new[] { 0 }, new[] { 2 }, new[] { 1, 4, 10, 1 } })
             Assert.ThrowsException<ArgumentException>(() => new CivicNetworkQuerySource(Owner, values));
         Assert.ThrowsException<ArgumentException>(() => new CivicNetworkQuerySource(Guid.Empty, Networks));
