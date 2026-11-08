@@ -100,8 +100,13 @@ public HTTPS hosting, exact image certification and live/browser acceptance rema
 open. No deployment or count increase.
 Exact candidate image build42531102996 completed success at e514c0025/Coree62ec44;
 commit-only teaching tag, digest54be8845a8766885b959a8e162eca682d270ad7390644e6d16afd9c7a5a6d39c.
-Full package/TRON+Urbit reader/isolated startup qualification42532884240 is active,
-not accepted. No alias move, local image download or live/Development change.
+Package42532884240 completed green but full startup is rejected: artifact13637997707
+shows Docker unhealthy because its curl health executable is missing, despite
+successful8assembly/TRON+Urbit, API/native probes and owned cleanup. Root fix uses
+already-shipped Node for the Docker health command and requires actual healthy
+Docker execution before startup acceptance;8local control methods pass. Corrected
+source needs a new immutable image, not a moved existing tag. No CQL API change,
+native cohort replay, local image download or live/Development change.
 Pinned Vere4.6 and repository development
 pill passed real offline cold boot/run42507813675/source61c28aa5b. Hashed artifact
 inspected: bootstrap complete, pier live, exit0/no OOM, network none, owned

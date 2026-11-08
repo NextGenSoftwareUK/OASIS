@@ -101,12 +101,24 @@ branch after matching its SHA, while the build checkout input remains frozen.
 Published digest:
 `sha256:54be8845a8766885b959a8e162eca682d270ad7390644e6d16afd9c7a5a6d39c`.
 Source/digest were read from completed job metadata/logs without retaining logs.
-Build success is not package or startup acceptance. Exact-digest full package
-qualification is active42532884240/job128890792797, workflowe02bd2e71, source
-checkout still frozen toe514c0025. It explicitly requires both TRON and Urbit
-readers plus isolated combined API/native startup with fresh owned cloud data.
-Follow this original package run and inspect its artifact/cleanup before
-acceptance. No live settings, Development publication or native source re-seed.
+Build success is not full startup acceptance. Package qualification42532884240/
+job128890792797 completed with a green workflow but **full startup is rejected**
+after artifact inspection. Artifact13637997707 SHA256
+`c7a32bc5d205cfee5d49929eb4efad1a6e44e09cbf7466859f5aebc6d5cbcad8`
+proves8assemblies, TRON+Urbit SDK/query/registration/dependency graph, model and
+host hashes, API health/native metadata, exit0/no OOM and owned cleanup. However,
+its actual Docker health state is unhealthy: `/bin/sh: 1: curl: not found`.
+No deployment or image/runtime acceptance follows from the green job.
+
+Root-cause correction: the shipped Docker health command now uses the Node runtime
+already verified/published by that image, with a2s timeout, exact loopback health
+URL, HTTP200 required and redirects rejected. Full combined startup must observe
+the declared Docker healthcheck actually reaching healthy with a successful log,
+before shutdown/acceptance; missing/disabled/failed checks reject. No CQL API or
+provider behavior changed. Eight local control methods pass, including the actual
+shipped health command and the reproduced missing-curl false acceptance. Corrected
+source needs a new immutable image and exact package/startup qualification; never
+move or overwrite the existing candidate tag. No native cohort replay.
 
 ## Files and reusable resources
 

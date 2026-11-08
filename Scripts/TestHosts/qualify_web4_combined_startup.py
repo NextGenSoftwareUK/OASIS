@@ -52,6 +52,22 @@ def configuration(root, mongo, marker, profile='full'):
 
 
 
+def image_health_ready(state):
+    test = state.get('Config', {}).get('Healthcheck', {}).get('Test', [])
+    if not test or test[0] not in ('CMD', 'CMD-SHELL'):
+        raise RuntimeError('Full image must declare an executable Docker healthcheck.')
+    observed = state['State']
+    if not observed['Running']:
+        raise RuntimeError('Full image exited before Docker health readiness.')
+    health = observed.get('Health', {})
+    status = health.get('Status')
+    if status == 'starting':
+        return False
+    if status != 'healthy' or not health.get('Log') or health['Log'][-1]['ExitCode'] != 0:
+        raise RuntimeError('Full image Docker healthcheck failed or has no successful execution.')
+    return True
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--digest',required=True);p.add_argument('--profile',choices=['full','tron-api'],default='full');o=p.parse_args()
     assert os.environ.get('GITHUB_ACTIONS')=='true' and re.fullmatch('sha256:[a-f0-9]{64}',o.digest)
@@ -119,12 +135,17 @@ console.log(JSON.stringify(b));
                 raise RuntimeError('API health failed outside connection-refusal/503 readiness contract; exit '+str(r.returncode)+': '+r.stderr[-1500:])
             if time.monotonic()>deadline: raise RuntimeError('Combined API readiness deadline.')
             time.sleep(2)
+        if o.profile == 'full':
+            while not image_health_ready(json.loads(docker('inspect',api).stdout)[0]):
+                if time.monotonic() > deadline:
+                    raise RuntimeError('Full image Docker health readiness deadline.')
+                time.sleep(2)
         native="const x=require('/app/host-sandbox-openvino.cjs');x.verifyNative(require('/app/openvino-model-server-pins.json'),AbortSignal.timeout(10000)).then(()=>console.log('native-metadata-verified')).catch(e=>{console.error(e);process.exit(1)})"
         if o.profile == 'full':
             docker('exec',api,'node','-e',native,timeout=20)
         docker('stop','--time','20',api,timeout=30)
         state=json.loads(docker('inspect',api).stdout)[0];assert state['State']['ExitCode']==0 and not state['State']['OOMKilled']
-        (out/'acknowledged.json').write_text(json.dumps({'source':package['source'],'image':image,'apiHealth':True,'nativeMetadata':o.profile == 'full','gracefulExit':0,'internalNetwork':True,'liveDeployment':False,'cqlAcceptance':False},indent=2))
+        (out/'acknowledged.json').write_text(json.dumps({'source':package['source'],'image':image,'apiHealth':True,'dockerHealthVerified':o.profile == 'full','nativeMetadata':o.profile == 'full','gracefulExit':0,'internalNetwork':True,'liveDeployment':False,'cqlAcceptance':False},indent=2))
     finally:
         if ('container',api) in created:
             observed=json.loads(docker('inspect',api).stdout)[0]

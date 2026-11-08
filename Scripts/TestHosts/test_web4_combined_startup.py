@@ -96,6 +96,47 @@ console.log(JSON.stringify(result));
                     self.assertEqual(options.get('urbit',False), proof['urbitReaderPackaged'])
                     self.assertEqual(options['profile']=='full', proof['modelHashes'])
 
+    def test_shipped_health_command_uses_published_runtime_and_rejects_bad_http(self):
+        import json
+        import re
+        dockerfile = Path(__file__).resolve().parents[2] / 'Docker/Dockerfile.web4'
+        match = re.search(r'HEALTHCHECK[^\n]+\n\s*CMD (\[.*\])', dockerfile.read_text(encoding='utf-8-sig'))
+        self.assertIsNotNone(match)
+        command = json.loads(match.group(1))
+        self.assertEqual(['node', '-e'], command[:2])
+        self.assertEqual(3, len(command))
+        for label, response, expected in [
+            ('healthy', 'return {status:200}', 0),
+            ('unavailable', 'return {status:503}', 1),
+            ('redirect', 'return {status:302}', 1),
+            ('connection-error', "throw Error('controlled connection failure')", 1),
+        ]:
+            with self.subTest(label=label):
+                harness = "globalThis.fetch=async(u,o)=>{if(u!=='http://127.0.0.1:8080/api/health'||o.redirect!=='error'||!(o.signal instanceof AbortSignal))throw Error('wrong health contract');" + response + '};\n' + command[2]
+                result = subprocess.run([os.environ.get('NODE_BINARY','node'),'-e',harness],
+                    capture_output=True,text=True,timeout=5)
+                self.assertEqual(expected,result.returncode,result.stderr)
+
+    def test_full_startup_requires_actual_docker_health_success(self):
+        import runpy
+        ready = runpy.run_path(str(Path(__file__).with_name('qualify_web4_combined_startup.py')))['image_health_ready']
+        def state(status='healthy', code=0):
+            return {'Config':{'Healthcheck':{'Test':['CMD','node','-e','probe']}},
+                    'State':{'Running':True,'Health':{'Status':status,'Log':[{'ExitCode':code}]}}}
+        self.assertTrue(ready(state()))
+        self.assertFalse(ready(state('starting',1)))
+        bad = [state('unhealthy',1),state('healthy',1),state('missing',0)]
+        missing = state(); del missing['Config']['Healthcheck']; bad.append(missing)
+        disabled = state(); disabled['Config']['Healthcheck']['Test']=['NONE']; bad.append(disabled)
+        stopped = state(); stopped['State']['Running']=False; bad.append(stopped)
+        empty = state(); empty['State']['Health']['Log']=[]; bad.append(empty)
+        missing_curl = state('unhealthy',1)
+        missing_curl['State']['Health']['Log'][-1]['Output']='/bin/sh: 1: curl: not found'
+        bad.append(missing_curl)
+        for observed in bad:
+            with self.subTest(observed=observed):
+                with self.assertRaises(RuntimeError): ready(observed)
+
     def test_generated_dna_satisfies_actual_native_supervisor_guard(self):
         import runpy
         root=Path(__file__).resolve().parents[2]
