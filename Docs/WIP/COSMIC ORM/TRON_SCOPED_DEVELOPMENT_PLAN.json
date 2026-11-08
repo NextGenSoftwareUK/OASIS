@@ -40,7 +40,7 @@
     }
   },
   "sourceFixtureSha256": "7f1c8fe3c35ef3c45ee31be6eaef72f34f8d10185a28e2177ace267822e89c02",
-  "published": false,
+  "published": true,
   "nativeTronAccepted": false,
   "httpAccepted": false,
   "liveEnrolled": false,
@@ -57,7 +57,7 @@
   "patchRoundTripVerified": true,
   "scopedCoreCommitObjectBase64": "dHJlZSBhNGNmNjY5ZWZlZTA0ZmEzYjZhODY5YTE1YTExMjk0MjMxYjY4OGQ2CnBhcmVudCA4MTg2MmIyNDUwYzFkNGJkMGYzZTg4NTM1MjNjMWIxM2I4YTI1N2QzCmF1dGhvciBEYXZpZCBFbGxhbXMgPGRhdmlkZWxsYW1zQGhvdG1haWwuY29tPiAxNzk0MTQ3MDcyIC0wNTAwCmNvbW1pdHRlciBEYXZpZCBFbGxhbXMgPGRhdmlkZWxsYW1zQGhvdG1haWwuY29tPiAxNzk0MTQ3MDcyIC0wNTAwCgpQcmVwYXJlIHNjb3BlZCBUUk9OIHF1ZXJ5LW9ubHkgYWRtaXNzaW9uIGZyb20gRGV2ZWxvcG1lbnQgYmFzZWxpbmUK",
   "publicationScope": "Runtime candidate remains unpublished; these review artifacts may be committed on the original task branch.",
-  "stage": "Runtime and qualification-tooling snapshot prepared; exact scoped cloud compilation and candidate image remain unverified.",
+  "stage": "Immutable scoped source snapshots published; controlled cloud checks running. Native, scoped image and live gates remain open.",
   "qualificationSourceTaskCommit": "84983a681ea430beebbfb20afbbb0c108d326e76",
   "qualificationPaths": [
     ".github/workflows/build-web4-image.yml",
@@ -96,5 +96,69 @@
     "Scripts/TestHosts/test_owned_web4_mongo.py"
   ],
   "baselineValidatorPreserved": true,
-  "baselineValidatorSha256": "2333122fa1b6f94c7196e1bdb387c00312ce7fb2712d1841c4b1d039d6f8d6ab"
+  "baselineValidatorSha256": "2333122fa1b6f94c7196e1bdb387c00312ce7fb2712d1841c4b1d039d6f8d6ab",
+  "scopedCoreTag": "cosmic-tron-core-7b426c953dd6",
+  "scopedSourceTag": "cosmic-tron-scope-beee2d25e790",
+  "remoteSnapshotsVerified": true,
+  "controlledRuns": [
+    {
+      "id": 42489779968,
+      "name": "Verify owned WEB4 Mongo cleanup guards",
+      "status": "in_progress",
+      "conclusion": null,
+      "path": ".github/workflows/qualify-owned-web4-mongo.yml",
+      "event": "workflow_dispatch"
+    },
+    {
+      "id": 42489777910,
+      "name": "Qualify TRON header WEB4 read integration",
+      "status": "in_progress",
+      "conclusion": null,
+      "path": ".github/workflows/qualify-tron-header-web4.yml",
+      "event": "workflow_dispatch"
+    },
+    {
+      "id": 42489776142,
+      "name": "Qualify recovered authenticated TRON header client",
+      "status": "in_progress",
+      "conclusion": null,
+      "path": ".github/workflows/qualify-tron-header-client.yml",
+      "event": "workflow_dispatch"
+    },
+    {
+      "id": 42489746996,
+      "name": "Render Mermaid Diagrams",
+      "status": "in_progress",
+      "conclusion": null,
+      "path": ".github/workflows/render-mermaid.yml",
+      "event": "push"
+    }
+  ],
+  "nativeSwitchesEnabled": false,
+  "controlledEvidence": {
+    "sdk": {
+      "run": 42489776142,
+      "passed": 38,
+      "executed": 38,
+      "skipped": 0,
+      "artifact": 13621346172,
+      "artifactSha256": "598753ea2f083b7415a98d70dd73abe17f38041dc2a19d491e5736d8adb2aa71"
+    },
+    "ownership": {
+      "run": 42489779968,
+      "passed": 4
+    },
+    "web4": {
+      "run": 42489777910,
+      "job": 128759413228,
+      "status": "in_progress"
+    }
+  },
+  "tagTriggeredDiagramOutcome": {
+    "run": 42489746996,
+    "conclusion": "success",
+    "noUpdatesToCommitVerified": true,
+    "cancelRequested": false,
+    "tagAndDevelopmentRefsUnchanged": true
+  }
 }

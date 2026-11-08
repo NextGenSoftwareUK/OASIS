@@ -393,3 +393,22 @@ passed; GOMap compatibility42489179711 remains running and must be followed to
 its real outcome/owned cleanup. No native TRON request or Development change.
 Next: publish immutable verification refs and run only the scoped controls with
 native SDK/HTTP switches off. Native/private reader location remains pending.
+
+Scoped TRON verification snapshots PUBLISHED and remote-verified, with original
+working/candidate/Development branch refs unchanged: Core7b426c953dd6 tag
+cosmic-tron-core-7b426c953dd6; parentbeee2d25e790 tag
+cosmic-tron-scope-beee2d25e790. Three explicit controlled dispatches204/native
+switches false. Exact scoped SDK42489776142 passed38/38/no skips (artifact
+13621346172/6517bytes SHA256
+598753ea2f083b7415a98d70dd73abe17f38041dc2a19d491e5736d8adb2aa71
+verified in memory); ownership42489779968 passed4 controls. WEB4 run42489777910/
+job128759413228 remains active; preserve handle, do not repeat. Tag also triggered
+legacy diagram workflow42489746996: finished before cancellation, log explicitly
+No diagram updates to commit; tagbeee2/Development88c3 verified unchanged. No
+source/deployment mutation from it. GOMap shared-helper compatibility42489179711
+passed8+1/3-2/5-4/privacy/9receipts/ownedDB cleanup;5126byte artifact13621197004
+SHA2561b0843300df68448c65e31745dbcac64125eee326e73584ec59c990e377bf103
+and237byte container/volume cleanup13620846827 SHA256
+672251bbb74958d3df8677224fc28ac6379552c9f55243bf92504073deb0a96f
+inspected in memory. No local images/archives/builds/databases/runtimes or new
+worktree/environment. Native TRON/scoped image/live/browser gates remain open.
