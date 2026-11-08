@@ -44,6 +44,9 @@ jobs:
           ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
           path: NextGenSoftware-Libraries
           persist-credentials: false
+      - name: Verify owned namespace boundary controls
+        working-directory: OASIS
+        run: python3 -B -m unittest discover -s Scripts/TestHosts -p test_owned_urbit_http_namespace.py
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
