@@ -431,3 +431,17 @@ verified wholly in memory, exact class/report/counters. Combined scoped controls
 from active to verified controls. No local build, archive extraction, credentials,
 source replay, image alias or Development/master change. Exact scoped image and
 real native/HTTP/live/browser acceptance are separate remaining gates.
+
+Exact scoped TRON image build dispatched once204 after53controlled passes,
+sourcebeee2d25/Core7b426c9, workflow sourcef83c1497e, run42490408557 active.
+Explicit extra tag equals immutable beee2d25e79038ab0eb9f5ca2fd7f25e7364118f-teaching,
+so no blank/default alias request. No deployment. New explicit tron-api verifier
+profile checks API/Core/TRON assemblies, reader type/authenticated method metadata
+and exact source IPFS supervisor hash. It boots real API/owned Mongo without
+enrolling TRON or OpenVINO, explicitly disabling the excluded model supervisor;
+never claims native metadata or native CQL. Full profile retains all model/native
+requirements. Package/startup profile mismatches fail before resource creation.
+Six local controls pass, including actual Node probe rejection of absent reader
+assembly/auth method and both full model profiles; cloud controls pending. Only
+checker tooling changed, not the immutable image source; do not rebuild it.
+No local image/runtime/SDK/model/database downloads or new worktree/environment.

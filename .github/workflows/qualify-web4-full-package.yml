@@ -18,6 +18,12 @@ on:
         description: Published full image sha256 digest
         required: true
         type: string
+      package_profile:
+        description: Exact image scope to verify
+        required: false
+        type: choice
+        options: [full, tron-api]
+        default: full
       tron_reader:
         description: Require the packaged authenticated TRON header reader
         required: false
@@ -77,15 +83,17 @@ jobs:
           SOURCE: ${{ inputs.source }}
           DIGEST: ${{ inputs.digest }}
           REQUIRE_TRON_READER: ${{ inputs.tron_reader }}
+          PACKAGE_PROFILE: ${{ inputs.package_profile }}
         run: |
           args=()
           if [[ "$REQUIRE_TRON_READER" == true ]]; then args+=(--require-tron-reader); fi
-          python3 -B Scripts/TestHosts/qualify_web4_full_package.py --source "$SOURCE" --digest "$DIGEST" "${args[@]}"
+          python3 -B Scripts/TestHosts/qualify_web4_full_package.py --source "$SOURCE" --digest "$DIGEST" --profile "$PACKAGE_PROFILE" "${args[@]}"
       - name: Verify combined API and native startup on isolated fresh data
         if: inputs.combined_startup
         env:
           DIGEST: ${{ inputs.digest }}
-        run: python3 -B Scripts/TestHosts/qualify_web4_combined_startup.py --digest "$DIGEST"
+          PACKAGE_PROFILE: ${{ inputs.package_profile }}
+        run: python3 -B Scripts/TestHosts/qualify_web4_combined_startup.py --digest "$DIGEST" --profile "$PACKAGE_PROFILE"
       - uses: actions/upload-artifact@v7
         if: always()
         with:

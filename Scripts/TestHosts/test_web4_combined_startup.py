@@ -7,6 +7,76 @@ import unittest
 
 
 class StartupProbeTests(unittest.TestCase):
+    def test_tron_api_profile_enrolls_only_isolated_mongo_and_no_native_reader(self):
+        import runpy
+        import json
+        root = Path(__file__).resolve().parents[2]
+        create = runpy.run_path(str(Path(__file__).with_name('qualify_web4_combined_startup.py')))['configuration']
+        env = create(root, 'mongodb://mongo:27017/?replicaSet=rs0', 'oasis_startup_1_1', 'tron-api')
+        admission = json.loads(env['PREPARED_STORAGE_ADMISSION_JSON'])
+        self.assertEqual(['MongoDBOASIS'], admission['ordinaryProviders'])
+        self.assertEqual([], admission['queryOnlyProviders'])
+        self.assertEqual(['MongoDBOASIS'], [row['provider'] for row in admission['queryTariffs']])
+        self.assertEqual('false', env['OASIS_SANDBOX_OPENVINO'])
+        for key in ['CQL_OPENVINO_MODEL_QUERY_SOURCE_OWNER',
+                    'CQL_TRON_PUBLIC_HEADER_QUERY_SOURCE_JSON', 'COSMIC_TRON_PUBLIC_READER_KEY']:
+            self.assertNotIn(key, env)
+        script = "const fs=require('node:fs');require(process.argv[1]).assertSandbox(fs.readFileSync(0,'utf8'));"
+        result = subprocess.run([os.environ.get('NODE_BINARY', 'node'), '-e', script,
+            str(root/'Docker/host-sandbox-ipfs.cjs')], input=env['OASIS_DNA_JSON'],
+            text=True, capture_output=True, timeout=8)
+        self.assertEqual(0, result.returncode, result.stderr)
+
+    def test_unknown_startup_profile_is_rejected(self):
+        import runpy
+        create = runpy.run_path(str(Path(__file__).with_name('qualify_web4_combined_startup.py')))['configuration']
+        with self.assertRaises(ValueError):
+            create(Path(__file__).resolve().parents[2], 'unused', 'unused', 'unknown')
+
+    def test_actual_package_probe_requires_reader_metadata_and_full_model_checks(self):
+        import json
+        tree = ast.parse(Path(__file__).with_name('qualify_web4_full_package.py').read_text(encoding='utf-8-sig'))
+        probe = next(n.value.value for n in ast.walk(tree) if isinstance(n, ast.Assign)
+                     and any(isinstance(t, ast.Name) and t.id == 'probe' for t in n.targets))
+        harness = r"""
+const vm=require('node:vm'),crypto=require('node:crypto'),assert=require('node:assert/strict');
+const o=JSON.parse(process.argv[1]),helper=Buffer.from('controlled-helper'),model=Buffer.from('controlled-model');
+const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+const expected={'/app/host-sandbox-ipfs.cjs':hash(helper)};
+let result,modelReads=0;
+const fs={readFileSync:p=>{
+ if(p==='/app/host-sandbox-ipfs.cjs')return helper;
+ if(p==='/app/NextGenSoftware.OASIS.API.Providers.TRONOASIS.dll'){
+   if(o.missingFile)throw Error('controlled missing reader assembly');
+   return Buffer.from('TronPublicHeaderMetadataSource '+(o.missingMethod?'':'FromAuthenticatedJson'));
+ }
+ if(p.startsWith('/models/')){modelReads++;return model;}
+ throw Error('Unexpected controlled file '+p);
+},statSync:()=>({size:1}),realpathSync:()=>'/opt/ovms-rootfs/ovms'};
+const pins={modelName:'controlled',versions:['1','2','3'],files:{'graph':{bytes:model.length,sha256:hash(model)}}};
+vm.runInNewContext(PROBE,{Buffer,require:p=>{
+ if(p==='node:fs')return fs;if(p==='node:crypto')return crypto;if(p==='node:assert/strict')return assert;
+ if(p==='/app/openvino-model-server-pins.json')return pins;throw Error('Unexpected controlled module '+p);
+},process:{argv:['node',JSON.stringify(expected),JSON.stringify(o.reader),o.profile]},console:{log:s=>result=JSON.parse(s)}});
+assert.equal(modelReads,o.profile==='full'?3:0);
+console.log(JSON.stringify(result));
+""".replace('PROBE', json.dumps(probe))
+        cases = [({'profile':'full','reader':False}, 0, 6),
+                 ({'profile':'full','reader':True}, 0, 7),
+                 ({'profile':'tron-api','reader':True}, 0, 3),
+                 ({'profile':'tron-api','reader':True,'missingMethod':True}, 1, None),
+                 ({'profile':'tron-api','reader':True,'missingFile':True}, 1, None),
+                 ({'profile':'tron-api','reader':False}, 1, None)]
+        for options, status, count in cases:
+            with self.subTest(options=options):
+                result = subprocess.run([os.environ.get('NODE_BINARY','node'), '-e', harness,
+                    json.dumps(options)], text=True, capture_output=True, timeout=8)
+                self.assertEqual(status, result.returncode, result.stderr)
+                if status == 0:
+                    proof = json.loads(result.stdout)
+                    self.assertEqual(count, proof['assemblies'])
+                    self.assertEqual(options['profile']=='full', proof['modelHashes'])
+
     def test_generated_dna_satisfies_actual_native_supervisor_guard(self):
         import runpy
         root=Path(__file__).resolve().parents[2]

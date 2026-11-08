@@ -4,7 +4,9 @@ from pathlib import Path
 from owned_docker_resources import missing_resource
 
 
-def configuration(root, mongo, marker):
+def configuration(root, mongo, marker, profile='full'):
+    if profile not in ('full', 'tron-api'):
+        raise ValueError('Explicit known startup profile required.')
     dna = json.loads((root / 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/Default/OASIS_DNA.json').read_text(encoding='utf-8-sig'))
     oasis = dna['OASIS']; storage = oasis['StorageProviders']
     oasis['HyperDriveMode'] = 'OASISHyperDrive2'
@@ -29,27 +31,35 @@ def configuration(root, mongo, marker):
     policy = {'requiresProviderMeasurement':True,'meterCategory':'cql.package-startup','reservedUnits':1,'fixedCostUsd':0,
               'estimatedCostUsd':0,'maximumNativeFeeCostUsd':0,'maximumProviderAttempts':1,
               'pricingCatalogueVersion':'package-startup-v1'}
+    query_only = ['IntelOpenVINOOASIS'] if profile == 'full' else []
     admission = {'nativeProviders':[], 'ordinaryProviders':['MongoDBOASIS'],
-        'queryOnlyProviders':['IntelOpenVINOOASIS'], 'storageTariffs':[],
-        'queryTariffs':[{'provider':p,'costUsd':0,'catalogueVersion':'package-startup-v1'} for p in ['MongoDBOASIS','IntelOpenVINOOASIS']],
+        'queryOnlyProviders':query_only, 'storageTariffs':[],
+        'queryTariffs':[{'provider':p,'costUsd':0,'catalogueVersion':'package-startup-v1'} for p in ['MongoDBOASIS'] + query_only],
         'routes':[{'method':'POST','path':'/api/data/query-cql','policy':policy}]}
-    return {'OASIS_DNA_JSON':json.dumps(dna,separators=(',',':')),
+    env = {'OASIS_DNA_JSON':json.dumps(dna,separators=(',',':')),
         'PREPARED_STORAGE_ADMISSION_JSON':json.dumps(admission,separators=(',',':')),
         'SUBSCRIPTION_USAGE_ENABLED':'true','SUBSCRIPTION_MONGODB_CONNECTION_STRING':mongo,
         'SUBSCRIPTION_MONGODB_DATABASE':marker+'_accounting',
         'SUBSCRIPTION_OUTBOX_MONGO_CONNECTION_STRING':mongo,'SUBSCRIPTION_OUTBOX_DATABASE':marker+'_outbox',
         'SUBSCRIPTION_LEDGER_INITIAL_STATE':'empty-new-installation',
-        'OASIS_SANDBOX_OPENVINO':'true','CQL_OPENVINO_MODEL_QUERY_SOURCE_OWNER':'a5808c3e-7031-47e7-92de-48a659568f1b',
         'PORT':'8080','ASPNETCORE_URLS':'http://+:8080'}
+    if profile == 'full':
+        env.update(OASIS_SANDBOX_OPENVINO='true', CQL_OPENVINO_MODEL_QUERY_SOURCE_OWNER='a5808c3e-7031-47e7-92de-48a659568f1b')
+    else:
+        env['OASIS_SANDBOX_OPENVINO'] = 'false'
+    return env
 
 
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--digest',required=True);o=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--digest',required=True);p.add_argument('--profile',choices=['full','tron-api'],default='full');o=p.parse_args()
     assert os.environ.get('GITHUB_ACTIONS')=='true' and re.fullmatch('sha256:[a-f0-9]{64}',o.digest)
     root=Path(__file__).resolve().parents[2];out=root/'TestResults/Web4CombinedStartup';out.mkdir(parents=True,exist_ok=False)
     package=json.loads((root/'TestResults/Web4FullPackage/acknowledged.json').read_text())
+    assert package['checks']['modelHashes'] is (o.profile == 'full'), 'Package/startup profiles differ.'
+    if o.profile == 'tron-api':
+        assert package['checks']['assemblies'] == 3 and package['checks']['tronReaderPackaged'] is True
     image='ghcr.io/nextgensoftwareuk/oasis-web4@'+o.digest;assert package['image']==image
     marker='oasis_startup_'+os.environ['GITHUB_RUN_ID']+'_'+os.environ['GITHUB_RUN_ATTEMPT']
     assert re.fullmatch('oasis_startup_[0-9]+_[0-9]+',marker)
@@ -85,7 +95,7 @@ def main():
             if time.monotonic()>deadline: raise RuntimeError('Owned primary readiness deadline.')
             time.sleep(1)
         with tempfile.TemporaryDirectory(prefix='oasis-startup-',dir=os.environ['RUNNER_TEMP']) as tmp:
-            envfile=Path(tmp)/'environment';envfile.write_text(''.join(k+'='+v+'\n' for k,v in configuration(root,'mongodb://mongo:27017/?replicaSet=rs0',marker).items()));envfile.chmod(0o600)
+            envfile=Path(tmp)/'environment';envfile.write_text(''.join(k+'='+v+'\n' for k,v in configuration(root,'mongodb://mongo:27017/?replicaSet=rs0',marker,o.profile).items()));envfile.chmod(0o600)
             docker('create','--name',api,'--label','oasis.startup.owner='+marker,'--network',network,
                 '--memory','3g','--cpus','2','--env-file',str(envfile),image);created.append(('container',api));docker('start',api)
         probe = r"""
@@ -110,10 +120,11 @@ console.log(JSON.stringify(b));
             if time.monotonic()>deadline: raise RuntimeError('Combined API readiness deadline.')
             time.sleep(2)
         native="const x=require('/app/host-sandbox-openvino.cjs');x.verifyNative(require('/app/openvino-model-server-pins.json'),AbortSignal.timeout(10000)).then(()=>console.log('native-metadata-verified')).catch(e=>{console.error(e);process.exit(1)})"
-        docker('exec',api,'node','-e',native,timeout=20)
+        if o.profile == 'full':
+            docker('exec',api,'node','-e',native,timeout=20)
         docker('stop','--time','20',api,timeout=30)
         state=json.loads(docker('inspect',api).stdout)[0];assert state['State']['ExitCode']==0 and not state['State']['OOMKilled']
-        (out/'acknowledged.json').write_text(json.dumps({'source':package['source'],'image':image,'apiHealth':True,'nativeMetadata':True,'gracefulExit':0,'internalNetwork':True,'liveDeployment':False,'cqlAcceptance':False},indent=2))
+        (out/'acknowledged.json').write_text(json.dumps({'source':package['source'],'image':image,'apiHealth':True,'nativeMetadata':o.profile == 'full','gracefulExit':0,'internalNetwork':True,'liveDeployment':False,'cqlAcceptance':False},indent=2))
     finally:
         if ('container',api) in created:
             observed=json.loads(docker('inspect',api).stdout)[0]

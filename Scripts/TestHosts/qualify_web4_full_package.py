@@ -9,6 +9,7 @@ def main():
     p.add_argument('--source', required=True)
     p.add_argument('--digest', required=True)
     p.add_argument('--require-tron-reader', action='store_true')
+    p.add_argument('--profile', choices=['full', 'tron-api'], default='full')
     o = p.parse_args()
     assert os.environ.get('GITHUB_ACTIONS') == 'true', 'Cloud-only image qualification.'
     assert re.fullmatch('[a-f0-9]{40}', o.source)
@@ -43,34 +44,45 @@ def main():
     metadata = json.loads(docker('image', 'inspect', image).stdout)[0]
     tagged = json.loads(docker('image', 'inspect', tag).stdout)[0]
     assert image in metadata['RepoDigests'] and tagged['Id'] == metadata['Id']
-    mapping = {'Docker/host-sandbox-openvino.cjs': '/app/host-sandbox-openvino.cjs',
-               'Docker/host-sandbox-ipfs.cjs': '/app/host-sandbox-ipfs.cjs',
-               'Scripts/TestHosts/openvino-model-server-pins.json': '/app/openvino-model-server-pins.json'}
+    mapping = {'Docker/host-sandbox-ipfs.cjs': '/app/host-sandbox-ipfs.cjs'}
+    if o.profile == 'full':
+        mapping.update({'Docker/host-sandbox-openvino.cjs': '/app/host-sandbox-openvino.cjs',
+                        'Scripts/TestHosts/openvino-model-server-pins.json': '/app/openvino-model-server-pins.json'})
+    require_tron = o.require_tron_reader or o.profile == 'tron-api'
     expected = {target: hashlib.sha256((root / source).read_bytes()).hexdigest()
                 for source, target in mapping.items()}
     probe = r'''
 const fs=require('node:fs'), crypto=require('node:crypto'), assert=require('node:assert/strict');
-const expected=JSON.parse(process.argv[1]), requireTron=JSON.parse(process.argv[2]);
+const expected=JSON.parse(process.argv[1]), requireTron=JSON.parse(process.argv[2]), profile=process.argv[3];
+assert(['full','tron-api'].includes(profile));
+assert(profile!=='tron-api'||requireTron, 'TRON API package requires its reader');
 for(const [file,hash] of Object.entries(expected)) assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),hash);
-for(const name of ['NextGenSoftware.OASIS.API.ONODE.WebAPI','NextGenSoftware.OASIS.API.Core','NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS','NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS','NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS','NextGenSoftware.OASIS.API.Providers.SEEDSOASIS']) assert(fs.statSync('/app/'+name+'.dll').size>0,name);
+const names=['NextGenSoftware.OASIS.API.ONODE.WebAPI','NextGenSoftware.OASIS.API.Core'];
+if(profile==='full')names.push('NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS','NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS','NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS','NextGenSoftware.OASIS.API.Providers.SEEDSOASIS');
+for(const name of names)assert(fs.statSync('/app/'+name+'.dll').size>0,name);
 if(requireTron){const reader=fs.readFileSync('/app/NextGenSoftware.OASIS.API.Providers.TRONOASIS.dll');for(const symbol of ['TronPublicHeaderMetadataSource','FromAuthenticatedJson'])assert(reader.includes(Buffer.from(symbol)),symbol);}
+let versions=[];
+if(profile==='full'){
 const pins=require('/app/openvino-model-server-pins.json');
 for(const v of pins.versions)for(const [name,p]of Object.entries(pins.files)){const b=fs.readFileSync('/models/'+pins.modelName+'/'+v+'/'+name);assert.equal(b.length,p.bytes);assert.equal(crypto.createHash('sha256').update(b).digest('hex'),p.sha256);}
 assert.equal(fs.realpathSync('/ovms'),'/opt/ovms-rootfs/ovms');
 assert(fs.statSync('/opt/ovms-rootfs/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2').size>0);
-console.log(JSON.stringify({packagedSourceHashes:true,assemblies:requireTron?7:6,tronReaderPackaged:requireTron,modelVersions:pins.versions,modelHashes:true,apiQualified:false}));
+versions=pins.versions;
+}
+console.log(JSON.stringify({packagedSourceHashes:true,assemblies:names.length+(requireTron?1:0),tronReaderPackaged:requireTron,modelVersions:versions,modelHashes:profile==='full',apiQualified:false}));
 '''
     try:
         docker('create', '--name', name, '--label', 'oasis.package.owner=' + name,
                '--network', 'none', '--read-only', '--cpus', '1', '--memory', '256m',
-               '--entrypoint', 'node', image, '-e', probe, json.dumps(expected), json.dumps(o.require_tron_reader))
+               '--entrypoint', 'node', image, '-e', probe, json.dumps(expected), json.dumps(require_tron), o.profile)
         r = docker('start', '--attach', name, timeout=30)
         ack = json.loads(r.stdout)
         state = json.loads(docker('inspect', name).stdout)[0]
         assert state['Image'] == metadata['Id'] and state['State']['ExitCode'] == 0
         assert not state['State']['Running'] and not state['State']['OOMKilled']
-        assert ack['apiQualified'] is False and ack['assemblies'] == (7 if o.require_tron_reader else 6)
-        assert ack['tronReaderPackaged'] is o.require_tron_reader
+        assert ack['apiQualified'] is False and ack['assemblies'] == (2 if o.profile == 'tron-api' else 6) + int(require_tron)
+        assert ack['tronReaderPackaged'] is require_tron
+        assert ack['modelHashes'] is (o.profile == 'full')
         (out / 'acknowledged.json').write_text(json.dumps({'source': o.source, 'image': image,
             'tag': tag, 'imageId': metadata['Id'], 'expectedHashes': expected, 'checks': ack,
             'liveDeployment': False}, indent=2))
