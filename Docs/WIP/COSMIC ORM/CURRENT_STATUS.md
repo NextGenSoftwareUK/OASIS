@@ -59,6 +59,12 @@ runtime or current/live acceptance, no profile-count increment. Do not download
 or relabel a deprecated runtime as the current service.
 [Contract, lifecycle boundary and remaining gates](MARQO_CQL_MVP.md).
 
+Urbit current contacts-v1 client passed23controlled cases at source1e93c39d7,
+run42504482542,zero skips. Primary current agent/JSON codec pinned; no old-agent
+fallback. Native ship, three-record CQL/mapping, manager/HTTP/live/browser remain
+open and no profile count increases. No runtime installed or native ship accessed.
+[Current source contract and next native gates](URBIT_CQL_MVP.md).
+
 TRON enrollment configuration tools passed46pure cloud tests with HTTP forbidden,
 and the Python public IDs match the actual .NET mapper in11passing controls
 (source63f25ae0f, runs42494318935/42494318990). No private baseline/candidate was
