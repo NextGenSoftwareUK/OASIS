@@ -74,7 +74,7 @@ def main():
     connection = data / 'zod/.urb/conn.sock'
     binary = assets / 'urbit'
 
-    def execute(name, body, expected='%ok', timeout=120):
+    def execute(name, body, expected='0', timeout=120):
         result = thread(binary, connection, body, timeout)
         (out / (name + '.txt')).write_text(result)
         # A poke acknowledgement alone never sets source/agent readiness flags.
@@ -83,7 +83,9 @@ def main():
         report['acknowledgements'].append(name)
 
     prefix = '=/  m  (strand ,vase)  ;<  =bowl  bind:m  get-bowl  '
-    suffix = '(pure:m !>(%ok))'
+    # Vere cue prints untyped small atoms numerically. Choose one explicit
+    # numeric sentinel instead of guessing a textual aura for a term.
+    suffix = '(pure:m !>(0))'
     touched = False
     try:
         assert inspect() is None
