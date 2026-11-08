@@ -5,7 +5,7 @@ on:
     inputs:
       scope:
         type: choice
-        options: [compile, native-http]
+        options: [compile, native-http, transport]
         default: compile
         description: Compile only or qualify real native HTTP page reads and restart
 
@@ -60,6 +60,10 @@ jobs:
             $assembly = 'Scripts/TestHosts/UrbitContactsHttpHost/bin/Release/net10.0/UrbitContactsHttpHost.dll'
             @{ source = $env:GITHUB_SHA; buildQualified = $true; assemblySha256 = (Get-FileHash -LiteralPath $assembly -Algorithm SHA256).Hash.ToLowerInvariant(); nativeHttpClientQualified = $false; cqlQualified = $false; liveDeployment = $false } | ConvertTo-Json | Set-Content "$output/qualification.json"
           }
+      - name: Diagnose isolated Docker HTTP publication without a native ship
+        if: inputs.scope == 'transport'
+        working-directory: OASIS
+        run: python3 -B Scripts/TestHosts/qualify_urbit_http_transport.py
       - uses: actions/cache/restore@v4
         if: inputs.scope == 'native-http'
         with:
@@ -90,6 +94,7 @@ jobs:
           name: urbit-http-host-build
           path: |
             OASIS/TestResults/UrbitHttpHostBuildCurrent/*.json
+            OASIS/TestResults/UrbitHttpTransportCurrent/*.json
             OASIS/TestResults/UrbitContactsInstallCurrent/*.json
             OASIS/TestResults/UrbitContactsInstallCurrent/*.txt
             OASIS/TestResults/UrbitContactsInstallCurrent/*.log
