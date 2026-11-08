@@ -92,8 +92,7 @@ public sealed class UrbitContactsV1Client : IDisposable
     public Task<OASISResult<BookPage>> ReadBookPageAsync(string id, CancellationToken cancellationToken = default)
     {
         // Bounded @uv spelling; the native agent remains authoritative for CID existence/type.
-        if (id == null || id.Length > 64 || !Regex.IsMatch(id,
-            "\\A0v(?:0|[1-9a-v][0-9a-v]{0,4}(?:\\.[0-9a-v]{5})*)\\z", RegexOptions.CultureInvariant))
+        if (!IsBookPageId(id))
             return Task.FromResult(Error<BookPage>("URBIT_CONTACT_PAGE_INVALID_INPUT", "One path-safe book CID is required."));
         return ReadAsync("/~/scry/contacts/v1/book/id/" + Uri.EscapeDataString(id) + ".json", value => {
             if (value.ValueKind != JsonValueKind.Array || value.GetArrayLength() != 2)
@@ -101,6 +100,9 @@ public sealed class UrbitContactsV1Client : IDisposable
             return new BookPage(id, Fields(value[0]), Fields(value[1]));
         }, "URBIT_CONTACT_PAGE", cancellationToken);
     }
+
+    internal static bool IsBookPageId(string? id) => id is { Length: <= 64 }
+        && Regex.IsMatch(id, "\\A0v(?:0|[1-9a-v][0-9a-v]{0,4}(?:\\.[0-9a-v]{5})*)\\z", RegexOptions.CultureInvariant);
 
     private async Task<OASISResult<T>> ReadAsync<T>(string path, Func<JsonElement, T> project,
         string errorPrefix, CancellationToken cancellationToken)
