@@ -64,8 +64,9 @@ EXPOSE 8080
 FROM base AS provider_waku
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl \
     && mkdir /opt/waku \
-    && curl --fail --silent --show-error --location --max-time 90 \
-       https://github.com/logos-messaging/logos-delivery/releases/download/v0.39.2/waku-v0.39.2-amd64-linux.tar.gz \
+    && curl --fail --silent --show-error --location --max-redirs 3 --max-time 90 \
+       --header 'Accept: application/octet-stream' --header 'X-GitHub-Api-Version: 2022-11-28' \
+       https://api.github.com/repos/logos-messaging/logos-delivery/releases/assets/637565114 \
        --output /tmp/waku.tar.gz \
     && echo '063d4386623e3dcfa6e59908dd57bbc2a420f26875ea50f7adb3c5b348ba9b87  /tmp/waku.tar.gz' | sha256sum --check \
     && mkdir /tmp/waku-runtime \
@@ -78,8 +79,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 FROM base AS provider_nats
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl \
     && mkdir /tmp/nats-runtime \
-    && curl --fail --silent --show-error --location --max-time 90 \
-       https://github.com/nats-io/nats-server/releases/download/v2.15.2/nats-server-v2.15.2-linux-amd64.tar.gz \
+    && curl --fail --silent --show-error --location --max-redirs 3 --max-time 90 \
+       --header 'Accept: application/octet-stream' --header 'X-GitHub-Api-Version: 2022-11-28' \
+       https://api.github.com/repos/nats-io/nats-server/releases/assets/678804536 \
        --output /tmp/nats-runtime/native.tar.gz \
     && echo '67cb8e10bc6f0c4b47f75a728529a20953dbae2a4f9a4a52ae8517d65ae303ff  /tmp/nats-runtime/native.tar.gz' | sha256sum --check --strict \
     && tar -xzf /tmp/nats-runtime/native.tar.gz -C /tmp/nats-runtime \
