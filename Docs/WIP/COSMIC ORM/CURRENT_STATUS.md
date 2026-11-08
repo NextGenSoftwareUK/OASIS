@@ -4,6 +4,13 @@ Updated 8 November 2026. Goal active and incomplete.
 
 ## Latest continuation
 
+OpenVINO exact production-stage483a6fcd7 cloud42468686268 passed actual
+OCI extraction/packaged models (no overlay), metadata/3inferences/startup
+checks and owned cleanup. One full teaching image42468917135 is active for
+explicit build source483a6fcd7; workflow-head00124d51f differs only in docs.
+No live mutation; full image/supervisor and scoped rollout remain open.
+[Proof](OPENVINO_CQL_MVP.md).
+
 OpenVINO real model provisioner/startup verifier f49804feb cloud42468488713
 passed native metadata/3inferences and owned cleanup. WEB4 image/entrypoint
 now has explicit supervisor wiring on task source483a6fcd7; exact production
