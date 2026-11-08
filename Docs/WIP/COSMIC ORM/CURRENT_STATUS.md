@@ -101,6 +101,10 @@ Offline owner/source plan and protected253baseline/255candidate are fixed;
 no native source writes. Website card79 is drafted only on task8a650c6;
 main/public remains104a0064. Browser URL-policy gate stays open.
 [Self Protocol proof and gates](SELF_PROTOCOL_PUBLIC_SOURCE_STATUS.md).
+Activation guard activate-self-protocol-settings.py is prepared/syntax checked only.
+While image builds, Holonym current Sign source readiness returned3real bounded
+records and an exact-ID record; raw ABI/doc differences preserved, no CQL count
+increase or provider code change. [Next source](HOLONYM_PUBLIC_SOURCE_STATUS.md).
 
 SubQuery activationeb09ea25 is accepted/sealed:253settings/package verified,
 native3/2,paired5/4,reuse0new/2existing,privacy0/public3,replicas2/2. Original

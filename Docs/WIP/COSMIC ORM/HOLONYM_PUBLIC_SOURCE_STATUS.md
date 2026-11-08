@@ -1,7 +1,7 @@
 # Holonym / Human ID public CQL source review
 
-7 November 2026. Source review only. No native RPC/index request, new runtime,
-account, proof, wallet, business write, CQL count or hosted claim.
+7 November 2026. Source and native index readiness review only. No new runtime, account,
+proof, wallet, business write, CQL count or hosted claim.
 Self Protocol image42447469381 remains the active rollout priority.
 
 The existing HolonymOASIS uses real Nethereum calls to the Optimism Hub V3
@@ -43,3 +43,43 @@ No source archive/clone, package or native environment installed. The docs edit
 link could not be fetched; no access restriction was retried or bypassed.
 
 [Inventory](PROVIDER_CQL_AND_SANDBOX_STATUS.md) · [Current rollout](CURRENT_STATUS.md).
+
+## Current indexed records and exact-ID contract
+
+One bounded request using the [Sign REST contract](https://docs.sign.global/developers/api/rest-attestations/)
+(size3/page1, fixed Optimism schema/attester/mode) returned HTTP200/application-json,
+5985bytes, SHA256f1fe2a4cd689bbb4fcbd25a3e2d41f4bdf77dc4263090289ca46069e594c5d12.
+Exactly3distinct native IDs: onchain_evm_10_0x3248d, onchain_evm_10_0x3248c,
+onchain_evm_10_0x3248a. Envelope, chain10/modeonchain, published attester,
+schemaid/data types and canonical bounded string/uint256[] ABI layout checked.
+The advertised total147138 is index metadata, not a scanned or imported count.
+
+The observed payloads contain5unsigned values, while the Human ID field table
+lists6indices. The third circuit's literal string omits the documentation's
+leading zero nibble. Schema type is string; preserve that native literal.
+The first local observer's fixed66byte assumption failed at the third row;
+reconciliation used the original retained bytes and actual ABI string contract,
+without another request. No assigned field meanings, normalization workaround,
+proof validity, active identity or native consensus claim.
+
+One documented exact-ID GET for onchain_evm_10_0x3248d returned200/2519bytes,
+SHA2562abd129de8e9fd3bf2447f67ac409da071b5c2880687e4391d813323906dd236.
+All19core attestation fields match the original listed record, including raw
+payload and recipients; direct fullSchemaId/rawschemaId/nested schema/data
+bindings agree. Initial whole-envelope equality stopped on observed exact-route
+extensions and index-maintenance timestamps, not changed credential contents.
+Reconciled from the same response. Preserve sync/extra fields as maintenance
+metadata; they must not silently change a prepared native record's content hash.
+
+Next source can use this single exact-ID read contract with the fixed3IDs;
+listing was discovery only, never an error fallback. Preserve raw circuit,
+all exact uint256 values, schema/attester/record identity and reported state.
+Broader semantic identity verification needs authoritative emitter/circuit
+layout resolution. Do not substitute a legacy SBT call on index/read failure.
+Require real SDK ABI round-trip validation and negative controls before CQL.
+
+All raw/status captured before parsing under existing recovery state:
+holonym-current-attestation-readiness.* and holonym-exact-attestation-readiness.*.
+Redirects/proxies/retries disabled; reads only, no SDK installation. These are
+source readiness observations, not CQL3/2, independent on-chain confirmation,
+manager/HTTP/federation, hosted replication/reuse or browser acceptance.
