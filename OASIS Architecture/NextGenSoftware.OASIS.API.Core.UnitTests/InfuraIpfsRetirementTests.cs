@@ -67,7 +67,7 @@ public sealed class InfuraIpfsRetirementTests
     [Fact]
     public void QueryProfileRequiresExplicitServerConfiguration()
     {
-        var settings = new ConfigurationBuilder().Build();
+        var settings = new ConfigurationBuilder().AddInMemoryCollection().Build();
         var services = new ServiceCollection();
         services.AddInfuraReadSource(settings);
         Assert.Empty(services);
