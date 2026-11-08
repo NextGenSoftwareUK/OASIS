@@ -2,7 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
-const { review, provision, reviewCommand, pendingSourceDescriptor, reconciledSourceDescriptor } = require('../../Docker/provision-sandbox-dapr.cjs');
+const { review, provision, reviewCommand, pendingSourceDescriptor, reconciledSourceDescriptor, correctedInspectionReview } = require('../../Docker/provision-sandbox-dapr.cjs');
 const plan = { schema: 1, prefix: '12345678-1234-4234-8234-123456789ab', readerPassword: 'a'.repeat(64), sidecarToken: 'b'.repeat(64) };
 test('creation plan provides three public records and a separate tombstone under one owner', () => {
   const rows = review(plan).map(row => JSON.parse(row.value));
@@ -52,4 +52,21 @@ test('reconciled metadata rejects changed AOF evidence, missing recovery or alte
     { ...evidence, originalStorage: [] }, { ...evidence, records: evidence.records.slice(1) },
     { ...evidence, originalSaveResponseAcknowledged: true }])
     assert.throws(() => reconciledSourceDescriptor(plan, creation, seed, changed, storage), /evidence differs/);
+});
+
+test('corrected-device inspection requires exact failed journal, original operation and unchanged AOF', () => {
+  const rows = review(plan), payload = rows.map(row => ({ key: 'oasis/holon/' + row.id.replaceAll('-', ''), value: row.value }));
+  const creation = { schema: 1, prefix: plan.prefix, replayAllowed: false };
+  const seed = { prefix: plan.prefix, replayAllowed: false, operation: '12345678-1234-4234-8234-123456789abc',
+    keys: payload.map(row => row.key), payloadSha256: crypto.createHash('sha256').update(JSON.stringify(payload)).digest('hex') };
+  const storage = [{ name: 'AOF/aof.log.0', bytes: 2048, sha256: 'b'.repeat(64) }];
+  const prior = { schema: 1, prefix: plan.prefix, originalOperation: seed.operation, storage, businessWritesAllowed: false };
+  const bytes = Buffer.from(JSON.stringify(prior)), digest = crypto.createHash('sha256').update(bytes).digest('hex');
+  const check = (value, current = storage, expected = digest) => correctedInspectionReview(plan, creation, seed, value, current, bytes, expected);
+  assert.equal(check(prior).priorInspectionIntentSha256, digest);
+  for (const changed of [{ ...prior, originalOperation: creation.prefix + '1' }, { ...prior, prefix: 'foreign' },
+    { ...prior, businessWritesAllowed: true }, { ...prior, storage: [] }])
+    assert.throws(() => check(changed), /differs/);
+  assert.throws(() => check(prior, [{ ...storage[0], sha256: 'c'.repeat(64) }]), /differs/);
+  assert.throws(() => check(prior, storage, 'd'.repeat(64)), /differs/);
 });
