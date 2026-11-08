@@ -26,7 +26,10 @@ native42455252759/WEB442455252768/admission42455252725 all pass1358cases,
 no skips; artifacts inspected in memory. Exact teaching image42455727615 succeeds; tag/provenance/GHCRdigest06d39f6b
 verified. Fresh7pin/all257settings/accepted Holonym baseline checks pass; one
 Development push88c378c1e acknowledged, exact code50095dbf-e740-4847-8a27-2f8de45db1f1
-isQUEUED. Settings unchanged; inspect its running package before Civic enrollment. Offline fixed
+isSUCCESS; package257settings/210critical/6helpers/13assemblies inspected.
+Four Civic settings applied once/no deployment with4ACKs; one activation
+51ca9b77-38e5-4b20-9b26-33b932c8594c isBUILDING. No new cohort or native
+source writes; inspect259settings/enabled source before first HTTP flow. Offline fixed
 owner73eb9868 and257/259settings plan prepared, not applied.
 Civic planner39controls+5publisher guards pass. No CQL count/admission increase. Existing
 personal-pass adapter preserved. [Review](CIVIC_PUBLIC_SOURCE_STATUS.md).
