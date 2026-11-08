@@ -122,3 +122,25 @@ transport; one failed selected mandatory read must publish no partial rows.
 
 CQL/native3/2, WEB4/Mongo5/4, hosted deployment, reuse/privacy/replicas and browser
 remain unimplemented/unaccepted for this source. Provider counts stay unchanged.
+
+## CQL implementation pending cloud qualification
+
+SelfProtocolRegistryQuerySource now maps the three configured attestation IDs
+through the shared bounded CQL compiler/mapper. The logical namespace includes
+the reviewed block hash, and every observation verifies chain/genesis, exact
+canonical block identity, deployed hub code, actual hub-resolved registry code
+and mandatory root at EIP1898 requireCanonical:true. Root hex/unsigned decimal,
+registry/hub, code hashes and block provenance are retained. No legacy proof
+verifier or proof schema changed.
+
+Shared ReviewedEvmReadClient owns canonical block/code checks; no extra RPC
+parser. Shared bounded query accepts a copied explicit ID catalogue, admitting
+the complete selected set before any native dispatch, including mixed known/
+unknown requests. Existing consumers retain their configured behaviour.
+
+New cloud workflow qualify-self-protocol-registry.yml requires21new controlled
+cases plus5existing proof controls, all shared consumer checks, then one real
+CQL3/2 case without skips. Existing Live forged-proof test is outside this CQL
+qualification schedule, not counted or claimed. No local .NET build or hosted
+registration/settings/deployment. Counts remain120local/93HTTP/28browser until
+the corresponding exact evidence is observed.

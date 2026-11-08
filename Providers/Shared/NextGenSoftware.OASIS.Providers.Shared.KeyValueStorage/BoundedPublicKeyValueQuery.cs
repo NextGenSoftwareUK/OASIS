@@ -16,10 +16,11 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 /// <summary>Bounded reads of public canonical holons through a provider's exact native key reader.</summary>
 public sealed class BoundedPublicKeyValueQuery(ProviderType provider, Func<Guid, CancellationToken, Task<string>> read,
-    int maximumConcurrentReads)
+    int maximumConcurrentReads, IReadOnlySet<Guid> admittedRecordIds = null)
 {
     private readonly int concurrentReads = maximumConcurrentReads is >= 1 and <= 4
         ? maximumConcurrentReads : throw new ArgumentOutOfRangeException(nameof(maximumConcurrentReads));
+    private readonly HashSet<Guid> recordIds = admittedRecordIds == null ? null : new(admittedRecordIds);
 
     public BoundedPublicKeyValueQuery(ProviderType provider, Func<Guid, CancellationToken, Task<string>> read)
         : this(provider, read, 1) { }
@@ -62,6 +63,8 @@ public sealed class BoundedPublicKeyValueQuery(ProviderType provider, Func<Guid,
             if (versioned) return Error("CQL_CAPABILITY_UNSUPPORTED", $"{provider} historical CQL reads are unavailable.");
             cancellationToken.ThrowIfCancellationRequested();
             if (!active) return Error("CQL_PROVIDER_INACTIVE", $"Activate the configured {provider} source first.");
+            if (recordIds != null && selection.Result.Any(id => !recordIds.Contains(id)))
+                return Error("CQL_QUERY_FAILED", "A selected ID is outside the configured public catalogue.");
 
             using var deadline = CreateDeadline(cancellationToken);
             var rows = new List<IHolon>();
