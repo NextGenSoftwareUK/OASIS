@@ -75,6 +75,7 @@ public sealed class GOMapRouteQueryTests
     [TestMethod]
     public void CataloguesAndOwnersAreExplicitBeforeTransport()
     {
+        CollectionAssert.AreEqual(new[]{"f2c0c826-066e-8a9c-aaec-edafe1a16fdf","ba0c3bc1-920a-8f73-8c34-51a1cfc9d6e3","d25cf63e-14cb-8a85-aa80-c1ee36b1f1b2"},Ids.Select(x=>x.ToString()).ToArray());
         foreach(var keys in new[]{Array.Empty<string>(),new[]{"west-north","west-north"},new[]{"visitor-route"},new[]{"WEST-NORTH"}})
             Assert.ThrowsException<ArgumentException>(()=>new GOMapRouteQuerySource(Owner,keys));
         Assert.ThrowsException<ArgumentException>(()=>new GOMapRouteQuerySource(Guid.Empty,Keys));

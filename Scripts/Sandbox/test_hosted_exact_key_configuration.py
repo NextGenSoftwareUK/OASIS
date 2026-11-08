@@ -27,9 +27,10 @@ def exact_key_catalogue(provider):
         first, second, third = ("2d8b5e78-3137-8c0d-ba70-bdaa880dcdad", "e29d23d8-4c2c-8e0a-9fde-5b92d31135c0",
                                 "ffab761f-bf16-8e02-88e4-1e8a7b6cccd9")
         catalogue = {"Actor": actor, "Names": ["vitalik.eth", "nick.eth", "luc.eth"]}
-    elif provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS", "SelfProtocolOASIS", "HolonymOASIS", "CivicOASIS", "MapLibreOASIS", "TheSandboxOASIS", "PolygonIDOASIS", "SEEDSOASIS", "IntelOpenVINOOASIS"):
+    elif provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS", "SelfProtocolOASIS", "HolonymOASIS", "CivicOASIS", "MapLibreOASIS", "GOMapOASIS", "TheSandboxOASIS", "PolygonIDOASIS", "SEEDSOASIS", "IntelOpenVINOOASIS"):
         actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
         fixed_ids = {
+            "GOMapOASIS": ("f2c0c826-066e-8a9c-aaec-edafe1a16fdf", "ba0c3bc1-920a-8f73-8c34-51a1cfc9d6e3", "d25cf63e-14cb-8a85-aa80-c1ee36b1f1b2"),
             "IntelOpenVINOOASIS": ('76dc34ff-dbbc-8541-9fd4-6708c14086a9', '9a25a55f-5a66-85d0-9700-891eacd87dd6', 'acd7cd30-fffe-844a-a048-a20e67e1afed'),
             "SEEDSOASIS": ('999101fa-bdd3-8b42-969e-eafeaaad3e64', 'e8b73bc1-15f5-8dad-b92d-47b8750638eb', '743062bf-03df-81d3-a29b-6eb015a80858'),
             "PolygonIDOASIS": ('b33f9708-a3da-805c-8d7f-73fc6c7980ea', '395a8ace-db5c-81d0-a31b-2b4b83f27d40', 'c972e7a0-677c-8b43-b2bb-fe90da46f9d1'),
@@ -236,7 +237,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
         self.check_candidate("TemporalOASIS")
 
     def test_fixed_public_network_candidates_bind_only_the_reviewed_owner(self):
-        for provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS", "SelfProtocolOASIS", "HolonymOASIS", "CivicOASIS", "MapLibreOASIS", "TheSandboxOASIS", "PolygonIDOASIS", "SEEDSOASIS", "IntelOpenVINOOASIS"):
+        for provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS", "SelfProtocolOASIS", "HolonymOASIS", "CivicOASIS", "MapLibreOASIS", "GOMapOASIS", "TheSandboxOASIS", "PolygonIDOASIS", "SEEDSOASIS", "IntelOpenVINOOASIS"):
             with self.subTest(provider=provider):
                 self.check_candidate(provider)
                 catalogue, _ = exact_key_catalogue(provider)
@@ -485,7 +486,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
             descriptor.write_text(json.dumps(catalogue))
             review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
-            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS", "SelfProtocolOASIS", "HolonymOASIS", "CivicOASIS", "MapLibreOASIS", "TheSandboxOASIS", "PolygonIDOASIS", "SEEDSOASIS", "IntelOpenVINOOASIS"):
+            if provider in ("TigrisOASIS", "WeaviateOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS", "SelfProtocolOASIS", "HolonymOASIS", "CivicOASIS", "MapLibreOASIS", "GOMapOASIS", "TheSandboxOASIS", "PolygonIDOASIS", "SEEDSOASIS", "IntelOpenVINOOASIS"):
                 with self.assertRaisesRegex(ValueError, "do not match"):
                     configuration.candidate(baseline, provider, review)
                 if provider == "TigrisOASIS":
@@ -581,7 +582,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "do not match"):
                         configuration.candidate(baseline | {key: "{}"}, provider, review)
                     baseline[key] = value
-                elif provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS", "SelfProtocolOASIS", "HolonymOASIS", "CivicOASIS", "MapLibreOASIS", "TheSandboxOASIS", "PolygonIDOASIS", "SEEDSOASIS", "IntelOpenVINOOASIS"):
+                elif provider in ("DiscordOASIS", "LivepeerOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS", "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS", "SelfProtocolOASIS", "HolonymOASIS", "CivicOASIS", "MapLibreOASIS", "GOMapOASIS", "TheSandboxOASIS", "PolygonIDOASIS", "SEEDSOASIS", "IntelOpenVINOOASIS"):
                     setting = {"DiscordOASIS": "CQL_DISCORD_PUBLIC_GUILD_QUERY_SOURCE_OWNER",
                                "LivepeerOASIS": "CQL_LIVEPEER_ORCHESTRATOR_QUERY_SOURCE_OWNER",
                                "PinataOASIS": "CQL_PINATA_PUBLIC_BLOCK_QUERY_SOURCE_OWNER",
@@ -596,6 +597,7 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                                "HolonymOASIS": "CQL_HOLONYM_ATTESTATION_QUERY_SOURCE_OWNER",
                                "CivicOASIS": "CQL_CIVIC_NETWORK_QUERY_SOURCE_OWNER",
                                "MapLibreOASIS": "CQL_MAPLIBRE_STYLE_QUERY_SOURCE_OWNER",
+                               "GOMapOASIS": "CQL_GOMAP_ROUTE_QUERY_SOURCE_OWNER",
                                "TheSandboxOASIS": "CQL_SANDBOX_CONTRACT_QUERY_SOURCE_OWNER",
                                "PolygonIDOASIS": "CQL_POLYGON_ID_SCHEMA_QUERY_SOURCE_OWNER",
                                "SEEDSOASIS": "CQL_SEEDS_SETTINGS_QUERY_SOURCE_OWNER",
