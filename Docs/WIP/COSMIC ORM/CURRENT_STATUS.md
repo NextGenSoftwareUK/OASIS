@@ -7,15 +7,21 @@ this checkpoint does not claim completion of those designs.
 
 ## Immediate work
 
-- Full WEB4 teaching image **42473514300** is active for exact source
-  **49e31f6098a58011b4bb9ac4ad9d5262ac717c0c**. Observe this original run; never
-  duplicate a request because observation times out. No live deployment requested.
+- Full WEB4 image **42473514300** failed Waku503 on all3bounded attempts.
+  No new full-image request is active. Never expand the retry count or blindly
+  resubmit; no live deployment requested.
+- Native producer publication **42474138782** is active for exact source
+  **0210139b8b0efebc2a2043ff16dfcf42cfe2a480**. It verifies then publishes native-only
+  stages into the existing WEB4 image package. After exact digest ACKs, wire the
+  full-image consumer to those immutable artifacts. Consumer wiring/publication
+  acceptance remains pending; no alternate download fallback.
 - Native download policy and actual Waku/NATS stages passed **42473182023**;
   artifacts/checksums/native versions and4controlled policy cases verified.
 - All seven exact private dependency checkouts passed **42472240791**. The
   production clone script fetches each manifest SHA before checkout. No pin changed.
 - Earlier full image failures are preserved:42468917135 release504,
-  42471538567 exact WEB6 object absent from branch-tip clone,42472504855 NATS502.
+  42471538567 exact WEB6 object absent from branch-tip clone,42472504855 NATS502,
+  42473514300 Waku503after3bounded attempts.
   The latest source includes the independently qualified corrections.
 - After image success, verify exact source/tag/digest and packaged runtime/pins/
   assemblies, then genuine combined API/native startup using only fresh owned
