@@ -893,3 +893,12 @@ submission is requested or authorized by this entry.
 
 [Exact SDK contract and34case proof](../COSMIC%20ORM/GELATO_PUBLIC_SOURCE_STATUS.md).
 [Gelato Cloud account](https://app.gelato.cloud/).
+
+
+### TRON priority demo dedicated TronGrid reader access — 8 November 2026
+
+- Status: pending David access configuration; priority chain queue remains active. No key supplied or native authenticated request made by this checkpoint.
+- Context: prior anonymous TronGrid activation/range attempts returned429 and the separate PublicNode diagnostic returned403. Preserve those failures; do not retry or switch endpoints after failure. The recovered authenticated reader draft has38controlled passes recorded in [TRON source status](../COSMIC%20ORM/TRON_PUBLIC_SOURCE_STATUS.md), but authenticated native/CQL/WEB4 acceptance remains open.
+- Concrete action: configure a dedicated existing TronGrid reader API key privately on this laptop as the user environment setting `COSMIC_TRON_PUBLIC_READER_KEY`, or identify the existing private configuration location. Do not paste the key into chat or commit it. Tell the agent when ready. [Official TronGrid access setup](https://developers.tron.network/reference/select-network).
+- Reason: exact process/user/machine checks found no `COSMIC_TRON_PUBLIC_READER_KEY`, `TRONGRID_API_KEY` or `TRON_API_KEY`. Native authenticated qualification cannot be proved without legitimate reader access. Header reads do not require wallet funding or transaction signing; any broader write authority remains outside this request.
+- Agent work: preserve the original cohort and the separate recovered machine-local catalogue; validate/integrate the recovered authenticated candidate and its exact inputs before using the key. Continue other priority demo gaps meanwhile. No local SDK/runtime installation or failed unauthenticated endpoint replay.

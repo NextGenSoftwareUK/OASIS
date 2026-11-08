@@ -55,7 +55,7 @@ precedence over additional provider rollouts; existing prepared batches are reta
 [Full229-project status report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) separates
 SDK/native evidence, CQL/COSMIC depth, live/browser and HyperDrive scope. Latest
 reconciled baseline has93query-only+3canonical=96accepted/enrolled query types;
-128scoped integration checkpoint and28browser flows remain the recorded totals.
+129scoped integration checkpoint and28browser flows remain the recorded totals.
 No fresh all-provider availability sweep is claimed.
 
 ## Live Development baseline and integration cadence
@@ -159,3 +159,13 @@ and scoped cloud HTTP proof. Coverage checkpoint remains unchanged.
 See [GOMap evidence](GOMAP_PUBLIC_SOURCE_STATUS.md).
 
 GOMap query-only Core8b085f8/WEB4 owner registration,8boundary cases and1native loopback HTTP/Mongo case prepared; cloud qualification pending. Core gitlink/manifest updated together, existing source SDK/native CQL proof retained. No new live source or candidate change.
+
+GOMap completed closeout: WEB4a1417375e/Core8b085f8 run42480693015 PASSED8+1,
+native3/2/Mongo5/4/private0/public3/2SDK saves9receipts; DB absent. Hashed5132byte
+main+237byte cleanup artifacts verified in memory; owned container/anonymous
+volumes absent. Scoped integration checkpoint129, live96/browser28 unchanged.
+No further GOMap feature/rollout before the priority chain queue. Existing Edge
+window has no sandbox tab; no navigation, save replay or URL-policy bypass made.
+TRON reader key missing in expected process/user/machine locations; one access
+entry added to ACTIONS-FOR-DAVID and privately configuring it requested once.
+Continue engineering while access is pending; do not retry anonymous endpoints.
