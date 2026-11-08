@@ -5,6 +5,8 @@ on:
     branches: [work/cosmic-cql-ton-public]
     paths:
       - '.github/workflows/qualify-subquery-web4.yml'
+      - 'Docker/oasis-dependency-versions.env'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlSubqueryHostedConfigurationTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReviewedNetworkReadSourceRegistration.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Compiler.cs'
