@@ -407,3 +407,14 @@ The maintenance start override was cleared. Railway acknowledged normal
 startup deployment 7678c07b at the same source. Public health and CQL
 readback are pending. No provider enrolment, credentials, or cohorts
 changed.
+
+Normal Development deployment 7678c07b at 485448ac3 passed public
+/api/health with HTTP 200. The exact running instance 2b13d4aa
+returned all three qualified native Waku records. Complete protected
+provider settings matched the pre-incident baseline.
+
+Public CQL readback remains pending. The retained visitor's original
+refresh returned HTTP 200 with a nested OASIS result and no renewal
+cookie. The verifier correctly left the refresh intent unresolved.
+The response is preserved and the request was not replayed. No
+existing cohort was recreated or modified.
