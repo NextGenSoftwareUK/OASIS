@@ -249,6 +249,22 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
 
+    def test_gomap_refuses_unreviewed_or_malformed_origins(self):
+        catalogue, _ = exact_key_catalogue("GOMapOASIS")
+        cases = ({}, {"Origin": None}, {"Origin": "http://routing.example"},
+                 {"Origin": "https://router.project-osrm.org"},
+                 {"Origin": "https://routing.openstreetmap.de."},
+                 {"Origin": "https://routing.example:65536"},
+                 {"Origin": "https://routing.example/route"},
+                 {"Origin": "https://user@routing.example"})
+        with tempfile.TemporaryDirectory() as directory:
+            descriptor = Path(directory) / "catalogue.json"
+            for fields in cases:
+                with self.subTest(fields=fields):
+                    descriptor.write_text(json.dumps({"Actor": catalogue["Actor"]} | fields))
+                    with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                        configuration.verifier.reviewed_exact_key_source("GOMapOASIS", descriptor)
+
     def test_infura_catalogue_keeps_credentials_out_of_reviewed_presets(self):
         actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
         with tempfile.TemporaryDirectory() as directory:
