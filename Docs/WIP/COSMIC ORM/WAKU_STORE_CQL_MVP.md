@@ -429,3 +429,12 @@ Polygon, Arbitrum, NEAR, EOSIO, SOLID, IPFS, ActivityPub, Cosmos,
 Polkadot, TON and LocalFile. Discovery is not a fresh execution proof
 for those providers. TRON and Hedera were not found by the provider-name
 filter and require separate verification.
+
+Fresh read-only public CQL checks on recovered WEB4 returned the expected
+three full and two subset rows for LocalFile, Solana, Ethereum, Polygon,
+Arbitrum, NEAR, EOSIO, SOLID, IPFS, ActivityPub, Cosmos, Polkadot, TON,
+and Hedera. Hedera is published as HashgraphOASIS. ActivityPub uses
+public-posts for the full preset. TRONOASIS was absent from authenticated
+discovery. This verification reused the recovery visitor and exercised
+native CQL selections only. Existing federation, prepared storage,
+replication, and browser acceptance records were not replayed.
