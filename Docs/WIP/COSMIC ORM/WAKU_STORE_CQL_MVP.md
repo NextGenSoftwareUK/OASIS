@@ -355,3 +355,21 @@ missing identities in one transaction. A disposable rehearsal verified
 exact row recovery, unrelated row preservation, pre-repair backup,
 wrong-set rejection and rejection of backup-path reuse. The live
 operator requires a mounted maintenance instance with Waku stopped.
+
+### Live archive confirmed empty
+
+Read-only SQLite inspection on redeployed Civic instance 6180b972
+(deployment 73c4a855) found an intact working archive with zero rows
+and all three qualified identities missing. That redeploy reused the
+historical start command, so no repair was attempted there.
+
+The existing Development WEB4 service has a temporary /bin/sleep 3600
+start override. Its prior start command was unset. Service-instance
+redeploy dd45f721 is building with the current settings. Verify the
+actual running process and volume before invoking the offline operator.
+Reconcile the override back to unset before the verified recovery rollout.
+No provider variables changed and no hosted archive rows have been written.
+
+The scoped candidate 58816e262 applies only the qualified retention
+change and its control to the current Development source. Exact image
+build 42554927956 is in progress. Development remains at c6f25f76.
