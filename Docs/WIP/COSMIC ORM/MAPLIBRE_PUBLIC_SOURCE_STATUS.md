@@ -154,3 +154,11 @@ protected snapshots, four individual acknowledgements and no deploy
 per write. Activation is pinned to the already qualified source
 485448ac3 and requires all four readbacks. No settings write or
 activation request was sent during preflight.
+
+The queued four-provider candidate was prepared locally on the recovered
+Development base 485448ac3 as ac83d5ee9. Comparison against the former
+candidate found only the three recovery paths. The HTTPS package source,
+Docker health probe and Waku retention are preserved. The Railway
+manifest validator passed for all seven Dockerfiles and parent gitlinks.
+The candidate remains unpublished pending MapLibre acceptance and
+requires exact qualification before a Development rollout.
