@@ -236,8 +236,12 @@ Build succeeded with digest
 passed for that source and digest. Artifact 13640482803 verified against SHA256
 `c92bc38976bd3ce06cfbd40fd82f7862d080f211b417f73d40e3c81da0c9b9d7`.
 Three assemblies and the packaged helper hash passed. API and Docker health,
-exit 0 and owned container/network/volume cleanup passed. The original publisher still pins
-the old candidate and must be updated after exact qualification. Then verify the
+exit 0 and owned container/network/volume cleanup passed. The guarded publisher, deployed package inspector and settings activation operator
+now pin the corrected candidate. The publisher requires the corrected image
+receipt and verifies that only the exact health line differs from the original
+provider-qualified source. The November 8 date guard was exercised and refused
+the push. Fresh shared ref, protected settings and deployment checks still apply
+during the permitted window. Then verify the
 deployed package, apply the reviewed settings once and seal the first owned
 HTTP/reuse/privacy/replica results. The four-provider health correction is prepared below.
 [MapLibre details](MAPLIBRE_PUBLIC_SOURCE_STATUS.md).
