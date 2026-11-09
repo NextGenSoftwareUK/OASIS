@@ -10,11 +10,20 @@ EF/NHibernate parity remain incomplete and follow the demo/MVP priorities.
 ## Virtual and hybrid native imports after the WEB4 demo
 
 The live breadth-first WEB4 CQL and HyperDrive demo remains the priority.
-Track [Virtual Holons import proposal](OASIS_Virtual_Holons_Import_Proposal.docx) as a post-demo design. Audit the existing provider Import and
-ImportAll paths and CQL source profiles, then prove one collection-level
-virtual mapping end to end. Follow with mixed-source federation, explicit
-owned snapshot saves, and opt-in hybrid caching. Validate each provider's
-capabilities before extending the feature to it.
+The [Virtual Holons import proposal](OASIS_Virtual_Holons_Import_Proposal.docx)
+tracks three post-demo modes.
+
+- **Materialized import** stores owned Holon payloads through the existing
+  provider Import and ImportAll paths for HyperDrive replication.
+- **Virtual mapping** stores source references and mapping metadata. CQL
+  resolves matching records against the provider's native data.
+- **Hybrid import** resolves records on demand and can materialize selected
+  records for caching or explicit owned snapshot saves.
+
+Audit the existing import paths and CQL source profiles, then prove one
+collection-level virtual mapping end to end. Follow with mixed-source
+federation, explicit owned snapshot saves, and opt-in hybrid caching.
+Validate each provider's capabilities before extending the feature to it.
 
 Updated 2 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state and the exact next action.
 
