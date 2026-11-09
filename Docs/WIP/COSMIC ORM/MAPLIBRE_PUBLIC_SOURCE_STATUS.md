@@ -138,3 +138,11 @@ One image dispatch acknowledged204, original cloud run42459320270 observed in_pr
 Guarded Development publisher and four-setting activation operators prepared/Python syntax checked only. Publisher rejects any operation before9November America/Cancun next window; it requires exact62case/image/prereview proofs, current shared refs, seven advertised pins, unchanged259settings and accepted Civic deployment. Activation requires inspected exact code package, original77afeb39owner,259to261settings equality and four per-key ACKs. Neither operator invoked, no integration/settings/native mutation.
 
 Website staging update: taska0883cf now contains pending82MapLibre,83Sandbox,84PolygonID,85SEEDS and86OpenVINO. For accepted MapLibre-only publication, publish82while omitting83-86 in an ordinary scoped task/main commit, then restore remaining pending cards only on the task branch; never sweep all task HTML onto public main. Public mainfa0f848b remains accepted Civic81. New pending cards do not alter client JavaScript/discovery;99selected controls pass.
+
+The recovered Git-triggered WEB4 deployment 0d024452 at 485448ac3
+passed read-only package inspection. The MapLibre reader is packaged
+and disabled. The active settings match the protected baseline, and
+the original MapLibre candidate still differs by exactly four reviewed
+keys. The retained Civic, Holonym, Self Protocol and SubQuery
+enrolments and mounted Dapr receipt passed the same inspection.
+The settings batch remains pending the Development rollout interval.
