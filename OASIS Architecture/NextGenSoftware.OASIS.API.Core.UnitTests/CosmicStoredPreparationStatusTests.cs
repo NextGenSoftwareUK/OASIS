@@ -30,7 +30,7 @@ public class CosmicStoredPreparationStatusTests
         }
     }
     private static (HolonWritePreparation Stored, ConditionalHolonWrite Write, Probe Root, Probe Child,
-        Dictionary<Guid, HolonMetadataEncryptionPolicy> Policies) Fixture(ConditionalHolonOperation kind)
+        Dictionary<Guid, HolonMetadataEncryptionPolicy> Policies) Fixture(ConditionalHolonOperation kind, HolonReplicationEnrollment? enrollment = null)
     {
         var root = new Probe { Id = Guid.NewGuid(), Name = "secret-root" };
         var child = new Probe { Id = Guid.NewGuid(), Name = "secret-child", ParentHolonId = root.Id };
@@ -40,7 +40,7 @@ public class CosmicStoredPreparationStatusTests
         var write = new ConditionalHolonWrite(Guid.NewGuid(), Guid.NewGuid(), ProviderType.SQLLiteDBOASIS,
             new[] { new HolonWriteCondition(root.Id, kind == ConditionalHolonOperation.Save ? null : Guid.NewGuid()),
                 new HolonWriteCondition(child.Id, kind == ConditionalHolonOperation.Save ? null : Guid.Empty) },
-            new HolonReplicationEnrollment("source", new[] { "second", "first" }));
+            enrollment ?? new HolonReplicationEnrollment("source", new[] { "second", "first" }));
         var resolver = new Resolver();
         var policies = new Dictionary<Guid, HolonMetadataEncryptionPolicy>
         {
@@ -52,6 +52,38 @@ public class CosmicStoredPreparationStatusTests
     }
     private static Type? Admit(string type, string assembly) => type == typeof(Probe).FullName
         && assembly == typeof(Probe).Assembly.GetName().Name ? typeof(Probe) : null;
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ProtectedStatusRecoveryPreservesPhysicalReplicationMeaning(bool includeRoutes)
+    {
+        var source = new CosmicStorageIdentity(ProviderType.SQLLiteDBOASIS, new string('A', 64), Guid.NewGuid());
+        var target = new CosmicStorageIdentity(ProviderType.MongoDBOASIS, new string('B', 64), Guid.NewGuid());
+        var route = new NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRouteBinding(source, target, "approved-policy");
+        var enrollment = includeRoutes
+            ? new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId }, source, new[] { route })
+            : new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId }, source);
+        var fixture = Fixture(ConditionalHolonOperation.Save, enrollment);
+
+        var recovered = HolonConditionalPreparation.RecoverOriginalForStatus(fixture.Stored,
+            fixture.Write.OperationId, fixture.Write.ActorId, fixture.Write.Authority,
+            id => fixture.Policies[id], Admit);
+
+        Assert.False(recovered.IsError, recovered.Message + recovered.Exception);
+        var actual = recovered.Result.Write.ReplicationEnrollment;
+        Assert.NotNull(actual.SourceStorageIdentity);
+        Assert.Equal(source.BindingFingerprint, actual.SourceStorageIdentity.BindingFingerprint);
+        Assert.Equal(enrollment.NativeRoutes.Count, actual.NativeRoutes.Count);
+        if (includeRoutes)
+        {
+            var restored = Assert.Single(actual.NativeRoutes);
+            Assert.Equal(route.SourceId, restored.SourceId);
+            Assert.Equal(route.TargetId, restored.TargetId);
+            Assert.Equal(target.BindingFingerprint, restored.TargetStorage.BindingFingerprint);
+            Assert.Equal(route.PolicyBinding, restored.PolicyBinding);
+        }
+    }
 
     [Theory]
     [InlineData(ConditionalHolonOperation.Save)]
@@ -120,9 +152,17 @@ public class CosmicStoredPreparationStatusTests
     [InlineData("runtime-contract")]
     [InlineData("prepared-id")]
     [InlineData("prepared-type")]
+    [InlineData("replication-source-missing")]
+    [InlineData("replication-source-null")]
+    [InlineData("replication-target-mismatch")]
+    [InlineData("replication-policy-invalid")]
     public void AuthenticatedButInvalidGraphOrRuntimePayloadRejectsBeforeConstruction(string mode)
     {
-        var fixture = Fixture(ConditionalHolonOperation.Save);
+        var source = new CosmicStorageIdentity(ProviderType.SQLLiteDBOASIS, new string('A', 64), Guid.NewGuid());
+        var target = new CosmicStorageIdentity(ProviderType.MongoDBOASIS, new string('B', 64), Guid.NewGuid());
+        var route = new NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRouteBinding(source, target, "approved-policy");
+        var enrollment = new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId }, source, new[] { route });
+        var fixture = Fixture(ConditionalHolonOperation.Save, enrollment);
         var records = fixture.Stored.Records.Select(record =>
         {
             var policy = fixture.Policies[record.HolonId];
@@ -136,6 +176,11 @@ public class CosmicStoredPreparationStatusTests
             if (mode == "extra-field") graph["extra"] = true;
             if (mode == "numeric-kind") graph["operation"] = "0";
             if (mode == "runtime-contract") nodes[1]["type"] = typeof(OtherProbe).FullName;
+            var replication = (JObject)graph["replication"]!;
+            if (mode == "replication-source-missing") replication.Remove("sourceStorage");
+            if (mode == "replication-source-null") replication["sourceStorage"] = JValue.CreateNull();
+            if (mode == "replication-target-mismatch") replication["targets"] = new JArray("different-target");
+            if (mode == "replication-policy-invalid") replication["nativeRoutes"]!["Routes"]![0]!["PolicyBinding"] = " ";
             clear["graph"] = graph.ToString(Formatting.None);
             if (record.HolonId == fixture.Root.Id && mode is "prepared-id" or "prepared-type")
             {

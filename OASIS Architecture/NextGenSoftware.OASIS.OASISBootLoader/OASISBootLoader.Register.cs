@@ -274,10 +274,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             break;
                         case ProviderType.RootstockOASIS:
                             {
-                                RootstockOASIS RootstockOASIS = new(
-                                    OASISDNA.OASIS.StorageProviders.RootstockOASIS.ConnectionString,
-                                    OASISDNA.OASIS.StorageProviders.RootstockOASIS.ChainPrivateKey,
-                                    OASISDNA.OASIS.StorageProviders.RootstockOASIS.ContractAddress);
+                                var RootstockOASIS = EvmProviderFactory.CreateRootstock(
+                                    OASISDNA.OASIS.StorageProviders.RootstockOASIS,overrideConnectionString);
                                 RootstockOASIS.OnStorageProviderError += RootstockOASIS_StorageProviderError;
                                 result.Result = RootstockOASIS;
                             }
@@ -490,10 +488,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.AvalancheOASIS:
                         {
-                            var avalancheProvider = new AvalancheOASIS(
-                                OASISDNA.OASIS.StorageProviders.AvalancheOASIS.RpcEndpoint ?? "https://api.avax.network/ext/bc/C/rpc",
-                                OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ChainPrivateKey ?? "",
-                                OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ContractAddress ?? "");
+                            var avalancheProvider = EvmProviderFactory.CreateAvalanche(
+                                OASISDNA.OASIS.StorageProviders.AvalancheOASIS,overrideConnectionString);
                             avalancheProvider.OnStorageProviderError += AvalancheOASIS_StorageProviderError;
                             result.Result = avalancheProvider;
                         }

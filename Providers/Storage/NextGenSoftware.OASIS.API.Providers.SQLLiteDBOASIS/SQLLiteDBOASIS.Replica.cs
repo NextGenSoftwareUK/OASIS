@@ -17,6 +17,22 @@ public sealed class SqliteReplicaReconciliationException(Guid operationId,string
 
 public partial class SQLLiteDBOASIS : ICommittedHolonReplicaStorageProvider, ICommittedHolonReplicaInitializationStorageProvider
 {
+    public Task<OASISResult<CommittedHolonReplicaReceiptEvidence>> ReadCommittedHolonReplicaReceiptAsync(
+        CommittedHolonReplicaReceiptReadRequest request, CancellationToken cancellationToken = default)
+        => _holonRepository.ReadCommittedHolonReplicaReceiptAsync(request, cancellationToken);
+
+    public Task<OASISResult<HolonReplicaHeadReadResult>> ReadHolonReplicaHeadsAsync(
+        HolonReplicaHeadReadRequest request, CancellationToken cancellationToken = default)
+        => _holonRepository.ReadHolonReplicaHeadsAsync(request, cancellationToken);
+
+    public OASISResult<IEnumerable<IHolon>> ApplyBoundCommittedHolonReplica(CommittedHolonReplicaRequest request,
+        CosmicStorageIdentity expectedStorage)
+        => _holonRepository.ApplyBoundCommittedHolonReplica(request, expectedStorage, CancellationToken.None);
+
+    public Task<OASISResult<IEnumerable<IHolon>>> ApplyBoundCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,
+        CosmicStorageIdentity expectedStorage, CancellationToken cancellationToken = default)
+        => Task.FromResult(_holonRepository.ApplyBoundCommittedHolonReplica(request, expectedStorage, cancellationToken));
+
     public OASISResult<IEnumerable<IHolon>> ApplyCommittedHolonReplica(CommittedHolonReplicaRequest request)
         =>_holonRepository.ApplyCommittedHolonReplica(request,CancellationToken.None);
     public Task<OASISResult<IEnumerable<IHolon>>> ApplyCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,

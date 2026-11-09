@@ -16,4 +16,7 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.ArweaveOASIS\NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.csproj" />
     <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="read-boundary.cjs" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

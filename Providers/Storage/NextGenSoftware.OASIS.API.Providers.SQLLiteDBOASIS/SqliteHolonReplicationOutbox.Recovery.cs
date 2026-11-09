@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
@@ -24,19 +26,54 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationObli
     public Task<OASISResult<HolonDeliveryInspection>> InspectAsync(long sequence,CancellationToken cancellationToken=default)
         =>Execute(()=>{
             if(sequence<=0)throw new ArgumentOutOfRangeException(nameof(sequence));
-            using var connection=Open();using var query=connection.CreateCommand();
+            using var connection=Open();
+            // Keep identity and queue reads on one native snapshot. An unbound
+            // explicit consumer retains its existing observation-only contract.
+            using var transaction = _expectedSource == null ? null : connection.BeginTransaction(deferred:true);
+            ValidateSource(connection, transaction);
+            using var query=connection.CreateCommand();query.Transaction=transaction;
             query.CommandText="SELECT "+InspectionColumns+" FROM CosmicHolonOutbox WHERE Sequence=$id";query.Parameters.AddWithValue("$id",sequence);
             using var reader=query.ExecuteReader();return ReadInspection(reader,false);
         },cancellationToken);
     public Task<OASISResult<HolonDeliveryInspection>> PeekNextAsync(string targetId,CancellationToken cancellationToken=default)
         =>Execute(()=>{
-            ValidateIdentity(targetId);using var connection=Open();using var query=connection.CreateCommand();
+            ValidateIdentity(targetId);using var connection=Open();
+            // Keep identity and queue reads on one native snapshot. An unbound
+            // explicit consumer retains its existing observation-only contract.
+            using var transaction = _expectedSource == null ? null : connection.BeginTransaction(deferred:true);
+            ValidateSource(connection, transaction);
+            using var query=connection.CreateCommand();query.Transaction=transaction;
             query.CommandText="SELECT "+InspectionColumns+" FROM CosmicHolonOutbox WHERE TargetId=$target AND DeliveryState<>'Completed' ORDER BY Sequence LIMIT 1";
             query.Parameters.AddWithValue("$target",targetId);using var reader=query.ExecuteReader();return ReadInspection(reader,true);
         },cancellationToken);
+    public Task<OASISResult<HolonReplicationRoutePage>> ReadRouteHeadsAsync(int pageSize=64,
+        string afterTargetId=null,CancellationToken cancellationToken=default)
+        =>Execute(()=>{
+            HolonReplicationRoutePage.ValidateRequest(pageSize,afterTargetId);
+            using var connection=Open();
+            // Keep identity and queue reads on one native snapshot. An unbound
+            // explicit consumer retains its existing observation-only contract.
+            using var transaction = _expectedSource == null ? null : connection.BeginTransaction(deferred:true);
+            ValidateSource(connection, transaction);
+            using var query=connection.CreateCommand();query.Transaction=transaction;
+            query.CommandText="SELECT "+InspectionColumns+" FROM CosmicHolonOutbox AS o WHERE DeliveryState<>'Completed' "
+                +"AND ($after IS NULL OR TargetId COLLATE BINARY > $after) "
+                +"AND Sequence=(SELECT MIN(h.Sequence) FROM CosmicHolonOutbox AS h WHERE h.TargetId=o.TargetId COLLATE BINARY AND h.DeliveryState<>'Completed') "
+                +"ORDER BY TargetId COLLATE BINARY LIMIT $limit";
+            query.Parameters.AddWithValue("$after",(object)afterTargetId ?? DBNull.Value);query.Parameters.AddWithValue("$limit",pageSize+1);
+            var heads=new List<HolonDeliveryInspection>();
+            using var reader=query.ExecuteReader();
+            while(reader.Read())heads.Add(ReadCurrentInspection(reader,true).Result);
+            return new OASISResult<HolonReplicationRoutePage>(new HolonReplicationRoutePage(heads.Take(pageSize),heads.Count>pageSize));
+        },cancellationToken);
+
     private static OASISResult<HolonDeliveryInspection> ReadInspection(SqliteDataReader reader,bool verifyPayload)
     {
         if(!reader.Read())return new OASISResult<HolonDeliveryInspection>{Message="No matching delivery obligation exists."};
+        return ReadCurrentInspection(reader,verifyPayload);
+    }
+    private static OASISResult<HolonDeliveryInspection> ReadCurrentInspection(SqliteDataReader reader,bool verifyPayload)
+    {
         var sequence=reader.GetInt64(0);var target=reader.GetString(2);
         if(sequence<=0 || !Guid.TryParseExact(reader.GetString(1),"D",out var operation) || operation==Guid.Empty
             || !Enum.TryParse<HolonDeliveryState>(reader.GetString(3),out var state) || !Enum.IsDefined(typeof(HolonDeliveryState),state)
@@ -53,8 +90,8 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationObli
                 || state==HolonDeliveryState.Completed && reader.GetInt64(16)==0 || state!=HolonDeliveryState.Completed && reader.GetInt64(16)!=0)
                 throw new InvalidDataException("Outbox lifecycle disagrees with its state.");
         }
-        if(verifyPayload)ValidateFrozenPayload(reader.GetString(9),reader.GetString(10),operation,reader.GetString(11),reader.GetString(12),reader.GetString(13));
+        var binding=verifyPayload ? ValidateFrozenPayload(reader.GetString(9),reader.GetString(10),operation,reader.GetString(11),reader.GetString(12),reader.GetString(13),target) : null;
         return new OASISResult<HolonDeliveryInspection>(new HolonDeliveryInspection(sequence,operation,target,state,reader.GetInt32(4),
-            reader.IsDBNull(5) ? null:reader.GetString(5),reader.IsDBNull(6) ? null:reader.GetString(6),evidence));
+            reader.IsDBNull(5) ? null:reader.GetString(5),reader.IsDBNull(6) ? null:reader.GetString(6),evidence,binding));
     }
 }

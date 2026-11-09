@@ -1,4 +1,4 @@
-﻿# NextGen Software WEB4 OASIS API AzureCosmosDB OASIS Provider
+# NextGen Software WEB4 OASIS API AzureCosmosDB OASIS Provider
 
 WEB4 OASIS API AzureCosmosDB OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.
 
@@ -33,3 +33,32 @@ Add `-InspectRetainedFixture` for read-only fixture counts and the SQLite file h
 Soft deletion now compares each observed record and uses native ETag `IfMatch` when replacing it. A changed record is rejected rather than overwritten. This is per-record optimistic concurrency, not an atomic transaction across profile/detail containers; earlier acknowledged changes remain explicit partial-operation evidence. Ordinary unconditional saves and hard deletes do not gain an all-purpose concurrency guarantee from this path.
 
 The optional `-ReconcileRetainedRoutingFixture` mode is only for the reviewed routing fixture shape. It requires `OASIS_COSMOS_ROUTING_FIXTURE_SHA256` to match an independently inspected file, validates every nonempty table count, checks original native IDs are absent while their containers remain readable, then removes only that closed disposable SQLite file. It is not a general cleanup/reset tool and does not replay native mutations. Keep the inspection/reconciliation reports; an arbitrary hash alone is not ownership authorization.
+
+
+## Bind pre-provisioned resources without infrastructure creation
+
+```csharp
+var provider = new AzureCosmosDBOASIS(
+    endpoint,
+    authKey,
+    databaseName,
+    new List<string> { "holonItems", "avatarItems", "avatarDetailItems" },
+    CosmosResourceInitializationMode.ExistingResourcesOnly);
+
+var activated = await provider.ActivateProviderAsync();
+// Check activated.IsError before submitting queries or mutations.
+```
+
+This explicit mode reads the database and each declared container's schema. Every
+container must have its expected identity and the single `/id` partition key.
+Missing or incompatible resources fail activation; activation never switches to
+provisioning. It does not create databases/containers, adjust throughput, or alter
+schema. Existing four-argument provider callers retain their original setup behavior
+through `ProvisionMissingResources`; their constructor signature is preserved.
+
+This controls infrastructure initialization only. It does not make data APIs
+read-only, authorize arbitrary fixture records, or prove a subscription is free.
+Hosted acceptance must independently verify account/spending conditions, credentials,
+TLS, source scope and fixture ownership before issuing requests. Non-loopback clients
+retain normal TLS certificate validation; hosted testing must not use emulator keys
+or a certificate-validation bypass.

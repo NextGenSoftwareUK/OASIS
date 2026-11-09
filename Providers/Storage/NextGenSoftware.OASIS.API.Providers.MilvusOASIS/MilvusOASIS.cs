@@ -34,11 +34,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
     /// Delete:  POST {base}/v2/vectordb/entities/delete  { collectionName, filter }
     /// Auth:    Authorization: Bearer {token}
     /// </summary>
-    public class MilvusOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
+    public partial class MilvusOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
     {
         /// <summary>
-        /// When true this provider stores a new record per save and links to the previous
-        /// version (blockchain-style) instead of updating in place.
+        /// Historical Holon writes reject when enabled; no revision history is stored.
         /// </summary>
         public bool IsVersionControlEnabled { get; set; }
 
@@ -49,13 +48,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
         private const string CollAvatarDetails = "oasis_avatar_details";
         private const string CollHolons = "oasis_holons";
 
-        public MilvusOASIS(string baseUrl = "http://localhost:19530", string? token = null)
+        public MilvusOASIS(string baseUrl = "http://localhost:19530", string? token = null) : this(new HttpClient(), baseUrl, token) { }
+
+        // Supply a dedicated client; it remains caller-owned.
+        public MilvusOASIS(HttpClient client, string baseUrl, string? token = null)
         {
             _baseUrl = baseUrl.TrimEnd('/');
+            ProviderName = "MilvusOASIS";
+            ProviderDescription = "Milvus REST v2 provider with canonical stored JSON payloads.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.MilvusOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
-            _http = new HttpClient();
+            _http = client ?? throw new ArgumentNullException(nameof(client));
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             if (!string.IsNullOrEmpty(token))
                 _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -66,6 +70,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
             var result = new OASISResult<bool>();
             try
             {
+                IsProviderActivated = false;
                 foreach (var c in new[] { CollAvatars, CollAvatarDetails, CollHolons })
                     await EnsureCollectionAsync(c);
                 IsProviderActivated = true;
@@ -438,14 +443,26 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty)
-                    holon.Id = Guid.NewGuid();
-                await UpsertDocAsync(CollHolons, holon.Id.ToString(), holon);
-                result.Result = holon;
+                if (IsVersionControlEnabled) throw new NotSupportedException("Milvus historical Holon writes are not implemented.");
+                if (holon == null) throw new ArgumentNullException(nameof(holon));
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var keys = holon.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType,string>()
+                    : new Dictionary<Core.Enums.ProviderType,string>(holon.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.MilvusOASIS] = id.ToString("D");
+                var payload = JsonSerializer.SerializeToNode(holon,holon.GetType())!.AsObject();
+                payload["Id"] = id;
+                payload["ProviderUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys);
+                await UpsertDocAsync(CollHolons,id.ToString("D"),payload);
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.MilvusOASIS] = id.ToString("D");
+                result.Result = holon; result.IsSaved = true; result.SavedCount = 1;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: SaveHolonAsync failed: {ex.Message}");
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result,$"MilvusOASIS: SaveHolonAsync failed: {ex.Message}");
             }
             return result;
         }
@@ -457,19 +474,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>();
-            try
+            var errors = new List<string>();
+            foreach (var holon in holons)
             {
-                foreach (var h in holons)
-                {
-                    var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    if (!r.IsError) saved.Add(r.Result);
-                }
-                result.Result = saved;
+                var write = await SaveHolonAsync(holon,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider);
+                if (write.IsError) { errors.Add(write.Message); if (!continueOnError) break; }
+                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: SaveHolonsAsync failed: {ex.Message}");
-            }
+            result.Result = saved; result.IsError = errors.Count > 0; result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0; result.SavedCount = saved.Count; result.Message = string.Join("; ",errors);
             return result;
         }
 
@@ -515,36 +528,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
         private StringContent Json(object o)
             => new StringContent(JsonSerializer.Serialize(o), Encoding.UTF8, "application/json");
 
-        private async Task EnsureCollectionAsync(string collection)
-        {
-            var body = new
-            {
-                collectionName = collection,
-                schema = new
-                {
-                    autoID = false,
-                    fields = new object[]
-                    {
-                        new { fieldName = "id", dataType = "VarChar", isPrimary = true, elementTypeParams = new { max_length = 64 } },
-                        new { fieldName = "doc", dataType = "VarChar", elementTypeParams = new { max_length = 65535 } },
-                        new { fieldName = "username", dataType = "VarChar", elementTypeParams = new { max_length = 512 } },
-                        new { fieldName = "email", dataType = "VarChar", elementTypeParams = new { max_length = 512 } },
-                        new { fieldName = "parent_holon_id", dataType = "VarChar", elementTypeParams = new { max_length = 64 } },
-                        new { fieldName = "vector", dataType = "FloatVector", elementTypeParams = new { dim = 1 } }
-                    }
-                },
-                indexParams = new object[]
-                {
-                    new { fieldName = "vector", indexName = "vector_idx", metricType = "L2", indexType = "FLAT" }
-                }
-            };
-            // Already-exists is not an error — Milvus returns a non-zero code we ignore.
-            await _http.PostAsync($"{_baseUrl}/v2/vectordb/collections/create", Json(body));
-        }
-
         private static Dictionary<string, object> ToRow<T>(T obj, string id)
         {
-            var json = JsonSerializer.Serialize(obj);
+            var json = JsonSerializer.Serialize(obj, obj!.GetType());
+            if (Encoding.UTF8.GetByteCount(json) > 65535)
+                throw new System.IO.InvalidDataException("Canonical Milvus document exceeds its 65,535-byte VarChar schema.");
             var row = new Dictionary<string, object>
             {
                 { "id", id },
@@ -552,7 +540,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
                 { "username", "" },
                 { "email", "" },
                 { "parent_holon_id", "" },
-                { "vector", new[] { 0.0f } }
+                { "vector", new[] { 0.0f, 0.0f } }
             };
             using var d = JsonDocument.Parse(json);
             if (d.RootElement.TryGetProperty("Username", out var u) && u.ValueKind == JsonValueKind.String) row["username"] = u.GetString() ?? "";
@@ -593,13 +581,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
             using var doc = JsonDocument.Parse(json);
             var list = ParseData<T>(doc.RootElement);
             return list.Count > 0 ? list[0] : null;
-        }
-
-        private async Task UpsertDocAsync<T>(string collection, string id, T obj)
-        {
-            var resp = await _http.PostAsync($"{_baseUrl}/v2/vectordb/entities/upsert",
-                Json(new { collectionName = collection, data = new[] { ToRow(obj, id) } }));
-            resp.EnsureSuccessStatusCode();
         }
 
         private async Task DeleteDocAsync(string collection, string id)

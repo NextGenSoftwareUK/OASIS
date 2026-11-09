@@ -16,4 +16,11 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS\NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.csproj" />
     <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs" Link="Demo/IdentityFederationWalkthrough.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationApiHost.cs" Link="Demo/IdentityFederationApiHost.cs" />
+    <Compile Include="../NextGenSoftware.OASIS.API.Providers.LitestreamOASIS.IntegrationTests/LinuxMongoDemoEnvironmentTests.cs" Link="TestSupport/LinuxMongoDemoEnvironmentTests.cs" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
+  </ItemGroup>
 </Project>

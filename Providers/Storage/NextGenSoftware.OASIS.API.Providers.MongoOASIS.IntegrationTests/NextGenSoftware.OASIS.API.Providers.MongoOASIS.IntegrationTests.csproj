@@ -16,6 +16,7 @@
     <Compile Include="..\TestProjects\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests\IndependentAvatarSkills.cs" Link="Fixtures\IndependentAvatarSkills.cs" />
     <Compile Include="..\TestProjects\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests\IndependentAvatarProfileValues.cs" Link="Fixtures\IndependentAvatarProfileValues.cs" />
     <Compile Include="..\TestProjects\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests\IndependentAvatarCollectionValues.cs" Link="Fixtures\IndependentAvatarCollectionValues.cs" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.MongoOASIS\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.HyperDrive.Synchronization\NextGenSoftware.OASIS.HyperDrive.Synchronization.csproj" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Contracts\NextGenSoftware.OASIS.Contracts.csproj" />
@@ -25,4 +26,6 @@
   <ItemGroup><None Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/Fixtures/CqlMinMaxVectors.json" Link="Fixtures/CqlMinMaxVectors.json" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
   <ItemGroup><None Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/Fixtures/CqlNumericAggregateVectors.json" Link="Fixtures/CqlNumericAggregateVectors.json" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
   <ItemGroup><Compile Include="../../../Scripts/TestHosts/Fixtures/CqlEmptyWindowAcceptance.cs" Link="Fixtures/CqlEmptyWindowAcceptance.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../../../Scripts/TestHosts/Fixtures/CosmicOutboxInventoryProbe.cs" Link="Fixtures/CosmicOutboxInventoryProbe.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../../../Scripts/TestHosts/Fixtures/CosmicOperationInventoryProbe.cs" Link="Fixtures/CosmicOperationInventoryProbe.cs" /></ItemGroup>
 </Project>

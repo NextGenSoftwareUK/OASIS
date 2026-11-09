@@ -141,7 +141,14 @@ public sealed class AvalancheOASIS : Web3CoreOASISBaseProvider,
         string hostUri = "https://api.avax.network/ext/bc/C/rpc",
         string chainPrivateKey = "",
         string contractAddress = "")
-        : base(hostUri, chainPrivateKey, contractAddress)
+        : this(hostUri, chainPrivateKey, contractAddress, new System.Numerics.BigInteger(43114)) { }
+
+    public AvalancheOASIS(
+        string hostUri,
+        string chainPrivateKey,
+        string contractAddress,
+        System.Numerics.BigInteger? chainId)
+        : base(hostUri, chainPrivateKey, contractAddress, chainId ?? new System.Numerics.BigInteger(43114))
     {
         ProviderName = "AvalancheOASIS";
         ProviderDescription = "Avalanche Provider - EVM-compatible using Web3Core";
