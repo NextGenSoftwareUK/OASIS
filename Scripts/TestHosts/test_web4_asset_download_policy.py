@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class AssetDownloadPolicyTests(unittest.TestCase):
-    def test_final_image_consumes_pinned_artifacts_without_origin_producer_dependencies(self):
+    def test_final_image_consumes_verified_public_release_assets(self):
         source = (ROOT / 'Docker/Dockerfile.web4').read_text(encoding='utf-8')
         stages = list(re.finditer(r'^FROM\s+(\S+)\s+AS\s+(\w+)\s*$', source, re.M | re.I))
         blocks = {stage.group(2): source[stage.end():stages[index + 1].start() if index + 1 < len(stages) else len(source)]
@@ -36,10 +36,10 @@ class AssetDownloadPolicyTests(unittest.TestCase):
                 self.assertIn(dependency, blocks)
                 pending.append(dependency)
         for role in ['provider_waku', 'provider_nats']:
-            self.assertNotIn(role, reachable, 'Normal API image must not repeat the origin producer download.')
-            self.assertIn(role + '_runtime', reachable)
-            self.assertRegex(bases[role + '_runtime'], r'^ghcr\.io/nextgensoftwareuk/oasis-web4@sha256:[a-f0-9]{64}$')
-        self.assertNotEqual(bases['provider_waku_runtime'], bases['provider_nats_runtime'])
+            self.assertIn(role, reachable)
+            self.arguments(role)
+        self.assertFalse(any(bases[stage].startswith('ghcr.io/nextgensoftwareuk/oasis-web4')
+                             for stage in reachable))
 
     def arguments(self, stage):
         dockerfile = (ROOT / 'Docker/Dockerfile.web4').read_text(encoding='utf-8')
