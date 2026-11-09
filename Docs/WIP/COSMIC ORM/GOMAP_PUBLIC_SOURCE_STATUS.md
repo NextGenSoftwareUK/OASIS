@@ -77,3 +77,11 @@ settings replay establishes configuration integrity. Public sandbox use still
 requires a documented endpoint contract covering expected traffic, concurrency
 across WEB4 instances and required attribution. Keep this gate in the rollout
 checklist when the Development hold is lifted.
+
+Task commit 7181193d2 requires a dedicated HTTPS OSRM origin for hosted GOMap
+registration and rejects the two public demo hostnames. The historical
+four-setting candidate remains evidence of the previous preflight only.
+A future candidate must include CQL_GOMAP_ROUTE_QUERY_SOURCE_ORIGIN and be
+reconstructed from the then-active baseline with the reviewed endpoint.
+Qualify the new package and inspect the effective settings before live acceptance.
+Task CI run 42625727494 covers the hosted registration change.
