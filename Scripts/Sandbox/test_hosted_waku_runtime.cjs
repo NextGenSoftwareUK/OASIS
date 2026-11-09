@@ -148,5 +148,6 @@ test('Waku service uses the native loopback Store with a credential-free child e
   assert.ok(service.args.includes('--rest-address=127.0.0.1'));
   assert.ok(service.args.includes('--rest-admin=false'));
   assert.ok(service.args.includes('--store-message-db-url=sqlite://store.sqlite3'));
+  assert.ok(service.args.includes('--store-message-retention-policy=capacity:100'));
   await assert.rejects(serviceConfiguration({}), /Explicit/);
 }));

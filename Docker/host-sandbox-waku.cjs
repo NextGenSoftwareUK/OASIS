@@ -147,6 +147,8 @@ async function serviceConfiguration(environment, directory = '/data/COSMIC/Sandb
     args: ['--listen-address=127.0.0.1', '--tcp-port=28600', '--rest=true', '--rest-address=127.0.0.1',
       '--rest-port=28645', '--rest-admin=false', '--cluster-id=123', '--shard=1', '--relay=true',
       '--discv5-discovery=false', '--peer-exchange=false', '--rln-relay=false', '--store=true',
+      // Keep the isolated demo catalogue across restarts after the default age cutoff.
+      '--store-message-retention-policy=capacity:100',
       '--store-message-db-url=sqlite://' + archiveName],
     check: signal => waitForNative(bundle, signal)
   };
