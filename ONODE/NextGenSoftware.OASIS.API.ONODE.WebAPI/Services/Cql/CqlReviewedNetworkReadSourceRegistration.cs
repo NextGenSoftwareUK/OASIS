@@ -17,6 +17,7 @@ using NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS;
 using NextGenSoftware.OASIS.API.Providers.HolonymOASIS;
 using NextGenSoftware.OASIS.API.Providers.CivicOASIS;
 using NextGenSoftware.OASIS.API.Providers.MapLibreOASIS;
+using NextGenSoftware.OASIS.API.Providers.GOMapOASIS;
 using NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS;
 using NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
@@ -57,6 +58,8 @@ public static class CqlReviewedNetworkReadSourceRegistration
             PolygonIdSchemaQuerySource.ForReviewedTeachingCatalogue);
         Register(services, configuration["CQL_SANDBOX_CONTRACT_QUERY_SOURCE_OWNER"], "Sandbox public contract",
             SandboxContractQuerySource.ForReviewedTeachingCatalogue);
+        Register(services, configuration["CQL_GOMAP_ROUTE_QUERY_SOURCE_OWNER"], "Fixed public GOMap route",
+            GOMapRouteQuerySource.ForReviewedTeachingCatalogue);
         Register(services, configuration["CQL_MAPLIBRE_STYLE_QUERY_SOURCE_OWNER"], "MapLibre demo style",
             MapLibreStyleQuerySource.ForReviewedTeachingCatalogue);
         Register(services, configuration["CQL_CIVIC_NETWORK_QUERY_SOURCE_OWNER"], "Civic public network",

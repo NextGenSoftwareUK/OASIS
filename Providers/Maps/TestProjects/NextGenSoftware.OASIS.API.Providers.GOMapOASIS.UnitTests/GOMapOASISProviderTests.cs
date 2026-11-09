@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Contracts.Enums;
 using NextGenSoftware.OASIS.API.Contracts.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Bridge;
 using NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Models;
