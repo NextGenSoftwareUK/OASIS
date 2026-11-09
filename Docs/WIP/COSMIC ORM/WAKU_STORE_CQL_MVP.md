@@ -383,3 +383,13 @@ public API accepted null but left the prior override in place. Readback
 confirmed the empty value and no new deployment. Use the qualified
 prebuilt image for the next maintenance attempt if the original service
 source and volume can be preserved and restored exactly.
+
+The recovery preflight captured the existing WEB4 /data volume and its
+Development GitHub trigger, confirmed both are still attached to the
+original service, and matched the full protected provider settings.
+Anonymous GHCR token acquisition returned HTTP 401 for the WEB4 image
+repository. A direct Railway image deployment therefore still needs
+verified registry access. Railway documents private registry credentials
+as a Pro feature. Keep the GitHub trigger and volume in place while
+qualifying a recovery path. No source, volume, or registry credentials
+were changed during this preflight.
