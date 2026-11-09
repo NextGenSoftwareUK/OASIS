@@ -153,7 +153,7 @@ def build():
   sdk=sdk_evidence(project)
   if name=='LocalFileOASIS':sdk.append('System.IO (native file adapter)')
   role=family(name,text+project.read_text(encoding='utf-8-sig'),rel)
-  blockers=list(registry.get('providerBlockers',{}).get(name,[]));stub=len(re.findall(r'throw\s+new\s+NotImplementedException\s*\(',text))
+  blockers=list(registry.get('providerBlockers',{}).get(name,[]));stub=len(re.findall(r'throw\s+new\s+NotImplementedException\s*\(',strip_cs_comments(text)))
   if stub:blockers.append(f'{stub} explicit unimplemented throw(s): shipping-path review needed')
   if not sources:blockers.append('No local C# implementation source; linked/generated sources and factory require review')
   e=evidence.get(name)
