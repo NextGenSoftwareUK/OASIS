@@ -14,6 +14,7 @@ internal sealed class MongoAtomicHolonWrite
     internal Func<IReadOnlyDictionary<Guid,BsonDocument>,IReadOnlyDictionary<Guid,BsonDocument>,DateTime,string> CaptureReceipt { get; }
     internal Action<string> ReplayReceipt { get; }
     internal CancellationToken CancellationToken { get; }
+    internal NextGenSoftware.OASIS.API.Core.Interfaces.CosmicStorageIdentity ExpectedStorage { get; set; }
     internal Func<string> CaptureReplicationPayload {get;}
     internal MongoAtomicHolonWrite(IAtomicHolonWritePlan plan, Guid actorId,
         Func<IReadOnlyDictionary<Guid,BsonDocument>,IReadOnlyDictionary<Guid,BsonDocument>,DateTime,string> capture,

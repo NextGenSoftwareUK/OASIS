@@ -34,7 +34,9 @@ public sealed class ConditionalHolonPlan : IAtomicHolonWritePlan
         if(request.Write.ReplicationEnrollment!=null && enrollment==null)
             throw new ArgumentException("This conditional transaction owner does not support atomic replication enrollment.");
         if(enrollment!=null && request.Write.ReplicationEnrollment is { } embedded
-            && (embedded.SourceId!=enrollment.SourceId || !embedded.TargetIds.SequenceEqual(enrollment.TargetIds)))
+            && (embedded.SourceId!=enrollment.SourceId || !embedded.TargetIds.SequenceEqual(enrollment.TargetIds)
+                || embedded.SourceStorageIdentity?.BindingFingerprint!=enrollment.SourceStorageIdentity?.BindingFingerprint
+                || embedded.NativeRoutes.Count!=enrollment.NativeRoutes.Count))
             throw new ArgumentException("Explicit and embedded replication enrollment differ.");
         ReplicationEnrollment=enrollment;SaveChildren=request.SaveChildren;Recursive=request.Recursive;MaxChildDepth=request.MaxChildDepth;
         OperationId=request.Write.OperationId;
@@ -92,6 +94,16 @@ public sealed class ConditionalHolonPlan : IAtomicHolonWritePlan
                 .Select(pair=>JObject.Parse(HolonChildRoleManifestJson.Serialize(pair.Value))));
         }
         if(enrollment!=null)content["replication"]=new JObject{["format"]=1,["source"]=enrollment.SourceId,["targets"]=new JArray(enrollment.TargetIds)};
+        if(enrollment?.SourceStorageIdentity!=null)
+        {
+            content["replication"]["format"]=2;
+            content["replication"]["sourceStorageBinding"]=enrollment.SourceStorageIdentity.BindingFingerprint;
+        }
+        if(enrollment?.NativeRoutes.Count > 0)
+        {
+            content["replication"]["format"]=3;
+            content["replication"]["routes"]=JObject.Parse(HolonReplicationRouteDescriptors.Capture(enrollment.NativeRoutes));
+        }
         Fingerprint=ComputeFingerprint(content);
     }
     /// <summary>Exact canonical value binding for an already captured logical intent. The caller supplies its domain/version.</summary>

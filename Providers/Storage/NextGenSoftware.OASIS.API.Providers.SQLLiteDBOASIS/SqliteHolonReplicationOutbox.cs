@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -14,16 +15,24 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
 /// <summary>Lease-fenced delivery state for the existing atomic SQLite holon outbox. Does not initialize a database.</summary>
-public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationReadinessOutbox
+public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationLineageInventoryOutbox, IHolonReplicationDestinationCatalogue
 {
     private readonly string _connectionString;
     private readonly IHyperDriveClock _clock;
+    private readonly CosmicStorageIdentity _expectedSource;
     public SqliteHolonReplicationOutbox(string connectionString,IHyperDriveClock clock=null)
+        : this(connectionString, clock, null) { }
+
+    /// <summary>Pins every read and mutation to the expected native source in its own transaction.</summary>
+    public SqliteHolonReplicationOutbox(string connectionString, IHyperDriveClock clock, CosmicStorageIdentity expectedSource)
     {
         if(string.IsNullOrWhiteSpace(connectionString))throw new ArgumentException("An existing SQLite connection is required.",nameof(connectionString));
         var builder=new SqliteConnectionStringBuilder(connectionString);
         if(string.IsNullOrWhiteSpace(builder.DataSource) || builder.DataSource==":memory:" || builder.Mode==SqliteOpenMode.Memory || builder.Mode==SqliteOpenMode.ReadOnly)
             throw new ArgumentException("A durable writable SQLite database is required.",nameof(connectionString));
+        if (expectedSource != null && expectedSource.Authority != ProviderType.SQLLiteDBOASIS)
+            throw new ArgumentException("The expected outbox source must be SQLite.", nameof(expectedSource));
+        _expectedSource = expectedSource;
         builder.Mode=SqliteOpenMode.ReadWrite;
         _connectionString=builder.ToString();_clock=clock ?? new SystemHyperDriveClock();
     }
@@ -35,8 +44,9 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationRead
     {
         ValidateIdentity(targetId);ValidateIdentity(workerId);ValidateDuration(leaseDuration);
         using var connection=Open();using var transaction=connection.BeginTransaction(deferred:false);
+        ValidateSource(connection, transaction);
         var now=Now();var until=now.Add(leaseDuration);
-        long sequence;Guid operation;string payload;int attempts;
+        long sequence;Guid operation;string payload;int attempts;CommittedHolonReplicaRequest delivery;
         using(var query=connection.CreateCommand())
         {
             query.Transaction=transaction;
@@ -49,10 +59,12 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationRead
             if(state=="InFlight" && reader.GetInt64(6)>now.Ticks || reader.GetInt64(7)>now.Ticks)
                 return new OASISResult<HolonDeliveryClaim>{Message="The oldest target obligation is leased or not yet due."};
             sequence=reader.GetInt64(0);operation=Guid.Parse(reader.GetString(1));payload=reader.GetString(2);
-            ValidateFrozenPayload(payload,reader.GetString(3),operation,reader.GetString(8),reader.GetString(9),reader.GetString(10));
+            ValidateFrozenPayload(payload,reader.GetString(3),operation,reader.GetString(8),reader.GetString(9),reader.GetString(10),targetId,out delivery);
             if(reader.GetInt32(4)<0)throw new InvalidDataException("Invalid outbox attempt count.");
             attempts=checked(reader.GetInt32(4)+1);
         }
+        SqliteHolonMigrationFence.AssertUnfenced(connection, transaction, HolonGraphWritePlan.Create(delivery.Roots,
+            delivery.SaveChildren, delivery.Recursive, delivery.MaxChildDepth, 0).Nodes.Select(n => n.Snapshot.Id));
         var lease=Guid.NewGuid();using var command=connection.CreateCommand();command.Transaction=transaction;
         command.CommandText="UPDATE CosmicHolonOutbox SET DeliveryState='InFlight',LeaseToken=$lease,LeaseWorkerId=$worker,LeaseUntilUtcTicks=$until,AttemptCount=$attempts WHERE Sequence=$sequence";
         command.Parameters.AddWithValue("$lease",lease.ToString("D"));command.Parameters.AddWithValue("$worker",workerId);
@@ -66,6 +78,7 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationRead
         =>Execute(()=>{
             ValidateClaim(claim);ValidateDuration(leaseDuration);
             using var connection=Open();using var transaction=connection.BeginTransaction(deferred:false);
+            ValidateSource(connection, transaction);
             var now=Now();var until=now.Add(leaseDuration);using var command=OwnedCommand(connection,claim,now);command.Transaction=transaction;
             command.CommandText="UPDATE CosmicHolonOutbox SET LeaseUntilUtcTicks=MAX(LeaseUntilUtcTicks,$until) "+command.CommandText;
             command.Parameters.AddWithValue("$until",until.Ticks);
@@ -89,6 +102,7 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationRead
                 throw new ArgumentException("Native reconciliation evidence cannot be completed or retried automatically.");
             var evidenceJson=recoveryEvidence==null ? null:HolonRecoveryEvidenceJson.Write(recoveryEvidence);
             using var connection=Open();using var transaction=connection.BeginTransaction(deferred:false);
+            ValidateSource(connection, transaction);
             var now=Now();
             if(!Enum.IsDefined(typeof(HolonDeliveryOutcome),outcome))throw new ArgumentException("A defined delivery outcome is required.");
             if(outcome==HolonDeliveryOutcome.Completed && (errorCode!=null || message!=null || nextAttemptUtc!=null)
@@ -107,14 +121,18 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationRead
             var result=OwnedResult(command.ExecuteNonQuery());cancellationToken.ThrowIfCancellationRequested();transaction.Commit();return result;
         },cancellationToken);
 
-    private static void ValidateFrozenPayload(string payload,string digest,Guid operation,string source,string authority,string actor)
+    internal static NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRouteBinding ValidateFrozenPayload(string payload,string digest,Guid operation,string source,string authority,string actor,string target)
+        => ValidateFrozenPayload(payload,digest,operation,source,authority,actor,target,out _);
+
+    private static NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRouteBinding ValidateFrozenPayload(string payload,string digest,Guid operation,string source,string authority,string actor,string target,out CommittedHolonReplicaRequest delivery)
     {
         if(Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(payload)))!=digest)
             throw new InvalidDataException("The frozen outbox payload digest differs.");
-        var delivery=CommittedHolonReplicaPayload.Read(payload);
+        delivery=CommittedHolonReplicaPayload.ReadForTarget(payload,target);
         if(delivery.OperationId!=operation || delivery.SourceId!=source || delivery.SourceAuthority!=ProviderType.SQLLiteDBOASIS
             || authority!=ProviderType.SQLLiteDBOASIS.ToString() || delivery.ActorId.ToString("D")!=actor)
             throw new InvalidDataException("The frozen outbox payload disagrees with its enrollment.");
+        return delivery.NativeRoutes.SingleOrDefault(route=>route.TargetId == target);
     }
 
     private static SqliteCommand OwnedCommand(SqliteConnection connection,HolonDeliveryClaim claim,DateTime now)
@@ -136,11 +154,32 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationRead
         if(claim==null || claim.Sequence<=0 || claim.OperationId==Guid.Empty || claim.LeaseToken==Guid.Empty)throw new ArgumentException("A valid fenced delivery claim is required.");
         ValidateIdentity(claim.TargetId);ValidateIdentity(claim.WorkerId);
     }
+    private sealed class SourceBindingException(string code, string message, Exception cause = null)
+        : InvalidOperationException(message, cause)
+    {
+        internal string Code { get; } = code;
+    }
+
+    private void ValidateSource(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        if (_expectedSource == null) return;
+        CosmicStorageIdentity actual;
+        try { actual = SqliteStorageIdentity.Read(connection, transaction); }
+        catch (Exception cause) when (cause is SqliteException || cause is InvalidDataException)
+        {
+            throw new SourceBindingException("COSMIC_OUTBOX_SOURCE_STORAGE_BINDING_INVALID",
+                "The native outbox source identity cannot be verified; no delivery state was changed.", cause);
+        }
+        if (actual.BindingFingerprint != _expectedSource.BindingFingerprint)
+            throw new SourceBindingException("COSMIC_OUTBOX_SOURCE_STORAGE_BINDING_MISMATCH",
+                "The outbox source differs from the enrolled native store; no delivery state was changed.");
+    }
+
     private static Task<OASISResult<T>> Execute<T>(Func<OASISResult<T>> action,CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
         try{return Task.FromResult(action());}
         catch(OperationCanceledException)when(token.IsCancellationRequested){throw;}
-        catch(Exception error){return Task.FromResult(new OASISResult<T>{IsError=true,ErrorCount=1,ErrorCode=error is InvalidDataException ? "COSMIC_OUTBOX_CORRUPT":"COSMIC_OUTBOX_OPERATION_FAILED",Message=error.Message,Exception=error});}
+        catch(Exception error){return Task.FromResult(new OASISResult<T>{IsError=true,ErrorCount=1,ErrorCode=error is SourceBindingException binding ? binding.Code : error is SqliteMigrationFenceException fence ? fence.Code : error is InvalidDataException ? "COSMIC_OUTBOX_CORRUPT":"COSMIC_OUTBOX_OPERATION_FAILED",Message=error.Message,Exception=error});}
     }
 }

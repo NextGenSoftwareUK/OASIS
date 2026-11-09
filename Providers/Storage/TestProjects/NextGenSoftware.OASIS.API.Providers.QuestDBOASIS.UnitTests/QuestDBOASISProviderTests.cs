@@ -40,9 +40,9 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.UnitTests
         }
 
         [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
+        public void ProviderCategory_ShouldBeStorageLocalAndNetwork()
         {
-            Assert.IsFalse(string.IsNullOrWhiteSpace(_provider.GetProviderVersion()));
+            Assert.AreEqual(ProviderCategory.StorageLocalAndNetwork, _provider.ProviderCategory.Value);
         }
 
         [TestCleanup]

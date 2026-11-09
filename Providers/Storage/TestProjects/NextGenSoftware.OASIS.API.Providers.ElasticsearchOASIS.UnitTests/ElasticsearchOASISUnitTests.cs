@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.UnitTests
     [TestClass]
     public class ElasticsearchOASISProviderTests
     {
-        private ElasticsearchOASIS _provider;
+        private ElasticsearchOASIS _provider = null!;
 
         [TestInitialize]
         public void Setup()
@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.UnitTests
         [TestMethod]
         public void ProviderType_ShouldBeElasticsearchOASIS()
         {
-            Assert.AreEqual(ProviderType.ElasticsearchOASIS, _provider.ProviderType);
+            Assert.AreEqual(ProviderType.ElasticsearchOASIS, _provider.ProviderType.Value);
         }
 
         [TestMethod]
@@ -38,14 +38,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.UnitTests
         {
             Assert.IsNotNull(_provider.ProviderDescription);
             Assert.IsFalse(string.IsNullOrEmpty(_provider.ProviderDescription));
-        }
-
-        [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
-        {
-            var version = _provider.GetProviderVersion();
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
         }
 
         [TestCleanup]

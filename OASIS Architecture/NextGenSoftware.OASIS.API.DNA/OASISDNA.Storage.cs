@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using NextGenSoftware.ErrorHandling;
 using NextGenSoftware.Logging;
@@ -239,6 +239,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class RootstockOASISProviderSettings : ProviderSettingsBase
     {
+        public long ChainId { get; set; } = 30;
         public string ChainPrivateKey { get; set; }
         public string ContractAddress { get; set; }
         public string Abi { get; set; }

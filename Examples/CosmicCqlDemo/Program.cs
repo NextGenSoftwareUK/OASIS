@@ -446,7 +446,8 @@ if (args.Length == 2 && args[0] == "--fantom-public")
 
 // HOST SETUP - console mode runs once; --serve also opens the local Swagger API.
 var serve = args.Length == 1 && args[0] == "--serve";
-if (args.Length != 0 && !serve)
+var nativeImport = args.Length == 1 && args[0] is "--native-import" or "--native-import-mongo";
+if (args.Length != 0 && !serve && !nativeImport)
 {
     Console.Error.WriteLine("Use no arguments, --serve, --fantom-public <existing-source.json>, --azure-blob-public <existing-source.json>, --cardano-public <existing-source.json>, --starknet-public <existing-source.json>, --radix-public <existing-source.json>, --google-public <existing-source.json>, --ethereum-public <existing-source.json>, --polygon-public <existing-source.json>, --arbitrum-public <existing-source.json>, --cosmos-public <existing-source.json>, --polkadot-public <existing-source.json>, --near-public <existing-source.json>, or --base-public / --avalanche-public / --bnb-public <existing-source.json>.");
     return 2;
@@ -461,6 +462,23 @@ if (root == null)
 {
     Console.Error.WriteLine("Run this sample from its existing OASIS checkout.");
     return 2;
+}
+
+if (nativeImport)
+{
+    try
+    {
+        if (args[0] == "--native-import-mongo")
+            await NativeImportMongoDemo.RunAsync(root.FullName, Console.Out);
+        else
+            await NativeImportCqlDemo.RunAsync(root.FullName, Console.Out);
+        return 0;
+    }
+    catch (Exception error)
+    {
+        Console.Error.WriteLine("Native import demo failed; preserve the fixture journal. " + error.Message);
+        return 1;
+    }
 }
 
 // FIXTURE OWNERSHIP - a fixed synthetic database is protected by an exclusive lock.

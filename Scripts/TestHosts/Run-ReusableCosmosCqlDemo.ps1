@@ -1,6 +1,6 @@
 #Requires -Version 7.0
 [CmdletBinding()]
-param([switch]$Serve)
+param([switch]$Serve,[switch]$Mongo)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $state=Join-Path $root 'LocalState/COSMIC/CosmosCqlCurrent'
@@ -9,11 +9,12 @@ $project='Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.Azure
 
 # This runner owns one bounded native acceptance run, not the storage conformance
 # suite. Never replay a pending create intent or replace the retained emulator.
+if(Test-Path -LiteralPath (Join-Path $state 'mongo.pending.json')){throw 'Reconcile original Mongo pairing fixture before new writes.'}
 if(Test-Path -LiteralPath (Join-Path $state 'rows.pending.json')){throw 'Reconcile the original CQL fixture journal before creating another fixture.'}
 New-Item -ItemType Directory -Force -Path $state,$work | Out-Null
 & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner cosmic-cql-cloud-demo -Operation {
-    $started=$false
-    $names=@('OASIS_COSMOS_CQL_NATIVE','OASIS_COSMOS_CQL_STATE','OASIS_COSMOS_CQL_REVIEWED_COUNT','OASIS_COSMOS_CQL_REVIEWED_PROJECTION','OASIS_COSMOS_CQL_REVIEWED_HTTP','OASIS_COSMOS_CQL_SERVE')
+    $started=$false;$mongoProcess=$null
+    $names=@('OASIS_COSMOS_CQL_NATIVE','OASIS_COSMOS_CQL_STATE','OASIS_COSMOS_CQL_REVIEWED_COUNT','OASIS_COSMOS_CQL_REVIEWED_PROJECTION','OASIS_COSMOS_CQL_REVIEWED_HTTP','OASIS_COSMOS_CQL_SERVE','OASIS_COSMOS_MONGO_ROOT','OASIS_COSMOS_MONGO_SERVE')
     $previous=@{}
     foreach($name in $names){$previous[$name]=[Environment]::GetEnvironmentVariable($name)}
     try{
@@ -27,8 +28,26 @@ New-Item -ItemType Directory -Force -Path $state,$work | Out-Null
             $binding=@($ports."$port/tcp")
             if($binding.Count -ne 1 -or $binding[0].HostIp -ne '127.0.0.1' -or $binding[0].HostPort -ne "$port"){throw 'Emulator bindings must be loopback-only.'}
         }
+        if($Mongo){
+            $mongoRuntime='C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe'
+            $mongoData=Join-Path $root 'LocalState/COSMIC/mongo-data'
+            if(!(Test-Path (Join-Path $mongoData 'WiredTiger'))){throw 'Retained Mongo data required; no reinitialization.'}
+            if(Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue){throw 'Owned Mongo port occupied.'}
+            if(((& $mongoRuntime --version) -join ' ') -notmatch 'v8\.3\.11\b'){throw 'Pinned Mongo8.3.11 runtime required.'}
+            & dotnet build (Join-Path $root 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj') --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+            if($LASTEXITCODE){throw 'Mongo producer build failed.'}
+            $mongoProcess=Start-Process $mongoRuntime -ArgumentList @('--dbpath',$mongoData,'--bind_ip','127.0.0.1','--port','27029','--replSet','oasisRecoveryRs','--wiredTigerCacheSizeGB','0.25','--oplogSize','32','--logpath',(Join-Path $work 'mongo-service.log'),'--logappend') -WindowStyle Hidden -PassThru
+            $mongoReady=$false
+            for($attempt=0;$attempt -lt 40;$attempt++){
+                if($mongoProcess.HasExited){throw 'Owned Mongo exited.'}
+                $listener=Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue
+                if($listener){if(@($listener|Where-Object OwningProcess -ne $mongoProcess.Id).Count){throw 'Mongo listener ownership changed.'};$mongoReady=$true;break}
+                Start-Sleep -Milliseconds 500
+            }
+            if(!$mongoReady){throw 'Mongo readiness deadline exceeded.'}
+        }
         foreach($producer in @('Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj','Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj','Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.csproj',$project)){
-            & dotnet build (Join-Path $root $producer) --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+            & dotnet build (Join-Path $root $producer) --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
             if($LASTEXITCODE){throw 'CQL cloud producer/consumer build failed.'}
         }
         $consumer=Join-Path $root 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests/bin/Debug/net10.0'
@@ -50,7 +69,9 @@ New-Item -ItemType Directory -Force -Path $state,$work | Out-Null
         if(!$ready){throw ('Emulator readiness deadline exceeded: '+$readinessFailure)}
         foreach($name in $names){[Environment]::SetEnvironmentVariable($name,$null)}
         $env:OASIS_COSMOS_CQL_NATIVE='1';$env:OASIS_COSMOS_CQL_STATE=$state
-        if($Serve){$env:OASIS_COSMOS_CQL_SERVE='1';Write-Output 'Teaching page will bind http://127.0.0.1:5088/ after native verification. POST /demo/shutdown to finish.'}
+        if($Mongo){$env:OASIS_COSMOS_MONGO_ROOT=$root}
+        if($Serve -and $Mongo){$env:OASIS_COSMOS_MONGO_SERVE='1';Write-Output 'Mongo + local Cosmos teaching page: http://127.0.0.1:5092/ after native acceptance; page shutdown verifies cleanup.'}
+        if($Serve -and !$Mongo){$env:OASIS_COSMOS_CQL_SERVE='1';Write-Output 'Teaching page will bind http://127.0.0.1:5088/ after native verification. POST /demo/shutdown to finish.'}
         $began=[DateTime]::UtcNow
         & dotnet test (Join-Path $root $project) --no-build --no-restore --filter 'FullyQualifiedName~CqlNativeRowTests.JournaledNativeRowsRespectVisibilityWindowsAndBounds' --logger 'trx;LogFileName=cosmos-cql-demo-current.trx' --results-directory $work -v:q
         if($LASTEXITCODE){throw 'Native CQL acceptance failed; preserve fixture/journal, no automatic retry.'}
@@ -58,11 +79,12 @@ New-Item -ItemType Directory -Force -Path $state,$work | Out-Null
         [xml]$result=Get-Content -LiteralPath $report -Raw
         $counts=$result.TestRun.ResultSummary.Counters
         if([int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0){throw 'Expected one complete native acceptance test.'}
-        if(Test-Path -LiteralPath (Join-Path $state 'rows.pending.json')){throw 'Native fixture teardown is incomplete.'}
+        if((Test-Path -LiteralPath (Join-Path $state 'rows.pending.json')) -or (Test-Path -LiteralPath (Join-Path $state 'mongo.pending.json'))){throw 'Native fixture teardown is incomplete.'}
         Write-Output ('Native Cosmos CQL PASS; report SHA256 '+(Get-FileHash -LiteralPath $report).Hash)
     }
     finally{
         foreach($name in $names){[Environment]::SetEnvironmentVariable($name,$previous[$name])}
+        if($mongoProcess){if(!$mongoProcess.HasExited){$mongoProcess.Kill();if(!$mongoProcess.WaitForExit(30000)){throw 'Owned Mongo teardown failed.'}};$mongoProcess.Dispose()}
         if($started){& wsl.exe -d Ubuntu -u root -- podman stop --time 20 oasis-cosmos;if($LASTEXITCODE){throw 'Owned emulator teardown failed.'}}
     }
 }
