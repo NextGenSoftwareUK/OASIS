@@ -204,3 +204,11 @@ Sandbox 42566680876, Polygon ID 42566681028, SEEDS 42566680841,
 and OpenVINO 42566683083. The subsequent 0b3b72976 correction
 changes only qualification files. Its image build is still queued;
 exact package/startup acceptance and Development rollout are pending.
+
+Exact four-provider image 42566836454 and full package/startup run
+42570518249 passed at 0b3b72976. Development fast-forwarded to that
+commit and Railway queued c172bc9d. The original eleven-setting plan
+reconstructed exactly from the four retained source descriptors and
+matches the active MapLibre baseline. An exact protected copy of that
+baseline is available for guarded apply. The new code/settings package
+inspector is prepared. No enrollment values have been written.
