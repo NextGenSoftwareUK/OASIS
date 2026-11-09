@@ -305,8 +305,19 @@ live counts. [Provider matrix](PROVIDER_CQL_AND_SANDBOX_STATUS.md).
 
 Website public main remains accepted Civic card81 at
 **fa0f848b2bbb7418fdbe2fca4f0e0a45367ec3bd** (byte-verified).
-Website task **a0883cfccdf55aa4ef3e1a183d4913d69b454ce7** contains pending82MapLibre,
-83Sandbox,84PolygonID,85SEEDS,86OpenVINO;99selected client checks pass.
+Website task **9d247bd5ee2b280e81023c94d158b69f1f5d7966** contains pending
+cards 82–86 from a0883cf plus a separate priority walkthrough link change
+(bff9431) and its routing test (9d247bd). All 120 website tests pass. The
+verified public main ref is still fa0f848b. Keep the navigation change and
+the unpublished provider cards separately scoped for review.
+
+When live browser access is available, follow the pending order EOSIO,
+SOLID, TON, then Hedera (HashgraphOASIS). Record the rendered preset and result
+for native 3/2, then paired 5/4 with the retained authenticated demo cohort.
+Use the existing prepared records for any paired check. If the retained
+identity is unavailable, record which part of the browser flow remains open.
+The new fragment links resolve to cql-eosio-catalogue, cql-solid-catalogue,
+cql-ton-catalogue and cql-hedera-catalogue on the task branch.
 For MapLibre-only publication, omit83-86; restore them only on the task branch.
 Browser URL-confidence rejection is recorded; do not retry or bypass it. Recent
 Windows discovery found no browser windows; no new navigation/browser acceptance.
