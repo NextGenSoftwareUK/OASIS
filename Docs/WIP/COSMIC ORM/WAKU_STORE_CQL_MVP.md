@@ -339,3 +339,11 @@ the persisted archive before WEB4 readiness. The scoped recovery should
 inspect the stopped working database and its sidecars, preserve it, and
 reconcile only the exact missing qualified identities. A full volume
 restore would also affect other demo data on the shared mount.
+
+The protected original passed SQLite integrity and contains exactly the
+three receipt hashes. Inspect-WakuWorkingArchive.cjs checks the mounted
+working file in a read-only SQLite transaction and reports only the total
+row count and missing reviewed identities. The original and a disposable
+one-missing-row copy both passed with unchanged database bytes. The
+temporary copy was removed. The inspector needs a running maintenance
+instance with the original WEB4 volume and the reviewed Waku settings.
