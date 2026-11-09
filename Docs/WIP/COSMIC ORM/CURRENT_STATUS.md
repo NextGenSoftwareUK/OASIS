@@ -26,7 +26,7 @@ to change queue order.
 Focus engineering/demo usability on this chain order before adding further
 providers. Existing MapLibre and four-provider plans/owners/settings remain
 prepared and unchanged behind the chain priorities; no unverified rollout or
-third8November Development push. GOMap WEB4 run42480693015 and its cleanup
+unverified Development push. GOMap WEB4 run42480693015 and its cleanup
 evidence are closed. Further GOMap rollout follows the priority queue. Remaining-provider popularity ranking must use
 current adoption/use evidence when that queue is resumed, with dependencies and
 owner deferrals explicit.
@@ -220,8 +220,17 @@ private0/public3,replicas2/2,2saveACKs/pending0. Earlier accepted Holonym, Self,
 SubQuery, Dapr and all other sources/cohorts remain preserved; do not recreate them.
 LocalFile is accepted; do not redo that resolved gate.
 
-Two Development integrations already occurred8November. No third8November push;
-next permitted integration window is9November America/Cancun. Never promote master.
+The owner approved Development batches every two hours or as often as hourly
+on 8 November. The earlier daily cutoff is superseded for this programme.
+Use a one-hour minimum between batches and require fresh preflight evidence
+and a successful baseline before each verified integration.
+
+Corrected MapLibre source c6f25f76 was pushed to Development after fresh
+preflight and the cadence check passed. Railway deployment
+435de4e4-8ddb-4d1b-b806-a322e0475fbb was observed QUEUED for that exact source.
+Follow this deployment through terminal status and inspect its package before
+applying the reviewed settings. Civic remains the last accepted live baseline.
+
 
 MapLibre candidate **23532a6fc9146d5535152c182e61ec21d8889d6e** / Core
 **681a1d0b2d4aa8f3b2751a1fad8857a1dd5f86e0** has62exact checks and image
