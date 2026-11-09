@@ -1,0 +1,85 @@
+name: Qualify immutable full WEB4 package
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public, work/cosmic-teaching-release-candidate]
+    paths:
+      - .github/workflows/qualify-web4-full-package.yml
+      - Scripts/TestHosts/qualify_web4_full_package.py
+      - Scripts/TestHosts/qualify_web4_combined_startup.py
+      - Scripts/TestHosts/test_web4_combined_startup.py
+  workflow_dispatch:
+    inputs:
+      source:
+        description: Exact built source commit
+        required: true
+        type: string
+      digest:
+        description: Published full image sha256 digest
+        required: true
+        type: string
+      combined_startup:
+        description: Also verify isolated API and native startup with fresh cloud data
+        required: false
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  packages: read
+jobs:
+  controls:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Verify startup probe error contract without native images
+        run: python3 -B Scripts/TestHosts/test_web4_combined_startup.py
+  package:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Verify startup readiness and error boundaries
+        run: python3 -B Scripts/TestHosts/test_web4_combined_startup.py
+      - name: Retain verifier before checking exact image source
+        run: |
+          cp Scripts/TestHosts/qualify_web4_full_package.py "$RUNNER_TEMP/qualify_web4_full_package.py"
+          cp Scripts/TestHosts/qualify_web4_combined_startup.py "$RUNNER_TEMP/qualify_web4_combined_startup.py"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ inputs.source }}
+          persist-credentials: false
+          clean: true
+      - name: Restore verifier to its repository path
+        run: |
+          cp "$RUNNER_TEMP/qualify_web4_full_package.py" Scripts/TestHosts/qualify_web4_full_package.py
+          cp "$RUNNER_TEMP/qualify_web4_combined_startup.py" Scripts/TestHosts/qualify_web4_combined_startup.py
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify exact source, tag, digest and packaged files
+        env:
+          SOURCE: ${{ inputs.source }}
+          DIGEST: ${{ inputs.digest }}
+        run: python3 -B Scripts/TestHosts/qualify_web4_full_package.py --source "$SOURCE" --digest "$DIGEST"
+      - name: Verify combined API and native startup on isolated fresh data
+        if: inputs.combined_startup
+        env:
+          DIGEST: ${{ inputs.digest }}
+        run: python3 -B Scripts/TestHosts/qualify_web4_combined_startup.py --digest "$DIGEST"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: web4-full-package
+          path: |
+            TestResults/Web4FullPackage/
+            TestResults/Web4CombinedStartup/
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
+using System.Text;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
@@ -54,7 +56,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS
     /// <see cref="OASISProvider"/> exposing OVMS's KServe v2 API (health, model metadata, tensor inference) and its
     /// OpenAI-compatible endpoints (chat completions, embeddings).
     /// </summary>
-    public class IntelOpenVINOOASIS : OASISProvider
+    public class IntelOpenVINOOASIS : OASISProvider, IDisposable
     {
         private static readonly JsonSerializerOptions Json = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
         private readonly HttpClient _http;
@@ -107,15 +109,24 @@ namespace NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS
             return $"v2/models/{Uri.EscapeDataString(model)}" + (string.IsNullOrWhiteSpace(version) ? string.Empty : $"/versions/{Uri.EscapeDataString(version)}");
         }
 
-        private async Task<OASISResult<T>> SendAsync<T>(HttpMethod method, string path, object body, Func<string, T> parse, CancellationToken ct)
+        private async Task<OASISResult<T>> SendAsync<T>(HttpMethod method, string path, object body, Func<string, T> parse, CancellationToken ct, int? maximumJsonBytes = null)
         {
             var result = new OASISResult<T>();
             try
             {
+                ct.ThrowIfCancellationRequested();
                 using var request = new HttpRequestMessage(method, path);
                 if (body != null) request.Content = JsonContent.Create(body, body.GetType(), options: Json);
-                using var response = await _http.SendAsync(request, ct);
-                var text = await response.Content.ReadAsStringAsync(ct);
+                using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
+                string text;
+                if (maximumJsonBytes is int bound)
+                {
+                    if (response.Content.Headers.ContentType?.MediaType != "application/json")
+                        throw new InvalidDataException("OVMS metadata must be application/json.");
+                    await response.Content.LoadIntoBufferAsync(bound, ct);
+                    text = new UTF8Encoding(false, true).GetString(await response.Content.ReadAsByteArrayAsync(ct));
+                }
+                else text = await response.Content.ReadAsStringAsync(ct);
                 if (!response.IsSuccessStatusCode)
                 {
                     OASISErrorHandling.HandleError(ref result, $"IntelOpenVINOOASIS: {method} {path} failed: {(int)response.StatusCode} {response.ReasonPhrase} {text}");
@@ -127,9 +138,37 @@ namespace NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS
             return result;
         }
 
-        /// <summary>Server metadata (name, version, extensions) from GET /v2.</summary>
+        // Metadata is one bounded UTF8 JSON object; inference/chat payload contracts remain separate.
+        private static JsonElement ParseMetadata(string text)
+        {
+            using var document = JsonDocument.Parse(text, new JsonDocumentOptions { MaxDepth = 32 });
+            RequireUniqueMetadata(document.RootElement);
+            if (document.RootElement.ValueKind != JsonValueKind.Object || document.RootElement.TryGetProperty("error", out _))
+                throw new InvalidDataException("An error-free OVMS metadata object is required.");
+            return document.RootElement.Clone();
+        }
+
+        private static void RequireUniqueMetadata(JsonElement value)
+        {
+            if (value.ValueKind == JsonValueKind.Object)
+            {
+                var names = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var property in value.EnumerateObject())
+                {
+                    if (!names.Add(property.Name)) throw new InvalidDataException("Duplicate OVMS metadata property.");
+                    RequireUniqueMetadata(property.Value);
+                }
+            }
+            else if (value.ValueKind == JsonValueKind.Array)
+                foreach (var item in value.EnumerateArray()) RequireUniqueMetadata(item);
+        }
+
+        /// <summary>Dispose this client's HTTP resources. Injected handlers remain owned by their caller.</summary>
+        public void Dispose() { IsProviderActivated = false; _http.Dispose(); }
+
+        /// <summary>Server metadata from GET /v2, capped at 64KiB UTF8 JSON and depth32.</summary>
         public Task<OASISResult<JsonElement>> GetServerMetadataAsync(CancellationToken ct = default)
-            => SendAsync(HttpMethod.Get, "v2", null, t => JsonDocument.Parse(t).RootElement.Clone(), ct);
+            => SendAsync(HttpMethod.Get, "v2", null, ParseMetadata, ct, maximumJsonBytes: 65536);
 
         /// <summary>True when the model (and optional version) is loaded and ready.</summary>
         public async Task<OASISResult<bool>> IsModelReadyAsync(string model, string version = null, CancellationToken ct = default)
@@ -137,17 +176,19 @@ namespace NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS
             var result = new OASISResult<bool>();
             try
             {
-                using var response = await _http.GetAsync($"{ModelPath(model, version)}/ready", ct);
-                result.Result = response.IsSuccessStatusCode;
+                ct.ThrowIfCancellationRequested();
+                using var response = await _http.GetAsync($"{ModelPath(model, version)}/ready", HttpCompletionOption.ResponseHeadersRead, ct);
+                await response.Content.LoadIntoBufferAsync(1024, ct);
+                result.Result = response.StatusCode == System.Net.HttpStatusCode.OK;
                 result.Message = result.Result ? $"Model '{model}' is ready." : $"Model '{model}' is not ready ({(int)response.StatusCode}).";
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"IntelOpenVINOOASIS: model readiness check failed: {ex.Message}", ex); }
             return result;
         }
 
-        /// <summary>Model metadata (inputs/outputs with names, shapes and datatypes).</summary>
+        /// <summary>Model metadata, capped at 64KiB UTF8 JSON and depth32; native annotations are preserved.</summary>
         public Task<OASISResult<JsonElement>> GetModelMetadataAsync(string model, string version = null, CancellationToken ct = default)
-            => SendAsync(HttpMethod.Get, ModelPath(model, version), null, t => JsonDocument.Parse(t).RootElement.Clone(), ct);
+            => SendAsync(HttpMethod.Get, ModelPath(model, version), null, ParseMetadata, ct, maximumJsonBytes: 65536);
 
         /// <summary>Runs KServe v2 inference: POST /v2/models/{model}[/versions/{v}]/infer.</summary>
         public Task<OASISResult<OpenVinoInferResult>> InferAsync(string model, IEnumerable<OpenVinoTensor> inputs, string version = null, IEnumerable<string> requestedOutputs = null, CancellationToken ct = default)
