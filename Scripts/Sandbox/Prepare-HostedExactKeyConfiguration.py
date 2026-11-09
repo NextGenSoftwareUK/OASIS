@@ -54,6 +54,15 @@ def candidate(before, provider, review):
         raise ValueError("The encrypted Mongo metadata key must be explicitly queryable.")
     if any(before.get(key) != value for key, value in review.get("sourceBinding", {}).items()):
         raise ValueError("Protected source settings do not match the reviewed teaching catalogue.")
+    if provider == "DynamoDBOASIS":
+        prefix = "CQL_DYNAMODB_QUERY_"
+        for field, maximum in (("ACCESS_KEY_ID", 128), ("SECRET_ACCESS_KEY", 256), ("SESSION_TOKEN", 16384)):
+            value = before.get(prefix + field)
+            if field == "SESSION_TOKEN" and value is None:
+                continue
+            if not isinstance(value, str) or not 1 <= len(value) <= maximum or any(
+                    not 33 <= ord(character) <= 126 for character in value):
+                raise ValueError("Valid protected DynamoDB reader credentials are required.")
     if provider in REQUIRED_SOURCE_TOKENS:
         token = before.get(REQUIRED_SOURCE_TOKENS[provider])
         maximum_length = {"TRONOASIS": 256, "DenoDeployOASIS": 8192, "TursoOASIS": 8192, "SafeOASIS": 4096, "TemporalOASIS": 4096}.get(provider, 1024)

@@ -131,6 +131,7 @@ def exact_key_catalogue(provider):
         "TimescaleDBOASIS": {"Host": "service.tsdb.cloud.tigerdata.com", "Port": 32625},
         "CockroachDBOASIS": {"Host": "oasis-demo.aws-us-east-1.cockroachlabs.cloud"},
         "TigrisOASIS": {"Endpoint": "https://t3.storage.dev", "Bucket": "teaching"},
+        "DynamoDBOASIS": {"Region": "us-east-1"},
         "MinIOOASIS": {"Endpoint": "https://minio.example.test", "Bucket": "teaching", "Region": "us-east-1"},
     }
     catalogue.update(fields.get(provider, {}))
@@ -143,6 +144,9 @@ def exact_key_catalogue(provider):
 class ExactKeyConfigurationTests(unittest.TestCase):
     def test_candidate_preserves_existing_providers_and_refuses_replacement(self):
         self.check_candidate("QdrantOASIS")
+
+    def test_dynamodb_candidate_binds_region_probe_and_protected_reader(self):
+        self.check_candidate("DynamoDBOASIS")
 
     def test_weaviate_candidate_preserves_existing_providers(self):
         self.check_candidate("WeaviateOASIS")
@@ -698,6 +702,20 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                 else:
                     product = provider.removesuffix("OASIS").upper()
                     baseline[f"CQL_{product}_QUERY_PROBE_ID"] = first
+            if provider == "DynamoDBOASIS":
+                prefix = "CQL_DYNAMODB_QUERY_"
+                binding = {prefix + "REGION": "us-east-1", prefix + "PROBE_ID": first}
+                self.assertEqual(binding, review["sourceBinding"])
+                baseline.update(binding)
+                with self.assertRaisesRegex(ValueError, "protected DynamoDB"):
+                    configuration.candidate(baseline, provider, review)
+                baseline[prefix + "ACCESS_KEY_ID"] = "fixture-access"
+                baseline[prefix + "SECRET_ACCESS_KEY"] = "fixture-secret"
+                for key, value in ((prefix + "REGION", "us-west-2"), (prefix + "PROBE_ID", second)):
+                    with self.assertRaisesRegex(ValueError, "do not match"):
+                        configuration.candidate(baseline | {key: value}, provider, review)
+                with self.assertRaisesRegex(ValueError, "protected DynamoDB"):
+                    configuration.candidate(baseline | {prefix + "SESSION_TOKEN": ""}, provider, review)
             after = configuration.candidate(baseline, provider, review)
             self.assertEqual({configuration.ADMISSION, configuration.GRANTS, partition},
                              {key for key, value in after.items() if baseline.get(key) != value})

@@ -560,6 +560,8 @@ def reviewed_exact_key_source(provider, path):
                                          "objectstorage.us-phoenix-1.oraclecloud.com/n/oraclebigdatadb/b/workshop-data/o",
                                          r"bds-livelabs/[a-z0-9][a-z0-9-]{0,79}\.sh"),
         }.get(provider)
+        if provider == "DynamoDBOASIS":
+            fields.add("Region")
         if fixed_public or evm_gateway:
             fields = {"Actor", "Origin"} if provider == "GOMapOASIS" else {"Actor"}
         elif public_keys:
@@ -809,7 +811,13 @@ def reviewed_exact_key_source(provider, path):
         evm_gateway[2] if evm_gateway else None,
         list(evm_gateway[3]) if evm_gateway else None)
     review = {"presets": presets}
-    if provider == "TigrisOASIS":
+    if provider == "DynamoDBOASIS":
+        region = catalogue["Region"]
+        if not isinstance(region, str) or not re.fullmatch(r"[a-z]{2}(?:-[a-z0-9]+)+-[1-9][0-9]*", region):
+            raise RuntimeError("A canonical AWS region is required for the reviewed DynamoDB catalogue.")
+        review["sourceBinding"] = {"CQL_DYNAMODB_QUERY_REGION": region,
+                                   "CQL_DYNAMODB_QUERY_PROBE_ID": ids[0]}
+    elif provider == "TigrisOASIS":
         review["sourceBinding"] = {"CQL_TIGRIS_QUERY_ORIGIN": catalogue["Endpoint"],
                                    "CQL_TIGRIS_QUERY_BUCKET": catalogue["Bucket"],
                                    "CQL_TIGRIS_QUERY_PROBE_ID": ids[0]}
