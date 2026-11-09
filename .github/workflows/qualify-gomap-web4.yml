@@ -60,7 +60,7 @@ jobs:
             if ($LASTEXITCODE) { throw 'GOMapRoute WEB4 boundary qualification failed' }
             [xml]$report = Get-Content TestResults/GOMapWeb4Current/boundary.trx
             $counts = $report.TestRun.ResultSummary.Counters
-            if ($counts.passed -ne '8' -or $counts.total -ne '8' -or $counts.executed -ne '8') {
+            if ($counts.passed -ne '12' -or $counts.total -ne '12' -or $counts.executed -ne '12') {
               throw 'All eight boundary cases must execute and pass without skips'
             }
           }
