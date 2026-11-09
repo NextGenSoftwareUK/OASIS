@@ -230,7 +230,13 @@ command to the proven Node probe. Its dependency manifest validates. The existin
 qualification branch advanced from the original source to this correction after
 a fresh ref check. The exact commit-only teaching image is building in
 [42537289091](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42537289091).
-Follow that run, then use the MapLibre package/startup profile before integration. The original publisher still pins
+Build succeeded with digest
+`sha256:b4334684bbfa896a916f13f08996e38975c7fe25a02c976b5e0f51aef65f811a`.
+[MapLibre package/startup run 42538855449](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42538855449)
+passed for that source and digest. Artifact 13640482803 verified against SHA256
+`c92bc38976bd3ce06cfbd40fd82f7862d080f211b417f73d40e3c81da0c9b9d7`.
+Three assemblies and the packaged helper hash passed. API and Docker health,
+exit 0 and owned container/network/volume cleanup passed. The original publisher still pins
 the old candidate and must be updated after exact qualification. Then verify the
 deployed package, apply the reviewed settings once and seal the first owned
 HTTP/reuse/privacy/replica results. The four-provider health correction is prepared below.
