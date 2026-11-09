@@ -298,3 +298,28 @@ All114 client controls pass. Public HTML245065B, SHA256
 is byte-identical to the committed blob. It links this accepted scope and
 the real WakuStoreCqlTests.cs example at backendbc6ba3e91. Browser interaction
 remains unverified. [Live demo](https://web4.oasisomniverse.one/web4-sandbox.html#cql-waku-store-catalogue).
+
+## WEB4 Development startup incident — 9 November 2026 UTC
+
+MapLibre deployment 435de4e4 at c6f25f76 and the exact Civic rollback
+7bb067fa at 88c378c1 both logged that Waku readiness did not return the
+three qualified messages exactly once. The rollback reports SUCCESS in
+Railway, but a public /api/health request completed TLS and timed out
+without HTTP headers. The API is gated on native readiness. The complete
+protected service settings still matched the Civic baseline after rollback.
+
+The protected Waku bootstrap archive was inspected in memory only. It
+contains all three original messages, timestamped 7 November at 00:54:27
+UTC. All were more than 48 hours old at the MapLibre failure at 02:53:34
+UTC on 9 November. The pinned native Store v0.39.2 defaults to two-day
+timestamp-based retention and the WEB4 launcher supplies no explicit
+retention policy. This is consistent with pruning the persisted working
+archive. The mounted archive has not been examined, so its exact contents
+remain unverified.
+
+Qualify a bounded native retention policy for the isolated demo archive
+with the original aged fixture, across startup and restart. Inspect and
+preserve the affected working archive before any reconciliation. Restore
+only the original qualified messages if loss is verified. Preserve their
+hashes and the existing CQL cohort. No MapLibre enrollment settings were
+applied. No hosted archive or cohort was recreated during diagnosis.
