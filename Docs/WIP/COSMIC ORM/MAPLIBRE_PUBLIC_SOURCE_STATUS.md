@@ -243,3 +243,18 @@ settings reconstructed and matched the protected candidate. Guarded
 apply and exact-commit activation are prepared. The next rollout
 interval opens at 09:16:15 UTC on 9 November. No new settings were
 written during the preflight.
+
+## Four-provider live HTTP acceptance
+
+Railway settings deployment 9d5e9388 at ab0e9b2c passed package
+inspection on instance fa26240e, with all 11 settings acknowledged and
+the complete protected settings verified. Sandbox, Polygon ID, SEEDS
+and Intel OpenVINO each passed native CQL 3/2, MongoDB federation 5/4,
+two private saves, zero repeat saves with two reused snapshots,
+SQLite/Neo4j replica readback 2/2, and zero independent private rows.
+The four original acceptance seals bind the report hashes and instance.
+Sandbox names include the block of each observation. The first
+evidence seal assumed the native and prepared names used the same block
+and stopped before writing a receipt. The corrected seal checked the
+same contract label and valid block format from the retained reports,
+without replaying queries or writes. Browser acceptance remains open.
