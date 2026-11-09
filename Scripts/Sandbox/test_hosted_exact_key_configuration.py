@@ -256,6 +256,9 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                  {"Origin": "https://routing.openstreetmap.de."},
                  {"Origin": "https://routing.example:65536"},
                  {"Origin": "https://routing.example/route"},
+                 {"Origin": "https://."},
+                 {"Origin": "https://routing..example"},
+                 {"Origin": "https://-routing.example"},
                  {"Origin": "https://user@routing.example"})
         with tempfile.TemporaryDirectory() as directory:
             descriptor = Path(directory) / "catalogue.json"

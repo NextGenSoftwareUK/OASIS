@@ -735,8 +735,10 @@ def reviewed_exact_key_source(provider, path):
         elif fixed_public:
             if provider == "GOMapOASIS":
                 origin = catalogue["Origin"]
-                match = re.fullmatch(r"https://([a-z0-9.-]+)(?::([0-9]{1,5}))?/?", origin)
-                if (not match or match[1].rstrip(".") in ("router.project-osrm.org", "routing.openstreetmap.de")
+                label = r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?"
+                match = re.fullmatch(rf"https://({label}(?:\.{label})*\.?)(?::([0-9]{{1,5}}))?/?", origin)
+                if (not match or len(match[1].rstrip(".")) > 253
+                        or match[1].rstrip(".") in ("router.project-osrm.org", "routing.openstreetmap.de")
                         or (match[2] and not 1 <= int(match[2]) <= 65535)):
                     raise ValueError("A dedicated HTTPS GOMap origin is required.")
             _, namespace, keys = fixed_public
