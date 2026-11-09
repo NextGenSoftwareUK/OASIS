@@ -5363,3 +5363,5 @@ Corrected MapLibre c6f25f76 fast-forwarded the existing qualification branch. Ex
 Corrected MapLibre build42537289091 succeeded. Exact package/startup42538855449 artifact13640482803 verified in memory, source c6f25f76 digest b4334684, API/Docker healthy, exit0, owned containers/network/DB volumes absent. No local image or archive extraction. Development rollout and live acceptance pending.
 
 MapLibre corrected package receipt retained as compact JSON from digest-verified artifact13640482803. Guarded publisher, inspector and activation syntax checked. November8 date guard refused before any rollout operation. No archive extracted, local image downloaded or settings rewritten.
+
+MapLibre read-only preflight passed for c6f25f76 using retained Railway CLI5.6.21 via process-only OASIS_RAILWAY_CLI. The default executable path was missing. Protected settings matched, live Civic baseline and seven pins verified. Preflight returned before rollout receipt or push. No install or new environment.

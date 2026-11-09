@@ -241,7 +241,11 @@ now pin the corrected candidate. The publisher requires the corrected image
 receipt and verifies that only the exact health line differs from the original
 provider-qualified source. The November 8 date guard was exercised and refused
 the push. Fresh shared ref, protected settings and deployment checks still apply
-during the permitted window. Then verify the
+during the permitted window. The read-only preflight passed on November 8 using the retained
+Railway CLI 5.6.21 via OASIS_RAILWAY_CLI. It checked candidate and Development
+refs, seven advertised pins, complete protected settings equality and the
+successful Civic deployment. Repeat those checks in the publication operation.
+ Then verify the
 deployed package, apply the reviewed settings once and seal the first owned
 HTTP/reuse/privacy/replica results. The four-provider health correction is prepared below.
 [MapLibre details](MAPLIBRE_PUBLIC_SOURCE_STATUS.md).
