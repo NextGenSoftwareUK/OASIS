@@ -33,6 +33,14 @@ owner deferrals explicit.
 
 ## Immediate work
 
+TRON native runner recovery on 8 November found that both retained catalogue
+copies still match the reviewed SHA256. The old local verifier's two pinned
+build DLLs are missing. The existing cloud workflow can build from the pinned
+source and run the same catalogue when authorized access is available.
+The dedicated repository secret metadata request returned HTTP 404. That
+response does not establish the state of organization-level access. The single
+owner-action entry still tracks the existing private configuration location.
+
 Daily branch synchronization: task merge6e2cccbd includes accepted Development
 88c378c1e; Core05d049a includes its accepted81862b2pin with the exact source
 tree of eebf39bf. Both existing branches pushed; only parent gitlink/manifest
