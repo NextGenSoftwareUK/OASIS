@@ -561,7 +561,7 @@ def reviewed_exact_key_source(provider, path):
                                          r"bds-livelabs/[a-z0-9][a-z0-9-]{0,79}\.sh"),
         }.get(provider)
         if fixed_public or evm_gateway:
-            fields = {"Actor"}
+            fields = {"Actor", "Origin"} if provider == "GOMapOASIS" else {"Actor"}
         elif public_keys:
             fields = {"Actor", public_keys[0]}
         if provider == "CloudinaryOASIS":
@@ -733,6 +733,12 @@ def reviewed_exact_key_source(provider, path):
             ids = [native_logical_id(catalogue["Actor"], provider, namespace, key) for key in keys]
             record_ids = ids
         elif fixed_public:
+            if provider == "GOMapOASIS":
+                origin = catalogue["Origin"]
+                match = re.fullmatch(r"https://([a-z0-9.-]+)(?::([0-9]{1,5}))?/?", origin)
+                if (not match or match[1].rstrip(".") in ("router.project-osrm.org", "routing.openstreetmap.de")
+                        or (match[2] and not 1 <= int(match[2]) <= 65535)):
+                    raise ValueError("A dedicated HTTPS GOMap origin is required.")
             _, namespace, keys = fixed_public
             ids = [native_logical_id(catalogue["Actor"], provider, namespace, key) for key in keys]
             record_ids = ids
@@ -891,6 +897,8 @@ def reviewed_exact_key_source(provider, path):
     elif fixed_public or evm_gateway:
         setting = (fixed_public or evm_gateway)[0]
         review["sourceBinding"] = {setting: catalogue["Actor"]}
+        if provider == "GOMapOASIS":
+            review["sourceBinding"]["CQL_GOMAP_ROUTE_QUERY_SOURCE_ORIGIN"] = catalogue["Origin"]
         if evm_gateway:
             review["publicIds"] = ids
             review["requiredQueryableMetadataKey"] = evm_gateway[2]

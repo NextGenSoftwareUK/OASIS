@@ -62,6 +62,8 @@ def exact_key_catalogue(provider):
         }
         first, second, third = fixed_ids[provider]
         catalogue = {"Actor": actor}
+        if provider == "GOMapOASIS":
+            catalogue["Origin"] = "https://routing.example"
     elif provider in ("TenderlyOASIS", "QuickNodeOASIS"):
         first, second, third = ("0x0000000000000000000000000000000000000000",
                                 "0x000000000000000000000000000000000000dead",
@@ -621,10 +623,13 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                                "PolygonIDOASIS": "CQL_POLYGON_ID_SCHEMA_QUERY_SOURCE_OWNER",
                                "SEEDSOASIS": "CQL_SEEDS_SETTINGS_QUERY_SOURCE_OWNER",
                                "IntelOpenVINOOASIS": "CQL_OPENVINO_MODEL_QUERY_SOURCE_OWNER"}[provider]
-                    self.assertEqual({setting: actor}, review["sourceBinding"])
+                    binding = {setting: actor}
+                    if provider == "GOMapOASIS":
+                        binding["CQL_GOMAP_ROUTE_QUERY_SOURCE_ORIGIN"] = catalogue["Origin"]
+                    self.assertEqual(binding, review["sourceBinding"])
                     with self.assertRaisesRegex(ValueError, "do not match"):
-                        configuration.candidate(baseline | {setting: str(uuid.UUID(int=2))}, provider, review)
-                    baseline[setting] = actor
+                        configuration.candidate(baseline | binding | {setting: str(uuid.UUID(int=2))}, provider, review)
+                    baseline.update(binding)
                 elif provider == "TemporalOASIS":
                     key, value = next(iter(review["sourceBinding"].items()))
                     runs = catalogue["Runs"]
