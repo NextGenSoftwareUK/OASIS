@@ -198,3 +198,9 @@ Corrected image run 42566836454 is queued behind 42566683160. Once the
 corrected image publishes, the prepared dispatcher checks the exact
 source and manifest digest before requesting full package and isolated
 startup qualification. No Development rollout was requested.
+
+All four scoped WEB4 integration workflows passed on ac83d5ee:
+Sandbox 42566680876, Polygon ID 42566681028, SEEDS 42566680841,
+and OpenVINO 42566683083. The subsequent 0b3b72976 correction
+changes only qualification files. Its image build is still queued;
+exact package/startup acceptance and Development rollout are pending.
