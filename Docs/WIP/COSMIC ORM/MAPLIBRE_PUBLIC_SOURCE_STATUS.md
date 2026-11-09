@@ -233,3 +233,13 @@ to return HTTP 200. The task branch now bounds restore to the same
 two workers as publish and uses its Release assets directly rather
 than restoring again. Exact image qualification is still required
 before a new Development attempt.
+
+The bounded Release restore image passed exact package/startup run
+42581966154. Development advanced to ab0e9b2c, and Railway code
+deployment 7eda6b32 passed inspection on running instance f375a31b.
+All four assemblies are present, the MapLibre settings and mounted Dapr
+receipt match, and OpenVINO is still disabled. The original eleven
+settings reconstructed and matched the protected candidate. Guarded
+apply and exact-commit activation are prepared. The next rollout
+interval opens at 09:16:15 UTC on 9 November. No new settings were
+written during the preflight.
