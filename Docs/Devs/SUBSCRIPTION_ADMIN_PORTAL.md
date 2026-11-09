@@ -18,6 +18,15 @@ WEB4 serves `/api/subscription/admin/*` for customer, invoice, ledger, audit, ou
 
 The backend accepts OASIS's established authenticated `Wizard` avatar as the interactive administrator. Dedicated automation JWTs remain supported only when they contain the subscription-admin claim and their avatar UUID is listed in `SUBSCRIPTION_ADMIN_AVATAR_IDS`.
 
+### Granting a plan without Stripe
+
+`POST /api/subscription/admin/plan-grant` (administrator only, same authorisation as the other admin routes) puts an avatar on a plan without a Stripe subscription, for example Enterprise for an internal or partner application. Body: `{ "userId": "<avatar UUID>", "planId": "free|bronze|silver|gold|enterprise", "reason": "<at least 5 characters>", "expiresAtUtc": "<optional, at most 10 years>" }`.
+
+- Stripe stays canonical: it returns `409` if the avatar has an active Stripe subscription (cancel it first).
+- Every grant is written to the billing audit (`admin-plan-grant`) with the acting administrator, the reason, the previous plan and the expiry, and the avatar's authorization version is bumped.
+- Granted plans carry no pay-as-you-go billing. Granting `free` reverts the avatar to the free plan.
+- A later Stripe event for the avatar replaces the granted plan with the canonical Stripe state.
+
 ## Deployment order
 
 Deploy WEB4 and WEB6 admin APIs before OPORTAL. Remove the matching entries from `OPORTAL-JS/scripts/pending-endpoints.json` after regenerating endpoints from the deployed OpenAPI documents. The ledger activation procedure is separate and is documented in `SUBSCRIPTION_RAILWAY_CONFIGURATION.md`.

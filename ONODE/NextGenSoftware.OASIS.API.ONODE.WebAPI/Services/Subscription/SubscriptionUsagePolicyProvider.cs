@@ -11,8 +11,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public SubscriptionUsagePolicy GetPolicy(string planId, int karma)
         {
             var (monthly, daily, tokens, budget) = planId?.ToLowerInvariant() switch {
-                "free" => (1_000, 20, 50_000L, 1m), "bronze" => (10_000, 100, 250_000L, 10m),
-                "silver" => (100_000, 500, 1_000_000L, 50m), "gold" => (1_000_000, 2_000, 5_000_000L, 250m),
+                "free" => (30_000, 1_000, 50_000L, 1m), "bronze" => (300_000, 10_000, 250_000L, 10m),
+                "silver" => (3_000_000, 100_000, 1_000_000L, 50m), "gold" => (30_000_000, 1_000_000, 5_000_000L, 250m),
                 "enterprise" => (-1, 0, 0L, 0m), _ => throw new InvalidOperationException("The subscription plan is not recognized by WEB4.")
             };
             if (daily > 0) daily = checked((int)(daily * KarmaMultiplier(karma)));
