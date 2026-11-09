@@ -188,3 +188,13 @@ exact instance. Browser acceptance remains open. The four-provider
 candidate ac83d5ee and Core e242de41 are published to the existing
 qualification refs. Four scoped WEB4 checks and the exact image build
 were dispatched. No new Development batch was deployed.
+
+The four-provider candidate's package control run 42566647198 exposed
+verifier drift and a missing shared Docker-resource helper. Candidate
+0b3b72976 aligns the workflow, verifier and control files with the
+passing task-branch harness. The correction touches qualification files
+only. Eight local controls and the dependency manifest check passed.
+Corrected image run 42566836454 is queued behind 42566683160. Once the
+corrected image publishes, the prepared dispatcher checks the exact
+source and manifest digest before requesting full package and isolated
+startup qualification. No Development rollout was requested.
