@@ -373,3 +373,13 @@ No provider variables changed and no hosted archive rows have been written.
 The scoped candidate 58816e262 applies only the qualified retention
 change and its control to the current Development source. Exact image
 build 42554927956 is in progress. Development remains at c6f25f76.
+
+Railway maintenance deployment dd45f721 failed before creating a
+container. Its builder could not reach the Ubuntu Noble package mirror
+over port 80 during apt-get update. The previous Civic instance is also
+crashed. No offline repair ran. The temporary sleep command was removed
+by setting the service start command to the empty string. Railway's
+public API accepted null but left the prior override in place. Readback
+confirmed the empty value and no new deployment. Use the qualified
+prebuilt image for the next maintenance attempt if the original service
+source and volume can be preserved and restored exactly.
