@@ -12,16 +12,17 @@ and does not establish public-network native storage, NFT/wallet or full parity.
 
 # TONOASIS Provider
 
-`TONOASIS` brings the Open Network (TON) into OASIS via the new TON EVM runtime.
-By pointing the shared `Web3CoreOASIS` contract suite at a TON EVM RPC endpoint we
-gain full CRUD/NFT/wallet parity without re-implementing a bespoke TON pipeline.
+`TONOASIS` now uses the native TVM backend and mandatory shared private storage.
+The former EVM inheritance is removed; its obsolete constructor rejects EVM
+configuration. This is an explicit **local TVM emulator** profile, not public TON
+network access or certification of HyperDrive replication/failover.
 
-Populate `DNA.json` (or `OASIS_DNA`) with:
+The new `Contracts/TonHolonStore.tact` uses TON's native TVM, with an immutable
+owner, keyed cell values and owner-authorized update/delete messages. Its local
+TVM tests cover three records, rejected foreign changes, long/Unicode payloads,
+missing reads and saved-state reload in a separate process.
 
-- `ConnectionString`: TON EVM RPC endpoint (testnet or mainnet)
-- `ChainId`: network identifier exposed by the EVM gateway
-- `ChainPrivateKey`: hot wallet used for writes
-- `ContractAddress`: deployed `Web3CoreOASIS.sol` instance on TON
+Run from the repository worktree:
 
 Once configured, enable `TONOASIS` in HyperDrive replication/failover settings to
 include TON alongside the rest of the blockchain quorum.
