@@ -1,21 +1,16 @@
 using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Text.Json;
 using System.Threading.Tasks;
-using DuckDB.NET.Data;
-using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
-namespace NextGenSoftware.OASIS.API.Providers.DuckDBOASIS
+namespace NextGenSoftware.OASIS.API.Providers.DuckDBOASIS;
+
+/// <summary>Thin DuckDB adapter using native SQL and canonical shared record policy.
+/// Existing legacy three-table files are preserved; automatic migration is not performed.</summary>
+public class DuckDBOASIS : KeyValueStorageProviderBase
 {
     /// <summary>
     /// OASIS provider for DuckDB - the in-process analytical (OLAP) SQL engine.
@@ -1087,4 +1082,18 @@ namespace NextGenSoftware.OASIS.API.Providers.DuckDBOASIS
         private async Task<List<T>> GetAllDocsAsync<T>(string table) where T : class
             => await QueryAsync<T>($"SELECT doc FROM {table} LIMIT 1000");
     }
+    private static string Require(string connectionString)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(connectionString); return connectionString;
+    }
+    public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) => DeleteHolonRecordAsync(id, true);
+    public async Task<OASISResult<bool>> DeleteHolonSoftAsync(Guid id, bool softDelete = true)
+    {
+        var result = await DeleteHolonRecordAsync(id, softDelete);
+        return new OASISResult<bool>(result.Result != null && result.IsDeleted) {
+            IsError=result.IsError, Exception=result.Exception, ErrorCode=result.ErrorCode,
+            Message=result.Message, IsDeleted=result.IsDeleted, DeletedCount=result.DeletedCount };
+    }
+    public OASISResult<bool> DeleteHolonSoft(Guid id, bool softDelete = true)
+        => DeleteHolonSoftAsync(id, softDelete).GetAwaiter().GetResult();
 }

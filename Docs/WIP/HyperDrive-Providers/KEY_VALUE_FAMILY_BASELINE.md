@@ -1,0 +1,35 @@
+# Key-value family checkpoint
+
+Updated 28 October 2026. Scope: share record policy and native protocol invariants; hosted acceptance remains provider-specific.
+
+## Redis and Upstash
+
+- Redis already delegates canonical records, history, queries and private-record encryption to the shared storage base.
+- `RedisStateComparison` now owns the existing `redis-state-v1:` key-bound byte observation format, exact conditional Lua scripts and literal-prefix glob escaping. Redis wire transport consumes it; Upstash REST can reuse it without copying these rules.
+- This extraction preserves existing observation bytes. Tokens compare content, not monotonic versions; ABA and multi-key transactions are not guaranteed.
+- Six new shared controls passed after first failing to compile before implementation. Thirty-two existing Redis canonical record, private-admission and read-version controls passed. Shared, Redis and both consumers built from existing caches, no restore/download. These are controlled checks, not a new native Redis certification.
+- Upstash now delegates records/history/queries to the shared encrypted storage base. Its real REST transport uses shared native conditional scripts, exact acknowledgement validation and a cached read-only legacy-layout admission check before any private-layout access. Existing URL/token constructor and default soft holon deletion remain. A separately persisted32-byte key is mandatory (OASIS_UPSTASH_STORAGE_KEY or explicit resolver).
+- Real hosted Upstash passes52/52 canonical checks, native namespace empty before/after each mode;28controlled cases pass including malformed responses, conflicts, paging, serialized sync tokens, cancellation and caller-owned HTTP lifecycle. Native source identity/cleanup receipts: TestResults/HyperDrive-Providers/UpstashCurrent; aggregate SHA2564b303018e706d63d3cf99e022bc56ba92aeda8085a3567e9a025450cc648bff4 at NativeEvidence/conformance-upstashoasis-current.json.
+- Native receipt binds its original source-matched producer and consumer; later additional controlled cases changed only the consumer. Core includes concurrent owner working changes; this is not immutable release or full-interface/global-routing certification.
+- REST causal consistency requires a serialized request session that forwards Upstash's sync token. Do not infer global strong consistency from compatible Redis commands or a local proxy.
+
+## Exact next step
+
+Upstash baseline published as90716cb0b. Cloudflare Workers KV now shares encrypted policy:52controlled/25transport checks, native access/consistency gates remain (CLOUDFLARE_KV_STORAGE_BASELINE.md). Next: consolidate the existing Tigris S3 leaf through the shared S3 base. AzureStorageOASIS is already the native Azure Blob owner; preserve that baseline rather than rebuilding it. Keep product-native and full-interface gates explicit; no routing or depth expansion yet.
+
+After inspecting existing configuration (none found), allocated one official free72-hour Upstash scratch service28October, expiry31October2026. Reuse it until expiry; runner never provisions replacements or overwrites reports. No local runtime/SDK/download. Protected response/credentials/storage key under C:/Users/david/AppData/Local/OASIS/ReusableProviderTests/Upstash (CurrentUserDPAPI). Canonical synthetic records cleaned; hosted internal history/size not exposed by this baseline. Resource details and exact output sizes: TestResults/HyperDrive-Providers/UpstashCurrent/resources.json. Never publish the protected response, resource tokens or claim URL.
+
+Protocol sources: [REST API and free scratch resource](https://upstash.com/docs/redis/features/restapi), [session consistency](https://upstash.com/docs/redis/howto/readyourwrites). Per-client causal reads do not guarantee current state across independently constructed providers. Retire old-layout writers before adoption; admission is not concurrent migration coordination. Existing ad hoc integration/harness cleanup still needs consolidation; canonical runner is the bounded supported verification path.
+
+## Resources
+
+All paths relative to `C:/Source/OASIS`; existing fixed build outputs reused, not duplicate environments:
+
+| Project root | bin bytes | obj bytes |
+|---|---:|---:|
+| Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage | 7,851,884 | 1,415,167 |
+| Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests | 47,704,780 | 2,389,909 |
+| Providers/Storage/NextGenSoftware.OASIS.API.Providers.RedisOASIS | 7,924,736 | 886,033 |
+| Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.UnitTests | 47,861,790 | 1,136,929 |
+
+Existing .NET10.0.401 and StackExchange.Redis2.8.16 reused. Owned build/test handles terminal; no service/port or fixture data created. Retain these outputs for subsequent provider work. After retirement and handle verification, exact `bin`/`obj` folders may be removed and regenerated by cache-only bounded builds under `Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1`. Free C:95,648,800,768B is a shared-machine observation, not exclusive task usage.

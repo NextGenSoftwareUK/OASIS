@@ -13,6 +13,10 @@
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
+    <Compile Include="../../../Shared/TestSupport/AtomicConformanceCheckpoint.cs" Link="TestSupport/AtomicConformanceCheckpoint.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.UpstashOASIS\NextGenSoftware.OASIS.API.Providers.UpstashOASIS.csproj" />
   </ItemGroup>
 </Project>

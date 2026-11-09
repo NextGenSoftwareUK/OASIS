@@ -41,18 +41,6 @@
       ]
     },
     {
-      "provider": "AWSS3OASIS",
-      "suite": "core-storage-v2",
-      "mode": "native",
-      "passed": 52,
-      "total": 52,
-      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-awss3oasis-current.json",
-      "sha256": "4946725d183ecbfdb39b2b222bab809cef90ced1171c4622699be3cef73b1d1b",
-      "blockers": [
-        "Shipping AWSS3OASIS official SDK adapter verified on MinIO compatible service only; hosted AWS S3, production IAM, all-interface coverage and broader routing remain open."
-      ]
-    },
-    {
       "provider": "RedisOASIS",
       "suite": "core-storage-v2",
       "mode": "native",
@@ -194,8 +182,8 @@
       "mode": "native",
       "passed": 52,
       "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-awsoasis-current.json",
-      "sha256": "fb946f3374c56ef3edcab06c6e61e1e735b90afeeb8f6af3f4553c5ee805d8a3",
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-awsoasis-current.json",
+      "sha256": "f08ed20dea809c09ca9c39b5b4563f470c05cd0178fd79c2d81a256bc5a66fb3",
       "blockers": []
     },
     {
@@ -204,8 +192,8 @@
       "mode": "native",
       "passed": 52,
       "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-dynamodboasis-current.json",
-      "sha256": "18ec94a32d1097939badbcd369e03db4533a0d3389f42555af99142d553fc429",
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-dynamodboasis-current.json",
+      "sha256": "59b13a84dc309fa1c2f7ac7761647d656c179804ac39d2248f1f85b28c86ee4e",
       "blockers": []
     },
     {
@@ -272,14 +260,71 @@
       "provider": "DuckDBOASIS",
       "suite": "core-storage-v2",
       "mode": "native",
-      "passed": 2,
+      "passed": 52,
       "total": 52,
       "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-duckdboasis-current.json",
-      "sha256": "f6db9356707d817dc6a1290ecf9a77036a914cb3100b85b45b25ef83f7bb05cc",
-      "blockers": [
-        "async: avatar-save: System.InvalidOperationException [save acknowledgement/count]",
-        "sync: avatar-save: System.InvalidOperationException [save acknowledgement/count]"
-      ]
+      "sha256": "7297d27d62a7a4b50ae268a68fe8da03c6ff37ee30bbcf276880d49c853464d1",
+      "blockers": []
+    },
+    {
+      "provider": "ThreeFoldOASIS",
+      "suite": "core-storage-v2",
+      "mode": "controlled",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-threefoldoasis-current.json",
+      "sha256": "45e8e426025cbe2944c4d5486896fdb19481126c657f740c188d2019b5e31567",
+      "blockers": []
+    },
+    {
+      "provider": "AWSS3OASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-awss3oasis-current.json",
+      "sha256": "a2bfc146d4a97a44b3a9ef3b188d508fcb45122d72f35e598f792899e13de459",
+      "blockers": []
+    },
+    {
+      "provider": "MinIOOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-miniooasis-current.json",
+      "sha256": "cb955b57ea49858bba677e660176fb29236756c4e9f4a24a540b3c1ed53d52ae",
+      "blockers": []
+    },
+    {
+      "provider": "ConvexOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-convexoasis-current.json",
+      "sha256": "5f63f13823054beb4e7cbce4befaf7255f26d3047f4f981ff34e55a965f95721",
+      "blockers": []
+    },
+    {
+      "provider": "UpstashOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-upstashoasis-current.json",
+      "sha256": "4b303018e706d63d3cf99e022bc56ba92aeda8085a3567e9a025450cc648bff4",
+      "blockers": []
+    },
+    {
+      "provider": "CloudflareOASIS",
+      "suite": "core-storage-v2",
+      "mode": "controlled",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/CloudflareCurrent/conformance-controlled-current.json",
+      "sha256": "9cf5b1d9580db76ea77a53a3de73e192d01a6eff974b9f1300e5dc70f2839107",
+      "blockers": []
     }
   ],
   "providerBlockers": {
@@ -317,13 +362,13 @@
       "Source-reviewed legacy map facade contains 47 literal success returns without a native client; real map adapter/read-only capability probe required, not a storage-suite candidate"
     ],
     "AWSOASIS": [
-      "Canonical shipping factory bound; existing stopped Dynamo container mounts a missing pinned runtime JAR; restore/review that same environment before native baseline, never silently reset old data; 27 factory controls are not native conformance"
+      "Relocated retained DynamoDB Local3.3.2: canonical52/52, factory27, five tables empty before/after; stopped compaction43,008B. Hosted AWS IAM/region acceptance, complete interfaces and global routing remain open."
     ],
     "DynamoDBOASIS": [
-      "Canonical shipping factory bound; existing stopped Dynamo container mounts a missing pinned runtime JAR; restore/review that same environment before native baseline, never silently reset old data; 27 factory controls are not native conformance"
+      "Relocated retained DynamoDB Local3.3.2: canonical52/52, factory27, five tables empty before/after; stopped compaction43,008B. Hosted AWS IAM/region acceptance, complete interfaces and global routing remain open."
     ],
     "AWSS3OASIS": [
-      "Shipping AWSS3OASIS official SDK adapter verified on MinIO compatible service only; hosted AWS S3, production IAM, all-interface coverage and broader routing remain open."
+      "Shared S3 facade reverified52/52 on native MinIO-compatible CI service after consolidation; native hosted AWS/IAM, full relevant interfaces and global routing remain open."
     ],
     "RedisOASIS": [],
     "KeyDBOASIS": [
@@ -369,13 +414,31 @@
       "PocketBase official REST:24 controlled tests pass after error preservation, complete page traversal/validation and modern superuser authentication fixes.15 targeted regressions reproduced red. No native service contacted; canonical suite, deployed API/auth/rules, selector escaping and full interfaces remain open."
     ],
     "ConvexOASIS": [
-      "Convex Function API boundary:20 controlled tests pass,15 regressions reproduced red. Fixes status/value envelope, explicit JSON format, deployment-key scheme and HTTP status preservation. Claimed companion oasis/avatars and oasis/holons modules are not shipped; implementation/deployment, native shared suite and full interfaces remain open."
+      "Native official retained engine core-storage-v2 52/52; real bundled internal companion and shared encrypted record policy, five revision-conflict controls,105-row native paging, independent empty-table checks and24controlled tests. Local source-matched cohort includes owner working Core; hosted IAM, immutable release, full relevant interfaces and global routing remain open."
     ],
     "NeonOASIS": [
       "Thin PostgreSqlFamilyProviderBase adapter with existing Npgsql9.0.3;10 controlled cases pass,4 regressions red before fix. Correct pooler hostname/port behavior and verified TLS on known single Neon hosts. Hosted native suite, schema compatibility and full interfaces remain open."
     ],
     "FaunaOASIS": [
       "Default db.fauna.com DNS host-not-found observed28October; no configured FAUNA env names or cached task runtime. Official self-hosted source exists; releases API0. Native access/runtime, shared-suite run and full interfaces remain open; no clone/install or hosted query attempted."
+    ],
+    "DuckDBOASIS": [
+      "Native core-storage-v2 52/52 plus6 native control cases; native per-key CAS, independent zero-row checks, original soft-delete default and legacy-file refusal verified. Old failures preserved; no automatic legacy three-table migration. All-interface, version/concurrency stress, MotherDuck/cloud and HyperDrive routing remain separate gates."
+    ],
+    "MotherDuckOASIS": [
+      "Shared DuckDB SQL/record facade; 10/10 configuration/metadata controls passed without cloud IO. Hosted core-storage-v2, SDK/extension compatibility, authentication and selected-catalog legacy guard remain unverified; local DuckDB evidence is not MotherDuck certification."
+    ],
+    "MinIOOASIS": [
+      "Shipping shared S3 facade native52/52 on CI MinIO, both independent empty-bucket checks and five producer/consumer identities verified. Persisted key required; legacy layouts refused; default soft holon deletion preserved. Full relevant interfaces, concurrency/IAM/durability and global routing remain open."
+    ],
+    "ThreeFoldOASIS": [
+      "Shared encrypted S3 record policy; canonical52/52 controlled and5metadata tests pass. Requires persisted OASIS_THREEFOLD_STORAGE_KEY or explicit resolver. QSS-native HEAD/conditional/pagination/IAM/durability and full interfaces remain open; controlled/MinIO evidence is not QSS certification."
+    ],
+    "UpstashOASIS": [
+      "Real hosted Upstash REST core-storage-v2 52/52; shared encrypted policy, native conditional scripts and causal sync-token session; namespace empty before/after both modes;28controlled cases. One protected scratch service expires31October2026. Cross-client linearizability, immutable release, full relevant interfaces and global routing remain open."
+    ],
+    "CloudflareOASIS": [
+      "Shared encrypted record/history/query adapter over real Workers KV REST;52/52 controlled core checks and25protocol/metadata controls pass, two native cases gated. No configured owned account/namespace/token found in process or three standard Wrangler profile locations inspected. Native eventual consistency, same-key write limit and absence of CAS/transactions prevent immediate-visibility or concurrency certification; no sleep/cache/fake-CAS workaround. Hosted/native/full-interface and global routing gates remain open."
     ]
   },
   "suites": [

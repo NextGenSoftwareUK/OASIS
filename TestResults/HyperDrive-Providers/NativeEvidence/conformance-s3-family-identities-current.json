@@ -1,0 +1,48 @@
+{
+  "sourceCommit": "d7d1458ab9042997b5ceabc285a8bddd009d9d0a",
+  "serviceImageId": "sha256:3d5ffffec36e6efdda5ed906939f1b4d0976f03fc33d1ea31ddcc67833089691",
+  "serviceRepoDigests": [
+    "ghcr.io/coollabsio/minio@sha256:a4938f37f1be1841b8e7b627ad0207b265345fd0d063e42d7410c78af0e63e68"
+  ],
+  "assemblies": {
+    "NextGenSoftware.OASIS.API.Core": {
+      "producer": "OASIS Architecture/NextGenSoftware.OASIS.API.Core/bin/Release/net10.0/NextGenSoftware.OASIS.API.Core.dll",
+      "sha256": "31cacd44009987d0a6bed554b1ba83c1f71ec28d46a0d4ac4929029b6b84840f",
+      "consumers": {
+        "AWS": "31cacd44009987d0a6bed554b1ba83c1f71ec28d46a0d4ac4929029b6b84840f",
+        "MinIO": "31cacd44009987d0a6bed554b1ba83c1f71ec28d46a0d4ac4929029b6b84840f"
+      }
+    },
+    "NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage": {
+      "producer": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/bin/Release/net10.0/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+      "sha256": "4535c47af928a03b0a1d855d343353b816fbc431d7bdfedcfa876b0cb751df48",
+      "consumers": {
+        "AWS": "4535c47af928a03b0a1d855d343353b816fbc431d7bdfedcfa876b0cb751df48",
+        "MinIO": "4535c47af928a03b0a1d855d343353b816fbc431d7bdfedcfa876b0cb751df48"
+      }
+    },
+    "NextGenSoftware.OASIS.Providers.Shared.S3": {
+      "producer": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.S3/bin/Release/net10.0/NextGenSoftware.OASIS.Providers.Shared.S3.dll",
+      "sha256": "9ba5fa3bf6195f1945878292d8a300876b2346d3f513b7598600fcf994a7c13d",
+      "consumers": {
+        "AWS": "9ba5fa3bf6195f1945878292d8a300876b2346d3f513b7598600fcf994a7c13d",
+        "MinIO": "9ba5fa3bf6195f1945878292d8a300876b2346d3f513b7598600fcf994a7c13d"
+      }
+    },
+    "NextGenSoftware.OASIS.API.Providers.AWSS3OASIS": {
+      "producer": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSS3OASIS/bin/Release/net10.0/NextGenSoftware.OASIS.API.Providers.AWSS3OASIS.dll",
+      "sha256": "219dc1a33be408629b2ece789dd44e8061a9ae0cfd0299cfc02a59440abe29d3",
+      "consumers": {
+        "AWS": "219dc1a33be408629b2ece789dd44e8061a9ae0cfd0299cfc02a59440abe29d3"
+      }
+    },
+    "NextGenSoftware.OASIS.API.Providers.MinIOOASIS": {
+      "producer": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MinIOOASIS/bin/Release/net10.0/NextGenSoftware.OASIS.API.Providers.MinIOOASIS.dll",
+      "sha256": "5df289945da9b8a87dcea00bdf0d663286a4837410c9f5d5043e6a689e1c8d1c",
+      "consumers": {
+        "MinIO": "5df289945da9b8a87dcea00bdf0d663286a4837410c9f5d5043e6a689e1c8d1c"
+      }
+    }
+  },
+  "scope": "Fresh CI checkout/build; exact producer/consumer DLL hashes, not portable-PDB source-document verification"
+}

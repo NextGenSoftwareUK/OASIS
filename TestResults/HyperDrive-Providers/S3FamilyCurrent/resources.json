@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-28",
+  "owner": "HyperDrive provider task",
+  "origin": "reused fixed output hosts; no downloads or new service",
+  "activeTestHandles": false,
+  "retention": "reusable outputs; delete only verified owned stopped generated bin/obj, regenerate bounded cache-only builds",
+  "outputs": [
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Shared\\NextGenSoftware.OASIS.Providers.Shared.S3",
+      "binBytes": 7875171,
+      "objBytes": 861494
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Storage\\NextGenSoftware.OASIS.API.Providers.MinIOOASIS",
+      "binBytes": 7914563,
+      "objBytes": 865834
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Cloud\\NextGenSoftware.OASIS.API.Providers.AWSS3OASIS",
+      "binBytes": 7906821,
+      "objBytes": 850845
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Network\\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS",
+      "binBytes": 7953964,
+      "objBytes": 891962
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.MinIOOASIS.UnitTests",
+      "binBytes": 50413597,
+      "objBytes": 1203362
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.MinIOOASIS.IntegrationTests",
+      "binBytes": 50294156,
+      "objBytes": 1096475
+    }
+  ],
+  "controlledEvidenceBytes": 6526
+}
