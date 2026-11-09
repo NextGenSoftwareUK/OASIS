@@ -1,6 +1,6 @@
 # COSMIC ORM / CQL current status
 
-Updated 8 November 2026. Goal active and incomplete. Demo breadth comes first;
+Updated 9 November 2026. Goal active and incomplete. Demo breadth comes first;
 full native provider implementation and EF/NHibernate parity remain on the
 roadmap. Imported, virtual/pointer and hybrid holon modes remain in that roadmap;
 this checkpoint does not claim completion of those designs.
@@ -23,11 +23,20 @@ owner-action list for any missing account/access requirement, preserving existin
 entries and deferrals. Do not rerun accepted native sources or resave copies just
 to change queue order.
 
-Focus engineering/demo usability on this chain order before adding further
-providers. Existing MapLibre and four-provider plans/owners/settings remain
-prepared and unchanged behind the chain priorities; no unverified rollout or
-unverified Development push. GOMap WEB4 run42480693015 and its cleanup
-evidence are closed. Further GOMap rollout follows the priority queue. Remaining-provider popularity ranking must use
+Focus engineering and demo usability on this chain order. After the WEB4
+recovery, fresh public CQL full/subset checks passed for LocalFile and every
+listed priority provider except TRON, which was absent from discovery.
+Those recovery checks covered native reads. The earlier federation and
+browser evidence has its own scope. [Recovery evidence](WAKU_STORE_CQL_MVP.md)
+
+MapLibre, Sandbox, Polygon ID, SEEDS and Intel OpenVINO now have sealed
+live HTTP acceptance for native reads, MongoDB federation, idempotent
+snapshot preparation, replica reads and privacy. The latest inspected
+Development deployment is `9d5e9388` at `ab0e9b2c`. Browser acceptance
+for these five sources remains open. [Live acceptance and deployment evidence](MAPLIBRE_PUBLIC_SOURCE_STATUS.md)
+
+GOMap WEB4 run42480693015 and its cleanup evidence are closed. Further
+GOMap rollout follows the priority queue. Remaining-provider popularity ranking must use
 current adoption/use evidence when that queue is resumed, with dependencies and
 owner deferrals explicit.
 
