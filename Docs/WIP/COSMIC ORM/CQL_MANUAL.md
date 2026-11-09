@@ -1146,7 +1146,7 @@ From C:/Source/OASIS-cosmic run Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Prov
 
 ### Selection after entity windows and stages (Q01f, partial)
 
-The explicit entity-projection API is native-verified on SQLite, MongoDB and Neo4j. Final standard IQueryable Select after entity windows/stages is also native-verified on all three. Sync and async enumeration rebind closures on each execution and validate native cells before DTO construction, without constructing source application entities. SQLite, MongoDB and Neo4j now support native Where/order/ThenBy/Skip/Take/Reverse after this selection. Reselection and element/cardinality/numeric terminals after entity selection remain unsupported. Q01f remains red; this is not general LINQ parity.
+The explicit entity-projection API is native-verified on SQLite, MongoDB and Neo4j. Final standard IQueryable Select after entity windows/stages is also native-verified on all three. Sync and async enumeration rebind closures on each execution and validate native cells before DTO construction, without constructing source application entities. SQLite, MongoDB and Neo4j now support native Where/order/ThenBy/Skip/Take/Reverse after this selection. Reselection is now implemented; Count/LongCount/Any now work; All/element/numeric terminals after entity selection remain unsupported. Q01f remains red; this is not general LINQ parity.
 
 For an already bound `IQueryable<Holon>` named `query`, the final selection can use standard LINQ:
 
@@ -1280,7 +1280,7 @@ read. Existing exact-column/domain rules,32 selected-stage and10000-window bound
 apply alongside independent entity-source/work/payload and selected-proof bounds.
 Later Take(0) cannot hide invalid selected inputs or protected entity errors.
 
-Combined graph sources, reselection and element/cardinality/numeric terminals
+Combined graph sources and All/element/numeric terminals
 after this selection remain unsupported; ordinary entity-stage terminals and
 flat selected terminals retain their existing separate supported scopes.
 
