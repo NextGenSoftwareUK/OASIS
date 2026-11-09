@@ -95,3 +95,11 @@ Task commit c6ab73226 aligns the offline descriptor verifier and candidate
 builder with the hosted registration. The reviewed descriptor carries Actor
 and Origin, and both settings must match the protected candidate. All 40
 offline configuration tests passed with fixture data.
+
+Corrected run 42626376216 at 665f5382f passed all 12 controlled admission cases
+and one real developer-route WEB4/MongoDB integration case. Report artifact
+13678399711 SHA-256 65ca85cce57f12904c1bac8170ee65fd03868e0588e5c07b602d8b4742931dda
+was verified in memory. Cleanup artifact 13678244863 independently confirmed
+that the owned MongoDB container and anonymous volumes were absent. Only the
+compact receipts were retained locally. The native integration exercised the
+developer route path. The dedicated public origin and live rollout remain open.
