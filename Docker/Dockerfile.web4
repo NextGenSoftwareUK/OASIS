@@ -39,7 +39,10 @@ RUN case "$OASIS_INCLUDE_TEACHING_SIDECARS" in \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 # The pinned Waku binary loads PostgreSQL and OpenMP libraries during startup,
 # including when the teaching source uses SQLite.
-RUN apt-get update && apt-get install -y --no-install-recommends libpq5 libgomp1 libstdc++6 libgcc-s1 openssl libaio1t64 liburing2 \
+RUN sed -i -e 's|http://archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' \
+           -e 's|http://security.ubuntu.com/ubuntu|https://security.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources \
+    && apt-get update -o APT::Update::Error-Mode=any \
+    && apt-get install -y --no-install-recommends libpq5 libgomp1 libstdc++6 libgcc-s1 openssl libaio1t64 liburing2 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 EXPOSE 8080
@@ -85,7 +88,10 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 COPY --from=provider_node /usr/local/ /usr/local/
 
 COPY Docker/oasis-dependency-versions.env /tmp/oasis-dependency-versions.env
-RUN apt-get update && apt-get install -y --no-install-recommends git \
+RUN sed -i -e 's|http://archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' \
+           -e 's|http://security.ubuntu.com/ubuntu|https://security.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources \
+    && apt-get update -o APT::Update::Error-Mode=any \
+    && apt-get install -y --no-install-recommends git \
     && . /tmp/oasis-dependency-versions.env \
     && git clone --no-checkout "${LIBRARIES_REPO}" /NextGenSoftware-Libraries \
     && git -C /NextGenSoftware-Libraries checkout --detach "${LIBRARIES_COMMIT}" \
