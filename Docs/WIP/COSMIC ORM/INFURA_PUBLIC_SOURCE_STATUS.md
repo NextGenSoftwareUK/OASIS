@@ -72,3 +72,12 @@ Cloud run 42539832668 passed five tests at 6df08d93f. Its digest-verified artifa
 13639999278 includes the passing registration and ID assertions. The added
 Python regression raised the shared configuration suite to 47. Corrected run
 42540103480 passed all 47 with zero skips and zero outbound HTTP calls.
+
+The full-image qualifier can require the Infura reader, its WEB4 registration
+and the packaged project dependency. Eight local verifier tests and the cloud
+control run 42540357920 passed. The exact teaching image for
+`da74323d2e22d21fbcc2c953010a000421f68ce9` is building in
+[42540376773](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42540376773)
+(job 128913748030). Follow that build and qualify its published digest with
+the Infura reader and combined startup options. Native access and live
+acceptance are separate gates.
