@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -81,6 +82,17 @@ public sealed class InfuraIpfsRetirementTests
         var profile = container.GetRequiredService<CqlReadSourceProfile>();
         Assert.Equal(ProviderType.InfuraOASIS, profile.Storage.ProviderType.Value);
         _ = new StorageQueryTariff(ProviderType.InfuraOASIS, 0m, "test-v1");
+        var teachingOwner = Guid.Parse("a5808c3e-7031-47e7-92de-48a659568f1b");
+        var catalogue = new[]
+        {
+            ("0x0000000000000000000000000000000000000000", "ef429e7f-cebb-8538-87b2-5a57b6884bf2"),
+            ("0x000000000000000000000000000000000000dead", "8c2689e4-73e9-8faa-9d18-b70d4e4486fa"),
+            ("0x00000000219ab540356cbb839cbe05303d7705fa", "a4669a44-3d6d-826b-91aa-1dae1e62fc03")
+        };
+        foreach (var (address, expectedId) in catalogue)
+            Assert.Equal(Guid.Parse(expectedId), NativeRecordHolonMapper.StableHolonId(
+                teachingOwner, ProviderType.InfuraOASIS, "infuraethereum-public-accounts:0x1", address));
+
     }
 
     [Fact]

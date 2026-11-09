@@ -257,7 +257,11 @@ class ExactKeyConfigurationTests(unittest.TestCase):
             self.assertEqual("InfuraEthereumAccountAddress", review["requiredQueryableMetadataKey"])
             keys = review["presets"][0]["request"]["filters"][0]["value"]
             self.assertEqual("0x00000000219ab540356cbb839cbe05303d7705fa", keys[2])
-            self.assertEqual(3, len(set(review["publicIds"])))
+            self.assertEqual([
+                "ef429e7f-cebb-8538-87b2-5a57b6884bf2",
+                "8c2689e4-73e9-8faa-9d18-b70d4e4486fa",
+                "a4669a44-3d6d-826b-91aa-1dae1e62fc03",
+            ], review["publicIds"])
             descriptor.write_text(json.dumps({"Actor": actor, "ApiKey": "controlled"}))
             with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                 configuration.verifier.reviewed_exact_key_source("InfuraOASIS", descriptor)
