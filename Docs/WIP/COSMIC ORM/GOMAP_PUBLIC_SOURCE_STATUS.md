@@ -64,3 +64,9 @@ the active deployment and full settings against the saved baseline before
 applying the four-setting candidate. Then verify the running settings, fixed
 native routes, federation, private-save isolation and replicas. Browser
 verification is a separate gate.
+
+Offline replay passed against the original protected snapshots. The saved route
+descriptor SHA-256 matched the source plan, the reviewed catalogue rebuilt the
+candidate byte-for-value, and the exact four planned keys accounted for every
+difference between the 270-setting baseline and 272-setting candidate. This
+check issued no provider requests and wrote no Development settings.
