@@ -66,3 +66,9 @@ The hosted verifier now accepts an actor-only Infura catalogue and derives the
 three fixed account IDs and exact address filters. Credentials stay in protected
 server settings. All 40 local hosted-configuration tests passed using temporary
 fixtures. Native Infura and hosted acceptance still require authorized access.
+
+The C# mapper assertions and hosted presets agree for all three Infura IDs.
+Cloud run 42539832668 passed five tests at 6df08d93f. Its digest-verified artifact
+13639999278 includes the passing registration and ID assertions. The added
+Python regression raised the shared configuration suite to 47. Corrected run
+42540103480 passed all 47 with zero skips and zero outbound HTTP calls.
