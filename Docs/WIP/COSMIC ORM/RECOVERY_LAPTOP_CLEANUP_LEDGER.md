@@ -5387,3 +5387,9 @@ Owner approved hourly or two-hour Development batching. Corrected MapLibre c6f25
   copy at C:/Users/David/AppData/Local/Temp/cosmic-waku-repair-342ymvwh/working.sqlite3.
   The shell policy rejected the cleanup command. The copy is retained
   for later cleanup. No download, install, or build output was added.
+
+- 2026-11-09: Retained the recovery-laptop GOMap acceptance launcher at
+  LocalState/COSMIC/RecoveryLaptopResume20261107/run-gomap-http.py
+  (1793 bytes). It uses the existing Python and verifier. Keep until GOMap
+  acceptance is sealed, then remove this exact launcher after its process exits.
+  Offline hold-guard verification created no builds, runtime installs or databases.
