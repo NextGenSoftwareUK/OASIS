@@ -223,3 +223,13 @@ has been prepared for that image. The old native-consumer workflow
 42572801482 failed because its verifier still expects private GHCR
 stage aliases. The public release stage workflow 42572801420 is the
 relevant artifact producer check. No live settings changed.
+
+Railway deployment 24303b7a failed without creating a container.
+The public-asset correction removed the previous GHCR scope error.
+The last retained logs show .NET restore progress and build
+cancellation without a compiler error or a Railway diagnosis. This
+does not establish a resource-exhaustion cause. MapLibre continued
+to return HTTP 200. The task branch now bounds restore to the same
+two workers as publish and uses its Release assets directly rather
+than restoring again. Exact image qualification is still required
+before a new Development attempt.
