@@ -35,8 +35,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             var aggregate = await _usageRepository.GetAggregateForPeriodAsync(userId, new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc), CancellationToken.None);
             return new UsageRecord { UserId = userId, Year = year, Month = month, RequestCount = aggregate.MonthlyRequests, LastUpdated = aggregate.UpdatedAtUtc };
         }
+        public Task<SubscriptionAuthorizationDecision> AuthorizeUsageAsync(
+            string userId, int karma, UsageAuthorizationRequest request, CancellationToken cancellationToken) =>
+            AuthorizeUsageAsync(userId, karma, request, null, cancellationToken);
+
         public async Task<SubscriptionAuthorizationDecision> AuthorizeUsageAsync(
-            string userId, int karma, UsageAuthorizationRequest request, CancellationToken cancellationToken)
+            string userId, int karma, UsageAuthorizationRequest request, AppAccountRecord app, CancellationToken cancellationToken)
         {
             if (!Guid.TryParse(userId, out var avatarId))
                 return Denied(401, "INVALID_AVATAR", "The authenticated avatar ID is invalid.");
@@ -53,6 +57,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             var usageEvent = new SubscriptionUsageEvent
             {
                 OperationId = request.OperationId,
+                AppId = app?.AppId,
+                AppPlanId = app?.PlanId,
                 UserId = userId,
                 ConsumingService = normalizedService,
                 Endpoint = request.Endpoint?.Trim(),

@@ -477,6 +477,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                     NextGenSoftware.OASIS.API.Core.Managers.SandboxOptions.Current.DemoAvatarEmailDomain,
                     NextGenSoftware.OASIS.API.Core.Managers.SandboxOptions.Retention)));
             services.AddSingleton<Services.Subscription.IDelegatedUsageGrantRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
+            services.AddSingleton<Services.Subscription.IAppAccountRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISubscriptionService, Services.Subscription.SubscriptionService>();
             services.AddSingleton<Services.Subscription.ISubscriptionPlanPriceReader, Services.Subscription.StripeSubscriptionPlanPriceReader>();
             services.AddSingleton<Services.Subscription.SubscriptionPlanCatalogue>();

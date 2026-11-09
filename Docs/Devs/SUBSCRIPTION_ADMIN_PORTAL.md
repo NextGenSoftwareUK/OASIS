@@ -27,6 +27,20 @@ The backend accepts OASIS's established authenticated `Wizard` avatar as the int
 - Granted plans carry no pay-as-you-go billing. Granting `free` reverts the avatar to the free plan.
 - A later Stripe event for the avatar replaces the granted plan with the canonical Stripe state.
 
+### App accounts (plan per application)
+
+A product with many users (for example PIPER) can hold a plan of its own, so its users are not limited by their personal Free quota and no grant is needed per user.
+
+- `GET /api/subscription/admin/app-accounts` lists apps (keys are never returned).
+- `POST /api/subscription/admin/app-accounts` with `{ "appId": "piper", "name": "PIPER", "planId": "enterprise", "reason": "..." }` creates an app. The response contains `apiKey` **once**; store it as a secret. Only a SHA-256 hash is kept.
+- `POST /api/subscription/admin/app-accounts/{appId}/rotate-key` issues a new key and invalidates the old one.
+- `POST /api/subscription/admin/app-accounts/{appId}` with `planId` and/or `status` (`active` or `disabled`) changes the app's plan or disables it; a disabled app's credentials stop working at once.
+- All changes are audited (`app-account-*`) with the administrator and reason. `appId` is 3 to 40 lowercase letters, digits or hyphens.
+
+**How it is used.** The app's server sends `X-OASIS-App-Id` and `X-OASIS-App-Key` with the user's normal bearer token. On WEB4's own authorization path the request is then evaluated against the more generous of the app's plan and the user's personal plan, so an app can never make a user worse off. Invalid or partial app credentials are rejected (401); requests without app headers behave exactly as before. Usage is still recorded against the signed-in avatar and the settlement protocol is unchanged.
+
+**Not covered yet.** The app plan is a per-user entitlement, not a shared pool: a finite app plan (for example Gold) applies its limits to each user separately. A pooled app-wide cap, and accepting app credentials on `usage/authorize` for the other consuming services (WEB5 to WEB10), are follow-ups.
+
 ## Deployment order
 
 Deploy WEB4 and WEB6 admin APIs before OPORTAL. Remove the matching entries from `OPORTAL-JS/scripts/pending-endpoints.json` after regenerating endpoints from the deployed OpenAPI documents. The ledger activation procedure is separate and is documented in `SUBSCRIPTION_RAILWAY_CONFIGURATION.md`.

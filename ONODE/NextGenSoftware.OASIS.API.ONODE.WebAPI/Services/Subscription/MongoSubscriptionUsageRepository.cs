@@ -98,7 +98,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 if (subscription.Status is not ("active" or "trialing" or "free") ||
                     subscription.CurrentPeriodEnd.HasValue && subscription.CurrentPeriodEnd.Value <= authorizationTime)
                     throw new SubscriptionUsageLimitException("INACTIVE_SUBSCRIPTION", "The OASIS subscription is inactive or expired.", 402);
-                var policy = SandboxSubscriptionRules.EffectivePolicy(_policyProvider.GetPolicy(subscription.PlanId, karma),
+                var policy = SandboxSubscriptionRules.EffectivePolicy(_policyProvider.GetPolicy(
+                    usageEvent.AppPlanId == null ? subscription.PlanId : AppAccountRules.EffectivePlanId(subscription.PlanId, usageEvent.AppPlanId), karma),
                     subscription, authorizationTime);
                 usageEvent.PlanId = subscription.PlanId; usageEvent.Karma = karma; usageEvent.AuthorizationPolicy = policy;
                 // This explicit version fence linearizes reservation authorization with concurrent
