@@ -32,4 +32,8 @@
   <ItemGroup>
     <None Update="README.md"><PackagePath>\</PackagePath><Pack>True</Pack></None>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
+    <EmbeddedResource Include="..\..\..\Scripts\TestHosts\openvino-model-server-pins.json" LogicalName="OASIS.Cql.OpenVino.Pins.json" />
+  </ItemGroup>
 </Project>

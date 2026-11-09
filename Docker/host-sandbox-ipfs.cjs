@@ -174,6 +174,9 @@ function assertSandbox(text) {
 async function main() {
   assertSandbox(process.env.OASIS_DNA_JSON);
   const services = [];
+  if (process.env.OASIS_SANDBOX_OPENVINO === 'true')
+    services.push(await require('./host-sandbox-openvino.cjs').serviceConfiguration(process.env,
+      require('./openvino-model-server-pins.json')));
   if (process.env.OASIS_SANDBOX_NATS === 'true')
     services.push(await require('./host-sandbox-nats.cjs').serviceConfiguration(process.env));
   if (process.env.OASIS_SANDBOX_DAPR === 'true')
