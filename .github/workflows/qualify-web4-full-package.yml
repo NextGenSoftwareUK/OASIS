@@ -44,9 +44,15 @@ on:
         required: false
         type: boolean
         default: false
+      retained_waku:
+        description: Verify the packaged native Waku runtime with the aged original archive
+        required: false
+        type: boolean
+        default: false
 permissions:
   contents: read
   packages: read
+  actions: read
 jobs:
   controls:
     if: github.event_name == 'push'
@@ -108,11 +114,37 @@ jobs:
           DIGEST: ${{ inputs.digest }}
           PACKAGE_PROFILE: ${{ inputs.package_profile }}
         run: python3 -B Scripts/TestHosts/qualify_web4_combined_startup.py --digest "$DIGEST" --profile "$PACKAGE_PROFILE"
+      - name: Retrieve the qualified Waku archive
+        if: inputs.retained_waku
+        uses: actions/download-artifact@v7
+        with:
+          name: waku-hosted-runtime-qualification
+          run-id: 42554263377
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/retained-waku
+      - name: Start and restart the packaged Waku runtime with the original archive
+        if: inputs.retained_waku
+        env:
+          DIGEST: ${{ inputs.digest }}
+          PACKAGE_PROFILE: ${{ inputs.package_profile }}
+        run: |
+          test "$PACKAGE_PROFILE" = maplibre
+          original="$RUNNER_TEMP/retained-waku/Original"
+          printf '%s  %s\n' 0bd3c388c5662d3f73a6239555013d4526dd801e8746b58e38c4921f55ec9880 "$original/store-qualified.sqlite3" | sha256sum --check
+          mkdir TestResults/WakuImageQualification
+          docker run --rm --network none --no-healthcheck --entrypoint node \
+            --mount "type=bind,source=$GITHUB_WORKSPACE,target=/qualification,readonly" \
+            --mount "type=bind,source=$original,target=/original,readonly" \
+            --mount "type=bind,source=$GITHUB_WORKSPACE/TestResults/WakuImageQualification,target=/result" \
+            "ghcr.io/nextgensoftwareuk/oasis-web4@$DIGEST" \
+            /qualification/Scripts/TestHosts/Verify-WakuHostedRuntime.cjs \
+            /opt/waku/logosdeliverynode /original /result
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: web4-full-package
           path: |
+            TestResults/WakuImageQualification/*.json
             TestResults/Web4FullPackage/
             TestResults/Web4CombinedStartup/
           if-no-files-found: warn

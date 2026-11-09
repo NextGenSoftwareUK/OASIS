@@ -48,6 +48,8 @@ def main():
     tagged = json.loads(docker('image', 'inspect', tag).stdout)[0]
     assert image in metadata['RepoDigests'] and tagged['Id'] == metadata['Id']
     mapping = {'Docker/host-sandbox-ipfs.cjs': '/app/host-sandbox-ipfs.cjs'}
+    if o.profile == 'maplibre':
+        mapping['Docker/host-sandbox-waku.cjs'] = '/app/host-sandbox-waku.cjs'
     if o.profile == 'full':
         mapping.update({'Docker/host-sandbox-openvino.cjs': '/app/host-sandbox-openvino.cjs',
                         'Scripts/TestHosts/openvino-model-server-pins.json': '/app/openvino-model-server-pins.json'})
