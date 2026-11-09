@@ -247,6 +247,21 @@ class ExactKeyConfigurationTests(unittest.TestCase):
                     with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
                         configuration.verifier.reviewed_exact_key_source(provider, descriptor)
 
+    def test_infura_catalogue_keeps_credentials_out_of_reviewed_presets(self):
+        actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
+        with tempfile.TemporaryDirectory() as directory:
+            descriptor = Path(directory) / "catalogue.json"
+            descriptor.write_text(json.dumps({"Actor": actor}))
+            review = configuration.verifier.reviewed_exact_key_source("InfuraOASIS", descriptor)
+            self.assertEqual({"CQL_INFURA_QUERY_SOURCE_OWNER": actor}, review["sourceBinding"])
+            self.assertEqual("InfuraEthereumAccountAddress", review["requiredQueryableMetadataKey"])
+            keys = review["presets"][0]["request"]["filters"][0]["value"]
+            self.assertEqual("0x00000000219ab540356cbb839cbe05303d7705fa", keys[2])
+            self.assertEqual(3, len(set(review["publicIds"])))
+            descriptor.write_text(json.dumps({"Actor": actor, "ApiKey": "controlled"}))
+            with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                configuration.verifier.reviewed_exact_key_source("InfuraOASIS", descriptor)
+
     def test_polygon_gateway_presets_use_addresses_and_separate_logical_authority(self):
         actor = "a5808c3e-7031-47e7-92de-48a659568f1b"
         gateways = {

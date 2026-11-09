@@ -61,3 +61,8 @@ Remaining gates include inspecting that run, verifying credential handling and
 native reads with authorized access, qualifying the exact WEB4 package and paired
 query flow, then live and browser acceptance. The independent IPFS demo covers
 IPFS separately from the retired Infura service.
+
+The hosted verifier now accepts an actor-only Infura catalogue and derives the
+three fixed account IDs and exact address filters. Credentials stay in protected
+server settings. All 40 local hosted-configuration tests passed using temporary
+fixtures. Native Infura and hosted acceptance still require authorized access.

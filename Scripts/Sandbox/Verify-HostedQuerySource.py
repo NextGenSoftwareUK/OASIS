@@ -27,7 +27,7 @@ REVIEWED_EXACT_KEY_PROVIDERS = (
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
-    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "TenderlyOASIS", "QuickNodeOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS",
+    "WeaviateOASIS", "TigrisOASIS", "GarnetOASIS", "KeyDBOASIS", "DragonflyOASIS", "UpstashOASIS", "InfluxDBOASIS", "CouchbaseOASIS", "ArangoDBOASIS", "CockroachDBOASIS", "TimescaleDBOASIS", "CassandraOASIS", "RavenDBOASIS", "ScyllaDBOASIS", "LitestreamOASIS", "PineconeOASIS", "LanceDBOASIS", "NeonOASIS", "AlgoliaOASIS", "NileOASIS", "NetlifyBlobsOASIS", "FastlyOASIS", "DaprOASIS", "CloudflareOASIS", "VercelKVOASIS", "DenoDeployOASIS", "AppwriteOASIS", "ConvexOASIS", "TursoOASIS", "ENSOffchainOASIS", "OrbitDBOASIS", "GUNOASIS", "MilvusOASIS", "CloudinaryOASIS", "PgVectorOASIS", "ProofOfHumanityOASIS", "OracleObjectStorageOASIS", "SafeOASIS", "DruidOASIS", "PinotOASIS", "TemporalOASIS", "DiscordOASIS", "LivepeerOASIS", "TenderlyOASIS", "QuickNodeOASIS", "InfuraOASIS", "PinataOASIS", "PushProtocolOASIS", "LayerZeroOASIS",
     "WorldIDOASIS", "ReclaimProtocolOASIS", "DecentralandOASIS", "TheGraphOASIS", "SubqueryOASIS", "SelfProtocolOASIS", "HolonymOASIS", "CivicOASIS", "MapLibreOASIS", "GOMapOASIS", "TheSandboxOASIS", "PolygonIDOASIS", "SEEDSOASIS", "IntelOpenVINOOASIS", "WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS", "TRONOASIS",
 )
 FIXED_PUBLIC_CATALOGUES = {
@@ -109,17 +109,20 @@ REVIEWED_PUBLIC_CATALOGUE_PROVIDERS = frozenset((*FIXED_PUBLIC_CATALOGUES,
     "CloudinaryOASIS", "OracleObjectStorageOASIS", "ProofOfHumanityOASIS",
     "GUNOASIS", "OrbitDBOASIS", "WakuOASIS", "DuckDBOASIS", "NATSJetStreamOASIS"))
 
-POLYGON_GATEWAY_CATALOGUES = {
-    "TenderlyOASIS": ("CQL_TENDERLY_POLYGON_QUERY_SOURCE_OWNER", "tenderlypolygon-public-accounts:0x89",
-                     "TenderlyPolygonAccountAddress"),
-    "QuickNodeOASIS": ("CQL_QUICKNODE_POLYGON_QUERY_SOURCE_OWNER", "quicknodepolygon-public-accounts:0x89",
-                       "QuickNodePolygonAccountAddress"),
-}
 POLYGON_GATEWAY_KEYS = (
     "0x0000000000000000000000000000000000000000",
     "0x000000000000000000000000000000000000dead",
     "0x0000000000000000000000000000000000001010",
 )
+EVM_GATEWAY_CATALOGUES = {
+    "TenderlyOASIS": ("CQL_TENDERLY_POLYGON_QUERY_SOURCE_OWNER", "tenderlypolygon-public-accounts:0x89",
+                     "TenderlyPolygonAccountAddress", POLYGON_GATEWAY_KEYS),
+    "QuickNodeOASIS": ("CQL_QUICKNODE_POLYGON_QUERY_SOURCE_OWNER", "quicknodepolygon-public-accounts:0x89",
+                       "QuickNodePolygonAccountAddress", POLYGON_GATEWAY_KEYS),
+    "InfuraOASIS": ("CQL_INFURA_QUERY_SOURCE_OWNER", "infuraethereum-public-accounts:0x1",
+                   "InfuraEthereumAccountAddress", (*POLYGON_GATEWAY_KEYS[:2],
+                       "0x00000000219ab540356cbb839cbe05303d7705fa")),
+}
 spec = importlib.util.spec_from_file_location("verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")
 verification = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(verification)
@@ -543,7 +546,7 @@ def reviewed_exact_key_source(provider, path):
     try:
         names_only = provider == "ENSOffchainOASIS"
         fixed_public = FIXED_PUBLIC_CATALOGUES.get(provider)
-        polygon_gateway = POLYGON_GATEWAY_CATALOGUES.get(provider)
+        evm_gateway = EVM_GATEWAY_CATALOGUES.get(provider)
         fields = ({"Actor", "LiveIds"} if provider == "NATSJetStreamOASIS" else
                   {"Actor", "Names"} if names_only else {"Actor", "LiveIds", "DeletedId", "MissingId"})
         public_keys = {
@@ -557,7 +560,7 @@ def reviewed_exact_key_source(provider, path):
                                          "objectstorage.us-phoenix-1.oraclecloud.com/n/oraclebigdatadb/b/workshop-data/o",
                                          r"bds-livelabs/[a-z0-9][a-z0-9-]{0,79}\.sh"),
         }.get(provider)
-        if fixed_public or polygon_gateway:
+        if fixed_public or evm_gateway:
             fields = {"Actor"}
         elif public_keys:
             fields = {"Actor", public_keys[0]}
@@ -725,9 +728,9 @@ def reviewed_exact_key_source(provider, path):
             raise ValueError("Unexpected Tigris source address.")
         if set(catalogue) != fields:
             raise ValueError("Unexpected teaching catalogue shape.")
-        if polygon_gateway:
-            _, namespace, _ = polygon_gateway
-            ids = [native_logical_id(catalogue["Actor"], provider, namespace, key) for key in POLYGON_GATEWAY_KEYS]
+        if evm_gateway:
+            _, namespace, _, keys = evm_gateway
+            ids = [native_logical_id(catalogue["Actor"], provider, namespace, key) for key in keys]
             record_ids = ids
         elif fixed_public:
             _, namespace, keys = fixed_public
@@ -795,8 +798,8 @@ def reviewed_exact_key_source(provider, path):
         raise RuntimeError("The reviewed teaching catalogue requires canonical, distinct record identities"
                            " and any provider-specific original receipts.") from error
     presets = reviewed_record_presets(provider, ids,
-        polygon_gateway[2] if polygon_gateway else None,
-        list(POLYGON_GATEWAY_KEYS) if polygon_gateway else None)
+        evm_gateway[2] if evm_gateway else None,
+        list(evm_gateway[3]) if evm_gateway else None)
     review = {"presets": presets}
     if provider == "TigrisOASIS":
         review["sourceBinding"] = {"CQL_TIGRIS_QUERY_ORIGIN": catalogue["Endpoint"],
@@ -885,12 +888,12 @@ def reviewed_exact_key_source(provider, path):
     elif provider == "TursoOASIS":
         review["sourceBinding"] = {"CQL_TURSO_QUERY_ORIGIN": catalogue["Origin"],
                                    "CQL_TURSO_QUERY_PROBE_ID": ids[0]}
-    elif fixed_public or polygon_gateway:
-        setting, _, _ = fixed_public or polygon_gateway
+    elif fixed_public or evm_gateway:
+        setting = (fixed_public or evm_gateway)[0]
         review["sourceBinding"] = {setting: catalogue["Actor"]}
-        if polygon_gateway:
+        if evm_gateway:
             review["publicIds"] = ids
-            review["requiredQueryableMetadataKey"] = polygon_gateway[2]
+            review["requiredQueryableMetadataKey"] = evm_gateway[2]
     elif provider == "TemporalOASIS":
         source = {"owner": catalogue["Actor"], "namespace": namespace,
                   "runs": [{"workflowId": run["WorkflowId"], "runId": run["RunId"]} for run in runs],
