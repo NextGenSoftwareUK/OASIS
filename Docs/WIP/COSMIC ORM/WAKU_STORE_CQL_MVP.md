@@ -418,3 +418,14 @@ refresh returned HTTP 200 with a nested OASIS result and no renewal
 cookie. The verifier correctly left the refresh intent unresolved.
 The response is preserved and the request was not replayed. No
 existing cohort was recreated or modified.
+
+The retained refresh response reported an inner application error and
+issued no renewal cookie. Anonymous CQL discovery returned HTTP 401.
+A separate journalled recovery visitor verified the restored Waku public
+CQL presets at three and two rows. No prepared writes ran and the
+original acceptance seal was unchanged. The same visitor confirmed
+discovery availability and federation flags for Solana, Ethereum,
+Polygon, Arbitrum, NEAR, EOSIO, SOLID, IPFS, ActivityPub, Cosmos,
+Polkadot, TON and LocalFile. Discovery is not a fresh execution proof
+for those providers. TRON and Hedera were not found by the provider-name
+filter and require separate verification.
