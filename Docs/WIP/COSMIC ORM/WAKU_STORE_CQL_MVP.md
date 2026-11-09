@@ -323,3 +323,19 @@ preserve the affected working archive before any reconciliation. Restore
 only the original qualified messages if loss is verified. Preserve their
 hashes and the existing CQL cohort. No MapLibre enrollment settings were
 applied. No hosted archive or cohort was recreated during diagnosis.
+
+The task branch correction 254f46216 sets native capacity-based retention
+to 100 messages for the isolated Waku catalogue. All 14 local controls
+passed. GitHub Actions 42554263377 passed with the exact original retained
+archive on initial native startup and restart. The source archive and
+provisioning acknowledgement remained intact in qualification. This
+qualifies the retention change and demonstrates the original archive is
+usable. It does not inspect or repair the live working archive.
+
+Railway now reports both Civic rollback 7bb067fa and its instance
+7cd8c611 CRASHED. There is no running instance of that deployment for
+the existing read-only SSH inspection. The next rollout must account for
+the persisted archive before WEB4 readiness. The scoped recovery should
+inspect the stopped working database and its sidecars, preserve it, and
+reconcile only the exact missing qualified identities. A full volume
+restore would also affect other demo data on the shared mount.
