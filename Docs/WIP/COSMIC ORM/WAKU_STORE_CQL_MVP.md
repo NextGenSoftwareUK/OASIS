@@ -393,3 +393,17 @@ verified registry access. Railway documents private registry credentials
 as a Pro feature. Keep the GitHub trigger and volume in place while
 qualifying a recovery path. No source, volume, or registry credentials
 were changed during this preflight.
+
+The exact HTTPS recovery image at 485448ac3 passed package, isolated
+WEB4 health, and aged native Waku startup/restart in run 42557794511.
+Railway maintenance a5addf12 reached SUCCESS on that source. Its
+guarded read-only inspection verified the empty archive with Waku
+stopped. The initial repair wrapper had duplicate JavaScript variable
+declarations and failed before writing. Readback confirmed zero rows
+and no backup. After syntax checking the corrected wrapper, the repair
+created a backup of the empty archive and transactionally restored the
+three original rows, including exact timestamps and payload bytes.
+The maintenance start override was cleared. Railway acknowledged normal
+startup deployment 7678c07b at the same source. Public health and CQL
+readback are pending. No provider enrolment, credentials, or cohorts
+changed.
