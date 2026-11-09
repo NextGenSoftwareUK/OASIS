@@ -264,7 +264,11 @@ Compared with the original four-provider tree below, only the Docker health
 command, combined startup qualifier and its regression tests differ. All three
 blobs match the health-qualified source and the manifest validates. Exact
 combined source, image and startup qualification and the MapLibre live seal
-remain gates. The prepared publisher still pins the original candidate.
+remain gates. The guarded publisher now uses the corrected candidates and checks
+all three health-related blobs against the qualified source. A pre-publication
+check verified the source scope and stopped at the missing deployed MapLibre
+settings/package receipt. The live MapLibre seal is still required before any
+four-provider candidate publication.
 
 Original **unpublished** scoped parent candidate:
 **d555cb2a7959a27a3af22dc3d45b06e25568bac7**, Core
