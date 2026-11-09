@@ -5,11 +5,6 @@
 #   docker build -f Docker/Dockerfile.web4 -t oasis-onode-webapi .
 
 # Official Node runtime pinned to its multi-platform manifest.
-# Final WEB4 consumes only qualified immutable native artifacts.
-# The source producer stages below run only when explicitly targeted.
-FROM ghcr.io/nextgensoftwareuk/oasis-web4@sha256:279e32ad55459bfc728d53d6f6676c70e692397b315e4516c66535f44019fb0e AS provider_waku_runtime
-FROM ghcr.io/nextgensoftwareuk/oasis-web4@sha256:be82a002f587a5f9d81d40e44702d0333fb982cba0698f072a5d99e3989d06e7 AS provider_nats_runtime
-
 FROM node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df AS provider_node
 
 # Native IPFS runtime for explicitly configured sandbox sources. No host download.
@@ -166,10 +161,10 @@ COPY Docker/host-sandbox-openvino.cjs /app/host-sandbox-openvino.cjs
 RUN ln -s /opt/ovms-rootfs/ovms /ovms
 COPY --from=provider_node /usr/local/bin/node /usr/local/bin/node
 COPY --from=provider_ipfs /usr/local/bin/ipfs /usr/local/bin/ipfs
-COPY --from=provider_nats_runtime /usr/local/bin/nats-server /usr/local/bin/nats-server
+COPY --from=provider_nats /usr/local/bin/nats-server /usr/local/bin/nats-server
 COPY --from=provider_dapr /opt/provider-runtimes/daprd/daprd /opt/dapr/daprd
 COPY --from=provider_dapr /opt/provider-runtimes/garnet/net10.0/ /opt/garnet/
-COPY --from=provider_waku_runtime /opt/waku /opt/waku
+COPY --from=provider_waku /opt/waku /opt/waku
 COPY --from=provider_solid /community-server /opt/solid
 COPY --from=build /opt/pouchdb /opt/pouchdb
 COPY --from=provider_teaching_sidecars /opt/teaching /opt/teaching
