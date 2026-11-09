@@ -70,3 +70,10 @@ descriptor SHA-256 matched the source plan, the reviewed catalogue rebuilt the
 candidate byte-for-value, and the exact four planned keys accounted for every
 difference between the 270-setting baseline and 272-setting candidate. This
 check issued no provider requests and wrote no Development settings.
+
+Before public enrollment, close the routing endpoint use gate above. The
+three-route cloud qualification establishes developer use, and the protected
+settings replay establishes configuration integrity. Public sandbox use still
+requires a documented endpoint contract covering expected traffic, concurrency
+across WEB4 instances and required attribution. Keep this gate in the rollout
+checklist when the Development hold is lifted.
