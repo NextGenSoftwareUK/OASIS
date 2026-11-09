@@ -82,3 +82,11 @@ Artifact 13642158093 matched SHA256 `fb8c80a0b25911bee0420f6f01858064f4e6316edd8
 Infura, TRON and Urbit readers, helper/model checks, API and Docker health,
 native metadata, exit 0 and owned resource cleanup passed. Native Infura
 access and live acceptance remain separate gates.
+
+The opt-in native harness compiled at aa6c835e4 and the five controlled tests
+passed in [42543704050](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42543704050).
+Artifact 13642457448 matched SHA256 `8885a7a330d5e52e1f93f336ff81827ff42e742ecbec266e4e0e254963f4182b`.
+The workflow's authenticated_native input enables one native test after the
+authorized key and secret are available as protected Actions settings. It uses
+the registered reader to verify three finalized accounts and a two-account
+subset, with the exact preset IDs. The native case awaits authorized access.
