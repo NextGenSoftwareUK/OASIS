@@ -5393,3 +5393,8 @@ Owner approved hourly or two-hour Development batching. Corrected MapLibre c6f25
   (1793 bytes). It uses the existing Python and verifier. Keep until GOMap
   acceptance is sealed, then remove this exact launcher after its process exits.
   Offline hold-guard verification created no builds, runtime installs or databases.
+
+- 2026-11-09: Retired run-gomap-http.py in place. The launcher now refuses
+  execution because it was pinned to the superseded owner-only package.
+  Historical receipts and protected snapshots were retained. No live
+  verification was run.
