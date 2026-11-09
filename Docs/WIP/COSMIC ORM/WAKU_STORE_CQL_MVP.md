@@ -447,3 +447,12 @@ Dependency pins did not move. Railway queued Git-triggered deployment
 0d024452 at the same source. The manually recovered instance 7678c07b
 was still serving when the queue was observed. The Git-triggered
 replacement needs its own health and native readback checks.
+
+Git-triggered Development rollout 0d024452 at 485448ac3 passed
+public health and all three native Waku identities on instance
+7bf35d95. During startup, discovery initially reported
+CQL_SOURCE_NOT_READY while hosted source activation was still running.
+After activation, Waku public CQL returned three and two rows. All 14
+previously verified priority sources including LocalFile were available
+in discovery. This was a read-only check using the existing recovery
+visitor. The protected settings matched the incident baseline.
