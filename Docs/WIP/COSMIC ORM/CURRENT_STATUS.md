@@ -31,12 +31,17 @@ browser evidence has its own scope. [Recovery evidence](WAKU_STORE_CQL_MVP.md)
 
 MapLibre, Sandbox, Polygon ID, SEEDS and Intel OpenVINO now have sealed
 live HTTP acceptance for native reads, MongoDB federation, idempotent
-snapshot preparation, replica reads and privacy. The latest inspected
-Development deployment is `9d5e9388` at `ab0e9b2c`. Browser acceptance
+snapshot preparation, replica reads and privacy. The latest sealed acceptance
+was on Development deployment `9d5e9388` at `ab0e9b2c`. Browser acceptance
 for these five sources remains open. [Live acceptance and deployment evidence](MAPLIBRE_PUBLIC_SOURCE_STATUS.md)
 
-GOMap WEB4 run42480693015 and its cleanup evidence are closed. Further
-GOMap rollout follows the priority queue. Remaining-provider popularity ranking must use
+GOMap code deployment `76806353` at `e2286e44` passed package inspection.
+The four prior enrollments remained enabled. GOMap is disabled and its protected
+settings candidate passed offline replay. Development pushes and live settings
+activation are on hold until David explicitly lifts the hold.
+[GOMap package and remaining gates](GOMAP_PUBLIC_SOURCE_STATUS.md)
+
+Remaining-provider popularity ranking must use
 current adoption/use evidence when that queue is resumed, with dependencies and
 owner deferrals explicit.
 
