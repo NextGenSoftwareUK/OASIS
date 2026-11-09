@@ -50,3 +50,17 @@ candidate changes exactly four settings. The descriptor and owner
 are retained in HostedGOMapPublicSourceCurrent. No live settings
 or provider data were changed. Scoped candidate integration and
 exact build qualification remain required.
+
+9 November deployment handoff. The code-only WEB4 Development deployment
+76806353-8f77-4052-ba45-5c1679418f01 at e2286e442013a2f9137ab694a61349e2e5856e02
+passed running-package inspection. The GOMap reader is present, the complete
+settings matched the protected baseline, and all four prior enrollments remained
+enabled. GOMap is still disabled. The inspected image digest is
+sha256:381096f87837bb2202a02a9825384b4a7971111ab9f7a22f19833ef08cd61bfc.
+
+David has put Development pushes on hold until he explicitly lifts the hold.
+Keep GOMap settings and activation on hold too. On release of the hold, recheck
+the active deployment and full settings against the saved baseline before
+applying the four-setting candidate. Then verify the running settings, fixed
+native routes, federation, private-save isolation and replicas. Browser
+verification is a separate gate.
