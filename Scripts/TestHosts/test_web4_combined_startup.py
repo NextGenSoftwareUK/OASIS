@@ -54,13 +54,19 @@ const fs={readFileSync:p=>{
    if(o.missingUrbit)throw Error('controlled missing Urbit assembly');
    return Buffer.from('UrbitContactsV1Client ReadBookPageAsync '+(o.missingUrbitQuery?'':'UrbitContactBookQuerySource'));
  }
- if(p==='/app/NextGenSoftware.OASIS.API.ONODE.WebAPI.dll')return Buffer.from(o.missingUrbitRegistration?'':'CqlUrbitReadSourceRegistration AddUrbitReadSource');
+ if(p==='/app/NextGenSoftware.OASIS.API.Providers.InfuraOASIS.dll')return Buffer.from('InfuraPublicAccountMetadataSource CredentialHandler');
+ if(p==='/app/NextGenSoftware.OASIS.API.ONODE.WebAPI.dll')return Buffer.from(
+  (o.missingUrbitRegistration?'':'CqlUrbitReadSourceRegistration AddUrbitReadSource ')+
+  (o.missingInfuraRegistration?'':'CqlInfuraReadSourceRegistration AddInfuraReadSource'));
  if(p==='/app/NextGenSoftware.OASIS.API.ONODE.WebAPI.deps.json'){
    const name='NextGenSoftware.OASIS.API.Providers.UrbitOASIS',key=name+'/2.0.0';
    const target={[key]:{runtime:{[name+'.dll']:{}}},'NextGenSoftware.OASIS.API.ONODE.WebAPI/2.0.0':{dependencies:{[name]:'2.0.0'}}};
    if(o.missingUrbitRuntime)delete target[key].runtime[name+'.dll'];
    if(o.missingUrbitDependency)delete target['NextGenSoftware.OASIS.API.ONODE.WebAPI/2.0.0'].dependencies[name];
-   return JSON.stringify({runtimeTarget:{name:'net10.0'},targets:{'net10.0':target},libraries:{[key]:{type:o.urbitNotProject?'package':'project'}}});
+   const infura='NextGenSoftware.OASIS.API.Providers.InfuraOASIS';
+   target[infura+'/2.0.1']={runtime:{[infura+'.dll']:{}}};
+   target['NextGenSoftware.OASIS.API.ONODE.WebAPI/2.0.0'].dependencies[infura]='2.0.1';
+   return JSON.stringify({runtimeTarget:{name:'net10.0'},targets:{'net10.0':target},libraries:{[key]:{type:o.urbitNotProject?'package':'project'},[infura+'/2.0.1']:{type:'project'}}});
  }
  if(p.startsWith('/models/')){modelReads++;return model;}
  throw Error('Unexpected controlled file '+p);
@@ -69,12 +75,13 @@ const pins={modelName:'controlled',versions:['1','2','3'],files:{'graph':{bytes:
 vm.runInNewContext(PROBE,{Buffer,require:p=>{
  if(p==='node:fs')return fs;if(p==='node:crypto')return crypto;if(p==='node:assert/strict')return assert;
  if(p==='/app/openvino-model-server-pins.json')return pins;throw Error('Unexpected controlled module '+p);
-},process:{argv:['node',JSON.stringify(expected),JSON.stringify(o.reader),o.profile,JSON.stringify(o.urbit===true)]},console:{log:s=>result=JSON.parse(s)}});
+},process:{argv:['node',JSON.stringify(expected),JSON.stringify(o.reader),o.profile,JSON.stringify(o.urbit===true),JSON.stringify(o.infura===true)]},console:{log:s=>result=JSON.parse(s)}});
 assert.equal(modelReads,o.profile==='full'?3:0);
 console.log(JSON.stringify(result));
 """.replace('PROBE', json.dumps(probe))
         cases = [({'profile':'full','reader':False}, 0, 6),
                  ({'profile':'full','reader':True}, 0, 7),
+                 ({'profile':'maplibre','reader':False}, 0, 3),
                  ({'profile':'tron-api','reader':True}, 0, 3),
                  ({'profile':'tron-api','reader':True,'missingMethod':True}, 1, None),
                  ({'profile':'tron-api','reader':True,'missingFile':True}, 1, None),
@@ -82,6 +89,9 @@ console.log(JSON.stringify(result));
                  ({'profile':'full','reader':False,'urbit':True}, 0, 7),
                  ({'profile':'full','reader':True,'urbit':True}, 0, 8),
                  ({'profile':'tron-api','reader':True,'urbit':True}, 1, None)]
+        cases += [({'profile':'full','reader':False,'infura':True}, 0, 7),
+                  ({'profile':'full','reader':False,'infura':True,'missingInfuraRegistration':True}, 1, None),
+                  ({'profile':'maplibre','reader':False,'infura':True}, 1, None)]
         cases += [({'profile':'full','reader':False,'urbit':True,key:True},1,None)
                   for key in ['missingUrbit','missingUrbitQuery','missingUrbitRegistration',
                               'missingUrbitRuntime','missingUrbitDependency','urbitNotProject']]
@@ -94,6 +104,7 @@ console.log(JSON.stringify(result));
                     proof = json.loads(result.stdout)
                     self.assertEqual(count, proof['assemblies'])
                     self.assertEqual(options.get('urbit',False), proof['urbitReaderPackaged'])
+                    self.assertEqual(options.get('infura',False), proof['infuraReaderPackaged'])
                     self.assertEqual(options['profile']=='full', proof['modelHashes'])
 
     def test_shipped_health_command_uses_published_runtime_and_rejects_bad_http(self):

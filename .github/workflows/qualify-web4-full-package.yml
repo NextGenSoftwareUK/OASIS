@@ -1,12 +1,13 @@
 name: Qualify immutable full WEB4 package
 on:
   push:
-    branches: [work/cosmic-cql-ton-public, work/cosmic-teaching-release-candidate]
+    branches: [work/cosmic-cql-ton-public]
     paths:
       - .github/workflows/qualify-web4-full-package.yml
       - Scripts/TestHosts/qualify_web4_full_package.py
       - Scripts/TestHosts/qualify_web4_combined_startup.py
       - Scripts/TestHosts/test_web4_combined_startup.py
+      - Scripts/TestHosts/owned_docker_resources.py
   workflow_dispatch:
     inputs:
       source:
@@ -17,14 +18,41 @@ on:
         description: Published full image sha256 digest
         required: true
         type: string
+      package_profile:
+        description: Exact image scope to verify
+        required: false
+        type: choice
+        options: [full, tron-api, maplibre]
+        default: full
+      tron_reader:
+        description: Require the packaged authenticated TRON header reader
+        required: false
+        type: boolean
+        default: false
+      urbit_reader:
+        description: Require the packaged Urbit SDK, query source and WEB4 registration
+        required: false
+        type: boolean
+        default: false
+      infura_reader:
+        description: Require the packaged Infura Ethereum CQL reader and WEB4 registration
+        required: false
+        type: boolean
+        default: false
       combined_startup:
         description: Also verify isolated API and native startup with fresh cloud data
+        required: false
+        type: boolean
+        default: false
+      retained_waku:
+        description: Verify the packaged native Waku runtime with the aged original archive
         required: false
         type: boolean
         default: false
 permissions:
   contents: read
   packages: read
+  actions: read
 jobs:
   controls:
     if: github.event_name == 'push'
@@ -50,6 +78,7 @@ jobs:
         run: |
           cp Scripts/TestHosts/qualify_web4_full_package.py "$RUNNER_TEMP/qualify_web4_full_package.py"
           cp Scripts/TestHosts/qualify_web4_combined_startup.py "$RUNNER_TEMP/qualify_web4_combined_startup.py"
+          cp Scripts/TestHosts/owned_docker_resources.py "$RUNNER_TEMP/owned_docker_resources.py"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ inputs.source }}
@@ -59,6 +88,7 @@ jobs:
         run: |
           cp "$RUNNER_TEMP/qualify_web4_full_package.py" Scripts/TestHosts/qualify_web4_full_package.py
           cp "$RUNNER_TEMP/qualify_web4_combined_startup.py" Scripts/TestHosts/qualify_web4_combined_startup.py
+          cp "$RUNNER_TEMP/owned_docker_resources.py" Scripts/TestHosts/owned_docker_resources.py
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -68,17 +98,53 @@ jobs:
         env:
           SOURCE: ${{ inputs.source }}
           DIGEST: ${{ inputs.digest }}
-        run: python3 -B Scripts/TestHosts/qualify_web4_full_package.py --source "$SOURCE" --digest "$DIGEST"
+          REQUIRE_TRON_READER: ${{ inputs.tron_reader }}
+          REQUIRE_INFURA_READER: ${{ inputs.infura_reader }}
+          REQUIRE_URBIT_READER: ${{ inputs.urbit_reader }}
+          PACKAGE_PROFILE: ${{ inputs.package_profile }}
+        run: |
+          args=()
+          if [[ "$REQUIRE_TRON_READER" == true ]]; then args+=(--require-tron-reader); fi
+          if [[ "$REQUIRE_URBIT_READER" == true ]]; then args+=(--require-urbit-reader); fi
+          if [[ "$REQUIRE_INFURA_READER" == true ]]; then args+=(--require-infura-reader); fi
+          python3 -B Scripts/TestHosts/qualify_web4_full_package.py --source "$SOURCE" --digest "$DIGEST" --profile "$PACKAGE_PROFILE" "${args[@]}"
       - name: Verify combined API and native startup on isolated fresh data
         if: inputs.combined_startup
         env:
           DIGEST: ${{ inputs.digest }}
-        run: python3 -B Scripts/TestHosts/qualify_web4_combined_startup.py --digest "$DIGEST"
+          PACKAGE_PROFILE: ${{ inputs.package_profile }}
+        run: python3 -B Scripts/TestHosts/qualify_web4_combined_startup.py --digest "$DIGEST" --profile "$PACKAGE_PROFILE"
+      - name: Retrieve the qualified Waku archive
+        if: inputs.retained_waku
+        uses: actions/download-artifact@v7
+        with:
+          name: waku-hosted-runtime-qualification
+          run-id: 42554263377
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/retained-waku
+      - name: Start and restart the packaged Waku runtime with the original archive
+        if: inputs.retained_waku
+        env:
+          DIGEST: ${{ inputs.digest }}
+          PACKAGE_PROFILE: ${{ inputs.package_profile }}
+        run: |
+          test "$PACKAGE_PROFILE" = maplibre
+          original="$RUNNER_TEMP/retained-waku/Original"
+          printf '%s  %s\n' 0bd3c388c5662d3f73a6239555013d4526dd801e8746b58e38c4921f55ec9880 "$original/store-qualified.sqlite3" | sha256sum --check
+          mkdir TestResults/WakuImageQualification
+          docker run --rm --network none --no-healthcheck --entrypoint node \
+            --mount "type=bind,source=$GITHUB_WORKSPACE,target=/qualification,readonly" \
+            --mount "type=bind,source=$original,target=/original,readonly" \
+            --mount "type=bind,source=$GITHUB_WORKSPACE/TestResults/WakuImageQualification,target=/result" \
+            "ghcr.io/nextgensoftwareuk/oasis-web4@$DIGEST" \
+            /qualification/Scripts/TestHosts/Verify-WakuHostedRuntime.cjs \
+            /opt/waku/logosdeliverynode /original /result
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: web4-full-package
           path: |
+            TestResults/WakuImageQualification/*.json
             TestResults/Web4FullPackage/
             TestResults/Web4CombinedStartup/
           if-no-files-found: warn
