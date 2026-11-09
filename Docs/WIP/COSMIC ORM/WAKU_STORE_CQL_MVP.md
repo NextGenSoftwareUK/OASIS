@@ -347,3 +347,11 @@ row count and missing reviewed identities. The original and a disposable
 one-missing-row copy both passed with unchanged database bytes. The
 temporary copy was removed. The inspector needs a running maintenance
 instance with the original WEB4 volume and the reviewed Waku settings.
+
+The offline restore operator now verifies the original against the
+protected bundle, refuses schema drift and changed existing rows,
+creates an exclusive SQLite backup, and inserts only the reviewed
+missing identities in one transaction. A disposable rehearsal verified
+exact row recovery, unrelated row preservation, pre-repair backup,
+wrong-set rejection and rejection of backup-path reuse. The live
+operator requires a mounted maintenance instance with Waku stopped.

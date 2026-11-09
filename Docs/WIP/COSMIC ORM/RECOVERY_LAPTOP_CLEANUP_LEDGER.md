@@ -5379,3 +5379,11 @@ Infura full image da74323d2/digest a66123e5 passed exact package/startup42543310
 Infura native harness compiled in cloud42543704050 with5/5 controls; artifact13642457448 SHA2568885a7a330d5e52e1f93f336ff81827ff42e742ecbec266e4e0e254963f4182b verified in memory. Native dispatch awaits authorized credentials. No local archive, image, database or runtime.
 
 Owner approved hourly or two-hour Development batching. Corrected MapLibre c6f25f76 guarded preflight and one-hour cadence passed; exact Development push acknowledged and deployment435de4e4-8ddb-4d1b-b806-a322e0475fbb observed QUEUED. Original Civic deployment remains accepted, settings untouched, no source operations. Protected observation/intent/ACK retained using existing CLI, no new runtime/image/database.
+
+- Waku offline repair rehearsal, 9 November 2026 UTC. Reused bundled Node
+  and the retained 12 KiB qualified archive. The successful rehearsal
+  removed its disposable working copy and backup. The first rehearsal
+  held an open SQLite handle during cleanup and left a 12 KiB disposable
+  copy at C:/Users/David/AppData/Local/Temp/cosmic-waku-repair-342ymvwh/working.sqlite3.
+  The shell policy rejected the cleanup command. The copy is retained
+  for later cleanup. No download, install, or build output was added.
