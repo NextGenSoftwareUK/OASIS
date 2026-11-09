@@ -5,7 +5,7 @@ from owned_docker_resources import missing_resource
 
 
 def configuration(root, mongo, marker, profile='full'):
-    if profile not in ('full', 'tron-api'):
+    if profile not in ('full', 'tron-api', 'maplibre'):
         raise ValueError('Explicit known startup profile required.')
     dna = json.loads((root / 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/Default/OASIS_DNA.json').read_text(encoding='utf-8-sig'))
     oasis = dna['OASIS']; storage = oasis['StorageProviders']
@@ -69,10 +69,11 @@ def image_health_ready(state):
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--digest',required=True);p.add_argument('--profile',choices=['full','tron-api'],default='full');o=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--digest',required=True);p.add_argument('--profile',choices=['full','tron-api','maplibre'],default='full');o=p.parse_args()
     assert os.environ.get('GITHUB_ACTIONS')=='true' and re.fullmatch('sha256:[a-f0-9]{64}',o.digest)
     root=Path(__file__).resolve().parents[2];out=root/'TestResults/Web4CombinedStartup';out.mkdir(parents=True,exist_ok=False)
     package=json.loads((root/'TestResults/Web4FullPackage/acknowledged.json').read_text())
+    assert package['profile'] == o.profile, 'Package/startup profiles differ.'
     assert package['checks']['modelHashes'] is (o.profile == 'full'), 'Package/startup profiles differ.'
     if o.profile == 'tron-api':
         assert package['checks']['assemblies'] == 3 and package['checks']['tronReaderPackaged'] is True
@@ -135,7 +136,7 @@ console.log(JSON.stringify(b));
                 raise RuntimeError('API health failed outside connection-refusal/503 readiness contract; exit '+str(r.returncode)+': '+r.stderr[-1500:])
             if time.monotonic()>deadline: raise RuntimeError('Combined API readiness deadline.')
             time.sleep(2)
-        if o.profile == 'full':
+        if o.profile in ('full', 'maplibre'):
             while not image_health_ready(json.loads(docker('inspect',api).stdout)[0]):
                 if time.monotonic() > deadline:
                     raise RuntimeError('Full image Docker health readiness deadline.')
@@ -145,7 +146,7 @@ console.log(JSON.stringify(b));
             docker('exec',api,'node','-e',native,timeout=20)
         docker('stop','--time','20',api,timeout=30)
         state=json.loads(docker('inspect',api).stdout)[0];assert state['State']['ExitCode']==0 and not state['State']['OOMKilled']
-        (out/'acknowledged.json').write_text(json.dumps({'source':package['source'],'image':image,'apiHealth':True,'dockerHealthVerified':o.profile == 'full','nativeMetadata':o.profile == 'full','gracefulExit':0,'internalNetwork':True,'liveDeployment':False,'cqlAcceptance':False},indent=2))
+        (out/'acknowledged.json').write_text(json.dumps({'source':package['source'],'image':image,'apiHealth':True,'dockerHealthVerified':o.profile in ('full', 'maplibre'),'nativeMetadata':o.profile == 'full','gracefulExit':0,'internalNetwork':True,'liveDeployment':False,'cqlAcceptance':False},indent=2))
     finally:
         if ('container',api) in created:
             observed=json.loads(docker('inspect',api).stdout)[0]
