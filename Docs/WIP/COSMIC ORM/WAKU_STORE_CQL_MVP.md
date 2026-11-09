@@ -456,3 +456,10 @@ After activation, Waku public CQL returned three and two rows. All 14
 previously verified priority sources including LocalFile were available
 in discovery. This was a read-only check using the existing recovery
 visitor. The protected settings matched the incident baseline.
+
+An independent recovery visitor checked the two acknowledged private
+Waku snapshot IDs and two Civic snapshot IDs after the Git-triggered
+rollout. MongoDB, SQLite and Neo4j each returned zero private rows for
+both cohorts. Their acceptance seals were unchanged. No owner read or
+prepared write was repeated. The Solana save receipts were not available
+in this checkout, so this check does not extend to Solana.
