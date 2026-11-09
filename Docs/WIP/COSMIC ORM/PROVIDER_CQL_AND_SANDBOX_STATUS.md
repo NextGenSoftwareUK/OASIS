@@ -1,6 +1,6 @@
 # Provider implementation CQL COSMIC and HyperDrive status
 
-Updated 8 November 2026 from the accepted Development baseline and retained qualification evidence. The live demo is usable within its enrolled scopes; the full provider programme and EF/NHibernate parity remain incomplete.
+Updated 9 November 2026 from the accepted Development baseline and retained qualification evidence. The live demo is usable within its enrolled scopes; the full provider programme and EF/NHibernate parity remain incomplete.
 
 ## Current coverage
 
@@ -8,15 +8,15 @@ Updated 8 November 2026 from the accepted Development baseline and retained qual
 |---|---|---|
 | Provider inventory | 229 distinct shipping project paths; alternate implementations retained | One duplicate Solana project row removed from the former 230-row CQL table; projects are not equivalent provider identities |
 | CQL breadth | 129 recorded scoped integrations | Programme checkpoint, not a new native audit of 129 providers or a universal feature percentage |
-| Development WEB4 | 96 enrolled/HTTP-accepted query types: 3 canonical stores and 93 bounded read sources | Exact 259-setting Civic baseline was previously verified on deployment; protected snapshot re-read for names/counts only. This is accepted evidence, not a fresh availability sweep; Nostr has a known reliability gate |
-| Browser demo | 28 functional live flows recorded | HTTP acceptance and matching public website bytes do not prove browser interaction for the remaining 68 enrolled types |
+| Development WEB4 | 101 enrolled/HTTP-accepted query types: 3 canonical stores and 98 bounded read sources | Civic baseline plus sealed MapLibre, Sandbox, Polygon ID, SEEDS and OpenVINO acceptance. Nostr has a known reliability gate |
+| Browser demo | 28 functional live flows recorded | HTTP acceptance and matching public website bytes do not prove browser interaction for the remaining 73 enrolled types |
 | Priority demo queue | Solana, Ethereum, Polygon, Arbitrum, NEAR, EOS, SOLID, IPFS, ActivityPub, Cosmos, Polkadot, TON, TRON, Hedera | Preserve accepted proofs; EOS/SOLID/TON/Hedera browser gates and TRON native/live admission open. Prepared other-provider batches retained behind this queue |
 | Full WEB4 image | Corrected immutable1c9c39904 image37e966a8 passes exact package and Docker/API/native startup42534822963 | Required TRON+Urbit readers/dependency graph, running Docker healthy gate, API/native probes, exit0/no OOM and owned cleanup verified; no deployment/live CQL acceptance. Earlier missing-curl candidate54be8845a rejected |
 | Core storage suite | 15 retained native core-storage-v2 reports pass52/52; 4 more pass52/52 controlled only | These test the declared storage contract, not every interface method, overload, fee mode, topology or cloud account |
 | Full provider implementation | Incomplete; no defensible per-provider 100% interface percentage | SDK/API source use is evidence of integration, not full native certification; existing placeholders and shipping-path gaps remain explicit |
 | Virtual and hybrid imports | Designed and on roadmap | Existing materialized import/replication exists; universal pointer/lazy/hybrid import modes are not claimed implemented |
 
-Latest live accepted baseline: Civic on Development source88c378c1e08ee270365b760c9d3abc29b629a0f4. The public website remains the Civic publication. Latest qualified task image source1c9c399042272489e582b0646e16052d478382d1/Coree62ec44, digestsha256:37e966a8d0c47e8242844f254947ab74e7a7cfe6d8371d7bd9e45735c7f31e0f, passes exact package and tightened Docker-health/API/native startup42534822963; it has not been deployed. Original8668fd2d/42478524577 remains historical API/native startup evidence, without the later Docker-health gate. Urbit private native qualification below adds no live enrollment/browser count. MapLibre and the four-provider candidate preserve their original source owners/settings behind the requested chain/demo priorities. The next permitted integration window is9November under the agreed deployment cadence; no master promotion.
+Latest sealed live HTTP acceptance: Development deployment 9d5e9388 at ab0e9b2c. The subsequent GOMap code deployment 76806353 at e2286e44 passed package inspection with GOMap disabled. David has placed Development pushes and live activation on hold. The public website remains at the Civic publication. See [live acceptance](CURRENT_STATUS.md) and [GOMap evidence](GOMAP_PUBLIC_SOURCE_STATUS.md).
 
 ## What the sandbox proves
 
