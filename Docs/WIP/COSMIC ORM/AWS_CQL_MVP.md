@@ -63,4 +63,13 @@ regional activation checks and seven WEB4 admission checks passed. The
 native AWS fixture compiled. This candidate awaits the reviewed AWS source
 and the Development rollout.
 
+Offline enrollment preparation is available in task commit 46480003c. The
+enrollment descriptor adds Region to the native fixture's Actor, LiveIds,
+DeletedId and MissingId fields. The first LiveIds entry binds the exact probe.
+The protected settings baseline must contain the matching region and probe,
+plus the restricted reader credentials. Keep the optional session token in
+those protected settings. Use the native test fixture's original descriptor
+shape for the regional SDK test. All 42 offline configuration tests passed
+with synthetic values. Real AWS and live WEB4 acceptance remain pending.
+
 [Programme](CURRENT_STATUS.md) | [Provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) | [Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
