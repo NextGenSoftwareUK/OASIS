@@ -1,0 +1,27 @@
+- [deleted]  backup/Development-pre-trailer-strip-2026-10-26 @ 980e7ea1f
+- [deleted]  backup/master-pre-trailer-strip-2026-10-26 @ 59046c54e
+- [deleted]  backup/pre-trailer-strip-2026-10-26/dependabot/go_modules/lumina-j5-bootstrap/bootcode/github.com/klauspost/compress-1.18.7 @ f9546387d
+- [deleted]  backup/pre-trailer-strip-2026-10-26/fix/hyperdrive-v2-providers @ fb8c2ab7c
+- [deleted]  backup/pre-trailer-strip-2026-10-26/promotion/development-to-master @ a27171b18
+- [deleted]  backup/pre-trailer-strip-2026-10-26/submodule-sync/Development @ f30e8ccf2
+- [deleted]  backup/pre-trailer-strip-2026-10-26/submodule-sync/master @ 6e0f81dab
+- [deleted]  dependabot/npm_and_yarn/Providers/Other/NextGenSoftware.OASIS.API.Core.Apollo.Server/server/multi-75ad47161e @ a0b82c9d8
+- [deleted]  dependabot/npm_and_yarn/Providers/Other/NextGenSoftware.OASIS.API.Core.Apollo.Server/server/multi-b0d9747a9e @ dcbe2abae
+- [deleted]  dependabot/npm_and_yarn/dompurify-3.4.17 @ 411bbd0f5
+- [deleted]  dependabot/npm_and_yarn/oasisweb4.com/vite-8.3.5 @ 591c53700
+- [deleted]  dependabot/npm_and_yarn/postcss-selector-parser-6.1.5 @ 8260e6182
+- [deleted]  fix/our-world-oland-checkout @ 7cf96ae2a
+- [deleted]  release/2026-10-31 @ 34860030e
+- [deleted]  submodule-sync/Development @ f2207fb69
+- [deleted]  fix/free-plan-autoprovision @ c1792700d
+- [deleted]  promotion/development-to-master @ 118fc30ea
+- [deleted]  submodule-sync/master @ 49ad8879b
+- [deleted]  dependabot/npm_and_yarn/Archived/NextGenSoftware.Holochain.hApp.OurWorld/our_world/test/lodash-es-4.18.1 @ bfe0df732
+--- second pass (merged into Development c35a45198, then deleted) ---
+ac45cd7726b4db532cb56f557bf7611f2cc19aaf onode-manager-build-only
+3cb7c9277688d783fd4a19878f05343aed884b42 work/cosmic-cql-parity-deferred
+5e3fa2f59fa170759e0cdcbdd33f0ac44afda8c1 backup/pre-trailer-strip-2026-10-26/codex/hyperdrive-dual-mode-route-matrix
+e2f9980414b6d0c8764b6f3c050ef1adf25a16b8 fix/hyperdrive-v2-providers
+c3662f6323ef31a88ac1fca7e38b7bf4a657f789 work/cosmic-cql-sandbox-integration
+4d7e1b0e6bcdf86ae83adb55254371018bdbed60 work/cosmic-cql-google-public
+aee1ba372b7c9ab25e838bb5c3cf516fc25a8764 work/cosmic-cql
