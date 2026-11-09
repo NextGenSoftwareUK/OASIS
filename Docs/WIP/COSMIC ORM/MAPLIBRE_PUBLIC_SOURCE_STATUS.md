@@ -146,3 +146,11 @@ the original MapLibre candidate still differs by exactly four reviewed
 keys. The retained Civic, Holonym, Self Protocol and SubQuery
 enrolments and mounted Dapr receipt passed the same inspection.
 The settings batch remains pending the Development rollout interval.
+
+The guarded settings apply preflight passed on recovered WEB4. The
+one-hour interval from the Git-triggered deployment permits the next
+batch from 05:06:26 UTC on 9 November. Apply uses the original
+protected snapshots, four individual acknowledgements and no deploy
+per write. Activation is pinned to the already qualified source
+485448ac3 and requires all four readbacks. No settings write or
+activation request was sent during preflight.
