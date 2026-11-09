@@ -75,9 +75,10 @@ Python regression raised the shared configuration suite to 47. Corrected run
 
 The full-image qualifier can require the Infura reader, its WEB4 registration
 and the packaged project dependency. Eight local verifier tests and the cloud
-control run 42540357920 passed. The exact teaching image for
-`da74323d2e22d21fbcc2c953010a000421f68ce9` is building in
-[42540376773](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42540376773)
-(job 128913748030). Follow that build and qualify its published digest with
-the Infura reader and combined startup options. Native access and live
-acceptance are separate gates.
+control run 42540357920 passed. The exact teaching image for `da74323d2e22d21fbcc2c953010a000421f68ce9` published
+successfully in build 42540376773. Digest `sha256:a66123e51d83ea18d290d7028764b6a9de6ccec4433518b46f0575294c50b05c`
+passed [package and startup qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42543310651).
+Artifact 13642158093 matched SHA256 `fb8c80a0b25911bee0420f6f01858064f4e6316edd82a21b0f3600f6678eaa5f`. Nine assemblies,
+Infura, TRON and Urbit readers, helper/model checks, API and Docker health,
+native metadata, exit 0 and owned resource cleanup passed. Native Infura
+access and live acceptance remain separate gates.
