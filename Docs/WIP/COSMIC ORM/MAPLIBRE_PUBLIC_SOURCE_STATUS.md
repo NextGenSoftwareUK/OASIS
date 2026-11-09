@@ -170,3 +170,21 @@ the complete protected candidate. One activation request at exact
 The prior recovered deployment 0d024452 was still SUCCESS at that
 observation. Inspect the settings package and run the original
 MapLibre HTTP acceptance once after the new instance is ready.
+
+## Live Development HTTP acceptance
+
+Deployment bbfb91ce at 485448ac3 passed exact settings inspection.
+The original owner and independent visitor verified native CQL 3/2
+with complete style documents and matching hashes, Mongo federation
+5/4, two private saves, zero repeat writes with two reused snapshots,
+and exact SQLite and Neo4j replicas at 2/2. The independent visitor
+saw all three public records and no private snapshots across storage.
+The first acceptance invocation stopped before cohort creation because
+the deployment readiness visitor did not yet exist. The dedicated
+readiness pass established it before the accepted run.
+
+The local acceptance seal binds all three report hashes and the
+exact instance. Browser acceptance remains open. The four-provider
+candidate ac83d5ee and Core e242de41 are published to the existing
+qualification refs. Four scoped WEB4 checks and the exact image build
+were dispatched. No new Development batch was deployed.
