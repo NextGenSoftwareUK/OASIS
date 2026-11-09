@@ -438,3 +438,12 @@ public-posts for the full preset. TRONOASIS was absent from authenticated
 discovery. This verification reused the recovery visitor and exercised
 native CQL selections only. Existing federation, prepared storage,
 replication, and browser acceptance records were not replayed.
+
+Development was fast-forwarded from c6f25f76 to 485448ac3 after the
+exact recovery source passed image qualification, public WEB4 health,
+native Waku readback, and priority public CQL checks. The batch changes
+only the Ubuntu package transport and Waku retention with its control.
+Dependency pins did not move. Railway queued Git-triggered deployment
+0d024452 at the same source. The manually recovered instance 7678c07b
+was still serving when the queue was observed. The Git-triggered
+replacement needs its own health and native readback checks.
