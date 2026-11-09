@@ -278,6 +278,7 @@
 <ItemGroup><ProjectReference Include="../../Providers/Identity/NextGenSoftware.OASIS.API.Providers.HolonymOASIS/NextGenSoftware.OASIS.API.Providers.HolonymOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.CivicOASIS/NextGenSoftware.OASIS.API.Providers.CivicOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Maps/NextGenSoftware.OASIS.API.Providers.MapLibreOASIS/NextGenSoftware.OASIS.API.Providers.MapLibreOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Maps/NextGenSoftware.OASIS.API.Providers.GOMapOASIS/NextGenSoftware.OASIS.API.Providers.GOMapOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Maps/NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS/NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Identity/NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS/NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj" /></ItemGroup>
