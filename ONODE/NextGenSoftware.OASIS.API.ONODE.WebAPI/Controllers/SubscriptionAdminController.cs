@@ -91,6 +91,60 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             catch (SubscriptionUsageConflictException ex) { return StatusCode(409, new OASISResult<bool> { IsError = true, Message = ex.Message }); }
         }
 
+        /// <summary>Administrator-only: the apps (e.g. PIPER) that hold a plan of their own. Keys are never returned here.</summary>
+        [HttpGet("app-accounts")]
+        public Task<IActionResult> AppAccounts() => Execute(() => _repository.ListAppAccountsAsync(HttpContext.RequestAborted));
+
+        /// <summary>Creates an app account. The API key is in the response exactly once; store it as a secret.</summary>
+        [HttpPost("app-accounts")]
+        public Task<IActionResult> CreateAppAccount([FromBody] AppAccountRequest request) =>
+            AppAccountCall(async actor =>
+            {
+                var (account, key) = await _repository.CreateAppAccountAsync(request?.AppId, request?.Name, request?.PlanId, actor, request?.Reason, HttpContext.RequestAborted);
+                return new AppAccountWithKey { Account = account, ApiKey = key };
+            });
+
+        [HttpPost("app-accounts/{appId}/rotate-key")]
+        public Task<IActionResult> RotateAppAccountKey(string appId, [FromBody] AppAccountRequest request) =>
+            AppAccountCall(async actor =>
+            {
+                var (account, key) = await _repository.RotateAppAccountKeyAsync(appId, actor, request?.Reason, HttpContext.RequestAborted);
+                return new AppAccountWithKey { Account = account, ApiKey = key };
+            });
+
+        /// <summary>Change an app's plan and/or disable or re-enable it (a disabled app's credentials stop working at once).</summary>
+        [HttpPost("app-accounts/{appId}")]
+        public Task<IActionResult> UpdateAppAccount(string appId, [FromBody] AppAccountRequest request) =>
+            AppAccountCall(actor => _repository.UpdateAppAccountAsync(appId, request?.PlanId, request?.Status, actor, request?.Reason, HttpContext.RequestAborted));
+
+        private async Task<IActionResult> AppAccountCall<T>(Func<string, Task<T>> call)
+        {
+            try
+            {
+                string actor = SubscriptionServiceIdentity.RequireAdministrator(HttpContext, _configuration);
+                return Ok(new OASISResult<T> { Result = await call(actor) });
+            }
+            catch (UnauthorizedAccessException ex) { return StatusCode(403, new OASISResult<bool> { IsError = true, Message = ex.Message }); }
+            catch (ArgumentException ex) { return BadRequest(new OASISResult<bool> { IsError = true, Message = ex.Message }); }
+            catch (KeyNotFoundException ex) { return NotFound(new OASISResult<bool> { IsError = true, Message = ex.Message }); }
+            catch (SubscriptionUsageConflictException ex) { return StatusCode(409, new OASISResult<bool> { IsError = true, Message = ex.Message }); }
+        }
+
+        public sealed class AppAccountRequest
+        {
+            public string AppId { get; set; }
+            public string Name { get; set; }
+            public string PlanId { get; set; }
+            public string Status { get; set; }
+            public string Reason { get; set; }
+        }
+
+        public sealed class AppAccountWithKey
+        {
+            public AppAccountRecord Account { get; set; }
+            public string ApiKey { get; set; }
+        }
+
         public sealed class GrantPlanRequest
         {
             public string UserId { get; set; }
