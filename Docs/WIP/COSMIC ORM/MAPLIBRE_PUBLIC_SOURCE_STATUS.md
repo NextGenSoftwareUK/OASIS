@@ -212,3 +212,14 @@ reconstructed exactly from the four retained source descriptors and
 matches the active MapLibre baseline. An exact protected copy of that
 baseline is available for guarded apply. The new code/settings package
 inspector is prepared. No enrollment values have been written.
+
+Railway code deployment c172bc9d failed before startup with a GHCR
+scope rejection for the pinned NATS runtime image. The accepted
+MapLibre instance still returned public HTTP 200. The candidate
+8b81437e restores the working deployment's checksum-verified public
+Waku and NATS release stages. Five download controls passed and
+image run 42572801789 is building. Exact package/startup qualification
+has been prepared for that image. The old native-consumer workflow
+42572801482 failed because its verifier still expects private GHCR
+stage aliases. The public release stage workflow 42572801420 is the
+relevant artifact producer check. No live settings changed.
