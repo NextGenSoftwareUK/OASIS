@@ -14,9 +14,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         private readonly ISubscriptionUsageRepository _usageRepository;
         private readonly ISubscriptionBillingRepository _billing;
         private readonly TimeProvider _clock;
+        private readonly ILogger<SubscriptionService> _logger;
         public SubscriptionService(ILogger<SubscriptionService> logger, ISubscriptionUsageRepository usageRepository, ISubscriptionBillingRepository billing,
             TimeProvider clock = null)
-        { _usageRepository = usageRepository; _billing = billing; _clock = clock ?? TimeProvider.System; }
+        { _logger = logger; _usageRepository = usageRepository; _billing = billing; _clock = clock ?? TimeProvider.System; }
 
         public Task<SubscriptionRecord> GetSubscriptionAsync(string userId) => _billing.GetSubscriptionAsync(userId);
         public Task<SubscriptionRecord> GetSubscriptionByStripeCustomerIdAsync(string stripeCustomerId) => _billing.FindSubscriptionAsync(stripeCustomerId, true);
@@ -64,6 +65,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 ExpiresAtUtc = now.AddMinutes(15),
                 AuthorizedAtUtc = now
             };
+
+            // Every avatar is entitled to the free plan. Avatars created through plain registration have no
+            // subscription record, which made their first write fail with SUBSCRIPTION_REQUIRED. Provision the
+            // free plan on first use. SaveSubscriptionAsync is idempotent for an existing free plan and refuses
+            // to overwrite a paid one, and a failure here falls through to the normal denial below.
+            if (Guid.TryParseExact(userId, "D", out _))
+            {
+                try
+                {
+                    if (await _billing.GetSubscriptionAsync(userId) == null)
+                        await _billing.SaveSubscriptionAsync(new SubscriptionRecord
+                        {
+                            UserId = userId,
+                            PlanId = "free",
+                            Status = "active",
+                            CurrentPeriodStart = now,
+                            CurrentPeriodEnd = now.AddYears(10)
+                        });
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning(ex, "Could not auto-provision the free plan for avatar {AvatarId}.", userId);
+                }
+            }
 
             try
             {
