@@ -85,3 +85,13 @@ A future candidate must include CQL_GOMAP_ROUTE_QUERY_SOURCE_ORIGIN and be
 reconstructed from the then-active baseline with the reviewed endpoint.
 Qualify the new package and inspect the effective settings before live acceptance.
 Task CI run 42625727494 covers the hosted registration change.
+
+Run 42625727494 compiled and executed all 12 admission cases successfully.
+The job failed afterward because its report gate still expected eight cases.
+The native integration step was skipped. Task commit 665f5382f corrects the
+gate and triggered run 42626376216. Its native integration remains pending.
+
+Task commit c6ab73226 aligns the offline descriptor verifier and candidate
+builder with the hosted registration. The reviewed descriptor carries Actor
+and Origin, and both settings must match the protected candidate. All 40
+offline configuration tests passed with fixture data.
