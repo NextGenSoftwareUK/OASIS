@@ -162,3 +162,11 @@ Docker health probe and Waku retention are preserved. The Railway
 manifest validator passed for all seven Dockerfiles and parent gitlinks.
 The candidate remains unpublished pending MapLibre acceptance and
 requires exact qualification before a Development rollout.
+
+After the 05:06 UTC rollout gate, the four original MapLibre settings
+were applied individually with deployment disabled and verified against
+the complete protected candidate. One activation request at exact
+485448ac3 was acknowledged. Railway deployment bbfb91ce is building.
+The prior recovered deployment 0d024452 was still SUCCESS at that
+observation. Inspect the settings package and run the original
+MapLibre HTTP acceptance once after the new instance is ready.
