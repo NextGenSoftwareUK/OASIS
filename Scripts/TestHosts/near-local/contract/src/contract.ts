@@ -45,7 +45,8 @@ export class OasisStorage {
   @call({})
   delete_avatar_records({ id }: { id: string }): void {
     this.requireContractOwner();
-    if (typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id))
+    if (typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id) ||
+        id === "00000000-0000-0000-0000-000000000000")
       throw new Error("A canonical avatar ID is required");
     const avatar = `avatar:${id}`;
     const detail = `avatar-detail:${id}`;
