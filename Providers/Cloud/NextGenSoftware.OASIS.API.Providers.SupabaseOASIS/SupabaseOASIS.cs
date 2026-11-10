@@ -194,7 +194,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var json = await response.Content.ReadAsStringAsync();
             var rows = DeserializeList<AvatarRow>(json);
             if (rows.Count == 0) return null;
-            return Deserialize<Avatar>(rows[0].data_json);
+            return Deserialize<Avatar>(rows[0].data_json)
+                ?? throw new System.IO.InvalidDataException("Supabase returned an empty avatar payload.");
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
@@ -274,7 +275,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             try
             {
                 var rows = await LoadAllRowsAsync<AvatarRow>("oasis_avatars?is_deleted=eq.false").ConfigureAwait(false);
-                var avatars = rows.Select(r => Deserialize<Avatar>(r.data_json)).Where(a => a != null).Cast<IAvatar>().ToList();
+                var avatars = rows.Select(r => Deserialize<Avatar>(r.data_json)
+                    ?? throw new System.IO.InvalidDataException("Supabase returned an empty avatar payload.")).Cast<IAvatar>().ToList();
                 result.Result = avatars; result.IsLoaded = true; result.LoadedCount = avatars.Count; result.Message = $"SupabaseOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: Error loading all avatars: {ex.Message}"); }
@@ -423,7 +425,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             try
             {
                 var rows = await LoadAllRowsAsync<AvatarDetailRow>("oasis_avatar_details?select=*").ConfigureAwait(false);
-                var details = rows.Select(r => StoredRecordJson.Deserialize<AvatarDetail>(r.data_json)).Where(d => d != null).Cast<IAvatarDetail>().ToList();
+                var details = rows.Select(r => StoredRecordJson.Deserialize<AvatarDetail>(r.data_json)
+                    ?? throw new System.IO.InvalidDataException("Supabase returned an empty avatar detail payload.")).Cast<IAvatarDetail>().ToList();
                 result.Result = details; result.IsLoaded = true; result.LoadedCount = details.Count; result.Message = $"SupabaseOASIS: Loaded {details.Count} avatar detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: Error loading all avatar details: {ex.Message}"); }
