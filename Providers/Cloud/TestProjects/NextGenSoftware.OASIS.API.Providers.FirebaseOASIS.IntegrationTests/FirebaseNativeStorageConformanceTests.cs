@@ -56,10 +56,18 @@ public class FirebaseNativeStorageConformanceTests
         async Task<OASISResult<bool>> HardClean(Guid id, bool _)
         {
             var path = $"oasis_holons/{id:D}";
-            using var stored = await Read(path);
+            using var lookup = new HttpRequestMessage(HttpMethod.Get, Node(path));
+            lookup.Headers.Add("X-Firebase-ETag", "true");
+            using var observed = await http.SendAsync(lookup);
+            observed.EnsureSuccessStatusCode();
+            var tag = observed.Headers.ETag;
+            Assert.IsNotNull(tag, "Firebase must supply an ETag for the fixture record.");
+            using var stored = JsonDocument.Parse(await observed.Content.ReadAsStringAsync());
             Assert.IsTrue(stored.RootElement.TryGetProperty("id", out var storedId) &&
                 storedId.TryGetGuid(out var actual) && actual == id);
-            using var deleted = await http.DeleteAsync(Node(path));
+            using var delete = new HttpRequestMessage(HttpMethod.Delete, Node(path));
+            delete.Headers.IfMatch.Add(tag);
+            using var deleted = await http.SendAsync(delete);
             deleted.EnsureSuccessStatusCode();
             using var remaining = await Read(path);
             Assert.AreEqual(JsonValueKind.Null, remaining.RootElement.ValueKind);
