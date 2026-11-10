@@ -39,6 +39,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                     return result;
                 }
 
+                await EnsureActivatedForPinataAsync(result).ConfigureAwait(false);
+                if (result.IsError)
+                    return result;
+
                 var childHolons = new List<IHolon>();
                 // Real Pinata implementation: Load child holons from Pinata files
                 var files = await _pinataService.GetFilesAsync();
@@ -113,7 +117,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 var parentHolonResult = await LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
                 if (parentHolonResult.IsError || parentHolonResult.Result == null)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Parent holon not found in Pinata: {parentHolonResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Unable to resolve Pinata parent holon: {parentHolonResult.Message}", parentHolonResult.Exception);
                     return result;
                 }
 
