@@ -553,11 +553,22 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             try
             {
                 await EnsureAuthAsync();
-                var rec = await GetFirstAsync("oasis_holons", $"oasis_id='{id}'");
+                var rec = await GetFirstAsync("oasis_holons", $"oasis_id='{id}' && is_deleted=false");
                 if (rec == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No holon found with ID '{id}'."); return result; }
                 var loaded = ParseHolon(rec);
-                await _http.PatchAsync($"{_baseUrl}/api/collections/oasis_holons/records/{rec.Id}", JsonContent(new { is_deleted = true }));
-                result.Result = loaded; result.IsError = false; result.Message = $"PocketBaseOASIS: Holon '{id}' soft-deleted.";
+                using var response = await _http.PatchAsync(
+                    $"{_baseUrl}/api/collections/oasis_holons/records/{rec.Id}",
+                    JsonContent(new { is_deleted = true }));
+                response.EnsureSuccessStatusCode();
+                var deleted = Deserialize<PbRecord>(await response.Content.ReadAsStringAsync());
+                if (deleted == null || deleted.Id != rec.Id || deleted.OasisId != rec.OasisId || !deleted.IsDeleted)
+                    throw new InvalidDataException("PocketBase did not acknowledge the requested holon deletion.");
+
+                loaded.DeletedDate = DateTime.UtcNow;
+                result.Result = loaded;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.Message = $"PocketBaseOASIS: Holon '{id}' soft-deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
