@@ -29,6 +29,51 @@ public static class CqlReviewedNetworkReadSourceRegistration
 {
     public static void AddReviewedNetworkReadSources(this IServiceCollection services, IConfiguration configuration, bool sandboxEnabled = false)
     {
+        var ronin = configuration["CQL_RONIN_PUBLIC_SOURCE_JSON"];
+        if (ronin != null)
+        {
+            if (!sandboxEnabled || string.IsNullOrWhiteSpace(ronin))
+                throw new InvalidOperationException("Ronin public account queries require sandbox mode and an explicit catalogue.");
+            services.AddSingleton<CqlReadSourceProfile>(_ => new CqlReadSourceProfile(
+                Providers.RoninOASIS.RoninPublicAccountMetadataSource.FromJson(ronin)));
+        }
+
+        var immutable = configuration["CQL_IMMUTABLE_ZKEVM_PUBLIC_SOURCE_JSON"];
+        if (immutable != null)
+        {
+            if (!sandboxEnabled || string.IsNullOrWhiteSpace(immutable))
+                throw new InvalidOperationException("Immutable zkEVM public account queries require sandbox mode and an explicit catalogue.");
+            services.AddSingleton<CqlReadSourceProfile>(_ => new CqlReadSourceProfile(
+                Providers.ImmutableZkEVMOASIS.ImmutableZkEVMPublicAccountMetadataSource.FromJson(immutable)));
+        }
+
+        var flow = configuration["CQL_FLOW_PUBLIC_SOURCE_JSON"];
+        if (flow != null)
+        {
+            if (!sandboxEnabled || string.IsNullOrWhiteSpace(flow))
+                throw new InvalidOperationException("Flow sealed header queries require sandbox mode and an explicit catalogue.");
+            services.AddSingleton<CqlReadSourceProfile>(_ => new CqlReadSourceProfile(
+                Providers.FlowOASIS.FlowSealedHeaderQuerySource.FromJson(flow)));
+        }
+
+        var eas = configuration["CQL_EAS_PUBLIC_SOURCE_JSON"];
+        if (eas != null)
+        {
+            if (!sandboxEnabled || string.IsNullOrWhiteSpace(eas))
+                throw new InvalidOperationException("EAS attestation metadata queries require sandbox mode and an explicit catalogue.");
+            services.AddSingleton<CqlReadSourceProfile>(_ => new CqlReadSourceProfile(
+                Providers.EASOASIS.EasAttestationQuerySource.FromJson(eas)));
+        }
+
+        var sign = configuration["CQL_SIGN_PUBLIC_SOURCE_JSON"];
+        if (sign != null)
+        {
+            if (!sandboxEnabled || string.IsNullOrWhiteSpace(sign))
+                throw new InvalidOperationException("Sign attestation metadata queries require sandbox mode and an explicit catalogue.");
+            services.AddSingleton<CqlReadSourceProfile>(_ => new CqlReadSourceProfile(
+                Providers.SignProtocolOASIS.SignAttestationQuerySource.FromJson(sign)));
+        }
+
         var waku = configuration["CQL_WAKU_STORE_QUERY_SOURCE_JSON"];
         if (sandboxEnabled && waku != null)
             services.AddSingleton<CqlReadSourceProfile>(_ =>
