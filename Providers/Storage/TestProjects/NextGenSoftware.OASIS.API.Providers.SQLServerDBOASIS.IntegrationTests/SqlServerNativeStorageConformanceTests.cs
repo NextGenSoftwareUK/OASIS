@@ -121,6 +121,13 @@ public class SqlServerNativeStorageConformanceTests
             {
                 var deleted = await provider.DeleteAvatarAsync(id, softDelete: false);
                 Assert.IsTrue(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+                await using var inspection = new SqlConnection(connection);
+                await inspection.OpenAsync();
+                await using var command = new SqlCommand(@"
+SELECT (SELECT COUNT(*) FROM OASISAvatarHistory WHERE Id=@Id)
+     + (SELECT COUNT(*) FROM OASISAvatarDetailHistory WHERE Id=@Id);", inspection);
+                command.Parameters.AddWithValue("@Id", id);
+                Assert.AreEqual(0, (int)(await command.ExecuteScalarAsync())!);
             }
             await provider.DeActivateProviderAsync();
         }
