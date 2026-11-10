@@ -58,10 +58,11 @@ public class NearSharedLifecycleTests
         using var lease = new FileStream(Path.Combine(root!, "environment.lock"),
             FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         var id = Guid.NewGuid();
+        var retainedId = Guid.NewGuid();
         var marker = "near-avatar-cleanup-" + id.ToString("N");
         using var journal = new FileStream(Path.Combine(root!, "avatar-history-cleanup.json"),
             FileMode.CreateNew, FileAccess.Write, FileShare.Read);
-        await JsonSerializer.SerializeAsync(journal, new { id });
+        await JsonSerializer.SerializeAsync(journal, new { id, retainedId });
         journal.Flush(flushToDisk: true);
 
         var provider = new NEAROASIS(
@@ -72,6 +73,9 @@ public class NearSharedLifecycleTests
         Assert.IsTrue(!activated.IsError && activated.Result);
         try
         {
+            var retainedMarker = "near-retained-" + retainedId.ToString("N");
+            var retained = new Avatar { Id = retainedId, Username = retainedMarker, Email = retainedMarker + "@example.invalid" };
+            Assert.IsTrue((await provider.SaveAvatarAsync(retained)).IsSaved);
             var avatar = new Avatar { Id = id, Username = marker, Email = marker + "@example.invalid" };
             var detail = new AvatarDetail { Id = id, Username = marker, Email = avatar.Email, Karma = 1 };
             Assert.IsTrue((await provider.SaveAvatarAsync(avatar)).IsSaved);
@@ -84,7 +88,7 @@ public class NearSharedLifecycleTests
             Assert.AreEqual(1, (await provider.LoadAvatarDetailAsync(id, version: 1)).Result?.Karma);
 
             using var rpc = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-            async Task<JsonValueKind> ReadNativeKey(string key)
+            async Task<JsonElement> ReadNativeKey(string key)
             {
                 using var response = await rpc.PostAsJsonAsync(Required("NEAROASIS_RPCENDPOINT"), new
                 {
@@ -101,18 +105,21 @@ public class NearSharedLifecycleTests
                 var bytes = envelope.RootElement.GetProperty("result").GetProperty("result")
                     .EnumerateArray().Select(value => value.GetByte()).ToArray();
                 using var record = JsonDocument.Parse(bytes);
-                return record.RootElement.ValueKind;
+                return record.RootElement.Clone();
             }
 
             var keys = new[] { $"avatar:{id:D}", $"avatar-detail:{id:D}",
                 $"history:avatar:{id:D}:0000000001", $"history:avatar-detail:{id:D}:0000000001" };
             foreach (var key in keys)
-                Assert.AreEqual(JsonValueKind.String, await ReadNativeKey(key), key);
+                Assert.AreEqual(JsonValueKind.String, (await ReadNativeKey(key)).ValueKind, key);
 
+            var retainedKey = $"avatar:{retainedId:D}";
+            var before = (await ReadNativeKey(retainedKey)).GetString();
+            Assert.IsFalse(string.IsNullOrEmpty(before));
             var deleted = await provider.DeleteAvatarAsync(id, softDelete: false);
             Assert.IsTrue(!deleted.IsError && deleted.Result && deleted.IsDeleted && deleted.DeletedCount == 1);
             foreach (var key in keys)
-                Assert.AreEqual(JsonValueKind.Null, await ReadNativeKey(key), key);
+                Assert.AreEqual(JsonValueKind.Null, (await ReadNativeKey(key)).ValueKind, key);
             foreach (var version in new[] { 0, 1, 2 })
             {
                 var missingAvatar = await provider.LoadAvatarAsync(id, version);
@@ -123,6 +130,10 @@ public class NearSharedLifecycleTests
                 Assert.IsNull(missingDetail.Result);
                 Assert.IsFalse(missingAvatar.IsLoaded || missingDetail.IsLoaded);
             }
+            Assert.AreEqual(before, (await ReadNativeKey(retainedKey)).GetString());
+            var retainedCleanup = await provider.DeleteAvatarAsync(retainedId, softDelete: false);
+            Assert.IsTrue(!retainedCleanup.IsError && retainedCleanup.IsDeleted);
+            Assert.AreEqual(JsonValueKind.Null, (await ReadNativeKey(retainedKey)).ValueKind);
         }
         finally
         {
