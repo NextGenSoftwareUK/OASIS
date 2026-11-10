@@ -557,6 +557,8 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Reason** Activation verifies real Bolt connectivity and may upgrade the provider schema. A dedicated test endpoint keeps that operation away from COSMIC/CQL or production data.
 - **Context** [Provider completion continuation](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
 
+- **Aura verification (2026-11-09)** Open. Designate a disposable Aura database or authorize a separate empty database on the designated test endpoint. The Aura path needs read/write access to create, update, soft-delete and hard-delete uniquely identified synthetic records and verify lookup visibility through the shipping driver. Keep access settings in protected local configuration. Canonical Neo4j results carry forward and the V2 activation check above remains separate.
+
 ### Hedera retained testnet admission
 
 - **Status (2026-11-09)** Awaiting original fixture access. Historical evidence shows the routed testnet balance did not meet the admitted runner's reserve. The public mirror returned an indexed balance of 32485764 tinybars at timestamp 1792286959.639631104 and matched the retained contract creation to transaction 0.0.10993779-1791929787-100278783 with SUCCESS and a 1259196297 tinybar fee. Consensus reserve and protected fixture access remain open.
