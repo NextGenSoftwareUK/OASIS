@@ -57,6 +57,57 @@ public class SqlServerNativeStorageConformanceTests
     }
 
     [TestMethod]
+    public async Task ConcurrentAvatarDetailSavesPreserveHighestVersionAndHistory()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_AVATAR_DETAIL_CONCURRENT") != "1")
+            Assert.Inconclusive("Enable only for the dedicated LocalDB provider fixture.");
+
+        var provider = new SQLServerDBOASIS(@"Server=(localdb)\MSSQLLocalDB;Database=oasis_hyperdrive_provider_test;Integrated Security=true;TrustServerCertificate=true");
+        var id = Guid.NewGuid();
+        NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail MakeAvatar(int version) => new()
+        {
+            Id = id, Version = version, Username = $"concurrent-{id:N}-{version}",
+            Email = $"concurrent-{id:N}-{version}@example.invalid"
+        };
+        var saved = false;
+        try
+        {
+            var active = await provider.ActivateProviderAsync();
+            Assert.IsTrue(active.Result && !active.IsError, active.Message);
+            var owner = await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar
+            {
+                Id = id, Version = 1, Username = $"owner-{id:N}", Email = $"owner-{id:N}@example.invalid"
+            });
+            Assert.IsTrue(owner.IsSaved && !owner.IsError, owner.Message);
+            saved = true;
+            var original = await provider.SaveAvatarDetailAsync(MakeAvatar(1));
+            Assert.IsTrue(original.IsSaved && !original.IsError, original.Message);
+
+            var lower = provider.SaveAvatarDetailAsync(MakeAvatar(2));
+            var higher = provider.SaveAvatarDetailAsync(MakeAvatar(3));
+            await Task.WhenAll(lower, higher);
+            Assert.IsTrue(higher.Result.IsSaved && !higher.Result.IsError, higher.Result.Message);
+            Assert.AreEqual(3, (await provider.LoadAvatarDetailAsync(id)).Result?.Version);
+            Assert.AreEqual(1, (await provider.LoadAvatarDetailAsync(id, version: 1)).Result?.Version);
+
+            var intermediate = await provider.LoadAvatarDetailAsync(id, version: 2);
+            if (lower.Result.IsSaved)
+                Assert.AreEqual(2, intermediate.Result?.Version);
+            else
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, intermediate.ErrorCode);
+        }
+        finally
+        {
+            if (saved)
+            {
+                var deleted = await provider.DeleteAvatarAsync(id, softDelete: false);
+                Assert.IsTrue(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+            }
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
     public async Task InvalidGraphDepthIsRejectedBeforeConnecting()
     {
         var provider = new SQLServerDBOASIS("invalid connection string");
