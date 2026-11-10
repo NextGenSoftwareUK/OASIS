@@ -588,6 +588,13 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS
                 holon.ProviderMetaData ??= new Dictionary<ProviderType, Dictionary<string, string>>();
                 if (!holon.ProviderMetaData.ContainsKey(Core.Enums.ProviderType.FilecoinOASIS))
                     holon.ProviderMetaData[Core.Enums.ProviderType.FilecoinOASIS] = new Dictionary<string, string>();
+                var metadata = holon.ProviderMetaData[Core.Enums.ProviderType.FilecoinOASIS];
+                if (!metadata.TryGetValue("cid", out var previousCid) || !string.Equals(previousCid, cid, StringComparison.Ordinal))
+                {
+                    metadata.Remove("deal_proposal_cid");
+                    metadata.Remove("miner");
+                    metadata.Remove("size_bytes");
+                }
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.FilecoinOASIS] = cid;
                 holon.ProviderMetaData[Core.Enums.ProviderType.FilecoinOASIS]["cid"] = cid;
                 result.Result = holon;
