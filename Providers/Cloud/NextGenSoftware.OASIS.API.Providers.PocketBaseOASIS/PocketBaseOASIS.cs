@@ -349,10 +349,13 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                if (avatarDetail.Id == Guid.Empty) avatarDetail.Id = Guid.NewGuid();
-                var row = new { oasis_id = avatarDetail.Id.ToString(), username = avatarDetail.Username ?? "", email = avatarDetail.Email ?? "", data_json = Serialize(avatarDetail) };
-                await UpsertAsync("oasis_avatar_details", avatarDetail.Id.ToString(), row);
-                result.Result = avatarDetail; result.IsError = false; result.Message = "PocketBaseOASIS: AvatarDetail saved.";
+                var id = avatarDetail.Id == Guid.Empty ? Guid.NewGuid() : avatarDetail.Id;
+                var payload = JsonSerializer.SerializeToNode(avatarDetail, avatarDetail.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = id;
+                var row = new { oasis_id = id.ToString("D"), username = avatarDetail.Username ?? "", email = avatarDetail.Email ?? "", data_json = payload.ToJsonString(_jsonOpts) };
+                await UpsertAsync("oasis_avatar_details", row.oasis_id, row);
+                avatarDetail.Id = id;
+                result.Result = avatarDetail; result.IsSaved = true; result.SavedCount = 1; result.Message = "PocketBaseOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error saving avatar detail: {ex.Message}"); }
             return result;
@@ -367,7 +370,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             {
                 var rec = await GetFirstAsync("oasis_avatar_details", $"oasis_id='{id}'");
                 if (rec?.DataJson == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar detail found for ID '{id}'."); return result; }
-                result.Result = Deserialize<AvatarDetail>(rec.DataJson); result.IsError = false; result.Message = $"PocketBaseOASIS: AvatarDetail loaded for ID '{id}'.";
+                result.Result = Deserialize<AvatarDetail>(rec.DataJson) ?? throw new InvalidDataException("PocketBase returned an empty avatar detail payload."); result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: AvatarDetail loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar detail '{id}': {ex.Message}"); }
             return result;
@@ -382,7 +385,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             {
                 var rec = await GetFirstAsync("oasis_avatar_details", $"username='{username}'");
                 if (rec?.DataJson == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar detail found for username '{username}'."); return result; }
-                result.Result = Deserialize<AvatarDetail>(rec.DataJson); result.IsError = false; result.Message = $"PocketBaseOASIS: AvatarDetail loaded for username '{username}'.";
+                result.Result = Deserialize<AvatarDetail>(rec.DataJson) ?? throw new InvalidDataException("PocketBase returned an empty avatar detail payload."); result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: AvatarDetail loaded for username '{username}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar detail by username '{username}': {ex.Message}"); }
             return result;
@@ -397,7 +400,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             {
                 var rec = await GetFirstAsync("oasis_avatar_details", $"email='{email}'");
                 if (rec?.DataJson == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar detail found for email '{email}'."); return result; }
-                result.Result = Deserialize<AvatarDetail>(rec.DataJson); result.IsError = false; result.Message = $"PocketBaseOASIS: AvatarDetail loaded for email '{email}'.";
+                result.Result = Deserialize<AvatarDetail>(rec.DataJson) ?? throw new InvalidDataException("PocketBase returned an empty avatar detail payload."); result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: AvatarDetail loaded for email '{email}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar detail by email '{email}': {ex.Message}"); }
             return result;
@@ -412,7 +415,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             {
                 var recs = await GetAllAsync("oasis_avatar_details");
                 var details = recs.Where(r => r.DataJson != null).Select(r => Deserialize<AvatarDetail>(r.DataJson!)).Where(d => d != null).Cast<IAvatarDetail>().ToList();
-                result.Result = details; result.IsError = false; result.Message = $"PocketBaseOASIS: Loaded {details.Count} avatar detail(s).";
+                result.Result = details; result.IsLoaded = true; result.LoadedCount = details.Count; result.Message = $"PocketBaseOASIS: Loaded {details.Count} avatar detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading all avatar details: {ex.Message}"); }
             return result;
