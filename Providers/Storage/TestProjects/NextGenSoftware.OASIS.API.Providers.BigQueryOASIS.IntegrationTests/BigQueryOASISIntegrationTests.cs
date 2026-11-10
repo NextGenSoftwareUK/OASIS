@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Google.Cloud.BigQuery.V2;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.Providers.TestSupport;
 
@@ -26,6 +27,10 @@ public class BigQueryOASISIntegrationTests
             "The dedicated BigQuery project and dataset must both be configured.");
         var directory = Path.Combine(root!, synchronous ? "sync" : "async");
         Assert.IsFalse(Directory.Exists(directory), "Preserve any existing fixture evidence.");
+        // Validate the designated dataset before activation can provision resources.
+        using (var client = await BigQueryClient.CreateAsync(project!))
+            await client.GetDatasetAsync(dataset!);
+
         Directory.CreateDirectory(directory);
 
         var path = Path.Combine(directory, "report.json");
