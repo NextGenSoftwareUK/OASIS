@@ -51,3 +51,7 @@ The revision-checked cleanup passed and independently confirmed an empty store. 
 
 - Supabase native lifecycle tests compiled after the Core and Mongo dependency repairs. Both modes were discovered and skipped without a dedicated hosted project. The credential and soft-delete regression cases are running separately.
 - SQL Server native sync and async first runs reached avatar-save, with one confirmed avatar row per report ID. The provider had omitted save acknowledgement despite the committed write. The two exact owned rows were reconciled and removed in one transaction. Original reports and cleanup intent are under TestResults/ProviderConformanceCurrent/SQLServerDBOASIS-avatar-save-first-run. The provider now checks affected-row counts for avatar saves and returns read acknowledgements. These changes await the clean LocalDB rerun.
+
+### Development integration cadence
+
+David requested two to three scoped, verified integration batches per day. Fetch Development before each batch and review the current shared head and dependency pins. Keep the unpublished Core revision and unfinished provider changes out of Development until the matching dependency is available remotely and the affected checks pass. Preserve the current COSMIC/CQL checkout.
