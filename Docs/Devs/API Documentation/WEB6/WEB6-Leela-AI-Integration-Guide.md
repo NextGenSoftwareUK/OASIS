@@ -202,7 +202,7 @@ Document Corpus Holon
 
 2. **Hierarchical retrieval.** A query about "CBT techniques" hits the Section Holon level — not every paragraph. Fewer embedding comparisons, lower retrieval cost.
 
-3. **Configurable storage backends via COSMIC ORM.** Holons can be stored on MongoDB (cheap, fast), IPFS (free, decentralised), Solana (immutable record, low cost), or any of 222 providers. You choose the cheapest combination that meets your latency and durability requirements. You are not locked to S3.
+3. **Configurable storage backends via COSMIC ORM.** Holons can be stored on MongoDB (cheap, fast), IPFS (free, decentralised), Solana (immutable record, low cost), or another eligible storage adapter. You choose the cheapest combination that meets your latency and durability requirements. You are not locked to S3.
 
 4. **TTL retention policies.** Session holons can auto-expire after a set period. You only pay long-term storage for the content that actually needs it.
 
@@ -317,7 +317,7 @@ Future sessions can query past holons semantically — without paying per-query 
 | Duplicate content | Stored N times | Stored once, linked N times |
 | Session transcripts | S3 + manual indexing | Auto-holonised, semantic search included |
 | Retention control | Manual S3 lifecycle rules | Built-in TTL per holon |
-| Portability | AWS lock-in | 222 providers, switch anytime |
+| Portability | AWS lock-in | Choose among eligible storage adapters |
 
 ---
 
