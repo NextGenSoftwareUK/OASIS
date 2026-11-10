@@ -34,7 +34,8 @@ The current process exposes none of the hosted fixture variables listed in [Acti
 | Native core-storage-v2 52/52 | OracleDB, PostgreSQL, Redis, Mongo, Neo4j, CosmosDB emulator, Firestore emulator, AWS alias, DynamoDB, LocalFile, Azure Blob, SQLite, DuckDB, MinIO, Convex, Upstash |
 | Native compatible52/52 | Shipping AWSS3OASIS on existing CI MinIO; independent empty-bucket checks passed; hosted AWS/IAM open |
 | Recovered native52/52 summaries | SOLID/IPFS reports recovered from isolated checkout with exact registry hashes/contracts; original failed reports preserved, lifecycle/full-interface gates open |
-| Controlled52/52 only | KeyDB, ValKey, Dragonfly, Garnet and ThreeFold; product-native shared-suite runs pending |
+| Controlled52/52 baseline | KeyDB, ValKey, Dragonfly and ThreeFold; consult the provider matrix for later native evidence. |
+| Garnet native split evidence | Official Garnet 2.2.5 passed targeted lifecycle and cleanup checks across several runs. Full provider acceptance and a single registered native shared-suite report remain open. |
 | Non-storage ActivityPub | Native public-GET capability5/5, controlled291; full social operations open |
 | Other controlled cases | Firebase23, Appwrite19, PocketBase24, Convex24; these do not certify native storage |
 | Partial native | Solana4/52; original referenced history unavailable, unresolved outcomes preserved |
