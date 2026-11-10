@@ -82,6 +82,16 @@ public class SupabaseNativeStorageConformanceTests
         Assert.IsFalse(File.Exists(reportPath) || File.Exists(pendingPath),
             "Preserve the previous native report and resolve its fixture before running again.");
 
+        var otherReportPath = Path.Combine(Path.GetDirectoryName(directory)!, sync ? "async" : "sync", "report.json");
+        Assert.IsFalse(File.Exists(otherReportPath + ".next"), "Reconcile the other mode's interrupted checkpoint first.");
+        if (File.Exists(otherReportPath))
+        {
+            await using var prior = File.OpenRead(otherReportPath);
+            var priorReport = await JsonSerializer.DeserializeAsync<CoreStorageConformance.Report>(prior);
+            Assert.IsTrue(priorReport?.FixtureCleanupComplete == true,
+                "Reconcile the other mode's fixture before connecting to Supabase.");
+        }
+
         async Task Checkpoint(CoreStorageConformance.Report report)
         {
             await using (var file = new FileStream(pendingPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
