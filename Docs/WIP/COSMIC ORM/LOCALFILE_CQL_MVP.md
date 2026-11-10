@@ -140,7 +140,7 @@ can be regenerated; never delete the original source with output cleanup.
 [Current status](CURRENT_STATUS.md) / [inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) /
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 
-## Current-branch integration acceptance —30 October2026
+## Current-branch integration acceptance ?30 October2026
 
 Selective port from preserved f89cf0085, without unrelated provider changes. Producer is built before consumer; original source is required. Runner archives successful reports by SHA256 and refuses unresolved reports before another execution. Dedicated5110 avoids the TRON5108 catalogue collision. Development51f3c4c3 fetched and already an ancestor of task HEAD.
 
@@ -159,7 +159,7 @@ Public section16/expanded command/fixed5110link verified: Web4Site main7bcfd2304
 After-demo gaps remain plaintext/encryption, metadata/content queries, child semantics, conditional writes, broader HyperDrive and full parity. This bounded profile does not turn those gates green.
 
 
-## Hosted public source qualification — 3 November 2026
+## Hosted public source qualification ? 3 November 2026
 
 A separately declared, retained public teaching dataset was exported once under
 `LocalState/COSMIC/HostedLocalFilePublicDatasetCurrent`. Actual LocalFile/HolonManager/
@@ -180,7 +180,7 @@ registration/publisher at this boundary and add a regression before rollout.
 No protected candidate, hosted configuration change, bootstrap or deployment was
 performed by this preparation. Existing accepted sources were not replayed.
 
-## Laptop recovery — 4 November 2026
+## Laptop recovery ? 4 November 2026
 
 Resumed the original task branch in C:/Source/OASIS2. WEB4 registration now
 uses the same DNA-backed SandboxOptions.Enabled as the host. Publisher preflight
@@ -221,7 +221,7 @@ reuse, foreign-private 0/public 3 and both exact replicas before publishing
 the card. Preserve partial journals and reconcile any uncertain mutation
 before continuing. No hosted acceptance or deployment from this checkpoint.
 
-## Recovery laptop replacement source — 4 November 2026
+## Recovery laptop replacement source ? 4 November 2026
 
 David authorized recreation. The one-shot SDK export created a separate
 public teaching cohort with new IDs and passed 1/1 (full 3, subset 2, unchanged
@@ -253,7 +253,7 @@ WEB4 API tree, Core pin and Docker definitions match the tested task head.
 Development still points at b718f2879. Railway sign-in, mount confirmation,
 candidate review and live acceptance remain open.
 
-### Recovery laptop preflight — 4 November 2026
+### Recovery laptop preflight ? 4 November 2026
 
 The remote Development head is still b718f287933b7e79e862edbcf7d3bc13c37ba559.
 The published candidate c64adf4748856b0acaae02e24a7f8edd16d2a139 is a
@@ -560,7 +560,7 @@ own four presets remain unverified on Development.
 
 Later readiness check, 6 November UTC. Railway still required sign-in and
 Development remained at `b718f2879`. The existing rehearsal visitor's refresh
-returned an application-level “Avatar not found” with no result or cookie.
+returned an application-level ?Avatar not found? with no result or cookie.
 Discovery did not run. Preserve the original sealed response and pending
 rotation; reconcile the server-side owner lookup before another attempt.
 The LocalFile cohort remains absent.
@@ -755,3 +755,5 @@ The candidate at e1c4e37aad exposes the ordinary provider root as OASIS.StorageP
 CI published candidate 4330d1560f as ghcr.io/nextgensoftwareuk/oasis-web4@sha256:3aa81bd46227f471cc4ef39544e30cdc068cd33c94adaafc68b03b6ec0e2cb81. Development includes this revision and the ONET/ONODE checks passed. Railway aee4782a is queued. The 12 controlled routing verifier tests passed. Public regression and the isolated ordinary hosted point load remain open.
 
 10 November Development LocalFile verification: after the 4330d1560f rollout, live WEB4 discovery advertised both public presets. Native queries returned 3 and 2 rows, with exact IDs matching the Development source configuration observed unchanged before and after the queries (SHA-256 e0573067e7c97b8832521408a4013866b63aa1a57100364807e50a375b0ecdbc). The separate local fixture has different IDs. Isolated ordinary HyperDrive point-load verification still requires the hosted fixture and admission. Reused the existing CLI and visitor without generating local output.
+
+Isolated staging verification prerequisite: Verify-HostedHyperdriveCandidateRouting.py currently uses the Development-only API base and Railway release guard from Verify-HostedQuerySource.py. Before accepting a staging point load, bind the request URL, independently prepared staging visitor and exact Railway release check to the same staging service. Staging WEB4 deployment 596873f6 is online with DNA configured but has no mounted volume or prepared storage admission. Do not send a staging credential through the existing Development verifier. No hosted settings changed.
