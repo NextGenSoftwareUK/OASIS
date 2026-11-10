@@ -33,7 +33,7 @@ public class PinataOASISIntegrationTests
         var activated = await provider.ActivateProviderAsync();
         Assert.IsFalse(activated.IsError, activated.Message);
 
-        var holon = new Holon { Id = Guid.NewGuid(), Name = $"pinata-{Guid.NewGuid():N}" };
+        var holon = new Holon { Id = Guid.Empty, Name = $"pinata-{Guid.NewGuid():N}" };
         string? providerKey = null;
         try
         {
@@ -41,6 +41,7 @@ public class PinataOASISIntegrationTests
             providerKey = saved.Result?.ProviderUniqueStorageKey[ProviderType.PinataOASIS];
             Assert.IsFalse(saved.IsError, saved.Exception?.GetType().FullName);
             Assert.IsTrue(saved.IsSaved);
+            Assert.AreNotEqual(Guid.Empty, holon.Id);
             Assert.AreEqual(1, saved.SavedCount);
             Assert.IsFalse(string.IsNullOrWhiteSpace(providerKey));
 
