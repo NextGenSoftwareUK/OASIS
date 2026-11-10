@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.TestSupport;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests;
@@ -21,14 +22,28 @@ public class PolkadotPublicStorageNativeTests
         await RunNativeStorageAsync(true);
     }
 
-    private async Task RunNativeStorageAsync(bool graph)
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    [TestCategory("LocalNative")]
+    public async Task CoreStorageSuiteAgainstPolkadot(bool sync)
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_POLKADOT_STORAGE_CONFORMANCE") != "1")
+            Assert.Inconclusive("Enable only for the retained isolated Polkadot fixture.");
+
+        await RunNativeStorageAsync(false, sync);
+    }
+
+    private async Task RunNativeStorageAsync(bool graph, bool? conformanceSync = null)
     {
         Assert.AreEqual("1",Environment.GetEnvironmentVariable("OASIS_POLKADOT_LOCAL_NATIVE"));
         var directory=Environment.GetEnvironmentVariable("OASIS_POLKADOT_RECORD_EVIDENCE")!;
         var bridge=Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE")!;
         var expected=Path.GetFullPath(Path.Combine(Path.GetDirectoryName(bridge)!,"../../../../Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot"));
         Assert.AreEqual(expected,Path.GetFullPath(directory));
-        var prefix = graph ? "native-graph" : "public-storage";
+        var prefix = conformanceSync.HasValue
+            ? (conformanceSync.Value ? "core-storage-sync" : "core-storage-async")
+            : (graph ? "native-graph" : "public-storage");
         var pending=Path.Combine(directory,prefix+"-pending.jsonl");
         var completed=Path.Combine(directory,prefix+".completed.json");
         var recoveringCompleted=File.Exists(completed);
@@ -48,6 +63,50 @@ public class PolkadotPublicStorageNativeTests
         Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
         var raw=provider.CreateRecordBackend(configuration.ContractAccountId,configuration.CodeHash,configuration.OwnerAccountId);
         var originals=new List<JsonElement>();var receipts=new List<JsonElement>();
+        if (conformanceSync.HasValue)
+        {
+            Assert.IsFalse(recoveringCompleted, "Preserve the prior completed run without replay.");
+            Assert.IsFalse(Directory.EnumerateFiles(directory, "*-pending.jsonl").Any(),
+                "Reconcile all pending fixture transactions first.");
+            Assert.AreEqual(0, (await raw.ListKeysAsync("")).Count);
+            using var deadline = new CancellationTokenSource(TimeSpan.FromMinutes(10));
+            var reportPath = Path.Combine(directory, prefix + ".report.json");
+            Assert.IsFalse(File.Exists(reportPath) || File.Exists(reportPath + ".next"));
+            Task Checkpoint(CoreStorageConformance.Report report)
+            {
+                using (var stream = new FileStream(reportPath + ".next", FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                {
+                    JsonSerializer.Serialize(stream, report);
+                    stream.Flush(flushToDisk: true);
+                }
+                File.Move(reportPath + ".next", reportPath, overwrite: true);
+                return Task.CompletedTask;
+            }
+
+            var result = await provider.WithRecordStoragePreparationAsync(
+                () => CoreStorageConformance.RunAsync(provider, nameof(PolkadotOASIS), "native",
+                    conformanceSync.Value, Checkpoint, expectedDefaultDeletion: "absent"),
+                (action, key) => new PreparedSubmissionServer((original, token) =>
+                {
+                    token.ThrowIfCancellationRequested();
+                    Assert.AreEqual(action, original.GetProperty("action").GetString());
+                    Assert.AreEqual(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(key)),
+                        original.GetProperty("keyBase64").GetString());
+                    using var stream = new FileStream(pending, FileMode.Append, FileAccess.Write, FileShare.None);
+                    JsonSerializer.Serialize(stream, original);
+                    stream.WriteByte(10);
+                    stream.Flush(flushToDisk: true);
+                    return Task.CompletedTask;
+                }), deadline.Token);
+
+            Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType}");
+            Assert.IsTrue(result.FixtureCleanupComplete);
+            Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
+            Assert.AreEqual(0, (await raw.ListKeysAsync("")).Count);
+            File.Move(pending, Path.Combine(directory, prefix + ".transactions.jsonl"));
+            return;
+        }
+
         var avatarId=Guid.Parse("8d64c2fa-e612-4338-b95a-ae150111cca1");
         var holonId=Guid.Parse("8d64c2fa-e612-4338-b95a-ae150111cca2");
         var parentId = Guid.Parse("5ecade3b-d301-4915-9433-49882957e1ad");
