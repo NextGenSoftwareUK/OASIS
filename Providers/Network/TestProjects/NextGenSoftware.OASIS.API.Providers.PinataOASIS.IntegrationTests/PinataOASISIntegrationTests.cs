@@ -19,6 +19,9 @@ public class PinataOASISIntegrationTests
     [TestMethod]
     public async Task HolonRoundTrip_UsesAuthenticatedPinataApi()
     {
+        if (Environment.GetEnvironmentVariable("OASIS_PINATA_HOSTED_WRITE_TEST") != "1")
+            Assert.Inconclusive("Enable only for a dedicated Pinata test account and synthetic public records.");
+
         string? jwt = Environment.GetEnvironmentVariable("OASIS_PINATA_JWT");
         string? apiKey = Environment.GetEnvironmentVariable("OASIS_PINATA_API_KEY");
         string? secret = Environment.GetEnvironmentVariable("OASIS_PINATA_SECRET_KEY");
@@ -31,17 +34,37 @@ public class PinataOASISIntegrationTests
         Assert.IsFalse(activated.IsError, activated.Message);
 
         var holon = new Holon { Id = Guid.NewGuid(), Name = $"pinata-{Guid.NewGuid():N}" };
-        var saved = await provider.SaveHolonAsync(holon);
-        Assert.IsFalse(saved.IsError, saved.Message);
-        string providerKey = saved.Result.ProviderUniqueStorageKey[ProviderType.PinataOASIS];
-        Assert.IsFalse(string.IsNullOrWhiteSpace(providerKey));
+        string? providerKey = null;
+        try
+        {
+            var saved = await provider.SaveHolonAsync(holon, saveChildren: false);
+            providerKey = saved.Result?.ProviderUniqueStorageKey[ProviderType.PinataOASIS];
+            Assert.IsFalse(saved.IsError, saved.Exception?.GetType().FullName);
+            Assert.IsTrue(saved.IsSaved);
+            Assert.AreEqual(1, saved.SavedCount);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(providerKey));
 
-        var loaded = await provider.LoadHolonAsync(providerKey);
-        Assert.IsFalse(loaded.IsError, loaded.Message);
-        Assert.AreEqual(holon.Id, loaded.Result.Id);
-        Assert.AreEqual(holon.Name, loaded.Result.Name);
-
-        var deleted = await provider.DeleteHolonAsync(providerKey);
-        Assert.IsFalse(deleted.IsError, deleted.Message);
+            var loaded = await provider.LoadHolonAsync(holon.Id, loadChildren: false);
+            Assert.IsFalse(loaded.IsError, loaded.Exception?.GetType().FullName);
+            Assert.IsTrue(loaded.IsLoaded);
+            Assert.AreEqual(holon.Id, loaded.Result.Id);
+            Assert.AreEqual(holon.Name, loaded.Result.Name);
+            Assert.AreEqual(providerKey, loaded.Result.ProviderUniqueStorageKey[ProviderType.PinataOASIS]);
+        }
+        finally
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(providerKey))
+                {
+                    var deleted = await provider.DeleteHolonAsync(providerKey);
+                    Assert.IsFalse(deleted.IsError, deleted.Exception?.GetType().FullName);
+                }
+            }
+            finally
+            {
+                await provider.DeActivateProviderAsync();
+            }
+        }
     }
 }

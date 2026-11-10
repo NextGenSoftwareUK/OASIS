@@ -614,3 +614,8 @@ Status: missing account/configuration information,2 November2026. David approved
 
 - **Open, 2026-11-10.** Identify the machine that still holds the retained offline Kubo test repository and protected storage key, and make that fixture available to the provider verification session. Keep the key in protected local storage and keep credentials out of Git and chat.
 - **Reason** The historical 52/52 native baseline carries forward. The documented Kubo binary and fixture paths are absent on this Windows host. The retained fixture is needed to verify outstanding restart and concurrent lifecycle behavior without recreating the repository or replaying the accepted cohort. [Provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md)
+
+### Pinata hosted round-trip fixture
+
+- **Open, 2026-11-10.** Designate a disposable Pinata test account and gateway authorized for a synthetic public pin and exact unpin. Configure a scoped test JWT as OASIS_PINATA_JWT through protected local settings. Set OASIS_PINATA_HOSTED_WRITE_TEST=1 only for that fixture. Keep secrets out of Git and chat.
+- **Reason** The shipping holon save, GUID lookup and exact CID cleanup test builds and is discoverable. Native writes require explicit fixture access. [Provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md)
