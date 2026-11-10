@@ -255,86 +255,54 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            try
-            {
-                var session = Driver.Session(WithDatabase);
-
-                return session.ReadTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MATCH (hl: Holon)
-                            RETURN hl.description AS description,hl.ProviderKey AS providerkey, hl.PreviousVersionId AS previousversionid"
-                    );
-
-                    IEnumerable<IHolon> objList = (from d in cursor
-                                                   select new Holon
-                                                   {
-                                                       Description = d["description"].As<string>(),
-                                                       //ProviderKey = d["providerkey"].As<Dictionary<ProviderType, string>>(),
-                                                       PreviousVersionId = d["previousversionid"].As<Guid>()
-                                                   }).ToList();
-
-                    return new OASISResult<IEnumerable<IHolon>>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Holon(s) Loaded successfully",
-                        Result = objList,
-                    };
-
-                });
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IEnumerable<IHolon>>
-                {
-                    IsLoaded = false,
-                    IsError = true,
-                    Message = ex.ToString(),
-                };
-            }
-        }
+            => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth,
+                continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
+            var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
                 var session = Driver.AsyncSession(WithDatabase);
-
-                return await session.ReadTransactionAsync(async transaction =>
+                await using var lifetime = session.ConfigureAwait(false);
+                var holons = await session.ReadTransactionAsync(async transaction =>
                 {
                     var cursor = await transaction.RunAsync(@"
-                          MATCH (hl: Holon)
-                            RETURN hl.description AS description,hl.ProviderKey AS providerkey, hl.PreviousVersionId AS previousversionid"
-                    );
+                        MATCH (hl:Holon)
+                        WHERE $allTypes OR hl.HolonType = $type
+                        RETURN hl.GUId AS id, hl.name AS name, hl.description AS description,
+                               hl.ProviderKey AS providerkey, hl.PreviousVersionId AS previousversionid,
+                               hl.HolonType AS type, hl.ParentHolonId AS parent
+                        ORDER BY hl.GUId", new { allTypes = type == HolonType.All, type = (int)type }).ConfigureAwait(false);
+                    return await cursor.ToListAsync(ReadListedHolon).ConfigureAwait(false);
+                }).ConfigureAwait(false);
 
-                    IEnumerable<IHolon> objList = await cursor.ToListAsync(record => new Holon
-                    {
-                        Description = record["description"].As<string>(),
-                        //ProviderKey = record["providerkey"].As<Dictionary<ProviderType, string>>(),
-                        PreviousVersionId = record["previousversionid"].As<Guid>()
-                    });
-
-                    return new OASISResult<IEnumerable<IHolon>>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Holon(s) Loaded successfully",
-                        Result = objList,
-                    };
-
-                });
+                result.Result = holons;
+                result.IsLoaded = true;
+                result.LoadedCount = holons.Count;
             }
             catch (Exception ex)
             {
-                return new OASISResult<IEnumerable<IHolon>>
-                {
-                    IsLoaded = false,
-                    IsError = true,
-                    Message = ex.ToString(),
-                };
+                OASISErrorHandling.HandleError(ref result, "Error listing Neo4j Aura holons.", ex);
             }
+            return result;
+        }
+
+        private IHolon ReadListedHolon(IRecord row)
+        {
+            var holon = new Holon
+            {
+                Id = Guid.Parse(row["id"].As<string>()),
+                Name = row["name"].As<string>(),
+                Description = row["description"].As<string>(),
+                PreviousVersionId = row["previousversionid"] is string previous ? Guid.Parse(previous) : Guid.Empty,
+                ParentHolonId = row["parent"] is string parent ? Guid.Parse(parent) : Guid.Empty
+            };
+            if (row["type"] is long type)
+                holon.HolonType = (HolonType)type;
+            if (row["providerkey"] is string key)
+                holon.ProviderUniqueStorageKey[ProviderType.Value] = key;
+            return holon;
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)

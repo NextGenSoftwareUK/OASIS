@@ -39,10 +39,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                     var cursor = await transaction.RunAsync(@"
                         MERGE (hl:Holon {GUId: $guid})
                         SET hl.name = $name, hl.description = $description,
+                            hl.ParentHolonId = $parent, hl.HolonType = $type,
                             hl.PreviousVersionId = $previous, hl.ProviderKey = coalesce(hl.ProviderKey, $providerKey)
                         RETURN hl.ProviderKey AS providerKey",
                         new { guid, name = holon.Name, description = holon.Description,
-                            previous = holon.PreviousVersionId.ToString("D"), providerKey }).ConfigureAwait(false);
+                            previous = holon.PreviousVersionId.ToString("D"), providerKey, parent = holon.ParentHolonId.ToString("D"), type = (int)holon.HolonType }).ConfigureAwait(false);
                     return await cursor.SingleAsync(row => row["providerKey"].As<string>()).ConfigureAwait(false);
                 }).ConfigureAwait(false);
 
