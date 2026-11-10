@@ -668,7 +668,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
     public class PinataService : IPinataService, IDisposable
     {
         private readonly HttpClient _httpClient;
-        private readonly HttpClient _gatewayClient = new HttpClient();
+        private readonly HttpClient _gatewayClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
         private readonly string _apiKey;
         private readonly string _secretKey;
         private readonly string _jwt;
@@ -729,6 +729,13 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             using var response = await _gatewayClient.GetAsync($"{_gatewayUrl}/ipfs/{Uri.EscapeDataString(hash)}").ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+        }
+
+        internal async Task<byte[]> GetFileBytesAsync(string hash)
+        {
+            using var response = await _gatewayClient.GetAsync($"{_gatewayUrl}/ipfs/{Uri.EscapeDataString(hash)}").ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
         }
 
         public async Task<PinataPinResponse> PinFileAsync(string filePath)

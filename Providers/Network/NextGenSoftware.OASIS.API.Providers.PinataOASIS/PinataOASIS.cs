@@ -43,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
         private string _apiUrl = "https://api.pinata.cloud";
         private OASISDNA _OASISDNA;
         private string _OASISDNAPath;
-        private IPinataService _pinataService;
+        private PinataService _pinataService;
 
         public PinataOASIS()
         {

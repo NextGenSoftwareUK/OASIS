@@ -103,7 +103,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             IsProviderActivated = false;
             _httpClient?.Dispose();
             _httpClient = null;
-            (_pinataService as IDisposable)?.Dispose();
+            _pinataService?.Dispose();
             _pinataService = null;
         }
 
@@ -278,19 +278,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                     }
                 }
 
-                var url = $"{_gatewayUrl}/ipfs/{Uri.EscapeDataString(ipfsHash)}";
-                using var gateway = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
-                using var response = await gateway.GetAsync(url).ConfigureAwait(false);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    result.Result = await response.Content.ReadAsByteArrayAsync();
-                    result.Message = "File downloaded from Pinata successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to download file from Pinata. Status: {response.StatusCode}");
-                }
+                result.Result = await _pinataService.GetFileBytesAsync(ipfsHash).ConfigureAwait(false);
+                result.Message = "File downloaded from Pinata successfully";
             }
             catch (Exception e)
             {
