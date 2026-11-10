@@ -633,3 +633,10 @@ Status: missing account/configuration information,2 November2026. David approved
 
 - **Open, 2026-11-10.** If a dedicated Lotus test node already exists, identify its host so the verification session can run on the same machine. Set OASIS_FILECOIN_TEST_LOTUS_RPC to the loopback RPC URL there. If needed, configure a read-only token through OASIS_FILECOIN_TEST_LOTUS_TOKEN in protected local settings. Keep the token out of Git and chat.
 - **Reason** Both shipping activation cases compile and use only Filecoin.Version. This Windows host has no Lotus executable on PATH and no listener on its default RPC port. The checks require neither file imports nor storage deals. [Provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md)
+
+### ClickHouse writable storage fixture
+
+- **Status (2026-11-10)** Open. The focused hard-delete regression compiled and skipped without the fixture.
+- **David action** Designate a disposable ClickHouse instance with an isolated oasis database. Set CLICKHOUSE_CONN through protected local configuration and enable OASIS_CLICKHOUSE_STORAGE_TEST_WRITES=1 for the test process. The account needs schema creation, insert, select and mutation access in oasis. Keep credentials out of Git and chat.
+- **Reason** The native test writes a synthetic holon, deletes it and verifies the row count immediately. The COSMIC teaching source is read-only and is separately accepted.
+- **Context** [Provider continuation](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).

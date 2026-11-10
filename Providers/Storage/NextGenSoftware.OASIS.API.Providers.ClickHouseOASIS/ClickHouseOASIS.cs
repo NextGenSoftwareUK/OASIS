@@ -234,7 +234,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
             try
             {
                 if (softDelete) { var l = await LoadAvatarAsync(id); if (!l.IsError && l.Result != null) { var a = (Avatar)l.Result; a.DeletedDate = DateTime.UtcNow; await SaveAvatarAsync(a); } }
-                else { await ExecuteAsync($"ALTER TABLE oasis.avatars DELETE WHERE id = '{id}'"); }
+                else { await ExecuteAsync($"ALTER TABLE oasis.avatars DELETE WHERE id = '{id}' SETTINGS mutations_sync = 1"); }
                 result.Result = true; result.IsError = false; result.Message = $"ClickHouseOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: {ex.Message}"); }
@@ -476,7 +476,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
             try
             {
                 if (softDelete) { var l = await LoadHolonAsync(id); if (!l.IsError && l.Result != null) { var h = (Holon)l.Result; h.DeletedDate = DateTime.UtcNow; await SaveHolonAsync(h); } }
-                else { await ExecuteAsync($"ALTER TABLE oasis.holons DELETE WHERE id = '{id}'"); }
+                else { await ExecuteAsync($"ALTER TABLE oasis.holons DELETE WHERE id = '{id}' SETTINGS mutations_sync = 1"); }
                 result.Result = true; result.IsError = false; result.Message = $"ClickHouseOASIS: Holon '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ClickHouseOASIS: {ex.Message}"); }
