@@ -123,3 +123,5 @@ GitHub denied draft creation for ONODE candidate 9fd03698d3 (HTTP 403). The owne
 Candidate 9fd03698d3 also keeps Convex and Supabase credentials bound to their configured service URLs. Earlier build evidence covers the BootLoader before this guard and the ONODE endpoint change. Both follow-ups await remote compilation and live verification.
 
 Remote ONODE candidate cefa7d754a extends the compiled BootLoader baseline with credential binding and single/batch registration result handling. Live endpoint verification must cover an invalid batch rejected before registration and a valid mixed-outcome batch reporting failed provider types without exposing provider objects. No candidate CI run exists yet. Local builds remain deferred for disk recovery.
+
+Candidate cefa7d754a passed in-memory Roslyn 5.0 syntax parsing for all four changed C# files. This check produced no build outputs. Type checking, full compilation and live verification remain open.
