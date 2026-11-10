@@ -32,8 +32,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             
             try
             {
-                // Upload avatar detail data to Pinata
-                var uploadResult = await UploadJsonToPinataAsync(avatarDetail, $"AvatarDetail_{avatarDetail.Id}");
+                ArgumentNullException.ThrowIfNull(avatarDetail);
+                var id = avatarDetail.Id == Guid.Empty ? Guid.NewGuid() : avatarDetail.Id;
+                var payload = Newtonsoft.Json.Linq.JObject.FromObject(avatarDetail);
+                payload[nameof(IAvatarDetail.Id)] = id;
+                var uploadResult = await UploadJsonToPinataAsync(payload, $"AvatarDetail_{id:D}");
                 
                 if (uploadResult.IsError || string.IsNullOrEmpty(uploadResult.Result))
                 {
@@ -42,6 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 // Store the IPFS hash as the provider key
+                avatarDetail.Id = id;
                 avatarDetail.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 avatarDetail.ProviderUniqueStorageKey[Core.Enums.ProviderType.PinataOASIS] = uploadResult.Result;
                 
