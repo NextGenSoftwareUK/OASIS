@@ -737,3 +737,5 @@ Development 3d044fc4 went live after the verifier integration. Monad and Hedera 
 On Development 3d044fc4, Monad and Hedera each passed both public federation presets with 3 and 2 rows. Selected IDs and provider copies matched the native results. The existing visitor had no private MongoDB snapshots, so private paired browser checks remain open.
 
 LocalFile ordinary storage now accepts OASIS.StorageProviders.LocalFileOASIS.StorageDirectory through BootLoader on the COSMIC branch at e1c4e37aad. The two-file candidate 4330d1560f is based on Development 601d81e81c and is building in [WEB4 image CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42915635950). The isolated ordinary admission and hosted point-load proof remain open. The build runs remotely and temporary Git files were removed.
+
+LocalFile storage directory candidate 4330d1560f passed WEB4 image CI 42915635950 and fast-forwarded Development. Railway deployment aee4782a is queued while 3d044fc4 serves traffic. Verify public LocalFile CQL after startup. Ordinary HyperDrive point-load still requires an isolated profile and a fixture under the configured StorageDirectory.
