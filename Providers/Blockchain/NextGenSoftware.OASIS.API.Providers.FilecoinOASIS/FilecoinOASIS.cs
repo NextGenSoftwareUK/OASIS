@@ -629,16 +629,31 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>();
+            result.Result = saved;
             try
             {
                 foreach (var holon in holons)
                 {
                     var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    if (!r.IsError && r.Result != null) saved.Add(r.Result);
-                    else if (!continueOnError) { OASISErrorHandling.HandleError(ref result, r.Message); return result; }
+                    if (!r.IsError && r.Result != null)
+                    {
+                        saved.Add(r.Result);
+                        result.SavedCount = saved.Count;
+                        result.IsSaved = true;
+                        continue;
+                    }
+                    if (!continueOnError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, r.Message, r.Exception);
+                        return result;
+                    }
+                    result.IsWarning = true;
+                    result.WarningCount++;
                 }
-                result.Result = saved;
-                result.Message = $"FilecoinOASIS: Saved {saved.Count} holons.";
+                if (saved.Count == 0 && result.WarningCount > 0)
+                    OASISErrorHandling.HandleError(ref result, "FilecoinOASIS: No holon imports were acknowledged.");
+                else
+                    result.Message = $"FilecoinOASIS: Acknowledged {saved.Count} holon imports with {result.WarningCount} failures.";
             }
             catch (Exception ex)
             {
