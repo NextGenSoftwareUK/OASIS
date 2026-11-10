@@ -341,3 +341,5 @@ SQLite wallet error propagation passed four native cases across sync and async m
 SQLite passed eight native wallet ownership cases for atomic batch rollback, avatar deletion ownership, and prevention of rejected mutation replay during an unrelated save. Previously verified wallet and shared lifecycle filters were excluded.
 
 SQLite passed 16 native wallet cases for ambiguous selectors, invalid explicit identity rejection, and acknowledged wallet saves surviving fresh-connection readback. The run excluded the recorded schema, reopen, rollback, ownership, native-error and shared lifecycle cases.
+
+SQLite passed six additional native wallet corruption cases. The shipping wallet read failed on malformed stored values instead of returning a successful empty result. Only CorruptStoredWalletPayloadCannotBecomeSuccessfulEmptyRead ran.
