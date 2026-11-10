@@ -246,8 +246,13 @@ def ready_source(provider, token, require_pair):
     if len(matches) > 1:
         raise RuntimeError(f"{provider} appeared more than once in hosted discovery.")
     source = matches[0] if matches else None
-    if source is None or source.get("available") is not True or (require_pair and source.get("federationAvailable") is not True):
+    if source is None or source.get("available") is not True:
+        code = source.get("errorCode") if source is not None else None
+        if code in ("CQL_SOURCE_NOT_READY", "CQL_SOURCE_UNAVAILABLE"):
+            raise RuntimeError(f"{provider} hosted discovery reports {code}.")
         raise RuntimeError(f"{provider} is absent or unavailable in hosted discovery.")
+    if require_pair and source.get("federationAvailable") is not True:
+        raise RuntimeError(f"{provider} is absent or unavailable for federation in hosted discovery.")
     required = {"public-records", "public-subset"}
     if require_pair:
         required.update(("mongo-public-records", "mongo-public-subset"))
