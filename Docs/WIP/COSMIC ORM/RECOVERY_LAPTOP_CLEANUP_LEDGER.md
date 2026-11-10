@@ -1014,7 +1014,7 @@ check returned Unauthorized. No settings, deployment or project link changed.
   No server startup, package/environment or data write. No standalone screenshots
   or downloaded verification artifacts retained; HTTP comparisons ran in memory.
 
-## Solr CQL adapter — 5 November 2026
+## Solr CQL adapter ? 5 November 2026
 
 No runtime/package archive or new environment installed. Existing Java metadata inspected read-only; no native Solr process/source created. Both scoped builds held the provider lease with bounded workers. Unit TRX:16 passed/0failed/0skipped; integration fixture build:0errors/4warnings. Shared Core/Shared outputs reused; no separate build environment.
 
@@ -1034,7 +1034,7 @@ Unit TRX SHA256:9c2ba8a35c97c424d6e62b26f598320d388fda7e0e5f9edd7307d264b8dcee2f
 
 - `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests/obj`: 1016251 bytes.
 
-## Solr native runtime qualification — 5 November 2026
+## Solr native runtime qualification ? 5 November 2026
 
 Single reusable directory: `LocalState/COSMIC/RecoveryLaptopSolr1010`. Downloading Apache Solr 10.1.0 slim (83,063,602 bytes; SHA512 d22df360764a024ea59dbe0e29367ef0dfaabcfe9d7f6b568b35f73e034c7346ca325e5e18f51da312ae292eb4d1cff3c7380967f9288e56c6563306bab67f06 verified against Apache checksum) and Temurin21.0.13+9 JRE Windows x64 (49,106,397 bytes; expected official GitHub asset SHA2562332c0b4cff6bed722da3567c91d5e47568bcba863fa4945d0a8d6fc76158628). Archives and verification receipts are in this directory. No system install, PATH change, feature enablement or service registration. Retained QuestDB Java is a partial module image, so this is the one required general Java runtime, reusable for later providers. Adoptium metadata API returned403; official GitHub release metadata supplied the pinned asset and digest. Native source/server not yet created; pending expansion/process measurements follow below.
 
@@ -1080,7 +1080,7 @@ Both native TRX runs:1passed/0failed/0skipped each; first seed exactly once, ret
 - `retained-0d7a9085cb334bd79012c5c7fe71092b.trx`: 2857bytes; SHA25694b183d594fe7bc87057bc5298e215d968913c0316ce1736848c40d89b69a703.
 - `unseeded-resume-c75bb54aa04d47329bbdb590fbb65186.trx`: 2857bytes; SHA256afcb81655de402f459560deca34dd73480349b822fc23791acb11322d2bc20e0.
 
-## Solr Mongo/HTTP and local browser acceptance — 5 November 2026
+## Solr Mongo/HTTP and local browser acceptance ? 5 November 2026
 
 No downloads, new runtime or database environment. Reused admitted Mongo8.2 runtime/store and pinned Solr/JRE. Paired and interactive fixtures each created only their exact three journalled Mongo records in cosmic_cql_mongo_solr_demo, verified all contents, dropped database and confirmed absence. Original four Solr documents/ACK unchanged; no reseeding. Five runner controls pass; native manager/HTTP and browser5/4 verified. Interactive run0e08b8fd4142424da146fe06e2aceab7 finished1pass/0skip after browser stop. Both owned Solr/Mongo stopped;18883/17883/27029/5117 have no listener; pending/ready files absent. No screenshot artifact files. Corrected a status-table placement error from the prior commit: Solr evidence belongs to Solr, restored Algolia pending status.
 
@@ -1115,7 +1115,7 @@ Website72e29ba is published/Vercel success;112client tests pass. Public HTML208,
 - Removed exact owned successful `interactive-0e08b8fd4142424da146fe06e2aceab7-mongo.log` after process stop/ports closed: 156040bytes, SHA256bab036ad2eef03678dd76cb19dadadfb8b77f2b02f607160fc682dd6988ee549. Compact TRX/result/process/cleanup receipts retained.
 - Total successful Mongo logs freed: 254902bytes. Failed startup logs, native store, pinned runtimes and compiled demo outputs remain for continuation.
 
-## ArcadeDB bounded CQL/native qualification — 5 November 2026
+## ArcadeDB bounded CQL/native qualification ? 5 November 2026
 
 One reusable directory: LocalState/COSMIC/RecoveryLaptopArcade26111. Selected official stable26.11.1 base distribution (SQL/HTTP scope; optional modules not required), released4November2026. Archive86,506,630bytes, official GitHub asset SHA256f4307c06223c14efc42e526845a241d5252b36b74908b08eabf3383b9c7b6c84. Reuse the existing qualified Temurin21.0.13+9 JRE in RecoveryLaptopSolr1010; no additional Java/system/PATH/service install. Download/expansion provenance and native measurements to follow. No source/server created yet.
 
@@ -1165,7 +1165,7 @@ Provider/CQL22/22, runner controls3/3, bootstrap1/1 and native initial/retained1
 - `initial.trx` SHA25625331c83c69a6290acb799bb5c17bc5f04d0b1ed4705f33aca5360265c279cd3.
 - `retained-931c73452b364611b349b69ac53337d2.trx` SHA2567d5a2f79cd4a9f1bcb889e1b58122f9b434438f521a1fb3f17c693b357abbf2b.
 
-## ArcadeDB manager/HTTP and browser — 5 November 2026
+## ArcadeDB manager/HTTP and browser ? 5 November 2026
 
 No downloads or new environment. Reused pinned ArcadeDB/JRE and admitted Mongo8.2 store. Paired and interactive each1pass/0skip; manager/HTTP and browser5/4/provenance verified. Original four ArcadeDB values/hashes unchanged; absent control remains absent, no seed replay. Exact temporary cosmic_cql_mongo_arcadedb_demo three-record fixture verified/dropped, absence checked, pending/ready markers removed. Both owned native/Mongo stopped,24800/27029/5118closed. Four runner controls pass. Build0errors/1142existing warnings, bounded workers and provider lease. No screenshot files.
 
@@ -1200,7 +1200,7 @@ Site8123df9 publishes local card42;112client tests pass. Vercel success and publ
 - Removed exact owned successful `interactive-ceeaaeafb7114c3ab245d9610c43de2f-mongo.log` after stop/closed ports: 167298bytes, SHA256eb4e87d9beb5d08923a97f80c252607d0e89ebf45e50afc20f089a6793037f17. Compact TRX/result/process/cleanup receipts retained.
 - Total successful Mongo logs freed: 276841bytes. Native runtime/store, protected credential, SDK outputs and native logs retained for demo continuation.
 
-## OpenSearch bounded CQL/runtime qualification — 5 November 2026
+## OpenSearch bounded CQL/runtime qualification ? 5 November 2026
 
 One reusable directory: LocalState/COSMIC/RecoveryLaptopOpenSearch390. Official Windows3.9.0 bundle metadata checked:1,050,303,612bytes, published SHA5128d6d1420a93de227b20c4bd4de4987279349841e291b936cf87b40a3522bfd0ef8c1753a92bf35bfd82713a609b55682de2e450633ca964d2bc0631c3a64b01e. About45.6GBfree before download. The official minimal distribution has no Windows artifact; no unofficial build selected. Java21 is supported by official compatibility matrix; existing qualified Temurin21 JRE will be evaluated before retaining a second Java. Archive/expansion/native results to follow. No server/source/system/PATH/service change yet.
 
@@ -1226,7 +1226,7 @@ Provider/unit26passed/0failed/0skipped;21CQL+5metadata. Native fixture build0err
 - `runtime-version.result.json`: 159bytes retained.
 - Unit TRX SHA2567a91dac90bf1d6422aefb140086821f448e41b2d6fb26f83ebfd197d810d4d0d.
 
-## OpenSearch native bootstrap/restart and lifecycle — 5 November2026
+## OpenSearch native bootstrap/restart and lifecycle ? 5 November2026
 
 Create-only full-Holon bootstrap1/1, initial native1/1, retained1/1 pass; no skips. Exactly one index/four acknowledged creates, no replay. Shared Java21, shipped JVM options,128MiB initial/512MiB maxheap/2CPUs, new loopback-only teaching profile with security off; hosted auth/TLS not qualified. Native Ctrl+C via exact owned console (target+helper only), node stopped/closed logs and exit130;19200/19300closed. First console helper preflight inherited-console WinError5 corrected by detaching helper; original testPID7032 then signalled, corrected preflightPID17536 exited0. Three guard controls pass. First retained readiness408 failed before tests, stopped cleanly, no TRX/writes; protocol handling corrected,4readiness controls pass and distinct retained read succeeds. Original failed evidence preserved.
 
@@ -1297,7 +1297,7 @@ Archive1,050,303,612bytes deleted after exact-path/hash/process verification;250
 - `initial.trx` SHA2560bda28dcd3e600c60a6f045402fb7f63cd4c7552301400f6538010e0f8e6c47a.
 - `retained-88338fbc93f14e088b4ebee86740305a.trx` SHA256d333c66d76d1e2fd20178b74c2dc3e0363dd7e174ac67b0f921912eb7e7817c6.
 
-## OpenSearch manager/HTTP and browser acceptance — 5 November2026
+## OpenSearch manager/HTTP and browser acceptance ? 5 November2026
 
 No new download or runtime/environment. Reused pinned OpenSearch/JRE and admitted Mongo8.2 store. Native manager/HTTP1/1 and interactive browser1/1 pass, no skips; full5/subset4 and provenance verified. All original native payloads match bootstrap hashes/version1 before/after. Exactly3temporary Mongo records per explicit fixture, contents verified then database dropped/absence checked; pending/ready markers absent. Native JVM clean Ctrl+C/closed/exit130. Mongo graceful Ctrl+C path properly closes WiredTiger and shutdown, exit12 per native Windows contract. Initial paired wrapper1 was an incorrect zero-exit expectation; query TRX passed, original failure preserved and terminal state separately reconciled without reruns. Corrected interactive wrapper0 and Mongo signal/storage/shutdown receipts pass. All19200/19300/27029/5119closed. Five source/readiness+3console controls pass. No screenshots. Prior recursive cleanup block still documented, files untouched. LocalFile Railway whoami still Unauthorized; existing owner action unchanged.
 
@@ -1373,7 +1373,7 @@ Site5073f06 publishes local card43;112client tests pass, Vercel success, public 
 
 - Live QuestDB card review exposed5120overlap with Valkey. Catalogue inventory also identifies prior new local cards Meili5116/DuckDB, Solr5117/Upstash, Arcade5118/Litestream and OpenSearch5119/Memcached. Correct new assignments: QuestDB5134, Meili5135, Solr5136, Arcade5137, OpenSearch5138. No source/native provider ports or historical receipts changed. Reuse all retained cohorts and the one Mongo store. Add website catalogue uniqueness regression, retaining compact red/green outputs under LocalState/COSMIC/LocalCatalogueAddressCurrent. Scoped consumer rebuild/new-address browser checks justified by reproduced routing defect; no provider reseeding or native-feature requalification planned.
 
-- Dedicated addresses5134–5138 all browser/provenance verified; five consumer1/1results and original source-preservation evidence retained, no reseeding. Four scoped builds0errors; catalogue conflict reproducer red then green,113client checks pass. All affected native/Mongo/UI listeners closed, listener-check.json and verified-addresses.json retained in LocalCatalogueAddressCurrent. New outputs only compact evidence/build/runtime-phase logs; no downloads/environment installs/database copies. Publication/source-link evidence follows.
+- Dedicated addresses5134?5138 all browser/provenance verified; five consumer1/1results and original source-preservation evidence retained, no reseeding. Four scoped builds0errors; catalogue conflict reproducer red then green,113client checks pass. All affected native/Mongo/UI listeners closed, listener-check.json and verified-addresses.json retained in LocalCatalogueAddressCurrent. New outputs only compact evidence/build/runtime-phase logs; no downloads/environment installs/database copies. Publication/source-link evidence follows.
 
 - Corrected websiteaf74e5a published/Vercel success.113client/catalogue cases pass;7distinct source links at parent e33199d90 areHTTP200/Git-blob exact. Live HTML216038bytes/SHA256f03151e3b52abde0ca4410bf6508339dab12f2cb2aa92f71c7cd269fac08e8d4 matches Git. Actual browser cards/expanded QuestDB launcher observed. publication.json/source-links.json retained under LocalCatalogueAddressCurrent. No hosted avatar/settings/API enrollment change, no source reseeding, no screenshots/runtime downloads. Historical old-address receipts remain unchanged.
 
@@ -1719,7 +1719,7 @@ The six provider controls passed. The native runner, probe project and
 component YAML are in `LocalState/COSMIC/LocalDaprCqlQualification/`, with
 reusable `bin/Debug/net10.0` and `obj` outputs. The passing receipt is in
 `native-9112a665fdc8404ba21b0243d386a107/` under that directory. The ephemeral
-token was process-only, the sidecar stopped, ports 54861–54863 cleared and
+token was process-only, the sidecar stopped, ports 54861?54863 cleared and
 no database file or hosted resource was created. Both leases restored Core.
 
 Dapr WEB4 admission reuses that qualification directory. The leased runner
@@ -1746,12 +1746,12 @@ in-memory Garnet instance and two successive Dapr sidecars. The first run
 The corrected run `garnet-reader-fcfe93575aa74712/` passed read/write-denial
 and unchanged value/ETag checks. Both directories under the Dapr qualification
 retain compact logs only. The temporary ACL and component files were removed,
-and ports 54861–54864 cleared. No downloads or database files were created.
+and ports 54861?54864 cleared. No downloads or database files were created.
 
 The combined Dapr/Garnet CQL run used `verify-garnet-cql.ps1` and reused
 the native probe's existing build directory. It retained `garnet-cql-build.log`,
 `garnet-cql-core-pin.txt` and the compact `garnet-reader-e28cf7166670dd05/`
-receipts. The CQL 3/2/0 and write-denial tests passed. Ports 54861–54864
+receipts. The CQL 3/2/0 and write-denial tests passed. Ports 54861?54864
 were clear, Core was restored and the run directory contained only logs.
 
 The Dapr WEB4 loopback HTTP test reuses the same Garnet and sidecar fixture.
@@ -3232,7 +3232,7 @@ Its Core pin, log and TRX use the `netlify-blobs-` prefix under
 `TestResults/ProviderBuildCurrent/`. No token, account, store, runtime
 or download was created.
 
-### 6 November 2026 — additional local WEB4 public reads
+### 6 November 2026 ? additional local WEB4 public reads
 
 Reused bundled Node v24.22.1, the pinned GUN and OrbitDB installs, and the
 existing MongoDB 8.2 replica. No new runtime, database copy or download.
@@ -5194,98 +5194,98 @@ Updated pending status to verified. Scoped runtime/image and immutable source
 refs unchanged; no image rebuild, native request, private candidate, live setting
 or old cohort touched. Local test outputs remain compact receipts only.
 
-8 November 2026 — coverage reconciliation from retained evidence only. Corrected Elasticsearch local native/CQL/HTTP/browser scope and Neon controlled implementation/admission scope; no native replay, reseeding, build or installation. Alchemy token-metadata readiness remains denied: single public docs-demo request HTTP403, JSON-RPC -32600, origin whitelist restriction; no retries or bypass. Retained intent, 97-byte public response and compact report under LocalState/COSMIC/RecoveryLaptopResume20261107/alchemy-token-metadata-*; no credentials. Existing Alchemy red matrix entry remains valid; no new acceptance or coverage-count increment. TRON existing-private-configuration instruction is recorded in the single owner action list; credential location remains unresolved, no authenticated request.
+8 November 2026 ? coverage reconciliation from retained evidence only. Corrected Elasticsearch local native/CQL/HTTP/browser scope and Neon controlled implementation/admission scope; no native replay, reseeding, build or installation. Alchemy token-metadata readiness remains denied: single public docs-demo request HTTP403, JSON-RPC -32600, origin whitelist restriction; no retries or bypass. Retained intent, 97-byte public response and compact report under LocalState/COSMIC/RecoveryLaptopResume20261107/alchemy-token-metadata-*; no credentials. Existing Alchemy red matrix entry remains valid; no new acceptance or coverage-count increment. TRON existing-private-configuration instruction is recorded in the single owner action list; credential location remains unresolved, no authenticated request.
 
-8 November 2026 — TRON existing-config search expanded read-only to Development WEB5–WEB10, including nested DNA. Six successful reads, zero reader candidates, no unparsed DNA. No production/staging reads or service writes; no credential values printed/retained. Compact report tron-development-sibling-reader-location-check.json:954bytes under existing RecoveryLaptopResume20261107 directory. No runtime, build, image, database or environment created.
+8 November 2026 ? TRON existing-config search expanded read-only to Development WEB5?WEB10, including nested DNA. Six successful reads, zero reader candidates, no unparsed DNA. No production/staging reads or service writes; no credential values printed/retained. Compact report tron-development-sibling-reader-location-check.json:954bytes under existing RecoveryLaptopResume20261107 directory. No runtime, build, image, database or environment created.
 
-8 November 2026 — Typesense previously unexecuted native fixture moved to an owned cloud qualification, sourcec2ad4819d/run42497546582 confirmed in_progress. One pinned29.0 Docker image and named synthetic database volume exist only on the remote runner; qualification must verify exact labeled cleanup. No local runtime/environment/build/database/image installed. Local additions are runner/workflow source and compact WIP status only. No accepted native source replay or live deployment. Pending result, not counted as a native pass.
+8 November 2026 ? Typesense previously unexecuted native fixture moved to an owned cloud qualification, sourcec2ad4819d/run42497546582 confirmed in_progress. One pinned29.0 Docker image and named synthetic database volume exist only on the remote runner; qualification must verify exact labeled cleanup. No local runtime/environment/build/database/image installed. Local additions are runner/workflow source and compact WIP status only. No accepted native source replay or live deployment. Pending result, not counted as a native pass.
 
-Typesense native gate VERIFIED — 8 November2026. Source2fa81ea8b/run42497834056/job128783906994 passed native1/1 and same-source restart1/1/no skips. Artifact13624436951/3661bytes SHA2562929983f0dbf86d9190683a68b56221dc4373f4e1740d3a9d455a1d9710dfbdf inspected in memory, no ZIP/TRX extraction. Exact owned container and named data volume absent; final exit0. Restricted reader write denied, four creates only, no native reseed on restart. Original failed run42497546582 artifact697bytes also verified cleanup/exit0; compact failure and success JSON receipts retained under existing RecoveryLaptopResume20261107. Cloud runtime/data removed; no local install, build output, database, model or image. Remaining manager/HTTP/live/browser gates stay open.
+Typesense native gate VERIFIED ? 8 November2026. Source2fa81ea8b/run42497834056/job128783906994 passed native1/1 and same-source restart1/1/no skips. Artifact13624436951/3661bytes SHA2562929983f0dbf86d9190683a68b56221dc4373f4e1740d3a9d455a1d9710dfbdf inspected in memory, no ZIP/TRX extraction. Exact owned container and named data volume absent; final exit0. Restricted reader write denied, four creates only, no native reseed on restart. Original failed run42497546582 artifact697bytes also verified cleanup/exit0; compact failure and success JSON receipts retained under existing RecoveryLaptopResume20261107. Cloud runtime/data removed; no local install, build output, database, model or image. Remaining manager/HTTP/live/browser gates stay open.
 
-8 November2026 — Typesense manager/HTTP/Mongo scope sourceac71b92fb/run42498399586 observed in_progress. Reuses existing cloud workflow/toolchain pattern and Mongo lifecycle helper under an explicit typesense owner namespace. Six pure cleanup guards passed locally using disposable mocked fixture directories, automatically removed. Actual Typesense/Mongo runtime/data only on remote runner; pending cleanup evidence. Native-only accepted tests not replayed. Local additions limited to source, WIP notes and compact run observation; no builds, installs, image/model/database downloads or new environment.
+8 November2026 ? Typesense manager/HTTP/Mongo scope sourceac71b92fb/run42498399586 observed in_progress. Reuses existing cloud workflow/toolchain pattern and Mongo lifecycle helper under an explicit typesense owner namespace. Six pure cleanup guards passed locally using disposable mocked fixture directories, automatically removed. Actual Typesense/Mongo runtime/data only on remote runner; pending cleanup evidence. Native-only accepted tests not replayed. Local additions limited to source, WIP notes and compact run observation; no builds, installs, image/model/database downloads or new environment.
 
-Typesense manager/HTTP/Mongo VERIFIED — 8 November2026. Run42498399586/job128785632985/sourceac71b92fb passed1/1/no skips. Artifact13624825762/4127bytes SHA2562807f96459c39e82d5797fbb9ac8855de655511e5e030c9157cf033507bc24e6 inspected in memory; all9names bounded/verified, no ZIP/TRX extracted. Exact Typesense container/named volume and Mongo container/anonymous volumes absent, owned Mongo database removed after ownership validation, exit0/no OOM. Retain compact source/run observation and success receipt in existing RecoveryLaptopResume20261107 only. Native-only accepted tests not rerun; no local build, runtime/env/install/image/model/database. Free C:40.38GiB. Added one deferred owned HTTPS Typesense source action to the single owner list, no new question/account request; original optional WSL decision preserved.
+Typesense manager/HTTP/Mongo VERIFIED ? 8 November2026. Run42498399586/job128785632985/sourceac71b92fb passed1/1/no skips. Artifact13624825762/4127bytes SHA2562807f96459c39e82d5797fbb9ac8855de655511e5e030c9157cf033507bc24e6 inspected in memory; all9names bounded/verified, no ZIP/TRX extracted. Exact Typesense container/named volume and Mongo container/anonymous volumes absent, owned Mongo database removed after ownership validation, exit0/no OOM. Retain compact source/run observation and success receipt in existing RecoveryLaptopResume20261107 only. Native-only accepted tests not rerun; no local build, runtime/env/install/image/model/database. Free C:40.38GiB. Added one deferred owned HTTPS Typesense source action to the single owner list, no new question/account request; original optional WSL decision preserved.
 
-8 November2026 — actual Typesense embedded-child bug reproduced in cloud42499253849/source6b8847247: executed1/failed1, Native Typesense query failed/NotSupportedException. Artifact13624721713/1372bytes SHA256021bf76eca8fd0a1cde7dae5bc200b5ef3f2d0b9cc8f1ef39c573b91ab557cbb inspected in memory; compact original failure receipt retained, no ZIP/TRX extraction. Root materialization fix032e0a10e pending affected9case query run42499481264 plus actual child-bearing native HTTP/Mongo run42499481245; both confirmed live. New native fixture scopes only on remote runner; accepted native-only/restart gate not replayed. No local SDK/runtime, build, database/image/model download or environment. Existing source/receipts and owner decisions preserved.
+8 November2026 ? actual Typesense embedded-child bug reproduced in cloud42499253849/source6b8847247: executed1/failed1, Native Typesense query failed/NotSupportedException. Artifact13624721713/1372bytes SHA256021bf76eca8fd0a1cde7dae5bc200b5ef3f2d0b9cc8f1ef39c573b91ab557cbb inspected in memory; compact original failure receipt retained, no ZIP/TRX extraction. Root materialization fix032e0a10e pending affected9case query run42499481264 plus actual child-bearing native HTTP/Mongo run42499481245; both confirmed live. New native fixture scopes only on remote runner; accepted native-only/restart gate not replayed. No local SDK/runtime, build, database/image/model download or environment. Existing source/receipts and owner decisions preserved.
 
-Typesense embedded-child root cause VERIFIED — source032e0a10e, query42499481264 passed9/9 and native manager/HTTP42499481245 passed1/1, no skips. Artifacts13624434881/2305bytes SHA2568417067ece3f4f7243e12f719fff6a77cb7540dfb8b6641315173fee8f30d62a and13624732028/4160bytes SHA25688604385cd68dcecbac2308c6fecb97c555b78b74e49dfdb9395a256f884d909 inspected in memory with exact counts/classes/source/child-preservation/cleanup assertions. Compact failure and success receipts retained; no ZIP/TRX extraction. Native child and four document hashes unchanged, exact Typesense container/volume and Mongo container/anonymous volumes absent, owned Mongo DB absent, exit0/no OOM. New regression fixture only; accepted native-only/restart not replayed. No local installs/runtime/env/build/database/image/model or live deployment. Older evidence preserved.
+Typesense embedded-child root cause VERIFIED ? source032e0a10e, query42499481264 passed9/9 and native manager/HTTP42499481245 passed1/1, no skips. Artifacts13624434881/2305bytes SHA2568417067ece3f4f7243e12f719fff6a77cb7540dfb8b6641315173fee8f30d62a and13624732028/4160bytes SHA25688604385cd68dcecbac2308c6fecb97c555b78b74e49dfdb9395a256f884d909 inspected in memory with exact counts/classes/source/child-preservation/cleanup assertions. Compact failure and success receipts retained; no ZIP/TRX extraction. Native child and four document hashes unchanged, exact Typesense container/volume and Mongo container/anonymous volumes absent, owned Mongo DB absent, exit0/no OOM. New regression fixture only; accepted native-only/restart not replayed. No local installs/runtime/env/build/database/image/model or live deployment. Older evidence preserved.
 
-8 November2026 — Marqo scoped CQL implementationa7a01b905/run42500341110 observed in_progress. No native Marqo/runtime/image/model/database allocated and no local builds or SDK/env installs. Cached only four exact upstream Python source files at LocalState/COSMIC/RecoveryLaptopResume20261107/marqo-primary-source: api.py38904B SHA25648993bb52d3c7cf6809d6e17ff1e9726317c5c9b1c346a1a3cda1204862b9bf4; tensor_search.py67704B SHA256847236df21d92821f5161d0c7879c0d700a9031dba163b674f9d341e9a8128bc; exceptions.py7431B SHA256802c31061d08082307c4cf3e996e4b3ede6ba01a0ce1cd58ec2cc314f94f9e52; index_settings.py13057B SHA2565bafba46be9140e23cfde7dddb06c2e9b519452b4014f26e60ec1345e2599805. Total127096B, pinned upstream37a728385a25c4572a8f47b5327e6a7c946d94a9; retain while qualifying actual API and remove exact cache when no longer needed. Limited candidate-interest metadata receipt953B retained; no credential values. Priority live queue, original cohorts and deferred owner access remain unchanged.
+8 November2026 ? Marqo scoped CQL implementationa7a01b905/run42500341110 observed in_progress. No native Marqo/runtime/image/model/database allocated and no local builds or SDK/env installs. Cached only four exact upstream Python source files at LocalState/COSMIC/RecoveryLaptopResume20261107/marqo-primary-source: api.py38904B SHA25648993bb52d3c7cf6809d6e17ff1e9726317c5c9b1c346a1a3cda1204862b9bf4; tensor_search.py67704B SHA256847236df21d92821f5161d0c7879c0d700a9031dba163b674f9d341e9a8128bc; exceptions.py7431B SHA256802c31061d08082307c4cf3e996e4b3ede6ba01a0ce1cd58ec2cc314f94f9e52; index_settings.py13057B SHA2565bafba46be9140e23cfde7dddb06c2e9b519452b4014f26e60ec1345e2599805. Total127096B, pinned upstream37a728385a25c4572a8f47b5327e6a7c946d94a9; retain while qualifying actual API and remove exact cache when no longer needed. Limited candidate-interest metadata receipt953B retained; no credential values. Priority live queue, original cohorts and deferred owner access remain unchanged.
 
-Marqo controlled gate VERIFIED — source38f811b4a/run42500640392/job128792408892,26/26 passed/no skips (21CQL+5metadata/interface). Artifact13624624962/4530bytes SHA2569706a1f958549b61bdaff0c10a50d4e5f7567042205841935c173b28303ea15a inspected in memory, no ZIP/TRX extraction. Original failed compile/run42500341110 retained as compact receipt; no fake GetProviderVersion shim added. Upstream README downloaded1427bytes SHA256778d5390fcff79090ef1d0d83a9dd9fa5f02c8e2ba142cd4724fce1757d4fd54; now5pinned research source files/128523bytes in existing marqo-primary-source directory. README explicitly deprecates OSS, so no historical native runtime/image/model/service downloaded or installed. Current commerce contract/source is a separate red gate, not certified by these controlled legacy tests. Compact lifecycle/success/interest receipts retained; no credential values, local builds/env/SDK/database or live change. Remove exact pinned research cache once contract qualification no longer needs it.
+Marqo controlled gate VERIFIED ? source38f811b4a/run42500640392/job128792408892,26/26 passed/no skips (21CQL+5metadata/interface). Artifact13624624962/4530bytes SHA2569706a1f958549b61bdaff0c10a50d4e5f7567042205841935c173b28303ea15a inspected in memory, no ZIP/TRX extraction. Original failed compile/run42500341110 retained as compact receipt; no fake GetProviderVersion shim added. Upstream README downloaded1427bytes SHA256778d5390fcff79090ef1d0d83a9dd9fa5f02c8e2ba142cd4724fce1757d4fd54; now5pinned research source files/128523bytes in existing marqo-primary-source directory. README explicitly deprecates OSS, so no historical native runtime/image/model/service downloaded or installed. Current commerce contract/source is a separate red gate, not certified by these controlled legacy tests. Compact lifecycle/success/interest receipts retained; no credential values, local builds/env/SDK/database or live change. Remove exact pinned research cache once contract qualification no longer needs it.
 
 Marqo research cache cleanup COMPLETE: verified exact workspace-contained nonlinked marqo-primary-source directory and all5expected file SHA256s before deleting individual LiteralPath files and the now-empty directory (no recursive deletion). Removed128523bytes. Retained compact marqo-primary-source-cleanup.json with pinned upstream commit, filenames, sizes and hashes, plus all original build-failure/control/lifecycle receipts. No SDK, binary, credential, user/source database, accepted native cohort or unrelated environment touched. No cache remains at that exact path.
 
-8 November2026 — TRON existing-config location search expanded read-only to3existing sibling OASIS checkouts.32known DNA/appsettings/env files inventoried,31parsed with no reader candidate; one old C:/oasis-m DNA_SYSTEM template invalid JSON was not treated as credential-absence proof or used as configuration. Report retains names/counts only, no credential values. No source or runtime mutation in those checkouts.
+8 November2026 ? TRON existing-config location search expanded read-only to3existing sibling OASIS checkouts.32known DNA/appsettings/env files inventoried,31parsed with no reader candidate; one old C:/oasis-m DNA_SYSTEM template invalid JSON was not treated as credential-absence proof or used as configuration. Report retains names/counts only, no credential values. No source or runtime mutation in those checkouts.
 
 Daily accepted-Development history synchronization completed on existing branches: Core05d049a0228b93b22ba16c9775bfb4edcf71146a is source-tree-identical to eebf39bf and includes accepted parent81862b2 ancestry; parent6e2cccbd1077fb669ac1077a71fc9a51df065a50 includes accepted88c378c1e.22parent/1Core conflicts reviewed; runtime source unchanged. Only Core gitlink/matching manifest changed; sync used index source and local manifest validation passed. Both task branches pushed; no Development/master/source-cohort/tag movement. Temporary Git indices removed after both successful preparation and initial bytes/encode helper error; original intent and continued ACK retained. Unowned dirty source files and unrelated real index entries verified unchanged. No worktree/env/build/runtime/image/model/database created; ordinary fetched Git objects retained, no unsafe object pruning. Cloud exact-seven dependency checkout42502482108 queued; follow original handle, no duplicate dispatch.
 
 Accepted-history dependency check VERIFIED: run42502482108/job128798029363 passed all7actual private repository checkout pins at source6e2cccbd. Artifact13626635364/538bytes SHA256e250967d2c173957a3d5387f9ef5e2197c6563958d08289b47e249eea8ee8147 inspected in memory; exact actual heads compared to the committed manifest, including content-identical Core05d049a. No ZIP extraction; compact receipt retained. No new local clone, worktree, environment, runtime/build/image/model/database output or deployment. Temporary Git indices absent; existing original scoped source tags/candidates and unowned changes preserved. This verifies Git/dependency synchronization, not fresh native/live provider acceptance.
 
-8 November2026 — additional read-only TRON reader search in existing WEB4/WEB5 production settings found no candidates; no service writes/native calls or values retained. WEB5 nested DNA parsed with its documented JSON-with-comments configuration parser after strict JSON observation reported unparsed; final1parsed/0unparsed/0reader candidates. Retain both compact observations, no absence claim from unparsed data. Reader location still pending, no new question.
+8 November2026 ? additional read-only TRON reader search in existing WEB4/WEB5 production settings found no candidates; no service writes/native calls or values retained. WEB5 nested DNA parsed with its documented JSON-with-comments configuration parser after strict JSON observation reported unparsed; final1parsed/0unparsed/0reader candidates. Retain both compact observations, no absence claim from unparsed data. Reader location still pending, no new question.
 
 Urbit current contacts reader1e93c39d7/run42504482542/job128804042489 passed23/23captured-wire controls/no skips. Artifact13626946225/3978bytes SHA256ff9d0743e3814cab94c377b2916b2c65bfb656757810a1ede5b098f5eeb75bd0 inspected in memory; no ZIP/TRX extraction. No native Urbit ship, SDK/runtime/env install, local build, model/image/database or account accessed/created. Pinned primary-contract source cache10files/69693bytes in existing RecoveryLaptopResume20261107/urbit-current-contract-source, with source-ref and exact file/size/SHA256manifest retained separately. Small cache is disposable after contract extraction; native fixture must fetch exact upstream source in cloud rather than treating these docs as native records. Existing23case source-trigger path typo corrected in workflow; workflow-only requalification will verify that exact wiring. No CQL/live/browser count increment or priority queue change.
 
 Urbit source-trigger qualification VERIFIED: sourcec61a5db0b/run42505144648 passed23/23/no skips, reader C# source unchanged. Artifact13627470788/3995bytes SHA25608da329d31287992ecd584012cad092234e6a01af0f7d2f6d5eebb75b223be69 inspected in memory and compact receipt retained. This rerun verifies the corrected workflow source binding, not extra native coverage. Exact workspace-contained nonlinked research cache and all10file lengths/hashes validated against retained manifest;10owned files/69693bytes removed individually by LiteralPath, then empty directory removed without recursive deletion. Retain source/cleanup manifest and qualified receipts; no credential or native/source database touched. Latest exact TRON process/user/machine environment recheck found0reader candidates, no values displayed; location remains pending. No new env/runtime/install, local build, SDK/model/image/database or deployment. Free space last observed40.03GiB.
 
 
-### 8 Nov — Urbit cloud runtime preparation
+### 8 Nov ? Urbit cloud runtime preparation
 No laptop runtime, pill, SDK, container image or database installed. Compact first-failure receipt retained under LocalState/COSMIC/RecoveryLaptopResume20261107/urbit-runtime-first-failure.json; artifact inspected in memory, no ZIP extracted. Cloud-only archive cache admitted after exact vendor size/hash verification. Second run42507284986 LFS timeout exposed live helper processes racing temporary checkout cleanup; process-group shutdown correction committed, cloud requalification pending. Do not claim checkout cleanup or offline boot from that failed run. Runtime workflow manual-only until fetch cause is diagnosed.
 
 
-### 8 Nov — Urbit offline runtime accepted
+### 8 Nov ? Urbit offline runtime accepted
 Cloud run42507813675 passed real boot; artifact13628570452/1998bytes inspected in memory, no extraction. Exact owned container/volume and temporary kernel checkout removed. Reusable remote runtime assets43057001bytes retained; no laptop runtime, pill, SDK or image installed. Compact SHA/member/cleanup receipt urbit-offline-runtime-qualified.json retained under existing LocalState recovery directory. Prior failed receipts preserved. Laptop free space40.02GiB at this checkpoint.
 
 
-### 8 Nov — Contacts source pins
+### 8 Nov ? Contacts source pins
 Retained compact current-desk tree inventory under existing LocalState (metadata only) plus tracked urbit-contacts-inputs.json with26dependency Git blob identities. Upstream manifests/trees inspected in memory; no669-file source download, app SDK installation, new environment or native ship created. Native assembly/install still unqualified.
 
 
-### 8 Nov — Current contacts assembly verified
+### 8 Nov ? Current contacts assembly verified
 Cloud run42508500262 assembled695files/4657933bytes. Four exact owned source checkouts removed after Git helpers exited. Assembled source+manifest retained in reusable cloud cache only. Artifact13628616882/33200bytes verified in memory; compact receipt retained, no source/ZIP extracted locally. Manual-only workflow after first accepted assembly. Native installation remains open.
 
 
-### 8 Nov — Native contacts preparation/cache ownership
+### 8 Nov ? Native contacts preparation/cache ownership
 Seven framing controls use only Python standard library and sockets locally; no runtime downloaded. Cloud42509161255 completed assets-only preparation and saved immutable complete43057001byte runtime cache. Failed native bind-owner attempt had exact owned container/pier removal verified in hashed artifact13627844264 (inspected in memory); compact receipt retained. Sourceaee605aef/run42509342247 uses runner UID:GID and complete cache directly. Actual source install/contacts still pending; no local DB, image, SDK or environment created.
 
 
-### 8 Nov — Native control/OS mismatch
+### 8 Nov ? Native control/OS mismatch
 Artifacts13628782909 (1585bytes) and13628444378 (2600bytes) verified in memory; compact receipts retained, no extracted data. Both native attempts verify owned container/pier removal, exit0 and no OOM. Complete runtime cache reused. Kernel408 source inventory retained as compact metadata only; cloud assembly42510963618 in progress. No local native runtime, source clone or environment installed. Native contacts and OS update remain unqualified.
 
 
-### 8 Nov — Pinned OS source assembly accepted
+### 8 Nov ? Pinned OS source assembly accepted
 Cloud42511142535 verifies546files/4307737bytes, including151materialized links and four directory aliases. Temporary source checkout removed; reusable OS source+manifest retained in cloud cache. First failed assembly also verified temporary checkout removal. Both artifacts inspected in memory; only compact failure/success receipts retained locally. No laptop checkout/runtime/database/image added. Native OS update remains pending; accepted source assembly workflow is manual-only.
 
 
-### 8 Nov — Native base update qualification
+### 8 Nov ? Native base update qualification
 Three verified cloud caches restored directly; no repeated source/bootstrap download. Owned cloud run42511356066 cancelled after pinned source proved its readiness predicate could never pass. Cancellation terminal; artifact343bytes exists, native cleanup not yet proven and must not be asserted. Corrected numeric-version probe run42511441973 active. No laptop runtime/environment/source clone or DB created.
 
 
-### 8 Nov — Book-page reader and native deadline
+### 8 Nov ? Book-page reader and native deadline
 Cloud43controlled tests/run42511819014 pass, artifact7529bytes/TRX inspected entirely in memory; compact receipt only. Native42511441973 timed out observing active rebuild; hashed failure artifact inspected, owned container/pier removed, exit137/OOMfalse retained without claiming clean native shutdown. Corrected deadline run42511918338 active, using existing three cloud caches. No laptop .NET/runtime/SDK/source checkout/database installed.
 
 
-### 8 Nov — Native contacts initialization accepted
+### 8 Nov ? Native contacts initialization accepted
 Cloud42511918338 passed actual Kelvin408/current contacts initialization. Exact owned container and pier removal, exit0/no OOM/network none verified in artifact13629794881/3888bytes (in-memory inspection); compact member-hash receipt retained. Existing three immutable source/runtime caches reused. No new source cohort, laptop runtime/SDK/database/source clone or image. Standalone install workflow manual-only after accepted milestone. Cancelled earlier run cleanup remains independently unproved; this success does not retroactively certify it.
 
 
-### 8 Nov — Native private book lifecycle job
+### 8 Nov ? Native private book lifecycle job
 Source6e1a22a1c/run42513709558 active: reuses three cloud source/runtime caches, adds real page seed/read/restart proof. Restarts the same owned pier, no database copy or second source. Per-page intents/ACKs and compact equality results retained as job artifacts; native cleanup not yet claimed. No laptop runtime/SDK/image/database or environment installed.
 
 
-### 8 Nov — Native HTTP host cloud compile
+### 8 Nov ? Native HTTP host cloud compile
 Real .NET HTTP reader host added as source only on laptop. Cloud build42514062260 succeeded; stricter auth-denial source build42514186079 active. Builds use existing manifest-pinned dependencies and bounded provider lease. Artifacts are compact qualification JSON only; no compiled runtime/image/db retained locally. Native book42513709558 still active; no cleanup or HTTP acceptance yet claimed. Future fake-ship code/cookies must stay in process memory/stdin and never artifact/log output.
 
 
-### 8 Nov — Strict HTTP host accepted / native transport prepared
+### 8 Nov ? Strict HTTP host accepted / native transport prepared
 Strict cloud build42514186079 terminal success. Compact330byte artifact verified in memory; receipt updated with terminal conclusion. No extracted assemblies, SDKs or source cache on laptop. Future native HTTP scope restores existing cache paths directly, publishes only127.0.0.1on labeled internal Docker network, passes fake ship code through process memory/stdin, and requires network/container/pier removal. Scope not dispatched while native book42513709558 remains active. No cleanup claim for an unexecuted scope.
 
 
-### 8 Nov — Fixture LF/preflight correction and combined native run
+### 8 Nov ? Fixture LF/preflight correction and combined native run
 Failed book42513709558 artifact3884bytes verified in memory. Zero seed intents/ACKs; owned container/pier removed, clean exit0/no OOM. Local1072byte fixture reset to exact already-tracked LF content (only line endings differed), scoped eol pinned; pure JSON preflight and Python syntax pass. No runtime/download/env installation locally. Combined native page/real SDK HTTP42514925237 dispatched once after prior terminal result. It restores existing three caches and builds in isolated cloud runner; cleanup/acceptance pending.
 
 
-### 8 November — Urbit private CQL identity gate
+### 8 November ? Urbit private CQL identity gate
 
 No laptop runtime, SDK, database, image or build output installed for this change. Cloud-only controlled run42516923950 succeeded; detailed artifact inspection pending. Native run42514925237 failed before any seed and verified owned container/network/pier removal. Original immutable cloud caches retained for reuse; no new local artifact extraction. New source identity controls reuse the same cloud provider-test workflow, bounded build lease and task branch. Unrelated cleanup ledger and source changes preserved.
 
@@ -5414,3 +5414,5 @@ Hedera browser verification reused the browser tooling and created one disposabl
 Monad endpoint change: hosted WEB4 probe rejected Goldsky with HTTP 429 and passed six Ankr rounds. Staged protected monad-ankr-before-variables.dpapi and monad-ankr-candidate-variables.dpapi under HostedSourceRolloutCurrent (366646 bytes each). Only rpcUrl differs in the Monad profile. Retain through activation, browser verification and rollback reconciliation, then remove the disposable snapshots. No hosted mutation or local build.
 
 Emergency cleanup: removed five inactive, reinstallable runtime files under LocalState/COSMIC: Firestore 1.22.0 emulator JAR (136707194 bytes), MinIO executable (113115136), SurrealDB 2.6.5 executable (62194176), Firebase RTDB 4.11.2 emulator JAR (34495935), and NATS 2.15.2 executable (19357696). Total 365870137 bytes. C: free at start 40744505344 bytes, after cleanup 41110450176 bytes. Preserved shared outputs, databases and protected rollout state. No build or download started.
+
+LocalFile verifier qualification used two disposable OS-temp directories (cosmic-routing-test-* and cosmic-routing-dev-*) containing only tracked sandbox scripts and, for the latter, a temporary index. Both were removed on exit. Four tests passed in each exact tree. No download, local build, database, test report or image was retained. Railway rollout uses remote build resources.
