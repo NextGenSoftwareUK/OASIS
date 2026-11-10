@@ -662,9 +662,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 // Store the IPFS hash as the provider key
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.PinataOASIS] = uploadResult.Result;
                 
                 result.Result = avatar;
+                result.IsSaved = true;
+                result.SavedCount = 1;
                 result.Message = "Avatar saved to Pinata successfully";
             }
             catch (Exception e)

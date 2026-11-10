@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.Linq;
 using Newtonsoft.Json;
@@ -42,9 +42,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 // Store the IPFS hash as the provider key
+                avatarDetail.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 avatarDetail.ProviderUniqueStorageKey[Core.Enums.ProviderType.PinataOASIS] = uploadResult.Result;
                 
                 result.Result = avatarDetail;
+                result.IsSaved = true;
+                result.SavedCount = 1;
                 result.Message = "Avatar detail saved to Pinata successfully";
             }
             catch (Exception e)
@@ -76,9 +79,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 // Store the IPFS hash as the provider key
+                holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PinataOASIS] = uploadResult.Result;
                 
                 result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
                 result.Message = "Holon saved to Pinata successfully";
             }
             catch (Exception e)
