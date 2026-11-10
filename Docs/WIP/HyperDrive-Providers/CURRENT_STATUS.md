@@ -49,3 +49,7 @@ Wrap producer/consumer builds once in Scripts/TestHosts/Invoke-WithProviderBuild
 [Matrix](PROVIDER_MATRIX.md), [gates](HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md), [inventory](ENVIRONMENT_INVENTORY.md), [cleanup](WORKSPACE_CLEANUP_LEDGER.md), [I/O scope](HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md), [evidence](EVIDENCE_LOCATIONS.md), [document family](DOCUMENT_FAMILY_BASELINE.md).
 
 Provider-specific audits hold details; [archive index](Archive/ARCHIVE_INDEX.md) is historical lookup only. Update at each milestone; status under100lines, each summary under150, entire default recovery set about300lines.
+
+## Reading the current registry
+
+The 32 registered report paths and SHA-256 hashes matched in the HyperDrive worktree. The registry now includes TON's 52/52 native lifecycle result. Polygon, Arbitrum and Cosmos blockchain still have configuration-only rows in that registry. Their separate evidence, where present, must be assessed on its own scope. SQL Server has split LocalDB evidence in PROVIDER_COMPLETION_CONTINUATION.md. ActivityPub's 5/5 row covers its public-read capability suite. These different scopes must remain distinct when selecting the remaining native checks.
