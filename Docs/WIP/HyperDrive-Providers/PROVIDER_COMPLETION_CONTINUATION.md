@@ -193,3 +193,5 @@ Hedera shipping receipt check passed (1/1, no skips) for SDK transaction ID 0.0.
 ### Neo4j package evidence boundaries
 
 The canonical Neo4j provider carries forward its recorded 52/52 native storage result. Neo4jOASIS2 is a sealed package entry point whose constructor forwards host and credentials to the canonical provider. Its outstanding native check is package resolution and activation through that entry point against the retained Neo4j service. The existing lifecycle evidence applies to the inherited implementation. The Aura package has its own provider partials for activation, reads and writes, and requires independent acceptance. Its runtime DLL reference in the STAR console template makes it relevant to the shipped package audit.
+
+Aura now publishes its SDK driver only after connectivity succeeds and closes rejected connections. Synchronous entry points share the same lifecycle as asynchronous entry points. The Aura project built under the provider lease with zero errors and two warnings. The retained Neo4j Podman host is unavailable on this Windows installation (WSL_E_DISTRO_NOT_FOUND), so live activation remains open.

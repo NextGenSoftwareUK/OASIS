@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NextGenSoftware.OASIS.API.Core;
 using System.Collections.Generic;
 using System.Text;
@@ -21,113 +21,63 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
     public partial class Neo4jOASIS
     {
 
-        /*
-        private async Task<OASISResult<bool>> ConnectAsync()
-        {
-            OASISResult<bool>
-            try
-            {
-                Driver = GraphDatabase.Driver(Host, AuthTokens.Basic(Username, Password));
-
-                await Driver.VerifyConnectivityAsync();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                string error = ex.ToString();
-                return false;
-            }
-        }
-        private async Task DisconnectAsync()
-        {
-            //TODO: Find if there is a disconnect/shutdown function?
-            await Driver.CloseAsync();
-            Driver = null;
-        }*/
-
-        public override OASISResult<bool> ActivateProvider()
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            try
-            {
-                Driver = GraphDatabase.Driver(Host, AuthTokens.Basic(Username, Password));
-                Driver.VerifyConnectivityAsync().Wait();
-
-                result.Result = true;
-                IsProviderActivated = true;
-                //result = base.ActivateProvider();
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Unknwon error occured whilst activating neo4j provider: {ex}");
-            }
-
-            return result;
-        }
+        public override OASISResult<bool> ActivateProvider() =>
+            ActivateProviderAsync().GetAwaiter().GetResult();
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
+            var result = new OASISResult<bool>();
+
+            if (IsProviderActivated)
+            {
+                result.Result = true;
+                return result;
+            }
 
             try
             {
-                Driver = GraphDatabase.Driver(Host, AuthTokens.Basic(Username, Password));
-                await Driver.VerifyConnectivityAsync();
-                //result = await base.ActivateProviderAsync();
+                var driver = GraphDatabase.Driver(Host, AuthTokens.Basic(Username, Password));
+                try
+                {
+                    await driver.VerifyConnectivityAsync().ConfigureAwait(false);
+                }
+                catch
+                {
+                    await driver.CloseAsync().ConfigureAwait(false);
+                    throw;
+                }
 
-                result.Result = true;
+                Driver = driver;
                 IsProviderActivated = true;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Unknwon error occured whilst activating neo4j provider: {ex}");
-            }
-
-            return result;
-        }
-
-        public override OASISResult<bool> DeActivateProvider()
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            try
-            {
-                if (Driver != null)
-                    Driver.CloseAsync().Wait();
-
-                Driver = null;
-                //result = base.DeActivateProvider();
-
                 result.Result = true;
-                IsProviderActivated = false;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Unknwon error occured whilst dactivating neo4j provider: {ex}");
+                OASISErrorHandling.HandleError(ref result, "Error activating Neo4j Aura provider.", ex);
             }
 
             return result;
         }
+
+        public override OASISResult<bool> DeActivateProvider() =>
+            DeActivateProviderAsync().GetAwaiter().GetResult();
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
+            var result = new OASISResult<bool>();
 
             try
             {
                 if (Driver != null)
-                    await Driver.CloseAsync();
-                
-                Driver = null;
-                //result = await base.DeActivateProviderAsync();
+                    await Driver.CloseAsync().ConfigureAwait(false);
 
-                result.Result = true;
+                Driver = null;
                 IsProviderActivated = false;
+                result.Result = true;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Unknwon error occured whilst dactivating neo4j provider: {ex}");
+                OASISErrorHandling.HandleError(ref result, "Error deactivating Neo4j Aura provider.", ex);
             }
 
             return result;
