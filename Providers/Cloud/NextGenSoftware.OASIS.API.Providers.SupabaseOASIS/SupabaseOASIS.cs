@@ -257,7 +257,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
-                var response = await _http.GetAsync($"{_baseUrl}/oasis_avatars?is_deleted=eq.false");
+                using var response = await _http.GetAsync($"{_baseUrl}/oasis_avatars?is_deleted=eq.false").ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
                 var json = await response.Content.ReadAsStringAsync();
                 var rows = DeserializeList<AvatarRow>(json);
                 var avatars = rows.Select(r => Deserialize<Avatar>(r.data_json)).Where(a => a != null).Cast<IAvatar>().ToList();
