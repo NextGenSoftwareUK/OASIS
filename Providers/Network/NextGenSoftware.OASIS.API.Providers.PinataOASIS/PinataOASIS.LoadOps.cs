@@ -484,7 +484,17 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                     return result;
                 }
 
-                var unpinOk = await _pinataService.UnpinFileAsync(providerKey);
+                _ = Ipfs.Cid.Decode(providerKey);
+                var pins = await _pinataService.GetFilesAsync().ConfigureAwait(false);
+                var pin = pins.SingleOrDefault(item => string.Equals(item.IpfsPinHash, providerKey, StringComparison.Ordinal));
+                if (pin == null || await ReadNamedPinAsync<Avatar>(pin, "Avatar_").ConfigureAwait(false) == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "The CID does not identify a pinned Pinata avatar.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
+
+                var unpinOk = await _pinataService.UnpinFileAsync(providerKey).ConfigureAwait(false);
                 if (!unpinOk)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Failed to unpin avatar {providerKey} from Pinata.");
