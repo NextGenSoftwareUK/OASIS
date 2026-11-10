@@ -127,3 +127,4 @@ The revised EVM runner stops before the build when the retained loopback RPC set
 ### BigQuery hosted lifecycle gate
 
 BigQuery integration tests now require an explicitly dedicated project, dataset and report directory. Both sync and async shared lifecycle cases compiled and were discovered, then skipped without the fixture. The run did not submit a BigQuery job. Hosted test-resource admission remains tracked in Actions for David.
+Google Cloud synchronous activation now waits on context-independent provider awaits while still requiring the SDK resource probes. The provider build passed with zero errors. The standard Firebase emulator cache on this host has no Firestore artifact. The prior 52/52 lifecycle was not repeated and the changed activation path still needs runtime verification.

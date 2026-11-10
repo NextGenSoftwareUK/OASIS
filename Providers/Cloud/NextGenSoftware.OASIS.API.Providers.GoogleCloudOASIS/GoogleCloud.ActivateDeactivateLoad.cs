@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Data;
 using System.Text;
@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
 
         public override OASISResult<bool> ActivateProvider()
         {
-            return ActivateProviderAsync().Result;
+            return ActivateProviderAsync().GetAwaiter().GetResult();
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
@@ -57,9 +57,9 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 {
                     var storageBuilder=new StorageClientBuilder();
                     if(!string.IsNullOrWhiteSpace(_credentialsPath)) storageBuilder.CredentialsPath=_credentialsPath;
-                    _storageClient = await storageBuilder.BuildAsync();
+                    _storageClient = await storageBuilder.BuildAsync().ConfigureAwait(false);
                     
-                    await VerifyGoogleBucketAsync(_storageClient,_bucketName);
+                    await VerifyGoogleBucketAsync(_storageClient,_bucketName).ConfigureAwait(false);
                 }
                 
                 // Initialize Firestore client if enabled
@@ -78,7 +78,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
 
                     // Construction alone is not availability evidence. Perform a bounded
                     // native read, not an unadmitted probe write/delete with orphan risk.
-                    await VerifyFirestoreAvailabilityAsync(_firestoreDb);
+                    await VerifyFirestoreAvailabilityAsync(_firestoreDb).ConfigureAwait(false);
                 }
                 
                 // Initialize BigQuery client if enabled
@@ -86,8 +86,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 {
                     var bigQueryBuilder=new BigQueryClientBuilder {ProjectId=_projectId};
                     if(!string.IsNullOrWhiteSpace(_credentialsPath)) bigQueryBuilder.CredentialsPath=_credentialsPath;
-                    _bigQueryClient = await bigQueryBuilder.BuildAsync();
-                    await _bigQueryClient.GetDatasetAsync(_bigQueryDatasetId);
+                    _bigQueryClient = await bigQueryBuilder.BuildAsync().ConfigureAwait(false);
+                    await _bigQueryClient.GetDatasetAsync(_bigQueryDatasetId).ConfigureAwait(false);
                 }
                 
                 IsProviderActivated = true;
@@ -97,7 +97,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             }
             catch (Exception e)
             {
-                var cleanup=await DeActivateProviderAsync();
+                var cleanup=await DeActivateProviderAsync().ConfigureAwait(false);
                 var cause=cleanup.IsError ? new AggregateException("Google activation and cleanup failed.",e,cleanup.Exception ?? new InvalidOperationException(cleanup.Message)):e;
                 OASISErrorHandling.HandleError(ref result, $"Error activating Google Cloud provider: {e.Message}", cause);
             }
@@ -125,7 +125,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
 
         public override OASISResult<bool> DeActivateProvider()
         {
-            return DeActivateProviderAsync().Result;
+            return DeActivateProviderAsync().GetAwaiter().GetResult();
         }
 
         // Real Google Cloud implementation methods
