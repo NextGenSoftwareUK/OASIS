@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NextGenSoftware.OASIS.API.Core;
 using System.Collections.Generic;
 using System.Text;
@@ -246,8 +246,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                     var cursor = transaction.Run(@"
                             MERGE (p1:Avatar { name:$Name, FirstName: $firstName ,
                                                 LastName:$lastName,EMail:$eMail,
-                                                username:$userName,password:$Password
-                                                p.GUId=$guid})                        
+                                                username:$userName,password:$Password,
+                                                GUId:$guid})
                             RETURN p1.name as name",
                         new
                         {
@@ -257,7 +257,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                             eMail = Avatar.Email,
                             userName = Avatar.Username,
                             Password = Avatar.Password,
-                            guid = Avatar.AvatarId,
+                            guid = Avatar.AvatarId.ToString(),
                             //pkey = Avatar.ProviderKey,
                         }
                     );
@@ -345,7 +345,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                                                 LastName:$lastName,EMail:$eMail,
                                                 username:$userName,password:$Password,
                                                 GUId:$guid})                        
-                            RETURN p1.name as name, p1.id as id",
+                            RETURN p1.name as name",
                         new
                         {
                             Name = Avatar.Title,
@@ -360,7 +360,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 
                     IAvatar objAv = await cursor.SingleAsync(record => new Avatar
                     {
-                        Title = record["id"].As<string>(),
+                        Title = record["name"].As<string>(),
                         FirstName = record["name"].As<string>()
                     });
                     //objAv.ProviderKey[Core.Enums.ProviderType.Neo4jOASIS] = objAv.Title;
