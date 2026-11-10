@@ -121,3 +121,5 @@ ONODE single-provider registration fix ef90fa5ef1 remains on the task branch. Th
 GitHub denied draft creation for ONODE candidate 9fd03698d3 (HTTP 403). The owner list tracks remote CI access. No local build or download was started.
 
 Candidate 9fd03698d3 also keeps Convex and Supabase credentials bound to their configured service URLs. Earlier build evidence covers the BootLoader before this guard and the ONODE endpoint change. Both follow-ups await remote compilation and live verification.
+
+Remote ONODE candidate cefa7d754a extends the compiled BootLoader baseline with credential binding and single/batch registration result handling. Live endpoint verification must cover an invalid batch rejected before registration and a valid mixed-outcome batch reporting failed provider types without exposing provider objects. No candidate CI run exists yet. Local builds remain deferred for disk recovery.
