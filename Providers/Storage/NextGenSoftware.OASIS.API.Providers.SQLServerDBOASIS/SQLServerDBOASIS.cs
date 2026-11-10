@@ -542,6 +542,18 @@ AND NOT EXISTS (SELECT 1 FROM OASISHolonHistory a WHERE a.Id = h.Id AND a.Versio
 
         // ─── Holon loading ────────────────────────────────────────────────────────
 
+        private const string VersionedHolonRows = @"
+SELECT snapshot.DataJson, snapshot.HolonType
+FROM OASISHolons h
+LEFT JOIN OASISHolonHistory a ON a.Id = h.Id AND a.Version = @Version AND a.IsDeleted = 0
+CROSS APPLY (VALUES (
+    CASE WHEN @Version = 0 OR TRY_CONVERT(int, JSON_VALUE(h.DataJson, '$.version')) = @Version
+         THEN h.DataJson ELSE a.DataJson END,
+    CASE WHEN @Version = 0 OR TRY_CONVERT(int, JSON_VALUE(h.DataJson, '$.version')) = @Version
+         THEN h.HolonType ELSE a.HolonType END
+)) snapshot(DataJson, HolonType)
+WHERE h.IsDeleted = 0 AND snapshot.DataJson IS NOT NULL";
+
         private async Task<Holon?> LoadHolonVersionAsync(Guid id, int version)
         {
             ArgumentOutOfRangeException.ThrowIfNegative(version);
@@ -798,18 +810,18 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0) { OASISErrorHandling.HandleError(ref result, "SQLServerDBOASIS: No metadata filters provided."); return result; }
             try
             {
-                if (version != 0)
-                    throw new NotSupportedException("SQL Server metadata queries currently support only the current record version.");
+                ArgumentOutOfRangeException.ThrowIfNegative(version);
 
                 var filters = metaKeyValuePairs.ToArray();
                 var conditions = filters.Select((_, i) =>
-                    $"JSON_VALUE(DataJson,@path{i}) = @v{i}").ToList();
+                    $"JSON_VALUE(snapshot.DataJson,@path{i}) = @v{i}").ToList();
                 string join = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any ? " OR " : " AND ";
-                string sql = $"SELECT DataJson FROM OASISHolons WHERE IsDeleted=0 AND ({string.Join(join, conditions)})";
-                if (type != HolonType.All) sql += " AND HolonType=@HolonType";
+                string sql = $"{VersionedHolonRows} AND ({string.Join(join, conditions)})";
+                if (type != HolonType.All) sql += " AND snapshot.HolonType=@HolonType";
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Version", version);
                 for (var i = 0; i < filters.Length; i++)
                 {
                     cmd.Parameters.AddWithValue($"@path{i}", "$.metaData." + System.Text.Json.JsonSerializer.Serialize(filters[i].Key));
@@ -966,14 +978,14 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                if (version != 0)
-                    throw new NotSupportedException("SQL Server metadata queries currently support only the current record version.");
+                ArgumentOutOfRangeException.ThrowIfNegative(version);
 
-                string sql = $"SELECT DataJson FROM OASISHolons WHERE IsDeleted=0 AND JSON_VALUE(DataJson,@MetaPath)=@MetaValue";
-                if (type != HolonType.All) sql += " AND HolonType=@HolonType";
+                string sql = $"{VersionedHolonRows} AND JSON_VALUE(snapshot.DataJson,@MetaPath)=@MetaValue";
+                if (type != HolonType.All) sql += " AND snapshot.HolonType=@HolonType";
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Version", version);
                 cmd.Parameters.AddWithValue("@MetaPath", "$.metaData." + System.Text.Json.JsonSerializer.Serialize(metaKey));
                 cmd.Parameters.AddWithValue("@MetaValue", metaValue);
                 if (type != HolonType.All) cmd.Parameters.AddWithValue("@HolonType", (int)type);
