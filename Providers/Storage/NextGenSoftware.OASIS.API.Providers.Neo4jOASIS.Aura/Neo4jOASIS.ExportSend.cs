@@ -35,7 +35,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                     var cursor = await transaction.RunAsync($@"
                         MATCH (hl:Holon) WHERE {predicate}
                         RETURN hl.GUId AS id, hl.name AS name, hl.description AS description,
-                               hl.ProviderKey AS providerkey, hl.PreviousVersionId AS previousversionid
+                               hl.ProviderKey AS providerkey, hl.PreviousVersionId AS previousversionid,
+                               hl.HolonType AS type, hl.ParentHolonId AS parent
                         LIMIT 2", new { value }).ConfigureAwait(false);
                     return await cursor.ToListAsync().ConfigureAwait(false);
                 }).ConfigureAwait(false);
@@ -49,18 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 if (rows.Count > 1)
                     throw new StorageIdentityAmbiguousException();
 
-                var row = rows[0];
-                var holon = new Holon
-                {
-                    Id = Guid.Parse(row["id"].As<string>()),
-                    Name = row["name"].As<string>(),
-                    Description = row["description"].As<string>(),
-                    PreviousVersionId = row["previousversionid"] is string previous ? Guid.Parse(previous) : Guid.Empty
-                };
-                if (row["providerkey"] is string key)
-                    holon.ProviderUniqueStorageKey[ProviderType.Value] = key;
-
-                result.Result = holon;
+                result.Result = ReadHolonRecord(rows[0]);
                 result.IsLoaded = true;
                 result.LoadedCount = 1;
             }
@@ -130,7 +120,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                                hl.ProviderKey AS providerkey, hl.PreviousVersionId AS previousversionid,
                                hl.HolonType AS type, hl.ParentHolonId AS parent
                         ORDER BY hl.GUId", new { allTypes = type == HolonType.All, type = (int)type, parentId }).ConfigureAwait(false);
-                    return await cursor.ToListAsync(ReadListedHolon).ConfigureAwait(false);
+                    return await cursor.ToListAsync(ReadHolonRecord).ConfigureAwait(false);
                 }).ConfigureAwait(false);
 
                 result.Result = holons;
@@ -144,7 +134,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             return result;
         }
 
-        private IHolon ReadListedHolon(IRecord row)
+        private IHolon ReadHolonRecord(IRecord row)
         {
             var holon = new Holon
             {
