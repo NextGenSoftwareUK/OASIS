@@ -663,6 +663,38 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             {
                 var holon = await LoadHolonVersionAsync(id, version).ConfigureAwait(false);
                 if (holon == null) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: No holon found with ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                if (loadChildren)
+                {
+                    ArgumentOutOfRangeException.ThrowIfNegative(maxChildDepth);
+                    var pending = new Queue<(IHolon Parent, int Depth)>();
+                    var visited = new HashSet<Guid> { id };
+                    pending.Enqueue((holon, 0));
+                    while (pending.TryDequeue(out var entry))
+                    {
+                        HolonChangeTracking.MarkIncompleteChildSelection(entry.Parent);
+                        if ((maxChildDepth > 0 && entry.Depth >= maxChildDepth) || (!recursive && entry.Depth > 0))
+                            continue;
+
+                        var children = await LoadHolonsForParentAsync(entry.Parent.Id, loadChildren: false, version: version);
+                        if (children.IsError)
+                        {
+                            if (!continueOnError)
+                                throw children.Exception ?? new InvalidOperationException(children.Message);
+                            result.IsWarning = true;
+                            result.InnerMessages.Add(children.Message);
+                            continue;
+                        }
+
+                        entry.Parent.Children = new List<IHolon>();
+                        foreach (var child in children.Result)
+                        {
+                            if (!visited.Add(child.Id))
+                                throw new System.IO.InvalidDataException("SQL Server holon graph contains a cycle or duplicate child.");
+                            entry.Parent.Children.Add(child);
+                            pending.Enqueue((child, entry.Depth + 1));
+                        }
+                    }
+                }
                 result.Result = holon; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"SQLServerDBOASIS: Holon loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading holon '{id}': {ex.Message}"); }

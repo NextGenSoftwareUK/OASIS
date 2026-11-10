@@ -11,6 +11,49 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests;
 public class SqlServerNativeStorageConformanceTests
 {
     [TestMethod]
+    public async Task HolonPointReadHonorsChildDepth()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_POINT_GRAPH") != "1")
+            Assert.Inconclusive("Enable only for the dedicated LocalDB provider fixture.");
+
+        var provider = new SQLServerDBOASIS(@"Server=(localdb)\MSSQLLocalDB;Database=oasis_hyperdrive_provider_test;Integrated Security=true;TrustServerCertificate=true");
+        var root = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), Name = "Point graph root" };
+        var child = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id, Name = "Point graph child" };
+        var leaf = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), ParentHolonId = child.Id, Name = "Point graph leaf" };
+        var savedIds = new List<Guid>();
+        try
+        {
+            var active = await provider.ActivateProviderAsync();
+            Assert.IsTrue(active.Result && !active.IsError, active.Message);
+            foreach (var node in new[] { root, child, leaf })
+            {
+                var write = await provider.SaveHolonAsync(node, saveChildren: false);
+                Assert.IsTrue(write.IsSaved && !write.IsError, write.Message);
+                savedIds.Add(node.Id);
+            }
+            var deep = await provider.LoadHolonAsync(root.Id, continueOnError: false);
+            Assert.IsTrue(deep.IsLoaded && !deep.IsError, deep.Message);
+            Assert.AreEqual(leaf.Id, deep.Result.Children.Single().Children.Single().Id);
+            var bounded = await provider.LoadHolonAsync(root.Id, maxChildDepth: 1, continueOnError: false);
+            Assert.IsTrue(bounded.IsLoaded && !bounded.IsError, bounded.Message);
+            Assert.AreEqual(child.Id, bounded.Result.Children.Single().Id);
+            Assert.IsFalse(bounded.Result.Children.Single().Children?.Any() == true);
+            var direct = await provider.LoadHolonAsync(root.Id, loadChildren: false);
+            Assert.IsTrue(direct.IsLoaded && !direct.IsError, direct.Message);
+            Assert.IsFalse(direct.Result.Children?.Any() == true);
+        }
+        finally
+        {
+            foreach (var id in savedIds)
+            {
+                var deleted = await provider.DeleteHolonWithSoftDeleteAsync(id, false);
+                Assert.IsTrue(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+            }
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
     public async Task HolonListValidatesStoredIdentity()
     {
         if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_HOLON_LIST_IDENTITY") != "1")
