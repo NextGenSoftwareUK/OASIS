@@ -96,215 +96,65 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             return result;
         }
 
-        public override OASISResult<IHolon> DeleteHolon(Guid id)
+        public override OASISResult<IHolon> DeleteHolon(Guid id) =>
+            DeleteHolonAsync(id).GetAwaiter().GetResult();
+
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) =>
+            DeleteHolonBySelectorAsync("hl.GUId = $value", id.ToString("D"));
+
+        public override OASISResult<IHolon> DeleteHolon(string providerKey) =>
+            DeleteHolonAsync(providerKey).GetAwaiter().GetResult();
+
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey) =>
+            DeleteHolonBySelectorAsync("hl.ProviderKey = $value", providerKey);
+
+        private async Task<OASISResult<IHolon>> DeleteHolonBySelectorAsync(string predicate, string value)
         {
-            try
-            {
-                var session = Driver.Session(WithDatabase);
-
-                var holonList = session.ReadTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MATCH (p:Holon {ProviderKey: $Id})
-                            DELETE p",
-                        new
-                        {
-                            Id = id.ToString(),
-                        }
-                    );
-
-                    return (from d in cursor
-                            select new Holon
-                            { Description = d["description"].As<string>() }).ToList();
-                });
-
-                if (holonList.Count <= 0)
-                {
-                    return new OASISResult<IHolon>
-                    {
-                        IsError = false,
-                        Message = "Holon Deleted Successfully",
-                        IsDeleted = true,
-                        DeletedCount = 1
-                    };
-                }
-                else
-                {
-                    return new OASISResult<IHolon>
-                    {
-                        IsError = true,
-                        Message = "Something went wrong! please try again later"
-                    };
-                }
-
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IHolon>
-                {
-                    IsError = true,
-                    Message = ex.ToString()
-                };
-            }
-
-        }
-
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-        {
+            var result = new OASISResult<IHolon>();
             try
             {
                 var session = Driver.AsyncSession(WithDatabase);
-
-                var holonList = await session.ReadTransactionAsync(async transaction =>
+                await using var lifetime = session.ConfigureAwait(false);
+                var deletedId = await session.WriteTransactionAsync(async transaction =>
                 {
-                    var cursor = await transaction.RunAsync(@"
-                            MATCH (p:Holon {Id: $guid})
-                            DELETE p",
-                        new
-                        {
-                            guid = id.ToString(),
-                        }
-                    );
+                    var cursor = await transaction.RunAsync($@"
+                        MATCH (hl:Holon) WHERE {predicate}
+                        RETURN hl.GUId AS id
+                        LIMIT 2", new { value }).ConfigureAwait(false);
+                    var rows = await cursor.ToListAsync().ConfigureAwait(false);
+                    if (rows.Count == 0)
+                        return (Guid?)null;
+                    if (rows.Count > 1)
+                        throw new StorageIdentityAmbiguousException();
 
-                    return await cursor.ToListAsync(record => new Holon
-                    {
-                        Description = record["description"].As<string>()
-                    });
-                });
+                    var id = Guid.Parse(rows[0]["id"].As<string>());
+                    var deletion = await transaction.RunAsync($@"
+                        MATCH (hl:Holon) WHERE {predicate} AND hl.GUId = $guid
+                        DETACH DELETE hl", new { value, guid = id.ToString("D") }).ConfigureAwait(false);
+                    var summary = await deletion.ConsumeAsync().ConfigureAwait(false);
+                    if (summary.Counters.NodesDeleted != 1)
+                        throw new InvalidOperationException("Neo4j Aura did not delete exactly one holon.");
+                    return id;
+                }).ConfigureAwait(false);
 
-
-                if (holonList.Count <= 0)
+                if (!deletedId.HasValue)
                 {
-                    return new OASISResult<IHolon>
-                    {
-                        IsError = false,
-                        IsDeleted = true,
-                        DeletedCount = 1,
-                        Message = "Holon Deleted successfuly"
-                    };
+                    OASISErrorHandling.HandleError(ref result, "Neo4j Aura holon was not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
                 }
-                else
-                {
-                    return new OASISResult<IHolon>
-                    {
-                        IsError = true,
-                        Message = "Something went wrong! Please try again after sometime"
-                    };
-                }
+
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.Result = new Holon { Id = deletedId.Value };
             }
             catch (Exception ex)
             {
-                return new OASISResult<IHolon>
-                {
-                    IsError = true,
-                    Message = ex.ToString()
-                };
+                OASISErrorHandling.HandleError(ref result, "Error deleting Neo4j Aura holon.", ex);
+                if (ex is StorageIdentityAmbiguousException)
+                    result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
             }
-        }
-
-        public override OASISResult<IHolon> DeleteHolon(string providerKey)
-        {
-            try
-            {
-                var session = Driver.Session(WithDatabase);
-
-                var holonList = session.ReadTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MATCH (p:Holon {ProviderKey: $providerkey})
-                            DELETE p",
-                        new
-                        {
-                            providerkey = providerKey,
-                        }
-                    );
-
-                    return (from d in cursor
-                            select new Holon
-                            { Description = d["description"].As<string>() }).ToList();
-                });
-
-                if (holonList.Count <= 0)
-                {
-                    return new OASISResult<IHolon>
-                    {
-                        IsError = false,
-                        IsDeleted = true,
-                        DeletedCount = 1,
-                        Message = "Holon Deleted Successfully"
-                    };
-                }
-                else
-                {
-                    return new OASISResult<IHolon>
-                    {
-                        IsError = true,
-                        Message = "Something went wrong! please try again later"
-                    };
-                }
-
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IHolon>
-                {
-                    IsError = true,
-                    Message = ex.ToString()
-                };
-            }
-        }
-
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
-        {
-            try
-            {
-                var session = Driver.AsyncSession(WithDatabase);
-
-                var holonList = await session.ReadTransactionAsync(async transaction =>
-                {
-                    var cursor = await transaction.RunAsync(@"
-                            MATCH (p:Holon {ProviderKey: $providerkey})
-                            DELETE p",
-                        new
-                        {
-                            providerkey = providerKey,
-                        }
-                    );
-
-                    return await cursor.ToListAsync(record => new Holon
-                    {
-                        Description = record["description"].As<string>()
-                    });
-                });
-
-
-                if (holonList.Count <= 0)
-                {
-                    return new OASISResult<IHolon>
-                    {
-                        IsError = false,
-                        Message = "Holon Deleted successfuly",
-                        IsDeleted = true,
-                        DeletedCount = 1
-                    };
-                }
-                else
-                {
-                    return new OASISResult<IHolon>
-                    {
-                        IsError = true,
-                        Message = "Something went wrong! Please try again after sometime"
-                    };
-                }
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IHolon>
-                {
-                    IsError = true,
-                    Message = ex.ToString()
-                };
-            }
+            return result;
         }
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
