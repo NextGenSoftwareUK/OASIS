@@ -104,7 +104,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             break;
 
                         case ProviderType.NeonOASIS:
-                            var neonSettings = OASISDNA.OASIS.StorageProviders.NeonOASIS;
+                            var neonSettings = OASISDNA?.OASIS?.StorageProviders?.NeonOASIS;
                             result.Result = new API.Providers.NeonOASIS.NeonOASIS(
                                 overrideConnectionString ?? neonSettings?.ConnectionString,
                                 neonSettings?.UsePooler ?? true);
