@@ -39,7 +39,7 @@ A product with many users (for example PIPER) can hold a plan of its own, so its
 
 **How it is used.** The app's server sends `X-OASIS-App-Id` and `X-OASIS-App-Key` with the user's normal bearer token. On WEB4's own authorization path the request is then evaluated against the more generous of the app's plan and the user's personal plan, so an app can never make a user worse off. Invalid or partial app credentials are rejected (401); requests without app headers behave exactly as before. Usage is still recorded against the signed-in avatar and the settlement protocol is unchanged.
 
-**Not covered yet.** The app plan is a per-user entitlement, not a shared pool: a finite app plan (for example Gold) applies its limits to each user separately. A pooled app-wide cap, and accepting app credentials on `usage/authorize` for the other consuming services (WEB5 to WEB10), are follow-ups.
+**Enterprise only for now.** The app plan is a per-user entitlement, not a shared pool, so a finite app plan (for example Gold) would apply its limits to each user separately and multiply them by the number of users. Create and update therefore accept only `enterprise` until pooled app quotas exist (see `Docs/WIP/Subscriptions/APP_ACCOUNT_SHARED_POOL_DESIGN.md`). Still not covered: A pooled app-wide cap, and accepting app credentials on `usage/authorize` for the other consuming services (WEB5 to WEB10), are follow-ups.
 
 ## Deployment order
 

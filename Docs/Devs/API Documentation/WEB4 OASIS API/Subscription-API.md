@@ -100,7 +100,7 @@ Under `/api/subscription/admin/` (administrator claim plus allowlist, or the `Wi
 | POST app-accounts/{appId}/rotate-key | Issue a new key; the old one stops working |
 | POST app-accounts/{appId} | Change `planId` and/or `status` (`active`, `disabled`) |
 
-**Calling with an app account.** An application's server may add `X-OASIS-App-Id` and `X-OASIS-App-Key` to a request that carries the user's bearer token. WEB4 then evaluates the request against the more generous of the app's plan and the user's own plan, so an app never makes a user worse off. Invalid, partial or disabled-app credentials are rejected with 401; requests without these headers behave exactly as before. Usage and settlement stay recorded against the signed-in avatar. The app plan is a per-user entitlement, not a shared pool, and the headers are accepted on WEB4's own authorization path only (not yet on `usage/authorize` for WEB5 to WEB10).
+**Calling with an app account.** An application's server may add `X-OASIS-App-Id` and `X-OASIS-App-Key` to a request that carries the user's bearer token. WEB4 then evaluates the request against the more generous of the app's plan and the user's own plan, so an app never makes a user worse off. Invalid, partial or disabled-app credentials are rejected with 401; requests without these headers behave exactly as before. Usage and settlement stay recorded against the signed-in avatar. The app plan is a per-user entitlement, not a shared pool, so app accounts accept only the `enterprise` plan for now (a finite app plan would multiply its limits by the number of users). The headers are accepted on WEB4's own authorization path only (not yet on `usage/authorize` for WEB5 to WEB10).
 
 ## Subscription and billing lifecycle
 

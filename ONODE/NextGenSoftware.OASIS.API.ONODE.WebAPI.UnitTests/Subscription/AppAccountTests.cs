@@ -41,6 +41,14 @@ public sealed class AppAccountTests
     [Fact]
     public void RejectsAnAppIdOverFortyCharacters() => Assert.False(AppAccountRules.IsValidAppId(new string('a', 41)));
 
+    [Theory]
+    [InlineData("free")] [InlineData("bronze")] [InlineData("silver")] [InlineData("gold")] [InlineData("platinum")] [InlineData(null)]
+    public void OnlyTheEnterprisePlanIsAcceptedForAnAppUntilPooledQuotasExist(string plan) =>
+        Assert.Throws<ArgumentException>(() => AppAccountRules.ValidateAppPlan(plan));
+
+    [Fact]
+    public void TheEnterprisePlanIsAcceptedForAnApp() => AppAccountRules.ValidateAppPlan("enterprise");
+
     [Fact]
     public void GeneratedKeysAreUniqueLongAndPrefixed()
     {
@@ -143,6 +151,8 @@ public sealed class AppAccountTests
         Assert.IsType<BadRequestObjectResult>(await c.CreateAppAccount(null));
         Assert.IsType<BadRequestObjectResult>(await c.CreateAppAccount(Body(appId: "Bad Id")));
         Assert.IsType<BadRequestObjectResult>(await c.CreateAppAccount(Body(plan: "platinum")));
+        Assert.IsType<BadRequestObjectResult>(await c.CreateAppAccount(Body(plan: "gold")));
+        Assert.IsType<BadRequestObjectResult>(await c.CreateAppAccount(Body(plan: "free")));
         Assert.IsType<BadRequestObjectResult>(await c.CreateAppAccount(Body(name: " ")));
         Assert.IsType<BadRequestObjectResult>(await c.CreateAppAccount(Body(reason: "no")));
     }
@@ -155,6 +165,7 @@ public sealed class AppAccountTests
         Assert.IsType<BadRequestObjectResult>(await c.RotateAppAccountKey("piper", null));
         Assert.IsType<BadRequestObjectResult>(await c.UpdateAppAccount("piper", Body(plan: null, reason: "valid reason")));
         Assert.IsType<BadRequestObjectResult>(await c.UpdateAppAccount("piper", Body(plan: "platinum")));
+        Assert.IsType<BadRequestObjectResult>(await c.UpdateAppAccount("piper", Body(plan: "gold")));
         Assert.IsType<BadRequestObjectResult>(await c.UpdateAppAccount("piper", Body(plan: null, status: "paused")));
     }
 
@@ -225,5 +236,62 @@ public sealed class AppAccountTests
         var (authority, service) = Authority(Headers("piper", "oak_good"), null);
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => authority.AuthorizeUsageAsync("token", Request()));
         service.Verify(s => s.AuthorizeUsageAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<UsageAuthorizationRequest>(), It.IsAny<AppAccountRecord>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+}
+
+/// <summary>App credentials on usage/authorize, the route the other consuming services (WEB5 to WEB10) call.</summary>
+public sealed class AppAccountUsageAuthorizeTests
+{
+    private static readonly Guid Avatar = Guid.Parse("22222222-2222-2222-2222-222222222222");
+
+    private static (SubscriptionController Controller, Mock<ISubscriptionService> Service) Build(string appId, string appKey)
+    {
+        var key = new string('k', 40);
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new[] { new KeyValuePair<string, string>("SUBSCRIPTION_SERVICE_KEY_WEB6", key) }).Build();
+        var service = new Mock<ISubscriptionService>();
+        var prices = new Mock<ISubscriptionPlanPriceReader>();
+        var controller = new SubscriptionController(configuration, service.Object,
+            planCatalogue: new SubscriptionPlanCatalogue(prices.Object), billingPortal: new Mock<ISubscriptionBillingPortal>().Object);
+        var http = new DefaultHttpContext();
+        http.Request.Headers["X-OASIS-Service"] = "WEB6";
+        http.Request.Headers["X-OASIS-Service-Key"] = key;
+        if (appId != null) http.Request.Headers[AppAccountRules.AppIdHeader] = appId;
+        if (appKey != null) http.Request.Headers[AppAccountRules.AppKeyHeader] = appKey;
+        http.User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, Avatar.ToString("D")) }, "test"));
+        controller.ControllerContext = new ControllerContext { HttpContext = http };
+        return (controller, service);
+    }
+
+    private static UsageAuthorizationRequest Request() => new() { ConsumingService = "WEB6" };
+
+    private static void NothingAuthorized(Mock<ISubscriptionService> service)
+    {
+        service.Verify(s => s.AuthorizeUsageAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<UsageAuthorizationRequest>(), It.IsAny<CancellationToken>()), Times.Never);
+        service.Verify(s => s.AuthorizeUsageAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<UsageAuthorizationRequest>(), It.IsAny<AppAccountRecord>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData("piper", "oak_wrong")]
+    [InlineData("piper", null)]
+    [InlineData(null, "oak_orphan")]
+    public async Task AnInvalidOrPartialAppCredentialGets401AndNothingIsAuthorized(string id, string key)
+    {
+        var apps = new Mock<IAppAccountRepository>();
+        apps.Setup(a => a.VerifyAppCredentialAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((AppAccountRecord)null);
+        var (controller, service) = Build(id, key);
+        var result = await controller.AuthorizeUsage(Request(), apps.Object);
+        var unauthorized = Assert.IsType<UnauthorizedObjectResult>(result);
+        Assert.Contains("APP_CREDENTIAL_INVALID", System.Text.Json.JsonSerializer.Serialize(unauthorized.Value));
+        NothingAuthorized(service);
+    }
+
+    [Fact]
+    public async Task AppHeadersAreRefusedWhenTheDeploymentHasNoAppAccounts()
+    {
+        var (controller, service) = Build("piper", "oak_good");
+        var result = await controller.AuthorizeUsage(Request(), null);
+        Assert.IsType<UnauthorizedObjectResult>(result);
+        NothingAuthorized(service);
     }
 }

@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public Task<(AppAccountRecord Account, string ApiKey)> CreateAppAccountAsync(string appId, string name, string planId, string actor, string reason, CancellationToken cancellationToken = default)
         {
             AppAccountRules.ValidateAppId(appId);
-            AppAccountRules.ValidatePlan(planId);
+            AppAccountRules.ValidateAppPlan(planId);
             AppAccountRules.ValidateActorAndReason(actor, reason);
             if (string.IsNullOrWhiteSpace(name) || name.Trim().Length > 100) throw new ArgumentException("A name of up to 100 characters is required.");
             return TransactAsync(async (session, ct) =>
@@ -59,7 +59,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             AppAccountRules.ValidateAppId(appId);
             AppAccountRules.ValidateActorAndReason(actor, reason);
             if (planId == null && status == null) throw new ArgumentException("Provide a plan, a status, or both.");
-            if (planId != null) AppAccountRules.ValidatePlan(planId);
+            if (planId != null) AppAccountRules.ValidateAppPlan(planId);
             if (status != null && status is not ("active" or "disabled")) throw new ArgumentException("Status must be active or disabled.");
             return TransactAsync(async (session, ct) =>
             {
