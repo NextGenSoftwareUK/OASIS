@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.Linq;
 using Newtonsoft.Json;
@@ -59,7 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 SetAuthenticationHeaders();
 
-                using var response = await _httpClient.GetAsync("/data/testAuthentication");
+                using var response = await _httpClient.GetAsync("/data/testAuthentication").ConfigureAwait(false);
                 if (!response.IsSuccessStatusCode)
                     throw new InvalidOperationException($"Pinata authentication failed with HTTP {(int)response.StatusCode} ({response.StatusCode}).");
 
