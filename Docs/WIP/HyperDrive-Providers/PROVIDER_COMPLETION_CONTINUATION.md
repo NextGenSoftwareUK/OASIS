@@ -375,3 +375,5 @@ ClickHouse hard deletes now request local mutation completion. HardDeletedHolonI
 ClickHouse CI candidate 9419d463f4 is a fast-forward from Development e1e3e9e06a. PyYAML parsed the committed workflow and confirmed one ClickHouse matrix row with the storage-class filter and writable fixture opt-in. The prior job failed three fixture-specific COSMIC tests and skipped the four storage cases. This static check supports the workflow-only repair; successful live storage execution remains pending.
 
 ClickHouse avatar readback candidate 8052e10782 compiled with 0 errors and 1151 warnings. Native verification is pending; the four Development smoke passes predate the new readback assertions.
+
+Solana native runner preflight: the conformance test admits only the retained loopback validator on 18899, the designated TestResults/SolanaCurrent directory without unresolved pending intents, and the existing protected test wallet and storage key. No validator executable or listener is available here, and the repository workflows do not provision this fixture. Keep the read-only recovery gate in Actions for David and preserve the partial native receipt.
