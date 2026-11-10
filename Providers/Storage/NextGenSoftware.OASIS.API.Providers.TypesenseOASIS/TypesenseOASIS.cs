@@ -223,7 +223,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             {
                 var all = await SearchAllAsync<Avatar>(ColAvatars);
                 var list = new List<IAvatar>(); foreach (var a in all) { if (!a.IsDeleted) list.Add(a); }
-                result.Result = list; result.IsError = false; result.Message = $"TypesenseOASIS: Loaded {list.Count} avatar(s).";
+                result.Result = list; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"TypesenseOASIS: Loaded {list.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
@@ -305,7 +305,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try { var all = await SearchAllAsync<AvatarDetail>(ColDetails); result.Result = new List<IAvatarDetail>(all); result.IsError = false; result.Message = $"TypesenseOASIS: Loaded {all.Count} detail(s)."; }
+            try { var all = await SearchAllAsync<AvatarDetail>(ColDetails); result.Result = new List<IAvatarDetail>(all); result.IsLoaded = true; result.LoadedCount = all.Count; result.Message = $"TypesenseOASIS: Loaded {all.Count} detail(s)."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
         }
@@ -393,7 +393,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             {
                 var all = await SearchAllAsync<Holon>(ColHolons); var list = new List<IHolon>();
                 foreach (var h in all) { if (h.IsDeleted) continue; if (holonType != HolonType.All && h.HolonType != holonType) continue; list.Add(h); }
-                result.Result = list; result.IsError = false; result.Message = $"TypesenseOASIS: Loaded {list.Count} holon(s).";
+                result.Result = list; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"TypesenseOASIS: Loaded {list.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
@@ -408,7 +408,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             {
                 var all = await SearchAllAsync<Holon>(ColHolons); var list = new List<IHolon>();
                 foreach (var h in all) { if (h.IsDeleted || h.ParentHolonId != id) continue; if (holonType != HolonType.All && h.HolonType != holonType) continue; list.Add(h); }
-                result.Result = list; result.IsError = false; result.Message = $"TypesenseOASIS: Loaded {list.Count} child holon(s).";
+                result.Result = list; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"TypesenseOASIS: Loaded {list.Count} child holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
