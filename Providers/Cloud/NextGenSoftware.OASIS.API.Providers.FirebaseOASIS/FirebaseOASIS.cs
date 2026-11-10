@@ -246,7 +246,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             {
                 var avatar = await GetAsync<Avatar>($"/oasis_avatars/{id}");
                 if (avatar == null || avatar.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar found with ID '{id}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"FirebaseOASIS: Avatar loaded for ID '{id}'.";
+                result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: Avatar loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar by ID '{id}': {ex.Message}"); }
             return result;
@@ -262,7 +262,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                 var avatars = await QueryByFieldAsync<Avatar>("oasis_avatars", "username", username);
                 var avatar = avatars.FirstOrDefault(a => !a.IsDeleted);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar found with username '{username}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"FirebaseOASIS: Avatar loaded for username '{username}'.";
+                result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: Avatar loaded for username '{username}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar by username '{username}': {ex.Message}"); }
             return result;
@@ -278,7 +278,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                 var avatars = await QueryByFieldAsync<Avatar>("oasis_avatars", "email", avatarEmail);
                 var avatar = avatars.FirstOrDefault(a => !a.IsDeleted);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar found with email '{avatarEmail}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"FirebaseOASIS: Avatar loaded for email '{avatarEmail}'.";
+                result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: Avatar loaded for email '{avatarEmail}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar by email '{avatarEmail}': {ex.Message}"); }
             return result;
@@ -303,7 +303,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             {
                 var all = await GetAllAsync<Avatar>("oasis_avatars");
                 var avatars = all.Where(a => !a.IsDeleted).Cast<IAvatar>().ToList();
-                result.Result = avatars; result.IsError = false; result.Message = $"FirebaseOASIS: Loaded {avatars.Count} avatar(s).";
+                result.Result = avatars; result.IsLoaded = true; result.LoadedCount = avatars.Count; result.Message = $"FirebaseOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading all avatars: {ex.Message}"); }
             return result;
