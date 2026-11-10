@@ -57,6 +57,65 @@ public class SqlServerNativeStorageConformanceTests
     }
 
     [TestMethod]
+    public async Task DuplicateAvatarSelectorsRejectDeletion()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_DUPLICATE_DELETE") != "1")
+            Assert.Inconclusive("Enable only for the dedicated LocalDB provider fixture.");
+
+        const string connection = @"Server=(localdb)\MSSQLLocalDB;Database=oasis_hyperdrive_provider_test;Integrated Security=true;TrustServerCertificate=true";
+        var provider = new SQLServerDBOASIS(connection);
+        var username = $"fixture-{Guid.NewGuid():N}";
+        var email = username + "@example.invalid";
+        var saved = new List<Guid>();
+        try
+        {
+            var active = await provider.ActivateProviderAsync();
+            Assert.IsTrue(active.Result && !active.IsError, active.Message);
+            for (var i = 0; i < 2; i++)
+            {
+                var avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar
+                {
+                    Id = Guid.NewGuid(), Username = username, Email = email
+                };
+                var write = await provider.SaveAvatarAsync(avatar);
+                Assert.IsTrue(write.IsSaved && !write.IsError, write.Message);
+                saved.Add(avatar.Id);
+            }
+
+            foreach (var softDelete in new[] { true, false })
+            {
+                var results = new[]
+                {
+                    await provider.DeleteAvatarByUsernameAsync(username, softDelete),
+                    await provider.DeleteAvatarByEmailAsync(email, softDelete),
+                    await provider.DeleteAvatarAsync(username, softDelete)
+                };
+                foreach (var result in results)
+                {
+                    Assert.IsTrue(result.IsError);
+                    Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity, result.ErrorCode);
+                    Assert.AreEqual(0, result.DeletedCount);
+                }
+            }
+
+            foreach (var id in saved)
+            {
+                var loaded = await provider.LoadAvatarAsync(id);
+                Assert.IsTrue(loaded.Result?.Id == id && !loaded.IsError, loaded.Message);
+            }
+        }
+        finally
+        {
+            foreach (var id in saved)
+            {
+                var deleted = await provider.DeleteAvatarAsync(id, softDelete: false);
+                Assert.IsTrue(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+            }
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
     public async Task HistoricalCollectionsUseStoredParent()
     {
         if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_HISTORY_COLLECTION") != "1")

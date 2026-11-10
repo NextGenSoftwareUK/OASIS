@@ -289,84 +289,68 @@ WHEN NOT MATCHED THEN
 
         // ─── Avatar deletion ──────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                await using var conn = new SqlConnection(_connectionString);
-                await conn.OpenAsync();
-                string sql = softDelete
-                    ? "UPDATE OASISAvatars SET IsDeleted=1, ModifiedDate=SYSUTCDATETIME() WHERE Id=@Id"
-                    : @"SET XACT_ABORT ON;
-BEGIN TRANSACTION;
-DELETE FROM OASISAvatars WHERE Id=@Id;
-DECLARE @Deleted int = @@ROWCOUNT;
-IF @Deleted = 1 DELETE FROM OASISAvatarDetails WHERE Id=@Id;
-COMMIT TRANSACTION;
-SELECT @Deleted;";
-                await using var cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@Id", id);
-                int rows = softDelete ? await cmd.ExecuteNonQueryAsync() : (int)(await cmd.ExecuteScalarAsync())!;
-                result.Result = rows == 1; result.IsError = !result.Result;
-                result.IsDeleted = result.Result; result.DeletedCount = rows;
-                result.Message = result.Result
-                    ? $"SQLServerDBOASIS: Avatar '{id}' {(softDelete ? "soft" : "hard")}-deleted."
-                    : $"SQLServerDBOASIS: No avatar found with ID '{id}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error deleting avatar '{id}': {ex.Message}"); }
-            return result;
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+            => DeleteAvatarMatchingAsync("Id=@Value", id, softDelete);
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
 
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                await using var conn = new SqlConnection(_connectionString);
-                await conn.OpenAsync();
-                string sql = softDelete
-                    ? "UPDATE OASISAvatars SET IsDeleted=1, ModifiedDate=SYSUTCDATETIME() WHERE Username=@Username"
-                    : "DELETE FROM OASISAvatars WHERE Username=@Username";
-                await using var cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@Username", username);
-                int rows = await cmd.ExecuteNonQueryAsync();
-                result.Result = rows > 0; result.IsError = !result.Result;
-                result.Message = result.Result
-                    ? $"SQLServerDBOASIS: Avatar '{username}' {(softDelete ? "soft" : "hard")}-deleted."
-                    : $"SQLServerDBOASIS: No avatar found with username '{username}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error deleting avatar by username '{username}': {ex.Message}"); }
-            return result;
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
+            => DeleteAvatarMatchingAsync("Username=@Value", username, softDelete);
 
         public override OASISResult<bool> DeleteAvatarByUsername(string username, bool softDelete = true) => DeleteAvatarByUsernameAsync(username, softDelete).Result;
 
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
+            => DeleteAvatarMatchingAsync("Email=@Value", email, softDelete);
+
+        public override OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true) => DeleteAvatarByEmailAsync(email, softDelete).Result;
+
+        private async Task<OASISResult<bool>> DeleteAvatarMatchingAsync(string predicate, object value, bool softDelete)
         {
             var result = new OASISResult<bool>();
             try
             {
+                string mutation = softDelete
+                    ? "UPDATE OASISAvatars SET IsDeleted=1, ModifiedDate=SYSUTCDATETIME() WHERE Id=(SELECT Id FROM @Matches);"
+                    : @"DELETE FROM OASISAvatars WHERE Id=(SELECT Id FROM @Matches);
+DELETE FROM OASISAvatarDetails WHERE Id=(SELECT Id FROM @Matches);";
+                string activeFilter = softDelete ? "AND IsDeleted=0" : "";
+                string sql = $@"SET XACT_ABORT ON;
+BEGIN TRANSACTION;
+DECLARE @Matches TABLE (Id uniqueidentifier);
+INSERT INTO @Matches SELECT TOP (2) Id FROM OASISAvatars WITH (UPDLOCK, HOLDLOCK)
+WHERE ({predicate}) {activeFilter};
+DECLARE @Count int = @@ROWCOUNT;
+IF @Count = 1
+BEGIN
+    {mutation}
+END;
+COMMIT TRANSACTION;
+SELECT @Count;";
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
-                string sql = softDelete
-                    ? "UPDATE OASISAvatars SET IsDeleted=1, ModifiedDate=SYSUTCDATETIME() WHERE Email=@Email"
-                    : "DELETE FROM OASISAvatars WHERE Email=@Email";
                 await using var cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@Email", email);
-                int rows = await cmd.ExecuteNonQueryAsync();
-                result.Result = rows > 0; result.IsError = !result.Result;
+                cmd.Parameters.AddWithValue("@Value", value);
+                int matches = (int)(await cmd.ExecuteScalarAsync())!;
+                if (matches > 1)
+                    throw new StorageIdentityAmbiguousException();
+
+                result.Result = matches == 1;
+                result.IsDeleted = result.Result;
+                result.DeletedCount = matches;
+                result.IsError = !result.Result;
                 result.Message = result.Result
-                    ? $"SQLServerDBOASIS: Avatar with email '{email}' {(softDelete ? "soft" : "hard")}-deleted."
-                    : $"SQLServerDBOASIS: No avatar found with email '{email}'.";
+                    ? $"SQLServerDBOASIS: Avatar '{value}' {(softDelete ? "soft" : "hard")}-deleted."
+                    : $"SQLServerDBOASIS: No avatar found matching '{value}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error deleting avatar by email '{email}': {ex.Message}"); }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error deleting avatar '{value}': {ex.Message}");
+                if (ex is StorageIdentityAmbiguousException)
+                    result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
+            }
             return result;
         }
-
-        public override OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true) => DeleteAvatarByEmailAsync(email, softDelete).Result;
 
         // ─── AvatarDetail ─────────────────────────────────────────────────────────
 
@@ -713,27 +697,8 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
 
         // ─── Members added to base after initial implementation ───────────────────
 
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                await using var conn = new SqlConnection(_connectionString);
-                await conn.OpenAsync();
-                string sql = softDelete
-                    ? "UPDATE OASISAvatars SET IsDeleted=1 WHERE Username=@Key OR Email=@Key"
-                    : "DELETE FROM OASISAvatars WHERE Username=@Key OR Email=@Key";
-                await using var cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@Key", providerKey);
-                int rows = await cmd.ExecuteNonQueryAsync();
-                result.Result = rows > 0;
-                result.Message = result.Result
-                    ? $"SQLServerDBOASIS: Avatar '{providerKey}' {(softDelete ? "soft" : "hard")}-deleted."
-                    : $"SQLServerDBOASIS: No avatar found matching '{providerKey}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error deleting avatar '{providerKey}': {ex.Message}"); }
-            return result;
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+            => DeleteAvatarMatchingAsync("Username=@Value OR Email=@Value", providerKey, softDelete);
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
