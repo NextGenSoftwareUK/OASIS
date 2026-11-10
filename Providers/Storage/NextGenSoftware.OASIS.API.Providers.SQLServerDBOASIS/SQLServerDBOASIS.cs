@@ -656,6 +656,45 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             return holon;
         }
 
+        private async Task HydrateHolonChildrenAsync(IHolon holon, bool recursive, int maxChildDepth, bool continueOnError, int version, List<string> failures, int initialDepth = 0)
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(maxChildDepth);
+            var pending = new Queue<(IHolon Parent, int Depth)>();
+            var visited = new HashSet<Guid> { holon.Id };
+            ArgumentOutOfRangeException.ThrowIfNegative(initialDepth);
+            pending.Enqueue((holon, initialDepth));
+            while (pending.TryDequeue(out var entry))
+            {
+                HolonChangeTracking.MarkIncompleteChildSelection(entry.Parent);
+                if ((maxChildDepth > 0 && entry.Depth >= maxChildDepth) || (!recursive && entry.Depth > initialDepth))
+                    continue;
+
+                var children = await LoadHolonsForParentAsync(entry.Parent.Id, loadChildren: false, version: version);
+                if (children.IsError)
+                {
+                    if (!continueOnError)
+                        throw children.Exception ?? new InvalidOperationException(children.Message);
+                    failures.Add(children.Message);
+                    continue;
+                }
+
+                entry.Parent.Children = new List<IHolon>();
+                foreach (var child in children.Result)
+                {
+                    if (!visited.Add(child.Id))
+                    {
+                        string message = $"SQL Server holon graph contains a cycle or duplicate child '{child.Id}'.";
+                        if (!continueOnError)
+                            throw new System.IO.InvalidDataException(message);
+                        failures.Add(message);
+                        continue;
+                    }
+                    entry.Parent.Children.Add(child);
+                    pending.Enqueue((child, entry.Depth + 1));
+                }
+            }
+        }
+
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IHolon>();
@@ -663,6 +702,11 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             {
                 var holon = await LoadHolonVersionAsync(id, version).ConfigureAwait(false);
                 if (holon == null) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: No holon found with ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                if (loadChildren)
+                {
+                    await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages);
+                    result.IsWarning = result.InnerMessages.Count > 0;
+                }
                 result.Result = holon; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"SQLServerDBOASIS: Holon loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading holon '{id}': {ex.Message}"); }
@@ -761,9 +805,17 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 await using var cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Version", version);
                 if (!string.IsNullOrEmpty(query)) cmd.Parameters.AddWithValue("@Q", query);
-                await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                    holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
+                await using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                        holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
+                }
+                if (loadChildren)
+                {
+                    foreach (var holon in holons)
+                        await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, 0);
+                    result.IsWarning = result.InnerMessages.Count > 0;
+                }
                 var sr = new SearchResults { SearchResultHolons = holons, NumberOfResults = holons.Count };
                 result.Result = sr; result.IsLoaded = true; result.LoadedCount = holons.Count;
                 result.Message = $"SQLServerDBOASIS: Found {holons.Count} holon(s).";
@@ -852,9 +904,17 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 }
                 if (type != HolonType.All) cmd.Parameters.AddWithValue("@HolonType", (int)type);
                 var holons = new List<IHolon>();
-                await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                    holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
+                await using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                        holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
+                }
+                if (loadChildren)
+                {
+                    foreach (var holon in holons)
+                        await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, curentChildDepth);
+                    result.IsWarning = result.InnerMessages.Count > 0;
+                }
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;
                 result.Message = $"SQLServerDBOASIS: Loaded {holons.Count} holon(s) matching metadata filter.";
             }
@@ -898,9 +958,17 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 if (type != HolonType.All) cmd.Parameters.AddWithValue("@HolonType", (int)type);
                 ArgumentOutOfRangeException.ThrowIfNegative(version);
                 var holons = new List<IHolon>();
-                await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                    holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
+                await using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                        holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
+                }
+                if (loadChildren)
+                {
+                    foreach (var holon in holons)
+                        await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, curentChildDepth);
+                    result.IsWarning = result.InnerMessages.Count > 0;
+                }
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;
                 result.Message = $"SQLServerDBOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
@@ -935,9 +1003,17 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 if (type != HolonType.All) cmd.Parameters.AddWithValue("@HolonType", (int)type);
                 ArgumentOutOfRangeException.ThrowIfNegative(version);
                 var holons = new List<IHolon>();
-                await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                    holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
+                await using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                        holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
+                }
+                if (loadChildren)
+                {
+                    foreach (var holon in holons)
+                        await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, curentChildDepth);
+                    result.IsWarning = result.InnerMessages.Count > 0;
+                }
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;
                 result.Message = $"SQLServerDBOASIS: Loaded {holons.Count} holon(s).";
             }
@@ -952,7 +1028,7 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             var result = new OASISResult<IHolon>();
             try
             {
-                var loaded = await LoadHolonAsync(id);
+                var loaded = await LoadHolonAsync(id, loadChildren: false);
                 if (loaded.IsError || loaded.Result == null) return loaded;
                 var deleted = await DeleteHolonWithSoftDeleteAsync(id);
                 result.IsError = deleted.IsError;
@@ -1020,9 +1096,17 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 cmd.Parameters.AddWithValue("@MetaValue", metaValue);
                 if (type != HolonType.All) cmd.Parameters.AddWithValue("@HolonType", (int)type);
                 var holons = new List<IHolon>();
-                await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                    holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
+                await using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                        holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
+                }
+                if (loadChildren)
+                {
+                    foreach (var holon in holons)
+                        await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, curentChildDepth);
+                    result.IsWarning = result.InnerMessages.Count > 0;
+                }
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;
                 result.Message = $"SQLServerDBOASIS: Loaded {holons.Count} holon(s) where {metaKey}={metaValue}.";
             }

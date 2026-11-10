@@ -11,6 +11,130 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests;
 public class SqlServerNativeStorageConformanceTests
 {
     [TestMethod]
+    public async Task HolonPointReadHandlesPersistedCycle()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_POINT_CYCLE") != "1")
+            Assert.Inconclusive("Enable only for the dedicated LocalDB provider fixture.");
+
+        var provider = new SQLServerDBOASIS(@"Server=(localdb)\MSSQLLocalDB;Database=oasis_hyperdrive_provider_test;Integrated Security=true;TrustServerCertificate=true");
+        var root = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), Name = "Cycle root" };
+        var child = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id, Name = "Cycle child" };
+        root.ParentHolonId = child.Id;
+        var savedIds = new List<Guid>();
+        try
+        {
+            var active = await provider.ActivateProviderAsync();
+            Assert.IsTrue(active.Result && !active.IsError, active.Message);
+            foreach (var node in new[] { root, child })
+            {
+                var write = await provider.SaveHolonAsync(node, saveChildren: false);
+                Assert.IsTrue(write.IsSaved && !write.IsError, write.Message);
+                savedIds.Add(node.Id);
+            }
+
+            var strict = await provider.LoadHolonAsync(root.Id, continueOnError: false);
+            Assert.IsTrue(strict.IsError && strict.Exception is System.IO.InvalidDataException, strict.Message);
+            Assert.IsNull(strict.Result);
+
+            var partial = await provider.LoadHolonAsync(root.Id, continueOnError: true);
+            Assert.IsTrue(partial.IsLoaded && partial.IsWarning && !partial.IsError, partial.Message);
+            Assert.AreEqual(1, partial.InnerMessages.Count);
+            Assert.AreEqual(child.Id, partial.Result.Children.Single().Id);
+            Assert.IsFalse(partial.Result.Children.Single().Children.Any());
+
+            var deletedRoot = await provider.DeleteHolonAsync(root.Id);
+            Assert.IsTrue(deletedRoot.IsDeleted && !deletedRoot.IsError, deletedRoot.Message);
+            Assert.AreEqual(1, deletedRoot.DeletedCount);
+            Assert.AreEqual(root.Id, deletedRoot.Result.Id);
+            Assert.IsFalse(deletedRoot.Result.Children?.Any() == true);
+            var remainingChild = await provider.LoadHolonAsync(child.Id, loadChildren: false);
+            Assert.IsTrue(remainingChild.IsLoaded && !remainingChild.IsError, remainingChild.Message);
+        }
+        finally
+        {
+            foreach (var id in savedIds)
+            {
+                var deleted = await provider.DeleteHolonWithSoftDeleteAsync(id, false);
+                Assert.IsTrue(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+            }
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
+    public async Task HolonPointReadHonorsChildDepth()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_POINT_GRAPH") != "1")
+            Assert.Inconclusive("Enable only for the dedicated LocalDB provider fixture.");
+
+        var provider = new SQLServerDBOASIS(@"Server=(localdb)\MSSQLLocalDB;Database=oasis_hyperdrive_provider_test;Integrated Security=true;TrustServerCertificate=true");
+        var root = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), Name = $"Point graph root {Guid.NewGuid():N}", MetaData = new() { ["graphFixture"] = Guid.NewGuid().ToString("N") } };
+        var child = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id, Name = "Point graph child" };
+        var leaf = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), ParentHolonId = child.Id, Name = "Point graph leaf" };
+        var savedIds = new List<Guid>();
+        try
+        {
+            var active = await provider.ActivateProviderAsync();
+            Assert.IsTrue(active.Result && !active.IsError, active.Message);
+            foreach (var node in new[] { root, child, leaf })
+            {
+                var write = await provider.SaveHolonAsync(node, saveChildren: false);
+                Assert.IsTrue(write.IsSaved && !write.IsError, write.Message);
+                savedIds.Add(node.Id);
+            }
+            var deep = await provider.LoadHolonAsync(root.Id, continueOnError: false);
+            Assert.IsTrue(deep.IsLoaded && !deep.IsError, deep.Message);
+            Assert.AreEqual(leaf.Id, deep.Result.Children.Single().Children.Single().Id);
+            var bounded = await provider.LoadHolonAsync(root.Id, maxChildDepth: 1, continueOnError: false);
+            Assert.IsTrue(bounded.IsLoaded && !bounded.IsError, bounded.Message);
+            Assert.AreEqual(child.Id, bounded.Result.Children.Single().Id);
+            Assert.IsFalse(bounded.Result.Children.Single().Children?.Any() == true);
+            var direct = await provider.LoadHolonAsync(root.Id, loadChildren: false);
+            Assert.IsTrue(direct.IsLoaded && !direct.IsError, direct.Message);
+            Assert.IsFalse(direct.Result.Children?.Any() == true);
+            var collection = await provider.LoadAllHolonsAsync(maxChildDepth: 1, continueOnError: false);
+            Assert.IsTrue(collection.IsLoaded && !collection.IsError, collection.Message);
+            var listedRoot = collection.Result.Single(row => row.Id == root.Id);
+            Assert.AreEqual(child.Id, listedRoot.Children.Single().Id);
+            Assert.IsFalse(listedRoot.Children.Single().Children?.Any() == true);
+
+            var parentList = await provider.LoadHolonsForParentAsync(root.Id, continueOnError: false);
+            Assert.IsTrue(parentList.IsLoaded && !parentList.IsError, parentList.Message);
+            Assert.AreEqual(leaf.Id, parentList.Result.Single().Children.Single().Id);
+            var search = new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams
+            {
+                SearchGroups = new()
+                {
+                    new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup { SearchQuery = root.Name }
+                }
+            };
+            var found = await provider.SearchAsync(search, continueOnError: false);
+            Assert.IsTrue(found.IsLoaded && !found.IsError, found.Message);
+            Assert.AreEqual(leaf.Id, found.Result.SearchResultHolons.Single().Children.Single().Children.Single().Id);
+
+            var key = "graphFixture";
+            var value = root.MetaData[key].ToString()!;
+            var single = await provider.LoadHolonsByMetaDataAsync(key, value, continueOnError: false);
+            var multi = await provider.LoadHolonsByMetaDataAsync(new Dictionary<string, string> { [key] = value },
+                NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All, continueOnError: false);
+            foreach (var matches in new[] { single, multi })
+            {
+                Assert.IsTrue(matches.IsLoaded && !matches.IsError, matches.Message);
+                Assert.AreEqual(leaf.Id, matches.Result.Single().Children.Single().Children.Single().Id);
+            }
+        }
+        finally
+        {
+            foreach (var id in savedIds)
+            {
+                var deleted = await provider.DeleteHolonWithSoftDeleteAsync(id, false);
+                Assert.IsTrue(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+            }
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
     public async Task HolonListValidatesStoredIdentity()
     {
         if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_HOLON_LIST_IDENTITY") != "1")
