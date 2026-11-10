@@ -649,7 +649,7 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                     ? "UPDATE OASISHolons SET IsDeleted=1, ModifiedDate=SYSUTCDATETIME() WHERE Id=@Id AND IsDeleted=0"
                     : @"SET XACT_ABORT ON;
 BEGIN TRANSACTION;
-DELETE FROM OASISHolons WHERE Id=@Id;
+DELETE FROM OASISHolons WITH (HOLDLOCK) WHERE Id=@Id;
 DECLARE @Deleted int = @@ROWCOUNT;
 DELETE FROM OASISHolonHistory WHERE Id=@Id;
 COMMIT TRANSACTION;
