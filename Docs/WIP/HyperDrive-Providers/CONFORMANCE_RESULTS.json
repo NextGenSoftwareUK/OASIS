@@ -337,6 +337,7 @@
       "blockers": []
     }
   ],
+  "splitNativeLifecycle": ["SQLServerDBOASIS"],
   "providerBlockers": {
     "SQLServerDBOASIS": [
       "Native LocalDB lifecycle checks passed across retained sync/async checkpoints and targeted continuations, with independent empty-table verification. No single uninterrupted shared-suite result is registered. See PROVIDER_COMPLETION_CONTINUATION.md."

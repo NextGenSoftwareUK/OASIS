@@ -168,6 +168,7 @@ def build():
    if e['mode']=='controlled':status='Controlled '+status;blockers.append('Controlled backend is not native product acceptance')
    if role!='Non-storage' and e['suite']!=registry.get('currentCoreSuite','core-storage-v1'):
     status='Historical '+status;blockers.append('Current '+registry['currentCoreSuite']+' not executed; older results are not re-labelled')
+  elif name in registry.get('splitNativeLifecycle',[]):status='Native checkpoints and continuations'
   else:status='Not run (capability-v1)' if role=='Non-storage' else 'Not run';blockers.append('Capability identity/activation/read-only probe pending; storage suite N/A' if role=='Non-storage' else 'Shared-suite adapter/run pending')
   gap=reviewed_sdk_gap(name,project) if not sdk else None
   if gap:blockers.append(gap)
