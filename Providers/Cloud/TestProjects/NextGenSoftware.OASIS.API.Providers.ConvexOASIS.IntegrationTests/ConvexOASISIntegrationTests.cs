@@ -45,7 +45,10 @@ public class ConvexOASISIntegrationTests
         {
             var saved = await provider.SaveHolonAsync(holon, saveChildren: false);
             Assert.IsTrue(saved.IsSaved, saved.Exception?.GetType().FullName);
-            var loaded = await provider.LoadHolonAsync(id, loadChildren: false);
+            using var reader = new ConvexOASIS(deployment!, deployKey!);
+            var readerActivation = await reader.ActivateProviderAsync();
+            Assert.IsTrue(readerActivation.Result, readerActivation.Exception?.GetType().FullName);
+            var loaded = await reader.LoadHolonAsync(id, loadChildren: false);
             Assert.IsTrue(loaded.IsLoaded, loaded.Exception?.GetType().FullName);
             Assert.AreEqual(id, loaded.Result.Id);
             Assert.AreEqual(holon.Name, loaded.Result.Name);
