@@ -116,7 +116,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         private static string Serialize(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
         private static T? Deserialize<T>(string json) => JsonSerializer.Deserialize<T>(json, _jsonOpts);
-        private static List<T> DeserializeList<T>(string json) => JsonSerializer.Deserialize<List<T>>(json, _jsonOpts) ?? new List<T>();
+        private static List<T> DeserializeList<T>(string json) =>
+            JsonSerializer.Deserialize<List<T>>(json, _jsonOpts)
+            ?? throw new JsonException("Supabase must return a JSON array for a row collection.");
 
         private StringContent JsonContent(object obj) => new StringContent(Serialize(obj), Encoding.UTF8, "application/json");
 
