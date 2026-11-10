@@ -127,3 +127,5 @@ Remote ONODE candidate cefa7d754a extends the compiled BootLoader baseline with 
 Candidate cefa7d754a passed in-memory Roslyn 5.0 syntax parsing for all four changed C# files. This check produced no build outputs. Type checking, full compilation and live verification remain open.
 
 Current remote verification candidate: 8099fb6697 includes the Supabase production redirect guard. Its five C# files passed in-memory syntax parsing and all three new BootLoader references resolved. Development remains at 1f1021ec6a. The remote build and hosted activation gates remain open.
+
+Remote registration candidate 8b9d00b0ccc2ec16bbca66988132ab0d3856d935 includes rejection of instances that ProviderManager does not register. Full compilation and live registration remain open.
