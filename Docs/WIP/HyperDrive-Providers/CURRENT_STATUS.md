@@ -13,7 +13,7 @@ Active checkpoint, 10 November 2026. SQL Server is the current HyperDrive focus.
 - Before taking on a provider, check both this directory and the main checkout COSMIC ORM status and provider handoffs for active ownership. Update this checkpoint and affected provider evidence, matrix, handoff, and owner-action entries when ownership, acceptance, prerequisites, or integration changes.
 - New raw evidence under TestResults; compact hash-bound summaries only are tracked. Maintain resource ledger, ten recent entries, byte-preserved archive rollovers.
 
-Development now includes the COSMIC five-reader WEB4 batch at 111165cf8b. A read-only merge preview found conflicts only in the Core submodule pin and Railway manifest. Reconcile those together before merging; the HyperDrive task Core remains at 14bfd34f6. EdgeSQLite local file-backed enumeration passed, and the provider matrix carries nine focused checks.
+Development now includes the COSMIC five-reader WEB4 batch at 111165cf8b. The HyperDrive branch merged the batch at 2fa940c4b8. Core fast-forwarded from 14bfd34f6 to 59595871, retaining the task commits, and the Railway manifest validates against the resulting gitlinks. EdgeSQLite local file-backed enumeration passed, and the provider matrix carries nine focused checks.
 
 ### Priority hosted gates, 10 November
 
