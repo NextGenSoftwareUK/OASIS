@@ -92,3 +92,5 @@ EdgeSQLite focused file-backed cohort: all eight checks exited. Fixture disposal
 10 November Convex hosted harness compile: private integration project outputs cleaned under the build lease. Reference outputs and restore metadata retained. No hosted fixture, backend or raw report allocated.
 
 10 November Neon harness verification: both hosted cases skipped before backend access. Leased project clean completed; reference outputs and restore metadata retained. No native fixture or raw report allocated.
+
+10 November Supabase duplicate-identity guard: no hosted fixture or raw report allocated. Leased clean completed for the private integration project.

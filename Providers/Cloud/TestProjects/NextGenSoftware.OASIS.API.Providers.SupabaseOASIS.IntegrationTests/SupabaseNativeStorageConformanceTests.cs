@@ -92,10 +92,13 @@ public class SupabaseNativeStorageConformanceTests
         var firstId = Guid.NewGuid();
         var secondId = Guid.NewGuid();
         var savedIds = new List<Guid>();
+        var active = await provider.ActivateProviderAsync();
+        Assert.IsTrue(active.Result && !active.IsError, active.Exception?.GetType().FullName);
         try
         {
             foreach (var id in new[] { firstId, secondId })
             {
+                Console.WriteLine($"Supabase duplicate identity fixture ID: {id:D}");
                 var saved = await provider.SaveAvatarAsync(new Core.Holons.Avatar
                 {
                     Id = id,
@@ -120,9 +123,13 @@ public class SupabaseNativeStorageConformanceTests
         }
         finally
         {
-            foreach (var id in savedIds)
-                Assert.IsTrue((await provider.DeleteAvatarAsync(id, softDelete: false)).IsDeleted,
-                    $"Could not remove fixture avatar {id}.");
+            try
+            {
+                foreach (var id in savedIds)
+                    Assert.IsTrue((await provider.DeleteAvatarAsync(id, softDelete: false)).IsDeleted,
+                        $"Could not remove fixture avatar {id}.");
+            }
+            finally { await provider.DeActivateProviderAsync(); }
         }
     }
 
