@@ -108,7 +108,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
         private async Task WeaviateDeleteAsync(string path)
         {
             using var resp = await _http.DeleteAsync($"{_host}{path}");
-            if (!resp.IsSuccessStatusCode && resp.StatusCode != System.Net.HttpStatusCode.NotFound)
+            if (!resp.IsSuccessStatusCode)
                 throw new Exception($"Weaviate DELETE {path} → {(int)resp.StatusCode}");
         }
 
@@ -340,7 +340,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
                     await UpsertObjectAsync("OasisAvatar", id.ToString(), new Dictionary<string, object?> { ["username"] = av.Username, ["email"] = av.Email, ["isDeleted"] = true, ["dataJson"] = Ser(av) });
                 }
                 else { await WeaviateDeleteAsync($"/v1/objects/OasisAvatar/{id}"); }
-                result.Result = true; result.IsError = false; result.Message = $"WeaviateOASIS: Avatar '{id}' deleted.";
+                result.Result = true; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"WeaviateOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: {ex.Message}"); }
             return result;
