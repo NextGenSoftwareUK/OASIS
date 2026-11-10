@@ -15,6 +15,8 @@ Active checkpoint, 10 November 2026. SQL Server is the current HyperDrive focus.
 
 Development now includes the COSMIC five-reader WEB4 batch at 111165cf8b. The HyperDrive branch merged the batch at 2fa940c4b8. Core fast-forwarded from 14bfd34f6 to 59595871, retaining the task commits, and the Railway manifest validates against the resulting gitlinks. EdgeSQLite local file-backed enumeration passed, and the provider matrix carries nine focused checks.
 
+The Garnet Linux fixture guard is staged at d273dba4b4 for the next Development window. It compiled against Core 59595871 and skipped correctly on Windows. Prior native lifecycle receipts remain separate.
+
 ### Priority hosted gates, 10 November
 
 | Provider | Evidence to carry forward | Next acceptance gate |
