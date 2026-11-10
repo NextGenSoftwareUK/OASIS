@@ -95,3 +95,5 @@ Development batch candidate 899c130ce6 (integration/neon-ipfs-fixture-guards) in
 Convex console harness 1a0f239a77 compiled under the provider build lease with 0 errors and 1139 warnings. The harness requires an explicit disposable deployment URL and deploy key. Hosted verification remains open.
 
 Supabase console harness d81549b200 compiled under the provider build lease with 0 errors and 1141 warnings. It requires an explicit disposable project URL and API key. Hosted verification remains open.
+
+Supabase console failure exit status bbb1e1418b compiled with 0 errors and 1139 warnings. Hosted runtime verification remains open.
