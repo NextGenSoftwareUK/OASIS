@@ -101,7 +101,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                 Limit = 1
             });
             return avatarDetailTableRows.Rows.FirstOrDefault(avatarDetailDto =>
-                avatarDetailDto.EntityId == avatarDetailId && Guid.TryParse(avatarDetailDto.AvatarId, out var owner) && owner == id);
+                avatarDetailDto.IsDeleted != true && avatarDetailDto.EntityId == avatarDetailId && Guid.TryParse(avatarDetailDto.AvatarId, out var owner) && owner == id);
         }
 
         public async Task<ImmutableArray<AvatarDetailDto>> ReadAll()
@@ -120,7 +120,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                 if (page?.Rows == null || !page.More.HasValue)
                     throw new InvalidOperationException("EOSIO did not return a complete avatar detail table page.");
 
-                rows.AddRange(page.Rows);
+                rows.AddRange(page.Rows.Where(row => row.IsDeleted != true));
                 if (!page.More.Value)
                     return rows.ToImmutable();
                 if (string.IsNullOrWhiteSpace(page.NextKey) || !cursors.Add(page.NextKey))
@@ -132,14 +132,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
         public Task Update(AvatarDetailDto entity, Guid id)
             => WriteDetailAsync(entity, "setdetail");
 
-        // Soft delete method not supported by avatar detail entity
-        public async Task DeleteSoft(Guid id)
-        {
-            // Avatar detail is read-only on EOSIO - return without error
-            await Task.CompletedTask;
-        }
+        public Task DeleteSoft(Guid id) => DeleteDetailAsync(id, "softdetail");
 
-        public async Task DeleteHard(Guid id)
+        public Task DeleteHard(Guid id) => DeleteDetailAsync(id, "harddetail");
+
+        private async Task DeleteDetailAsync(Guid id, string action)
         {
             if (id == Guid.Empty)
                 throw new ArgumentException("A nonempty avatar ID is required.", nameof(id));
@@ -155,7 +152,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                         {
                             new() { actor = _eosAccountName, permission = "active" }
                         },
-                        name = "harddetail",
+                        name = action,
                         data = new { entityId = HashUtility.GetNumericHash(id), holonId = id.ToString() }
                     }
                 }

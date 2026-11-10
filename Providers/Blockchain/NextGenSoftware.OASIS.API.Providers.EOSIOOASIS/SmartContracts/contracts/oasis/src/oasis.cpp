@@ -101,3 +101,14 @@ void oasis::harddetail(int32_t entityId, string holonId)
     eosio::check(existing->avatarId == holonId, "avatar detail owner mismatch");
     rows.erase(existing);
 }
+
+void oasis::softdetail(int32_t entityId, string holonId)
+{
+    require_auth(get_self());
+    avatar_detail_table rows(get_self(), get_self().value);
+    auto existing = rows.require_find(static_cast<uint32_t>(entityId), "avatar detail not found");
+    eosio::check(existing->avatarId == holonId, "avatar detail owner mismatch");
+    rows.modify(existing, eosio::same_payer, [&](auto &row) {
+        row.isDeleted = eosio::binary_extension<bool>{true};
+    });
+}
