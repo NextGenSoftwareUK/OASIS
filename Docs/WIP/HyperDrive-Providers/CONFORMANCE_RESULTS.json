@@ -325,6 +325,16 @@
       "report": "TestResults/HyperDrive-Providers/CloudflareCurrent/conformance-controlled-current.json",
       "sha256": "9cf5b1d9580db76ea77a53a3de73e192d01a6eff974b9f1300e5dc70f2839107",
       "blockers": []
+    },
+    {
+      "provider": "TONOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-tonoasis-current.json",
+      "sha256": "0bef3ec27b76786e7f26a157d73b7205f8dc7d9243d3c7bb23586090afdc1936",
+      "blockers": []
     }
   ],
   "providerBlockers": {
