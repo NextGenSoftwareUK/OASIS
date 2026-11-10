@@ -263,3 +263,5 @@ SQL Server StaleChildRollsBackParentAndArchive passed on the dedicated LocalDB f
 SQL Server HistoricalCollectionsUseStoredParent passed on dedicated LocalDB (1 passed, 0 failed, 0 skipped). Version 1 listed the moved child under its original parent by GUID and in the full historical collection. Current listings excluded the old parent and found the child under its new parent by provider key. The child fixture was hard-deleted and LocalDB stopped.
 
 SQL Server SearchSelectsArchivedHolonText passed on dedicated LocalDB (1 passed, 0 failed, 0 skipped). The shipping search found literal archived text at version 1 and excluded it from the current view after version 2 committed. Hard cleanup left zero archive rows for the fixture, and LocalDB stopped. Earlier cases were excluded.
+
+SQL Server OwnerExportReturnsRequestedSnapshot passed on dedicated LocalDB (1 passed, 0 failed, 0 skipped). The same creator ID returned the archived name at version 1 and the updated name in the current export. Hard cleanup left zero archive rows for the fixture, and LocalDB stopped. Earlier checks were excluded.
