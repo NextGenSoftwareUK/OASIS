@@ -621,7 +621,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
 
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = !s.IsError, IsError = s.IsError, Message = s.Message }; }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync();
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync(version: version);
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
@@ -633,9 +633,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0) { var a = await LoadAvatarByUsernameAsync(avatarUsername); if (a.IsError || a.Result == null) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, $"PocketBaseOASIS: Avatar '{avatarUsername}' not found."); return r; } return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0) { var a = await LoadAvatarByUsernameAsync(avatarUsername); if (a.IsError || a.Result == null) return new OASISResult<IEnumerable<IHolon>> { IsError = true, ErrorCode = a.ErrorCode, Exception = a.Exception, Message = a.Message }; return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0) { var a = await LoadAvatarByEmailAsync(avatarEmailAddress); if (a.IsError || a.Result == null) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, $"PocketBaseOASIS: Avatar with email '{avatarEmailAddress}' not found."); return r; } return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0) { var a = await LoadAvatarByEmailAsync(avatarEmailAddress); if (a.IsError || a.Result == null) return new OASISResult<IEnumerable<IHolon>> { IsError = true, ErrorCode = a.ErrorCode, Exception = a.Exception, Message = a.Message }; return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
 
         public bool IsVersionControlEnabled { get; set; } = false;
