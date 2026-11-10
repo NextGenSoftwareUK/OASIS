@@ -90,9 +90,9 @@ public class NeonNativeStorageConformanceTests
             expectedDefaultDeletion: "absent");
 
         Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType}");
-        Assert.IsTrue(result.FixtureCleanupComplete);
         try
         {
+            Assert.IsTrue(result.FixtureCleanupComplete);
             await RequireEmptyTables(requireSchema: true);
         }
         catch (Exception error)
@@ -104,7 +104,14 @@ public class NeonNativeStorageConformanceTests
             await Checkpoint(result);
             throw;
         }
-        Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
+        if (result.Passed.Count != CoreStorageConformance.ChecksPerMode)
+        {
+            result.CurrentCase = "native-check-count-verification";
+            result.FailureType = typeof(AssertFailedException).FullName!;
+            result.Succeeded = false;
+        }
+
         await Checkpoint(result);
+        Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
     }
 }
