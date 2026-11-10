@@ -682,7 +682,13 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 foreach (var child in children.Result)
                 {
                     if (!visited.Add(child.Id))
-                        throw new System.IO.InvalidDataException("SQL Server holon graph contains a cycle or duplicate child.");
+                    {
+                        string message = $"SQL Server holon graph contains a cycle or duplicate child '{child.Id}'.";
+                        if (!continueOnError)
+                            throw new System.IO.InvalidDataException(message);
+                        failures.Add(message);
+                        continue;
+                    }
                     entry.Parent.Children.Add(child);
                     pending.Enqueue((child, entry.Depth + 1));
                 }

@@ -11,6 +11,49 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests;
 public class SqlServerNativeStorageConformanceTests
 {
     [TestMethod]
+    public async Task HolonPointReadHandlesPersistedCycle()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_POINT_CYCLE") != "1")
+            Assert.Inconclusive("Enable only for the dedicated LocalDB provider fixture.");
+
+        var provider = new SQLServerDBOASIS(@"Server=(localdb)\MSSQLLocalDB;Database=oasis_hyperdrive_provider_test;Integrated Security=true;TrustServerCertificate=true");
+        var root = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), Name = "Cycle root" };
+        var child = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id, Name = "Cycle child" };
+        root.ParentHolonId = child.Id;
+        var savedIds = new List<Guid>();
+        try
+        {
+            var active = await provider.ActivateProviderAsync();
+            Assert.IsTrue(active.Result && !active.IsError, active.Message);
+            foreach (var node in new[] { root, child })
+            {
+                var write = await provider.SaveHolonAsync(node, saveChildren: false);
+                Assert.IsTrue(write.IsSaved && !write.IsError, write.Message);
+                savedIds.Add(node.Id);
+            }
+
+            var strict = await provider.LoadHolonAsync(root.Id, continueOnError: false);
+            Assert.IsTrue(strict.IsError && strict.Exception is System.IO.InvalidDataException, strict.Message);
+            Assert.IsNull(strict.Result);
+
+            var partial = await provider.LoadHolonAsync(root.Id, continueOnError: true);
+            Assert.IsTrue(partial.IsLoaded && partial.IsWarning && !partial.IsError, partial.Message);
+            Assert.AreEqual(1, partial.InnerMessages.Count);
+            Assert.AreEqual(child.Id, partial.Result.Children.Single().Id);
+            Assert.IsFalse(partial.Result.Children.Single().Children.Any());
+        }
+        finally
+        {
+            foreach (var id in savedIds)
+            {
+                var deleted = await provider.DeleteHolonWithSoftDeleteAsync(id, false);
+                Assert.IsTrue(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+            }
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
     public async Task HolonPointReadHonorsChildDepth()
     {
         if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_POINT_GRAPH") != "1")

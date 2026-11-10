@@ -319,3 +319,5 @@ SQL Server LocalDB passed HolonPointReadHonorsChildDepth. The shipping point rea
 SQL Server LocalDB passed the graph case with collection assertions. The all-holon list honored a depth limit of one, and the parent list attached the grandchild to the direct child. Point reads still passed after extraction of the shared traversal. Test fixtures were hard-deleted and LocalDB stopped. Search and metadata now use the same traversal, but this case did not exercise their hydrated result paths.
 
 SQL Server LocalDB verified hydrated results from search and both metadata overloads. Each uniquely filtered result contained the expected root, child and grandchild. The focused graph test passed, hard-deleted all three fixtures, and stopped LocalDB.
+
+SQL Server LocalDB passed HolonPointReadHandlesPersistedCycle. Strict traversal rejected a two-row cycle without returning a graph. Partial traversal returned the valid child once and warned about the repeated edge. The test removed both synthetic rows and stopped LocalDB.
