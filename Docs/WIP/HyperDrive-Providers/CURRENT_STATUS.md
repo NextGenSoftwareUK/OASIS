@@ -129,3 +129,5 @@ Candidate cefa7d754a passed in-memory Roslyn 5.0 syntax parsing for all four cha
 Current remote verification candidate: 8099fb6697 includes the Supabase production redirect guard. Its five C# files passed in-memory syntax parsing and all three new BootLoader references resolved. Development remains at 1f1021ec6a. The remote build and hosted activation gates remain open.
 
 Remote registration candidate 8b9d00b0ccc2ec16bbca66988132ab0d3856d935 includes rejection of instances that ProviderManager does not register. Full compilation and live registration remain open.
+
+SQL Server BootLoader binding 30c5798dbf uses the shipping SQLServerDBOASIS constructor and OASIS.StorageProviders.SQLServerDBOASIS.ConnectionString, with the existing explicit connection override. Syntax parsing and project reference resolution passed. Compilation and live registration remain open; retained native storage receipts carry forward.
