@@ -16,7 +16,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
 /// <summary>Consumes the enrolled Mongo queue. Native session/transaction ownership and server UTC fence mutations.</summary>
-public sealed partial class MongoHolonReplicationOutbox : IHolonReplicationObligationReader
+public sealed partial class MongoHolonReplicationOutbox : IHolonReplicationObligationReader, IHolonReplicationLineageInventoryOutbox, IHolonReplicationDestinationCatalogue
 {
     private readonly IMongoClient _client;
     private readonly IMongoDatabase _database;
@@ -38,7 +38,7 @@ public sealed partial class MongoHolonReplicationOutbox : IHolonReplicationOblig
         catch(OperationCanceledException)when(cancellationToken.IsCancellationRequested){throw;}
         catch(Exception cause){return Failure<HolonReplicationObligation>(cause);}
     }
-    public MongoHolonReplicationOutbox(MongoDbContext context)
+    public MongoHolonReplicationOutbox(MongoDbContext context, CosmicStorageIdentity expectedSource = null)
     {
         ArgumentNullException.ThrowIfNull(context);
         var database=context.MongoDB ?? throw new ArgumentException("A Mongo database is required.",nameof(context));

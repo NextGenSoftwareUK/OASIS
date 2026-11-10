@@ -76,7 +76,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                 {
                     if (_isReady())
                     {
-                        try { await DeliverAsync(ProviderManager.Instance, stoppingToken); }
+                        try
+                        {
+                            await DeliverAsync(stoppingToken);
+                            _logger.LogDebug("HyperDrive replication delivery pass completed.");
+                        }
                         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
                         catch (Exception exception) { _logger.LogError(exception, "HyperDrive replication delivery pass failed."); }
                     }
@@ -87,10 +91,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
             finally { HolonReplicationRoutes.EnrolledWriteCommitted -= OnCommitted; }
         }
 
-        internal async Task DeliverAsync(ProviderManager manager, CancellationToken cancellationToken)
+        private sealed class ReconciliationTarget(string target,string code) : IHyperDriveIdempotentReplicationTarget
         {
-            var storage = manager.GetAllRegisteredProviders().OfType<IOASISStorageProvider>().ToList();
-            foreach (var source in storage.Where(provider => provider is IHolonReplicationOutboxSource))
+            public string ReplicationTargetId=>target;
+            public Task<OASISResult<bool>> ApplyReplicatedMutationAsync(HostedSyncFanOutItem item,CancellationToken token)
+            {
+                token.ThrowIfCancellationRequested();
+                return Task.FromResult(new OASISResult<bool>{IsError=true,ErrorCount=1,ErrorCode=code,
+                    Message="The persisted automatic route does not match the native source,target or current policy. Explicit reconciliation is required; no replica was applied."});
+            }
+        }
+
+        private async Task DeliverAsync(CancellationToken cancellationToken)
+        {
+            var manager=_providers();
+            HolonReplicationRoutes.UseAuthorizationBinding(manager,()=>_authorization.BindingIdentity);
+            var storage=manager.GetAllRegisteredProviders().OfType<IOASISStorageProvider>().ToList();
+            foreach(var source in storage.Where(provider=>provider is IHolonReplicationOutboxSource))
             {
                 var sourceType=source.ProviderType.Value;
                 var activated=manager.ResolveStorageProvider(sourceType);
@@ -109,28 +126,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                 var olderComplete=true;
                 async Task ReadOlderBindings()
                 {
-                    _logger.LogWarning("Replication outbox of {Source} is unavailable: {Message}", sourceType, outbox.Message);
-                    continue;
-                }
-
-                foreach (var target in storage.Where(provider => provider != source && provider is ICommittedHolonReplicaStorageProvider))
-                {
-                    var targetType = target.ProviderType.Value;
-                    var targetId = HolonReplicationRoutes.TargetId(targetType);
-                    var pending = await outbox.Result.PeekNextAsync(targetId, cancellationToken);
-                    if (pending.IsError || pending.Result == null)
-                        continue;
-                    if (pending.Result.State == HolonDeliveryState.ReconciliationRequired)
-                    {
-                        // A durable ordering barrier is an operational failure, not an
-                        // empty queue. Do not activate the receiver or attempt another claim.
-                        _logger.LogWarning("Replication {Source} -> {Target} blocked at sequence {Sequence}, operation {OperationId}: {Code}.",
-                            sourceType, targetType, pending.Result.Sequence, pending.Result.OperationId, pending.Result.ErrorCode);
-                        continue;
-                    }
-
-                    var receiver = manager.ResolveStorageProvider(targetType);
-                    if (receiver.IsError || receiver.Result is not ICommittedHolonReplicaStorageProvider replicas)
+                    if(olderDiscovered)return;
+                    olderDiscovered=true;
+                    // Format1 bound routes have hashes but no stored descriptors.
+                    // Only that protocol version requires fresh destination proof.
+                    foreach(var target in storage.Where(value=>value.ProviderType.Value!=sourceType && value is IBoundCommittedHolonReplicaStorageProvider))
                     {
                         try
                         {
