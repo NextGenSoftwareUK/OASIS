@@ -122,9 +122,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         // ─── Row model ────────────────────────────────────────────────────────────
 
-        private async Task UpsertAvatarRowAsync(string table, Guid id, object row, string json)
+        private async Task UpsertAvatarRowAsync(string table, Guid id, object row, bool includeDeletion = false)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/{table}?select=id,data_json")
+            var columns = includeDeletion ? "id,username,email,is_deleted,data_json" : "id,username,email,data_json";
+            var proposed = JsonSerializer.SerializeToNode(row, _jsonOpts);
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/{table}?select={columns}")
             {
                 Content = JsonContent(row)
             };
@@ -137,7 +139,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
                 var rows = document.RootElement;
                 if (rows.ValueKind != JsonValueKind.Array || rows.GetArrayLength() != 1
                     || !rows[0].GetProperty("id").TryGetGuid(out var acknowledgedId) || acknowledgedId != id
-                    || rows[0].GetProperty("data_json").GetString() != json)
+                    || !System.Text.Json.Nodes.JsonNode.DeepEquals(proposed, System.Text.Json.Nodes.JsonNode.Parse(rows[0].GetRawText())))
                     throw new System.IO.InvalidDataException("Supabase acknowledgement does not match the proposed avatar row.");
             }
             catch (Exception cause)
@@ -169,7 +171,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
                 var json = projection.ToJsonString(_jsonOpts);
                 var row = new { id, username = avatar.Username ?? "", email = avatar.Email ?? "",
                     is_deleted = avatar.IsDeleted, data_json = json };
-                await UpsertAvatarRowAsync("oasis_avatars", id, row, json);
+                await UpsertAvatarRowAsync("oasis_avatars", id, row, includeDeletion: true);
 
                 avatar.Id = id;
                 avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
@@ -356,7 +358,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
                 projection.Id = id;
                 var json = StoredRecordJson.Serialize(projection);
                 var row = new { id, username = avatarDetail.Username ?? "", email = avatarDetail.Email ?? "", data_json = json };
-                await UpsertAvatarRowAsync("oasis_avatar_details", id, row, json);
+                await UpsertAvatarRowAsync("oasis_avatar_details", id, row);
 
                 avatarDetail.Id = id;
                 result.Result = avatarDetail;
