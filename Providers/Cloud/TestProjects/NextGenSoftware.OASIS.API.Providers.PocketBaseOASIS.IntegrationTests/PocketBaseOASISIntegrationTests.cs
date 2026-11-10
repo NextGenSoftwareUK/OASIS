@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -122,10 +123,32 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
         }
 
         [TestMethod]
-        public async Task LoadAllAvatars_ReturnsAResult()
+        public async Task AvatarListingReportsCountAndExcludesSoftDeletedRecords()
         {
-            var all = await _provider.LoadAllAvatarsAsync();
-            Assert.IsNotNull(all);
+            var marker = Guid.NewGuid().ToString("N");
+            var avatar = new Avatar { Id = Guid.NewGuid(), Username = marker, Email = $"{marker}@example.test" };
+            var saved = await _provider.SaveAvatarAsync(avatar);
+            Assert.IsTrue(saved.IsSaved, saved.Message);
+            try
+            {
+                var all = await _provider.LoadAllAvatarsAsync();
+                Assert.IsTrue(all.IsLoaded, all.Message);
+                Assert.AreEqual(all.Result.Count(), all.LoadedCount);
+                Assert.AreEqual(1, all.Result.Count(item => item.Id == avatar.Id));
+
+                var deleted = await _provider.DeleteAvatarAsync(avatar.Id, softDelete: true);
+                Assert.IsTrue(deleted.IsDeleted, deleted.Message);
+
+                var remaining = await _provider.LoadAllAvatarsAsync();
+                Assert.IsTrue(remaining.IsLoaded, remaining.Message);
+                Assert.AreEqual(remaining.Result.Count(), remaining.LoadedCount);
+                Assert.IsFalse(remaining.Result.Any(item => item.Id == avatar.Id));
+            }
+            finally
+            {
+                var removed = await _provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
+                Assert.IsTrue(removed.IsDeleted, removed.Message);
+            }
         }
 
         [TestMethod]
