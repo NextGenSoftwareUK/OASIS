@@ -641,3 +641,9 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Reason** The native test writes a synthetic holon, deletes it and verifies the row count immediately. The COSMIC teaching source is read-only and is separately accepted.
 - **CI alternative (2026-11-10)** Open a draft pull request from the [published candidate](https://github.com/NextGenSoftwareUK/OASIS/pull/new/integration/clickhouse-native-delete) into Development if the disposable CI fixture is preferable. The connector received HTTP 403 creating it. The branch is at 8052e10782. CI must pass the focused hard-delete case before promotion.
 - **Context** [Provider continuation](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
+
+### Provider inventory count on separate public sites
+
+- **Status (2026-11-10)** Open. The inventory has 234 shipping provider projects. Web4Site main uses 229 in index.html and 40+ in README.md. OASISOmniverseSite main uses 222 in index.html. GitHub refused creation of a scoped update branch in both repositories with HTTP 403.
+- **David action** Grant the connected GitHub integration permission to create a branch and pull request in [Web4Site](https://github.com/NextGenSoftwareUK/Web4Site) and [OASISOmniverseSite](https://github.com/NextGenSoftwareUK/OASISOmniverseSite), or identify the approved writable checkouts. The Founders, OPORTAL, Docs and Learn site repositories are identified and their count audits remain agent-owned.
+- **Reason** Update the public inventory claims independently of backend acceptance. Preserve site ownership and existing deployment workflows.
