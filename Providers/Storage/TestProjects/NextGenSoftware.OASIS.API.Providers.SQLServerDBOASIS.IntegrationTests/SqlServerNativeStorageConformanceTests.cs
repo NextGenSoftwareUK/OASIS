@@ -41,6 +41,15 @@ public class SqlServerNativeStorageConformanceTests
             var direct = await provider.LoadHolonAsync(root.Id, loadChildren: false);
             Assert.IsTrue(direct.IsLoaded && !direct.IsError, direct.Message);
             Assert.IsFalse(direct.Result.Children?.Any() == true);
+            var collection = await provider.LoadAllHolonsAsync(maxChildDepth: 1, continueOnError: false);
+            Assert.IsTrue(collection.IsLoaded && !collection.IsError, collection.Message);
+            var listedRoot = collection.Result.Single(row => row.Id == root.Id);
+            Assert.AreEqual(child.Id, listedRoot.Children.Single().Id);
+            Assert.IsFalse(listedRoot.Children.Single().Children?.Any() == true);
+
+            var parentList = await provider.LoadHolonsForParentAsync(root.Id, continueOnError: false);
+            Assert.IsTrue(parentList.IsLoaded && !parentList.IsError, parentList.Message);
+            Assert.AreEqual(leaf.Id, parentList.Result.Single().Children.Single().Id);
         }
         finally
         {
