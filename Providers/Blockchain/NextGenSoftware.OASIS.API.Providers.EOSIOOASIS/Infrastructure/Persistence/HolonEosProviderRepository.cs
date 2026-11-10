@@ -279,10 +279,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
 
         public async Task DeleteHard(Guid id)
         {
-            if (id == null)
-                throw new ArgumentNullException(nameof(id));
+            if (id == Guid.Empty)
+                throw new ArgumentException("A nonempty holon ID is required.", nameof(id));
 
-            var holonEntityId = HashUtility.GetNumericHash(id);
+            var existing = await Read(id).ConfigureAwait(false);
+            if (existing == null)
+                throw new KeyNotFoundException("The EOSIO holon does not exist.");
+            var holonEntityId = existing.EntityId;
             var pushTransactionResult = await _eos.CreateTransaction(new Transaction
             {
                 actions = new List<Action>
@@ -305,7 +308,21 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                         }
                     }
                 }
-            });
+            }).ConfigureAwait(false);
+
+            if (string.IsNullOrWhiteSpace(pushTransactionResult))
+                throw new InvalidOperationException("EOSIO did not acknowledge the holon deletion transaction.");
+            HolonDto remaining;
+            try
+            {
+                remaining = await Read(id).ConfigureAwait(false);
+            }
+            catch (Exception error)
+            {
+                throw new InvalidOperationException($"EOSIO holon deletion {pushTransactionResult} was submitted but readback failed.", error);
+            }
+            if (remaining != null)
+                throw new InvalidOperationException($"EOSIO holon deletion {pushTransactionResult} has not been confirmed by table readback.");
 
             LoggingManager.Log(
                 "Holon hard-deleting request was sent. " +

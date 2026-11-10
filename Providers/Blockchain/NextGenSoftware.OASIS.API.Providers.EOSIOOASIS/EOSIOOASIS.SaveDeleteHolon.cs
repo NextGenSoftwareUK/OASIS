@@ -153,18 +153,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                //if (softDelete)
-                //    await _holonRepository.DeleteSoft(id);
-                //else
-                //    await _holonRepository.DeleteHard(id).ConfigureAwait(false);
-
                 await _holonRepository.DeleteHard(id).ConfigureAwait(false);
-                result.IsSaved = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
                 result.IsError = false;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
             }
 
             return result;
